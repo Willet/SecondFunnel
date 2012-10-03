@@ -1,0 +1,37 @@
+[aws:elasticbeanstalk:container:python]
+WSGIPath = 
+NumProcesses = 0
+StaticFiles = /static=
+NumThreads = 0
+
+[aws:elasticbeanstalk:container:python:staticfiles]
+/static = 
+
+[aws:rds:dbinstance]
+DBUser = ebroot
+DBEngine = mysql
+DBSnapshotIdentifier = 
+DBDeletionPolicy = Snapshot
+
+[aws:elasticbeanstalk:hostmanager]
+LogPublicationControl = false
+
+[aws:autoscaling:launchconfiguration]
+InstanceType = t1.micro
+EC2KeyName = 
+
+[aws:autoscaling:asg]
+MaxSize = 4
+MinSize = 1
+Custom Availability Zones = 
+
+[aws:elasticbeanstalk:application]
+Application Healthcheck URL = 
+
+[aws:elasticbeanstalk:monitoring]
+Automatically Terminate Unhealthy Instances = true
+
+[aws:elasticbeanstalk:sns:topics]
+Notification Endpoint = 
+Notification Protocol = email
+

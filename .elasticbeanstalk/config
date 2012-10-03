@@ -1,0 +1,10 @@
+AwsCredentialFile = /Users/grisha/.elasticbeanstalk/aws_credential_file
+ApplicationName = secondfunnel
+EnvironmentName = secondfunnel-dev
+Region = us-west-2
+ServiceEndpoint = https://elasticbeanstalk.us-west-2.amazonaws.com
+RdsEndpoint = https://rds.us-west-2.amazonaws.com
+SolutionStack = 64bit Amazon Linux running Python
+RdsEnabled = Yes
+RdsSourceSnapshotName = 
+RdsDeletionPolicy = Snapshot
