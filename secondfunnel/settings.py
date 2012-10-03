@@ -134,6 +134,7 @@ INSTALLED_APPS = (
     'storages',
     'south',
     'django_extensions',
+    'tastypie',
 
     # our apps
 )
