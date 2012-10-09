@@ -1,4 +1,4 @@
-AwsCredentialFile = /Users/grisha/.elasticbeanstalk/aws_credential_file
+AwsCredentialFile = ./aws_credential_file
 ApplicationName = secondfunnel
 EnvironmentName = secondfunnel-dev
 Region = us-west-2
