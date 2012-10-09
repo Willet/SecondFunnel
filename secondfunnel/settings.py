@@ -137,6 +137,8 @@ INSTALLED_APPS = (
     'tastypie',
 
     # our apps
+    'apps.analytics',
+    'apps.pinpoint',
 )
 
 # A sample logging configuration. The only tangible logging
