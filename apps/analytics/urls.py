@@ -2,7 +2,7 @@ from django.conf.urls.defaults import patterns, url
 
 
 urlpatterns = patterns('apps.analytics.views',
-    url(r'^analytics/embedded/$', 'embedded_analytics',
+    url(r'^analytics/embedded/(?P<app_slug>[-\w]+)/$', 'embedded_analytics',
         name='embedded-analytics'),
 )
 

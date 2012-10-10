@@ -84,17 +84,15 @@
         }
 
         .perc, .perc_b {
-            text-shadow: 0px 0px 5px #2e2e2e;
-            filter: dropshadow(color=#2e2e2e, offx=0, offy=0);
-            color: #ff523c;
-            font-size: 15pt;
             position: relative;
             left: 45px;
 
+            font-size: 15pt;
             font-weight: normal;
-            color: #626569;
+
             color: rgba(0, 0, 0, 0.4);
             text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+            filter: dropshadow(color=#2e2e2e, offx=0, offy=0);
         }
 
         .perc_b {
@@ -112,10 +110,25 @@
             position: relative;
             left: -25px;
         }
+
+        .app_title {
+            position: relative;
+            top: -30px;
+
+            color: rgba(0, 0, 0, 0.7);
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+            filter: dropshadow(color=#2e2e2e, offx=0, offy=0);
+        }
     </style>
 {% endblock %}
 
 {% block content %}
+    <div class="grid_6 app_title">
+        <h2>{{ app_slug|title }} Analytics</h2>
+    </div>
+
+    <div class="clear"></div>
+
     <div class="grid_8 alpha">
         <div class="grid_8">
             <span class="step arrow_box">
