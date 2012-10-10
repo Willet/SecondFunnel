@@ -62,6 +62,9 @@ class Store(BaseModelNamed):
     def __unicode__(self):
         return self.name
 
+    def staff_count(self):
+        return self.staff.all().count()
+
 
 class StoreTheme(BaseModelNamed):
     store = models.ForeignKey(Store)
