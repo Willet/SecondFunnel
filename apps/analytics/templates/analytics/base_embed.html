@@ -1,12 +1,15 @@
 <html>
     <head>
         <link rel="stylesheet" href="https://dl.dropbox.com/u/113816/960.css"></link>
-        {% block extra_head %}{% enblock %}
+        {% block extra_head %}{% endblock %}
     </head>
 
     <body>
 
         <div class="container_12 analytics">
             {% block content %}{% endblock %}
+        </div>
+
+        {% block extra_js %}{% endblock %}
     </body>
 </html>

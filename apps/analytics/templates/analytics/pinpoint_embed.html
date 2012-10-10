@@ -123,12 +123,11 @@
                     Visitors:
                 </span>
                 <span class="count" id="visitors_count">
-                    4000
+                    &hellip;
                 </span>
             </span>
 
             <span class="perc" id="visitors_to_interaction">
-                35%
             </span>
 
             <span class="step arrow_box">
@@ -136,7 +135,7 @@
                     Interacted:
                 </span>
                 <span class="count" id="interaction_count">
-                    100
+                    &hellip;
                 </span>
             </span>
         </div>
@@ -152,123 +151,59 @@
                 <span class="title">
                     Shared Featured:
                 </span>
-                <span class="count">
-                    130
+                <span class="count" id="shared_featured_count">
+                    &hellip;
                 </span>
             </span>
             <span class="perc_b" id="shared_featured_perc">
-                35%
+                &hellip;
             </span>
 
             <span class="breakdown round_box">
                 <span class="title">
                     Shared Popup:
                 </span>
-                <span class="count">
-                    37
+                <span class="count" id="shared_popup_count">
+                    &hellip;
                 </span>
             </span>
             <span class="perc_b" id="shared_popup_perc">
-                35%
+                &hellip;
             </span>
 
             <span class="breakdown round_box">
                 <span class="title">
                     Opened Popup:
                 </span>
-                <span class="count">
-                    293
+                <span class="count" id="open_popup_count">
+                    &hellip;
                 </span>
             </span>
             <span class="perc_b" id="open_popup_perc">
-                35%
+                &hellip;
             </span>
 
             <span class="breakdown round_box">
                 <span class="title">
                     Clickthrough:
                 </span>
-                <span class="count">
-                    23
+                <span class="count" id="clickthrough_count">
+                    &hellip;
                 </span>
             </span>
             <span class="perc_b" id="clickthrough_perc">
-                35%
+                &hellip;
             </span>
         </span>
     </div>
 {% endblock %}
 
 {% block extra_js %}
+    {{ block.super }}
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 
     <script type="text/javascript">
-        var analytics_data = (function() {
-            return {
-                visits: 13452,
-                interactions: {
-                    total: 242,
-                    clickthrough: 333,
-                    popup: 122,
-                    shares: {
-                        featured: 134,
-                        popup: 118
-                    }
-                },
-                daily: {
-                    "2012-09-01": {
-                        visits: 140,
-                        interactions: {
-                            total: 70,
-                            clickthrough: 10,
-                            popup: 30,
-                            shares: {
-                                featured: 10,
-                                popup: 20
-                            }
-                        }
-                    },
-                    "2012-09-02": {
-                        visits: 140,
-                        interactions: {
-                            total: 70,
-                            clickthrough: 10,
-                            popup: 30,
-                            shares: {
-                                featured: 10,
-                                popup: 20
-                            }
-                        }
-                    },
-                    "2012-09-03": {
-                        visits: 140,
-                        interactions: {
-                            total: 70,
-                            clickthrough: 10,
-                            popup: 30,
-                            shares: {
-                                featured: 10,
-                                popup: 20
-                            }
-                        }
-                    },
-                    "2012-09-04": {
-                        visits: 140,
-                        interactions: {
-                            total: 70,
-                            clickthrough: 10,
-                            popup: 30,
-                            shares: {
-                                featured: 10,
-                                popup: 20
-                            }
-                        }
-                    }
-                }
-            }
-        }());
-
         function set_percentage(id, perc) {
             $("#" + id).html(perc.toFixed(2) + "%");
         }
@@ -276,36 +211,43 @@
         google.load("visualization", "1", {packages:["corechart"]});
 
         google.setOnLoadCallback(function () {
-            var dataset = [['Year', 'Visits', 'Interactions']],
-                day, google_data, google_options, chart;
+            $.getJSON("{% url ajax-analytics-overview "my-app" %}", function(analytics_data) {
+                var dataset = [['Year', 'Visits', 'Interactions']],
+                i, google_data, google_options, chart;
 
-            $("#visitors_count").html(analytics_data.visits);
-            $("#interaction_count").html(analytics_data.interactions.total);
+                $("#visitors_count").html(analytics_data.visits);
+                $("#interaction_count").html(analytics_data.interactions.total);
 
-            set_percentage("visitors_to_interaction", analytics_data.interactions.total / analytics_data.visits * 100);
-            set_percentage("shared_featured_perc", analytics_data.interactions.shares.featured / analytics_data.interactions.total * 100);
-            set_percentage("shared_popup_perc", analytics_data.interactions.shares.popup / analytics_data.interactions.total * 100);
-            set_percentage("open_popup_perc", analytics_data.interactions.popup / analytics_data.interactions.total * 100);
-            set_percentage("clickthrough_perc", analytics_data.interactions.clickthrough / analytics_data.interactions.total * 100);
+                $("#shared_featured_count").html(analytics_data.interactions.shares.featured);
+                $("#shared_popup_count").html(analytics_data.interactions.shares.popup);
+                $("#open_popup_count").html(analytics_data.interactions.popup);
+                $("#clickthrough_count").html(analytics_data.interactions.clickthrough);
+
+                set_percentage("visitors_to_interaction", analytics_data.interactions.total / analytics_data.visits * 100);
+                set_percentage("shared_featured_perc", analytics_data.interactions.shares.featured / analytics_data.interactions.total * 100);
+                set_percentage("shared_popup_perc", analytics_data.interactions.shares.popup / analytics_data.interactions.total * 100);
+                set_percentage("open_popup_perc", analytics_data.interactions.popup / analytics_data.interactions.total * 100);
+                set_percentage("clickthrough_perc", analytics_data.interactions.clickthrough / analytics_data.interactions.total * 100);
 
 
-            for (day in analytics_data.daily) {
-                dataset.push([day, analytics_data.daily[day].visits, analytics_data.daily[day].interactions.total]);
-            }
+                for (var i in analytics_data.daily) {
+                    dataset.push([analytics_data.daily[i].date, analytics_data.daily[i].visits, analytics_data.daily[i].interactions.total]);
+                }
 
-            google_data = google.visualization.arrayToDataTable(dataset);
+                google_data = google.visualization.arrayToDataTable(dataset);
 
-            google_options = {
-                title: 'Traffic Overview',
-                legend: {'position': 'bottom', 'fontSize': 16},
-                backgroundColor: "#e9e9e9",
-                chartArea: {width: '87%'},
-                colors: ["#8E9E82", "#607890"]
-                // theme: "maximized"
-            };
+                google_options = {
+                    title: 'Traffic Overview',
+                    legend: {'position': 'bottom', 'fontSize': 16},
+                    backgroundColor: "#e9e9e9",
+                    chartArea: {width: '87%'},
+                    colors: ["#8E9E82", "#607890"]
+                    // theme: "maximized"
+                };
 
-            chart = new google.visualization.LineChart(document.getElementById('analytics_chart'));
-            chart.draw(google_data, google_options);
+                chart = new google.visualization.LineChart(document.getElementById('analytics_chart'));
+                chart.draw(google_data, google_options);
+            });
         });
     </script>
 {% endblock %}
