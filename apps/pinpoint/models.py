@@ -94,8 +94,12 @@ class BlockContent(BaseModel):
 
 
 class Campaign(BaseModelNamed):
-    content_blocks = models.ManyToManyField(BlockContent, related_name="content_campaign")
-    discovery_blocks = models.ManyToManyField(BlockContent, related_name="discovery_campaign")
+    store = models.ForeignKey(Store)
+    content_blocks = models.ManyToManyField(BlockContent,
+        related_name="content_campaign")
+
+    discovery_blocks = models.ManyToManyField(BlockContent,
+        related_name="discovery_campaign")
 
     def __unicode__(self):
         return u"Campaign: %s" % self.name
