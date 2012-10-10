@@ -47,7 +47,7 @@ class MediaAsset(BaseModelNamed):
 
 
 class Product(BaseModelNamed):
-    price = models.CharField(max_length=255)
+    price = models.CharField(max_length=255, blank=True, null=True)
 
     original_url = models.CharField(max_length=500, blank=True, null=True)
     images = models.ManyToManyField(MediaAsset, blank=True, null=True)
