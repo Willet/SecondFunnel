@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 
@@ -17,6 +18,16 @@ class BaseModelNamed(BaseModel):
 
     class Meta:
         abstract = True
+
+
+class Store(BaseModelNamed):
+    staff = models.ManyToManyField(User)
+
+    def __unicode__(self):
+        return self.name
+
+    def staff_count(self):
+        return self.staff.all().count()
 
 
 class Media(BaseModelNamed):
@@ -44,6 +55,8 @@ class Product(BaseModelNamed):
 
     original_url = models.CharField(max_length=500, blank=True, null=True)
     images = models.ManyToManyField(Media, blank=True, null=True)
+
+    store = models.ForeignKey(Store, blank=True, null=True)
 
     def __unicode__(self):
         return self.name

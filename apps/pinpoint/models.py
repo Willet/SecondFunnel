@@ -3,17 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.db import models
 
-from apps.assets.models import Media, BaseModel, BaseModelNamed
-
-
-class Store(BaseModelNamed):
-    staff = models.ManyToManyField(User)
-
-    def __unicode__(self):
-        return self.name
-
-    def staff_count(self):
-        return self.staff.all().count()
+from apps.assets.models import Media, BaseModel, BaseModelNamed, Store
 
 
 class StoreTheme(BaseModelNamed):

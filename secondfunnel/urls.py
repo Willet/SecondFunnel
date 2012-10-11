@@ -7,6 +7,9 @@ admin.autodiscover()
 urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
 
+    # API
+    url(r'^api/assets/', include('apps.assets.api_urls')),
+
     # ANALYTICS
     url(r'^', include('apps.analytics.urls')),
 )
