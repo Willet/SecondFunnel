@@ -3,13 +3,16 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.db import models
 
-from apps.assets.models import Media, BaseModel, BaseModelNamed, Store
+from apps.assets.models import MediaBase, BaseModel, BaseModelNamed, Store
+
+
+class StoreThemeMedia(MediaBase):
+    theme = models.ForeignKey("StoreTheme", related_name="media")
 
 
 class StoreTheme(BaseModelNamed):
     store = models.ForeignKey(Store)
     css = models.TextField(blank=True, null=True)
-    assets = models.ManyToManyField(Media, blank=True, null=True)
 
     def __unicode__(self):
         return u"Theme for Store: %s" % self.store

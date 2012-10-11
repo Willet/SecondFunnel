@@ -30,12 +30,15 @@ class Store(BaseModelNamed):
         return self.staff.all().count()
 
 
-class Media(BaseModelNamed):
+class MediaBase(BaseModelNamed):
     remote = models.CharField("Remote URL",
         max_length=555, blank=True, null=True)
 
     hosted = models.FileField("Hosted File",
         upload_to="product_images", blank=True, null=True)
+
+    class Meta:
+        abstract = True
 
     def __unicode__(self):
         return u"Media Asset URL %s" % self.get_url()
@@ -50,11 +53,14 @@ class Media(BaseModelNamed):
         return None
 
 
+class ProductMedia(MediaBase):
+    product = models.ForeignKey("Product", related_name="media")
+
+
 class Product(BaseModelNamed):
     price = models.CharField(max_length=255, blank=True, null=True)
 
     original_url = models.CharField(max_length=500, blank=True, null=True)
-    images = models.ManyToManyField(Media, blank=True, null=True)
 
     store = models.ForeignKey(Store, blank=True, null=True)
 

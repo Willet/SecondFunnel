@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.assets.models import Product, Media, Store
+from apps.assets.models import Product, ProductMedia, Store
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -22,10 +22,15 @@ class BaseNamedAdmin(BaseAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 
-class MediaAdmin(BaseNamedAdmin):
+class BaseNamedMediaAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + ['remote', 'hosted']
 
-admin.site.register(Media, MediaAdmin)
+
+class ProductMediaAdmin(BaseNamedMediaAdmin):
+    list_display = BaseNamedMediaAdmin.list_display + ['product']
+    list_filter = ['product']
+
+admin.site.register(ProductMedia, ProductMediaAdmin)
 
 
 class StoreAdmin(BaseNamedAdmin):

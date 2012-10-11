@@ -1,7 +1,7 @@
 from tastypie import fields
 from tastypie.resources import ModelResource, ALL
 
-from apps.assets.models import Product, Store
+from apps.assets.models import Product, Store, ProductMedia
 
 
 class StoreResource(ModelResource):
@@ -20,4 +20,16 @@ class ProductResource(ModelResource):
         filtering = {
             'store': ALL,
             'original_url': ('exact', 'startswith',)
+        }
+
+
+class ProductMediaResource(ModelResource):
+    product = fields.ForeignKey(ProductResource, 'product')
+
+    class Meta:
+        queryset = ProductMedia.objects.all()
+        resource_name = 'product_media'
+
+        filtering = {
+            'product': ALL
         }
