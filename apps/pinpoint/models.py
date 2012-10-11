@@ -6,10 +6,6 @@ from django.db import models
 from apps.assets.models import Media, BaseModel, BaseModelNamed
 
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User)
-
-
 class Store(BaseModelNamed):
     staff = models.ManyToManyField(User)
 
