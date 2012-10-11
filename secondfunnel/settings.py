@@ -140,6 +140,7 @@ INSTALLED_APPS = (
 
     # our apps
     'apps.analytics',
+    'apps.assets',
     'apps.pinpoint',
 )
 
