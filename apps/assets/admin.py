@@ -9,6 +9,8 @@ class BaseAdmin(admin.ModelAdmin):
         'last_modified'
     ]
 
+    list_filter = []
+
     date_hierarchy = 'created'
 
 
@@ -23,12 +25,15 @@ class BaseNamedAdmin(BaseAdmin):
 
 
 class BaseNamedMediaAdmin(BaseNamedAdmin):
-    list_display = BaseNamedAdmin.list_display + ['remote', 'hosted']
+    list_display = BaseNamedAdmin.list_display + [
+        'remote', 'hosted', 'media_type']
+
+    list_filter = BaseNamedAdmin.list_filter + ['media_type']
 
 
 class ProductMediaAdmin(BaseNamedMediaAdmin):
     list_display = BaseNamedMediaAdmin.list_display + ['product']
-    list_filter = ['product']
+    list_filter = BaseNamedMediaAdmin.list_filter + ['product']
 
 admin.site.register(ProductMedia, ProductMediaAdmin)
 
