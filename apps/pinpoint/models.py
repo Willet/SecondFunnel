@@ -19,8 +19,6 @@ class StoreTheme(BaseModelNamed):
 
 
 class BlockType(BaseModelNamed):
-    template_name = models.CharField(max_length=255)
-
     def __unicode__(self):
         return u"Block type: %s" % self.name
 
