@@ -5,13 +5,15 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
+    # INTERNAL ADMIN
     url(r'^admin/', include(admin.site.urls)),
 
-    # API
-    url(r'^api/assets/', include('apps.assets.api_urls')),
+    # APPS
+    url(r'^pinpoint/', include('apps.pinpoint.urls')),
+    url(r'^analytics/', include('apps.analytics.urls')),
 
-    # ANALYTICS
-    url(r'^', include('apps.analytics.urls')),
+    # APIs
+    url(r'^api/assets/', include('apps.assets.api_urls')),
 )
 
 urlpatterns += staticfiles_urlpatterns()
