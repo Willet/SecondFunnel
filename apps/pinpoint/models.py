@@ -12,7 +12,6 @@ class StoreThemeMedia(MediaBase):
 
 class StoreTheme(BaseModelNamed):
     store = models.ForeignKey(Store)
-    css = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
         return u"Theme for Store: %s" % self.store

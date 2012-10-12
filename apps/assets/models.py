@@ -31,11 +31,19 @@ class Store(BaseModelNamed):
 
 
 class MediaBase(BaseModelNamed):
+    MEDIA_TYPES = (
+        ('js', 'JavaScript'),
+        ('css', 'CSS'),
+        ('img', 'Image'),
+    )
     remote = models.CharField("Remote URL",
         max_length=555, blank=True, null=True)
 
     hosted = models.FileField("Hosted File",
         upload_to="product_images", blank=True, null=True)
+
+    media_type = models.CharField(max_length=3,
+        choices=MEDIA_TYPES, default="css")
 
     class Meta:
         abstract = True
