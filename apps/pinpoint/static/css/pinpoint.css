@@ -1,0 +1,436 @@
+html, body {height:100%; margin: 0; padding: 0;}
+#willet-main { font-family: Arial, Helvetica, Tahoma !important; margin: 0; padding: 0;}
+#willet-main h1 { font-size: 20px; }
+#willet-main p { font-size: 13px; margin: 0; padding: 0;}
+#willet-main table, #willet-main tr, #willet-main td { margin: 0; padding: 0; }
+
+#willet-main {
+    min-height: 100%;
+    background-color: #DDD;
+}
+
+#willet-main #wrapper {
+    min-height: 100%;
+    width: 1000px;
+    margin: 0px auto;
+    text-align: center;
+    background-color: #EEE;
+
+    -moz-box-shadow: 10px 10px 10px 0px #CECECE;
+    -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
+    -o-box-shadow: 10px 10px 10px 0px #CECECE;
+    box-shadow: 10px 10px 10px 0px #CECECE;
+}
+
+#willet-main #banner {
+    height: 200px;
+    padding: none;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#willet-main #banner img {
+    height: 200px;
+    width: 1000px;
+    border-bottom: 5px solid black;
+}
+
+#willet-main .pin {
+    margin: 0 auto 30px auto;
+    background: #cecece;
+    position: relative;
+    text-align: center;
+    overflow: visible;
+    width: 200px;
+
+    -moz-box-shadow: 10px 10px 10px 0px #CECECE;
+    -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
+    -o-box-shadow: 10px 10px 10px 0px #CECECE;
+    box-shadow: 10px 10px 10px 0px #CECECE;
+}
+
+#willet-main .pin > .inner-pin {
+    border-top: 1px solid #DDD;
+    border-left: 1px solid #DDD;
+    border-right: 1px solid #999;
+    border-bottom: 1px solid #999;
+}
+
+#willet-main .inner-pin {
+    overflow: hidden;
+    width: 200px;
+    /*margin-right: 5px;*/
+    text-align: center;
+    background:#f6f6f6;
+}
+#willet-main .inner-pin img {
+    max-width: 200px;
+    max-height: 500px;
+}
+#light_img_div {
+    width: 500px;
+    height: 400px;
+}
+#light_img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+#light a {
+    color: #FFF;
+}
+
+#willet-main a#light_title:hover {
+    text-decoration: none;
+}
+
+#willet-main .inner-pin h5 {
+    /*margin: 0;
+    padding: 10px 10px 5px 10px;
+    font-size: 13px;
+    font-weight: normal;
+    color: #fff;
+    width: 140px;
+    background: #161616;
+    background: rgba(0,0,0,0.8);
+    bottom: 15px;
+    position: absolute;
+    display: block;
+    text-align: left;*/
+
+    margin: 0;
+    padding: 10px;
+    background: #AAA;
+    color: #fff;
+    text-shadow: 1px 1px #666;
+    border-top: 1px solid #999;
+}
+
+#willet-main .social-hover {
+    margin: 0;
+    text-align: left;
+    position: absolute;
+    left: 10px;
+    width: 100%;
+    top: 10px;
+}
+
+#willet-main .social-hover > div {
+    /*margin: 10px 0px;*/
+    position: relative;
+    margin: 0;
+    padding:0;
+    display: block;
+    float: left;
+    margin-right: 5px;
+}
+
+#willet-main .social-hover > .fb_buttons {
+    width: 48px;
+}
+
+#willet-main .inner-pin h5:hover {
+    text-decoration: underline;
+}
+
+#willet-main #pin-read-less {
+    text-decoration: underline;
+    cursor: -webkit-zoom-out;
+    cursor: -moz-zoom-out;
+    cursor: zoom-out;
+}
+
+#willet-main .pinimg a:link{
+    border-bottom: none;
+    background: #fff;
+    width: 175px;
+    padding-right: 5px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#willet-main .pin img { }
+#willet-main .pin a { border: none; overflow: hidden; }
+#willet-main .pin a img { border: none; overflow: hidden; }
+
+#willet-main a { text-decoration: none; color: #2d2d2d;}
+#willet-main a:hover { text-decoration: underline; }
+#willet-main .link a { color: #000; }
+#willet-main .link a:hover { text-decoration:underline; }
+#willet-main a span {
+    visibility: hidden;
+    text-align: center;
+    width: 171px;
+    display: block;
+    padding: 3px;
+
+}
+
+#willet-main a:hover span { visibility: visible; font-size: 12; }
+
+#willet-main #darkbg {  background: #4a4a4a; }
+
+#willet-main #buttons { position: absolute; bottom: 10; }
+
+#willet-main #buttons img {
+    width: 139px;
+}
+
+#willet-main #light {
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    display: table;
+    top:0;
+    left:0;
+}
+
+#light #pic_selector {
+    text-align: center;
+}
+
+#willet-main #light-inner {
+    overflow: hidden;
+    display: table-cell;
+    vertical-align: middle;
+    position: static;
+}
+
+#willet-main #light-content {
+    overflow: hidden;
+    width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+
+    border-width: 2px;
+    border-style: solid;
+    border-color: #0F0;
+
+    position: relative;
+
+    padding: 30px 30px 30px 55px;
+    background: #fff;
+    z-index:1002;
+    border: 1px solid #cecece;
+
+    -moz-box-shadow: 10px 10px 10px 0px #CECECE;
+    -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
+    -o-box-shadow: 10px 10px 10px 0px #CECECE;
+    box-shadow: 10px 10px 10px 0px #CECECE;
+}
+
+#willet-main .overlay{
+    display: none;
+    position: fixed;
+    top: 0%;
+    left: 0%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.7);
+    cursor: -webkit-zoom-out;
+    cursor: -moz-zoom-out;
+    cursor: zoom-out;
+}
+
+#willet-main #divider {
+    position: relative;
+    width: 100%;
+    height: 10px;
+}
+
+#willet-main h3 {
+    font-size: 30px;
+    margin: 0;
+    padding: 0;
+    margin-top: 10px;
+    text-shadow: 1px 1px #666;
+    border-bottom: 1px solid #aaa;
+}
+#willet-main h4 {
+    margin: 0;
+    padding: 0;
+    margin-bottom: 5px;
+    font-weight: normal;
+}
+
+
+#willet-main #product-banner {
+    display: inline-block;
+    width: 700px;
+    margin: 15px 15px 15px;
+    border: 1px solid #aaaaaa;
+    box-shadow: 0 2px 5px rgba(0,0,0, 0.3);
+    background: #fff;
+    position: relative;
+    text-align: center;
+}
+#willet-main .column {
+    text-align: center;
+    float: left;
+    width: 217px;
+    text-align: center;
+    margin: 15px;
+}
+
+#willet-main #light .content,
+#featured-product .content  {
+    width: 550px;
+    /*margin-right: 40px;*/
+}
+
+#willet-main #light .text {
+    text-align: left;
+    width: 550px;
+    /*float: left;*/
+}
+
+#willet-main #light .buttons {
+    float: right;
+    text-align: right;
+    padding-top: 30px;
+}
+
+#willet-main #light .buttons div {
+    margin-bottom: 12px;
+}
+
+#willet-main #light .x {
+    color: #bbb;
+    float: right;
+    top: 0;
+    font-size: 30px;
+    margin-right: 10px;
+}
+
+#willet-main #light .x:hover {
+    color: #666;
+    cursor: pointer;
+}
+
+#willet-main #light .arrow {
+    color: #bbb;
+    text-align: center;
+    font-size: 30px;
+}
+
+#willet-main #light .arrow:hover {
+    color: #666;
+    cursor: pointer;
+}
+
+#willet-main #light .social {
+    clear: right;
+    float: right;
+    margin-top: 100px;
+    text-align: left !important;
+    width: 80px;
+}
+#willet-main #light .social>div {
+    margin-top: 10px;
+}
+
+#willet-main .click {
+    cursor: pointer;
+    cursor: -webkit-zoom-in;
+    cursor: -moz-zoom-in;
+    cursor: zoom-in;
+}
+
+#willet-main .pin.small {
+    height: 150px;
+}
+
+#willet-main .pin.medium {
+    height: 200px;
+}
+
+#willet-main .pin.large {
+    height: 250px;
+}
+
+#willet-main .pin.x-large {
+    height: 300px;
+}
+#willet-main a.willet-pinterest-button {
+    background-image: url('http://assets.pinterest.com/images/pinit6.png');
+    background-position: 0 -7px;
+}
+#willet-main a.willet-pinterest-button:hover { background-position: 0 -28px; cursor: pointer; }
+#willet-main a.willet-pinterest-button:active { background-position: 0 -49px; cursor: pointer; }
+#willet-main a.willet-pinterest-button.clicked { background-position:0 -70px !important; }
+
+#featured-product {
+    /* CSS applied by JQuery so it remains invisible when not in use */
+    min-height: 240px;
+    padding: 20px 20px 35px 20px;
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+}
+#featured-product #bento-logo {
+    float: left;
+    margin: 10px 0 0 30px;
+    width: 70px;
+    height: 240px;
+}
+#featured-product #bento-logo>a {
+    text-decoration: none;
+}
+#featured-product #bento-logo img {
+    width: 70px;
+    height: 240px;
+}
+#featured-product>#featured_img {
+    /*margin-left: 25px;*/
+    margin-left: auto;
+    margin-right: auto;
+    width: 450px;
+    height: 240px;
+}
+ /*#featured-product>#featured_img,*/
+ #featured-product>#featured_img>img {
+    max-width: 450px;
+    max-height: 240px;
+}
+#featured-product>#featured_img {
+    float:left;
+    /* background: #cecece; */
+    position: relative;
+    text-align: center;
+}
+
+#featured-product>#featured_img img {
+    -moz-box-shadow: 10px 10px 10px 0px #CECECE;
+    -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
+    -o-box-shadow: 10px 10px 10px 0px #CECECE;
+    box-shadow: 10px 10px 10px 0px #CECECE;
+
+    border-top: 1px solid #DDD;
+    border-left: 1px solid #DDD;
+    border-right: 1px solid #999;
+    border-bottom: 1px solid #999;
+}
+
+#featured-product .text {
+    padding-left: 490px;
+    text-align: left;
+    padding-top: 30px;
+    padding-right: 2em;
+}
+#featured-product #featured-social {
+    padding-top: 30px;
+}
+
+#featured-social {
+    display: inline-block;
+}
+
+#featured-social > div {
+    display: block;
+    float: left;
+    margin-right: 5px;
+}
+
+#featured-info {
+
+}

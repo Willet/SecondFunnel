@@ -1,0 +1,506 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+
+        <link rel="stylesheet" href="{% static "css/pinpoint.css" %}">
+        <script type="text/javascript" charset="utf-8">
+            var _gaq = _gaq || [];
+
+            _gaq.push(['_setAccount', 'UA-35018502-1']);
+            _gaq.push(['_trackPageview']);
+
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        </script>
+    </head>
+    <body>
+        <div id="willet-main">
+            <div id="wrapper">
+                {% if featured %}
+                <div id="featured-product">
+                    {% with featured.img|random as image %}
+                    <div class="click" id="featured_img"
+                        data-title="{{ featured.title|striptags }}"
+                        data-desc="{% for part in featured.desc %}{{ part|striptags }}{% endfor %}"
+                        data-price="{{ featured.price }}"
+                        data-img="{% for url in featured.img %}{{ url }}|{% endfor %}"
+                        data-url="{{ featured.url }}"
+                        >
+                        <img src="{{ featured.img|first }}">
+                    </div>
+                    <div class="text">
+                        {% autoescape off %}
+                        <h3>{{ featured.title|striptags }}</h3>
+                        <h4 id="featured_price">{{ featured.price }}</h4>
+                        <p id="featured_desc">{% for part in featured.desc %}{{ part|striptags }}{% endfor %}</p>
+                        {% endautoescape %}
+                    </div>
+                    <div id="featured-social">
+                        <div class="pinterest_buttons"></div>
+                        <div class="fb_buttons"></div>
+                        <div class="twitter_buttons"></div>
+                    </div>
+                    {% endwith %}
+                </div>
+                <div id="divider"></div>
+                {% endif %}
+                {% for col in columns reversed %}
+                <div class="column" id="{{col}}">
+                    {% for prod in products %}
+                    {% with columns|length as mod %}
+                    {% with prod.img|random as image %}
+                    {% if forloop.counter|add:col|divisibleby:mod %}
+                    <div class="pin click"
+                        data-title="{{ prod.title }}"
+                        data-desc="{% for part in prod.desc %}{{ part }}{% endfor %}"
+                        data-price="{{ prod.price }}"
+                        data-img="{% for url in prod.img %}{{ url }}|{% endfor %}"
+                        data-url="{{ prod.url }}"
+                        >
+                    <div class="inner-pin">
+                        {% autoescape off %}
+                        {# <p>{{ prod.price }}</p> #}
+                        {# <p>{% for part in prod.desc %}{{ part }}{% endfor %}</p> #}
+                        {# <p>{{ prod.url }}</p> #}
+                        <div class="inner-pin">
+                            <img src="{{ prod.img|first }}" />
+                        </div>
+                        <h5>{{ prod.title }}</h5>
+                        {% endautoescape %}
+                    </div>
+                    <div class="social-hover" style="display: none;">
+                        <div class="pinterest_buttons">
+                            <a href="http://pinterest.com/pin/create/button/?url={{ prod.url }}&media={{ image }}&description={{ prod.title }}" class="pin-it-button" count-layout="none"><img border="0" src="//assets.pinterest.com/images/PinExt.png" title="Pin It" /></a>
+                        </div>
+                        <div class="fb_buttons">
+                            <fb:like href="{{ prod.url }}"
+                                     width="48"
+                                     layout="button_count"
+                                     show_faces="false"></fb:like>
+                        </div>
+                        <div class="twitter_buttons">
+                            <a href="https://twitter.com/share?url={{ prod.url }}&text={{ prod.title }}" class="twitter-share-button" data-lang="en" data-count="none">Tweet</a>
+                        </div>
+                    </div>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    {% endwith %}
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                <div style="clear:both"></div>
+            </div>
+                <div id="light" style="display: none;">
+                    <div id="light-inner">
+                        <div id="light-content" class="box-content">
+                            <div class="x">
+                                x
+                            </div>
+                            <div class="social">
+                                <div class="pinterest_buttons"></div>
+                                <div class="fb_buttons"></div>
+                                <div class="twitter_buttons"></div>
+                            </div>
+                            <div id="light_img_div"><a class="link"><img id="light_img" /></a></div>
+                            <div id="pic_selector">
+                                <span class="arrow pic_left">&lsaquo;</span>
+                                &nbsp;&nbsp;&nbsp;
+                                <span id="pic_index"></span>
+                                &nbsp;&nbsp;&nbsp;
+                                <span class="arrow pic_right">&rsaquo;</span>
+                            </div>
+                            <div class="content">
+                                <div class="buttons">
+                                    <div class="buy"><a id="light_buy"><img src="https://static.shopify.com/s/files/1/0029/8962/t/8/assets/willet-buynow.png?106515" /></a></div>
+                                </div>
+                                <div class="text">
+                                    <h3><a id="light_title" class="link">Title goes here</a></h3>
+                                    <h4 id="light_price"></h4>
+                                    <p id="light_desc"></p>
+                                </div>
+                                <div id="showmore"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="fade" class="overlay"></div>
+                </div>
+        </div>
+
+        <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <script type="text/javascript" src="//assets.pinterest.com/js/pinit.js"></script>
+        <script src="{% static "js/pinpoint_tracking.js" %}" type="text/javascript"></script>
+
+        <script type="text/javascript" charset="utf-8">
+            pinpointTracking.init();
+
+            $(document).ready(function() {
+                $("#featured-social").hover(function() {
+                    pinpointTracking.clearTimeout();
+                    pinpointTracking.setSocialShareVars({"default": true});
+                }, function() {});
+
+                $(".click").click(function(){
+                    var url = $(this).data("url");
+
+                    pinpointTracking.trackEvent({
+                        action: 'open_popup',
+                        label: url
+                    });
+                });
+
+                $("img[id='light_img']").click(function(e) {
+                    var url = $(this).parent().attr("href");
+
+                    trackEvent({
+                        action: 'clickthrough',
+                        label: url
+                    });
+                });
+
+                $(".pinterest_buttons").live("click", function(e) {
+                    pinpointTracking.registerShare({
+                        "network": "Pinterest",
+                        "type": "click"
+                    });
+                    e.preventDefault();
+                });
+
+                function mod(num, mod) {
+                    return ((num % mod) + mod) % mod;
+                };
+
+                function resizeImgMax(img, maxWidth, maxHeight) {
+                    var $img = $(img);
+                    $img.removeAttr("width");
+                    $img.removeAttr("height");
+                    $img.removeAttr("style");
+
+                    var w = $img.width();
+                    var h = $img.height();
+
+                    if ($img.width() > $img.height()) {
+                        var scale = maxWidth / $img.width();
+                        $img.height($img.height() * scale);
+                        $img.width(maxWidth);
+                    } else {
+                        var scale = maxHeight / $img.height();
+                        $img.width($img.width() * scale);
+                        $img.height(maxHeight);
+                    }
+                };
+
+                function firstN(list, n) {
+                    selected = "";
+                    for (var i = 0; i < list.length && i < n; i++) {
+                        selected += (list[i]);
+                    }
+                    return selected;
+                };
+
+                function splitAfterN(text, n) {
+                    var selected = "";
+                    var after = "";
+                    for (var i = 0; i < text.length; i++) {
+                        if (i < n) {
+                            selected += (text[i]);
+                        } else {
+                            after += text[i];
+                        }
+                    }
+                    return [selected, after];
+                };
+
+                function splitAfterNPreserveTags(text, n) {
+                    // get first section
+                    // close unclosed tags
+                    // add cooresponding beginning tags to rest
+                    // return both parts
+
+                    var selected = "";
+                    var rest = "";
+                    var inTag = false;
+                    var inWord = false;
+                    var wordCounter = 0;
+                    var counter = 0;
+                    for (var i = 0; i < text.length; i++) {
+                        var asdf = text.charAt(i);
+                        if (counter == 240) {
+                            var x = 0;
+                        }
+                        if (text.charAt(i) == ">") {
+                            inTag = false;
+                            inWord = false;
+                            counter += wordCounter;
+                            wordCounter = 0;
+                        } else if (text.charAt(i) == "<") {
+                            inTag = true;
+                            inWord = false;
+                            counter += wordCounter;
+                            wordCounter = 0;
+                        } else if (text.charAt(i) == " " || text.charAt(i) == "\n") {
+                            inWord = false;
+                            counter += wordCounter;
+                            counter++;
+                            wordCounter = 0;
+                        } else if (inWord) {
+                            wordCounter++;
+                        } else if (!inTag) {
+                            inWord = true;
+                        }
+
+                        if (counter < n) {
+                            selected += (text.charAt(i));
+                        } else {
+                            rest += text.charAt(i);
+                        }
+                    }
+
+                    //var beginningTagReg = /<([^\/ >][^ >]*)[^>]*[^\/]>/g;
+                    var beginningTagReg = /<([^\/>][^>]*[^\/]|[^\/>])>/g;
+                    var endingTagReg = /<\/[^>]*>/g;
+                    var tags = selected.match(beginningTagReg);
+                    var endingTags = selected.match(endingTagReg);
+
+                    function type(tag) {
+                        return tag.replace(/<\/?([^> ]*)[^>]*>/, function(match, g1){return g1;});
+                    };
+
+                    if (tags != null) {
+                        var selectedTags = ""
+                        var restTags = "";
+                        for(var i = 0; i < tags.length; i++) {
+                            var beginningType = type(tags[i]);
+                            var foundEnd = false;
+                            //alert([tags[i], beginningType]);
+                            for (var j = endingTags.length - 1; j >= 0; j--) {
+                                //alert([endingTags[j], type(endingTags[j])]);
+                                if (type(endingTags[j]) == beginningType) {
+                                    foundEnd = true;
+                                    endingTags.splice($.inArray(endingTags[j], endingTags), 1);
+                                    break;
+                                }
+                            }
+                            if (!foundEnd) {
+                                restTags += tags[i];
+                                selectedTags = "</" + beginningType + ">" + selectedTags;
+                            }
+                        }
+
+                        selected += selectedTags;
+                        rest = restTags + rest;
+                    }
+
+                    return [selected, rest];
+                };
+
+                var getCSSNumericValue = function ($elem, rule) {
+                    // Get pixel value, remove 'px' from end of string, convert to a number
+                    return Number($elem.css(rule).substring(0, $elem.css(rule).length - 2));
+                };
+
+                var showPinOf = function(elem, readMore) {
+                    $("#light_img").hide();
+                    var imgs = $(elem).attr("data-img").split("|")
+                    imgs.pop();
+                    var img_index = 0;
+                    var data = {
+                        'title': $(elem).attr("data-title"),
+                        'desc': $(elem).attr("data-desc"),
+                        'price': $(elem).attr("data-price"),
+                        'img': imgs,
+                        'link': $(elem).attr("data-url"),
+                        'buy': $(elem).attr("data-url")
+                    };
+
+                    pinpointTracking.clearTimeout();
+                    pinpointTracking.setSocialShareVars({"sType": "popup", "url": data.link});
+
+                    $("#light .fb_buttons").html('<fb:like href="' + data.link + '" layout="button_count" width="80" show_faces="true"></fb:like>')
+                    FB.XFBML.parse($("#light .fb_buttons")[0]);
+                    $("#light .fb_buttons, #light .fb-like").show();
+
+                    $("#light .twitter_buttons").html('' +
+                        '<a href="https://twitter.com/share?url=' + data.link +
+                        '&text=' + data.title + '" class="twitter-share-button" data-lang="en">Tweet</a>');
+
+                    // need to create the above
+                    twttr.widgets.load();
+
+                    $("#light .pinterest_buttons").html('' +
+                        '<a href="http://pinterest.com/pin/create/button/' +
+                        '?url=' + data.link +
+                        '&media=' + imgs[0] +
+                        '&description=' + data.title +
+                        ' class="pin-it-button" count-layout="horizontal">' +
+                        '<img border="0" src="//assets.pinterest.com/images/PinExt.png" ' +
+                        'title="Pin It" /></a>');
+
+                    function updateImage() {
+                        $("#light_img").hide();
+                        $("#light_img").removeAttr("src");
+                        $("#light_img").unbind('load').load(function() {
+                            resizeImgMax($("#light_img")[0], 500, 400);
+                            $("#light_img").css("padding-top",
+                                (($("#light_img_div").height() - $("#light_img").height()) / 2)
+                                    + "px");
+                            $("#light_img").show();
+                        });
+                        $("#light_img").attr("src", data.img[img_index]);
+                        $("#pic_index").text((img_index + 1) + " out of " + data.img.length);
+                    };
+
+                    var textParts = splitAfterNPreserveTags(data.desc, 250);
+                    $("#light_title").html(data.title);
+                    $("#light_desc").html(
+                        textParts[0] +
+                        textParts[1]);
+                    $("#light .link").attr("href", data.link);
+
+                    $("#light").fadeIn(100);
+                    $("#fade").fadeIn(100);
+
+                    updateImage();
+
+                    $("#light .pic_right").click(function() {
+                        img_index = mod((img_index + 1), data.img.length);
+                        updateImage();
+                    });
+
+                    $("#light .pic_left").click(function() {
+                        img_index = mod((img_index - 1), data.img.length);
+                        updateImage();
+                    });
+
+                    var buy_url = data.buy;
+                    $("#light_buy").attr("href", buy_url);
+                    $("#light_price").text(data.price);
+
+                    //// Setup any tricky handlers that could change...
+                    //$("#light_buy").unbind("click").bind("click", function () {
+                    //    _gaq.push(["_trackEvent", "Product", "Buy Now", data.title]);
+                    //});
+
+                    //_gaq.push(["_trackEvent", "Category", "Action", "opt_label", "opt_value"]);
+                    //_gaq.push(["_trackEvent", "Product", "Preview", data.title]);
+
+                    $(".pinterest_buttons>div").hide();
+                    $(".pinterest_buttons div[data-id='" + data.title + "']").show();
+
+                    $(".twitter_buttons>div").hide();
+                    $(".twitter_buttons div[data-id='" + data.title + "']").show();
+
+                    $(".fb_buttons>div").hide();
+                    $(".fb_buttons div[data-id='" + data.title + "']").show();
+
+                    var $box = $(".box-content");
+                    var box_height = $box.height()
+                    //var box_height = 490 + getCSSNumericValue($box,'padding-top') + getCSSNumericValue($box,'padding-bottom');
+                    //$box.css('top', ($(window).height() - box_height) / 2 );
+                };
+                var showPin = function () {
+                    showPinOf(this);
+                };
+                //$("#featured_img img").width($("#featured_img img").width() * 0.5);
+                //$("#featured_img img").height($("#featured_img img").height() * 0.5);
+                $("#featured_img img").load(function() {
+                    resizeImgMax($("#featured_img img")[0]);
+                    $("#featured_img img").css("margin-top",
+                        (($("#featured_img").height() - $("#featured_img img").height()) / 2) +
+                            "px");
+                });
+
+                $("#light").hide();
+                $("#fade").hide();
+                $("#fade, .x").click(function(){
+                    $("#light").fadeOut(100);
+                    $("#fade").fadeOut(100);
+                });
+                $(".x").click(function() {
+                    pinpointTracking.setSocialShareVars({"default": true});
+                });
+                $(".click").click(showPin);
+
+                $featuredDesc = $("#featured_desc")
+                if ($featuredDesc.html().length > 250) {
+                    $featuredDesc.html(firstN($featuredDesc.html(), 250) +
+                    "... <a class='click' id='featured-read-more'>Read more</a>")
+                }
+
+                $("#featured-read-more").click(function() {
+                    showPinOf($("#featured_img"), true);
+                });
+
+                function onFbScriptLoad() {
+                    var elem = $("#featured_img")[0];
+                    var imgs = $(elem).attr("data-img").split("|")
+                    imgs.pop();
+                    var data = {
+                        'title': $(elem).attr("data-title"),
+                        'link': $(elem).attr("data-url"),
+                    };
+
+                    $("#featured-product .fb_buttons").html('<fb:like href="' + data.link + '" layout="button_count" width="80" show_faces="true"></fb:like>')
+                    var $fb_buttons = $(".fb_buttons");
+                    for (var i = 0; i < $fb_buttons.length; i++) {
+                        FB.XFBML.parse($fb_buttons[i]);
+                    }
+                    $("#featured-product .fb_buttons, #featured-product .fb-like").show();
+
+                    $("#featured-product .twitter_buttons").html('' +
+                    '<a href="https://twitter.com/share?url=' + data.link +
+                        '&text=' + data.title + '" class="twitter-share-button" data-lang="en">Tweet</a>');
+
+                    $("#featured-product .pinterest_buttons").html('' +
+                        '<a href="http://pinterest.com/pin/create/button/' +
+                        '?url=' + data.link +
+                        '&media=' + imgs[0] +
+                        '&description=' + data.title +
+                        ' class="pin-it-button" count-layout="horizontal">' +
+                        '<img border="0" src="//assets.pinterest.com/images/PinExt.png" ' +
+                        'title="Pin It" /></a>');
+
+                    //FB.Event.subscribe('edge.create', function(response) {
+                    //    pinpointTracking.registerShare({
+                    //        "network": "Facebook",
+                    //        "type": "shared"
+                    //    });
+                    //});
+
+                    // need to create the above
+                    twttr.widgets.load();
+                }
+
+                $(".social-hover").closest(".pin").hover(function () {
+                    pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(this).data("url")});
+                    pinpointTracking.clearTimeout();
+
+                    $(this).children(".social-hover").fadeIn('fast');
+                }, function() {
+                    pinpointTracking.clearTimeout();
+                    if (pinpointTracking.socialShareType !== "popup") {
+                        pinpointTracking._pptimeout = window.setTimeout('pinpointTracking.setSocialShareVars({"default": true})', 2000);
+                    }
+                    $(this).children(".social-hover").fadeOut('fast');
+                });
+
+                // facebook script for facebook buttons
+                (function(d, s, id) {
+                    var js, fjs = d.getElementsByTagName(s)[0];
+                    if (d.getElementById(id)) return;
+                    js = d.createElement(s); js.id = id;
+                    js.onreadystatechange = onFbScriptLoad;
+                    js.onload = onFbScriptLoad;
+                    js.src = "//connect.facebook.net/en_US/all.js";
+                    fjs.parentNode.insertBefore(js, fjs);
+                }(document, 'script', 'facebook-jssdk'));
+            });
+        </script>
+    </body>
+</html>
