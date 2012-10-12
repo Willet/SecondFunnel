@@ -147,25 +147,13 @@
         <span class="step">
             <span class="breakdown round_box">
                 <span class="title">
-                    Shared Featured:
+                    Social Shares:
                 </span>
-                <span class="count" id="shared_featured_count">
+                <span class="count" id="social_shares_count">
                     &hellip;
                 </span>
             </span>
-            <span class="perc_b" id="shared_featured_perc">
-                &hellip;
-            </span>
-
-            <span class="breakdown round_box">
-                <span class="title">
-                    Shared Popup:
-                </span>
-                <span class="count" id="shared_popup_count">
-                    &hellip;
-                </span>
-            </span>
-            <span class="perc_b" id="shared_popup_perc">
+            <span class="perc_b" id="social_shares_perc">
                 &hellip;
             </span>
 
@@ -211,22 +199,20 @@
         google.setOnLoadCallback(function () {
             $.getJSON("{% url ajax-analytics-overview "my-app" %}", function(analytics_data) {
                 var dataset = [['Year', 'Visits', 'Interactions']],
-                i, google_data, google_options, chart;
+                i, google_data, google_options, chart, social_shares_count;
 
                 $("#visitors_count").html(analytics_data.visits);
                 $("#interaction_count").html(analytics_data.interactions.total);
 
-                $("#shared_featured_count").html(analytics_data.interactions.shares.featured);
-                $("#shared_popup_count").html(analytics_data.interactions.shares.popup);
+                social_shares_count = analytics_data.interactions.shares.featured + analytics_data.interactions.shares.popup;
+                $("#social_shares_count").html(social_shares_count);
                 $("#open_popup_count").html(analytics_data.interactions.popup);
                 $("#clickthrough_count").html(analytics_data.interactions.clickthrough);
 
                 set_percentage("visitors_to_interaction", analytics_data.interactions.total / analytics_data.visits * 100);
-                set_percentage("shared_featured_perc", analytics_data.interactions.shares.featured / analytics_data.interactions.total * 100);
-                set_percentage("shared_popup_perc", analytics_data.interactions.shares.popup / analytics_data.interactions.total * 100);
+                set_percentage("social_shares_perc", social_shares_count / analytics_data.interactions.total * 100);
                 set_percentage("open_popup_perc", analytics_data.interactions.popup / analytics_data.interactions.total * 100);
                 set_percentage("clickthrough_perc", analytics_data.interactions.clickthrough / analytics_data.interactions.total * 100);
-
 
                 for (var i in analytics_data.daily) {
                     dataset.push([analytics_data.daily[i].date, analytics_data.daily[i].visits, analytics_data.daily[i].interactions.total]);
