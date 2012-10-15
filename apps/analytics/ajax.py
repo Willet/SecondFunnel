@@ -11,7 +11,24 @@ def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
-def analytics_overview(request, app_slug):
+
+def ajax_response(obj):
+    return HttpResponse(json.dumps(obj))
+
+def ajax_success(data):
+    data['sucess'] = True
+    return ajax_response(data)
+
+def ajax_error(data):
+    data['success'] = False
+    return ajax_response(data)
+
+def analytics_overview(request):
+    app_slug = request.GET.get("app_slug")
+
+    # if not app_slug:
+        # return ajax_error({"message": "Missing parameters"})
+
     visits = random.randint(2000, 5000)
     interactions = random.randint(700, 3000)
     data = {
@@ -44,4 +61,4 @@ def analytics_overview(request, app_slug):
             }
         })
 
-    return HttpResponse(json.dumps(data))
+    return ajax_success(data)

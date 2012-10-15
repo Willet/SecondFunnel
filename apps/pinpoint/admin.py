@@ -20,7 +20,7 @@ admin.site.register(StoreTheme, StoreThemeAdmin)
 
 
 class BlockTypeAdmin(BaseNamedAdmin):
-    list_display = BaseNamedAdmin.list_display + ['template_name']
+    pass
 
 admin.site.register(BlockType, BlockTypeAdmin)
 
