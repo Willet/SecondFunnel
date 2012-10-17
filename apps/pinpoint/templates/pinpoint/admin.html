@@ -1,0 +1,865 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{% static "js/DataTables/css/demo_page.css" %}" />
+        <link rel="stylesheet" type="text/css" href="{% static "js/DataTables/css/demo_table.css" %}" />
+        <link rel="stylesheet" type="text/css" href="{% static "css/pinpointAdmin.css" %}" />
+        <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
+        <script src="{% static "js/jquery.form.js" %}"></script>
+        <script src="{% static "js/DataTables/js/jquery.dataTables.js" %}"></script>
+        <script src="{% static "js/autosize/jquery.autosize-min.js" %}"></script>
+        <script type="text/javascript">
+            var pinpointApplication = (function($, jQuery, window) {
+                var contentBlockType = undefined,
+                    contentBlockName = undefined,
+                    tempImages = [],
+                    // keeps track of whether the page needs to be saved
+                    pageChanged = false,
+
+                    // this is stored for convenience later
+                    $currentPage = undefined,
+
+                    $currentPart = $(".part:nth-of-type(1)", $currentPage),
+
+                    {% autoescape off %}
+                    pageNames = {{ pageNames }},
+                    {% endautoescape %}
+
+                    tempImages = [],
+                    onLoadProductImages = undefined,
+
+                    pageListTable,
+
+                    // --- helper functions
+                    resizeImgMax = function (img, maxWidth, maxHeight) {
+                        var $img = $(img);
+                        $img.removeAttr("width");
+                        $img.removeAttr("height");
+                        $img.removeAttr("style");
+
+                        var w = $img.width();
+                        var h = $img.height();
+
+                        if ($img.width() > $img.height()) {
+                            var scale = maxWidth / $img.width();
+                            $img.height($img.height() * scale);
+                            $img.width(maxWidth);
+                        } else {
+                            var scale = maxHeight / $img.height();
+                            $img.width($img.width() * scale);
+                            $img.height(maxHeight);
+                        }
+                    },
+
+                    // out of an elements siblings with same tagName, find what number it is
+                    // useful to find a value for :nth-of-type(x)
+                    numOfType = function (elem) {
+                        var siblings = elem.parentNode.children;
+                        var num = 0;
+                        for (var i = 0; i < siblings.length; i++) {
+                            if (siblings[i].tagName == elem.tagName) {
+                                num++;
+                                if (siblings[i] === elem) {
+                                    return num;
+                                }
+                            }
+                        }
+                        return num;
+                    },
+
+                    // This section allows you to hide and show pages by clicking on #breakNav links
+                    // set the current page to the pageNum'th page
+                    setPage = function (pageNum, pageTitle) {
+                        var new_title;
+
+                        $('.page').hide();
+                        $('#breakNav li').attr('class', '');
+                        $currentPage = $('.page:nth-of-type(' + pageNum + ')')
+                        $currentPage.show();
+                        $('#breakNav li:nth-of-type(' + pageNum + ')').attr('class', 'selected');
+
+                        $("#contextButton").hide();
+
+                        new_title = pageTitle || $currentPage.attr("header") || $("#breakNav li:nth-of-type(" + pageNum + ")").text();
+
+                        $("ul.boxTopNav").html("<div class='pageTitle selected'>"
+                            + new_title
+                            + "</div>");
+
+                        if ($('.part', $currentPage).length > 0) {
+                            defaultPart();
+                        } else {
+                            $currentPart = undefined;
+                        }
+
+                        resizeForPart();
+                    },
+
+                    // This section allows you to switch which part of the page is displayed,
+                    // using Next and Back buttons
+                    defaultPart = function () {
+                        $currentPart = $(".part:nth-of-type(1)", $currentPage);
+                        $(".part", $currentPage).css('left', '-1000px');
+                        $currentPart.css('left', '0');
+
+                        if ($currentPart.attr('run') != undefined) {
+                            eval($currentPart.attr('run'));
+                        }
+                    },
+
+                    setPart = function (partNum) {
+                        var currentNum = numOfType($currentPart[0]);
+                        var $next = $('.part:nth-of-type(' + partNum + ')',
+                            $currentPage);
+                        if ($next.length > 0 && partNum != currentNum) {
+                            if (partNum > currentNum) {
+                                // slide left
+                                $next.css('left', '' + $next.width() + 'px')
+                                    .animate({left: 0}, 500);
+                                    $currentPart.animate({left: '-' + $currentPart.width() + 'px'}, 500)
+                                $currentPart = $next;
+                            } else {
+                                // slide right
+                                $next.css('left', '-' + $next.width() + 'px')
+                                    .animate({left: 0}, 500);
+                                    $currentPart.animate({left: '' + $currentPart.width() + 'px'}, 500)
+                                $currentPart = $next;
+                            }
+                            $currentPart = $next;
+
+                            if ($currentPart.attr('run') != undefined) {
+                                eval($currentPart.attr('run'));
+                            }
+                        }
+                        $(".boxTopNav > div > li").removeClass("selected");
+                        $(".boxTopNav > div > li:nth-child(" + (partNum - 1) + ")").addClass("selected");
+
+                        resizeForPart();
+                    },
+
+                    nextPage = function () {
+                        setPart(numOfType($currentPart[0]) + 1);
+                    },
+
+                    previousPage = function () {
+                        setPart(numOfType($currentPart[0]) - 1);
+                    },
+
+                    // called when the pages table loads
+                    pagesLoaded = function () {
+                        function innerPageSettings() {
+                            $("#contextButton").hide();
+                            $("ul.boxTopNav").html("" +
+                            "<div class='pageTitle'>Edit Page</div>" +
+                            "<div class='boxTopRight'><li>Select Content Type \u2192</li>" +
+                            "<li>Create Content Block \u2192</li>" +
+                            "<li>Confirm</li>");
+                        }
+                        // set contextButton and boxTopNav
+                        $("ul.boxTopNav").html("<li class='pageTitle selected'>Pages</li>");
+                        $("#contextButton").show();
+                        $("#contextButton").text("New Page");
+                        $("#contextButton").unbind("click");
+                        $("#contextButton").click(function() {
+                            innerPageSettings();
+                            nextPage();
+                        });
+
+                        // handle delete buttons
+                        $(".deletePage").click(function() {
+                            var res = confirm("Are you sure you want to hide this page?");
+                            if (res == true) {
+                                pageNames.splice($.inArray(this, pageNames), 1);
+                                var button = this;
+                                $.ajax({
+                                    url: "/pinAdmin/hide/page",
+                                    data: {
+                                        name: $(button).closest("tr").children("td:nth-of-type(1)").text(),
+                                    url: "{{storeUrl}}"
+                                    },
+                                    success: function() {
+                                        var row = $(button).closest("tr");
+                                        var oldHeight = row.height();
+                                        $("td > div", row).css('display', 'block');
+                                        $("td > div", row).animate(
+                                            {
+                                                "padding-top": 0, "padding-bottom": 0
+                                            }, 50, 'linear', function() {
+                                                $("td > div", row).animate({height: 0}, 200);
+                                            });
+                                        // why is this in a timeout and not the animation callback? Magic.
+                                        setTimeout(function () {
+                                            $(button).closest("tr").hide();
+                                            pageListTable.fnDeleteRow(row[0], null, false);
+                                        }, 300);
+                                    }
+                                });
+                            }
+                            return false;
+                        });
+
+                        // reset forms (on a delay so you can't see it happen
+                        setTimeout(function () {
+                            $("#pageNameForm input[type=text]").val("")
+                            $("#blockProductUrl input[type=text]").val("")
+                            $("#blocktypeSelector table.selected").removeClass("selected");
+                            $("#blockFurtherInstructions").hide();
+                            $("#getTitle").show();
+                            $("#pageCreated").hide();
+                            $("#editInstructions").hide();
+                            $("#doneCreatingPage").addClass("disabled");
+                            $(".save").addClass("disabled");
+                            $(".back").removeClass("disabled");
+                            $("#productError").hide();
+                            $("#createblock .back").removeClass("disabled");
+                            pageChanged = false;
+                        }, 500);
+                        contentBlockName = '';
+                        tempImages = [];
+
+                        // delete temporary content blocks
+                        contentBlockName = undefined;
+                        contentBlockType = undefined;
+
+                        onLoadProductImages = undefined;
+
+                        $(".edit").unbind('click').click(function() {
+                            var pageName = $("td:nth-of-type(1) div", $(this).closest("tr")).text();
+                            // get page info to get content-block name
+                            $.ajax({
+                                url: "{{pageDomain}}/pinAdmin/get/page/info",
+                                data: {
+                                    name: pageName,
+                                    url: "{{storeUrl}}"
+                                },
+                                success: function(pageData) {
+                                    if (pageData != null) {
+                                        // get content block info
+                                        $.ajax({
+                                            url: "{{pageDomain}}/pinAdmin/get/contentblock/featured/info",
+                                            data: {
+                                                url: "{{storeUrl}}",
+                                                name: pageData.contentBlockName
+                                            },
+                                            success: function(cbData) {
+                                                if (cbData != null) {
+                                                    $("#pageNameForm input[type=text]").val(pageName);
+                                                    $(".next", $currentPage).removeClass("disabled");
+                                                    $("#blocktypeSelector table[value=Featured]").addClass("selected");
+                                                    $("#blockProductUrl input[name=produrl]").val(cbData.productUrl)
+                                                    onLoadProductImages = function() {
+                                                        if (cbData.isImageUploaded) {
+                                                            $("#blockImages > div:nth-of-type(1)").after(
+                                                                '<div><table class="selected"><tr><td><img src="' +
+                                                                '{{pageDomain}}/pinAdmin/get/contentblock/featured/image' +
+                                                                '?url={{storeUrl}}&name=' +
+                                                                pageData.contentBlockName +
+                                                                '"</td></tr></table></div>'
+                                                            );
+                                                            $("#blockImages > div:nth-of-type(2) table").addClass("selected")
+                                                        } else {
+                                                            $("#blockImages img").each(function() {
+                                                                if ($(this).attr('src') == cbData.selectedUrl) {
+                                                                    $(this).closest('table').addClass('selected');
+                                                                }
+                                                            });
+                                                        }
+                                                    };
+                                                    $("#blockProductUrl").submit();
+                                                    $("#pageCreated input").val(pageData.url);
+                                                    $("#preview").attr('href', pageData.url);
+                                                    $("#getTitle").hide();
+                                                    $("#pageCreated").show();
+                                                    $("#doneCreatingPage").removeClass("disabled")
+                                                    $(".save").removeClass("disabled");
+                                                    $("#createblock .back").addClass("disabled");
+                                                    innerPageSettings();
+                                                    $("#editInstructions").show();
+                                                    setPart(4);
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        });
+                    },
+
+                    checkPageTitle = function () {
+                        var box = $("#pageNameForm input[type=text]");
+                        if ($(box).val() == "") {
+                            $("#generateUrl", $currentPart).addClass("disabled");
+                            var status = $(box).siblings("span");
+                            status.css('color', '#F00');
+                            status.stop(true, true);
+                            status.text("Name must not be empty");
+                        } else if ($.inArray($(box).val(), pageNames) > -1) {
+                            $("#generateUrl", $currentPart).addClass("disabled");
+                            var status = $(box).siblings("span");
+                            status.css('color', '#F00');
+                            status.stop(true, true);
+                            status.text("Name already taken");
+                        } else {
+                            $("#generateUrl", $currentPart).removeClass("disabled");
+                            var status = $(box).siblings("span");
+                            status.css('color', '#0F0');
+                            status.stop(true, true);
+                            status.text("Unique!");
+                        }
+                    },
+
+                    loadPickContentBlockType = function () {
+                        if ($("#blocktypeSelector table.selected").length != 1) {
+                            $(".next", $currentPart).removeClass("disabled");
+                            $("#blocktypeSelector table").not(".comingSoon").unbind('click').click(function(event) {
+                                $("#blocktypeSelector table.selected").removeClass("selected");
+                                $(this).addClass("selected");
+                                pageChanged = true;
+                                if ($(this).attr('value') == "Featured") {
+                                    $(".next", $currentPart).removeClass("disabled");
+                                } else {
+                                    $(".next", $currentPart).addClass("disabled");
+                                }
+                            });
+                        }
+                    },
+
+                    resizeForPart = function() {
+                        var spacing = 70;
+                        var height;
+                        if ($currentPage[0] === $(".page:nth-of-type(2)")[0]) {
+                            height = $(".page.analyticsPage iframe").height();
+                            spacing = 0;
+                        } else {
+                            height = $currentPart.height();
+                        }
+                        $("#box").animate({height: (height + spacing)}, 500);
+                        //$("#content, .part").animate({height: (height + spacing)}, 500);
+                    },
+
+                    loadCreateContentBlock = function () {
+                        if ($("#blockFurtherInstructions").is(":hidden")) {
+                            $(".next", $currentPart).addClass("disabled");
+                        }
+                    },
+
+                    confirmPageLoaded = function() {
+                        var d = new Date();
+                        $("#pageNameForm input:text").val(d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay() + " " + d.getHours() + ":" + d.getMinutes() + " - Featured");
+                        checkPageTitle();
+                    },
+
+                    switchAnalytics = function (pinpoint_page) {
+                        $("#analytics_pane").hide();
+                        $("#analytics_pane").attr("src", "http://secondfunnel-master.elasticbeanstalk.com/analytics/embedded/" + pinpoint_page);
+
+                        $("#analytics_pane").load(function() {
+                            $("#analytics_pane").fadeIn();
+                        });
+
+                        setPage(2, "Analytics: " + pinpoint_page);
+                    },
+
+                    setInitialListeners = function () {
+                        // hackish way to make the content fit the window size
+                        $('#breakNav a').click(function() {
+                            setPage(numOfType(this.parentNode))
+                        });
+
+                        $(".cancel").unbind('click').click(function() {
+                            setPart(1);
+                        });
+
+                        $('.next').click(function() {
+                            if (!$(this).hasClass("disabled")) {
+                                nextPage();
+                            }
+                        });
+                        $('.back').click(function() {
+                            if (!$(this).hasClass("disabled")) {
+                                previousPage();
+                            }
+                        });
+
+                        $("#pageNameForm input[type=text]").keyup(checkPageTitle);
+
+                        $("#generateUrl, .updatePage, #preview, .save").click(function() {
+                            var button = this;
+                            var name = $("#pageNameForm input[type=text]").val();
+                            checkPageTitle();
+                            if (!$(this).hasClass("disabled")) {
+                            if (pageChanged) {
+                                var tempImageName = ''
+                                var selected = $("#blockImages table.selected img");
+                                for (var i = 0; i < tempImages.length; i++) {
+                                    var asdf = "{{pageDomain}}/pinAdmin/get/tempImage?url="
+                                        + "{{storeUrl}}"
+                                        + "&name=" + tempImages[i];
+                                    if (selected.attr('src')
+                                    == "{{pageDomain}}/pinAdmin/get/tempImage?url="
+                                    + "{{storeUrl}}"
+                                    + "&name=" + tempImages[i]) {
+                                        tempImageName = tempImages[i];
+                                        break;
+                                    }
+                                }
+                                $.ajax({
+                                    type: "POST",
+                                    async: false,
+                                    url: "/pinAdmin/upload/contentblock/featured",
+                                    data: {
+                                        url: "{{storeUrl}}",
+                                        produrl: $("#blockProductUrl input[type=text]").val(),
+                                        imgurl: selected.attr('src'),
+                                        name: contentBlockName,
+                                        tempname: tempImageName,
+                                        desc: $("#blockDescription textarea").val()
+                                    },
+                                    success: function(data) {
+                                        contentBlockName = data;
+                                        $.ajax({
+                                            type: "POST",
+                                            async: false,
+                                            url: "/pinAdmin/upload/page",
+                                            data: {
+                                                url: "{{storeUrl}}",
+                                                name: name,
+                                                cbStyle: "Featured",
+                                                cbName: contentBlockName,
+                                                produrl: $("#blockProductUrl input[type=text]").val()
+                                            },
+                                            success: function(data) {
+                                                if (data != null) {
+                                                    pageChanged = false;
+                                                    $("#contextButton").unbind('click').click(function() {
+                                                        window.location.reload();
+                                                    });
+                                                    if ($.inArray(name, pageNames) == -1) {
+                                                        pageNames.push(name);
+                                                        $("#pageCreated input").val(data.url);
+                                                        $("#preview").attr('href', data.url);
+                                                        $("#getTitle").hide();
+                                                        $("#pageCreated").show();
+                                                        $("#doneCreatingPage").removeClass("disabled");
+                                                        $("#createblock .back").addClass("disabled");
+                                                        $(".save").removeClass("disabled");
+                                                        resizeForPart();
+                                                    }
+                                                    if (button === $("#doneCreatingPage")[0]) {
+                                                        window.location.reload();
+                                                    }
+                                                    if (button === $("#preview")[0]) {
+                                                        window.open($("#preview").attr('href'), "_blank");
+                                                    }
+                                                    if ($(button).hasClass("save")) {
+                                                        window.location.reload();
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                });
+                            } else {
+                                if (button === $("#doneCreatingPage")[0]) {
+                                    window.location.reload();
+                                }
+                                if (button === $("#preview")[0]) {
+                                    window.open($("#preview").attr('href'), "_blank");
+                                }
+                                if ($(button).hasClass("save")) {
+                                    window.location.reload();
+                                }
+                            }}
+                            return false;
+                        });
+
+                        $("#blockProductUrl").ajaxForm({
+                            success: function(data) {
+                                if (data != null) {
+                                    $("span.productTitle").text(data.prodName);
+                                    $("#productError").hide();
+                                    $("#blockFurtherInstructions").show();
+                                    var str = "";
+                                    for (var i = 0; i < data.desc.length; i++) {
+                                        str += data.desc[i];
+                                    }
+                                    $("#blockDescription textarea").val(str);
+                                    $("#blockDescription textarea").height($("#blockDescription textarea")[0].scrollHeight);
+                                    str = "";
+                                    for (var i = 0; i < data.images.length; i++) {
+                                        str += '<div><table><tr><td><img src=' + data.images[i] + '/></td></tr></table></div>'
+                                    }
+                                    $("#blockImages").html(str);
+                                    $("#blockImages").prepend('<div><table>' +
+                                            '<tr><td><div id="newImg"></div></td></tr>' +
+                                        '</table></div>');
+                                    $('#newImg').append('<p>Upload New Image</p><br/>' +
+                                     '<button type="button" id="newImageButton">Select Image</button><br />' +
+                                    '<form enctype="multipart/form-data" method="post" action="/pinAdmin/upload/tempImage">' +
+                                        '<input type="file" name="image"/>' +
+                                        '<input type="hidden" name="url" value="{{storeUrl}}"/>' +
+                                        '<input type="submit" value="Upload"/>' +
+                                    '</form>');
+                                    $("#newImageButton").click(function() {
+                                        $('#newImg input[type=file]').click();
+                                        return false;
+                                    });
+                                    $("#newImg form").ajaxForm({
+                                        success: function(data) {
+                                            if (!data.match(/^Error/)) {
+                                                $("#blockImages > div:nth-of-type(1)").after(
+                                                    '<div><table><tr><td><img src="' +
+                                                    '{{pageDomain}}/pinAdmin/get/tempImage?url={{storeUrl}}&name=' + data +
+                                                    '"/></td></tr></table></div>'
+                                                );
+                                                tempImages.push(data);
+                                                tableHoverClickHandlers();
+                                            }
+                                        }
+                                    })
+                                    function tableHoverClickHandlers() {
+                                        $("#blockImages table:not(:has(#newImg))").unbind('click').click(function() {
+                                            pageChanged = true;
+                                            $("#blockImages table").removeClass("selected");
+                                            $(this).addClass("selected");
+                                            $(".next", $currentPart).removeClass("disabled");
+                                        })
+                                    }
+                                    if (onLoadProductImages != undefined) {
+                                        onLoadProductImages();
+                                    }
+                                    tableHoverClickHandlers();
+                                } else {
+                                    $("#productError").show();
+                                    $("#blockFurtherInstructions").hide();
+                                    $(".next", $currentPart).addClass("disabled");
+                                }
+                                resizeForPart();
+                            },
+                            error: function() {
+                                $("#productError").show();
+                                $("#blockFurtherInstructions").hide();
+                                $(".next", $currentPart).addClass("disabled");
+
+                                resizeForPart();
+                            }
+                        });
+
+                        $(".openPinpointPageAnalytics").click(function (e) {
+                            switchAnalytics($(this).attr("data-pageSlug"));
+                        });
+
+                        $("#pageCreated input:text").focus(function() {
+                            var $this = $(this);
+                            $this.select();
+
+                            // Work around Chrome's little problem
+                            $this.mouseup(function() {
+                                // Prevent further mouseup intervention
+                                $this.unbind("mouseup");
+                                return false;
+                            });} );
+                    },
+
+                    extendJQuery = function () {
+                        // implementing nth-of-type because old versions of IE don't support it by default
+                        jQuery.expr[':']['nth-of-type'] = function(elem, stackIndex, arrProperties) {
+                            tag = elem.tagName;
+                            par = elem.parentNode;
+                            num = arrProperties[3];
+                            children = par.childNodes;
+                            var ofType = 0;
+                            for (var i = 0; i < children.length && ofType <= num; i++) {
+                                if (children[i].tagName == elem.tagName) {
+                                    ofType++;
+                                }
+                                if (ofType == num) {
+                                    if (children[i] === elem) {
+                                        return true;
+                                    } else {
+                                        return false;
+                                    }
+                                }
+                            }
+                            return false;
+                        }
+                    },
+
+                    init = function () {
+                        $(document).ready(function () {
+                            extendJQuery();
+                            setInitialListeners();
+
+                            $("#blockDescription textarea").autosize();
+                            $("#blockDescription textarea").keyup(function() {
+                                pageChanged = true;
+                            });
+
+                            // one off stuff
+                            resizeImgMax($(".preview img")[0], 450, 341);
+                            pageListTable = $("#pageList").dataTable({
+                                "bScrollInfinite": true,
+                                "bScrollCollapse": true,
+                                "sScrollY": "400px",
+                                "bPaginate": false,
+                                "bInfo": false,
+                                "bFilter": false,
+                                "fnDrawCallback": function() {
+                                    $("#pageList tr.even").removeClass('even').addClass('odd');
+                                },
+                                "bAutoWidth": false,
+                                "aoColumns" : [
+                                    null,
+                                    null,
+                                    null,
+                                    { sWidth: '5px', bSortable: false },
+                                    { sWidth: '5px', bSortable: false },
+                                    { sWidth: '5px', bSortable: false },
+                                    { sWidth: '5px', bSortable: false }
+                                ]
+                            });
+                            $(window).resize();
+                            setPage(1);
+                        });
+                    };
+
+                    return {
+                        "init": init,
+                        "pagesLoaded": pagesLoaded,
+                        "loadPickContentBlockType": loadPickContentBlockType,
+                        "loadCreateContentBlock": loadCreateContentBlock,
+                        "confirmPageLoaded": confirmPageLoaded
+                    }
+            }($, jQuery, window));
+            pinpointApplication.init();
+        </script>
+    </head>
+    <body>
+        <header id="banner">
+        <div id="bannerBody">
+            <h1 id="bannerTitle">
+                <img src="{% static "images/logo.png" %}"
+                     alt="Second Funnel Logo" class="logo" align="middle"/>
+            </h1>
+            <div id="bannerRight">
+            </div>
+        </div>
+        </header>
+        <div id="wrapper">
+            <div id="header-spacing"></div>
+            <div id="break">
+                <div class="button" id="contextButton">
+                </div>
+                <nav id="breakNav">
+                    <ul class="breakNav" style="text-align: center">
+                        <li class="selected">
+                            <a href="#">Pages</a>
+                        </li>
+                        <li>
+                            <a href="#">Analytics</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div id="box" class="shadow">
+                <div id="boxTop">
+                    <div class="boxTopNav ">
+                        <ul class="boxTopNav">
+                        </ul>
+                    </div>
+                </div>
+                <div id="content">
+                    <div class="page" buttonText="Cancel">
+                        <div class="part" run="pinpointApplication.pagesLoaded();">
+                            <div class="partcontent">
+                            <table id="pageList" cellpadding="0" cellspacing="0" border="0" class="display" >
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Buys and Shares</th>
+                                        <th>Date Modified</th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for page in pages %}
+                                    <tr>
+                                        <td><div><p>{{page.pageName}}</p></div></td>
+                                        <td><div><p>0 buys, 0 shares</p></div></td>
+                                        <td><div><p>{{page.dateModified}}</p></div></td>
+                                        <td><div><a href="{{page.url}}" target="_blank">Link</a></div></td>
+                                        <td><div><button class="openPinpointPageAnalytics" data-pageSlug="{{ page.pageName|slugify }}">Analytics</Button></div></td>
+                                        <td class="pageEdCol"><div><button class="edit">Edit</button></div></td>
+                                        <td class="pageDelCol"><div><button class="deletePage">Hide</button></div></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            </div>
+                        </div>
+                        <div class="part" run="pinpointApplication.loadPickContentBlockType();">
+                            <div class="partcontent">
+                                    <div id="blocktypeSelector" class="horizontalSelector">
+                                        <div><table value="Featured"><tr><td>
+                                            <div id="featuredContentBlock" class="contentBlockType" style='background-image: url("{% static "images/cb-product-200x100.png" %}")'></div>
+                                            <p class="topPadding">Featured Product<br/>&nbsp;</p>
+                                        </td></tr></table></div>
+                                        <div><table class="comingSoon"
+                                                value="Lookbook"><tr><td>
+                                            <div id="lookBookContentBlock" class="contentBlockType" style='background-image: url("{% static "images/cb-lookbook-200x100.png" %}")'></div>
+                                            <p class="topPadding">Lookbook<br/><span class="coming">(Coming Soon)</span></p>
+                                        </td></tr></table></div>
+                                        <div><table value="Collection" class="comingSoon"><tr><td>
+                                            <div id="themedCollectionContentBlock" class="contentBlockType" style='background-image: url("{% static "images/cb-collection-200x100.png" %}")'></div>
+                                            <p class="topPadding">Themed Collection<br/><span class="coming">(Coming Soon)</span></p>
+                                        </td></tr></table></div>
+                                        <div><table value="ShopTheLook" class="comingSoon"><tr><td>
+                                            <div id="shopTheLookContentBlock" class="contentBlockType" style='background-image: url("{% static "images/cb-split-200x100.png" %}")'></div>
+                                            <p class="topPadding">Shop The Look<br/><span class="coming">(Coming Soon)</span></p>
+                                        </td></tr></table></div>
+                                    </div>
+                            </div>
+                            <div class="partBottom">
+                                <div class="navButtons">
+                                    <button class="next button">Next &rarr;</button>
+                                </div>
+                                <div class="rightButtons">
+                                    <button class="cancel button">Cancel</button>
+                                    <button class="save button">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="createblock" class="part" run="pinpointApplication.loadCreateContentBlock();">
+                            <div class="partcontent">
+                                <form id="blockProductUrl" action="/pinAdmin/get/prodImages">
+                                    <p>Enter featured product URL:</p>
+                                    <div class="alignedFieldContainer">
+                                        <span class="alignedField">
+                                            <input type="text" name="produrl"
+                                                   class="long"/>
+                                            <input type="hidden" name="url" value="{{ storeUrl }}"/>
+                                        </span>
+                                        <span class="alignedButton">
+                                            <input class="button" type="submit" value="Search for Product">
+                                        </span>
+                                    </div>
+                                </form>
+                                <div id="blockFurtherInstructions" style="display: none;">
+                                    <div id="blockImageSection">
+                                        <p>Select an image for <br/><b><span class="productTitle"></span></b>:</p>
+                                        <div id="blockImages" class="horizontalSelector">
+                                        </div>
+                                    </div>
+                                    <div id="blockDescriptionSection">
+                                        <p>You can also edit the description:</p>
+                                        <div id="blockDescription">
+                                            <textarea></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="productError" style="display: none;">
+                                    <h2>Sorry, we
+                                        couldn't find the
+                                        page you're
+                                        looking for.</h2>
+                                    <p>We're currently collecting product
+                                        information for your site. Please
+                                        try again later.</p>
+                                </div>
+                            </div>
+                            <div class="partBottom">
+                                <div class="navButtons">
+                                    <button class="back button">&larr; Back</button>
+                                    <button class="next button">Next &rarr;</button>
+                                </div>
+                                <div class="rightButtons">
+                                    <button class="cancel button">Cancel</button>
+                                    <button class="save button">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="part" run="pinpointApplication.confirmPageLoaded();">
+                            <div class="partcontent">
+                                <div id="getTitle">
+                                    <form id="pageNameForm">
+                                    <p>Give your page a title:
+                                        <input type="text"/>
+                                        <button id="generateUrl" class="button" type="button">Generate Url</button>
+                                        <span></span>
+                                    </p>
+                                    </form>
+
+                                </div>
+                                <div id="pageCreated" style="display: none;">
+                                    <div>
+                                    <p id="editInstructions" style="display: none;">Press back, make your changes, then press Save on that page or come back here and press Done.</p>
+                                    <div>
+                                        Here is a link to your page:
+                                        <div style="display: inline-block; margin: -12px 0px 0px 0px; vertical-align: text-top;">
+                                            <input type="text" readonly="readonly"/>
+                                            <p class="caption">
+                                                Press
+                                                <span class="keyboard">Ctrl-C</span>
+                                                or
+                                                <span class="keyboard">&#8984;-C</span> to copy.</p>
+                                        </div>
+                                        <a id="preview" class="button" href="" target="_blank">Preview</a>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="partBottom">
+                                <div class="navButtons">
+                                    <button class="back button">&larr; Back</button>
+                                </div>
+                                <div class="rightButtons">
+                                    <button class="cancel button">Cancel</button>
+                                    <button id="doneCreatingPage" class="button disabled updatePage">Done</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="page analyticsPage">
+                        <iframe src="http://secondfunnel-master.elasticbeanstalk.com/analytics/embedded/overview" width="100%" height="500" id="analytics_pane" style="border: 1px solid #6c6c6c"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            window.pages = [];
+
+            //{% for page in pages %}
+            window.pages.push("{{ page.pageName }}")
+            //{% endfor %}
+        </script>
+
+        <script type='text/javascript'>
+
+            var _ues = {
+                host:'secondfunnel.userecho.com',
+                forum:'15165',
+                lang:'en',
+                tab_corner_radius:5,
+                tab_font_size:20,
+                tab_image_hash:'RmVlZGJhY2s%3D',
+                tab_alignment:'left',
+                tab_text_color:'#FFFFFF',
+                tab_bg_color:'#000000',
+                tab_hover_color:'#666666'
+            };
+
+            (function() {
+                var _ue = document.createElement('script'); _ue.type = 'text/javascript'; _ue.async = true;
+                _ue.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'cdn.userecho.com/js/widget-1.4.gz.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(_ue, s);
+            })();
+
+        </script>
+    </body>
+</html>

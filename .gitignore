@@ -2,3 +2,4 @@ aws_credential_file
 secondfunnel/local_settings.py
 *.idea
 *.pyc
+*.sw*
