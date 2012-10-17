@@ -180,10 +180,8 @@
                     <img src="{{ banner }}" />
                 </div>
                 {% endif %}
-                {% if campaign.content_blocks.all %}
-                {% with content_block=campaign.content_blocks.all|first %}
-                {% render_ui_block content_block %}
-                {% endwith %}
+                {% if content %}
+                {% render_ui_block content %}
                 {% endif %}
                 <div id="waterfall">
                 {% for col in columns reversed %}
