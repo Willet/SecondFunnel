@@ -3,3 +3,4 @@ secondfunnel/local_settings.py
 *.idea
 *.pyc
 *.sw*
+apps/*/fixtures*

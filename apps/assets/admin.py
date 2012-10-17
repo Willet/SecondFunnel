@@ -25,7 +25,7 @@ class BaseNamedAdmin(BaseAdmin):
 
 
 class BaseNamedMediaAdmin(BaseNamedAdmin):
-    list_display = BaseNamedAdmin.list_display + [
+    list_display = ['id'] + BaseNamedAdmin.list_display + [
         'remote', 'hosted', 'media_type']
 
     list_filter = BaseNamedAdmin.list_filter + ['media_type']

@@ -1,0 +1,32 @@
+{% with media=prod.media.all %}
+{% with firstMedia=media|first %}
+{% with firstImage=firstMedia.get_url %}
+
+<div id="featured-product">
+    <div class="click" id="featured_img"
+        data-title="{{ featured.name|striptags }}"
+        data-desc="{{featured.description}}"
+        data-price="{{ featured.price|striptags }}"
+        data-img="{% for url in media %}{{ url.get_url|striptags }}|{% endfor %}"
+        data-url="{{ featured.original_url|striptags }}"
+        >
+        <img src="{{ firstImage }}">
+    </div>
+    <div class="text">
+        {% autoescape off %}
+        <h3>{{ featured.name|striptags }}</h3>
+        <h4 id="featured_price">{{ featured.price|striptags }}</h4>
+        <p id="featured_desc">{{ featured.description }}</p>
+        {% endautoescape %}
+    </div>
+    <div id="featured-social">
+        <div class="pinterest_buttons"></div>
+        <div class="fb_buttons"></div>
+        <div class="twitter_buttons"></div>
+    </div>
+</div>
+<div id="divider"></div>
+
+{% endwith %}
+{% endwith %}
+{% endwith %}

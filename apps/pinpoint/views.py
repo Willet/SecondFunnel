@@ -12,7 +12,7 @@ class Product(object):
     img = ["http://dev.willet-tniechciol.appspot.com/static/pinpointPreview.png"]
 
 def campaign(request, campaign_id):
-    campaign = None #get_object_or_404(Campaign, pk=campaign_id)
+    campaign = get_object_or_404(Campaign, pk=campaign_id)
     products = []
     for i in range(100):
         products.append(Product())

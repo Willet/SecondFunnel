@@ -73,6 +73,7 @@
                     init = function() {
                         // load scripts
                         $.getScript("//platform.twitter.com/widgets.js", twitterEvents);
+                        var twttr = undefined;
                         //window.twttr = (function (d,s,id) {
                         //    var t, js, fjs = d.getElementsByTagName(s)[0];
                         //    if (d.getElementById(id)) return; js=d.createElement(s); js.id=id; js.async=true;
@@ -80,7 +81,8 @@
                         //    return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f) } });
                         //}(document, "script", "twitter-wjs"));
 
-                        var twitterEvents = function(twttr) {
+                        var twitterEvents = function(t) {
+                            twttr = t;
                             twttr.events.bind('tweet', function(event) {
                                 pinpointTracking.registerShare({
                                     "network": "Twitter",
@@ -178,43 +180,16 @@
                 </div>
                 {% endif %}
                 {% if featured %}
-                <div id="featured-product">
-                    {% with featured.img|random as image %}
-                    <div class="click" id="featured_img"
-                        data-title="{{ featured.title|striptags }}"
-                        data-desc="{% for part in featured.desc %}{{ part|striptags }}{% endfor %}"
-                        data-price="{{ featured.price|striptags }}"
-                        data-img="{% for url in featured.img %}{{ url|striptags }}|{% endfor %}"
-                        data-url="{{ featured.url|striptags }}"
-                        >
-                        <img src="{{ featured.img|first|striptags }}">
-                    </div>
-                    <div class="text">
-                        {% autoescape off %}
-                        <h3>{{ featured.title|striptags }}</h3>
-                        <h4 id="featured_price">{{ featured.price|striptags }}</h4>
-                        <p id="featured_desc">{% for part in featured.desc %}{{ part|striptags }}{% endfor %}</p>
-                        {% endautoescape %}
-                    </div>
-                    <div id="featured-social">
-                        <div class="pinterest_buttons"></div>
-                        <div class="fb_buttons"></div>
-                        <div class="twitter_buttons"></div>
-                    </div>
-                    {% endwith %}
-                </div>
-                <div id="divider"></div>
-                <div id="waterfall">
+                    {% include "pinpoint/ui_blocks/generic.html" %}
                 {% endif %}
+                <div id="waterfall">
                 {% for col in columns reversed %}
                 <div class="column" id="{{col}}">
-                    {% for prod in products %}
+                    {% for prod in campaign.store.product_set.all %}
                     {% with columns|length as mod %}
-                    {% with prod.img|random as image %}
                     {% if forloop.counter|add:col|divisibleby:mod %}
                         {% include "pinpoint/ui_blocks/discovery-block.html" %}
                     {% endif %}
-                    {% endwith %}
                     {% endwith %}
                     {% endfor %}
                 </div>
