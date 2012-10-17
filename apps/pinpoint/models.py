@@ -42,7 +42,7 @@ class Campaign(BaseModelNamed):
         related_name="content_campaign")
 
     discovery_blocks = models.ManyToManyField(BlockContent,
-        related_name="discovery_campaign")
+        related_name="discovery_campaign", blank=True, null=True)
 
     def __unicode__(self):
         return u"Campaign: %s" % self.name
