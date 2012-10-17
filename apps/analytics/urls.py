@@ -7,6 +7,6 @@ urlpatterns = patterns('apps.analytics.views',
 )
 
 urlpatterns += patterns('apps.analytics.ajax',
-    url(r'api/(?P<app_slug>[-\w]+)/$', 'analytics_overview',
+    url(r'api/$', 'analytics_overview',
         name='ajax-analytics-overview'),
 )

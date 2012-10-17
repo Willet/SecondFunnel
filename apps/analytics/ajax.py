@@ -11,7 +11,8 @@ def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
-def analytics_overview(request, app_slug):
+def analytics_overview(request):
+    app_slug = request.GET.get('app_slug')
     visits = random.randint(2000, 5000)
     interactions = random.randint(700, 3000)
     data = {

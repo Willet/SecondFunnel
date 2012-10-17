@@ -1,0 +1,62 @@
+body {
+    background: #dedede;
+}
+
+h2, .campaign_menu {
+    font-family: Arial;
+}
+
+.campaign_menu {
+    margin-top: 20px;
+}
+
+.campaign_menu ul {
+    padding-left: 0;
+}
+
+.campaign_menu li, .campaign_menu li:hover {
+    cursor: pointer;
+    padding: 3px;
+}
+
+.campaign_menu li:hover, .selectedPage {
+    background-color: #eeeeee;
+}
+
+.campaign_analytics {
+    border-left: 1px solid #bdbdbd;
+    padding-left: 20px;
+}
+
+.campaign_menu ul {
+    list-style: none;
+}
+
+.campaign_analytics ul {
+    list-style: none;
+    padding-left: 25px;
+}
+
+.campaign_analytics ul li {
+    margin-left: 0px;
+    font-family: Arial;
+    font-size: 11pt;
+    padding-top: 7px;
+}
+
+li .angled {
+    padding-left: 20px;
+    background: url("{% static "images/angled-line-13x13.png" %}");
+    background-repeat: no-repeat;
+    /*background-position: -1px 5px;*/
+    /*border-left: 1px solid #000;*/
+}
+
+span.highlight {
+    color: #3d3d3d;
+    font-weight: bolder;
+}
+
+span.dimmed {
+    color: #818181;
+}
