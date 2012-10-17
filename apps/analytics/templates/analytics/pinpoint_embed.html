@@ -10,8 +10,9 @@
 {% block content %}
     <div class="grid_12">
         <div class="grid_2 alpha campaign_menu">
-            <strong>All Pages</strong>
-            <ul id="campaign_list"></ul>
+            <ul id="campaign_list">
+                <li id="overview"><strong>Overview</strong></li>
+            </ul>
         </div>
 
         <div class="grid_9 omega campaign_analytics">
@@ -148,6 +149,10 @@
                         'external_select': {
                             'new_state': 'page',
                             'fn': function (o) {}
+                        },
+                        'overview': {
+                            'new_state': 'overview',
+                            'fn': function (o) {}
                         }
                     }
                 }
@@ -208,9 +213,17 @@
             }
 
             $("#campaign_list li").live("click", function() {
-                state_transition("internal_select", {
-                    'analytics_app': $(this).html()
-                });
+                if ($(this).attr("id") == "overview") {
+                    state_transition("overview", {
+                        'analytics_app': "overview"
+                    });
+
+                } else {
+
+                    state_transition("internal_select", {
+                        'analytics_app': $(this).html()
+                    });
+                }
 
                 $("#campaign_list li").removeClass("selectedPage");
                 $(this).addClass("selectedPage");
