@@ -20,7 +20,6 @@ def campaign(request, campaign_id):
     return render_to_response('pinpoint/campaign.html', {
         "campaign": campaign,
         "columns": range(4),
-        "products": products,
         "featured": Product()
     }, context_instance=RequestContext(request))
 
