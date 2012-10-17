@@ -1,0 +1,36 @@
+{% load staticfiles %}
+
+<div class="pin click"
+    style="overflow: hidden;"
+    data-title="{{ prod.title|striptags }}"
+    data-desc="{% for part in prod.desc %}{{ part|striptags }}{% endfor %}"
+    data-price="{{ prod.price|striptags }}"
+    data-img="{% for url in prod.img %}{{ url|striptags }}|{% endfor %}"
+    data-url="{{ prod.url|striptags }}"
+    >
+    <div class="inner-pin">
+        {% autoescape off %}
+        <div class="inner-pin">
+            <img src="{{ prod.img|first }}" />
+        </div>
+        <h5>{{ prod.title|striptags }}</h5>
+        {% endautoescape %}
+    </div>
+    <div class="social-hover">
+        <div class="loading" style="display:none;"></div>
+        <div class="buttons" style="left:-1000px;">
+            <div class="pinterest_buttons">
+                <a href="http://pinterest.com/pin/create/button/?url={{ prod.url|striptags }}&media={{ image }}" target="_blank"><img src="{% static "images/pinpointButton.png" %}"/></a>
+            </div>
+            <div class="fb_buttons no_count">
+                <fb:like href="{{ prod.url|striptags }}"
+                width="48"
+                layout="button_count"
+                show_faces="false"></fb:like>
+            </div>
+            <div class="twitter_buttons">
+                <a href="https://twitter.com/share?url={{ prod.url|striptags }}" target="_blank"><img src="{% static "images/twitterButton.png" %}"/></a>
+            </div>
+        </div>
+    </div>
+</div>
