@@ -386,7 +386,7 @@ table.display thead th {
 }
 
 #pageList_wrapper {
-    height: 400px;
+    height: 435px;
     padding: 10px;
 }
 
@@ -494,6 +494,7 @@ table.display thead th {
     margin-top: 5px;
 }
 
+.horizontalSelector table:hover img,
 .horizontalSelector table:hover div {
     outline: 2px solid #aaa;
 }
@@ -650,4 +651,22 @@ table.display thead th {
 
 #editInstructions {
     margin-bottom: 20px;
+}
+
+ul.boxTopNav li {
+color: #DDD;
+font-size: 16px;
+}
+
+ul.boxTopNav li.selected {
+color: #EEE;
+font-weight: 700;
+}
+
+.partcontent {
+    min-height: 200px;
+}
+
+#pageList_wrapper input {
+    padding: 2px;
 }

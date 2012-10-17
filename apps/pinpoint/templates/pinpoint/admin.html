@@ -149,10 +149,13 @@
 
                     // called when the pages table loads
                     pagesLoaded = function () {
-                        function innerPageSettings() {
+                        function innerPageSettings(title) {
+                            if (title == undefined) {
+                                title = "Edit Page";
+                            }
                             $("#contextButton").hide();
                             $("ul.boxTopNav").html("" +
-                            "<div class='pageTitle'>Edit Page</div>" +
+                            "<div class='pageTitle'>" + title + "</div>" +
                             "<div class='boxTopRight'><li>Select Content Type \u2192</li>" +
                             "<li>Create Content Block \u2192</li>" +
                             "<li>Confirm</li>");
@@ -163,7 +166,7 @@
                         $("#contextButton").text("New Page");
                         $("#contextButton").unbind("click");
                         $("#contextButton").click(function() {
-                            innerPageSettings();
+                            innerPageSettings("New Page");
                             nextPage();
                         });
 
@@ -346,8 +349,10 @@
                     },
 
                     confirmPageLoaded = function() {
+                        var monthNames = [ "Jan", "Feb", "Mar", "Apr", "May", "June",
+                            "July", "Aug", "Sep", "Oct", "Nov", "Dec" ];
                         var d = new Date();
-                        $("#pageNameForm input:text").val(d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay() + " " + d.getHours() + ":" + d.getMinutes() + " - Featured");
+                        $("#pageNameForm input:text").val(monthNames[d.getMonth()] + " " + d.getDate() + " - Featured");
                         checkPageTitle();
                     },
 
@@ -489,7 +494,7 @@
                                     $("#blockDescription textarea").height($("#blockDescription textarea")[0].scrollHeight);
                                     str = "";
                                     for (var i = 0; i < data.images.length; i++) {
-                                        str += '<div><table><tr><td><img src=' + data.images[i] + '/></td></tr></table></div>'
+                                        str += '<div><table><tr><td><img src="' + data.images[i] + '"/></td></tr></table></div>'
                                     }
                                     $("#blockImages").html(str);
                                     $("#blockImages").prepend('<div><table>' +
@@ -604,8 +609,8 @@
                                 "bScrollCollapse": true,
                                 "sScrollY": "400px",
                                 "bPaginate": false,
-                                "bInfo": false,
-                                "bFilter": false,
+                                //"bInfo": false,
+                                //"bFilter": false,
                                 "fnDrawCallback": function() {
                                     $("#pageList tr.even").removeClass('even').addClass('odd');
                                 },
@@ -620,6 +625,9 @@
                                     { sWidth: '5px', bSortable: false }
                                 ]
                             });
+                            $("#pageList_filter input").unbind("keyup").keyup(function() {
+                                pageListTable.fnFilter( this.value, 0 );
+                            })
                             $(window).resize();
                             setPage(1);
                         });
