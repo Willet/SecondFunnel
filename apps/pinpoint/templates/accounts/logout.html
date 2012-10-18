@@ -1,5 +1,9 @@
 {% extends "pinpoint/admin_base.html" %}
 
+{% block title %}Logout{% endblock %}
+
+{% block page_title %}Logout{% endblock %}
+
 {% block extra_head %}
     
     <style>
@@ -13,9 +17,9 @@
 {% block content %}
     
     <form method="post" action="{% url django.contrib.auth.views.logout %}">
-    {% csrf_token %}
-    <input type="submit" value="logout" />
-    <input type="hidden" name="next" value="{% url login %}" />
+        {% csrf_token %}
+        <input type="submit" value="logout" />
+        <input type="hidden" name="next" value="{% url login %}" />
     </form>
     
 {% endblock %}

@@ -8,6 +8,9 @@ urlpatterns = patterns('',
     # INTERNAL ADMIN
     url(r'^admin/', include(admin.site.urls)),
 
+    # USED FOR PASSWORD RESET
+    url(r'^account/', include('django.contrib.auth.urls')),
+
     # APPS
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
     url(r'^analytics/', include('apps.analytics.urls')),
@@ -15,7 +18,7 @@ urlpatterns = patterns('',
     # APIs
     url(r'^api/assets/', include('apps.assets.api_urls')),
 
-    # Accounts
+    # ACCOUNTS
     url(r'^accounts/login/$', 
         'django.contrib.auth.views.login',
         {'template_name': 'accounts/login.html'},
@@ -25,6 +28,29 @@ urlpatterns = patterns('',
         'django.contrib.auth.views.logout',
         {'template_name': 'accounts/logout.html'},
         name="logout"),
+
+    url(r'^accounts/password/reset/$', 
+        'django.contrib.auth.views.password_reset',
+        {'template_name': 'accounts/pass_reset.html',
+            'email_template_name': 'accounts/pass_reset_email.html',
+            'subject_template_name': 'accounts/pass_reset_email_subject.html',
+            'post_reset_redirect': 'done/'},
+        name="pass_reset"),
+
+    url(r'^accounts/password/reset/done/$', 
+        'django.contrib.auth.views.password_reset_done',
+        {'template_name': 'accounts/pass_reset_done.html'},
+        name="pass_reset_done"),
+
+    url(r'^account/reset/(?P<uidb36>[-\w]+)/(?P<token>[-\w]+)/$', 
+        'django.contrib.auth.views.password_reset_confirm',
+        {'template_name': 'accounts/pass_reset_confirm.html'},
+        name="pass_reset_confirm"),
+
+    url(r'^accounts/password/reset/complete/$', 
+        'django.contrib.auth.views.password_reset_complete',
+        {'template_name': 'accounts/pass_reset_complete.html'},
+        name="pass_reset_complete"),
 )
 
 urlpatterns += staticfiles_urlpatterns()
