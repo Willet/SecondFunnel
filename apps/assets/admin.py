@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.assets.models import Product, ProductMedia, Store
+from apps.assets.models import Product, ProductMedia, ProductPrice, Store
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -44,7 +44,14 @@ class StoreAdmin(BaseNamedAdmin):
 admin.site.register(Store, StoreAdmin)
 
 
+class ProductPriceInline(admin.TabularInline):
+    model = ProductPrice
+
+
 class ProductAdmin(BaseNamedAdmin):
-    list_display = BaseNamedAdmin.list_display + ['price', 'original_url']
+    list_display = BaseNamedAdmin.list_display + ['original_url', 'price_count']
+    inlines = [
+        ProductPriceInline,
+    ]
 
 admin.site.register(Product, ProductAdmin)
