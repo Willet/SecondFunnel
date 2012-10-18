@@ -434,3 +434,22 @@ html, body {height:100%; margin: 0; padding: 0;}
 #featured-info {
 
 }
+
+.buttons * {
+    float: left;
+    margin: 0 2px;
+}
+
+.buttons .fb_buttons {
+    margin-left: 0;
+    margin-right: 4px;
+}
+
+.fb_buttons {
+    height: 24px;
+}
+
+.fb_buttons.no_count {
+    width: 56px;
+    overflow: hidden;
+}
