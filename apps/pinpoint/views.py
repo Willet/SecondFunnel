@@ -18,7 +18,6 @@ def pinpoint_admin(request, campaign_id):
         "storeUrl": campaign_id,
         "pageNames": [],
         "pages": [],
-        "pageDomain": "/"
     }, context_instance=RequestContext(request))
 
 def generic_page(request, product_id):

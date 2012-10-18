@@ -237,7 +237,7 @@
                             var pageName = $("td:nth-of-type(1) div", $(this).closest("tr")).text();
                             // get page info to get content-block name
                             $.ajax({
-                                url: "{{pageDomain}}/pinAdmin/get/page/info",
+                                url: "{{ SITE_URL }}/pinAdmin/get/page/info",
                                 data: {
                                     name: pageName,
                                     url: "{{storeUrl}}"
@@ -246,7 +246,7 @@
                                     if (pageData != null) {
                                         // get content block info
                                         $.ajax({
-                                            url: "{{pageDomain}}/pinAdmin/get/contentblock/featured/info",
+                                            url: "{{ SITE_URL }}/pinAdmin/get/contentblock/featured/info",
                                             data: {
                                                 url: "{{storeUrl}}",
                                                 name: pageData.contentBlockName
@@ -261,7 +261,7 @@
                                                         if (cbData.isImageUploaded) {
                                                             $("#blockImages > div:nth-of-type(1)").after(
                                                                 '<div><table class="selected"><tr><td><img src="' +
-                                                                '{{pageDomain}}/pinAdmin/get/contentblock/featured/image' +
+                                                                '{{ SITE_URL }}/pinAdmin/get/contentblock/featured/image' +
                                                                 '?url={{storeUrl}}&name=' +
                                                                 pageData.contentBlockName +
                                                                 '"</td></tr></table></div>'
@@ -404,11 +404,11 @@
                                 var tempImageName = ''
                                 var selected = $("#blockImages table.selected img");
                                 for (var i = 0; i < tempImages.length; i++) {
-                                    var asdf = "{{pageDomain}}/pinAdmin/get/tempImage?url="
+                                    var asdf = "{{ SITE_URL }}/pinAdmin/get/tempImage?url="
                                         + "{{storeUrl}}"
                                         + "&name=" + tempImages[i];
                                     if (selected.attr('src')
-                                    == "{{pageDomain}}/pinAdmin/get/tempImage?url="
+                                    == "{{ SITE_URL }}/pinAdmin/get/tempImage?url="
                                     + "{{storeUrl}}"
                                     + "&name=" + tempImages[i]) {
                                         tempImageName = tempImages[i];
@@ -521,7 +521,7 @@
                                             if (!data.match(/^Error/)) {
                                                 $("#blockImages > div:nth-of-type(1)").after(
                                                     '<div><table><tr><td><img src="' +
-                                                    '{{pageDomain}}/pinAdmin/get/tempImage?url={{storeUrl}}&name=' + data +
+                                                    '{{ SITE_URL }}/pinAdmin/get/tempImage?url={{storeUrl}}&name=' + data +
                                                     '"/></td></tr></table></div>'
                                                 );
                                                 tempImages.push(data);
@@ -561,6 +561,7 @@
                             switchAnalytics($(this).attr("data-pageSlug"));
                         });
 
+                        // from http://stackoverflow.com/a/5797700
                         $("#pageCreated input:text").focus(function() {
                             var $this = $(this);
                             $this.select();
