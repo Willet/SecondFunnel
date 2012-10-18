@@ -14,6 +14,11 @@ urlpatterns = patterns('',
 
     # APIs
     url(r'^api/assets/', include('apps.assets.api_urls')),
+
+    # Accounts
+    url(r'^accounts/login/$', 
+        'django.contrib.auth.views.login',
+        {'template_name': 'accounts/login.html'})
 )
 
 urlpatterns += staticfiles_urlpatterns()

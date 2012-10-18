@@ -1,9 +1,8 @@
 from django.conf.urls.defaults import patterns, url
-from django.contrib.auth.views import login
 
 urlpatterns = patterns('',
     url(r'^login/$', 
-        login, 
+        'django.contrib.auth.views.login',
         {'template_name': 'login/login.html'})
 )
 

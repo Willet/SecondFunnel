@@ -1,7 +1,24 @@
+{% extends "pinpoint/admin_base.html" %}
+
+{% block extra_head %}
+
+<style>
+    #id_password, #id_username {
+        padding: 2px;
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+
 {% if form.errors %}
 <p>Your username and password didn't match. Please try again.</p>
 {% endif %}
 
+{% if user.is_authenticated %}
+<p>You're already logged in as {{ user.username }}.</p>
+{% else %}
 <form method="post" action="{% url django.contrib.auth.views.login %}">
 {% csrf_token %}
 <table>
@@ -18,3 +35,6 @@
 <input type="submit" value="login" />
 <input type="hidden" name="next" value="{{ next }}" />
 </form>
+{% endif %}
+
+{% endblock %}
