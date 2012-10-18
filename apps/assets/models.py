@@ -72,6 +72,8 @@ class Product(BaseModelNamed):
     def price_count(self):
         return self.prices.count()
 
+    def media_count(self):
+        return self.media.count()
 
 class ProductMedia(MediaBase):
     product = models.ForeignKey(Product, related_name="media")

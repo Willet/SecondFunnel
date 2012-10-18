@@ -48,10 +48,17 @@ class ProductPriceInline(admin.TabularInline):
     model = ProductPrice
 
 
+class ProductMediaInline(admin.TabularInline):
+    model = ProductMedia
+
+
 class ProductAdmin(BaseNamedAdmin):
-    list_display = BaseNamedAdmin.list_display + ['original_url', 'price_count']
+    list_display = BaseNamedAdmin.list_display + [
+        'original_url', 'price_count', 'media_count']
+
     inlines = [
         ProductPriceInline,
+        ProductMediaInline,
     ]
 
 admin.site.register(Product, ProductAdmin)
