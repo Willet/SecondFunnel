@@ -35,21 +35,26 @@
                     // --- helper functions
                     resizeImgMax = function (img, maxWidth, maxHeight) {
                         var $img = $(img);
-                        $img.removeAttr("width");
-                        $img.removeAttr("height");
-                        $img.removeAttr("style");
-
-                        var w = $img.width();
-                        var h = $img.height();
-
-                        if ($img.width() > $img.height()) {
-                            var scale = maxWidth / $img.width();
-                            $img.height($img.height() * scale);
-                            $img.width(maxWidth);
+                        if (maxWidth == 0 || maxHeight == 0) {
+                            $img.width(0);
+                            $img.height(0);
                         } else {
-                            var scale = maxHeight / $img.height();
-                            $img.width($img.width() * scale);
-                            $img.height(maxHeight);
+                            // remove attributes to get image's default size
+                            $img.removeAttr("width");
+                            $img.removeAttr("height");
+                            $img.removeAttr("style");
+
+                            // find which side will be scaled to the max, the other will
+                            // be scaled proportionally
+                            if ($img.width() > $img.height()) {
+                                var scale = maxWidth / $img.width();
+                                $img.height($img.height() * scale);
+                                $img.width(maxWidth);
+                            } else {
+                                var scale = maxHeight / $img.height();
+                                $img.width($img.width() * scale);
+                                $img.height(maxHeight);
+                            }
                         }
                     },
 
