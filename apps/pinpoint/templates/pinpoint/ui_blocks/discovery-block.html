@@ -2,7 +2,6 @@
 
 {% with media=prod.media.all %}
 {% with firstMedia=media|first %}
-{% with firstImage=firstMedia.get_url %}
 
 <div class="pin click"
     style="overflow: hidden;"
@@ -15,7 +14,7 @@
     <div class="inner-pin">
         {% autoescape off %}
         <div class="inner-pin">
-            <img src="{{ firstImage }}" />
+            <img src="{{ firstMedia.get_url }}" />
         </div>
         <h5>{{ prod.name|striptags }}</h5>
         {% endautoescape %}
@@ -24,7 +23,7 @@
         <div class="loading" style="display:none;"></div>
         <div class="buttons" style="left:-1000px;">
             <div class="pinterest_buttons">
-                <a href="http://pinterest.com/pin/create/button/?url={{ prod.original_url|striptags }}&media={{ firstImage }}" target="_blank"><img src="{% static "images/pinpointButton.png" %}"/></a>
+                <a href="http://pinterest.com/pin/create/button/?url={{ prod.original_url|striptags }}&media={{ firstMedia.get_url }}" target="_blank"><img src="{% static "images/pinpointButton.png" %}"/></a>
             </div>
             <div class="fb_buttons no_count">
                 <fb:like href="{{ prod.original_url|striptags }}"
@@ -39,6 +38,5 @@
     </div>
 </div>
 
-{% endwith %}
 {% endwith %}
 {% endwith %}
