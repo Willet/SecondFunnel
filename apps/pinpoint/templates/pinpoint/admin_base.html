@@ -1,0 +1,86 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="{% static "pinpoint/css/pinpointAdmin.css" %}">
+        <link rel="stylesheet" href="{% static "pinpoint/css/960.css" %}"></link>
+        <link rel="stylesheet" href="{% static "pinpoint/css/reset.css" %}"></link>
+        <link rel="stylesheet" href="{% static "pinpoint/css/text.css" %}"></link>
+
+        {% block extra_head %}{% endblock %}
+
+        <style type="text/css">
+            .content {
+                -webkit-box-shadow:  0px 0px 10px 1px rgba(0, 0, 0, 0.5);
+                box-shadow:  0px 0px 10px 1px rgba(0, 0, 0, 0.5);
+                min-height: 500px;
+                margin-top: 40px;
+
+                -webkit-border-radius: 5px;
+                border-radius: 5px;
+            }
+
+            .top_bar {
+                margin: 0;
+                background-color: #385a71;
+                height: 50px;
+                -webkit-border-radius: 5px 5px 0px 0px;
+                border-radius: 5px 5px 0px 0px;
+            }
+
+            .top_bar .page_title {
+                font-size: 17pt;
+                color: #e0e0e0;
+                margin: 7px 0 0 15px;
+                text-shadow: 1px 1px 2px #4f4f4f;
+                filter: dropshadow(color=#4f4f4f, offx=1, offy=1);
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <header class="banner">
+            <div class="bannerBody">
+                <h1>
+                    <img src="{% static "pinpoint/images/logo.png" %}"
+                         alt="Second Funnel Logo" align="middle">
+                </h1>
+                <div class="bannerRight">
+                    <ul>
+                        {% if user.is_authenticated %}
+                            <li><a href="/logout">Logout</a></li>
+                        {% else %}
+                            <li><a href="/login">Login</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <div class="container_12">
+            <div class="grid_12 top_section">
+                {% block top_section %}{% endblock %}
+            </div>
+
+            <div class="grid_12 content">
+                <div class="grid_12 top_bar">
+                    <div class="page_title">
+                        {% block page_title %}Admin{% endblock %}
+                    </div>
+                </div>
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+
+        <script src="../static/jquery-1.8.1.min.js"></script>
+        {% block extra_js_includes %}{% endblock %}
+
+        <script type="text/javascript">
+            $(function() {
+                {% block document_ready %}{% endblock %}
+            });
+        </script>
+    </body>
+</html>
