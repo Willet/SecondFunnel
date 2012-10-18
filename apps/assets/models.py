@@ -60,11 +60,6 @@ class MediaBase(BaseModelNamed):
 
         return None
 
-
-class ProductMedia(MediaBase):
-    product = models.ForeignKey("Product", related_name="media")
-
-
 class Product(BaseModelNamed):
     price = models.CharField(max_length=255, blank=True, null=True)
 
@@ -74,3 +69,8 @@ class Product(BaseModelNamed):
 
     def __unicode__(self):
         return self.name
+
+class ProductMedia(MediaBase):
+    product = models.ForeignKey(Product, related_name="media")
+
+
