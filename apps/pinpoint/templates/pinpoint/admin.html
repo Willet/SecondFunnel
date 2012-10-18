@@ -11,15 +11,15 @@
         <script src="{% static "js/DataTables/js/jquery.dataTables.js" %}"></script>
         <script src="{% static "js/autosize/jquery.autosize-min.js" %}"></script>
         <script type="text/javascript">
-            var pinpointApplication = (function($, jQuery, window) {
-                var contentBlockType = undefined,
-                    contentBlockName = undefined,
+            var pinpointApplication = (function($, window) {
+                var contentBlockType,
+                    contentBlockName,
                     tempImages = [],
                     // keeps track of whether the page needs to be saved
                     pageChanged = false,
 
                     // this is stored for convenience later
-                    $currentPage = undefined,
+                    $currentPage,
 
                     $currentPart = $(".part:nth-of-type(1)", $currentPage),
 
@@ -28,7 +28,7 @@
                     {% endautoescape %}
 
                     tempImages = [],
-                    onLoadProductImages = undefined,
+                    onLoadProductImages,
 
                     pageListTable,
 
@@ -570,7 +570,7 @@
 
                     extendJQuery = function () {
                         // implementing nth-of-type because old versions of IE don't support it by default
-                        jQuery.expr[':']['nth-of-type'] = function(elem, stackIndex, arrProperties) {
+                        $.expr[':']['nth-of-type'] = function(elem, stackIndex, arrProperties) {
                             tag = elem.tagName;
                             par = elem.parentNode;
                             num = arrProperties[3];
@@ -640,7 +640,7 @@
                         "loadCreateContentBlock": loadCreateContentBlock,
                         "confirmPageLoaded": confirmPageLoaded
                     }
-            }($, jQuery, window));
+            }(jQuery, window));
             pinpointApplication.init();
         </script>
     </head>
