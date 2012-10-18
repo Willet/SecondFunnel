@@ -21,6 +21,10 @@
                 border-radius: 5px;
             }
 
+            .inner_content {
+                padding: 10px;
+            }
+
             .top_bar {
                 margin: 0;
                 background-color: #385a71;
@@ -67,10 +71,13 @@
             <div class="grid_12 content">
                 <div class="grid_12 top_bar">
                     <div class="page_title">
-                        {% block page_title %}Admin{% endblock %}
+                        {% block page_title %}PinPoint Admin{% endblock %}
                     </div>
                 </div>
-                {% block content %}{% endblock %}
+
+                <div class="grid_12 inner_content">
+                    {% block content %}{% endblock %}
+                </div>
             </div>
         </div>
 
