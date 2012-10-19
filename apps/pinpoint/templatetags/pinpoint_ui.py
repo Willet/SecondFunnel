@@ -10,11 +10,11 @@ register = template.Library()
 
 
 class BlockNode(template.Node):
-    def __init__(self, user):
+    def __init__(self, ui_block):
         self.ui_block = template.Variable(ui_block)
 
     def render(self, context):
-        ui_block = self.user.resolve(context)
+        ui_block = self.ui_block.resolve(context)
 
         return render_to_string([
             "pinpoint/ui_blocks/%s.html" % ui_block.block_type.slug,

@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="{% static "pinpoint/css/960.css" %}"></link>
         <link rel="stylesheet" href="{% static "pinpoint/css/reset.css" %}"></link>
         <link rel="stylesheet" href="{% static "pinpoint/css/text.css" %}"></link>
+        <title>{% block title %}Second Funnel{% endblock %}</title>
 
         {% block extra_head %}{% endblock %}
 
@@ -82,9 +83,10 @@
                 <div class="bannerRight">
                     <ul>
                         {% if user.is_authenticated %}
-                            <li><a href="/logout">Logout</a></li>
+                        <li><a href="{% url password_change %}">Change Password</a></li>
+                        <li><a href="{% url logout %}">Logout</a></li>
                         {% else %}
-                            <li><a href="/login">Login</a></li>
+                        <li><a href="{% url login %}">Login</a></li>
                         {% endif %}
                     </ul>
                 </div>
