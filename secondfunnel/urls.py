@@ -37,7 +37,7 @@ urlpatterns = patterns('',
         {'template_name': 'registration/pass_reset_done.html'},
         name="password_reset_done"),
 
-    url(r'^account/reset/(?P<uidb36>[-\w]+)/(?P<token>[-\w]+)/$', 
+    url(r'^accounts/reset/(?P<uidb36>[-\w]+)/(?P<token>[-\w]+)/$', 
         'django.contrib.auth.views.password_reset_confirm',
         {'template_name': 'registration/pass_reset_confirm.html'},
         name="password_reset_confirm"),
