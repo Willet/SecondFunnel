@@ -6,8 +6,7 @@ wiki](https://github.com/Willet/SecondFunnel/wiki).
 
 Installation
 ------------
-Detailed instructions can be found in [the SecondFunnel wiki](https://github.
-com/Willet/SecondFunnel/wiki/Environment-Setup), but a quick installation can
+Detailed instructions can be found in [the SecondFunnel wiki](https://github.com/Willet/SecondFunnel/wiki/Environment-Setup), but a quick installation can
  be done by doing the following:
 
 1. Set up a virtual environment using `virtualenv` or `virtualenvwrapper`
@@ -30,12 +29,11 @@ Then, getting started is as easy as creating a `local_settings.py` file in the
 
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
-...and running the following command:
+...and run the following command...
 
     python manage.py runserver
 
-And voila! Again, full details are available [in the wiki](https://github
-.com/Willet/SecondFunnel/wiki/Environment-Setup)
+And voila! Again, full details are available [in the wiki](https://github.com/Willet/SecondFunnel/wiki/Environment-Setup)
 
 Structure
 ---------
