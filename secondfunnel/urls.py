@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib import admin
+from apps.assets.forms import HTMLPasswordResetForm
 
 admin.autodiscover()
 
@@ -29,6 +30,7 @@ urlpatterns = patterns('',
         {'template_name': 'registration/pass_reset_form.html',
             'email_template_name': 'registration/pass_reset_email.html',
             'subject_template_name': 'registration/pass_reset_email_subject.txt',
+            'password_reset_form': HTMLPasswordResetForm,
             'post_reset_redirect': 'done/'},
         name="password_reset"),
 
