@@ -3,7 +3,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import Http404
 
-from apps.pinpoint.models import Campaign
+from apps.pinpoint.models import Campaign, BlockType
 from apps.assets.models import Store
 
 
@@ -31,7 +31,8 @@ def new_campaign(request, store_id):
     store = get_object_or_404(Store, pk=store_id)
 
     return render_to_response('pinpoint/admin_new_campaign.html', {
-        "store": store
+        "store": store,
+        "block_types": BlockType.objects.all(),
     }, context_instance=RequestContext(request))
 
 
