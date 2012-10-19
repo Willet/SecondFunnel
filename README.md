@@ -1,11 +1,11 @@
 SecondFunnel
-------------
+============
 SecondFunnel is a collection of related applications for converting browser
 into shoppers. Additional information on the project can be found [in the
 wiki](https://github.com/Willet/SecondFunnel/wiki).
 
 Installation
-============
+------------
 Detailed instructions can be found in [the SecondFunnel wiki](https://github
 .com/Willet/SecondFunnel/wiki),
 but a quick installation can be done by doing the following:
@@ -20,7 +20,7 @@ running the following command:
     python manage.py runserver
 
 Structure
-=========
+---------
 The SecondFunnel project is broken into different folders for the application.
 
 - `scripts`: ???
@@ -31,9 +31,9 @@ The SecondFunnel project is broken into different folders for the application.
     - `pinpoint`: A dynamic landing page
 
 Documentation
-=============
+-------------
 Coming Soon
 
 License
-=======
+-------
 Copyright 2012, Willet Inc.
