@@ -26,6 +26,12 @@ def store_admin(request, store_id):
     }, context_instance=RequestContext(request))
 
 
+@login_required
+def new_campaign(request):
+
+    return render_to_response('pinpoint/admin_new_campaign.html', {
+        "store": store
+    }, context_instance=RequestContext(request))
 
 
 @login_required

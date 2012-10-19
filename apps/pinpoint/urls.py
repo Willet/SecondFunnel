@@ -6,6 +6,8 @@ urlpatterns = patterns('apps.pinpoint.views',
 
     url(r'admin/(?P<store_id>\d+)/$', 'store_admin', name='store-admin'),
 
+    url(r'admin/(?P<campaign_id>\d+)/analytics/$',
+        'campaign_analytics_admin', name='analytics-campaign-admin'),
 
     url(r'admin/(?P<store_id>\d+)/analytics/$',
         'store_analytics_admin', name='analytics-store-admin'),
