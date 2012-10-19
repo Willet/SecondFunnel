@@ -21,8 +21,7 @@
     {% endif %}
     
     {% if user.is_authenticated %}
-        <p>You're already logged in as {{ user.username }}.</p>
-        <p>To log out, click <a href="{% url logout %}">here</a></p>
+        <p>You're already logged in as {{ user.username }}. <a href="{% url logout %}">Log out.</a></p>
     {% else %}
         <form method="post" action="{% url django.contrib.auth.views.login %}">
             {% csrf_token %}

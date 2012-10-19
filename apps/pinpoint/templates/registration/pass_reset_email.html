@@ -1,0 +1,6 @@
+A password reset was requested for the email {{ user.email }}
+
+Go to this page to choose a new password:
+{% block reset_link %}
+{{ protocol }}://{{ domain }}{% url pass_reset_confirm uidb36=uid, token=token %}
+{% endblock %}
