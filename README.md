@@ -10,9 +10,9 @@ Detailed instructions can be found in [the SecondFunnel wiki](https://github
 .com/Willet/SecondFunnel/wiki),
 but a quick installation can be done by doing the following:
 
-# Set up a virtual environment using `virtualenv` or `virtualenvwrapper`
-# Install MySQL
-# Install python dependencies: `pip install -r requirements.txt`
+1. Set up a virtual environment using `virtualenv` or `virtualenvwrapper`
+2. Install MySQL
+3. Install python dependencies: `pip install -r requirements.txt`
 
 Then, getting started is as easy as creating a `local_settings.py` file and
 running the following command:
