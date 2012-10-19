@@ -26,6 +26,18 @@ def store_admin(request, store_id):
     }, context_instance=RequestContext(request))
 
 
+
+
+@login_required
+def campaign_analytics_admin(request, campaign_id):
+    pass
+
+
+@login_required
+def store_analytics_admin(request, store_id):
+    pass
+
+
 def campaign(request, campaign_id):
     campaign = get_object_or_404(Campaign, pk=campaign_id)
 
