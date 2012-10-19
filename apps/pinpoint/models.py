@@ -18,6 +18,9 @@ class StoreTheme(BaseModelNamed):
 
 
 class BlockType(BaseModelNamed):
+    image = models.FileField("Wizard Image",
+        upload_to="internal_images", blank=True, null=True)
+
     def __unicode__(self):
         return u"Block type: %s" % self.name
 
