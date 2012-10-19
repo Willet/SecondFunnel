@@ -6,15 +6,15 @@ from django.db import models
 from apps.assets.models import MediaBase, BaseModel, BaseModelNamed, Store
 
 
-class StoreThemeMedia(MediaBase):
-    theme = models.ForeignKey("StoreTheme", related_name="media")
-
-
 class StoreTheme(BaseModelNamed):
     store = models.ForeignKey(Store)
 
     def __unicode__(self):
         return u"Theme for Store: %s" % self.store
+
+
+class StoreThemeMedia(MediaBase):
+    theme = models.ForeignKey(StoreTheme, related_name="media")
 
 
 class BlockType(BaseModelNamed):
