@@ -23,7 +23,7 @@
     {% if user.is_authenticated %}
         <p>You're already logged in as {{ user.username }}. <a href="{% url logout %}">Log out.</a></p>
     {% else %}
-        <form method="post" action="{% url django.contrib.auth.views.login %}">
+        <form method="post" action="{% url login %}">
             {% csrf_token %}
             <table>
             <tr>
@@ -39,7 +39,7 @@
             <input type="submit" value="login" />
             <input type="hidden" name="next" value="{{ next }}" />
         </form>
-        <p><a href="{% url django.contrib.auth.views.password_reset %}">Forgot your password?</a></p>
+        <p><a href="{% url password_reset %}">Forgot your password?</a></p>
     {% endif %}
     
 {% endblock %}
