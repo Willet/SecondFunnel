@@ -140,6 +140,7 @@ INSTALLED_APPS = (
     'apps.analytics',
     'apps.assets',
     'apps.pinpoint',
+    'apps.scraper',
 )
 
 # A sample logging configuration. The only tangible logging
