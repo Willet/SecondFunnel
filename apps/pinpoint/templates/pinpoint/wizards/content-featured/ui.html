@@ -11,24 +11,33 @@
 
 {% block extra_head %}
     <style type="text/css">
-        .block_types {
+        .product_select {
 
         }
 
-        .block_type {
-            padding-left: 0px;
-            margin-left: 5px;
-            margin-right: 5px;
-            text-align: center;
+        .product_select ul {
+            list-style: none;
         }
 
-        .dimmed img {
-            opacity: 0.6;
+        .product_select li {
+            color: #5a8eb4;
         }
 
-        .disabled {
-            display: block;
-            color: #9e9e9e;
+        .product_select li:hover {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .product_meta {
+
+        }
+
+        .product_image {
+
+        }
+
+        .product_description {
+
         }
     </style>
 {% endblock %}
@@ -37,7 +46,7 @@
 {% endblock %}
 
 {% block document_ready %}
-
+    $("#product_selected").
 {% endblock %}
 
 {% block top_section %}
@@ -50,10 +59,23 @@
 {% endblock %}
 
 {% block content %}
-    <h2>Select a product:</h2>
-    <div class="grid_12 block_types">
-    {% for product in products %}
-        {{ product }}
-    {% endfor %}
+    <div class="grid_12 product_select">
+        <h2>Select a product:</h2>
+        <div class="grid_12 block_types">
+
+            <ul>
+            {% for product in products %}
+                <li>{{ product }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="grid_12 product_meta">
+        <div class="grid_12 product_image">
+        </div>
+
+        <div class="grid_12 product_description">
+        </div>
     </div>
 {% endblock %}
