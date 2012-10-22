@@ -21,6 +21,9 @@ class BlockType(BaseModelNamed):
     image = models.FileField("Wizard Image",
         upload_to="internal_images", blank=True, null=True)
 
+    handler = models.CharField(max_length=255, blank=True, null=True)
+    enabled = models.BooleanField(default=True)
+
     def __unicode__(self):
         return u"Block type: %s" % self.name
 

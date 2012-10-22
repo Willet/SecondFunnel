@@ -6,6 +6,8 @@ from django.http import Http404
 from apps.pinpoint.models import Campaign, BlockType
 from apps.assets.models import Store
 
+import apps.pinpoint.wizards as wizards
+
 
 @login_required
 def admin(request):
@@ -34,6 +36,14 @@ def new_campaign(request, store_id):
         "store": store,
         "block_types": BlockType.objects.all(),
     }, context_instance=RequestContext(request))
+
+
+@login_required
+def block_type_router(request, store_id, block_type_id):
+    store = get_object_or_404(Store, pk=store_id)
+    block_type = get_object_or_404(BlockType, pk=block_type_id)
+
+    return getattr(wizards, block_type.handler)(request, store, block_type)
 
 
 @login_required

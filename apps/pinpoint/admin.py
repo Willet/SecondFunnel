@@ -20,7 +20,7 @@ admin.site.register(StoreTheme, StoreThemeAdmin)
 
 
 class BlockTypeAdmin(BaseNamedAdmin):
-    pass
+    list_display = BaseNamedAdmin.list_display + ['image', 'handler', 'enabled']
 
 admin.site.register(BlockType, BlockTypeAdmin)
 
