@@ -1,10 +1,10 @@
 {% autoescape off %}
 
-A password reset was requested for the email {{ user.email }}
+<p>A password reset was requested for the email {{ user.email }}<p>
 
-Go to this page to choose a new password:
+<p>Go to this page to choose a new password:<p>
 {% block reset_link %}
-<a href="{{ protocol }}://{{ domain }}{% url password_reset_confirm uidb36=uid, token=token %}">Link</a>
+<p><a href="{{ protocol }}://{{ domain }}{% url password_reset_confirm uidb36=uid, token=token %}">Link</a><p>
 {% endblock %}
 
 {% endautoescape %}
