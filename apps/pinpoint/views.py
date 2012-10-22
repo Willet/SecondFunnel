@@ -1,10 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.http import Http404
+from django.http import HttpResponse, Http404
+from django.contrib.contenttypes.models import ContentType
 
-from apps.pinpoint.models import Campaign, BlockType
-from apps.assets.models import Store
+from apps.pinpoint.models import Campaign, BlockType, BlockContent
+from apps.assets.models import Store, Product
 
 import apps.pinpoint.wizards as wizards
 
@@ -57,8 +58,27 @@ def store_analytics_admin(request, store_id):
 
 
 def campaign(request, campaign_id):
-    campaign = get_object_or_404(Campaign, pk=campaign_id)
+    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
 
     return render_to_response('pinpoint/campaign.html', {
-        "campaign": campaign
+        "campaign": campaign_instance,
+        "columns": range(4),
+    }, context_instance=RequestContext(request))
+
+
+def generic_page(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    store = product.store
+    block_type = BlockType(name="generic")
+    block = BlockContent(
+            block_type=block_type,
+            content_type=ContentType.objects.get_for_model(Product),
+            object_id=product.id)
+
+    return render_to_response('pinpoint/campaign.html', {
+        "campaign": {
+            "store": store,
+        },
+        "columns": range(4),
+        "content": block
     }, context_instance=RequestContext(request))

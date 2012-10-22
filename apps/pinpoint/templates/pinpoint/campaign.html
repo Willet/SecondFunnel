@@ -1,152 +1,253 @@
 {% load staticfiles %}
+{% load pinpoint_ui %}
 
 <!DOCTYPE html>
-<html>
+<html xmlns:fb="http://ogp.me/ns/fb#">
     <head>
         <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+        {% for sheet in stylesheets %}
+        <link rel="stylesheet" type="text/css" href="{{ sheet }}" />
+        {% endfor %}
+        <link rel="stylesheet" href="{% static "pinpoint/css/pinpoint.css" %}">
+        <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
+        <script src="{% static "js/infinity.min.js" %}"></script>
 
-        <link rel="stylesheet" href="{% static "css/pinpoint.css" %}">
-        <script type="text/javascript" charset="utf-8">
-            var _gaq = _gaq || [];
+        <script type="text/javascript">
+            var _pptimeout, pinpointTracking = (function ($, window, document) {
+                var referrerName = function () {
+                    var host;
 
-            _gaq.push(['_setAccount', 'UA-35018502-1']);
-            _gaq.push(['_trackPageview']);
+                    if (document.referrer === "") {
+                        return "noref";
+                    }
 
-            (function() {
-                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-            })();
-        </script>
+                    host = parseUri(document.referrer).host;
+                    // want top level domain name (i.e. tumblr.com, not site.tumblr.com)
+                    host = host.split(".").slice(host.split(".").length - 2, host.split(".").length).join(".");
+
+                    if (host === "") {
+                        return "noref";
+                    }
+
+                    return host;
+                },
+
+                trackEvent = function (o) {
+                    var category = "pinpoint|" + referrerName(), uri;
+
+                    uri = parseUri(window.location.href);
+                    category += "|" + parseUri(uri.queryKey.url).host;
+
+                    //console.log(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+                    // _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+                },
+
+                registerShare = function (o) {
+                    var action, url;
+                    //console.log(pinpointTracking.socialShareType, pinpointTracking.socialShareUrl);
+
+                    trackEvent({
+                        "action": "share|" + o.network + "|" + o.type + "|" + pinpointTracking.socialShareType,
+                        "label": pinpointTracking.socialShareUrl
+                    });
+                },
+
+                setSocialShareVars = function (o) {
+                    //console.log(o);
+
+                    if (o.default === true) {
+                        pinpointTracking.socialShareUrl = $("#featured_img").data("url");
+                        pinpointTracking.socialShareType = "featured";
+                    } else {
+                        pinpointTracking.socialShareUrl = o.url;
+                        pinpointTracking.socialShareType = o.sType;
+                    }
+                },
+
+                clearTimeout = function () {
+                    if (typeof _pptimeout == "number") {
+                        window.clearTimeout(_pptimeout);
+                        delete _pptimeout;
+                    }
+                },
+
+                init = function() {
+                    // load scripts
+                    $.getScript("//platform.twitter.com/widgets.js", twitterEvents);
+                    var twttr = undefined;
+                    //window.twttr = (function (d,s,id) {
+                    //    var t, js, fjs = d.getElementsByTagName(s)[0];
+                    //    if (d.getElementById(id)) return; js=d.createElement(s); js.id=id; js.async=true;
+                    //    js.src="//platform.twitter.com/widgets.js"; js.onload="pinpointTracking.registerTwitterListeners"; fjs.parentNode.insertBefore(js, fjs);
+                    //    return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f) } });
+                    //}(document, "script", "twitter-wjs"));
+
+                    var twitterEvents = function(t) {
+                        twttr = t;
+                        twttr.events.bind('tweet', function(event) {
+                            pinpointTracking.registerShare({
+                                "network": "Twitter",
+                                "type": "shared"
+                            });
+                        });
+
+                        twttr.events.bind('click', function(event) {
+                            var sType;
+                            if (event.region == "tweet") {
+                                sType = "clicked";
+                            } else if (event.region == "tweetcount") {
+                                sType = "leftFor";
+                            } else {
+                                sType = event.region;
+                            }
+                            pinpointTracking.registerShare({
+                                "network": "Twitter",
+                                "type": sType
+                            });
+                        });
+                    }
+                },
+
+
+                // parseUri 1.2.2
+                // (c) Steven Levithan <stevenlevithan.com>
+                // MIT License
+
+                parseUri = function (str) {
+                    var o   = parseUri.options,
+                    m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+                    uri = {},
+                    i   = 14;
+
+                    while (i--) uri[o.key[i]] = m[i] || "";
+
+                    uri[o.q.name] = {};
+                    uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+                        if ($1) uri[o.q.name][$1] = $2;
+                    });
+
+                    return uri;
+                };
+
+            parseUri.options = {
+                strictMode: false,
+                key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+                q:   {
+                    name:   "queryKey",
+                    parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+                },
+                parser: {
+                    strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+                    loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+                }
+            };
+
+            this.socialShareType = undefined;
+            this.socialShareUrl = undefined;
+
+            return {
+                "init": init,
+                    "registerShare": registerShare,
+                    "trackEvent": trackEvent,
+                    "setSocialShareVars": setSocialShareVars,
+                    "clearTimeout": clearTimeout
+            }
+
+            }(jQuery, window, document));
+
+pinpointTracking.init();
+
+</script>
+
+<script type="text/javascript" charset="utf-8">
+    var _gaq = _gaq || [];
+
+    _gaq.push(['_setAccount', 'UA-35018502-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+</script>
     </head>
     <body>
         <div id="willet-main">
             <div id="wrapper">
-                {% if featured %}
-                <div id="featured-product">
-                    {% with featured.img|random as image %}
-                    <div class="click" id="featured_img"
-                        data-title="{{ featured.title|striptags }}"
-                        data-desc="{% for part in featured.desc %}{{ part|striptags }}{% endfor %}"
-                        data-price="{{ featured.price }}"
-                        data-img="{% for url in featured.img %}{{ url }}|{% endfor %}"
-                        data-url="{{ featured.url }}"
-                        >
-                        <img src="{{ featured.img|first }}">
-                    </div>
-                    <div class="text">
-                        {% autoescape off %}
-                        <h3>{{ featured.title|striptags }}</h3>
-                        <h4 id="featured_price">{{ featured.price }}</h4>
-                        <p id="featured_desc">{% for part in featured.desc %}{{ part|striptags }}{% endfor %}</p>
-                        {% endautoescape %}
-                    </div>
-                    <div id="featured-social">
-                        <div class="pinterest_buttons"></div>
-                        <div class="fb_buttons"></div>
-                        <div class="twitter_buttons"></div>
-                    </div>
-                    {% endwith %}
+                {% if banner %}
+                <div id="banner">
+                    <img src="{{ banner }}" />
                 </div>
-                <div id="divider"></div>
                 {% endif %}
-                {% for col in columns reversed %}
-                <div class="column" id="{{col}}">
-                    {% for prod in products %}
-                    {% with columns|length as mod %}
-                    {% with prod.img|random as image %}
-                    {% if forloop.counter|add:col|divisibleby:mod %}
-                    <div class="pin click"
-                        data-title="{{ prod.title }}"
-                        data-desc="{% for part in prod.desc %}{{ part }}{% endfor %}"
-                        data-price="{{ prod.price }}"
-                        data-img="{% for url in prod.img %}{{ url }}|{% endfor %}"
-                        data-url="{{ prod.url }}"
-                        >
-                    <div class="inner-pin">
-                        {% autoescape off %}
-                        {# <p>{{ prod.price }}</p> #}
-                        {# <p>{% for part in prod.desc %}{{ part }}{% endfor %}</p> #}
-                        {# <p>{{ prod.url }}</p> #}
-                        <div class="inner-pin">
-                            <img src="{{ prod.img|first }}" />
+                {% if content %}
+                    {% render_ui_block content %}
+                {% endif %}
+                <div id="waterfall">
+                    {% for col in columns reversed %}
+                        <div class="column" id="{{col}}">
+                            {% for prod in campaign.store.product_set.all %}
+                                {% with columns|length as mod %}
+                                    {% if forloop.counter|add:col|divisibleby:mod %}
+                                        {% include "pinpoint/ui_blocks/discovery-block.html" %}
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
                         </div>
-                        <h5>{{ prod.title }}</h5>
-                        {% endautoescape %}
-                    </div>
-                    <div class="social-hover" style="display: none;">
-                        <div class="pinterest_buttons">
-                            <a href="http://pinterest.com/pin/create/button/?url={{ prod.url }}&media={{ image }}&description={{ prod.title }}" class="pin-it-button" count-layout="none"><img border="0" src="//assets.pinterest.com/images/PinExt.png" title="Pin It" /></a>
-                        </div>
-                        <div class="fb_buttons">
-                            <fb:like href="{{ prod.url }}"
-                                     width="48"
-                                     layout="button_count"
-                                     show_faces="false"></fb:like>
-                        </div>
-                        <div class="twitter_buttons">
-                            <a href="https://twitter.com/share?url={{ prod.url }}&text={{ prod.title }}" class="twitter-share-button" data-lang="en" data-count="none">Tweet</a>
-                        </div>
-                    </div>
-                    </div>
-                    {% endif %}
-                    {% endwith %}
-                    {% endwith %}
                     {% endfor %}
                 </div>
-                {% endfor %}
                 <div style="clear:both"></div>
             </div>
-                <div id="light" style="display: none;">
-                    <div id="light-inner">
-                        <div id="light-content" class="box-content">
-                            <div class="x">
-                                x
+            <div id="light" style="display: none;">
+                <div id="light-inner">
+                    <div id="light-content" class="box-content">
+                        <div class="x">
+                            x
+                        </div>
+                        <div class="social">
+                            <div class="pinterest_buttons"></div>
+                            <div class="fb_buttons"></div>
+                            <div class="twitter_buttons"></div>
+                        </div>
+                        <div id="light_img_div"><a class="link"><img id="light_img" /></a></div>
+                        <div id="pic_selector">
+                            <span class="arrow pic_left">&lsaquo;</span>
+                            &nbsp;&nbsp;&nbsp;
+                            <span id="pic_index"></span>
+                            &nbsp;&nbsp;&nbsp;
+                            <span class="arrow pic_right">&rsaquo;</span>
+                        </div>
+                        <div class="content">
+                            <div class="buttons">
+                                <div class="buy"><a id="light_buy"><img src="https://static.shopify.com/s/files/1/0029/8962/t/8/assets/willet-buynow.png?106515" /></a></div>
                             </div>
-                            <div class="social">
-                                <div class="pinterest_buttons"></div>
-                                <div class="fb_buttons"></div>
-                                <div class="twitter_buttons"></div>
+                            <div class="text">
+                                <h3><a id="light_title" class="link">Title goes here</a></h3>
+                                <h4 id="light_price"></h4>
+                                <p id="light_desc"></p>
                             </div>
-                            <div id="light_img_div"><a class="link"><img id="light_img" /></a></div>
-                            <div id="pic_selector">
-                                <span class="arrow pic_left">&lsaquo;</span>
-                                &nbsp;&nbsp;&nbsp;
-                                <span id="pic_index"></span>
-                                &nbsp;&nbsp;&nbsp;
-                                <span class="arrow pic_right">&rsaquo;</span>
-                            </div>
-                            <div class="content">
-                                <div class="buttons">
-                                    <div class="buy"><a id="light_buy"><img src="https://static.shopify.com/s/files/1/0029/8962/t/8/assets/willet-buynow.png?106515" /></a></div>
-                                </div>
-                                <div class="text">
-                                    <h3><a id="light_title" class="link">Title goes here</a></h3>
-                                    <h4 id="light_price"></h4>
-                                    <p id="light_desc"></p>
-                                </div>
-                                <div id="showmore"></div>
-                            </div>
+                            <div id="showmore"></div>
                         </div>
                     </div>
-                    <div id="fade" class="overlay"></div>
                 </div>
+                <div id="fade" class="overlay"></div>
+            </div>
         </div>
 
-        <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-        <script type="text/javascript" src="//assets.pinterest.com/js/pinit.js"></script>
-        <script src="{% static "js/pinpoint_tracking.js" %}" type="text/javascript"></script>
-
-        <script type="text/javascript" charset="utf-8">
-            pinpointTracking.init();
-
+        <div id="fb-root"></div>
+        <script>
             $(document).ready(function() {
+                listView = new infinity.ListView($("#waterfall"));
+
+                // analytics
+                pinpointTracking.setSocialShareVars({"default": true});
+
                 $("#featured-social").hover(function() {
                     pinpointTracking.clearTimeout();
                     pinpointTracking.setSocialShareVars({"default": true});
                 }, function() {});
 
-                $(".click").click(function(){
+                $(".click .inner-pin").click(function(){
                     var url = $(this).data("url");
 
                     pinpointTracking.trackEvent({
@@ -154,6 +255,8 @@
                         label: url
                     });
                 });
+
+                $(".socila-hover").click()
 
                 $("img[id='light_img']").click(function(e) {
                     var url = $(this).parent().attr("href");
@@ -164,12 +267,11 @@
                     });
                 });
 
-                $(".pinterest_buttons").live("click", function(e) {
+                $(".pinterest_buttons a").on("click", function(e) {
                     pinpointTracking.registerShare({
                         "network": "Pinterest",
                         "type": "click"
                     });
-                    e.preventDefault();
                 });
 
                 function mod(num, mod) {
@@ -189,7 +291,7 @@
                         var scale = maxWidth / $img.width();
                         $img.height($img.height() * scale);
                         $img.width(maxWidth);
-                    } else {
+                        } else {
                         var scale = maxHeight / $img.height();
                         $img.width($img.width() * scale);
                         $img.height(maxHeight);
@@ -210,7 +312,7 @@
                     for (var i = 0; i < text.length; i++) {
                         if (i < n) {
                             selected += (text[i]);
-                        } else {
+                            } else {
                             after += text[i];
                         }
                     }
@@ -239,25 +341,25 @@
                             inWord = false;
                             counter += wordCounter;
                             wordCounter = 0;
-                        } else if (text.charAt(i) == "<") {
+                            } else if (text.charAt(i) == "<") {
                             inTag = true;
                             inWord = false;
                             counter += wordCounter;
                             wordCounter = 0;
-                        } else if (text.charAt(i) == " " || text.charAt(i) == "\n") {
+                            } else if (text.charAt(i) == " " || text.charAt(i) == "\n") {
                             inWord = false;
                             counter += wordCounter;
                             counter++;
                             wordCounter = 0;
-                        } else if (inWord) {
+                            } else if (inWord) {
                             wordCounter++;
-                        } else if (!inTag) {
+                            } else if (!inTag) {
                             inWord = true;
                         }
 
                         if (counter < n) {
                             selected += (text.charAt(i));
-                        } else {
+                            } else {
                             rest += text.charAt(i);
                         }
                     }
@@ -327,17 +429,18 @@
                     $("#light .fb_buttons, #light .fb-like").show();
 
                     $("#light .twitter_buttons").html('' +
-                        '<a href="https://twitter.com/share?url=' + data.link +
+                    '<a href="https://twitter.com/share?url=' + data.link +
                         '&text=' + data.title + '" class="twitter-share-button" data-lang="en">Tweet</a>');
 
                     // need to create the above
                     twttr.widgets.load();
 
                     $("#light .pinterest_buttons").html('' +
-                        '<a href="http://pinterest.com/pin/create/button/' +
+                    '<a href="http://pinterest.com/pin/create/button/' +
                         '?url=' + data.link +
                         '&media=' + imgs[0] +
                         '&description=' + data.title +
+                        '" target="_blank"' + 
                         ' class="pin-it-button" count-layout="horizontal">' +
                         '<img border="0" src="//assets.pinterest.com/images/PinExt.png" ' +
                         'title="Pin It" /></a>');
@@ -348,8 +451,8 @@
                         $("#light_img").unbind('load').load(function() {
                             resizeImgMax($("#light_img")[0], 500, 400);
                             $("#light_img").css("padding-top",
-                                (($("#light_img_div").height() - $("#light_img").height()) / 2)
-                                    + "px");
+                            (($("#light_img_div").height() - $("#light_img").height()) / 2)
+                            + "px");
                             $("#light_img").show();
                         });
                         $("#light_img").attr("src", data.img[img_index]);
@@ -359,8 +462,8 @@
                     var textParts = splitAfterNPreserveTags(data.desc, 250);
                     $("#light_title").html(data.title);
                     $("#light_desc").html(
-                        textParts[0] +
-                        textParts[1]);
+                    textParts[0] +
+                    textParts[1]);
                     $("#light .link").attr("href", data.link);
 
                     $("#light").fadeIn(100);
@@ -384,8 +487,8 @@
 
                     //// Setup any tricky handlers that could change...
                     //$("#light_buy").unbind("click").bind("click", function () {
-                    //    _gaq.push(["_trackEvent", "Product", "Buy Now", data.title]);
-                    //});
+                        //    _gaq.push(["_trackEvent", "Product", "Buy Now", data.title]);
+                        //});
 
                     //_gaq.push(["_trackEvent", "Category", "Action", "opt_label", "opt_value"]);
                     //_gaq.push(["_trackEvent", "Product", "Preview", data.title]);
@@ -412,8 +515,8 @@
                 $("#featured_img img").load(function() {
                     resizeImgMax($("#featured_img img")[0]);
                     $("#featured_img img").css("margin-top",
-                        (($("#featured_img").height() - $("#featured_img img").height()) / 2) +
-                            "px");
+                    (($("#featured_img").height() - $("#featured_img img").height()) / 2) +
+                    "px");
                 });
 
                 $("#light").hide();
@@ -425,10 +528,12 @@
                 $(".x").click(function() {
                     pinpointTracking.setSocialShareVars({"default": true});
                 });
-                $(".click").click(showPin);
+                $(".click .inner-pin, #featured-product .click").click(function() {
+                    showPinOf($(this).closest(".click")[0]);
+                });
 
-                $featuredDesc = $("#featured_desc")
-                if ($featuredDesc.html().length > 250) {
+                $featuredDesc = $("#featured_desc");
+                if ($featuredDesc.length > 0 && $featuredDesc.html().length > 250) {
                     $featuredDesc.html(firstN($featuredDesc.html(), 250) +
                     "... <a class='click' id='featured-read-more'>Read more</a>")
                 }
@@ -438,40 +543,39 @@
                 });
 
                 function onFbScriptLoad() {
-                    var elem = $("#featured_img")[0];
-                    var imgs = $(elem).attr("data-img").split("|")
-                    imgs.pop();
-                    var data = {
-                        'title': $(elem).attr("data-title"),
-                        'link': $(elem).attr("data-url"),
-                    };
+                    if ($("#featured-product").length > 0) {
+                        var elem = $("#featured_img")[0];
+                        var imgs = $(elem).attr("data-img").split("|")
+                        imgs.pop();
+                        var data = {
+                            'title': $(elem).attr("data-title"),
+                            'link': $(elem).attr("data-url"),
+                        };
 
-                    $("#featured-product .fb_buttons").html('<fb:like href="' + data.link + '" layout="button_count" width="80" show_faces="true"></fb:like>')
-                    var $fb_buttons = $(".fb_buttons");
-                    for (var i = 0; i < $fb_buttons.length; i++) {
-                        FB.XFBML.parse($fb_buttons[i]);
-                    }
-                    $("#featured-product .fb_buttons, #featured-product .fb-like").show();
+                        $("#featured-product .fb_buttons").html('<fb:like href="' + data.link + '" layout="button_count" width="80" show_faces="true"></fb:like>')
+                        $("#featured-product .fb_buttons, #featured-product .fb-like").show();
 
-                    $("#featured-product .twitter_buttons").html('' +
-                    '<a href="https://twitter.com/share?url=' + data.link +
-                        '&text=' + data.title + '" class="twitter-share-button" data-lang="en">Tweet</a>');
+                        $("#featured-product .twitter_buttons").html('' +
+                        '<a href="https://twitter.com/share?url=' + data.link +
+                            '&text=' + data.title + '" class="twitter-share-button" data-lang="en">Tweet</a>');
 
-                    $("#featured-product .pinterest_buttons").html('' +
+                        $("#featured-product .pinterest_buttons").html('' +
                         '<a href="http://pinterest.com/pin/create/button/' +
-                        '?url=' + data.link +
-                        '&media=' + imgs[0] +
-                        '&description=' + data.title +
-                        ' class="pin-it-button" count-layout="horizontal">' +
-                        '<img border="0" src="//assets.pinterest.com/images/PinExt.png" ' +
-                        'title="Pin It" /></a>');
+                            '?url=' + data.link +
+                            '&media=' + imgs[0] +
+                            '&description=' + data.title +
+                            ' class="pin-it-button" count-layout="horizontal">' +
+                            '<img border="0" src="//assets.pinterest.com/images/PinExt.png" ' +
+                            'title="Pin It" /></a>');
+                        FB.XFBML.parse($("#featured-social .fb_buttons")[0]);
+                    }
 
-                    //FB.Event.subscribe('edge.create', function(response) {
-                    //    pinpointTracking.registerShare({
-                    //        "network": "Facebook",
-                    //        "type": "shared"
-                    //    });
-                    //});
+                    FB.Event.subscribe('xfbml.render', function(response) {
+                        $(".fbLoaded").children(".loading").hide();
+                        $(".fbLoaded").children(".buttons").hide();
+                        $(".fbLoaded").children(".buttons").css('left', 0);
+                        $(".fbLoaded").children(".buttons").fadeIn('fast');
+                    });
 
                     // need to create the above
                     twttr.widgets.load();
@@ -482,25 +586,39 @@
                     pinpointTracking.clearTimeout();
 
                     $(this).children(".social-hover").fadeIn('fast');
-                }, function() {
+
+                    var $share = $(".social-hover", this);
+                    if (!$share.hasClass('fbLoaded') && window.FB) {
+                        $(".loading", $share).show();
+                        $share.addClass('fbLoaded');
+                        FB.XFBML.parse($('.fb_buttons', $share)[0]);
+                    }
+                    }, function() {
                     pinpointTracking.clearTimeout();
                     if (pinpointTracking.socialShareType !== "popup") {
-                        pinpointTracking._pptimeout = window.setTimeout('pinpointTracking.setSocialShareVars({"default": true})', 2000);
+                        _pptimeout = window.setTimeout('pinpointTracking.setSocialShareVars({"default": true})', 2000);
                     }
                     $(this).children(".social-hover").fadeOut('fast');
                 });
 
-                // facebook script for facebook buttons
-                (function(d, s, id) {
-                    var js, fjs = d.getElementsByTagName(s)[0];
-                    if (d.getElementById(id)) return;
-                    js = d.createElement(s); js.id = id;
-                    js.onreadystatechange = onFbScriptLoad;
-                    js.onload = onFbScriptLoad;
-                    js.src = "//connect.facebook.net/en_US/all.js";
-                    fjs.parentNode.insertBefore(js, fjs);
-                }(document, 'script', 'facebook-jssdk'));
+                var scripts = [
+                {
+                    "script": "http://connect.facebook.net/en_US/all.js#xfbml=0",
+                    "onload": onFbScriptLoad
+                }
+                ];
+
+                var item, script;
+                for (var i=0; i < scripts.length; i++) {
+                    item = scripts[i];
+
+                    script = document.createElement("script");
+                    script.async = true;
+                    script.src = item.script;
+                    script.onload = item.onload;
+                    document.body.appendChild(script);
+                }
             });
-        </script>
-    </body>
-</html>
+            </script>
+        </body>
+    </html>
