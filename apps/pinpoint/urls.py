@@ -4,4 +4,6 @@ urlpatterns = patterns('apps.pinpoint.views',
     url(r'(?P<campaign_id>\d+)/admin/$', 'pinpoint_admin', name='pinpoint_admin'),
     url(r'generic/(?P<product_id>\d+)/$', 'generic_page', name='pinpoint_generic'),
     url(r'(?P<campaign_id>\d+)/$', 'campaign', name='campaign'),
+    # Test
+    url(r'autocomplete$', 'autocomplete', name='autocomplete')
 )

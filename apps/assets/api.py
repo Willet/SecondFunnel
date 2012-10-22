@@ -19,7 +19,8 @@ class ProductResource(ModelResource):
 
         filtering = {
             'store': ALL,
-            'original_url': ('exact', 'startswith',)
+            'original_url': ('exact', 'startswith',),
+            'name': ('exact', 'contains',)
         }
 
 

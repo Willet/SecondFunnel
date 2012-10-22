@@ -1,0 +1,56 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>jQuery UI Autocomplete - Remote datasource</title>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.0/themes/base/jquery-ui.css" />
+    <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
+    <script>
+        $(function() {
+            function log( message ) {
+                $( "<div>" ).text( message ).prependTo( "#log" );
+                $( "#log" ).scrollTop( 0 );
+            }
+
+            $( "#products" ).autocomplete({
+                source: function(request, response) {
+                    var term = request.term;
+                    $.getJSON("/api/assets/v1/product/", {
+                        "format": "json",
+                        "name__contains": term
+                    }, function(data) {
+                        //convert object to usable form
+                        var results = [];
+                        $.each(data.objects, function(index, value) {
+                            results.push({'label': value.name, 'value': index})
+                        });
+                        response(results);
+                    })
+                },
+                minLength: 2,
+                select: function( event, ui ) {
+                    log( ui.item ?
+                            "Selected: " + ui.item.value + " aka " + ui.item.id :
+                            "Nothing selected, input was " + this.value );
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+
+<div class="ui-widget">
+    <label for="products">Product: </label>
+    <input id="products" />
+</div>
+
+<div class="ui-widget" style="margin-top: 2em; font-family: Arial;">
+    Result:
+    <div id="log" style="height: 200px; width: 300px; overflow: auto;" class="ui-widget-content"></div>
+</div>
+
+
+</body>
+</html>

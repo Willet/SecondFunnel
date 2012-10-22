@@ -35,3 +35,6 @@ def generic_page(request, product_id):
         "columns": range(4),
         "content": block
     }, context_instance=RequestContext(request))
+
+def autocomplete(request):
+    return render_to_response('pinpoint/autocomplete.html', {})
