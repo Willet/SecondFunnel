@@ -1,6 +1,7 @@
 from django.test import LiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from unittest import skip
 import time
 
 class AdminTest(LiveServerTestCase):
@@ -89,44 +90,44 @@ class PasswordChangeTest(LiveServerTestCase):
         self.driver.quit()
         self.assertEqual([], self.verificationErrors)
 
-# currently broken: email does not send
-#class PasswordResetTest(LiveServerTestCase):
-#    fixtures = ['test_data.json']
-#
-#    def setUp(self):
-#        self.driver = webdriver.Firefox()
-#        self.driver.implicitly_wait(3)
-#        self.base_url = "/"
-#        self.verificationErrors = []
-#    
-#    def test_can_recover_password(self):
-#        driver = self.driver
-#        driver.get(self.live_server_url + "/accounts/login/")
-#        driver.find_element_by_css_selector(".grid_12 > p > a").click()
-#        driver.find_element_by_id("id_email").clear()
-#        driver.find_element_by_id("id_email").send_keys("TNiechciol@gmail.com")
-#        driver.find_element_by_css_selector("input[type=\"submit\"]").click()
-#        time.sleep(5)
-#        driver.get("http://localhost:1080/")
-#        driver.find_element_by_xpath("//tr[last()]/td").click()
-#        # http://stackoverflow.com/questions/7575827/selenium-and-iframe
-#        # ERROR: Caught exception [unknown command []]
-#        #driver.switchTo().frame("foo");
-#        driver.switch_to_frame(driver.find_element_by_css_selector("#message iframe.body"))
-#        driver.find_element_by_css_selector("a").click()
-#        driver.find_element_by_id("id_new_password1").clear()
-#        driver.find_element_by_id("id_new_password1").send_keys("qwerty")
-#        driver.find_element_by_id("id_new_password2").clear()
-#        driver.find_element_by_id("id_new_password2").send_keys("qwerty")
-#        driver.find_element_by_css_selector("input[type=\"submit\"]").click()
-#        driver.find_element_by_link_text("Log in.").click()
-#    
-#    def is_element_present(self, how, what):
-#        try: self.driver.find_element(by=how, value=what)
-#        except NoSuchElementException, e: return False
-#        return True
-#    
-#    def tearDown(self):
-#        self.driver.quit()
-#        self.assertEqual([], self.verificationErrors)
+@skip("currently broken: email does not send")
+class PasswordResetTest(LiveServerTestCase):
+    fixtures = ['test_data.json']
+
+    def setUp(self):
+        self.driver = webdriver.Firefox()
+        self.driver.implicitly_wait(3)
+        self.base_url = "/"
+        self.verificationErrors = []
+    
+    def test_can_recover_password(self):
+        driver = self.driver
+        driver.get(self.live_server_url + "/accounts/login/")
+        driver.find_element_by_css_selector(".grid_12 > p > a").click()
+        driver.find_element_by_id("id_email").clear()
+        driver.find_element_by_id("id_email").send_keys("TNiechciol@gmail.com")
+        driver.find_element_by_css_selector("input[type=\"submit\"]").click()
+        time.sleep(5)
+        driver.get("http://localhost:1080/")
+        driver.find_element_by_xpath("//tr[last()]/td").click()
+        # http://stackoverflow.com/questions/7575827/selenium-and-iframe
+        # ERROR: Caught exception [unknown command []]
+        #driver.switchTo().frame("foo");
+        driver.switch_to_frame(driver.find_element_by_css_selector("#message iframe.body"))
+        driver.find_element_by_css_selector("a").click()
+        driver.find_element_by_id("id_new_password1").clear()
+        driver.find_element_by_id("id_new_password1").send_keys("qwerty")
+        driver.find_element_by_id("id_new_password2").clear()
+        driver.find_element_by_id("id_new_password2").send_keys("qwerty")
+        driver.find_element_by_css_selector("input[type=\"submit\"]").click()
+        driver.find_element_by_link_text("Log in.").click()
+    
+    def is_element_present(self, how, what):
+        try: self.driver.find_element(by=how, value=what)
+        except NoSuchElementException, e: return False
+        return True
+    
+    def tearDown(self):
+        self.driver.quit()
+        self.assertEqual([], self.verificationErrors)
 
