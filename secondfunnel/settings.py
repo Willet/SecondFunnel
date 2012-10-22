@@ -140,6 +140,9 @@ INSTALLED_APPS = (
     'apps.analytics',
     'apps.assets',
     'apps.pinpoint',
+
+    # testing
+    'fts',
 )
 
 # A sample logging configuration. The only tangible logging
