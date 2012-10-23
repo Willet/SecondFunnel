@@ -58,6 +58,11 @@ urlpatterns = patterns('',
         'django.contrib.auth.views.password_change_done',
         {'template_name': 'registration/pass_change_done.html'},
         name="password_change_done"),
+
+    url(r'^accounts/profile/$', 
+        'django.views.generic.simple.direct_to_template',
+        {'template': 'registration/profile.html'},
+        name="profile"),
 )
 
 urlpatterns += staticfiles_urlpatterns()
