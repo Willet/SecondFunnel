@@ -37,7 +37,13 @@
             </table>
             
             <input type="submit" value="login" />
-            <input type="hidden" name="next" value="{{ next }}" />
+
+            {# If we were given a next parameter go to that after login, otherwise go to admin page after login #}
+            {% if "next" in request.GET %}
+                <input type="hidden" name="next" value="{{ next }}" />
+            {% else %}
+                <input type="hidden" name="next" value="{% url admin %}" />
+            {% endif %}
         </form>
         <p><a href="{% url password_reset %}">Forgot your password?</a></p>
     {% endif %}
