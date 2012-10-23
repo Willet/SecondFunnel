@@ -4,12 +4,7 @@ class FeaturedProductWizardForm(forms.Form):
     name = forms.CharField(
         max_length=255,
         label="Page Name",
-        widget=forms.TextInput(
-            attrs={
-                'placeholder': ''
-            }
-        ),
-        help_text="Select a name for this PinPoint page for your reference."
+        widget=forms.TextInput()
     )
 
     product_id = forms.CharField(
@@ -20,9 +15,8 @@ class FeaturedProductWizardForm(forms.Form):
         label="Product Description",
         widget=forms.Textarea(
             attrs={
-                'placeholder': '',
                 'rows': '5',
-                'cols': '0'
+                'cols': '0',
             }
         )
     )
