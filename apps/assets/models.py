@@ -3,8 +3,8 @@ from django.db import models
 
 
 class BaseModel(models.Model):
-    created = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    last_modified = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
         abstract = True
@@ -43,7 +43,7 @@ class MediaBase(BaseModelNamed):
         upload_to="product_images", blank=True, null=True)
 
     media_type = models.CharField(max_length=3,
-        choices=MEDIA_TYPES, default="css")
+        choices=MEDIA_TYPES, default="css", blank=True, null=True)
 
     class Meta:
         abstract = True
