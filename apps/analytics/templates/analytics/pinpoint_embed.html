@@ -53,21 +53,10 @@
     {{ block.super }}
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <!-- <script src="{% static "js/easyXDM/master/src/easyXDM.debug.js" %}"></script> -->
 
     <script type="text/javascript">
         var pages = ["Demo Product 1", "Another Demo"], current_analytics_app = "overview", external_control = true;
 
-        // var rpc = new easyXDM.Rpc({
-        //     remote: "http://test.secondfunnel-website.appspot.com/pinAdmin?url="
-        // },
-        // {
-        //     local: {},
-        //     remote: {
-        //         get_page_list: function(successFn, errorFn) {},
-        //         get_current_analytics_app: function(successFn, errorFn) {}
-        //     }
-        // });
 
         function set_percentage(id, perc) {
             $("#" + id).html(perc.toFixed(2) + "%");
@@ -182,32 +171,12 @@
                 }
             };
 
-        // window.setInterval(function() {
-        //     rpc.get_current_analytics_app(function(response) {
-        //         state_transition(response.split("|")[0], {
-        //             'analytics_app': response.split("|")[1]
-        //         });
-        //     }, function(errorObj){});
-        // }, 2000);
-
         google.load("visualization", "1", {packages:["corechart"]});
         google.setOnLoadCallback(function () {
             loadAnalyticsData();
         });
 
         $(function() {
-            // rpc.get_page_list(function(response) {
-            //     if (typeof(response) === "undefined") {
-            //         return;
-            //     }
-
-            //     for (i in response) {
-            //         $("#campaign_list").append("<li id='" + response[i] + "'>" + response[i] + "</li>");
-            //     }
-
-            //     }, function(errorObj) {
-            // });
-
             for (i in pages) {
                 $("#campaign_list").append("<li id='" + pages[i] + "'>" + pages[i] + "</li>");
             }
@@ -221,7 +190,7 @@
                 } else {
 
                     state_transition("internal_select", {
-                        'analytics_app': $(this).html()
+                        'analytics_app': $(this).html();
                     });
                 }
 
