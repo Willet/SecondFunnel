@@ -71,9 +71,6 @@ class Product(BaseModelNamed):
     def __unicode__(self):
         return self.name
 
-    def price_count(self):
-        return self.prices.count()
-
     def media_count(self):
         return self.media.count()
 
