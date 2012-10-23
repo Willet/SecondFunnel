@@ -1,6 +1,8 @@
+from django.contrib.contenttypes.models import ContentType
+from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.contrib.contenttypes.models import ContentType
+from django.http import HttpResponseRedirect
 
 from apps.assets.models import Product
 from apps.pinpoint.models import BlockType, BlockContent, Campaign
@@ -12,7 +14,6 @@ def featured_product_wizard(request, store, block_type):
         form = FeaturedProductWizardForm(request.POST)
 
         if form.is_valid():
-
             block_content = BlockContent(
                 block_type=block_type,
                 content_type=ContentType.objects.get_for_model(Product),
@@ -20,11 +21,19 @@ def featured_product_wizard(request, store, block_type):
             )
 
             campaign = Campaign(
+                store=store,
                 name=form.cleaned_data['name'],
                 description=form.cleaned_data['description'],
             )
 
-            return HttpResponseRedirect('/')
+            block_content.save()
+            campaign.save()
+
+            campaign.content_blocks.add(block_content)
+
+            return HttpResponseRedirect(
+                reverse('store-admin', kwargs={'store_id': store.id})
+            )
     else:
         form = FeaturedProductWizardForm()
 
