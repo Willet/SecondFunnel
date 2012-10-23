@@ -93,6 +93,46 @@ class PasswordChangeTest(LiveServerTestCase):
         self.driver.quit()
         self.assertEqual([], self.verificationErrors)
 
+class LoginLogoutTest(LiveServerTestCase):
+    fixtures = ['test_data.json']
+
+    def setUp(self):
+        self.driver = webdriver.Firefox()
+        self.driver.implicitly_wait(30)
+        self.base_url = "http://localhost:8000"
+        self.verificationErrors = []
+    
+    def test_password_change(self):
+        driver = self.driver
+
+        # go to login page and log in
+        driver.get(self.base_url + "/accounts/login/")
+        driver.find_element_by_id("id_username").clear()
+        driver.find_element_by_id("id_username").send_keys("terrance")
+        driver.find_element_by_id("id_password").clear()
+        driver.find_element_by_id("id_password").send_keys("asdf")
+        driver.find_element_by_css_selector("input[type=\"submit\"]").click()
+
+        # make sure pinpoint admin page loaded
+        body = driver.find_element_by_tag_name('body')
+        self.assertIn('PinPoint Admin', body.text)
+
+        # log out
+        driver.find_element_by_link_text("Logout").click()
+
+        # make sure log in page loaded and it doesn't already say we're logged in
+        body = driver.find_element_by_tag_name('body')
+        self.assertIn('Username', body.text)
+
+    def is_element_present(self, how, what):
+        try: self.driver.find_element(by=how, value=what)
+        except NoSuchElementException, e: return False
+        return True
+    
+    def tearDown(self):
+        self.driver.quit()
+        self.assertEqual([], self.verificationErrors)
+
 @skip("currently broken: email does not send")
 class PasswordResetTest(LiveServerTestCase):
     fixtures = ['test_data.json']
