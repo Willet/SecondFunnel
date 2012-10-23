@@ -68,6 +68,8 @@ class Product(BaseModelNamed):
 
     price = models.CharField(max_length=255, blank=True, null=True)
 
+    last_scraped = models.DateTimeField(blank=True, null=True)
+
     def __unicode__(self):
         return self.name
 
