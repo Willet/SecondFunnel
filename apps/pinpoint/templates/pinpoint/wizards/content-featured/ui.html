@@ -23,13 +23,28 @@
             color: #5a8eb4;
         }
 
+        label {
+            font-size: 15pt;
+        }
+
         .product_select li:hover {
             cursor: pointer;
             text-decoration: underline;
         }
 
-        .product_meta {
+        .product_meta ul {
+            list-style: none;
+            margin-top: 20px;
+        }
 
+        .product_meta img {
+            border-bottom: 4px solid #eeeeee;
+            padding-bottom: 5px;
+        }
+
+        .product_meta img:hover {
+            border-bottom: 4px solid #5d84b7;
+            cursor: pointer;
         }
 
         .product_image {
@@ -39,14 +54,113 @@
         .product_description {
 
         }
+
+        .helptext {
+            display: block;
+            color: #898989;
+        }
+
+        textarea {
+            display: block;
+        }
+
+        .field {
+            margin-bottom: 30px;
+        }
+
     </style>
 {% endblock %}
 
 {% block extra_js_includes %}
+    <script>
+        var wizard_data = {
+        product_id: undefined,
+        media_id: undefined,
+        description: ""
+    };
+
+    var products = {
+        {% for product in products %}
+        '{{ product.id }}': {
+            'name': '{{ product.name }}',
+            'media': [
+                {% for product_media in product.media.all %}
+                {
+                    'id': '{{ product_media.id }}',
+                    'url': '{{ product_media.get_url }}'
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    var states = {
+            'product_select': {
+                'fn': function (o) {},
+                'transitions': {
+                    'selected_product': {
+                        'new_state': 'product_meta',
+                        'fn': function (o) {
+                            var product = products[o.product_id];
+
+                            for (i in product.media) {
+                                $("#product_images").append(
+                                    "<li><img data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
+                                );
+                            }
+
+                            $("#product_images img").live('click', function() {
+                                alert($(this).data('mid'));
+                            });
+                        }
+                    }
+                }
+            },
+            'product_meta': {
+                'fn': function (o) {
+                    $(".product_meta").show();
+                },
+                'transitions': {}
+            }
+        },
+
+        current_state = 'product_select',
+
+        state_transition = function (transition, data) {
+            var state = states[current_state];
+
+            // check if this is a valid transition
+            if (!(transition in state.transitions)) {
+                return;
+            }
+
+            try {
+                var new_state = states[state.transitions[transition].new_state];
+                new_state.fn(data || undefined);
+                state.transitions[transition].fn(data || undefined);
+
+                current_state = state.transitions[transition].new_state;
+                new_state.last_used_state_data = data;
+
+            } catch (e) {
+                // abort the transition, revert to the current state
+                state.fn(state.last_used_state_data);
+            }
+    };
+
+    $("#new_image_toggle").click(function (e) {
+        e.preventDefault();
+        $(".new_image_label").slideUp();
+        $(".new_image_content").slideDown();
+    });
+
+    state_transition('selected_product', {'product_id': 1});
+    </script>
 {% endblock %}
 
 {% block document_ready %}
-    $("#product_selected").
+
 {% endblock %}
 
 {% block top_section %}
@@ -59,23 +173,56 @@
 {% endblock %}
 
 {% block content %}
-    <div class="grid_12 product_select">
-        <h2>Select a product:</h2>
-        <div class="grid_12 block_types">
+        <form action="" method="post">{% csrf_token %}
+            {{ form.non_field_errors }}
 
-            <ul>
-            {% for product in products %}
-                <li>{{ product }}</li>
-            {% endfor %}
-            </ul>
-        </div>
+            <div class="grid_12 product_select">
+                <div class="field">
+                    {{ form.name.errors }}
+                    <label for="id_name">Page Name:</label>
+                    {{ form.name }}
+                    <span class="helptext">{{ form.description.help_text }}</span>
+                </div>
+
+                <div class="field">
+                    <label for="product_name">Product Name:</label>
+                    <input type="text" id="product_name">
+                </div>
+            </div>
+
+            <div class="grid_12 product_meta" style="display:none">
+                <div class="field">
+                    <label>Select a featured image:</label>
+                    <ul id="product_images"></ul>
+                </div>
+
+                <div class="field">
+                    <div class="new_image_label">
+                        <a href="" id="new_image_toggle">Upload a different image</a>
+                    </div>
+
+                    <div class="new_image_content" style="display: none">
+                        {{ form.product_image.errors }}
+                        <label for="id_product_image">Choose a different featured image:</label>
+                        {{ form.product_image }}
+                        <span class="helptext">Upload a new image if none of the existing ones suite the new PinPoint page</span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    {{ form.description.errors }}
+                    <label for="id_name">Product Description:</label>
+                    {{ form.description }}
+                    <span class="helptext">You can tailor product's description that will appear on the PinPoint page.</span>
+                </div>
+            </div>
+
+            <div class="grid_12 actions">
+                <input type="submit" value="Done">
+            </div>
+        </form>
     </div>
 
     <div class="grid_12 product_meta">
-        <div class="grid_12 product_image">
-        </div>
-
-        <div class="grid_12 product_description">
-        </div>
     </div>
 {% endblock %}
