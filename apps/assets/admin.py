@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.assets.models import Product, ProductMedia, Store
+from apps.assets.models import Product, ProductMedia, Store, GenericMedia
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -30,6 +30,11 @@ class BaseNamedMediaAdmin(BaseNamedAdmin):
 
     list_filter = BaseNamedAdmin.list_filter + ['media_type']
 
+class GenericMediaAdmin(BaseNamedMediaAdmin):
+    list_display = BaseNamedMediaAdmin.list_display
+    list_filter = BaseNamedMediaAdmin.list_filter
+
+admin.site.register(GenericMedia, GenericMediaAdmin)
 
 class ProductMediaAdmin(BaseNamedMediaAdmin):
     list_display = BaseNamedMediaAdmin.list_display + ['product']
