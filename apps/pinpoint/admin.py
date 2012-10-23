@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from apps.pinpoint.models import StoreTheme, BlockType, BlockContent, \
-    Campaign, StoreThemeMedia
+    Campaign, StoreThemeMedia, FeaturedContent
 from apps.assets.admin import BaseAdmin, BaseNamedAdmin, BaseNamedMediaAdmin
 
 
@@ -36,3 +36,8 @@ class CampaignAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + ['store']
 
 admin.site.register(Campaign, CampaignAdmin)
+
+class FeaturedContentAdmin(BaseNamedAdmin):
+    list_display = BaseNamedAdmin.list_display + ['image']
+
+admin.site.register(FeaturedContent, FeaturedContentAdmin)

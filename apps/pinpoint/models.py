@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.db import models
 
-from apps.assets.models import MediaBase, BaseModel, BaseModelNamed, Store
+from apps.assets.models import MediaBase, BaseModel, BaseModelNamed, Store, GenericMedia, Product
 
 
 class StoreTheme(BaseModelNamed):
@@ -52,3 +52,8 @@ class Campaign(BaseModelNamed):
 
     def __unicode__(self):
         return u"Campaign: %s" % self.name
+
+
+class FeaturedContent(BaseModelNamed):
+    image = models.OneToOneField(GenericMedia)
+    product = models.ForeignKey(Product)
