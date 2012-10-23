@@ -41,9 +41,14 @@
             margin-top: 20px;
         }
 
+        .product_meta li {
+            display: inline;
+        }
+
         .product_meta img {
             border-bottom: 4px solid #eeeeee;
             padding-bottom: 5px;
+            width: 250px;
         }
 
         .product_meta img:hover, .product_meta img.selected {
@@ -89,7 +94,7 @@
         '{{ product.id }}': {
             'id': '{{ product.id }}',
             'name': '{{ product.name }}',
-            'description': '{{ product.description }}',
+            'description': '{{ product.description|escapejs }}',
             'media': [
                 {% for product_media in product.media.all %}
                 {
