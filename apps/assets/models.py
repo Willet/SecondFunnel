@@ -66,11 +66,10 @@ class Product(BaseModelNamed):
 
     store = models.ForeignKey(Store, blank=True, null=True)
 
+    price = models.CharField(max_length=255, blank=True, null=True)
+
     def __unicode__(self):
         return self.name
-
-    def price_count(self):
-        return self.prices.count()
 
     def media_count(self):
         return self.media.count()
@@ -78,14 +77,3 @@ class Product(BaseModelNamed):
 
 class ProductMedia(MediaBase):
     product = models.ForeignKey(Product, related_name="media")
-
-
-class ProductPrice(BaseModel):
-    name = models.CharField(max_length=255)
-    price = models.CharField(max_length=255)
-    product = models.ForeignKey(Product, related_name="prices")
-
-    is_active = models.BooleanField(default=True)
-
-    def __unicode__(self):
-        return u"Price for %s: %s %s" % (self.product, self.name, self.price)
