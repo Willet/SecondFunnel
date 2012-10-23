@@ -1,13 +1,30 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.contrib.contenttypes.models import ContentType
 
-from apps.pinpoint.models import BlockType
+from apps.assets.models import Product
+from apps.pinpoint.models import BlockType, BlockContent, Campaign
 from apps.pinpoint.forms import FeaturedProductWizardForm
 
 
 def featured_product_wizard(request, store, block_type):
     if request.method == 'POST':
-        return
+        form = FeaturedProductWizardForm(request.POST)
+
+        if form.is_valid():
+
+            block_content = BlockContent(
+                block_type=block_type,
+                content_type=ContentType.objects.get_for_model(Product),
+                object_id=form.cleaned_data['product_id']
+            )
+
+            campaign = Campaign(
+                name=form.cleaned_data['name'],
+                description=form.cleaned_data['description'],
+            )
+
+            return HttpResponseRedirect('/')
     else:
         form = FeaturedProductWizardForm()
 
