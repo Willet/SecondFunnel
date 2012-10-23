@@ -31,8 +31,7 @@ class BaseNamedMediaAdmin(BaseNamedAdmin):
     list_filter = BaseNamedAdmin.list_filter + ['media_type']
 
 class GenericMediaAdmin(BaseNamedMediaAdmin):
-    list_display = BaseNamedMediaAdmin.list_display
-    list_filter = BaseNamedMediaAdmin.list_filter
+    pass
 
 admin.site.register(GenericMedia, GenericMediaAdmin)
 

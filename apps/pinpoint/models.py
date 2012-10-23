@@ -55,5 +55,10 @@ class Campaign(BaseModelNamed):
 
 
 class FeaturedContent(BaseModelNamed):
-    image = models.OneToOneField(GenericMedia)
+    """Data model for Featured Content block, to be used with BlockContent"""
+
     product = models.ForeignKey(Product)
+    image = models.OneToOneField(GenericMedia, blank=True, null=True)
+
+    def __unicode__(self):
+        return u"Featured Content Data for %s" % self.product

@@ -38,6 +38,7 @@ class CampaignAdmin(BaseNamedAdmin):
 admin.site.register(Campaign, CampaignAdmin)
 
 class FeaturedContentAdmin(BaseNamedAdmin):
-    list_display = BaseNamedAdmin.list_display + ['image']
+    list_display = BaseNamedAdmin.list_display + ['product', 'image']
+    list_filter = BaseNamedAdmin.list_filter + ['product']
 
 admin.site.register(FeaturedContent, FeaturedContentAdmin)
