@@ -1,0 +1,39 @@
+[
+    {
+        "pk": 1,
+        "model": "pinpoint.blocktype",
+        "fields": {
+            "description": "",
+            "last_modified": "2012-10-17T19:33:36.849Z",
+            "name": "generic",
+            "slug": "generic",
+            "created": "2012-10-17T15:06:24.503Z"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "pinpoint.blockcontent",
+        "fields": {
+            "block_type": 1,
+            "created": "2012-10-17T15:10:05.818Z",
+            "object_id": 2,
+            "priority": null,
+            "last_modified": "2012-10-17T15:10:05.818Z",
+            "content_type": 14
+        }
+    },
+    {
+        "pk": 1,
+        "model": "pinpoint.campaign",
+        "fields": {
+            "description": "",
+            "created": "2012-10-17T17:07:12.181Z",
+            "last_modified": "2012-10-17T17:07:12.181Z",
+            "content_blocks": [1],
+            "discovery_blocks": [],
+            "slug": "abookapartcampaign",
+            "store": 1,
+            "name": "ABookApartCampaign"
+        }
+    }
+]
