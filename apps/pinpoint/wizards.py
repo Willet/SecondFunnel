@@ -5,7 +5,8 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect
 
 from apps.assets.models import Product
-from apps.pinpoint.models import BlockType, BlockContent, Campaign
+from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
+    FeaturedContent)
 from apps.pinpoint.forms import FeaturedProductWizardForm
 
 
@@ -14,16 +15,24 @@ def featured_product_wizard(request, store, block_type):
         form = FeaturedProductWizardForm(request.POST)
 
         if form.is_valid():
+            product = Product.objects.get(id=form.cleaned_data['product_id'])
+
+            featured_content_data = FeaturedContent(
+                product=product,
+                description=form.cleaned_data['description']
+            )
+            featured_content_data.save()
+
             block_content = BlockContent(
                 block_type=block_type,
-                content_type=ContentType.objects.get_for_model(Product),
-                object_id=form.cleaned_data['product_id']
+                content_type=ContentType.objects.get_for_model(FeaturedContent),
+                object_id=featured_content_data.id
             )
 
             campaign = Campaign(
                 store=store,
                 name=form.cleaned_data['name'],
-                description=form.cleaned_data['description'],
+                description=form.cleaned_data['page_description'],
             )
 
             block_content.save()

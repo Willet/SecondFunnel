@@ -11,14 +11,15 @@ class FeaturedProductWizardForm(forms.Form):
         widget=forms.HiddenInput(),
     )
 
+    page_description = forms.CharField(
+        required=False,
+        label="Page Description",
+        widget=forms.Textarea()
+    )
+
     description = forms.CharField(
         label="Product Description",
-        widget=forms.Textarea(
-            attrs={
-                'rows': '5',
-                'cols': '0',
-            }
-        )
+        widget=forms.Textarea()
     )
 
     product_media_id = forms.CharField(

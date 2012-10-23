@@ -171,6 +171,12 @@
 
         $("#id_product_media_id").val($(this).data('mid'));
     });
+
+    $("#page_description_toggle").click(function (e) {
+        e.preventDefault();
+        $(".page_description_label").slideUp();
+        $(".page_description_content").slideDown();
+    });
     </script>
 {% endblock %}
 
@@ -197,6 +203,19 @@
                     <label for="id_name">Page Name:</label>
                     {{ form.name }}
                     <span class="helptext">Select a name for this PinPoint page for your reference.</span>
+                </div>
+
+                <div class="field">
+                    <div class="page_description_label">
+                        <a href="" id="page_description_toggle">Add internal description for this page</a>
+                    </div>
+
+                    <div class="page_description_content" style="display:none">
+                        {{ form.page_description.errors }}
+                        <label for="id_name">Page Description:</label>
+                        {{ form.page_description }}
+                        <span class="helptext">Optional internal description for this page.</span>
+                    </div>
                 </div>
 
                 <div class="field">
