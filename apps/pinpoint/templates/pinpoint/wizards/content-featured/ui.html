@@ -64,7 +64,7 @@
             cursor: pointer;
         }
 
-        .existing_images_content {
+        .existing_images_list {
             width: 900px;
             overflow: scroll;
             max-height: 450px
@@ -92,6 +92,9 @@
 {% endblock %}
 
 {% block extra_js_includes %}
+    <script src="{% static "js/jquery-ui.js" %}"></script>
+    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+
     <script>
         var wizard_data = {
         product_id: undefined,
@@ -177,6 +180,32 @@
         $(".page_description_label").slideUp();
         $(".page_description_content").slideDown();
     });
+
+    $( "#product_name" ).autocomplete({
+        source: function(request, response) {
+            var term = request.term;
+            $.getJSON("/api/assets/v1/product/", {
+                "format": "json",
+                "name__contains": term
+
+            }, function(data) {
+                //convert object to usable form
+                var results = [];
+                $.each(data.objects, function(index, value) {
+                    results.push({'label': value.name, 'id': value.id})
+                });
+                response(results);
+            })
+        },
+        minLength: 2,
+        select: function( event, ui ) {
+            if (ui.item) {
+                product_selected({
+                    product_id: ui.item.id
+                });
+            }
+        }
+    });
     </script>
 {% endblock %}
 
@@ -232,7 +261,9 @@
 
                     <div class="existing_images_content">
                         <label>Select a featured image:</label>
-                        <ul id="product_images"></ul>
+                        <div class="existing_images_list">
+                            <ul id="product_images"></ul>
+                        </div>
                     </div>
                 </div>
 
