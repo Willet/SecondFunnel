@@ -42,7 +42,7 @@
             padding-bottom: 5px;
         }
 
-        .product_meta img:hover {
+        .product_meta img:hover, .product_meta img.selected {
             border-bottom: 4px solid #5d84b7;
             cursor: pointer;
         }
@@ -83,6 +83,7 @@
     var products = {
         {% for product in products %}
         '{{ product.id }}': {
+            'id': '{{ product.id }}',
             'name': '{{ product.name }}',
             'description': '{{ product.description }}',
             'media': [
@@ -113,19 +114,27 @@
         // set product's description
         $("#id_description").val(product.description);
 
-        $(".product_meta").show();
+        // set the id for form submission
+        $("#id_product_id").val(product.id);
+
+        $(".product_meta").slideDown();
     }
 
     $("#new_image_toggle").click(function (e) {
+        // show upload field, hide existing images
         e.preventDefault();
         $(".new_image_label").slideUp();
         $(".new_image_content").slideDown();
 
         $(".existing_images_label").slideDown();
         $(".existing_images_content").slideUp();
+
+        $("#product_images img").removeClass("selected");
+        $("#id_product_media_id").val("");
     });
 
     $("#existing_images_toggle").click(function (e) {
+        // show existing images, hide upload
         e.preventDefault();
         $(".new_image_label").slideDown();
         $(".new_image_content").slideUp();
@@ -135,11 +144,10 @@
     });
 
     $("#product_images img").live('click', function() {
-        alert($(this).data('mid'));
-    });
+        $("#product_images img").removeClass("selected");
+        $(this).addClass("selected");
 
-    product_selected({
-        'product_id': 1
+        $("#id_product_media_id").val($(this).data('mid'));
     });
     </script>
 {% endblock %}
@@ -206,10 +214,14 @@
                     {{ form.description }}
                     <span class="helptext">You can tailor product's description that will appear on the PinPoint page.</span>
                 </div>
-            </div>
 
-            <div class="grid_12 actions">
-                <input type="submit" value="Done">
+                <div class="grid_12 actions">
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+
+                    <input type="submit" value="Done">
+                </div>
             </div>
         </form>
     </div>
