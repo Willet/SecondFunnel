@@ -20,7 +20,7 @@ class DetailScraper(BaseScraper):
 
 
 class StoreScraper(models.Model):
-    store = models.ForeignKey(Store)
+    store = models.OneToOneField(Store, primary_key=True)
     list_url = models.CharField(max_length=500)
 
     list_scraper = models.ForeignKey(ListScraper)
