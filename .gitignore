@@ -5,5 +5,5 @@ secondfunnel/local_settings.py
 *.orig
 *.dot
 *.db
-.sqlite
+*.sqlite
 
