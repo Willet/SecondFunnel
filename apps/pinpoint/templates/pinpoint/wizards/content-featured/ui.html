@@ -51,13 +51,23 @@
             width: 250px;
         }
 
+        .product_meta input {
+            width: 200px;
+        }
+
+        input[type="text"] {
+            width: 250px;
+        }
+
         .product_meta img:hover, .product_meta img.selected {
             border-bottom: 4px solid #5d84b7;
             cursor: pointer;
         }
 
-        .product_image {
-
+        .existing_images_content {
+            width: 900px;
+            overflow: scroll;
+            max-height: 450px
         }
 
         .product_description {
@@ -119,6 +129,9 @@
                 "<li><img data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
             );
         }
+
+        // set product's proper name
+        $("#product_name").val(product.name);
 
         // set product's description
         $("#id_description").val(product.description);
