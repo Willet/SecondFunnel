@@ -1,0 +1,9 @@
+{% extends "pinpoint/admin_base.html" %}
+
+{% block content %}
+    <ul>
+        {% for store in stores.all %}
+        <li><a href="{% url store-admin store.id %}" title="">{{ store }}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}

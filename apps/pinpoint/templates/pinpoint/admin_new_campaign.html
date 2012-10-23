@@ -1,0 +1,70 @@
+{% extends "pinpoint/admin_base.html" %}
+{% load staticfiles %}
+
+{% block title %}
+    New Page
+{% endblock %}
+
+{% block page_title %}
+    {{ block.super }}: New Page
+{% endblock %}
+
+{% block extra_head %}
+    <style type="text/css">
+        .block_types {
+
+        }
+
+        .block_type {
+            padding-left: 0px;
+            margin-left: 5px;
+            margin-right: 5px;
+            text-align: center;
+        }
+
+        .dimmed img {
+            opacity: 0.6;
+        }
+
+        .disabled {
+            display: block;
+            color: #9e9e9e;
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js_includes %}
+{% endblock %}
+
+{% block document_ready %}
+
+{% endblock %}
+
+{% block top_section %}
+    <nav class="grid_3 prefix_9">
+        <ul>
+            <li class="selected">Pages</li>
+            <li>Analytics</li>
+        </ul>
+    </nav>
+{% endblock %}
+
+{% block content %}
+    <h2>Select content block type (change me):</h2>
+    <div class="grid_12 block_types">
+    {% for block_type in block_types %}
+        <div class="grid_3 block_type {% if not block_type.enabled %}dimmed{% endif %}">
+            {% if block_type.enabled %}
+                <a href="{% url block-type-wizard store.id block_type.id %}">
+                    <img src="{{ block_type.image.url }}">
+                    <span class="title">{{ block_type.name }}</span>
+                </a>
+            {% else %}
+                <img src="{{ block_type.image.url }}">
+                <span class="title">{{ block_type.name }}</span>
+                {% if not block_type.enabled %}<span class="disabled">Coming soon!</span>{% endif %}
+            {% endif %}
+        </div>
+    {% endfor %}
+    </div>
+{% endblock %}

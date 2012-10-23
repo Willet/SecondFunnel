@@ -6,10 +6,6 @@ from django.db import models
 from apps.assets.models import MediaBase, BaseModel, BaseModelNamed, Store
 
 
-class StoreThemeMedia(MediaBase):
-    theme = models.ForeignKey("StoreTheme", related_name="media")
-
-
 class StoreTheme(BaseModelNamed):
     store = models.ForeignKey(Store)
 
@@ -17,7 +13,17 @@ class StoreTheme(BaseModelNamed):
         return u"Theme for Store: %s" % self.store
 
 
+class StoreThemeMedia(MediaBase):
+    theme = models.ForeignKey(StoreTheme, related_name="media")
+
+
 class BlockType(BaseModelNamed):
+    image = models.FileField("Wizard Image",
+        upload_to="internal_images", blank=True, null=True)
+
+    handler = models.CharField(max_length=255, blank=True, null=True)
+    enabled = models.BooleanField(default=True)
+
     def __unicode__(self):
         return u"Block type: %s" % self.name
 

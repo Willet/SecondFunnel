@@ -1,0 +1,81 @@
+{% extends "pinpoint/admin_base.html" %}
+{% load staticfiles %}
+
+{% block title %}
+    New Page
+{% endblock %}
+
+{% block page_title %}
+    {{ block.super }}: New Page
+{% endblock %}
+
+{% block extra_head %}
+    <style type="text/css">
+        .product_select {
+
+        }
+
+        .product_select ul {
+            list-style: none;
+        }
+
+        .product_select li {
+            color: #5a8eb4;
+        }
+
+        .product_select li:hover {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .product_meta {
+
+        }
+
+        .product_image {
+
+        }
+
+        .product_description {
+
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js_includes %}
+{% endblock %}
+
+{% block document_ready %}
+    $("#product_selected").
+{% endblock %}
+
+{% block top_section %}
+    <nav class="grid_3 prefix_9">
+        <ul>
+            <li class="selected">Pages</li>
+            <li>Analytics</li>
+        </ul>
+    </nav>
+{% endblock %}
+
+{% block content %}
+    <div class="grid_12 product_select">
+        <h2>Select a product:</h2>
+        <div class="grid_12 block_types">
+
+            <ul>
+            {% for product in products %}
+                <li>{{ product }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="grid_12 product_meta">
+        <div class="grid_12 product_image">
+        </div>
+
+        <div class="grid_12 product_description">
+        </div>
+    </div>
+{% endblock %}

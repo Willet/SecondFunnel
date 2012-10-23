@@ -60,9 +60,8 @@ class MediaBase(BaseModelNamed):
 
         return None
 
-class Product(BaseModelNamed):
-    price = models.CharField(max_length=255, blank=True, null=True)
 
+class Product(BaseModelNamed):
     original_url = models.CharField(max_length=500, blank=True, null=True)
 
     store = models.ForeignKey(Store, blank=True, null=True)
@@ -70,7 +69,23 @@ class Product(BaseModelNamed):
     def __unicode__(self):
         return self.name
 
+    def price_count(self):
+        return self.prices.count()
+
+    def media_count(self):
+        return self.media.count()
+
+
 class ProductMedia(MediaBase):
     product = models.ForeignKey(Product, related_name="media")
 
 
+class ProductPrice(BaseModel):
+    name = models.CharField(max_length=255)
+    price = models.CharField(max_length=255)
+    product = models.ForeignKey(Product, related_name="prices")
+
+    is_active = models.BooleanField(default=True)
+
+    def __unicode__(self):
+        return u"Price for %s: %s %s" % (self.product, self.name, self.price)

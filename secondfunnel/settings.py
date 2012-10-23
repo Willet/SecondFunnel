@@ -143,6 +143,8 @@ INSTALLED_APPS = (
 
     # testing
     'fts',
+
+    'apps.scraper',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -173,6 +175,14 @@ LOGGING = {
         },
     }
 }
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    # allows for request variable in templates
+    'django.core.context_processors.request',
+
+    # needed for admin
+    'django.contrib.auth.context_processors.auth',
+)
 
 try:
     from local_settings import *
