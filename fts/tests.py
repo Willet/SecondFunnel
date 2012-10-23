@@ -45,16 +45,19 @@ class PasswordChangeTest(LiveServerTestCase):
     def test_password_change(self):
         driver = self.driver
 
-        # go to django admin page and log in since we can't on ours yet
-        driver.get(self.base_url + "/admin/")
+        # go to login page and log in
+        driver.get(self.base_url + "/accounts/login/")
         driver.find_element_by_id("id_username").clear()
         driver.find_element_by_id("id_username").send_keys("terrance")
         driver.find_element_by_id("id_password").clear()
         driver.find_element_by_id("id_password").send_keys("asdf")
         driver.find_element_by_css_selector("input[type=\"submit\"]").click()
 
-        # go to second funnel login page and click change password
-        driver.get(self.base_url + "/accounts/login/")
+        # we should have been redirected to the admin page
+        # click on the profile page link
+        driver.find_element_by_link_text("Profile Page").click()
+
+        # click on the change password link
         driver.find_element_by_link_text("Change Password").click()
 
         # fill in change password form
@@ -70,16 +73,16 @@ class PasswordChangeTest(LiveServerTestCase):
         driver.find_element_by_link_text("Logout").click()
 
         # try logging back in with new password
-        driver.get(self.base_url + "/admin/")
+        driver.get(self.base_url + "/accounts/login/")
         driver.find_element_by_id("id_username").clear()
         driver.find_element_by_id("id_username").send_keys("terrance")
         driver.find_element_by_id("id_password").clear()
         driver.find_element_by_id("id_password").send_keys("qwert")
         driver.find_element_by_css_selector("input[type=\"submit\"]").click()
 
-        # make sure django admin page loaded
+        # make sure pinpoint admin page loaded
         body = driver.find_element_by_tag_name('body')
-        self.assertIn('Site administration', body.text)
+        self.assertIn('PinPoint Admin', body.text)
     
     def is_element_present(self, how, what):
         try: self.driver.find_element(by=how, value=what)
