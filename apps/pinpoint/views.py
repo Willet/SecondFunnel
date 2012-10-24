@@ -12,7 +12,11 @@ import apps.pinpoint.wizards as wizards
 
 @login_required
 def login_redirect(request):
-    return redirect('store-admin', store_id=str(request.user.store_set.all()[0].id))
+    store_set = request.user.store_set
+    if store_set.count() > 0:
+        return redirect('store-admin', store_id=str(store_set.all()[0].id))
+    else:
+        return redirect('admin')
 
 
 @login_required
