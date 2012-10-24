@@ -96,8 +96,6 @@ class Tests(LiveServerTestCase):
         driver.find_element_by_id("id_password").send_keys("asdf")
         driver.find_element_by_css_selector("input[type=\"submit\"]").click()
 
-        driver.find_element_by_link_text("A Book Apart").click()
-
         driver.find_element_by_link_text("New Page").click()
 
         driver.find_element_by_css_selector(".block_type:nth-of-type(1) a").click()
@@ -118,7 +116,10 @@ class Tests(LiveServerTestCase):
 
         driver.find_element_by_css_selector(".actions .button").click()
 
+        driver.find_element_by_css_selector(".actions .button[data-action=publish]").click()
+
         body = driver.find_element_by_tag_name('body')
+        self.assertIn('PinPoint Admin: A Book Apart', body.text)
         self.assertIn('newcampaign', body.text)
 
         # log out
