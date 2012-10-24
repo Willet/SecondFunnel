@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
@@ -8,6 +8,15 @@ from apps.pinpoint.models import Campaign, BlockType, BlockContent
 from apps.assets.models import Store, Product
 
 import apps.pinpoint.wizards as wizards
+
+
+@login_required
+def login_redirect(request):
+    store_set = request.user.store_set
+    if store_set.count() == 1:
+        return redirect('store-admin', store_id=str(store_set.all()[0].id))
+    else:
+        return redirect('admin')
 
 
 @login_required
