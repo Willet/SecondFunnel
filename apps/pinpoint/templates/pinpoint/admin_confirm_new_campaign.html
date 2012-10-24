@@ -1,0 +1,14 @@
+{% extends "pinpoint/admin_base.html" %}
+{% load pinpoint_ui %}
+
+{% block title %}
+    {{ block.super }}: Confirm New Campaign
+{% endblock %}
+
+{% block page_title %}
+    {{ block.super }}: Confirm New Campaign
+{% endblock %}
+
+{% block content %}
+    {% wizard_confirm_campaign campaign %}
+{% endblock %}
