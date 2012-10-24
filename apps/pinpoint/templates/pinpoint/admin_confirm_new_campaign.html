@@ -9,6 +9,40 @@
     {{ block.super }}: Confirm New Campaign
 {% endblock %}
 
+{% block extra_js_includes %}
+    <script type="text/javascript">
+        $(function() {
+            var ajax_urls = {
+                "save_as_draft": "{% url ajax-campaign-save-draft %}",
+                "publish": "{% url ajax-campaign-publish %}"
+            };
+
+            $("a[data-type='ajax']").click(function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: ajax_urls[$(this).data("action")],
+                    type: "POST",
+                    dataType: 'json',
+                    data: {'campaign_id': '{{ campaign.id }}'},
+                    success: function(data) {
+                        if (data.success) {
+                            window.location.href = "{% url store-admin campaign.store.id %}";
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
 {% block content %}
     {% wizard_confirm_campaign campaign %}
+
+    <div class="grid_12 actions">
+        <a href="{% url edit-campaign-admin store_id=campaign.store.id campaign_id=campaign.id %}" class="button">Edit Page</a>
+        <a href="" data-type="ajax" data-action="save_as_draft" class="button">Save as Draft</a>
+        <a href="{% url campaign campaign_id=campaign.id %}" class="button">Preview</a>
+        <a href="" data-type="ajax" data-action="publish" class="button">Publish</a>
+    </div>
 {% endblock %}
