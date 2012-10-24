@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
@@ -12,9 +12,7 @@ import apps.pinpoint.wizards as wizards
 
 @login_required
 def admin(request):
-    return render_to_response('pinpoint/admin_staff.html', {
-        "stores": request.user.store_set
-    }, context_instance=RequestContext(request))
+    return redirect('store-admin', store_id=str(request.user.store_set.all()[0].id))
 
 
 @login_required
