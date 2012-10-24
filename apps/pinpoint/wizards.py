@@ -4,7 +4,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
 
-from apps.assets.models import Product, ProductMedia
+from apps.assets.models import Product, ProductMedia, GenericMedia
 from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
     FeaturedProductBlock)
 from apps.pinpoint.forms import FeaturedProductWizardForm
@@ -12,7 +12,7 @@ from apps.pinpoint.forms import FeaturedProductWizardForm
 
 def featured_product_wizard(request, store, block_type):
     if request.method == 'POST':
-        form = FeaturedProductWizardForm(request.POST)
+        form = FeaturedProductWizardForm(request.POST, request.FILES)
 
         if form.is_valid():
             product = Product.objects.get(id=form.cleaned_data['product_id'])
@@ -30,10 +30,16 @@ def featured_product_wizard(request, store, block_type):
                 featured_product_data.existing_image = product_media
 
             # handle file upload
-            elif form.cleaned_data['product_image']:
-                pass
+            elif request.FILES['product_image']:
+                custom_image = GenericMedia(
+                    media_type="img",
+                    hosted=request.FILES['product_image']
+                )
+                custom_image.save()
 
-            featured_content_data.save()
+                featured_product_data.custom_image = custom_image
+
+            featured_product_data.save()
 
             block_content = BlockContent(
                 block_type=block_type,
