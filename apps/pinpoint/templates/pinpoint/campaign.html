@@ -180,9 +180,9 @@ pinpointTracking.init();
                     <img src="{{ banner }}" />
                 </div>
                 {% endif %}
-                {% if content %}
+                {% for content in campaign.content_blocks.all %}
                     {% render_ui_block content %}
-                {% endif %}
+                {% endfor %}
                 <div id="waterfall">
                     {% for col in columns reversed %}
                         <div class="column" id="{{col}}">
