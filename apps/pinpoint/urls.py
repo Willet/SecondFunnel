@@ -16,8 +16,8 @@ urlpatterns = patterns('apps.pinpoint.views',
     url(r'^admin/(?P<store_id>\d+)/new_campaign/$',
         'new_campaign', name='new-campaign-admin'),
 
-    url(r'^admin/(?P<store_id>\d+)/new_campaign/(?P<campaign_id>\d+)/confirm/$',
-        'confirm_new_campaign', name='confirm-new-campaign-admin'),
+    url(r'^admin/(?P<store_id>\d+)/(?P<campaign_id>\d+)/$',
+        'campaign_overview', name='campaign-overview-admin'),
 
     url(r'^admin/(?P<store_id>\d+)/edit_campaign/(?P<campaign_id>\d+)/$',
         'edit_campaign', name='edit-campaign-admin'),

@@ -60,7 +60,8 @@ def featured_product_wizard(request, store, block_type):
             campaign.content_blocks.add(block_content)
 
             return HttpResponseRedirect(
-                reverse('confirm-new-campaign-admin', kwargs={'store_id': store.id, 'campaign_id': campaign.id})
+                reverse('campaign-overview-admin',
+                    kwargs={'store_id': store.id, 'campaign_id': campaign.id})
             )
     else:
         form = FeaturedProductWizardForm()

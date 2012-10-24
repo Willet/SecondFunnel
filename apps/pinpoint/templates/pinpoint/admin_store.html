@@ -10,6 +10,18 @@
     <link rel="stylesheet" href="{% static "js/DataTables/css/demo_page.css" %}">
     <link rel="stylesheet" href="{% static "js/DataTables/css/demo_table.css" %}">
 
+    <style>
+        .online {
+            color :#13b240;
+        }
+        .offline {
+            color: #b23739;
+        }
+
+        table a, table a:visited {
+            color: #4398aa;
+        }
+    </style>
 {% endblock %}
 
 {% block extra_js_includes %}
@@ -30,13 +42,34 @@
             "aoColumns" : [
                 null,
                 null,
+                dataRowOptions,
+                dataRowOptions,
                 null,
-                dataRowOptions,
-                dataRowOptions,
-                dataRowOptions,
                 dataRowOptions
-            ]
+            ],
+            "aaSorting": [[5, "desc"]]
         });
+
+    var ajax_urls = {
+        "save_as_draft": "{% url ajax-campaign-save-draft %}",
+        "publish": "{% url ajax-campaign-publish %}"
+    };
+
+    $("button[data-type='ajax']").click(function (e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: ajax_urls[$(this).data("action")],
+            type: "POST",
+            dataType: 'json',
+            data: {'campaign_id': $(this).data("content")},
+            success: function(data) {
+                if (data.success) {
+                    window.location.href = "{% url store-admin store.id %}";
+                }
+            }
+        });
+    });
 {% endblock %}
 
 {% block top_section %}
@@ -54,24 +87,31 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Buys and Shares</th>
                 <th>Date Modified</th>
                 <th></th>
                 <th></th>
-                <th></th>
+                <th>Status</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
             {% for campaign in store.campaign_set.all %}
             <tr>
-                <td><div>{{ campaign.name }}</div></td>
-                <td><div>0 buys, 0 shares</div></td>
+                <td><div><a href="{% url campaign-overview-admin campaign.store.id campaign.id %}">{{ campaign.name }}</a></div></td>
                 <td><div>{{ campaign.last_modified }}</div></td>
-                <td><div><a href="{% url campaign campaign.id %}" target="_blank">Link</a></div></td>
                 <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
-                <td><div><button class="edit">Edit</button></div></td>
-                <td><div><button class="deletePage">Hide</button></div></td>
+                <td><div><a href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
+
+                <td>
+                    <div class="{% if campaign.enabled %}online{% else %}offline{% endif %}">
+                    {% if campaign.enabled %}Online{% else %}Offline{% endif %}
+                    </div>
+                </td>
+                {% if campaign.enabled %}
+                    <td><div><button data-type="ajax" data-action="save_as_draft" data-content="{{ campaign.id }}">Take Offline</button></div></td>
+                {% else %}
+                    <td><div><button data-type="ajax" data-action="publish" data-content="{{ campaign.id }}">Publish</button></div></td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>

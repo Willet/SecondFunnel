@@ -49,11 +49,11 @@ def new_campaign(request, store_id):
 
 
 @login_required
-def confirm_new_campaign(request, store_id, campaign_id):
+def campaign_overview(request, store_id, campaign_id):
     store = get_object_or_404(Store, pk=store_id)
     created_campaign = get_object_or_404(Campaign, pk=campaign_id)
 
-    return render_to_response('pinpoint/admin_confirm_new_campaign.html', {
+    return render_to_response('pinpoint/admin_campaign.html', {
         "store": store,
         "campaign": created_campaign,
         "content_block": created_campaign.content_blocks.all()[0]

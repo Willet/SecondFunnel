@@ -26,15 +26,14 @@
     }
 </style>
 
-<h2>Let's make sure everything's correct:</h2>
-
 <div class="grid_12">
     {% include "pinpoint/snippets/block_type_admin.html" with block_type=content_block.block_type %}
 
-    <div class="grid_4">
+    <div class="grid_8">
         {% ui_field_label_value "Campaign name:" campaign.name %}
         {% ui_field_label_value "Campaign description:" campaign.description %}
         {% ui_field_label_value "Featured Product:" content_block.data.product.name %}
+        {% ui_field_label_value "Featured Product Description:" content_block.data.description %}
 
         <span class="label">Featured Image:</span>
         <div class="featured_image">
