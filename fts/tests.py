@@ -129,6 +129,38 @@ class Tests(LiveServerTestCase):
         body = driver.find_element_by_tag_name('body')
         self.assertIn('Username', body.text)
 
+    def test_no_image_selected_error(self):
+        driver = Tests.driver
+
+        # go to login page and log in
+        driver.get(self.live_server_url + "/accounts/login/")
+        driver.find_element_by_id("id_username").clear()
+        driver.find_element_by_id("id_username").send_keys("terrance")
+        driver.find_element_by_id("id_password").clear()
+        driver.find_element_by_id("id_password").send_keys("asdf")
+        driver.find_element_by_css_selector("input[type=\"submit\"]").click()
+
+        driver.find_element_by_link_text("New Page").click()
+
+        driver.find_element_by_css_selector(".block_type:nth-of-type(1) a").click()
+
+        driver.find_element_by_id("id_name").clear()
+        driver.find_element_by_id("id_name").send_keys("newcampaign")
+
+        driver.find_element_by_id("product_name").clear()
+        driver.find_element_by_id("product_name").send_keys("HTML5 FOR WEB DESIGNERS")
+
+        time.sleep(1)
+
+        driver.find_element_by_xpath('//html/body/ul/li/a[. = "HTML5 FOR WEB DESIGNERS"]').click()
+
+        time.sleep(1)
+
+        driver.find_element_by_css_selector(".actions .button").click()
+
+        body = driver.find_element_by_tag_name('body')
+        self.assertIn('Please either select an existing product image or upload a custom one.', body.text)
+
     def test_password_change(self):
         driver = Tests.driver
 
