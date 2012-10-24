@@ -13,7 +13,7 @@ import apps.pinpoint.wizards as wizards
 @login_required
 def login_redirect(request):
     store_set = request.user.store_set
-    if store_set.count() > 0:
+    if store_set.count() == 1:
         return redirect('store-admin', store_id=str(store_set.all()[0].id))
     else:
         return redirect('admin')
