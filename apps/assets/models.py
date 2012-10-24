@@ -67,6 +67,7 @@ class Product(BaseModelNamed):
     store = models.ForeignKey(Store, blank=True, null=True)
 
     price = models.CharField(max_length=255, blank=True, null=True)
+    sku = models.CharField(max_length=255, blank=True, null=True)
 
     last_scraped = models.DateTimeField(blank=True, null=True)
     rescrape = models.BooleanField(default=False)

@@ -35,7 +35,11 @@ class SitemapListScraper(ListScraper):
 
 class PythonListScraper(ListScraper):
     script = models.TextField()
+    enable_javascript = models.BooleanField(default=False)
+    enable_css = models.BooleanField(default=False)
 
 
 class PythonDetailScraper(DetailScraper):
     script = models.TextField()
+    enable_javascript = models.BooleanField(default=False)
+    enable_css = models.BooleanField(default=False)
