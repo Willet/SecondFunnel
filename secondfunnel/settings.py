@@ -188,6 +188,10 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
 )
 
+FIXTURE_DIRS = (
+   'secondfunnel/fixtures/',
+)
+
 try:
     from local_settings import *
 except ImportError, e:

@@ -89,10 +89,10 @@
           "model": "pinpoint.featuredproductblock", 
           "fields": {
                "product": 5, 
-               "description": "", 
+               "description": "Description override.", 
                "created": "2012-10-24T19:46:03.275Z", 
                "existing_image": null, 
-               "last_modified": "2012-10-24T19:46:03.275Z", 
+               "last_modified": "2012-10-24T21:09:16.822Z", 
                "custom_image": 1, 
                "slug": "best-featured-product-block", 
                "name": "The best featured product block"
