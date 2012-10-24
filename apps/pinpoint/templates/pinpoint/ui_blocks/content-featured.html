@@ -3,10 +3,18 @@
         data-title="{{ data.product.name }}"
         data-desc="{{ data.description }}"
         data-price="{{ data.product.price }}"
-        data-img="{{ data.get_image.get_url }}|{% for url in data.product.media.all %}{{ url.get_url|striptags }}|{% endfor %}"
+        {# if the featured-content-block has an image display it, otherwise skip it #}
+        {% if data.get_image %}
+            data-img="{{ data.get_image.get_url }}|{% for url in data.product.media.all %}{{ url.get_url|striptags }}|{% endfor %}"
+        {% else %}
+            data-img="{% for url in data.product.media.all %}{{ url.get_url|striptags }}|{% endfor %}"
+        {% endif %}
         data-url="{{ data.product.original_url }}"
         >
-        <img src="{{ data.get_image.get_url }}">
+        {# if the featured-content-block has an image display it, otherwise skip it #}
+        {% if data.get_image %}
+            <img src="{{ data.get_image.get_url }}">
+        {% endif %}
     </div>
     <div class="text">
         <h3>{{ data.product.name }}</h3>
