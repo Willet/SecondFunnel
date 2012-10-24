@@ -33,7 +33,7 @@ def featured_product_wizard(request, store, block_type):
             elif form.cleaned_data['product_image']:
                 pass
 
-            featured_content_data.save()
+            featured_product_data.save()
 
             block_content = BlockContent(
                 block_type=block_type,
