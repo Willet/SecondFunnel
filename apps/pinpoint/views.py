@@ -75,11 +75,12 @@ def store_analytics_admin(request, store_id):
 
 
 def campaign(request, campaign_id):
-    campaign_instance = get_object_or_404(Campaign, pk=campaign_id, enabled=True)
+    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
 
     return render_to_response('pinpoint/campaign.html', {
         "campaign": campaign_instance,
         "columns": range(4),
+        "preview": not campaign_instance.enabled
     }, context_instance=RequestContext(request))
 
 
