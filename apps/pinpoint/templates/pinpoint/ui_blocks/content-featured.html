@@ -9,11 +9,9 @@
         <img src="{{ data.get_image.get_url }}">
     </div>
     <div class="text">
-        {% autoescape off %}
         <h3>{{ data.product.name }}</h3>
         <h4 id="featured_price">{{ data.product.price }}</h4>
         <p id="featured_desc">{{ data.description }}</p>
-        {% endautoescape %}
     </div>
     <div id="featured-social">
         <div class="pinterest_buttons"></div>
