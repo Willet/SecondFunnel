@@ -42,7 +42,7 @@
             {% if "next" in request.GET %}
                 <input type="hidden" name="next" value="{{ next }}" />
             {% else %}
-                <input type="hidden" name="next" value="{% url admin %}" />
+                <input type="hidden" name="next" value="{% url login-redirect %}" />
             {% endif %}
         </form>
         <p><a href="{% url password_reset %}">Forgot your password?</a></p>

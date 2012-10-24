@@ -11,8 +11,15 @@ import apps.pinpoint.wizards as wizards
 
 
 @login_required
-def admin(request):
+def login_redirect(request):
     return redirect('store-admin', store_id=str(request.user.store_set.all()[0].id))
+
+
+@login_required
+def admin(request):
+    return render_to_response('pinpoint/admin_staff.html', {
+        "stores": request.user.store_set
+    }, context_instance=RequestContext(request))
 
 
 @login_required
