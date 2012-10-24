@@ -1,0 +1,20 @@
+[
+  {
+    "pk": 1, 
+    "model": "auth.user", 
+    "fields": {
+      "username": "terrance", 
+      "first_name": "", 
+      "last_name": "", 
+      "is_active": true, 
+      "is_superuser": true, 
+      "is_staff": true, 
+      "last_login": "2012-10-23T15:00:10.938Z", 
+      "groups": [], 
+      "user_permissions": [], 
+      "password": "pbkdf2_sha256$10000$w9KcXtuMNK2T$m81F0rJx7efEUbVYDzmf+o34JVCI2GmNa0w43AZG7Rc=", 
+      "email": "a@b.com", 
+      "date_joined": "2012-10-23T14:47:26.987Z"
+    }
+  }
+]
