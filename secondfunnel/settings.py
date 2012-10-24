@@ -140,6 +140,10 @@ INSTALLED_APPS = (
     'apps.analytics',
     'apps.assets',
     'apps.pinpoint',
+
+    # testing
+    'fts',
+
     'apps.scraper',
 )
 
