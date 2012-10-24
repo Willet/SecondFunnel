@@ -7,10 +7,10 @@
         data-title="{{ data.product.name }}"
         data-desc="{{ data.description }}"
         data-price="{{ data.product.price }}"
-        data-img="{{ data.image.get_url }}|{% for url in media %}{{ url.get_url|striptags }}|{% endfor %}"
+        data-img="{{ data.get_image.get_url }}|{% for url in media %}{{ url.get_url|striptags }}|{% endfor %}"
         data-url="{{ data.product.original_url }}"
         >
-        <img src="{{ data.image.get_url }}">
+        <img src="{{ data.get_image.get_url }}">
     </div>
     <div class="text">
         {% autoescape off %}
