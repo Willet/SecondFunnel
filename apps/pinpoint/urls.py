@@ -28,3 +28,12 @@ urlpatterns = patterns('apps.pinpoint.views',
     url(r'^generic/(?P<product_id>\d+)/$',
         'generic_page',name='pinpoint_generic'),
 )
+
+# AJAX
+urlpatterns += patterns('apps.pinpoint.ajax',
+    url(r'^ajax/campaign/save_draft/$',
+        'campaign_save_draft', name='ajax-campaign-save-draft'),
+
+    url(r'^ajax/campaign/publish/$',
+        'campaign_publish', name='ajax-campaign-publish'),
+)
