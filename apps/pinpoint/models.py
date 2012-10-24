@@ -3,7 +3,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.db import models
 
-from apps.assets.models import MediaBase, BaseModel, BaseModelNamed, Store, GenericMedia, Product
+from apps.assets.models import (MediaBase, BaseModel, BaseModelNamed,
+    Store, GenericMedia, Product, ProductMedia)
 
 
 class StoreTheme(BaseModelNamed):
@@ -54,11 +55,17 @@ class Campaign(BaseModelNamed):
         return u"Campaign: %s" % self.name
 
 
-class FeaturedContent(BaseModelNamed):
+class FeaturedProductBlock(BaseModelNamed):
     """Data model for Featured Content block, to be used with BlockContent"""
 
     product = models.ForeignKey(Product)
-    image = models.OneToOneField(GenericMedia, blank=True, null=True)
+    existing_image = models.ForeignKey(ProductMedia, blank=True, null=True)
+    custom_image = models.OneToOneField(GenericMedia, blank=True, null=True)
 
     def __unicode__(self):
         return u"Featured Content Data for %s" % self.product
+
+    def get_image(self):
+        """Get an image associated with this block"""
+
+        return self.custom_image or self.existing_image or None
