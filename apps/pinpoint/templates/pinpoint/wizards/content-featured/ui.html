@@ -28,12 +28,33 @@
         }
 
         ul.errorlist {
-            margin: 0;
+            margin: 0 0 10px 0;
+            list-style: none;
         }
 
-        ul.errorlist li{
-            color: #d94153;
-            margin-left: 0;
+        ul.errorlist li {
+            background-color: #B94A48;
+            border-color: white;
+            border-radius: 3px;
+            border-style: none;
+            border-collapse: separate;
+            border-width: 0px;
+
+            color: white;
+            display: inline;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            height: auto;
+            line-height: 14px;
+            margin: 0;
+            max-width: none;
+            padding: 1px 4px 2px 4px;
+            text-align: left;
+            text-shadow: rgba(0, 0, 0, 0.247059) 0px -1px 0px;
+            vertical-align: baseline;
+            white-space: nowrap;
+            width: auto;
         }
 
         .product_meta ul {
@@ -123,6 +144,10 @@
     function product_selected (o) {
         var product = products[o.product_id];
 
+        if (typeof(product) === "undefined") {
+            return;
+        }
+
         // clear existing image list
         $("#product_images").html("");
 
@@ -181,7 +206,7 @@
         $(".page_description_content").slideDown();
     });
 
-    $( "#product_name" ).autocomplete({
+    $("#product_name").autocomplete({
         source: function(request, response) {
             var term = request.term;
             $.getJSON("/api/assets/v1/product/", {
@@ -205,6 +230,12 @@
                 });
             }
         }
+    });
+
+    // in case we're dealing with errors on submition,
+    // ensure we're displaying the product that was selected prior
+    product_selected({
+        product_id: $("#id_product_id").val()
     });
     </script>
 {% endblock %}

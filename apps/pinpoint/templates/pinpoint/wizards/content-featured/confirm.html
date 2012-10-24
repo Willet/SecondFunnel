@@ -1,0 +1,46 @@
+{% load pinpoint_ui %}
+
+<style type="text/css">
+    div.field {
+        margin-bottom: 5px;
+    }
+
+    span.label {
+        font-weight: bold;
+    }
+
+    span.value {
+
+    }
+
+    .featured_image {
+        margin-top: 10px;
+    }
+
+    .featured_image img {
+        width: 250px;
+    }
+
+    .actions {
+        margin-top: 30px;
+    }
+</style>
+
+<h2>Let's make sure everything's correct:</h2>
+
+<div class="grid_12">
+    {% include "pinpoint/snippets/block_type_admin.html" with block_type=content_block.block_type %}
+
+    <div class="grid_4">
+        {% ui_field_label_value "Campaign name:" campaign.name %}
+        {% ui_field_label_value "Campaign description:" campaign.description %}
+        {% ui_field_label_value "Featured Product:" content_block.data.product.name %}
+
+        <span class="label">Featured Image:</span>
+        <div class="featured_image">
+            <a href="{{ content_block.data.get_image.get_url }}" target="_blank" title="View full size">
+                <img src="{{ content_block.data.get_image.get_url }}">
+            </a>
+        </div>
+    </div>
+</div>

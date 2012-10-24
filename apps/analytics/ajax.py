@@ -6,22 +6,13 @@ from datetime import timedelta, datetime
 
 from django.http import HttpResponse
 
+from apps.utils.ajax import ajax_success
+
 
 def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
-
-def ajax_response(obj):
-    return HttpResponse(json.dumps(obj))
-
-def ajax_success(data):
-    data['sucess'] = True
-    return ajax_response(data)
-
-def ajax_error(data):
-    data['success'] = False
-    return ajax_response(data)
 
 def analytics_overview(request):
     app_slug = request.GET.get("app_slug")

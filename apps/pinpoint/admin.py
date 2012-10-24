@@ -33,7 +33,8 @@ admin.site.register(BlockContent, BlockContentAdmin)
 
 
 class CampaignAdmin(BaseNamedAdmin):
-    list_display = BaseNamedAdmin.list_display + ['store']
+    list_display = BaseNamedAdmin.list_display + ['enabled', 'store']
+    list_filter = BaseNamedAdmin.list_filter + ['enabled']
 
 admin.site.register(Campaign, CampaignAdmin)
 
