@@ -173,6 +173,13 @@ pinpointTracking.init();
 </script>
     </head>
     <body>
+        {% if preview %}
+            <div id="preview_header">
+                <p>You are previewing this page. It is currently not live.</p>
+            </div>
+            <div id="preview_header_spacing">
+            </div>
+        {% endif %}
         <div id="willet-main">
             <div id="wrapper">
                 {% if banner %}
