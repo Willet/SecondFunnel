@@ -1,6 +1,8 @@
 from django.conf.urls.defaults import patterns, url
 
 urlpatterns = patterns('apps.pinpoint.views',
+    url(r'^login/redirect/$', 'login_redirect', name='login-redirect'),
+
     url(r'admin/$', 'admin', name='admin'),
 
     url(r'admin/(?P<store_id>\d+)/$', 'store_admin', name='store-admin'),
