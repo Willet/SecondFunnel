@@ -1,0 +1,34 @@
+<div id="featured-product">
+    <div class="click" id="featured_img"
+        data-title="{{ data.product.name }}"
+        data-desc="{{ data.description }}"
+        data-price="{{ data.product.price }}"
+        {# if the featured-content-block has an image display it, otherwise skip it #}
+        {% if data.get_image %}
+            data-img="{{ data.get_image.get_url }}|{% for url in data.product.media.all %}{{ url.get_url|striptags }}|{% endfor %}"
+        {% else %}
+            data-img="{% for url in data.product.media.all %}{{ url.get_url|striptags }}|{% endfor %}"
+        {% endif %}
+        data-url="{{ data.product.original_url }}"
+        >
+        {# if the featured-content-block has an image display it, otherwise skip it #}
+        {% if data.get_image %}
+            <img src="{{ data.get_image.get_url }}">
+        {% else %}
+            {% with firstmedia=data.product.media.all|first %}
+            <img src="{{ firstmedia.get_url }}">
+            {% endwith %}
+        {% endif %}
+    </div>
+    <div class="text">
+        <h3>{{ data.product.name }}</h3>
+        <h4 id="featured_price">{{ data.product.price }}</h4>
+        <p id="featured_desc">{{ data.description }}</p>
+    </div>
+    <div id="featured-social">
+        <div class="pinterest_buttons"></div>
+        <div class="fb_buttons"></div>
+        <div class="twitter_buttons"></div>
+    </div>
+</div>
+<div id="divider"></div>
