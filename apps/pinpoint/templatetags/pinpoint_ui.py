@@ -24,7 +24,7 @@ class BlockNode(template.Node):
         })
 
 @register.tag(name="render_ui_block")
-def get_unread_message_count(parser, token):
+def render_ui_block(parser, token):
     try:
         # split_contents() knows not to split quoted strings.
         tag_name, ui_block = token.split_contents()
