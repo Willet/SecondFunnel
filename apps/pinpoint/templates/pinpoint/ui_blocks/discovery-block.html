@@ -23,7 +23,7 @@
         <div class="loading" style="display:none;"></div>
         <div class="buttons" style="left:-1000px;">
             <div class="pinterest_buttons">
-                <a href="http://pinterest.com/pin/create/button/?url={{ prod.original_url|striptags }}&media={{ firstMedia.get_url }}" target="_blank"><img src="{% static "images/pinpointButton.png" %}"/></a>
+                <a href="http://pinterest.com/pin/create/button/?url={{ prod.original_url|striptags }}&media={{ firstMedia.get_url }}" target="_blank"><img src="{% static "pinpoint/images/pinpointButton.png" %}"/></a>
             </div>
             <div class="fb_buttons no_count">
                 <fb:like href="{{ prod.original_url|striptags }}"
@@ -32,7 +32,7 @@
                 show_faces="false"></fb:like>
             </div>
             <div class="twitter_buttons">
-                <a href="https://twitter.com/share?url={{ prod.original_url|striptags }}" target="_blank"><img src="{% static "images/twitterButton.png" %}"/></a>
+                <a href="https://twitter.com/share?url={{ prod.original_url|striptags }}" target="_blank"><img src="{% static "pinpoint/images/twitterButton.png" %}"/></a>
             </div>
         </div>
     </div>
