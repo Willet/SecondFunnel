@@ -180,6 +180,20 @@
                 }
             },
 
+            setUploadStatus = function(color, text, fade) {
+                if (typeof(fade) === undefined) {
+                    fade = false;
+                }
+                var status = $("#upload_status");
+                status.css('color', color);
+                status.stop(true, true);
+                status.show();
+                status.text(text);
+                if (fade) {
+                    status.fadeOut(1000);
+                }
+            }
+
             setUpListeners = function () {
                 // GENERAL UI
                 $("#product_images img").live('click', function() {
@@ -227,21 +241,12 @@
                 $("#image_form").ajaxForm({
                     url: "{% url ajax-upload-image %}",
                     success: function(data) {
-                        var status = $("#upload_status");
-                        status.css('color', '#0F0');
-                        status.stop(true, true);
-                        status.show();
-                        status.text("Done");
-                        status.fadeOut(1000);
+                        setUploadStatus('#0F0', 'Done', true);
                         $("#uploaded_image").attr("src", data.url);
                         $("#uploaded_image").slideDown();
                         $("#id_generic_media_id").val(data.media_id);
                     }, error: function(data) {
-                        var status = $("#upload_status");
-                        status.css('color', '#F00');
-                        status.stop(true, true);
-                        status.show();
-                        status.text("Error: " + data);
+                        setUploadStatus('#F00', 'Error: ' + data);
                     }
                 });
 
@@ -250,11 +255,7 @@
                 });
 
                 $("#image_form input[type=file]").change(function() {
-                    var status = $("#upload_status");
-                    status.css('color', '#EE9A00');
-                    status.stop(true, true);
-                    status.show();
-                    status.text("Updating...");
+                    setUploadStatus('#EE9A00', 'Uploading...');
                     $("#image_form").submit();
                 });
 
