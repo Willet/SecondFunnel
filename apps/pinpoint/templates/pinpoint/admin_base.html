@@ -24,8 +24,12 @@
                 background-color: #f1f1f1;
             }
 
-            .inner_content {
+            .container_12 .inner_content {
                 padding: 10px 0 20px 0px;
+                /* accounts for the margins added in 960.css. We need this because
+                 * we have a grid_12 inside a grid_12.
+                 */
+                width: 920px;
             }
 
             .top_bar {
