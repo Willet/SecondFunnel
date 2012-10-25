@@ -1,11 +1,51 @@
 {% extends "pinpoint/admin_base.html" %}
 
+{% load staticfiles %}
+
 {% block title %}Profile Page{% endblock %}
 
 {% block page_title %}Your Profile{% endblock %}
 
+{% block extra_head %}
+<style>
+    p, h1 {
+        margin: 0;
+    }
+
+    #change_password {
+        float: right;
+    }
+
+    #image {
+        width: 200px;
+        height: 200px;
+        background-color: #AAA;
+        float: left;
+    }
+
+    #user_info_section {
+        margin-left: 220px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    
-<p><a href="{% url password_change %}">Change Password</a></p>
+
+<p id="change_password"><a href="{% url password_change %}">Change Password</a></p>
+
+<img id="image" src="{% static "images/ImageNotAvailable.png" %}"></img>
+<div id="user_info_section">
+    <h1>User Info</h1>
+    <p>Username: {{ user.username }}</p>
+    <p>Email: {{ user.email }}</p>
+
+    <h1>Stores</h1>
+    <p>You are on the staff list for the following stores:</p>
+    <ul>
+    {% for store in user.store_set.all %}
+        <li><a href="{% url store-admin store.id %}">{{ store }}</a></li>
+    {% endfor %}
+    </ul>
+</div>
     
 {% endblock %}
