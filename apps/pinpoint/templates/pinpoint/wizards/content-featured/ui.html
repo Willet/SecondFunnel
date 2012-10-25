@@ -128,8 +128,11 @@
     <script>
 
     var app = (function() {
-        this.existing_images = {};
-        this.products = {
+        var existing_images, products, product_selected, setUpListeners, image_fsm, init;
+
+        existing_images = {};
+
+        products = {
             {% for product in products %}
             '{{ product.id }}': {
                 'id': '{{ product.id }}',
@@ -147,279 +150,279 @@
             {% endfor %}
         };
 
-        var product_selected = function (o) {
-                var product = products[o.product_id];
+        product_selected = function (o) {
+            var product = products[o.product_id];
 
-                if (typeof(product) === "undefined") {
+            if (typeof(product) === "undefined") {
+                return;
+            }
+
+            // clear existing image list
+            $("#product_images").html("");
+
+            // display product media
+            for (i in product.media) {
+                $("#product_images").append(
+                    "<li><img data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
+                );
+            }
+
+            // set product's proper name
+            $("#product_name").val(product.name);
+
+            // set product's description
+            $("#id_description").val(product.description);
+
+            // set the id for form submission
+            $("#id_product_id").val(product.id);
+
+            $(".product_meta").slideDown();
+
+            if (o.human_invoked) {
+                image_fsm.transition('change_image', {});
+            }
+        };
+
+        setUpListeners = function () {
+            // GENERAL UI
+            $("#product_images img").live('click', function() {
+                $("#product_images img").removeClass("selected");
+                $(this).addClass("selected");
+
+                $("#id_product_media_id").val($(this).data('mid'));
+                $("#id_generic_media_id").val("");
+            });
+
+            $("#page_description_toggle").click(function (e) {
+                e.preventDefault();
+                $(".page_description_label").slideUp();
+                $(".page_description_content").slideDown();
+            });
+
+            // PRODUCT SEARCH AUTOCOMPLETE
+            $("#product_name").autocomplete({
+                source: function(request, response) {
+                    var term = request.term;
+                    $.getJSON("/api/assets/v1/product/", {
+                        "format": "json",
+                        "name__contains": term
+
+                    }, function(data) {
+                        //convert object to usable form
+                        var results = [];
+                        $.each(data.objects, function(index, value) {
+                            results.push({'label': value.name, 'id': value.id})
+                        });
+                        response(results);
+                    })
+                },
+                minLength: 2,
+                select: function( event, ui ) {
+                    if (ui.item) {
+                        product_selected({
+                            product_id: ui.item.id,
+                            human_invoked: true
+                        });
+                    }
+                }
+            });
+
+            $("#image_form").ajaxForm({
+                url: "{% url ajax-upload-image %}",
+                success: function(data) {
+                    $("#uploaded_image").attr("src", data.url);
+                    $("#uploaded_image").slideDown();
+                    $("#id_generic_media_id").val(data.media_id);
+                }
+            });
+
+            $("#select_new_image").click(function() {
+                $("#image_form input[type=file]").click();
+            });
+
+            $("#image_form input[type=file]").change(function() {
+                $("#image_form").submit();
+            });
+
+            // SET UP IMAGE FSM LISTENERS
+            $(".fsm").click(function (e) {
+                e.preventDefault();
+                image_fsm.transition($(this).data("action"), {});
+            })
+        };
+
+        // STATE MACHINE TO HANDLE IMAGE SELECTION UI
+        image_fsm = (function () {
+            var current_state, state_transition;
+
+            current_state = 'start';
+
+            fsm = {
+                'start': {
+                    'fn': function (o) {},
+                    'transitions': {
+                        'edit': {
+                            'new_state': 'existing_image',
+                            'fn': function (o) {
+                                $(".image_selectors").slideUp();
+                                $(".existing_image").slideDown();
+                            }
+                        },
+                        'new': {
+                            'new_state': 'new_image_existing',
+                            'fn': function (o) {
+                                $(".image_selectors").slideDown();
+                                $(".existing_image").slideUp();
+
+                                $("a[data-action='cancel']").hide();
+                            }
+                        }
+                    }
+                },
+
+                'existing_image': {
+                    'fn': function (o) {
+                        $(".existing_image").slideDown();
+                        $(".image_selectors").slideUp();
+
+                        $("#id_generic_media_id").val(app.existing_images['generic']);
+                        $("#id_product_media_id").val(app.existing_images['existing']);
+
+                        $("#product_images img").removeClass("selected");
+                    },
+                    'transitions': {
+                        'change_image': {
+                            'new_state': 'new_image_existing',
+                            'fn': function (o) {
+
+                            }
+                        }
+                    }
+                },
+
+                'new_image_existing': {
+                    'fn': function (o) {
+                        $(".existing_image").slideUp();
+                        $(".image_selectors").slideDown();
+
+                        // show existing list, hide upload
+                        $(".new_image_label").slideDown();
+                        $(".new_image_content").slideUp();
+
+                        $(".existing_images_label").slideUp();
+                        $(".existing_images_content").slideDown();
+                    },
+                    'transitions': {
+                        'cancel': {
+                            'new_state': 'existing_image',
+                            'fn': function (o) {
+
+                            }
+                        },
+                        'upload': {
+                            'new_state': 'new_image_custom',
+                            'fn': function (o) {
+
+                            }
+                        }
+                    }
+                },
+
+                'new_image_custom': {
+                    'fn': function (o) {
+                        $(".existing_image").slideUp();
+                        $(".image_selectors").slideDown();
+
+                        // show upload, hide existing list
+                        $(".new_image_label").slideUp();
+                        $(".new_image_content").slideDown();
+
+                        $(".existing_images_label").slideDown();
+                        $(".existing_images_content").slideUp();
+
+                        // todo move
+                        $("#product_images img").removeClass("selected");
+                        $("#id_product_media_id").val("");
+                    },
+                    'transitions': {
+                        'cancel': {
+                            'new_state': 'existing_image',
+                            'fn': function (o) {
+
+                            }
+                        },
+                        'use_existing': {
+                            'new_state': 'new_image_existing',
+                            'fn': function (o) {
+
+                            }
+                        }
+                    }
+                }
+            };
+
+            state_transition = function (transition, data) {
+                var state = fsm[current_state],
+                    new_state;
+
+                // check if this is a valid transition
+                if (!(transition in state.transitions)) {
                     return;
                 }
 
-                // clear existing image list
-                $("#product_images").html("");
+                try {
+                    // get the next state
+                    new_state = fsm[state.transitions[transition].new_state];
 
-                // display product media
-                for (i in product.media) {
-                    $("#product_images").append(
-                        "<li><img data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
-                    );
+                    // execute any transition actions
+                    state.transitions[transition].fn && state.transitions[transition].fn(data || undefined);
+
+                    // execute any state actions
+                    new_state.fn && new_state.fn(data || undefined);
+
+                    // switch states
+                    current_state = state.transitions[transition].new_state;
+
+                } catch (e) {
+                    // abort the transition if any of the actions failed
+                    // rethrowing the culprit exception
+                    throw(e);
                 }
+            };
 
-                // set product's proper name
-                $("#product_name").val(product.name);
+            return {
+                "transition": state_transition
+            }
+        }());
 
-                // set product's description
-                $("#id_description").val(product.description);
+        init = function () {
+            $(function() {
+                setUpListeners();
 
-                // set the id for form submission
-                $("#id_product_id").val(product.id);
-
-                $(".product_meta").slideDown();
-
-                if (o.human_invoked) {
-                    image_fsm.transition('change_image', {});
-                }
-            },
-
-            setUpListeners = function () {
-                // GENERAL UI
-                $("#product_images img").live('click', function() {
-                    $("#product_images img").removeClass("selected");
-                    $(this).addClass("selected");
-
-                    $("#id_product_media_id").val($(this).data('mid'));
-                    $("#id_generic_media_id").val("");
-                });
-
-                $("#page_description_toggle").click(function (e) {
-                    e.preventDefault();
-                    $(".page_description_label").slideUp();
-                    $(".page_description_content").slideDown();
-                });
-
-                // PRODUCT SEARCH AUTOCOMPLETE
-                $("#product_name").autocomplete({
-                    source: function(request, response) {
-                        var term = request.term;
-                        $.getJSON("/api/assets/v1/product/", {
-                            "format": "json",
-                            "name__contains": term
-
-                        }, function(data) {
-                            //convert object to usable form
-                            var results = [];
-                            $.each(data.objects, function(index, value) {
-                                results.push({'label': value.name, 'id': value.id})
-                            });
-                            response(results);
-                        })
-                    },
-                    minLength: 2,
-                    select: function( event, ui ) {
-                        if (ui.item) {
-                            product_selected({
-                                product_id: ui.item.id,
-                                human_invoked: true
-                            });
-                        }
-                    }
-                });
-
-                $("#image_form").ajaxForm({
-                    url: "{% url ajax-upload-image %}",
-                    success: function(data) {
-                        $("#uploaded_image").attr("src", data.url);
-                        $("#uploaded_image").slideDown();
-                        $("#id_generic_media_id").val(data.media_id);
-                    }
-                });
-
-                $("#select_new_image").click(function() {
-                    $("#image_form input[type=file]").click();
-                });
-
-                $("#image_form input[type=file]").change(function() {
-                    $("#image_form").submit();
-                });
-
-                // SET UP IMAGE FSM LISTENERS
-                $(".fsm").click(function (e) {
-                    e.preventDefault();
-                    image_fsm.transition($(this).data("action"), {});
-                })
-            },
-
-            // STATE MACHINE TO HANDLE IMAGE SELECTION UI
-            image_fsm = (function () {
-                this.current_state = 'start';
-                this.fsm = {
-                    'start': {
-                        'fn': function (o) {},
-                        'transitions': {
-                            'edit': {
-                                'new_state': 'existing_image',
-                                'fn': function (o) {
-                                    $(".image_selectors").slideUp();
-                                    $(".existing_image").slideDown();
-                                }
-                            },
-                            'new': {
-                                'new_state': 'new_image_existing',
-                                'fn': function (o) {
-                                    $(".image_selectors").slideDown();
-                                    $(".existing_image").slideUp();
-
-                                    $("a[data-action='cancel']").hide();
-                                }
-                            }
-                        }
-                    },
-
-                    'existing_image': {
-                        'fn': function (o) {
-                            $(".existing_image").slideDown();
-                            $(".image_selectors").slideUp();
-
-                            $("#id_generic_media_id").val(app.existing_images['generic']);
-                            $("#id_product_media_id").val(app.existing_images['existing']);
-
-                            $("#product_images img").removeClass("selected");
-                        },
-                        'transitions': {
-                            'change_image': {
-                                'new_state': 'new_image_existing',
-                                'fn': function (o) {
-
-                                }
-                            }
-                        }
-                    },
-
-                    'new_image_existing': {
-                        'fn': function (o) {
-                            $(".existing_image").slideUp();
-                            $(".image_selectors").slideDown();
-
-                            // show existing list, hide upload
-                            $(".new_image_label").slideDown();
-                            $(".new_image_content").slideUp();
-
-                            $(".existing_images_label").slideUp();
-                            $(".existing_images_content").slideDown();
-                        },
-                        'transitions': {
-                            'cancel': {
-                                'new_state': 'existing_image',
-                                'fn': function (o) {
-
-                                }
-                            },
-                            'upload': {
-                                'new_state': 'new_image_custom',
-                                'fn': function (o) {
-
-                                }
-                            }
-                        }
-                    },
-
-                    'new_image_custom': {
-                        'fn': function (o) {
-                            $(".existing_image").slideUp();
-                            $(".image_selectors").slideDown();
-
-                            // show upload, hide existing list
-                            $(".new_image_label").slideUp();
-                            $(".new_image_content").slideDown();
-
-                            $(".existing_images_label").slideDown();
-                            $(".existing_images_content").slideUp();
-
-                            // todo move
-                            $("#product_images img").removeClass("selected");
-                            $("#id_product_media_id").val("");
-                        },
-                        'transitions': {
-                            'cancel': {
-                                'new_state': 'existing_image',
-                                'fn': function (o) {
-
-                                }
-                            },
-                            'use_existing': {
-                                'new_state': 'new_image_existing',
-                                'fn': function (o) {
-
-                                }
-                            }
-                        }
-                    }
-                }
-
-                var state_transition = function (transition, data) {
-                    var state = fsm[current_state], new_state;
-
-                    // check if this is a valid transition
-                    if (!(transition in state.transitions)) {
-                        return;
-                    }
-
-                    try {
-                        // get the next state
-                        new_state = fsm[state.transitions[transition].new_state];
-
-                        // execute any transition actions
-                        state.transitions[transition].fn && state.transitions[transition].fn(data || undefined);
-
-                        // execute any state actions
-                        new_state.fn && new_state.fn(data || undefined);
-
-                        console.log('Transition from:', current_state);
-                        console.log('Action:', transition);
-
-                        // switch states
-                        current_state = state.transitions[transition].new_state;
-
-                        console.log('Transitioned to:', current_state);
-                    } catch (e) {
-                        // abort the transition if any of the actions failed
-                        console.log('Failed transition. Throwing the culprit exception.');
-                        throw(e);
-                    }
+                // save existing image settings
+                app.existing_images = {
+                    "generic": $("#id_generic_media_id").val(),
+                    "existing": $("#id_product_media_id").val()
                 };
 
-                return {
-                    "transition": state_transition
-                }
-            }()),
+                {% if campaign %}
+                    image_fsm.transition('edit', {});
+                {% else %}
+                    image_fsm.transition('new', {});
+                {% endif %}
 
-            init = function () {
-                $(function() {
-                    setUpListeners();
-
-                    // save existing image settings
-                    app.existing_images = {
-                        "generic": $("#id_generic_media_id").val(),
-                        "existing": $("#id_product_media_id").val()
-                    };
-
-                    {% if campaign %}
-                        image_fsm.transition('edit', {});
-                    {% else %}
-                        image_fsm.transition('new', {});
-                    {% endif %}
-
-                    // in case we're dealing with errors on submition,
-                    // ensure we're displaying the product that was selected prior
-                    product_selected({
-                        product_id: $("#id_product_id").val()
-                    });
-
-                    // show internal description if it's present
-                    if ($("#id_page_description").val() !== "") {
-                        $("#page_description_toggle").click();
-                    }
+                // in case we're dealing with errors on submition,
+                // ensure we're displaying the product that was selected prior
+                product_selected({
+                    product_id: $("#id_product_id").val()
                 });
-            };
+
+                // show internal description if it's present
+                if ($("#id_page_description").val() !== "") {
+                    $("#page_description_toggle").click();
+                }
+            });
+        };
 
         return {
             "init": init
@@ -446,7 +449,7 @@
 
 {% block content %}
     <form id="image_form" style="display:none">
-        <input type="file" name="image">
+        <input type="file" id="custom_image" name="custom_image">
     </form>
 
     <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
@@ -516,7 +519,7 @@
                     </div>
 
                     <div class="new_image_content" style="display: none">
-                        <label for="id_product_image">Choose a different featured image:</label>
+                        <label for="custom_image">Choose a different featured image:</label>
                         <button id="select_new_image" type="button">Select Image</button>
                         <img src="" id="uploaded_image" style="display: none">
                         <span class="helptext">Upload a new image if none of the existing ones suite the new PinPoint page</span>
