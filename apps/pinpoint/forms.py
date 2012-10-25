@@ -27,8 +27,14 @@ class FeaturedProductWizardForm(forms.Form):
         widget=forms.HiddenInput(),
     )
 
-    product_image = forms.FileField(
-        required=False
+    generic_media_id = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+
+    campaign_id = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
     )
 
     def clean(self):
@@ -36,10 +42,10 @@ class FeaturedProductWizardForm(forms.Form):
 
         cleaned_data = super(FeaturedProductWizardForm, self).clean()
 
-        product_image = cleaned_data.get("product_image")
+        generic_media_id = cleaned_data.get("generic_media_id")
         product_media_id = cleaned_data.get("product_media_id")
 
-        if not product_image and not product_media_id:
+        if not generic_media_id and not product_media_id:
             raise forms.ValidationError("Please either select an existing "
                         "product image or upload a custom one.")
 

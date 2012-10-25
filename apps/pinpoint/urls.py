@@ -38,4 +38,7 @@ urlpatterns += patterns('apps.pinpoint.ajax',
 
     url(r'^ajax/campaign/publish/$',
         'campaign_publish', name='ajax-campaign-publish'),
+
+    url(r'^ajax/upload_image/$',
+        'upload_image', name='ajax-upload-image'),
 )

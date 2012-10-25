@@ -25,19 +25,19 @@ def featured_product_wizard(request, store, block_type):
             # existing product media was selected
             if form.cleaned_data['product_media_id']:
                 product_media = ProductMedia.objects.get(
-                    id=form.cleaned_data['product_media_id'])
+                    pk=form.cleaned_data['product_media_id'])
 
                 featured_product_data.existing_image = product_media
 
             # handle file upload
-            elif request.FILES['product_image']:
-                custom_image = GenericMedia(
-                    media_type="img",
-                    hosted=request.FILES['product_image']
-                )
-                custom_image.save()
-
-                featured_product_data.custom_image = custom_image
+            elif form.cleaned_data['generic_media_id']:
+                try:
+                    custom_image = GenericMedia.objects.get(pk=form.cleaned_data['generic_media_id'])
+                except:
+                    # missing media object. deal with this how?
+                    pass
+                else:
+                    featured_product_data.custom_image = custom_image
 
             featured_product_data.save()
 

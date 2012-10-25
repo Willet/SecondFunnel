@@ -7,6 +7,7 @@ from datetime import timedelta, datetime
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 
+from apps.assets.models import GenericMedia
 from apps.pinpoint.models import Campaign
 from apps.utils.ajax import ajax_success, ajax_error
 
@@ -41,3 +42,22 @@ def modify_campaign(request, enabled):
         campaign.save()
 
     return ajax_success()
+
+@login_required
+def upload_image(request):
+    if not request.method == 'POST':
+        return ajax_error()
+
+    if not 'image' in request.FILES:
+        return ajax_error()
+
+    media = GenericMedia(
+        media_type="img",
+        hosted=request.FILES['image'])
+
+    media.save()
+
+    return ajax_success({
+        'media_id': media.id,
+        'url': media.get_url()
+    })
