@@ -199,13 +199,13 @@
                 $(".page_description_content").slideDown();
             });
 
-            // PRODUCT SEARCH AUTOCOMPLETE
-            $("#product_name").autocomplete({
-                source: function(request, response) {
-                    var term = request.term;
-                    $.getJSON("/api/assets/v1/product/", {
-                        "format": "json",
-                        "name__contains": term
+                // PRODUCT SEARCH AUTOCOMPLETE
+                $("#product_name").autocomplete({
+                    source: function(request, response) {
+                        var term = request.term;
+                        $.getJSON("/api/assets/v1/product/", {
+                            "format": "json",
+                            "name_or_url": term
 
                     }, function(data) {
                         //convert object to usable form
@@ -453,8 +453,6 @@
     </form>
 
     <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
-        {{ form.non_field_errors }}
-
         <div class="grid_12 product_select">
             <div class="field">
                 {{ form.name.errors }}
@@ -498,6 +496,8 @@
             {% endif %}
 
             <div class="image_selectors">
+                {{ form.non_field_errors }}
+
                 <a href="" class="fsm" data-action="cancel">Cancel and use current image</a>
 
                 <div class="field">
