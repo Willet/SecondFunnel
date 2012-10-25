@@ -183,6 +183,20 @@
             }
         };
 
+        setUploadStatus = function(color, text, fade) {
+            if (typeof(fade) === undefined) {
+                fade = false;
+            }
+            var status = $("#upload_status");
+            status.css('color', color);
+            status.stop(true, true);
+            status.show();
+            status.text(text);
+            if (fade) {
+                status.fadeOut(1000);
+            }
+        }
+
         setUpListeners = function () {
             // GENERAL UI
             $("#product_images img").live('click', function() {
@@ -226,13 +240,23 @@
                     }
                 }
             });
-
             $("#image_form").ajaxForm({
                 url: "{% url ajax-upload-image %}",
                 success: function(data) {
-                    $("#uploaded_image").attr("src", data.url);
-                    $("#uploaded_image").slideDown();
-                    $("#id_generic_media_id").val(data.media_id);
+                    if (data.success != false) {
+                        setUploadStatus('#0F0', 'Done', true);
+                        console.log(data);
+                        $("#uploaded_image").attr("src", data.url);
+                        $("#uploaded_image").load(function() {
+                            $("#uploaded_image").slideDown();
+                        });
+                        $("#id_generic_media_id").val(data.media_id);
+                    } else {
+                        setUploadStatus('#F00', 'Error: ');
+                    }
+
+                }, error: function(data) {
+                    setUploadStatus('#F00', 'Error: ');
                 }
             });
 
@@ -241,6 +265,7 @@
             });
 
             $("#image_form input[type=file]").change(function() {
+                setUploadStatus('#EE9A00', 'Uploading...');
                 $("#image_form").submit();
             });
 
@@ -273,7 +298,6 @@
                             'fn': function (o) {
                                 $(".image_selectors").slideDown();
                                 $(".existing_image").slideUp();
-
                                 $("a[data-action='cancel']").hide();
                             }
                         }
@@ -448,8 +472,8 @@
 {% endblock %}
 
 {% block content %}
-    <form id="image_form" style="display:none">
-        <input type="file" id="custom_image" name="custom_image">
+    <form id="image_form" style="display:none" method="POST" enctype="multipart/form-data">
+        <input type="file" id="custom_image" name="image">
     </form>
 
     <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
@@ -477,7 +501,7 @@
             <div class="field">
                 <label for="product_name">Featured Product:</label>
                 <input type="text" id="product_name">
-                <span class="helptext">Start typing in a name of a featured product you want for this page</span>
+                <span class="helptext">Start typing in the name of a product you want to feature</span>
             </div>
         </div>
 
@@ -521,8 +545,9 @@
                     <div class="new_image_content" style="display: none">
                         <label for="custom_image">Choose a different featured image:</label>
                         <button id="select_new_image" type="button">Select Image</button>
+                        <span id="upload_status"></span>
                         <img src="" id="uploaded_image" style="display: none">
-                        <span class="helptext">Upload a new image if none of the existing ones suite the new PinPoint page</span>
+                        <span class="helptext">Upload a new image if none of the existing ones suit the new PinPoint page</span>
                     </div>
                 </div>
             </div>
