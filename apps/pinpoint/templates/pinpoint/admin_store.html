@@ -85,6 +85,10 @@
             }
         });
     });
+
+    $("#pageList_filter input").unbind("keyup").keyup(function() {
+        pageListTable.fnFilter( this.value, 0 );
+    })
 {% endblock %}
 
 {% block top_section %}
