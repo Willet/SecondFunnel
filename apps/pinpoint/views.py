@@ -49,6 +49,28 @@ def new_campaign(request, store_id):
 
 
 @login_required
+def campaign_overview(request, store_id, campaign_id):
+    store = get_object_or_404(Store, pk=store_id)
+    created_campaign = get_object_or_404(Campaign, pk=campaign_id)
+
+    return render_to_response('pinpoint/admin_campaign.html', {
+        "store": store,
+        "campaign": created_campaign,
+        "content_block": created_campaign.content_blocks.all()[0]
+    }, context_instance=RequestContext(request))
+
+
+@login_required
+def edit_campaign(request, store_id, campaign_id):
+    store = get_object_or_404(Store, pk=store_id)
+    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
+    block_type = campaign_instance.content_blocks.all()[0].block_type
+
+    return getattr(wizards, block_type.handler)(
+        request, store, block_type, campaign=campaign_instance)
+
+
+@login_required
 def block_type_router(request, store_id, block_type_id):
     store = get_object_or_404(Store, pk=store_id)
     block_type = get_object_or_404(BlockType, pk=block_type_id)
@@ -68,10 +90,13 @@ def store_analytics_admin(request, store_id):
 
 def campaign(request, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
+    if not request.user in campaign_instance.store.staff.all():
+        raise Http404
 
     return render_to_response('pinpoint/campaign.html', {
         "campaign": campaign_instance,
         "columns": range(4),
+        "preview": not campaign_instance.enabled
     }, context_instance=RequestContext(request))
 
 

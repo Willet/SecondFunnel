@@ -1,0 +1,110 @@
+{% extends "pinpoint/admin_base.html" %}
+{% load pinpoint_ui %}
+
+{% block title %}
+    {{ block.super }}: Confirm New Campaign
+{% endblock %}
+
+{% block page_title %}
+    {{ block.super }}: Confirm New Campaign
+{% endblock %}
+
+{% block extra_js_includes %}
+    <script type="text/javascript">
+        $(function() {
+            var ajax_urls = {
+                "save_as_draft": "{% url ajax-campaign-save-draft %}",
+                "publish": "{% url ajax-campaign-publish %}"
+            };
+
+            $("a[data-type='ajax']").click(function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: ajax_urls[$(this).data("action")],
+                    type: "POST",
+                    dataType: 'json',
+                    data: {'campaign_id': '{{ campaign.id }}'},
+                    success: function(data) {
+                        if (data.success) {
+                            window.location.reload();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block extra_head %}
+    <style>
+        .status {
+            margin-bottom: 10px;
+        }
+
+        .status_note {
+            background-color: #B94A48;
+            border-color: white;
+            border-radius: 3px;
+            border-style: none;
+            border-collapse: separate;
+            border-width: 0px;
+
+            color: white;
+            display: inline;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            height: auto;
+            line-height: 14px;
+            margin: 0;
+            max-width: none;
+            padding: 2px 8px 4px 8px;
+            text-align: left;
+            text-shadow: rgba(0, 0, 0, 0.247059) 0px -1px 0px;
+            vertical-align: baseline;
+            white-space: nowrap;
+            width: auto;
+        }
+
+        .online {
+            background-color: #468847;
+        }
+
+        .offline {
+            background-color: #B94A48;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <a href="{% url store-admin campaign.store.id %}">&larr; Back to Admin</a>
+
+    <h2>Campaign Overview: {{ campaign.name }}</h2>
+
+    {% wizard_confirm_campaign campaign %}
+
+    <div class="grid_12 actions">
+        <div class="grid_6 status">
+            <span class="status_note {% if campaign.enabled %}online{% else %}offline{% endif %}">
+            {% if campaign.enabled %}
+                This page is currently visible to anyone.
+            {% else %}
+                This page is currently offline. Only you are able to preview it.
+            {% endif %}
+            </span>
+        </div>
+
+        <div class="clear"></div>
+
+        <div class="grid_5">
+            <a href="{% url edit-campaign-admin store_id=campaign.store.id campaign_id=campaign.id %}" class="button">Edit Page</a>
+            <a href="{% url campaign campaign_id=campaign.id %}" class="button">View Page</a>
+            {% if not campaign.enabled %}
+                <a href="" data-type="ajax" data-action="publish" class="button">Publish</a>
+            {% else %}
+                <a href="" data-type="ajax" data-action="save_as_draft" class="button">Take Offline</a>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

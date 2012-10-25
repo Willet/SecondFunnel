@@ -4,9 +4,9 @@
 <html>
     <head>
         <link rel="stylesheet" href="{% static "pinpoint/css/pinpointAdmin.css" %}">
-        <link rel="stylesheet" href="{% static "pinpoint/css/960.css" %}"></link>
-        <link rel="stylesheet" href="{% static "pinpoint/css/reset.css" %}"></link>
-        <link rel="stylesheet" href="{% static "pinpoint/css/text.css" %}"></link>
+        <link rel="stylesheet" href="{% static "css/960.css" %}"></link>
+        <link rel="stylesheet" href="{% static "css/reset.css" %}"></link>
+        <link rel="stylesheet" href="{% static "css/text.css" %}"></link>
         <title>{% block title %}Second Funnel{% endblock %}</title>
 
         {% block extra_head %}{% endblock %}
@@ -24,8 +24,12 @@
                 background-color: #f1f1f1;
             }
 
-            .inner_content {
-                padding-top: 10px;
+            .container_12 .inner_content {
+                padding: 10px 0 20px 0px;
+                /* accounts for the margins added in 960.css. We need this because
+                 * we have a grid_12 inside a grid_12.
+                 */
+                width: 920px;
             }
 
             .top_bar {
@@ -79,7 +83,7 @@
         <header class="banner">
             <div class="bannerBody">
                 <h1>
-                    <img src="{% static "pinpoint/images/logo.png" %}"
+                    <img src="{% static "images/logo.png" %}"
                          alt="Second Funnel Logo" align="middle">
                 </h1>
                 <div class="bannerRight">
@@ -118,6 +122,43 @@
 
         <script type="text/javascript">
             $(function() {
+                $(document).ajaxSend(function(event, xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+                    function sameOrigin(url) {
+                        // url could be relative or scheme relative or absolute
+                        var host = document.location.host; // host + port
+                        var protocol = document.location.protocol;
+                        var sr_origin = '//' + host;
+                        var origin = protocol + sr_origin;
+                        // Allow absolute or scheme relative URLs to same origin
+                        return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+                            (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+                            // or any other URL that isn't scheme relative or absolute i.e relative.
+                            !(/^(\/\/|http:|https:).*/.test(url));
+                    }
+                    function safeMethod(method) {
+                        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+                    }
+
+                    if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                });
+
                 {% block document_ready %}{% endblock %}
             });
         </script>

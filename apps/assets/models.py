@@ -60,6 +60,8 @@ class MediaBase(BaseModelNamed):
 
         return None
 
+class GenericMedia(MediaBase):
+    pass
 
 class Product(BaseModelNamed):
     original_url = models.CharField(max_length=500, blank=True, null=True)

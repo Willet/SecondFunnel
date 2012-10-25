@@ -1,6 +1,8 @@
+{% load staticfiles %}
+
 <html>
     <head>
-        <link rel="stylesheet" href="https://dl.dropbox.com/u/113816/960.css"></link>
+        <link rel="stylesheet" href="{% static "css/960.css" %}"></link>
         {% block extra_head %}{% endblock %}
     </head>
 
