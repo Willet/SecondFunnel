@@ -126,170 +126,300 @@
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
 
     <script>
-        var wizard_data = {
-        product_id: undefined,
-        media_id: undefined,
-        description: ""
-    };
 
-    var products = {
-        {% for product in products %}
-        '{{ product.id }}': {
-            'id': '{{ product.id }}',
-            'name': '{{ product.name }}',
-            'description': '{{ product.description|escapejs }}',
-            'media': [
-                {% for product_media in product.media.all %}
-                {
-                    'id': '{{ product_media.id }}',
-                    'url': '{{ product_media.get_url }}'
-                }{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ]
-        }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-    };
+    var app = (function() {
+        this.existing_images = {};
+        this.products = {
+            {% for product in products %}
+            '{{ product.id }}': {
+                'id': '{{ product.id }}',
+                'name': '{{ product.name }}',
+                'description': '{{ product.description|escapejs }}',
+                'media': [
+                    {% for product_media in product.media.all %}
+                    {
+                        'id': '{{ product_media.id }}',
+                        'url': '{{ product_media.get_url }}'
+                    }{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ]
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        };
 
-    function product_selected (o) {
-        var product = products[o.product_id];
+        var product_selected = function (o) {
+                var product = products[o.product_id];
 
-        if (typeof(product) === "undefined") {
-            return;
-        }
+                if (typeof(product) === "undefined") {
+                    return;
+                }
 
-        // clear existing image list
-        $("#product_images").html("");
+                // clear existing image list
+                $("#product_images").html("");
 
-        // display product media
-        for (i in product.media) {
-            $("#product_images").append(
-                "<li><img data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
-            );
-        }
+                // display product media
+                for (i in product.media) {
+                    $("#product_images").append(
+                        "<li><img data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
+                    );
+                }
 
-        // set product's proper name
-        $("#product_name").val(product.name);
+                // set product's proper name
+                $("#product_name").val(product.name);
 
-        // set product's description
-        $("#id_description").val(product.description);
+                // set product's description
+                $("#id_description").val(product.description);
 
-        // set the id for form submission
-        $("#id_product_id").val(product.id);
+                // set the id for form submission
+                $("#id_product_id").val(product.id);
 
-        $(".product_meta").slideDown();
-    }
+                $(".product_meta").slideDown();
+            },
 
-    $("#new_image_toggle").click(function (e) {
-        // show upload field, hide existing images
-        e.preventDefault();
-        $(".new_image_label").slideUp();
-        $(".new_image_content").slideDown();
+            setUpListeners = function () {
+                // GENERAL UI
+                $("#product_images img").live('click', function() {
+                    $("#product_images img").removeClass("selected");
+                    $(this).addClass("selected");
 
-        $(".existing_images_label").slideDown();
-        $(".existing_images_content").slideUp();
-
-        $("#product_images img").removeClass("selected");
-        $("#id_product_media_id").val("");
-    });
-
-    $("#existing_images_toggle").click(function (e) {
-        // show existing images, hide upload
-        e.preventDefault();
-        $(".new_image_label").slideDown();
-        $(".new_image_content").slideUp();
-
-        $(".existing_images_label").slideUp();
-        $(".existing_images_content").slideDown();
-    });
-
-    $("#product_images img").live('click', function() {
-        $("#product_images img").removeClass("selected");
-        $(this).addClass("selected");
-
-        $("#id_product_media_id").val($(this).data('mid'));
-        $("#id_generic_media_id").val("");
-    });
-
-    $("#page_description_toggle").click(function (e) {
-        e.preventDefault();
-        $(".page_description_label").slideUp();
-        $(".page_description_content").slideDown();
-    });
-
-    $("#product_name").autocomplete({
-        source: function(request, response) {
-            var term = request.term;
-            $.getJSON("/api/assets/v1/product/", {
-                "format": "json",
-                "name__contains": term
-
-            }, function(data) {
-                //convert object to usable form
-                var results = [];
-                $.each(data.objects, function(index, value) {
-                    results.push({'label': value.name, 'id': value.id})
+                    $("#id_product_media_id").val($(this).data('mid'));
+                    $("#id_generic_media_id").val("");
                 });
-                response(results);
-            })
-        },
-        minLength: 2,
-        select: function( event, ui ) {
-            if (ui.item) {
-                product_selected({
-                    product_id: ui.item.id
+
+                $("#page_description_toggle").click(function (e) {
+                    e.preventDefault();
+                    $(".page_description_label").slideUp();
+                    $(".page_description_content").slideDown();
                 });
-            }
+
+                // PRODUCT SEARCH AUTOCOMPLETE
+                $("#product_name").autocomplete({
+                    source: function(request, response) {
+                        var term = request.term;
+                        $.getJSON("/api/assets/v1/product/", {
+                            "format": "json",
+                            "name__contains": term
+
+                        }, function(data) {
+                            //convert object to usable form
+                            var results = [];
+                            $.each(data.objects, function(index, value) {
+                                results.push({'label': value.name, 'id': value.id})
+                            });
+                            response(results);
+                        })
+                    },
+                    minLength: 2,
+                    select: function( event, ui ) {
+                        if (ui.item) {
+                            product_selected({
+                                product_id: ui.item.id
+                            });
+                        }
+                    }
+                });
+
+                $("#image_form").ajaxForm({
+                    url: "{% url ajax-upload-image %}",
+                    success: function(data) {
+                        $("#uploaded_image").attr("src", data.url);
+                        $("#uploaded_image").slideDown();
+                        $("#id_generic_media_id").val(data.media_id);
+                    }
+                });
+
+                $("#select_new_image").click(function() {
+                    $("#image_form input[type=file]").click();
+                });
+
+                $("#image_form input[type=file]").change(function() {
+                    $("#image_form").submit();
+                });
+
+                // SET UP IMAGE FSM LISTENERS
+                $(".fsm").click(function (e) {
+                    e.preventDefault();
+                    image_fsm.transition($(this).data("action"), {});
+                })
+            },
+
+            // STATE MACHINE TO HANDLE IMAGE SELECTION UI
+            image_fsm = (function () {
+                this.current_state = 'start';
+                this.fsm = {
+                    'start': {
+                        'fn': function (o) {},
+                        'transitions': {
+                            'edit': {
+                                'new_state': 'existing_image',
+                                'fn': function (o) {
+                                    $(".image_selectors").slideUp();
+                                    $(".existing_image").slideDown();
+                                }
+                            },
+                            'new': {
+                                'new_state': 'new_image_existing',
+                                'fn': function (o) {
+                                    $(".image_selectors").slideDown();
+                                    $(".existing_image").slideUp();
+                                }
+                            }
+                        }
+                    },
+
+                    'existing_image': {
+                        'fn': function (o) {
+                            $(".existing_image").slideDown();
+                            $(".image_selectors").slideUp();
+
+                            $("#id_generic_media_id").val(app.existing_images['generic']);
+                            $("#id_product_media_id").val(app.existing_images['existing']);
+
+                            $("#product_images img").removeClass("selected");
+                        },
+                        'transitions': {
+                            'change_image': {
+                                'new_state': 'new_image_existing',
+                                'fn': function (o) {
+
+                                }
+                            }
+                        }
+                    },
+
+                    'new_image_existing': {
+                        'fn': function (o) {
+                            $(".existing_image").slideUp();
+                            $(".image_selectors").slideDown();
+
+                            // show existing list, hide upload
+                            $(".new_image_label").slideDown();
+                            $(".new_image_content").slideUp();
+
+                            $(".existing_images_label").slideUp();
+                            $(".existing_images_content").slideDown();
+                        },
+                        'transitions': {
+                            'cancel': {
+                                'new_state': 'existing_image',
+                                'fn': function (o) {
+
+                                }
+                            },
+                            'upload': {
+                                'new_state': 'new_image_custom',
+                                'fn': function (o) {
+
+                                }
+                            }
+                        }
+                    },
+
+                    'new_image_custom': {
+                        'fn': function (o) {
+                            $(".existing_image").slideUp();
+                            $(".image_selectors").slideDown();
+
+                            // show upload, hide existing list
+                            $(".new_image_label").slideUp();
+                            $(".new_image_content").slideDown();
+
+                            $(".existing_images_label").slideDown();
+                            $(".existing_images_content").slideUp();
+
+                            // todo move
+                            $("#product_images img").removeClass("selected");
+                            $("#id_product_media_id").val("");
+                        },
+                        'transitions': {
+                            'cancel': {
+                                'new_state': 'existing_image',
+                                'fn': function (o) {
+
+                                }
+                            },
+                            'use_existing': {
+                                'new_state': 'new_image_existing',
+                                'fn': function (o) {
+
+                                }
+                            }
+                        }
+                    }
+                }
+
+                var state_transition = function (transition, data) {
+                    var state = fsm[current_state], new_state;
+
+                    // check if this is a valid transition
+                    if (!(transition in state.transitions)) {
+                        return;
+                    }
+
+                    try {
+                        // get the next state
+                        new_state = fsm[state.transitions[transition].new_state];
+
+                        // execute any transition actions
+                        state.transitions[transition].fn && state.transitions[transition].fn(data || undefined);
+
+                        // execute any state actions
+                        new_state.fn && new_state.fn(data || undefined);
+
+                        console.log('Transition from:', current_state);
+                        console.log('Action:', transition);
+
+                        // switch states
+                        current_state = state.transitions[transition].new_state;
+
+                        console.log('Transitioned to:', current_state);
+                    } catch (e) {
+                        // abort the transition if any of the actions failed
+                        console.log('Failed transition. Throwing the culprit exception.');
+                        throw(e);
+                    }
+                };
+
+                return {
+                    "transition": state_transition
+                }
+            }()),
+
+            init = function () {
+                $(function() {
+                    setUpListeners();
+
+                    // save existing image settings
+                    app.existing_images = {
+                        "generic": $("#id_generic_media_id").val(),
+                        "existing": $("#id_product_media_id").val()
+                    };
+
+                    {% if campaign %}
+                        image_fsm.transition('edit', {});
+                    {% else %}
+                        image_fsm.transition('new', {});
+                    {% endif %}
+
+                    // in case we're dealing with errors on submition,
+                    // ensure we're displaying the product that was selected prior
+                    product_selected({
+                        product_id: $("#id_product_id").val()
+                    });
+
+                    // show internal description if it's present
+                    if ($("#id_page_description").val() !== "") {
+                        $("#page_description_toggle").click();
+                    }
+                });
+            };
+
+        return {
+            "init": init
         }
-    });
+    }());
 
-    $("#image_form").ajaxForm({
-        url: "{% url ajax-upload-image %}",
-        success: function(data) {
-            $("#uploaded_image").attr("src", data.url);
-            $("#uploaded_image").slideDown();
-            $("#id_generic_media_id").val(data.media_id);
-        }
-    });
-
-    $("#select_new_image").click(function() {
-        $("#image_form input[type=file]").click();
-    });
-
-    $("#image_form input[type=file]").change(function() {
-        $("#image_form").submit();
-    });
-
-    $("#change_image").click(function (e) {
-        e.preventDefault();
-        $(".existing_image").slideUp();
-        $(".image_selectors").slideDown();
-    });
-
-    $("#use_current_image").click(function (e) {
-        e.preventDefault();
-        $(".existing_image").slideDown();
-        $(".image_selectors").slideUp();
-
-        $("#id_generic_media_id").val(existing_images['generic']);
-        $("#id_product_media_id").val(existing_images['existing']);
-    });
-
-    // save existing image settings
-    var existing_images = {
-        "generic": $("#id_generic_media_id").val(),
-        "existing": $("#id_product_media_id").val()
-    };
-
-    // in case we're dealing with errors on submition,
-    // ensure we're displaying the product that was selected prior
-    product_selected({
-        product_id: $("#id_product_id").val()
-    });
-
-    // show internal description if it's present
-    if ($("#id_page_description").val() !== "") {
-        $("#page_description_toggle").click();
-    }
+    app.init();
 
     </script>
 {% endblock %}
@@ -353,16 +483,16 @@
                     {% endwith %}
                     </div>
 
-                    <a href="" id="change_image">Change Image</a>
+                    <a href="" class="fsm" data-action="change_image">Change Image</a>
                 </div>
             {% endif %}
 
-            <div class="image_selectors" {% if campaign %}style="display:none"{% endif %}>
-                <a href="" id="use_current_image">Cancel and use current image</a>
+            <div class="image_selectors">
+                <a href="" class="fsm" data-action="cancel">Cancel and use current image</a>
 
                 <div class="field">
                     <div class="existing_images_label" style="display:none">
-                        <a href="" id="existing_images_toggle">Use one of the existing images</a>
+                        <a href="" class="fsm" data-action="use_existing">Use one of the existing images</a>
                     </div>
 
                     <div class="existing_images_content">
@@ -375,7 +505,7 @@
 
                 <div class="field">
                     <div class="new_image_label">
-                        <a href="" id="new_image_toggle">Upload a different image</a>
+                        <a href="" class="fsm" data-action="upload">Upload a different image</a>
                     </div>
 
                     <div class="new_image_content" style="display: none">
