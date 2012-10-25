@@ -227,9 +227,21 @@
                 $("#image_form").ajaxForm({
                     url: "{% url ajax-upload-image %}",
                     success: function(data) {
+                        var status = $("#upload_status");
+                        status.css('color', '#0F0');
+                        status.stop(true, true);
+                        status.show();
+                        status.text("Done");
+                        status.fadeOut(1000);
                         $("#uploaded_image").attr("src", data.url);
                         $("#uploaded_image").slideDown();
                         $("#id_generic_media_id").val(data.media_id);
+                    }, error: function(data) {
+                        var status = $("#upload_status");
+                        status.css('color', '#F00');
+                        status.stop(true, true);
+                        status.show();
+                        status.text("Error: " + data);
                     }
                 });
 
@@ -238,6 +250,11 @@
                 });
 
                 $("#image_form input[type=file]").change(function() {
+                    var status = $("#upload_status");
+                    status.css('color', '#EE9A00');
+                    status.stop(true, true);
+                    status.show();
+                    status.text("Updating...");
                     $("#image_form").submit();
                 });
 
@@ -476,7 +493,7 @@
             <div class="field">
                 <label for="product_name">Featured Product:</label>
                 <input type="text" id="product_name">
-                <span class="helptext">Start typing in a name of a featured product you want for this page</span>
+                <span class="helptext">Start typing in the name of a product you want to feature</span>
             </div>
         </div>
 
@@ -518,8 +535,9 @@
                     <div class="new_image_content" style="display: none">
                         <label for="id_product_image">Choose a different featured image:</label>
                         <button id="select_new_image" type="button">Select Image</button>
+                        <span id="upload_status"></span>
                         <img src="" id="uploaded_image" style="display: none">
-                        <span class="helptext">Upload a new image if none of the existing ones suite the new PinPoint page</span>
+                        <span class="helptext">Upload a new image if none of the existing ones suit the new PinPoint page</span>
                     </div>
                 </div>
             </div>
