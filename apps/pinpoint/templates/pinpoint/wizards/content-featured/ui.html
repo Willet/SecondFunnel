@@ -2,11 +2,11 @@
 {% load staticfiles %}
 
 {% block title %}
-    New Page
+    {% if campaign %}Edit {% else %}New{% endif %} Page
 {% endblock %}
 
 {% block page_title %}
-    {{ block.super }}: New Page
+    {{ block.super }}: {% if campaign %}Edit {% else %}New{% endif %} Page
 {% endblock %}
 
 {% block extra_head %}
@@ -57,19 +57,27 @@
             width: auto;
         }
 
-        .product_meta ul {
+        #product_images ul {
             list-style: none;
             margin-top: 20px;
         }
 
-        .product_meta li {
+        #product_images li {
             display: inline;
         }
 
-        .product_meta img {
+        #product_images img {
             border-bottom: 4px solid #eeeeee;
             padding-bottom: 5px;
             width: 250px;
+        }
+
+        .current_image img, .new_image_content img {
+            width: 250px;
+        }
+
+        .new_image_content img {
+            display: block;
         }
 
         .product_meta input {
@@ -80,7 +88,7 @@
             width: 250px;
         }
 
-        .product_meta img:hover, .product_meta img.selected {
+        #product_images img:hover, #product_images img.selected {
             border-bottom: 4px solid #5d84b7;
             cursor: pointer;
         }
@@ -114,6 +122,7 @@
 
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
+    <script src="{% static "js/jquery.form.js" %}"></script>
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
 
     <script>
@@ -198,6 +207,7 @@
         $(this).addClass("selected");
 
         $("#id_product_media_id").val($(this).data('mid'));
+        $("#id_generic_media_id").val("");
     });
 
     $("#page_description_toggle").click(function (e) {
@@ -232,11 +242,55 @@
         }
     });
 
+    $("#image_form").ajaxForm({
+        url: "{% url ajax-upload-image %}",
+        success: function(data) {
+            $("#uploaded_image").attr("src", data.url);
+            $("#uploaded_image").slideDown();
+            $("#id_generic_media_id").val(data.media_id);
+        }
+    });
+
+    $("#select_new_image").click(function() {
+        $("#image_form input[type=file]").click();
+    });
+
+    $("#image_form input[type=file]").change(function() {
+        $("#image_form").submit();
+    });
+
+    $("#change_image").click(function (e) {
+        e.preventDefault();
+        $(".existing_image").slideUp();
+        $(".image_selectors").slideDown();
+    });
+
+    $("#use_current_image").click(function (e) {
+        e.preventDefault();
+        $(".existing_image").slideDown();
+        $(".image_selectors").slideUp();
+
+        $("#id_generic_media_id").val(existing_images['generic']);
+        $("#id_product_media_id").val(existing_images['existing']);
+    });
+
+    // save existing image settings
+    var existing_images = {
+        "generic": $("#id_generic_media_id").val(),
+        "existing": $("#id_product_media_id").val()
+    };
+
     // in case we're dealing with errors on submition,
     // ensure we're displaying the product that was selected prior
     product_selected({
         product_id: $("#id_product_id").val()
     });
+
+    // show internal description if it's present
+    if ($("#id_page_description").val() !== "") {
+        $("#page_description_toggle").click();
+    }
+
     </script>
 {% endblock %}
 
@@ -254,38 +308,58 @@
 {% endblock %}
 
 {% block content %}
-        <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
-            {{ form.non_field_errors }}
+    <form id="image_form" style="display:none">
+        <input type="file" name="image">
+    </form>
 
-            <div class="grid_12 product_select">
-                <div class="field">
-                    {{ form.name.errors }}
-                    <label for="id_name">Page Name:</label>
-                    {{ form.name }}
-                    <span class="helptext">Select a name for this PinPoint page for your reference.</span>
+    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="grid_12 product_select">
+            <div class="field">
+                {{ form.name.errors }}
+                <label for="id_name">Page Name:</label>
+                {{ form.name }}
+                <span class="helptext">Select a name for this PinPoint page for your reference.</span>
+            </div>
+
+            <div class="field">
+                <div class="page_description_label">
+                    <a href="" id="page_description_toggle">Add internal description for this page</a>
                 </div>
 
-                <div class="field">
-                    <div class="page_description_label">
-                        <a href="" id="page_description_toggle">Add internal description for this page</a>
-                    </div>
-
-                    <div class="page_description_content" style="display:none">
-                        {{ form.page_description.errors }}
-                        <label for="id_page_description">Page Description:</label>
-                        {{ form.page_description }}
-                        <span class="helptext">Optional internal description for this page.</span>
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label for="product_name">Featured Product:</label>
-                    <input type="text" id="product_name">
-                    <span class="helptext">Start typing in a name of a featured product you want for this page</span>
+                <div class="page_description_content" style="display:none">
+                    {{ form.page_description.errors }}
+                    <label for="id_page_description">Page Description:</label>
+                    {{ form.page_description }}
+                    <span class="helptext">Optional internal description for this page.</span>
                 </div>
             </div>
 
-            <div class="grid_12 product_meta" style="display:none">
+            <div class="field">
+                <label for="product_name">Featured Product:</label>
+                <input type="text" id="product_name">
+                <span class="helptext">Start typing in a name of a featured product you want for this page</span>
+            </div>
+        </div>
+
+        <div class="grid_12 product_meta" style="display:none">
+            {% if campaign %}
+                <div class="field existing_image">
+                    <label>Currently selected image:</label>
+                    <div class="current_image">
+                    {% with first_image=campaign.content_blocks.all|first %}
+                        <img src="{{ first_image.data.get_image.get_url }}">
+                    {% endwith %}
+                    </div>
+
+                    <a href="" id="change_image">Change Image</a>
+                </div>
+            {% endif %}
+
+            <div class="image_selectors" {% if campaign %}style="display:none"{% endif %}>
+                <a href="" id="use_current_image">Cancel and use current image</a>
+
                 <div class="field">
                     <div class="existing_images_label" style="display:none">
                         <a href="" id="existing_images_toggle">Use one of the existing images</a>
@@ -305,31 +379,28 @@
                     </div>
 
                     <div class="new_image_content" style="display: none">
-                        {{ form.product_image.errors }}
                         <label for="id_product_image">Choose a different featured image:</label>
-                        {{ form.product_image }}
+                        <button id="select_new_image" type="button">Select Image</button>
+                        <img src="" id="uploaded_image" style="display: none">
                         <span class="helptext">Upload a new image if none of the existing ones suite the new PinPoint page</span>
                     </div>
                 </div>
-
-                <div class="field">
-                    {{ form.description.errors }}
-                    <label for="id_name">Product Description:</label>
-                    {{ form.description }}
-                    <span class="helptext">You can tailor product's description that will appear on the PinPoint page.</span>
-                </div>
-
-                <div class="grid_12 actions">
-                    {% for hidden in form.hidden_fields %}
-                        {{ hidden }}
-                    {% endfor %}
-
-                    <input class="button" type="submit" value="Create PinPoint Page">
-                </div>
             </div>
-        </form>
-    </div>
 
-    <div class="grid_12 product_meta">
-    </div>
+            <div class="field">
+                {{ form.description.errors }}
+                <label for="id_name">Product Description:</label>
+                {{ form.description }}
+                <span class="helptext">You can tailor product's description that will appear on the PinPoint page.</span>
+            </div>
+
+            <div class="grid_12 actions">
+                {% for hidden in form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+
+                <input class="button" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} PinPoint Page">
+            </div>
+        </div>
+    </form>
 {% endblock %}

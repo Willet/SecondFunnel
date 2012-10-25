@@ -62,7 +62,12 @@ def campaign_overview(request, store_id, campaign_id):
 
 @login_required
 def edit_campaign(request, store_id, campaign_id):
-    pass
+    store = get_object_or_404(Store, pk=store_id)
+    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
+    block_type = campaign_instance.content_blocks.all()[0].block_type
+
+    return getattr(wizards, block_type.handler)(
+        request, store, block_type, campaign=campaign_instance)
 
 
 @login_required
