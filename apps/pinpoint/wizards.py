@@ -38,7 +38,7 @@ def featured_product_wizard(request, store, block_type, campaign=None):
                 elif form.cleaned_data['generic_media_id']:
                     try:
                         custom_image = GenericMedia.objects.get(pk=form.cleaned_data['generic_media_id'])
-                    except:
+                    except GenericMedia.DoesNotExist:
                         # missing media object. deal with this how?
                         pass
                     else:
@@ -69,7 +69,7 @@ def featured_product_wizard(request, store, block_type, campaign=None):
                 elif form.cleaned_data['generic_media_id']:
                     try:
                         custom_image = GenericMedia.objects.get(pk=form.cleaned_data['generic_media_id'])
-                    except:
+                    except GenericMedia.DoesNotExist:
                         # missing media object. deal with this how?
                         pass
                     else:

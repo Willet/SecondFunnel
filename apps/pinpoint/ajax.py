@@ -32,7 +32,7 @@ def modify_campaign(request, enabled):
 
     try:
         campaign = Campaign.objects.get(id=campaign_id)
-    except:
+    except Campaign.DoesNotExist:
         return ajax_error()
     else:
         if not request.user in campaign.store.staff.all():
