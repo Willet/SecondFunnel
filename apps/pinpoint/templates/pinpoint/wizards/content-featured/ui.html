@@ -450,8 +450,6 @@
     </form>
 
     <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
-        {{ form.non_field_errors }}
-
         <div class="grid_12 product_select">
             <div class="field">
                 {{ form.name.errors }}
@@ -495,6 +493,8 @@
             {% endif %}
 
             <div class="image_selectors">
+                {{ form.non_field_errors }}
+
                 <a href="" class="fsm" data-action="cancel">Cancel and use current image</a>
 
                 <div class="field">
