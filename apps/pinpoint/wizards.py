@@ -44,7 +44,7 @@ def featured_product_wizard(request, store, block_type, campaign=None):
                     else:
                         block_content.data.existing_image = None
                         block_content.data.custom_image = custom_image
-                        block_content.save()
+                        block_content.data.save()
 
                 if not block_content in campaign.content_blocks.all():
                     campaign.content_blocks.clear()
@@ -116,8 +116,6 @@ def featured_product_wizard(request, store, block_type, campaign=None):
 
             elif product_image.__class__.__name__ == "ProductMedia":
                 initial_data["product_media_id"] = product_image.id
-
-            print initial_data
 
             form = FeaturedProductWizardForm(initial_data)
         else:
