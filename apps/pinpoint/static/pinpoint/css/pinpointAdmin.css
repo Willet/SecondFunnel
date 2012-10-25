@@ -671,3 +671,8 @@ font-weight: 700;
 #pageList_wrapper input {
     padding: 2px;
 }
+
+#pageList_filter {
+    position: relative;
+    top: -10px;
+}

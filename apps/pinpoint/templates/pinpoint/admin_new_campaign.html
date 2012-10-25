@@ -50,8 +50,8 @@
 {% endblock %}
 
 {% block content %}
-    <h2>Select content block type (change me):</h2>
-    <div class="grid_12 block_types">
+    <h2>Select campaign focus:</h2>
+    <div class="block_types">
     {% for block_type in block_types %}
         {% include "pinpoint/snippets/block_type_admin.html" with block_type=block_type linked="True" %}
     {% endfor %}
