@@ -1,5 +1,6 @@
 from tastypie import fields
 from tastypie.resources import ModelResource, ALL
+from django.db.models import Q
 
 from apps.assets.models import Product, Store, ProductMedia
 
@@ -19,9 +20,37 @@ class ProductResource(ModelResource):
 
         filtering = {
             'store': ALL,
-            'original_url': ('exact', 'startswith',),
-            'name': ('exact', 'contains',)
-        }
+            'name': ('exact', 'contains',),
+            'name_or_url': ('exact')
+            }
+
+    def build_filters(self, filters=None):
+        if filters is None:
+            filters = {}
+
+        orm_filters = super(ProductResource, self).build_filters(filters)
+
+        if('name_or_url' in filters):
+            name = filters['name_or_url']
+            qset = (
+                Q(name__contains=name) |
+                Q(original_url__startswith=name)
+            )
+            orm_filters.update({'name_or_url': qset})
+
+        return orm_filters
+
+    def apply_filters(self, request, applicable_filters):
+        if 'name_or_url' in applicable_filters:
+            custom = applicable_filters.pop('name_or_url')
+            # we only want to filter by the custom filters so don't apply any filters here
+            applicable_filters = {}
+        else:
+            custom = None
+    
+        semi_filtered = super(ProductResource, self).apply_filters(request, applicable_filters)
+
+        return semi_filtered.filter(custom) if custom else semi_filtered
 
 
 class ProductMediaResource(ModelResource):

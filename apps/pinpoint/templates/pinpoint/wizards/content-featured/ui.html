@@ -202,7 +202,7 @@
                         var term = request.term;
                         $.getJSON("/api/assets/v1/product/", {
                             "format": "json",
-                            "name__contains": term
+                            "name_or_url": term
 
                         }, function(data) {
                             //convert object to usable form
