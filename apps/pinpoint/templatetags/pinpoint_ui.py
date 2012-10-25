@@ -9,10 +9,9 @@ from apps.pinpoint.models import BlockContent
 register = template.Library()
 
 
+@register.inclusion_tag('pinpoint/snippets/field_label_value.html')
 def ui_field_label_value(label, value):
     return {'label': label, 'value': value}
-register.inclusion_tag(
-    'pinpoint/snippets/field_label_value.html')(ui_field_label_value)
 
 
 class ConfirmCampaignNode(template.Node):
