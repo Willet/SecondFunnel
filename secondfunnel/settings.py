@@ -140,6 +140,8 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
+    'django_nose', # Must be included after 'south'
+    'lettuce.django',
 
     # our apps
     'apps.analytics',
@@ -147,10 +149,12 @@ INSTALLED_APPS = (
     'apps.pinpoint',
 
     # testing
-    'fts',
+    #'fts',
 
     'apps.scraper',
 )
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
