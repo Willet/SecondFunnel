@@ -123,6 +123,10 @@
         }
 
         /* Accordion styles */
+        #image-selector {
+            margin-bottom: 20px;
+        }
+
         #image-selector.ui-accordion .ui-accordion-content {
             padding: 1em;
         }
@@ -184,7 +188,8 @@
         };
 
         product_selected = function (o) {
-            var product = products[o.product_id];
+            var product = products[o.product_id],
+                media_id = $("#id_product_media_id").val();
 
             if (typeof(product) === "undefined") {
                 return;
@@ -199,6 +204,9 @@
                     "<li><img data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
                 );
             }
+
+            $("#product_images").find("[data-mid='" + media_id  + "']")
+                .addClass("selected")
 
             // set product's proper name
             $("#product_name").val(product.name);
