@@ -188,6 +188,8 @@
             $(".product_meta").slideDown();
 
             if (o.human_invoked) {
+                // TODO
+                // change image without fsm
                 image_fsm.transition('change_image', {});
             }
         };
@@ -283,10 +285,18 @@
 //                e.preventDefault();
 //                image_fsm.transition($(this).data("action"), {});
 //            })
-            $('.accordion').accordion({
+
+            var accordion_options = {
                 'header': '.accordion-header',
-                'heightStyle': 'content'
-            });
+                'heightStyle': 'content',
+                'collapsible': true
+            };
+
+            {% if campaign %}
+            accordion_options['active'] = false;
+            {% endif %}
+
+            $('.accordion').accordion(accordion_options);
         };
 
         // STATE MACHINE TO HANDLE IMAGE SELECTION UI
@@ -520,24 +530,19 @@
         </div>
 
         <div class="product_meta" style="display:none">
-            <label for="image-selector">Featured image</label>
+            <label for="image-selector">Featured Image:</label>
+            {% if campaign %}
+                <div class="field existing_image">
+                    <div class="current_image">
+                        {% with first_image=campaign.content_blocks.all|first %}
+                            <img src="{{ first_image.data.get_image.get_url }}">
+                        {% endwith %}
+                    </div>
+                </div>
+            {% endif %}
             <div class='accordion' id="image-selector">
-                {% if campaign %}
-                    <div class="accordion-header">
-                        Currently selected image:
-                    </div>
-                    <div class="accordion-content field existing_image">
-                        <div class="current_image">
-                            {% with first_image=campaign.content_blocks.all|first %}
-                                <img src="{{ first_image.data.get_image.get_url }}">
-                            {% endwith %}
-                        </div>
-
-                        <a href="" class="fsm" data-action="change_image">Change Image</a>
-                    </div>
-                {% endif %}
                 <div class='accordion-header'>
-                    Select a featured image
+                    Select an image
                 </div>
                 <div class='accordion-content'>
                     <div class="existing_images_list">
@@ -548,7 +553,6 @@
                     Upload a different image
                 </div>
                 <div class="accordion-content">
-                    <label for="custom_image">Choose a different featured image:</label>
                     <button id="select_new_image" type="button">Select Image</button>
                     <span id="upload_status"></span>
                     <img src="" id="uploaded_image" style="display: none">
