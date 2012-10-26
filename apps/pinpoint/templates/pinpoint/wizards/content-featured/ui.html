@@ -94,7 +94,6 @@
         }
 
         .existing_images_list {
-            width: 900px;
             overflow: scroll;
             max-height: 450px
         }
@@ -123,6 +122,10 @@
             display: inline-block;
         }
 
+        /* Accordion styles */
+        #image-selector.ui-accordion .ui-accordion-content {
+            padding: 1em;
+        }
     </style>
 {% endblock %}
 
@@ -276,10 +279,14 @@
             });
 
             // SET UP IMAGE FSM LISTENERS
-            $(".fsm").click(function (e) {
-                e.preventDefault();
-                image_fsm.transition($(this).data("action"), {});
-            })
+//            $(".fsm").click(function (e) {
+//                e.preventDefault();
+//                image_fsm.transition($(this).data("action"), {});
+//            })
+            $('.accordion').accordion({
+                'header': '.accordion-header',
+                'heightStyle': 'content'
+            });
         };
 
         // STATE MACHINE TO HANDLE IMAGE SELECTION UI
@@ -287,6 +294,7 @@
             var current_state, state_transition;
 
             current_state = 'start';
+
 
             fsm = {
                 'start': {
@@ -483,7 +491,7 @@
     </form>
 
     <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
-        <div class="grid_12 product_select">
+        <div class="product_select">
             <div class="field">
                 {{ form.name.errors }}
                 <label for="id_name">Page Name:</label>
@@ -511,52 +519,43 @@
             </div>
         </div>
 
-        <div class="grid_12 product_meta" style="display:none">
-            {% if campaign %}
-                <div class="field existing_image">
-                    <label>Currently selected image:</label>
-                    <div class="current_image">
-                    {% with first_image=campaign.content_blocks.all|first %}
-                        <img src="{{ first_image.data.get_image.get_url }}">
-                    {% endwith %}
+        <div class="product_meta" style="display:none">
+            <label for="image-selector">Featured image</label>
+            <div class='accordion' id="image-selector">
+                {% if campaign %}
+                    <div class="accordion-header">
+                        Currently selected image:
                     </div>
-
-                    <a href="" class="fsm" data-action="change_image">Change Image</a>
-                </div>
-            {% endif %}
-
-            <div class="image_selectors">
-                {{ form.non_field_errors }}
-
-                <a href="" class="fsm" data-action="cancel">Cancel and use current image</a>
-
-                <div class="field">
-                    <div class="existing_images_label" style="display:none">
-                        <a href="" class="fsm" data-action="use_existing">Use one of the existing images</a>
-                    </div>
-
-                    <div class="existing_images_content">
-                        <label>Select a featured image:</label>
-                        <div class="existing_images_list">
-                            <ul id="product_images"></ul>
+                    <div class="accordion-content field existing_image">
+                        <div class="current_image">
+                            {% with first_image=campaign.content_blocks.all|first %}
+                                <img src="{{ first_image.data.get_image.get_url }}">
+                            {% endwith %}
                         </div>
+
+                        <a href="" class="fsm" data-action="change_image">Change Image</a>
+                    </div>
+                {% endif %}
+                <div class='accordion-header'>
+                    Select a featured image
+                </div>
+                <div class='accordion-content'>
+                    <div class="existing_images_list">
+                        <ul id="product_images"></ul>
                     </div>
                 </div>
-
-                <div class="field">
-                    <div class="new_image_label">
-                        <a href="" class="fsm" data-action="upload">Upload a different image</a>
-                    </div>
-
-                    <div class="new_image_content" style="display: none">
-                        <label for="custom_image">Choose a different featured image:</label>
-                        <button id="select_new_image" type="button">Select Image</button>
-                        <span id="upload_status"></span>
-                        <img src="" id="uploaded_image" style="display: none">
-                        <span class="helptext">Upload a new image if none of the existing ones suit the new PinPoint page</span>
-                    </div>
+                <div class="accordion-header">
+                    Upload a different image
+                </div>
+                <div class="accordion-content">
+                    <label for="custom_image">Choose a different featured image:</label>
+                    <button id="select_new_image" type="button">Select Image</button>
+                    <span id="upload_status"></span>
+                    <img src="" id="uploaded_image" style="display: none">
+                    <span class="helptext">Upload a new image if none of the existing ones suit the new PinPoint page</span>
                 </div>
             </div>
+            {{ form.non_field_errors }}
 
             <div class="field">
                 {{ form.description.errors }}
@@ -565,7 +564,7 @@
                 <span class="helptext">You can tailor product's description that will appear on the PinPoint page.</span>
             </div>
 
-            <div class="grid_12 actions">
+            <div class="actions">
                 {% for hidden in form.hidden_fields %}
                     {{ hidden }}
                 {% endfor %}
