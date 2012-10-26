@@ -30,6 +30,7 @@
         ul.errorlist {
             margin: 0 0 10px 0;
             list-style: none;
+            display: inline-block;
         }
 
         ul.errorlist li {
@@ -535,10 +536,12 @@
     <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
         <div class="product_select">
             <div class="field">
-                {{ form.name.errors }}
                 <label for="id_name">Page Name:</label>
                 {{ form.name }}
+                {{ form.name.errors }}
+                {% if not form.name.errors %}
                 <span class="helptext">Select a name for this PinPoint page for your reference.</span>
+                {% endif  %}
             </div>
 
             <div class="field">
