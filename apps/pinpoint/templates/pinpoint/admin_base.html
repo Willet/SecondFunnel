@@ -1,12 +1,11 @@
-{% load staticfiles %}
-
 <!DOCTYPE html>
 <html>
+{% load staticfiles %}
     <head>
-        <link rel="stylesheet" href="{% static "pinpoint/css/pinpointAdmin.css" %}">
-        <link rel="stylesheet" href="{% static "css/960.css" %}"></link>
-        <link rel="stylesheet" href="{% static "css/reset.css" %}"></link>
-        <link rel="stylesheet" href="{% static "css/text.css" %}"></link>
+        <link rel="stylesheet" href="{% static "pinpoint/css/pinpointAdmin.css" %}"/>
+        <link rel="stylesheet" href="{% static "css/960.css" %}"/>
+        <link rel="stylesheet" href="{% static "css/reset.css" %}"/>
+        <link rel="stylesheet" href="{% static "css/text.css" %}"/>
         <title>{% block title %}Second Funnel{% endblock %}</title>
 
         {% block extra_head %}{% endblock %}
@@ -75,6 +74,10 @@
             .top_section nav li.selected {
                 background-color: #385a71;
             }
+
+            #second_funnel_logo {
+                vertical-align: middle;
+            }
         </style>
     </head>
 
@@ -83,8 +86,8 @@
         <header class="banner">
             <div class="bannerBody">
                 <h1>
-                    <img src="{% static "images/logo.png" %}"
-                         alt="Second Funnel Logo" align="middle">
+                    <img id="second_funnel_logo" src="{% static "images/logo.png" %}"
+                         alt="Second Funnel Logo">
                 </h1>
                 <div class="bannerRight">
                     <ul>

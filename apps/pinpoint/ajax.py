@@ -5,7 +5,9 @@ import datetime
 from datetime import timedelta, datetime
 
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
+from django.core.files.base import ContentFile
 
 from apps.assets.models import GenericMedia
 from apps.pinpoint.models import Campaign
@@ -44,18 +46,26 @@ def modify_campaign(request, enabled):
     return ajax_success()
 
 @login_required
+@csrf_exempt
 def upload_image(request):
     if not request.method == 'POST':
         return ajax_error()
 
-    if not 'image' in request.FILES:
-        return ajax_error()
+    print request.body
+    #read file info from stream
+    uploaded = request.read
+    #get file size
+    fileSize = int(uploaded.im_self.META["CONTENT_LENGTH"])
+    #get file name
+    fileName = request.GET['qqfile']
+    #check first for allowed file extensions
+    #read the file content, if it is not read when the request is multi part then the client get an error
+    fileContent = uploaded(fileSize)
 
-    media = GenericMedia(
-        media_type="img",
-        hosted=request.FILES['image'])
-
+    media = GenericMedia(media_type="img")
     media.save()
+    
+    media.hosted.save(fileName, ContentFile(fileContent))
 
     return ajax_success({
         'media_id': media.id,
