@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block page_title %}
-    {{ block.super }}: {% if campaign %}Edit {% else %}New{% endif %} Page
+    {% if campaign %}Edit {% else %}New{% endif %} Page
 {% endblock %}
 
 {% block extra_head %}
@@ -587,7 +587,7 @@
                 {{ form.name }}
                 {{ form.name.errors }}
                 {% if not form.name.errors %}
-                    <span class="helptext">Select a name for this PinPoint page for your reference.</span>
+                    <span class="helptext">Select a name for this page for your reference.</span>
                 {% endif  %}
             </div>
 
@@ -633,7 +633,7 @@
                     <button id="select_new_image" type="button">Select Image</button>
                     <span id="upload_status"></span>
                     <img src="" id="uploaded_image" style="display: none">
-                    <span class="helptext">Upload a new image if none of the existing ones suit the new PinPoint page</span>
+                    <span class="helptext">Upload a new image if none of the existing ones suit the new page</span>
                 </div>
             </div>
             {{ form.non_field_errors }}
@@ -645,7 +645,7 @@
                     {{ form.description }}
                     <span class="helptext textarea">
                         You can tailor product's
-                        description that will appear on the PinPoint page.</span>
+                        description that will appear on the page.</span>
                 </div>
             </div>
 
@@ -654,7 +654,7 @@
                     {{ hidden }}
                 {% endfor %}
 
-                <input class="button" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} PinPoint Page">
+                <input class="button" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} Page">
             </div>
         </div>
     </form>

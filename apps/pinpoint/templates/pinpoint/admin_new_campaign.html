@@ -2,11 +2,11 @@
 {% load staticfiles %}
 
 {% block title %}
-    {{ block.super }}: New Page
+    New Page
 {% endblock %}
 
 {% block page_title %}
-    {{ block.super }}: New Page
+    New Page
 {% endblock %}
 
 {% block extra_head %}
@@ -50,7 +50,7 @@
 {% endblock %}
 
 {% block content %}
-    <h2>Select campaign focus:</h2>
+    <h2>Select page focus:</h2>
     <div class="block_types">
     {% for block_type in block_types %}
         {% include "pinpoint/snippets/block_type_admin.html" with block_type=block_type linked="True" %}
