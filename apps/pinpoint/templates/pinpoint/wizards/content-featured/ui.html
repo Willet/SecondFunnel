@@ -161,6 +161,20 @@
             background: #336374;
             color: #eee;
         }
+
+    /* Loadmask */
+    .inner_content .loadmask {
+        background-color: #f1f1f1;
+        opacity: 0.7;
+        -moz-opacity: 0.7;
+        filter: alpha(opacity=70);
+        z-index: 100;
+    }
+
+    /* Autocomplete style */
+    .ui-autocomplete.ui-menu {
+        z-index: 101 !important;
+    }
     </style>
 {% endblock %}
 
@@ -168,7 +182,9 @@
     <script src="{% static "js/jquery-ui.js" %}"></script>
     <script src="{% static "js/jquery.form.js" %}"></script>
     <script src="{% static "js/jquery.watermark.min.js" %}"></script>
+    <script src="{% static "js/jquery.loadmask.min.js" %}"></script>
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/jquery.loadmask.css" %}">
 
     <script>
 
@@ -227,7 +243,7 @@
             // set the id for form submission
             $("#id_product_id").val(product.id);
 
-            $(".product_meta").slideDown();
+            $(".product_meta").unmask();
 
             if (o.human_invoked) {
                 // TODO
@@ -501,6 +517,9 @@
                     image_fsm.transition('new', {});
                 {% endif %}
 
+                $(".product_meta").mask();
+                $("#product_name").watermark("Your product name")
+
                 // in case we're dealing with errors on submition,
                 // ensure we're displaying the product that was selected prior
                 product_selected({
@@ -511,8 +530,6 @@
                 if ($("#id_page_description").val() !== "") {
                     $("#page_description_toggle").click();
                 }
-
-                $("#product_name").watermark("Your product name")
             });
         };
 
@@ -553,7 +570,7 @@
             </div>
         </div>
 
-        <div class="product_meta" style="display:none">
+        <div class="product_meta">
             <div class="field">
                 <label for="id_name">Page Name:</label>
                 {{ form.name }}
