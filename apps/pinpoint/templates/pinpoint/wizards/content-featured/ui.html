@@ -130,14 +130,18 @@
         }
 
         /* Accordion styles */
-        #image-selector {
+        #image-selector, #page_description_content {
             margin-bottom: 20px;
         }
 
+        #page_description_content.ui-accordion .ui-accordion-content,
         #image-selector.ui-accordion .ui-accordion-content {
             padding: 1em;
         }
 
+        #page_description_content .ui-state-default,
+        #page_description_content .ui-widget-content .ui-state-default,
+        #page_description_content .ui-widget-header .ui-state-default,
         #image-selector .ui-state-default,
         #image-selector .ui-widget-content .ui-state-default,
         #image-selector .ui-widget-header .ui-state-default {
@@ -146,6 +150,9 @@
             color: #fff;
         }
 
+        #page_description_content .ui-state-active,
+        #page_description_content .ui-widget-content .ui-state-active,
+        #page_description_content .ui-widget-header .ui-state-active,
         #image-selector .ui-state-active,
         #image-selector .ui-widget-content .ui-state-active,
         #image-selector .ui-widget-header .ui-state-active {
@@ -154,6 +161,9 @@
             color: #eee;
         }
 
+        #page_description_content .ui-state-hover,
+        #page_description_content .ui-widget-content .ui-state-hover,
+        #page_description_content .ui-widget-header .ui-state-hover,
         #image-selector .ui-state-hover,
         #image-selector .ui-widget-content .ui-state-hover,
         #image-selector .ui-widget-header .ui-state-hover {
@@ -162,19 +172,19 @@
             color: #eee;
         }
 
-    /* Loadmask */
-    .inner_content .loadmask {
-        background-color: #f1f1f1;
-        opacity: 0.7;
-        -moz-opacity: 0.7;
-        filter: alpha(opacity=70);
-        z-index: 100;
-    }
+        /* Loadmask */
+        .inner_content .loadmask {
+            background-color: #f1f1f1;
+            opacity: 0.7;
+            -moz-opacity: 0.7;
+            filter: alpha(opacity=70);
+            z-index: 100;
+        }
 
-    /* Autocomplete style */
-    .ui-autocomplete.ui-menu {
-        z-index: 101 !important;
-    }
+        /* Autocomplete style */
+        .ui-autocomplete.ui-menu {
+            z-index: 101 !important;
+        }
     </style>
 {% endblock %}
 
@@ -276,19 +286,13 @@
                 $("#id_generic_media_id").val("");
             });
 
-            $("#page_description_toggle").click(function (e) {
-                e.preventDefault();
-                $(".page_description_label").slideUp();
-                $(".page_description_content").slideDown();
-            });
-
-                // PRODUCT SEARCH AUTOCOMPLETE
-                $("#product_name").autocomplete({
-                    source: function(request, response) {
-                        var term = request.term;
-                        $.getJSON("/api/assets/v1/product/", {
-                            "format": "json",
-                            "name_or_url": term
+            // PRODUCT SEARCH AUTOCOMPLETE
+            $("#product_name").autocomplete({
+                source: function(request, response) {
+                    var term = request.term;
+                    $.getJSON("/api/assets/v1/product/", {
+                        "format": "json",
+                        "name_or_url": term
 
                     }, function(data) {
                         //convert object to usable form
@@ -344,17 +348,23 @@
 //                image_fsm.transition($(this).data("action"), {});
 //            })
 
-            var accordion_options = {
+            var default_accordion_options = {
                 'header': '.accordion-header',
                 'heightStyle': 'content',
                 'collapsible': true
             };
 
+            var image_options = $.extend(default_accordion_options, {});
+            var description_options = $.extend(default_accordion_options, {
+                'active': false
+            });
+
             {% if campaign %}
-            accordion_options['active'] = false;
+            image_options = $.extend(image_options, {'active': false});
             {% endif %}
 
-            $('.accordion').accordion(accordion_options);
+            $('#image-selector.accordion').accordion(image_options);
+            $('#page_description_content.accordion').accordion(description_options);
         };
 
         // STATE MACHINE TO HANDLE IMAGE SELECTION UI
@@ -528,7 +538,8 @@
 
                 // show internal description if it's present
                 if ($("#id_page_description").val() !== "") {
-                    $("#page_description_toggle").click();
+                    // TODO: Open accordion
+                    //$("#page_description_toggle").click();
                 }
             });
         };
@@ -581,17 +592,17 @@
             </div>
 
             <div class="field">
-                <div class="page_description_label">
-                    <a href="" id="page_description_toggle">Add internal description for this page</a>
-                </div>
-
-                <div class="page_description_content" style="display:none">
-                    {{ form.page_description.errors }}
-                    <label for="id_page_description">Page Description:</label>
-                    <div>
-                        {{ form.page_description }}
+                <div class='accordion' id="page_description_content">
+                    <div class='accordion-header'>
+                        Internal campaign description (optional)
+                    </div>
+                    <div class='accordion-content'>
+                        {{ form.page_description.errors }}
+                        <div>
+                            {{ form.page_description }}
                         <span class="helptext textarea">Optional internal
                             description for this page.</span>
+                        </div>
                     </div>
                 </div>
             </div>
