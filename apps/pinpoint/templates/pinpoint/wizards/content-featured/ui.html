@@ -391,7 +391,8 @@
                       $(".qq-upload-list li").remove();
                   },
                   onComplete: function(id, fileName, response) {
-                      $("#uploaded_image").attr("src", response.url);
+                      var decodedUrl = $(document.createElement('div')).html(response.url).text()
+                      $("#uploaded_image").attr("src", decodedUrl);
                       $("#uploaded_image").load(function() {
                           $("#uploaded_image").slideDown();
                       });

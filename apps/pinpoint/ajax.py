@@ -1,6 +1,7 @@
 import json
 import random
 import datetime
+import re
 
 from datetime import timedelta, datetime
 
@@ -51,7 +52,6 @@ def upload_image(request):
     if not request.method == 'POST':
         return ajax_error()
 
-    print request.body
     #read file info from stream
     uploaded = request.read
     #get file size
@@ -61,6 +61,16 @@ def upload_image(request):
     #check first for allowed file extensions
     #read the file content, if it is not read when the request is multi part then the client get an error
     fileContent = uploaded(fileSize)
+
+    # this regex fixes a problem with fine uploader with IE where content headers are included in the upload
+    fileContent = re.sub(r'^'                                           # beginning of file
+                         r'-----------------------------[^\n]*\r\n'     # content-header
+                         r'Content-Disposition: [^\n]*\r\n'             #
+                         r'Content-Type: [^\n]*\r\n'                    #
+                         r'\r\n'                                        #
+                         r'(.*)'                                        # image content
+                         r'-----------------------------[^\n]*\r\n'     # ending content header
+                         r'$', r'\1', fileContent, 0, re.DOTALL)
 
     media = GenericMedia(media_type="img")
     media.save()
