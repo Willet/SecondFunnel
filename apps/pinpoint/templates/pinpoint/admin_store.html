@@ -58,7 +58,6 @@
                 null,
                 dataRowOptions,
                 dataRowOptions,
-                dataRowOptions
             ],
             "aaSorting": [[5, "desc"]]
         });
@@ -107,7 +106,6 @@
                 <th>Date Modified</th>
                 <th></th>
                 <th></th>
-                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -117,11 +115,6 @@
                 <td><div>{{ campaign.last_modified|naturalday }}</div></td>
                 <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
                 <td><div><a href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
-                {% if campaign.enabled %}
-                    <td><div><button data-type="ajax" data-action="save_as_draft" data-content="{{ campaign.id }}">Take Offline</button></div></td>
-                {% else %}
-                    <td><div><button data-type="ajax" data-action="publish" data-content="{{ campaign.id }}">Publish</button></div></td>
-                {% endif %}
             </tr>
             {% endfor %}
         </tbody>

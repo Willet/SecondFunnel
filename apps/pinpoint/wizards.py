@@ -96,8 +96,8 @@ def featured_product_wizard(request, store, block_type, campaign=None):
                 campaign.content_blocks.add(block_content)
 
             return HttpResponseRedirect(
-                reverse('campaign-overview-admin',
-                    kwargs={'store_id': store.id, 'campaign_id': campaign.id})
+                reverse('store-admin',
+                    kwargs={'store_id': store.id})
             )
     else:
         if campaign:
