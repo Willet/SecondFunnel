@@ -28,7 +28,7 @@
         }
 
         ul.errorlist {
-            margin: 0 0 10px 0;
+            margin: 0 0 10px 10px;
             list-style: none;
             display: inline-block;
         }
@@ -109,9 +109,15 @@
             padding-left: 10px;
         }
 
+        .helptext.textarea {
+            display: inline-block;
+            vertical-align: top;
+            width: 300px;
+        }
+
         textarea {
-            display: block;
-            width: 500px;
+            display: inline-block;
+            width: 456px;
         }
 
         .field {
@@ -552,8 +558,11 @@
                 <div class="page_description_content" style="display:none">
                     {{ form.page_description.errors }}
                     <label for="id_page_description">Page Description:</label>
-                    {{ form.page_description }}
-                    <span class="helptext">Optional internal description for this page.</span>
+                    <div>
+                        {{ form.page_description }}
+                        <span class="helptext textarea">Optional internal
+                            description for this page.</span>
+                    </div>
                 </div>
             </div>
 
@@ -599,8 +608,12 @@
             <div class="field">
                 {{ form.description.errors }}
                 <label for="id_name">Product Description:</label>
-                {{ form.description }}
-                <span class="helptext">You can tailor product's description that will appear on the PinPoint page.</span>
+                <div>
+                    {{ form.description }}
+                    <span class="helptext textarea">
+                        You can tailor product's
+                        description that will appear on the PinPoint page.</span>
+                </div>
             </div>
 
             <div class="actions">
