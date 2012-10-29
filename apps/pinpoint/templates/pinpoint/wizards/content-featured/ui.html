@@ -134,14 +134,10 @@
             margin-bottom: 20px;
         }
 
-        #page_description_content.ui-accordion .ui-accordion-content,
         #image-selector.ui-accordion .ui-accordion-content {
             padding: 1em;
         }
 
-        #page_description_content .ui-state-default,
-        #page_description_content .ui-widget-content .ui-state-default,
-        #page_description_content .ui-widget-header .ui-state-default,
         #image-selector .ui-state-default,
         #image-selector .ui-widget-content .ui-state-default,
         #image-selector .ui-widget-header .ui-state-default {
@@ -150,9 +146,6 @@
             color: #fff;
         }
 
-        #page_description_content .ui-state-active,
-        #page_description_content .ui-widget-content .ui-state-active,
-        #page_description_content .ui-widget-header .ui-state-active,
         #image-selector .ui-state-active,
         #image-selector .ui-widget-content .ui-state-active,
         #image-selector .ui-widget-header .ui-state-active {
@@ -161,9 +154,6 @@
             color: #eee;
         }
 
-        #page_description_content .ui-state-hover,
-        #page_description_content .ui-widget-content .ui-state-hover,
-        #page_description_content .ui-widget-header .ui-state-hover,
         #image-selector .ui-state-hover,
         #image-selector .ui-widget-content .ui-state-hover,
         #image-selector .ui-widget-header .ui-state-hover {
@@ -589,22 +579,6 @@
                 {% if not form.name.errors %}
                     <span class="helptext">Select a name for this page for your reference.</span>
                 {% endif  %}
-            </div>
-
-            <div class="field">
-                <div class='accordion' id="page_description_content">
-                    <div class='accordion-header'>
-                        Internal campaign description (optional)
-                    </div>
-                    <div class='accordion-content'>
-                        {{ form.page_description.errors }}
-                        <div>
-                            {{ form.page_description }}
-                        <span class="helptext textarea">Optional internal
-                            description for this page.</span>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <label for="image-selector">Featured Image:</label>

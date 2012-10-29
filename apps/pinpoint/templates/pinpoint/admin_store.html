@@ -56,7 +56,6 @@
             "aoColumns" : [
                 null,
                 null,
-                null,
                 dataRowOptions,
                 dataRowOptions,
                 null,
@@ -106,7 +105,6 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Description</th>
                 <th>Date Modified</th>
                 <th></th>
                 <th></th>
@@ -118,7 +116,6 @@
             {% for campaign in store.campaign_set.all %}
             <tr>
                 <td><div><a href="{% url campaign-overview-admin campaign.store.id campaign.id %}">{{ campaign.name }}</a></div></td>
-                <td><div>{{ campaign.description|truncatewords:10 }}</div></td>
                 <td><div>{{ campaign.last_modified|naturalday }}</div></td>
                 <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
                 <td><div><a href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
