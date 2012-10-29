@@ -167,6 +167,7 @@
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
     <script src="{% static "js/jquery.form.js" %}"></script>
+    <script src="{% static "js/jquery.watermark.min.js" %}"></script>
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
 
     <script>
@@ -217,6 +218,8 @@
 
             // set product's proper name
             $("#product_name").val(product.name);
+
+            $("#id_name").val(product.name)
 
             // set product's description
             $("#id_description").val(product.description);
@@ -508,6 +511,8 @@
                 if ($("#id_page_description").val() !== "") {
                     $("#page_description_toggle").click();
                 }
+
+                $("#product_name").watermark("Your product name")
             });
         };
 
@@ -542,11 +547,19 @@
     <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
         <div class="product_select">
             <div class="field">
+                <label for="product_name">Featured Product:</label>
+                <input type="text" id="product_name">
+                <span class="helptext">Start typing in the name of a product you want to feature</span>
+            </div>
+        </div>
+
+        <div class="product_meta" style="display:none">
+            <div class="field">
                 <label for="id_name">Page Name:</label>
                 {{ form.name }}
                 {{ form.name.errors }}
                 {% if not form.name.errors %}
-                <span class="helptext">Select a name for this PinPoint page for your reference.</span>
+                    <span class="helptext">Select a name for this PinPoint page for your reference.</span>
                 {% endif  %}
             </div>
 
@@ -566,14 +579,6 @@
                 </div>
             </div>
 
-            <div class="field">
-                <label for="product_name">Featured Product:</label>
-                <input type="text" id="product_name">
-                <span class="helptext">Start typing in the name of a product you want to feature</span>
-            </div>
-        </div>
-
-        <div class="product_meta" style="display:none">
             <label for="image-selector">Featured Image:</label>
             {% if campaign %}
                 <div class="field existing_image">
