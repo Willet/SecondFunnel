@@ -181,9 +181,9 @@
             //$(".product_meta").slideDown();
             $(".product_meta").show();
 
-            //if (o.human_invoked) {
-            //    image_fsm.transition('change_image', {});
-            //}
+            if (o.human_invoked) {
+                image_fsm.transition('change_image', {});
+            }
         };
 
         setUpListeners = function () {
@@ -454,7 +454,7 @@
         <div class="grid_12 product_select">
             <div class="field">
                 {{ form.name.errors }}
-                <label>Page Name:</label>
+                <label for="id_name">Page Name:</label>
                 {{ form.name }}
                 <span class="helptext">Select a name for this PinPoint page for your reference.</span>
             </div>
@@ -466,7 +466,7 @@
 
                 <div class="page_description_content" style="display:none">
                     {{ form.page_description.errors }}
-                    <label>Page Description:</label>
+                    <label for="id_page_description">Page Description:</label>
                     {{ form.page_description }}
                     <span class="helptext">Optional internal description for this page.</span>
                 </div>
@@ -517,7 +517,7 @@
                     </div>
 
                     <div class="new_image_content" style="display: none">
-                        <label>Choose a different featured image:</label>
+                        <label for="custom_image">Choose a different featured image:</label>
                         <div id="fine-uploader">
                         </div>
                         <img src="{% static "images/ImageNotAvalable.png" %}" id="uploaded_image" style="display: none" alt="Uploaded Picture">
@@ -528,7 +528,7 @@
 
             <div class="field">
                 {{ form.description.errors }}
-                <label>Product Description:</label>
+                <label for="id_name">Product Description:</label>
                 {{ form.description }}
                 <span class="helptext">You can tailor product's description that will appear on the PinPoint page.</span>
             </div>
