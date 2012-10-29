@@ -35,6 +35,11 @@
         #pageList_wrapper {
             padding-top: 20px;
         }
+
+        #pageList .toggle-status-button {
+            vertical-align: none;
+            height: 25px;
+        }
     </style>
 {% endblock %}
 
@@ -129,9 +134,9 @@
                     </div>
                 </td>
                 {% if campaign.enabled %}
-                    <td><div><button data-type="ajax" data-action="save_as_draft" data-content="{{ campaign.id }}">Take Offline</button></div></td>
+                    <td><div><button class="toggle-status-button" data-type="ajax" data-action="save_as_draft" data-content="{{ campaign.id }}">Take Offline</button></div></td>
                 {% else %}
-                    <td><div><button data-type="ajax" data-action="publish" data-content="{{ campaign.id }}">Publish</button></div></td>
+                    <td><div><button class="toggle-status-button" data-type="ajax" data-action="publish" data-content="{{ campaign.id }}">Publish</button></div></td>
                 {% endif %}
             </tr>
             {% endfor %}
