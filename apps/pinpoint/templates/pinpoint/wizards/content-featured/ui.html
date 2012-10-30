@@ -175,6 +175,38 @@
         .ui-autocomplete.ui-menu {
             z-index: 101 !important;
         }
+
+        /* Button styles */
+        .button.preview {
+
+        }
+
+        .button.preview, .button.cancel {
+            background-color: #235364;
+            background: -moz-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+            background: -webkit-gradient(linear, left top, left bottom, from(#6f98ac), to(#235364), color-stop(0.05, #358ab2));
+            background: -webkit-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+            background: -o-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+            background: -ms-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+            background: linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+        }
+
+        .button.preview:hover, .button.cancel:hover {
+            background-color: #033344;
+            background: -moz-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+            background: -webkit-gradient(linear, left top, left bottom, from(#6f98ac), to(#033344), color-stop(0.05, #358ab2));
+            background: -webkit-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+            background: -o-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+            background: -ms-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+            background: linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+        }
+
+        .button.cancel {
+            float: right;
+            width: 80px;
+            position: relative;
+            z-index: 102;
+        }
     </style>
 {% endblock %}
 
@@ -338,6 +370,7 @@
 //                image_fsm.transition($(this).data("action"), {});
 //            })
 
+            // ACCORDION SETUP
             var default_accordion_options = {
                 'header': '.accordion-header',
                 'heightStyle': 'content',
@@ -355,6 +388,13 @@
 
             $('#image-selector.accordion').accordion(image_options);
             $('#page_description_content.accordion').accordion(description_options);
+
+            $(".button.preview").click(function(){
+                // TODO: Preview page
+            });
+            $(".button.cancel").click(function(){
+                // TODO: Cancel page
+            });
         };
 
         // STATE MACHINE TO HANDLE IMAGE SELECTION UI
@@ -628,7 +668,9 @@
                     {{ hidden }}
                 {% endfor %}
 
-                <input class="button" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} Page">
+                <input class="button submit" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} Page">
+                <input class="button preview" type="button" value="Preview Page">
+                <input class="button cancel" type="button" value="Cancel">
             </div>
         </div>
     </form>
