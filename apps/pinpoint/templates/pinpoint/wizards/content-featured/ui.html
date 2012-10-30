@@ -10,6 +10,8 @@
 {% endblock %}
 
 {% block extra_head %}
+    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/fileuploader.css" %}">
     <style type="text/css">
         .product_select {
 
@@ -123,8 +125,6 @@
     <script src="{% static "js/jquery-ui.js" %}"></script>
     <script src="{% static "js/jquery.form.js" %}"></script>
     <script src="{% static "js/fileuploader.js" %}"></script>
-    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
-    <link rel="stylesheet" href="{% static "css/fileuploader.css" %}">
 
     <script>
 
@@ -386,9 +386,6 @@
                   action: '{% url ajax-upload-image %}',
                   csrfToken: $.cookie('csrftoken'),
                   allowedExtensions: ['jpg' ,'png', 'jpeg'],
-                  customHeaders: {
-                      'X-CSRFToken': $.cookie('csrftoken')
-                  },
                   onSubmit: function() {
                       $(".qq-upload-list li").remove();
                   },

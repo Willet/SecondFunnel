@@ -319,6 +319,10 @@ qq.FileUploaderBasic = function(o){
     this._wrapCallbacks();
     qq.extend(this, qq.DisposeSupport);
 
+    if (this._options.csrfToken !== '') {
+        this._options.customHeaders['X-CSRFToken'] = this._options.csrfToken;
+    }
+
     // number of files being uploaded
     this._filesInProgress = 0;
 
