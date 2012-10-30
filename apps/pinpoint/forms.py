@@ -44,13 +44,12 @@ class FeaturedProductWizardForm(forms.Form):
 
         cleaned_data = super(FeaturedProductWizardForm, self).clean()
 
-        generic_media_id = cleaned_data.get("generic_media_id")
         product_media_id = cleaned_data.get("product_media_id")
 
         existingQuery = ProductMedia.objects.filter(pk=product_media_id)
         newImageQuery = GenericMedia.objects.filter(pk=product_media_id)
 
-        if not generic_media_id and (len(existingQuery) + len(newImageQuery) == 0):
+        if not product_media_id or (len(existingQuery) + len(newImageQuery) == 0):
             raise forms.ValidationError("Please either select an existing "
                         "product image or upload a custom one.")
 

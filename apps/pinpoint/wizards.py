@@ -58,26 +58,17 @@ def featured_product_wizard(request, store, block_type, campaign=None):
                     description=form.cleaned_data['description']
                 )
 
-                # existing product media was selected
-                if form.cleaned_data['product_media_id']:
-                    product_media = ProductMedia.objects.filter(
-                        pk=form.cleaned_data['product_media_id'])
-                    if len(product_media) > 0:
-                        featured_product_data.existing_image = product_media[0]
-                    else:
-                        product_media = GenericMedia.objects.filter(
-                            pk=form.cleaned_data['product_media_id'])
-                        featured_product_data.custom_image = product_media[0]
+                product_media = ProductMedia.objects.filter(
+                    pk=form.cleaned_data['product_media_id'])
 
-                # handle file upload
-                elif form.cleaned_data['generic_media_id']:
-                    try:
-                        custom_image = GenericMedia.objects.get(pk=form.cleaned_data['generic_media_id'])
-                    except GenericMedia.DoesNotExist:
-                        # missing media object. deal with this how?
-                        pass
-                    else:
-                        featured_product_data.custom_image = custom_image
+                # existing product media was selected
+                if len(product_media) > 0:
+                    featured_product_data.existing_image = product_media[0]
+                # an image was uploaded
+                else:
+                    product_media = GenericMedia.objects.filter(
+                        pk=form.cleaned_data['product_media_id'])
+                    featured_product_data.custom_image = product_media[0]
 
                 featured_product_data.save()
 
