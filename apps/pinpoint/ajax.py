@@ -57,21 +57,26 @@ def upload_image(request):
         media.save()
     # in other browsers we read this using request.read
     else:
+        # read file info from stream
+        uploaded = request.read
+
         try:
-            # read file info from stream
-            uploaded = request.read
             # get file size
             fileSize = int(uploaded.im_self.META["CONTENT_LENGTH"])
-            # get file name
-            fileName = request.GET.get('qqfile', 'uploadedFile')
-            # read the file content, if it is not read when the request is multi part then the client get an error
-            fileContent = uploaded(fileSize)
-            media = GenericMedia(media_type="img")
-            media.save()
-            media.hosted.save(fileName, ContentFile(fileContent))
-        # if something goes wrong return an error
-        except Exception, e:
+        except KeyError, e:
             return ajax_error()
+
+        try:
+            # get file name
+            fileName = request.GET('qqfile')
+        except KeyError, e:
+            return ajax_error()
+
+        # read the file content, if it is not read when the request is multi part then the client get an error
+        fileContent = uploaded(fileSize)
+        media = GenericMedia(media_type="img")
+        media.save()
+        media.hosted.save(fileName, ContentFile(fileContent))
 
     return ajax_success({
         'media_id': media.id,
