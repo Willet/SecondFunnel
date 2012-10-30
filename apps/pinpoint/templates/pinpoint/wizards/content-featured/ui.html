@@ -390,7 +390,20 @@
             $('#page_description_content.accordion').accordion(description_options);
 
             $(".button.preview").click(function(){
-                // TODO: Preview
+                var $form = $("#create_campaign")
+                $.ajax({
+                    type: 'POST',
+                    data: $form.serialize(),
+                    url: window.location.href,
+                    success: function(response) {
+                        if (response.success) {
+                            var url = 'http://' + window.location.host + response.url;
+                            window.open(url, "_blank");
+                        } else {
+                            $form[0].submit();
+                        }
+                    }
+                })
             });
             $(".button.cancel").click(function(){
                 window.location.href = "{% url store-admin store.id %}"
@@ -602,7 +615,7 @@
         <input type="file" id="custom_image" name="image">
     </form>
 
-    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+    <form id="create_campaign" action="" method="post" enctype="multipart/form-data">{% csrf_token %}
         <div class="product_select">
             <div class="field">
                 <label for="product_name">Featured Product:</label>

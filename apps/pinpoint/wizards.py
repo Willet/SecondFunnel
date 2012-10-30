@@ -1,8 +1,9 @@
 from django.contrib.contenttypes.models import ContentType
+from django.utils import simplejson as json
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 
 from apps.assets.models import Product, ProductMedia, GenericMedia
 from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
@@ -38,9 +39,10 @@ def _editing_valid_form(form, product):
         campaign.content_blocks.clear()
         campaign.content_blocks.add(block_content)
     campaign.save()
+    return campaign
 
 
-def _creating_valid_form(block_type, form, product, store):
+def _creating_valid_form(block_type, form, product, store, preview=False):
     featured_product_data = FeaturedProductBlock(
         product = product,
         description = form.cleaned_data['description']
@@ -73,33 +75,44 @@ def _creating_valid_form(block_type, form, product, store):
         store = store,
         name = form.cleaned_data['name'],
         description = form.cleaned_data['page_description'],
+        enabled = not preview
     )
     block_content.save()
     campaign.save()
     campaign.content_blocks.add(block_content)
+    return campaign
 
 
-def _form_is_valid(block_type, form, store):
+def _form_is_valid(block_type, form, store, preview=False):
     product = Product.objects.get(id = form.cleaned_data['product_id'])
     # we're editing the form
     if form.cleaned_data['campaign_id']:
-        _editing_valid_form(form, product)
+        campaign = _editing_valid_form(form, product)
 
     else:
-        _creating_valid_form(block_type, form, product, store)
+        campaign = _creating_valid_form(block_type, form, product, store, preview)
 
-    return HttpResponseRedirect(
-        reverse('store-admin',
-                kwargs = {'store_id': store.id})
-    )
+    if not preview:
+        return HttpResponseRedirect(
+            reverse('store-admin',
+                    kwargs = {'store_id': store.id})
+        )
+    else:
+        response = json.dumps({
+            "success": True,
+            "url": reverse('campaign', kwargs={'campaign_id': campaign.id})
+        })
+        return HttpResponse(response, mimetype='application/json')
 
 
 def featured_product_wizard(request, store, block_type, campaign=None):
+    preview = request.is_ajax()
+
     if request.method == 'POST':
         form = FeaturedProductWizardForm(request.POST, request.FILES)
 
         if form.is_valid():
-            return _form_is_valid(block_type, form, store)
+            return _form_is_valid(block_type, form, store, preview)
     else:
         if campaign:
             initial_data = {
@@ -122,10 +135,14 @@ def featured_product_wizard(request, store, block_type, campaign=None):
         else:
             form = FeaturedProductWizardForm()
 
-    return render_to_response('pinpoint/wizards/%s/ui.html' % block_type.slug, {
-        "store": store,
-        "block_types": BlockType.objects.all(),
-        "products": store.product_set.all(),
-        "form": form,
-        "campaign": campaign,
-    }, context_instance=RequestContext(request))
+    if not preview:
+        return render_to_response('pinpoint/wizards/%s/ui.html' % block_type.slug, {
+            "store": store,
+            "block_types": BlockType.objects.all(),
+            "products": store.product_set.all(),
+            "form": form,
+            "campaign": campaign,
+        }, context_instance=RequestContext(request))
+
+    else:
+        return HttpResponse(json.dumps({"success": False}), mimetype='application/json')
