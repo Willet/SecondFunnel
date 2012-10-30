@@ -47,35 +47,27 @@ def modify_campaign(request, enabled):
     return ajax_success()
 
 @login_required
-@csrf_exempt
 def upload_image(request):
     if not request.method == 'POST':
         return ajax_error()
-
-    #read file info from stream
-    uploaded = request.read
-    #get file size
-    fileSize = int(uploaded.im_self.META["CONTENT_LENGTH"])
-    #get file name
-    fileName = request.GET['qqfile']
-    #check first for allowed file extensions
-    #read the file content, if it is not read when the request is multi part then the client get an error
-    fileContent = uploaded(fileSize)
-
-    # this regex fixes a problem with fine uploader with IE where content headers are included in the upload
-    fileContent = re.sub(r'^'                                           # beginning of file
-                         r'-----------------------------[^\n]*\r\n'     # content-header
-                         r'Content-Disposition: [^\n]*\r\n'             #
-                         r'Content-Type: [^\n]*\r\n'                    #
-                         r'\r\n'                                        #
-                         r'(.*)'                                        # image content
-                         r'-----------------------------[^\n]*\r\n'     # ending content header
-                         r'$', r'\1', fileContent, 0, re.DOTALL)
-
-    media = GenericMedia(media_type="img")
-    media.save()
     
-    media.hosted.save(fileName, ContentFile(fileContent))
+    # in IE this gets sent as a file
+    if 'qqfile' in request.FILES:
+        media = GenericMedia(media_type="img", hosted=request.FILES['qqfile'])
+        media.save()
+    # in other browsers we read this using request.read
+    else:
+        # read file info from stream
+        uploaded = request.read
+        # get file size
+        fileSize = int(uploaded.im_self.META["CONTENT_LENGTH"])
+        # get file name
+        fileName = request.GET['qqfile']
+        # read the file content, if it is not read when the request is multi part then the client get an error
+        fileContent = uploaded(fileSize)
+        media = GenericMedia(media_type="img")
+        media.save()
+        media.hosted.save(fileName, ContentFile(fileContent))
 
     return ajax_success({
         'media_id': media.id,

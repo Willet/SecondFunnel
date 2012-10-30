@@ -279,6 +279,7 @@ qq.FileUploaderBasic = function(o){
         debug: false,
         action: '/server/upload',
         params: {},
+        csrfToken: '',
         customHeaders: {},
         button: null,
         multiple: true,
@@ -379,6 +380,7 @@ qq.FileUploaderBasic.prototype = {
         var handler = new qq[handlerClass]({
             debug: this._options.debug,
             action: this._options.action,
+            csrfToken: this._options.csrfToken,
             forceMultipart: this._options.forceMultipart,
             maxConnections: this._options.maxConnections,
             customHeaders: this._options.customHeaders,
@@ -1451,12 +1453,16 @@ qq.extend(qq.UploadHandlerForm.prototype, {
         // Because in this case file won't be attached to request
         var protocol = this._options.demoMode ? "GET" : "POST"
         var form = qq.toElement('<form method="' + protocol + '" enctype="multipart/form-data"></form>');
+        var csrfInput = qq.toElement('<input type="hidden" name="csrfmiddlewaretoken" value="' + this._options.csrfToken + '" />');
 
         var queryString = qq.obj2url(params, this._options.action);
 
         form.setAttribute('action', queryString);
         form.setAttribute('target', iframe.name);
         form.style.display = 'none';
+        if (this._options.csrfToken !== '') {
+            form.appendChild(csrfInput);
+        }
         document.body.appendChild(form);
 
         return form;

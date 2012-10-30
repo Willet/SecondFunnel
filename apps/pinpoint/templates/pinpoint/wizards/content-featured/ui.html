@@ -383,10 +383,13 @@
         init = function () {
             $(function() {
                 setUpListeners();
-
                 var uploader = new qq.FileUploader({
                   element: document.getElementById('fine-uploader'),
-                  action: '{% url ajax-upload-image %}',
+                  action: '{% url ajax-upload-image %}?',
+                  csrfToken: '' + $.cookie('csrftoken'),
+                  customHeaders: {
+                      'X-CSRFToken': $.cookie('csrftoken')
+                  },
                   onSubmit: function() {
                       $(".qq-upload-list li").remove();
                   },
