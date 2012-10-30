@@ -9,96 +9,97 @@ from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
     FeaturedProductBlock)
 from apps.pinpoint.forms import FeaturedProductWizardForm
 
+def _editing_valid_form(form, product):
+    campaign = Campaign.objects.get(id = form.cleaned_data['campaign_id'])
+    campaign.name = form.cleaned_data['name']
+    campaign.description = form.cleaned_data['page_description']
+    block_content = campaign.content_blocks.all()[0]
+    block_content.data.product = product
+    if form.cleaned_data['product_media_id']:
+        product_media = ProductMedia.objects.get(
+            pk = form.cleaned_data['product_media_id'])
+
+        block_content.data.custom_image = None
+        block_content.data.existing_image = product_media
+        block_content.data.save()
+
+    elif form.cleaned_data['generic_media_id']:
+        try:
+            custom_image = GenericMedia.objects.get(
+                pk = form.cleaned_data['generic_media_id'])
+        except GenericMedia.DoesNotExist:
+            # missing media object. deal with this how?
+            pass
+        else:
+            block_content.data.existing_image = None
+            block_content.data.custom_image = custom_image
+            block_content.data.save()
+    if not block_content in campaign.content_blocks.all():
+        campaign.content_blocks.clear()
+        campaign.content_blocks.add(block_content)
+    campaign.save()
+
+
+def _creating_valid_form(block_type, form, product, store):
+    featured_product_data = FeaturedProductBlock(
+        product = product,
+        description = form.cleaned_data['description']
+    )
+    # existing product media was selected
+    if form.cleaned_data['product_media_id']:
+        product_media = ProductMedia.objects.get(
+            pk = form.cleaned_data['product_media_id'])
+
+        featured_product_data.existing_image = product_media
+
+    # handle file upload
+    elif form.cleaned_data['generic_media_id']:
+        try:
+            custom_image = GenericMedia.objects.get(
+                pk = form.cleaned_data['generic_media_id'])
+        except GenericMedia.DoesNotExist:
+            # missing media object. deal with this how?
+            pass
+        else:
+            featured_product_data.custom_image = custom_image
+    featured_product_data.save()
+    block_content = BlockContent(
+        block_type = block_type,
+        content_type = ContentType.objects.get_for_model(
+            FeaturedProductBlock),
+        object_id = featured_product_data.id
+    )
+    campaign = Campaign(
+        store = store,
+        name = form.cleaned_data['name'],
+        description = form.cleaned_data['page_description'],
+    )
+    block_content.save()
+    campaign.save()
+    campaign.content_blocks.add(block_content)
+
+
+def _form_is_valid(block_type, form, store):
+    product = Product.objects.get(id = form.cleaned_data['product_id'])
+    # we're editing the form
+    if form.cleaned_data['campaign_id']:
+        _editing_valid_form(form, product)
+
+    else:
+        _creating_valid_form(block_type, form, product, store)
+
+    return HttpResponseRedirect(
+        reverse('store-admin',
+                kwargs = {'store_id': store.id})
+    )
+
 
 def featured_product_wizard(request, store, block_type, campaign=None):
     if request.method == 'POST':
         form = FeaturedProductWizardForm(request.POST, request.FILES)
 
         if form.is_valid():
-            product = Product.objects.get(id=form.cleaned_data['product_id'])
-
-            # we're editing the form
-            if form.cleaned_data['campaign_id']:
-                campaign = Campaign.objects.get(id=form.cleaned_data['campaign_id'])
-
-                campaign.name = form.cleaned_data['name']
-                campaign.description = form.cleaned_data['page_description']
-
-                block_content = campaign.content_blocks.all()[0]
-                block_content.data.product = product
-
-                if form.cleaned_data['product_media_id']:
-                    product_media = ProductMedia.objects.get(
-                        pk=form.cleaned_data['product_media_id'])
-
-                    block_content.data.custom_image = None
-                    block_content.data.existing_image = product_media
-                    block_content.data.save()
-
-                elif form.cleaned_data['generic_media_id']:
-                    try:
-                        custom_image = GenericMedia.objects.get(pk=form.cleaned_data['generic_media_id'])
-                    except GenericMedia.DoesNotExist:
-                        # missing media object. deal with this how?
-                        pass
-                    else:
-                        block_content.data.existing_image = None
-                        block_content.data.custom_image = custom_image
-                        block_content.data.save()
-
-                if not block_content in campaign.content_blocks.all():
-                    campaign.content_blocks.clear()
-                    campaign.content_blocks.add(block_content)
-
-                campaign.save()
-
-            else:
-                featured_product_data = FeaturedProductBlock(
-                    product=product,
-                    description=form.cleaned_data['description']
-                )
-
-                # existing product media was selected
-                if form.cleaned_data['product_media_id']:
-                    product_media = ProductMedia.objects.get(
-                        pk=form.cleaned_data['product_media_id'])
-
-                    featured_product_data.existing_image = product_media
-
-                # handle file upload
-                elif form.cleaned_data['generic_media_id']:
-                    try:
-                        custom_image = GenericMedia.objects.get(pk=form.cleaned_data['generic_media_id'])
-                    except GenericMedia.DoesNotExist:
-                        # missing media object. deal with this how?
-                        pass
-                    else:
-                        featured_product_data.custom_image = custom_image
-
-                featured_product_data.save()
-
-                block_content = BlockContent(
-                    block_type=block_type,
-                    content_type=ContentType.objects.get_for_model(
-                        FeaturedProductBlock),
-                    object_id=featured_product_data.id
-                )
-
-                campaign = Campaign(
-                    store=store,
-                    name=form.cleaned_data['name'],
-                    description=form.cleaned_data['page_description'],
-                )
-
-                block_content.save()
-                campaign.save()
-
-                campaign.content_blocks.add(block_content)
-
-            return HttpResponseRedirect(
-                reverse('store-admin',
-                    kwargs={'store_id': store.id})
-            )
+            return _form_is_valid(block_type, form, store)
     else:
         if campaign:
             initial_data = {
