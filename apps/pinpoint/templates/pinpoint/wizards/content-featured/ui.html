@@ -191,8 +191,8 @@
             // clear existing image list
             images = $("#product_images li");
             imagesToRemove = images.splice(1, images.length - 1);
-            for (var img in imagesToRemove) {
-                $(img).remove();
+            for (var i = imagesToRemove.length - 1; i >= 0; i--) {
+                $(imagesToRemove[i]).remove();
             }
 
             // display product media
@@ -420,11 +420,7 @@
                   action: '{% url ajax-upload-image %}',
                   csrfToken: $.cookie('csrftoken'),
                   allowedExtensions: ['jpg' ,'png', 'jpeg'],
-                  onSubmit: function() {
-                      $(".qq-upload-list li").remove();
-                  },
                   onComplete: function(id, fileName, response) {
-                      $(".qq-upload-list li").remove();
                       var decodedUrl = $(document.createElement('div')).html(response.url).text()
                       $("#fine-uploader").closest('li').after(
                           "<li><img data-mid='" + response.media_id + "' src='" + decodedUrl + "'></li>"
