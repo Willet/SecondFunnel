@@ -387,6 +387,7 @@
                   element: document.getElementById('fine-uploader'),
                   action: '{% url ajax-upload-image %}?',
                   csrfToken: '' + $.cookie('csrftoken'),
+                  allowedExtensions: ['jpg' ,'png', 'jpeg'],
                   customHeaders: {
                       'X-CSRFToken': $.cookie('csrftoken')
                   },
