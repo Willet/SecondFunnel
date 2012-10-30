@@ -117,7 +117,7 @@
             width: 250px;
         }
 
-        #product_images img:hover, #product_images img.selected {
+        #product_images li > img:hover:not(.loading_gif), #product_images img.selected {
             border-bottom: 4px solid #5d84b7;
             cursor: pointer;
         }
@@ -220,7 +220,7 @@
 
         setUpListeners = function () {
             // GENERAL UI
-            $("#product_images img").live('click', function() {
+            $("#product_images img:not(.loading_gif)").live('click', function() {
                 $("#product_images img").removeClass("selected");
                 $(this).addClass("selected");
 
@@ -420,11 +420,21 @@
                   action: '{% url ajax-upload-image %}',
                   csrfToken: $.cookie('csrftoken'),
                   allowedExtensions: ['jpg' ,'png', 'jpeg'],
+                  onSubmit: function() {
+                      $("#fine-uploader").closest('li').after(
+                      "<li><img class='loading_gif' src='{% static "loading.gif" %}'></li>"
+                      );
+                  },
                   onComplete: function(id, fileName, response) {
                       var decodedUrl = $(document.createElement('div')).html(response.url).text()
-                      $("#fine-uploader").closest('li').after(
-                          "<li><img data-mid='" + response.media_id + "' src='" + decodedUrl + "'></li>"
-                      );
+                      var gif = $("#product_images .loading_gif");
+                      gif.hide();
+                      gif.removeClass('loading_gif');
+                      gif.attr('src', decodedUrl);
+                      gif.attr('data-mid', response.media_id);
+                      gif.load(function() {
+                          gif.fadeIn(500);
+                      });
                   }
                 });
 
