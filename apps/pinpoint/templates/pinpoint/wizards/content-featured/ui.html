@@ -390,10 +390,10 @@
             $('#page_description_content.accordion').accordion(description_options);
 
             $(".button.preview").click(function(){
-                // TODO: Preview page
+                // TODO: Preview
             });
             $(".button.cancel").click(function(){
-                // TODO: Cancel page
+                window.location.href = "{% url store-admin store.id %}"
             });
         };
 
