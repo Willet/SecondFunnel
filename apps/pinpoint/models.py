@@ -51,7 +51,7 @@ class Campaign(BaseModelNamed):
     discovery_blocks = models.ManyToManyField(BlockContent,
         related_name="discovery_campaign", blank=True, null=True)
 
-    enabled = models.BooleanField(default=True)
+    live = models.BooleanField(default=True)
 
     def __unicode__(self):
         return u"Campaign: %s" % self.name

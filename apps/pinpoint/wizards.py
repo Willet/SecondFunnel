@@ -75,7 +75,7 @@ def _creating_valid_form(block_type, form, product, store, preview=False):
         store = store,
         name = form.cleaned_data['name'],
         description = form.cleaned_data['page_description'],
-        enabled = not preview
+        live = not preview
     )
     block_content.save()
     campaign.save()
