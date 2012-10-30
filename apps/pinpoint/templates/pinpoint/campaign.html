@@ -55,7 +55,7 @@
                 setSocialShareVars = function (o) {
                     //console.log(o);
 
-                    if (o.default === true) {
+                    if (o['default'] === true) {
                         pinpointTracking.socialShareUrl = $("#featured_img").data("url");
                         pinpointTracking.socialShareType = "featured";
                     } else {

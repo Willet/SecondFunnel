@@ -77,6 +77,15 @@
     </style>
 {% endblock %}
 
+{% block top_section %}
+    <div class="grid_3 prefix_9">
+        <ul>
+            <li class="selected">Pages</li>
+            <li>Analytics</li>
+        </ul>
+    </div>
+{% endblock %}
+
 {% block content %}
     <a href="{% url store-admin campaign.store.id %}">&larr; Back to Admin</a>
 

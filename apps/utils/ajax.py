@@ -4,7 +4,7 @@ import json
 
 
 def ajax_response(obj):
-    return HttpResponse(json.dumps(obj), mimetype="application/json")
+    return HttpResponse(json.dumps(obj), mimetype="text/html")
 
 def ajax_success(data=None):
     if not data:

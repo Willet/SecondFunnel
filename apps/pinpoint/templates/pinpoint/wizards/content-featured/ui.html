@@ -10,6 +10,8 @@
 {% endblock %}
 
 {% block extra_head %}
+    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/fileuploader.css" %}">
     <style type="text/css">
         .product_select {
 
@@ -96,7 +98,6 @@
         .existing_images_list {
             width: 900px;
             overflow: scroll;
-            max-height: 450px
         }
 
         .product_description {
@@ -123,7 +124,7 @@
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
     <script src="{% static "js/jquery.form.js" %}"></script>
-    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <script src="{% static "js/fileuploader.js" %}"></script>
 
     <script>
 
@@ -183,20 +184,6 @@
             }
         };
 
-        setUploadStatus = function(color, text, fade) {
-            if (typeof(fade) === undefined) {
-                fade = false;
-            }
-            var status = $("#upload_status");
-            status.css('color', color);
-            status.stop(true, true);
-            status.show();
-            status.text(text);
-            if (fade) {
-                status.fadeOut(1000);
-            }
-        }
-
         setUpListeners = function () {
             // GENERAL UI
             $("#product_images img").live('click', function() {
@@ -240,35 +227,7 @@
                     }
                 }
             });
-            $("#image_form").ajaxForm({
-                url: "{% url ajax-upload-image %}",
-                success: function(data) {
-                    if (data.success != false) {
-                        setUploadStatus('#0F0', 'Done', true);
-                        console.log(data);
-                        $("#uploaded_image").attr("src", data.url);
-                        $("#uploaded_image").load(function() {
-                            $("#uploaded_image").slideDown();
-                        });
-                        $("#id_generic_media_id").val(data.media_id);
-                    } else {
-                        setUploadStatus('#F00', 'Error: ');
-                    }
-
-                }, error: function(data) {
-                    setUploadStatus('#F00', 'Error: ');
-                }
-            });
-
-            $("#select_new_image").click(function() {
-                $("#image_form input[type=file]").click();
-            });
-
-            $("#image_form input[type=file]").change(function() {
-                setUploadStatus('#EE9A00', 'Uploading...');
-                $("#image_form").submit();
-            });
-
+            //
             // SET UP IMAGE FSM LISTENERS
             $(".fsm").click(function (e) {
                 e.preventDefault();
@@ -422,6 +381,23 @@
         init = function () {
             $(function() {
                 setUpListeners();
+                var uploader = new qq.FileUploader({
+                  element: document.getElementById('fine-uploader'),
+                  action: '{% url ajax-upload-image %}',
+                  csrfToken: $.cookie('csrftoken'),
+                  allowedExtensions: ['jpg' ,'png', 'jpeg'],
+                  onSubmit: function() {
+                      $(".qq-upload-list li").remove();
+                  },
+                  onComplete: function(id, fileName, response) {
+                      var decodedUrl = $(document.createElement('div')).html(response.url).text()
+                      $("#uploaded_image").attr("src", decodedUrl);
+                      $("#uploaded_image").load(function() {
+                          $("#uploaded_image").slideDown();
+                      });
+                      $("#id_generic_media_id").val(response.media_id);
+                  }
+                });
 
                 // save existing image settings
                 app.existing_images = {
@@ -463,20 +439,17 @@
 {% endblock %}
 
 {% block top_section %}
-    <nav class="grid_3 prefix_9">
+    <div class="grid_3 prefix_9">
         <ul>
             <li class="selected">Pages</li>
             <li>Analytics</li>
         </ul>
-    </nav>
+    </div>
 {% endblock %}
 
 {% block content %}
-    <form id="image_form" style="display:none" method="POST" enctype="multipart/form-data">
-        <input type="file" id="custom_image" name="image">
-    </form>
-
-    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
         <div class="grid_12 product_select">
             <div class="field">
                 {{ form.name.errors }}
@@ -511,7 +484,7 @@
                     <label>Currently selected image:</label>
                     <div class="current_image">
                     {% with first_image=campaign.content_blocks.all|first %}
-                        <img src="{{ first_image.data.get_image.get_url }}">
+                        <img src="{{ first_image.data.get_image.get_url }}" alt="Product Image">
                     {% endwith %}
                     </div>
 
@@ -544,9 +517,9 @@
 
                     <div class="new_image_content" style="display: none">
                         <label for="custom_image">Choose a different featured image:</label>
-                        <button id="select_new_image" type="button">Select Image</button>
-                        <span id="upload_status"></span>
-                        <img src="" id="uploaded_image" style="display: none">
+                        <div id="fine-uploader">
+                        </div>
+                        <img src="{% static "images/ImageNotAvalable.png" %}" id="uploaded_image" style="display: none" alt="Uploaded Picture">
                         <span class="helptext">Upload a new image if none of the existing ones suit the new PinPoint page</span>
                     </div>
                 </div>
