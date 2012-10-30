@@ -60,16 +60,13 @@ def upload_image(request):
         # read file info from stream
         uploaded = request.read
 
-        try:
-            # get file size
-            fileSize = int(uploaded.im_self.META["CONTENT_LENGTH"])
-        except KeyError, e:
-            return ajax_error()
+        # get file size
+        fileSize = int(uploaded.im_self.META.get("CONTENT_LENGTH", None))
 
-        try:
-            # get file name
-            fileName = request.GET('qqfile')
-        except KeyError, e:
+        # get file name
+        fileName = request.GET.get('qqfile', None)
+
+        if None in (fileSize, fileName):
             return ajax_error()
 
         # read the file content, if it is not read when the request is multi part then the client get an error
