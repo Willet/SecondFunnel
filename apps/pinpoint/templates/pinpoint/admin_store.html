@@ -112,7 +112,9 @@
             {% for campaign in store.campaign_set.all %}
             {% if campaign.live %}
             <tr>
-                <td><div><a href="{% url campaign-overview-admin campaign.store.id campaign.id %}">{{ campaign.name }}</a></div></td>
+                <td><div><a href="
+                {% url edit-campaign-admin campaign.store.id campaign.id %}"
+                        >{{ campaign.name }}</a></div></td>
                 <td><div>{{ campaign.last_modified|naturalday }}</div></td>
                 <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
                 <td><div><a href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
