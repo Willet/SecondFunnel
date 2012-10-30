@@ -55,14 +55,12 @@
                 setSocialShareVars = function (o) {
                     //console.log(o);
 
-                    if (o !== undefined) {
-                        if (o['default'] === true) {
-                            pinpointTracking.socialShareUrl = $("#featured_img").data("url");
-                            pinpointTracking.socialShareType = "featured";
-                        } else {
-                            pinpointTracking.socialShareUrl = o.url;
-                            pinpointTracking.socialShareType = o.sType;
-                        }
+                    if (o['default'] === true) {
+                        pinpointTracking.socialShareUrl = $("#featured_img").data("url");
+                        pinpointTracking.socialShareType = "featured";
+                    } else {
+                        pinpointTracking.socialShareUrl = o.url;
+                        pinpointTracking.socialShareType = o.sType;
                     }
                 },
 

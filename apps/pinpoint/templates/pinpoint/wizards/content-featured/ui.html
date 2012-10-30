@@ -96,7 +96,6 @@
         .existing_images_list {
             width: 900px;
             overflow: scroll;
-            /*max-height: 450px*/
         }
 
         .product_description {
@@ -178,8 +177,7 @@
             // set the id for form submission
             $("#id_product_id").val(product.id);
 
-            //$(".product_meta").slideDown();
-            $(".product_meta").show();
+            $(".product_meta").slideDown();
 
             if (o.human_invoked) {
                 image_fsm.transition('change_image', {});
@@ -386,7 +384,7 @@
                 var uploader = new qq.FileUploader({
                   element: document.getElementById('fine-uploader'),
                   action: '{% url ajax-upload-image %}?',
-                  csrfToken: '' + $.cookie('csrftoken'),
+                  csrfToken: $.cookie('csrftoken'),
                   allowedExtensions: ['jpg' ,'png', 'jpeg'],
                   customHeaders: {
                       'X-CSRFToken': $.cookie('csrftoken')
