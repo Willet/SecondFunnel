@@ -21,14 +21,19 @@
                 border-radius: 5px;
 
                 background-color: #f1f1f1;
+                padding-bottom: 25px;
+            }
+
+            .container_12 {
+                padding-bottom: 50px;
             }
 
             .container_12 .inner_content {
-                padding: 10px 0 20px 0px;
+                padding: 10px 15px 20px 15px;
                 /* accounts for the margins added in 960.css. We need this because
                  * we have a grid_12 inside a grid_12.
                  */
-                width: 920px;
+                width: 910px;
             }
 
             .top_bar {
@@ -41,7 +46,7 @@
 
             .top_bar .page_title {
                 font-size: 17pt;
-                margin: 7px 0 0 15px;
+                padding: 7px 0 0 15px;
                 text-shadow: 1px 1px 2px #4f4f4f;
                 filter: dropshadow(color=#4f4f4f, offx=1, offy=1);
             }
@@ -108,13 +113,13 @@
             </div>
 
             <div class="grid_12 content">
-                <div class="grid_12 top_bar">
+                <div class="top_bar">
                     <div class="page_title">
-                        {% block page_title %}PinPoint Admin{% endblock %}
+                        {% block page_title %}{% endblock %}
                     </div>
                 </div>
 
-                <div class="grid_12 inner_content">
+                <div class="inner_content">
                     {% block content %}{% endblock %}
                 </div>
             </div>
