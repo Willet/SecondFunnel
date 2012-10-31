@@ -7,7 +7,7 @@
                "created": "2012-10-19T15:40:46.847Z", 
                "handler": "featured_product_wizard", 
                "image": "internal_images/cb-product-200x100.png", 
-               "enabled": true, 
+               "enabled": true,
                "last_modified": "2012-10-19T23:04:33.812Z", 
                "slug": "content-featured", 
                "name": "Featured Product"
@@ -21,7 +21,7 @@
                "created": "2012-10-19T23:05:25.225Z", 
                "handler": "", 
                "image": "internal_images/cb-product-200x100.png", 
-               "enabled": false, 
+               "enabled": false,
                "last_modified": "2012-10-19T23:05:25.225Z", 
                "slug": "lookbook", 
                "name": "Lookbook"
@@ -35,7 +35,7 @@
                "created": "2012-10-19T23:05:45.260Z", 
                "handler": "", 
                "image": "internal_images/cb-product-200x100.png", 
-               "enabled": false, 
+               "enabled": false,
                "last_modified": "2012-10-19T23:05:45.260Z", 
                "slug": "themed-collection", 
                "name": "Themed Collection"
@@ -49,7 +49,7 @@
                "created": "2012-10-19T23:06:05.103Z", 
                "handler": "", 
                "image": "internal_images/cb-product-200x100.png", 
-               "enabled": false, 
+               "enabled": false,
                "last_modified": "2012-10-19T23:06:05.103Z", 
                "slug": "shop-look", 
                "name": "Shop The Look"
@@ -73,7 +73,7 @@
           "fields": {
                "description": "", 
                "created": "2012-10-23T18:53:24.641Z", 
-               "enabled": false, 
+               "live": false, 
                "last_modified": "2012-10-23T18:53:24.641Z", 
                "content_blocks": [
                     1

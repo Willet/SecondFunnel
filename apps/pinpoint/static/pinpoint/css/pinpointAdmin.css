@@ -307,21 +307,6 @@ li a,
     position: absolute;
     overflow: hidden;
 }
-
-.preview {
-    float: right;
-    padding: 0;
-    width: 450px;
-    height: 307px;
-    overflow: hidden;
-}
-
-
-.preview img {
-    display: block;
-    margin: auto;
-}
-
 ul.boxTopNav li {
     padding-right: 20px;
     list-style: none;
@@ -640,10 +625,6 @@ table.display thead th {
     cursor: default;
 }
 
-.button.cancel {
-    padding: 5px;
-}
-
 #pageList .button {
     margin:0;
     padding:5px;
@@ -669,4 +650,9 @@ font-weight: 700;
 
 #pageList_wrapper input {
     padding: 2px;
+}
+
+#pageList_filter {
+    position: relative;
+    top: -10px;
 }

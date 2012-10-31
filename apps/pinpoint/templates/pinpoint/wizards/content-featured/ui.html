@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block page_title %}
-    {{ block.super }}: {% if campaign %}Edit {% else %}New{% endif %} Page
+    {% if campaign %}Edit {% else %}New{% endif %} Page
 {% endblock %}
 
 {% block extra_head %}
@@ -30,8 +30,9 @@
         }
 
         ul.errorlist {
-            margin: 0 0 10px 0;
+            margin: 0 0 10px 10px;
             list-style: none;
+            display: inline-block;
         }
 
         ul.errorlist li {
@@ -64,6 +65,7 @@
             overflow-x: scroll;
             overflow-y: hidden;
             white-space: nowrap;
+            margin: 0;
         }
 
         #product_images ul {
@@ -122,44 +124,130 @@
             cursor: pointer;
         }
 
-        .existing_images_list {
-            width: 900px;
-        }
-
-        .product_description {
-
-        }
-
         .helptext {
-            display: block;
             color: #898989;
+            font-style: italic;
+            padding-left: 10px;
+        }
+
+        .helptext.textarea {
+            display: inline-block;
+            vertical-align: top;
+            width: 300px;
         }
 
         textarea {
-            display: block;
-            width: 500px;
+            display: inline-block;
+            width: 456px;
         }
 
         .field {
-            margin-bottom: 30px;
+            margin-bottom: 10px;
+        }
+
+        .field > label {
+            min-width: 200px;
+            display: inline-block;
+        }
+
+        /* Accordion styles */
+        #image-selector, #page_description_content {
+            margin-bottom: 20px;
+        }
+        
+        #image-selector.ui-accordion .ui-accordion-content {
+            padding: 1em;
+        }
+
+        #image-selector .ui-state-default,
+        #image-selector .ui-widget-content .ui-state-default,
+        #image-selector .ui-widget-header .ui-state-default {
+            border: 1px solid #6F98AC;
+            background: #6F98AC;
+            color: #fff;
+        }
+
+        #image-selector .ui-state-active,
+        #image-selector .ui-widget-content .ui-state-active,
+        #image-selector .ui-widget-header .ui-state-active {
+            border: 1px solid #235364;
+            background: #235364;
+            color: #eee;
+        }
+
+        #image-selector .ui-state-hover,
+        #image-selector .ui-widget-content .ui-state-hover,
+        #image-selector .ui-widget-header .ui-state-hover {
+            border: 1px solid #336374;
+            background: #336374;
+            color: #eee;
+        }
+
+        /* Loadmask */
+        .inner_content .loadmask {
+            background-color: #f1f1f1;
+            opacity: 0.7;
+            -moz-opacity: 0.7;
+            filter: alpha(opacity=70);
+            z-index: 100;
+        }
+
+        /* Autocomplete style */
+        .ui-autocomplete.ui-menu {
+            z-index: 101 !important;
+        }
+
+        /* Button styles */
+        .button.preview {
+
+        }
+
+        .button.preview, .button.cancel {
+            background-color: #235364;
+            background: -moz-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+            background: -webkit-gradient(linear, left top, left bottom, from(#6f98ac), to(#235364), color-stop(0.05, #358ab2));
+            background: -webkit-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+            background: -o-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+            background: -ms-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+            background: linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+        }
+
+        .button.preview:hover, .button.cancel:hover {
+            background-color: #033344;
+            background: -moz-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+            background: -webkit-gradient(linear, left top, left bottom, from(#6f98ac), to(#033344), color-stop(0.05, #358ab2));
+            background: -webkit-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+            background: -o-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+            background: -ms-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+            background: linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+        }
+
+        .button.cancel {
+            float: right;
+            width: 80px;
+            position: relative;
+            z-index: 102;
         }
 
         .qq-upload-list {
             display: none;
         }
-
     </style>
 {% endblock %}
 
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
     <script src="{% static "js/jquery.form.js" %}"></script>
+    <script src="{% static "js/jquery.watermark.min.js" %}"></script>
+    <script src="{% static "js/jquery.loadmask.min.js" %}"></script>
+    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/jquery.loadmask.css" %}">
     <script src="{% static "js/fileuploader.js" %}"></script>
 
     <script>
 
     var app = (function() {
-        var existing_images, products, product_selected, setUpListeners, image_fsm, init;
+        var existing_images, products, product_selected, setUpListeners, init;
 
         existing_images = {};
 
@@ -182,7 +270,8 @@
         };
 
         product_selected = function (o) {
-            var product = products[o.product_id];
+            var product = products[o.product_id],
+                media_id = $("#id_product_media_id").val();
 
             if (typeof(product) === "undefined") {
                 return;
@@ -209,8 +298,13 @@
                     "<li><img class='custom_image selected' data-mid='" + o.product_generic_image_id + "' src='" + o.product_generic_image_url + "'></li>");
             }
 
+            $("#product_images").find("[data-mid='" + media_id  + "']")
+                .addClass("selected")
+
             // set product's proper name
             $("#product_name").val(product.name);
+
+            $("#id_name").val(product.name)
 
             if (o.product_description) {
                 // set product's description
@@ -223,11 +317,7 @@
             // set the id for form submission
             $("#id_product_id").val(product.id);
 
-            $(".product_meta").slideDown();
-
-            if (o.human_invoked) {
-                image_fsm.transition('change_image', {});
-            }
+            $(".product_meta").unmask();
         };
 
         setUpListeners = function () {
@@ -250,19 +340,13 @@
                 $("#id_product_media_id").val("");
             });
 
-            $("#page_description_toggle").click(function (e) {
-                e.preventDefault();
-                $(".page_description_label").slideUp();
-                $(".page_description_content").slideDown();
-            });
-
-                // PRODUCT SEARCH AUTOCOMPLETE
-                $("#product_name").autocomplete({
-                    source: function(request, response) {
-                        var term = request.term;
-                        $.getJSON("/api/assets/v1/product/", {
-                            "format": "json",
-                            "name_or_url": term
+            // PRODUCT SEARCH AUTOCOMPLETE
+            $("#product_name").autocomplete({
+                source: function(request, response) {
+                    var term = request.term;
+                    $.getJSON("/api/assets/v1/product/", {
+                        "format": "json",
+                        "name_or_url": term
 
                     }, function(data) {
                         //convert object to usable form
@@ -283,156 +367,53 @@
                     }
                 }
             });
-            //
-            // SET UP IMAGE FSM LISTENERS
-            $(".fsm").click(function (e) {
-                e.preventDefault();
-                image_fsm.transition($(this).data("action"), {});
-            })
+            // ACCORDION SETUP
+            var default_accordion_options = {
+                'header': '.accordion-header',
+                'heightStyle': 'content',
+                'collapsible': true
+            };
+
+            var image_options = $.extend(default_accordion_options, {});
+            var description_options = $.extend(default_accordion_options, {
+                'active': false
+            });
+
+            {% if campaign %}
+            image_options = $.extend(image_options, {'active': false});
+            {% endif %}
+
+            $('#image-selector.accordion').accordion(image_options);
+            $('#page_description_content.accordion').accordion(description_options);
+
+            $(".button.preview").click(function(){
+                var $form = $("#create_campaign");
+                var $campaign_id = $("#id_campaign_id");
+                $.ajax({
+                    async: false,
+                    type: 'POST',
+                    data: $form.serialize(),
+                    url: window.location.href,
+                    success: function(response) {
+                        console.log(response);
+                        if (response.success) {
+                            var url = 'http://' + window.location.host + response.url;
+                            window.open(url, "_blank");
+                            $campaign_id.val(response.campaign);
+                        } else {
+                            $form[0].submit();
+                        }
+                    }
+                })
+            });
+            $(".button.cancel").click(function(){
+                var cancel = confirm("Are you sure you want to cancel your " +
+                        "changes?")
+                if (cancel) {
+                    window.location.href = "{% url store-admin store.id %}"
+                }
+            });
         };
-
-        // STATE MACHINE TO HANDLE IMAGE SELECTION UI
-        image_fsm = (function () {
-            var current_state, state_transition;
-
-            current_state = 'start';
-
-            fsm = {
-                'start': {
-                    'fn': function (o) {},
-                    'transitions': {
-                        'edit': {
-                            'new_state': 'existing_image',
-                            'fn': function (o) {
-                                $(".image_selectors").slideUp();
-                                $(".existing_image").slideDown();
-                            }
-                        },
-                        'new': {
-                            'new_state': 'new_image_existing',
-                            'fn': function (o) {
-                                $(".image_selectors").slideDown();
-                                $(".existing_image").slideUp();
-                                $("a[data-action='cancel']").hide();
-                            }
-                        }
-                    }
-                },
-
-                'existing_image': {
-                    'fn': function (o) {
-                        $(".existing_image").slideDown();
-                        $(".image_selectors").slideUp();
-
-                        $("#id_generic_media_id").val(app.existing_images['generic']);
-                        $("#id_product_media_id").val(app.existing_images['existing']);
-
-                        $("#product_images img").removeClass("selected");
-                    },
-                    'transitions': {
-                        'change_image': {
-                            'new_state': 'new_image_existing',
-                            'fn': function (o) {
-
-                            }
-                        }
-                    }
-                },
-
-                'new_image_existing': {
-                    'fn': function (o) {
-                        $(".existing_image").slideUp();
-                        $(".image_selectors").slideDown();
-
-                        // show existing list, hide upload
-                        $(".new_image_label").slideDown();
-                        $(".new_image_content").slideUp();
-
-                        $(".existing_images_label").slideUp();
-                        $(".existing_images_content").slideDown();
-                    },
-                    'transitions': {
-                        'cancel': {
-                            'new_state': 'existing_image',
-                            'fn': function (o) {
-
-                            }
-                        },
-                        'upload': {
-                            'new_state': 'new_image_custom',
-                            'fn': function (o) {
-
-                            }
-                        }
-                    }
-                },
-
-                'new_image_custom': {
-                    'fn': function (o) {
-                        $(".existing_image").slideUp();
-                        $(".image_selectors").slideDown();
-
-                        // show upload, hide existing list
-                        $(".new_image_label").slideUp();
-                        $(".new_image_content").slideDown();
-
-                        $(".existing_images_label").slideDown();
-                        $(".existing_images_content").slideUp();
-
-                        // todo move
-                        $("#product_images img").removeClass("selected");
-                        $("#id_product_media_id").val("");
-                    },
-                    'transitions': {
-                        'cancel': {
-                            'new_state': 'existing_image',
-                            'fn': function (o) {
-
-                            }
-                        },
-                        'use_existing': {
-                            'new_state': 'new_image_existing',
-                            'fn': function (o) {
-
-                            }
-                        }
-                    }
-                }
-            };
-
-            state_transition = function (transition, data) {
-                var state = fsm[current_state],
-                    new_state;
-
-                // check if this is a valid transition
-                if (!(transition in state.transitions)) {
-                    return;
-                }
-
-                try {
-                    // get the next state
-                    new_state = fsm[state.transitions[transition].new_state];
-
-                    // execute any transition actions
-                    state.transitions[transition].fn && state.transitions[transition].fn(data || undefined);
-
-                    // execute any state actions
-                    new_state.fn && new_state.fn(data || undefined);
-
-                    // switch states
-                    current_state = state.transitions[transition].new_state;
-
-                } catch (e) {
-                    // abort the transition if any of the actions failed
-                    // rethrowing the culprit exception
-                    throw(e);
-                }
-            };
-
-            return {
-                "transition": state_transition
-            }
-        }());
 
         init = function () {
             $(function() {
@@ -467,11 +448,8 @@
                     "existing": $("#id_product_media_id").val()
                 };
 
-                {% if campaign %}
-                    image_fsm.transition('edit', {});
-                {% else %}
-                    image_fsm.transition('new', {});
-                {% endif %}
+                $(".product_meta").mask();
+                $("#product_name").watermark("Your product name")
 
                 // in case we're dealing with errors on submition,
                 // ensure we're displaying the product that was selected prior
@@ -482,11 +460,6 @@
                     product_generic_image_id: $("#id_generic_media_id").val(),
                     product_generic_image_url: $("#id_generic_media_url").val()
                 });
-
-                // show internal description if it's present
-                if ($("#id_page_description").val() !== "") {
-                    $("#page_description_toggle").click();
-                }
             });
         };
 
@@ -507,8 +480,6 @@
 {% block top_section %}
     <div class="grid_3 prefix_9">
         <ul>
-            <li class="selected">Pages</li>
-            <li>Analytics</li>
         </ul>
     </div>
 {% endblock %}
@@ -516,27 +487,7 @@
 {% block content %}
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <div class="grid_12 product_select">
-            <div class="field">
-                {{ form.name.errors }}
-                <label for="id_name">Page Name:</label>
-                {{ form.name }}
-                <span class="helptext">Select a name for this PinPoint page for your reference.</span>
-            </div>
-
-            <div class="field">
-                <div class="page_description_label">
-                    <a href="" id="page_description_toggle">Add internal description for this page</a>
-                </div>
-
-                <div class="page_description_content" style="display:none">
-                    {{ form.page_description.errors }}
-                    <label for="id_page_description">Page Description:</label>
-                    {{ form.page_description }}
-                    <span class="helptext">Optional internal description for this page.</span>
-                </div>
-            </div>
-
+        <div class="product_select">
             <div class="field">
                 <label for="product_name">Featured Product:</label>
                 <input type="text" id="product_name">
@@ -544,68 +495,70 @@
             </div>
         </div>
 
-        <div class="grid_12 product_meta" style="display:none">
+        <div class="product_meta">
+            <div class="field">
+                <label for="id_name">Page Name:</label>
+                {{ form.name }}
+                {{ form.name.errors }}
+                {% if not form.name.errors %}
+                    <span class="helptext">Select a name for this page for your reference.</span>
+                {% endif  %}
+            </div>
+
+            <label for="image-selector">Featured Image:</label>
             {% if campaign %}
                 <div class="field existing_image">
-                    <label>Currently selected image:</label>
                     <div class="current_image">
-                    {% with first_image=campaign.content_blocks.all|first %}
-                        <img src="{{ first_image.data.get_image.get_url }}" alt="Product Image">
-                    {% endwith %}
+                        {% with first_image=campaign.content_blocks.all|first %}
+                            <img src="{{ first_image.data.get_image.get_url }}">
+                        {% endwith %}
                     </div>
-
-                    <a href="" class="fsm" data-action="change_image">Change Image</a>
                 </div>
             {% endif %}
-
-            <div class="image_selectors">
-                {{ form.non_field_errors }}
-
-                <a href="" class="fsm" data-action="cancel">Cancel and use current image</a>
-
-                <div class="field">
-                    <div class="existing_images_label" style="display:none">
-                        <a href="" class="fsm" data-action="use_existing">Use one of the existing images</a>
-                    </div>
-
-                    <div class="existing_images_content">
-                        <label>Select a featured image:</label>
-                        <div class="existing_images_list">
-                            <ul id="product_images">
-                                <li>
-                                <div id="fine-uploader"></div>
-                                </li>
-                            </ul>
-                        </div>
+            <div class='accordion' id="image-selector">
+                <div class='accordion-header'>
+                    Select an image
+                </div>
+                <div class='accordion-content'>
+                    <div class="existing_images_list">
+                        <ul id="product_images">
+                            <li>
+                            <div id="fine-uploader"></div>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-
-                <div class="field">
-                    <div class="new_image_label">
-                        <a href="" class="fsm" data-action="upload">Upload a different image</a>
-                    </div>
-
-                    <div class="new_image_content" style="display: none">
-                        <label for="custom_image">Choose a different featured image:</label>
-                        <img src="{% static "images/ImageNotAvalable.png" %}" id="uploaded_image" style="display: none" alt="Uploaded Picture">
-                        <span class="helptext">Upload a new image if none of the existing ones suit the new PinPoint page</span>
-                    </div>
+                <div class="accordion-header">
+                    Upload a different image
+                </div>
+                <div class="accordion-content">
+                    <button id="select_new_image" type="button">Select Image</button>
+                    <span id="upload_status"></span>
+                    <img src="" id="uploaded_image" style="display: none">
+                    <span class="helptext">Upload a new image if none of the existing ones suit the new page</span>
                 </div>
             </div>
+            {{ form.non_field_errors }}
 
             <div class="field">
                 {{ form.description.errors }}
-                <label for="id_name">Product Description:</label>
-                {{ form.description }}
-                <span class="helptext">You can tailor product's description that will appear on the PinPoint page.</span>
+                <label for="id_description">Product Description:</label>
+                <div>
+                    {{ form.description }}
+                    <span class="helptext textarea">
+                        You can tailor product's
+                        description that will appear on the page.</span>
+                </div>
             </div>
 
-            <div class="grid_12 actions">
+            <div class="actions">
                 {% for hidden in form.hidden_fields %}
                     {{ hidden }}
                 {% endfor %}
 
-                <input class="button" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} PinPoint Page">
+                <input class="button submit" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} Page">
+                <input class="button preview" type="button" value="Preview Page">
+                <input class="button cancel" type="button" value="Cancel">
             </div>
         </div>
     </form>
