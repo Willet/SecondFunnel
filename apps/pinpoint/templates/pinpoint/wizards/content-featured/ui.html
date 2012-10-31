@@ -59,19 +59,46 @@
             width: auto;
         }
 
+        #product_images {
+            height: 220px;
+            overflow-x: scroll;
+            overflow-y: hidden;
+            white-space: nowrap;
+        }
+
         #product_images ul {
             list-style: none;
             margin-top: 20px;
         }
 
         #product_images li {
-            display: inline;
+            width: 200px;
+            height: 200px;
+            display: inline-block;
+
+            overflow: hidden;
+            vertical-align:top;
+            text-align: center;
+            line-height: 200px;
         }
 
-        #product_images img {
+        #product_images li > img {
+            vertical-align: middle;
             border-bottom: 4px solid #eeeeee;
             padding-bottom: 5px;
-            width: 250px;
+            max-width: 200px;
+            max-height: 200px;
+        }
+
+        #fine-uploader {
+            display: inline-block;
+            width: 200px;
+            line-height: 20px;
+        }
+
+        #fine-uploader .qq-upload-button {
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .current_image img, .new_image_content img {
@@ -90,14 +117,13 @@
             width: 250px;
         }
 
-        #product_images img:hover, #product_images img.selected {
+        #product_images li > img:hover:not(.loading_gif), #product_images img.selected {
             border-bottom: 4px solid #5d84b7;
             cursor: pointer;
         }
 
         .existing_images_list {
             width: 900px;
-            overflow: scroll;
         }
 
         .product_description {
@@ -116,6 +142,10 @@
 
         .field {
             margin-bottom: 30px;
+        }
+
+        .qq-upload-list {
+            display: none;
         }
 
     </style>
@@ -159,12 +189,16 @@
             }
 
             // clear existing image list
-            $("#product_images").html("");
+            images = $("#product_images li");
+            imagesToRemove = images.splice(1, images.length - 1);
+            for (var i = imagesToRemove.length - 1; i >= 0; i--) {
+                $(imagesToRemove[i]).remove();
+            }
 
             // display product media
             for (i in product.media) {
                 $("#product_images").append(
-                    "<li><img data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
+                    "<li><img class='existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
                 );
             }
 
@@ -186,12 +220,20 @@
 
         setUpListeners = function () {
             // GENERAL UI
-            $("#product_images img").live('click', function() {
+            $("#product_images img.existing_image").live('click', function() {
                 $("#product_images img").removeClass("selected");
                 $(this).addClass("selected");
 
                 $("#id_product_media_id").val($(this).data('mid'));
                 $("#id_generic_media_id").val("");
+            });
+
+            $("#product_images img.new_image").live('click', function() {
+                $("#product_images img").removeClass("selected");
+                $(this).addClass("selected");
+
+                $("#id_generic_media_id").val($(this).data('mid'));
+                $("#id_product_media_id").val("");
             });
 
             $("#page_description_toggle").click(function (e) {
@@ -387,15 +429,21 @@
                   csrfToken: $.cookie('csrftoken'),
                   allowedExtensions: ['jpg' ,'png', 'jpeg'],
                   onSubmit: function() {
-                      $(".qq-upload-list li").remove();
+                      $("#fine-uploader").closest('li').after(
+                      "<li><img class='loading_gif' src='{% static "loading.gif" %}'></li>"
+                      );
                   },
                   onComplete: function(id, fileName, response) {
                       var decodedUrl = $(document.createElement('div')).html(response.url).text()
-                      $("#uploaded_image").attr("src", decodedUrl);
-                      $("#uploaded_image").load(function() {
-                          $("#uploaded_image").slideDown();
+                      var gif = $("#product_images .loading_gif");
+                      gif.hide();
+                      gif.removeClass('loading_gif');
+                      gif.addClass('new_image');
+                      gif.attr('src', decodedUrl);
+                      gif.data('mid', response.media_id);
+                      gif.load(function() {
+                          gif.fadeIn(500);
                       });
-                      $("#id_generic_media_id").val(response.media_id);
                   }
                 });
 
@@ -505,7 +553,11 @@
                     <div class="existing_images_content">
                         <label>Select a featured image:</label>
                         <div class="existing_images_list">
-                            <ul id="product_images"></ul>
+                            <ul id="product_images">
+                                <li>
+                                <div id="fine-uploader"></div>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -517,8 +569,6 @@
 
                     <div class="new_image_content" style="display: none">
                         <label for="custom_image">Choose a different featured image:</label>
-                        <div id="fine-uploader">
-                        </div>
                         <img src="{% static "images/ImageNotAvalable.png" %}" id="uploaded_image" style="display: none" alt="Uploaded Picture">
                         <span class="helptext">Upload a new image if none of the existing ones suit the new PinPoint page</span>
                     </div>

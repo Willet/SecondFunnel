@@ -1,5 +1,7 @@
 from django import forms
 
+from apps.assets.models import ProductMedia, GenericMedia
+
 class FeaturedProductWizardForm(forms.Form):
     name = forms.CharField(
         max_length=255,
@@ -45,7 +47,8 @@ class FeaturedProductWizardForm(forms.Form):
         generic_media_id = cleaned_data.get("generic_media_id")
         product_media_id = cleaned_data.get("product_media_id")
 
-        if not generic_media_id and not product_media_id:
+        if not (generic_media_id and GenericMedia.objects.filter(pk=generic_media_id).exists()) and \
+                not (product_media_id and ProductMedia.objects.filter(pk=product_media_id).exists()):
             raise forms.ValidationError("Please either select an existing "
                         "product image or upload a custom one.")
 
