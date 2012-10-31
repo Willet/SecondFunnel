@@ -378,15 +378,19 @@
             $('#page_description_content.accordion').accordion(description_options);
 
             $(".button.preview").click(function(){
-                var $form = $("#create_campaign")
+                var $form = $("#create_campaign");
+                var $campaign_id = $("#id_campaign_id");
                 $.ajax({
+                    async: false,
                     type: 'POST',
                     data: $form.serialize(),
                     url: window.location.href,
                     success: function(response) {
+                        console.log(response);
                         if (response.success) {
                             var url = 'http://' + window.location.host + response.url;
                             window.open(url, "_blank");
+                            $campaign_id.val(response.campaign);
                         } else {
                             $form[0].submit();
                         }
@@ -394,7 +398,11 @@
                 })
             });
             $(".button.cancel").click(function(){
-                window.location.href = "{% url store-admin store.id %}"
+                var cancel = confirm("Are you sure you want to cancel your " +
+                        "changes?")
+                if (cancel) {
+                    window.location.href = "{% url store-admin store.id %}"
+                }
             });
         };
 
@@ -436,8 +444,6 @@
 {% block top_section %}
     <nav class="grid_3 prefix_9">
         <ul>
-            <li class="selected">Pages</li>
-            <li>Analytics</li>
         </ul>
     </nav>
 {% endblock %}

@@ -10,7 +10,7 @@ from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
     FeaturedProductBlock)
 from apps.pinpoint.forms import FeaturedProductWizardForm
 
-def _editing_valid_form(form, product):
+def _editing_valid_form(form, product, preview=False):
     campaign = Campaign.objects.get(id = form.cleaned_data['campaign_id'])
     campaign.name = form.cleaned_data['name']
     campaign.description = form.cleaned_data['page_description']
@@ -38,6 +38,7 @@ def _editing_valid_form(form, product):
     if not block_content in campaign.content_blocks.all():
         campaign.content_blocks.clear()
         campaign.content_blocks.add(block_content)
+    campaign.live = not preview
     campaign.save()
     return campaign
 
@@ -87,7 +88,7 @@ def _form_is_valid(block_type, form, store, preview=False):
     product = Product.objects.get(id = form.cleaned_data['product_id'])
     # we're editing the form
     if form.cleaned_data['campaign_id']:
-        campaign = _editing_valid_form(form, product)
+        campaign = _editing_valid_form(form, product, preview)
 
     else:
         campaign = _creating_valid_form(block_type, form, product, store, preview)
@@ -100,7 +101,8 @@ def _form_is_valid(block_type, form, store, preview=False):
     else:
         response = json.dumps({
             "success": True,
-            "url": reverse('campaign', kwargs={'campaign_id': campaign.id})
+            "url": reverse('campaign', kwargs={'campaign_id': campaign.id}),
+            "campaign": campaign.id
         })
         return HttpResponse(response, mimetype='application/json')
 
