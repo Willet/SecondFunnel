@@ -52,8 +52,8 @@
             margin: 0;
             max-width: none;
             padding: 1px 4px 2px 4px;
-            text-align: left;: -20px;
-            tex-shadow: rgba(0, 0, 0, 0.247059) 0px -1px 0px;
+            text-align: left;
+            text-shadow: rgba(0, 0, 0, 0.247059) 0px -1px 0px;
             vertical-align: baseline;
             white-space: nowrap;
             width: auto;
@@ -198,7 +198,7 @@
             // display product media
             for (i in product.media) {
                 $("#product_images").append(
-                    "<li><img data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
+                    "<li><img class='existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
                 );
             }
 
@@ -220,12 +220,20 @@
 
         setUpListeners = function () {
             // GENERAL UI
-            $("#product_images img:not(.loading_gif)").live('click', function() {
+            $("#product_images img.existing_image").live('click', function() {
                 $("#product_images img").removeClass("selected");
                 $(this).addClass("selected");
 
                 $("#id_product_media_id").val($(this).data('mid'));
                 $("#id_generic_media_id").val("");
+            });
+
+            $("#product_images img.new_image").live('click', function() {
+                $("#product_images img").removeClass("selected");
+                $(this).addClass("selected");
+
+                $("#id_generic_media_id").val($(this).data('mid'));
+                $("#id_product_media_id").val("");
             });
 
             $("#page_description_toggle").click(function (e) {
@@ -430,8 +438,9 @@
                       var gif = $("#product_images .loading_gif");
                       gif.hide();
                       gif.removeClass('loading_gif');
+                      gif.addClass('new_image');
                       gif.attr('src', decodedUrl);
-                      gif.attr('data-mid', response.media_id);
+                      gif.data('mid', response.media_id);
                       gif.load(function() {
                           gif.fadeIn(500);
                       });
