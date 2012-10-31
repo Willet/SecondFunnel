@@ -613,7 +613,7 @@ table.display thead th {
     background: linear-gradient(top, #faa796, #d06c57 5%, #943a28 100%);
 }
 
-.button.disabled {
+.button.disabled, .button.disabled:hover {
     color: #fff;
     background-color: #949494;
     background: -moz-linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
