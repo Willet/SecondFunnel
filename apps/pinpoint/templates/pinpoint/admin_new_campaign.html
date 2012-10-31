@@ -12,7 +12,7 @@
 {% block extra_head %}
     <style type="text/css">
         .block_types {
-
+            height: 400px;
         }
 
         .block_type {
@@ -53,5 +53,9 @@
     {% for block_type in block_types %}
         {% include "pinpoint/snippets/block_type_admin.html" with block_type=block_type linked="True" %}
     {% endfor %}
+    </div>
+    <div class="actions">
+        <input class="button next focus" type="submit" value="Next">
+        <input class="button cancel" type="button" value="Cancel">
     </div>
 {% endblock %}
