@@ -271,7 +271,11 @@
             // set product's proper name
             $("#product_name").val(product.name);
 
-            $("#id_name").val(product.name)
+            if (!o.human_invoked) {
+                $("#id_name").val(o.page_name);
+            } else {
+                $("#id_name").val(product.name);
+            }
 
             if (o.product_description) {
                 // set product's description
@@ -402,6 +406,7 @@
                 // ensure we're displaying the product that was selected prior
                 product_selected({
                     product_id: $("#id_product_id").val(),
+                    page_name: $("#id_name").val(),
                     product_description: $("#id_description").val(),
                     product_image_id: $("#id_product_media_id").val(),
                     product_generic_image_id: $("#id_generic_media_id").val(),
