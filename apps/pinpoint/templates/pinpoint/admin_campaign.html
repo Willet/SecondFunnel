@@ -95,8 +95,8 @@
 
     <div class="grid_12 actions">
         <div class="grid_6 status">
-            <span class="status_note {% if campaign.enabled %}online{% else %}offline{% endif %}">
-            {% if campaign.enabled %}
+            <span class="status_note {% if campaign.live %}online{% else %}offline{% endif %}">
+            {% if campaign.live %}
                 This page is currently visible to anyone.
             {% else %}
                 This page is currently offline. Only you are able to preview it.
@@ -109,7 +109,7 @@
         <div class="grid_5">
             <a href="{% url edit-campaign-admin store_id=campaign.store.id campaign_id=campaign.id %}" class="button">Edit Page</a>
             <a href="{% url campaign campaign_id=campaign.id %}" class="button">View Page</a>
-            {% if not campaign.enabled %}
+            {% if not campaign.live %}
                 <a href="" data-type="ajax" data-action="publish" class="button">Publish</a>
             {% else %}
                 <a href="" data-type="ajax" data-action="save_as_draft" class="button">Take Offline</a>

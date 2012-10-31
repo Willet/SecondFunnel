@@ -2,11 +2,11 @@
 {% load staticfiles %}
 
 {% block title %}
-    {{ block.super }}: New Page
+    New Page
 {% endblock %}
 
 {% block page_title %}
-    {{ block.super }}: New Page
+    New Page
 {% endblock %}
 
 {% block extra_head %}
@@ -17,8 +17,8 @@
 
         .block_type {
             padding-left: 0px;
-            margin-left: 5px;
-            margin-right: 5px;
+            margin-left: 0px;
+            margin-right: 0px;
             text-align: center;
         }
 
@@ -43,15 +43,13 @@
 {% block top_section %}
     <div class="grid_3 prefix_9">
         <ul>
-            <li class="selected">Pages</li>
-            <li>Analytics</li>
         </ul>
     </div>
 {% endblock %}
 
 {% block content %}
-    <h2>Select content block type (change me):</h2>
-    <div class="grid_12 block_types">
+    <h2>Select page focus:</h2>
+    <div class="block_types">
     {% for block_type in block_types %}
         {% include "pinpoint/snippets/block_type_admin.html" with block_type=block_type linked="True" %}
     {% endfor %}

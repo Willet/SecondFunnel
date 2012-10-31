@@ -30,10 +30,15 @@
     {% include "pinpoint/snippets/block_type_admin.html" with block_type=content_block.block_type %}
 
     <div class="grid_8">
-        {% ui_field_label_value "Campaign name:" campaign.name %}
+        {% if campaign.description %}
         {% ui_field_label_value "Campaign description:" campaign.description %}
+        {% endif %}
         {% ui_field_label_value "Featured Product:" content_block.data.product.name %}
-        {% ui_field_label_value "Featured Product Description:" content_block.data.description %}
+
+        <span class="label">Featured Product Description:</span>
+        <p>
+            {{ content_block.data.description }}
+        </p>
 
         <span class="label">Featured Image:</span>
         <div class="featured_image">
