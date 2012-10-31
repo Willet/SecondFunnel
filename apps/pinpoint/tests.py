@@ -147,6 +147,7 @@ class FeaturedProductWizardTests(LiveServerTestCase):
         driver.find_element_by_id("id_name").clear()
         driver.find_element_by_id("id_name").send_keys("newcampaign")
 
+        # search by name
         driver.find_element_by_id("product_name").clear()
         driver.find_element_by_id("product_name").send_keys("HTML5 FOR WEB DESIGNERS")
 
@@ -156,11 +157,23 @@ class FeaturedProductWizardTests(LiveServerTestCase):
 
         time.sleep(1)
 
-        driver.find_element_by_css_selector("#product_images > li:nth-of-type(1) img").click()
+        driver.find_element_by_css_selector("#product_images > li:nth-of-type(2) img").click()
+
+        # search by url
+        driver.find_element_by_id("product_name").clear()
+        driver.find_element_by_id("product_name").send_keys("http://www.abookapart.com/products/html5-for-web-designers")
+
+        time.sleep(1)
+
+        driver.find_element_by_xpath('//html/body/ul/li/a[. = "HTML5 FOR WEB DESIGNERS"]').click()
+
+        time.sleep(1)
+
+        driver.find_element_by_css_selector("#product_images > li:nth-of-type(2) img").click()
 
         driver.find_element_by_css_selector(".actions .button").click()
 
-        driver.find_element_by_css_selector(".actions .button[data-action=publish]").click()
+        driver.find_element_by_id("back_to_admin").click()
 
         body = driver.find_element_by_tag_name('body')
         self.assertIn('PinPoint Admin: A Book Apart', body.text)
