@@ -197,16 +197,28 @@
 
             // display product media
             for (i in product.media) {
-                $("#product_images").append(
-                    "<li><img class='existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
-                );
+                var li = $("<li><img class='existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
+                if (product.media[i].id == o.product_image_id) {
+                    li.children('img').addClass('selected');
+                }
+                $("#product_images").append(li);
+            }
+
+            if (o.product_generic_image_id && o.product_generic_image_url) {
+                $("#fine-uploader").closest('li').after(
+                    "<li><img class='custom_image selected' data-mid='" + o.product_generic_image_id + "' src='" + o.product_generic_image_url + "'></li>");
             }
 
             // set product's proper name
             $("#product_name").val(product.name);
 
-            // set product's description
-            $("#id_description").val(product.description);
+            if (o.product_description) {
+                // set product's description
+                $("#id_description").val(o.product_description);
+            } else {
+                // set product's description
+                $("#id_description").val(product.description);
+            }
 
             // set the id for form submission
             $("#id_product_id").val(product.id);
@@ -226,6 +238,7 @@
 
                 $("#id_product_media_id").val($(this).data('mid'));
                 $("#id_generic_media_id").val("");
+                $("#id_generic_media_url").val("");
             });
 
             $("#product_images img.new_image").live('click', function() {
@@ -233,6 +246,7 @@
                 $(this).addClass("selected");
 
                 $("#id_generic_media_id").val($(this).data('mid'));
+                $("#id_generic_media_url").val($(this).attr('src'));
                 $("#id_product_media_id").val("");
             });
 
@@ -462,7 +476,11 @@
                 // in case we're dealing with errors on submition,
                 // ensure we're displaying the product that was selected prior
                 product_selected({
-                    product_id: $("#id_product_id").val()
+                    product_id: $("#id_product_id").val(),
+                    product_description: $("#id_description").val(),
+                    product_image_id: $("#id_product_media_id").val(),
+                    product_generic_image_id: $("#id_generic_media_id").val(),
+                    product_generic_image_url: $("#id_generic_media_url").val()
                 });
 
                 // show internal description if it's present

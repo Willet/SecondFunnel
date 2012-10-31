@@ -34,6 +34,11 @@ class FeaturedProductWizardForm(forms.Form):
         widget=forms.HiddenInput(),
     )
 
+    generic_media_url = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+
     campaign_id = forms.CharField(
         required=False,
         widget=forms.HiddenInput(),
