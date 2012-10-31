@@ -433,7 +433,7 @@
 {% endblock %}
 
 {% block content %}
-    <form method="post" enctype="multipart/form-data">
+    <form id="create_campaign" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="product_select">
             <div class="field">
