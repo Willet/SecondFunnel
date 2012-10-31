@@ -150,39 +150,6 @@
             display: inline-block;
         }
 
-        /* Accordion styles */
-        #image-selector, #page_description_content {
-            margin-bottom: 20px;
-        }
-        
-        #image-selector.ui-accordion .ui-accordion-content {
-            padding: 1em;
-        }
-
-        #image-selector .ui-state-default,
-        #image-selector .ui-widget-content .ui-state-default,
-        #image-selector .ui-widget-header .ui-state-default {
-            border: 1px solid #6F98AC;
-            background: #6F98AC;
-            color: #fff;
-        }
-
-        #image-selector .ui-state-active,
-        #image-selector .ui-widget-content .ui-state-active,
-        #image-selector .ui-widget-header .ui-state-active {
-            border: 1px solid #235364;
-            background: #235364;
-            color: #eee;
-        }
-
-        #image-selector .ui-state-hover,
-        #image-selector .ui-widget-content .ui-state-hover,
-        #image-selector .ui-widget-header .ui-state-hover {
-            border: 1px solid #336374;
-            background: #336374;
-            color: #eee;
-        }
-
         /* Loadmask */
         .inner_content .loadmask {
             background-color: #f1f1f1;
@@ -367,25 +334,6 @@
                     }
                 }
             });
-            // ACCORDION SETUP
-            var default_accordion_options = {
-                'header': '.accordion-header',
-                'heightStyle': 'content',
-                'collapsible': true
-            };
-
-            var image_options = $.extend(default_accordion_options, {});
-            var description_options = $.extend(default_accordion_options, {
-                'active': false
-            });
-
-            {% if campaign %}
-            image_options = $.extend(image_options, {'active': false});
-            {% endif %}
-
-            $('#image-selector.accordion').accordion(image_options);
-            $('#page_description_content.accordion').accordion(description_options);
-
             $(".button.preview").click(function(){
                 var $form = $("#create_campaign");
                 var $campaign_id = $("#id_campaign_id");
@@ -515,27 +463,13 @@
                     </div>
                 </div>
             {% endif %}
-            <div class='accordion' id="image-selector">
-                <div class='accordion-header'>
-                    Select an image
-                </div>
-                <div class='accordion-content'>
-                    <div class="existing_images_list">
-                        <ul id="product_images">
-                            <li>
-                            <div id="fine-uploader"></div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="accordion-header">
-                    Upload a different image
-                </div>
-                <div class="accordion-content">
-                    <button id="select_new_image" type="button">Select Image</button>
-                    <span id="upload_status"></span>
-                    <img src="" id="uploaded_image" style="display: none">
-                    <span class="helptext">Upload a new image if none of the existing ones suit the new page</span>
+            <div id="image-selector">
+                <div class="existing_images_list">
+                    <ul id="product_images">
+                        <li>
+                        <div id="fine-uploader"></div>
+                        </li>
+                    </ul>
                 </div>
             </div>
             {{ form.non_field_errors }}
