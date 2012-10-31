@@ -11,30 +11,28 @@ from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
 from apps.pinpoint.forms import FeaturedProductWizardForm
 
 def _editing_valid_form(form, product, preview=False):
+    generic_media_id = form.cleaned_data.get("generic_media_id")
+    product_media_id = form.cleaned_data.get("product_media_id")
+
+    has_product_media = product_media_id and \
+            ProductMedia.objects.filter(pk=product_media_id).exists()
     campaign = Campaign.objects.get(id = form.cleaned_data['campaign_id'])
     campaign.name = form.cleaned_data['name']
     campaign.description = form.cleaned_data['page_description']
     block_content = campaign.content_blocks.all()[0]
     block_content.data.product = product
-    if form.cleaned_data['product_media_id']:
-        product_media = ProductMedia.objects.get(
-            pk = form.cleaned_data['product_media_id'])
-
+    # existing product media was selected
+    if has_product_media:
         block_content.data.custom_image = None
-        block_content.data.existing_image = product_media
+        block_content.data.existing_image = ProductMedia.objects.get(
+                pk=product_media_id)
         block_content.data.save()
-
-    elif form.cleaned_data['generic_media_id']:
-        try:
-            custom_image = GenericMedia.objects.get(
-                pk = form.cleaned_data['generic_media_id'])
-        except GenericMedia.DoesNotExist:
-            # missing media object. deal with this how?
-            pass
-        else:
-            block_content.data.existing_image = None
-            block_content.data.custom_image = custom_image
-            block_content.data.save()
+    # an image was uploaded (the form checks that one of these must exist)
+    else:
+        block_content.data.existing_image = None
+        block_content.data.custom_image = GenericMedia.objects.get(
+                pk=generic_media_id)
+        block_content.data.save()
     if not block_content in campaign.content_blocks.all():
         campaign.content_blocks.clear()
         campaign.content_blocks.add(block_content)
@@ -44,27 +42,24 @@ def _editing_valid_form(form, product, preview=False):
 
 
 def _creating_valid_form(block_type, form, product, store, preview=False):
+    generic_media_id = form.cleaned_data.get("generic_media_id")
+    product_media_id = form.cleaned_data.get("product_media_id")
+
+    has_product_media = product_media_id and \
+            ProductMedia.objects.filter(pk=product_media_id).exists()
+
     featured_product_data = FeaturedProductBlock(
         product = product,
         description = form.cleaned_data['description']
     )
     # existing product media was selected
-    if form.cleaned_data['product_media_id']:
-        product_media = ProductMedia.objects.get(
-            pk = form.cleaned_data['product_media_id'])
-
-        featured_product_data.existing_image = product_media
-
-    # handle file upload
-    elif form.cleaned_data['generic_media_id']:
-        try:
-            custom_image = GenericMedia.objects.get(
-                pk = form.cleaned_data['generic_media_id'])
-        except GenericMedia.DoesNotExist:
-            # missing media object. deal with this how?
-            pass
-        else:
-            featured_product_data.custom_image = custom_image
+    if has_product_media:
+        featured_product_data.existing_image = ProductMedia.objects.get(
+                pk=product_media_id)
+    # an image was uploaded (the form checks that one of these must exist)
+    else:
+        featured_product_data.custom_image = GenericMedia.objects.get(
+                pk=generic_media_id)
     featured_product_data.save()
     block_content = BlockContent(
         block_type = block_type,

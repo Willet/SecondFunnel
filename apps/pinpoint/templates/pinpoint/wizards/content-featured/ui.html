@@ -10,6 +10,8 @@
 {% endblock %}
 
 {% block extra_head %}
+    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/fileuploader.css" %}">
     <style type="text/css">
         .product_select {
 
@@ -58,19 +60,47 @@
             width: auto;
         }
 
+        #product_images {
+            height: 220px;
+            overflow-x: scroll;
+            overflow-y: hidden;
+            white-space: nowrap;
+            margin: 0;
+        }
+
         #product_images ul {
             list-style: none;
             margin-top: 20px;
         }
 
         #product_images li {
-            display: inline;
+            width: 200px;
+            height: 200px;
+            display: inline-block;
+
+            overflow: hidden;
+            vertical-align:top;
+            text-align: center;
+            line-height: 200px;
         }
 
-        #product_images img {
+        #product_images li > img {
+            vertical-align: middle;
             border-bottom: 4px solid #eeeeee;
             padding-bottom: 5px;
-            width: 250px;
+            max-width: 200px;
+            max-height: 200px;
+        }
+
+        #fine-uploader {
+            display: inline-block;
+            width: 200px;
+            line-height: 20px;
+        }
+
+        #fine-uploader .qq-upload-button {
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .current_image img, .new_image_content img {
@@ -89,18 +119,9 @@
             width: 250px;
         }
 
-        #product_images img:hover, #product_images img.selected {
+        #product_images li > img:hover:not(.loading_gif), #product_images img.selected {
             border-bottom: 4px solid #5d84b7;
             cursor: pointer;
-        }
-
-        .existing_images_list {
-            overflow: scroll;
-            max-height: 450px
-        }
-
-        .product_description {
-
         }
 
         .helptext {
@@ -133,7 +154,7 @@
         #image-selector, #page_description_content {
             margin-bottom: 20px;
         }
-
+        
         #image-selector.ui-accordion .ui-accordion-content {
             padding: 1em;
         }
@@ -207,6 +228,10 @@
             position: relative;
             z-index: 102;
         }
+
+        .qq-upload-list {
+            display: none;
+        }
     </style>
 {% endblock %}
 
@@ -217,6 +242,7 @@
     <script src="{% static "js/jquery.loadmask.min.js" %}"></script>
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
     <link rel="stylesheet" href="{% static "css/jquery.loadmask.css" %}">
+    <script src="{% static "js/fileuploader.js" %}"></script>
 
     <script>
 
@@ -252,13 +278,24 @@
             }
 
             // clear existing image list
-            $("#product_images").html("");
+            images = $("#product_images li");
+            imagesToRemove = images.splice(1, images.length - 1);
+            for (var i = imagesToRemove.length - 1; i >= 0; i--) {
+                $(imagesToRemove[i]).remove();
+            }
 
             // display product media
             for (i in product.media) {
-                $("#product_images").append(
-                    "<li><img data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
-                );
+                var li = $("<li><img class='existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
+                if (product.media[i].id == o.product_image_id) {
+                    li.children('img').addClass('selected');
+                }
+                $("#product_images").append(li);
+            }
+
+            if (o.product_generic_image_id && o.product_generic_image_url) {
+                $("#fine-uploader").closest('li').after(
+                    "<li><img class='custom_image selected' data-mid='" + o.product_generic_image_id + "' src='" + o.product_generic_image_url + "'></li>");
             }
 
             $("#product_images").find("[data-mid='" + media_id  + "']")
@@ -269,8 +306,13 @@
 
             $("#id_name").val(product.name)
 
-            // set product's description
-            $("#id_description").val(product.description);
+            if (o.product_description) {
+                // set product's description
+                $("#id_description").val(o.product_description);
+            } else {
+                // set product's description
+                $("#id_description").val(product.description);
+            }
 
             // set the id for form submission
             $("#id_product_id").val(product.id);
@@ -278,28 +320,24 @@
             $(".product_meta").unmask();
         };
 
-        setUploadStatus = function(color, text, fade) {
-            if (typeof(fade) === undefined) {
-                fade = false;
-            }
-            var status = $("#upload_status");
-            status.css('color', color);
-            status.stop(true, true);
-            status.show();
-            status.text(text);
-            if (fade) {
-                status.fadeOut(1000);
-            }
-        }
-
         setUpListeners = function () {
             // GENERAL UI
-            $("#product_images img").live('click', function() {
+            $("#product_images img.existing_image").live('click', function() {
                 $("#product_images img").removeClass("selected");
                 $(this).addClass("selected");
 
                 $("#id_product_media_id").val($(this).data('mid'));
                 $("#id_generic_media_id").val("");
+                $("#id_generic_media_url").val("");
+            });
+
+            $("#product_images img.new_image").live('click', function() {
+                $("#product_images img").removeClass("selected");
+                $(this).addClass("selected");
+
+                $("#id_generic_media_id").val($(this).data('mid'));
+                $("#id_generic_media_url").val($(this).attr('src'));
+                $("#id_product_media_id").val("");
             });
 
             // PRODUCT SEARCH AUTOCOMPLETE
@@ -329,35 +367,6 @@
                     }
                 }
             });
-            $("#image_form").ajaxForm({
-                url: "{% url ajax-upload-image %}",
-                success: function(data) {
-                    if (data.success != false) {
-                        setUploadStatus('#0F0', 'Done', true);
-                        console.log(data);
-                        $("#uploaded_image").attr("src", data.url);
-                        $("#uploaded_image").load(function() {
-                            $("#uploaded_image").slideDown();
-                        });
-                        $("#id_generic_media_id").val(data.media_id);
-                    } else {
-                        setUploadStatus('#F00', 'Error: ');
-                    }
-
-                }, error: function(data) {
-                    setUploadStatus('#F00', 'Error: ');
-                }
-            });
-
-            $("#select_new_image").click(function() {
-                $("#image_form input[type=file]").click();
-            });
-
-            $("#image_form input[type=file]").change(function() {
-                setUploadStatus('#EE9A00', 'Uploading...');
-                $("#image_form").submit();
-            });
-
             // ACCORDION SETUP
             var default_accordion_options = {
                 'header': '.accordion-header',
@@ -409,6 +418,29 @@
         init = function () {
             $(function() {
                 setUpListeners();
+                var uploader = new qq.FileUploader({
+                  element: document.getElementById('fine-uploader'),
+                  action: '{% url ajax-upload-image %}',
+                  csrfToken: $.cookie('csrftoken'),
+                  allowedExtensions: ['jpg' ,'png', 'jpeg'],
+                  onSubmit: function() {
+                      $("#fine-uploader").closest('li').after(
+                      "<li><img class='loading_gif' src='{% static "loading.gif" %}'></li>"
+                      );
+                  },
+                  onComplete: function(id, fileName, response) {
+                      var decodedUrl = $(document.createElement('div')).html(response.url).text()
+                      var gif = $("#product_images .loading_gif");
+                      gif.hide();
+                      gif.removeClass('loading_gif');
+                      gif.addClass('new_image');
+                      gif.attr('src', decodedUrl);
+                      gif.data('mid', response.media_id);
+                      gif.load(function() {
+                          gif.fadeIn(500);
+                      });
+                  }
+                });
 
                 // save existing image settings
                 app.existing_images = {
@@ -422,7 +454,11 @@
                 // in case we're dealing with errors on submition,
                 // ensure we're displaying the product that was selected prior
                 product_selected({
-                    product_id: $("#id_product_id").val()
+                    product_id: $("#id_product_id").val(),
+                    product_description: $("#id_description").val(),
+                    product_image_id: $("#id_product_media_id").val(),
+                    product_generic_image_id: $("#id_generic_media_id").val(),
+                    product_generic_image_url: $("#id_generic_media_url").val()
                 });
             });
         };
@@ -442,18 +478,15 @@
 {% endblock %}
 
 {% block top_section %}
-    <nav class="grid_3 prefix_9">
+    <div class="grid_3 prefix_9">
         <ul>
         </ul>
-    </nav>
+    </div>
 {% endblock %}
 
 {% block content %}
-    <form id="image_form" style="display:none" method="POST" enctype="multipart/form-data">
-        <input type="file" id="custom_image" name="image">
-    </form>
-
-    <form id="create_campaign" action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
         <div class="product_select">
             <div class="field">
                 <label for="product_name">Featured Product:</label>
@@ -488,7 +521,11 @@
                 </div>
                 <div class='accordion-content'>
                     <div class="existing_images_list">
-                        <ul id="product_images"></ul>
+                        <ul id="product_images">
+                            <li>
+                            <div id="fine-uploader"></div>
+                            </li>
+                        </ul>
                     </div>
                 </div>
                 <div class="accordion-header">
@@ -505,7 +542,7 @@
 
             <div class="field">
                 {{ form.description.errors }}
-                <label for="id_name">Product Description:</label>
+                <label for="id_description">Product Description:</label>
                 <div>
                     {{ form.description }}
                     <span class="helptext textarea">

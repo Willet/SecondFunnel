@@ -35,6 +35,11 @@
         #pageList_wrapper {
             padding-top: 20px;
         }
+
+        #pageList .toggle-status-button {
+            vertical-align: none;
+            height: 25px;
+        }
     </style>
 {% endblock %}
 
@@ -104,12 +109,12 @@
 {% endblock %}
 
 {% block top_section %}
-    <nav class="grid_3 prefix_9">
+    <div class="grid_3 prefix_9">
         <ul>
             <li class="selected">Pages</li>
             <li>Analytics</li>
         </ul>
-    </nav>
+    </div>
 {% endblock %}
 
 {% block content %}

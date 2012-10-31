@@ -96,21 +96,3 @@ def campaign(request, campaign_id):
         "columns": range(4),
         "preview": not campaign_instance.live
     }, context_instance=RequestContext(request))
-
-
-def generic_page(request, product_id):
-    product = get_object_or_404(Product, pk=product_id)
-    store = product.store
-    block_type = BlockType(name="generic")
-    block = BlockContent(
-            block_type=block_type,
-            content_type=ContentType.objects.get_for_model(Product),
-            object_id=product.id)
-
-    return render_to_response('pinpoint/campaign.html', {
-        "campaign": {
-            "store": store,
-        },
-        "columns": range(4),
-        "content": block
-    }, context_instance=RequestContext(request))
