@@ -15,11 +15,17 @@ def featured_product_wizard(request, store, block_type, campaign=None):
         form = FeaturedProductWizardForm(request.POST, request.FILES)
 
         if form.is_valid():
-            product = Product.objects.get(id=form.cleaned_data['product_id'])
+            product = Product.objects.get(pk=form.cleaned_data['product_id'])
+
+            generic_media_id = form.cleaned_data.get("generic_media_id")
+            product_media_id = form.cleaned_data.get("product_media_id")
+
+            has_product_media = product_media_id and \
+                    ProductMedia.objects.filter(pk=product_media_id).exists()
 
             # we're editing the form
             if form.cleaned_data['campaign_id']:
-                campaign = Campaign.objects.get(id=form.cleaned_data['campaign_id'])
+                campaign = Campaign.objects.get(pk=form.cleaned_data['campaign_id'])
 
                 campaign.name = form.cleaned_data['name']
                 campaign.description = form.cleaned_data['page_description']
@@ -27,24 +33,18 @@ def featured_product_wizard(request, store, block_type, campaign=None):
                 block_content = campaign.content_blocks.all()[0]
                 block_content.data.product = product
 
-                if form.cleaned_data['product_media_id']:
-                    product_media = ProductMedia.objects.get(
-                        pk=form.cleaned_data['product_media_id'])
-
+                # existing product media was selected
+                if has_product_media:
                     block_content.data.custom_image = None
-                    block_content.data.existing_image = product_media
+                    block_content.data.existing_image = ProductMedia.objects.get(
+                            pk=product_media_id)
                     block_content.data.save()
-
-                elif form.cleaned_data['generic_media_id']:
-                    try:
-                        custom_image = GenericMedia.objects.get(pk=form.cleaned_data['generic_media_id'])
-                    except GenericMedia.DoesNotExist:
-                        # missing media object. deal with this how?
-                        pass
-                    else:
-                        block_content.data.existing_image = None
-                        block_content.data.custom_image = custom_image
-                        block_content.data.save()
+                # an image was uploaded (the form checks that one of these must exist)
+                else:
+                    block_content.data.existing_image = None
+                    block_content.data.custom_image = GenericMedia.objects.get(
+                            pk=generic_media_id)
+                    block_content.data.save()
 
                 if not block_content in campaign.content_blocks.all():
                     campaign.content_blocks.clear()
@@ -59,21 +59,13 @@ def featured_product_wizard(request, store, block_type, campaign=None):
                 )
 
                 # existing product media was selected
-                if form.cleaned_data['product_media_id']:
-                    product_media = ProductMedia.objects.get(
-                        pk=form.cleaned_data['product_media_id'])
-
-                    featured_product_data.existing_image = product_media
-
-                # handle file upload
-                elif form.cleaned_data['generic_media_id']:
-                    try:
-                        custom_image = GenericMedia.objects.get(pk=form.cleaned_data['generic_media_id'])
-                    except GenericMedia.DoesNotExist:
-                        # missing media object. deal with this how?
-                        pass
-                    else:
-                        featured_product_data.custom_image = custom_image
+                if has_product_media:
+                    featured_product_data.existing_image = ProductMedia.objects.get(
+                            pk=product_media_id)
+                # an image was uploaded (the form checks that one of these must exist)
+                else:
+                    featured_product_data.custom_image = GenericMedia.objects.get(
+                            pk=generic_media_id)
 
                 featured_product_data.save()
 
@@ -81,7 +73,7 @@ def featured_product_wizard(request, store, block_type, campaign=None):
                     block_type=block_type,
                     content_type=ContentType.objects.get_for_model(
                         FeaturedProductBlock),
-                    object_id=featured_product_data.id
+                    object_id=featured_product_data.pk
                 )
 
                 campaign = Campaign(
@@ -97,7 +89,7 @@ def featured_product_wizard(request, store, block_type, campaign=None):
 
             return HttpResponseRedirect(
                 reverse('campaign-overview-admin',
-                    kwargs={'store_id': store.id, 'campaign_id': campaign.id})
+                    kwargs={'store_id': store.pk, 'campaign_id': campaign.pk})
             )
     else:
         if campaign:
