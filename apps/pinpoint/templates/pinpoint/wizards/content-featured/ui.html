@@ -243,9 +243,19 @@
                 $("#product_images").append(li);
             }
 
-            if (o.product_generic_image_id && o.product_generic_image_url) {
-                $("#fine-uploader").closest('li').after(
-                    "<li><img class='custom_image selected' data-mid='" + o.product_generic_image_id + "' src='" + o.product_generic_image_url + "'></li>");
+            if (o.product_generic_image_list) {
+                var uploadedImages = o.product_generic_image_list
+                    .split("|")
+                    .map(function(str) {
+                        var s = str.split("\\"); return {url: s[0], id: s[1]};
+                    });
+                uploadedImages.map(function(img) {
+                    var image = $("<li><img class='new_image' data-mid='" + img.id + "' src='" + img.url + "'></li>");
+                    if (o.product_generic_image_id == img.id) {
+                        image.children('img').addClass('selected')
+                    }
+                    $("#fine-uploader").closest('li').after(image);
+                });
             }
 
             $("#product_images").find("[data-mid='" + media_id  + "']")
@@ -282,7 +292,6 @@
 
                 $("#id_product_media_id").val($(this).data('mid'));
                 $("#id_generic_media_id").val("");
-                $("#id_generic_media_url").val("");
             });
 
             $("#product_images img.new_image").live('click', function() {
@@ -290,7 +299,6 @@
                 $(this).addClass("selected");
 
                 $("#id_generic_media_id").val($(this).data('mid'));
-                $("#id_generic_media_url").val($(this).attr('src'));
                 $("#id_product_media_id").val("");
             });
 
@@ -344,6 +352,20 @@
 
         init = function () {
             $(function() {
+                $(".product_meta").mask();
+                $("#product_name").watermark("Your product name")
+
+                // in case we're dealing with errors on submition,
+                // ensure we're displaying the product that was selected prior
+                product_selected({
+                    product_id: $("#id_product_id").val(),
+                    page_name: $("#id_name").val(),
+                    product_description: $("#id_description").val(),
+                    product_image_id: $("#id_product_media_id").val(),
+                    product_generic_image_id: $("#id_generic_media_id").val(),
+                    product_generic_image_list: $("#id_generic_media_list").val()
+                });
+
                 setUpListeners();
                 var uploader = new qq.FileUploader({
                   element: document.getElementById('fine-uploader'),
@@ -366,6 +388,8 @@
                       gif.load(function() {
                           gif.fadeIn(500);
                       });
+                      $("#id_generic_media_list").val($('#product_images img.new_image').map(
+                          function(){return $(this).attr('src') + "\\" + $(this).data('mid');}).toArray().join("|"));
                   }
                 });
 
@@ -374,20 +398,6 @@
                     "generic": $("#id_generic_media_id").val(),
                     "existing": $("#id_product_media_id").val()
                 };
-
-                $(".product_meta").mask();
-                $("#product_name").watermark("Your product name")
-
-                // in case we're dealing with errors on submition,
-                // ensure we're displaying the product that was selected prior
-                product_selected({
-                    product_id: $("#id_product_id").val(),
-                    page_name: $("#id_name").val(),
-                    product_description: $("#id_description").val(),
-                    product_image_id: $("#id_product_media_id").val(),
-                    product_generic_image_id: $("#id_generic_media_id").val(),
-                    product_generic_image_url: $("#id_generic_media_url").val()
-                });
             });
         };
 
