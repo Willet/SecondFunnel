@@ -85,7 +85,11 @@ def campaign_analytics_admin(request, campaign_id):
 
 @login_required
 def store_analytics_admin(request, store_id):
-    pass
+    store = get_object_or_404(Store, pk=store_id)
+
+    return render_to_response('pinpoint/admin_analytics.html', {
+        'store': store
+    }, context_instance=RequestContext(request))
 
 
 def campaign(request, campaign_id):
