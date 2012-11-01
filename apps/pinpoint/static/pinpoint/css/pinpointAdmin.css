@@ -307,21 +307,6 @@ li a,
     position: absolute;
     overflow: hidden;
 }
-
-.preview {
-    float: right;
-    padding: 0;
-    width: 450px;
-    height: 307px;
-    overflow: hidden;
-}
-
-
-.preview img {
-    display: block;
-    margin: auto;
-}
-
 ul.boxTopNav li {
     padding-right: 20px;
     list-style: none;
@@ -628,7 +613,7 @@ table.display thead th {
     background: linear-gradient(top, #faa796, #d06c57 5%, #943a28 100%);
 }
 
-.button.disabled {
+.button.disabled, .button.disabled:hover {
     color: #fff;
     background-color: #949494;
     background: -moz-linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
@@ -638,10 +623,6 @@ table.display thead th {
     background: -ms-linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
     background: linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
     cursor: default;
-}
-
-.button.cancel {
-    padding: 5px;
 }
 
 #pageList .button {
@@ -669,4 +650,9 @@ font-weight: 700;
 
 #pageList_wrapper input {
     padding: 2px;
+}
+
+#pageList_filter {
+    position: relative;
+    top: -10px;
 }

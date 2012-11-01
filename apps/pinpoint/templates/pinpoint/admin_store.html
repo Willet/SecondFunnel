@@ -3,7 +3,7 @@
 {% load humanize %}
 
 {% block page_title %}
-    {{ block.super }}: {{ store }}
+    {{ store }}
 {% endblock %}
 
 {% block extra_head %}
@@ -35,11 +35,6 @@
         #pageList_wrapper {
             padding-top: 20px;
         }
-
-        #pageList .toggle-status-button {
-            vertical-align: none;
-            height: 25px;
-        }
     </style>
 {% endblock %}
 
@@ -48,52 +43,68 @@
 {% endblock %}
 
 {% block document_ready %}
-    var dataRowOptions = { sWidth: '5px', bSortable: false },
-        pageListTable = $("#pageList").dataTable({
-            "bScrollInfinite": true,
-            "bScrollCollapse": true,
-            "sScrollY": "400px",
-            "bPaginate": false,
-            "fnDrawCallback": function() {
-                $("#pageList tr.even").removeClass('even').addClass('odd');
-            },
-            "bAutoWidth": false,
-            "aoColumns" : [
-                null,
-                null,
-                null,
-                dataRowOptions,
-                dataRowOptions,
-                null,
-                dataRowOptions
-            ],
-            "aaSorting": [[5, "desc"]]
-        });
+            jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+                "timestamp-numeric-pre": function ( a ) {
+                    var x = a.match(/data-timestamp="*(-?[0-9\.]+)/)[1];
+                    return parseFloat( x );
+                },
 
-    var ajax_urls = {
-        "save_as_draft": "{% url ajax-campaign-save-draft %}",
-        "publish": "{% url ajax-campaign-publish %}"
-    };
+                "timestamp-numeric-asc": function ( a, b ) {
+                    return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+                },
 
-    $("button[data-type='ajax']").click(function (e) {
-        e.preventDefault();
-
-        $.ajax({
-            url: ajax_urls[$(this).data("action")],
-            type: "POST",
-            dataType: 'json',
-            data: {'campaign_id': $(this).data("content")},
-            success: function(data) {
-                if (data.success) {
-                    window.location.href = "{% url store-admin store.id %}";
+                "timestamp-numeric-desc": function ( a, b ) {
+                    return ((a < b) ? 1 : ((a > b) ? -1 : 0));
                 }
-            }
-        });
-    });
+            });
 
-    $("#pageList_filter input").unbind("keyup").keyup(function() {
-        pageListTable.fnFilter( this.value, 0 );
-    })
+            var dataRowOptions = { sWidth: '5px', bSortable: false },
+                pageListTable = $("#pageList").dataTable({
+                    "bScrollInfinite": true,
+                    "bScrollCollapse": true,
+                    "sScrollY": "400px",
+                    "bPaginate": false,
+                    "fnDrawCallback": function() {
+                        $("#pageList tr.even").removeClass('even').addClass('odd');
+                    },
+                    "bAutoWidth": false,
+                    "aoColumns" : [
+                        null,
+                        { "sType": "timestamp-numeric"},
+                        dataRowOptions,
+                        dataRowOptions,
+                    ],
+                    "aaSorting": [[1, "desc"]]
+                });
+
+            var ajax_urls = {
+                "save_as_draft": "{% url ajax-campaign-save-draft %}",
+                "publish": "{% url ajax-campaign-publish %}"
+            };
+
+            $("button[data-type='ajax']").click(function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: ajax_urls[$(this).data("action")],
+                    type: "POST",
+                    dataType: 'json',
+                    data: {'campaign_id': $(this).data("content")},
+                    success: function(data) {
+                        if (data.success) {
+                            window.location.href = "{% url store-admin store.id %}";
+                        }
+                    }
+                });
+            });
+
+            $("#pageList_filter input").unbind("keyup").keyup(function() {
+                pageListTable.fnFilter( this.value, 0 );
+            })
+
+            $("ul.messages li").on('click', function() {
+                $(this).slideUp();
+            });
 {% endblock %}
 
 {% block top_section %}
@@ -111,34 +122,23 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Description</th>
                 <th>Date Modified</th>
                 <th></th>
-                <th></th>
-                <th>Status</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
             {% for campaign in store.campaign_set.all %}
+            {% if campaign.live %}
             <tr>
-                <td><div><a href="{% url campaign-overview-admin campaign.store.id campaign.id %}">{{ campaign.name }}</a></div></td>
-                <td><div>{{ campaign.description|truncatewords:10 }}</div></td>
-                <td><div>{{ campaign.last_modified|naturalday }}</div></td>
+                <td><div><a href="
+                {% url edit-campaign-admin campaign.store.id campaign.id %}"
+                        >{{ campaign.name }}</a></div></td>
+                <td><div data-timestamp='{{ campaign.last_modified|date:"U" }}'>{{ campaign.last_modified|naturalday }}</div></td>
                 <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
                 <td><div><a href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
-
-                <td>
-                    <div class="{% if campaign.enabled %}online{% else %}offline{% endif %}">
-                    {% if campaign.enabled %}Online{% else %}Offline{% endif %}
-                    </div>
-                </td>
-                {% if campaign.enabled %}
-                    <td><div><button class="toggle-status-button" data-type="ajax" data-action="save_as_draft" data-content="{{ campaign.id }}">Take Offline</button></div></td>
-                {% else %}
-                    <td><div><button class="toggle-status-button" data-type="ajax" data-action="publish" data-content="{{ campaign.id }}">Publish</button></div></td>
-                {% endif %}
             </tr>
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>

@@ -25,7 +25,7 @@ def campaign_publish(request):
     return modify_campaign(request, True)
 
 
-def modify_campaign(request, enabled):
+def modify_campaign(request, live):
     if not request.method == 'POST':
         return ajax_error()
 
@@ -41,7 +41,7 @@ def modify_campaign(request, enabled):
         if not request.user in campaign.store.staff.all():
             return ajax_error()
 
-        campaign.enabled = enabled
+        campaign.live = live
         campaign.save()
 
     return ajax_success()
