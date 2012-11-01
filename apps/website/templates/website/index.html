@@ -1,48 +1,7 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-    <head>
-        <title> Second Funnel </title>
-        <link href="css/secondFunnelStyles.css" rel="stylesheet" type="text/css">
-        <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300' rel='stylesheet' type='text/css'>
-        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,600' rel='stylesheet' type='text/css'>
-        <link href='http://fonts.googleapis.com/css?family=PT+Sans:400,700' rel='stylesheet' type='text/css'>
-        <!--[if IE]>
-        <link href="css/secondFunnelStylesIE.css" rel="stylesheet" type="text/css">
-        <![endif]-->
-        
-        <!-- Typekit fonts -->
-        <script type="text/javascript" src="//use.typekit.net/dnu4mxt.js"></script>
-        <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
-        
-        
-        <!-- *** To include the typekit fonts, uncomment the below link: *** -->
-
-        <link href="css/typekit.css" rel="stylesheet" type="text/css">
-    </head>
-
-    <body>
-        
-        <div class="banner">
-            <div class="body">
-                <a href="index.html">
-                	<img class="title" src="imgs/logo.png">
-                </a>
-                
-                <div class="nav">
-                    <ul>
-                        <li><a href="why.html">Why Second Funnel?</a></li>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="contact.html">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="banner arrow bottom">
-                </div>
-                <div class="banner arrow top">
-                </div>
-            </div>
-        </div>
-        
-        <div class="area one"> 
+{% extends "website/base.html" %}
+{% load staticfiles %}
+{% block content %}
+        <div class="area one">
             <div class="body">
                 <div class="text">
                     <h2> Turn social visitors into paying customers.</h2> <br>
@@ -50,9 +9,11 @@
                         A social marketing tool for online retailers, Second Funnel
                         is the easiest way to turn social browsers into shoppers.
                     </p>
-                    <span class="getStarted"><a href="contact.html">Get Started</a></span>
+                    <span class="getStarted">
+                        <a href="{% url website-contact %}">Get Started</a>
+                    </span>
                 </div>
-                <img src="imgs/mac-video.png">
+                <img src="{% static 'website/imgs/mac-video.png' %}">
             </div>
         </div>
         
@@ -70,7 +31,7 @@
                     </p> <br>
                 </div>
                 
-                <img src="imgs/second-funnel-cycle.png">
+                <img src="{% static 'website/imgs/second-funnel-cycle.png' %}">
             </div>
         </div>
         
@@ -88,7 +49,7 @@
                     </p> <br>
                 </div>
                 
-                <img src="imgs/social-to-pinpoint.png">
+                <img src="{% static 'website/imgs/social-to-pinpoint.png' %}">
             </div>
         </div>
         
@@ -106,7 +67,7 @@
                     </p>
                 </div>
                 
-                <img src="imgs/discover-interests.png">
+                <img src="{% static 'website/imgs/discover-interests.png' %}">
             </div>
         </div>
         
@@ -125,7 +86,7 @@
                     </p>
                 </div>
                 
-                <img src="imgs/conversations.png">
+                <img src="{% static 'website/imgs/conversations.png' %}">
             </div>
         </div>
         
@@ -141,7 +102,7 @@
                     </p>
                 </div>
                 
-                <img src="imgs/mobile.png">
+                <img src="{% static 'website/imgs/mobile.png' %}">
             </div>
         </div>
         
@@ -157,29 +118,11 @@
                     
                     <div>
                         <span class="getStarted">
-                            <a href="contact.html">Get Started</a>
+                            <a href="{% url website-contact %}">Get Started</a>
                         </span>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="bottom area">
-            <div class="body">
-                    
-                <div class="nav">
-                    <ul>
-                        <li><a href="why.html">Why Second Funnel?</a></li>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="contact.html">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="copyright">
-                    <span>&copy; 2012 Willet, Inc. All rights reserved.</span>
-                </div>
-            </div>
-        </div>
-        
-    </body>
-
-</html>
+{% endblock content %}

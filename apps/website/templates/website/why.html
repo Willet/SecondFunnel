@@ -1,49 +1,9 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{% extends "website/base.html" %}
+{% load staticfiles %}
+{% block title %}{{ block.super }} | Why Second Funnel?{% endblock title %}
 
-    <head>
-        <title> Why Second Funnel? </title> 
-        <link href="css/secondFunnelStyles.css" rel="stylesheet" type="text/css">
-        <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300' rel='stylesheet' type='text/css'>
-        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,600' rel='stylesheet' type='text/css'>
-        <link href='http://fonts.googleapis.com/css?family=PT+Sans:400,700' rel='stylesheet' type='text/css'>
-        <!--[if IE]>
-        <link href="css/secondFunnelStylesIE.css" rel="stylesheet" type="text/css">
-        <![endif]-->
-        
-        <!-- Typekit fonts -->
-        <script type="text/javascript" src="//use.typekit.net/dnu4mxt.js"></script>
-        <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
-        
-        
-        <!-- *** To include the typekit fonts, uncomment the below link: *** -->
-
-        <link href="css/typekit.css" rel="stylesheet" type="text/css">
-        
-    </head>
-
-    <body>
-        
-        <div class="banner">
-            <div class="body">
-                <a href="index.html">
-                	<img class="title" src="imgs/logo.png">
-                </a>
-                
-                <div class="nav">
-                    <ul>
-                        <li><a href="why.html">Why Second Funnel?</a></li>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="contact.html">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="banner arrow bottom">
-                </div>
-                <div class="banner arrow top">
-                </div>
-            </div>
-        </div>
-        
-        <div class="why area one"> 
+{% block content %}
+        <div class="why area one">
             <div class="body">
                 <div class="text">
                     <h2>"Too often engagement doesn't bring customers closer to conversion."</h2>
@@ -63,7 +23,7 @@
                     </p> <br>
                 </div>
                 
-                <img src="imgs/conversion.png">
+                <img src="{% static 'website/imgs/conversion.png' %}">
             </div>
         </div>
         
@@ -78,7 +38,7 @@
                     </p> <br>
                 </div>
                 
-                <img src="imgs/discovery.png">
+                <img src="{% static 'website/imgs/discovery.png' %}">
             </div>
         </div>
         
@@ -93,7 +53,7 @@
                     </p>
                 </div>
                 
-                <img src="imgs/buy-or-leave.png">
+                <img src="{% static 'website/imgs/buy-or-leave.png' %}">
             </div>
         </div>
         
@@ -107,26 +67,8 @@
                         A missed sale often means no follow up. Purchase preferences are unknown, and without email capture, one-to-one communication is impossible.                    </p>
                 </div>
                 
-                <img src="imgs/conversations.png">
+                <img src="{% static 'website/imgs/conversations.png' %}">
             </div>
         </div>
         
-        <div class="why bottom area">
-            <div class="body">
-                    
-                <div class="nav">
-                    <ul>
-                        <li><a href="why.html">Why Second Funnel?</a></li>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="contact.html">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="copyright">
-                    <span>&copy; 2012 Willet, Inc. All rights reserved.</span>
-                </div>
-            </div>
-        </div>
-        
-    </body>
-
-</html>
+{% endblock content %}
