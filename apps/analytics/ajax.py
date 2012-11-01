@@ -74,21 +74,44 @@ def analytics_pinpoint(request):
             }
         },
 
-        "daily": []
+        "daily": {}
     }
 
     # calculate totals and set daily data points for this data set
     for data in analytics_data:
+        isodate = data.date.isoformat()
+
+        if not isodate in return_data['daily']:
+
+            # daily data template
+            return_data['daily'][isodate] = {
+                'visits': 0,
+                'interactions': {
+                    'total': 0,
+                    'clickthrough': 0,
+                    'open_popup': 0,
+                    'shares': {
+                        'featured': 0,
+                        'popup': 0
+                    }
+                }
+            }
+
         if data.key == "visits":
-            return_data.visits += data.value
+            return_data['visits'] += data.value
+            return_data['daily'][isodate]['visits'] = data.value
 
         if data.key in ["clickthrough", "open_popup"]:
-            return_data.interactions[data.key] += data.value
-            return_data.interactions.total += data.value
+            return_data['interactions'][data.key] += data.value
+            return_data['interactions']['total'] += data.value
+
+            return_data['daily'][isodate]['interactions'][data.key] = data.value
 
         if data.key in ["featured", "popup"]:
-            return_data.interactions.shares[data.key] += data.value
-            return_data.interactions.total += data.value
+            return_data['interactions']['shares'][data.key] += data.value
+            return_data['interactions']['total'] += data.value
+
+            return_data['daily'][isodate]['interactions']['shares'][data.key] = data.value
 
     return ajax_success(return_data)
 

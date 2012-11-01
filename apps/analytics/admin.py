@@ -7,6 +7,8 @@ class AnalyticsDataAdmin(admin.ModelAdmin):
     list_display = [
         'parent', 'date', 'key', 'value']
 
+    save_as = True
+
 admin.site.register(AnalyticsData, AnalyticsDataAdmin)
 
 
