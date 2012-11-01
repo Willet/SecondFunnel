@@ -94,8 +94,8 @@
 {% block top_section %}
     <nav class="grid_3 prefix_9">
         <ul>
-            <li class="selected">Pages</li>
-            <li>Analytics</li>
+            <li class="selected"><a href="{% url store-admin store.id %}">Pages</a></li>
+            <li><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
         </ul>
     </nav>
 {% endblock %}
@@ -120,7 +120,7 @@
                 <td><div><a href="{% url campaign-overview-admin campaign.store.id campaign.id %}">{{ campaign.name }}</a></div></td>
                 <td><div>{{ campaign.description|truncatewords:10 }}</div></td>
                 <td><div>{{ campaign.last_modified|naturalday }}</div></td>
-                <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
+                <td><div><a href="{% url analytics-campaign-admin campaign.store.id campaign.id %}">Analytics</a></div></td>
                 <td><div><a href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
 
                 <td>

@@ -1,0 +1,57 @@
+{% extends "pinpoint/admin_base.html" %}
+{% load staticfiles %}
+{% load analytics_ui %}
+
+{% block title %}
+    Analytics
+{% endblock %}
+
+{% block page_title %}
+    Analytics
+{% endblock %}
+
+{% block extra_head %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static "analytics/css/analytics_style.css" %}">
+{% endblock %}
+
+{% block extra_js_includes %}
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+{% endblock %}
+
+{% block document_ready %}
+
+{% endblock %}
+
+{% block top_section %}
+    <nav class="grid_3 prefix_9">
+        <ul>
+            {% if store %}
+                <li><a href="{% url store-admin store.id %}">Pages</a></li>
+                <li class="selected"><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
+            {% else %}
+                <li><a href="{% url store-admin campaign.store.id %}">Pages</a></li>
+                <li class="selected"><a href="#">Analytics</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endblock %}
+
+{% block content %}
+    <div class="grid_12">
+        <div class="grid_2 alpha campaign_menu">
+            <ul id="campaign_list">
+                <li id="overview"><strong>Overview</strong></li>
+                {% if store %}
+
+                {% for campaign in store.campaign_set.all %}
+                    <li id="{{ campaign.id }}">{{ campaign.name }}</li>
+                {% endfor %}
+
+                {% endif %}
+            </ul>
+        </div>
+
+        {% ui_analytics_data store=store campaign=campaign %}
+    </div>
+{% endblock %}
