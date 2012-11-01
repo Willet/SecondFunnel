@@ -79,13 +79,23 @@ def block_type_router(request, store_id, block_type_id):
 
 
 @login_required
-def campaign_analytics_admin(request, campaign_id):
-    pass
+def campaign_analytics_admin(request, store_id, campaign_id):
+    campaign = get_object_or_404(Campaign, pk=campaign_id)
+
+    if not request.user in campaign.store.staff.all():
+        raise Http404
+
+    return render_to_response('pinpoint/admin_analytics.html', {
+        'campaign': campaign
+    }, context_instance=RequestContext(request))
 
 
 @login_required
 def store_analytics_admin(request, store_id):
     store = get_object_or_404(Store, pk=store_id)
+
+    if not request.user in store.staff.all():
+        raise Http404
 
     return render_to_response('pinpoint/admin_analytics.html', {
         'store': store
