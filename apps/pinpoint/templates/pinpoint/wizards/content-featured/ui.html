@@ -169,10 +169,6 @@
         }
 
         /* Button styles */
-        .button.preview {
-
-        }
-
         .button.cancel, .button.back {
             width: 80px;
             z-index: 102;
@@ -180,6 +176,30 @@
 
         .qq-upload-list {
             display: none;
+        }
+
+        /* Character count styles */
+        #character_count {
+            padding-left: 40px;
+            background-image: url('{% static "pinpoint/images/check32.png" %}');
+            background-repeat: no-repeat;
+            font-size: 16px;
+            display: inline-block;
+            line-height: 32px;
+        }
+
+        #character_count.danger, #character_count.warning {
+            font-weight: bold;
+        }
+
+        #character_count.danger {
+            color: #b94a48;
+            background-image: url('{% static "pinpoint/images/minus32.png" %}');
+        }
+
+        #character_count.warning {
+            color: #bb0;
+            background-image: url('{% static "pinpoint/images/warning32.png" %}');
         }
     </style>
 {% endblock %}
@@ -196,7 +216,8 @@
     <script>
 
     var app = (function() {
-        var existing_images, products, product_selected, setUpListeners, init;
+        var existing_images, products, product_selected, setUpListeners,
+            updateCharacters, init;
 
         existing_images = {};
 
@@ -280,7 +301,30 @@
             // set the id for form submission
             $("#id_product_id").val(product.id);
 
+            // update character count
+            updateCharacters();
+
             $(".product_meta").unmask();
+        };
+
+        updateCharacters = function() {
+            var chars = $("#id_description").val().length;
+            $("#characters").text(chars);
+
+            var $count = $("#character_count");
+            var $buttons = $(".button:not(.cancel)");
+
+            $count.removeClass();
+            $buttons.removeClass('disabled');
+            $buttons.removeAttr('disabled');
+
+            if (chars > 250) {
+                $count.addClass("danger");
+                $buttons.addClass('disabled');
+                $buttons.attr('disabled', 'disabled');
+            } else if ((230 <= chars) && (chars <= 250)) {
+                $count.addClass("warning");
+            }
         };
 
         setUpListeners = function () {
@@ -336,6 +380,10 @@
                     }
                 }
             });
+
+            // CHARACTER COUNT
+            $("#id_description").on("keydown keyup", updateCharacters);
+
             $(".button.preview").click(function(){
                 var $form = $("#create_campaign");
                 var $campaign_id = $("#id_campaign_id");
@@ -478,7 +526,13 @@
                     {{ form.description }}
                     <span class="helptext textarea">
                         You can tailor product's
-                        description that will appear on the page.</span>
+                        description that will appear on the page.<br/>
+                        <br/>
+                        <span id="character_count">
+                            <span id="characters">0</span> / 250
+                            characters.
+                        </span>
+                    </span>
                 </div>
             </div>
 

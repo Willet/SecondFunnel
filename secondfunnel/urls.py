@@ -63,6 +63,9 @@ urlpatterns = patterns('',
         'django.views.generic.simple.direct_to_template',
         {'template': 'registration/profile.html'},
         name="profile"),
+
+    # WEBSITE
+    url(r'^', include('apps.website.urls')),
 )
 
 urlpatterns += staticfiles_urlpatterns()

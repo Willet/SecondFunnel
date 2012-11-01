@@ -1,0 +1,505 @@
+html, body, h1, h2, p, ul, li {
+    margin: 0;
+    padding: 0;
+}
+
+body,
+p {
+    font-family: 'freight-sans-pro', sans-serif, helvetica neue light, helvetica neue, helvetica, arial, verdana;
+    font-weight: 300;
+    font-size: 21px;
+    line-height: 32px;
+}
+
+h1,
+h2 {
+    font-family: 'freight-sans-pro', sans-serif, helvetica neue light, helvetica neue, helvetica, arial, verdana;
+    font-weight: 300;
+}
+
+h2 {
+    font-size: 40px;
+    line-height: 50px;
+}
+
+/* Slight transparency */
+p {
+    zoom: 1;
+    filter: alpha(opacity=85);
+    opacity: 0.85;
+}
+
+a,
+a:visited {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.nav {
+    font-family: font-family: "proxima-nova", sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 26px;
+}
+
+.area.five a,
+.area.five a:visited {
+    color: #fff;
+}
+
+.banner,
+.banner a,
+.banner a:visited,
+.area {
+    color: #236883;
+}
+
+.banner ul li,
+.getStarted {
+    font-family: 'proxima-nova', sans-serif, helvetica neue light, helvetica neue, helvetica, arial, verdana;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 26px;
+}
+
+.hidden {
+    display: none;
+}
+
+.area.two,
+.bottom {
+    color: #fff;
+}
+
+body {
+    background: #f9f9f9;
+}
+
+.learnMore {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.body {
+    position: relative;
+    width: 960px;
+    margin: auto;
+}
+
+.banner {
+    z-index: 100;
+    width: 100%;
+    height: 75px;
+    text-shadow: 0 1px rgba(255, 255, 255, 0.5);
+
+    background: #fff;
+
+    -webkit-box-shadow: rgba(0,0,0,0.3) 0px 1px 2px 0px;
+    -webkit-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    -moz-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.banner .title {
+    margin-top: 10px;
+}
+
+.banner .social {
+    float: right;
+    margin: 20px 0 0 15px;
+}
+
+.banner .nav {
+    float: right;
+    height: 75px;
+}
+
+.nav ul {
+    margin: 0;
+    padding: 0;
+}
+
+.nav ul li {
+    margin: 25px 20px 0 0;
+    list-style: none;
+    float: left;
+    display: block;
+    position: relative;
+}
+
+.banner .nav ul li:hover,
+.banner .nav ul li a:hover {
+    color: #5198b4;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.bottom .nav ul li a:hover,
+.bottom .nav ul li a:visited:hover {
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.area,
+.bottom,
+.arrow {
+    top: 3px;
+    position: relative;
+    overflow: auto;
+    overflow-x: hidden;
+}
+
+.arrow {
+    z-index: 5;
+    right: 100px;
+    top: -15px;
+    height: 30px;
+    width: 30px;
+    background: #f00;
+    position: absolute;
+
+    /* for firefox, safari, chrome, etc. */
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    /* for ie */
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1.5);
+}
+
+.banner.arrow.bottom {
+    top: 60px;
+    z-index: 99;
+    width: 29px;
+    height: 29px;
+    border-bottom: 1px solid #fff;
+    border-left: 1px solid #fff;
+    background: none;
+
+    -webkit-box-shadow: rgba(0,0,0,0.3) -1px 1px 1px 0px;
+    -webkit-box-shadow: -1px 1px 1px rgba(0,0,0,0.3);
+    -moz-box-shadow: -1px 1px 1px rgba(0,0,0,0.3);
+    box-shadow: -1px 1px 1px rgba(0,0,0,0.3);
+
+}
+
+.banner.arrow.top {
+    top: 59px;
+    background: none;
+    width: 0;
+    height: 0;
+    border-bottom: 30px solid #fff;
+    border-right: 30px solid rgba(0,0,0,0);
+
+    -webkit-box-shadow: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
+/* ---- All Areas ---- */
+.area {
+    background: #f9f9f9;
+}
+
+.area .text {
+    width: 460px;
+    display: inline-block;
+    padding: 85px 0 0 0;
+    float: left;
+}
+
+.area img {
+    float: right;
+}
+
+/* ---- Dark Areas (2, 5, bottom) ---- */
+
+.area.two,
+.area.five,
+.bottom {
+    background: #327592;
+}
+
+.area.two .text,
+.area.two .text a,
+.area.two .text a:visited,
+.area.five .text,
+.area.five .text a,
+.area.five .text a:visited
+.bottom .text,
+.bottom .text a,
+.bottom .text a:visited {
+    color: #fff;
+}
+
+/* ---- Med Areas (3, 6) ---- */
+
+.area.three,
+.area.six,
+.area.five.why {
+    background: #d2e6f8;
+}
+
+.area.three .text,
+.area.three .text a,
+.area.three .text a:visited,
+.area.six .text,
+.area.six .text a,
+.area.six .text a:visited,
+.area.five.why .text {
+    color: #236883;
+}
+
+/* ---- Light Areas (1, 4) ---- */
+
+.area.one,
+.area.four {
+    background: #f9f9f9;
+}
+
+.area.one .text,
+.area.one .text a,
+.area.one .text a:visited,
+.area.four .text,
+.area.four .text a,
+.area.four .text a:visited {
+    color: #236883;
+}
+
+/* ---- Area 1 ---- */
+
+.area.one .text {
+    width: 400px;
+    padding: 100px 0 0 30px;
+    display: inline-block;
+}
+.area.one img {
+    float: right;
+    padding: 70px 0 50px 0;
+}
+
+.area.one p {
+    padding-bottom: 35px;
+}
+
+.area.one.about .text{
+    width: 940px;
+    padding: 50px 0;
+}
+
+.area.one.about h2 {
+    padding: 0 0 15px 0;
+}
+
+.area.one.about p {
+    padding-bottom: 25px;
+}
+
+.area.one.why .body {
+    text-align: center;
+}
+
+.area.one.why .text {
+    float: none;
+    padding: 80px 0;
+    width: 500px;
+    text-align: center;
+}
+
+.area.one.why p {
+    text-align: right;
+}
+
+/* ---- Area 2 ---- */
+
+.area.two .text {
+    float: right;
+    width: 430px;
+    display: inline-block;
+    padding: 150px 80px 0 30px;
+}
+.area.two img {
+    float: left;
+    padding: 80px 0 80px 60px;
+    width: 300px;
+}
+
+.area.two.why img {
+    width: 250px;
+    padding: 80px 0 80px 150px;
+}
+
+
+/* ---- Area 3 ---- */
+
+.area.three .text {
+    width: 430px;
+    display: inline-block;
+    padding: 150px 0 0 0;
+}
+.area.three img {
+    float: right;
+    padding: 25px 0 100px 0;
+}
+
+.area.three.about .text {
+    float: left;
+    width: 940px;
+    display: inline-block;
+    padding: 50px 0;
+}
+
+.area.three.about .team {
+    text-align: center;
+}
+
+.area.three.about .person {
+    width: 200px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.area.three.about img {
+    float: none;
+    width: 96px;
+    padding: 0;
+    margin: 0 0 10px 0;
+
+    border: 1px solid #fff;
+
+    -webkit-box-shadow: 0 0 3px rgba(0,0,0,0.5);
+    -moz-box-shadow: 0 0 3px rgba(0,0,0,0.5);
+    box-shadow: 0 0 3px rgba(0,0,0,0.5);
+}
+
+.area.three.why img {
+    padding: 50px 0 80px 0;
+}
+
+/* ---- Area 4 ---- */
+
+.area.four .text {
+    float: right;
+    padding: 110px 0 0 0;
+}
+
+.area.four img {
+    float: left;
+    padding: 50px 0;
+}
+
+/* ---- Area 5 ---- */
+
+.area.five .text {
+    padding: 140px 0 0 0;
+}
+
+.area.five img {
+    padding: 30px 0 30px 0;
+}
+
+.area.five a {
+    font-size: 16px;
+}
+
+/* ---- Area 6 ---- */
+
+.area.six .text {
+    float: right;
+    padding: 110px 0 0 0;
+}
+
+.area.six img {
+    float: left;
+    padding: 50px 0;
+}
+
+/* ---- Area 7 ---- */
+
+.area.seven .body {
+    text-align: center;
+}
+
+.area.seven .text {
+    margin: auto;
+    float: none;
+    padding: 85px 0 60px 0;
+    width: 500px;
+}
+
+.area.seven p {
+    padding-bottom: 80px;
+}
+
+/* ---- Get Started buttons ---- */
+
+.getStarted {
+    padding: 10px 20px;
+    cursor: pointer;
+
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
+.getStarted,
+.getStarted a,
+.getStarted a:visited {
+    color: #fff !important;
+    text-shadow: rgb(251,144,72) 1px 1px 0, rgb(251,144,72) -1px -1px 0;
+    text-transform: uppercase;
+}
+
+.getStarted {
+    background: #fba933;
+}
+
+.getStarted:hover,
+.getStarted a:hover,
+.getStarted a:visited:hover {
+    text-decoration: none;
+}
+
+.getStarted:hover {
+    background: #ef910a;
+}
+
+.area.one .getStarted {
+    margin-left: 80px;
+}
+
+/* ---- Bottom ---- */
+
+.area.bottom {
+    color: #f1f1f1;
+    text-align: center;
+    padding: 30px 0 20px 0;
+}
+
+.bottom .copyright {
+    float: right;
+    font-family: 'Helvetica Neue', arial, Helvetica, sans-serif;
+    font-weight: 300;
+    font-size: 11px;
+    line-height: 26px;
+
+}
+
+.bottom .nav {
+    float: none;
+    margin: auto;
+}
+
+.bottom .nav,
+.bottom .nav a {
+    color: #e8e8e8;
+    float: left;
+}
+
+.bottom .nav ul li {
+    margin: 0 20px 10px 0;
+}
+
