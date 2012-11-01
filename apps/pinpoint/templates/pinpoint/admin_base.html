@@ -22,7 +22,6 @@
                 border-radius: 5px;
 
                 background-color: #f1f1f1;
-                padding-bottom: 25px;
             }
 
             .container_12 {
@@ -83,6 +82,11 @@
 
             #second_funnel_logo {
                 vertical-align: middle;
+            }
+
+            #cancel_to_admin, .button.back {
+                float: none;
+                position: relative;
             }
 
             /* Messages */
@@ -161,6 +165,17 @@
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
         <script src={% static "js/jquery.cookie.js" %}></script>
+        <script>
+            {% if store.id %}
+            $("#cancel_to_admin").click(function(){
+                var cancel = confirm("Are you sure you want to cancel your " +
+                        "changes?");
+                if (cancel) {
+                    window.location.href = "{% url store-admin store.id %}";
+                }
+            });
+            {% endif %}
+        </script>
         {% block extra_js_includes %}{% endblock %}
 
         <script type="text/javascript">
