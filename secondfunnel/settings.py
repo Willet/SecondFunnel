@@ -145,6 +145,7 @@ INSTALLED_APPS = (
     'apps.analytics',
     'apps.assets',
     'apps.pinpoint',
+    'apps.website',
 
     # testing
     'fts',
