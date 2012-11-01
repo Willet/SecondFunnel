@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="{% static "css/reset.css" %}">
         <link rel="stylesheet" href="{% static "css/text.css" %}">
         <title>{% block title %}Second Funnel{% endblock %}</title>
+        <link rel="shortcut icon" href="{% static "images/favicon.ico" %}" />
 
         {% block extra_head %}{% endblock %}
 
@@ -86,6 +87,30 @@
             .button.cancel, .button.back {
                 float: none;
                 position: relative;
+
+            /* Messages */
+            ul.messages {
+                padding-top: 20px;
+            }
+
+            ul.messages li {
+                display: block;
+                margin: 0px;
+                font-size: 16px;
+                border-width: 1px;
+                border-style: solid;
+                border-radius: 5px;
+                padding: 15px;
+                background-image: url('{% static "pinpoint/images/stop32.png" %}');
+                background-repeat: no-repeat;
+                background-position: 99% 50%;
+                cursor: pointer;
+            }
+
+            ul.messages li.success {
+                border-color: #385A71;
+                background-color: #6F98AC;
+                color: white;
             }
         </style>
     </head>
@@ -112,6 +137,14 @@
         </div>
 
         <div class="container_12">
+            {% if messages %}
+                <ul class="messages grid_12">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
             <div class="grid_12 top_section">
                 {% block top_section %}{% endblock %}
             </div>
