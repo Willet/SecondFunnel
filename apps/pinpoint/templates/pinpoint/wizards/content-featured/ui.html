@@ -85,7 +85,7 @@
 
         #product_images li > img {
             vertical-align: middle;
-            border-bottom: 4px solid #eeeeee;
+            border: 4px solid #eeeeee;
             padding-bottom: 5px;
             max-width: 200px;
             max-height: 200px;
@@ -119,8 +119,7 @@
         }
 
         #product_images li > img:hover:not(.loading_gif), #product_images img.selected {
-            border-bottom: 4px solid #5d84b7;
-            cursor: pointer;
+            border: 4px solid #5d84b7;
         }
 
         .helptext {
@@ -169,7 +168,7 @@
         }
 
         /* Button styles */
-        .button.cancel, .button.back {
+        #cancel_to_admin, .button.back {
             width: 80px;
             z-index: 102;
         }
@@ -312,7 +311,7 @@
             $("#characters").text(chars);
 
             var $count = $("#character_count");
-            var $buttons = $(".button:not(.cancel)");
+            var $buttons = $(".button:not(#cancel_to_admin, .back)");
 
             $count.removeClass();
             $buttons.removeClass('disabled');
@@ -543,7 +542,7 @@
 
                 <input class="button submit focus" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} Page">
                 <input class="button preview" type="button" value="Preview Page">
-                <input class="button cancel" type="button" value="Cancel">
+                <input id="cancel_to_admin" class="button" type="button" value="Cancel">
                 <input class="button back" type="button" value="Back">
             </div>
         </div>

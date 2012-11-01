@@ -84,7 +84,7 @@
                 vertical-align: middle;
             }
 
-            .button.cancel, .button.back {
+            #cancel_to_admin, .button.back {
                 float: none;
                 position: relative;
             }
@@ -167,7 +167,7 @@
         <script src={% static "js/jquery.cookie.js" %}></script>
         <script>
             {% if store.id %}
-            $(".button.cancel").click(function(){
+            $("#cancel_to_admin").click(function(){
                 var cancel = confirm("Are you sure you want to cancel your " +
                         "changes?");
                 if (cancel) {
