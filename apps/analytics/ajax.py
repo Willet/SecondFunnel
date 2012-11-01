@@ -5,6 +5,7 @@ import datetime
 from datetime import timedelta, datetime
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 
 from apps.assets.models import Store
 from apps.analytics.models import AnalyticsData
@@ -50,13 +51,15 @@ def analytics_pinpoint(request):
         return ajax_error()
 
     # check if user is authorized to access this data
-    if not request.user in store.staff:
+    if not request.user in store.staff.all():
         return ajax_error()
 
     if campaign_id:
-        analytics_data = AnalyticsData.objects.filter(parent=campaign)
+        campaign_type = ContentType.objects.get_for_model(Campaign)
+        analytics_data = AnalyticsData.objects.filter(content_type=campaign_type, object_id=campaign.id)
     else:
-        analytics_data = AnalyticsData.objects.filter(parent=store)
+        store_type = ContentType.objects.get_for_model(Store)
+        analytics_data = AnalyticsData.objects.filter(content_type=store_type, object_id=store.id)
 
     # data template of what we're going to return
     return_data = {
