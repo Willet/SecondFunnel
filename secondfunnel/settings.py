@@ -142,6 +142,7 @@ INSTALLED_APPS = (
     'tastypie',
     'django_nose', # Must be included after 'south'
     'lettuce.django',
+    'adminlettuce',
 
     # our apps
     'apps.analytics',
