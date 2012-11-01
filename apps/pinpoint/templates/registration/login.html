@@ -1,51 +1,64 @@
-{% extends "pinpoint/admin_base.html" %}
+{% extends "registration/centered.html" %}
 
 {% block title %}Login{% endblock %}
 
 {% block page_title %}Login{% endblock %}
 
 {% block extra_head %}
+{{ block.super }}
     
     <style>
         #id_password, #id_username {
             padding: 2px;
         }
+
+        p {
+            margin: 0;
+        }
+
+        input {
+            width: 200px;
+        }
+
+        table {
+            margin: auto;
+        }
     </style>
     
 {% endblock %}
 
-{% block content %}
-    
-    {% if form.errors %}
-        <p>Your username and password didn't match. Please try again.</p>
-    {% endif %}
-    
+{% block centered %}
     {% if user.is_authenticated %}
         <p>You're already logged in as {{ user.username }}. <a href="{% url logout %}">Log out.</a></p>
     {% else %}
+        {% if form.errors %}
+            <ul class="errorlist">
+                <li>Your username and password didn't match.</li><br />
+            <li>Please try again.</li>
+            </ul>
+        {% endif %}
         <form method="post" action="{% url login %}">
-            {% csrf_token %}
-            <table>
-            <tr>
-                <td>{{ form.username.label_tag }}</td>
-                <td>{{ form.username }}</td>
-            </tr>
-            <tr>
-                <td>{{ form.password.label_tag }}</td>
-                <td>{{ form.password }}</td>
-            </tr>
-            </table>
-            
-            <input type="submit" value="login" />
+        {% csrf_token %}
+        <table>
+        <tr>
+            <td>{{ form.username.label_tag }}:</td>
+            <td>{{ form.username }}</td>
+        </tr>
+        <tr>
+            <td>{{ form.password.label_tag }}:</td>
+            <td>{{ form.password }}</td>
+        </tr>
+        </table>
+        
+        <input type="submit" value="login" />
 
-            {# If we were given a next parameter go to that after login, otherwise go to admin page after login #}
-            {% if "next" in request.GET %}
-                <input type="hidden" name="next" value="{{ next }}" />
-            {% else %}
-                <input type="hidden" name="next" value="{% url login-redirect %}" />
-            {% endif %}
+        {# If we were given a next parameter go to that after login, otherwise go to admin page after login #}
+        {% if "next" in request.GET %}
+            <input type="hidden" name="next" value="{{ next }}" />
+        {% else %}
+            <input type="hidden" name="next" value="{% url login-redirect %}" />
+        {% endif %}
         </form>
         <p><a href="{% url password_reset %}">Forgot your password?</a></p>
     {% endif %}
-    
 {% endblock %}
