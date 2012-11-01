@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.utils import simplejson as json
 from django.core.urlresolvers import reverse
@@ -109,7 +110,11 @@ def featured_product_wizard(request, store, block_type, campaign=None):
         form = FeaturedProductWizardForm(request.POST, request.FILES)
 
         if form.is_valid():
-            return _form_is_valid(block_type, form, store, preview)
+            result = _form_is_valid(block_type, form, store, preview)
+            if not preview:
+                messages.success(request, "Your page was saved successfully")
+
+            return result
     else:
         if campaign:
             initial_data = {
