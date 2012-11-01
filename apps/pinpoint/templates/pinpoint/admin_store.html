@@ -35,11 +35,6 @@
         #pageList_wrapper {
             padding-top: 20px;
         }
-
-        #pageList .toggle-status-button {
-            vertical-align: none;
-            height: 25px;
-        }
     </style>
 {% endblock %}
 
@@ -106,6 +101,10 @@
             $("#pageList_filter input").unbind("keyup").keyup(function() {
                 pageListTable.fnFilter( this.value, 0 );
             })
+
+            $("ul.messages li").on('click', function() {
+                $(this).slideUp();
+            });
 {% endblock %}
 
 {% block top_section %}
