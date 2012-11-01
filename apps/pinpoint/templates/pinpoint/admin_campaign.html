@@ -87,7 +87,7 @@
 {% endblock %}
 
 {% block content %}
-    <a href="{% url store-admin campaign.store.id %}">&larr; Back to Admin</a>
+    <a id="back_to_admin" href="{% url store-admin campaign.store.id %}">&larr; Back to Admin</a>
 
     <h2>Campaign Overview: {{ campaign.name }}</h2>
 
