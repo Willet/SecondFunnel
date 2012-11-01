@@ -326,11 +326,11 @@
             $buttons.removeClass('disabled');
             $buttons.removeAttr('disabled');
 
-            if (chars > 140) {
+            if (chars > 250) {
                 $count.addClass("danger");
                 $buttons.addClass('disabled');
                 $buttons.attr('disabled', 'disabled');
-            } else if ((140 >= chars) && (chars >=120)) {
+            } else if ((250 >= chars) && (chars >= 230)) {
                 $count.addClass("warning");
             }
         };
@@ -384,7 +384,7 @@
             });
 
             // CHARACTER COUNT
-            $("#id_description").on("keyup", updateCharacters);
+            $("#id_description").on("keydown keyup", updateCharacters);
 
             $(".button.preview").click(function(){
                 var $form = $("#create_campaign");
@@ -535,7 +535,7 @@
                         description that will appear on the page.<br/>
                         <br/>
                         <span id="character_count">
-                            <span id="characters">0</span> / 140
+                            <span id="characters">0</span> / 250
                             characters.
                         </span>
                     </span>
