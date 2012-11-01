@@ -613,18 +613,6 @@ table.display thead th {
     background: linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
 }
 
-.button.disabled {
-    color: #fff;
-    background-color: #949494;
-    background: -moz-linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
-    background: -webkit-gradient(linear, left top, left bottom, from(#fafafa), to(#949494), color-stop(0.05, #d0d0d0));
-    background: -webkit-linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
-    background: -o-linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
-    background: -ms-linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
-    background: linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
-    cursor: default;
-}
-
 .button.focus {
     background-color: #ae432e;
     background: -moz-linear-gradient(top, #faa796, #d06c57 5%, #ae432e 100%);
@@ -643,6 +631,18 @@ table.display thead th {
     background: -o-linear-gradient(top, #faa796, #d06c57 5%, #943a28 100%);
     background: -ms-linear-gradient(top, #faa796, #d06c57 5%, #943a28 100%);
     background: linear-gradient(top, #faa796, #d06c57 5%, #943a28 100%);
+}
+
+.button.disabled, .button.disabled:hover {
+    color: #fff;
+    background-color: #949494;
+    background: -moz-linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
+    background: -webkit-gradient(linear, left top, left bottom, from(#fafafa), to(#949494), color-stop(0.05, #d0d0d0));
+    background: -webkit-linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
+    background: -o-linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
+    background: -ms-linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
+    background: linear-gradient(top, #fafafa, #d0d0d0 5%, #949494 100%);
+    cursor: default;
 }
 
 

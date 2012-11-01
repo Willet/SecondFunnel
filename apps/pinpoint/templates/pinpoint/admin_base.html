@@ -83,7 +83,7 @@
                 vertical-align: middle;
             }
 
-            .button.cancel {
+            .button.cancel, .button.back {
                 float: none;
                 position: relative;
             }
@@ -135,9 +135,16 @@
             {% if store.id %}
             $(".button.cancel").click(function(){
                 var cancel = confirm("Are you sure you want to cancel your " +
-                        "changes?")
+                        "changes?");
                 if (cancel) {
-                    window.location.href = "{% url store-admin store.id %}"
+                    window.location.href = "{% url store-admin store.id %}";
+                }
+            });
+            $(".button.back").click(function(){
+                var cancel = confirm("By going back you will lose your " +
+                        "changes on this page. Are you sure?");
+                if (cancel) {
+                    window.history.back();
                 }
             });
             {% endif %}
