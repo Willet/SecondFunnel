@@ -21,6 +21,9 @@ class AnalyticsData(AnalyticsBase):
     key = models.CharField(max_length=255)
     value = models.IntegerField()
 
+    class Meta:
+        verbose_name_plural = "Analytics Data"
+
     def __unicode__(self):
         return u"Analytics Data (key=%s, value=%s) for %s" % (
             self.key, self.value, self.parent)
@@ -28,6 +31,9 @@ class AnalyticsData(AnalyticsBase):
 
 class AnalyticsRecency(AnalyticsBase):
     last_fetched = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Analytics Recency"
 
     def __unicode__(self):
         return u"Analytics Recency for %s: %s" % (
