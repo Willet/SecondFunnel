@@ -140,13 +140,6 @@
                     window.location.href = "{% url store-admin store.id %}";
                 }
             });
-            $(".button.back").click(function(){
-                var cancel = confirm("By going back you will lose your " +
-                        "changes on this page. Are you sure?");
-                if (cancel) {
-                    window.history.back();
-                }
-            });
             {% endif %}
         </script>
         {% block extra_js_includes %}{% endblock %}

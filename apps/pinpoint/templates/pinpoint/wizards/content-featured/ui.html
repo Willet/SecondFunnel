@@ -301,6 +301,14 @@
                 $("#id_product_media_id").val("");
             });
 
+            $(".button.back").click(function(){
+                var cancel = confirm("By going back you will lose your " +
+                        "changes on this page. Are you sure?");
+                if (cancel) {
+                    window.location.href = "{% url new-campaign-admin store.id %}";
+                }
+            });
+
             // PRODUCT SEARCH AUTOCOMPLETE
             $("#product_name").autocomplete({
                 source: function(request, response) {
