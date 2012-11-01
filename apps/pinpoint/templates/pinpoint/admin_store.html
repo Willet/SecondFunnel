@@ -35,30 +35,6 @@
         #pageList_wrapper {
             padding-top: 20px;
         }
-
-        ul.messages {
-            padding-top: 20px;
-        }
-
-        ul.messages li {
-            display: block;
-            margin: 0px;
-            font-size: 16px;
-            border-width: 1px;
-            border-style: solid;
-            border-radius: 5px;
-            padding: 15px;
-            background-image: url('{% static "pinpoint/images/stop32.png" %}');
-            background-repeat: no-repeat;
-            background-position: 99% 50%;
-            cursor: pointer;
-        }
-
-        ul.messages li.success {
-            border-color: #385A71;
-            background-color: #6F98AC;
-            color: white;
-        }
     </style>
 {% endblock %}
 
@@ -138,16 +114,6 @@
             <li>Analytics</li>
         </ul>
     </div>
-{% endblock %}
-
-{% block notifications %}
-    {% if messages %}
-        <ul class="messages grid_12">
-            {% for message in messages %}
-                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
 {% endblock %}
 
 {% block content %}
