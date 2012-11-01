@@ -1,0 +1,41 @@
+{% extends "website/base.html" %}
+{% load staticfiles %}
+{% block title %}{{ block.super }} | Contact{% endblock title %}
+{% block content %}
+        <div class="about area one">
+            <div class="body">
+                <div class="text">
+                    <h2> Contact </h2> <br>
+                    <p> 
+                        Interested in learning more? If you have questions, need more info, 
+                        or want to see a demo, please drop us a line. 
+                        We'd like to understand your goals and how we can help.
+                    </p>
+                    <p>
+                        Simply fill out this form or give us a call at <b>888-304-5416</b>.
+                    </p>
+                </div>
+
+                <div id="wufoo-z7x3p9">
+                    Fill out my <a href="http://secondfunnel.wufoo.com/forms/z7x3p9">online form</a>.
+                </div>
+            </div>
+        </div>
+{% endblock content %}
+
+{% block js %}
+    <script type="text/javascript">var z7x3p9;(function(d, t) {
+        var s = d.createElement(t), options = {
+            'userName':'secondfunnel',
+            'formHash':'z7x3p9',
+            'autoResize':true,
+            'height':'795',
+            'async':true,
+            'header':'show'};
+        s.src = ('https:' == d.location.protocol ? 'https://' : 'http://') + 'wufoo.com/scripts/embed/form.js';
+        s.onload = s.onreadystatechange = function() {
+            var rs = this.readyState; if (rs) if (rs != 'complete') if (rs != 'loaded') return;
+            try { z7x3p9 = new WufooForm();z7x3p9.initialize(options);z7x3p9.display(); } catch (e) {}};
+        var scr = d.getElementsByTagName(t)[0], par = scr.parentNode; par.insertBefore(s, scr);
+    })(document, 'script');</script>
+{% endblock js %}
