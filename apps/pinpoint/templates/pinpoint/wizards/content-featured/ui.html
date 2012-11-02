@@ -54,7 +54,7 @@
 
         #product_images li > img {
             vertical-align: middle;
-            border-bottom: 4px solid #eeeeee;
+            border: 4px solid #eeeeee;
             padding-bottom: 5px;
             max-width: 200px;
             max-height: 200px;
@@ -88,8 +88,7 @@
         }
 
         #product_images li > img:hover:not(.loading_gif), #product_images img.selected {
-            border-bottom: 4px solid #5d84b7;
-            cursor: pointer;
+            border: 4px solid #5d84b7;
         }
 
         .helptext {
@@ -132,35 +131,14 @@
             z-index: 101 !important;
         }
 
-        /* Button styles */
-        .button.preview {
-
-        }
-
-        .preview, .cancel {
-            background-color: #235364;
-            background: -moz-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
-            background: -webkit-gradient(linear, left top, left bottom, from(#6f98ac), to(#235364), color-stop(0.05, #358ab2));
-            background: -webkit-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
-            background: -o-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
-            background: -ms-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
-            background: linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
-        }
-
-        .preview:hover, .cancel:hover {
-            background-color: #033344;
-            background: -moz-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
-            background: -webkit-gradient(linear, left top, left bottom, from(#6f98ac), to(#033344), color-stop(0.05, #358ab2));
-            background: -webkit-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
-            background: -o-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
-            background: -ms-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
-            background: linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
-        }
-
-        .button.cancel {
+        .button {
             float: right;
-            width: 80px;
             position: relative;
+        }
+
+        /* Button styles */
+        #cancel_to_admin, .button.back {
+            width: 80px;
             z-index: 102;
         }
 
@@ -253,9 +231,19 @@
                 $("#product_images").append(li);
             }
 
-            if (o.product_generic_image_id && o.product_generic_image_url) {
-                $("#fine-uploader").closest('li').after(
-                    "<li><img class='custom_image selected' data-mid='" + o.product_generic_image_id + "' src='" + o.product_generic_image_url + "'></li>");
+            if (o.product_generic_image_list) {
+                var uploadedImages = o.product_generic_image_list
+                    .split("|")
+                    .map(function(str) {
+                        var s = str.split("\\"); return {url: s[0], id: s[1]};
+                    });
+                uploadedImages.reverse().map(function(img) {
+                    var image = $("<li><img class='new_image' data-mid='" + img.id + "' src='" + img.url + "'></li>");
+                    if (o.product_generic_image_id == img.id) {
+                        image.children('img').addClass('selected')
+                    }
+                    $("#fine-uploader").closest('li').after(image);
+                });
             }
 
             $("#product_images").find("[data-mid='" + media_id  + "']")
@@ -292,7 +280,7 @@
             $("#characters").text(chars);
 
             var $count = $("#character_count");
-            var $buttons = $(".button:not(.cancel)");
+            var $buttons = $(".button:not(#cancel_to_admin, .back)");
 
             $count.removeClass();
             $buttons.removeClass('disabled');
@@ -315,7 +303,6 @@
 
                 $("#id_product_media_id").val($(this).data('mid'));
                 $("#id_generic_media_id").val("");
-                $("#id_generic_media_url").val("");
             });
 
             $("#product_images img.new_image").live('click', function() {
@@ -323,8 +310,15 @@
                 $(this).addClass("selected");
 
                 $("#id_generic_media_id").val($(this).data('mid'));
-                $("#id_generic_media_url").val($(this).attr('src'));
                 $("#id_product_media_id").val("");
+            });
+
+            $(".button.back").click(function(){
+                var cancel = confirm("By going back you will lose your " +
+                        "changes on this page. Are you sure?");
+                if (cancel) {
+                    window.location.href = "{% url new-campaign-admin store.id %}";
+                }
             });
 
             // PRODUCT SEARCH AUTOCOMPLETE
@@ -377,17 +371,24 @@
                     }
                 })
             });
-            $(".button.cancel").click(function(){
-                var cancel = confirm("Are you sure you want to cancel your " +
-                        "changes?")
-                if (cancel) {
-                    window.location.href = "{% url store-admin store.id %}"
-                }
-            });
         };
 
         init = function () {
             $(function() {
+                $(".product_meta").mask();
+                $("#product_name").watermark("Your product name")
+
+                // in case we're dealing with errors on submition,
+                // ensure we're displaying the product that was selected prior
+                product_selected({
+                    product_id: $("#id_product_id").val(),
+                    page_name: $("#id_name").val(),
+                    product_description: $("#id_description").val(),
+                    product_image_id: $("#id_product_media_id").val(),
+                    product_generic_image_id: $("#id_generic_media_id").val(),
+                    product_generic_image_list: $("#id_generic_media_list").val()
+                });
+
                 setUpListeners();
                 var uploader = new qq.FileUploader({
                   element: document.getElementById('fine-uploader'),
@@ -410,6 +411,8 @@
                       gif.load(function() {
                           gif.fadeIn(500);
                       });
+                      $("#id_generic_media_list").val($('#product_images img.new_image').map(
+                          function(){return $(this).attr('src') + "\\" + $(this).data('mid');}).toArray().join("|"));
                   }
                 });
 
@@ -418,20 +421,6 @@
                     "generic": $("#id_generic_media_id").val(),
                     "existing": $("#id_product_media_id").val()
                 };
-
-                $(".product_meta").mask();
-                $("#product_name").watermark("Your product name")
-
-                // in case we're dealing with errors on submition,
-                // ensure we're displaying the product that was selected prior
-                product_selected({
-                    product_id: $("#id_product_id").val(),
-                    page_name: $("#id_name").val(),
-                    product_description: $("#id_description").val(),
-                    product_image_id: $("#id_product_media_id").val(),
-                    product_generic_image_id: $("#id_generic_media_id").val(),
-                    product_generic_image_url: $("#id_generic_media_url").val()
-                });
             });
         };
 
@@ -520,9 +509,10 @@
                     {{ hidden }}
                 {% endfor %}
 
-                <input class="button submit" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} Page">
+                <input class="button submit focus" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} Page">
                 <input class="button preview" type="button" value="Preview Page">
-                <input class="button cancel" type="button" value="Cancel">
+                <input id="cancel_to_admin" class="button" type="button" value="Cancel">
+                <input class="button back" type="button" value="Back">
             </div>
         </div>
     </form>
