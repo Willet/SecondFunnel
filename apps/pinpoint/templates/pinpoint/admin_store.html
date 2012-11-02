@@ -1,77 +1,144 @@
 {% extends "pinpoint/admin_base.html" %}
 {% load staticfiles %}
+{% load humanize %}
 
 {% block page_title %}
-    {{ block.super }}: {{ store }}
+    {{ store }}
 {% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static "pinpoint/css/jquery.dataTables.css" %}">
-    <link rel="stylesheet" href="{% static "pinpoint/css/demo_table_jui.css" %}">
+    <link rel="stylesheet" href="{% static "css/jquery.dataTables.css" %}">
+    <link rel="stylesheet" href="{% static "js/DataTables/css/demo_page.css" %}">
+    <link rel="stylesheet" href="{% static "js/DataTables/css/demo_table.css" %}">
 
+    <style>
+        .online {
+            color :#13b240;
+        }
+        .offline {
+            color: #b23739;
+        }
+
+        table a, table a:visited {
+            color: #4398aa;
+        }
+
+        th {
+            text-align: center;
+        }
+
+        #new_page_button {
+            position: absolute;
+            z-index: 9001;
+        }
+
+        #pageList_wrapper {
+            padding-top: 20px;
+        }
+    </style>
 {% endblock %}
 
 {% block extra_js_includes %}
-    <script src="{% static "pinpoint/js/jquery.dataTables.min.js" %}"></script>
+    <script src="{% static "js/jquery.dataTables.min.js" %}"></script>
 {% endblock %}
 
 {% block document_ready %}
-    var dataRowOptions = { sWidth: '5px', bSortable: false },
-        pageListTable = $("#pageList").dataTable({
-            "bScrollInfinite": true,
-            "bScrollCollapse": true,
-            "sScrollY": "400px",
-            "bPaginate": false,
-            "fnDrawCallback": function() {
-                $("#pageList tr.even").removeClass('even').addClass('odd');
-            },
-            "bAutoWidth": false,
-            "aoColumns" : [
-                null,
-                null,
-                null,
-                dataRowOptions,
-                dataRowOptions,
-                dataRowOptions,
-                dataRowOptions
-            ]
-        });
+            jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+                "timestamp-numeric-pre": function ( a ) {
+                    var x = a.match(/data-timestamp="*(-?[0-9\.]+)/)[1];
+                    return parseFloat( x );
+                },
+
+                "timestamp-numeric-asc": function ( a, b ) {
+                    return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+                },
+
+                "timestamp-numeric-desc": function ( a, b ) {
+                    return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+                }
+            });
+
+            var dataRowOptions = { sWidth: '5px', bSortable: false },
+                pageListTable = $("#pageList").dataTable({
+                    "bScrollInfinite": true,
+                    "bScrollCollapse": true,
+                    "sScrollY": "400px",
+                    "bPaginate": false,
+                    "fnDrawCallback": function() {
+                        $("#pageList tr.even").removeClass('even').addClass('odd');
+                    },
+                    "bAutoWidth": false,
+                    "aoColumns" : [
+                        null,
+                        { "sType": "timestamp-numeric"},
+                        dataRowOptions,
+                        dataRowOptions,
+                    ],
+                    "aaSorting": [[1, "desc"]]
+                });
+
+            var ajax_urls = {
+                "save_as_draft": "{% url ajax-campaign-save-draft %}",
+                "publish": "{% url ajax-campaign-publish %}"
+            };
+
+            $("button[data-type='ajax']").click(function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: ajax_urls[$(this).data("action")],
+                    type: "POST",
+                    dataType: 'json',
+                    data: {'campaign_id': $(this).data("content")},
+                    success: function(data) {
+                        if (data.success) {
+                            window.location.href = "{% url store-admin store.id %}";
+                        }
+                    }
+                });
+            });
+
+            $("#pageList_filter input").unbind("keyup").keyup(function() {
+                pageListTable.fnFilter( this.value, 0 );
+            })
+
+            $("ul.messages li").on('click', function() {
+                $(this).slideUp();
+            });
 {% endblock %}
 
 {% block top_section %}
-    <nav class="grid_3 prefix_9">
+    <div class="grid_3 prefix_9">
         <ul>
             <li class="selected">Pages</li>
             <li>Analytics</li>
         </ul>
-    </nav>
+    </div>
 {% endblock %}
 
 {% block content %}
-    <a href="{% url new-campaign-admin store.id %}">New Page</a>
+    <a id="new_page_button" class="button" href="{% url new-campaign-admin store.id %}">New Page</a>
     <table id="pageList" cellpadding="0" cellspacing="0" border="0" class="display" >
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Buys and Shares</th>
                 <th>Date Modified</th>
-                <th></th>
-                <th></th>
                 <th></th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
             {% for campaign in store.campaign_set.all %}
+            {% if campaign.live %}
             <tr>
-                <td><div>{{ campaign.name }}</div></td>
-                <td><div>0 buys, 0 shares</div></td>
-                <td><div>{{ campaign.last_modified }}</div></td>
-                <td><div><a href="{% url campaign campaign.id %}" target="_blank">Link</a></div></td>
+                <td><div><a href="
+                {% url edit-campaign-admin campaign.store.id campaign.id %}"
+                        >{{ campaign.name }}</a></div></td>
+                <td><div data-timestamp='{{ campaign.last_modified|date:"U" }}'>{{ campaign.last_modified|naturalday }}</div></td>
                 <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
-                <td><div><button class="edit">Edit</button></div></td>
-                <td><div><button class="deletePage">Hide</button></div></td>
+                <td><div><a href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
             </tr>
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>

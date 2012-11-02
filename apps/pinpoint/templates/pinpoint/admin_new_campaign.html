@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block page_title %}
-    {{ block.super }}: New Page
+    New Page
 {% endblock %}
 
 {% block extra_head %}
@@ -17,8 +17,8 @@
 
         .block_type {
             padding-left: 0px;
-            margin-left: 5px;
-            margin-right: 5px;
+            margin-left: 0px;
+            margin-right: 0px;
             text-align: center;
         }
 
@@ -41,30 +41,17 @@
 {% endblock %}
 
 {% block top_section %}
-    <nav class="grid_3 prefix_9">
+    <div class="grid_3 prefix_9">
         <ul>
-            <li class="selected">Pages</li>
-            <li>Analytics</li>
         </ul>
-    </nav>
+    </div>
 {% endblock %}
 
 {% block content %}
-    <h2>Select content block type (change me):</h2>
-    <div class="grid_12 block_types">
+    <h2>Select page focus:</h2>
+    <div class="block_types">
     {% for block_type in block_types %}
-        <div class="grid_3 block_type {% if not block_type.enabled %}dimmed{% endif %}">
-            {% if block_type.enabled %}
-                <a href="{% url block-type-wizard store.id block_type.id %}">
-                    <img src="{{ block_type.image.url }}">
-                    <span class="title">{{ block_type.name }}</span>
-                </a>
-            {% else %}
-                <img src="{{ block_type.image.url }}">
-                <span class="title">{{ block_type.name }}</span>
-                {% if not block_type.enabled %}<span class="disabled">Coming soon!</span>{% endif %}
-            {% endif %}
-        </div>
+        {% include "pinpoint/snippets/block_type_admin.html" with block_type=block_type linked="True" %}
     {% endfor %}
     </div>
 {% endblock %}

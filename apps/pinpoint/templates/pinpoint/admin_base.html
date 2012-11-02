@@ -1,13 +1,13 @@
-{% load staticfiles %}
-
 <!DOCTYPE html>
+{% load staticfiles %}
 <html>
     <head>
         <link rel="stylesheet" href="{% static "pinpoint/css/pinpointAdmin.css" %}">
-        <link rel="stylesheet" href="{% static "pinpoint/css/960.css" %}"></link>
-        <link rel="stylesheet" href="{% static "pinpoint/css/reset.css" %}"></link>
-        <link rel="stylesheet" href="{% static "pinpoint/css/text.css" %}"></link>
+        <link rel="stylesheet" href="{% static "css/960.css" %}">
+        <link rel="stylesheet" href="{% static "css/reset.css" %}">
+        <link rel="stylesheet" href="{% static "css/text.css" %}">
         <title>{% block title %}Second Funnel{% endblock %}</title>
+        <link rel="shortcut icon" href="{% static "images/favicon.ico" %}" />
 
         {% block extra_head %}{% endblock %}
 
@@ -22,10 +22,19 @@
                 border-radius: 5px;
 
                 background-color: #f1f1f1;
+                padding-bottom: 25px;
             }
 
-            .inner_content {
-                padding-top: 10px;
+            .container_12 {
+                padding-bottom: 50px;
+            }
+
+            .container_12 .inner_content {
+                padding: 10px 15px 20px 15px;
+                /* accounts for the margins added in 960.css. We need this because
+                 * we have a grid_12 inside a grid_12.
+                 */
+                width: 910px;
             }
 
             .top_bar {
@@ -38,7 +47,7 @@
 
             .top_bar .page_title {
                 font-size: 17pt;
-                margin: 7px 0 0 15px;
+                padding: 7px 0 0 15px;
                 text-shadow: 1px 1px 2px #4f4f4f;
                 filter: dropshadow(color=#4f4f4f, offx=1, offy=1);
             }
@@ -48,13 +57,13 @@
                 height: 39px;
             }
 
-            .top_section nav ul {
+            .top_section ul {
                 list-style: none;
                 position: relative;
                 top: 12px;
             }
 
-            .top_section nav li {
+            .top_section li {
                 display: inline;
                 background-color: #6f98ac;
                 padding: 10px;
@@ -64,23 +73,52 @@
                 border-radius: 5px 5px 0px 0px;
             }
 
-            .top_section nav li, .top_bar .page_title {
+            .top_section li, .top_bar .page_title {
                 color: #eeeeee;
             }
 
-            .top_section nav li.selected {
+            .top_section li.selected {
                 background-color: #385a71;
+            }
+
+            #second_funnel_logo {
+                vertical-align: middle;
+            }
+
+            /* Messages */
+            ul.messages {
+                padding-top: 20px;
+            }
+
+            ul.messages li {
+                display: block;
+                margin: 0px;
+                font-size: 16px;
+                border-width: 1px;
+                border-style: solid;
+                border-radius: 5px;
+                padding: 15px;
+                background-image: url('{% static "pinpoint/images/stop32.png" %}');
+                background-repeat: no-repeat;
+                background-position: 99% 50%;
+                cursor: pointer;
+            }
+
+            ul.messages li.success {
+                border-color: #385A71;
+                background-color: #6F98AC;
+                color: white;
             }
         </style>
     </head>
 
     <body>
 
-        <header class="banner">
+        <div class="banner">
             <div class="bannerBody">
                 <h1>
-                    <img src="{% static "pinpoint/images/logo.png" %}"
-                         alt="Second Funnel Logo" align="middle">
+                    <img id="second_funnel_logo" src="{% static "images/logo.png" %}"
+                         alt="Second Funnel Logo">
                 </h1>
                 <div class="bannerRight">
                     <ul>
@@ -93,31 +131,62 @@
                     </ul>
                 </div>
             </div>
-        </header>
+        </div>
 
         <div class="container_12">
+            {% if messages %}
+                <ul class="messages grid_12">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
             <div class="grid_12 top_section">
                 {% block top_section %}{% endblock %}
             </div>
 
             <div class="grid_12 content">
-                <div class="grid_12 top_bar">
+                <div class="top_bar">
                     <div class="page_title">
-                        {% block page_title %}PinPoint Admin{% endblock %}
+                        {% block page_title %}{% endblock %}
                     </div>
                 </div>
 
-                <div class="grid_12 inner_content">
+                <div class="inner_content">
                     {% block content %}{% endblock %}
                 </div>
             </div>
         </div>
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <script src={% static "js/jquery.cookie.js" %}></script>
         {% block extra_js_includes %}{% endblock %}
 
         <script type="text/javascript">
             $(function() {
+                $(document).ajaxSend(function(event, xhr, settings) {
+                    function sameOrigin(url) {
+                        // url could be relative or scheme relative or absolute
+                        var host = document.location.host; // host + port
+                        var protocol = document.location.protocol;
+                        var sr_origin = '//' + host;
+                        var origin = protocol + sr_origin;
+                        // Allow absolute or scheme relative URLs to same origin
+                        return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+                            (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+                            // or any other URL that isn't scheme relative or absolute i.e relative.
+                            !(/^(\/\/|http:|https:).*/.test(url));
+                    }
+                    function safeMethod(method) {
+                        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+                    }
+
+                    if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
+                        xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
+                    }
+                });
+
                 {% block document_ready %}{% endblock %}
             });
         </script>

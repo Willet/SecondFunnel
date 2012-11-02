@@ -2,14 +2,16 @@
 {% load staticfiles %}
 
 {% block title %}
-    New Page
+    {% if campaign %}Edit {% else %}New{% endif %} Page
 {% endblock %}
 
 {% block page_title %}
-    {{ block.super }}: New Page
+    {% if campaign %}Edit {% else %}New{% endif %} Page
 {% endblock %}
 
 {% block extra_head %}
+    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/fileuploader.css" %}">
     <style type="text/css">
         .product_select {
 
@@ -23,59 +25,478 @@
             color: #5a8eb4;
         }
 
-        .product_select li:hover {
+        label {
+            font-size: 15pt;
+        }
+
+        ul.errorlist {
+            margin: 0 0 10px 10px;
+            list-style: none;
+            display: inline-block;
+        }
+
+        ul.errorlist li {
+            background-color: #B94A48;
+            border-color: white;
+            border-radius: 3px;
+            border-style: none;
+            border-collapse: separate;
+            border-width: 0px;
+
+            color: white;
+            display: inline;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            height: auto;
+            line-height: 14px;
+            margin: 0;
+            max-width: none;
+            padding: 1px 4px 2px 4px;
+            text-align: left;
+            text-shadow: rgba(0, 0, 0, 0.247059) 0px -1px 0px;
+            vertical-align: baseline;
+            white-space: nowrap;
+            width: auto;
+        }
+
+        #product_images {
+            height: 230px;
+            overflow-x: scroll;
+            overflow-y: hidden;
+            white-space: nowrap;
+            margin: 0;
+        }
+
+        #product_images ul {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        #product_images li {
+            width: 200px;
+            height: 200px;
+            display: inline-block;
+
+            vertical-align:top;
+            text-align: center;
+            line-height: 200px;
+        }
+
+        #product_images li > img {
+            vertical-align: middle;
+            border-bottom: 4px solid #eeeeee;
+            padding-bottom: 5px;
+            max-width: 200px;
+            max-height: 200px;
+        }
+
+        #fine-uploader {
+            display: inline-block;
+            width: 200px;
+            line-height: 20px;
+        }
+
+        #fine-uploader .qq-upload-button {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .current_image img, .new_image_content img {
+            width: 250px;
+        }
+
+        .new_image_content img {
+            display: block;
+        }
+
+        .product_meta input {
+            width: 200px;
+        }
+
+        input[type="text"] {
+            width: 250px;
+        }
+
+        #product_images li > img:hover:not(.loading_gif), #product_images img.selected {
+            border-bottom: 4px solid #5d84b7;
             cursor: pointer;
-            text-decoration: underline;
         }
 
-        .product_meta {
+        .helptext {
+            color: #898989;
+            font-style: italic;
+            padding-left: 10px;
+        }
+
+        .helptext.textarea {
+            display: inline-block;
+            vertical-align: top;
+            width: 300px;
+        }
+
+        textarea {
+            display: inline-block;
+            width: 456px;
+        }
+
+        .field {
+            margin-bottom: 10px;
+        }
+
+        .field > label {
+            min-width: 200px;
+            display: inline-block;
+        }
+
+        /* Loadmask */
+        .inner_content .loadmask {
+            background-color: #f1f1f1;
+            opacity: 0.7;
+            -moz-opacity: 0.7;
+            filter: alpha(opacity=70);
+            z-index: 100;
+        }
+
+        /* Autocomplete style */
+        .ui-autocomplete.ui-menu {
+            z-index: 101 !important;
+        }
+
+        /* Button styles */
+        .button.preview {
 
         }
 
-        .product_image {
-
+        .button.preview, .button.cancel {
+            background-color: #235364;
+            background: -moz-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+            background: -webkit-gradient(linear, left top, left bottom, from(#6f98ac), to(#235364), color-stop(0.05, #358ab2));
+            background: -webkit-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+            background: -o-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+            background: -ms-linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
+            background: linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
         }
 
-        .product_description {
+        .button.preview:hover, .button.cancel:hover {
+            background-color: #033344;
+            background: -moz-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+            background: -webkit-gradient(linear, left top, left bottom, from(#6f98ac), to(#033344), color-stop(0.05, #358ab2));
+            background: -webkit-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+            background: -o-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+            background: -ms-linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+            background: linear-gradient(top, #6f98ac, #358ab2 5%, #033344 100%);
+        }
 
+        .button.cancel {
+            float: right;
+            width: 80px;
+            position: relative;
+            z-index: 102;
+        }
+
+        .qq-upload-list {
+            display: none;
         }
     </style>
 {% endblock %}
 
 {% block extra_js_includes %}
+    <script src="{% static "js/jquery-ui.js" %}"></script>
+    <script src="{% static "js/jquery.form.js" %}"></script>
+    <script src="{% static "js/jquery.watermark.min.js" %}"></script>
+    <script src="{% static "js/jquery.loadmask.min.js" %}"></script>
+    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/jquery.loadmask.css" %}">
+    <script src="{% static "js/fileuploader.js" %}"></script>
+
+    <script>
+
+    var app = (function() {
+        var existing_images, products, product_selected, setUpListeners, init;
+
+        existing_images = {};
+
+        products = {
+            {% for product in products %}
+            '{{ product.id }}': {
+                'id': '{{ product.id }}',
+                'name': '{{ product.name }}',
+                'description': '{{ product.description|escapejs }}',
+                'media': [
+                    {% for product_media in product.media.all %}
+                    {
+                        'id': '{{ product_media.id }}',
+                        'url': '{{ product_media.get_url }}'
+                    }{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ]
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        };
+
+        product_selected = function (o) {
+            var product = products[o.product_id],
+                media_id = $("#id_product_media_id").val();
+
+            if (typeof(product) === "undefined") {
+                return;
+            }
+
+            // clear existing image list
+            images = $("#product_images li");
+            imagesToRemove = images.splice(1, images.length - 1);
+            for (var i = imagesToRemove.length - 1; i >= 0; i--) {
+                $(imagesToRemove[i]).remove();
+            }
+
+            // display product media
+            for (i in product.media) {
+                var li = $("<li><img class='existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
+                if (product.media[i].id == o.product_image_id) {
+                    li.children('img').addClass('selected');
+                }
+                $("#product_images").append(li);
+            }
+
+            if (o.product_generic_image_id && o.product_generic_image_url) {
+                $("#fine-uploader").closest('li').after(
+                    "<li><img class='custom_image selected' data-mid='" + o.product_generic_image_id + "' src='" + o.product_generic_image_url + "'></li>");
+            }
+
+            $("#product_images").find("[data-mid='" + media_id  + "']")
+                .addClass("selected")
+
+            // set product's proper name
+            $("#product_name").val(product.name);
+
+            if (!o.human_invoked) {
+                $("#id_name").val(o.page_name);
+            } else {
+                $("#id_name").val(product.name);
+            }
+
+            if (o.product_description) {
+                // set product's description
+                $("#id_description").val(o.product_description);
+            } else {
+                // set product's description
+                $("#id_description").val(product.description);
+            }
+
+            // set the id for form submission
+            $("#id_product_id").val(product.id);
+
+            $(".product_meta").unmask();
+        };
+
+        setUpListeners = function () {
+            // GENERAL UI
+            $("#product_images img.existing_image").live('click', function() {
+                $("#product_images img").removeClass("selected");
+                $(this).addClass("selected");
+
+                $("#id_product_media_id").val($(this).data('mid'));
+                $("#id_generic_media_id").val("");
+                $("#id_generic_media_url").val("");
+            });
+
+            $("#product_images img.new_image").live('click', function() {
+                $("#product_images img").removeClass("selected");
+                $(this).addClass("selected");
+
+                $("#id_generic_media_id").val($(this).data('mid'));
+                $("#id_generic_media_url").val($(this).attr('src'));
+                $("#id_product_media_id").val("");
+            });
+
+            // PRODUCT SEARCH AUTOCOMPLETE
+            $("#product_name").autocomplete({
+                source: function(request, response) {
+                    var term = request.term;
+                    $.getJSON("/api/assets/v1/product/", {
+                        "format": "json",
+                        "name_or_url": term
+
+                    }, function(data) {
+                        //convert object to usable form
+                        var results = [];
+                        $.each(data.objects, function(index, value) {
+                            results.push({'label': value.name, 'id': value.id})
+                        });
+                        response(results);
+                    })
+                },
+                minLength: 2,
+                select: function( event, ui ) {
+                    if (ui.item) {
+                        product_selected({
+                            product_id: ui.item.id,
+                            human_invoked: true
+                        });
+                    }
+                }
+            });
+            $(".button.preview").click(function(){
+                var $form = $("#create_campaign");
+                var $campaign_id = $("#id_campaign_id");
+                $.ajax({
+                    async: false,
+                    type: 'POST',
+                    data: $form.serialize(),
+                    url: window.location.href,
+                    success: function(response) {
+                        if (response.success) {
+                            var url = 'http://' + window.location.host + response.url;
+                            window.open(url, "_blank");
+                            $campaign_id.val(response.campaign);
+                        } else {
+                            $form[0].submit();
+                        }
+                    }
+                })
+            });
+            $(".button.cancel").click(function(){
+                var cancel = confirm("Are you sure you want to cancel your " +
+                        "changes?")
+                if (cancel) {
+                    window.location.href = "{% url store-admin store.id %}"
+                }
+            });
+        };
+
+        init = function () {
+            $(function() {
+                setUpListeners();
+                var uploader = new qq.FileUploader({
+                  element: document.getElementById('fine-uploader'),
+                  action: '{% url ajax-upload-image %}',
+                  csrfToken: $.cookie('csrftoken'),
+                  allowedExtensions: ['jpg' ,'png', 'jpeg'],
+                  onSubmit: function() {
+                      $("#fine-uploader").closest('li').after(
+                      "<li><img class='loading_gif' src='{% static "loading.gif" %}'></li>"
+                      );
+                  },
+                  onComplete: function(id, fileName, response) {
+                      var decodedUrl = $(document.createElement('div')).html(response.url).text()
+                      var gif = $("#product_images .loading_gif");
+                      gif.hide();
+                      gif.removeClass('loading_gif');
+                      gif.addClass('new_image');
+                      gif.attr('src', decodedUrl);
+                      gif.data('mid', response.media_id);
+                      gif.load(function() {
+                          gif.fadeIn(500);
+                      });
+                  }
+                });
+
+                // save existing image settings
+                app.existing_images = {
+                    "generic": $("#id_generic_media_id").val(),
+                    "existing": $("#id_product_media_id").val()
+                };
+
+                $(".product_meta").mask();
+                $("#product_name").watermark("Your product name")
+
+                // in case we're dealing with errors on submition,
+                // ensure we're displaying the product that was selected prior
+                product_selected({
+                    product_id: $("#id_product_id").val(),
+                    page_name: $("#id_name").val(),
+                    product_description: $("#id_description").val(),
+                    product_image_id: $("#id_product_media_id").val(),
+                    product_generic_image_id: $("#id_generic_media_id").val(),
+                    product_generic_image_url: $("#id_generic_media_url").val()
+                });
+            });
+        };
+
+        return {
+            "init": init
+        }
+    }());
+
+    app.init();
+
+    </script>
 {% endblock %}
 
 {% block document_ready %}
-    $("#product_selected").
+
 {% endblock %}
 
 {% block top_section %}
-    <nav class="grid_3 prefix_9">
+    <div class="grid_3 prefix_9">
         <ul>
-            <li class="selected">Pages</li>
-            <li>Analytics</li>
         </ul>
-    </nav>
+    </div>
 {% endblock %}
 
 {% block content %}
-    <div class="grid_12 product_select">
-        <h2>Select a product:</h2>
-        <div class="grid_12 block_types">
-
-            <ul>
-            {% for product in products %}
-                <li>{{ product }}</li>
-            {% endfor %}
-            </ul>
-        </div>
-    </div>
-
-    <div class="grid_12 product_meta">
-        <div class="grid_12 product_image">
+    <form id="create_campaign" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="product_select">
+            <div class="field">
+                <label for="product_name">Featured Product:</label>
+                <input type="text" id="product_name">
+                <span class="helptext">Start typing in the name of a product you want to feature</span>
+            </div>
         </div>
 
-        <div class="grid_12 product_description">
+        <div class="product_meta">
+            <div class="field">
+                <label for="id_name">Page Name:</label>
+                {{ form.name }}
+                {{ form.name.errors }}
+                {% if not form.name.errors %}
+                    <span class="helptext">Select a name for this page for your reference.</span>
+                {% endif  %}
+            </div>
+
+            <label for="image-selector">Featured Image:</label>
+            {% if campaign %}
+                <div class="field existing_image">
+                    <div class="current_image">
+                        {% with first_image=campaign.content_blocks.all|first %}
+                            <img src="{{ first_image.data.get_image.get_url }}">
+                        {% endwith %}
+                    </div>
+                </div>
+            {% endif %}
+            <div id="image-selector">
+                <div class="existing_images_list">
+                    <ul id="product_images">
+                        <li>
+                        <div id="fine-uploader"></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            {{ form.non_field_errors }}
+
+            <div class="field">
+                {{ form.description.errors }}
+                <label for="id_description">Product Description:</label>
+                <div>
+                    {{ form.description }}
+                    <span class="helptext textarea">
+                        You can tailor product's
+                        description that will appear on the page.</span>
+                </div>
+            </div>
+
+            <div class="actions">
+                {% for hidden in form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+
+                <input class="button submit" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} Page">
+                <input class="button preview" type="button" value="Preview Page">
+                <input class="button cancel" type="button" value="Cancel">
+            </div>
         </div>
-    </div>
+    </form>
 {% endblock %}

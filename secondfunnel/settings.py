@@ -79,6 +79,10 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    os.path.join(
+     os.path.dirname(
+      os.path.dirname(
+       os.path.abspath(__file__))), 'secondfunnel/static'),
 )
 
 # List of finder classes that know how to find static files in
@@ -129,6 +133,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
+    'django.contrib.humanize',
 
     # external apps
     'storages',
@@ -140,6 +145,10 @@ INSTALLED_APPS = (
     'apps.analytics',
     'apps.assets',
     'apps.pinpoint',
+
+    # testing
+    'fts',
+
     'apps.scraper',
 )
 
@@ -178,6 +187,13 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
     # needed for admin
     'django.contrib.auth.context_processors.auth',
+
+    # allows for the django messages framework
+    'django.contrib.messages.context_processors.messages',
+)
+
+FIXTURE_DIRS = (
+   'secondfunnel/fixtures/',
 )
 
 try:

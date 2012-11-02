@@ -1,1 +1,101 @@
-[{"pk": 1, "model": "pinpoint.blocktype", "fields": {"description": "", "created": "2012-10-19T15:40:46.847Z", "handler": "featured_product_wizard", "image": "internal_images/cb-product-200x100.png", "enabled": true, "last_modified": "2012-10-19T23:04:33.812Z", "slug": "content-featured", "name": "Featured Product"}}, {"pk": 2, "model": "pinpoint.blocktype", "fields": {"description": "", "created": "2012-10-19T23:05:25.225Z", "handler": "", "image": "internal_images/cb-product-200x100.png", "enabled": false, "last_modified": "2012-10-19T23:05:25.225Z", "slug": "lookbook", "name": "Lookbook"}}, {"pk": 3, "model": "pinpoint.blocktype", "fields": {"description": "", "created": "2012-10-19T23:05:45.260Z", "handler": "", "image": "internal_images/cb-product-200x100.png", "enabled": false, "last_modified": "2012-10-19T23:05:45.260Z", "slug": "themed-collection", "name": "Themed Collection"}}, {"pk": 4, "model": "pinpoint.blocktype", "fields": {"description": "", "created": "2012-10-19T23:06:05.103Z", "handler": "", "image": "internal_images/cb-product-200x100.png", "enabled": false, "last_modified": "2012-10-19T23:06:05.103Z", "slug": "shop-look", "name": "Shop The Look"}}, {"pk": 1, "model": "pinpoint.blockcontent", "fields": {"block_type": 1, "created": "2012-10-19T15:40:55.356Z", "object_id": 1, "priority": null, "last_modified": "2012-10-19T15:40:55.356Z", "content_type": 20}}, {"pk": 1, "model": "pinpoint.campaign", "fields": {"description": "", "created": "2012-10-23T18:53:24.641Z", "last_modified": "2012-10-23T18:53:24.641Z", "content_blocks": [1], "discovery_blocks": [], "slug": "test-campaign", "store": 1, "name": "Test Campaign"}}]
+[
+     {
+          "pk": 1, 
+          "model": "pinpoint.blocktype", 
+          "fields": {
+               "description": "", 
+               "created": "2012-10-19T15:40:46.847Z", 
+               "handler": "featured_product_wizard", 
+               "image": "internal_images/cb-product-200x100.png", 
+               "enabled": true,
+               "last_modified": "2012-10-19T23:04:33.812Z", 
+               "slug": "content-featured", 
+               "name": "Featured Product"
+          }
+     }, 
+     {
+          "pk": 2, 
+          "model": "pinpoint.blocktype", 
+          "fields": {
+               "description": "", 
+               "created": "2012-10-19T23:05:25.225Z", 
+               "handler": "", 
+               "image": "internal_images/cb-product-200x100.png", 
+               "enabled": false,
+               "last_modified": "2012-10-19T23:05:25.225Z", 
+               "slug": "lookbook", 
+               "name": "Lookbook"
+          }
+     }, 
+     {
+          "pk": 3, 
+          "model": "pinpoint.blocktype", 
+          "fields": {
+               "description": "", 
+               "created": "2012-10-19T23:05:45.260Z", 
+               "handler": "", 
+               "image": "internal_images/cb-product-200x100.png", 
+               "enabled": false,
+               "last_modified": "2012-10-19T23:05:45.260Z", 
+               "slug": "themed-collection", 
+               "name": "Themed Collection"
+          }
+     }, 
+     {
+          "pk": 4, 
+          "model": "pinpoint.blocktype", 
+          "fields": {
+               "description": "", 
+               "created": "2012-10-19T23:06:05.103Z", 
+               "handler": "", 
+               "image": "internal_images/cb-product-200x100.png", 
+               "enabled": false,
+               "last_modified": "2012-10-19T23:06:05.103Z", 
+               "slug": "shop-look", 
+               "name": "Shop The Look"
+          }
+     }, 
+     {
+          "pk": 1, 
+          "model": "pinpoint.blockcontent", 
+          "fields": {
+               "block_type": 1, 
+               "created": "2012-10-19T15:40:55.356Z", 
+               "object_id": 1, 
+               "priority": null, 
+               "last_modified": "2012-10-19T15:40:55.356Z", 
+               "content_type": 20
+          }
+     }, 
+     {
+          "pk": 1, 
+          "model": "pinpoint.campaign", 
+          "fields": {
+               "description": "", 
+               "created": "2012-10-23T18:53:24.641Z", 
+               "live": false, 
+               "last_modified": "2012-10-23T18:53:24.641Z", 
+               "content_blocks": [
+                    1
+               ], 
+               "discovery_blocks": [], 
+               "slug": "test-campaign", 
+               "store": 1, 
+               "name": "Test Campaign"
+          }
+     }, 
+     {
+          "pk": 1, 
+          "model": "pinpoint.featuredproductblock", 
+          "fields": {
+               "product": 5, 
+               "description": "Description override.", 
+               "created": "2012-10-24T19:46:03.275Z", 
+               "existing_image": null, 
+               "last_modified": "2012-10-24T21:09:16.822Z", 
+               "custom_image": 1, 
+               "slug": "best-featured-product-block", 
+               "name": "The best featured product block"
+          }
+     }
+]
