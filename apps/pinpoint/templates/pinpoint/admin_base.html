@@ -127,6 +127,7 @@
                 <div class="bannerRight">
                     <ul>
                         {% if user.is_authenticated %}
+                        <li><a href="{% url login-redirect %}">PinPoint Pages</a></li>
                         <li><a href="{% url profile %}">Profile Page</a></li>
                         <li><a href="{% url logout %}">Logout</a></li>
                         {% else %}
