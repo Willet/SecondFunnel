@@ -5,7 +5,7 @@
 {% block page_title %}Enter New Password{% endblock %}
 
 {% block extra_head %}
-{{ block.super }}
+    {{ block.super }}
     <style>
         p {
             margin: 0;
@@ -25,9 +25,9 @@
     <p>Please enter your new password:</p>
     <form action="" method="post">
         {% csrf_token %}
-        {% if form.old_password.errors %}{{ form.old_password.errors }}<br />{% endif %}
-        {% if form.new_password1.errors %}{{ form.new_password1.errors }}<br />{% endif %}
-        {% if form.new_password2.errors %}{{ form.new_password2.errors }}<br />{% endif %}
+        {% for field in form %}
+            {% if field.errors %}{{ field.errors }}<br />{% endif %}
+	    {% endfor %}
         <table>
             <tr>
                 <td><label for="id_old_password">Old password:</label></td>
