@@ -124,6 +124,12 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+LETTUCE_APPS = (
+    'apps.pinpoint',
+)
+LETTUCE_AVOID_APPS = (
+)
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
