@@ -118,7 +118,7 @@
             width: 250px;
         }
 
-        #product_images li > img:hover:not(.loading_gif), #product_images img.selected {
+        #product_images li > img.prod_img:hover, #product_images img.selected {
             border: 4px solid #5d84b7;
         }
 
@@ -255,7 +255,7 @@
 
             // display product media
             for (i in product.media) {
-                var li = $("<li><img class='existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
+                var li = $("<li><img class='prod_img existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
                 if (product.media[i].id == o.product_image_id) {
                     li.children('img').addClass('selected');
                 }
@@ -269,7 +269,7 @@
                         var s = str.split("\\"); return {url: s[0], id: s[1]};
                     });
                 $.map(uploadedImages.reverse(), function(img) {
-                    var image = $("<li><img class='new_image' data-mid='" + img.id + "' src='" + img.url + "'></li>");
+                    var image = $("<li><img class='prod_img new_image' data-mid='" + img.id + "' src='" + img.url + "'></li>");
                     if (o.product_generic_image_id == img.id) {
                         image.children('img').addClass('selected')
                     }
@@ -436,6 +436,7 @@
                       var gif = $("#product_images .loading_gif");
                       gif.hide();
                       gif.removeClass('loading_gif');
+                      gif.addClass('prod_img');
                       gif.addClass('new_image');
                       gif.attr('src', decodedUrl);
                       gif.data('mid', response.media_id);
