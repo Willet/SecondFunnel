@@ -1,0 +1,43 @@
+{% extends "pinpoint/admin_base.html" %}
+
+{% block extra_head %}
+    
+    <style>
+        #positioning_table {
+            height: 400px;
+        }
+
+        td {
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        #outer_wrapper {
+            position: relative;
+            float: left;
+            left: 50%;
+        }
+
+        #inner_wrapper {
+            position: relative;
+            float: left;
+            left: -50%;
+        }
+
+    </style>
+    
+{% endblock %}
+
+{% block content %}
+    
+    <div id="outer_wrapper">
+        <div id="inner_wrapper">
+            <table id="positioning_table">
+                <td>
+                    {% block centered %}{% endblock %}
+                <td>
+            </table>
+        </div>
+    </div>
+    
+{% endblock %}
