@@ -6,5 +6,6 @@ secondfunnel/local_settings.py
 *.dot
 *.db
 *.sqlite
+.coverage
 
 .elasticbeanstalk/
