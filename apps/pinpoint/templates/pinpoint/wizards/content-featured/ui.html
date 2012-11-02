@@ -263,12 +263,12 @@
             }
 
             if (o.product_generic_image_list) {
-                var uploadedImages = o.product_generic_image_list
-                    .split("|")
-                    .map(function(str) {
+                var uploadedImages = $.map(
+                    o.product_generic_image_list.split("|"),
+                    function(str) {
                         var s = str.split("\\"); return {url: s[0], id: s[1]};
                     });
-                uploadedImages.reverse().map(function(img) {
+                $.map(uploadedImages.reverse(), function(img) {
                     var image = $("<li><img class='new_image' data-mid='" + img.id + "' src='" + img.url + "'></li>");
                     if (o.product_generic_image_id == img.id) {
                         image.children('img').addClass('selected')
