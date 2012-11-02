@@ -5,43 +5,43 @@ Feature: Account functionality
 
     Scenario: Login
         Given I visit the "login" page
-        And I fill the field "username" with "customer"
-        And I fill the field "password" with "password"
-        When I press the "login" button
+        And I fill in "username" with "nterwoord"
+        And I fill in "password" with "asdf"
+        When I press "login"
         Then I see the "store admin" page
 
     Scenario: Failed Login
         Given I visit the "login" page
-        And I fill the field "username" with "customer"
-        And I fill the field "password" with "badpassword"
-        When I press the "login" button
+        And I fill in "username" with "nterwoord"
+        And I fill in "password" with "asdfghjkl"
+        When I press "login"
         Then I see the "login" page
-        And I see the text "Your username and password didn't match"
+        And I see "Your username and password didn't match"
 
     Scenario: Logout
-        Given I have logged in successfully
-        When I press the "logout" button
+        Given I login with username "nterwoord" and password "asdf"
+        When I click "Logout"
         Then I see the "login" page
 
     Scenario: Successful password recovery
         Given I visit the "login" page
-        And I press the "Forgot your password?" button
-        And I fill the "email" field with "customer@example.com"
-        And I press the "Send Reset Url" button
-        And I receive an email from ""
+        And I click "Forgot your password?"
+        And I fill in "email" with "nick@willetinc.com"
+        And I press "Send Reset Url"
+        And I receive an email titled "Pinpoint admin password reset"
         And I visit the link in the email
-        And I fill in the "password" field with "newpassword"
-        And I fill in the "verify" field with "newpassword"
-        And I press the "Change my password" button
+        And I fill in "new_password1" with "asdfghjkl"
+        And I fill in "new_password2" with "asdfghjkl"
+        And I press "Change my password"
         And I visit the "login" page
-        And I fill the field "username" with "customer"
-        And I fill the field "password" with "newpassword"
-        When I press the "login" button
+        And I fill in "username" with "nterwoord"
+        And I fill in "password" with "asdfghjkl"
+        When I press "login"
         Then I see the "store admin" page
 
     Scenario: Failed password recovery - bad email
         Given I visit the "login" page
-        And I press the "Forgot your password?" button
-        And I fill the "email" field with "customer@example.com"
-        And I press the "Send Reset Url" button
-        Then I see the text "That e-mail address doesn't have an associated user account"
+        And I click "Forgot your password?"
+        And I fill in "email" with "customer@example.com"
+        And I press "Send Reset Url"
+        Then I see "That e-mail address doesn't have an associated user account"
