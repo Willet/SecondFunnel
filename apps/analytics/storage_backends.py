@@ -7,27 +7,27 @@ import httplib2
 import logging
 
 from apiclient.discovery import build
-from google.appengine.api import memcache
 from oauth2client.appengine import AppAssertionCredentials
 
-from util.consts import GOOGLE_ANALYTICS_PROFILE
+from django.conf import settings
 
 
 class GoogleAnalyticsBackend:
     """Mediates access to Google Analytics APIs"""
 
     def __init__(self):
+        # TODO: REDO THIS! Use SWK Signed object
         credentials = AppAssertionCredentials(
             scope='https://www.googleapis.com/auth/analytics.readonly')
 
-        http = credentials.authorize(httplib2.Http(memcache))
+        http = credentials.authorize(httplib2.Http())
         self.service = build('analytics', 'v3', http=http)
 
     def get_service(self):
         return self.service
 
     def get_profile_id(self):
-        return GOOGLE_ANALYTICS_PROFILE
+        return settings.GOOGLE_ANALYTICS_PROFILE
 
     def join_params(self, params):
         if not params:
