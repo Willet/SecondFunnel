@@ -149,6 +149,7 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
+    'djcelery',
 
     # our apps
     'apps.analytics',
@@ -197,6 +198,19 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 FIXTURE_DIRS = (
    'secondfunnel/fixtures/',
 )
+
+# CELERY SETTINGS
+import djcelery
+djcelery.setup_loader()
+
+BROKER_URL = 'sqs://%s:%s@' % (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+BROKER_TRANSPORT_OPTIONS = {
+    'region': 'eu-west-1',
+    'visibility_timeout': 30,
+    'polling_interval': 1,
+    'queue_name_prefix': 'celery-',
+}
+
 
 try:
     from local_settings import *
