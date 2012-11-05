@@ -1,3 +1,12 @@
+"""
+Mascot:
+
+ ()()
+ (-_-)
+ (()())
+
+"""
+
 import os
 
 # Django settings for secondfunnel project.
