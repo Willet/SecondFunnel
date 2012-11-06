@@ -155,6 +155,8 @@ INSTALLED_APPS = (
     'apps.analytics',
     'apps.assets',
     'apps.pinpoint',
+    'apps.website',
+
     'apps.scraper',
 )
 
@@ -193,6 +195,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
     # needed for admin
     'django.contrib.auth.context_processors.auth',
+
+    # allows for the django messages framework
+    'django.contrib.messages.context_processors.messages',
 )
 
 FIXTURE_DIRS = (

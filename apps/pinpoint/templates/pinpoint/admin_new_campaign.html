@@ -2,24 +2,32 @@
 {% load staticfiles %}
 
 {% block title %}
-    {{ block.super }}: New Page
+    New Page
 {% endblock %}
 
 {% block page_title %}
-    {{ block.super }}: New Page
+    New Page
 {% endblock %}
 
 {% block extra_head %}
     <style type="text/css">
         .block_types {
-
+            height: 400px;
         }
 
         .block_type {
             padding-left: 0px;
-            margin-left: 5px;
-            margin-right: 5px;
+            margin-left: 0px;
+            margin-right: 0px;
             text-align: center;
+        }
+
+        .block_type img:hover {
+            outline: 2px solid #AAA;
+        }
+
+        .block_type.selected img {
+            outline: 2px solid #943A28;
         }
 
         .dimmed img {
@@ -30,10 +38,26 @@
             display: block;
             color: #9e9e9e;
         }
+
+        .button {
+            float: right;
+            position: relative;
+        }
     </style>
 {% endblock %}
 
 {% block extra_js_includes %}
+<script>
+    $('.block_type:not(.dimmed)').click(function() {
+        $('.block_type').removeClass('selected');
+        $(this).closest('.block_type').addClass('selected');
+
+        $('.button.next').removeClass('disabled');
+    });
+    $('.button.next').click(function() {
+        window.location.href = $('.block_type.selected .url').text();
+    });
+</script>
 {% endblock %}
 
 {% block document_ready %}
@@ -41,19 +65,21 @@
 {% endblock %}
 
 {% block top_section %}
-    <nav class="grid_3 prefix_9">
+    <div class="grid_3 prefix_9">
         <ul>
-            <li class="selected">Pages</li>
-            <li>Analytics</li>
         </ul>
-    </nav>
+    </div>
 {% endblock %}
 
 {% block content %}
-    <h2>Select content block type (change me):</h2>
-    <div class="grid_12 block_types">
+    <h2>Select page focus:</h2>
+    <div class="block_types">
     {% for block_type in block_types %}
-        {% include "pinpoint/snippets/block_type_admin.html" with block_type=block_type linked="True" %}
+        {% include "pinpoint/snippets/block_type_admin.html" with block_type=block_type %}
     {% endfor %}
+    </div>
+    <div class="actions">
+        <input class="button next focus disabled" type="submit" value="Next">
+        <input id="cancel_to_admin" class="button" type="button" value="Cancel">
     </div>
 {% endblock %}

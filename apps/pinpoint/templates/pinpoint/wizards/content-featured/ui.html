@@ -6,10 +6,12 @@
 {% endblock %}
 
 {% block page_title %}
-    {{ block.super }}: {% if campaign %}Edit {% else %}New{% endif %} Page
+    {% if campaign %}Edit {% else %}New{% endif %} Page
 {% endblock %}
 
 {% block extra_head %}
+    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/fileuploader.css" %}">
     <style type="text/css">
         .product_select {
 
@@ -27,34 +29,12 @@
             font-size: 15pt;
         }
 
-        ul.errorlist {
-            margin: 0 0 10px 0;
-            list-style: none;
-        }
-
-        ul.errorlist li {
-            background-color: #B94A48;
-            border-color: white;
-            border-radius: 3px;
-            border-style: none;
-            border-collapse: separate;
-            border-width: 0px;
-
-            color: white;
-            display: inline;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-size: 12px;
-            font-weight: bold;
-            height: auto;
-            line-height: 14px;
-            margin: 0;
-            max-width: none;
-            padding: 1px 4px 2px 4px;
-            text-align: left;
-            text-shadow: rgba(0, 0, 0, 0.247059) 0px -1px 0px;
-            vertical-align: baseline;
+        #product_images {
+            height: 230px;
+            overflow-x: scroll;
+            overflow-y: hidden;
             white-space: nowrap;
-            width: auto;
+            margin: 0;
         }
 
         #product_images ul {
@@ -63,13 +43,32 @@
         }
 
         #product_images li {
-            display: inline;
+            width: 200px;
+            height: 200px;
+            display: inline-block;
+
+            vertical-align:top;
+            text-align: center;
+            line-height: 200px;
         }
 
-        #product_images img {
-            border-bottom: 4px solid #eeeeee;
+        #product_images li > img {
+            vertical-align: middle;
+            border: 4px solid #eeeeee;
             padding-bottom: 5px;
-            width: 250px;
+            max-width: 200px;
+            max-height: 200px;
+        }
+
+        #fine-uploader {
+            display: inline-block;
+            width: 200px;
+            line-height: 20px;
+        }
+
+        #fine-uploader .qq-upload-button {
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .current_image img, .new_image_content img {
@@ -88,47 +87,105 @@
             width: 250px;
         }
 
-        #product_images img:hover, #product_images img.selected {
-            border-bottom: 4px solid #5d84b7;
-            cursor: pointer;
-        }
-
-        .existing_images_list {
-            width: 900px;
-            overflow: scroll;
-            max-height: 450px
-        }
-
-        .product_description {
-
+        #product_images li > img.prod_img:hover, #product_images img.selected {
+            border: 4px solid #5d84b7;
         }
 
         .helptext {
-            display: block;
             color: #898989;
+            font-style: italic;
+            padding-left: 10px;
+        }
+
+        .helptext.textarea {
+            display: inline-block;
+            vertical-align: top;
+            width: 300px;
         }
 
         textarea {
-            display: block;
-            width: 500px;
+            display: inline-block;
+            width: 456px;
         }
 
         .field {
-            margin-bottom: 30px;
+            margin-bottom: 10px;
         }
 
+        .field > label {
+            min-width: 200px;
+            display: inline-block;
+        }
+
+        /* Loadmask */
+        .inner_content .loadmask {
+            background-color: #f1f1f1;
+            opacity: 0.7;
+            -moz-opacity: 0.7;
+            filter: alpha(opacity=70);
+            z-index: 100;
+        }
+
+        /* Autocomplete style */
+        .ui-autocomplete.ui-menu {
+            z-index: 101 !important;
+        }
+
+        .button {
+            float: right;
+            position: relative;
+        }
+
+        /* Button styles */
+        #cancel_to_admin, .button.back {
+            width: 80px;
+            z-index: 102;
+        }
+
+        .qq-upload-list {
+            display: none;
+        }
+
+        /* Character count styles */
+        #character_count {
+            padding-left: 40px;
+            background-image: url('{% static "pinpoint/images/check32.png" %}');
+            background-repeat: no-repeat;
+            font-size: 16px;
+            display: inline-block;
+            line-height: 32px;
+        }
+
+        #character_count.danger, #character_count.warning {
+            font-weight: bold;
+        }
+
+        #character_count.danger {
+            color: #b94a48;
+            background-image: url('{% static "pinpoint/images/minus32.png" %}');
+        }
+
+        #character_count.warning {
+            color: #bb0;
+            background-image: url('{% static "pinpoint/images/warning32.png" %}');
+        }
     </style>
 {% endblock %}
 
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
     <script src="{% static "js/jquery.form.js" %}"></script>
+    <script src="{% static "js/jquery.watermark.min.js" %}"></script>
+    <script src="{% static "js/jquery.loadmask.min.js" %}"></script>
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/jquery.loadmask.css" %}">
+    <script src="{% static "js/fileuploader.js" %}"></script>
 
     <script>
 
     var app = (function() {
-        var existing_images, products, product_selected, setUpListeners, image_fsm, init;
+        var existing_images, products, product_selected, setUpListeners,
+            updateCharacters, init;
 
         existing_images = {};
 
@@ -151,55 +208,96 @@
         };
 
         product_selected = function (o) {
-            var product = products[o.product_id];
+            var product = products[o.product_id],
+                media_id = $("#id_product_media_id").val();
 
             if (typeof(product) === "undefined") {
                 return;
             }
 
             // clear existing image list
-            $("#product_images").html("");
+            images = $("#product_images li");
+            imagesToRemove = images.splice(1, images.length - 1);
+            for (var i = imagesToRemove.length - 1; i >= 0; i--) {
+                $(imagesToRemove[i]).remove();
+            }
 
             // display product media
             for (i in product.media) {
-                $("#product_images").append(
-                    "<li><img data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>"
-                );
+                var li = $("<li><img class='prod_img existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
+                if (product.media[i].id == o.product_image_id) {
+                    li.children('img').addClass('selected');
+                }
+                $("#product_images").append(li);
             }
+
+            if (o.product_generic_image_list) {
+                var uploadedImages = $.map(
+                    o.product_generic_image_list.split("|"),
+                    function(str) {
+                        var s = str.split("\\"); return {url: s[0], id: s[1]};
+                    });
+                $.map(uploadedImages.reverse(), function(img) {
+                    var image = $("<li><img class='prod_img new_image' data-mid='" + img.id + "' src='" + img.url + "'></li>");
+                    if (o.product_generic_image_id == img.id) {
+                        image.children('img').addClass('selected')
+                    }
+                    $("#fine-uploader").closest('li').after(image);
+                });
+            }
+
+            $("#product_images").find("[data-mid='" + media_id  + "']")
+                .addClass("selected")
 
             // set product's proper name
             $("#product_name").val(product.name);
 
-            // set product's description
-            $("#id_description").val(product.description);
+            if (!o.human_invoked) {
+                $("#id_name").val(o.page_name);
+            } else {
+                $("#id_name").val(product.name);
+            }
+
+            if (o.product_description) {
+                // set product's description
+                $("#id_description").val(o.product_description);
+            } else {
+                // set product's description
+                $("#id_description").val(product.description);
+            }
 
             // set the id for form submission
             $("#id_product_id").val(product.id);
 
-            $(".product_meta").slideDown();
+            // update character count
+            updateCharacters();
 
-            if (o.human_invoked) {
-                image_fsm.transition('change_image', {});
+            $(".product_meta").unmask();
+        };
+
+        updateCharacters = function() {
+            var chars = $("#id_description").val().length;
+            $("#characters").text(chars);
+
+            var $count = $("#character_count");
+            var $buttons = $(".button:not(#cancel_to_admin, .back)");
+
+            $count.removeClass();
+            $buttons.removeClass('disabled');
+            $buttons.removeAttr('disabled');
+
+            if (chars > 250) {
+                $count.addClass("danger");
+                $buttons.addClass('disabled');
+                $buttons.attr('disabled', 'disabled');
+            } else if ((230 <= chars) && (chars <= 250)) {
+                $count.addClass("warning");
             }
         };
 
-        setUploadStatus = function(color, text, fade) {
-            if (typeof(fade) === undefined) {
-                fade = false;
-            }
-            var status = $("#upload_status");
-            status.css('color', color);
-            status.stop(true, true);
-            status.show();
-            status.text(text);
-            if (fade) {
-                status.fadeOut(1000);
-            }
-        }
-
         setUpListeners = function () {
             // GENERAL UI
-            $("#product_images img").live('click', function() {
+            $("#product_images img.existing_image").live('click', function() {
                 $("#product_images img").removeClass("selected");
                 $(this).addClass("selected");
 
@@ -207,19 +305,29 @@
                 $("#id_generic_media_id").val("");
             });
 
-            $("#page_description_toggle").click(function (e) {
-                e.preventDefault();
-                $(".page_description_label").slideUp();
-                $(".page_description_content").slideDown();
+            $("#product_images img.new_image").live('click', function() {
+                $("#product_images img").removeClass("selected");
+                $(this).addClass("selected");
+
+                $("#id_generic_media_id").val($(this).data('mid'));
+                $("#id_product_media_id").val("");
             });
 
-                // PRODUCT SEARCH AUTOCOMPLETE
-                $("#product_name").autocomplete({
-                    source: function(request, response) {
-                        var term = request.term;
-                        $.getJSON("/api/assets/v1/product/", {
-                            "format": "json",
-                            "name_or_url": term
+            $(".button.back").click(function(){
+                var cancel = confirm("By going back you will lose your " +
+                        "changes on this page. Are you sure?");
+                if (cancel) {
+                    window.location.href = "{% url new-campaign-admin store.id %}";
+                }
+            });
+
+            // PRODUCT SEARCH AUTOCOMPLETE
+            $("#product_name").autocomplete({
+                source: function(request, response) {
+                    var term = request.term;
+                    $.getJSON("/api/assets/v1/product/", {
+                        "format": "json",
+                        "name_or_url": term
 
                     }, function(data) {
                         //convert object to usable form
@@ -240,211 +348,80 @@
                     }
                 }
             });
-            $("#image_form").ajaxForm({
-                url: "{% url ajax-upload-image %}",
-                success: function(data) {
-                    if (data.success != false) {
-                        setUploadStatus('#0F0', 'Done', true);
-                        console.log(data);
-                        $("#uploaded_image").attr("src", data.url);
-                        $("#uploaded_image").load(function() {
-                            $("#uploaded_image").slideDown();
-                        });
-                        $("#id_generic_media_id").val(data.media_id);
-                    } else {
-                        setUploadStatus('#F00', 'Error: ');
+
+            // CHARACTER COUNT
+            $("#id_description").on("keydown keyup", updateCharacters);
+
+            $(".button.preview").click(function(){
+                var $form = $("#create_campaign");
+                var $campaign_id = $("#id_campaign_id");
+                $.ajax({
+                    async: false,
+                    type: 'POST',
+                    data: $form.serialize(),
+                    url: window.location.href,
+                    success: function(response) {
+                        if (response.success) {
+                            var url = 'http://' + window.location.host + response.url;
+                            window.open(url, "_blank");
+                            $campaign_id.val(response.campaign);
+                        } else {
+                            $form[0].submit();
+                        }
                     }
-
-                }, error: function(data) {
-                    setUploadStatus('#F00', 'Error: ');
-                }
+                })
             });
-
-            $("#select_new_image").click(function() {
-                $("#image_form input[type=file]").click();
-            });
-
-            $("#image_form input[type=file]").change(function() {
-                setUploadStatus('#EE9A00', 'Uploading...');
-                $("#image_form").submit();
-            });
-
-            // SET UP IMAGE FSM LISTENERS
-            $(".fsm").click(function (e) {
-                e.preventDefault();
-                image_fsm.transition($(this).data("action"), {});
-            })
         };
-
-        // STATE MACHINE TO HANDLE IMAGE SELECTION UI
-        image_fsm = (function () {
-            var current_state, state_transition;
-
-            current_state = 'start';
-
-            fsm = {
-                'start': {
-                    'fn': function (o) {},
-                    'transitions': {
-                        'edit': {
-                            'new_state': 'existing_image',
-                            'fn': function (o) {
-                                $(".image_selectors").slideUp();
-                                $(".existing_image").slideDown();
-                            }
-                        },
-                        'new': {
-                            'new_state': 'new_image_existing',
-                            'fn': function (o) {
-                                $(".image_selectors").slideDown();
-                                $(".existing_image").slideUp();
-                                $("a[data-action='cancel']").hide();
-                            }
-                        }
-                    }
-                },
-
-                'existing_image': {
-                    'fn': function (o) {
-                        $(".existing_image").slideDown();
-                        $(".image_selectors").slideUp();
-
-                        $("#id_generic_media_id").val(app.existing_images['generic']);
-                        $("#id_product_media_id").val(app.existing_images['existing']);
-
-                        $("#product_images img").removeClass("selected");
-                    },
-                    'transitions': {
-                        'change_image': {
-                            'new_state': 'new_image_existing',
-                            'fn': function (o) {
-
-                            }
-                        }
-                    }
-                },
-
-                'new_image_existing': {
-                    'fn': function (o) {
-                        $(".existing_image").slideUp();
-                        $(".image_selectors").slideDown();
-
-                        // show existing list, hide upload
-                        $(".new_image_label").slideDown();
-                        $(".new_image_content").slideUp();
-
-                        $(".existing_images_label").slideUp();
-                        $(".existing_images_content").slideDown();
-                    },
-                    'transitions': {
-                        'cancel': {
-                            'new_state': 'existing_image',
-                            'fn': function (o) {
-
-                            }
-                        },
-                        'upload': {
-                            'new_state': 'new_image_custom',
-                            'fn': function (o) {
-
-                            }
-                        }
-                    }
-                },
-
-                'new_image_custom': {
-                    'fn': function (o) {
-                        $(".existing_image").slideUp();
-                        $(".image_selectors").slideDown();
-
-                        // show upload, hide existing list
-                        $(".new_image_label").slideUp();
-                        $(".new_image_content").slideDown();
-
-                        $(".existing_images_label").slideDown();
-                        $(".existing_images_content").slideUp();
-
-                        // todo move
-                        $("#product_images img").removeClass("selected");
-                        $("#id_product_media_id").val("");
-                    },
-                    'transitions': {
-                        'cancel': {
-                            'new_state': 'existing_image',
-                            'fn': function (o) {
-
-                            }
-                        },
-                        'use_existing': {
-                            'new_state': 'new_image_existing',
-                            'fn': function (o) {
-
-                            }
-                        }
-                    }
-                }
-            };
-
-            state_transition = function (transition, data) {
-                var state = fsm[current_state],
-                    new_state;
-
-                // check if this is a valid transition
-                if (!(transition in state.transitions)) {
-                    return;
-                }
-
-                try {
-                    // get the next state
-                    new_state = fsm[state.transitions[transition].new_state];
-
-                    // execute any transition actions
-                    state.transitions[transition].fn && state.transitions[transition].fn(data || undefined);
-
-                    // execute any state actions
-                    new_state.fn && new_state.fn(data || undefined);
-
-                    // switch states
-                    current_state = state.transitions[transition].new_state;
-
-                } catch (e) {
-                    // abort the transition if any of the actions failed
-                    // rethrowing the culprit exception
-                    throw(e);
-                }
-            };
-
-            return {
-                "transition": state_transition
-            }
-        }());
 
         init = function () {
             $(function() {
+                $(".product_meta").mask();
+                $("#product_name").watermark("Your product name")
+
+                // in case we're dealing with errors on submition,
+                // ensure we're displaying the product that was selected prior
+                product_selected({
+                    product_id: $("#id_product_id").val(),
+                    page_name: $("#id_name").val(),
+                    product_description: $("#id_description").val(),
+                    product_image_id: $("#id_product_media_id").val(),
+                    product_generic_image_id: $("#id_generic_media_id").val(),
+                    product_generic_image_list: $("#id_generic_media_list").val()
+                });
+
                 setUpListeners();
+                var uploader = new qq.FileUploader({
+                  element: document.getElementById('fine-uploader'),
+                  action: '{% url ajax-upload-image %}',
+                  csrfToken: $.cookie('csrftoken'),
+                  allowedExtensions: ['jpg' ,'png', 'jpeg'],
+                  onSubmit: function() {
+                      $("#fine-uploader").closest('li').after(
+                      "<li><img class='loading_gif' src='{% static "loading.gif" %}'></li>"
+                      );
+                  },
+                  onComplete: function(id, fileName, response) {
+                      var decodedUrl = $(document.createElement('div')).html(response.url).text()
+                      var gif = $("#product_images .loading_gif");
+                      gif.hide();
+                      gif.removeClass('loading_gif');
+                      gif.addClass('prod_img');
+                      gif.addClass('new_image');
+                      gif.attr('src', decodedUrl);
+                      gif.data('mid', response.media_id);
+                      gif.load(function() {
+                          gif.fadeIn(500);
+                      });
+                      $("#id_generic_media_list").val($('#product_images img.new_image').map(
+                          function(){return $(this).attr('src') + "\\" + $(this).data('mid');}).toArray().join("|"));
+                  }
+                });
 
                 // save existing image settings
                 app.existing_images = {
                     "generic": $("#id_generic_media_id").val(),
                     "existing": $("#id_product_media_id").val()
                 };
-
-                {% if campaign %}
-                    image_fsm.transition('edit', {});
-                {% else %}
-                    image_fsm.transition('new', {});
-                {% endif %}
-
-                // in case we're dealing with errors on submition,
-                // ensure we're displaying the product that was selected prior
-                product_selected({
-                    product_id: $("#id_product_id").val()
-                });
-
-                // show internal description if it's present
-                if ($("#id_page_description").val() !== "") {
-                    $("#page_description_toggle").click();
-                }
             });
         };
 
@@ -463,41 +440,16 @@
 {% endblock %}
 
 {% block top_section %}
-    <nav class="grid_3 prefix_9">
+    <div class="grid_3 prefix_9">
         <ul>
-            <li class="selected">Pages</li>
-            <li>Analytics</li>
         </ul>
-    </nav>
+    </div>
 {% endblock %}
 
 {% block content %}
-    <form id="image_form" style="display:none" method="POST" enctype="multipart/form-data">
-        <input type="file" id="custom_image" name="image">
-    </form>
-
-    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
-        <div class="grid_12 product_select">
-            <div class="field">
-                {{ form.name.errors }}
-                <label for="id_name">Page Name:</label>
-                {{ form.name }}
-                <span class="helptext">Select a name for this PinPoint page for your reference.</span>
-            </div>
-
-            <div class="field">
-                <div class="page_description_label">
-                    <a href="" id="page_description_toggle">Add internal description for this page</a>
-                </div>
-
-                <div class="page_description_content" style="display:none">
-                    {{ form.page_description.errors }}
-                    <label for="id_page_description">Page Description:</label>
-                    {{ form.page_description }}
-                    <span class="helptext">Optional internal description for this page.</span>
-                </div>
-            </div>
-
+    <form id="create_campaign" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="product_select">
             <div class="field">
                 <label for="product_name">Featured Product:</label>
                 <input type="text" id="product_name">
@@ -505,66 +457,63 @@
             </div>
         </div>
 
-        <div class="grid_12 product_meta" style="display:none">
+        <div class="product_meta">
+            <div class="field">
+                <label for="id_name">Page Name:</label>
+                {{ form.name }}
+                {{ form.name.errors }}
+                {% if not form.name.errors %}
+                    <span class="helptext">Select a name for this page for your reference.</span>
+                {% endif  %}
+            </div>
+
+            <label for="image-selector">Featured Image:</label>
             {% if campaign %}
                 <div class="field existing_image">
-                    <label>Currently selected image:</label>
                     <div class="current_image">
-                    {% with first_image=campaign.content_blocks.all|first %}
-                        <img src="{{ first_image.data.get_image.get_url }}">
-                    {% endwith %}
+                        {% with first_image=campaign.content_blocks.all|first %}
+                            <img src="{{ first_image.data.get_image.get_url }}">
+                        {% endwith %}
                     </div>
-
-                    <a href="" class="fsm" data-action="change_image">Change Image</a>
                 </div>
             {% endif %}
-
-            <div class="image_selectors">
-                {{ form.non_field_errors }}
-
-                <a href="" class="fsm" data-action="cancel">Cancel and use current image</a>
-
-                <div class="field">
-                    <div class="existing_images_label" style="display:none">
-                        <a href="" class="fsm" data-action="use_existing">Use one of the existing images</a>
-                    </div>
-
-                    <div class="existing_images_content">
-                        <label>Select a featured image:</label>
-                        <div class="existing_images_list">
-                            <ul id="product_images"></ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="field">
-                    <div class="new_image_label">
-                        <a href="" class="fsm" data-action="upload">Upload a different image</a>
-                    </div>
-
-                    <div class="new_image_content" style="display: none">
-                        <label for="custom_image">Choose a different featured image:</label>
-                        <button id="select_new_image" type="button">Select Image</button>
-                        <span id="upload_status"></span>
-                        <img src="" id="uploaded_image" style="display: none">
-                        <span class="helptext">Upload a new image if none of the existing ones suit the new PinPoint page</span>
-                    </div>
+            <div id="image-selector">
+                <div class="existing_images_list">
+                    <ul id="product_images">
+                        <li>
+                        <div id="fine-uploader"></div>
+                        </li>
+                    </ul>
                 </div>
             </div>
+            {{ form.non_field_errors }}
 
             <div class="field">
                 {{ form.description.errors }}
-                <label for="id_name">Product Description:</label>
-                {{ form.description }}
-                <span class="helptext">You can tailor product's description that will appear on the PinPoint page.</span>
+                <label for="id_description">Product Description:</label>
+                <div>
+                    {{ form.description }}
+                    <span class="helptext textarea">
+                        You can tailor product's
+                        description that will appear on the page.<br/>
+                        <br/>
+                        <span id="character_count">
+                            <span id="characters">0</span> / 250
+                            characters.
+                        </span>
+                    </span>
+                </div>
             </div>
 
-            <div class="grid_12 actions">
+            <div class="actions">
                 {% for hidden in form.hidden_fields %}
                     {{ hidden }}
                 {% endfor %}
 
-                <input class="button" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} PinPoint Page">
+                <input class="button submit focus" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} Page">
+                <input class="button preview" type="button" value="Preview Page">
+                <input id="cancel_to_admin" class="button" type="button" value="Cancel">
+                <input class="button back" type="button" value="Back">
             </div>
         </div>
     </form>

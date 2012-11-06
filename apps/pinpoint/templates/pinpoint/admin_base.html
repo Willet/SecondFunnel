@@ -1,94 +1,35 @@
-{% load staticfiles %}
-
 <!DOCTYPE html>
+{% load staticfiles %}
 <html>
     <head>
         <link rel="stylesheet" href="{% static "pinpoint/css/pinpointAdmin.css" %}">
-        <link rel="stylesheet" href="{% static "css/960.css" %}"></link>
-        <link rel="stylesheet" href="{% static "css/reset.css" %}"></link>
-        <link rel="stylesheet" href="{% static "css/text.css" %}"></link>
+        <link rel="stylesheet" href="{% static "css/960.css" %}">
+        <link rel="stylesheet" href="{% static "css/reset.css" %}">
+        <link rel="stylesheet" href="{% static "css/text.css" %}">
         <title>{% block title %}Second Funnel{% endblock %}</title>
+        <link rel="shortcut icon" href="{% static "images/favicon.ico" %}" />
 
         {% block extra_head %}{% endblock %}
-
-        <style type="text/css">
-            .content {
-                -webkit-box-shadow:  0px 0px 10px 1px rgba(0, 0, 0, 0.5);
-                box-shadow:  0px 0px 10px 1px rgba(0, 0, 0, 0.5);
-                min-height: 500px;
-                margin-top: 0px;
-
-                -webkit-border-radius: 5px;
-                border-radius: 5px;
-
-                background-color: #f1f1f1;
-            }
-
-            .container_12 .inner_content {
-                padding: 10px 0 20px 0px;
-                /* accounts for the margins added in 960.css. We need this because
-                 * we have a grid_12 inside a grid_12.
-                 */
-                width: 920px;
-            }
-
-            .top_bar {
-                margin: 0;
-                background-color: #385a71;
-                height: 50px;
-                -webkit-border-radius: 5px 5px 0px 0px;
-                border-radius: 5px 5px 0px 0px;
-            }
-
-            .top_bar .page_title {
-                font-size: 17pt;
-                margin: 7px 0 0 15px;
-                text-shadow: 1px 1px 2px #4f4f4f;
-                filter: dropshadow(color=#4f4f4f, offx=1, offy=1);
-            }
-
-            .top_section {
-                margin-top: 20px;
-                height: 39px;
-            }
-
-            .top_section nav ul {
-                list-style: none;
-                position: relative;
-                top: 12px;
-            }
-
-            .top_section nav li {
-                display: inline;
-                background-color: #6f98ac;
-                padding: 10px;
-                margin-left: 15px;
-
-                -webkit-border-radius: 5px 5px 0px 0px;
-                border-radius: 5px 5px 0px 0px;
-            }
-
-            .top_section a, .top_section a:visited, .top_bar .page_title {
-                color: #eeeeee;
-            }
-
-            .top_section nav li.selected {
-                background-color: #385a71;
+        <style>
+            /* this needs to be here to use the static template tag */
+            ul.messages li {
+                background-image: url('{% static "pinpoint/images/stop32.png" %}');
             }
         </style>
     </head>
 
     <body>
 
-        <header class="banner">
+        <div class="banner">
             <div class="bannerBody">
                 <h1>
-                    <img src="{% static "images/logo.png" %}"
-                         alt="Second Funnel Logo" align="middle">
+                    <img id="second_funnel_logo" src="{% static "images/logo.png" %}"
+                         alt="Second Funnel Logo">
                 </h1>
                 <div class="bannerRight">
                     <ul>
                         {% if user.is_authenticated %}
+                        <li><a href="{% url login-redirect %}">PinPoint Pages</a></li>
                         <li><a href="{% url profile %}">Profile Page</a></li>
                         <li><a href="{% url logout %}">Logout</a></li>
                         {% else %}
@@ -97,47 +38,52 @@
                     </ul>
                 </div>
             </div>
-        </header>
+        </div>
 
         <div class="container_12">
+            {% if messages %}
+                <ul class="messages grid_12">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
             <div class="grid_12 top_section">
                 {% block top_section %}{% endblock %}
             </div>
 
             <div class="grid_12 content">
-                <div class="grid_12 top_bar">
+                <div class="top_bar">
                     <div class="page_title">
-                        {% block page_title %}PinPoint Admin{% endblock %}
+                        {% block page_title %}{% endblock %}
                     </div>
                 </div>
 
-                <div class="grid_12 inner_content">
+                <div class="inner_content">
                     {% block content %}{% endblock %}
                 </div>
             </div>
         </div>
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <script src={% static "js/jquery.cookie.js" %}></script>
+        <script>
+            {% if store.id %}
+            $("#cancel_to_admin").click(function(){
+                var cancel = confirm("Are you sure you want to cancel your " +
+                        "changes?");
+                if (cancel) {
+                    window.location.href = "{% url store-admin store.id %}";
+                }
+            });
+            {% endif %}
+        </script>
         {% block extra_js_includes %}{% endblock %}
 
         <script type="text/javascript">
             $(function() {
                 $(document).ajaxSend(function(event, xhr, settings) {
-                    function getCookie(name) {
-                        var cookieValue = null;
-                        if (document.cookie && document.cookie != '') {
-                            var cookies = document.cookie.split(';');
-                            for (var i = 0; i < cookies.length; i++) {
-                                var cookie = jQuery.trim(cookies[i]);
-                                // Does this cookie string begin with the name we want?
-                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                                    break;
-                                }
-                            }
-                        }
-                        return cookieValue;
-                    }
                     function sameOrigin(url) {
                         // url could be relative or scheme relative or absolute
                         var host = document.location.host; // host + port
@@ -155,7 +101,7 @@
                     }
 
                     if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
-                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                        xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
                     }
                 });
 

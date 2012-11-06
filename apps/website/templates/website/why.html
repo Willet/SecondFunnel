@@ -1,0 +1,74 @@
+{% extends "website/base.html" %}
+{% load staticfiles %}
+{% block title %}{{ block.super }} | Why Second Funnel?{% endblock title %}
+
+{% block content %}
+        <div class="why area one">
+            <div class="body">
+                <div class="text">
+                    <h2>"Too often engagement doesn't bring customers closer to conversion."</h2>
+                    <span>- Forrester, June 2012</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="why area two">
+            <div class="body">
+                <div class="area 1 arrow">
+                </div>
+                <div class="text">
+                    <h2> Conversion is 6x lower for social traffic. </h2> <br>
+                    <p>
+                        Online retailers are missing the opportunity of social networks. While search and email marketing are driving clear value, too few can say social media has been effective at converting traffic into paying customers.
+                    </p> <br>
+                </div>
+                
+                <img src="{% static 'website/imgs/conversion.png' %}">
+            </div>
+        </div>
+        
+        <div class="why area three">
+            <div class="body">
+                <div class="area two arrow">
+                </div>
+                <div class="text">
+                    <h2> Social visitors behave differently. </h2> <br>
+                    <p>
+                        People reached on social networks are in a browsing mode. While social media is a growing source of product discovery for consumers, these "browsers" are not actively looking for a product, and they're not thinking about making a purchase. 
+                    </p> <br>
+                </div>
+                
+                <img src="{% static 'website/imgs/discovery.png' %}">
+            </div>
+        </div>
+        
+        <div class="why area four">
+            <div class="body">
+                <div class="area three arrow">
+                </div>
+                <div class="text">
+                    <h2> Dead-ends create leaky buckets. </h2> <br>
+                    <p>
+                        Today's eCommerce experience is not optimized for the "browser" consumer mindset. Traditional product pages do not facilitate product discovery. Visitors who aren't ready to buy have little choice but to leave.
+                    </p>
+                </div>
+                
+                <img src="{% static 'website/imgs/buy-or-leave.png' %}">
+            </div>
+        </div>
+        
+        <div class="why area five">
+            <div class="body">
+                <div class="area four arrow">
+                </div>
+                <div class="text">
+                    <h2> Opportunity for re-engagement is limited. </h2> <br>
+                    <p>
+                        A missed sale often means no follow up. Purchase preferences are unknown, and without email capture, one-to-one communication is impossible.                    </p>
+                </div>
+                
+                <img src="{% static 'website/imgs/conversations.png' %}">
+            </div>
+        </div>
+        
+{% endblock content %}
