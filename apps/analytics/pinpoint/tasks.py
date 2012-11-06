@@ -29,6 +29,7 @@ class AnalyticsPeriodic:
 
         # iterate through our stores and fine the most out of sync
         stores = Store.objects.all()
+        campaigns = Campaign.objects.all()
 
         for store in stores:
             store_type = ContentType.objects.get_for_model(Store)
@@ -54,9 +55,9 @@ class AnalyticsPeriodic:
 
                 self.recencies[store] = analytics_recency
 
-        self.parse_analytics_data(stores, oldest_analytics_data)
+        self.parse_analytics_data(oldest_analytics_data, stores=stores, campaigns=campaigns)
 
-    def parse_analytics_data(self, stores, start_date):
+    def parse_analytics_data(self, start_date, stores, campaigns):
         """start_date must be instance of datetime.date"""
 
         # define what we're requesting from Google Analytics
@@ -95,7 +96,11 @@ class AnalyticsPeriodic:
 
 class DataParser:
     def __init__(self, analytics_periodic, dimensions):
-        self.results = {}
+        self.results = {
+            'campaigns': {},
+            'stores': {}
+        }
+
         self.dimensions = dimensions
         self.cron = analytics_periodic
 
@@ -176,8 +181,8 @@ class DataParser:
         """
 
         # helper methods
-        def get_label_key(label, key):
-            ls = label.split("|")
+        def get_by_key(string, key):
+            ls = string.split("|")
             try:
                 return [s for s in ls if key in s][0].split("=")[1]
             except:
@@ -190,31 +195,29 @@ class DataParser:
 
         for row in rows:
             getter = row_getter(row)
+
+            category = getter('eventCategory')
+            action = getter('eventAction')
             label = getter('eventLabel')
 
-            store_id = get_label_key(label, "storeid")
-            campaign_id = get_label_key(label, "campaignid")
+            store_id = get_by_key(category, "storeid")
+            campaign_id = get_by_key(category, "campaignid")
+            referrer = get_by_key(category, "referrer")
+            domain = get_by_key(category, "domain")
+
+            action_type = get_by_key(action, "actionType")
+            action_subtype = get_by_key(action, "actionSubtype")
+            action_scope = get_by_key(action, "actionScope")
+            network = get_by_key(action, "network")
 
             # data isn't what we're expecting, don't proceed
-            if not store_id and not campaign_id:
+            if not (store_id and campaign_id and referrer \
+                    and domain and action_type and action_subtype \
+                    and action_scope and network):
+
                 logging.warning(
-                    "GA row data isn't what we're expecting, missing storeid and campaignid in label=%s",
-                    label)
-                continue
-
-            product_id = get_label_key(label, "pid")
-            cohort_id = get_label_key(label, "cid")
-
-            action = getter('eventAction')
-            from_system = getter('eventCategory').split("_")[0]
-
-            try:
-                referral = getter('eventCategory').split("_")[1]
-
-            except IndexError:
-                logging.warning(
-                    "GA row data isn't what we're expecting, eventCategory=%s",
-                    getter('eventCategory'))
+                    "GA row data isn't what we're expecting, missing attributes, category=%s, action=%s",
+                    category, action)
                 continue
 
             # uniqueEvents is the last item in the list
@@ -235,6 +238,31 @@ class DataParser:
                 logging.warning(
                     "GA row data isn't what we're expecting: date=%s", date)
                 continue
+
+            # row template
+            mapped_row = {
+                "visits": 0,
+                "interactions": {
+                    "total": 0,
+                    "clickthrough": 0,
+                    "open_popup": 0,
+                    "shares": {
+                        "featured": 0,
+                        "popup": 0
+                    }
+                }
+            }
+            if not store_id in self.results['stores']:
+                self.results['stores'][store_id] = {}
+
+            if not campaign_id in self.results['campaigns']:
+                self.results['campaigns'][campaign_id] = {}
+
+
+
+
+            if action_scope == "popup":
+                maped_row['interactions']['shares']
 
             mapped_row = {
                 "product_id": product_id,
