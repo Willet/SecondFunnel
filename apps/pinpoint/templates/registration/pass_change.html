@@ -1,30 +1,47 @@
-{% extends "pinpoint/admin_base.html" %}
+{% extends "registration/centered.html" %}
 
 {% block title %}Password Reset{% endblock %}
 
 {% block page_title %}Enter New Password{% endblock %}
 
-{% block content %}
+{% block extra_head %}
+    {{ block.super }}
+    <style>
+        p {
+            margin: 0;
+        }
+
+        input {
+            width: 200px;
+        }
+
+        table {
+            margin: auto;
+        }
+    </style>
+{% endblock %}
+
+{% block centered %}
     <p>Please enter your new password:</p>
     <form action="" method="post">
         {% csrf_token %}
+        {% for field in form %}
+            {% if field.errors %}{{ field.errors }}<br />{% endif %}
+	    {% endfor %}
         <table>
             <tr>
-                <td>{{ form.old_password.errors }}<label for="id_old_password">Old password:</label></td>
+                <td><label for="id_old_password">Old password:</label></td>
                 <td>{{ form.old_password }}</td>
             </tr>
             <tr>
-                <td>{{ form.new_password1.errors }}<label for="id_new_password1">New password:</label></td>
+                <td><label for="id_new_password1">New password:</label></td>
                 <td>{{ form.new_password1 }}</td>
             </tr>
             <tr>
-                <td>{{ form.new_password2.errors }}<label for="id_new_password2">Verify password:</label></td>
+                <td><label for="id_new_password2">Verify password:</label></td>
                 <td>{{ form.new_password2 }}</td>
             </tr>
-            <tr>
-                <td></td>
-                <td><input type="submit" value="Change my password" /></td>
-            </tr>
         </table>
+        <input type="submit" value="Change my password" />
     </form>
 {% endblock %}

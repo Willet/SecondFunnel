@@ -10,104 +10,10 @@
         <link rel="shortcut icon" href="{% static "images/favicon.ico" %}" />
 
         {% block extra_head %}{% endblock %}
-
-        <style type="text/css">
-            .content {
-                -webkit-box-shadow:  0px 0px 10px 1px rgba(0, 0, 0, 0.5);
-                box-shadow:  0px 0px 10px 1px rgba(0, 0, 0, 0.5);
-                min-height: 500px;
-                margin-top: 0px;
-
-                -webkit-border-radius: 5px;
-                border-radius: 5px;
-
-                background-color: #f1f1f1;
-                padding-bottom: 25px;
-            }
-
-            .container_12 {
-                padding-bottom: 50px;
-            }
-
-            .container_12 .inner_content {
-                padding: 10px 15px 20px 15px;
-                /* accounts for the margins added in 960.css. We need this because
-                 * we have a grid_12 inside a grid_12.
-                 */
-                width: 910px;
-            }
-
-            .top_bar {
-                margin: 0;
-                background-color: #385a71;
-                height: 50px;
-                -webkit-border-radius: 5px 5px 0px 0px;
-                border-radius: 5px 5px 0px 0px;
-            }
-
-            .top_bar .page_title {
-                font-size: 17pt;
-                padding: 7px 0 0 15px;
-                text-shadow: 1px 1px 2px #4f4f4f;
-                filter: dropshadow(color=#4f4f4f, offx=1, offy=1);
-            }
-
-            .top_section {
-                margin-top: 20px;
-                height: 39px;
-            }
-
-            .top_section ul {
-                list-style: none;
-                position: relative;
-                top: 12px;
-            }
-
-            .top_section li {
-                display: inline;
-                background-color: #6f98ac;
-                padding: 10px;
-                margin-left: 15px;
-
-                -webkit-border-radius: 5px 5px 0px 0px;
-                border-radius: 5px 5px 0px 0px;
-            }
-
-            .top_section li, .top_bar .page_title {
-                color: #eeeeee;
-            }
-
-            .top_section li.selected {
-                background-color: #385a71;
-            }
-
-            #second_funnel_logo {
-                vertical-align: middle;
-            }
-
-            /* Messages */
-            ul.messages {
-                padding-top: 20px;
-            }
-
+        <style>
+            /* this needs to be here to use the static template tag */
             ul.messages li {
-                display: block;
-                margin: 0px;
-                font-size: 16px;
-                border-width: 1px;
-                border-style: solid;
-                border-radius: 5px;
-                padding: 15px;
                 background-image: url('{% static "pinpoint/images/stop32.png" %}');
-                background-repeat: no-repeat;
-                background-position: 99% 50%;
-                cursor: pointer;
-            }
-
-            ul.messages li.success {
-                border-color: #385A71;
-                background-color: #6F98AC;
-                color: white;
             }
         </style>
     </head>
@@ -123,6 +29,7 @@
                 <div class="bannerRight">
                     <ul>
                         {% if user.is_authenticated %}
+                        <li><a href="{% url login-redirect %}">PinPoint Pages</a></li>
                         <li><a href="{% url profile %}">Profile Page</a></li>
                         <li><a href="{% url logout %}">Logout</a></li>
                         {% else %}
@@ -161,6 +68,17 @@
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
         <script src={% static "js/jquery.cookie.js" %}></script>
+        <script>
+            {% if store.id %}
+            $("#cancel_to_admin").click(function(){
+                var cancel = confirm("Are you sure you want to cancel your " +
+                        "changes?");
+                if (cancel) {
+                    window.location.href = "{% url store-admin store.id %}";
+                }
+            });
+            {% endif %}
+        </script>
         {% block extra_js_includes %}{% endblock %}
 
         <script type="text/javascript">
