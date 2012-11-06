@@ -104,6 +104,9 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    # Media middleware has to come first
+    'mediagenerator.middleware.MediaMiddleware',
+
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -140,6 +143,7 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
+    'mediagenerator',
 
     # our apps
     'apps.analytics',
@@ -151,6 +155,20 @@ INSTALLED_APPS = (
     'fts',
 
     'apps.scraper',
+)
+
+# Media generator
+MEDIA_DEV_MODE = DEBUG
+DEV_MEDIA_URL = '/devmedia/'
+PRODUCTION_MEDIA_URL = '/media/'
+
+GLOBAL_MEDIA_DIRS = STATICFILES_DIRS
+
+MEDIA_BUNDLES = (
+#    ('main.css',
+#         'css/960.css',
+#         'css/reset.css',
+#    ),
 )
 
 # A sample logging configuration. The only tangible logging
