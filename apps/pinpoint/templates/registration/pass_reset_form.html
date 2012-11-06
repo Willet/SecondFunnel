@@ -1,26 +1,34 @@
-{% extends "pinpoint/admin_base.html" %}
+{% extends "registration/centered.html" %}
 
 {% block title %}Password Reset{% endblock %}
 
 {% block page_title %}Password reset{% endblock %}
 
 {% block extra_head %}
-    
+    {{ block.super }}
     <style>
         #id_email {
             padding: 2px;
+        }
+
+        p {
+            margin: 0;
+        }
+
+        input {
+            width: 200px;
         }
     </style>
     
 {% endblock %}
 
-{% block content %}
+{% block centered %}
     <p>Enter your email below and a link to reset your password will be sent to you.</p>
     <form action="" method="post">
         {% csrf_token %}
-        {{ form.email.errors }}
-        <label for="id_email" >Email address:</label>
-        {{ form.email }}
+        {{ form.email.errors }}<br />
+        <label for="id_email">Email address:</label>
+        {{ form.email }}<br/>
         <input type="submit" value="Send Reset Url"/>
     </form>
 {% endblock %}
