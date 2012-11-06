@@ -1,5 +1,6 @@
 {% extends "pinpoint/admin_base.html" %}
 {% load staticfiles %}
+{% load ajax_form_utils %}
 
 {% block title %}
     {% if campaign %}Edit {% else %}New{% endif %} Page
@@ -175,6 +176,8 @@
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
     <script src="{% static "js/jquery.form.js" %}"></script>
+    <script src="{% static "js/jquery.ajax_forms.js" %}"></script>
+    <script src="{% static "js/jquery.ajax_forms.validation.min.js" %}"></script>
     <script src="{% static "js/jquery.watermark.min.js" %}"></script>
     <script src="{% static "js/jquery.loadmask.min.js" %}"></script>
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
@@ -226,6 +229,7 @@
             for (i in product.media) {
                 var li = $("<li><img class='prod_img existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
                 if (product.media[i].id == o.product_image_id) {
+                    $("#image-selector").siblings(".errorlist").children("li").hide();
                     li.children('img').addClass('selected');
                 }
                 $("#product_images").append(li);
@@ -240,7 +244,8 @@
                 $.map(uploadedImages.reverse(), function(img) {
                     var image = $("<li><img class='prod_img new_image' data-mid='" + img.id + "' src='" + img.url + "'></li>");
                     if (o.product_generic_image_id == img.id) {
-                        image.children('img').addClass('selected')
+                        $("#image-selector").siblings(".errorlist").children("li").hide();
+                        image.children('img').addClass('selected');
                     }
                     $("#fine-uploader").closest('li').after(image);
                 });
@@ -298,6 +303,7 @@
         setUpListeners = function () {
             // GENERAL UI
             $("#product_images img.existing_image").live('click', function() {
+                $("#image-selector").siblings(".errorlist").children("li").fadeOut(500);
                 $("#product_images img").removeClass("selected");
                 $(this).addClass("selected");
 
@@ -306,6 +312,7 @@
             });
 
             $("#product_images img.new_image").live('click', function() {
+                $("#image-selector").siblings(".errorlist").children("li").fadeOut(500);
                 $("#product_images img").removeClass("selected");
                 $(this).addClass("selected");
 
@@ -432,6 +439,11 @@
 
     app.init();
 
+    $('#create_campaign').validation({% render_ajax_fields form %}, {
+        layout: 'p',
+        validation_events: ['blur', 'keyup']
+    });
+
     </script>
 {% endblock %}
 
@@ -467,42 +479,41 @@
                 {% endif  %}
             </div>
 
-            <label for="image-selector">Featured Image:</label>
-            {% if campaign %}
-                <div class="field existing_image">
-                    <div class="current_image">
-                        {% with first_image=campaign.content_blocks.all|first %}
-                            <img src="{{ first_image.data.get_image.get_url }}">
-                        {% endwith %}
+            <div class="field">
+                {% if form.errors or form.non_field_errors %}
+                    {{ form.non_field_errors }}
+                {% else %}
+                    <ul class="errorlist">
+                        <li>This field is required.</li>
+                    </ul>
+                {% endif %}
+
+                <label for="image-selector">Featured Image:</label>
+                <span class="helptext">Please either select an existing product image or upload a custom one.</span>
+                <div id="image-selector">
+                    <div class="existing_images_list">
+                        <ul id="product_images">
+                            <li>
+                            <div id="fine-uploader"></div>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-            {% endif %}
-            <div id="image-selector">
-                <div class="existing_images_list">
-                    <ul id="product_images">
-                        <li>
-                        <div id="fine-uploader"></div>
-                        </li>
-                    </ul>
-                </div>
             </div>
-            {{ form.non_field_errors }}
 
             <div class="field">
-                {{ form.description.errors }}
-                <label for="id_description">Product Description:</label>
-                <div>
-                    {{ form.description }}
-                    <span class="helptext textarea">
-                        You can tailor product's
-                        description that will appear on the page.<br/>
-                        <br/>
-                        <span id="character_count">
-                            <span id="characters">0</span> / 250
-                            characters.
-                        </span>
+                {{form.description.errors }}
+                <label for="id_description">Product Description:</label><br />
+                {{ form.description }}
+                <span class="helptext textarea">
+                    You can tailor product's
+                    description that will appear on the page.<br/>
+                    <br/>
+                    <span id="character_count">
+                        <span id="characters">0</span> / 250
+                        characters.
                     </span>
-                </div>
+                </span>
             </div>
 
             <div class="actions">

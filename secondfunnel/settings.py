@@ -141,6 +141,8 @@ INSTALLED_APPS = (
     'django_extensions',
     'tastypie',
 
+    'apps.ajax_forms',
+
     # our apps
     'apps.analytics',
     'apps.assets',
