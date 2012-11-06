@@ -146,9 +146,6 @@ INSTALLED_APPS = (
     'apps.assets',
     'apps.pinpoint',
 
-    # testing
-    'fts',
-
     'apps.scraper',
 )
 
