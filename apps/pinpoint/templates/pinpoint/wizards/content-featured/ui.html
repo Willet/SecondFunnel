@@ -313,7 +313,7 @@
                 $("#id_product_media_id").val("");
             });
 
-            $(".button.back").click(function(){
+            $(".button.back:not(.disabled)").click(function(){
                 var cancel = confirm("By going back you will lose your " +
                         "changes on this page. Are you sure?");
                 if (cancel) {
@@ -513,7 +513,7 @@
                 <input class="button submit focus" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} Page">
                 <input class="button preview" type="button" value="Preview Page">
                 <input id="cancel_to_admin" class="button" type="button" value="Cancel">
-                <input class="button back" type="button" value="Back">
+                <input class="button back {% if campaign %}disabled{% endif %}" type="button" value="Back">
             </div>
         </div>
     </form>
