@@ -379,3 +379,7 @@ ul.errorlist li {
     white-space: nowrap;
     width: auto;
 }
+
+span.disabled {
+    display: none;
+}
