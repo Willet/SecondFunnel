@@ -35,8 +35,8 @@
     <p>Email: {{ user.email }}</p>
     <p id="change_password"><a href="{% url password_change %}">Change Password</a></p>
 
-    <h1>Stores</h1>
-    <p>You are on the staff list for the following stores:</p>
+    <h1>Permissions</h1>
+    <p>You are a staff member for:</p>
     <ul>
     {% for store in user.store_set.all %}
         <li><a href="{% url store-admin store.id %}">{{ store }}</a></li>
