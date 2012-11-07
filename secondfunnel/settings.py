@@ -216,6 +216,7 @@ BROKER_TRANSPORT_OPTIONS = {
     'queue_name_prefix': 'celery-',
 }
 
+GOOGLE_ANALYTICS_PROFILE = '63888985'
 
 try:
     from local_settings import *
