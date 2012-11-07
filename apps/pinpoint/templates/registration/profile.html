@@ -12,10 +12,6 @@
         margin: 0;
     }
 
-    #change_password {
-        float: right;
-    }
-
     #image {
         width: 200px;
         height: 200px;
@@ -31,13 +27,13 @@
 
 {% block content %}
 
-<p id="change_password"><a href="{% url password_change %}">Change Password</a></p>
 
 <img id="image" src="{% static "images/ImageNotAvailable.png" %}"></img>
 <div id="user_info_section">
     <h1>User Info</h1>
     <p>Username: {{ user.username }}</p>
     <p>Email: {{ user.email }}</p>
+    <p id="change_password"><a href="{% url password_change %}">Change Password</a></p>
 
     <h1>Stores</h1>
     <p>You are on the staff list for the following stores:</p>
