@@ -130,6 +130,7 @@ def featured_product_wizard(request, store, block_type, campaign=None):
 
             if product_image.__class__.__name__ == "GenericMedia":
                 initial_data["generic_media_id"] = product_image.id
+                initial_data["generic_media_list"] = product_image.get_url() + "\\" + str(product_image.id)
 
             elif product_image.__class__.__name__ == "ProductMedia":
                 initial_data["product_media_id"] = product_image.id
