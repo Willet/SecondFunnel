@@ -221,7 +221,7 @@ li a,
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6f98ac', endColorstr='#033344',GradientType=0 );
 }
 
-.button.focus, {
+.button.focus {
     background-color: #ae432e;
     background: -moz-linear-gradient(top, #faa796, #d06c57 5%, #ae432e 100%);
     background: -webkit-linear-gradient(top, #faa796, #d06c57 5%, #ae432e 100%);
@@ -231,7 +231,7 @@ li a,
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FAA796', endColorstr='#AE432E',GradientType=0 );
 }
 
-.button.focus:hover, {
+.button.focus:hover {
     background-color: #943a28;
     background: -moz-linear-gradient(top, #faa796, #d06c57 5%, #943a28 100%);
     background: -webkit-gradient(linear, left top, left bottom, from(#faa796), to(#943a28), color-stop(0.05, #d06c57));
