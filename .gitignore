@@ -7,5 +7,7 @@ secondfunnel/local_settings.py
 *.db
 *.sqlite
 *.DS_Store
+/_generated_media
+/_generated_media_names.py
 /static
 .elasticbeanstalk/
