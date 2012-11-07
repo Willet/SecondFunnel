@@ -100,6 +100,12 @@ li a,
     border-top-right-radius: 5px;
 }
 
+.rounded {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
 #boxTop {
     height: 50px;
     color: #fff;
@@ -162,7 +168,8 @@ li a,
 }
 
 .button,
-.button:visited {
+.button:visited,
+.button.qq-upload-button {
     display: inline-block;
     font-family: helvetica, arial, tahoma, sans-serif;
     -webkit-border-radius: 3px;
@@ -201,7 +208,7 @@ li a,
     background: linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6f98ac', endColorstr='#235364',GradientType=0 );
 }
-.button:hover {
+.button:hover, .button.qq-upload-button:hover {
     color: #fff;
     text-decoration: none;
     background-color: #033344;
@@ -214,7 +221,7 @@ li a,
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6f98ac', endColorstr='#033344',GradientType=0 );
 }
 
-.button.focus {
+.button.focus, {
     background-color: #ae432e;
     background: -moz-linear-gradient(top, #faa796, #d06c57 5%, #ae432e 100%);
     background: -webkit-linear-gradient(top, #faa796, #d06c57 5%, #ae432e 100%);
@@ -224,7 +231,7 @@ li a,
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FAA796', endColorstr='#AE432E',GradientType=0 );
 }
 
-.button.focus:hover {
+.button.focus:hover, {
     background-color: #943a28;
     background: -moz-linear-gradient(top, #faa796, #d06c57 5%, #943a28 100%);
     background: -webkit-gradient(linear, left top, left bottom, from(#faa796), to(#943a28), color-stop(0.05, #d06c57));
