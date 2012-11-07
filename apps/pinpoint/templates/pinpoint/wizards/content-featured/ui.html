@@ -255,7 +255,7 @@
             if (!o.human_invoked) {
                 $("#id_name").val(o.page_name);
             } else {
-                $("#id_name").val(product.name);
+                $("#id_name").val("Featured: " + product.name);
             }
 
             if (o.product_description) {
