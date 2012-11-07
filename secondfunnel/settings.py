@@ -140,6 +140,7 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
+    'django_jenkins',
 
     # our apps
     'apps.analytics',
@@ -192,6 +193,15 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
 FIXTURE_DIRS = (
    'secondfunnel/fixtures/',
+)
+
+# CI Settings
+JENKINS_TASKS = (
+    'django_jenkins.tasks.run_pylint',
+    'django_jenkins.tasks.with_coverage',
+    'django_jenkins.tasks.django_tests',
+    'django_jenkins.tasks.run_pep8',
+    'django_jenkins.tasks.lettuce_tests',
 )
 
 try:
