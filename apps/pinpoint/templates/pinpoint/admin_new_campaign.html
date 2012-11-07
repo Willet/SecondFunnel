@@ -15,19 +15,12 @@
             height: 400px;
         }
 
-        .block_type {
-            padding-left: 0px;
+        .block_types .block_type {
+            width: 200px;
+            padding: 5px;
             margin-left: 0px;
-            margin-right: 0px;
+            margin-right: 15px;
             text-align: center;
-        }
-
-        .block_type img:hover {
-            outline: 2px solid #AAA;
-        }
-
-        .block_type.selected img {
-            outline: 2px solid #943A28;
         }
 
         .dimmed img {
@@ -42,6 +35,12 @@
         .button {
             float: right;
             position: relative;
+        }
+
+        .block_type.enabled.selected, .block_type.enabled:hover {
+            background-color: #C43;
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
         }
     </style>
 {% endblock %}
