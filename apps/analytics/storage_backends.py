@@ -7,7 +7,7 @@ import httplib2
 import logging
 
 from apiclient.discovery import build
-from oauth2client.appengine import AppAssertionCredentials
+from oauth2client.client import SignedJwtAssertionCredentials
 
 from django.conf import settings
 
@@ -17,10 +17,20 @@ class GoogleAnalyticsBackend:
 
     def __init__(self):
         # TODO: REDO THIS! Use SWK Signed object
-        credentials = AppAssertionCredentials(
+        # credentials = AppAssertionCredentials(
+            # scope='https://www.googleapis.com/auth/analytics.readonly')
+
+        with open('95cf162565f52f4b21bb4db214114d69f7e71152-privatekey.p12', 'rb') as private_key:
+            key = private_key.read()
+
+        credentials = SignedJwtAssertionCredentials(
+            '248578306350@developer.gserviceaccount.com',
+            key,
             scope='https://www.googleapis.com/auth/analytics.readonly')
 
-        http = credentials.authorize(httplib2.Http())
+        http = httplib2.Http()
+        http = credentials.authorize(http)
+
         self.service = build('analytics', 'v3', http=http)
 
     def get_service(self):
@@ -44,7 +54,7 @@ class GoogleAnalyticsBackend:
             dimensions=self.join_params(dimensions),
             sort=self.join_params(sort),
             start_index=start_index,
-            max_results=max_results,
+            max_results=max_results
         )
 
         return api_query
