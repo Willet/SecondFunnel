@@ -113,7 +113,7 @@
             margin-bottom: 10px;
         }
 
-        .field > label {
+        .field > label.field-align {
             min-width: 200px;
             display: inline-block;
         }
@@ -170,6 +170,10 @@
             color: #bb0;
             background-image: url('{% static "pinpoint/images/warning32.png" %}');
         }
+
+        ul.errorlist {
+            display: inline;
+        }
     </style>
 {% endblock %}
 
@@ -211,6 +215,12 @@
         };
 
         product_selected = function (o) {
+            // resetting previous values
+            $("#id_product_media_id").val("");
+            $("#id_generic_media_id").val("");
+            $("#id_generic_media_lst").val("");
+            $("#image-selector").siblings(".errorlist").children("li").fadeIn(500);
+
             var product = products[o.product_id],
                 media_id = $("#id_product_media_id").val();
 
@@ -262,6 +272,8 @@
             } else {
                 $("#id_name").val(product.name);
             }
+            // fire change event so validator updates
+            $("#id_name").change();
 
             if (o.product_description) {
                 // set product's description
@@ -270,6 +282,8 @@
                 // set product's description
                 $("#id_description").val(product.description);
             }
+            // fire change event so validator updates
+            $("#id_description").change();
 
             // set the id for form submission
             $("#id_product_id").val(product.id);
@@ -291,7 +305,7 @@
             $buttons.removeClass('disabled');
             $buttons.removeAttr('disabled');
 
-            if (chars > 250) {
+            if (chars > 250 || chars <= 0) {
                 $count.addClass("danger");
                 $buttons.addClass('disabled');
                 $buttons.attr('disabled', 'disabled');
@@ -441,7 +455,7 @@
 
     $('#create_campaign').validation({% render_ajax_fields form %}, {
         layout: 'p',
-        validation_events: ['blur', 'keyup']
+        validation_events: ['blur', 'keyup', 'change']
     });
 
     </script>
@@ -463,7 +477,7 @@
         {% csrf_token %}
         <div class="product_select">
             <div class="field">
-                <label for="product_name">Featured Product:</label>
+                <label class="field-align" for="product_name">Featured Product:</label>
                 <input type="text" id="product_name">
                 <span class="helptext">Start typing in the name of a product you want to feature</span>
             </div>
@@ -471,15 +485,17 @@
 
         <div class="product_meta">
             <div class="field">
-                <label for="id_name">Page Name:</label>
+                <label class="field-align" for="id_name">Page Name:</label>
                 {{ form.name }}
-                {{ form.name.errors }}
-                {% if not form.name.errors %}
-                    <span class="helptext">Select a name for this page for your reference.</span>
-                {% endif  %}
+                {% if form.name.errors %} {{ form.name.errors }} {% else %}
+                    <ul class="errorlist">
+                    </ul>
+                {% endif %}
+                <span class="helptext">Select a name for this page for your reference.</span>
             </div>
 
             <div class="field">
+                <label for="image-selector">Featured Image:</label>
                 {% if form.errors or form.non_field_errors %}
                     {{ form.non_field_errors }}
                 {% else %}
@@ -487,8 +503,6 @@
                         <li>This field is required.</li>
                     </ul>
                 {% endif %}
-
-                <label for="image-selector">Featured Image:</label>
                 <span class="helptext">Please either select an existing product image or upload a custom one.</span>
                 <div id="image-selector">
                     <div class="existing_images_list">
@@ -502,8 +516,12 @@
             </div>
 
             <div class="field">
-                {{form.description.errors }}
-                <label for="id_description">Product Description:</label><br />
+                <label for="id_description">Product Description:</label>
+                {% if form.description.errors %} {{form.description.errors }} {% else %}
+                    <ul class="errorlist">
+                    </ul>
+                {% endif %}
+                <br />
                 {{ form.description }}
                 <span class="helptext textarea">
                     You can tailor product's
