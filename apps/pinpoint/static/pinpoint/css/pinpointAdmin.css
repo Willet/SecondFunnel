@@ -353,7 +353,7 @@ ul.messages li.success {
 ul.errorlist {
     margin: 0 0 10px 10px;
     list-style: none;
-    display: inline-block;
+    display: block;
 }
 
 ul.errorlist li {

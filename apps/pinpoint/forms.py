@@ -13,12 +13,6 @@ class FeaturedProductWizardForm(forms.Form):
         widget=forms.HiddenInput(),
     )
 
-    page_description = forms.CharField(
-        required=False,
-        label="Page Description",
-        widget=forms.Textarea()
-    )
-
     page_changed = forms.CharField(
         required=False,
         widget=forms.HiddenInput(),
@@ -59,7 +53,6 @@ class FeaturedProductWizardForm(forms.Form):
 
         if not (generic_media_id and GenericMedia.objects.filter(pk=generic_media_id).exists()) and \
                 not (product_media_id and ProductMedia.objects.filter(pk=product_media_id).exists()):
-            raise forms.ValidationError("Please either select an existing "
-                        "product image or upload a custom one.")
+            raise forms.ValidationError("This field is required.")
 
         return cleaned_data

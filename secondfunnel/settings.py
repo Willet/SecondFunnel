@@ -140,6 +140,7 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
+    'ajax_forms',
 
     # our apps
     'apps.analytics',
