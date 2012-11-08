@@ -1,4 +1,4 @@
-<div class="grid_3 block_type {% if not block_type.enabled %}dimmed{% endif %}">
+<div class="grid_3 block_type {% if not block_type.enabled %}dimmed{% else %}enabled{% endif %}">
     {% if block_type.enabled %}
     <span class="url" style="display:none">{% url block-type-wizard store.id block_type.id %}</span>
         {% if linked %}

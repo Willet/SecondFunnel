@@ -23,6 +23,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'tastypie',
     'mediagenerator',
+    'ajax_forms',
 
     # our apps
     'apps.analytics',

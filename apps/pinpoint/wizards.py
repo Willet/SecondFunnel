@@ -19,9 +19,10 @@ def _editing_valid_form(form, product, preview=False):
             ProductMedia.objects.filter(pk=product_media_id).exists()
     campaign = Campaign.objects.get(id = form.cleaned_data['campaign_id'])
     campaign.name = form.cleaned_data['name']
-    campaign.description = form.cleaned_data['page_description']
+    campaign.description = form.cleaned_data.get('page_description', '')
     block_content = campaign.content_blocks.all()[0]
     block_content.data.product = product
+    block_content.data.description = form.cleaned_data['description']
     # existing product media was selected
     if has_product_media:
         block_content.data.custom_image = None
@@ -71,7 +72,7 @@ def _creating_valid_form(block_type, form, product, store, preview=False):
     campaign = Campaign(
         store = store,
         name = form.cleaned_data['name'],
-        description = form.cleaned_data['page_description'],
+        description = form.cleaned_data.get('page_description', ''),
         live = not preview
     )
     block_content.save()
@@ -129,6 +130,7 @@ def featured_product_wizard(request, store, block_type, campaign=None):
 
             if product_image.__class__.__name__ == "GenericMedia":
                 initial_data["generic_media_id"] = product_image.id
+                initial_data["generic_media_list"] = product_image.get_url() + "\\" + str(product_image.id)
 
             elif product_image.__class__.__name__ == "ProductMedia":
                 initial_data["product_media_id"] = product_image.id
