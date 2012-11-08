@@ -2,9 +2,10 @@ import json
 import random
 import datetime
 import re
-
 from datetime import timedelta, datetime
+from StringIO import StringIO
 
+from PIL import Image
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
@@ -53,7 +54,18 @@ def upload_image(request):
     
     # in IE this gets sent as a file
     if 'qqfile' in request.FILES:
-        media = GenericMedia(media_type="img", hosted=request.FILES['qqfile'])
+        try:
+            f = request.FILES['qqfile']
+        except KeyError, e:
+            return ajax_error();
+
+        try:
+            img = Image.open(StringIO(f.read()))
+            img.verify()
+        except IOError:
+            return ajax_error()
+
+        media = GenericMedia(media_type="img", hosted=f)
         media.save()
     # in other browsers we read this using request.read
     else:
@@ -71,6 +83,13 @@ def upload_image(request):
 
         # read the file content, if it is not read when the request is multi part then the client get an error
         fileContent = uploaded(fileSize)
+
+        try:
+            img = Image.open(StringIO(fileContent))
+            img.verify()
+        except IOError:
+            return ajax_error()
+
         media = GenericMedia(media_type="img")
         media.save()
         media.hosted.save(fileName, ContentFile(fileContent))
