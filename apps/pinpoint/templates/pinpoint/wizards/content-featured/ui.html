@@ -191,9 +191,13 @@
 
     var app = (function() {
         var existing_images, products, product_selected, setUpListeners,
-            updateCharacters, init;
+            updateCharacters, init, page_changed, onPageChanged;
 
         existing_images = {};
+
+        onPageChanged = function() {
+            page_changed.val("true");
+        }
 
         products = {
             {% for product in products %}
@@ -261,6 +265,7 @@
             if (!o.human_invoked) {
                 $("#id_name").val(o.page_name);
             } else {
+                onPageChanged();
                 $("#id_name").val("Featured: " + product.name);
             }
 
@@ -317,6 +322,7 @@
         setUpListeners = function () {
             // GENERAL UI
             $("#product_images img.existing_image").live('click', function() {
+                onPageChanged();
                 $("#product_images img").removeClass("selected");
                 $(this).addClass("selected");
 
@@ -325,6 +331,7 @@
             });
 
             $("#product_images img.new_image").live('click', function() {
+                onPageChanged();
                 $("#product_images img").removeClass("selected");
                 $(this).addClass("selected");
 
@@ -333,10 +340,25 @@
             });
 
             $(".button.back:not(.disabled)").click(function(){
-                var cancel = confirm("By going back you will lose your " +
-                        "changes on this page. Are you sure?");
-                if (cancel) {
+                if (page_changed.val()) {
+                    var cancel = confirm("By going back you will lose your " +
+                            "changes on this page. Are you sure?");
+                }
+                if (cancel || !page_changed.val()) {
                     window.location.href = "{% url new-campaign-admin store.id %}";
+                }
+            });
+
+            $("#id_name, #id_description").change(onPageChanged);
+            $("#id_name, #id_description").keyup(onPageChanged);
+
+            $("#cancel_to_admin").unbind('click').click(function(){
+                if (page_changed.val()) {
+                    var cancel = confirm("Are you sure you want to cancel your " +
+                            "changes?");
+                    }
+                if (cancel || !page_changed.val()) {
+                    window.location.href = "{% url store-admin store.id %}";
                 }
             });
 
@@ -395,7 +417,8 @@
         init = function () {
             $(function() {
                 $(".product_meta").mask();
-                $("#product_name").watermark("Your product name")
+                $("#product_name").watermark("Your product name");
+                page_changed = $("#id_page_changed");
 
                 // in case we're dealing with errors on submition,
                 // ensure we're displaying the product that was selected prior
