@@ -3,6 +3,7 @@ MySQL-python==1.2.3
 South==0.7.6
 Werkzeug==0.8.3
 boto==2.6.0
+django-ajax-forms==0.3.1.beta
 django-extensions==0.9
 django-storages==1.1.5
 django-tastypie==0.9.11
