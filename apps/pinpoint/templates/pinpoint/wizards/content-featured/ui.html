@@ -1,5 +1,6 @@
 {% extends "pinpoint/admin_base.html" %}
 {% load staticfiles %}
+{% load ajax_form_utils %}
 
 {% block title %}
     {% if campaign %}Edit {% else %}New{% endif %} Page
@@ -35,6 +36,10 @@
             overflow-y: hidden;
             white-space: nowrap;
             margin: 0;
+            background-color: #F6F6F6;
+            box-shadow:inset 0px 0px 5px rgba(0,0,0,.5);
+            -webkit-box-shadow:inset 0px 0px 5px rgba(0,0,0,.5);
+            -moz-box-shadow:inset 0px 0px 5px rgba(0,0,0,.5);
         }
 
         #product_images ul {
@@ -112,7 +117,7 @@
             margin-bottom: 10px;
         }
 
-        .field > label {
+        .field > label.field-align {
             min-width: 200px;
             display: inline-block;
         }
@@ -169,12 +174,18 @@
             color: #bb0;
             background-image: url('{% static "pinpoint/images/warning32.png" %}');
         }
+
+        ul.errorlist {
+            display: inline;
+        }
     </style>
 {% endblock %}
 
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
     <script src="{% static "js/jquery.form.js" %}"></script>
+    <script src="{% static "js/jquery.ajax_forms.js" %}"></script>
+    <script src="{% static "js/jquery.ajax_forms.validation.min.js" %}"></script>
     <script src="{% static "js/jquery.watermark.min.js" %}"></script>
     <script src="{% static "js/jquery.loadmask.min.js" %}"></script>
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
@@ -208,6 +219,12 @@
         };
 
         product_selected = function (o) {
+            // resetting previous values
+            $("#id_product_media_id").val("");
+            $("#id_generic_media_id").val("");
+            $("#id_generic_media_lst").val("");
+            $("#image-selector").siblings(".errorlist").children("li").fadeIn(500);
+
             var product = products[o.product_id],
                 media_id = $("#id_product_media_id").val();
 
@@ -226,6 +243,7 @@
             for (i in product.media) {
                 var li = $("<li><img class='prod_img existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
                 if (product.media[i].id == o.product_image_id) {
+                    $("#image-selector").siblings(".errorlist").children("li").hide();
                     li.children('img').addClass('selected');
                 }
                 $("#product_images").append(li);
@@ -240,7 +258,8 @@
                 $.map(uploadedImages.reverse(), function(img) {
                     var image = $("<li><img class='prod_img new_image' data-mid='" + img.id + "' src='" + img.url + "'></li>");
                     if (o.product_generic_image_id == img.id) {
-                        image.children('img').addClass('selected')
+                        $("#image-selector").siblings(".errorlist").children("li").hide();
+                        image.children('img').addClass('selected');
                     }
                     $("#fine-uploader").closest('li').after(image);
                 });
@@ -257,6 +276,8 @@
             } else {
                 $("#id_name").val(product.name);
             }
+            // fire change event so validator updates
+            $("#id_name").change();
 
             if (o.product_description) {
                 // set product's description
@@ -265,6 +286,8 @@
                 // set product's description
                 $("#id_description").val(product.description);
             }
+            // fire change event so validator updates
+            $("#id_description").change();
 
             // set the id for form submission
             $("#id_product_id").val(product.id);
@@ -286,7 +309,7 @@
             $buttons.removeClass('disabled');
             $buttons.removeAttr('disabled');
 
-            if (chars > 250) {
+            if (chars > 250 || chars <= 0) {
                 $count.addClass("danger");
                 $buttons.addClass('disabled');
                 $buttons.attr('disabled', 'disabled');
@@ -298,6 +321,7 @@
         setUpListeners = function () {
             // GENERAL UI
             $("#product_images img.existing_image").live('click', function() {
+                $("#image-selector").siblings(".errorlist").children("li").fadeOut(500);
                 $("#product_images img").removeClass("selected");
                 $(this).addClass("selected");
 
@@ -306,6 +330,7 @@
             });
 
             $("#product_images img.new_image").live('click', function() {
+                $("#image-selector").siblings(".errorlist").children("li").fadeOut(500);
                 $("#product_images img").removeClass("selected");
                 $(this).addClass("selected");
 
@@ -432,6 +457,11 @@
 
     app.init();
 
+    $('#create_campaign').validation({% render_ajax_fields form %}, {
+        layout: 'p',
+        validation_events: ['blur', 'keyup', 'change']
+    });
+
     </script>
 {% endblock %}
 
@@ -451,7 +481,7 @@
         {% csrf_token %}
         <div class="product_select">
             <div class="field">
-                <label for="product_name">Featured Product:</label>
+                <label class="field-align" for="product_name">Featured Product:</label>
                 <input type="text" id="product_name">
                 <span class="helptext">Start typing in the name of a product you want to feature</span>
             </div>
@@ -459,50 +489,53 @@
 
         <div class="product_meta">
             <div class="field">
-                <label for="id_name">Page Name:</label>
+                <label class="field-align" for="id_name">Page Name:</label>
                 {{ form.name }}
-                {{ form.name.errors }}
-                {% if not form.name.errors %}
-                    <span class="helptext">Select a name for this page for your reference.</span>
-                {% endif  %}
-            </div>
-
-            <label for="image-selector">Featured Image:</label>
-            {% if campaign %}
-                <div class="field existing_image">
-                    <div class="current_image">
-                        {% with first_image=campaign.content_blocks.all|first %}
-                            <img src="{{ first_image.data.get_image.get_url }}">
-                        {% endwith %}
-                    </div>
-                </div>
-            {% endif %}
-            <div id="image-selector">
-                <div class="existing_images_list">
-                    <ul id="product_images">
-                        <li>
-                        <div id="fine-uploader"></div>
-                        </li>
+                {% if form.name.errors %} {{ form.name.errors }} {% else %}
+                    <ul class="errorlist">
                     </ul>
-                </div>
+                {% endif %}
+                <span class="helptext">Select a name for this page for your reference.</span>
             </div>
-            {{ form.non_field_errors }}
 
             <div class="field">
-                {{ form.description.errors }}
-                <label for="id_description">Product Description:</label>
-                <div>
-                    {{ form.description }}
-                    <span class="helptext textarea">
-                        You can tailor product's
-                        description that will appear on the page.<br/>
-                        <br/>
-                        <span id="character_count">
-                            <span id="characters">0</span> / 250
-                            characters.
-                        </span>
-                    </span>
+                <label for="image-selector">Featured Image:</label>
+                {% if form.errors or form.non_field_errors %}
+                    {{ form.non_field_errors }}
+                {% else %}
+                    <ul class="errorlist">
+                        <li>This field is required.</li>
+                    </ul>
+                {% endif %}
+                <span class="helptext">Please either select an existing product image or upload a custom one.</span>
+                <div id="image-selector">
+                    <div class="existing_images_list">
+                        <ul id="product_images">
+                            <li>
+                            <div id="fine-uploader"></div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
+            </div>
+
+            <div class="field">
+                <label for="id_description">Product Description:</label>
+                {% if form.description.errors %} {{form.description.errors }} {% else %}
+                    <ul class="errorlist">
+                    </ul>
+                {% endif %}
+                <br />
+                {{ form.description }}
+                <span class="helptext textarea">
+                    You can tailor product's
+                    description that will appear on the page.<br/>
+                    <br/>
+                    <span id="character_count">
+                        <span id="characters">0</span> / 250
+                        characters.
+                    </span>
+                </span>
             </div>
 
             <div class="actions">

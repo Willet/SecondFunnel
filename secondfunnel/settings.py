@@ -149,6 +149,7 @@ INSTALLED_APPS = (
     'django_nose', # Must be included after 'south'
     'lettuce.django',
     'adminlettuce',
+    'ajax_forms',
 
     # our apps
     'apps.analytics',
