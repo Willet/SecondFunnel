@@ -1,6 +1,6 @@
 from django.db import models
 
-from apps.assets.models import Store
+from apps.assets.models import Store, Product
 
 
 class BaseScraper(models.Model):
@@ -28,6 +28,8 @@ class StoreScraper(models.Model):
 
     scrape_interval = models.IntegerField()
 
+    status = models.SmallIntegerField(default=0, blank=True, null=True)
+
 
 class SitemapListScraper(ListScraper):
     regex = models.CharField(max_length=255)
@@ -43,3 +45,9 @@ class PythonDetailScraper(DetailScraper):
     script = models.TextField()
     enable_javascript = models.BooleanField(default=False)
     enable_css = models.BooleanField(default=False)
+
+
+class ProductSuggestion(models.Model):
+    product = models.ForeignKey(Product, related_name="suggestions")
+    url = models.URLField(max_length=500)
+    suggested = models.ForeignKey(Product, related_name="suggested", blank=True, null=True)
