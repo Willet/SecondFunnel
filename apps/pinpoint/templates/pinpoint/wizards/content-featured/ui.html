@@ -42,12 +42,15 @@
             -moz-box-shadow:0px 0px 5px rgba(0,0,0,.5);
         }
 
-        #product_images ul {
+        /*#product_images ul {
             list-style: none;
             margin-top: 20px;
-        }
+        }*/
 
-        #product_images li {
+        #product_images > li {
+            overflow: hidden;
+            padding-right: 8px;
+            padding-bottom: 8px;
             width: 200px;
             height: 200px;
             display: inline-block;
@@ -69,11 +72,13 @@
             display: inline-block;
             width: 200px;
             line-height: 20px;
+            margin-top: 83px;
         }
 
         #fine-uploader .qq-upload-button {
             margin-left: auto;
             margin-right: auto;
+            width: 160px;
         }
 
         .current_image img, .new_image_content img {
@@ -176,6 +181,18 @@
             color: #bb0;
             background-image: url('{% static "pinpoint/images/warning32.png" %}');
         }
+
+        .broken_image div {
+            background-color:#B94A48;
+            position: relative;
+            width: 100%;
+            padding-right: 8px;
+            line-height: 20px;
+            margin-top: 80px;
+        }
+
+        .broken_image ul {
+            margin-top: 5px;
 
         ul.errorlist {
             display: inline;
@@ -310,7 +327,7 @@
             $("#characters").text(chars);
 
             var $count = $("#character_count");
-            var $buttons = $(".button:not(#cancel_to_admin, .back)");
+            var $buttons = $(".button:not(#cancel_to_admin, .back, .qq-upload-button)");
 
             $count.removeClass();
             $buttons.removeClass('disabled');
@@ -466,22 +483,41 @@
                       );
                   },
                   onComplete: function(id, fileName, response) {
-                      var decodedUrl = $(document.createElement('div')).html(response.url).text()
-                      var gif = $("#product_images .loading_gif");
-                      gif.hide();
-                      gif.removeClass('loading_gif');
-                      gif.addClass('prod_img');
-                      gif.addClass('new_image');
-                      gif.attr('src', decodedUrl);
-                      gif.data('mid', response.media_id);
-                      gif.load(function() {
-                          gif.fadeIn(500);
-                      });
-                      gif.click();
-                      $("#id_generic_media_list").val($('#product_images img.new_image').map(
-                          function(){return $(this).attr('src') + "\\" + $(this).data('mid');}).toArray().join("|"));
+                      if (response.success) {
+                          var decodedUrl = $(document.createElement('div')).html(response.url).text()
+                          var gif = $("#product_images .loading_gif");
+                          gif.hide();
+                          gif.removeClass('loading_gif');
+                          gif.addClass('prod_img');
+                          gif.addClass('new_image');
+                          gif.attr('src', decodedUrl);
+                          gif.data('mid', response.media_id);
+                          gif.load(function() {
+                              gif.fadeIn(500);
+                          });
+                          $("#id_generic_media_list").val($('#product_images img.new_image').map(
+                              function(){return $(this).attr('src') + "\\" + $(this).data('mid');}).toArray().join("|"));
+                      } else {
+                          var gif = $("#product_images .loading_gif");
+                          var li = gif.closest('li');
+                          li.addClass('broken_image');
+                          gif.remove();
+                          li.html('<div class="rounded"><ul class="errorlist"><li>Error uploading image.</li><br /><li>Click this box to dismiss.</li></ul></div>')
+
+                          $("li.broken_image").unbind('click').click(function() {
+                              $(this).animate({
+                                  width: 0,
+                                  margin: 0,
+                                  padding: 0
+                              }, 500, function() {
+                                  $(this).remove();
+                              });
+                          });
+                      }
                   }
                 });
+
+                $(".qq-upload-button").addClass('button');
 
                 // save existing image settings
                 app.existing_images = {
