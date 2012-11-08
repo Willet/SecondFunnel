@@ -188,13 +188,14 @@
             width: 100%;
             padding-right: 8px;
             line-height: 20px;
-            margin-top: 80px;
+            margin-top: 87px;
         }
 
         .broken_image ul {
             margin-top: 5px;
+        }
 
-        ul.errorlist {
+        .product_meta ul.errorlist {
             display: inline;
         }
     </style>
@@ -458,6 +459,8 @@
             $(function() {
                 $(".product_meta").mask();
                 $("#product_name").watermark("Your product name");
+                $("#id_name").watermark("Your page name");
+                $("#id_description").watermark("Featured product description");
                 page_changed = $("#id_page_changed");
 
                 // in case we're dealing with errors on submition,
@@ -572,7 +575,7 @@
                     <ul class="errorlist">
                     </ul>
                 {% endif %}
-                <span class="helptext">Select a name for this page for your reference.</span>
+                <span class="helptext">Enter a name for this page.</span>
             </div>
 
             <div class="field">
@@ -599,12 +602,12 @@
             <div class="field">
                 <label for="id_description">Product Description:</label>
                 <div>
-                    {{ form.description }}
                     {% if form.description.errors %} {{form.description.errors }} {% else %}
                         <ul class="errorlist">
                         </ul>
                     {% endif %}
                     <br />
+                    {{ form.description }}
                     <span class="helptext textarea">
                         You can tailor product's
                         description that will appear on the page. Shorter is better.<br/>
