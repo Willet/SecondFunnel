@@ -7,16 +7,16 @@
 {% block extra_head %}
     {{ block.super }}
     <style>
-        #id_email {
-            padding: 2px;
-        }
-
         p {
             margin: 0;
         }
 
         input {
             width: 200px;
+        }
+
+        .button {
+            width: 150px;
         }
     </style>
     
@@ -29,6 +29,6 @@
         {{ form.email.errors }}<br />
         <label for="id_email">Email address:</label>
         {{ form.email }}<br/>
-        <input type="submit" value="Send Reset Url"/>
+        <input class="button focus" type="submit" value="Send Reset Url"/>
     </form>
 {% endblock %}
