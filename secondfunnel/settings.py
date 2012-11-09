@@ -124,6 +124,12 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+LETTUCE_APPS = (
+    'apps.pinpoint',
+)
+LETTUCE_AVOID_APPS = (
+)
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -140,6 +146,9 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
+    'django_nose', # Must be included after 'south'
+    'lettuce.django',
+    'adminlettuce',
     'ajax_forms',
 
     # our apps
@@ -147,9 +156,10 @@ INSTALLED_APPS = (
     'apps.assets',
     'apps.pinpoint',
     'apps.website',
-
     'apps.scraper',
 )
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
