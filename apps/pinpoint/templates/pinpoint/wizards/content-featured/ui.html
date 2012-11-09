@@ -172,13 +172,19 @@
             font-weight: bold;
         }
 
-        #character_count.danger {
+        #character_count.danger, #character_count.danger * {
             color: #b94a48;
+        }
+
+        #character_count.danger {
             background-image: url('{% static "pinpoint/images/minus32.png" %}');
         }
 
-        #character_count.warning {
+        #character_count.warning, #character_count.warning * {
             color: #bb0;
+        }
+
+        #character_count.warning {
             background-image: url('{% static "pinpoint/images/warning32.png" %}');
         }
 
