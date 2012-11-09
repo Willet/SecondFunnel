@@ -1,5 +1,5 @@
 {% extends "website/base.html" %}
-{% load staticfiles %}
+{% load media %}
 {% block title %}{{ block.super }} | Why Second Funnel?{% endblock title %}
 
 {% block content %}
@@ -23,7 +23,7 @@
                     </p> <br>
                 </div>
                 
-                <img src="{% static 'website/imgs/conversion.png' %}">
+                <img src="{% media_url 'website/imgs/conversion.png' %}">
             </div>
         </div>
         
@@ -38,7 +38,7 @@
                     </p> <br>
                 </div>
                 
-                <img src="{% static 'website/imgs/discovery.png' %}">
+                <img src="{% media_url 'website/imgs/discovery.png' %}">
             </div>
         </div>
         
@@ -53,7 +53,7 @@
                     </p>
                 </div>
                 
-                <img src="{% static 'website/imgs/buy-or-leave.png' %}">
+                <img src="{% media_url 'website/imgs/buy-or-leave.png' %}">
             </div>
         </div>
         
@@ -67,7 +67,7 @@
                         A missed sale often means no follow up. Purchase preferences are unknown, and without email capture, one-to-one communication is impossible.                    </p>
                 </div>
                 
-                <img src="{% static 'website/imgs/conversations.png' %}">
+                <img src="{% media_url 'website/imgs/conversations.png' %}">
             </div>
         </div>
         
