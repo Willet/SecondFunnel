@@ -408,49 +408,47 @@ span.disabled {
 
 @-webkit-keyframes wiggle {
     0% { -webkit-transform: rotate(0deg); }
-    10% { -webkit-transform: rotate(5deg); }
+    5% { -webkit-transform: rotate(5deg); }
+    10% { -webkit-transform: rotate(0deg); }
+    15% { -webkit-transform: rotate(-5deg); }
     20% { -webkit-transform: rotate(0deg); }
-    30% { -webkit-transform: rotate(-5deg); }
-    40% { -webkit-transform: rotate(0deg); }
     100% { -webkit-transform: rotate(0deg); }
 }
 
 @-moz-keyframes wiggle {
     0% { -moz-transform: rotate(0deg); }
-    10% { -moz-transform: rotate(5deg); }
+    5% { -moz-transform: rotate(5deg); }
+    10% { -moz-transform: rotate(0deg); }
+    15% { -moz-transform: rotate(-5deg); }
     20% { -moz-transform: rotate(0deg); }
-    30% { -moz-transform: rotate(-5deg); }
-    40% { -moz-transform: rotate(0deg); }
     100% { -moz-transform: rotate(0deg); }
 }
 
 @-o-keyframes wiggle {
     0% { -o-transform: rotate(0deg); }
-    10% { -o-transform: rotate(5deg); }
+    5% { -o-transform: rotate(5deg); }
+    10% { -o-transform: rotate(0deg); }
+    15% { -o-transform: rotate(-5deg); }
     20% { -o-transform: rotate(0deg); }
-    30% { -o-transform: rotate(-5deg); }
-    40% { -o-transform: rotate(0deg); }
     100% { -o-transform: rotate(0deg); }
 }
 
 @keyframes wiggle {
     from { transform: rotate(0deg) }
-    10% { transform: rotate(5deg) }
+    5% { transform: rotate(5deg) }
+    10% { transform: rotate(0deg) }
+    15% { transform: rotate(-5deg) }
     20% { transform: rotate(0deg) }
-    30% { transform: rotate(-5deg) }
-    40% { transform: rotate(0deg) }
     to { transform: rotate(0deg) }
 }
 
 .wiggle {
-    -webkit-animation: wiggle 0.7s;
+    -webkit-animation: wiggle 1.4s;
     -webkit-animation-iteration-count: infinite;
-    -moz-animation: wiggle 0.7s;
+    -moz-animation: wiggle 1.4s;
     -moz-animation-iteration-count: infinite;
-    -o-animation: wiggle 0.7s;
+    -o-animation: wiggle 1.4s;
     -o-animation-iteration-count: infinite;
-    animation-name: wiggle;
-    animation-duration: 0.7s;
-    animation: wiggle 0.7s;
+    animation: wiggle 1.4s;
     animation-iteration-count: infinite;
 }
