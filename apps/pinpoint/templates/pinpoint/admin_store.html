@@ -141,7 +141,11 @@
                         dataRowOptions,
                         dataRowOptions
                     ],
-                    "aaSorting": [[1, "desc"]]
+                    "aaSorting": [[1, "desc"]],
+                    "oLanguage": {
+                        "sZeroRecords": "No pages match that search.",
+                        "sEmptyTable": "Sorry, you haven't made any pages yet :("
+                    }
                 });
 
             var ajax_urls = {
@@ -176,6 +180,10 @@
             // If we had messages, flash the most recent entry...
             if ($("ul.messages").length >= 1) {
                 $("#pageList tbody tr:first div").delay(500).effect("highlight", {"color": "#6F98AC"}, 2000);
+            }
+
+            if (pageListTable.fnGetNodes().length == 0) {
+                $("#new_page_button").addClass('wiggle');
             }
 {% endblock %}
 

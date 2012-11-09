@@ -457,19 +457,19 @@ html, body {height:100%; margin: 0; padding: 0;}
 /* Preview bar styling */
 #preview_header, #preview_header_spacing {
     width: 100%;
-    height: 100px;
+    height: 30px;
 }
 
 #preview_header {
-    background-color: #385A71;
+    background-color: #000;/*#385A71;*/
     position: fixed;
     z-index: 9001;
 }
 
 #preview_header p {
-    color: #EEE;
+    color: #CCC;
     margin: 0;
-    line-height: 100px;
     text-align: center;
-    font-size: 50px;
+    font-size: 15px;
+    line-height: 30px;
 }
