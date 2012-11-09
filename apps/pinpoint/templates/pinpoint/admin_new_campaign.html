@@ -51,6 +51,7 @@
         $(this).closest('.block_type').addClass('selected');
 
         $('.button.next').removeClass('disabled');
+        $('.button.next').addClass('wiggle');
     });
     $('.button.next').click(function() {
         window.location.href = $('.block_type.selected .url').text();
