@@ -104,6 +104,7 @@
 {% endblock %}
 
 {% block extra_js_includes %}
+    <script src="{% static "js/jquery-ui.js" %}"></script>
     <script src="{% static "js/jquery.dataTables.min.js" %}"></script>
 {% endblock %}
 
@@ -171,6 +172,11 @@
             $("ul.messages li").on('click', function() {
                 $(this).slideUp();
             });
+
+            // If we had messages, flash the most recent entry...
+            if ($("ul.messages").length >= 1) {
+                $("#pageList tbody tr:first div").delay(500).effect("highlight", {"color": "#6F98AC"}, 2000);
+            }
 {% endblock %}
 
 {% block top_section %}
