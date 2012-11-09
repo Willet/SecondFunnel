@@ -129,7 +129,6 @@
                     "bScrollCollapse": true,
                     "sScrollY": "400px",
                     "bPaginate": false,
-                    "sEmptyTable": "Sorry, you haven't made any pages yet :(",
                     "fnDrawCallback": function() {
                         $("#pageList tr.even").removeClass('even').addClass('odd');
                     },
@@ -140,7 +139,11 @@
                         dataRowOptions,
                         dataRowOptions
                     ],
-                    "aaSorting": [[1, "desc"]]
+                    "aaSorting": [[1, "desc"]],
+                    "oLanguage": {
+                        "sZeroRecords": "No pages match that search.",
+                        "sEmptyTable": "Sorry, you haven't made any pages yet :("
+                    }
                 });
 
             var ajax_urls = {
