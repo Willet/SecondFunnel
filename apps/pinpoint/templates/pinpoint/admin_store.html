@@ -137,6 +137,7 @@
                         null,
                         { "sType": "timestamp-numeric"},
                         dataRowOptions,
+                        dataRowOptions,
                         dataRowOptions
                     ],
                     "aaSorting": [[1, "desc"]]
@@ -190,18 +191,18 @@
                 <th>Date Modified</th>
                 <th></th>
                 <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             {% for campaign in store.campaign_set.all %}
             {% if campaign.live %}
             <tr>
-                <td><div><a href="
-                {% url edit-campaign-admin campaign.store.id campaign.id %}"
-                        >{{ campaign.name }}</a></div></td>
+                <td><div>{{ campaign.name }}</div></td>
                 <td><div data-timestamp='{{ campaign.last_modified|date:"U" }}'>{{ campaign.last_modified|naturalday }}</div></td>
                 <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
                 <td><div><a href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
+                <td><div><a href="{% url edit-campaign-admin campaign.store.id campaign.id %}">Edit Page</a></div></td>
             </tr>
             {% endif %}
             {% endfor %}
