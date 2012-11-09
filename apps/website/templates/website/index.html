@@ -1,5 +1,5 @@
 {% extends "website/base.html" %}
-{% load staticfiles %}
+{% load media %}
 {% block content %}
         <div class="area one">
             <div class="body">
@@ -13,7 +13,7 @@
                         <a href="{% url website-contact %}">Get Started</a>
                     </span>
                 </div>
-                <img src="{% static 'website/imgs/mac-video.png' %}">
+                <img src="{% media_url 'website/imgs/mac-video.png' %}">
             </div>
         </div>
         
@@ -31,7 +31,8 @@
                     </p> <br>
                 </div>
                 
-                <img src="{% static 'website/imgs/second-funnel-cycle.png' %}">
+                <img src="
+                {% media_url 'website/imgs/second-funnel-cycle.png' %}">
             </div>
         </div>
         
@@ -49,7 +50,8 @@
                     </p> <br>
                 </div>
                 
-                <img src="{% static 'website/imgs/social-to-pinpoint.png' %}">
+                <img src="
+                {% media_url 'website/imgs/social-to-pinpoint.png' %}">
             </div>
         </div>
         
@@ -67,7 +69,7 @@
                     </p>
                 </div>
                 
-                <img src="{% static 'website/imgs/discover-interests.png' %}">
+                <img src="{% media_url 'website/imgs/discover-interests.png' %}">
             </div>
         </div>
         
@@ -86,7 +88,7 @@
                     </p>
                 </div>
                 
-                <img src="{% static 'website/imgs/conversations.png' %}">
+                <img src="{% media_url 'website/imgs/conversations.png' %}">
             </div>
         </div>
         
@@ -102,7 +104,7 @@
                     </p>
                 </div>
                 
-                <img src="{% static 'website/imgs/mobile.png' %}">
+                <img src="{% media_url 'website/imgs/mobile.png' %}">
             </div>
         </div>
         

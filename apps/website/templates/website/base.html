@@ -1,21 +1,18 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <head>
-    {% load staticfiles %}
+    {% load media %}
     <title>{% block title %}Second Funnel{% endblock title %}</title>
-    <link href="{% static 'website/css/secondFunnelStyles.css' %}" rel="stylesheet" type="text/css">
+    {% include_media 'website/css/style.css' %}
     <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300' rel='stylesheet' type='text/css'>
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,600' rel='stylesheet' type='text/css'>
     <link href='http://fonts.googleapis.com/css?family=PT+Sans:400,700' rel='stylesheet' type='text/css'>
     <!--[if IE]>
-        <link href="{% static 'website/css/secondFunnelStylesIE.css' %}" rel="stylesheet" type="text/css">
+       {% include_media 'website/css/style-ie.css' %}
     <![endif]-->
 
     <!-- Typekit fonts -->
     <script type="text/javascript" src="//use.typekit.net/dnu4mxt.js"></script>
     <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
-
-    <!-- *** To include the typekit fonts, uncomment the below link: *** -->
-    <link href="{% static 'website/css/typekit.css' %}" rel="stylesheet" type="text/css">
 </head>
 
 <body>
@@ -23,7 +20,7 @@
 <div class="banner">
     <div class="body">
         <a href="{% url website-index %}">
-            <img class="title" src="{% static 'website/imgs/logo.png'%}">
+            <img class="title" src="{% media_url 'website/imgs/logo.png'%}">
         </a>
 
         <div class="nav">

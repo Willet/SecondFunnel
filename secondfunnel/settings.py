@@ -194,6 +194,8 @@ MEDIA_BUNDLES = (  # django-mediagenerator
 #       }),
 )
 
+from media import MEDIA_BUNDLES
+
 # Include local settings
 try:
     from local_settings import *
