@@ -36,7 +36,7 @@
         #pageList {
             width:980px;
         }
-        
+
         #pageList td {
             white-space: nowrap;
             overflow: hidden;
@@ -45,7 +45,7 @@
             border-bottom: 1px solid #ccc;
             text-align: center;
         }
-        
+
         #pageList td div {
             text-align: center;
             white-space: nowrap;
@@ -53,43 +53,43 @@
             margin:auto;
             padding: 5px 5px;
         }
-        
+
         #pageList td div * {
             height: 100%;
             display: inline;
             text-align: center;
             vertical-align: middle;
         }
-        
+
         #pageList tr.odd {
             background-color: transparent;
         }
-        
+
         #pageList tr.odd td.sorting_1 {
             background-color: #fff;
         }
-        
+
         table.display thead th {
             border-bottom: 1px solid #ccc;
         }
-        
+
         .dataTables_scrollBody {
             height: 400px;
         }
-        
+
         #pageList_wrapper {
             height: 435px;
             padding: 10px;
         }
-        
+
         #pageList_info {
             display: none;
         }
-        
+
         #pageList_wrapper input {
             padding: 2px;
         }
-        
+
         #pageList_filter {
             position: relative;
             top: -10px;
@@ -200,7 +200,7 @@
                 {% url edit-campaign-admin campaign.store.id campaign.id %}"
                         >{{ campaign.name }}</a></div></td>
                 <td><div data-timestamp='{{ campaign.last_modified|date:"U" }}'>{{ campaign.last_modified|naturalday }}</div></td>
-                <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
+                <td><div><a href="{% url analytics-campaign-admin store.id campaign.id %}">Analytics</a></div></td>
                 <td><div><a href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
             </tr>
             {% endif %}
