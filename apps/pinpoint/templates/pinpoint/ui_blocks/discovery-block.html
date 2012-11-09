@@ -32,7 +32,7 @@
                 show_faces="false"></fb:like>
             </div>
             <div class="twitter_buttons">
-                <a href="https://twitter.com/share?url={{ prod.original_url|striptags }}" target="_blank"><img src="{% static "pinpoint/images/twitterButton.png" %}"/></a>
+                <a href="https://twitter.com/share" class="twitter-share-button" data-count="none" data-url="{{ prod.original_url|striptags }}" data-text="{{ prod.name }} {{ prod.original_url|striptags }}" data-lang="en"></a>
             </div>
         </div>
     </div>

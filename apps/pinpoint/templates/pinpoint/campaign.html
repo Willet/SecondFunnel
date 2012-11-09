@@ -43,27 +43,24 @@
                     uri = parseUri(window.location.href);
                     category += "|domain=" + parseUri(uri.queryKey.url).host;
 
-                    //console.log(['_trackEvent', category, o.action, o.label, o.value || undefined]);
-                    // _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+                    // console.log(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+                    _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
                 },
 
                 registerShare = function (o) {
                     var action, url;
-                    //console.log(pinpointTracking.socialShareType, pinpointTracking.socialShareUrl);
 
                     trackEvent({
                         "action": "actionType=share"
                             + "|network=" + o.network
                             + "|actionSubtype="+ o.type
-                            + "|actionScope" + pinpointTracking.socialShareType,
+                            + "|actionScope=" + pinpointTracking.socialShareType,
 
                         "label": pinpointTracking.socialShareUrl
                     });
                 },
 
                 setSocialShareVars = function (o) {
-                    //console.log(o);
-
                     if (o['default'] === true) {
                         pinpointTracking.socialShareUrl = $("#featured_img").data("url");
                         pinpointTracking.socialShareType = "featured";
@@ -82,17 +79,14 @@
 
                 init = function() {
                     // load scripts
-                    $.getScript("//platform.twitter.com/widgets.js", twitterEvents);
-                    var twttr = undefined;
-                    //window.twttr = (function (d,s,id) {
-                    //    var t, js, fjs = d.getElementsByTagName(s)[0];
-                    //    if (d.getElementById(id)) return; js=d.createElement(s); js.id=id; js.async=true;
-                    //    js.src="//platform.twitter.com/widgets.js"; js.onload="pinpointTracking.registerTwitterListeners"; fjs.parentNode.insertBefore(js, fjs);
-                    //    return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f) } });
-                    //}(document, "script", "twitter-wjs"));
+                    window.twttr = (function (d,s,id) {
+                       var t, js, fjs = d.getElementsByTagName(s)[0];
+                       if (d.getElementById(id)) return; js=d.createElement(s); js.id=id; js.async=true;
+                       js.src="//platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs);
+                       return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f) } });
+                    }(document, "script", "twitter-wjs"));
 
-                    var twitterEvents = function(t) {
-                        twttr = t;
+                    twttr.ready(function (twttr) {
                         twttr.events.bind('tweet', function(event) {
                             pinpointTracking.registerShare({
                                 "network": "Twitter",
@@ -114,7 +108,7 @@
                                 "type": sType
                             });
                         });
-                    }
+                    });
                 },
 
 
@@ -257,6 +251,14 @@ pinpointTracking.init();
 
                 // analytics
                 pinpointTracking.setSocialShareVars({"default": true});
+
+                // track the buy now button
+                $("#light_buy").click(function() {
+                    pinpointTracking.trackEvent({
+                        action: 'buynow',
+                        label: $(this).attr("href")
+                    });
+                });
 
                 $("#featured-social").hover(function() {
                     pinpointTracking.clearTimeout();
@@ -448,9 +450,6 @@ pinpointTracking.init();
                     '<a href="https://twitter.com/share?url=' + data.link +
                         '&text=' + data.title + '" class="twitter-share-button" data-lang="en">Tweet</a>');
 
-                    // need to create the above
-                    twttr.widgets.load();
-
                     $("#light .pinterest_buttons").html('' +
                     '<a href="http://pinterest.com/pin/create/button/' +
                         '?url=' + data.link +
@@ -501,14 +500,6 @@ pinpointTracking.init();
                     $("#light_buy").attr("href", buy_url);
                     $("#light_price").text(data.price);
 
-                    //// Setup any tricky handlers that could change...
-                    //$("#light_buy").unbind("click").bind("click", function () {
-                        //    _gaq.push(["_trackEvent", "Product", "Buy Now", data.title]);
-                        //});
-
-                    //_gaq.push(["_trackEvent", "Category", "Action", "opt_label", "opt_value"]);
-                    //_gaq.push(["_trackEvent", "Product", "Preview", data.title]);
-
                     $(".pinterest_buttons>div").hide();
                     $(".pinterest_buttons div[data-id='" + data.title + "']").show();
 
@@ -522,6 +513,9 @@ pinpointTracking.init();
                     var box_height = $box.height()
                     //var box_height = 490 + getCSSNumericValue($box,'padding-top') + getCSSNumericValue($box,'padding-bottom');
                     //$box.css('top', ($(window).height() - box_height) / 2 );
+
+                    // need to register twitter buttons we've created above
+                    twttr.widgets.load();
                 };
                 var showPin = function () {
                     showPinOf(this);
