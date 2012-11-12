@@ -8,7 +8,10 @@ from apps.assets.models import (MediaBase, BaseModel, BaseModelNamed,
 
 
 class StoreTheme(BaseModelNamed):
-    store = models.ForeignKey(Store)
+    store         = models.OneToOneField(Store, related_name="theme")
+    page_template = models.TextField(blank=True, null=True)
+    # TODO: Add validators
+    # TODO: Create custom 'TemplateField'?
 
     def __unicode__(self):
         return u"Theme for Store: %s" % self.store

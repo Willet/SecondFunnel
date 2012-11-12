@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.template import RequestContext
+from django.template import RequestContext, Template
 from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
 
@@ -79,8 +79,25 @@ def store_analytics_admin(request, store_id):
 def campaign(request, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
 
-    return render_to_response('pinpoint/campaign.html', {
+    template = None
+    if hasattr(campaign_instance.store, "theme"):
+        theme = campaign_instance.store.theme
+        try:
+            # TODO: Verify theme is not empty?
+            template = Template(theme.page_template)
+        except AttributeError, e:
+            pass
+
+    arguments = {
         "campaign": campaign_instance,
         "columns": range(4),
         "preview": not campaign_instance.live
-    }, context_instance=RequestContext(request))
+    }
+    context = RequestContext(request)
+
+    if template:
+        context.update(arguments)
+        return HttpResponse(template.render(context))
+    else:
+        return render_to_response('pinpoint/campaign.html', arguments,
+                                  context_instance=context)
