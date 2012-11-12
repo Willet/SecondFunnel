@@ -7,7 +7,6 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     # INTERNAL ADMIN
-    url(r'^admin/features/', include('adminlettuce.urls')),
     url(r'^admin/', include(admin.site.urls)),
 
     # APPS
