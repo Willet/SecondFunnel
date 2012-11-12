@@ -45,6 +45,7 @@ class MediaBase(BaseModelNamed):
     media_type = models.CharField(max_length=3,
         choices=MEDIA_TYPES, default="css", blank=True, null=True)
 
+
     class Meta:
         abstract = True
 
@@ -66,8 +67,11 @@ class ImageBase(BaseModelNamed):
 
     hosted = models.ImageField("Hosted File",
         upload_to="product_images", blank=True, null=True)
+    
+
     class Meta:
         abstract = True
+    
     def get_url(self):
         if self.remote:
             return self.remote
@@ -77,11 +81,14 @@ class ImageBase(BaseModelNamed):
 
         return None
 
+
 class GenericMedia(MediaBase):
     pass
 
+
 class GenericImage(ImageBase):
     pass
+
 
 class Product(BaseModelNamed):
     original_url = models.CharField(max_length=500, blank=True, null=True)

@@ -30,19 +30,23 @@ class BaseNamedMediaAdmin(BaseNamedAdmin):
 
     list_filter = BaseNamedAdmin.list_filter + ['media_type']
 
+
 class BaseNamedImageAdmin(BaseNamedAdmin):
     list_display = ['id'] + BaseNamedAdmin.list_display + [
         'remote', 'hosted']
+
 
 class GenericMediaAdmin(BaseNamedMediaAdmin):
     pass
 
 admin.site.register(GenericMedia, GenericMediaAdmin)
 
+
 class GenericImageAdmin(BaseNamedImageAdmin):
     pass
 
 admin.site.register(GenericImage, GenericImageAdmin)
+
 
 class ProductMediaAdmin(BaseNamedImageAdmin):
     list_display = BaseNamedImageAdmin.list_display + ['product']
