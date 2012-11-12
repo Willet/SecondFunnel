@@ -105,6 +105,19 @@
         }
 
         /* end table */
+
+        .ui-tooltip {
+            border-width: 2px;
+            border-color: #385A71;
+        }
+
+        .ui-tooltip, .ui-tooltip .ui-tooltip-titlebar {
+            background-color: #6F98AC;
+        }
+
+        .ui-tooltip-titlebar div {
+            color: #EEE;
+        }
     </style>
 {% endblock %}
 
@@ -186,12 +199,11 @@
                 $("#new_page_button").addClass('wiggle');
             }
 
-            $("tbody tr").qtip({
+            $(".get_link").qtip({
                 content: {
                     text: '<input type="textbox" value="asdf"></input>',
                     title: {
-						text: 'Copy Link',
-						button: true
+						text: 'Copy Link'
 					}
                 },
                 position: {
@@ -205,13 +217,14 @@
                 hide: true,
                 events: {
                     show: function() {
+                        $(this).addClass('rounded');
                         var tooltip = $(this)
                         var input = $('input', tooltip);
                         input[0].select();
                         input.unbind('click').click(function() {
                             input[0].select();
                         });
-                        input.unbind('fcousout').focusout(function() {
+                        input.unbind('focusout').focusout(function() {
                             tooltip.qtip('hide');
                         });
                     }
@@ -219,10 +232,10 @@
             })
 
             $(".get_link").click(function() {
-                $('tbody tr').qtip('hide');
-                var tr = $(this).closest('tr');
-                tr.qtip('show');
-                $("#" + tr.attr('aria-describedby') + " input")[0].select();
+                $('.get_link').qtip('hide');
+                //var tr = $(this).closest('tr');
+                $(this).qtip('show');
+                $("#" + $(this).attr('aria-describedby') + " input")[0].select();
             });
 {% endblock %}
 
