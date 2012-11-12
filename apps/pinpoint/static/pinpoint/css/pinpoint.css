@@ -59,7 +59,6 @@ html, body {height:100%; margin: 0; padding: 0;}
 #willet-main .inner-pin {
     overflow: hidden;
     width: 200px;
-    /*margin-right: 5px;*/
     text-align: center;
     background:#f6f6f6;
 }
@@ -85,19 +84,6 @@ html, body {height:100%; margin: 0; padding: 0;}
 }
 
 #willet-main .inner-pin h5 {
-    /*margin: 0;
-    padding: 10px 10px 5px 10px;
-    font-size: 13px;
-    font-weight: normal;
-    color: #fff;
-    width: 140px;
-    background: #161616;
-    background: rgba(0,0,0,0.8);
-    bottom: 15px;
-    position: absolute;
-    display: block;
-    text-align: left;*/
-
     margin: 0;
     padding: 10px;
     background: #AAA;
@@ -116,7 +102,6 @@ html, body {height:100%; margin: 0; padding: 0;}
 }
 
 #willet-main .social-hover > div {
-    /*margin: 10px 0px;*/
     position: relative;
     margin: 0;
     padding:0;
@@ -276,13 +261,11 @@ html, body {height:100%; margin: 0; padding: 0;}
 #willet-main #light .content,
 #featured-product .content  {
     width: 550px;
-    /*margin-right: 40px;*/
 }
 
 #willet-main #light .text {
     text-align: left;
     width: 550px;
-    /*float: left;*/
 }
 
 #willet-main #light .buttons {
@@ -381,20 +364,17 @@ html, body {height:100%; margin: 0; padding: 0;}
     height: 240px;
 }
 #featured-product>#featured_img {
-    /*margin-left: 25px;*/
     margin-left: auto;
     margin-right: auto;
     width: 450px;
     height: 240px;
 }
- /*#featured-product>#featured_img,*/
- #featured-product>#featured_img>img {
+#featured-product>#featured_img>img {
     max-width: 450px;
     max-height: 240px;
 }
 #featured-product>#featured_img {
     float:left;
-    /* background: #cecece; */
     position: relative;
     text-align: center;
 }
@@ -461,7 +441,7 @@ html, body {height:100%; margin: 0; padding: 0;}
 }
 
 #preview_header {
-    background-color: #000;/*#385A71;*/
+    background-color: #000;
     position: fixed;
     z-index: 9001;
 }
