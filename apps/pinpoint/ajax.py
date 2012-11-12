@@ -65,8 +65,11 @@ def upload_image(request):
         # read file info from stream
         uploaded = request.read
 
-        # get file size
-        fileSize = int(uploaded.im_self.META.get("CONTENT_LENGTH", None))
+        try: 
+            # get file size
+            fileSize = int(uploaded.im_self.META.get("CONTENT_LENGTH", None))
+        except TypeError:
+            return ajax_error()
 
         # get file name
         fileName = request.GET.get('qqfile', None)
