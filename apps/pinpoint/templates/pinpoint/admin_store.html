@@ -32,6 +32,10 @@
             z-index: 9001;
         }
 
+        p {
+            margin: 0;
+        }
+
         /* table */
         #pageList {
             width:980px;
@@ -123,7 +127,7 @@
                 }
             });
 
-            var dataRowOptions = { sWidth: '5px', bSortable: false },
+            var dataRowOptions = { sWidth: '50px', bSortable: false },
                 pageListTable = $("#pageList").dataTable({
                     "bScrollInfinite": true,
                     "bScrollCollapse": true,
@@ -136,6 +140,7 @@
                     "aoColumns" : [
                         null,
                         { "sType": "timestamp-numeric"},
+                        dataRowOptions,
                         dataRowOptions,
                         dataRowOptions
                     ],
@@ -208,6 +213,7 @@
                 {% url edit-campaign-admin campaign.store.id campaign.id %}"
                         >{{ campaign.name }}</a></div></td>
                 <td><div data-timestamp='{{ campaign.last_modified|date:"U" }}'>{{ campaign.last_modified|naturalday }}</div></td>
+                <td><div><a class="get_link" href="#">Get Link</a></div></td>
                 <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
                 <td><div><a href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
             </tr>
