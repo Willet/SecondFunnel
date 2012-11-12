@@ -3,9 +3,7 @@ import random
 import datetime
 import re
 from datetime import timedelta, datetime
-from StringIO import StringIO
 
-from PIL import Image
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
@@ -55,18 +53,13 @@ def upload_image(request):
     # in IE this gets sent as a file
     if 'qqfile' in request.FILES:
         try:
-            f = request.FILES['qqfile']
+            media = GenericImage(hosted=ImageField.clean(request.FILES['qqfile']))
+            media.save()
         except KeyError, e:
             return ajax_error();
-
-        try:
-            img = Image.open(StringIO(f.read()))
-            img.verify()
         except IOError:
             return ajax_error()
 
-        media = GenericImage(hosted=f)
-        media.save()
     # in other browsers we read this using request.read
     else:
         # read file info from stream
@@ -85,14 +78,11 @@ def upload_image(request):
         fileContent = uploaded(fileSize)
 
         try:
-            img = Image.open(StringIO(fileContent))
-            img.verify()
+            media = GenericImage()
+            media.save()
+            media.hosted.save(fileName, ImageField.clean(ContentFile(fileContent)))
         except IOError:
             return ajax_error()
-
-        media = GenericImage()
-        media.save()
-        media.hosted.save(fileName, ContentFile(fileContent))
 
     return ajax_success({
         'media_id': media.id,
