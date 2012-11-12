@@ -503,6 +503,7 @@
                           gif.data('mid', response.media_id);
                           gif.load(function() {
                               gif.fadeIn(500);
+                              gif.click();
                           });
                           $("#id_generic_media_list").val($('#product_images img.new_image').map(
                               function(){return $(this).attr('src') + "\\" + $(this).data('mid');}).toArray().join("|"));
