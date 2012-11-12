@@ -13,6 +13,11 @@ class FeaturedProductWizardForm(forms.Form):
         widget=forms.HiddenInput(),
     )
 
+    page_changed = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+
     description = forms.CharField(
         label="Product Description",
         widget=forms.Textarea()
