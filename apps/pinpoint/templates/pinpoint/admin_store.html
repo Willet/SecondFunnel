@@ -7,9 +7,13 @@
 {% endblock %}
 
 {% block extra_head %}
+    <link rel="stylesheet" href="{% static "css/jquery.qtip.min.css" %}">
     <link rel="stylesheet" href="{% static "css/jquery.dataTables.css" %}">
     <link rel="stylesheet" href="{% static "js/DataTables/css/demo_page.css" %}">
     <link rel="stylesheet" href="{% static "js/DataTables/css/demo_table.css" %}">
+    <link href='http://fonts.googleapis.com/css?family=Shadows Into Light Two'
+          rel='stylesheet'
+          type='text/css'>
 
     <style>
         .online {
@@ -100,11 +104,26 @@
         }
 
         /* end table */
+
+        /* Tooltip styles */
+        .ui-tooltip-willet {
+            border-color: transparent; /*#385a71;*/
+            background-color: transparent; /* #6f98ac; */
+        }
+
+        .ui-tooltip-willet .ui-tooltip-content {
+            color: #000;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'Shadows Into Light Two', cursive;
+            overflow: visible;
+        }
     </style>
 {% endblock %}
 
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
+    <script src="{% static "js/jquery.qtip.min.js" %}"></script>
     <script src="{% static "js/jquery.dataTables.min.js" %}"></script>
 {% endblock %}
 
@@ -184,6 +203,21 @@
 
             if (pageListTable.fnGetNodes().length == 0) {
                 $("#new_page_button").addClass('wiggle');
+                $("#new_page_button").qtip({
+                    'content': '&larr; Make your first page',
+                    'position': {
+                        'my': 'left center',
+                        'at': 'right center'
+                    },
+                    'show': {
+                        'event': false,
+                        'ready': true
+                    },
+                    'hide': 'false',
+                    'style': {
+                        'classes': 'ui-tooltip-willet wiggle'
+                    }
+                })
             }
 {% endblock %}
 
