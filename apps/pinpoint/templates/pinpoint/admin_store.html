@@ -201,7 +201,7 @@
 
             $(".get_link").qtip({
                 content: {
-                    text: '<input type="textbox" value="asdf"></input>',
+                    text: '<input type="textbox" value=""></input>',
                     title: {
 						text: 'Copy Link'
 					}
@@ -220,6 +220,9 @@
                         $(this).addClass('rounded');
                         var tooltip = $(this)
                         var input = $('input', tooltip);
+                        var link = $(".get_link[aria-describedby=" + tooltip.attr('id') + "]");
+                        var url = "{{ request.get_host }}" + $(".view_page", link.closest('tr')).attr('href');
+                        input.val(url);
                         input[0].select();
                         input.unbind('click').click(function() {
                             input[0].select();
@@ -227,13 +230,14 @@
                         input.unbind('focusout').focusout(function() {
                             tooltip.qtip('hide');
                         });
+                        console.log($(".view_page", link.closest('tr')));
+                        console.log(url);
                     }
                 },
             })
 
             $(".get_link").click(function() {
                 $('.get_link').qtip('hide');
-                //var tr = $(this).closest('tr');
                 $(this).qtip('show');
                 $("#" + $(this).attr('aria-describedby') + " input")[0].select();
             });
@@ -270,7 +274,7 @@
                 <td><div data-timestamp='{{ campaign.last_modified|date:"U" }}'>{{ campaign.last_modified|naturalday }}</div></td>
                 <td><div><a class="get_link" href="#">Get Link</a></div></td>
                 <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
-                <td><div><a href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
+                <td><div><a class="view_page" href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
             </tr>
             {% endif %}
             {% endfor %}
