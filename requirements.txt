@@ -6,7 +6,7 @@ Werkzeug==0.8.3
 adminlettuce==0.0.6
 boto==2.6.0
 cssselect==0.7.1
-django-ajax-forms==0.3.1.beta
+django-ajax-forms>=0.3
 django-extensions==0.9
 django-nose==1.1
 django-storages==1.1.5
