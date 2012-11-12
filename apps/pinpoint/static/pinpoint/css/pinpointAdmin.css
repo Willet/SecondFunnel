@@ -452,3 +452,11 @@ span.disabled {
     animation: wiggle 1.4s;
     animation-iteration-count: infinite;
 }
+
+.keyboard {
+    border: 1px solid #aaa;
+    font-style: normal;
+    margin: 2px;
+    padding: 2px;
+    font-family: monospace;
+}

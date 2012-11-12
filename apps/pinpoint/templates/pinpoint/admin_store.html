@@ -109,14 +109,20 @@
         .ui-tooltip {
             border-width: 2px;
             border-color: #385A71;
+            padding-right: 5px;
         }
 
         .ui-tooltip, .ui-tooltip .ui-tooltip-titlebar {
             background-color: #6F98AC;
         }
 
-        .ui-tooltip-titlebar div {
+        .ui-tooltip input {
+            width: 100%;
+        }
+
+        .ui-tooltip-titlebar div, .ui-tooltip-titlebar .keyboard {
             color: #EEE;
+            font-size: 13px;
         }
     </style>
 {% endblock %}
@@ -203,7 +209,7 @@
                 content: {
                     text: '<input type="textbox" value=""></input>',
                     title: {
-						text: 'Copy Link'
+                    text: 'Press <span class="keyboard">Ctrl-C</span> or <span class="keyboard">&#8984;-C</span> to copy'
 					}
                 },
                 position: {
