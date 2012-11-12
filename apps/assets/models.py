@@ -60,7 +60,27 @@ class MediaBase(BaseModelNamed):
 
         return None
 
+class ImageBase(BaseModelNamed):
+    remote = models.CharField("Remote URL",
+        max_length=555, blank=True, null=True)
+
+    hosted = models.ImageField("Hosted File",
+        upload_to="product_images", blank=True, null=True)
+    class Meta:
+        abstract = True
+    def get_url(self):
+        if self.remote:
+            return self.remote
+
+        if self.hosted:
+            return self.hosted.url
+
+        return None
+
 class GenericMedia(MediaBase):
+    pass
+
+class GenericImage(ImageBase):
     pass
 
 class Product(BaseModelNamed):
@@ -81,5 +101,5 @@ class Product(BaseModelNamed):
         return self.media.count()
 
 
-class ProductMedia(MediaBase):
+class ProductMedia(ImageBase):
     product = models.ForeignKey(Product, related_name="media")

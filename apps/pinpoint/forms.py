@@ -1,6 +1,6 @@
 from django import forms
 
-from apps.assets.models import ProductMedia, GenericMedia
+from apps.assets.models import ProductMedia, GenericImage
 
 class FeaturedProductWizardForm(forms.Form):
     name = forms.CharField(
@@ -46,7 +46,7 @@ class FeaturedProductWizardForm(forms.Form):
         generic_media_id = cleaned_data.get("generic_media_id")
         product_media_id = cleaned_data.get("product_media_id")
 
-        if not (generic_media_id and GenericMedia.objects.filter(pk=generic_media_id).exists()) and \
+        if not (generic_media_id and GenericImage.objects.filter(pk=generic_media_id).exists()) and \
                 not (product_media_id and ProductMedia.objects.filter(pk=product_media_id).exists()):
             raise forms.ValidationError("This field is required.")
 

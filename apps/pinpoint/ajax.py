@@ -11,7 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.core.files.base import ContentFile
 
-from apps.assets.models import GenericMedia
+from apps.assets.models import GenericImage
 from apps.pinpoint.models import Campaign
 from apps.utils.ajax import ajax_success, ajax_error
 
@@ -65,7 +65,7 @@ def upload_image(request):
         except IOError:
             return ajax_error()
 
-        media = GenericMedia(media_type="img", hosted=f)
+        media = GenericImage(hosted=f)
         media.save()
     # in other browsers we read this using request.read
     else:
@@ -90,7 +90,7 @@ def upload_image(request):
         except IOError:
             return ajax_error()
 
-        media = GenericMedia(media_type="img")
+        media = GenericImage()
         media.save()
         media.hosted.save(fileName, ContentFile(fileContent))
 
