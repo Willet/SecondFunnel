@@ -258,10 +258,6 @@
         };
 
         product_selected = function (o) {
-            // resetting previous values
-            $("#id_product_media_id").val("");
-            $("#id_generic_media_id").val("");
-            $("#id_generic_media_lst").val("");
             $("#image-selector").siblings(".errorlist").children("li").fadeIn(500);
 
             var product = products[o.product_id],
@@ -313,6 +309,10 @@
             if (!o.human_invoked) {
                 $("#id_name").val(o.page_name);
             } else {
+                // resetting previous values
+                $("#id_product_media_id").val("");
+                $("#id_generic_media_id").val("");
+                $("#id_generic_media_lst").val("");
                 onPageChanged();
                 $("#id_name").val("Featured: " + product.name);
             }
