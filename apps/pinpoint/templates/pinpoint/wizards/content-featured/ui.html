@@ -472,6 +472,12 @@
 
         init = function () {
             $(function() {
+                // because the django-ajax-forms library is stupid and causes an
+                // error in ie9, this workaround is needed.
+                if (window.console && !console.debug) {
+                    console.debug = function(){};
+                }
+
                 $(".product_meta").mask();
                 $("#product_name").watermark("Your product name");
                 $("#id_name").watermark("Your page name");
