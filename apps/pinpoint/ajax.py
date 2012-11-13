@@ -1,17 +1,8 @@
-import json
-import random
-import datetime
-import re
-from datetime import timedelta, datetime
-from StringIO import StringIO
-
-from PIL import Image
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
 from django.core.files.base import ContentFile
+from django.forms import ImageField, ValidationError
 
-from apps.assets.models import GenericMedia
+from apps.assets.models import GenericImage
 from apps.pinpoint.models import Campaign
 from apps.utils.ajax import ajax_success, ajax_error
 
@@ -47,33 +38,33 @@ def modify_campaign(request, live):
 
     return ajax_success()
 
+
 @login_required
 def upload_image(request):
     if not request.method == 'POST':
         return ajax_error()
-    
     # in IE this gets sent as a file
     if 'qqfile' in request.FILES:
         try:
-            f = request.FILES['qqfile']
-        except KeyError, e:
-            return ajax_error();
-
-        try:
-            img = Image.open(StringIO(f.read()))
-            img.verify()
-        except IOError:
+            media = GenericImage()
+            imgField = ImageField().clean(request.FILES['qqfile'], media)
+            media.hosted.save(imgField.name, imgField)
+            media.save()
+        except KeyError:
+            return ajax_error()
+        except ValidationError:
             return ajax_error()
 
-        media = GenericMedia(media_type="img", hosted=f)
-        media.save()
     # in other browsers we read this using request.read
     else:
         # read file info from stream
         uploaded = request.read
 
-        # get file size
-        fileSize = int(uploaded.im_self.META.get("CONTENT_LENGTH", None))
+        try:
+            # get file size
+            fileSize = int(uploaded.im_self.META.get("CONTENT_LENGTH", None))
+        except TypeError:
+            return ajax_error()
 
         # get file name
         fileName = request.GET.get('qqfile', None)
@@ -85,14 +76,12 @@ def upload_image(request):
         fileContent = uploaded(fileSize)
 
         try:
-            img = Image.open(StringIO(fileContent))
-            img.verify()
-        except IOError:
+            media = GenericImage()
+            imgField = ImageField().clean(ContentFile(fileContent), media)
+            media.hosted.save(fileName, imgField)
+            media.save()
+        except ValidationError:
             return ajax_error()
-
-        media = GenericMedia(media_type="img")
-        media.save()
-        media.hosted.save(fileName, ContentFile(fileContent))
 
     return ajax_success({
         'media_id': media.id,

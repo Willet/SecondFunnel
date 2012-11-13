@@ -6,7 +6,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpResponse
 
-from apps.assets.models import Product, ProductMedia, GenericMedia
+from apps.assets.models import Product, ProductMedia, GenericImage
 from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
     FeaturedProductBlock)
 from apps.pinpoint.forms import FeaturedProductWizardForm
@@ -32,7 +32,7 @@ def _editing_valid_form(form, product, preview=False):
     # an image was uploaded (the form checks that one of these must exist)
     else:
         block_content.data.existing_image = None
-        block_content.data.custom_image = GenericMedia.objects.get(
+        block_content.data.custom_image = GenericImage.objects.get(
                 pk=generic_media_id)
         block_content.data.save()
     if not block_content in campaign.content_blocks.all():
@@ -60,7 +60,7 @@ def _creating_valid_form(block_type, form, product, store, preview=False):
                 pk=product_media_id)
     # an image was uploaded (the form checks that one of these must exist)
     else:
-        featured_product_data.custom_image = GenericMedia.objects.get(
+        featured_product_data.custom_image = GenericImage.objects.get(
                 pk=generic_media_id)
     featured_product_data.save()
     block_content = BlockContent(
@@ -128,7 +128,7 @@ def featured_product_wizard(request, store, block_type, campaign=None):
 
             product_image = campaign.content_blocks.all()[0].data.get_image()
 
-            if product_image.__class__.__name__ == "GenericMedia":
+            if product_image.__class__.__name__ == "GenericImage":
                 initial_data["generic_media_id"] = product_image.id
                 initial_data["generic_media_list"] = product_image.get_url() + "\\" + str(product_image.id)
 

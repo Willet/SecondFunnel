@@ -15,14 +15,13 @@
      }, 
      {
           "pk": 1, 
-          "model": "assets.genericmedia", 
+          "model": "assets.genericimage", 
           "fields": {
                "remote": "https://a248.e.akamai.net/assets.github.com/images/modules/about_page/octocat.png?1329921026", 
                "description": "", 
                "created": "2012-10-24T19:45:55.381Z", 
                "last_modified": "2012-10-24T19:45:55.381Z", 
                "hosted": "", 
-               "media_type": "img", 
                "slug": "octocat", 
                "name": "Octocat"
           }
@@ -117,7 +116,6 @@
                "created": "2012-10-17T17:19:05.422Z", 
                "last_modified": "2012-10-17T20:07:37.898Z", 
                "hosted": "", 
-               "media_type": "css", 
                "slug": "", 
                "name": ""
           }
@@ -132,7 +130,6 @@
                "created": "2012-10-17T17:19:54.947Z", 
                "last_modified": "2012-10-17T17:19:54.947Z", 
                "hosted": "", 
-               "media_type": "img", 
                "slug": "", 
                "name": ""
           }
@@ -147,7 +144,6 @@
                "created": "2012-10-17T20:05:03.703Z", 
                "last_modified": "2012-10-17T20:05:03.703Z", 
                "hosted": "", 
-               "media_type": "img", 
                "slug": "", 
                "name": ""
           }
@@ -162,7 +158,6 @@
                "created": "2012-10-17T20:05:41.942Z", 
                "last_modified": "2012-10-17T20:06:20.726Z", 
                "hosted": "", 
-               "media_type": "img", 
                "slug": "", 
                "name": ""
           }
@@ -177,7 +172,6 @@
                "created": "2012-10-17T20:05:59.011Z", 
                "last_modified": "2012-10-17T20:05:59.011Z", 
                "hosted": "", 
-               "media_type": "img", 
                "slug": "", 
                "name": ""
           }
@@ -192,7 +186,6 @@
                "created": "2012-10-17T20:06:46.417Z", 
                "last_modified": "2012-10-17T20:06:46.417Z", 
                "hosted": "", 
-               "media_type": "img", 
                "slug": "", 
                "name": ""
           }
