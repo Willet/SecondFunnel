@@ -7,9 +7,14 @@
 {% endblock %}
 
 {% block extra_head %}
+    <link rel="stylesheet" href="{% static "css/jquery.qtip.min.css" %}">
     <link rel="stylesheet" href="{% static "css/jquery.dataTables.css" %}">
+    <link rel="stylesheet" href="{% static "css/jquery.qtip.min.css" %}">
     <link rel="stylesheet" href="{% static "js/DataTables/css/demo_page.css" %}">
     <link rel="stylesheet" href="{% static "js/DataTables/css/demo_table.css" %}">
+    <link href='http://fonts.googleapis.com/css?family=Shadows Into Light Two'
+          rel='stylesheet'
+          type='text/css'>
 
     <style>
         .online {
@@ -32,11 +37,15 @@
             z-index: 9001;
         }
 
+        p {
+            margin: 0;
+        }
+
         /* table */
         #pageList {
             width:980px;
         }
-        
+
         #pageList td {
             white-space: nowrap;
             overflow: hidden;
@@ -45,7 +54,7 @@
             border-bottom: 1px solid #ccc;
             text-align: center;
         }
-        
+
         #pageList td div {
             text-align: center;
             white-space: nowrap;
@@ -53,43 +62,43 @@
             margin:auto;
             padding: 5px 5px;
         }
-        
+
         #pageList td div * {
             height: 100%;
             display: inline;
             text-align: center;
             vertical-align: middle;
         }
-        
+
         #pageList tr.odd {
             background-color: transparent;
         }
-        
+
         #pageList tr.odd td.sorting_1 {
             background-color: #fff;
         }
-        
+
         table.display thead th {
             border-bottom: 1px solid #ccc;
         }
-        
+
         .dataTables_scrollBody {
             height: 400px;
         }
-        
+
         #pageList_wrapper {
             height: 435px;
             padding: 10px;
         }
-        
+
         #pageList_info {
             display: none;
         }
-        
+
         #pageList_wrapper input {
             padding: 2px;
         }
-        
+
         #pageList_filter {
             position: relative;
             top: -10px;
@@ -100,11 +109,47 @@
         }
 
         /* end table */
+
+        /* Tooltip styles */
+        .ui-tooltip.ui-tooltip-willet {
+            border-color: transparent; /*#385a71;*/
+            background-color: transparent; /* #6f98ac; */
+        }
+
+        .ui-tooltip.ui-tooltip-willet .ui-tooltip-content {
+            color: #000;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'Shadows Into Light Two', cursive;
+            overflow: visible;
+        }
+
+        .ui-tooltip {
+            border-width: 2px;
+            border-color: #385A71;
+            padding-right: 5px;
+        }
+
+        .ui-tooltip, .ui-tooltip .ui-tooltip-titlebar {
+            background-color: #6F98AC;
+        }
+
+        .ui-tooltip input {
+            width: 100%;
+        }
+
+        .ui-tooltip-titlebar div, .ui-tooltip-titlebar .keyboard {
+            color: #EEE;
+            font-size: 13px;
+        }
     </style>
 {% endblock %}
 
 {% block extra_js_includes %}
+    <script src="{% static "js/jquery-ui.js" %}"></script>
+    <script src="{% static "js/jquery.qtip.min.js" %}"></script>
     <script src="{% static "js/jquery.dataTables.min.js" %}"></script>
+    <script src="{% static "js/jquery.qtip.min.js" %}"></script>
 {% endblock %}
 
 {% block document_ready %}
@@ -123,7 +168,7 @@
                 }
             });
 
-            var dataRowOptions = { sWidth: '5px', bSortable: false },
+            var dataRowOptions = { sWidth: '50px', bSortable: false },
                 pageListTable = $("#pageList").dataTable({
                     "bScrollInfinite": true,
                     "bScrollCollapse": true,
@@ -137,9 +182,15 @@
                         null,
                         { "sType": "timestamp-numeric"},
                         dataRowOptions,
+                        dataRowOptions,
+                        dataRowOptions,
                         dataRowOptions
                     ],
-                    "aaSorting": [[1, "desc"]]
+                    "aaSorting": [[1, "desc"]],
+                    "oLanguage": {
+                        "sZeroRecords": "No pages match that search.",
+                        "sEmptyTable": "Sorry, you haven't made any pages yet :("
+                    }
                 });
 
             var ajax_urls = {
@@ -170,6 +221,73 @@
             $("ul.messages li").on('click', function() {
                 $(this).slideUp();
             });
+
+            // If we had messages, flash the most recent entry...
+            if ($("ul.messages").length >= 1) {
+                $("#pageList tbody tr:first div").delay(500).effect("highlight", {"color": "#6F98AC"}, 2000);
+            }
+
+            if (pageListTable.fnGetNodes().length == 0) {
+                $("#new_page_button").addClass('wiggle');
+                $("#new_page_button").qtip({
+                    'content': '&larr; Make your first page',
+                    'position': {
+                        'my': 'left center',
+                        'at': 'right center'
+                    },
+                    'show': {
+                        'event': false,
+                        'ready': true
+                    },
+                    'hide': 'false',
+                    'style': {
+                        'classes': 'ui-tooltip-willet wiggle'
+                    }
+                })
+            }
+
+            $(".get_link").qtip({
+                content: {
+                    text: '<input type="textbox" value=""></input>',
+                    title: {
+                    text: 'Press <span class="keyboard">Ctrl-C</span> or <span class="keyboard">&#8984;-C</span> to copy'
+                    }
+                },
+                position: {
+                    my: "left center",
+                    at: "right center"
+                },
+                show: {
+                    event: false, // Don't specify a show event...
+                    ready: false // ... but show the tooltip when ready
+                },
+                hide: true,
+                events: {
+                    show: function() {
+                        $(this).addClass('rounded');
+                        var tooltip = $(this)
+                        var input = $('input', tooltip);
+                        var link = $(".get_link[aria-describedby=" + tooltip.attr('id') + "]");
+                        var url = "{{ request.get_host }}" + $(".view_page", link.closest('tr')).attr('href');
+                        input.val(url);
+                        input[0].select();
+                        input.unbind('click').click(function() {
+                            input[0].select();
+                        });
+                        input.unbind('focusout').focusout(function() {
+                            tooltip.qtip('hide');
+                        });
+                        console.log($(".view_page", link.closest('tr')));
+                        console.log(url);
+                    }
+                },
+            })
+
+            $(".get_link").click(function() {
+                $('.get_link').qtip('hide');
+                $(this).qtip('show');
+                $("#" + $(this).attr('aria-describedby') + " input")[0].select();
+            });
 {% endblock %}
 
 {% block top_section %}
@@ -190,18 +308,20 @@
                 <th>Date Modified</th>
                 <th></th>
                 <th></th>
+                <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             {% for campaign in store.campaign_set.all %}
             {% if campaign.live %}
             <tr>
-                <td><div><a href="
-                {% url edit-campaign-admin campaign.store.id campaign.id %}"
-                        >{{ campaign.name }}</a></div></td>
+                <td><div>{{ campaign.name }}</div></td>
                 <td><div data-timestamp='{{ campaign.last_modified|date:"U" }}'>{{ campaign.last_modified|naturalday }}</div></td>
+                <td><div><a class="get_link" href="#">Get Link</a></div></td>
                 <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
-                <td><div><a href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
+                <td><div><a class="view_page" href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
+                <td><div><a href="{% url edit-campaign-admin campaign.store.id campaign.id %}">Edit Page</a></div></td>
             </tr>
             {% endif %}
             {% endfor %}
