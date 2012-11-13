@@ -8,5 +8,6 @@ secondfunnel/local_settings.py
 *.db
 *.sqlite
 *.DS_Store
+bin/*
 /static
 .elasticbeanstalk/
