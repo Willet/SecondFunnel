@@ -1,13 +1,6 @@
-import json
-import random
-import datetime
-import re
-from datetime import timedelta, datetime
-
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
 from django.core.files.base import ContentFile
+from django.forms import ImageField, ValidationError
 
 from apps.assets.models import GenericImage
 from apps.pinpoint.models import Campaign
@@ -45,19 +38,21 @@ def modify_campaign(request, live):
 
     return ajax_success()
 
+
 @login_required
 def upload_image(request):
     if not request.method == 'POST':
         return ajax_error()
-    
     # in IE this gets sent as a file
     if 'qqfile' in request.FILES:
         try:
-            media = GenericImage(hosted=ImageField.clean(request.FILES['qqfile']))
+            media = GenericImage()
+            imgField = ImageField().clean(request.FILES['qqfile'], media)
+            media.hosted.save(imgField.name, imgField)
             media.save()
-        except KeyError, e:
-            return ajax_error();
-        except IOError:
+        except KeyError:
+            return ajax_error()
+        except ValidationError:
             return ajax_error()
 
     # in other browsers we read this using request.read
@@ -65,7 +60,7 @@ def upload_image(request):
         # read file info from stream
         uploaded = request.read
 
-        try: 
+        try:
             # get file size
             fileSize = int(uploaded.im_self.META.get("CONTENT_LENGTH", None))
         except TypeError:
@@ -82,9 +77,10 @@ def upload_image(request):
 
         try:
             media = GenericImage()
+            imgField = ImageField().clean(ContentFile(fileContent), media)
+            media.hosted.save(fileName, imgField)
             media.save()
-            media.hosted.save(fileName, ImageField.clean(ContentFile(fileContent)))
-        except IOError:
+        except ValidationError:
             return ajax_error()
 
     return ajax_success({

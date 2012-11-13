@@ -36,15 +36,22 @@ class MediaBase(BaseModelNamed):
         ('css', 'CSS'),
         ('img', 'Image'),
     )
-    remote = models.CharField("Remote URL",
+    remote = models.CharField(
+        "Remote URL",
         max_length=555, blank=True, null=True)
 
-    hosted = models.FileField("Hosted File",
-        upload_to="product_images", blank=True, null=True)
+    hosted = models.FileField(
+        "Hosted File",
+        upload_to="product_images",
+        blank=True,
+        null=True)
 
-    media_type = models.CharField(max_length=3,
-        choices=MEDIA_TYPES, default="css", blank=True, null=True)
-
+    media_type = models.CharField(
+        max_length=3,
+        choices=MEDIA_TYPES,
+        default="css",
+        blank=True,
+        null=True)
 
     class Meta:
         abstract = True
@@ -61,17 +68,23 @@ class MediaBase(BaseModelNamed):
 
         return None
 
-class ImageBase(BaseModelNamed):
-    remote = models.CharField("Remote URL",
-        max_length=555, blank=True, null=True)
 
-    hosted = models.ImageField("Hosted File",
-        upload_to="product_images", blank=True, null=True)
-    
+class ImageBase(BaseModelNamed):
+    remote = models.CharField(
+        "Remote URL",
+        max_length=555,
+        blank=True,
+        null=True)
+
+    hosted = models.ImageField(
+        "Hosted File",
+        upload_to="product_images",
+        blank=True,
+        null=True)
 
     class Meta:
         abstract = True
-    
+
     def get_url(self):
         if self.remote:
             return self.remote
