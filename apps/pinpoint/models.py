@@ -1,3 +1,5 @@
+from django.core.exceptions import ValidationError
+import re
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -6,12 +8,41 @@ from django.db import models
 from apps.assets.models import (MediaBase, BaseModel, BaseModelNamed,
     Store, GenericImage, Product, ProductMedia)
 
+def page_template_includes(value):
+    # Ought to be a staticmethod, but can't for whatever reason...
+    INCLUDE_PATTERN = re.compile('{% ?include (\w*?) ?%}')
+    REQUIRED_FIELDS = ['featured_content', 'discovery_block',
+                       'header_content']
+
+    matches = INCLUDE_PATTERN.findall(value)
+    missing = []
+
+    for field in REQUIRED_FIELDS:
+        if not field in matches:
+            missing.append(field)
+
+    if missing:
+        raise ValidationError('Missing required includes for page '
+                              'template: {fields}'
+        .format(fields=', '.join(missing)))
 
 class StoreTheme(BaseModelNamed):
+    DEFAULT_PAGE_TEMPLATE = """
+    <html>
+        <head>
+            {% include header_content %}
+        </head>
+        <body>
+            {% include featured_content %}
+            {% include discovery_area %}
+        </body>
+    </html>
+    """
+
+    # TODO: Replace with ForeignKey to support mobile themes?
     store         = models.OneToOneField(Store, related_name="theme")
-    page_template = models.TextField(blank=True, null=True)
-    # TODO: Add validators
-    # TODO: Create custom 'TemplateField'?
+    page_template = models.TextField(default=DEFAULT_PAGE_TEMPLATE,
+                                     validators=[page_template_includes])
 
     def __unicode__(self):
         return u"Theme for Store: %s" % self.store

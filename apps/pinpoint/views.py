@@ -83,7 +83,6 @@ def campaign(request, campaign_id):
     if hasattr(campaign_instance.store, "theme"):
         theme = campaign_instance.store.theme
         try:
-            # TODO: Verify theme is not empty?
             template = Template(theme.page_template)
         except AttributeError, e:
             pass
