@@ -1,5 +1,6 @@
 from tastypie import fields
 from tastypie.resources import ModelResource, ALL
+from tastypie.authentication import BasicAuthentication
 from django.db.models import Q
 
 from apps.assets.models import Product, Store, ProductMedia
@@ -9,6 +10,7 @@ class StoreResource(ModelResource):
     class Meta:
         queryset = Store.objects.all()
         resource_name = 'store'
+        authentication = BasicAuthentication()
 
 
 class ProductResource(ModelResource):
@@ -22,7 +24,8 @@ class ProductResource(ModelResource):
             'store': ALL,
             'name': ('exact', 'contains',),
             'name_or_url': ('exact')
-            }
+        }
+        authentication = BasicAuthentication()
 
     def build_filters(self, filters=None):
         if filters is None:
@@ -47,7 +50,7 @@ class ProductResource(ModelResource):
             applicable_filters = {}
         else:
             custom = None
-    
+
         semi_filtered = super(ProductResource, self).apply_filters(request, applicable_filters)
 
         return semi_filtered.filter(custom) if custom else semi_filtered
@@ -63,3 +66,4 @@ class ProductMediaResource(ModelResource):
         filtering = {
             'product': ALL
         }
+        authentication = BasicAuthentication()
