@@ -1,8 +1,10 @@
+import re
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.template import RequestContext, Template
+from django.template import RequestContext, Template, Context
 from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
+from django.template.loader import render_to_string
 
 from apps.pinpoint.models import Campaign, BlockType, BlockContent
 from apps.assets.models import Store, Product
@@ -79,14 +81,6 @@ def store_analytics_admin(request, store_id):
 def campaign(request, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
 
-    template = None
-    if hasattr(campaign_instance.store, "theme"):
-        theme = campaign_instance.store.theme
-        try:
-            template = Template(theme.page_template)
-        except AttributeError, e:
-            pass
-
     arguments = {
         "campaign": campaign_instance,
         "columns": range(4),
@@ -94,9 +88,37 @@ def campaign(request, campaign_id):
     }
     context = RequestContext(request)
 
-    if template:
+    if hasattr(campaign_instance.store, "theme"):
         context.update(arguments)
-        return HttpResponse(template.render(context))
+        return campaign_to_theme_to_response(campaign_instance, arguments,
+                                             context_instance=context)
     else:
         return render_to_response('pinpoint/campaign.html', arguments,
                                   context_instance=context)
+
+def campaign_to_theme_to_response(campaign, arguments, context_instance=None):
+    if context_instance is None:
+        context_instance = Context()
+
+    context_instance.update(arguments)
+
+    theme = campaign.store.theme
+
+    # Pre-render sub-templates
+    header    = Template('').render(context_instance)
+    featured  = Template(theme.featured_product).render(context_instance)
+    discovery = Template('').render(context_instance)
+
+    # Replace necessary tags
+    modified_page = re.sub(r'{% ?include header_content ?%}',
+                           header, theme.page_template)
+    modified_page = re.sub(r'{% ?include featured_content ?%}',
+                           featured, modified_page)
+    modified_page = re.sub(r'{% ?include discovery_area ?%}',
+                           discovery, modified_page)
+
+    # Render page
+    page = Template(modified_page, name='campaign')
+
+    # Render response
+    return HttpResponse(page.render(context_instance))

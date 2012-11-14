@@ -44,6 +44,15 @@ class StoreTheme(BaseModelNamed):
     page_template = models.TextField(default=DEFAULT_PAGE_TEMPLATE,
                                      validators=[page_template_includes])
 
+    # Featured Content Templates
+    featured_product  = models.TextField(default="")
+
+    # Preview Templates
+    preview_product   = models.TextField(default="")
+
+    # Discovery Block Templates
+    discovery_product = models.TextField(default="")
+
     def __unicode__(self):
         return u"Theme for Store: %s" % self.store
 
