@@ -77,7 +77,7 @@ def upload_image(request):
 
         try:
             media = GenericImage()
-            imgField = ImageField().clean(ContentFile(fileContent), media)
+            imgField = ImageField().clean(ContentFile(fileContent, name=fileName), media)
             media.hosted.save(fileName, imgField)
             media.save()
         except ValidationError:
