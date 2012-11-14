@@ -48,7 +48,6 @@
         }*/
 
         #product_images > li {
-            overflow: hidden;
             padding-right: 8px;
             padding-bottom: 8px;
             width: 200px;
@@ -259,10 +258,6 @@
         };
 
         product_selected = function (o) {
-            // resetting previous values
-            $("#id_product_media_id").val("");
-            $("#id_generic_media_id").val("");
-            $("#id_generic_media_lst").val("");
             $("#image-selector").siblings(".errorlist").children("li").fadeIn(500);
 
             var product = products[o.product_id],
@@ -314,6 +309,10 @@
             if (!o.human_invoked) {
                 $("#id_name").val(o.page_name);
             } else {
+                // resetting previous values
+                $("#id_product_media_id").val("");
+                $("#id_generic_media_id").val("");
+                $("#id_generic_media_lst").val("");
                 onPageChanged();
                 $("#id_name").val("Featured: " + product.name);
             }
@@ -473,6 +472,12 @@
 
         init = function () {
             $(function() {
+                // because the django-ajax-forms library is stupid and causes an
+                // error in ie9, this workaround is needed.
+                if (window.console && !console.debug) {
+                    console.debug = function(){};
+                }
+
                 $(".product_meta").mask();
                 $("#product_name").watermark("Your product name");
                 $("#id_name").watermark("Your page name");
@@ -636,6 +641,7 @@
                         <br />
                         <span id="small_desc_warning" style="display: none">It's strongly advised to give a longer description than that.</span>
                     </span>
+                </div>
             </div>
 
             <div class="actions">
