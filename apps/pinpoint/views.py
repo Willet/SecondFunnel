@@ -104,9 +104,19 @@ def campaign_to_theme_to_response(campaign, arguments, context_instance=None):
 
     theme = campaign.store.theme
 
+    # Determine featured content type
+    for block in campaign.content_blocks.all():
+        content_type = block.content_type.name
+        if content_type != "campaign":
+            break
+
+    content_template = {
+        'featured product block': theme.featured_product
+    }.get(content_type)
+
     # Pre-render sub-templates
     header    = Template('').render(context_instance)
-    featured  = Template(theme.featured_product).render(context_instance)
+    featured  = Template(content_template).render(context_instance)
     discovery = Template('').render(context_instance)
 
     # Replace necessary tags
