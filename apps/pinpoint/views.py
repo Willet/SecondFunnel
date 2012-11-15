@@ -91,16 +91,16 @@ def campaign(request, campaign_id):
     if hasattr(campaign_instance.store, "theme"):
         context.update(arguments)
         return campaign_to_theme_to_response(campaign_instance, arguments,
-                                             context_instance=context)
+                                             context)
     else:
         return render_to_response('pinpoint/campaign.html', arguments,
                                   context_instance=context)
 
-def campaign_to_theme_to_response(campaign, arguments, context_instance=None):
-    if context_instance is None:
-        context_instance = Context()
+def campaign_to_theme_to_response(campaign, arguments, context=None):
+    if context is None:
+        context = Context()
 
-    context_instance.update(arguments)
+    context.update(arguments)
 
     theme = campaign.store.theme
 
@@ -112,27 +112,31 @@ def campaign_to_theme_to_response(campaign, arguments, context_instance=None):
     type = content_block.content_type.name
     if type == 'featured product block':
         content_template = theme.featured_product
-        context_instance.update({
+        context.update({
             'product': content_block.data.product,
             'featured_image': content_block.data.get_image().get_url()
         })
 
-    # Pre-render sub-templates
-    header    = render_to_string('pinpoint/campaign_head.html', arguments,
-                                 context_instance)
-    featured  = Template(content_template).render(context_instance)
-    discovery = Template('').render(context_instance)
+    # Pre-render templates; bottom up
+    # Discovery block
+    # Discovery area
+    # Preview block
 
-    # Replace necessary tags
-    modified_page = re.sub(r'{% ?include header_content ?%}',
-                           header, theme.page_template)
-    modified_page = re.sub(r'{% ?include featured_content ?%}',
-                           featured, modified_page)
-    modified_page = re.sub(r'{% ?include discovery_area ?%}',
-                           discovery, modified_page)
+    # Featured content
+    featured_content = Template(content_template).render(context)
 
-    # Render page
-    page = Template(modified_page, name='campaign')
+    # Header content
+    header_content = render_to_string('pinpoint/campaign_head.html',
+                                      arguments, context)
+
+    page_context = Context({
+        'featured_content': featured_content,
+        'discovery_area': '',
+        'header_content': header_content
+    })
+
+    # Page content
+    page = Template(theme.page_template)
 
     # Render response
-    return HttpResponse(page.render(context_instance))
+    return HttpResponse(page.render(page_context))

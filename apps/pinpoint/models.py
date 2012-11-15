@@ -10,7 +10,7 @@ from apps.assets.models import (MediaBase, BaseModel, BaseModelNamed,
 
 def page_template_includes(value):
     # Ought to be a staticmethod, but can't for whatever reason...
-    INCLUDE_PATTERN = re.compile('{% ?include (\w*?) ?%}')
+    INCLUDE_PATTERN = re.compile('{{ ?(\w*?) ?}}')
     REQUIRED_FIELDS = ['featured_content', 'discovery_area',
                        'header_content']
 
