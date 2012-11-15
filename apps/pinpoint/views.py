@@ -122,11 +122,15 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     # Pre-render templates; bottom up
     # Discovery block
     discovery_block = theme.discovery_product # TODO: Generalize to other blocks
+    modified_discovery = "".join([
+        "{% extends 'pinpoint/campaign_discovery.html' %}",
+        "{% block discovery_block %}",
+        discovery_block,
+        "{% endblock discovery_block %}"
+    ])
 
     # Discovery area
-    discovery_area = render_to_string('pinpoint/campaign_discovery.html', {
-        'discovery_block': discovery_block
-    }, context)
+    discovery_area = Template(modified_discovery).render(context)
 
     # Preview block
 

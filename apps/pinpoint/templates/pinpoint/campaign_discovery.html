@@ -1,10 +1,11 @@
 <div id="waterfall">
     {% for col in columns reversed %}
     <div class="column" id="{{col}}">
-        {% for prod in campaign.store.product_set.all %}
+        {% for product in campaign.store.product_set.all %}
             {% with columns|length as mod %}
                 {% if forloop.counter|add:col|divisibleby:mod %}
-                    {% include "pinpoint/ui_blocks/discovery-block.html" %}
+                    {% block discovery_block %}
+                    {% endblock discovery_block %}
                 {% endif %}
             {% endwith %}
         {% endfor %}
