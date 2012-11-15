@@ -120,6 +120,13 @@ class Product(BaseModelNamed):
     def media_count(self):
         return self.media.count()
 
+    # Template Aliases
+    def url(self):
+        return self.original_url
+
+    def images(self):
+        return [x.get_url() for x in self.media.all()]
+
 
 class ProductMedia(ImageBase):
     product = models.ForeignKey(Product, related_name="media")

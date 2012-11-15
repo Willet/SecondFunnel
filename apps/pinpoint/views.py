@@ -113,7 +113,8 @@ def campaign_to_theme_to_response(campaign, arguments, context_instance=None):
     if type == 'featured product block':
         content_template = theme.featured_product
         context_instance.update({
-            'product': content_block.data.product
+            'product': content_block.data.product,
+            'featured_image': content_block.data.get_image().get_url()
         })
 
     # Pre-render sub-templates
