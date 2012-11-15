@@ -99,7 +99,6 @@ def campaign(request, campaign_id):
 def campaign_to_theme_to_response(campaign, arguments, context=None):
     if context is None:
         context = Context()
-
     context.update(arguments)
 
     theme = campaign.store.theme
@@ -109,21 +108,30 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         if block.content_type.name != "campaign":
             content_block = block
 
+    featured_context = Context()
     type = content_block.content_type.name
+
     if type == 'featured product block':
         content_template = theme.featured_product
-        context.update({
+        featured_context.update({
             'product': content_block.data.product,
+            'product.description': content_block.data.description,
             'featured_image': content_block.data.get_image().get_url()
         })
 
     # Pre-render templates; bottom up
     # Discovery block
+    discovery_block = theme.discovery_product # TODO: Generalize to other blocks
+
     # Discovery area
+    discovery_area = render_to_string('pinpoint/campaign_discovery.html', {
+        'discovery_block': discovery_block
+    }, context)
+
     # Preview block
 
     # Featured content
-    featured_content = Template(content_template).render(context)
+    featured_content = Template(content_template).render(featured_context)
 
     # Header content
     header_content = render_to_string('pinpoint/campaign_head.html',
@@ -131,7 +139,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
     page_context = Context({
         'featured_content': featured_content,
-        'discovery_area': '',
+        'discovery_area': discovery_area,
         'header_content': header_content
     })
 
