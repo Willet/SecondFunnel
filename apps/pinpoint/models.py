@@ -11,7 +11,7 @@ from apps.assets.models import (MediaBase, BaseModel, BaseModelNamed,
 def page_template_includes(value):
     # Ought to be a staticmethod, but can't for whatever reason...
     INCLUDE_PATTERN = re.compile('{% ?include (\w*?) ?%}')
-    REQUIRED_FIELDS = ['featured_content', 'discovery_block',
+    REQUIRED_FIELDS = ['featured_content', 'discovery_area',
                        'header_content']
 
     matches = INCLUDE_PATTERN.findall(value)

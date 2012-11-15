@@ -115,7 +115,8 @@ def campaign_to_theme_to_response(campaign, arguments, context_instance=None):
     }.get(content_type)
 
     # Pre-render sub-templates
-    header    = Template('').render(context_instance)
+    header    = render_to_string('pinpoint/campaign_head.html', arguments,
+                                 context_instance)
     featured  = Template(content_template).render(context_instance)
     discovery = Template('').render(context_instance)
 
