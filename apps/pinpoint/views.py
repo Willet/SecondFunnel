@@ -106,13 +106,15 @@ def campaign_to_theme_to_response(campaign, arguments, context_instance=None):
 
     # Determine featured content type
     for block in campaign.content_blocks.all():
-        content_type = block.content_type.name
-        if content_type != "campaign":
-            break
+        if block.content_type.name != "campaign":
+            content_block = block
 
-    content_template = {
-        'featured product block': theme.featured_product
-    }.get(content_type)
+    type = content_block.content_type.name
+    if type == 'featured product block':
+        content_template = theme.featured_product
+        context_instance.update({
+            'product': content_block.data.product
+        })
 
     # Pre-render sub-templates
     header    = render_to_string('pinpoint/campaign_head.html', arguments,
