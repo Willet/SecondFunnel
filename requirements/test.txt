@@ -1,0 +1,2 @@
+-r dev.txt
+django-jenkins==0.13.0

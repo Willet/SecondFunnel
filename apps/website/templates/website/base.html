@@ -14,8 +14,8 @@
     <script type="text/javascript" src="//use.typekit.net/dnu4mxt.js"></script>
     <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
 
-    <!-- *** To include the typekit fonts, uncomment the below link: *** -->
-    <link href="{% static 'website/css/typekit.css' %}" rel="stylesheet" type="text/css">
+    {% block extra_head %}
+    {% endblock extra_head %}
 </head>
 
 <body>

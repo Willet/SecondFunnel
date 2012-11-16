@@ -8,7 +8,7 @@
     {{ block.super }}
     <style>
         p {
-            margin: 0;
+            margin-bottom: 10px;
         }
 
         input {
@@ -42,7 +42,7 @@
                     <td>{{ form.new_password2 }}</td>
                 </tr>
             </table>
-            <input type="submit" value="Change my password" />
+            <input class="button focus" type="submit" value="Change my password" />
         </form>
     {% else %}
         <h1>Password reset unsuccessful</h1>

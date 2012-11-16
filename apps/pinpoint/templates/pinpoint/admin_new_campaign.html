@@ -15,19 +15,11 @@
             height: 400px;
         }
 
-        .block_type {
-            padding-left: 0px;
+        .block_types .block_type {
+            width: 200px;
+            padding: 5px;
             margin-left: 0px;
-            margin-right: 0px;
             text-align: center;
-        }
-
-        .block_type img:hover {
-            outline: 2px solid #AAA;
-        }
-
-        .block_type.selected img {
-            outline: 2px solid #943A28;
         }
 
         .dimmed img {
@@ -43,6 +35,12 @@
             float: right;
             position: relative;
         }
+
+        .block_type.enabled.selected, .block_type.enabled:hover {
+            background-color: #C43;
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
+        }
     </style>
 {% endblock %}
 
@@ -53,6 +51,7 @@
         $(this).closest('.block_type').addClass('selected');
 
         $('.button.next').removeClass('disabled');
+        $('.button.next').addClass('wiggle');
     });
     $('.button.next').click(function() {
         window.location.href = $('.block_type.selected .url').text();
@@ -79,7 +78,7 @@
     {% endfor %}
     </div>
     <div class="actions">
-        <input class="button next focus disabled" type="submit" value="Next">
-        <input id="cancel_to_admin" class="button" type="button" value="Cancel">
+        <input class="button next focus disabled" type="submit" value="Next &rarr;">
+        <input id="cancel_to_admin" class="button" type="button" value="&times; Cancel">
     </div>
 {% endblock %}
