@@ -424,6 +424,7 @@
                 source: function(request, response) {
                     var term = request.term;
                     $.getJSON("/api/assets/v1/product/", {
+                        "storeid": "{{ store.id }}",
                         "format": "json",
                         "name_or_url": term
 

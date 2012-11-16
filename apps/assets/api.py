@@ -1,16 +1,31 @@
 from tastypie import fields
 from tastypie.resources import ModelResource, ALL
-from tastypie.authentication import BasicAuthentication
+from tastypie.authentication import Authentication
+from tastypie.authorization import Authorization
 from django.db.models import Q
+from django.core.exceptions import ObjectDoesNotExist
 
 from apps.assets.models import Product, Store, ProductMedia
+
+
+class UserPartOfStore(Authorization):
+    def is_authorized(self, request, object=None):
+        try:
+            print Store.objects.get(id=request.GET['storeid'])
+            if request.user in Store.objects.get(id=request.GET['storeid']).staff.all():
+                return True
+            else:
+                return False
+        except (KeyError, ValueError, ObjectDoesNotExist):
+            return False
 
 
 class StoreResource(ModelResource):
     class Meta:
         queryset = Store.objects.all()
         resource_name = 'store'
-        authentication = BasicAuthentication()
+        authentication = Authentication()
+        authorization = UserPartOfStore()
 
 
 class ProductResource(ModelResource):
@@ -25,7 +40,8 @@ class ProductResource(ModelResource):
             'name': ('exact', 'contains',),
             'name_or_url': ('exact')
         }
-        authentication = BasicAuthentication()
+        authentication = Authentication()
+        authorization = UserPartOfStore()
 
     def build_filters(self, filters=None):
         if filters is None:
@@ -66,4 +82,5 @@ class ProductMediaResource(ModelResource):
         filtering = {
             'product': ALL
         }
-        authentication = BasicAuthentication()
+        authentication = Authentication()
+        authorization = UserPartOfStore()
