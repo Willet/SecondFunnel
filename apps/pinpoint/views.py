@@ -116,7 +116,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         featured_context.update({
             'product': content_block.data.product,
             'product.description': content_block.data.description,
-            'featured_image': content_block.data.get_image().get_url()
+            'product.featured_image': content_block.data.get_image().get_url()
         })
 
     # Pre-render templates; bottom up
