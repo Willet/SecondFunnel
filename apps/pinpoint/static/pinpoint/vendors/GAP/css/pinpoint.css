@@ -170,7 +170,7 @@ body {
 
 #willet-main #light-content {
     overflow: hidden;
-    width: 600px;
+    max-width: 750px;
     margin-left: auto;
     margin-right: auto;
 
@@ -180,10 +180,30 @@ body {
 
     position: relative;
 
-    padding: 30px 30px 30px 55px;
+    padding: 25px 25px 25px 25px;
     background: #fff;
     z-index:1002;
     border: 1px solid #cecece;
+
+    -moz-box-shadow: 0px 0px 25px 0px #aaa;
+    -webkit-box-shadow: 0px 0px 25px 0px #aaa;
+    -o-box-shadow: 0px 0px 25px 0px #aaa;
+    box-shadow: 0px 0px 25px 0px #aaa;
+}
+
+#willet-main #light-content .images {
+    float: left;
+    width: 500px;
+}
+
+#willet-main #light-content .images .focus-image {
+    float: left;
+    width: 380px;
+}
+
+#willet-main #light-content .images .image-carousel {
+    float: right;
+    width: 100px;
 }
 
 #willet-main .overlay{
@@ -193,7 +213,7 @@ body {
     left: 0%;
     width: 100%;
     height: 100%;
-    background: rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.4);
     cursor: -webkit-zoom-out;
     cursor: -moz-zoom-out;
     cursor: zoom-out;
@@ -246,17 +266,29 @@ body {
 
 #willet-main #light .text {
     text-align: left;
-    width: 550px;
+    width: 210px;
+    float: right;
 }
 
 #willet-main #light .buttons {
-    float: right;
+    float: left;
     text-align: right;
     padding-top: 30px;
+    clear: both
 }
 
 #willet-main #light .buttons div {
     margin-bottom: 12px;
+}
+
+#willet-main #light .text-button {
+    width: 125px;
+    height: 50px;
+    background-color: #66cccb;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 50px;
+    font-weight: bold;
 }
 
 #willet-main #light .x {
@@ -285,13 +317,11 @@ body {
 
 #willet-main #light .social {
     clear: right;
-    float: right;
-    margin-top: 100px;
+    float: left;
     text-align: left !important;
     width: 80px;
 }
 #willet-main #light .social>div {
-    margin-top: 10px;
 }
 
 #willet-main .click {
@@ -383,7 +413,7 @@ body {
 
 .buttons * {
     float: left;
-    margin: 0 2px;
+    margin: 0px;
 }
 
 .buttons .fb_buttons {
@@ -418,4 +448,17 @@ body {
     text-align: center;
     font-size: 15px;
     line-height: 30px;
+}
+
+.image-placeholder, .thumbnail-placeholder {
+    border: 1px solid #aaa;
+}
+
+.image-placeholder {
+    max-width: 100%;
+}
+
+.thumbnail-placeholder {
+    width: 50px;
+    height: 75px;
 }
