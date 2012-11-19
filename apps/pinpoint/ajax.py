@@ -1,16 +1,8 @@
-import json
-import random
-import datetime
-import re
-
-from datetime import timedelta, datetime
-
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
 from django.core.files.base import ContentFile
+from django.forms import ImageField, ValidationError
 
-from apps.assets.models import GenericMedia
+from apps.assets.models import GenericImage
 from apps.pinpoint.models import Campaign
 from apps.utils.ajax import ajax_success, ajax_error
 
@@ -46,22 +38,33 @@ def modify_campaign(request, live):
 
     return ajax_success()
 
+
 @login_required
 def upload_image(request):
     if not request.method == 'POST':
         return ajax_error()
-    
     # in IE this gets sent as a file
     if 'qqfile' in request.FILES:
-        media = GenericMedia(media_type="img", hosted=request.FILES['qqfile'])
-        media.save()
+        try:
+            media = GenericImage()
+            imgField = ImageField().clean(request.FILES['qqfile'], media)
+            media.hosted.save(imgField.name, imgField)
+            media.save()
+        except KeyError:
+            return ajax_error()
+        except ValidationError:
+            return ajax_error()
+
     # in other browsers we read this using request.read
     else:
         # read file info from stream
         uploaded = request.read
 
-        # get file size
-        fileSize = int(uploaded.im_self.META.get("CONTENT_LENGTH", None))
+        try:
+            # get file size
+            fileSize = int(uploaded.im_self.META.get("CONTENT_LENGTH", None))
+        except TypeError:
+            return ajax_error()
 
         # get file name
         fileName = request.GET.get('qqfile', None)
@@ -71,9 +74,14 @@ def upload_image(request):
 
         # read the file content, if it is not read when the request is multi part then the client get an error
         fileContent = uploaded(fileSize)
-        media = GenericMedia(media_type="img")
-        media.save()
-        media.hosted.save(fileName, ContentFile(fileContent))
+
+        try:
+            media = GenericImage()
+            imgField = ImageField().clean(ContentFile(fileContent, name=fileName), media)
+            media.hosted.save(fileName, imgField)
+            media.save()
+        except ValidationError:
+            return ajax_error()
 
     return ajax_success({
         'media_id': media.id,

@@ -13,13 +13,39 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True),
                       keep_default=False)
 
+        # Deleting field 'ProductMedia.media_type'
+        db.delete_column('assets_productmedia', 'media_type')
+
+
+        # Changing field 'ProductMedia.hosted'
+        db.alter_column('assets_productmedia', 'hosted', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True))
 
     def backwards(self, orm):
         # Deleting field 'Product.sku'
         db.delete_column('assets_product', 'sku')
 
+        # Adding field 'ProductMedia.media_type'
+        db.add_column('assets_productmedia', 'media_type',
+                      self.gf('django.db.models.fields.CharField')(default='css', max_length=3, null=True, blank=True),
+                      keep_default=False)
+
+
+        # Changing field 'ProductMedia.hosted'
+        db.alter_column('assets_productmedia', 'hosted', self.gf('django.db.models.fields.files.FileField')(max_length=100, null=True))
 
     models = {
+        'assets.genericmedia': {
+            'Meta': {'object_name': 'GenericMedia'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'hosted': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
+            'media_type': ('django.db.models.fields.CharField', [], {'default': "'css'", 'max_length': '3', 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'remote': ('django.db.models.fields.CharField', [], {'max_length': '555', 'null': 'True', 'blank': 'True'}),
+            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'})
+        },
         'assets.product': {
             'Meta': {'object_name': 'Product'},
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
@@ -39,10 +65,9 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'ProductMedia'},
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'hosted': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'hosted': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
-            'media_type': ('django.db.models.fields.CharField', [], {'default': "'css'", 'max_length': '3', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'product': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'media'", 'to': "orm['assets.Product']"}),
             'remote': ('django.db.models.fields.CharField', [], {'max_length': '555', 'null': 'True', 'blank': 'True'}),

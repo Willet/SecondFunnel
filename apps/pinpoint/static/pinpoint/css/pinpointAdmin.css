@@ -10,8 +10,17 @@ html, body, h1, h2, p, ul, li {
 body,
 h1,
 h2,
-p {
+p,
+span,
+label,
+div {
     font-family: helvetica, arial, verdana, sans-serif;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: -moz-none;
+    -o-user-select: none;
+    user-select: none
+    cursor: default;
 }
 
 body,
@@ -100,6 +109,12 @@ li a,
     border-top-right-radius: 5px;
 }
 
+.rounded {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
 #boxTop {
     height: 50px;
     color: #fff;
@@ -146,7 +161,7 @@ li a,
 
 .bannerBody h1 {
     float: left;
-    width: 700px;
+    margin-bottom: 0;
     color: #fff;
     height: 75px;
     line-height: 75px;
@@ -162,7 +177,8 @@ li a,
 }
 
 .button,
-.button:visited {
+.button:visited,
+.button.qq-upload-button {
     display: inline-block;
     font-family: helvetica, arial, tahoma, sans-serif;
     -webkit-border-radius: 3px;
@@ -201,7 +217,7 @@ li a,
     background: linear-gradient(top, #6f98ac, #358ab2 5%, #235364 100%);
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6f98ac', endColorstr='#235364',GradientType=0 );
 }
-.button:hover {
+.button:hover, .button.qq-upload-button:hover {
     color: #fff;
     text-decoration: none;
     background-color: #033344;
@@ -265,11 +281,11 @@ li a,
 }
 
 .container_12 .inner_content {
-    padding: 10px 15px 20px 15px;
+    padding: 20px 30px 40px 30px;
     /* accounts for the margins added in 960.css. We need this because
      * we have a grid_12 inside a grid_12.
      */
-    width: 910px;
+    width: 880px;
 }
 
 .top_bar {
@@ -352,7 +368,7 @@ ul.messages li.success {
 ul.errorlist {
     margin: 0 0 10px 10px;
     list-style: none;
-    display: inline-block;
+    display: block;
 }
 
 ul.errorlist li {
@@ -378,4 +394,68 @@ ul.errorlist li {
     vertical-align: baseline;
     white-space: nowrap;
     width: auto;
+}
+
+span.disabled {
+    display: none;
+}
+
+* {
+    color: #333;
+    text-shadow: 1px 1px 1px #CCC;
+}
+
+@-webkit-keyframes wiggle {
+    0% { -webkit-transform: rotate(0deg); }
+    5% { -webkit-transform: rotate(5deg); }
+    10% { -webkit-transform: rotate(0deg); }
+    15% { -webkit-transform: rotate(-5deg); }
+    20% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(0deg); }
+}
+
+@-moz-keyframes wiggle {
+    0% { -moz-transform: rotate(0deg); }
+    5% { -moz-transform: rotate(5deg); }
+    10% { -moz-transform: rotate(0deg); }
+    15% { -moz-transform: rotate(-5deg); }
+    20% { -moz-transform: rotate(0deg); }
+    100% { -moz-transform: rotate(0deg); }
+}
+
+@-o-keyframes wiggle {
+    0% { -o-transform: rotate(0deg); }
+    5% { -o-transform: rotate(5deg); }
+    10% { -o-transform: rotate(0deg); }
+    15% { -o-transform: rotate(-5deg); }
+    20% { -o-transform: rotate(0deg); }
+    100% { -o-transform: rotate(0deg); }
+}
+
+@keyframes wiggle {
+    from { transform: rotate(0deg) }
+    5% { transform: rotate(5deg) }
+    10% { transform: rotate(0deg) }
+    15% { transform: rotate(-5deg) }
+    20% { transform: rotate(0deg) }
+    to { transform: rotate(0deg) }
+}
+
+.wiggle {
+    -webkit-animation: wiggle 1.4s;
+    -webkit-animation-iteration-count: infinite;
+    -moz-animation: wiggle 1.4s;
+    -moz-animation-iteration-count: infinite;
+    -o-animation: wiggle 1.4s;
+    -o-animation-iteration-count: infinite;
+    animation: wiggle 1.4s;
+    animation-iteration-count: infinite;
+}
+
+.keyboard {
+    border: 1px solid #aaa;
+    font-style: normal;
+    margin: 2px;
+    padding: 2px;
+    font-family: monospace;
 }
