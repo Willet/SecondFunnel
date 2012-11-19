@@ -5,7 +5,7 @@ from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
 
 from apps.pinpoint.models import Campaign, BlockType, BlockContent
-from apps.assets.models import Store, Product, YoutubeVideo
+from apps.assets.models import Store, Product, YoutubeVideo, InstagramContent
 
 import apps.pinpoint.wizards as wizards
 
@@ -92,6 +92,21 @@ def campaign(request, campaign_id):
                          data=youtube_video)
 
     discovery_blocks.insert(0, video)
+
+    youtube_video = YoutubeVideo.objects.all()[1]
+    video = BlockContent(block_type=video_type,
+                         content_type=YoutubeVideo,
+                         data=youtube_video)
+
+    discovery_blocks.append(video)
+
+    instagram_block = BlockType.objects.get(name__exact="Discovery Instagram Block")
+    instagram_content = InstagramContent.objects.all()[0]
+    content = BlockContent(block_type=instagram_block,
+                           content_type=InstagramContent,
+                           data=instagram_content)
+
+    discovery_blocks.append(content)
 
     return render_to_response('pinpoint/campaign.html', {
         "campaign": campaign_instance,

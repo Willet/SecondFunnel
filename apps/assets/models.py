@@ -137,3 +137,10 @@ class YoutubeVideo(BaseModel):
 
     def image_url(self, image_number=0):
         return "http://img.youtube.com/vi/{vid}/{img}.jpg".format(vid=self.video_id, img=image_number)
+
+
+class InstagramContent(BaseModel):
+    image_url = models.TextField()
+    tweet_content = models.CharField(max_length=140)
+    tweet_author = models.CharField(max_length=20)
+    tweet_author_image_url = models.TextField()
