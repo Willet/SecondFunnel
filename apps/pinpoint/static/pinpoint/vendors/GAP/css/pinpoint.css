@@ -204,6 +204,8 @@ body {
     width: 100%;
     height: 10px;
     margin-bottom: 10px;
+    clear: both;
+    padding-top: 20px;
 }
 
 #willet-main h3 {
@@ -341,14 +343,11 @@ body {
     height: 240px;
 }
 #featured-product>#featured_img {
-    margin-left: auto;
-    margin-right: auto;
-    width: 450px;
-    height: 240px;
+    width: 680px;
+    float: left;
 }
 #featured-product>#featured_img>img {
-    max-width: 450px;
-    max-height: 240px;
+    max-width: 100%;
 }
 #featured-product>#featured_img {
     float:left;
@@ -360,10 +359,10 @@ body {
 }
 
 #featured-product .text {
-    padding-left: 490px;
     text-align: left;
-    padding-top: 20px;
-    padding-right: 2em;
+    float: right;
+    width: 210px;
+    padding-left: 20px;
 }
 #featured-product #featured-social {
     padding-top: 30px;
