@@ -26,9 +26,17 @@
         <p id="featured_desc">{{ data.description }}</p>
     </div>
     <div id="featured-social">
-        <div class="pinterest_buttons"></div>
-        <div class="fb_buttons"></div>
-        <div class="twitter_buttons"></div>
+        <div class="pinterest_buttons">
+            <a id="pinit_featured" href="http://pinterest.com/pin/create/button/?url={{ data.product.original_url }}&media=&description={{ data.product.name }}" class="pin-it-button" count-layout="horizontal"><img border="0" src="//assets.pinterest.com/images/PinExt.png" title="Pin It"></a>
+        </div>
+
+        <div class="fb_buttons">
+            <div class="fb-like" data-href="{{ data.product.original_url }}" data-send="false" data-layout="button_count" data-width="80" data-show-faces="false"></div>
+        </div>
+
+        <div class="twitter_buttons">
+            <a href="https://twitter.com/share?url={{ data.product.original_url }}&text={{ data.product.name }}" class="twitter-share-button" data-lang="en"></a>
+        </div>
     </div>
 </div>
 <div id="divider"></div>
