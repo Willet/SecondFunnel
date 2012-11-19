@@ -175,7 +175,9 @@ pinpointTracking.init();
 </script>
     </head>
     <body>
-        <div id="willet-main">
+        <div id="willet-main" style="
+            background-image: url('{% static 'pinpoint/vendors/GAP/images/fall_2012_hp_US_BeBright.png'%}') !important;"
+        >
             {% if preview %}
                 <div id="preview_header">
                     <p>This bar is only visible to you. Analytics for this page will not count when this bar is shown.</p>
@@ -183,16 +185,18 @@ pinpointTracking.init();
                 <div id="preview_header_spacing">
                 </div>
             {% endif %}
-            <div id="wrapper">
-                {% with template_root|add:"/images/GAP_logo.gif" as logo %}
-                    <div style="text-align: left; margin-bottom: 35px;">
+            {% with template_root|add:"/images/GAP_logo.gif" as logo %}
+                <div style="text-align: left; margin-bottom: 35px; width:
+                960px; margin: 0px auto; height: 110px;">
                     <a href="http://gap.com">
                         <img src="{% static logo %}" height="62"
-                                         width="62"
-                         style="position:relative; left: 70px; top: 35px;"/>
+                             width="62"
+                             style="position:relative; left: 35px; top: 15px;
+                             "/>
                     </a>
-                    </div>
-                {% endwith %}
+                </div>
+            {% endwith %}
+            <div id="wrapper">
                 {% for content in campaign.content_blocks.all %}
                     {% render_ui_block content template_root %}
                 {% endfor %}
