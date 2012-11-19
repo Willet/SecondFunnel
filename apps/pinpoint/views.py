@@ -79,8 +79,16 @@ def store_analytics_admin(request, store_id):
 def campaign(request, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
 
-    return render_to_response('pinpoint/campaign.html', {
+    store = campaign_instance.store
+
+    # TODO: This is horrible, but temporary until we have theming done
+    template_root = 'pinpoint'
+    if store.name == "GAP":
+        template_root = 'pinpoint/vendors/GAP'
+
+    return render_to_response(template_root + '/campaign.html', {
         "campaign": campaign_instance,
         "columns": range(4),
-        "preview": not campaign_instance.live
+        "preview": not campaign_instance.live,
+        "template_root": template_root
     }, context_instance=RequestContext(request))
