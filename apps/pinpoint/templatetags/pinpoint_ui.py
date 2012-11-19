@@ -62,3 +62,28 @@ def render_ui_block(parser, token):
         raise template.TemplateSyntaxError, "%r tag requires exactly one argument" % token.contents.split()[0]
 
     return BlockNode(ui_block)
+
+
+class YoutubeVideoNode(template.Node):
+    def __init__(self, yt_video, width, height):
+        self.yt_video = template.Variable(yt_video)
+        self.width = template.Variable(width)
+        self.height = template.Variable(height)
+
+    def render(self, context):
+        yt_video = self.yt_video.resolve(context)
+        width = self.width.resolve(context)
+        height = self.height.resolve(context)
+
+        return yt_video.embed(width, height)
+
+
+@register.tag(name="youtube_embed")
+def youtube_embed(parser, token):
+    try:
+        # split_contents() knows not to split quoted strings.
+        tag_name, yt_video, width, height = token.split_contents()
+    except ValueError:
+        raise template.TemplateSyntaxError, "%r tag requires exactly one argument" % token.contents.split()[0]
+
+    return YoutubeVideoNode(yt_video, width, height)

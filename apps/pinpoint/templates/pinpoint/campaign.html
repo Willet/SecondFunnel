@@ -193,10 +193,10 @@ pinpointTracking.init();
                 <div id="waterfall">
                     {% for col in columns reversed %}
                         <div class="column" id="{{col}}">
-                            {% for prod in campaign.store.product_set.all %}
+                            {% for block in discovery_blocks %}
                                 {% with columns|length as mod %}
                                     {% if forloop.counter|add:col|divisibleby:mod %}
-                                        {% include "pinpoint/ui_blocks/discovery-block.html" %}
+                                    {% render_ui_block block %}
                                     {% endif %}
                                 {% endwith %}
                             {% endfor %}
@@ -535,9 +535,18 @@ pinpointTracking.init();
                 $(".x").click(function() {
                     pinpointTracking.setSocialShareVars({"default": true});
                 });
-                $(".click .inner-pin, #featured-product .click").click(function() {
+                $(".click.product .inner-pin, #featured-product .click").click(function() {
                     showPinOf($(this).closest(".click")[0]);
                 });
+
+                //$(".click.video .inner-pin").click(function() {
+                //    $(this).html('<iframe ' +
+                //        'width="' + $(this).width() + '" ' +
+                //        'height="' + $(this).height() + '" ' +
+                //        'src="http://www.youtube.com/embed/' + $(this).data('video_id') + '"' +
+                //        'frameborder="0"' +
+                //        'allowfullscreen></iframe>');
+                //});
 
                 $featuredDesc = $("#featured_desc");
                 if ($featuredDesc.length > 0 && $featuredDesc.html().length > 250) {

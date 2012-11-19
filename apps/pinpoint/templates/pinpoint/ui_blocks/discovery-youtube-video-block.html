@@ -1,0 +1,8 @@
+{% load pinpoint_ui %}
+
+<div class="pin click video" style="overflow: hidden;">
+    <div class="inner-pin" data-video-id="{{ data.video_id }}">
+        {#<img src="{{ data.image_url }}">#}
+        {% youtube_embed data 200 200 %}
+    </div>
+</div>
