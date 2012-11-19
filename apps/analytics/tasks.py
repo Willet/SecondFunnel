@@ -93,10 +93,89 @@ def update_pinpoint_analytics():
             logger.info("No rows available.")
             continue
 
-    #     data_parser.map_rows(data_page.get('rows'))
+        rows = data_page.get('rows')
+        results = {
+            'stores': {},
+            'campaigns': {
+                # list of campaigns: {list of days: {daily template}
+            }
+        }
 
-    # for store in stores:
-    #     data_parser.reduce(store)
+        # parse rows!!
+        # helper methods
+        def get_by_key(string, key):
+            ls = string.split("|")
+            try:
+                return [s for s in ls if key in s][0].split("=")[1]
+            except:
+                return None
+
+        def row_getter(row):
+            def get(key):
+                return row[self.dimensions.index(key)]
+            return get
+
+        for row in rows:
+            getter = row_getter(row)
+
+            category = getter('eventCategory')
+            action = getter('eventAction')
+            label = getter('eventLabel')
+
+            store_id = get_by_key(category, "storeid")
+            campaign_id = get_by_key(category, "campaignid")
+            referrer = get_by_key(category, "referrer")
+            domain = get_by_key(category, "domain")
+
+            action_type = get_by_key(action, "actionType")
+            action_subtype = get_by_key(action, "actionSubtype")
+            action_scope = get_by_key(action, "actionScope")
+            network = get_by_key(action, "network")
+
+            # data isn't what we're expecting, don't proceed
+            if not (store_id and campaign_id and referrer \
+                    and domain and action_type and action_subtype \
+                    and action_scope and network):
+
+                logger.warning(
+                    "GA row data isn't what we're expecting, missing attributes, category=%s, action=%s",
+                    category, action)
+                continue
+
+            # uniqueEvents is the last item in the list
+            try:
+                count = int(row[len(row) - 1])
+
+            except ValueError:
+                logger.warning(
+                    "GA row data isn't what we're expecting: count=%s",
+                    row[row.length - 1])
+                continue
+
+            date = getter('date')
+            try:
+                date = datetime.datetime(
+                    int(date[:4]), int(date[4:6]), int(date[-2:]))
+            except (IndexError, ValueError):
+                logger.warning(
+                    "GA row data isn't what we're expecting: date=%s", date)
+                continue
+
+            # daily event data template
+            mapped_row = {
+                "interactions": {
+                    "total": 0,
+                    "clickthrough": 0,
+                    "open_popup": 0,
+                    "shares": {
+                        "featured": 0,
+                        "popup": 0
+                    }
+                }
+            }
+
+            if not campaign_id in self.results['campaigns']:
+                self.results['campaigns'][campaign_id] = {}
 
 @task()
 def analytics_periodic():
