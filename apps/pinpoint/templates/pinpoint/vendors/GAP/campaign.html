@@ -184,11 +184,15 @@ pinpointTracking.init();
                 </div>
             {% endif %}
             <div id="wrapper">
-                {% if banner %}
-                <div id="banner">
-                    <img src="{{ banner }}" />
-                </div>
-                {% endif %}
+                {% with template_root|add:"/images/GAP_logo.gif" as logo %}
+                    <div style="text-align: left; margin-bottom: 35px;">
+                    <a href="http://gap.com">
+                        <img src="{% static logo %}" height="62"
+                                         width="62"
+                         style="position:relative; left: 70px; top: 35px;"/>
+                    </a>
+                    </div>
+                {% endwith %}
                 {% for content in campaign.content_blocks.all %}
                     {% render_ui_block content template_root %}
                 {% endfor %}
@@ -267,7 +271,7 @@ pinpointTracking.init();
                     });
                 });
 
-                $(".socila-hover").click()
+                $(".social-hover").click()
 
                 $("img[id='light_img']").click(function(e) {
                     var url = $(this).parent().attr("href");
@@ -596,7 +600,7 @@ pinpointTracking.init();
                     pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(this).data("url")});
                     pinpointTracking.clearTimeout();
 
-                    $(this).children(".social-hover").fadeIn('fast');
+                    $(this).find(".social-hover").fadeIn('fast');
 
                     var $share = $(".social-hover", this);
                     if (!$share.hasClass('fbLoaded') && window.FB) {
@@ -609,7 +613,7 @@ pinpointTracking.init();
                     if (pinpointTracking.socialShareType !== "popup") {
                         _pptimeout = window.setTimeout('pinpointTracking.setSocialShareVars({"default": true})', 2000);
                     }
-                    $(this).children(".social-hover").fadeOut('fast');
+                    $(this).find(".social-hover").fadeOut('fast');
                 });
 
                 var scripts = [

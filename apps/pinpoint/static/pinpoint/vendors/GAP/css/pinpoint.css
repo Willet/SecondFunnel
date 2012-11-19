@@ -1,12 +1,19 @@
-html, body {height:100%; margin: 0; padding: 0;}
+{% load staticfiles %}
+html, body {height:100%; margin: 0; padding: 0; color: #2d2d2d; }
 #willet-main { font-family: Arial, Helvetica, Tahoma !important; margin: 0; padding: 0;}
 #willet-main h1 { font-size: 20px; }
-#willet-main p { font-size: 13px; margin: 0; padding: 0;}
+#willet-main p { font-size: 13px; margin: 0; padding: 0; margin-top: 20px; }
 #willet-main table, #willet-main tr, #willet-main td { margin: 0; padding: 0; }
+
+body {
+    background-color: transparent !important;
+    background-image: url("../images/fall_2012_hp_US_BeBright.gif") !important;
+    background-repeat: no-repeat;
+    background-position: center -50px;
+}
 
 #willet-main {
     min-height: 100%;
-    background-color: #DDD;
 }
 
 #willet-main #wrapper {
@@ -14,12 +21,6 @@ html, body {height:100%; margin: 0; padding: 0;}
     width: 1000px;
     margin: 0px auto;
     text-align: center;
-    background-color: #EEE;
-
-    -moz-box-shadow: 10px 10px 10px 0px #CECECE;
-    -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
-    -o-box-shadow: 10px 10px 10px 0px #CECECE;
-    box-shadow: 10px 10px 10px 0px #CECECE;
 }
 
 #willet-main #banner {
@@ -37,34 +38,22 @@ html, body {height:100%; margin: 0; padding: 0;}
 
 #willet-main .pin {
     margin: 0 auto 30px auto;
-    background: #cecece;
     position: relative;
     text-align: center;
     overflow: visible;
     width: 200px;
-
-    -moz-box-shadow: 10px 10px 10px 0px #CECECE;
-    -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
-    -o-box-shadow: 10px 10px 10px 0px #CECECE;
-    box-shadow: 10px 10px 10px 0px #CECECE;
 }
 
 #willet-main .pin > .inner-pin {
-    border-top: 1px solid #DDD;
-    border-left: 1px solid #DDD;
-    border-right: 1px solid #999;
-    border-bottom: 1px solid #999;
 }
 
 #willet-main .inner-pin {
     overflow: hidden;
     width: 200px;
-    text-align: center;
-    background:#f6f6f6;
+    text-align: left;
 }
 #willet-main .inner-pin img {
-    max-width: 200px;
-    max-height: 500px;
+    max-width: 100%;
 }
 #light_img_div {
     width: 500px;
@@ -85,20 +74,17 @@ html, body {height:100%; margin: 0; padding: 0;}
 
 #willet-main .inner-pin h5 {
     margin: 0;
-    padding: 10px;
-    background: #AAA;
-    color: #fff;
-    text-shadow: 1px 1px #666;
-    border-top: 1px solid #999;
+    font-weight: normal;
+    color: #999;
 }
 
 #willet-main .social-hover {
     margin: 0;
     text-align: left;
     position: absolute;
-    left: 10px;
+    left: 0px;
     width: 100%;
-    top: 10px;
+    bottom: 20px;
 }
 
 #willet-main .social-hover > div {
@@ -127,7 +113,6 @@ html, body {height:100%; margin: 0; padding: 0;}
 
 #willet-main .pinimg a:link{
     border-bottom: none;
-    background: #fff;
     width: 175px;
     padding-right: 5px;
     margin-left: auto;
@@ -198,11 +183,6 @@ html, body {height:100%; margin: 0; padding: 0;}
     background: #fff;
     z-index:1002;
     border: 1px solid #cecece;
-
-    -moz-box-shadow: 10px 10px 10px 0px #CECECE;
-    -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
-    -o-box-shadow: 10px 10px 10px 0px #CECECE;
-    box-shadow: 10px 10px 10px 0px #CECECE;
 }
 
 #willet-main .overlay{
@@ -229,8 +209,6 @@ html, body {height:100%; margin: 0; padding: 0;}
     margin: 0;
     padding: 0;
     margin-top: 10px;
-    text-shadow: 1px 1px #666;
-    border-bottom: 1px solid #aaa;
 }
 #willet-main h4 {
     margin: 0;
@@ -245,7 +223,6 @@ html, body {height:100%; margin: 0; padding: 0;}
     width: 700px;
     margin: 15px 15px 15px;
     border: 1px solid #aaaaaa;
-    box-shadow: 0 2px 5px rgba(0,0,0, 0.3);
     background: #fff;
     position: relative;
     text-align: center;
@@ -347,8 +324,6 @@ html, body {height:100%; margin: 0; padding: 0;}
     /* CSS applied by JQuery so it remains invisible when not in use */
     min-height: 240px;
     padding: 20px 20px 35px 20px;
-    background-color: #fff;
-    border-bottom: 1px solid #ddd;
 }
 #featured-product #bento-logo {
     float: left;
@@ -380,21 +355,12 @@ html, body {height:100%; margin: 0; padding: 0;}
 }
 
 #featured-product>#featured_img img {
-    -moz-box-shadow: 10px 10px 10px 0px #CECECE;
-    -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
-    -o-box-shadow: 10px 10px 10px 0px #CECECE;
-    box-shadow: 10px 10px 10px 0px #CECECE;
-
-    border-top: 1px solid #DDD;
-    border-left: 1px solid #DDD;
-    border-right: 1px solid #999;
-    border-bottom: 1px solid #999;
 }
 
 #featured-product .text {
     padding-left: 490px;
     text-align: left;
-    padding-top: 30px;
+    padding-top: 20px;
     padding-right: 2em;
 }
 #featured-product #featured-social {
@@ -407,7 +373,6 @@ html, body {height:100%; margin: 0; padding: 0;}
 
 #featured-social > div {
     display: block;
-    float: left;
     margin-right: 5px;
 }
 
