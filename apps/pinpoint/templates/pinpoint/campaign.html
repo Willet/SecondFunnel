@@ -111,7 +111,6 @@
                     });
                 },
 
-
                 // parseUri 1.2.2
                 // (c) Steven Levithan <stevenlevithan.com>
                 // MIT License
@@ -176,6 +175,29 @@ pinpointTracking.init();
 </script>
     </head>
     <body>
+        <div id="fb-root"></div>
+        <script>
+            window.fbAsyncInit = function() {
+                FB.XFBML.parse($("#featured-social .fb_buttons")[0]);
+
+                FB.Event.subscribe('xfbml.render', function(response) {
+                    $(".fbLoaded").children(".loading").hide();
+                    $(".fbLoaded").children(".buttons").hide();
+                    $(".fbLoaded").children(".buttons").css('left', 0);
+                    $(".fbLoaded").children(".buttons").fadeIn('fast');
+                });
+            };
+
+            // Load the FB SDK's source Asynchronously
+            (function(d, debug){
+             var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+             if (d.getElementById(id)) {return;}
+             js = d.createElement('script'); js.id = id; js.async = true;
+             js.src = "//connect.facebook.net/en_US/all" + (debug ? "/debug" : "") + ".js";
+             ref.parentNode.insertBefore(js, ref);
+            }(document, /*debug*/ false));
+        </script>
+
         {% if preview %}
             <div id="preview_header">
                 <p>You are previewing this page. It is currently not live.</p>
@@ -442,7 +464,7 @@ pinpointTracking.init();
                     pinpointTracking.clearTimeout();
                     pinpointTracking.setSocialShareVars({"sType": "popup", "url": data.link});
 
-                    $("#light .fb_buttons").html('<fb:like href="' + data.link + '" layout="button_count" width="80" show_faces="true"></fb:like>')
+                    $("#light .fb_buttons").html('<div class="fb-like" data-href="' + data.link + '" data-send="false" data-layout="button_count" data-width="80" data-show-faces="false"></div>')
                     FB.XFBML.parse($("#light .fb_buttons")[0]);
                     $("#light .fb_buttons, #light .fb-like").show();
 
@@ -552,45 +574,6 @@ pinpointTracking.init();
                     showPinOf($("#featured_img"), true);
                 });
 
-                function onFbScriptLoad() {
-                    if ($("#featured-product").length > 0) {
-                        var elem = $("#featured_img")[0];
-                        var imgs = $(elem).attr("data-img").split("|")
-                        imgs.pop();
-                        var data = {
-                            'title': $(elem).attr("data-title"),
-                            'link': $(elem).attr("data-url"),
-                        };
-
-                        $("#featured-product .fb_buttons").html('<fb:like href="' + data.link + '" layout="button_count" width="80" show_faces="true"></fb:like>')
-                        $("#featured-product .fb_buttons, #featured-product .fb-like").show();
-
-                        $("#featured-product .twitter_buttons").html('' +
-                        '<a href="https://twitter.com/share?url=' + data.link +
-                            '&text=' + data.title + '" class="twitter-share-button" data-lang="en">Tweet</a>');
-
-                        $("#featured-product .pinterest_buttons").html('' +
-                        '<a href="http://pinterest.com/pin/create/button/' +
-                            '?url=' + data.link +
-                            '&media=' + imgs[0] +
-                            '&description=' + data.title +
-                            ' class="pin-it-button" count-layout="horizontal">' +
-                            '<img border="0" src="//assets.pinterest.com/images/PinExt.png" ' +
-                            'title="Pin It" /></a>');
-                        FB.XFBML.parse($("#featured-social .fb_buttons")[0]);
-                    }
-
-                    FB.Event.subscribe('xfbml.render', function(response) {
-                        $(".fbLoaded").children(".loading").hide();
-                        $(".fbLoaded").children(".buttons").hide();
-                        $(".fbLoaded").children(".buttons").css('left', 0);
-                        $(".fbLoaded").children(".buttons").fadeIn('fast');
-                    });
-
-                    // need to create the above
-                    twttr.widgets.load();
-                }
-
                 $(".social-hover").closest(".pin").hover(function () {
                     pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(this).data("url")});
                     pinpointTracking.clearTimeout();
@@ -610,24 +593,6 @@ pinpointTracking.init();
                     }
                     $(this).children(".social-hover").fadeOut('fast');
                 });
-
-                var scripts = [
-                {
-                    "script": "http://connect.facebook.net/en_US/all.js#xfbml=0",
-                    "onload": onFbScriptLoad
-                }
-                ];
-
-                var item, script;
-                for (var i=0; i < scripts.length; i++) {
-                    item = scripts[i];
-
-                    script = document.createElement("script");
-                    script.async = true;
-                    script.src = item.script;
-                    script.onload = item.onload;
-                    document.body.appendChild(script);
-                }
             });
             </script>
         </body>
