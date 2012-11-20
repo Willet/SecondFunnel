@@ -41,7 +41,7 @@ body {
     margin: 0 auto 30px auto;
     position: relative;
     text-align: center;
-    overflow: visible;
+    overflow: hidden;
     width: 200px;
 }
 
