@@ -1,0 +1,186 @@
+[
+     {
+          "pk": 1, 
+          "model": "pinpoint.blocktype", 
+          "fields": {
+               "description": "", 
+               "created": "2012-10-19T15:40:46.847Z", 
+               "handler": "featured_product_wizard", 
+               "image": "internal_images/cb-product-200x100.png", 
+               "enabled": true, 
+               "last_modified": "2012-10-19T23:04:33.812Z", 
+               "slug": "content-featured", 
+               "name": "Featured Product"
+          }
+     }, 
+     {
+          "pk": 2, 
+          "model": "pinpoint.blocktype", 
+          "fields": {
+               "description": "", 
+               "created": "2012-10-19T23:05:25.225Z", 
+               "handler": "", 
+               "image": "internal_images/cb-product-200x100.png", 
+               "enabled": false, 
+               "last_modified": "2012-10-19T23:05:25.225Z", 
+               "slug": "lookbook", 
+               "name": "Lookbook"
+          }
+     }, 
+     {
+          "pk": 3, 
+          "model": "pinpoint.blocktype", 
+          "fields": {
+               "description": "", 
+               "created": "2012-10-19T23:05:45.260Z", 
+               "handler": "", 
+               "image": "internal_images/cb-product-200x100.png", 
+               "enabled": false, 
+               "last_modified": "2012-10-19T23:05:45.260Z", 
+               "slug": "themed-collection", 
+               "name": "Themed Collection"
+          }
+     }, 
+     {
+          "pk": 4, 
+          "model": "pinpoint.blocktype", 
+          "fields": {
+               "description": "", 
+               "created": "2012-10-19T23:06:05.103Z", 
+               "handler": "", 
+               "image": "internal_images/cb-product-200x100.png", 
+               "enabled": false, 
+               "last_modified": "2012-10-19T23:06:05.103Z", 
+               "slug": "shop-look", 
+               "name": "Shop The Look"
+          }
+     }, 
+     {
+          "pk": 5, 
+          "model": "pinpoint.blocktype", 
+          "fields": {
+               "description": "", 
+               "created": "2012-11-19T18:21:33.342Z", 
+               "handler": "", 
+               "image": "", 
+               "enabled": true, 
+               "last_modified": "2012-11-19T18:21:33.342Z", 
+               "slug": "discovery-block", 
+               "name": "Discovery Block"
+          }
+     }, 
+     {
+          "pk": 6, 
+          "model": "pinpoint.blocktype", 
+          "fields": {
+               "description": "", 
+               "created": "2012-11-19T18:21:40.152Z", 
+               "handler": "", 
+               "image": "", 
+               "enabled": true, 
+               "last_modified": "2012-11-19T18:21:40.152Z", 
+               "slug": "discovery-youtube-video-block", 
+               "name": "Discovery Youtube Video Block"
+          }
+     }, 
+     {
+          "pk": 7, 
+          "model": "pinpoint.blocktype", 
+          "fields": {
+               "description": "", 
+               "created": "2012-11-19T20:34:00.719Z", 
+               "handler": "", 
+               "image": "", 
+               "enabled": true, 
+               "last_modified": "2012-11-19T20:34:00.719Z", 
+               "slug": "discovery-instagram-block", 
+               "name": "Discovery Instagram Block"
+          }
+     }, 
+     {
+          "pk": 1, 
+          "model": "pinpoint.blockcontent", 
+          "fields": {
+               "block_type": 1, 
+               "created": "2012-10-19T15:40:55.356Z", 
+               "object_id": 1, 
+               "priority": null, 
+               "last_modified": "2012-10-19T15:40:55.356Z", 
+               "content_type": 20
+          }
+     }, 
+     {
+          "pk": 2, 
+          "model": "pinpoint.blockcontent", 
+          "fields": {
+               "block_type": 1, 
+               "created": "2012-11-19T18:22:04.139Z", 
+               "object_id": 2, 
+               "priority": null, 
+               "last_modified": "2012-11-19T18:22:04.139Z", 
+               "content_type": 22
+          }
+     }, 
+     {
+          "pk": 1, 
+          "model": "pinpoint.campaign", 
+          "fields": {
+               "description": "", 
+               "created": "2012-10-23T18:53:24.641Z", 
+               "live": false, 
+               "last_modified": "2012-10-23T18:53:24.641Z", 
+               "content_blocks": [
+                    1
+               ], 
+               "discovery_blocks": [], 
+               "slug": "test-campaign", 
+               "store": 1, 
+               "name": "Test Campaign"
+          }
+     }, 
+     {
+          "pk": 2, 
+          "model": "pinpoint.campaign", 
+          "fields": {
+               "description": "", 
+               "created": "2012-11-19T18:22:04.355Z", 
+               "live": true, 
+               "last_modified": "2012-11-19T18:22:04.355Z", 
+               "content_blocks": [
+                    2
+               ], 
+               "discovery_blocks": [], 
+               "slug": null, 
+               "store": 1, 
+               "name": "Featured: HTML5 FOR WEB DESIGNERS"
+          }
+     }, 
+     {
+          "pk": 1, 
+          "model": "pinpoint.featuredproductblock", 
+          "fields": {
+               "product": 5, 
+               "description": "Description override.", 
+               "created": "2012-10-24T19:46:03.275Z", 
+               "existing_image": null, 
+               "last_modified": "2012-10-24T21:09:16.822Z", 
+               "custom_image": 1, 
+               "slug": "best-featured-product-block", 
+               "name": "The best featured product block"
+          }
+     }, 
+     {
+          "pk": 2, 
+          "model": "pinpoint.featuredproductblock", 
+          "fields": {
+               "product": 2, 
+               "description": "The HTML5 spec is 900 pages and hard to read. HTML5 for Web Designers is 85 pages and fun to read. Easy choice.", 
+               "created": "2012-11-19T18:22:03.774Z", 
+               "existing_image": null, 
+               "last_modified": "2012-11-19T18:22:03.774Z", 
+               "custom_image": 2, 
+               "slug": null, 
+               "name": null
+          }
+     }
+]
