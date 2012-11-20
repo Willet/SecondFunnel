@@ -93,7 +93,7 @@ def campaign(request, campaign_id):
     discovery_blocks = map(lambda x: BlockContent(block_type=discovery_block_type,
                                                   content_type=Product,
                                                   data=x),
-                           campaign_instance.store.product_set.all())
+                           campaign_instance.store.product_set.filter(rescrape=False))
 
     instagram_block = BlockType.objects.get(name__exact="Discovery Instagram Block")
     #instagram_content = InstagramContent.objects.all()[2]
