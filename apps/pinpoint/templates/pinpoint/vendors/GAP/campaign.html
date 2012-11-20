@@ -462,17 +462,17 @@ pinpointTracking.init();
                     $("#light .fb_buttons, #light .fb-like").show();
 
                     $("#light .twitter_buttons").html('' +
-                    '<a href="https://twitter.com/share?url=' + data.link +
-                        '&text=' + data.title + '" class="twitter-share-button" data-lang="en">Tweet</a>');
+                    '<a href="https://twitter.com/share?url=' + encodeURIComponent(data.link) +
+                        '" class="twitter-share-button" data-lang="en">Tweet</a>');
 
                     // need to create the above
                     twttr.widgets.load();
 
                     $("#light .pinterest_buttons").html('' +
                     '<a href="http://pinterest.com/pin/create/button/' +
-                        '?url=' + data.link +
-                        '&media=' + imgs[0] +
-                        '&description=' + data.title +
+                        '?url=' + encodeURIComponent(data.link) +
+                        '&media=' + encodeURIComponent(imgs[0]) +
+                        '&description=' + encodeURIComponent(data.title) +
                         '" target="_blank"' + 
                         ' class="pin-it-button" count-layout="horizontal">' +
                         '<img border="0" src="//assets.pinterest.com/images/PinExt.png" ' +
@@ -601,14 +601,14 @@ pinpointTracking.init();
                         $("#featured-product .fb_buttons, #featured-product .fb-like").show();
 
                         $("#featured-product .twitter_buttons").html('' +
-                        '<a href="https://twitter.com/share?url=' + data.link +
-                            '&text=' + data.title + '" class="twitter-share-button" data-lang="en">Tweet</a>');
+                        '<a href="https://twitter.com/share?url=' + encodeURIComponent(data.link) +
+                            '" class="twitter-share-button" data-lang="en">Tweet</a>');
 
                         $("#featured-product .pinterest_buttons").html('' +
                         '<a href="http://pinterest.com/pin/create/button/' +
-                            '?url=' + data.link +
-                            '&media=' + imgs[0] +
-                            '&description=' + data.title +
+                            '?url=' + encodeURIComponent(data.link) +
+                            '&media=' + encodeURIComponent(imgs[0]) +
+                            '&description=' + encodeURIComponent(data.title) +
                             ' class="pin-it-button" count-layout="horizontal">' +
                             '<img border="0" src="//assets.pinterest.com/images/PinExt.png" ' +
                             'title="Pin It" /></a>');
