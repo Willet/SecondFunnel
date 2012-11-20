@@ -101,7 +101,7 @@ def campaign(request, campaign_id):
         content = BlockContent(block_type=instagram_block,
                                content_type=InstagramContent,
                                data=ic)
-        discovery_blocks.insert(random.randrange(len(instagram_contents)), content)
+        discovery_blocks.insert(random.randrange(len(discovery_blocks)), content)
 
     youtube_video = YoutubeVideo.objects.all()[0]
     video_type = BlockType.objects.get(name__exact="Discovery Youtube Video Block")
