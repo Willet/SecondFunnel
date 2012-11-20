@@ -56,7 +56,49 @@
           }
      }, 
      {
-          "pk": 1, 
+          "pk": 5,
+          "model": "pinpoint.blocktype",
+          "fields": {
+               "description": "",
+               "created": "2012-11-19T18:21:33.342Z",
+               "handler": "",
+               "image": "",
+               "enabled": true,
+               "last_modified": "2012-11-19T18:21:33.342Z",
+               "slug": "discovery-block",
+               "name": "Discovery Block"
+          }
+     },
+     {
+          "pk": 6,
+          "model": "pinpoint.blocktype",
+          "fields": {
+               "description": "",
+               "created": "2012-11-19T18:21:40.152Z",
+               "handler": "",
+               "image": "",
+               "enabled": true,
+               "last_modified": "2012-11-19T18:21:40.152Z",
+               "slug": "discovery-youtube-video-block",
+               "name": "Discovery Youtube Video Block"
+          }
+     },
+     {
+          "pk": 7,
+          "model": "pinpoint.blocktype",
+          "fields": {
+               "description": "",
+               "created": "2012-11-19T20:34:00.719Z",
+               "handler": "",
+               "image": "",
+               "enabled": true,
+               "last_modified": "2012-11-19T20:34:00.719Z",
+               "slug": "discovery-instagram-block",
+               "name": "Discovery Instagram Block"
+          }
+     },
+     {
+          "pk": 1,
           "model": "pinpoint.blockcontent", 
           "fields": {
                "block_type": 1, 

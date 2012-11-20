@@ -30,7 +30,8 @@
           "pk": 1, 
           "model": "assets.product", 
           "fields": {
-               "rescrape": false, 
+               "sku": null,
+               "rescrape": false,
                "description": "From advanced selectors to generated content to the triumphant return of web fonts, and from gradients, shadows, and rounded corners to full-blown animations, CSS3 is a universe of creative possibilities. No one can better guide you through these galaxies than world-renowned designer, author, and CSS superstar Dan Cederholm. Learn what works, how it works, and how to work around browsers where it doesn\u2019t work.", 
                "original_url": "http://www.abookapart.com/products/css3-for-web-designers", 
                "price": null, 
@@ -46,7 +47,8 @@
           "pk": 2, 
           "model": "assets.product", 
           "fields": {
-               "rescrape": false, 
+               "sku": null,
+               "rescrape": false,
                "description": "The HTML5 spec is 900 pages and hard to read. HTML5 for Web Designers is 85 pages and fun to read. Easy choice.\r\n\r\nHTML5 is the longest HTML specification ever written. It is also the most powerful, and in some ways, the most confusing. What do accessible, content-focused standards-based web designers and front-end developers need to know? And how can we harness the power of HTML5 in today\u2019s browsers?\r\n\r\nIn this brilliant and entertaining user\u2019s guide, Jeremy Keith cuts to the chase, with crisp, clear, practical examples, and his patented twinkle and charm.", 
                "original_url": "http://www.abookapart.com/products/html5-for-web-designers", 
                "price": null, 
@@ -62,7 +64,8 @@
           "pk": 3, 
           "model": "assets.product", 
           "fields": {
-               "rescrape": false, 
+               "sku": null,
+               "rescrape": false,
                "description": "Co-founder of Mule Design and raconteur Mike Monteiro wants to help you do your job better. From contracts to selling design, from working with clients to working with each other, this brief book is packed with knowledge you can\u2019t afford not to know.", 
                "original_url": "http://www.abookapart.com/products/design-is-a-job", 
                "price": null, 
@@ -78,7 +81,8 @@
           "pk": 4, 
           "model": "assets.product", 
           "fields": {
-               "rescrape": false, 
+               "sku": null,
+               "rescrape": false,
                "description": "Make your users fall in love with your site via the precepts packed into this brief, charming book by MailChimp user experience design lead Aarron Walter. From classic psychology to case studies, highbrow concepts to common sense, Designing for Emotion demonstrates accessible strategies and memorable methods to help you make a human connection through design.", 
                "original_url": "http://www.abookapart.com/products/designing-for-emotion", 
                "price": null, 
@@ -94,7 +98,8 @@
           "pk": 5, 
           "model": "assets.product", 
           "fields": {
-               "rescrape": false, 
+               "sku": null,
+               "rescrape": false,
                "description": "From mobile browsers to netbooks and tablets, users are visiting your sites from an increasing array of devices and browsers. Are your designs ready? Learn how to think beyond the desktop and craft beautiful designs that anticipate and respond to your users\u2019 needs. Ethan Marcotte will explore CSS techniques and design principles, including fluid grids, flexible images, and media queries, demonstrating how you can deliver a quality experience to your users no matter how large (or small) their display.", 
                "original_url": "http://www.abookapart.com/products/responsive-web-design", 
                "price": "", 
@@ -188,6 +193,99 @@
                "hosted": "", 
                "slug": "", 
                "name": ""
+          }
+     },
+     {
+          "pk": 1,
+          "model": "assets.youtubevideo",
+          "fields": {
+               "last_modified": "2012-11-19T22:19:12.607Z",
+               "video_id": "rrpH2-gv8zM",
+               "created": "2012-11-19T18:36:19.802Z"
+          }
+     },
+     {
+          "pk": 1,
+          "model": "assets.instagramcontent",
+          "fields": {
+               "created": "2012-11-19T21:28:39.265Z",
+               "tweet_author_image_url": "http://i.imgur.com/xtdOp.png",
+               "tweet_content": "@Gap #gapfit leggings!",
+               "last_modified": "2012-11-19T22:33:44.461Z",
+               "image_url": "http://i.imgur.com/YXxBX.png",
+               "tweet_author": "@winetoweights"
+          }
+     },
+     {
+          "pk": 2,
+          "model": "assets.instagramcontent",
+          "fields": {
+               "created": "2012-11-19T22:13:38.211Z",
+               "tweet_author_image_url": "https://si0.twimg.com/profile_images/2818180161/64868a7793afde8fc2a11a9d3717bb75_bigger.png",
+               "tweet_content": "Just a few of our favorite #fall #scarves",
+               "last_modified": "2012-11-19T22:13:38.211Z",
+               "image_url": "http://distilleryimage2.s3.amazonaws.com/293a71a01d5c11e2ae9122000a1f9aa7_7.jpg",
+               "tweet_author": "@gap"
+          }
+     },
+     {
+          "pk": 3,
+          "model": "assets.instagramcontent",
+          "fields": {
+               "created": "2012-11-19T22:14:31.022Z",
+               "tweet_author_image_url": "https://si0.twimg.com/profile_images/2818180161/64868a7793afde8fc2a11a9d3717bb75_bigger.png",
+               "tweet_content": "We're thinking pink.",
+               "last_modified": "2012-11-19T22:14:31.022Z",
+               "image_url": "http://distilleryimage0.s3.amazonaws.com/a3bff28e18a611e2a4d022000a1cdead_7.jpg",
+               "tweet_author": "@gap"
+          }
+     },
+     {
+          "pk": 4,
+          "model": "assets.instagramcontent",
+          "fields": {
+               "created": "2012-11-19T22:26:35.720Z",
+               "tweet_author_image_url": "https://si0.twimg.com/profile_images/2854233392/a6ec32348862cd2087de921da5b2a7fa_normal.jpeg",
+               "tweet_content": "All smiles \ud83d\ude0a",
+               "last_modified": "2012-11-19T22:26:35.720Z",
+               "image_url": "https://o.twimg.com/1/proxy.jpg?t=FQQVBBhNaHR0cDovL2Rpc3RpbGxlcnlpbWFnZTExLmluc3RhZ3JhbS5jb20vMzIxZTZlODQzMjUxMTFlMjk0MmYyMjAwMGE5ZjE0MGVfNy5qcGcUAhYAEgA&s=-AsrNuytqwPQq_j__S_s14Jy2YaZZJ35P9QdvDpOGVM",
+               "tweet_author": "@KristinaC_4"
+          }
+     },
+     {
+          "pk": 5,
+          "model": "assets.instagramcontent",
+          "fields": {
+               "created": "2012-11-19T22:27:42.719Z",
+               "tweet_author_image_url": "https://si0.twimg.com/profile_images/2188502886/asequindress_normal.jpg",
+               "tweet_content": "It finally arrived! Can't wait to girl up my @toddsnyderny for #gap tee",
+               "last_modified": "2012-11-19T22:27:42.719Z",
+               "image_url": "https://o.twimg.com/1/proxy.jpg?t=FQQVBBhMaHR0cDovL2Rpc3RpbGxlcnlpbWFnZTQuaW5zdGFncmFtLmNvbS8zZGZiMTY0YzMwM2MxMWUyYmVkOTEyMzEzODIwM2Y3ZV83LmpwZxQCFgASAA&s=ruCTgztqqIHeicV1Cf76yePTe85UGkwQM47Axj7AUM8",
+               "tweet_author": "@aSequinDress"
+          }
+     },
+     {
+          "pk": 6,
+          "model": "assets.instagramcontent",
+          "fields": {
+               "created": "2012-11-19T22:28:45.106Z",
+               "tweet_author_image_url": "http://images.instagram.com/profiles/profile_6711581_75sq_1311097529.jpg",
+               "tweet_content": "More stripes! #wiwt",
+               "last_modified": "2012-11-19T22:28:45.106Z",
+               "image_url": "http://distilleryimage0.s3.amazonaws.com/ce286f7a306a11e29a4b22000a1fb593_7.jpg",
+               "tweet_author": "@mallobear"
+          }
+     },
+     {
+          "pk": 7,
+          "model": "assets.instagramcontent",
+          "fields": {
+               "created": "2012-11-19T22:29:21.245Z",
+               "tweet_author_image_url": "http://images.instagram.com/profiles/profile_15735136_75sq_1352947726.jpg",
+               "tweet_content": "At the doctor, even #sick he's still #cute",
+               "last_modified": "2012-11-19T22:30:06.154Z",
+               "image_url": "http://distilleryimage4.s3.amazonaws.com/0dd221ba328811e2a7ab22000a1f97eb_7.jpg",
+               "tweet_author": "@shar_nyc"
           }
      }
 ]
