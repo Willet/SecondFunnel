@@ -484,17 +484,28 @@ pinpointTracking.init();
                     textParts[1]);
                     $("#light .link").attr("href", data.link);
 
-                    var updateImage = function() {
-                        var newElem;
-                        $('#light .focus-image img').attr('src', imgs[0]);
+                    var updateImage = function(selectedIndex) {
+                        var newElem,
+                            index = selectedIndex || 0;
+
+                        index = ((index >= imgs.length) || (index < 0)) ? 1: index;
+
+                        $('#light .focus-image img').attr('src', imgs[index]);
 
                         $('#light .image-carousel').empty();
                         for (var i=0; i < imgs.length; i++) {
                             newElem = $('<img/>', {
-                                'src': imgs[i]
+                                'src': imgs[i],
+                                'data-index': i,
+                                'click': function() {
+                                    var data = $(this).data()
+                                    updateImage(data['index']);
+                                }
                             });
                             $('#light .image-carousel').append(newElem);
                         }
+                        $('.image-carousel img').removeClass('selected');
+                        $('.image-carousel img[data-index=' + index + ']').addClass('selected')
                     }
 
                     updateImage();
@@ -527,6 +538,12 @@ pinpointTracking.init();
                     var box_height = $box.height()
                     //var box_height = 490 + getCSSNumericValue($box,'padding-top') + getCSSNumericValue($box,'padding-bottom');
                     //$box.css('top', ($(window).height() - box_height) / 2 );
+
+                    // Fix height issue for vertical centering
+                    var height  = $('#light .text').height();
+                    var iheight = $('#light .focus-image img').height();
+                    var pos     = ( (height - iheight) / 2) + 'px'
+                    $('#light .focus-image img').css('top', pos);
                 };
                 var showPin = function () {
                     showPinOf(this);

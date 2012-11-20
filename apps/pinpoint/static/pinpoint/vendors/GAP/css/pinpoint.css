@@ -99,6 +99,16 @@ body {
 
 #willet-main .social-hover > .fb_buttons {
     width: 48px;
+
+}
+
+#willet-main .social-hover > .buttons .fb_buttons {
+    height: 26px;
+    margin-top: 0px;
+}
+
+#willet-main .social-hover > .buttons .fb_buttons {
+    margin-top: 1px;
 }
 
 #willet-main .inner-pin h5:hover {
@@ -170,7 +180,7 @@ body {
 
 #willet-main #light-content {
     overflow: hidden;
-    max-width: 750px;
+    max-width: 680px;
     margin-left: auto;
     margin-right: auto;
 
@@ -193,12 +203,13 @@ body {
 
 #willet-main #light-content .images {
     float: left;
-    width: 500px;
+    width: 410px;
 }
 
 #willet-main #light-content .images .focus-image {
     float: left;
-    width: 380px;
+    width: 280px;
+    position: relative;
 }
 
 #willet-main #light-content .images .image-carousel {
@@ -413,7 +424,7 @@ body {
 
 .buttons * {
     float: left;
-    margin: 0px;
+    margin: 2px;
 }
 
 .buttons .fb_buttons {
@@ -453,4 +464,18 @@ body {
 
 #light .focus-image img, #light .image-carousel img {
     max-width: 100%;
+}
+
+#light .focus-image img {
+    position: absolute;
+}
+
+#light .image-carousel img {
+    border: 1px solid #999;
+    cursor: pointer;
+    padding: 1px;
+}
+
+#light .image-carousel img.selected {
+    border: 2px solid #999;
 }
