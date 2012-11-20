@@ -96,24 +96,6 @@ def campaign(request, campaign_id):
                            campaign_instance.store.product_set.filter(rescrape=False))
 
     instagram_block = BlockType.objects.get(name__exact="Discovery Instagram Block")
-    #instagram_content = InstagramContent.objects.all()[2]
-    #content = BlockContent(block_type=instagram_block,
-    #                       content_type=InstagramContent,
-    #                       data=instagram_content)
-    #discovery_blocks.append(content)
-
-    #instagram_content = InstagramContent.objects.all()[0]
-    #content = BlockContent(block_type=instagram_block,
-    #                       content_type=InstagramContent,
-    #                       data=instagram_content)
-    #discovery_blocks.insert(3, content)
-
-    #instagram_content = InstagramContent.objects.all()[1]
-    #content = BlockContent(block_type=instagram_block,
-    #                       content_type=InstagramContent,
-    #                       data=instagram_content)
-    #discovery_blocks.insert(5, content)
-
     instagram_contents = InstagramContent.objects.all()
     for ic in instagram_contents:
         content = BlockContent(block_type=instagram_block,
