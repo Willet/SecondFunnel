@@ -179,7 +179,6 @@ body {
 }
 
 #willet-main #light-content {
-    overflow: hidden;
     max-width: 680px;
     margin-left: auto;
     margin-right: auto;
