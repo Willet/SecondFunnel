@@ -1,7 +1,7 @@
 {% load pinpoint_ui %}
 
 <div class="pin click video">
-    <div class="inner-pin" data-video-id="{{ data.video_id }}">
-        {% youtube_embed data 200 200 %}
+    <div class="inner-pin">
+        {% include "pinpoint/snippets/youtube_embed.html" with video=data width=200 height=200 %}
     </div>
 </div>
