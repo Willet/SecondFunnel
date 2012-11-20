@@ -226,9 +226,7 @@ pinpointTracking.init();
                         <div class="contents">
                             <div class="images">
                                 <div class="focus-image">
-                                    <div class="image-placeholder">
-
-                                    </div>
+                                    <img src='' />
                                 </div>
                                 <div class="image-carousel">
                                     <div class="thumbnail-placeholder">
@@ -479,20 +477,6 @@ pinpointTracking.init();
                         '<img border="0" src="//assets.pinterest.com/images/PinExt.png" ' +
                         'title="Pin It" /></a>');
 
-                    function updateImage() {
-                        $("#light_img").hide();
-                        $("#light_img").removeAttr("src");
-                        $("#light_img").unbind('load').load(function() {
-                            resizeImgMax($("#light_img")[0], 500, 400);
-                            $("#light_img").css("padding-top",
-                            (($("#light_img_div").height() - $("#light_img").height()) / 2)
-                            + "px");
-                            $("#light_img").show();
-                        });
-                        $("#light_img").attr("src", data.img[img_index]);
-                        $("#pic_index").text((img_index + 1) + " out of " + data.img.length);
-                    };
-
                     var textParts = splitAfterNPreserveTags(data.desc, 250);
                     $("#light_title").html(data.title);
                     $("#light_desc").html(
@@ -500,20 +484,23 @@ pinpointTracking.init();
                     textParts[1]);
                     $("#light .link").attr("href", data.link);
 
-                    $("#light").fadeIn(100);
-                    $("#fade").fadeIn(100);
+                    var updateImage = function() {
+                        var newElem;
+                        $('#light .focus-image img').attr('src', imgs[0]);
+
+                        $('#light .image-carousel').empty();
+                        for (var i=0; i < imgs.length; i++) {
+                            newElem = $('<img/>', {
+                                'src': imgs[i]
+                            });
+                            $('#light .image-carousel').append(newElem);
+                        }
+                    }
 
                     updateImage();
 
-                    $("#light .pic_right").click(function() {
-                        img_index = mod((img_index + 1), data.img.length);
-                        updateImage();
-                    });
-
-                    $("#light .pic_left").click(function() {
-                        img_index = mod((img_index - 1), data.img.length);
-                        updateImage();
-                    });
+                    $("#light").fadeIn(100);
+                    $("#fade").fadeIn(100);
 
                     var buy_url = data.buy;
                     $("#light_buy").attr("href", buy_url);

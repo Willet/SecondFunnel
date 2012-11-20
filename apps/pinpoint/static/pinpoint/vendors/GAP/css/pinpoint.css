@@ -450,15 +450,7 @@ body {
     line-height: 30px;
 }
 
-.image-placeholder, .thumbnail-placeholder {
-    border: 1px solid #aaa;
-}
 
-.image-placeholder {
+#light .focus-image img, #light .image-carousel img {
     max-width: 100%;
-}
-
-.thumbnail-placeholder {
-    width: 50px;
-    height: 75px;
 }
