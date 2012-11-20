@@ -479,3 +479,37 @@ body {
 #light .image-carousel img.selected {
     border: 2px solid #999;
 }
+
+.pin.click.instagram .twitter_logo {
+    float:left;
+    position: absolute;
+    width: 55px;
+    height: 50px;
+}
+
+#willet-main .pin.click.instagram .twitter_logo img {
+    width:35px;
+    margin-top: 10px;
+    margin-left: 5px;
+}
+
+.pin.click.instagram .twitter_user_info {
+    float:right;
+    position: relative;
+}
+
+.pin.click.instagram .twitter_user_info span {
+    font-size:12px;
+    color: #999;
+}
+
+#willet-main .pin.click.instagram .twitter_text p {
+    font-size:20px;
+    text-align:left;
+    color: #2d2d2d;
+}
+
+#willet-main .pin.click.instagram .twitter_user_info img {
+    max-width:48px;
+    max-height:48px;
+}

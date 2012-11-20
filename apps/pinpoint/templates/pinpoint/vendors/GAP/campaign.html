@@ -203,11 +203,11 @@ pinpointTracking.init();
                 <div id="waterfall">
                     {% for col in columns reversed %}
                         <div class="column" id="{{col}}">
-                            {% for prod in campaign.store.product_set.all %}
+                            {% for block in discovery_blocks %}
                                 {% with columns|length as mod %}
                                     {% if forloop.counter|add:col|divisibleby:mod %}
                                         {% with template_root|add:"/ui_blocks/discovery-block.html" as discovery_block%}
-                                        {% include discovery_block %}
+                                            {% render_ui_block block %}
                                         {% endwith %}
                                     {% endif %}
                                 {% endwith %}
@@ -506,6 +506,12 @@ pinpointTracking.init();
                         }
                         $('.image-carousel img').removeClass('selected');
                         $('.image-carousel img[data-index=' + index + ']').addClass('selected')
+
+                        // Fix height issue for vertical centering
+                        var height  = $('#light .text').height();
+                        var iheight = $('#light .focus-image img').height();
+                        var pos     = ( (height - iheight) / 2) + 'px'
+                        $('#light .focus-image img').css('top', pos);
                     }
 
                     updateImage();
