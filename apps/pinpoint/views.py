@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.http import HttpResponse, Http404
@@ -96,5 +97,6 @@ def campaign(request, campaign_id):
     return render_to_response('pinpoint/campaign.html', {
         "campaign": campaign_instance,
         "columns": range(4),
-        "preview": not campaign_instance.live
+        "preview": not campaign_instance.live,
+        "google_property_id": settings.GOOGLE_ANALYTICS_PROPERTY,
     }, context_instance=RequestContext(request))

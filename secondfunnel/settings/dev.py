@@ -15,3 +15,6 @@ DATABASES = {
 }
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+GOOGLE_ANALYTICS_PROFILE = '63888985'
+GOOGLE_ANALYTICS_PROPERTY = 'UA-34721035-1'
