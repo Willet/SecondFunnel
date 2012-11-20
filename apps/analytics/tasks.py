@@ -161,21 +161,10 @@ def update_pinpoint_analytics():
                     "GA row data isn't what we're expecting: date=%s", date)
                 continue
 
-            # daily event data template
-            mapped_row = {
-                "interactions": {
-                    "total": 0,
-                    "clickthrough": 0,
-                    "open_popup": 0,
-                    "shares": {
-                        "featured": 0,
-                        "popup": 0
-                    }
-                }
-            }
-
             if not campaign_id in self.results['campaigns']:
                 self.results['campaigns'][campaign_id] = {}
+
+
 
 @task()
 def analytics_periodic():
