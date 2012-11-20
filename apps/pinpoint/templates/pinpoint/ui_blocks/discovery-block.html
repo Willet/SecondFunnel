@@ -1,9 +1,9 @@
 {% load staticfiles %}
-
+{% with prod=data %}
 {% with media=prod.media.all %}
 {% with firstMedia=media|first %}
 
-<div class="pin click"
+<div class="pin click product"
     style="overflow: hidden;"
     data-title="{{ prod.name|striptags }}"
     data-desc="{{ prod.description }}"
@@ -38,5 +38,6 @@
     </div>
 </div>
 
+{% endwith %}
 {% endwith %}
 {% endwith %}

@@ -123,3 +123,24 @@ class Product(BaseModelNamed):
 
 class ProductMedia(ImageBase):
     product = models.ForeignKey(Product, related_name="media")
+
+
+class YoutubeVideo(BaseModel):
+    video_id = models.CharField(max_length=11)
+
+    def embed(self, width=560, height=315):
+        return '''<iframe width="{width}"
+            height="{height}"
+            src="http://www.youtube.com/embed/{vid}"
+            frameborder="0"
+            allowfullscreen></iframe>'''.format(vid=self.video_id, width=width, height=height)
+
+    def image_url(self, image_number=0):
+        return "http://img.youtube.com/vi/{vid}/{img}.jpg".format(vid=self.video_id, img=image_number)
+
+
+class InstagramContent(BaseModel):
+    image_url = models.TextField()
+    tweet_content = models.CharField(max_length=140)
+    tweet_author = models.CharField(max_length=20)
+    tweet_author_image_url = models.TextField()
