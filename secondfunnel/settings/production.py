@@ -27,4 +27,5 @@ INSTALLED_APPS = (
     'apps.pinpoint',
     'apps.website',
     'apps.scraper',
+    "compressor",
 )

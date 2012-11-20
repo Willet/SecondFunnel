@@ -84,6 +84,11 @@ AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_STORAGE_BUCKET_NAME = 'elasticbeanstalk-us-east-1-056265713214'
 
+COMPRESS_PRECOMPILERS = (
+    ('text/x-sass', 'sass {infile} {outfile}'),
+    ('text/x-scss', 'sass {infile} {outfile}'),
+)
+
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
@@ -106,6 +111,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'compressor.finders.CompressorFinder',
     )
 
 # Make this unique, and don't share it with anybody.
@@ -166,6 +172,7 @@ INSTALLED_APPS = (
     'lettuce.django',
     'adminlettuce',
     'ajax_forms',
+    "compressor",
 
     # our apps
     'apps.analytics',
