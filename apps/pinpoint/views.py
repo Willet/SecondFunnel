@@ -1,6 +1,7 @@
 import random
 
 from django.contrib.auth.decorators import login_required
+from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.http import HttpResponse, Http404
@@ -134,3 +135,14 @@ def campaign(request, campaign_id):
         "template_root": template_root,
         "discovery_blocks": discovery_blocks,
     })
+
+def demo(request):
+    """Auto login the demo account"""
+    from django.contrib.auth import authenticate, login
+    from django.contrib.auth.views import redirect_to_login
+
+    user = authenticate(username='demo@willetinc.com', password='demo')
+    if user is not None and user.is_active:
+        login(request, user)
+
+    return login_redirect(request)
