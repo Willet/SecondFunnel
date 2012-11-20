@@ -40,7 +40,7 @@ html, body {height:100%; margin: 0; padding: 0;}
     background: #cecece;
     position: relative;
     text-align: center;
-    overflow: visible;
+    overflow: hidden;
     width: 200px;
 
     -moz-box-shadow: 10px 10px 10px 0px #CECECE;
