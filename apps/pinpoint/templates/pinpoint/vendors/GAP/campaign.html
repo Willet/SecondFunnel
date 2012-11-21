@@ -646,6 +646,12 @@ pinpointTracking.init();
                     $(this).find(".social-hover").fadeOut('fast');
                 });
 
+                // Hide video overlap
+                $('.column#2 .pin:first').css({
+                    'visibility': 'hidden',
+                    'height': '255px'
+                });
+
                 var scripts = [
                 {
                     "script": "http://connect.facebook.net/en_US/all.js#xfbml=0",

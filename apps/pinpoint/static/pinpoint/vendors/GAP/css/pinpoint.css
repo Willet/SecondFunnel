@@ -512,3 +512,7 @@ body {
     max-width:48px;
     max-height:48px;
 }
+
+#willet-main .pin.video, #willet-main .pin.video .inner-pin {
+    overflow: visible;
+}
