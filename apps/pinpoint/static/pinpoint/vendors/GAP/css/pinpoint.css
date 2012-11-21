@@ -516,3 +516,7 @@ body {
 #willet-main .pin.video, #willet-main .pin.video .inner-pin {
     overflow: visible;
 }
+
+#willet-main .pin.instagram {
+    cursor: default;
+}
