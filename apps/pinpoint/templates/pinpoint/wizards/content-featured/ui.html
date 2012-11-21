@@ -246,6 +246,11 @@
 
             var product = products[o.product_id];
 
+            // sanity check
+            if (o.product_id === "") {
+                return;
+            }
+
             // need to fetch the product from our api
             if (typeof(product) === "undefined") {
                 $.getJSON("/api/assets/v1/product/" + o.product_id, {
