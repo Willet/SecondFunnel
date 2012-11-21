@@ -560,7 +560,9 @@ pinpointTracking.init();
                 $("#featured_img img").load(function() {
                     var fImage = $('#featured_img img');
                     if ( (fImage.width() / fImage.height()) < 1 ) {
-                        fImage.css('height', '480px');
+                        fImage.css('height', '580px');
+                    } else {
+                        fImage.css('width', '680px');
                     }
                 });
 
@@ -644,6 +646,24 @@ pinpointTracking.init();
                         _pptimeout = window.setTimeout('pinpointTracking.setSocialShareVars({"default": true})', 2000);
                     }
                     $(this).find(".social-hover").fadeOut('fast');
+                });
+
+                $("#featured-product .image-carousel img").on('click', function() {
+                    $("#featured-product .image-carousel img").removeClass
+                            ('selected');
+                    $(this).addClass('selected');
+
+                    $('#featured_img img').css({
+                        'height': '', 'width': ''
+                    })
+                    $('#featured_img img').attr('src', $(this).attr('src'));
+
+                    var fImage = $('#featured_img img');
+                    if ( (fImage.width() / fImage.height()) < 1 ) {
+                        fImage.css('height', '580px');
+                    } else {
+                        fImage.css('width', '680px');
+                    }
                 });
 
                 // Hide video overlap

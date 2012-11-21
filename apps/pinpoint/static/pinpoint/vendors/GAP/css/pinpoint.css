@@ -385,7 +385,7 @@ body {
     height: 240px;
 }
 #featured-product>#featured_img {
-    width: 680px;
+    width: 580px;
     float: left;
 }
 #featured-product>#featured_img>img {
@@ -406,6 +406,22 @@ body {
     width: 210px;
     padding-left: 20px;
 }
+#featured-product .image-carousel {
+    float: right;
+    width: 100px;
+}
+
+#featured-product .image-carousel img {
+    max-width: 100%;
+    border: 1px solid #999;
+    cursor: pointer;
+    padding: 1px;
+}
+
+#featured-product .image-carousel img.selected {
+    border: 2px solid #999;
+}
+
 #featured-product #featured-social {
     padding-top: 30px;
 }

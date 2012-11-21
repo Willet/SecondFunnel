@@ -13,6 +13,14 @@
             BUY NOW
         </div></a>
     </div>
+    <div class="image-carousel">
+        {% if data.get_image %}
+            <img src="{{ data.get_image.get_url }}">
+        {% endif %}
+        {% for image in data.product.media.all %}
+            <img src="{{ image.get_url }}">
+        {% endfor %}
+    </div>
     <div class="click" id="featured_img"
         data-title="{{ data.product.name }}"
         data-desc="{{ data.description }}"
