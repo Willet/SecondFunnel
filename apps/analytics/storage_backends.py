@@ -82,6 +82,10 @@ class GoogleAnalyticsBackend:
         which is likely spanning multiple pages
         """
 
+        # coerce dates into strings for Google Analytics
+        start_date = "%s" % start_date
+        end_date = "%s" % end_date
+
         while True:
             next_query = self.create_query(
                 start_date, end_date, metrics,
