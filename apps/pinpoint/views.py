@@ -113,10 +113,16 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
     if type == 'featured product block':
         content_template = theme.featured_product
+        product          = content_block.data.product
+
+        # TODO: Is the featured image always in the list of images?
+        featured_image   = content_block.data.get_image().get_url()
+
+        product.description    = content_block.data.description
+        product.featured_image = featured_image
+
         featured_context.update({
             'product': content_block.data.product,
-            'product.description': content_block.data.description,
-            'product.featured_image': content_block.data.get_image().get_url()
         })
 
     # Pre-render templates; bottom up

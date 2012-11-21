@@ -55,6 +55,10 @@ body {
     max-width: 100%;
 }
 
+.block .data {
+    display: none;
+}
+
 .block .social-buttons {
     position: absolute;
     top: 0%;
@@ -63,10 +67,6 @@ body {
 
 .block.product {
 
-}
-
-.block.product.data {
-    display: none;
 }
 
 /* Preview */
