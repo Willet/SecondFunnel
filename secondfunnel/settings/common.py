@@ -82,7 +82,7 @@ DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'elasticbeanstalk-us-east-1-056265713214'
+AWS_STORAGE_BUCKET_NAME = os.environ.get('PARAM1', 'elasticbeanstalk-us-east-1-056265713214')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
