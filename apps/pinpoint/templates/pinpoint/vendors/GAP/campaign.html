@@ -509,7 +509,7 @@ pinpointTracking.init();
                         $('.image-carousel img[data-index=' + index + ']').addClass('selected')
 
                         // Fix height issue for vertical centering
-                        var height  = $('#light .text').height();
+                        var height  = $('#light-content').height();
                         var iheight = $('#light .focus-image img').height();
                         var pos     = ( (height - iheight) / 2) + 'px'
                         $('#light .focus-image img').css('top', pos);
