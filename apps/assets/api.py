@@ -25,10 +25,11 @@ class ProductResource(ModelResource):
             }
 
     def get_object_list(self, request):
+        result = super(ProductResource, self).get_object_list(request)
         if 'store' in request.GET:
-            return super(ProductResource, self).get_object_list(request).filter(store=request.GET['store'])
+            return result.filter(store=request.GET['store'])
         else:
-            return []
+            return result.none()
 
     def build_filters(self, filters=None):
         if filters is None:

@@ -254,7 +254,8 @@
             // need to fetch the product from our api
             if (typeof(product) === "undefined") {
                 $.getJSON("/api/assets/v1/product/" + o.product_id, {
-                    "format": "json"
+                    "format": "json",
+                    "store": '{{ store.id }}'
 
                 }, function(data) {
                     products[data.id] = {
