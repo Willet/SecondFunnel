@@ -15,4 +15,5 @@ DATABASES = {
 }
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+COMPRESS_STORAGE = STATICFILES_STORAGE
 COMPRESS_ENABLED = True

@@ -87,6 +87,8 @@ AWS_STORAGE_BUCKET_NAME = 'elasticbeanstalk-us-east-1-056265713214'
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
                         'compressor.filters.cssmin.CSSMinFilter']
 
+COMPRESS_STORAGE = STATICFILES_STORAGE
+
 COMPRESS_PRECOMPILERS = (
     ('text/x-sass', 'sass {infile} {outfile}'),
     ('text/x-scss', 'sass {infile} {outfile}'),
