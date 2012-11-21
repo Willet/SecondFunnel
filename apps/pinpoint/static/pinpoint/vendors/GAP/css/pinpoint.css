@@ -239,7 +239,7 @@ body {
 }
 
 #willet-main h3 {
-    font-size: 30px;
+    font-size: 24px;
     margin: 0;
     padding: 0;
     margin-top: 10px;
@@ -330,6 +330,7 @@ body {
     float: left;
     text-align: left !important;
     width: 80px;
+    padding-top: 30px;
 }
 #willet-main #light .social>div {
 }
