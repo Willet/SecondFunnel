@@ -72,17 +72,15 @@ body {
 /* Preview */
 .preview {
     /* TODO: Should we have a separate class for a preview content block? */
-    height  : 100%;
     overflow: hidden;
     position: fixed;
-    width   : 100%;
     display : table;
     top     : 0;
     left    : 0;
+    display : none;
 }
 
 .preview.mask {
-    display   : none;
     position  : fixed;
     top       : 0;
     left      : 0;

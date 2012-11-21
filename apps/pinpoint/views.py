@@ -139,6 +139,8 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     discovery_area = Template(modified_discovery).render(context)
 
     # Preview block
+    # TODO: Does this actually need any additional context?
+    product_preview = Template(theme.preview_product).render(context)
 
     # Featured content
     featured_content = Template(content_template).render(featured_context)
@@ -149,8 +151,9 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
     page_context = Context({
         'featured_content': featured_content,
-        'discovery_area': discovery_area,
-        'header_content': header_content
+        'discovery_area'  : discovery_area,
+        'preview_area'    : product_preview,
+        'header_content'  : header_content
     })
 
     # Page content

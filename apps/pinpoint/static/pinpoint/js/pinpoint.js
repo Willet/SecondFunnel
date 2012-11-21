@@ -24,12 +24,25 @@ var PINPOINT = (function($){
 
     showPreview = function() {
         var data     = $(this).find('.data').data(),
+            images,
+            $element,
             $mask    = $('.preview.mask'),
             $preview = $('.preview.product');
 
         $.each(data, function(key, value) {
-            $preview.find('.'+key).html(value)
-            // TODO: Any special cases
+            $element = $preview.find('.'+key)
+            switch(key) {
+                case 'images':
+                    images = value.split('|');
+                    $.each(images, function(index, image) {
+                        $element.append($('<img/>', {
+                            'src': image
+                        }))
+                    });
+                    break;
+                default:
+                    $element.html(value)
+            }
         });
 
         // TODO: Render buttons
