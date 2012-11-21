@@ -360,8 +360,8 @@ ul.messages li {
 }
 
 ul.messages li.success {
-    border-color: #385A71;
-    background-color: #6F98AC;
+    border-color: #3a3;
+    background-color: #7d4;
     color: white;
 }
 
