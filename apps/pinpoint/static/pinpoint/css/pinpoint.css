@@ -40,7 +40,7 @@ html, body {height:100%; margin: 0; padding: 0;}
     background: #cecece;
     position: relative;
     text-align: center;
-    overflow: visible;
+    overflow: hidden;
     width: 200px;
 
     -moz-box-shadow: 10px 10px 10px 0px #CECECE;
@@ -452,4 +452,34 @@ html, body {height:100%; margin: 0; padding: 0;}
     text-align: center;
     font-size: 15px;
     line-height: 30px;
+}
+
+.pin.click.instagram .twitter_logo {
+    float:left;
+    position: absolute;
+}
+
+#willet-main .pin.click.instagram .twitter_logo img {
+    max-width: 50px;
+    margin-top: 5px;
+    margin-left: 5px;
+}
+
+.pin.click.instagram .twitter_user_info {
+    float:right;
+    position: relative;
+}
+
+.pin.click.instagram .twitter_user_info span {
+    font-size:12px;
+}
+
+#willet-main .pin.click.instagram .twitter_text p {
+    font-size:20px;
+    text-align:left;
+}
+
+#willet-main .pin.click.instagram .twitter_user_info img {
+    max-width:48px;
+    max-height:48px;
 }

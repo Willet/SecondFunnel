@@ -193,10 +193,10 @@ pinpointTracking.init();
                 <div id="waterfall">
                     {% for col in columns reversed %}
                         <div class="column" id="{{col}}">
-                            {% for prod in campaign.store.product_set.all %}
+                            {% for block in discovery_blocks %}
                                 {% with columns|length as mod %}
                                     {% if forloop.counter|add:col|divisibleby:mod %}
-                                        {% include "pinpoint/ui_blocks/discovery-block.html" %}
+                                    {% render_ui_block block %}
                                     {% endif %}
                                 {% endwith %}
                             {% endfor %}
@@ -387,9 +387,7 @@ pinpointTracking.init();
                         for(var i = 0; i < tags.length; i++) {
                             var beginningType = type(tags[i]);
                             var foundEnd = false;
-                            //alert([tags[i], beginningType]);
                             for (var j = endingTags.length - 1; j >= 0; j--) {
-                                //alert([endingTags[j], type(endingTags[j])]);
                                 if (type(endingTags[j]) == beginningType) {
                                     foundEnd = true;
                                     endingTags.splice($.inArray(endingTags[j], endingTags), 1);
@@ -492,14 +490,6 @@ pinpointTracking.init();
                     $("#light_buy").attr("href", buy_url);
                     $("#light_price").text(data.price);
 
-                    //// Setup any tricky handlers that could change...
-                    //$("#light_buy").unbind("click").bind("click", function () {
-                        //    _gaq.push(["_trackEvent", "Product", "Buy Now", data.title]);
-                        //});
-
-                    //_gaq.push(["_trackEvent", "Category", "Action", "opt_label", "opt_value"]);
-                    //_gaq.push(["_trackEvent", "Product", "Preview", data.title]);
-
                     $(".pinterest_buttons>div").hide();
                     $(".pinterest_buttons div[data-id='" + data.title + "']").show();
 
@@ -511,14 +501,10 @@ pinpointTracking.init();
 
                     var $box = $(".box-content");
                     var box_height = $box.height()
-                    //var box_height = 490 + getCSSNumericValue($box,'padding-top') + getCSSNumericValue($box,'padding-bottom');
-                    //$box.css('top', ($(window).height() - box_height) / 2 );
                 };
                 var showPin = function () {
                     showPinOf(this);
                 };
-                //$("#featured_img img").width($("#featured_img img").width() * 0.5);
-                //$("#featured_img img").height($("#featured_img img").height() * 0.5);
                 $("#featured_img img").load(function() {
                     resizeImgMax($("#featured_img img")[0]);
                     $("#featured_img img").css("margin-top",
@@ -535,7 +521,7 @@ pinpointTracking.init();
                 $(".x").click(function() {
                     pinpointTracking.setSocialShareVars({"default": true});
                 });
-                $(".click .inner-pin, #featured-product .click").click(function() {
+                $(".click.product .inner-pin, #featured-product .click").click(function() {
                     showPinOf($(this).closest(".click")[0]);
                 });
 

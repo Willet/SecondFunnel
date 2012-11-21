@@ -123,3 +123,14 @@ class Product(BaseModelNamed):
 
 class ProductMedia(ImageBase):
     product = models.ForeignKey(Product, related_name="media")
+
+
+class YoutubeVideo(BaseModel):
+    video_id = models.CharField(max_length=11)
+
+
+class InstagramContent(BaseModel):
+    image_url = models.TextField()
+    tweet_content = models.CharField(max_length=140)
+    tweet_author = models.CharField(max_length=20)
+    tweet_author_image_url = models.TextField()

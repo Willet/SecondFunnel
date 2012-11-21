@@ -1,0 +1,49 @@
+{%  load staticfiles %}
+<div id="featured-product">
+    <div class="text">
+        <h3>{{ data.product.name }}</h3>
+        <p id="featured_desc">{{ data.description }}</p>
+        <div id="featured-social">
+            <div class="pinterest_buttons"></div>
+            <div class="fb_buttons"></div>
+            <div class="twitter_buttons"></div>
+        </div>
+
+        <a href='{{ data.product.original_url }}'><div class="text-button" style='margin-top: 20px'>
+            BUY NOW
+        </div></a>
+    </div>
+    <div class="image-carousel">
+        {% if data.get_image %}
+            <img src="{{ data.get_image.get_url }}">
+        {% endif %}
+        {% for image in data.product.media.all %}
+            <img src="{{ image.get_url }}">
+        {% endfor %}
+    </div>
+    <div class="click" id="featured_img"
+        data-title="{{ data.product.name }}"
+        data-desc="{{ data.description }}"
+        data-price="{{ data.product.price }}"
+        {# if the featured-content-block has an image display it, otherwise skip it #}
+        {% if data.get_image %}
+            data-img="{{ data.get_image.get_url }}|{% for url in data.product.media.all %}{{ url.get_url|striptags }}|{% endfor %}"
+        {% else %}
+            data-img="{% for url in data.product.media.all %}{{ url.get_url|striptags }}|{% endfor %}"
+        {% endif %}
+        data-url="{{ data.product.original_url }}"
+        >
+        {# if the featured-content-block has an image display it, otherwise skip it #}
+        {% if data.get_image %}
+            <img src="{{ data.get_image.get_url }}">
+        {% else %}
+            {% with firstmedia=data.product.media.all|first %}
+            <img src="{{ firstmedia.get_url }}">
+            {% endwith %}
+        {% endif %}
+    </div>
+</div>
+<div id="divider" style="background-image: url('{% static 'pinpoint/vendors/GAP/images/browse.png' %}');
+background-position: center center;
+background-repeat: no-repeat;
+height: 20px;"></div>

@@ -24,6 +24,13 @@ class ProductResource(ModelResource):
             'name_or_url': ('exact')
             }
 
+    def get_object_list(self, request):
+        result = super(ProductResource, self).get_object_list(request)
+        if 'store' in request.GET:
+            return result.filter(store=request.GET['store'])
+        else:
+            return result.none()
+
     def build_filters(self, filters=None):
         if filters is None:
             filters = {}

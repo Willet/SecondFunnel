@@ -1,0 +1,21 @@
+{% load staticfiles %}
+
+<div class="pin click instagram">
+    <div class="inner-pin" data-video-id="{{ data.video_id }}">
+        <div class="twitter_text">
+            <p>{{ data.tweet_content }}</p>
+        </div>
+        <div class="instagram_photo">
+            <img src="{{ data.image_url }}">
+        </div>
+        <div class="twitter_info">
+            <div class="twitter_logo">
+                <img src="{% static "images/twitter_logo.png" %}">
+            </div>
+            <div class="twitter_user_info">
+                <span>{{ data.tweet_author }}</span>
+                <img src="{{ data.tweet_author_image_url }}">
+            </div>
+        </div>
+    </div>
+</div>

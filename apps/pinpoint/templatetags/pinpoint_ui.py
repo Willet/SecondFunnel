@@ -40,15 +40,24 @@ def wizard_confirm_campaign(parser, token):
 
 
 class BlockNode(template.Node):
-    def __init__(self, ui_block):
-        self.ui_block = template.Variable(ui_block)
+    def __init__(self, ui_block, path=None):
+        if path:
+            self.template_path = template.Variable(path)
+        else:
+            self.template_path = None
+        self.ui_block      = template.Variable(ui_block)
 
     def render(self, context):
-        ui_block = self.ui_block.resolve(context)
+        ui_block      = self.ui_block.resolve(context)
+
+        if self.template_path:
+            template_path = self.template_path.resolve(context)
+        else:
+            template_path = "pinpoint"
 
         return render_to_string([
-            "pinpoint/ui_blocks/%s.html" % ui_block.block_type.slug,
-            "pinpoint/ui_blocks/generic.html",
+            (template_path + "/ui_blocks/%s.html") % ui_block.block_type.slug,
+            (template_path + "/ui_blocks/generic.html"),
         ], {
             'data': ui_block.data
         })
@@ -57,8 +66,36 @@ class BlockNode(template.Node):
 def render_ui_block(parser, token):
     try:
         # split_contents() knows not to split quoted strings.
-        tag_name, ui_block = token.split_contents()
+        tokens = token.split_contents()
+        tag_name = tokens[0]
+        ui_block = tokens[1]
+        path     = tokens[2] if len(tokens) > 2 else None
     except ValueError:
         raise template.TemplateSyntaxError, "%r tag requires exactly one argument" % token.contents.split()[0]
 
-    return BlockNode(ui_block)
+    return BlockNode(ui_block, path)
+
+
+class YoutubeVideoNode(template.Node):
+    def __init__(self, yt_video, width, height):
+        self.yt_video = template.Variable(yt_video)
+        self.width = template.Variable(width)
+        self.height = template.Variable(height)
+
+    def render(self, context):
+        yt_video = self.yt_video.resolve(context)
+        width = self.width.resolve(context)
+        height = self.height.resolve(context)
+
+        return yt_video.embed(width, height)
+
+
+@register.tag(name="youtube_embed")
+def youtube_embed(parser, token):
+    try:
+        # split_contents() knows not to split quoted strings.
+        tag_name, yt_video, width, height = token.split_contents()
+    except ValueError:
+        raise template.TemplateSyntaxError, "%r tag requires exactly one argument" % token.contents.split()[0]
+
+    return YoutubeVideoNode(yt_video, width, height)

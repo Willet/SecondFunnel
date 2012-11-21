@@ -1,11 +1,14 @@
+import random
+
 from django.contrib.auth.decorators import login_required
+from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
 
 from apps.pinpoint.models import Campaign, BlockType, BlockContent
-from apps.assets.models import Store, Product
+from apps.assets.models import Store, Product, YoutubeVideo, InstagramContent
 
 import apps.pinpoint.wizards as wizards
 
@@ -44,7 +47,7 @@ def new_campaign(request, store_id):
 
     return render_to_response('pinpoint/admin_new_campaign.html', {
         "store": store,
-        "block_types": BlockType.objects.all(),
+        "block_types": filter(lambda x: bool(x.image), BlockType.objects.all()),
     }, context_instance=RequestContext(request))
 
 
@@ -79,8 +82,49 @@ def store_analytics_admin(request, store_id):
 def campaign(request, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
 
-    return render_to_response('pinpoint/campaign.html', {
+    store = campaign_instance.store
+
+    # TODO: This is horrible, but temporary until we have theming done
+    template_root = 'pinpoint'
+    if store.name == "GAP":
+        template_root = 'pinpoint/vendors/GAP'
+
+    discovery_block_type = BlockType.objects.get(name__exact="Discovery Block")
+    discovery_blocks = map(lambda x: BlockContent(block_type=discovery_block_type,
+                                                  content_type=Product,
+                                                  data=x),
+                           campaign_instance.store.product_set.filter(rescrape=False)[:200])
+
+    instagram_block = BlockType.objects.get(name__exact="Discovery Instagram Block")
+    instagram_contents = InstagramContent.objects.all()
+    for ic in instagram_contents:
+        content = BlockContent(block_type=instagram_block,
+                               content_type=InstagramContent,
+                               data=ic)
+        discovery_blocks.insert(random.randrange(min(len(discovery_blocks), 50)), content)
+
+    youtube_video = YoutubeVideo.objects.all()[0]
+    video_type = BlockType.objects.get(name__exact="Discovery Youtube Video Block")
+    video = BlockContent(block_type=video_type,
+                         content_type=YoutubeVideo,
+                         data=youtube_video)
+    discovery_blocks.insert(0, video)
+
+    return render_to_response(template_root + '/campaign.html', {
         "campaign": campaign_instance,
         "columns": range(4),
-        "preview": not campaign_instance.live
-    }, context_instance=RequestContext(request))
+        "preview": not campaign_instance.live,
+        "template_root": template_root,
+        "discovery_blocks": discovery_blocks,
+    })
+
+def demo(request):
+    """Auto login the demo account"""
+    from django.contrib.auth import authenticate, login
+    from django.contrib.auth.views import redirect_to_login
+
+    user = authenticate(username='demo@willetinc.com', password='demo')
+    if user is not None and user.is_active:
+        login(request, user)
+
+    return login_redirect(request)

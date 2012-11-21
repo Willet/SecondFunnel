@@ -64,6 +64,8 @@ urlpatterns = patterns('',
         {'template': 'registration/profile.html'},
         name="profile"),
 
+    url(r'demo/$', 'apps.pinpoint.views.demo', name='demo'),
+
     # WEBSITE
     url(r'^', include('apps.website.urls')),
 )

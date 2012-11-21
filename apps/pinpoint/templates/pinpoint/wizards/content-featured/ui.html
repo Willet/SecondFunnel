@@ -230,42 +230,72 @@
     <script>
 
     var app = (function() {
-        var existing_images, products, product_selected, setUpListeners,
+        var existing_images, products, product_selected, product_selected_execute, setUpListeners,
             updateCharacters, init, page_changed, onPageChanged;
 
         existing_images = {};
 
         onPageChanged = function() {
             page_changed.val("true");
-        }
-
-        products = {
-            {% for product in products %}
-            '{{ product.id }}': {
-                'id': '{{ product.id }}',
-                'name': '{{ product.name }}',
-                'description': '{{ product.description|escapejs }}',
-                'media': [
-                    {% for product_media in product.media.all %}
-                    {
-                        'id': '{{ product_media.id }}',
-                        'url': '{{ product_media.get_url }}'
-                    }{% if not forloop.last %},{% endif %}
-                    {% endfor %}
-                ]
-            }{% if not forloop.last %},{% endif %}
-            {% endfor %}
         };
+
+        products = {};
 
         product_selected = function (o) {
             $("#image-selector").siblings(".errorlist").children("li").fadeIn(500);
 
-            var product = products[o.product_id],
-                media_id = $("#id_product_media_id").val();
+            var product = products[o.product_id];
 
-            if (typeof(product) === "undefined") {
+            // sanity check
+            if (o.product_id === "") {
                 return;
             }
+
+            // need to fetch the product from our api
+            if (typeof(product) === "undefined") {
+                $.getJSON("/api/assets/v1/product/" + o.product_id, {
+                    "format": "json",
+                    "store": '{{ store.id }}'
+
+                }, function(data) {
+                    products[data.id] = {
+                        'id': data.id,
+                        'name': data.name,
+                        'description': data.description,
+                        'media': []
+                    }
+
+                    // fetch product media
+                    $.getJSON("/api/assets/v1/product_media/", {
+                        "format": "json",
+                        "product": data.id
+
+                    }, function(media_data) {
+                        if (media_data.meta.total_count == 0) {
+                            return product_selected_execute(o, products[data.id]);
+                        }
+
+                        for (media_result in media_data.objects) {
+                            var media = media_data.objects[media_result];
+
+                            products[data.id]['media'].push({
+                                'id': media.id,
+                                'url': media.hosted || media.remote
+                            });
+                        }
+
+                        return product_selected_execute(o, products[data.id]);
+                    });
+                });
+
+            // got the product locally already
+            } else {
+                return product_selected_execute(o, product);
+            }
+        };
+
+        product_selected_execute = function (o, product) {
+            var media_id = $("#id_product_media_id").val();
 
             // clear existing image list
             images = $("#product_images li");
@@ -424,7 +454,8 @@
                     var term = request.term;
                     $.getJSON("/api/assets/v1/product/", {
                         "format": "json",
-                        "name_or_url": term
+                        "name_or_url": term,
+                        "store": "{{ store.id }}"
 
                     }, function(data) {
                         //convert object to usable form
@@ -433,7 +464,7 @@
                             results.push({'label': value.name, 'id': value.id})
                         });
                         response(results);
-                    })
+                    });
                 },
                 minLength: 2,
                 select: function( event, ui ) {
