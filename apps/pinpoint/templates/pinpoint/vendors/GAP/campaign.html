@@ -652,6 +652,12 @@ pinpointTracking.init();
                     'height': '255px'
                 });
 
+                // Fix image proportions
+                var fImage = $('#featured_img img');
+                if ( (fImage.width() / fImage.height()) < 1 ) {
+                    fImage.css('height', '480px');
+                }
+
                 var scripts = [
                 {
                     "script": "http://connect.facebook.net/en_US/all.js#xfbml=0",
