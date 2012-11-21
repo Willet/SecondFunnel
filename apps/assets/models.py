@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.template.defaultfilters import striptags
 
 
 class BaseModel(models.Model):
@@ -126,6 +127,20 @@ class Product(BaseModelNamed):
 
     def images(self):
         return [x.get_url() for x in self.media.all()]
+
+    def data(self):
+        fields = [
+            ('data-title', striptags(self.name),),
+            ('data-description', striptags(self.description),),
+            ('data-price', striptags(self.price),),
+            ('data-url', striptags(self.original_url),),
+            ('data-image', '|'.join(striptags(x) for x in self.images())),
+        ]
+
+        data = ' '.join("%s='%s'" % field for field in fields)
+
+        tag = u'<span class="data" {data}></span>'.format(data=data)
+        return tag
 
 
 class ProductMedia(ImageBase):
