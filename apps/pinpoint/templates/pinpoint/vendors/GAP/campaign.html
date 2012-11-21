@@ -558,10 +558,10 @@ pinpointTracking.init();
                 //$("#featured_img img").width($("#featured_img img").width() * 0.5);
                 //$("#featured_img img").height($("#featured_img img").height() * 0.5);
                 $("#featured_img img").load(function() {
-                    resizeImgMax($("#featured_img img")[0]);
-                    $("#featured_img img").css("margin-top",
-                    (($("#featured_img").height() - $("#featured_img img").height()) / 2) +
-                    "px");
+                    var fImage = $('#featured_img img');
+                    if ( (fImage.width() / fImage.height()) < 1 ) {
+                        fImage.css('height', '480px');
+                    }
                 });
 
                 $("#light").hide();
@@ -651,12 +651,6 @@ pinpointTracking.init();
                     'visibility': 'hidden',
                     'height': '255px'
                 });
-
-                // Fix image proportions
-                var fImage = $('#featured_img img');
-                if ( (fImage.width() / fImage.height()) < 1 ) {
-                    fImage.css('height', '480px');
-                }
 
                 var scripts = [
                 {
