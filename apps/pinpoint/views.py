@@ -97,6 +97,8 @@ def campaign(request, campaign_id):
                                   context_instance=context)
 
 def campaign_to_theme_to_response(campaign, arguments, context=None):
+    AUTOESCAPE_PATTERN = re.compile(r'({{ *product.data *}})')
+
     if context is None:
         context = Context()
     context.update(arguments)
@@ -129,6 +131,10 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     # Pre-render templates; bottom up
     # Discovery block
     discovery_block = theme.discovery_product # TODO: Generalize to other blocks
+    modified_discovery = AUTOESCAPE_PATTERN.sub(
+        r'{% autoescape off %}\1{% endautoescape %}',
+        discovery_block
+    )  # Autoescape HTML tag
     modified_discovery = "".join([
         "{% extends 'pinpoint/campaign_discovery.html' %}",
         "{% load pinpoint_ui %}",
@@ -152,6 +158,10 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
     # Featured content
     modified_featured = '{% load pinpoint_ui %}' + content_template
+    modified_featured = AUTOESCAPE_PATTERN.sub(
+        r'{% autoescape off %}\1{% endautoescape %}',
+        modified_featured
+    )  # Autoescape HTML tag
     featured_content  = Template(modified_featured).render(featured_context)
 
     # Header content
