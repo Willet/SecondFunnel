@@ -14,6 +14,10 @@ DATABASES = {
         }
 }
 
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+DEFAULT_FILE_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 COMPRESS_STORAGE = STATICFILES_STORAGE
 COMPRESS_ENABLED = True
+
+STATIC_URL = '/static/'
+COMPRESS_URL = STATIC_URL

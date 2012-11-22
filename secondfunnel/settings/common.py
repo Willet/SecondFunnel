@@ -94,12 +94,17 @@ COMPRESS_PRECOMPILERS = (
     ('text/x-scss', 'sass {infile} {outfile}'),
 )
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'secondfunnel'
+    }
+}
+
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-#STATIC_URL = '/static/'
 
 STATIC_URL = 'https://secondfunnel-test.s3.amazonaws.com/'
-
 COMPRESS_URL = STATIC_URL
 
 # Additional locations of static files
