@@ -142,7 +142,13 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
     # Preview block
     # TODO: Does this actually need any additional context?
-    product_preview = Template(theme.preview_product).render(context)
+    modified_preview = "".join([
+        "<div class='preview mask'></div>",
+        "<div class='preview product'>",
+        theme.preview_product,
+        "</div>"
+    ]);
+    product_preview = Template(modified_preview).render(context)
 
     # Featured content
     modified_featured = '{% load pinpoint_ui %}' + content_template
