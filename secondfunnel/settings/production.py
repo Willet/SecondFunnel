@@ -3,6 +3,9 @@ from common import *
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
+COMPRESS_ENABLED = True
+COMPRESS_OFFLINE = True
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
