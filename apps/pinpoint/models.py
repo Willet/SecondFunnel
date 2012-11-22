@@ -1,5 +1,5 @@
-from django.core.exceptions import ValidationError
 import re
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -43,26 +43,23 @@ class StoreTheme(BaseModelNamed):
     """
 
     DEFAULT_FEATURED_PRODUCT = """
-    <div class='featured product'>
-        {{ product.data }}
-        <img src='{{ product.featured_image }}' />
-        <p>Other images</p>
-        <ul>
-        {% if product.images|length > 1 %}
-            {% for image in product.images %}
-            <li>{{ image }}</li>
-            {% endfor %}
-        {% else %}
-            <li>No other images</li>
-        {% endif %}
-        </ul>
-        <div class='title'>{{ product.name }}</div>
-        <div class='price'>{{ product.price }}</div>
-        <div class='description'>{{ product.description }}</div>
-        <div class='url'>{{ product.url }}</div>
+    <img src='{{ product.featured_image }}' />
+    <p>Other images</p>
+    <ul>
+    {% if product.images|length > 1 %}
+        {% for image in product.images %}
+        <li>{{ image }}</li>
+        {% endfor %}
+    {% else %}
+        <li>No other images</li>
+    {% endif %}
+    </ul>
+    <div class='title'>{{ product.name }}</div>
+    <div class='price'>{{ product.price }}</div>
+    <div class='description'>{{ product.description }}</div>
+    <div class='url'>{{ product.url }}</div>
 
-        {% social_buttons product %}
-    </div>
+    {% social_buttons product %}
     """
 
     DEFAULT_PRODUCT_PREVIEW = """
@@ -76,22 +73,19 @@ class StoreTheme(BaseModelNamed):
     """
 
     DEFAULT_DISCOVERY_BLOCK = """
-    <div class='block product'>
-        {{ product.data }}
-        <img src='{{ product.images.0 }}'/>
-        <div>{{ product.name }}</div>
-        {% social_buttons product %}
-        <div style='display: none'>
-            <!-- Testing -->
-            <div class='price'>{{ product.price }}</div>
-            <div class='description'>{{ product.description }}</div>
-            <div class='url'>{{ product.url }}</div>
-            <ul>
-                {% for image in product.images %}
-                <li>{{ image }}</li>
-                {% endfor %}
-            </ul>
-        </div>
+    <img src='{{ product.images.0 }}'/>
+    <div>{{ product.name }}</div>
+    {% social_buttons product %}
+    <div style='display: none'>
+        <!-- Testing -->
+        <div class='price'>{{ product.price }}</div>
+        <div class='description'>{{ product.description }}</div>
+        <div class='url'>{{ product.url }}</div>
+        <ul>
+            {% for image in product.images %}
+            <li>{{ image }}</li>
+            {% endfor %}
+        </ul>
     </div>
     """
 

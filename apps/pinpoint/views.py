@@ -97,8 +97,6 @@ def campaign(request, campaign_id):
                                   context_instance=context)
 
 def campaign_to_theme_to_response(campaign, arguments, context=None):
-    AUTOESCAPE_PATTERN = re.compile(r'({{ *product.data *}})')
-
     if context is None:
         context = Context()
     context.update(arguments)
@@ -106,9 +104,11 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     theme = campaign.store.theme
 
     # Determine featured content type
+    # TODO: How to handle multiple block types?
     for block in campaign.content_blocks.all():
         if block.content_type.name != "campaign":
             content_block = block
+            break
 
     featured_context = Context()
     type = content_block.content_type.name
@@ -125,21 +125,19 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         product.is_featured    = True
 
         featured_context.update({
-            'product': content_block.data.product,
+            'product': product,
         })
 
     # Pre-render templates; bottom up
     # Discovery block
     discovery_block = theme.discovery_product # TODO: Generalize to other blocks
-    modified_discovery = AUTOESCAPE_PATTERN.sub(
-        r'{% autoescape off %}\1{% endautoescape %}',
-        discovery_block
-    )  # Autoescape HTML tag
     modified_discovery = "".join([
         "{% extends 'pinpoint/campaign_discovery.html' %}",
         "{% load pinpoint_ui %}",
         "{% block discovery_block %}",
+        "<div class='block product' {{product.data|safe}}>",
         discovery_block,
+        "</div>",
         "{% endblock discovery_block %}"
     ])
 
@@ -157,11 +155,13 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     product_preview = Template(modified_preview).render(context)
 
     # Featured content
-    modified_featured = '{% load pinpoint_ui %}' + content_template
-    modified_featured = AUTOESCAPE_PATTERN.sub(
-        r'{% autoescape off %}\1{% endautoescape %}',
-        modified_featured
-    )  # Autoescape HTML tag
+    modified_featured = "".join([
+        "{% load pinpoint_ui %}",
+        "<div class='featured product' {{ product.data|safe }}>",
+        content_template,
+        "</div>"
+    ])
+
     featured_content  = Template(modified_featured).render(featured_context)
 
     # Header content

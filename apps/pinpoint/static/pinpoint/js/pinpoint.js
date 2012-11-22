@@ -17,15 +17,14 @@ var PINPOINT = (function($){
         productHoverOff,
         ready,
         scripts,
-        showPreview,
-        trackEvent;
+        showPreview;
 
     /* --- START Utilities --- */
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
     showPreview = function() {
-        var data     = $(this).find('.data').data(),
+        var data     = $(this).data(),
             images,
             $element,
             $mask    = $('.preview.mask'),
@@ -96,7 +95,7 @@ var PINPOINT = (function($){
 
     featuredAreaSetup = function () {
         var $featuredArea = $('.featured'),
-            data = $featuredArea.find('.data').data(),
+            data = $featuredArea.data(),
             url = data['url'],
             title = data['name'],
             fbButton = createFBButton({ 'url': url }),
@@ -230,41 +229,10 @@ var PINPOINT = (function($){
     /* --- END Social buttons --- */
 
     /* --- START tracking --- */
-    trackEvent = function (event) {
-        // TODO: replace with actual tracking
-        console.log('Tracking event: ', event)
-    };
-
     // override existing implementations of methods
     var oldLoadTwitter = loadTwitter;
     loadTwitter = function() {
         oldLoadTwitter();
-
-        // TODO: Verify twttr exists
-        window.twttr.ready(function(twttr) {
-            twttr.events.bind('tweet', function(event) {
-                trackEvent({
-                    "network": "Twitter",
-                    "type": "shared"
-                });
-            });
-
-            twttr.events.bind('click', function(event) {
-                var sType;
-                if (event.region == "tweet") {
-                    sType = "clicked";
-                } else if (event.region == "tweetcount") {
-                    sType = "leftFor";
-                } else {
-                    sType = event.region;
-                }
-
-                trackEvent({
-                    "network": "Twitter",
-                    "type": sType
-                });
-            });
-        });
     }
 
     var oldLoadFB = loadFB;
