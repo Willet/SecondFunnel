@@ -21,19 +21,24 @@ class AnalyticsRecency(models.Model):
             self.parent, self.last_fetched)
 
 
-class Section(models.Model):
-    name = models.CharField(max_length=100)
-    categories = models.ManyToManyField("Category", blank=True, null=True)
+class AnalyticsBase(models.Model):
+    name = models.CharField(max_length=255)
+    slug = models.CharField(max_length=255)
     enabled = models.BooleanField(default=True)
+
+    class Meta:
+        abstract = True
+
+
+class Section(AnalyticsBase):
+    categories = models.ManyToManyField("Category", blank=True, null=True)
 
     def __unicode__(self):
         return self.name
 
 
-class Category(models.Model):
-    name = models.CharField(max_length=100)
+class Category(AnalyticsBase):
     metrics = models.ManyToManyField("Metric", blank=True, null=True)
-    enabled = models.BooleanField(default=True)
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -45,11 +50,7 @@ class Category(models.Model):
         return self.metrics.all().count()
 
 
-class Metric(models.Model):
-    name = models.CharField(max_length=255)
-    slug = models.CharField(max_length=255)
-    enabled = models.BooleanField(default=True)
-
+class Metric(AnalyticsBase):
     data = models.ManyToManyField(
         "KVStore", related_name="data", blank=True, null=True)
 
