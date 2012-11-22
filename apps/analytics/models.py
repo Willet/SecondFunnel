@@ -21,9 +21,10 @@ class AnalyticsRecency(models.Model):
             self.parent, self.last_fetched)
 
 
-class AnalyticsSection(models.Model):
+class Section(models.Model):
     name = models.CharField(max_length=100)
     categories = models.ManyToManyField("Category", blank=True, null=True)
+    enabled = models.BooleanField(default=True)
 
     def __unicode__(self):
         return self.name
@@ -32,6 +33,7 @@ class AnalyticsSection(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=100)
     metrics = models.ManyToManyField("Metric", blank=True, null=True)
+    enabled = models.BooleanField(default=True)
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -46,6 +48,7 @@ class Category(models.Model):
 class Metric(models.Model):
     name = models.CharField(max_length=255)
     slug = models.CharField(max_length=255)
+    enabled = models.BooleanField(default=True)
 
     data = models.ManyToManyField(
         "KVStore", related_name="data", blank=True, null=True)
