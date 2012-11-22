@@ -134,6 +134,7 @@ class Product(BaseModelNamed):
             ('data-description', striptags(self.description),),
             ('data-price', striptags(self.price),),
             ('data-url', striptags(self.original_url),),
+            ('data-image', self.images()[0]),
             ('data-images', '|'.join(striptags(x) for x in self.images())),
         ]
 

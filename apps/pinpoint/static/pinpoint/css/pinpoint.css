@@ -14,6 +14,11 @@ body {
 
 }
 
+.social-buttons .loading-container {
+    left: -1000px;
+    display: none;
+}
+
 .social-buttons .button {
     /* common style for social buttons */
     float       : left;
@@ -22,6 +27,11 @@ body {
 
 .social-buttons .facebook {
 
+}
+
+.social-buttons .facebook.no-count {
+    width: 50px;
+    overflow: hidden;
 }
 
 .social-buttons .pinterest {
@@ -34,7 +44,7 @@ body {
 
 /* discovery area */
 .discovery-area {
-
+    clear: both;
 }
 
 .discovery-area .column {
@@ -55,7 +65,7 @@ body {
     max-width: 100%;
 }
 
-.block .data {
+.featured .data, .block .data {
     display: none;
 }
 
@@ -63,6 +73,10 @@ body {
     position: absolute;
     top: 0%;
     left: 0%;
+}
+
+.block .social-buttons {
+    display: none;
 }
 
 .block.product {

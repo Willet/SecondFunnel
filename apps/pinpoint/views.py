@@ -120,6 +120,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
         product.description    = content_block.data.description
         product.featured_image = featured_image
+        product.is_featured    = True
 
         featured_context.update({
             'product': content_block.data.product,
@@ -130,6 +131,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     discovery_block = theme.discovery_product # TODO: Generalize to other blocks
     modified_discovery = "".join([
         "{% extends 'pinpoint/campaign_discovery.html' %}",
+        "{% load pinpoint_ui %}",
         "{% block discovery_block %}",
         discovery_block,
         "{% endblock discovery_block %}"
@@ -143,7 +145,8 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     product_preview = Template(theme.preview_product).render(context)
 
     # Featured content
-    featured_content = Template(content_template).render(featured_context)
+    modified_featured = '{% load pinpoint_ui %}' + content_template
+    featured_content  = Template(modified_featured).render(featured_context)
 
     # Header content
     header_content = render_to_string('pinpoint/campaign_head.html',
