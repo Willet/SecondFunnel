@@ -79,10 +79,10 @@ STATIC_ROOT = os.path.join(
                 os.path.abspath(__file__)))), 'static')
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'elasticbeanstalk-us-east-1-056265713214'
+AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test'
 
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
                         'compressor.filters.cssmin.CSSMinFilter']
@@ -96,7 +96,11 @@ COMPRESS_PRECOMPILERS = (
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+#STATIC_URL = '/static/'
+
+STATIC_URL = 'https://secondfunnel-test.s3.amazonaws.com/'
+
+COMPRESS_URL = STATIC_URL
 
 # Additional locations of static files
 STATICFILES_DIRS = (
