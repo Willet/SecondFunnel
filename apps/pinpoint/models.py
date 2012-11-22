@@ -10,9 +10,9 @@ from apps.assets.models import (MediaBase, BaseModel, BaseModelNamed,
 
 def page_template_includes(value):
     # Ought to be a staticmethod, but can't for whatever reason...
-    INCLUDE_PATTERN = re.compile('{{ ?(\w*?) ?}}')
+    INCLUDE_PATTERN = re.compile('{{ *(\w*?) *}}')
     REQUIRED_FIELDS = ['featured_content', 'discovery_area',
-                       'header_content']
+                       'header_content', 'preview_area']
 
     matches = INCLUDE_PATTERN.findall(value)
     missing = []
@@ -30,13 +30,69 @@ class StoreTheme(BaseModelNamed):
     DEFAULT_PAGE_TEMPLATE = """
     <html>
         <head>
-            {% include header_content %}
+            {{ header_content }}
         </head>
         <body>
-            {% include featured_content %}
-            {% include discovery_area %}
+            <div class='page'>
+                {{ featured_content }}
+                {{ discovery_area }}
+            </div>
+            {{ preview_area }}
         </body>
     </html>
+    """
+
+    DEFAULT_FEATURED_PRODUCT = """
+    <div class='featured product'>
+        {{ product.data }}
+        <img src='{{ product.featured_image }}' />
+        <p>Other images</p>
+        <ul>
+        {% if product.images|length > 1 %}
+            {% for image in product.images %}
+            <li>{{ image }}</li>
+            {% endfor %}
+        {% else %}
+            <li>No other images</li>
+        {% endif %}
+        </ul>
+        <div class='title'>{{ product.name }}</div>
+        <div class='price'>{{ product.price }}</div>
+        <div class='description'>{{ product.description }}</div>
+        <div class='url'>{{ product.url }}</div>
+
+        {% social_buttons product %}
+    </div>
+    """
+
+    DEFAULT_PRODUCT_PREVIEW = """
+    <div class='title'></div>
+    <div class='price'></div>
+    <div class='description'></div>
+    <div class='url'></div>
+    <div class='image'></div>
+    <div class='images'></div>
+    <div class='social-buttons'></div>
+    """
+
+    DEFAULT_DISCOVERY_BLOCK = """
+    <div class='block product'>
+        {{ product.data }}
+        <img src='{{ product.images.0 }}'/>
+        <div>{{ product.name }}</div>
+        {% social_buttons product %}
+        <div style='display: none'>
+            <!-- Testing -->
+            <div class='price'>{{ product.price }}</div>
+            <div class='description'>{{ product.description }}</div>
+            <div class='url'>{{ product.url }}</div>
+            <ul>
+                {% for image in product.images %}
+                <li>{{ image }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
     """
 
     # TODO: Replace with ForeignKey to support mobile themes?
@@ -45,13 +101,13 @@ class StoreTheme(BaseModelNamed):
                                      validators=[page_template_includes])
 
     # Featured Content Templates
-    featured_product  = models.TextField(default="")
+    featured_product  = models.TextField(default=DEFAULT_FEATURED_PRODUCT)
 
     # Preview Templates
-    preview_product   = models.TextField(default="")
+    preview_product   = models.TextField(default=DEFAULT_PRODUCT_PREVIEW)
 
     # Discovery Block Templates
-    discovery_product = models.TextField(default="")
+    discovery_product = models.TextField(default=DEFAULT_DISCOVERY_BLOCK)
 
     def __unicode__(self):
         return u"Theme for Store: %s" % self.store
