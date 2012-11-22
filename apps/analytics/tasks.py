@@ -232,7 +232,7 @@ def save_category_data(data):
     for row in data['sharing']:
         # we do this here and not in "pre processing" because celery can't
         # serialize certain things (e.g. datetime objects)
-        row = preprocess_row(row)
+        row = preprocess_row(row, logger)
 
         # total sharing
         # total sharing per network
@@ -248,7 +248,7 @@ def save_category_data(data):
 
     # handle engagement data
     for row in data['engagement']:
-        row = preprocess_row(row)
+        row = preprocess_row(row, logger)
 
         # total interactions
         # product interactions
