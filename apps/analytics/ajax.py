@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 
 from apps.assets.models import Store
-from apps.analytics.models import Section, Category, Metric, KVStore
+from apps.analytics.models import Category, Metric, KVStore
 from apps.pinpoint.models import Campaign
 from apps.utils.ajax import ajax_success, ajax_error
 
@@ -56,25 +56,22 @@ def analytics_pinpoint(request):
 
     # iterate through analytics structures and get the data
     results = {}
-    for section in Section.objects.filter(enabled=True).all():
-        results[section.name] = {}
+    for category in Category.objects.filter(enabled=True).all():
+        results[category.name] = {}
 
-        for category in section.categories.filter(enabled=True).all():
-            results[section.name][category.name] = {}
+        for metric in category.metrics.filter(enabled=True).all():
 
-            for metric in category.metrics.filter(enabled=True).all():
+            # just get the KV's associated with this object
+            data = metric.data.filter(
+                content_type=object_type, object_id=object_id
+            ).order_by('-timestamp')
 
-                # just get the KV's associated with this object
-                data = metric.data.filter(
-                    content_type=object_type, object_id=object_id
-                ).order_by('-timestamp')
-
-                results[section.name][category.name][metric.name] = [
-                    (
-                        datum.id, datum.timestamp.date().isoformat(),
-                        datum.key, datum.value
-                    )
-                    for datum in data.all()
-                ]
+            results[category.name][metric.name] = [
+                (
+                    datum.id, datum.timestamp.date().isoformat(),
+                    datum.key, datum.value
+                )
+                for datum in data.all()
+            ]
 
     return ajax_success(results)

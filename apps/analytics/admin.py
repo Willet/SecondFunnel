@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.analytics.models import Section, AnalyticsRecency, Category, Metric, KVStore
+from apps.analytics.models import AnalyticsRecency, Category, Metric, KVStore
 
 
 class AnalyticsRecencyAdmin(admin.ModelAdmin):
@@ -13,12 +13,6 @@ admin.site.register(AnalyticsRecency, AnalyticsRecencyAdmin)
 class AnalyticsBase(admin.ModelAdmin):
     list_display = ('name', 'enabled')
     list_filter = ('enabled',)
-
-
-class SectionAdmin(AnalyticsBase):
-    pass
-
-admin.site.register(Section, SectionAdmin)
 
 
 class CategoryAdmin(AnalyticsBase):

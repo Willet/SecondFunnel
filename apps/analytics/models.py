@@ -30,13 +30,6 @@ class AnalyticsBase(models.Model):
         abstract = True
 
 
-class Section(AnalyticsBase):
-    categories = models.ManyToManyField("Category", blank=True, null=True)
-
-    def __unicode__(self):
-        return self.name
-
-
 class Category(AnalyticsBase):
     metrics = models.ManyToManyField("Metric", blank=True, null=True)
 
