@@ -184,18 +184,13 @@ var PINPOINT = (function($){
     createTwitterButton = function(config) {
         var conf = config || {};
 
-        var url = 'https://twitter.com/share' +
-            '?url=' + encodeURIComponent(conf.url);
-
-        if (conf.title) {
-            url += '&text=' + encodeURIComponent(conf.title);
-        }
-
         var $twitterHtml = $('<a/>', {
-            'href'     : url,
+            'href'     : 'https://twitter.com/share',
             'class'    : 'twitter-share-button',
-            'data-lang': 'en',
-            'text'     : 'Tweet'
+            'text'     : 'Tweet',
+            'data-url' : conf.url,
+            'data-text': (conf.title || '') + ' ' + conf.url,
+            'data-lang': 'en'
         });
 
         if (!config.count) {
@@ -236,7 +231,7 @@ var PINPOINT = (function($){
     }
 
     var oldLoadFB = loadFB;
-    loadTwitter = function() {
+    loadFB = function() {
         oldLoadFB();
     }
     /* --- END tracking --- */
