@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.template.defaultfilters import striptags
+from django.utils.html import escape
 
 
 class BaseModel(models.Model):
@@ -119,6 +121,32 @@ class Product(BaseModelNamed):
 
     def media_count(self):
         return self.media.count()
+
+    # Template Aliases
+    def url(self):
+        return self.original_url
+
+    def images(self):
+        return [x.get_url() for x in self.media.all()]
+
+    def data(self):
+        def strip_and_escape(text):
+            modified_text = striptags(text)
+            modified_text = escape(modified_text)
+            return modified_text
+        
+        fields = [
+            ('data-title', strip_and_escape(self.name)),
+            ('data-description', strip_and_escape(self.description)),
+            ('data-price', strip_and_escape(self.price)),
+            ('data-url', strip_and_escape(self.original_url)),
+            ('data-image', self.images()[0]),
+            ('data-images', '|'.join(strip_and_escape(x) for x in self.images())),
+        ]
+
+        data = ' '.join("%s='%s'" % field for field in fields)
+
+        return data
 
 
 class ProductMedia(ImageBase):
