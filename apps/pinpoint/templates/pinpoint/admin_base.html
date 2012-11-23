@@ -4,13 +4,13 @@
 {% load cache %}
 <html>
     <head>
-        {% cache 99999999999 css request.get_full_path %}
+        <title>{% block title %}Second Funnel{% endblock %}</title>
+        {% cache 99999999999 css %}
         {% compress css %}
         <link rel="stylesheet" type="text/x-scss" href="{% static "pinpoint/css/pinpointAdmin.scss" %}">
         <link rel="stylesheet" href="{% static "css/960.css" %}">
         <link rel="stylesheet" href="{% static "css/reset.css" %}">
         <link rel="stylesheet" href="{% static "css/text.css" %}">
-        <title>{% block title %}Second Funnel{% endblock %}</title>
         <link rel="shortcut icon" href="{% static "images/favicon.ico" %}" />
 
         {% block extra_head %}{% endblock %}
@@ -72,7 +72,7 @@
             </div>
         </div>
 
-        {% cache 99999999999 js request.get_full_path %}
+        {% cache 99999999999 js %}
         {% compress js %}
         <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
         <script src="{% static "js/jquery.cookie.js" %}"></script>
