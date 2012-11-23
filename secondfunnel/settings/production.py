@@ -3,7 +3,7 @@ from common import *
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
-COMPRESS_ENABLED = False
+COMPRESS_ENABLED = True
 
 INSTALLED_APPS = (
     'django.contrib.auth',
