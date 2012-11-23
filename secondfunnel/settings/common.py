@@ -107,6 +107,8 @@ CACHES = {
 STATIC_URL = 'https://secondfunnel-test.s3.amazonaws.com/'
 COMPRESS_URL = STATIC_URL
 
+COMPRESS_PARSER = 'compressor.parser.LxmlParser'
+
 # Additional locations of static files
 STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
