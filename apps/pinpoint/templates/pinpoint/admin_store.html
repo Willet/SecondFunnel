@@ -305,10 +305,6 @@
 {% endblock %}
 
 {% block content %}
-{% if not request %}
-<html>
-</html>
-{% else %}
     <a id="new_page_button" class="button focus" href="{% url new-campaign-admin store.id %}">New Page</a>
     <table id="pageList" cellpadding="0" cellspacing="0" border="0" class="display" >
         <thead>
@@ -336,5 +332,4 @@
             {% endfor %}
         </tbody>
     </table>
-{% endif %}
 {% endblock %}
