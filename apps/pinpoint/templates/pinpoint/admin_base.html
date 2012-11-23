@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 {% load staticfiles %}
 {% load compress %}
+{% load cache %}
 <html>
     <head>
+        {% cache 99999999999 css request.get_full_path %}
         {% compress css %}
         <link rel="stylesheet" type="text/x-scss" href="{% static "pinpoint/css/pinpointAdmin.scss" %}">
         <link rel="stylesheet" href="{% static "css/960.css" %}">
@@ -19,6 +21,7 @@
             }
         </style>
         {% endcompress %}
+        {% endcache %}
     </head>
 
     <body>
@@ -69,6 +72,7 @@
             </div>
         </div>
 
+        {% cache 99999999999 js request.get_full_path %}
         {% compress js %}
         <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
         <script src="{% static "js/jquery.cookie.js" %}"></script>
@@ -113,5 +117,6 @@
             });
         </script>
         {% endcompress %}
+        {% endcache %}
     </body>
 </html>
