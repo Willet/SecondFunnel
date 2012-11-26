@@ -84,8 +84,10 @@ AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test'
 
+STATIC_ASSET_TIMEOUT = 1209600
+
 AWS_EXPIRES_REGEXES = [
-    ('^CACHE/', 1209600), # two weeks
+    ('^CACHE/', STATIC_ASSET_TIMEOUT), # two weeks
 ]
 
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
@@ -242,8 +244,15 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
     # allows for the django messages framework
     'django.contrib.messages.context_processors.messages',
+
+    # allows for external settings dict
+    'secondfunnel.context_processors.expose_settings'
     )
 
 FIXTURE_DIRS = (
     'secondfunnel/fixtures/',
 )
+
+EXPOSED_SETTINGS = {
+    'STATIC_ASSET_TIMEOUT': STATIC_ASSET_TIMEOUT
+}

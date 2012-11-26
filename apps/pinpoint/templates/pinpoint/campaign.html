@@ -1,17 +1,22 @@
 {% load staticfiles %}
 {% load pinpoint_ui %}
 {% load compress %}
+{% load cache %}
 
 <!DOCTYPE html>
 <html xmlns:fb="http://ogp.me/ns/fb#">
     <head>
         <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+        {% cache STATIC_ASSET_TIMEOUT pinpoint_css %}
         {% compress css %}
             {% for sheet in stylesheets %}
             <link rel="stylesheet" type="text/css" href="{{ sheet }}" />
             {% endfor %}
             <link rel="stylesheet" type="text/x-scss" href="{% static "pinpoint/css/pinpoint.scss" %}"/>
         {% endcompress %}
+        {% endcache %}
+
+        {% cache STATIC_ASSET_TIMEOUT pinpoint_js %}
         {% compress js %}
             <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
             <script src="{% static "js/infinity.min.js" %}"></script>
@@ -561,6 +566,7 @@
                 });
             </script>
         {% endcompress %}
+        {% endcache %}
     </head>
     <body>
         <div id="willet-main">
