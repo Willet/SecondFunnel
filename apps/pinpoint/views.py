@@ -88,20 +88,28 @@ def campaign(request, campaign_id):
     }
     context = RequestContext(request)
 
-    if hasattr(campaign_instance.store, "theme"):
-        context.update(arguments)
-        return campaign_to_theme_to_response(campaign_instance, arguments,
+    mode = request.flavour
+    has_mobile_theme = hasattr(campaign_instance.store, 'mobile')
+    has_theme = hasattr(campaign_instance.store, 'theme')
+
+    if mode == 'mobile' and has_mobile_theme:
+        return campaign_to_theme_to_response(campaign_instance.store.mobile,
+                                             campaign_instance,
+                                             arguments,
+                                             context)
+    elif has_theme:
+        return campaign_to_theme_to_response(campaign_instance.store.theme,
+                                             campaign_instance,
+                                             arguments,
                                              context)
     else:
         return render_to_response('pinpoint/campaign.html', arguments,
                                   context_instance=context)
 
-def campaign_to_theme_to_response(campaign, arguments, context=None):
+def campaign_to_theme_to_response(theme, campaign, arguments, context=None):
     if context is None:
         context = Context()
     context.update(arguments)
-
-    theme = campaign.store.theme
 
     # Determine featured content type
     # TODO: How to handle multiple block types?

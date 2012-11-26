@@ -26,7 +26,7 @@ def page_template_includes(value):
                               'template: {fields}'
         .format(fields=', '.join(missing)))
 
-class StoreTheme(BaseModelNamed):
+class BaseStoreTheme(BaseModelNamed):
     DEFAULT_PAGE_TEMPLATE = """
     <html>
         <head>
@@ -89,8 +89,6 @@ class StoreTheme(BaseModelNamed):
     </div>
     """
 
-    # TODO: Replace with ForeignKey to support mobile themes?
-    store         = models.OneToOneField(Store, related_name="theme")
     page_template = models.TextField(default=DEFAULT_PAGE_TEMPLATE,
                                      validators=[page_template_includes])
 
@@ -105,6 +103,17 @@ class StoreTheme(BaseModelNamed):
 
     def __unicode__(self):
         return u"Theme for Store: %s" % self.store
+
+    class Meta:
+        abstract = True
+
+class StoreTheme(BaseStoreTheme):
+    # TODO: Replace with ForeignKey to support multiple themes?
+    store = models.OneToOneField(Store, related_name='theme')
+
+class MobileStoreTheme(BaseStoreTheme):
+    # TODO: Replace with ForeignKey to support multiple themes?
+    store = models.OneToOneField(Store, related_name='mobile')
 
 
 class StoreThemeMedia(MediaBase):
