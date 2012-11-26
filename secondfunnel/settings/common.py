@@ -78,11 +78,15 @@ STATIC_ROOT = os.path.join(
             os.path.dirname(
                 os.path.abspath(__file__)))), 'static')
 
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+DEFAULT_FILE_STORAGE = 'secondfunnel.storage.CustomExpiresS3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test'
+
+AWS_EXPIRES_REGEXES = [
+    ('^CACHE/', 1209600), # two weeks
+]
 
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
                         'compressor.filters.cssmin.CSSMinFilter']

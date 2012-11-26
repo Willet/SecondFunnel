@@ -5,21 +5,27 @@
 <html>
     <head>
         <title>{% block title %}Second Funnel{% endblock %}</title>
-        {% cache 99999999999 css request.get_full_path %}
+        {# note that 1209600 is two weeks in seconds #}
+        {% cache 1209600 css_admin_base %}
         {% compress css %}
-        <link rel="stylesheet" type="text/x-scss" href="{% static "pinpoint/css/pinpointAdmin.scss" %}">
-        <link rel="stylesheet" href="{% static "css/960.css" %}">
-        <link rel="stylesheet" href="{% static "css/reset.css" %}">
-        <link rel="stylesheet" href="{% static "css/text.css" %}">
-        <link rel="shortcut icon" href="{% static "images/favicon.ico" %}" />
+            <link rel="stylesheet" type="text/x-scss" href="{% static "pinpoint/css/pinpointAdmin.scss" %}">
+            <link rel="stylesheet" href="{% static "css/960.css" %}">
+            <link rel="stylesheet" href="{% static "css/reset.css" %}">
+            <link rel="stylesheet" href="{% static "css/text.css" %}">
+            <link rel="shortcut icon" href="{% static "images/favicon.ico" %}" />
 
-        {% block extra_head %}{% endblock %}
-        <style>
-            /* this needs to be here to use the static template tag */
-            ul.messages li {
-                background-image: url('{% static "pinpoint/images/stop32.png" %}');
-            }
-        </style>
+            <style>
+                /* this needs to be here to use the static template tag */
+                ul.messages li {
+                    background-image: url('{% static "pinpoint/images/stop32.png" %}');
+                }
+            </style>
+        {% endcompress %}
+        {% endcache %}
+
+        {% cache 1209600 css request.get_full_path %}
+        {% compress css %}
+            {% block extra_head %}{% endblock %}
         {% endcompress %}
         {% endcache %}
     </head>
@@ -72,7 +78,7 @@
             </div>
         </div>
 
-        {% cache 99999999999 js request.get_full_path %}
+        {% cache 1209600 js_admin_base %}
         {% compress js %}
         <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
         <script src="{% static "js/jquery.cookie.js" %}"></script>
@@ -87,7 +93,6 @@
             });
             {% endif %}
         </script>
-        {% block extra_js_includes %}{% endblock %}
 
         <script type="text/javascript">
             $(function() {
@@ -112,10 +117,20 @@
                         xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
                     }
                 });
-
-                {% block document_ready %}{% endblock %}
             });
         </script>
+        {% endcompress %}
+        {% endcache %}
+
+        {% cache 1209600 js request.get_full_path %}
+        {% compress js %}
+            <script type="text/javascript">
+                $(function() {
+                    {% block document_ready %}{% endblock %}
+                });
+            </script>
+
+            {% block extra_js_includes %}{% endblock %}
         {% endcompress %}
         {% endcache %}
     </body>
