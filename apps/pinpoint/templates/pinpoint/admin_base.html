@@ -83,15 +83,6 @@
         <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
         <script src="{% static "js/jquery.cookie.js" %}"></script>
         <script>
-            {% if store.id %}
-            $("#cancel_to_admin").click(function(){
-                var cancel = confirm("Are you sure you want to cancel your " +
-                        "changes?");
-                if (cancel) {
-                    window.location.href = "{% url store-admin store.id %}";
-                }
-            });
-            {% endif %}
         </script>
 
         <script type="text/javascript">
@@ -126,6 +117,15 @@
         {% compress js %}
             <script type="text/javascript">
                 $(function() {
+                    {% if store.id %}
+                    $("#cancel_to_admin").click(function(){
+                        var cancel = confirm("Are you sure you want to cancel your " +
+                                "changes?");
+                        if (cancel) {
+                            window.location.href = "{% url store-admin store.id %}";
+                        }
+                    });
+                    {% endif %}
                     {% block document_ready %}{% endblock %}
                 });
             </script>
