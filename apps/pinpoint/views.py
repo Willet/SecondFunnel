@@ -75,6 +75,8 @@ def campaign_analytics_admin(request, store_id, campaign_id):
         raise Http404
 
     return render_to_response('pinpoint/admin_analytics.html', {
+        'is_overview': False,
+        'store': campaign.store,
         'campaign': campaign
     }, context_instance=RequestContext(request))
 
@@ -87,6 +89,7 @@ def store_analytics_admin(request, store_id):
         raise Http404
 
     return render_to_response('pinpoint/admin_analytics.html', {
+        'is_overview': True,
         'store': store
     }, context_instance=RequestContext(request))
 

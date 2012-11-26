@@ -10,5 +10,5 @@ register = template.Library()
 
 
 @register.inclusion_tag('analyticsui/analytics_data.html')
-def ui_analytics_data(store=None, campaign=None):
+def ui_analytics_data(is_overview=False, store=None, campaign=None):
     return {'store': store, 'campaign': campaign}

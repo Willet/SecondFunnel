@@ -13,9 +13,25 @@
 {% block extra_head %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static "analytics/css/analytics_style.css" %}">
+    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
 {% endblock %}
 
 {% block extra_js_includes %}
+    <script src="{% static "js/jquery-ui.js" %}"></script>
+{% endblock %}
+
+{% block top_section %}
+    <nav class="grid_3 prefix_9">
+        <ul>
+            {% if store %}
+                <li><a href="{% url store-admin store.id %}">Pages</a></li>
+                <li class="selected"><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
+            {% else %}
+                <li><a href="{% url store-admin campaign.store.id %}">Pages</a></li>
+                <li class="selected"><a href="#">Analytics</a></li>
+            {% endif %}
+        </ul>
+    </nav>
 {% endblock %}
 
 {% block document_ready %}
@@ -54,40 +70,139 @@
         {% endif %}
         $("#analytics_title").html($(".selectedPage").html());
     });
-{% endblock %}
 
-{% block top_section %}
-    <nav class="grid_3 prefix_9">
-        <ul>
-            {% if store %}
-                <li><a href="{% url store-admin store.id %}">Pages</a></li>
-                <li class="selected"><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
-            {% else %}
-                <li><a href="{% url store-admin campaign.store.id %}">Pages</a></li>
-                <li class="selected"><a href="#">Analytics</a></li>
-            {% endif %}
-        </ul>
-    </nav>
+    $( "#start_range" ).datepicker({
+        defaultDate: "+1w",
+        changeMonth: true,
+        numberOfMonths: 3,
+        onClose: function( selectedDate ) {
+            $( "#end_range" ).datepicker( "option", "minDate", selectedDate );
+        }
+    });
+    $( "#end_range" ).datepicker({
+        defaultDate: "+1w",
+        changeMonth: true,
+        numberOfMonths: 3,
+        onClose: function( selectedDate ) {
+            $( "#start_range" ).datepicker( "option", "maxDate", selectedDate );
+        }
+    });
 {% endblock %}
 
 {% block content %}
-    <div class="grid_12">
-        <div class="grid_2 alpha campaign_menu">
-            <ul id="campaign_list">
-                <li id="overview" {% if store %}class="selectedPage"{% endif %}><strong>Overview</strong></li>
+    <style>
 
-                {% if store %}
-                    {% for c in store.campaign_set.all %}
-                        <li id="{{ c.id }}">{{ c.name }}</li>
-                    {% endfor %}
-                {% else %}
-                    {% for c in campaign.store.campaign_set.all %}
-                        <li id="{{ c.id }}" {% if c.id == campaign.id %}class="selectedPage"{% endif %}>{{ c.name }}</li>
-                    {% endfor %}
-                {% endif %}
+    </style>
+
+    {% with store=campaign.store %}
+    <div class="grid_12 top_analytics_menu">
+        <div class="grid_2 page_selector">
+            <label for="campaign_list">Page:</label>
+            <select id="campaign_list" name="campaign_list">
+                <option value="overview" {% if is_overview %}selected{% endif %}>Overview</option>
+                {% for c in store.campaign_set.all %}
+                    <option value="{{ c.id }}" {% if c.id == campaign.id %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="grid_6 prefix_2 range_selector">
+            <label for="start_range">Start:</label>
+            <input type="text" id="start_range" name="start_range">
+
+            <label for="end_range">End:</label>
+            <input type="text" id="end_range" name="end_range">
+        </div>
+    </div>
+    {% endwith %}
+
+    <div class="grid_9 omega campaign_analytics">
+        <div class="grid_9">
+            <h2 id="analytics_title">Loading...</h2>
+
+            <ul>
+                <li><span class="highlight">Visitors (<span id="visitors_count">&hellip;</span>)</span></li>
+                <li>
+                    <ul>
+                        <li class="angled"><span class="highlight" id="visitors_to_interaction">&hellip;</span> <span class="dimmed">(<span id="interaction_count">&hellip;</span>)</span> Interacted</li>
+                        <li>
+                            <ul>
+                                <li class="angled"><span class="highlight" id="social_shares_perc">&hellip;</span> <span class="dimmed">(<span id="social_shares_count">&hellip;</span>)</span> Social Shares</li>
+                                <li>
+                                    <ul>
+                                        <li class="angled"><span class="highlight" id="shared_featured_perc">&hellip;</span> <span class="dimmed">(<span id="shared_featured_count">&hellip;</span>)</span> Shared Featured</li>
+                                        <li class="angled"><span class="highlight" id="shared_popup_perc">&hellip;</span> <span class="dimmed">(<span id="shared_popup_count">&hellip;</span>)</span> Shared Popup</li>
+                                    </ul>
+                                </li>
+                                <li class="angled"><span class="highlight" id="open_popup_perc">&hellip;</span> <span class="dimmed">(<span id="open_popup_count">&hellip;</span>)</span> Previewed Product</li>
+                                <li class="angled"><span class="highlight" id="clickthrough_perc">&hellip;</span> <span class="dimmed">(<span id="clickthrough_count">&hellip;</span>)</span> Clicked "Buy Now"</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
             </ul>
         </div>
 
-        {% ui_analytics_data store=store campaign=campaign %}
+        <div class="grid_9">
+            <div id="analytics_chart" style="border: 1px solid #545454; width: 600px; height: 320px;"></div>
+        </div>
     </div>
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        function set_percentage(id, perc) {
+            $("#" + id).html(perc.toFixed(2) + "%");
+        }
+
+        function loadAnalyticsData(o) {
+            $.getJSON(
+                "{% url ajax-analytics-pinpoint %}",
+                {
+                    store_id: o.store_id,
+                    campaign_id: o.campaign_id
+                },
+
+                function(analytics_data) {
+                    var dataset = [['Year', 'Visits', 'Interactions']],
+                    i, google_data, google_options, chart, social_shares_count;
+
+                    $("#visitors_count").html(analytics_data.visits);
+                    $("#interaction_count").html(analytics_data.interactions.total);
+
+                    social_shares_count = analytics_data.interactions.shares.featured + analytics_data.interactions.shares.popup;
+                    $("#social_shares_count").html(social_shares_count);
+                    $("#shared_featured_count").html(analytics_data.interactions.shares.featured);
+                    $("#shared_popup_count").html(analytics_data.interactions.shares.popup);
+                    $("#open_popup_count").html(analytics_data.interactions.open_popup);
+                    $("#clickthrough_count").html(analytics_data.interactions.clickthrough);
+
+                    set_percentage("visitors_to_interaction", analytics_data.interactions.total / analytics_data.visits * 100);
+                    set_percentage("social_shares_perc", social_shares_count / analytics_data.interactions.total * 100);
+                    set_percentage("shared_featured_perc", analytics_data.interactions.shares.featured / social_shares_count * 100);
+                    set_percentage("shared_popup_perc", analytics_data.interactions.shares.popup / social_shares_count * 100);
+                    set_percentage("open_popup_perc", analytics_data.interactions.popup / analytics_data.interactions.total * 100);
+                    set_percentage("clickthrough_perc", analytics_data.interactions.clickthrough / analytics_data.interactions.total * 100);
+
+                    for (var i in analytics_data.daily) {
+                        dataset.push([analytics_data.daily[i].date, analytics_data.daily[i].visits, analytics_data.daily[i].interactions.total]);
+                    }
+
+                    google_data = google.visualization.arrayToDataTable(dataset);
+
+                    google_options = {
+                        title: 'Traffic Overview',
+                        legend: {'position': 'bottom', 'fontSize': 16},
+                        backgroundColor: "#e9e9e9",
+                        chartArea: {width: '87%'},
+                        colors: ["#8E9E82", "#607890"]
+                    };
+
+                    chart = new google.visualization.LineChart(document.getElementById('analytics_chart'));
+                    chart.draw(google_data, google_options);
+                }
+            );
+        }
+
+        google.load("visualization", "1", {packages:["corechart"]});
+    </script>
 {% endblock %}

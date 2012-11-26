@@ -323,7 +323,7 @@
                 <td><div>{{ campaign.name }}</div></td>
                 <td><div data-timestamp='{{ campaign.last_modified|date:"U" }}'>{{ campaign.last_modified|naturalday }}</div></td>
                 <td><div><a class="get_link" href="#">Get Link</a></div></td>
-                <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
+                <td><div><a href="{% url analytics-campaign-admin campaign.store.id campaign.id %}">Analytics</a></div></td>
                 <td><div><a class="view_page" href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
                 <td><div><a href="{% url edit-campaign-admin campaign.store.id campaign.id %}">Edit Page</a></div></td>
             </tr>

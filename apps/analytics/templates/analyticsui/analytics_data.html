@@ -1,3 +1,79 @@
+{% block document_ready %}
+    {% if store %}
+        var store_id = '{{ store.id }}';
+    {% else %}
+        var store_id = '{{ campaign.store.id }}';
+    {% endif %}
+
+    $("#campaign_list li").live("click", function() {
+        $("#analytics_title").html($(this).html());
+
+        if ($(this).attr("id") == "overview") {
+            loadAnalyticsData({
+                store_id: store_id
+            });
+        } else {
+            loadAnalyticsData({
+                campaign_id: $(this).attr("id")
+            });
+        }
+
+        $("#campaign_list li").removeClass("selectedPage");
+        $(this).addClass("selectedPage");
+    });
+
+    google.setOnLoadCallback(function () {
+        {% if store %}
+            loadAnalyticsData({
+                store_id: store_id
+            });
+        {% else %}
+            loadAnalyticsData({
+                campaign_id: '{{ campaign.id }}'
+            });
+        {% endif %}
+        $("#analytics_title").html($(".selectedPage").html());
+    });
+
+    $( "#start_range" ).datepicker({
+        defaultDate: "+1w",
+        changeMonth: true,
+        numberOfMonths: 3,
+        onClose: function( selectedDate ) {
+            $( "#end_range" ).datepicker( "option", "minDate", selectedDate );
+        }
+    });
+    $( "#end_range" ).datepicker({
+        defaultDate: "+1w",
+        changeMonth: true,
+        numberOfMonths: 3,
+        onClose: function( selectedDate ) {
+            $( "#start_range" ).datepicker( "option", "maxDate", selectedDate );
+        }
+    });
+{% endblock %}
+
+<div class="grid_12 top_analytics_menu">
+    <span class="page_selector">
+        Page:
+        <select id="campaign_list">
+            <option value="overview" {% if is_overview %}selected{% endif %}>Overview</option>
+
+            {% for c in store.campaign_set.all %}
+                <option value="{{ c.id }}" {% if c.id == campaign.id %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+    </span>
+
+    <span class="range_selector">
+        <label for="start_range">Start:</label>
+        <input type="text" id="start_range" name="start_range">
+
+        <label for="end_range">End:</label>
+        <input type="text" id="end_range" name="end_range">
+    </span>
+</div>
+
 <div class="grid_9 omega campaign_analytics">
     <div class="grid_9">
         <h2 id="analytics_title">Loading...</h2>
