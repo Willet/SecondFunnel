@@ -218,5 +218,5 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     )
 
 FIXTURE_DIRS = (
-    'secondfunnel/fixtures/',
+   'secondfunnel/fixtures/',
 )
