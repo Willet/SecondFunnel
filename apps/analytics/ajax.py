@@ -28,6 +28,20 @@ def analytics_pinpoint(request):
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 
+    if start_date:
+        start_date = datetime.datetime(
+            year=start_date.split("/")[0],
+            month=start_date.split("/")[1],
+            day=start_date.split("/")[2]
+        )
+
+    if end_date:
+        end_date = datetime.datetime(
+            year=end_date.split("/")[0],
+            month=end_date.split("/")[1],
+            day=end_date.split("/")[2]
+        )
+
     if not object_id:
         return ajax_error()
 
@@ -65,6 +79,12 @@ def analytics_pinpoint(request):
             data = metric.data.filter(
                 content_type=object_type, object_id=object_id
             ).order_by('-timestamp')
+
+            if start_date:
+                data = data.filter(timestamp__gte=start_date)
+
+            if end_date:
+                data = data.filter(timestamp__lte=end_date)
 
             results[category.name][metric.name] = [
                 (
