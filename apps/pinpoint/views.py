@@ -5,8 +5,9 @@ from django.template import RequestContext
 from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
 
-from apps.pinpoint.models import Campaign, BlockType, BlockContent
+from apps.analytics.models import Category
 from apps.assets.models import Store, Product
+from apps.pinpoint.models import Campaign, BlockType, BlockContent
 
 import apps.pinpoint.wizards as wizards
 
@@ -68,29 +69,32 @@ def block_type_router(request, store_id, block_type_id):
 
 
 @login_required
-def campaign_analytics_admin(request, store_id, campaign_id):
-    campaign = get_object_or_404(Campaign, pk=campaign_id)
-
-    if not request.user in campaign.store.staff.all():
-        raise Http404
-
-    return render_to_response('pinpoint/admin_analytics.html', {
-        'is_overview': False,
-        'store': campaign.store,
-        'campaign': campaign
-    }, context_instance=RequestContext(request))
-
-
-@login_required
 def store_analytics_admin(request, store_id):
     store = get_object_or_404(Store, pk=store_id)
 
+    return analytics_admin(request, store)
+
+
+@login_required
+def campaign_analytics_admin(request, store_id, campaign_id):
+    campaign = get_object_or_404(Campaign, pk=campaign_id)
+
+    return analytics_admin(
+        request, campaign.store, campaign=campaign, is_overview=False)
+
+
+@login_required
+def analytics_admin(request, store, campaign=False, is_overview=True):
     if not request.user in store.staff.all():
-        raise Http404
+        return Http404
+
+    categories = Category.objects.filter(enabled=True)
 
     return render_to_response('pinpoint/admin_analytics.html', {
-        'is_overview': True,
-        'store': store
+        'is_overview': is_overview,
+        'store': store,
+        'campaign': campaign,
+        'categories': categories,
     }, context_instance=RequestContext(request))
 
 
