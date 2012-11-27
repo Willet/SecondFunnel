@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 {% load staticfiles %}
 {% load compress %}
-{% load cache %}
 <html>
     <head>
         <title>{% block title %}Second Funnel{% endblock %}</title>
         {# note that 1209600 is two weeks in seconds #}
-        {% cache STATIC_ASSET_TIMEOUT css_admin_base %}
         {% compress css %}
             <link rel="stylesheet" type="text/x-scss" href="{% static "pinpoint/css/pinpointAdmin.scss" %}">
             <link rel="stylesheet" href="{% static "css/960.css" %}">
@@ -21,13 +19,10 @@
                 }
             </style>
         {% endcompress %}
-        {% endcache %}
 
-        {% cache STATIC_ASSET_TIMEOUT css request.get_full_path %}
         {% compress css %}
             {% block extra_head %}{% endblock %}
         {% endcompress %}
-        {% endcache %}
     </head>
 
     <body>
@@ -78,7 +73,6 @@
             </div>
         </div>
 
-        {% cache STATIC_ASSET_TIMEOUT js_admin_base %}
         {% compress js %}
         <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
         <script src="{% static "js/jquery.cookie.js" %}"></script>
@@ -111,9 +105,7 @@
             });
         </script>
         {% endcompress %}
-        {% endcache %}
 
-        {% cache STATIC_ASSET_TIMEOUT js request.get_full_path %}
         {% compress js %}
             <script type="text/javascript">
                 $(function() {
@@ -132,6 +124,5 @@
 
             {% block extra_js_includes %}{% endblock %}
         {% endcompress %}
-        {% endcache %}
     </body>
 </html>
