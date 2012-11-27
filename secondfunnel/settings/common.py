@@ -86,10 +86,10 @@ AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test'
 
-STATIC_ASSET_TIMEOUT = 1209600
+STATIC_ASSET_TIMEOUT = 1209600  # two weeks
 
 AWS_EXPIRES_REGEXES = [
-    ('^CACHE/', STATIC_ASSET_TIMEOUT), # two weeks
+    ('^CACHE/', STATIC_ASSET_TIMEOUT),
 ]
 
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
@@ -112,7 +112,7 @@ CACHES = {
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 
-STATIC_URL = 'https://secondfunnel-test.s3.amazonaws.com/'
+STATIC_URL = 'https://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
 COMPRESS_URL = STATIC_URL
 
 COMPRESS_PARSER = 'compressor.parser.LxmlParser'
