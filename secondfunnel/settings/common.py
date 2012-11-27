@@ -1,11 +1,31 @@
 import os
 
 import django.conf.global_settings as DEFAULT_SETTINGS
+from secondfunnel.errors import EnvironmentSettingsError
 
 # Django settings for secondfunnel project.
 
+PRODUCTION = False
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+
+# aws environment specific settings
+if PRODUCTION:
+    # in production, missing settings throws an exception
+    AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket')
+    MEMCACHED_LOCATION = os.getenv('ProductionCache')
+    if None in (AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION):
+        raise EnvironmentSettingsError()
+else:
+    # in dev we trust the programmer knows what he's doing
+    try:
+        from dev_env import *
+        if None in (AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION):
+            raise Exception()
+    except:
+        AWS_STORAGE_BUCKET_NAME = ''
+        MEMCACHED_LOCATION = ''
+
 
 ADMINS = (
 # ('Your Name', 'your_email@example.com'),
@@ -84,7 +104,6 @@ DEFAULT_FILE_STORAGE = 'secondfunnel.storage.CustomExpiresS3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test'
 
 STATIC_ASSET_TIMEOUT = 1209600  # two weeks
 
@@ -105,7 +124,7 @@ COMPRESS_PRECOMPILERS = (
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': 'cache-test.yz4kz2.0001.usw2.cache.amazonaws.com:11211'
+        'LOCATION': MEMCACHED_LOCATION
     }
 }
 
