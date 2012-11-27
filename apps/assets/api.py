@@ -16,7 +16,7 @@ class UserAuthentication(Authentication):
 class UserPartOfStore(Authorization):
     def is_authorized(self, request, object=None):
         try:
-            if request.user in Store.objects.get(id=request.GET['storeid']).staff.all():
+            if request.user in Store.objects.get(id=request.GET['store']).staff.all():
                 return True
             else:
                 return False
@@ -46,6 +46,13 @@ class ProductResource(ModelResource):
         }
         authentication = UserAuthentication()
         authorization = UserPartOfStore()
+
+    def get_object_list(self, request):
+        result = super(ProductResource, self).get_object_list(request)
+        if 'store' in request.GET:
+            return result.filter(store=request.GET['store'])
+        else:
+            return result.none()
 
     def build_filters(self, filters=None):
         if filters is None:
