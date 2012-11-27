@@ -42,6 +42,9 @@ class Category(AnalyticsBase):
     def metrics_count(self):
         return self.metrics.all().count()
 
+    def enabled_metrics(self):
+        return self.metrics.filter(enabled=True)
+
 
 class Metric(AnalyticsBase):
     data = models.ManyToManyField(
