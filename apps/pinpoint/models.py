@@ -26,7 +26,7 @@ def page_template_includes(value):
                               'template: {fields}'
         .format(fields=', '.join(missing)))
 
-class BaseStoreTheme(BaseModelNamed):
+class StoreTheme(BaseModelNamed):
     DEFAULT_PAGE_TEMPLATE = """
     <html>
         <head>
@@ -89,6 +89,19 @@ class BaseStoreTheme(BaseModelNamed):
     </div>
     """
 
+    store = models.ForeignKey(Store, related_name='themes')
+
+    # Unfortunately, due to shenanigans, we can't include these fields on the
+    # actual Store model
+    default_theme  = models.OneToOneField(Store,
+                                          related_name='theme',
+                                          blank=True,
+                                          null=True)
+    default_mobile = models.OneToOneField(Store,
+                                          related_name='mobile',
+                                          blank=True,
+                                          null=True)
+
     page_template = models.TextField(default=DEFAULT_PAGE_TEMPLATE,
                                      validators=[page_template_includes])
 
@@ -103,17 +116,6 @@ class BaseStoreTheme(BaseModelNamed):
 
     def __unicode__(self):
         return u"Theme for Store: %s" % self.store
-
-    class Meta:
-        abstract = True
-
-class StoreTheme(BaseStoreTheme):
-    # TODO: Replace with ForeignKey to support multiple themes?
-    store = models.OneToOneField(Store, related_name='theme')
-
-class MobileStoreTheme(BaseStoreTheme):
-    # TODO: Replace with ForeignKey to support multiple themes?
-    store = models.OneToOneField(Store, related_name='mobile')
 
 
 class StoreThemeMedia(MediaBase):
@@ -147,6 +149,10 @@ class BlockContent(BaseModel):
 
 class Campaign(BaseModelNamed):
     store = models.ForeignKey(Store)
+    theme = models.OneToOneField(StoreTheme, related_name='theme',
+                                 blank=True, null=True)
+    mobile = models.OneToOneField(StoreTheme, related_name='mobile',
+                                 blank=True, null=True)
     content_blocks = models.ManyToManyField(BlockContent,
         related_name="content_campaign")
 
@@ -157,6 +163,51 @@ class Campaign(BaseModelNamed):
 
     def __unicode__(self):
         return u"Campaign: %s" % self.name
+
+    def get_theme(self, type):
+        """Returns the best match for the given theme type.
+
+        type: a string; either 'full' or 'mobile'
+        """
+
+        # Unfortunately, OneToOneFields are not symmetric
+        # Until this feature is implemented, we need to do this to prevent
+        # unwanted exceptions
+        # https://code.djangoproject.com/ticket/10227
+
+        def getattr_catch(obj, name):
+            try:
+                result = getattr(obj, name)
+            except StoreTheme.DoesNotExist:
+                result = None
+            return result
+
+        priorities = {
+            'full'  : [
+                self.theme,
+                getattr_catch(self.store, 'theme'),
+                None
+            ],
+            'mobile': [
+                self.mobile,
+                getattr_catch(self.store, 'mobile'),
+                self.theme,
+                getattr_catch(self.store, 'theme'),
+                None
+            ]
+        }
+
+        themes = priorities.get(type)
+        if not themes:
+            return None
+
+        results = filter(None, themes)
+        if not results:
+            return None
+
+        return results[0]
+
+
 
 
 class FeaturedProductBlock(BaseModelNamed):

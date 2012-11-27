@@ -88,21 +88,16 @@ def campaign(request, campaign_id):
     }
     context = RequestContext(request)
 
-    mode = request.flavour
-    has_mobile_theme = hasattr(campaign_instance.store, 'mobile')
-    has_theme = hasattr(campaign_instance.store, 'theme')
+    theme = campaign_instance.get_theme(request.flavour)
 
-    if mode == 'mobile' and has_mobile_theme:
-        return campaign_to_theme_to_response(campaign_instance.store.mobile,
-                                             campaign_instance,
-                                             arguments,
-                                             context)
-    elif has_theme:
-        return campaign_to_theme_to_response(campaign_instance.store.theme,
+    if theme:
+        return campaign_to_theme_to_response(theme,
                                              campaign_instance,
                                              arguments,
                                              context)
     else:
+        # The most basic template. A last resort so that we show the user
+        # something
         return render_to_response('pinpoint/campaign.html', arguments,
                                   context_instance=context)
 
