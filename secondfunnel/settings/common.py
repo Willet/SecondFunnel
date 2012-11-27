@@ -1,5 +1,7 @@
 import os
 
+import django.conf.global_settings as DEFAULT_SETTINGS
+
 # Django settings for secondfunnel project.
 
 DEBUG = True
@@ -235,18 +237,12 @@ LOGGING = {
     }
 }
 
-TEMPLATE_CONTEXT_PROCESSORS = (
+TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
     # allows for request variable in templates
     'django.core.context_processors.request',
 
-    # needed for admin
-    'django.contrib.auth.context_processors.auth',
-
-    # allows for the django messages framework
-    'django.contrib.messages.context_processors.messages',
-
     # allows for external settings dict
-    'secondfunnel.context_processors.expose_settings'
+    'secondfunnel.context_processors.expose_settings',
     )
 
 FIXTURE_DIRS = (
