@@ -20,6 +20,7 @@ class CustomExpiresS3BotoStorage(S3BotoStorage):
 
     """
     Overrides the default url generator to apply given expiry times to matching regexes
+    Based on source code in storages.backends.s3boto.S3BotoStorage
     """
     def url(self, name):
         name = self._normalize_name(self._clean_name(name))
