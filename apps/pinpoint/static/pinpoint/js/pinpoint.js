@@ -34,6 +34,7 @@ var PINPOINT = (function($){
         // Fill in data
         $.each(data, function(key, value) {
             $element = $preview.find('.'+key)
+            $element.empty();
             switch(key) {
                 case 'image':
                     $element.append($('<img/>', {

@@ -84,14 +84,15 @@ body {
 }
 
 /* Preview */
-.preview {
+.preview.product {
     /* TODO: Should we have a separate class for a preview content block? */
     overflow: hidden;
     position: fixed;
     display : table;
-    top     : 0;
-    left    : 0;
-    display : none;
+    width     : 100%;
+    height    : 100%;
+    top:0;
+    left:0;
 }
 
 .preview.mask {
@@ -104,4 +105,35 @@ body {
     cursor    : -webkit-zoom-out;
     cursor    : -moz-zoom-out;
     cursor    : zoom-out;
+    display: block;
+}
+
+.preview.cell {
+    display: table-cell;
+    vertical-align: middle;
+    position: static;
+}
+
+.preview.content {
+    overflow: hidden;
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+
+    background: #fff;
+    z-index:1002;
+
+    -moz-box-shadow: 10px 10px 10px 0px #CECECE;
+    -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
+    -o-box-shadow: 10px 10px 10px 0px #CECECE;
+    box-shadow: 10px 10px 10px 0px #CECECE;
+}
+
+.preview.close {
+    cursor: pointer;
+}
+
+.preview img {
+    max-height: 200px;
 }
