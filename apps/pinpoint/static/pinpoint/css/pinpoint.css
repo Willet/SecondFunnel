@@ -15,8 +15,7 @@ body {
 }
 
 .social-buttons .loading-container {
-    left: -1000px;
-    display: none;
+    visibility: hidden;
 }
 
 .social-buttons .button {
