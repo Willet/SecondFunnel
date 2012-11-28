@@ -132,6 +132,7 @@ body {
 
 .preview.close {
     cursor: pointer;
+    float: right;
 }
 
 .preview img {
