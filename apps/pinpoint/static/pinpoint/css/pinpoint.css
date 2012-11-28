@@ -84,7 +84,7 @@ body {
 }
 
 /* Preview */
-.preview.product {
+.preview {
     /* TODO: Should we have a separate class for a preview content block? */
     overflow: hidden;
     position: fixed;
@@ -95,7 +95,7 @@ body {
     left:0;
 }
 
-.preview.mask {
+.preview .mask {
     position  : fixed;
     top       : 0;
     left      : 0;
@@ -108,13 +108,13 @@ body {
     display: block;
 }
 
-.preview.cell {
+.preview .tablecell {
     display: table-cell;
     vertical-align: middle;
     position: static;
 }
 
-.preview.content {
+.preview .content {
     overflow: hidden;
     width: 800px;
     margin-left: auto;
@@ -130,7 +130,7 @@ body {
     box-shadow: 10px 10px 10px 0px #CECECE;
 }
 
-.preview.close {
+.preview .close {
     cursor: pointer;
     float: right;
 }

@@ -148,10 +148,10 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     # TODO: Does this actually need any additional context?
     modified_preview = "".join([
         "<div class='preview product' style='display: none;'>",
-        "<div class='preview mask'></div>",
-        "<div class='preview cell'>",
-        "<div class='preview content'>",
-        "<span class='preview close'>X</span>",
+        "<div class='mask'></div>",
+        "<div class='tablecell'>",
+        "<div class='content'>",
+        "<span class='close'>X</span>",
         theme.preview_product,
         "</div>",
         "</div>",

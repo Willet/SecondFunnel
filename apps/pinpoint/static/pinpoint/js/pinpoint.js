@@ -121,7 +121,7 @@ var PINPOINT = (function($){
 
         // Event Handling
         $('.block.product').on('click', showPreview);
-        $('.preview.mask, .preview.close').on('click', hidePreview);
+        $('.preview .mask, .preview .close').on('click', hidePreview);
         $('.block.product').hover(productHoverOn, productHoverOff);
 
         // Prevent social buttons from causing other events
