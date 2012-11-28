@@ -96,11 +96,13 @@ class StoreTheme(BaseModelNamed):
     default_theme  = models.OneToOneField(Store,
                                           related_name='theme',
                                           blank=True,
-                                          null=True)
+                                          null=True,
+                                          verbose_name='Default theme for')
     default_mobile = models.OneToOneField(Store,
                                           related_name='mobile',
                                           blank=True,
-                                          null=True)
+                                          null=True,
+                                          verbose_name='Default mobile theme for')
 
     page_template = models.TextField(default=DEFAULT_PAGE_TEMPLATE,
                                      validators=[page_template_includes])
@@ -150,9 +152,11 @@ class BlockContent(BaseModel):
 class Campaign(BaseModelNamed):
     store = models.ForeignKey(Store)
     theme = models.OneToOneField(StoreTheme, related_name='theme',
-                                 blank=True, null=True)
+                                 blank=True, null=True,
+                                 verbose_name='Campaign Theme')
     mobile = models.OneToOneField(StoreTheme, related_name='mobile',
-                                 blank=True, null=True)
+                                 blank=True, null=True,
+                                 verbose_name='Campaign Mobile Theme')
     content_blocks = models.ManyToManyField(BlockContent,
         related_name="content_campaign")
 
