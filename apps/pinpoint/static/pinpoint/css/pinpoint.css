@@ -1,6 +1,8 @@
 /* page */
 body {
     min-height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 .page {
@@ -15,8 +17,7 @@ body {
 }
 
 .social-buttons .loading-container {
-    left: -1000px;
-    display: none;
+    visibility: hidden;
 }
 
 .social-buttons .button {
@@ -79,6 +80,10 @@ body {
     display: none;
 }
 
+.social-buttons {
+    height: 20px;
+}
+
 .block.product {
 
 }
@@ -89,12 +94,13 @@ body {
     overflow: hidden;
     position: fixed;
     display : table;
-    top     : 0;
-    left    : 0;
-    display : none;
+    width     : 100%;
+    height    : 100%;
+    top:0;
+    left:0;
 }
 
-.preview.mask {
+.preview .mask {
     position  : fixed;
     top       : 0;
     left      : 0;
@@ -104,4 +110,36 @@ body {
     cursor    : -webkit-zoom-out;
     cursor    : -moz-zoom-out;
     cursor    : zoom-out;
+    display: block;
+}
+
+.preview .tablecell {
+    display: table-cell;
+    vertical-align: middle;
+    position: static;
+}
+
+.preview .content {
+    overflow: hidden;
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+
+    background: #fff;
+    z-index:1002;
+
+    -moz-box-shadow: 10px 10px 10px 0px #CECECE;
+    -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
+    -o-box-shadow: 10px 10px 10px 0px #CECECE;
+    box-shadow: 10px 10px 10px 0px #CECECE;
+}
+
+.preview .close {
+    cursor: pointer;
+    float: right;
+}
+
+.preview img {
+    max-height: 200px;
 }

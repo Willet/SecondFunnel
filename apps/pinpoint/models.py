@@ -28,6 +28,7 @@ def page_template_includes(value):
 
 class StoreTheme(BaseModelNamed):
     DEFAULT_PAGE_TEMPLATE = """
+    <!DOCTYPE HTML>
     <html>
         <head>
             {{ header_content }}
