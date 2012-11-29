@@ -58,7 +58,8 @@ var PINPOINT = (function($){
         $buttons = createSocialButtons({
             'title': data.title,
             'url'  : data.url,
-            'image': data.image
+            'image': data.image,
+            'count': true
         });
         $preview.find('.social-buttons').replaceWith($buttons);
 
