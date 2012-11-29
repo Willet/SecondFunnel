@@ -27,30 +27,55 @@ var PINPOINT = (function($){
         var data     = $(this).data(),
             images,
             $element,
-            $mask    = $('.preview.mask'),
+            $mask    = $('.preview .mask'),
             $preview = $('.preview.product'),
-            $buttons;
+            $buttons,
+            tag;
 
         // Fill in data
         $.each(data, function(key, value) {
             $element = $preview.find('.'+key)
-            $element.empty();
+
+            if (!$element.length) {
+                // No further work to do
+                return;
+            }
+
+            tag = $element.prop('tagName').toLowerCase();
             switch(key) {
+                case 'url':
+                    if (tag === 'a') {
+                        $element.prop('href', value);
+                    } else {
+                        $element.html(value);
+                    }
+                    break;
                 case 'image':
+                    $element.empty();
                     $element.append($('<img/>', {
                         'src': value
-                    }))
+                    }));
                     break;
                 case 'images':
+                    $element.empty();
                     images = value.split('|');
                     $.each(images, function(index, image) {
-                        $element.append($('<img/>', {
-                            'src': image
-                        }))
+                        var $li = $('<li/>'),
+                            $img = $('<img/>', {
+                                'src': image
+                            }),
+                            $appendElem;
+
+                        $appendElem = $img;
+                        if (tag === 'ul') {
+                            $li.append($img);
+                            $appendElem = $li;
+                        }
+                        $element.append($li);
                     });
                     break;
                 default:
-                    $element.html(value)
+                    $element.html(value);
             }
         });
 
@@ -71,7 +96,7 @@ var PINPOINT = (function($){
     };
 
     hidePreview = function() {
-        var $mask    = $('.preview.mask'),
+        var $mask    = $('.preview .mask'),
             $preview = $('.preview.product');
 
         $preview.fadeOut(100);
