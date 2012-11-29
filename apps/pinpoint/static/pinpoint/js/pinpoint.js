@@ -135,6 +135,12 @@ var PINPOINT = (function($){
 
     /* --- START Social buttons --- */
     loadFB = function () {
+        FB.init({ 
+          cookie:true, 
+          status:true,
+          xfbml:true
+        });
+
         var $featuredFB = $('.featured .social-buttons .button.facebook');
 
         if ($featuredFB) {
