@@ -1,3 +1,5 @@
+from functools import wraps
+
 from django.core.exceptions import PermissionDenied
 
 from apps.assets.models import Store
@@ -9,7 +11,11 @@ def belongs_to_store(view_func):
     Checks that currently logged in user belongs to a list of staff members.
     """
 
-    def decorator(request, *args, **kwargs):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        """
+        Store could be passed to the view as a model instance or via ID.
+        """
         try:
             store_id = kwargs['store_id']
             store = Store.objects.get(pk=store_id)
@@ -29,4 +35,4 @@ def belongs_to_store(view_func):
 
         return view_func(request, *args, **kwargs)
 
-    return decorator
+    return wrapper
