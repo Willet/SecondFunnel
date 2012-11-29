@@ -34,6 +34,7 @@ var PINPOINT = (function($){
         // Fill in data
         $.each(data, function(key, value) {
             $element = $preview.find('.'+key)
+            $element.empty();
             switch(key) {
                 case 'image':
                     $element.append($('<img/>', {
@@ -82,7 +83,6 @@ var PINPOINT = (function($){
         $buttons.fadeIn('fast');
 
         if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
-            $buttons.find('.loading').show()
             FB.XFBML.parse($buttons.find('.button.facebook')[0]);
             $buttons.addClass('loaded');
         }
@@ -112,6 +112,9 @@ var PINPOINT = (function($){
         if (window.FB) {
             FB.XFBML.parse($featuredArea.find('.button.facebook')[0]);
         }
+        if (window.twttr && window.twttr.widgets) {
+            twttr.widgets.load();
+        }
     };
 
     ready = function() {
@@ -120,7 +123,7 @@ var PINPOINT = (function($){
 
         // Event Handling
         $('.block.product').on('click', showPreview);
-        $('.preview.mask, .preview.close').on('click', hidePreview);
+        $('.preview .mask, .preview .close').on('click', hidePreview);
         $('.block.product').hover(productHoverOn, productHoverOff);
 
         // Prevent social buttons from causing other events
@@ -133,22 +136,19 @@ var PINPOINT = (function($){
     /* --- START Social buttons --- */
     loadFB = function () {
         var $featuredFB = $('.featured .social-buttons .button.facebook');
-        console.log('Post FB load');
 
         if ($featuredFB) {
             FB.XFBML.parse($featuredFB[0]);
         }
 
         FB.Event.subscribe('xfbml.render', function(response) {
-            $(".loaded").find(".loading").hide();
+            $(".loaded").find(".loading-container").css('visibility', 'visible');
             $(".loaded").find(".loading-container").hide();
-            $(".loaded").find(".loading-container").css('left', 0);
             $(".loaded").find(".loading-container").fadeIn('fast');
         });
     };
 
     loadTwitter = function () {
-        console.log('Post Twitter load');
     };
 
     createSocialButtons = function (config) {
@@ -255,18 +255,8 @@ var PINPOINT = (function($){
         // TODO: Check if already loaded?
         // Use a dictionary, or just check all script tags?
         for (var i=0; i < scripts.length; i++) {
-            item   = scripts[i];
-
-            script        = document.createElement('script');
-
-            if (item.id) {
-                script.id = item.id;
-            }
-
-            script.async  = true;
-            script.src    = item.src    || item;
-            script.onload = item.onload || function() {};
-            document.head.appendChild(script);
+            item = scripts[i];
+            $.getScript(item.src || item, item.onload || function() {});
         }
     };
     /* --- END Script loading --- */
@@ -286,4 +276,4 @@ var PINPOINT = (function($){
     };
 })(jQuery);
 
-PINPOINT.init()
+PINPOINT.init();
