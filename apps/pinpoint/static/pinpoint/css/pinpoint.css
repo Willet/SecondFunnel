@@ -80,6 +80,10 @@ body {
     display: none;
 }
 
+.social-buttons {
+    height: 20px;
+}
+
 .block.product {
 
 }
