@@ -16,6 +16,10 @@ body {
 
 }
 
+.social-buttons img {
+    border: 0px none;
+}
+
 .social-buttons .loading-container {
     visibility: hidden;
 }
@@ -128,6 +132,7 @@ body {
 
     background: #fff;
     z-index:1002;
+    border: 1px solid #CECECE;
 
     -moz-box-shadow: 10px 10px 10px 0px #CECECE;
     -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
