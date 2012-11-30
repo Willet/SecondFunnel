@@ -19,7 +19,7 @@ var PINPOINT = (function($){
         scripts,
         showPreview,
         addPreviewCallback,
-        previewCallbacks;
+        previewCallbacks = [];
 
     /* --- START Utilities --- */
     /* --- END Utilities --- */
@@ -69,11 +69,9 @@ var PINPOINT = (function($){
         FB.XFBML.parse($preview.find('.social-buttons .button.facebook')[0]);
         twttr.widgets.load();
 
-        if (previewCallbacks) {
-            for (var i in previewCallbacks) {
-                if (previewCallbacks.hasOwnProperty(i)) {
-                    previewCallbacks[i]();
-                }
+        for (var i in previewCallbacks) {
+            if (previewCallbacks.hasOwnProperty(i)) {
+                previewCallbacks[i]();
             }
         }
 
@@ -82,10 +80,6 @@ var PINPOINT = (function($){
     };
 
     addPreviewCallback = function(f) {
-        if (!previewCallbacks) {
-            previewCallbacks = [];
-        }
-
         previewCallbacks.push(f);
     }
 
