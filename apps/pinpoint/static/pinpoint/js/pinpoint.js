@@ -71,7 +71,7 @@ var PINPOINT = (function($){
                             $li.append($img);
                             $appendElem = $li;
                         }
-                        $element.append($li);
+                        $element.append($appendElem);
                     });
                     break;
                 default:
