@@ -64,6 +64,8 @@ class KVStore(models.Model):
 
     key = models.CharField(max_length=255)
     value = models.FloatField()
+    meta = models.CharField(max_length=255, blank=True, null=True)
+
     timestamp = models.DateTimeField()
 
     def __unicode__(self):
