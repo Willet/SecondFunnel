@@ -1,4 +1,5 @@
 import datetime
+from functools import partial
 
 from celery import task, subtask
 from oauth2client.client import SignedJwtAssertionCredentials
@@ -9,6 +10,54 @@ from apps.analytics.storage_backends import GoogleAnalyticsBackend
 from apps.analytics.models import AnalyticsRecency, Category, Metric, KVStore
 from apps.assets.models import Store
 from apps.pinpoint.models import Campaign
+
+
+# Helper methods used by the tasks below
+def get_by_key(string, key):
+    """
+    Gets a variable stored within a Google Analytics Core API column by its key
+
+    Column format: var1=value|var2=value
+    """
+
+    ls = string.split("|")
+    try:
+        return [s for s in ls if key in s][0].split("=")[1]
+
+    except IndexError:
+        return None
+
+
+class Categories:
+    """
+    Caches analytics categories internally while providing useful shortcuts.
+    Available keys per category slug:
+    - instance: model instance
+    - metric: function, takes metric slug and returns metric instance
+              if metric does not exist, throws an exception
+    """
+
+    def __init__(self):
+        self.inner_list = {}
+
+    def get(self, category_slug):
+        if category_slug not in self.inner_list:
+            try:
+                obj = Category.objects.prefetch_related(
+                    'metrics').get(slug=category_slug, enabled=True)
+
+                self.inner_list[category_slug] = {
+                    'instance': obj,
+                    'metric': lambda metric: obj.metrics.get(
+                        slug=metric, enabled=True)
+                }
+
+            except Category.DoesNotExist:
+                raise Exception(
+                    "Category %s not setup in the database" % category_slug
+                )
+
+        return self.inner_list[category_slug]
 
 
 def get_oldest_analytics_date():
@@ -43,6 +92,7 @@ def get_oldest_analytics_date():
 
     return oldest_analytics_data
 
+
 @task()
 def redo_analytics():
     """Erases cached analytics and recency data, starts update process"""
@@ -51,7 +101,7 @@ def redo_analytics():
 
     logger.info("Redoing analytics")
 
-    AnalyticsData.objects.all().delete()
+    KVStore.objects.all().delete()
     AnalyticsRecency.objects.all().delete()
 
     logger.info("Removed old analytics data")
@@ -67,23 +117,15 @@ def update_pinpoint_analytics():
     """
 
     # Helper methods
-    def get_by_key(string, key):
-        """Gets a variable stored within a GA column by its key
-
-        Column format: var1=value|var2=value
+    def row_getter(row):
+        """
+        Get a data column from provided row
         """
 
-        ls = string.split("|")
-        try:
-            return [s for s in ls if key in s][0].split("=")[1]
-        except IndexError:
-            return None
-
-    def row_getter(row):
-        """Get a data column from provided row"""
-
         def get(key):
-            """Column is looked up by an index from dimensions settings"""
+            """
+            Column is looked up by an index from dimensions settings
+            """
 
             return row[ga_query_settings['dimensions'].index(key)]
         return get
@@ -149,6 +191,7 @@ def update_pinpoint_analytics():
 
             row_data['label'] = getter('eventLabel')
             row_data['date'] = getter('date')
+            # row_data['value'] = getter('eventValue')
 
             row_data['store_id'] = get_by_key(category, "storeid")
             row_data['campaign_id'] = get_by_key(category, "campaignid")
@@ -188,10 +231,11 @@ def update_pinpoint_analytics():
             if row_data['action_type'] == 'inpage':
                 analytics_categories['engagement'].append(row_data)
 
-            elif row_data['action_type'] == 'sharing':
+            elif row_data['action_type'] == 'share':
                 analytics_categories['sharing'].append(row_data)
 
-    return subtask(save_category_data, data=analytics_categories).delay()
+    return subtask(save_category_data, (analytics_categories,)).delay()
+
 
 @task()
 def save_category_data(data):
@@ -200,69 +244,107 @@ def save_category_data(data):
 
     logger = save_category_data.get_logger()
 
-    try:
-        store = Store.objects.get(id=row['store_id'])
-
-    except Store.DoesNotExist:
-        logger.warning("Store with id %s does not exist. Skipping row",
-            row['store_id'])
-        return
-
-    try:
-        campaign = Campaign.objects.get(id=row['campaign_id'])
-
-    except Campaign.DoesNotExist:
-        logger.warning("Campaign with id %s does not exist. Skipping row",
-            row['campaign_id'])
-        return
-
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
 
-    section, created = Section.objects.get_or_create(slug="main")
-    categories = {
-        'engagement': section.categories.filter(slug='engagement'),
-        'sharing': section.categories.filter(slug='sharing')
-    }
+    def get_data_pair(store_id, campaign_id):
+        return KVStore(
+            content_type=store_type,
+            object_id=store_id
+        ), KVStore(
+            content_type=campaign_type,
+            object_id=campaign_id
+        )
 
     updated_stores = []
     updated_campaigns = []
 
+    categories = Categories()
+    print data
+
     # handle sharing data
-    for row in data['sharing']:
-        # we do this here and not in "pre processing" because celery can't
-        # serialize certain things (e.g. datetime objects)
-        row = preprocess_row(row, logger)
+    for category_slug in data.keys():
+        logger.info("Processing %s", category_slug)
+        for row in data[category_slug]:
 
-        # total sharing
-        # total sharing per network
-        # sharing per scope
-        # sharing per scope per network
-        # share vs click
+            # we do this here and not in "pre processing" because celery can't
+            # serialize certain things (e.g. datetime objects)
+            row = preprocess_row(row, logger)
 
-        if row['store_id'] not in updated_stores:
-            updated_stores.append(row['store_id'])
+            # total sharing
+            # total sharing per network
+            # sharing per scope
+            # sharing per scope per network
+            # share vs click
 
-        if row['campaign_id'] not in updated_campaigns:
-            updated_campaigns.append(row['campaign_id'])
+            category = categories.get(category_slug)
+            print category
 
-    # handle engagement data
-    for row in data['engagement']:
-        row = preprocess_row(row, logger)
+            data_pair = get_data_pair(row['store_id'], row['campaign_id'])
+            data_pair[0].key = data_pair[1].key = "%s-%s" % (
+                row['action_type'], row['action_subtype'])
 
-        # total interactions
-        # product interactions
-        # interactions per scope
-        # clickthrough
-        # open popup
-        # buy now
-        # share
+            print data_pair[0].key
 
-        if row['store_id'] not in updated_stores:
-            updated_stores.append(row['store_id'])
+            data_pair[0].value = data_pair[1].value = row['count']
+            data_pair[0].timestamp = data_pair[1].timestamp = row['date']
 
-        if row['campaign_id'] not in updated_campaigns:
-            updated_campaigns.append(row['campaign_id'])
+            if row['action_type'] == "share":
+                data_pair[0].meta = data_pair[1].meta = row['network']
+            else:
+                data_pair[0].meta = data_pair[1].meta = row['action_scope']
+
+            data_pair[0].save()
+            data_pair[1].save()
+
+            try:
+                category['metric'](data_pair[0].key).data.add(data_pair[0])
+                category['metric'](data_pair[1].key).data.add(data_pair[1])
+
+            except:
+                data_pair[0].delete()
+                data_pair[1].delete()
+                logger.error("Error saving metrics: %s", data_pair)
+                continue
+
+            if row['store_id'] not in updated_stores:
+                updated_stores.append(row['store_id'])
+
+            if row['campaign_id'] not in updated_campaigns:
+                updated_campaigns.append(row['campaign_id'])
+
+    # # handle engagement data
+    # for row in data['engagement']:
+    #     row = preprocess_row(row, logger)
+
+    #     # total interactions
+    #     # product interactions
+    #     # interactions per scope
+    #     # clickthrough
+    #     # open popup
+    #     # buy now
+    #     # share
+
+    #     category = categories.get('engagement')
+    #     data = get_data_pair(row['store_id'], row['campaign_id'])
+    #     data[0].key = data[1].key = row['action_subtype']
+
+    #     data[0].key = data[1].key = row['action_subtype']
+    #     data[0].value = data[1].value = row['count']
+    #     data[0].timestamp = data[1].timestamp = row['date']
+    #     data[0].meta = data[1].meta = row['action_scope']
+
+    #     data[0].save()
+    #     data[1].save()
+
+    #     category['metric']('openpopup').data.add(data[0])
+    #     category['metric']('openpopup').data.add(data[1])
+
+    #     if row['store_id'] not in updated_stores:
+    #         updated_stores.append(row['store_id'])
+
+    #     if row['campaign_id'] not in updated_campaigns:
+    #         updated_campaigns.append(row['campaign_id'])
 
     # Update analytics recency data for all affected stores and campaigns
     for updated_store_id in updated_stores:
@@ -275,13 +357,16 @@ def save_category_data(data):
             store_recency.save()
 
     for updated_campaign_id in updated_campaigns:
+        # unpacks into (instance, created)
         campaign_recency = AnalyticsRecency.objects.get_or_create(
             content_type=campaign_type,
             object_id=updated_campaign_id
         )
 
+        # if not created
         if not campaign_recency[1]:
             campaign_recency.save()
+
 
 def preprocess_row(row, logger):
     try:
