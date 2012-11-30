@@ -13,6 +13,7 @@ admin.site.register(AnalyticsRecency, AnalyticsRecencyAdmin)
 class AnalyticsBase(admin.ModelAdmin):
     list_display = ('name', 'enabled')
     list_filter = ('enabled',)
+    prepopulated_fields = {"slug": ("name",)}
 
 
 class CategoryAdmin(AnalyticsBase):
@@ -22,13 +23,12 @@ admin.site.register(Category, CategoryAdmin)
 
 
 class MetricAdmin(AnalyticsBase):
-    list_display = AnalyticsBase.list_display + ('slug', 'data_count')
-    prepopulated_fields = {"slug": ("name",)}
+    list_display = AnalyticsBase.list_display + ('data_count',)
 
 admin.site.register(Metric, MetricAdmin)
 
 
 class KVStoreAdmin(admin.ModelAdmin):
-    list_display = ('parent', 'key', 'value', 'timestamp')
+    list_display = ('parent', 'key', 'value', 'meta', 'timestamp')
 
 admin.site.register(KVStore, KVStoreAdmin)
