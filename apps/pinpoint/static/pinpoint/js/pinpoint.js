@@ -17,7 +17,9 @@ var PINPOINT = (function($){
         productHoverOff,
         ready,
         scripts,
-        showPreview;
+        showPreview,
+        addPreviewCallback,
+        previewCallbacks = [];
 
     /* --- START Utilities --- */
     /* --- END Utilities --- */
@@ -83,7 +85,8 @@ var PINPOINT = (function($){
         $buttons = createSocialButtons({
             'title': data.title,
             'url'  : data.url,
-            'image': data.image
+            'image': data.image,
+            'count': true
         });
         $preview.find('.social-buttons').replaceWith($buttons);
 
@@ -91,9 +94,19 @@ var PINPOINT = (function($){
         FB.XFBML.parse($preview.find('.social-buttons .button.facebook')[0]);
         twttr.widgets.load();
 
+        for (var i in previewCallbacks) {
+            if (previewCallbacks.hasOwnProperty(i)) {
+                previewCallbacks[i]();
+            }
+        }
+
         $preview.fadeIn(100);
         $mask.fadeIn(100);
     };
+
+    addPreviewCallback = function(f) {
+        previewCallbacks.push(f);
+    }
 
     hidePreview = function() {
         var $mask    = $('.preview .mask'),
@@ -303,7 +316,8 @@ var PINPOINT = (function($){
     };
 
     return {
-        'init': init
+        'init': init,
+        'addPreviewCallback': addPreviewCallback
     };
 })(jQuery);
 
