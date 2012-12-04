@@ -12,6 +12,7 @@ urlpatterns = patterns('',
     # APPS
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
     url(r'^analytics/', include('apps.analytics.urls')),
+    url(r'^intentrank/', include('apps.intentrank.urls')),
 
     # APIs
     url(r'^api/assets/', include('apps.assets.api_urls')),

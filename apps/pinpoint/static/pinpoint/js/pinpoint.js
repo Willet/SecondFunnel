@@ -2,11 +2,12 @@
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
 
 // Why do we mix and match jQuery and native dom?
-var PINPOINT = (function($){
+var PINPOINT = (function($, pageInfo){
     var createSocialButtons,
         createFBButton,
         createTwitterButton,
         createPinterestButton,
+        details,
         featuredAreaSetup,
         getShortestColumn,
         hidePreview,
@@ -25,6 +26,11 @@ var PINPOINT = (function($){
         showPreview,
         addPreviewCallback,
         previewCallbacks = [];
+
+    details = pageInfo;
+    details.store    = details.store    || {};
+    details.featured = details.featured || {};
+    details.campaign = details.campaign || {};
 
     /* --- START Utilities --- */
     getShortestColumn = function () {
@@ -151,15 +157,39 @@ var PINPOINT = (function($){
     };
 
     loadInitialResults = function () {
-        var results = [$("<div class='block'>Test</div>")];
+        $.ajax({
+            url: '/intentrank/get-seeds/',
+            data: {
+                'store': details.store.id,
+                'campaign': details.campaign.id,
+                'seeds': details.featured.id
+            },
+            dataType: 'json',
+            success: function(data) {
+                // Still need to convert results
+                var results = JSON.parse(data);
 
-        layoutResults(results);
+                //layoutResults()
+            }
+        });
     };
 
     loadMoreResults = function() {
-        var results = [$("<div class='block'>Test</div>")];
+        $.ajax({
+            url: '/intentrank/get-results/',
+            data: {
+                'store': details.store.id,
+                'campaign': details.campaign.id,
+                'results': 8 //TODO: Probably should be some calculated value
+            },
+            dataType: 'json',
+            success: function(data) {
+                // Still need to convert results
+                var results = JSON.parse(data);
 
-        layoutResults(results);
+                //layoutResults()
+            }
+        });
     };
 
     layoutResults = function (results) {
@@ -184,10 +214,10 @@ var PINPOINT = (function($){
 
         if ( noResults ) {
             loadInitialResults();
-            pageScroll();
+//            pageScroll();
         } else if (pageBottomPos > lowestHeight) {
             loadMoreResults();
-            pageScroll();
+//            pageScroll();
         }
     };
 
@@ -380,6 +410,6 @@ var PINPOINT = (function($){
         'init': init,
         'addPreviewCallback': addPreviewCallback
     };
-})(jQuery);
+})(jQuery, window.PINPOINT_INFO || {});
 
 PINPOINT.init();
