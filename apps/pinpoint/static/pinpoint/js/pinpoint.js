@@ -8,11 +8,16 @@ var PINPOINT = (function($){
         createTwitterButton,
         createPinterestButton,
         featuredAreaSetup,
+        getShortestColumn,
         hidePreview,
         init,
+        layoutResults,
         load,
         loadFB,
         loadTwitter,
+        loadInitialResults,
+        loadMoreResults,
+        pageScroll,
         productHoverOn,
         productHoverOff,
         ready,
@@ -22,6 +27,20 @@ var PINPOINT = (function($){
         previewCallbacks = [];
 
     /* --- START Utilities --- */
+    getShortestColumn = function () {
+        var $column;
+
+        $('.discovery-area .column').each(function(index, column) {
+            var height = $(column).height();
+
+            if (!$column || (height < $column.height())) {
+                $column = $(column);
+            }
+        });
+
+        return $column;
+    };
+
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
@@ -129,7 +148,48 @@ var PINPOINT = (function($){
     productHoverOff = function () {
         var $buttons = $(this).find('.social-buttons');
         $buttons.fadeOut('fast');
-    }
+    };
+
+    loadInitialResults = function () {
+        var results = [$("<div class='block'>Test</div>")];
+
+        layoutResults(results);
+    };
+
+    loadMoreResults = function() {
+        var results = [$("<div class='block'>Test</div>")];
+
+        layoutResults(results);
+    };
+
+    layoutResults = function (results) {
+        var $col;
+
+        while (results.length) {
+            $col = getShortestColumn();
+
+            result = results.pop();
+
+            //add to shortest stack
+            $col.append(result);
+        }
+    };
+
+    pageScroll = function () {
+        var $w            = $(window),
+            noResults     = ($('.block').length == 0),
+            pageBottomPos = $w.innerHeight() + $w.scrollTop(),
+            shortestCol   = getShortestColumn(),
+            lowestHeight  = shortestCol.find('.block:last').offset().top;
+
+        if ( noResults ) {
+            loadInitialResults();
+            pageScroll();
+        } else if (pageBottomPos > lowestHeight) {
+            loadMoreResults();
+            pageScroll();
+        }
+    };
 
     featuredAreaSetup = function () {
         var $featuredArea = $('.featured'),
@@ -163,11 +223,12 @@ var PINPOINT = (function($){
         $('.block.product').on('click', showPreview);
         $('.preview .mask, .preview .close').on('click', hidePreview);
         $('.block.product').hover(productHoverOn, productHoverOff);
+        $(window).scroll(pageScroll)
 
         // Prevent social buttons from causing other events
         $('.social-buttons .button').on('click', function(e) {
             e.stopPropagation();
-        })
+        });
     };
     /* --- END element bindings --- */
 
