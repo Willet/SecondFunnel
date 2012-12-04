@@ -70,7 +70,11 @@ def social_buttons(product, count=None):
         image    = product.featured_image
     else:
         featured = False
-        image    = product.media.all()[0].get_url()
+        images   = product.media.all()
+        if images:
+            image = images[0].get_url()
+        else:
+            image = None
 
     # Explicit settings override convention
     if count is None and featured:
