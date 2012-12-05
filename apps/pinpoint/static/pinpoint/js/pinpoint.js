@@ -24,6 +24,7 @@ var PINPOINT = (function($, pageInfo){
         ready,
         scripts,
         showPreview,
+        updateClickStream,
         addPreviewCallback,
         previewCallbacks = [];
 
@@ -155,6 +156,22 @@ var PINPOINT = (function($, pageInfo){
         $buttons.fadeOut('fast');
     };
 
+    updateClickStream = function (event) {
+        var $target = $(event.currentTarget),
+            data      = $target.data(),
+            id        = data.productId;
+
+        $.ajax({
+            url: '/intentrank/update-clickstream/',
+            data: {
+                'store': details.store.id,
+                'campaign': details.campaign.id,
+                'product_id': id
+            },
+            dataType: 'json'
+        });
+    };
+
     loadInitialResults = function () {
         $.ajax({
             url: '/intentrank/get-seeds/',
@@ -247,10 +264,13 @@ var PINPOINT = (function($, pageInfo){
         featuredAreaSetup();
 
         // Event Handling
-        $('.block.product').on('click', showPreview);
-        $('.preview .mask, .preview .close').on('click', hidePreview);
+        $('.discovery-area').on('click', '.block.product', showPreview);
+        $('.discovery-area').on('click', '.block.product', updateClickStream);
         $('.discovery-area').on('mouseenter', '.block.product', productHoverOn);
         $('.discovery-area').on('mouseleave', '.block.product', productHoverOff);
+
+        $('.preview .mask, .preview .close').on('click', hidePreview);
+
         $(window).scroll(pageScroll)
 
         // Prevent social buttons from causing other events
