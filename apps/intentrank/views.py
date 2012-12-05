@@ -17,10 +17,17 @@ SUCCESS         = 200
 BAD_REQUEST     = 400
 DEFAULT_RESULTS = 12
 
+def random_products(store, param_dict):
+    store_id = Store.objects.get(slug__exact=store)
+    num_results = param_dict.get('results', DEFAULT_RESULTS)
+    results = Product.objects.filter(store_id__exact=store_id).order_by('?')
+    return results[:num_results]
+
 def process_intentrank_request(request, store, page, function_name,
                                param_dict):
-    url = 'http://URL/store/{0}/page/{1}/{2}'.format(store, page, function_name)
+    url = 'http://intentrank.elasticbeanstalk.com/intentrank/store/{0}/page/{1}/{2}'.format(store, page, function_name)
     params   = urlencode(param_dict)
+    url = '{0}?{1}'.format(url, params)
 
     headers = {}
     cookie = request.session.get('ir-cookie')
@@ -33,14 +40,10 @@ def process_intentrank_request(request, store, page, function_name,
             url,
             'GET',
             headers=headers,
-            body=params
         )
     except Exception: # TODO: Replace with more specific error
         # TODO: Replace with error; for use until IR is running
-        store_id = Store.objects.get(slug__exact=store)
-        num_results = param_dict.get('results', DEFAULT_RESULTS)
-        results = Product.objects.filter(store_id__exact=store_id).order_by('?')
-        return results[:num_results], SUCCESS
+        return random_products(store, param_dict), SUCCESS
 
     if response.get('set-cookie'):
         request.session['ir-cookie'] = response['set-cookie']
@@ -48,7 +51,8 @@ def process_intentrank_request(request, store, page, function_name,
     try:
         results = json.loads(content)
     except ValueError:
-        return [], BAD_REQUEST
+        # TODO: Replace with error; for use until IR is running
+        return random_products(store, param_dict), SUCCESS
 
     products = Product.objects.filter(pk__in=results.get('products'))
     return products, SUCCESS
@@ -123,3 +127,7 @@ def update_clickstream(request):
 
     # Return JSON results
     return HttpResponse("[]", mimetype='application/json', status=status)
+
+def invalidate_session(request):
+    #intentrank/invalidate-session
+    pass
