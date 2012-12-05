@@ -1,4 +1,5 @@
 import datetime
+
 from functools import partial
 
 from celery import task, subtask
@@ -8,7 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from apps.analytics.storage_backends import GoogleAnalyticsBackend
 from apps.analytics.models import AnalyticsRecency, Category, Metric, KVStore
-from apps.assets.models import Store
+from apps.assets.models import Store, Product
 from apps.pinpoint.models import Campaign
 
 
@@ -183,25 +184,26 @@ def update_pinpoint_analytics():
         rows = data_page.get('rows')
 
         for row in rows:
-            row_data = {}
             getter = row_getter(row)
 
             category = getter('eventCategory')
             action = getter('eventAction')
 
-            row_data['label'] = getter('eventLabel')
-            row_data['date'] = getter('date')
-            # row_data['value'] = getter('eventValue')
+            row_data = {
+                'label':            getter('eventLabel'),
+                'date':             getter('date'),
+                # 'value':          getter('eventValue'),
 
-            row_data['store_id'] = get_by_key(category, "storeid")
-            row_data['campaign_id'] = get_by_key(category, "campaignid")
-            row_data['referrer'] = get_by_key(category, "referrer")
-            row_data['domain'] = get_by_key(category, "domain")
+                'store_id':         get_by_key(category, "storeid"),
+                'campaign_id':      get_by_key(category, "campaignid"),
+                'referrer':         get_by_key(category, "referrer"),
+                'domain':           get_by_key(category, "domain"),
 
-            row_data['action_type'] = get_by_key(action, "actionType")
-            row_data['action_subtype'] = get_by_key(action, "actionSubtype")
-            row_data['action_scope'] = get_by_key(action, "actionScope")
-            row_data['network'] = get_by_key(action, "network")
+                'action_type':      get_by_key(action, "actionType"),
+                'action_subtype':   get_by_key(action, "actionSubtype"),
+                'action_scope':     get_by_key(action, "actionScope"),
+                'network':          get_by_key(action, "network"),
+            }
 
             # uniqueEvents is the last item in the list
             try:
@@ -246,6 +248,7 @@ def save_category_data(data):
 
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
+    product_type = ContentType.objects.get_for_model(Product)
 
     def get_data_pair(store_id, campaign_id):
         return KVStore(
@@ -260,12 +263,14 @@ def save_category_data(data):
     updated_campaigns = []
 
     categories = Categories()
-    print data
 
     # handle sharing data
     for category_slug in data.keys():
         logger.info("Processing %s", category_slug)
         for row in data[category_slug]:
+            # with each pass, we're saving a pair of KVStore objects
+            # one for the specific campaign, and one for the store
+            # to which the campaign belongs
 
             # we do this here and not in "pre processing" because celery can't
             # serialize certain things (e.g. datetime objects)
@@ -278,13 +283,10 @@ def save_category_data(data):
             # share vs click
 
             category = categories.get(category_slug)
-            print category
 
             data_pair = get_data_pair(row['store_id'], row['campaign_id'])
             data_pair[0].key = data_pair[1].key = "%s-%s" % (
                 row['action_type'], row['action_subtype'])
-
-            print data_pair[0].key
 
             data_pair[0].value = data_pair[1].value = row['count']
             data_pair[0].timestamp = data_pair[1].timestamp = row['date']
@@ -294,17 +296,33 @@ def save_category_data(data):
             else:
                 data_pair[0].meta = data_pair[1].meta = row['action_scope']
 
+            # we're using row['label'] to track URLs of objects acted upon.
+            # Assume they're products for now, but KVStore supports generic FK
+            if row['label']:
+                product = Product.objects.filter(original_url=row['label'])
+                if product.count() > 0:
+                    # TODO: deal with multiple results?
+                    # What are the use cases for this?
+                    product = product[0]
+                    data_pair[0].target_id = data_pair[1].target_id = product.id
+                    data_pair[0].target_type = data_pair[1].target_type = product_type
+
+                # couldn't locate a Product this event is referring to.
+                # Maybe it's not a Product?
+                else:
+                    pass
+
             data_pair[0].save()
             data_pair[1].save()
 
             try:
-                category['metric'](data_pair[0].key).data.add(data_pair[0])
-                category['metric'](data_pair[1].key).data.add(data_pair[1])
+                category['metric'](data_pair[0].key).data.add(data_pair[0], data_pair[1])
 
-            except:
+            except Metric.DoesNotExist:
                 data_pair[0].delete()
                 data_pair[1].delete()
-                logger.error("Error saving metrics: %s", data_pair)
+                logger.error("Error saving metrics: %s. Metric %s is not in db",
+                    data_pair, data_pair[0].key)
                 continue
 
             if row['store_id'] not in updated_stores:
@@ -313,38 +331,14 @@ def save_category_data(data):
             if row['campaign_id'] not in updated_campaigns:
                 updated_campaigns.append(row['campaign_id'])
 
-    # # handle engagement data
-    # for row in data['engagement']:
-    #     row = preprocess_row(row, logger)
-
-    #     # total interactions
-    #     # product interactions
-    #     # interactions per scope
-    #     # clickthrough
-    #     # open popup
-    #     # buy now
-    #     # share
-
-    #     category = categories.get('engagement')
-    #     data = get_data_pair(row['store_id'], row['campaign_id'])
-    #     data[0].key = data[1].key = row['action_subtype']
-
-    #     data[0].key = data[1].key = row['action_subtype']
-    #     data[0].value = data[1].value = row['count']
-    #     data[0].timestamp = data[1].timestamp = row['date']
-    #     data[0].meta = data[1].meta = row['action_scope']
-
-    #     data[0].save()
-    #     data[1].save()
-
-    #     category['metric']('openpopup').data.add(data[0])
-    #     category['metric']('openpopup').data.add(data[1])
-
-    #     if row['store_id'] not in updated_stores:
-    #         updated_stores.append(row['store_id'])
-
-    #     if row['campaign_id'] not in updated_campaigns:
-    #         updated_campaigns.append(row['campaign_id'])
+    # handle engagement data
+    # total interactions
+    # product interactions
+    # interactions per scope
+    # clickthrough
+    # open popup
+    # buy now
+    # share
 
     # Update analytics recency data for all affected stores and campaigns
     for updated_store_id in updated_stores:
