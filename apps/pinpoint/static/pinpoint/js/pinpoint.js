@@ -46,7 +46,6 @@ var PINPOINT = (function($, pageInfo){
 
         return $column;
     };
-
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
@@ -165,11 +164,8 @@ var PINPOINT = (function($, pageInfo){
                 'seeds': details.featured.id
             },
             dataType: 'json',
-            success: function(data) {
-                // Still need to convert results
-                var results = JSON.parse(data);
-
-                //layoutResults()
+            success: function(results) {
+                layoutResults(results);
             }
         });
     };
@@ -183,11 +179,8 @@ var PINPOINT = (function($, pageInfo){
                 'results': 8 //TODO: Probably should be some calculated value
             },
             dataType: 'json',
-            success: function(data) {
-                // Still need to convert results
-                var results = JSON.parse(data);
-
-                //layoutResults()
+            success: function(results) {
+                layoutResults(results);
             }
         });
     };
@@ -252,7 +245,8 @@ var PINPOINT = (function($, pageInfo){
         // Event Handling
         $('.block.product').on('click', showPreview);
         $('.preview .mask, .preview .close').on('click', hidePreview);
-        $('.block.product').hover(productHoverOn, productHoverOff);
+        $('.discovery-area').on('mouseenter', '.block.product', productHoverOn);
+        $('.discovery-area').on('mouseleave', '.block.product', productHoverOff);
         $(window).scroll(pageScroll)
 
         // Prevent social buttons from causing other events
