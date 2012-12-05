@@ -29,7 +29,7 @@ admin.site.register(Metric, MetricAdmin)
 
 
 class KVStoreAdmin(admin.ModelAdmin):
-    list_display = ('parent', 'key', 'value', 'meta', 'timestamp')
+    list_display = ('parent', 'target', 'key', 'value', 'meta', 'timestamp')
     list_filter = ('key',)
 
 admin.site.register(KVStore, KVStoreAdmin)
