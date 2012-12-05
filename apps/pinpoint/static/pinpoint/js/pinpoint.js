@@ -206,7 +206,12 @@ var PINPOINT = (function($, pageInfo){
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             shortestCol   = getShortestColumn(),
             lastBlock     = shortestCol.find('.block:last'),
-            lowestHeight  = lastBlock.offset().top + lastBlock.height();
+            lowestHeight;
+
+        if (lastBlock.length <= 0) {
+            lastBlock = shortestCol;
+        }
+        lowestHeight = lastBlock.offset().top + lastBlock.height()
 
         if ( noResults || (pageBottomPos > lowestHeight)) {
             loadMoreResults();
