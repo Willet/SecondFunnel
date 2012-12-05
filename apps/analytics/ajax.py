@@ -86,12 +86,26 @@ def analytics_pinpoint(request):
             if end_date:
                 data = data.filter(timestamp__lte=end_date)
 
-            results[category.name][metric.name] = [
-                (
-                    datum.id, datum.timestamp.date().isoformat(),
-                    datum.key, datum.value
-                )
-                for datum in data.all()
-            ]
+            results[category.name][metric.slug] = {
+                'totals': {},
+
+                # this exposes daily data for each product
+                'data': [
+                    {
+                        "id": datum.id,
+                        "timestamp": datum.timestamp.date().isoformat(),
+                        "value": int(datum.value),
+                        "product_id": datum.target_id
+                    }
+                    for datum in data.all()
+                ]
+            }
+
+            # this aggregates daily data across all products
+            for datum in results[category.name][metric.slug]['data']:
+                if datum['timestamp'] in results[category.name][metric.slug]['totals']:
+                    results[category.name][metric.slug]['totals'][datum['timestamp']] += datum['value']
+                else:
+                    results[category.name][metric.slug]['totals'][datum['timestamp']] = datum['value']
 
     return ajax_success(results)
