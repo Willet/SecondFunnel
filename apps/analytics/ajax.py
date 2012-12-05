@@ -14,16 +14,20 @@ from apps.utils.ajax import ajax_success, ajax_error
 
 
 def daterange(start_date, end_date):
-    for n in range(int ((end_date - start_date).days)):
+    for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
 
 @login_required
 def analytics_pinpoint(request):
     # one of these is required:
-    campaign_id = request.GET.get('campaign_id')
-    store_id = request.GET.get('store_id')
+    campaign_id = request.GET.get('campaign_id', False)
+    store_id = request.GET.get('store_id', False)
     object_id = store_id or campaign_id
+
+    # only one must be present
+    if (campaign_id and store_id) and not object_id:
+        return ajax_error()
 
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
@@ -42,21 +46,23 @@ def analytics_pinpoint(request):
             day=end_date.split("/")[2]
         )
 
-    if not object_id:
-        return ajax_error()
-
     # get a store associated with this request, or bail out
+    store = None
     try:
         store = Store.objects.get(id=store_id)
 
     except Store.DoesNotExist:
+        pass
 
-        try:
-            campaign = Campaign.objects.get(id=campaign_id)
-            store = campaign.store
+    try:
+        campaign = Campaign.objects.get(id=campaign_id)
+        store = campaign.store
 
-        except Campaign.DoesNotExist:
-            return ajax_error()
+    except Campaign.DoesNotExist:
+        pass
+
+    if not store:
+        return ajax_error()
 
     # check if user is authorized to access this data
     if not request.user in store.staff.all():
@@ -101,11 +107,12 @@ def analytics_pinpoint(request):
                 ]
             }
 
-            # this aggregates daily data across all products
-            for datum in results[category.name][metric.slug]['data']:
-                if datum['timestamp'] in results[category.name][metric.slug]['totals']:
-                    results[category.name][metric.slug]['totals'][datum['timestamp']] += datum['value']
+            bucket = results[category.name][metric.slug]
+            # this aggregates and exposes daily data across all products
+            for datum in bucket['data']:
+                if datum['timestamp'] in bucket['totals']:
+                    bucket['totals'][datum['timestamp']] += datum['value']
                 else:
-                    results[category.name][metric.slug]['totals'][datum['timestamp']] = datum['value']
+                    bucket['totals'][datum['timestamp']] = datum['value']
 
     return ajax_success(results)
