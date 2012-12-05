@@ -25,6 +25,8 @@ var PINPOINT = (function($, pageInfo){
         scripts,
         showPreview,
         updateClickStream,
+        userClicks = 0,
+        clickThreshold = 3,
         addPreviewCallback,
         previewCallbacks = [];
 
@@ -159,7 +161,11 @@ var PINPOINT = (function($, pageInfo){
     updateClickStream = function (event) {
         var $target = $(event.currentTarget),
             data      = $target.data(),
-            id        = data.productId;
+            id        = data.productId,
+            exceededThreshold;
+
+        userClicks += 1;
+        exceededThreshold = ((userClicks % clickThreshold) == 0);
 
         $.ajax({
             url: '/intentrank/update-clickstream/',
@@ -168,7 +174,12 @@ var PINPOINT = (function($, pageInfo){
                 'campaign': details.campaign.id,
                 'product_id': id
             },
-            dataType: 'json'
+            dataType: 'json',
+            success: function() {
+                if (exceededThreshold) {
+                    loadMoreResults(true)
+                }
+            }
         });
     };
 
@@ -187,7 +198,7 @@ var PINPOINT = (function($, pageInfo){
         });
     };
 
-    loadMoreResults = function() {
+    loadMoreResults = function(belowFold) {
         $.ajax({
             url: '/intentrank/get-results/',
             data: {
@@ -197,13 +208,14 @@ var PINPOINT = (function($, pageInfo){
             },
             dataType: 'json',
             success: function(results) {
-                layoutResults(results);
+                layoutResults(results, belowFold);
             }
         });
     };
 
-    layoutResults = function (results) {
-        var $col;
+    layoutResults = function (results, belowFold) {
+        var $col,
+            result;
 
         while (results.length) {
             $col = getShortestColumn();
@@ -211,7 +223,11 @@ var PINPOINT = (function($, pageInfo){
             result = results.pop();
 
             //add to shortest stack
-            $col.append(result);
+            if (!belowFold) {
+                $col.append(result);
+            } else {
+                $col.find('.block.product:in-viewport:last').after(result);
+            }
         }
 
         pageScroll();
