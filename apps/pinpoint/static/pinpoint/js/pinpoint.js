@@ -196,21 +196,19 @@ var PINPOINT = (function($, pageInfo){
             //add to shortest stack
             $col.append(result);
         }
+
+        pageScroll();
     };
 
     pageScroll = function () {
         var $w            = $(window),
-            noResults     = ($('.block').length == 0),
+            noResults     = ($('.discovery-area .block').length == 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             shortestCol   = getShortestColumn(),
             lowestHeight  = shortestCol.find('.block:last').offset().top;
 
-        if ( noResults ) {
-            loadInitialResults();
-//            pageScroll();
-        } else if (pageBottomPos > lowestHeight) {
+        if ( noResults || (pageBottomPos > lowestHeight)) {
             loadMoreResults();
-//            pageScroll();
         }
     };
 
@@ -253,6 +251,9 @@ var PINPOINT = (function($, pageInfo){
         $('.social-buttons .button').on('click', function(e) {
             e.stopPropagation();
         });
+
+        // Take any necessary actions
+        loadInitialResults();
     };
     /* --- END element bindings --- */
 

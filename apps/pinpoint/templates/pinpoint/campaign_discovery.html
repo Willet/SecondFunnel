@@ -4,8 +4,6 @@
         {% for product in campaign.store.product_set.all %}
             {% with columns|length as mod %}
                 {% if forloop.counter|add:col|divisibleby:mod %}
-                    {% block discovery_block %}
-                    {% endblock discovery_block %}
                 {% endif %}
             {% endwith %}
         {% endfor %}
