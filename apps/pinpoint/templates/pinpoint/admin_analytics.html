@@ -14,6 +14,77 @@
     {{ block.super }}
     <link rel="stylesheet" href="{% static "analytics/css/analytics_style.css" %}">
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+
+    <style>
+        .top_analytics_menu {
+            background-color: #fff;
+            padding: 20px 0 0 20px;
+            margin: 0;
+            height: 50px;
+            width: 920px;
+
+            box-shadow: 0px 0px 5px #888;
+        }
+
+        .page_selector {
+            display: inline;
+        }
+
+        .page_selector, .page_selector select {
+            font-size: 18px;
+        }
+
+        .range_selector {
+            display: inline;
+            margin-left: 20px;
+        }
+
+        .range_selector input {
+            font-size: 12px;
+            padding: 3px;
+            width: 80px;
+        }
+
+        .range_pair {
+            margin-left: 15px;
+        }
+
+        .section_content {
+            margin-left: 0;
+        }
+
+        .section_overview {
+            border-right: 1px solid #d6d6d6;
+            border-bottom: 1px solid #d6d6d6;
+            margin-left: 0;
+        }
+
+        .section_overview_block {
+            padding: 10px;
+            border-top: 1px solid #d6d6d6;
+        }
+
+        .section_overview_block.selected, .section_overview_block:hover {
+            background-color: #fff;
+            cursor: pointer;
+        }
+
+        .section_overview_title {
+            font-size: 18px;
+        }
+
+        .section_overview_metrics {
+            font-size: 14px;
+        }
+
+        .section_data {
+            padding-top: 10px;
+        }
+
+        .data_title {
+            font-size: 24px;
+        }
+    </style>
 {% endblock %}
 
 {% block extra_js_includes %}
@@ -79,6 +150,8 @@
             $( "#end_range" ).datepicker( "option", "minDate", selectedDate );
         }
     });
+    $( "#start_range" ).datepicker("setDate", "-2w");
+
     $( "#end_range" ).datepicker({
         defaultDate: "+1w",
         changeMonth: true,
@@ -87,16 +160,12 @@
             $( "#start_range" ).datepicker( "option", "maxDate", selectedDate );
         }
     });
+    $( "#end_range" ).datepicker("setDate", new Date());
 {% endblock %}
 
 {% block content %}
-    <style>
-
-    </style>
-
-    {% with store=campaign.store %}
-    <div class="grid_12 top_analytics_menu">
-        <div class="grid_2 page_selector">
+    <div class="top_analytics_menu">
+        <div class="page_selector">
             <label for="campaign_list">Page:</label>
             <select id="campaign_list" name="campaign_list">
                 <option value="overview" {% if is_overview %}selected{% endif %}>Overview</option>
@@ -106,45 +175,47 @@
             </select>
         </div>
 
-        <div class="grid_6 prefix_2 range_selector">
-            <label for="start_range">Start:</label>
-            <input type="text" id="start_range" name="start_range">
+        <div class="range_selector">
+            <span class="range_pair">
+                <label for="start_range">Start:</label>
+                <input type="text" id="start_range" name="start_range">
+            </span>
 
-            <label for="end_range">End:</label>
-            <input type="text" id="end_range" name="end_range">
+            <span class="range_pair">
+                <label for="end_range">End:</label>
+                <input type="text" id="end_range" name="end_range">
+            </span>
         </div>
     </div>
-    {% endwith %}
 
-    <div class="grid_9 omega campaign_analytics">
-        <div class="grid_9">
-            <h2 id="analytics_title">Loading...</h2>
+    <div class="grid_12 section_content">
+        <div class="grid_3 section_overview">
+            <div class="section_overview_block selected">
+                <div class="section_overview_title">
+                    Overview
+                </div>
+            </div>
+            {% for category in categories %}
+                <div class="section_overview_block" id="{{ category.id }}">
+                    <div class="section_overview_title">
+                        {{ category.name }}
+                    </div>
 
-            <ul>
-                <li><span class="highlight">Visitors (<span id="visitors_count">&hellip;</span>)</span></li>
-                <li>
-                    <ul>
-                        <li class="angled"><span class="highlight" id="visitors_to_interaction">&hellip;</span> <span class="dimmed">(<span id="interaction_count">&hellip;</span>)</span> Interacted</li>
-                        <li>
-                            <ul>
-                                <li class="angled"><span class="highlight" id="social_shares_perc">&hellip;</span> <span class="dimmed">(<span id="social_shares_count">&hellip;</span>)</span> Social Shares</li>
-                                <li>
-                                    <ul>
-                                        <li class="angled"><span class="highlight" id="shared_featured_perc">&hellip;</span> <span class="dimmed">(<span id="shared_featured_count">&hellip;</span>)</span> Shared Featured</li>
-                                        <li class="angled"><span class="highlight" id="shared_popup_perc">&hellip;</span> <span class="dimmed">(<span id="shared_popup_count">&hellip;</span>)</span> Shared Popup</li>
-                                    </ul>
-                                </li>
-                                <li class="angled"><span class="highlight" id="open_popup_perc">&hellip;</span> <span class="dimmed">(<span id="open_popup_count">&hellip;</span>)</span> Previewed Product</li>
-                                <li class="angled"><span class="highlight" id="clickthrough_perc">&hellip;</span> <span class="dimmed">(<span id="clickthrough_count">&hellip;</span>)</span> Clicked "Buy Now"</li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
+                    <div class="section_overview_metrics">
+                        <ul>
+                        {% for metric in category.enabled_metrics.all %}
+                            <li>{{ metric.name }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
 
-        <div class="grid_9">
-            <div id="analytics_chart" style="border: 1px solid #545454; width: 600px; height: 320px;"></div>
+        <div class="grid_8 section_data">
+            <div class="data_title">
+                Overview
+            </div>
         </div>
     </div>
 
