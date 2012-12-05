@@ -115,40 +115,12 @@
 {% endblock %}
 
 {% block document_ready %}
-    {% if store %}
-        var store_id = '{{ store.id }}';
-    {% else %}
-        var store_id = '{{ campaign.store.id }}';
+    var store_id = '{{ store.id }}';
+    {% if campaign %}
+        var campaign_id = '{{ campaign.id }}';
     {% endif %}
 
-    $("#campaign_list li").live("click", function() {
-        $("#analytics_title").html($(this).html());
-
-        if ($(this).attr("id") == "overview") {
-            loadAnalyticsData({
-                store_id: store_id
-            });
-        } else {
-            loadAnalyticsData({
-                campaign_id: $(this).attr("id")
-            });
-        }
-
-        $("#campaign_list li").removeClass("selectedPage");
-        $(this).addClass("selectedPage");
-    });
-
     google.setOnLoadCallback(function () {
-        {% if store %}
-            loadAnalyticsData({
-                store_id: store_id
-            });
-        {% else %}
-            loadAnalyticsData({
-                campaign_id: '{{ campaign.id }}'
-            });
-        {% endif %}
-        $("#analytics_title").html($(".selectedPage").html());
     });
 
     $( "#start_range" ).datepicker({
@@ -178,6 +150,25 @@
         $(".section_overview_block").removeClass("selected");
         $(this).addClass("selected");
     });
+
+    function update_data(o) {
+        $.ajax({
+            url: "{% url ajax-analytics-pinpoint %}",
+            dataType: "json",
+            data: o,
+            success: function (data) {
+                console.log(data);
+            }
+        });
+    }
+
+    $("#campaign_list").change(function() {
+        var campaign_id = $(this).find("option:selected").attr("value");
+        update_data({'campaign_id': campaign_id});
+    });
+
+    update_data({'store_id': store_id, 'campaign_id': campaign_id});
+
 {% endblock %}
 
 {% block content %}
@@ -261,7 +252,7 @@
     </div>
 
     <div class="grid_11 section_footer">
-        <div class="section_meta">Last updated: {{ last_updated }}</div>
+        <div class="section_meta">Last updated: {% if last_updated %}{{ last_updated }}{% else %}never{% endif %}</div>
     </div>
 
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
