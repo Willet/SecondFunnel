@@ -77,7 +77,7 @@ def analytics_pinpoint(request):
     # iterate through analytics structures and get the data
     results = {}
     for category in Category.objects.filter(enabled=True).all():
-        results[category.name] = {}
+        results[category.slug] = {}
 
         for metric in category.metrics.filter(enabled=True).all():
 
@@ -92,7 +92,7 @@ def analytics_pinpoint(request):
             if end_date:
                 data = data.filter(timestamp__lte=end_date)
 
-            results[category.name][metric.slug] = {
+            results[category.slug][metric.slug] = {
                 'totals': {},
 
                 # this exposes daily data for each product
@@ -107,7 +107,7 @@ def analytics_pinpoint(request):
                 ]
             }
 
-            bucket = results[category.name][metric.slug]
+            bucket = results[category.slug][metric.slug]
             # this aggregates and exposes daily data across all products
             for datum in bucket['data']:
                 if datum['timestamp'] in bucket['totals']:
