@@ -58,9 +58,18 @@ class Metric(AnalyticsBase):
 
 
 class KVStore(models.Model):
-    content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey(ContentType,
+        related_name='analytics_data')
+
     object_id = models.PositiveIntegerField()
-    parent = generic.GenericForeignKey('content_type', 'object_id')
+    parent = generic.GenericForeignKey(
+        'content_type', 'object_id')
+
+    target_type = models.ForeignKey(ContentType,
+        blank=True, null=True, related_name='referred_in_analytics')
+    target_id = models.PositiveIntegerField(blank=True, null=True)
+    target = generic.GenericForeignKey(
+        'target_type', 'target_id')
 
     key = models.CharField(max_length=255)
     value = models.FloatField()
