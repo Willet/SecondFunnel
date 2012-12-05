@@ -84,6 +84,15 @@
         .data_title {
             font-size: 24px;
         }
+
+        .section_footer {
+            margin-top: 50px;
+        }
+
+        .section_meta {
+            float: right;
+            color: #b3b3b3;
+        }
     </style>
 {% endblock %}
 
@@ -161,6 +170,14 @@
         }
     });
     $( "#end_range" ).datepicker("setDate", new Date());
+
+    $(".section_overview_block").click(function() {
+        $(".data_category").hide();
+        $("div[data-cid='" + $(this).data("cid") + "']").show();
+
+        $(".section_overview_block").removeClass("selected");
+        $(this).addClass("selected");
+    });
 {% endblock %}
 
 {% block content %}
@@ -168,7 +185,7 @@
         <div class="page_selector">
             <label for="campaign_list">Page:</label>
             <select id="campaign_list" name="campaign_list">
-                <option value="overview" {% if is_overview %}selected{% endif %}>Overview</option>
+                <!-- <option value="overview" {% if is_overview %}selected{% endif %}>Overview</option> -->
                 {% for c in store.campaign_set.all %}
                     <option value="{{ c.id }}" {% if c.id == campaign.id %}selected{% endif %}>{{ c.name }}</option>
                 {% endfor %}
@@ -190,13 +207,13 @@
 
     <div class="grid_12 section_content">
         <div class="grid_3 section_overview">
-            <div class="section_overview_block selected">
+            <div class="section_overview_block selected" data-cid="overview">
                 <div class="section_overview_title">
                     Overview
                 </div>
             </div>
             {% for category in categories %}
-                <div class="section_overview_block" id="{{ category.id }}">
+                <div class="section_overview_block" data-cid="{{ category.id }}">
                     <div class="section_overview_title">
                         {{ category.name }}
                     </div>
@@ -213,10 +230,38 @@
         </div>
 
         <div class="grid_8 section_data">
-            <div class="data_title">
-                Overview
+            <div class="data_category" data-cid="overview">
+                <div class="data_title">
+                    Overview
+                </div>
+
+                <div class="data_metrics">
+                    <ul>
+                        <li>Some analytics overview</li>
+                    </ul>
+                </div>
             </div>
+
+            {% for category in categories %}
+                <div class="data_category" data-cid="{{ category.id }}" style="display: none">
+                    <div class="data_title">
+                        {{ category.name }}
+                    </div>
+
+                    <div class="data_metrics">
+                        <ul>
+                        {% for metric in category.enabled_metrics.all %}
+                            <li>{{ metric.name }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
+    </div>
+
+    <div class="grid_11 section_footer">
+        <div class="section_meta">Last updated: {{ last_updated }}</div>
     </div>
 
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>

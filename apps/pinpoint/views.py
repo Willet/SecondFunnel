@@ -5,7 +5,7 @@ from django.template import RequestContext
 from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
 
-from apps.analytics.models import Category
+from apps.analytics.models import Category, AnalyticsRecency
 from apps.assets.models import Store, Product
 from apps.pinpoint.models import Campaign, BlockType, BlockContent
 from apps.pinpoint.decorators import belongs_to_store
@@ -86,12 +86,31 @@ def campaign_analytics_admin(request, store_id, campaign_id):
 @login_required
 def analytics_admin(request, store, campaign=False, is_overview=True):
     categories = Category.objects.filter(enabled=True)
+    store_type = ContentType.objects.get_for_model(Store)
+    campaign_type = ContentType.objects.get_for_model(Campaign)
+
+    try:
+        if campaign:
+            recency = AnalyticsRecency.objects.get(
+                content_type=campaign_type,
+                object_id=campaign.id
+            )
+        else:
+            recency = AnalyticsRecency.objects.get(
+                content_type=store_type,
+                object_id=store.id
+            )
+    except AnalyticsRecency.DoesNotExist:
+        recency = None
+    else:
+        recency = recency.last_fetched
 
     return render_to_response('pinpoint/admin_analytics.html', {
         'is_overview': is_overview,
         'store': store,
         'campaign': campaign,
         'categories': categories,
+        'last_updated': recency
     }, context_instance=RequestContext(request))
 
 
