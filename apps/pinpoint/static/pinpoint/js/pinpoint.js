@@ -291,7 +291,8 @@ var PINPOINT = (function($, pageInfo){
 
         $('.preview .mask, .preview .close').on('click', hidePreview);
 
-        $(window).scroll(pageScroll)
+        $(window).scroll(pageScroll);
+        $(window).resize(pageScroll);
 
         // Prevent social buttons from causing other events
         $('.social-buttons .button').on('click', function(e) {
