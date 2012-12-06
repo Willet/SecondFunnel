@@ -77,6 +77,14 @@
             font-size: 14px;
         }
 
+        .section_overview_metrics ul {
+            list-style: none;
+        }
+
+        .metric_overview {
+            font-weight: bold;
+        }
+
         .section_data {
             padding-top: 10px;
         }
@@ -92,6 +100,22 @@
         .section_meta {
             float: right;
             color: #b3b3b3;
+        }
+
+        .data_metric {
+            margin-top: 20px;
+        }
+
+        .metric_title {
+            font-size: 14px;
+        }
+
+        .metric_title_all {
+
+        }
+
+        .metric_graph {
+
         }
     </style>
 {% endblock %}
@@ -141,7 +165,19 @@
             $( "#start_range" ).datepicker( "option", "maxDate", selectedDate );
         }
     });
-    $( "#end_range" ).datepicker("setDate", new Date());
+    $("#end_range").datepicker("setDate", new Date());
+
+    $("#start_range, #end_range").change(function() {
+        init_data();
+    });
+
+    $(".loading").ajaxStart(function() {
+        $(this).show();
+    });
+
+    $(".loading").ajaxStop(function() {
+        $(this).hide();
+    });
 
     $(".section_overview_block").click(function() {
         $(".data_category").hide();
@@ -151,13 +187,23 @@
         $(this).addClass("selected");
     });
 
+    function request_data(request) {
+        start_date = $("#start_range").datepicker("getDate");
+        end_date = $("#end_range").datepicker("getDate");
+
+        request['start_date'] = start_date.getFullYear() + "/" + (start_date.getMonth() + 1) + "/" + start_date.getDate();
+        request['end_date'] = end_date.getFullYear() + "/" + (end_date.getMonth() + 1) + "/" + end_date.getDate();
+
+        update_data(request);
+    }
+
     function update_data(o) {
         $.ajax({
             url: "{% url ajax-analytics-pinpoint %}",
             dataType: "json",
             data: o,
             success: function (data) {
-                console.log(data);
+                inject_analytics_data(data);
             }
         });
     }
@@ -167,7 +213,15 @@
         update_data({'campaign_id': campaign_id});
     });
 
-    update_data({'store_id': store_id, 'campaign_id': campaign_id});
+    function init_data() {
+        if (campaign_id) {
+            request_data({'campaign_id': campaign_id});
+        } else {
+            request_data({'store_id': store_id});
+        }
+    }
+
+    init_data();
 
 {% endblock %}
 
@@ -193,6 +247,10 @@
                 <label for="end_range">End:</label>
                 <input type="text" id="end_range" name="end_range">
             </span>
+
+            <span class="loading" style="display:none;">
+                Loading...
+            </span>
         </div>
     </div>
 
@@ -212,7 +270,10 @@
                     <div class="section_overview_metrics">
                         <ul>
                         {% for metric in category.enabled_metrics.all %}
-                            <li>{{ metric.name }}</li>
+                            <li>
+                                <span class="metric_overview" data-metric="{{ metric.slug }}"></span>
+                                {{ metric.name }}
+                            </li>
                         {% endfor %}
                         </ul>
                     </div>
@@ -240,11 +301,16 @@
                     </div>
 
                     <div class="data_metrics">
-                        <ul>
                         {% for metric in category.enabled_metrics.all %}
-                            <li>{{ metric.name }}</li>
+                            <div class="data_metric">
+                                <div class="metric_title" data-metric="{{ metric.slug }}">
+                                    {{ metric.name }}:
+                                    <span class="metric_title_all" data-metric="{{ metric.slug }}"></span>
+                                </div>
+
+                                <div class="metric_graph" data-metric="{{ metric.slug }}">graph</div>
+                            </div>
                         {% endfor %}
-                        </ul>
                     </div>
                 </div>
             {% endfor %}
@@ -259,6 +325,17 @@
     <script type="text/javascript">
         function set_percentage(id, perc) {
             $("#" + id).html(perc.toFixed(2) + "%");
+        }
+
+        function inject_analytics_data(data) {
+            console.log(data);
+            for (cat_slug in data) {
+                for (metric_slug in data[cat_slug]) {
+                    $(".metric_overview[data-metric='" + metric_slug + "']").html(
+                        data[cat_slug][metric_slug]['totals']['all']
+                    );
+                }
+            }
         }
 
         function loadAnalyticsData(o) {
