@@ -219,10 +219,7 @@ def update_pinpoint_analytics():
                 continue
 
             # check that all variables in row_data are present
-            all_present = reduce(
-                # reduce list of booleans into one value
-                lambda total, check: total and check,
-
+            all_present = all(
                 # get a list of booleans for each row value
                 [row_data[i] is not None for i in row_data]
             )
@@ -287,45 +284,48 @@ def save_category_data(data):
 
             category = categories.get(category_slug)
 
-            data_pair = get_data_pair(row['store_id'], row['campaign_id'])
-            data_pair[0].key = data_pair[1].key = "%s-%s" % (
+            data1, data2 = get_data_pair(row['store_id'], row['campaign_id'])
+            data1.key = data2.key = "{0}-{1}".format(
                 row['action_type'], row['action_subtype'])
 
-            data_pair[0].value = data_pair[1].value = row['count']
-            data_pair[0].timestamp = data_pair[1].timestamp = row['date']
+            data1.value = data2.value = row['count']
+            data1.timestamp = data2.timestamp = row['date']
 
             if row['action_type'] == "share":
-                data_pair[0].meta = data_pair[1].meta = row['network']
+                data1.meta = data2.meta = row['network']
             else:
-                data_pair[0].meta = data_pair[1].meta = row['action_scope']
+                data1.meta = data2.meta = row['action_scope']
 
             # we're using row['label'] to track URLs of objects acted upon.
             # Assume they're products for now, but KVStore supports generic FK
             if row['label']:
-                product = Product.objects.filter(original_url=row['label'])
-                if product.count() > 0:
+                product = Product.objects.filter(original_url=row['label'])[:1]
+                if len(product) > 0:
                     # TODO: deal with multiple results?
                     # What are the use cases for this?
                     product = product[0]
-                    data_pair[0].target_id = data_pair[1].target_id = product.id
-                    data_pair[0].target_type = data_pair[1].target_type = product_type
+                    data1.target_id = data2.target_id = product.id
+                    data1.target_type = data2.target_type = product_type
 
                 # couldn't locate a Product this event is referring to.
                 # Maybe it's not a Product?
                 else:
+                    # @TODO deal with this case
                     pass
 
-            data_pair[0].save()
-            data_pair[1].save()
+            data1.save()
+            data2.save()
 
             try:
-                category['metric'](data_pair[0].key).data.add(data_pair[0], data_pair[1])
+                category['metric'](data1.key).data.add(data1, data2)
 
             except Metric.DoesNotExist:
-                data_pair[0].delete()
-                data_pair[1].delete()
-                logger.error("Error saving metrics: %s. Metric %s is not in db",
-                    data_pair, data_pair[0].key)
+                data1.delete()
+                data2.delete()
+                logger.error(
+                    "Error saving metrics: %s, %s. Metric %s is not in db",
+                    data1, data2, data1.key
+                )
                 continue
 
             if row['store_id'] not in updated_stores:
@@ -345,23 +345,23 @@ def save_category_data(data):
 
     # Update analytics recency data for all affected stores and campaigns
     for updated_store_id in updated_stores:
-        store_recency = AnalyticsRecency.objects.get_or_create(
+        store_recency, recency_created = AnalyticsRecency.objects.get_or_create(
             content_type=store_type,
             object_id=updated_store_id
         )
 
-        if not store_recency[1]:
+        if not recency_created:
             store_recency.save()
 
     for updated_campaign_id in updated_campaigns:
         # unpacks into (instance, created)
-        campaign_recency = AnalyticsRecency.objects.get_or_create(
+        campaign_recency, recency_created = AnalyticsRecency.objects.get_or_create(
             content_type=campaign_type,
             object_id=updated_campaign_id
         )
 
         # if not created
-        if not campaign_recency[1]:
+        if not recency_created:
             campaign_recency.save()
 
 
