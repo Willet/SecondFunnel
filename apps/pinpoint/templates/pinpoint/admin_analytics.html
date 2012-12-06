@@ -104,10 +104,15 @@
 
         .data_metric {
             margin-top: 20px;
+            margin-bottom: 40px;
         }
 
-        .metric_title {
-            font-size: 14px;
+        .metric_title, .daily_title {
+            font-size: 16px;
+        }
+
+        .daily_title {
+            margin-top: 15px;
         }
 
         .metric_title_all {
@@ -210,12 +215,14 @@
 
     $("#campaign_list").change(function() {
         var campaign_id = $(this).find("option:selected").attr("value");
-        update_data({'campaign_id': campaign_id});
+        init_data({'campaign_id': campaign_id});
     });
 
-    function init_data() {
-        if (campaign_id) {
-            request_data({'campaign_id': campaign_id});
+    function init_data(o) {
+        var cid = o ? o.campaign_id || campaign_id : campaign_id;
+
+        if (cid) {
+            request_data({'campaign_id': cid});
         } else {
             request_data({'store_id': store_id});
         }
@@ -305,10 +312,13 @@
                             <div class="data_metric">
                                 <div class="metric_title" data-metric="{{ metric.slug }}">
                                     {{ metric.name }}:
-                                    <span class="metric_title_all" data-metric="{{ metric.slug }}"></span>
+                                    <span class="metric_title_all" data-metric="{{ metric.slug }}">0</span> total
                                 </div>
 
-                                <div class="metric_graph" data-metric="{{ metric.slug }}">graph</div>
+                                <div class="metric_graph" id="chart_{{ metric.slug }}"></div>
+
+                                <div class="daily_title">Daily breakdown:</div>
+                                <div class="metric_daily" id="table_{{ metric.slug }}"></div>
                             </div>
                         {% endfor %}
                     </div>
@@ -323,70 +333,127 @@
 
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
+        var charts_data = {},
+            charts = {},
+            tables_data = {},
+            tables = {};
+
         function set_percentage(id, perc) {
             $("#" + id).html(perc.toFixed(2) + "%");
         }
 
         function inject_analytics_data(data) {
-            console.log(data);
+            for (metric_slug in charts) {
+                console.log('cleared chart', metric_slug);
+                charts[metric_slug].clearChart();
+            }
+
+            for (metric_slug in charts_data) {
+                console.log('cleared data', metric_slug);
+                charts_data[metric_slug] = [];
+            }
+
             for (cat_slug in data) {
                 for (metric_slug in data[cat_slug]) {
+                    // display totals in the sidebar on in the content section
                     $(".metric_overview[data-metric='" + metric_slug + "']").html(
                         data[cat_slug][metric_slug]['totals']['all']
                     );
+
+                    $(".metric_title_all[data-metric='" + metric_slug + "']").html(
+                        data[cat_slug][metric_slug]['totals']['all']
+                    );
+
+                    // render daily breakdown
+                    var this_data = new google.visualization.DataTable();
+                    this_data.addColumn('date', 'Date');
+                    this_data.addColumn('number', 'Product');
+                    this_data.addColumn('string', 'Meta');
+                    this_data.addColumn('number', data[cat_slug][metric_slug]['name']);
+
+                    for (i in data[cat_slug][metric_slug]['data']) {
+                        this_data.addRow([
+                            new Date(data[cat_slug][metric_slug]['data'][i]['date'].split("-")[0],
+
+                                // month is zero-based
+                                data[cat_slug][metric_slug]['data'][i]['date'].split("-")[1] - 1,
+
+                                data[cat_slug][metric_slug]['data'][i]['date'].split("-")[2]
+                            ),
+                            data[cat_slug][metric_slug]['data'][i]['product_id'],
+                            data[cat_slug][metric_slug]['data'][i]['meta'],
+                            data[cat_slug][metric_slug]['data'][i]['value']
+                        ]);
+                    }
+
+                    if (!(metric_slug in tables)) {
+                        tables[metric_slug] = new google.visualization.Table(document.getElementById('table_' + metric_slug));
+                    }
+
+                    tables[metric_slug].draw(this_data, {showRowNumber: false});
+
+
+                    // render charts
+                    var this_data = new google.visualization.DataTable();
+                    this_data.addColumn('date', 'Date');
+                    this_data.addColumn('number', data[cat_slug][metric_slug]['name']);
+
+                    for (date in data[cat_slug][metric_slug]['totals']) {
+                        if (date == "all") {
+                            continue;
+                        }
+
+                        console.log(date, data[cat_slug][metric_slug]['totals'][date]);
+
+                        if (!(metric_slug in charts_data)) {
+                            charts_data[metric_slug] = [];
+                        }
+
+                        charts_data[metric_slug].push(
+                            [
+                                new Date(date.split("-")[0],
+
+                                    // month is zero-based
+                                    date.split("-")[1] - 1,
+
+                                    date.split("-")[2]
+                                ), data[cat_slug][metric_slug]['totals'][date]
+                            ]
+                        );
+
+                        this_data.addRows(charts_data[metric_slug]);
+                    }
+
+                    if (!(metric_slug in charts)) {
+                        charts[metric_slug] = new google.visualization.LineChart(document.getElementById('chart_' + metric_slug));
+                    }
+
+                    charts[metric_slug].draw(this_data, {
+                        'width': 670,
+                        'chartArea': {
+                            'left': 35,
+                            'top': 10,
+                            'width': '95%',
+                            'height': '80%'
+                        },
+                        'legend': {
+                            'position': 'none'
+                        },
+                        'hAxis': {
+                            'format': 'MMM d',
+                            'gridlines': {
+                                'color': '#fff'
+                            }
+                        },
+                        'vAxis': {
+                            'minValue': 0
+                        },
+                        'pointSize': 3
+                    });
                 }
             }
         }
 
-        function loadAnalyticsData(o) {
-            $.getJSON(
-                "{% url ajax-analytics-pinpoint %}",
-                {
-                    store_id: o.store_id,
-                    campaign_id: o.campaign_id
-                },
-
-                function(analytics_data) {
-                    var dataset = [['Year', 'Visits', 'Interactions']],
-                    i, google_data, google_options, chart, social_shares_count;
-
-                    $("#visitors_count").html(analytics_data.visits);
-                    $("#interaction_count").html(analytics_data.interactions.total);
-
-                    social_shares_count = analytics_data.interactions.shares.featured + analytics_data.interactions.shares.popup;
-                    $("#social_shares_count").html(social_shares_count);
-                    $("#shared_featured_count").html(analytics_data.interactions.shares.featured);
-                    $("#shared_popup_count").html(analytics_data.interactions.shares.popup);
-                    $("#open_popup_count").html(analytics_data.interactions.open_popup);
-                    $("#clickthrough_count").html(analytics_data.interactions.clickthrough);
-
-                    set_percentage("visitors_to_interaction", analytics_data.interactions.total / analytics_data.visits * 100);
-                    set_percentage("social_shares_perc", social_shares_count / analytics_data.interactions.total * 100);
-                    set_percentage("shared_featured_perc", analytics_data.interactions.shares.featured / social_shares_count * 100);
-                    set_percentage("shared_popup_perc", analytics_data.interactions.shares.popup / social_shares_count * 100);
-                    set_percentage("open_popup_perc", analytics_data.interactions.popup / analytics_data.interactions.total * 100);
-                    set_percentage("clickthrough_perc", analytics_data.interactions.clickthrough / analytics_data.interactions.total * 100);
-
-                    for (var i in analytics_data.daily) {
-                        dataset.push([analytics_data.daily[i].date, analytics_data.daily[i].visits, analytics_data.daily[i].interactions.total]);
-                    }
-
-                    google_data = google.visualization.arrayToDataTable(dataset);
-
-                    google_options = {
-                        title: 'Traffic Overview',
-                        legend: {'position': 'bottom', 'fontSize': 16},
-                        backgroundColor: "#e9e9e9",
-                        chartArea: {width: '87%'},
-                        colors: ["#8E9E82", "#607890"]
-                    };
-
-                    chart = new google.visualization.LineChart(document.getElementById('analytics_chart'));
-                    chart.draw(google_data, google_options);
-                }
-            );
-        }
-
-        google.load("visualization", "1", {packages:["corechart"]});
+        google.load("visualization", "1", {packages:["corechart", "table"]});
     </script>
 {% endblock %}
