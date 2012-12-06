@@ -7,3 +7,13 @@
 <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
 <script src="{% static "js/infinity.min.js" %}"></script>
 <script src="{% static "pinpoint/js/pinpoint.js" %}"></script>
+<!-- Allows for transparent background in ie8 -->
+<!--[if IE 8]>
+<style>
+    .preview .mask { 
+        background:transparent;
+        filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#B2FFFFFF,endColorstr=#B2FFFFFF); 
+        zoom: 1;
+    }
+</style>
+<![endif]-->
