@@ -343,12 +343,10 @@
 
         function inject_analytics_data(data) {
             for (metric_slug in charts) {
-                console.log('cleared chart', metric_slug);
                 charts[metric_slug].clearChart();
             }
 
             for (metric_slug in charts_data) {
-                console.log('cleared data', metric_slug);
                 charts_data[metric_slug] = [];
             }
 
@@ -401,8 +399,6 @@
                         if (date == "all") {
                             continue;
                         }
-
-                        console.log(date, data[cat_slug][metric_slug]['totals'][date]);
 
                         if (!(metric_slug in charts_data)) {
                             charts_data[metric_slug] = [];
