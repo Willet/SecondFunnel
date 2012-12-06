@@ -96,28 +96,41 @@ def analytics_pinpoint(request):
             if end_date:
                 data = data.filter(timestamp__lte=end_date)
 
+            # ensure we have something set here, even if user didn't do this
+            if data.count() > 0:
+                start_date = start_date or data[0].timestamp
+                end_date = end_date or data.order_by('timestamp')[0].timestamp
+
             results[category.slug][metric.slug] = {
+                'name': metric.name,
                 'totals': {},
 
                 # this exposes daily data for each product
                 'data': [
                     {
                         "id": datum.id,
-                        "timestamp": datum.timestamp.date().isoformat(),
+                        "date": datum.timestamp.date().isoformat(),
                         "value": int(datum.value),
-                        "product_id": datum.target_id
+                        "product_id": datum.target_id,
+                        "meta": datum.meta
                     }
                     for datum in data.all()
                 ]
             }
 
-            bucket = results[category.slug][metric.slug]
             # this aggregates and exposes daily data across all products
+            bucket = results[category.slug][metric.slug]
             for datum in bucket['data']:
-                if datum['timestamp'] in bucket['totals']:
-                    bucket['totals'][datum['timestamp']] += datum['value']
+                if datum['date'] in bucket['totals']:
+                    bucket['totals'][datum['date']] += datum['value']
                 else:
-                    bucket['totals'][datum['timestamp']] = datum['value']
+                    bucket['totals'][datum['date']] = datum['value']
+
+            # zero-out out missing dates
+            if start_date and end_date:
+                for date in daterange(start_date, end_date + timedelta(1)):
+                    if not date.date().isoformat() in bucket['totals']:
+                        bucket['totals'][date.date().isoformat()] = 0
 
             if bucket['totals']:
                 bucket['totals']['all'] = sum(bucket['totals'].values())
