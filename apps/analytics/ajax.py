@@ -33,17 +33,21 @@ def analytics_pinpoint(request):
     end_date = request.GET.get('end_date')
 
     if start_date:
-        start_date = datetime.datetime(
-            year=start_date.split("/")[0],
-            month=start_date.split("/")[1],
-            day=start_date.split("/")[2]
+        start_date = [int(d) for d in start_date.split("/")]
+
+        start_date = datetime(
+            year=start_date[0],
+            month=start_date[1],
+            day=start_date[2]
         )
 
     if end_date:
-        end_date = datetime.datetime(
-            year=end_date.split("/")[0],
-            month=end_date.split("/")[1],
-            day=end_date.split("/")[2]
+        end_date = [int(d) for d in end_date.split("/")]
+
+        end_date = datetime(
+            year=end_date[0],
+            month=end_date[1],
+            day=end_date[2]
         )
 
     # get a store associated with this request, or bail out
@@ -114,5 +118,10 @@ def analytics_pinpoint(request):
                     bucket['totals'][datum['timestamp']] += datum['value']
                 else:
                     bucket['totals'][datum['timestamp']] = datum['value']
+
+            if bucket['totals']:
+                bucket['totals']['all'] = sum(bucket['totals'].values())
+            else:
+                bucket['totals']['all'] = 0
 
     return ajax_success(results)
