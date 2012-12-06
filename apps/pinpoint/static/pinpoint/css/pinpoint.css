@@ -144,7 +144,3 @@ body {
     cursor: pointer;
     float: right;
 }
-
-.preview img {
-    max-height: 200px;
-}
