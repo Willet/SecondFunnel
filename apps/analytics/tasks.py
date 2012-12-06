@@ -20,12 +20,15 @@ def get_by_key(string, key):
 
     Column format: var1=value|var2=value
     """
-
-    ls = string.split("|")
     try:
-        return [s for s in ls if key in s][0].split("=")[1]
+        my_dict = dict((k, v) for (k, v) in (
+                assignment.split("=") for assignment in string.split("|")
+            )
+        )
 
-    except IndexError:
+        return my_dict.get(key, None)
+
+    except ValueError:
         return None
 
 
@@ -54,7 +57,7 @@ class Categories:
                 }
 
             except Category.DoesNotExist:
-                raise Exception(
+                raise LookupError(
                     "Category %s not setup in the database" % category_slug
                 )
 
@@ -177,7 +180,7 @@ def update_pinpoint_analytics():
     for data_page in raw_results:
         logger.info("Processing results page %s", data_page)
 
-        if not data_page.get('rows', []):
+        if not data_page.get('rows'):
             logger.info("No rows available.")
             continue
 
@@ -207,7 +210,7 @@ def update_pinpoint_analytics():
 
             # uniqueEvents is the last item in the list
             try:
-                row_data['count'] = int(row[len(row) - 1])
+                row_data['count'] = int(row[-1])
 
             except ValueError:
                 logger.warning(

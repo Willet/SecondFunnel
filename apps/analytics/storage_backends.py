@@ -16,10 +16,6 @@ class GoogleAnalyticsBackend:
     """Mediates access to Google Analytics APIs"""
 
     def __init__(self):
-        # TODO: REDO THIS! Use SWK Signed object
-        # credentials = AppAssertionCredentials(
-            # scope='https://www.googleapis.com/auth/analytics.readonly')
-
         with open('95cf162565f52f4b21bb4db214114d69f7e71152-privatekey.p12', 'rb') as private_key:
             key = private_key.read()
 
@@ -32,9 +28,6 @@ class GoogleAnalyticsBackend:
         http = credentials.authorize(http)
 
         self.service = build('analytics', 'v3', http=http)
-
-    def get_service(self):
-        return self.service
 
     def get_profile_id(self):
         return settings.GOOGLE_ANALYTICS_PROFILE
@@ -83,8 +76,8 @@ class GoogleAnalyticsBackend:
         """
 
         # coerce dates into strings for Google Analytics
-        start_date = "%s" % start_date
-        end_date = "%s" % end_date
+        start_date = str(start_date)
+        end_date = str(end_date)
 
         while True:
             next_query = self.create_query(

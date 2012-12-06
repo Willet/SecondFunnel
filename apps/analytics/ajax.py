@@ -50,7 +50,8 @@ def analytics_pinpoint(request):
             day=end_date[2]
         )
 
-    # get a store associated with this request, or bail out
+    # try get a store associated with this request,
+    # either directly or via campaign
     store = None
     try:
         store = Store.objects.get(id=store_id)
@@ -97,25 +98,23 @@ def analytics_pinpoint(request):
                 data = data.filter(timestamp__lte=end_date)
 
             # ensure we have something set here, even if user didn't do this
-            if data.count() > 0:
+            if len(data) > 0:
                 start_date = start_date or data[0].timestamp
-                end_date = end_date or data.order_by('timestamp')[0].timestamp
+                end_date = end_date or data[::-1][0].timestamp
 
             results[category.slug][metric.slug] = {
                 'name': metric.name,
                 'totals': {},
 
                 # this exposes daily data for each product
-                'data': [
-                    {
-                        "id": datum.id,
-                        "date": datum.timestamp.date().isoformat(),
-                        "value": int(datum.value),
-                        "product_id": datum.target_id,
-                        "meta": datum.meta
-                    }
-                    for datum in data.all()
-                ]
+                # it's a list comprehension
+                'data': [{
+                            "id": datum.id,
+                            "date": datum.timestamp.date().isoformat(),
+                            "value": int(datum.value),
+                            "product_id": datum.target_id,
+                            "meta": datum.meta
+                        } for datum in data.all()]
             }
 
             # this aggregates and exposes daily data across all products
