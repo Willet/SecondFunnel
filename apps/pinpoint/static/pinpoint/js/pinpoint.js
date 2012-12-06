@@ -215,7 +215,8 @@ var PINPOINT = (function($, pageInfo){
 
     layoutResults = function (results, belowFold) {
         var $col,
-            result;
+            result,
+            initialResults = results.length;
 
         while (results.length) {
             $col = getShortestColumn();
@@ -230,7 +231,10 @@ var PINPOINT = (function($, pageInfo){
             }
         }
 
-        pageScroll();
+        // Don't continue to load results if we aren't getting more results
+        if (initialResults > 0) {
+            pageScroll();
+        }
     };
 
     pageScroll = function () {

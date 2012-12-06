@@ -13,9 +13,10 @@ from apps.assets.models import Product, Store
 # getseeds?seeds=1,2,3,4&results=2
 from apps.pinpoint.models import Campaign
 
-SUCCESS         = 200
-BAD_REQUEST     = 400
-DEFAULT_RESULTS = 12
+SUCCESS          = 200
+BAD_REQUEST      = 400
+DEFAULT_RESULTS  = 12
+ALLOWED_STATUSES = [SUCCESS]
 
 def random_products(store, param_dict):
     store_id = Store.objects.get(slug__exact=store)
@@ -47,6 +48,10 @@ def process_intentrank_request(request, store, page, function_name,
 
     if response.get('set-cookie'):
         request.session['ir-cookie'] = response['set-cookie']
+
+    if not response.status in ALLOWED_STATUSES:
+        # TODO: Replace with error; for use until IR is running
+        return random_products(store, param_dict), SUCCESS
 
     try:
         results = json.loads(content)
