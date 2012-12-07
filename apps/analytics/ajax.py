@@ -26,7 +26,7 @@ def analytics_pinpoint(request):
     object_id = store_id or campaign_id
 
     # only one must be present
-    if (campaign_id and store_id) and not object_id:
+    if (campaign_id and store_id) or not object_id:
         return ajax_error()
 
     start_date = request.GET.get('start_date')
