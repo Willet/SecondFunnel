@@ -12,6 +12,7 @@ from apps.assets.models import Product, Store
 
 # getseeds?seeds=1,2,3,4&results=2
 from apps.pinpoint.models import Campaign
+from secondfunnel.settings.common import INTENTRANK_BASE_URL
 
 SUCCESS          = 200
 BAD_REQUEST      = 400
@@ -26,7 +27,8 @@ def random_products(store, param_dict):
 
 def process_intentrank_request(request, store, page, function_name,
                                param_dict):
-    url = 'http://intentrank.elasticbeanstalk.com/intentrank/store/{0}/page/{1}/{2}'.format(store, page, function_name)
+    url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
+        INTENTRANK_BASE_URL, store, page, function_name)
     params   = urlencode(param_dict)
     url = '{0}?{1}'.format(url, params)
 
