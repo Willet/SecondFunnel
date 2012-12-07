@@ -145,6 +145,7 @@ class Product(BaseModelNamed):
             ('data-url', strip_and_escape(self.original_url)),
             ('data-image', strip_and_escape(image)),
             ('data-images', '|'.join(strip_and_escape(x) for x in images)),
+            ('data-product-id', self.id)
         ]
 
         data = ' '.join("%s='%s'" % field for field in fields)

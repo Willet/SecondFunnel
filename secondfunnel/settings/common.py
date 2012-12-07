@@ -220,3 +220,5 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 FIXTURE_DIRS = (
     'secondfunnel/fixtures/',
 )
+
+INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'

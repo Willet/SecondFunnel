@@ -2,26 +2,53 @@
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
 
 // Why do we mix and match jQuery and native dom?
-var PINPOINT = (function($){
+var PINPOINT = (function($, pageInfo){
     var createSocialButtons,
         createFBButton,
         createTwitterButton,
         createPinterestButton,
+        details,
         featuredAreaSetup,
+        getShortestColumn,
         hidePreview,
         init,
+        layoutResults,
         load,
         loadFB,
         loadTwitter,
+        loadInitialResults,
+        loadMoreResults,
+        pageScroll,
         productHoverOn,
         productHoverOff,
         ready,
         scripts,
         showPreview,
+        updateClickStream,
+        userClicks = 0,
+        clickThreshold = 3,
         addPreviewCallback,
         previewCallbacks = [];
 
+    details = pageInfo;
+    details.store    = details.store    || {};
+    details.featured = details.featured || {};
+    details.campaign = details.campaign || {};
+
     /* --- START Utilities --- */
+    getShortestColumn = function () {
+        var $column;
+
+        $('.discovery-area .column').each(function(index, column) {
+            var height = $(column).height();
+
+            if (!$column || (height < $column.height())) {
+                $column = $(column);
+            }
+        });
+
+        return $column;
+    };
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
@@ -129,7 +156,104 @@ var PINPOINT = (function($){
     productHoverOff = function () {
         var $buttons = $(this).find('.social-buttons');
         $buttons.fadeOut('fast');
-    }
+    };
+
+    updateClickStream = function (event) {
+        var $target = $(event.currentTarget),
+            data      = $target.data(),
+            id        = data.productId,
+            exceededThreshold;
+
+        userClicks += 1;
+        exceededThreshold = ((userClicks % clickThreshold) == 0);
+
+        $.ajax({
+            url: '/intentrank/update-clickstream/',
+            data: {
+                'store': details.store.id,
+                'campaign': details.campaign.id,
+                'product_id': id
+            },
+            dataType: 'json',
+            success: function() {
+                if (exceededThreshold) {
+                    loadMoreResults(true)
+                }
+            }
+        });
+    };
+
+    loadInitialResults = function () {
+        $.ajax({
+            url: '/intentrank/get-seeds/',
+            data: {
+                'store': details.store.id,
+                'campaign': details.campaign.id,
+                'seeds': details.featured.id
+            },
+            dataType: 'json',
+            success: function(results) {
+                layoutResults(results);
+            }
+        });
+    };
+
+    loadMoreResults = function(belowFold) {
+        $.ajax({
+            url: '/intentrank/get-results/',
+            data: {
+                'store': details.store.id,
+                'campaign': details.campaign.id,
+                'results': 8 //TODO: Probably should be some calculated value
+            },
+            dataType: 'json',
+            success: function(results) {
+                layoutResults(results, belowFold);
+            }
+        });
+    };
+
+    layoutResults = function (results, belowFold) {
+        var $col,
+            result,
+            initialResults = results.length;
+
+        while (results.length) {
+            $col = getShortestColumn();
+
+            result = results.pop();
+
+            //add to shortest stack
+            if (!belowFold) {
+                $col.append(result);
+            } else {
+                $col.find('.block.product:in-viewport:last').after(result);
+            }
+        }
+
+        // Don't continue to load results if we aren't getting more results
+        if (initialResults > 0) {
+            pageScroll();
+        }
+    };
+
+    pageScroll = function () {
+        var $w            = $(window),
+            noResults     = ($('.discovery-area .block').length == 0),
+            pageBottomPos = $w.innerHeight() + $w.scrollTop(),
+            shortestCol   = getShortestColumn(),
+            lastBlock     = shortestCol.find('.block:last'),
+            lowestHeight;
+
+        if (lastBlock.length <= 0) {
+            lastBlock = shortestCol;
+        }
+        lowestHeight = lastBlock.offset().top + lastBlock.height()
+
+        if ( noResults || (pageBottomPos > lowestHeight)) {
+            loadMoreResults();
+        }
+    };
 
     featuredAreaSetup = function () {
         var $featuredArea = $('.featured'),
@@ -160,14 +284,23 @@ var PINPOINT = (function($){
         featuredAreaSetup();
 
         // Event Handling
-        $('.block.product').on('click', showPreview);
+        $('.discovery-area').on('click', '.block.product', showPreview);
+        $('.discovery-area').on('click', '.block.product', updateClickStream);
+        $('.discovery-area').on('mouseenter', '.block.product', productHoverOn);
+        $('.discovery-area').on('mouseleave', '.block.product', productHoverOff);
+
         $('.preview .mask, .preview .close').on('click', hidePreview);
-        $('.block.product').hover(productHoverOn, productHoverOff);
+
+        $(window).scroll(pageScroll);
+        $(window).resize(pageScroll);
 
         // Prevent social buttons from causing other events
         $('.social-buttons .button').on('click', function(e) {
             e.stopPropagation();
-        })
+        });
+
+        // Take any necessary actions
+        loadInitialResults();
     };
     /* --- END element bindings --- */
 
@@ -319,6 +452,6 @@ var PINPOINT = (function($){
         'init': init,
         'addPreviewCallback': addPreviewCallback
     };
-})(jQuery);
+})(jQuery, window.PINPOINT_INFO || {});
 
 PINPOINT.init();
