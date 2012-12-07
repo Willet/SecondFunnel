@@ -126,6 +126,7 @@
 
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 {% endblock %}
 
 {% block top_section %}
@@ -143,91 +144,251 @@
 {% endblock %}
 
 {% block document_ready %}
-    var store_id = '{{ store.id }}';
-    {% if campaign %}
-        var campaign_id = '{{ campaign.id }}';
-    {% endif %}
+    var app = (function($) {
+        var init, settings, setUpListeners, getDateRange,
+            injectAnalyticsData, loadAnalytics;
 
-    google.setOnLoadCallback(function () {
-    });
+        settings = {
+            "store_id": "{{ store.id }}",
+            "campaign_id": "{{ campaign.id }}"
+        };
 
-    $( "#start_range" ).datepicker({
-        defaultDate: "+1w",
-        changeMonth: true,
-        numberOfMonths: 3,
-        onClose: function( selectedDate ) {
-            $( "#end_range" ).datepicker( "option", "minDate", selectedDate );
-        }
-    });
-    $( "#start_range" ).datepicker("setDate", "-2w");
+        getDateRange = function () {
+            var start_date = $("#start_range").datepicker("getDate"),
+                end_date = $("#end_range").datepicker("getDate");
 
-    $( "#end_range" ).datepicker({
-        defaultDate: "+1w",
-        changeMonth: true,
-        numberOfMonths: 3,
-        onClose: function( selectedDate ) {
-            $( "#start_range" ).datepicker( "option", "maxDate", selectedDate );
-        }
-    });
-    $("#end_range").datepicker("setDate", new Date());
-
-    $("#start_range, #end_range").change(function() {
-        init_data();
-    });
-
-    $(".loading").ajaxStart(function() {
-        $(this).show();
-    });
-
-    $(".loading").ajaxStop(function() {
-        $(this).hide();
-    });
-
-    $(".section_overview_block").click(function() {
-        $(".data_category").hide();
-        $("div[data-cid='" + $(this).data("cid") + "']").show();
-
-        $(".section_overview_block").removeClass("selected");
-        $(this).addClass("selected");
-    });
-
-    function request_data(request) {
-        start_date = $("#start_range").datepicker("getDate");
-        end_date = $("#end_range").datepicker("getDate");
-
-        request['start_date'] = start_date.getFullYear() + "/" + (start_date.getMonth() + 1) + "/" + start_date.getDate();
-        request['end_date'] = end_date.getFullYear() + "/" + (end_date.getMonth() + 1) + "/" + end_date.getDate();
-
-        update_data(request);
-    }
-
-    function update_data(o) {
-        $.ajax({
-            url: "{% url ajax-analytics-pinpoint %}",
-            dataType: "json",
-            data: o,
-            success: function (data) {
-                inject_analytics_data(data);
+            return {
+                'start_date': $.datepicker.formatDate("yy/mm/dd", start_date),
+                'end_date': $.datepicker.formatDate("yy/mm/dd", end_date)
             }
-        });
-    }
+        };
 
-    $("#campaign_list").change(function() {
-        var campaign_id = $(this).find("option:selected").attr("value");
-        init_data({'campaign_id': campaign_id});
-    });
+        loadAnalytics = function (o) {
+            var request,
+                date_range = getDateRange();
 
-    function init_data(o) {
-        var cid = o ? o.campaign_id || campaign_id : campaign_id;
+            if (typeof(o) !== "undefined") {
+                request['campaign_id'] = o.campaign_id || settings.campaign_id;
+                request['store_id'] = o.store_id || settings.store_id;
+            }
 
-        if (cid) {
-            request_data({'campaign_id': cid});
-        } else {
-            request_data({'store_id': store_id});
-        }
-    }
+            request['start_date'] = date_range['start_date'];
+            request['end_date'] = date_range['end_date'];
 
-    init_data();
+            $.ajax({
+                url: "{% url ajax-analytics-pinpoint %}",
+                dataType: "json",
+                data: request,
+                success: function (data) {
+                    injectAnalyticsData(data);
+                }
+            });
+        };
+
+        injectAnalyticsData = function (data) {
+            var rendered = {
+                    'charts': {},
+                    'charts_data': {},
+                    'tables': {},
+                    'tables_data': {}
+                },
+                clearChartsAndTables, renderChart, renderTable;
+
+            clearChartsAndTables = function () {
+                for (metric_slug in rendered['charts']) {
+                    rendered['charts'][metric_slug].clearChart();
+                }
+
+                for (metric_slug in rendered['charts_data']) {
+                    rendered['charts_data'][metric_slug] = [];
+                }
+            };
+
+            renderTable = function (data) {
+                var this_data = new google.visualization.DataTable();
+                this_data.addColumn('date', 'Date');
+                this_data.addColumn('number', 'Product');
+                this_data.addColumn('string', 'Meta');
+                this_data.addColumn('number', data['name']);
+
+                for (i in data['data']) {
+                    this_data.addRow([
+                        new Date(data['data'][i]['date'].split("-")[0],
+
+                            // month is zero-based
+                            data['data'][i]['date'].split("-")[1] - 1,
+
+                            data['data'][i]['date'].split("-")[2]
+                        ),
+                        data['data'][i]['product_id'],
+                        data['data'][i]['meta'],
+                        data['data'][i]['value']
+                    ]);
+                }
+
+                if (!(metric_slug in rendered['tables'])) {
+                    rendered['tables'][metric_slug] = new google.visualization.Table(
+                        document.getElementById('table_' + metric_slug)
+                    );
+                }
+
+                rendered['tables'][metric_slug].draw(this_data, {
+                    showRowNumber: false
+                });
+            };
+
+            renderChart = function (data) {
+                var this_data = new google.visualization.DataTable();
+                this_data.addColumn('date', 'Date');
+                this_data.addColumn('number', data['name']);
+
+                for (date in data['totals']) {
+                    if (date == "all") {
+                        continue;
+                    }
+
+                    if (!(metric_slug in charts_data)) {
+                        rendered['charts_data'][metric_slug] = [];
+                    }
+
+                    rendered['charts_data'][metric_slug].push(
+                        [
+                            new Date(date.split("-")[0],
+
+                                // month is zero-based
+                                date.split("-")[1] - 1,
+
+                                date.split("-")[2]
+                            ), data['totals'][date]
+                        ]
+                    );
+
+                    this_data.addRows(rendered['charts_data'][metric_slug]);
+                }
+
+                if (!(metric_slug in rendered['charts'])) {
+                    rendered['charts'][metric_slug] = new google.visualization.LineChart(
+                        document.getElementById('chart_' + metric_slug)
+                    );
+                }
+
+                rendered['charts'][metric_slug].draw(this_data, {
+                    'width': 670,
+                    'chartArea': {
+                        'left': 35,
+                        'top': 10,
+                        'width': '95%',
+                        'height': '80%'
+                    },
+                    'legend': {
+                        'position': 'none'
+                    },
+                    'hAxis': {
+                        'format': 'MMM d',
+                        'gridlines': {
+                            'color': '#fff'
+                        }
+                    },
+                    'vAxis': {
+                        'minValue': 0
+                    },
+                    'pointSize': 3
+                });
+            };
+
+            clearChartsAndTables();
+
+            for (cat_slug in data) {
+                for (metric_slug in data[cat_slug]) {
+                    // display totals in the sidebar on in the content section
+                    $(".metric_overview[data-metric='" + metric_slug + "']").html(
+                        data[cat_slug][metric_slug]['totals']['all']
+                    );
+
+                    $(".metric_title_all[data-metric='" + metric_slug + "']").html(
+                        data[cat_slug][metric_slug]['totals']['all']
+                    );
+                }
+
+                renderTable(data[cat_slug][metric_slug]);
+                renderChart(data[cat_slug][metric_slug]);
+            }
+        };
+
+        setUpListeners = function () {
+            // date range ui and listeners
+            $("#start_range").datepicker({
+                defaultDate: "-2w",
+                changeMonth: true,
+                numberOfMonths: 2,
+                onClose: function(selectedDate) {
+                    $("#end_range").datepicker("option", "minDate", selectedDate);
+                }
+            });
+
+            $( "#end_range" ).datepicker({
+                defaultDate: new Date(),
+                changeMonth: true,
+                numberOfMonths: 2,
+                onClose: function( selectedDate ) {
+                    $("#start_range").datepicker("option", "maxDate", selectedDate);
+                }
+            });
+
+            $("#start_range, #end_range").change(function() {
+                loadAnalytics();
+            });
+
+
+            // ajax loading indicator
+            $(".loading").ajaxStart(function() {
+                $(this).show();
+            });
+
+            $(".loading").ajaxStop(function() {
+                $(this).hide();
+            });
+
+
+            // select analytics category ui
+            $(".section_overview_block").click(function() {
+                $(".data_category").hide();
+                $("div[data-cid='" + $(this).data("cid") + "']").show();
+
+                $(".section_overview_block").removeClass("selected");
+                $(this).addClass("selected");
+            });
+
+
+            // change campaign from the top menu
+            $("#campaign_list").change(function() {
+                loadAnalytics({
+                    'campaign_id': $(this).find("option:selected").attr("value")
+                });
+            });
+        };
+
+        init = function () {
+            // create UI and event listeners
+            setUpListeners();
+
+            // ensure Google Charts is available
+            google.setOnLoadCallback(function () {
+
+                // load charting libs
+                google.load("visualization", "1", {packages:["corechart", "table"]});
+
+                // load and inject data
+                loadAnalytics();
+            });
+        };
+
+        return {
+            "init": init
+        };
+    }(jQuery));
+
+    app.init();
 
 {% endblock %}
 
@@ -328,126 +489,4 @@
     <div class="grid_11 section_footer">
         <div class="section_meta">Last updated: {% if last_updated %}{{ last_updated }}{% else %}never{% endif %}</div>
     </div>
-
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script type="text/javascript">
-        var charts_data = {},
-            charts = {},
-            tables_data = {},
-            tables = {};
-
-        function set_percentage(id, perc) {
-            $("#" + id).html(perc.toFixed(2) + "%");
-        }
-
-        function inject_analytics_data(data) {
-            for (metric_slug in charts) {
-                charts[metric_slug].clearChart();
-            }
-
-            for (metric_slug in charts_data) {
-                charts_data[metric_slug] = [];
-            }
-
-            for (cat_slug in data) {
-                for (metric_slug in data[cat_slug]) {
-                    // display totals in the sidebar on in the content section
-                    $(".metric_overview[data-metric='" + metric_slug + "']").html(
-                        data[cat_slug][metric_slug]['totals']['all']
-                    );
-
-                    $(".metric_title_all[data-metric='" + metric_slug + "']").html(
-                        data[cat_slug][metric_slug]['totals']['all']
-                    );
-
-                    // render daily breakdown
-                    var this_data = new google.visualization.DataTable();
-                    this_data.addColumn('date', 'Date');
-                    this_data.addColumn('number', 'Product');
-                    this_data.addColumn('string', 'Meta');
-                    this_data.addColumn('number', data[cat_slug][metric_slug]['name']);
-
-                    for (i in data[cat_slug][metric_slug]['data']) {
-                        this_data.addRow([
-                            new Date(data[cat_slug][metric_slug]['data'][i]['date'].split("-")[0],
-
-                                // month is zero-based
-                                data[cat_slug][metric_slug]['data'][i]['date'].split("-")[1] - 1,
-
-                                data[cat_slug][metric_slug]['data'][i]['date'].split("-")[2]
-                            ),
-                            data[cat_slug][metric_slug]['data'][i]['product_id'],
-                            data[cat_slug][metric_slug]['data'][i]['meta'],
-                            data[cat_slug][metric_slug]['data'][i]['value']
-                        ]);
-                    }
-
-                    if (!(metric_slug in tables)) {
-                        tables[metric_slug] = new google.visualization.Table(document.getElementById('table_' + metric_slug));
-                    }
-
-                    tables[metric_slug].draw(this_data, {showRowNumber: false});
-
-
-                    // render charts
-                    var this_data = new google.visualization.DataTable();
-                    this_data.addColumn('date', 'Date');
-                    this_data.addColumn('number', data[cat_slug][metric_slug]['name']);
-
-                    for (date in data[cat_slug][metric_slug]['totals']) {
-                        if (date == "all") {
-                            continue;
-                        }
-
-                        if (!(metric_slug in charts_data)) {
-                            charts_data[metric_slug] = [];
-                        }
-
-                        charts_data[metric_slug].push(
-                            [
-                                new Date(date.split("-")[0],
-
-                                    // month is zero-based
-                                    date.split("-")[1] - 1,
-
-                                    date.split("-")[2]
-                                ), data[cat_slug][metric_slug]['totals'][date]
-                            ]
-                        );
-
-                        this_data.addRows(charts_data[metric_slug]);
-                    }
-
-                    if (!(metric_slug in charts)) {
-                        charts[metric_slug] = new google.visualization.LineChart(document.getElementById('chart_' + metric_slug));
-                    }
-
-                    charts[metric_slug].draw(this_data, {
-                        'width': 670,
-                        'chartArea': {
-                            'left': 35,
-                            'top': 10,
-                            'width': '95%',
-                            'height': '80%'
-                        },
-                        'legend': {
-                            'position': 'none'
-                        },
-                        'hAxis': {
-                            'format': 'MMM d',
-                            'gridlines': {
-                                'color': '#fff'
-                            }
-                        },
-                        'vAxis': {
-                            'minValue': 0
-                        },
-                        'pointSize': 3
-                    });
-                }
-            }
-        }
-
-        google.load("visualization", "1", {packages:["corechart", "table"]});
-    </script>
 {% endblock %}
