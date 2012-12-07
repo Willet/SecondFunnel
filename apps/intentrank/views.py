@@ -69,7 +69,8 @@ def process_intentrank_request(request, store, page, function_name,
         # TODO: Replace with error; for use until IR is running
         return random_products(store, param_dict), SUCCESS
 
-    products = Product.objects.filter(pk__in=results.get('products'))
+    products = Product.objects.filter(pk__in=results.get('products'),
+                                      rescrape=False)
     return products, SUCCESS
 
 # TODO: We shouldn't be doing this on the backend
