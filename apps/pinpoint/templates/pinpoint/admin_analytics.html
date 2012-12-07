@@ -236,7 +236,6 @@
         <div class="page_selector">
             <label for="campaign_list">Page:</label>
             <select id="campaign_list" name="campaign_list">
-                <!-- <option value="overview" {% if is_overview %}selected{% endif %}>Overview</option> -->
                 {% for c in store.campaign_set.all %}
                     <option value="{{ c.id }}" {% if c.id == campaign.id %}selected{% endif %}>{{ c.name }}</option>
                 {% endfor %}
