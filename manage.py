@@ -11,7 +11,7 @@ if __name__ == "__main__":
     # This forces all migrations to have the same name.
     # We do this so that we can tell when there are migration conflicts when
     #   merging.
-    if (len(sys.argv) > 0 and sys.argv[1] == 'schemamigration'):
+    if (len(sys.argv) >= 2 and sys.argv[1] == 'schemamigration'):
         args.append('auto')
 
     from django.core.management import execute_from_command_line
