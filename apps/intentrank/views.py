@@ -25,31 +25,39 @@ def random_products(store, param_dict):
     results = Product.objects.filter(store_id__exact=store_id).order_by('?')
     return results[:num_results]
 
-def process_intentrank_request(request, store, page, function_name,
-                               param_dict):
-    url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
-        INTENTRANK_BASE_URL, store, page, function_name)
-    params   = urlencode(param_dict)
-    url = '{0}?{1}'.format(url, params)
+def send_intentrank_request(request, url, method='GET', headers=None):
+    if not headers:
+        headers = {}
 
-    headers = {}
     cookie = request.session.get('ir-cookie')
     if cookie:
         headers['Cookie'] = cookie
 
     h = httplib2.Http()
-    try:
-        response, content = h.request(
-            url,
-            'GET',
-            headers=headers,
-        )
-    except Exception: # TODO: Replace with more specific error
-        # TODO: Replace with error; for use until IR is running
-        return random_products(store, param_dict), SUCCESS
+    response, content = h.request(
+        url,
+        method=method,
+        headers=headers,
+    )
 
     if response.get('set-cookie'):
         request.session['ir-cookie'] = response['set-cookie']
+
+    return response, content
+
+def process_intentrank_request(request, store, page, function_name,
+                               param_dict):
+
+    url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
+        INTENTRANK_BASE_URL, store, page, function_name)
+    params   = urlencode(param_dict)
+    url = '{0}?{1}'.format(url, params)
+
+    try:
+        response, content = send_intentrank_request(request, url)
+    except Exception: # TODO: Replace with more specific error
+        # TODO: Replace with error; for use until IR is running
+        return random_products(store, param_dict), SUCCESS
 
     if not response.status in ALLOWED_STATUSES:
         # TODO: Replace with error; for use until IR is running
@@ -137,4 +145,6 @@ def update_clickstream(request):
 
 def invalidate_session(request):
     #intentrank/invalidate-session
-    pass
+    url = '{0}/intentrank/invalidate-session'.format(INTENTRANK_BASE_URL)
+    send_intentrank_request(request, url)
+    return HttpResponse("[]", mimetype='application/json')
