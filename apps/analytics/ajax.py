@@ -59,15 +59,13 @@ def analytics_pinpoint(request):
     except Store.DoesNotExist:
         pass
 
-    try:
-        campaign = Campaign.objects.get(id=campaign_id)
-        store = campaign.store
-
-    except Campaign.DoesNotExist:
-        pass
-
     if not store:
-        return ajax_error()
+        try:
+            campaign = Campaign.objects.get(id=campaign_id)
+            store = campaign.store
+
+        except Campaign.DoesNotExist:
+            return ajax_error()
 
     # check if user is authorized to access this data
     if not request.user in store.staff.all():
