@@ -12,6 +12,7 @@ var PINPOINT = (function($, pageInfo){
         getShortestColumn,
         hidePreview,
         init,
+        invalidateIRSession,
         layoutResults,
         load,
         loadFB,
@@ -210,6 +211,13 @@ var PINPOINT = (function($, pageInfo){
             success: function(results) {
                 layoutResults(results, belowFold);
             }
+        });
+    };
+
+    invalidateIRSession = function () {
+        $.ajax({
+            url: '/intentrank/invalidate-session/',
+            dataType: 'json'
         });
     };
 
@@ -450,6 +458,7 @@ var PINPOINT = (function($, pageInfo){
 
     return {
         'init': init,
+        'invalidateSession': invalidateIRSession,
         'addPreviewCallback': addPreviewCallback
     };
 })(jQuery, window.PINPOINT_INFO || {});
