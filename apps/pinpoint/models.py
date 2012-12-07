@@ -89,20 +89,8 @@ class StoreTheme(BaseModelNamed):
     </div>
     """
 
-    store = models.ForeignKey(Store, related_name='themes')
-
-    # Unfortunately, due to shenanigans, we can't include these fields on the
-    # actual Store model
-    default_theme  = models.OneToOneField(Store,
-                                          related_name='theme',
-                                          blank=True,
-                                          null=True,
-                                          verbose_name='Default theme for')
-    default_mobile = models.OneToOneField(Store,
-                                          related_name='mobile',
-                                          blank=True,
-                                          null=True,
-                                          verbose_name='Default mobile theme for')
+    store = models.ForeignKey(Store, related_name='themes',
+                              verbose_name='Belongs to')
 
     page_template = models.TextField(default=DEFAULT_PAGE_TEMPLATE,
                                      validators=[page_template_includes])
@@ -174,29 +162,17 @@ class Campaign(BaseModelNamed):
         type: a string; either 'full' or 'mobile'
         """
 
-        # Unfortunately, OneToOneFields are not symmetric
-        # Until this feature is implemented, we need to do this to prevent
-        # unwanted exceptions
-        # https://code.djangoproject.com/ticket/10227
-
-        def getattr_catch(obj, name):
-            try:
-                result = getattr(obj, name)
-            except StoreTheme.DoesNotExist:
-                result = None
-            return result
-
         priorities = {
             'full'  : [
                 self.theme,
-                getattr_catch(self.store, 'theme'),
+                self.store.theme,
                 None
             ],
             'mobile': [
                 self.mobile,
-                getattr_catch(self.store, 'mobile'),
+                self.store.mobile,
                 self.theme,
-                getattr_catch(self.store, 'theme'),
+                self.store.theme,
                 None
             ]
         }
