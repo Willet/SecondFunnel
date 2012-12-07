@@ -6,4 +6,6 @@ urlpatterns = patterns('apps.intentrank.views',
    url(r'^get-results/$', 'get_results', name='get-results'),
    url(r'^update-clickstream/$', 'update_clickstream',
        name='update-clickstream'),
+   url(r'^invalidate-session/$', 'invalidate_session',
+       name='invalidate_session'),
 )
