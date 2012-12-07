@@ -170,8 +170,13 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     featured_content  = Template(modified_featured).render(featured_context)
 
     # Header content
+    header_context = Context(featured_context)
+    header_context.update({
+        'campaign': campaign
+    })
+
     header_content = render_to_string('pinpoint/campaign_head.html',
-                                      arguments, context)
+                                      arguments, header_context)
 
     page_context = Context({
         'featured_content': featured_content,
