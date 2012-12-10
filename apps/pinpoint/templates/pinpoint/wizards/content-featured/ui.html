@@ -30,7 +30,7 @@
             font-size: 15pt;
         }
 
-        #product_images {
+        .product-images {
             height: 230px;
             overflow-x: auto;
             overflow-y: hidden;
@@ -42,12 +42,7 @@
             -moz-box-shadow:0px 0px 5px rgba(0,0,0,.5);
         }
 
-        /*#product_images ul {
-            list-style: none;
-            margin-top: 20px;
-        }*/
-
-        #product_images > li {
+        .product-images > li {
             padding-right: 8px;
             padding-bottom: 8px;
             width: 200px;
@@ -59,7 +54,7 @@
             line-height: 200px;
         }
 
-        #product_images li > img {
+        .product-images li > img {
             padding: 5px;
             vertical-align: middle;
             max-width: 200px;
@@ -67,14 +62,14 @@
             cursor:pointer;
         }
 
-        #fine-uploader {
+        .fine-uploader {
             display: inline-block;
             width: 200px;
             line-height: 20px;
             margin-top: 83px;
         }
 
-        #fine-uploader .qq-upload-button {
+        .fine-uploader .qq-upload-button {
             margin-left: auto;
             margin-right: auto;
             width: 160px;
@@ -96,7 +91,7 @@
             width: 250px;
         }
 
-        #product_images li > img.prod_img:hover, #product_images img.selected {
+        .product-images li > img.prod_img:hover, .product-images img.selected {
             background-color: #C43;
             -webkit-border-radius: 5px;
             border-radius: 5px;
@@ -611,11 +606,11 @@
                     </ul>
                 {% endif %}
                 <span class="helptext">Please either select an existing product image or upload a custom one.</span>
-                <div id="image-selector">
+                <div id="image-selector" class="image-selector">
                     <div class="existing_images_list">
-                        <ul id="product_images">
+                        <ul id="product_images" class="product-images">
                             <li>
-                            <div id="fine-uploader"></div>
+                            <div id="fine-uploader" class='fine-uploader'></div>
                             </li>
                         </ul>
                     </div>
