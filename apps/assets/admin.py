@@ -67,7 +67,7 @@ class ProductMediaInline(admin.TabularInline):
 
 class ProductAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + [
-        'original_url', 'price', 'media_count']
+        'original_url', 'price', 'media_count', 'lifestyleImage']
 
     inlines = [
         ProductMediaInline,
