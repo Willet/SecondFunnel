@@ -57,30 +57,30 @@ var application = (function(store_id, products, urls){
             li, uploadedImages;
 
         // Hide errors
-        // TODO: Which image selector
-        $("#image-selector").siblings(".errorlist").children("li").fadeIn(500);
+        $(".image-selector").siblings(".errorlist").children("li").fadeIn(500);
 
         if (typeof(product) === "undefined") {
             return;
         }
 
         // clear existing image list
-        // TODO: Which images?
-        images = $("#product_images li");
-        imagesToRemove = images.splice(1, images.length - 1);
-        for (var i = imagesToRemove.length - 1; i >= 0; i--) {
-            $(imagesToRemove[i]).remove();
-        }
+
+        $('.product-images').each(function(index, elem) {
+            var $images = $(elem).find('li');
+            imagesToRemove = $images.splice(1, $images.length - 1);
+            for (var i = imagesToRemove.length - 1; i >= 0; i--) {
+                $(imagesToRemove[i]).remove();
+            }
+        });
 
         // display product media
         for (i in product.media) {
             li = $("<li><img class='prod_img existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
             if (product.media[i].id == data.product_image_id) {
-                // TODO: which image selector?
-                $("#image-selector").siblings(".errorlist").children("li").hide();
+                $(".image-selector").siblings(".errorlist").children("li").hide();
                 li.children('img').addClass('selected');
             }
-            $("#product_images").append(li);
+            $(".product-images").append(li);
         }
 
         if (data.product_generic_image_list) {
@@ -181,11 +181,11 @@ var application = (function(store_id, products, urls){
     };
 
     onImageSelect = function ($elem, existing) {
-        var $image = $elem;
+        var $image = $elem,
+            $field  = $elem.parents('.field');
 
         // Hide related errors
-        // TODO:
-        $('#image-selector').siblings('.errorlist').children('li').fadeOut(500);
+        $field.find('.image-selector').siblings('.errorlist').children('li').fadeOut(500);
 
         $image.parents('.product-images').find('img').removeClass('selected');
         $image.addClass('selected');
@@ -256,7 +256,7 @@ var application = (function(store_id, products, urls){
 
     createUploader = function($elem) {
         var uploader,
-            $productImages = $elem.parents('.product-images');
+            $productImages = $('.product-images');
 
         uploader = new qq.FileUploader({
             element: $elem[0],
@@ -264,7 +264,7 @@ var application = (function(store_id, products, urls){
             csrfToken: $.cookie('csrftoken'),
             allowedExtensions: ['jpg' ,'png', 'jpeg'],
             onSubmit: function() {
-                $elem.closest('li').after(
+                $('.fine-uploader').closest('li').after(
                     '<li><img class=\'loading_gif\' src=\'' +
                         urls['loading-gif'] +
                         '\'></li>'
@@ -319,12 +319,12 @@ var application = (function(store_id, products, urls){
         $('#cancel_to_admin').on('click', onCancel);
         $('.button.back:not(.disabled)').on('click', onBack);
 
-        $('#product_images').on('click', 'img.existing_image', onExistingImageSelect);
-        $('#product_images').on('click', 'img.new_image', onNewImageSelect);
+        $('.product-images').on('click', 'img.existing_image', onExistingImageSelect);
+        $('.product-images').on('click', 'img.new_image', onNewImageSelect);
 
         // Trigger page changed events
-        $('#product_images').on('click', 'img.existing_image', onPageChanged);
-        $('#product_images').on('click', 'img.new_image', onPageChanged);
+        $('.product-images').on('click', 'img.existing_image', onPageChanged);
+        $('.product-images').on('click', 'img.new_image', onPageChanged);
         $('#id_name, #id_description').change(onPageChanged);
         $('#id_name, #id_description').keyup(onPageChanged);
     };
@@ -340,7 +340,10 @@ var application = (function(store_id, products, urls){
         $(document).ready(ready);
 
         //create uploaders
-        uploader = createUploader($('#fine-uploader'));
+        $('.fine-uploader').each(function(index, elem){
+            createUploader($(elem));
+        });
+//        createUploader($('.fine-uploader'))
 
         // select product
         productSelected({
