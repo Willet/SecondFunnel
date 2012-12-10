@@ -1,6 +1,5 @@
 import json
 import random
-import datetime
 
 from datetime import timedelta, datetime
 
@@ -33,22 +32,10 @@ def analytics_pinpoint(request):
     end_date = request.GET.get('end_date')
 
     if start_date:
-        start_date = [int(d) for d in start_date.split("/")]
-
-        start_date = datetime(
-            year=start_date[0],
-            month=start_date[1],
-            day=start_date[2]
-        )
+        start_date = datetime.strptime(start_date, "%Y/%m/%d")
 
     if end_date:
-        end_date = [int(d) for d in end_date.split("/")]
-
-        end_date = datetime(
-            year=end_date[0],
-            month=end_date[1],
-            day=end_date[2]
-        )
+        end_date = datetime.strptime(end_date, "%Y/%m/%d")
 
     # try get a store associated with this request,
     # either directly or via campaign
