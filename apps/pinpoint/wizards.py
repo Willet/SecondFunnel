@@ -9,7 +9,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from apps.assets.models import Product, ProductMedia, GenericImage
 from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
     FeaturedProductBlock)
-from apps.pinpoint.forms import FeaturedProductWizardForm
+from apps.pinpoint.forms import FeaturedProductWizardForm, ShopTheLookWizardForm
 
 def _editing_valid_form(form, product, preview=False):
     generic_media_id = form.cleaned_data.get("generic_media_id")
@@ -138,6 +138,54 @@ def featured_product_wizard(request, store, block_type, campaign=None):
             form = FeaturedProductWizardForm(initial_data)
         else:
             form = FeaturedProductWizardForm()
+
+    if not preview:
+        return render_to_response('pinpoint/wizards/%s/ui.html' % block_type.slug, {
+            "store": store,
+            "block_types": BlockType.objects.all(),
+            "products": store.product_set.all(),
+            "form": form,
+            "campaign": campaign,
+        }, context_instance=RequestContext(request))
+
+    else:
+        return HttpResponse(json.dumps({"success": False}), mimetype='application/json')
+
+
+def shop_the_look_wizard(request, store, block_type, campaign=None):
+    preview = request.is_ajax()
+
+    if request.method == 'POST':
+        form = ShopTheLookWizardForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            result = _form_is_valid(block_type, form, store, preview)
+            if not preview:
+                messages.success(request, "Your page was saved successfully")
+
+            return result
+    else:
+        if campaign:
+            initial_data = {
+                "name": campaign.name,
+                "product_id": campaign.content_blocks.all()[0].data.product.id,
+                "page_description": campaign.description,
+                "description": campaign.content_blocks.all()[0].data.description,
+                "campaign_id": campaign.id,
+                }
+
+            product_image = campaign.content_blocks.all()[0].data.get_image()
+
+            if product_image.__class__.__name__ == "GenericImage":
+                initial_data["generic_media_id"] = product_image.id
+                initial_data["generic_media_list"] = product_image.get_url() + "\\" + str(product_image.id)
+
+            elif product_image.__class__.__name__ == "ProductMedia":
+                initial_data["product_media_id"] = product_image.id
+
+            form = ShopTheLookWizardForm(initial_data)
+        else:
+            form = ShopTheLookWizardForm()
 
     if not preview:
         return render_to_response('pinpoint/wizards/%s/ui.html' % block_type.slug, {

@@ -12,9 +12,23 @@
                "slug": "content-featured", 
                "name": "Featured Product"
           }
-     }, 
+     },
      {
-          "pk": 2, 
+          "pk": 2,
+          "model": "pinpoint.blocktype",
+          "fields": {
+              "description": "",
+              "created": "2012-10-19T23:06:05.103Z",
+              "handler": "shop_the_look_wizard",
+              "image": "internal_images/cb-split-200x100-cs.png",
+              "enabled": true,
+              "last_modified": "2012-12-06T23:52:56.937Z",
+              "slug": "shop-look",
+              "name": "Shop The Look"
+          }
+     },
+     {
+          "pk": 3,
           "model": "pinpoint.blocktype", 
           "fields": {
                "description": "", 
@@ -28,7 +42,7 @@
           }
      }, 
      {
-          "pk": 3, 
+          "pk": 4,
           "model": "pinpoint.blocktype", 
           "fields": {
                "description": "", 
@@ -40,21 +54,7 @@
                "slug": "themed-collection", 
                "name": "Themed Collection"
           }
-     }, 
-     {
-          "pk": 4, 
-          "model": "pinpoint.blocktype", 
-          "fields": {
-               "description": "", 
-               "created": "2012-10-19T23:06:05.103Z", 
-               "handler": "", 
-               "image": "internal_images/cb-split-200x100-cs.png", 
-               "enabled": false, 
-               "last_modified": "2012-12-06T23:52:56.937Z", 
-               "slug": "shop-look", 
-               "name": "Shop The Look"
-          }
-     }, 
+     },
      {
           "pk": 1, 
           "model": "pinpoint.blockcontent", 
