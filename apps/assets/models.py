@@ -116,7 +116,7 @@ class Product(BaseModelNamed):
     last_scraped = models.DateTimeField(blank=True, null=True)
     rescrape = models.BooleanField(default=False)
 
-    lifestyleImage = models.ForeignKey(GenericImage, null=True)
+    lifestyleImage = models.ForeignKey(GenericImage, blank=True, null=True)
 
     def __unicode__(self):
         return self.name
