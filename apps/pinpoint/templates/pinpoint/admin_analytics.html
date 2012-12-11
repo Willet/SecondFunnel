@@ -222,12 +222,19 @@
                 }
             };
 
-            renderTable = function (data) {
+            renderTable = function (data, slug) {
                 var this_data = new google.visualization.DataTable();
                 this_data.addColumn('date', 'Date');
                 this_data.addColumn('number', 'Product');
                 this_data.addColumn('string', 'Meta');
                 this_data.addColumn('number', data['name']);
+
+                if (data['data'].length == 0 || data['data'][0]['meta'] == "meta_metric") {
+                    $(".daily_breakdown[data-metric='" + slug + "']").hide();
+                    return;
+                }
+
+                $(".daily_breakdown[data-metric='" + slug + "']").show();
 
                 for (i in data['data']) {
                     this_data.addRow([
@@ -244,18 +251,18 @@
                     ]);
                 }
 
-                if (!(metric_slug in rendered['tables'])) {
-                    rendered['tables'][metric_slug] = new google.visualization.Table(
-                        document.getElementById('table_' + metric_slug)
+                if (!(slug in rendered['tables'])) {
+                    rendered['tables'][slug] = new google.visualization.Table(
+                        document.getElementById('table_' + slug)
                     );
                 }
 
-                rendered['tables'][metric_slug].draw(this_data, {
+                rendered['tables'][slug].draw(this_data, {
                     showRowNumber: false
                 });
             };
 
-            renderChart = function (data) {
+            renderChart = function (data, slug) {
                 var this_data = new google.visualization.DataTable();
                 this_data.addColumn('date', 'Date');
                 this_data.addColumn('number', data['name']);
@@ -265,11 +272,11 @@
                         continue;
                     }
 
-                    if (!(metric_slug in rendered['charts_data'])) {
-                        rendered['charts_data'][metric_slug] = [];
+                    if (!(slug in rendered['charts_data'])) {
+                        rendered['charts_data'][slug] = [];
                     }
 
-                    rendered['charts_data'][metric_slug].push(
+                    rendered['charts_data'][slug].push(
                         [
                             new Date(date.split("-")[0],
 
@@ -281,16 +288,16 @@
                         ]
                     );
 
-                    this_data.addRows(rendered['charts_data'][metric_slug]);
+                    this_data.addRows(rendered['charts_data'][slug]);
                 }
 
-                if (!(metric_slug in rendered['charts'])) {
-                    rendered['charts'][metric_slug] = new google.visualization.LineChart(
-                        document.getElementById('chart_' + metric_slug)
+                if (!(slug in rendered['charts'])) {
+                    rendered['charts'][slug] = new google.visualization.LineChart(
+                        document.getElementById('chart_' + slug)
                     );
                 }
 
-                rendered['charts'][metric_slug].draw(this_data, {
+                rendered['charts'][slug].draw(this_data, {
                     'width': 670,
                     'chartArea': {
                         'left': 35,
@@ -327,8 +334,8 @@
                         data[cat_slug][metric_slug]['totals']['all']
                     );
 
-                    renderTable(data[cat_slug][metric_slug]);
-                    renderChart(data[cat_slug][metric_slug]);
+                    renderTable(data[cat_slug][metric_slug], metric_slug);
+                    renderChart(data[cat_slug][metric_slug], metric_slug);
                 }
             }
         };
@@ -492,8 +499,10 @@
 
                                 <div class="metric_graph" id="chart_{{ metric.slug }}"></div>
 
-                                <div class="daily_title">Daily breakdown:</div>
-                                <div class="metric_daily" id="table_{{ metric.slug }}"></div>
+                                <div class="daily_breakdown" data-metric="{{ metric.slug }}" style="display:none">
+                                    <div class="daily_title">Daily breakdown:</div>
+                                    <div class="metric_daily" id="table_{{ metric.slug }}"></div>
+                                </div>
                             </div>
                         {% endfor %}
                     </div>
