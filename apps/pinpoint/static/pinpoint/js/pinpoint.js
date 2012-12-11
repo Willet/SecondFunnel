@@ -29,6 +29,7 @@ var PINPOINT = (function($, pageInfo){
         userClicks = 0,
         clickThreshold = 3,
         addPreviewCallback,
+        currentlyLoadingMore = false,
         previewCallbacks = [];
 
     details = pageInfo;
@@ -185,33 +186,39 @@ var PINPOINT = (function($, pageInfo){
     };
 
     loadInitialResults = function () {
-        $.ajax({
-            url: '/intentrank/get-seeds/',
-            data: {
-                'store': details.store.id,
-                'campaign': details.campaign.id,
-                'seeds': details.featured.id
-            },
-            dataType: 'json',
-            success: function(results) {
-                layoutResults(results);
-            }
-        });
+        if (!currentlyLoadingMore) {
+            currentlyLoadingMore = true;
+            $.ajax({
+                url: '/intentrank/get-seeds/',
+                data: {
+                    'store': details.store.id,
+                    'campaign': details.campaign.id,
+                    'seeds': details.featured.id
+                },
+                dataType: 'json',
+                success: function(results) {
+                    layoutResults(results);
+                }
+            });
+        }
     };
 
     loadMoreResults = function(belowFold) {
-        $.ajax({
-            url: '/intentrank/get-results/',
-            data: {
-                'store': details.store.id,
-                'campaign': details.campaign.id,
-                'results': 8 //TODO: Probably should be some calculated value
-            },
-            dataType: 'json',
-            success: function(results) {
-                layoutResults(results, belowFold);
-            }
-        });
+        if (!currentlyLoadingMore) {
+            currentlyLoadingMore = true;
+            $.ajax({
+                url: '/intentrank/get-results/',
+                data: {
+                    'store': details.store.id,
+                    'campaign': details.campaign.id,
+                    'results': 10 //TODO: Probably should be some calculated value
+                },
+                dataType: 'json',
+                success: function(results) {
+                    layoutResults(results, belowFold);
+                }
+            });
+        }
     };
 
     invalidateIRSession = function () {
@@ -226,39 +233,54 @@ var PINPOINT = (function($, pageInfo){
             result,
             initialResults = results.length;
 
+        var blocks = "";
         while (results.length) {
-            $col = getShortestColumn();
-
             result = results.pop();
+            blocks += result;
+        }
 
-            //add to shortest stack
-            if (!belowFold) {
-                $col.append(result);
-            } else {
-                $col.find('.block.product:in-viewport:last').after(result);
+        $block = $(blocks);
+        $block.css({opacity: 0});
+        $block.each(function() {
+            if ($(this).find('.lifestyle').length > 0) {
+                $(this).addClass('wide');
             }
-        }
-
-        // Don't continue to load results if we aren't getting more results
-        if (initialResults > 0) {
-            pageScroll();
-        }
+        })
+        $('.discovery-area').append($block);
+        var numImages = $block.find('img').length;
+        var imagesLoaded = 0;
+        $block.imagesLoaded(function() {
+            //$('.discovery-area').masonry('appended', $block);
+            $block.css({opacity: 1});
+            $('.discovery-area').masonry('appended', $block, true);
+            // Don't continue to load results if we aren't getting more results
+            if (initialResults > 0) {
+                setTimeout(function() {pageScroll();}, 100);
+            }
+            currentlyLoadingMore = false;
+        });
     };
 
     pageScroll = function () {
         var $w            = $(window),
             noResults     = ($('.discovery-area .block').length == 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
-            shortestCol   = getShortestColumn(),
-            lastBlock     = shortestCol.find('.block:last'),
+            lowestBlock,
             lowestHeight;
 
-        if (lastBlock.length <= 0) {
-            lastBlock = shortestCol;
+        $('.discovery-area .block').each(function() {
+            if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
+                lowestBlock = $(this);
+            }
+        });
+       
+        if (!lowestBlock) {
+            lowestHeight = 0;
+        } else {
+            lowestHeight = lowestBlock.offset().top + lowestBlock.height()
         }
-        lowestHeight = lastBlock.offset().top + lastBlock.height()
 
-        if ( noResults || (pageBottomPos > lowestHeight)) {
+        if ( noResults || (pageBottomPos + 500 > lowestHeight)) {
             loadMoreResults();
         }
     };
@@ -296,6 +318,12 @@ var PINPOINT = (function($, pageInfo){
         $('.discovery-area').on('click', '.block.product', updateClickStream);
         $('.discovery-area').on('mouseenter', '.block.product', productHoverOn);
         $('.discovery-area').on('mouseleave', '.block.product', productHoverOff);
+
+        $('.discovery-area').masonry({
+            itemSelector: '.block',
+            columnWidth: 960 / 4,
+            isResizable: true
+        });
 
         $('.preview .mask, .preview .close').on('click', hidePreview);
 
