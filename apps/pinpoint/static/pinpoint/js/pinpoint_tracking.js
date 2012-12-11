@@ -1,116 +1,119 @@
-var pinpointTracking = (function ($, window, document) {
+var _pptimeout, pinpointTracking = (function ($, window, document) {
     var referrerName = function () {
-            var host;
+        var host;
 
-            if (document.referrer === "") {
-                return "noref";
-            }
+        if (document.referrer === "") {
+            return "noref";
+        }
 
-            host = parseUri(document.referrer).host;
-            // want top level domain name (i.e. tumblr.com, not site.tumblr.com)
-            host = host.split(".").slice(host.split(".").length - 2, host.split(".").length).join(".");
+        host = parseUri(document.referrer).host;
+        // want top level domain name (i.e. tumblr.com, not site.tumblr.com)
+        host = host.split(".").slice(host.split(".").length - 2, host.split(".").length).join(".");
 
-            if (host === "") {
-                return "noref";
-            }
+        if (host === "") {
+            return "noref";
+        }
 
-            return host;
-        },
+        return host;
+    },
 
-        trackEvent = function (o) {
-            var category = "pinpoint|" + referrerName(), uri;
+    trackEvent = function (o) {
+        var category = "appname=pinpoint|"
+            + "storeid={{ campaign.store.id }}|"
+            + "campaignid={{ campaign.id }}|"
+            + "referrer=" + referrerName() + "|"
+            + "domain=" + parseUri(window.location.href).host;
 
-            uri = parseUri(window.location.href);
-            category += "|" + parseUri(uri.queryKey.url).host;
+        // console.log(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+        _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+    },
 
-            console.log(['_trackEvent', category, o.action, o.label, o.value || undefined]);
-            // _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
-        },
+    registerEvent = function (o) {
+        var actionData = [
+            "network=" + o.network || "",
+            "actionType=" + o.type,
+            "actionSubtype=" + o.subtype || "",
+            "actionScope=" + pinpointTracking.socialShareType,
+        ];
 
-        registerShare = function (o) {
-            var action, url;
+        trackEvent({
+            "action": actionData.join("|"),
+            "label": o.label || pinpointTracking.socialShareUrl
+        });
+    },
 
-            trackEvent({
-                "action": "share|" + o.network + "|" + o.type + "|" + pinpointTracking.socialShareType,
-                "label": pinpointTracking.socialShareUrl
-            });
-        },
+    setSocialShareVars = function (o) {
+        if (o['default'] === true) {
+            pinpointTracking.socialShareUrl = $("#featured_img").data("url");
+            pinpointTracking.socialShareType = "featured";
+        } else {
+            pinpointTracking.socialShareUrl = o.url;
+            pinpointTracking.socialShareType = o.sType;
+        }
+    },
 
-        setSocialShareVars = function (o) {
-            if (o.default === true) {
-                pinpointTracking.socialShareUrl = $("#featured_img").data("url");
-                pinpointTracking.socialShareType = "featured";
-            } else {
-                pinpointTracking.socialShareUrl = o.url;
-                pinpointTracking.socialShareType = o.sType;
-            }
-        },
+    clearTimeout = function () {
+        if (typeof _pptimeout == "number") {
+            window.clearTimeout(_pptimeout);
+            delete _pptimeout;
+        }
+    },
 
-        clearTimeout = function () {
-            if (typeof pinpointTracking._pptimeout == "number") {
-              window.clearTimeout(pinpointTracking._pptimeout);
+    init = function() {
+        // load scripts
+        window.twttr = (function (d,s,id) {
+           var t, js, fjs = d.getElementsByTagName(s)[0];
+           if (d.getElementById(id)) return; js=d.createElement(s); js.id=id; js.async=true;
+           js.src="//platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs);
+           return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f) } });
+        }(document, "script", "twitter-wjs"));
 
-              // TODO remove this? not valid in strict mode
-              delete pinpointTracking._pptimeout;
-            }
-        },
-
-        init = function() {
-            setSocialShareVars({"default": true});
-
-            // load scripts
-            window.twttr = (function (d,s,id) {
-                var t, js, fjs = d.getElementsByTagName(s)[0];
-                if (d.getElementById(id)) return; js=d.createElement(s); js.id=id;
-                js.src="//platform.twitter.com/widgets.js"; js.onload="pinpointTracking.registerTwitterListeners"; fjs.parentNode.insertBefore(js, fjs);
-                return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f) } });
-            }(document, "script", "twitter-wjs"));
-
-            twttr.ready(function(twttr) {
-                twttr.events.bind('tweet', function(event) {
-                    pinpointTracking.registerShare({
-                        "network": "Twitter",
-                        "type": "shared"
-                    });
-                });
-
-                twttr.events.bind('click', function(event) {
-                    var sType;
-                    if (event.region == "tweet") {
-                        sType = "clicked";
-                    } else if (event.region == "tweetcount") {
-                        sType = "leftFor";
-                    } else {
-                        sType = event.region;
-                    }
-                    pinpointTracking.registerShare({
-                        "network": "Twitter",
-                        "type": sType
-                    });
+        twttr.ready(function (twttr) {
+            twttr.events.bind('tweet', function(event) {
+                pinpointTracking.registerEvent({
+                    "network": "Twitter",
+                    "type": "share",
+                    "subtype": "shared"
                 });
             });
-        },
 
-
-        // parseUri 1.2.2
-        // (c) Steven Levithan <stevenlevithan.com>
-        // MIT License
-
-        parseUri = function (str) {
-            var o   = parseUri.options,
-                m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
-                uri = {},
-                i   = 14;
-
-            while (i--) uri[o.key[i]] = m[i] || "";
-
-            uri[o.q.name] = {};
-            uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-                if ($1) uri[o.q.name][$1] = $2;
+            twttr.events.bind('click', function(event) {
+                var sType;
+                if (event.region == "tweet") {
+                    sType = "clicked";
+                } else if (event.region == "tweetcount") {
+                    sType = "leftFor";
+                } else {
+                    sType = event.region;
+                }
+                pinpointTracking.registerEvent({
+                    "network": "Twitter",
+                    "type": "share",
+                    "subtype": sType
+                });
             });
+        });
+    },
 
-            return uri;
-        };
+    // parseUri 1.2.2
+    // (c) Steven Levithan <stevenlevithan.com>
+    // MIT License
+
+    parseUri = function (str) {
+        var o   = parseUri.options,
+        m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+        uri = {},
+        i   = 14;
+
+        while (i--) uri[o.key[i]] = m[i] || "";
+
+        uri[o.q.name] = {};
+        uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+            if ($1) uri[o.q.name][$1] = $2;
+        });
+
+        return uri;
+    };
 
     parseUri.options = {
         strictMode: false,
@@ -127,14 +130,12 @@ var pinpointTracking = (function ($, window, document) {
 
     this.socialShareType = undefined;
     this.socialShareUrl = undefined;
-    this._pptimeout = undefined;
 
     return {
         "init": init,
-        "registerShare": registerShare,
-        "trackEvent": trackEvent,
+        "registerEvent": registerEvent,
         "setSocialShareVars": setSocialShareVars,
         "clearTimeout": clearTimeout
     }
 
-}($, window, document));
+}(jQuery, window, document));
