@@ -322,7 +322,7 @@ var PINPOINT = (function($, pageInfo){
 
         var $featuredFB = $('.featured .social-buttons .button.facebook');
 
-        if ($featuredFB) {
+        if ($featuredFB.length > 0) {
             FB.XFBML.parse($featuredFB[0]);
         }
 
