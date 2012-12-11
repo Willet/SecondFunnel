@@ -6,6 +6,7 @@ from celery import task, subtask
 from oauth2client.client import SignedJwtAssertionCredentials
 
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 
 from apps.analytics.storage_backends import GoogleAnalyticsBackend
 from apps.analytics.models import AnalyticsRecency, Category, Metric, KVStore
@@ -364,6 +365,118 @@ def save_category_data(data):
         if not recency_created:
             campaign_recency.save()
 
+
+@task()
+def process_saved_metrics():
+    """Calculates "meta" metrics, which are combined out of "raw" saved data"""
+    logger = process_saved_metrics.get_logger()
+
+    # data types for checking event targets
+    target_types = {
+        'product': ContentType.objects.get_for_model(Product),
+    }
+
+    def process_category(obj):
+        """
+        Adds a new KV, using it as a per-day summation for KV data
+        defined by passed in Q filters
+        """
+        category_data = KVStore.objects.filter(obj['q_filter'])
+
+        for metric_obj in obj['metrics']:
+            try:
+                metric = Metric.objects.get(slug=metric_obj['slug'])
+
+            # metric isn't set up properly, try the next one
+            # TODO: create metrics in code?
+            except Metric.DoesNotExist:
+                logger.error(
+                    "Error processing metric %s. Metric is not in db",
+                    metric_obj['slug']
+                )
+                continue
+
+            data = category_data.filter(metric_obj['q_filter'])
+
+            for datum in data:
+                # meta-kv already present, increment
+                try:
+                    kv = KVStore.objects.get(
+                        content_type=datum.content_type,
+                        object_id=datum.object_id,
+                        key=metric_obj['slug'],
+                        timestamp=datum.timestamp
+                    )
+                    kv.value += datum.value
+                    kv.save()
+
+                # need to create the meta-kv
+                except KVStore.DoesNotExist:
+                    kv = KVStore(
+                        content_type=datum.content_type,
+                        object_id=datum.object_id,
+                        key=metric_obj['slug'],
+                        value=datum.value,
+                        timestamp=datum.timestamp
+                    )
+                    kv.save()
+
+                metric.data.add(kv)
+
+    # this list defines how the data for "meta-metrics" is to be calculated
+    # list is a series of categories to process
+
+    # each category contains a lookup query to define a common dataset
+    # for the metrics to work with
+
+    # it also defines a list of metrics to process
+    # each metric defines a further lookup query
+    # to further narrow down the  category data
+
+    # process_category function then does daily sums of said data
+
+    to_process = [
+        # Engagement
+        {
+            'q_filter': Q(key__startswith="inpage-"),
+            'metrics': [
+                # sums up all product related interactions
+                {
+                    'slug': 'product-interactions',
+                    'q_filter': Q(target_type=target_types['product']),
+                },
+
+                # sums up all content related interactions
+                # TODO
+
+                # sums up product and content interactions
+                {
+                    'slug': 'total-interactions',
+                    'q_filter': Q(
+                        key__in=['product-interactions', 'content-interactions']
+                    )
+                },
+            ]
+        },
+
+        # Sharing
+        {
+            'q_filter': Q(key__startswith="share-"),
+            'metrics': [
+                # sums up all clicked-on-social-button actions
+                {
+                    'slug': 'total-shares',
+                    'q_filter': Q(key='share-clicked')
+                },
+            ]
+        },
+
+        # Awareness
+        # TODO
+    ]
+
+    for category in to_process:
+        process_category(category)
 
 def preprocess_row(row, logger):
     try:
