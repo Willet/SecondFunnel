@@ -167,12 +167,27 @@
         };
 
         loadAnalytics = function (o) {
-            var request,
+            var request = {},
                 date_range = getDateRange();
 
+            // set request values based on what's passed it
             if (typeof(o) !== "undefined") {
                 request['campaign_id'] = o.campaign_id || settings.campaign_id;
                 request['store_id'] = o.store_id || settings.store_id;
+
+            // or based on default values if nothing is passed in
+            } else {
+                request['campaign_id'] = settings.campaign_id;
+                request['store_id'] = settings.store_id;
+            }
+
+            // pass only one of the values down the wire
+            if (request['campaign_id']) {
+                delete(request['store_id']);
+            }
+
+            if (request['store_id']) {
+                delete(request['campaign_id']);
             }
 
             request['start_date'] = date_range['start_date'];
@@ -250,7 +265,7 @@
                         continue;
                     }
 
-                    if (!(metric_slug in charts_data)) {
+                    if (!(metric_slug in rendered['charts_data'])) {
                         rendered['charts_data'][metric_slug] = [];
                     }
 
@@ -311,32 +326,32 @@
                     $(".metric_title_all[data-metric='" + metric_slug + "']").html(
                         data[cat_slug][metric_slug]['totals']['all']
                     );
-                }
 
-                renderTable(data[cat_slug][metric_slug]);
-                renderChart(data[cat_slug][metric_slug]);
+                    renderTable(data[cat_slug][metric_slug]);
+                    renderChart(data[cat_slug][metric_slug]);
+                }
             }
         };
 
         setUpListeners = function () {
             // date range ui and listeners
             $("#start_range").datepicker({
-                defaultDate: "-2w",
                 changeMonth: true,
                 numberOfMonths: 2,
                 onClose: function(selectedDate) {
                     $("#end_range").datepicker("option", "minDate", selectedDate);
                 }
             });
+            $("#start_range").datepicker("setDate", "-2w");
 
-            $( "#end_range" ).datepicker({
-                defaultDate: new Date(),
+            $("#end_range").datepicker({
                 changeMonth: true,
                 numberOfMonths: 2,
                 onClose: function( selectedDate ) {
                     $("#start_range").datepicker("option", "maxDate", selectedDate);
                 }
             });
+            $("#end_range").datepicker("setDate", new Date());
 
             $("#start_range, #end_range").change(function() {
                 loadAnalytics();
@@ -375,15 +390,8 @@
             // create UI and event listeners
             setUpListeners();
 
-            // ensure Google Charts is available
-            google.setOnLoadCallback(function () {
-
-                // load charting libs
-                google.load("visualization", "1", {packages:["corechart", "table"]});
-
-                // load and inject data
-                loadAnalytics();
-            });
+            // load and inject data
+            loadAnalytics();
         };
 
         return {
@@ -391,7 +399,12 @@
         };
     }(jQuery));
 
-    app.init();
+    google.load("visualization", "1", {
+        packages: ["corechart", "table"],
+        callback: function() {
+            app.init();
+        }
+    });
 
 {% endblock %}
 
