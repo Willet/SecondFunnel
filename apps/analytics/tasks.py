@@ -1,4 +1,4 @@
-import datetime
+from datetime import date, datetime
 
 from functools import partial
 
@@ -67,7 +67,7 @@ class Categories:
 def get_oldest_analytics_date():
     """Figure out earliest date for which we're missing analytics data"""
 
-    oldest_analytics_data = datetime.datetime.now().date()
+    oldest_analytics_data = datetime.now().date()
 
     # iterate through our stores and find the most out of sync
     stores = Store.objects.all()
@@ -84,7 +84,7 @@ def get_oldest_analytics_date():
             # get everything, use the prior-to-launch date so that
             # we're sure everything is in scope
 
-            oldest_analytics_data = datetime.date(2012, 9, 1)
+            oldest_analytics_data = date(2012, 9, 1)
 
             # we're done checking for dates at this point
             break
@@ -148,7 +148,7 @@ def update_pinpoint_analytics():
     ga = GoogleAnalyticsBackend()
 
     # by default, request as much data as we can
-    start_from_date = datetime.date(2012, 9, 1)
+    start_from_date = date(2012, 9, 1)
 
     logger.info("We need to fetch analytics data from GA starting from %s",
         start_from_date)
@@ -158,7 +158,7 @@ def update_pinpoint_analytics():
         start_from_date,
 
         # end date
-        datetime.datetime.now().date(),
+        datetime.now().date(),
 
         # what metric to get
         ga_query_settings['metrics'],
@@ -367,8 +367,7 @@ def save_category_data(data):
 
 def preprocess_row(row, logger):
     try:
-        row['date'] = datetime.datetime(
-            int(row['date'][:4]), int(row['date'][4:6]), int(row['date'][-2:]))
+        row['date'] = datetime.strptime(row['date'], "%Y%m%d")
 
     except (IndexError, ValueError):
         logger.warning("Date is unrecognized: %s", row['date'])
