@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage
+from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage, YoutubeVideo
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -74,3 +74,10 @@ class ProductAdmin(BaseNamedAdmin):
     ]
 
 admin.site.register(Product, ProductAdmin)
+
+
+class YoutubeVideoAdmin(BaseAdmin):
+    list_display = BaseAdmin.list_display + [
+        'video_id', 'store']
+
+admin.site.register(YoutubeVideo, YoutubeVideoAdmin)

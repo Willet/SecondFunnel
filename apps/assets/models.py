@@ -157,3 +157,8 @@ class Product(BaseModelNamed):
 
 class ProductMedia(ImageBase):
     product = models.ForeignKey(Product, related_name="media")
+
+
+class YoutubeVideo(BaseModel):
+    video_id = models.CharField(max_length=11)
+    store = models.ForeignKey(Store, null=True)
