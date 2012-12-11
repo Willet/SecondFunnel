@@ -11,10 +11,13 @@
 
 {% block extra_head %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static "analytics/css/analytics_style.css" %}">
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
 
     <style>
+        .container_12 .inner_content {
+            padding: 0;
+        }
+
         .top_analytics_menu {
             background-color: #fff;
             padding: 20px 0 0 20px;
