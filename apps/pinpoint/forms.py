@@ -114,7 +114,7 @@ class ShopTheLookWizardForm(forms.Form):
     def clean(self):
         """Ensure that either custom or existing image is selected"""
 
-        cleaned_data = super(FeaturedProductWizardForm, self).clean()
+        cleaned_data = super(ShopTheLookWizardForm, self).clean()
 
         generic_media_id = cleaned_data.get("generic_media_id")
         product_media_id = cleaned_data.get("product_media_id")
@@ -128,9 +128,9 @@ class ShopTheLookWizardForm(forms.Form):
         ls_generic_media_id = cleaned_data.get("ls_generic_media_id")
         ls_product_media_id = cleaned_data.get("ls_product_media_id")
 
-        ls_generic_media_exists = ls_generic_media_id and GenericImage.objects\
-            .filter(pk=ls_generic_media_id).exists()
-        ls_product_media_exists = product_media_id and ProductMedia.objects\
+        ls_generic_media_exists = ls_generic_media_id and GenericImage\
+            .objects.filter(pk=ls_generic_media_id).exists()
+        ls_product_media_exists = ls_product_media_id and ProductMedia.objects\
             .filter(pk=ls_product_media_id).exists()
 
         if not (ls_generic_media_exists or ls_product_media_exists):

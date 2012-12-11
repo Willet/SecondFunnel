@@ -8,193 +8,272 @@ from django.http import HttpResponseRedirect, HttpResponse
 
 from apps.assets.models import Product, ProductMedia, GenericImage
 from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
-    FeaturedProductBlock)
+    FeaturedProductBlock, ShopTheLookBlock)
 from apps.pinpoint.forms import FeaturedProductWizardForm, ShopTheLookWizardForm
 
-def _editing_valid_form(form, product, preview=False):
-    generic_media_id = form.cleaned_data.get("generic_media_id")
-    product_media_id = form.cleaned_data.get("product_media_id")
+# TODO: Consider replacing with ModelForm?
+# TODO: This is still a mess
 
-    has_product_media = product_media_id and \
-            ProductMedia.objects.filter(pk=product_media_id).exists()
-    campaign = Campaign.objects.get(id = form.cleaned_data['campaign_id'])
-    campaign.name = form.cleaned_data['name']
-    campaign.description = form.cleaned_data.get('page_description', '')
-    block_content = campaign.content_blocks.all()[0]
-    block_content.data.product = product
-    block_content.data.description = form.cleaned_data['description']
-    # existing product media was selected
-    if has_product_media:
-        block_content.data.custom_image = None
-        block_content.data.existing_image = ProductMedia.objects.get(
+class Wizard(object):
+    def __init__(self, *args, **kwargs):
+        #TODO: Error handling
+        self.preview    = kwargs.get('preview', False)
+        self.request    = kwargs.get('request')
+        self.store      = kwargs.get('store')
+        self.campaign   = kwargs.get('campaign')
+        self.form_cls   = kwargs.get('form')
+        self.block_type = kwargs.get('block_type')
+
+    def process(self):
+        if self.request.method == 'POST':
+            form, response = self._post()
+        else:
+            form, response = self._get()
+
+        if response:
+            return response
+
+        if not self.preview:
+            path = 'pinpoint/wizards/%s/ui.html' % self.block_type.slug
+            return render_to_response(path, {
+                "store": self.store,
+                "block_types": BlockType.objects.all(),
+                "products": self.store.product_set.all(),
+                "form": form,
+                "campaign": self.campaign,
+            }, context_instance=RequestContext(self.request))
+        else:
+            return HttpResponse(json.dumps({"success": False}), mimetype='application/json')
+
+    def _get(self):
+        if self.campaign:
+            form = self._create_form_with_initial_data()
+        else:
+            form = self.form_cls()
+
+        return form, None
+
+    def _create_form_with_initial_data(self):
+        return None
+
+    def _post(self):
+        form = self.form_cls(self.request.POST, self.request.FILES)
+
+        if form.is_valid():
+            result = self._process_valid_form(form)
+            if not self.preview:
+                messages.success(self.request, "Your page was saved successfully")
+
+            return None, result
+
+        else:
+            return None, None
+
+    def _process_valid_form(self, form):
+        product = Product.objects.get(id = form.cleaned_data['product_id'])
+
+        if form.cleaned_data['campaign_id']:
+            campaign = self._edit_campaign(form, product)
+
+        else:
+            campaign = self._create_campaign(form, product)
+
+        campaign.save()
+
+        if not self.preview:
+            return HttpResponseRedirect(
+                reverse('store-admin', kwargs = {'store_id': self.store.id})
+            )
+        else:
+            response = json.dumps({
+                "success": True,
+                "url": reverse('campaign', kwargs={
+                    'campaign_id': campaign.id
+                }),
+                "campaign": campaign.id
+            })
+            return HttpResponse(response, mimetype='application/json')
+
+    def _create_campaign(self, form, product):
+        return None
+
+    def _edit_campaign(self, form, product):
+        return None
+
+class FeaturedProductWizard(Wizard):
+    def _create_form_with_initial_data(self):
+        all_content_blocks = self.campaign.content_blocks.all()
+
+        product_id   = all_content_blocks[0].data.product.id
+        product_desc = all_content_blocks[0].data.description
+
+        initial_data = {
+            "name"            : self.campaign.name,
+            "product_id"      : product_id,
+            "page_description": self.campaign.description,
+            "description"     : product_desc,
+            "campaign_id"     : self.campaign.id,
+            }
+
+        product_image = all_content_blocks[0].data.get_image()
+
+        if product_image.__class__.__name__ == "GenericImage":
+            initial_data["generic_media_id"] = product_image.id
+            initial_data["generic_media_list"] = product_image.get_url() + "\\" + str(product_image.id)
+
+        elif product_image.__class__.__name__ == "ProductMedia":
+            initial_data["product_media_id"] = product_image.id
+
+        return self.form_cls(initial_data)
+
+    def _edit_campaign(self, form, product):
+        generic_media_id = form.cleaned_data.get("generic_media_id")
+        product_media_id = form.cleaned_data.get("product_media_id")
+
+        has_product_media = product_media_id and\
+                            ProductMedia.objects.filter(pk=product_media_id).exists()
+
+        campaign = Campaign.objects.get(id = form.cleaned_data['campaign_id'])
+        campaign.name = form.cleaned_data['name']
+        campaign.description = form.cleaned_data.get('page_description', '')
+
+        block_content = campaign.content_blocks.all()[0]
+        block_content.data.product = product
+        block_content.data.description = form.cleaned_data['description']
+
+        # existing product media was selected
+        if has_product_media:
+            block_content.data.custom_image = None
+            block_content.data.existing_image = ProductMedia.objects.get(
                 pk=product_media_id)
-        block_content.data.save()
-    # an image was uploaded (the form checks that one of these must exist)
-    else:
-        block_content.data.existing_image = None
-        block_content.data.custom_image = GenericImage.objects.get(
+            block_content.data.save()
+
+        # an image was uploaded (the form checks that one of these must exist)
+        else:
+            block_content.data.existing_image = None
+            block_content.data.custom_image = GenericImage.objects.get(
                 pk=generic_media_id)
-        block_content.data.save()
-    if not block_content in campaign.content_blocks.all():
-        campaign.content_blocks.clear()
-        campaign.content_blocks.add(block_content)
-    campaign.live = not preview
-    campaign.save()
-    return campaign
+            block_content.data.save()
 
+        if not block_content in campaign.content_blocks.all():
+            campaign.content_blocks.clear()
+            campaign.content_blocks.add(block_content)
 
-def _creating_valid_form(block_type, form, product, store, preview=False):
-    generic_media_id = form.cleaned_data.get("generic_media_id")
-    product_media_id = form.cleaned_data.get("product_media_id")
+        campaign.live = not self.preview
+        return campaign
 
-    has_product_media = product_media_id and \
-            ProductMedia.objects.filter(pk=product_media_id).exists()
+    def _create_campaign(self, form, product):
+        block = self._create_content_block(form, product)
+        block.save()
 
-    featured_product_data = FeaturedProductBlock(
-        product = product,
-        description = form.cleaned_data['description']
-    )
-    # existing product media was selected
-    if has_product_media:
-        featured_product_data.existing_image = ProductMedia.objects.get(
-                pk=product_media_id)
-    # an image was uploaded (the form checks that one of these must exist)
-    else:
-        featured_product_data.custom_image = GenericImage.objects.get(
-                pk=generic_media_id)
-    featured_product_data.save()
-    block_content = BlockContent(
-        block_type = block_type,
-        content_type = ContentType.objects.get_for_model(
-            FeaturedProductBlock),
-        object_id = featured_product_data.id
-    )
-    campaign = Campaign(
-        store = store,
-        name = form.cleaned_data['name'],
-        description = form.cleaned_data.get('page_description', ''),
-        live = not preview
-    )
-    block_content.save()
-    campaign.save()
-    campaign.content_blocks.add(block_content)
-    return campaign
-
-
-def _form_is_valid(block_type, form, store, preview=False):
-    product = Product.objects.get(id = form.cleaned_data['product_id'])
-    # we're editing the form
-    if form.cleaned_data['campaign_id']:
-        campaign = _editing_valid_form(form, product, preview)
-
-    else:
-        campaign = _creating_valid_form(block_type, form, product, store, preview)
-
-    if not preview:
-        return HttpResponseRedirect(
-            reverse('store-admin',
-                    kwargs = {'store_id': store.id})
+        campaign = Campaign(
+            store = self.store,
+            name = form.cleaned_data['name'],
+            description = form.cleaned_data.get('page_description', ''),
+            live = not self.preview
         )
-    else:
-        response = json.dumps({
-            "success": True,
-            "url": reverse('campaign', kwargs={'campaign_id': campaign.id}),
-            "campaign": campaign.id
-        })
-        return HttpResponse(response, mimetype='application/json')
+        campaign.save()
+
+        campaign.content_blocks.add(block)
+        return campaign
+
+    def _create_content_block(self, form, product):
+        generic_media_id = form.cleaned_data.get("generic_media_id")
+        product_media_id = form.cleaned_data.get("product_media_id")
+
+        has_product_media = product_media_id and\
+                            ProductMedia.objects.filter(pk=product_media_id).exists()
+
+        featured_product_data = FeaturedProductBlock(
+            product = product,
+            description = form.cleaned_data['description']
+        )
+
+        # existing product media was selected
+        if has_product_media:
+            featured_product_data.existing_image = ProductMedia.objects.get(
+                pk=product_media_id)
+        # an image was uploaded (the form checks that one of these must exist)
+        else:
+            featured_product_data.custom_image = GenericImage.objects.get(
+                pk=generic_media_id)
+
+        featured_product_data.save()
+        block_content = BlockContent(
+            block_type = self.block_type,
+            content_type = ContentType.objects.get_for_model(FeaturedProductBlock),
+            object_id = featured_product_data.id
+        )
+        return block_content
+
+class ShopTheLookWizard(FeaturedProductWizard):
+    def _create_form_with_initial_data(self):
+        form = super(ShopTheLookWizard, self)._create_form_with_initial_data()
+
+    def _edit_campaign(self, form, product):
+        campaign = super(ShopTheLookWizard, self)._edit_campaign(form, product)
+
+    def _create_content_block(self, form, product):
+        generic_media_id    = form.cleaned_data.get("generic_media_id")
+        product_media_id    = form.cleaned_data.get("product_media_id")
+        ls_product_media_id = form.cleaned_data.get("ls_product_media_id")
+        ls_generic_media_id = form.cleaned_data.get("ls_generic_media_id")
+
+        product_data = ShopTheLookBlock(
+            product = product,
+            description = form.cleaned_data['description']
+        )
+
+        has_product_media = product_media_id and\
+                            ProductMedia.objects.filter(pk=product_media_id).exists()
+
+        if has_product_media:
+            product_data.existing_image = ProductMedia.objects.get(
+                pk=product_media_id)
+        else:
+            product_data.custom_image = GenericImage.objects.get(
+                pk=generic_media_id)
+
+        has_ls_product_media = ls_product_media_id and\
+                       ProductMedia.objects.filter(pk=ls_product_media_id).exists()
+
+        if has_ls_product_media:
+            product_data.existing_ls_image = ProductMedia.objects.get(
+                pk=ls_product_media_id)
+        else:
+            product_data.custom_ls_image = GenericImage.objects.get(
+                pk=ls_generic_media_id)
+
+
+        product_data.save()
+        block_content = BlockContent(
+            block_type = self.block_type,
+            content_type = ContentType.objects.get_for_model(FeaturedProductBlock),
+            object_id = product_data.id
+        )
+        return block_content
 
 
 def featured_product_wizard(request, store, block_type, campaign=None):
-    preview = request.is_ajax()
+    wizard = FeaturedProductWizard(**{
+        'preview'   : request.is_ajax(),
+        'request'   : request,
+        'store'     : store,
+        'block_type': block_type,
+        'campaign'  : campaign,
+        'form'      : FeaturedProductWizardForm
+    })
 
-    if request.method == 'POST':
-        form = FeaturedProductWizardForm(request.POST, request.FILES)
-
-        if form.is_valid():
-            result = _form_is_valid(block_type, form, store, preview)
-            if not preview:
-                messages.success(request, "Your page was saved successfully")
-
-            return result
-    else:
-        if campaign:
-            initial_data = {
-                "name": campaign.name,
-                "product_id": campaign.content_blocks.all()[0].data.product.id,
-                "page_description": campaign.description,
-                "description": campaign.content_blocks.all()[0].data.description,
-                "campaign_id": campaign.id,
-            }
-
-            product_image = campaign.content_blocks.all()[0].data.get_image()
-
-            if product_image.__class__.__name__ == "GenericImage":
-                initial_data["generic_media_id"] = product_image.id
-                initial_data["generic_media_list"] = product_image.get_url() + "\\" + str(product_image.id)
-
-            elif product_image.__class__.__name__ == "ProductMedia":
-                initial_data["product_media_id"] = product_image.id
-
-            form = FeaturedProductWizardForm(initial_data)
-        else:
-            form = FeaturedProductWizardForm()
-
-    if not preview:
-        return render_to_response('pinpoint/wizards/%s/ui.html' % block_type.slug, {
-            "store": store,
-            "block_types": BlockType.objects.all(),
-            "products": store.product_set.all(),
-            "form": form,
-            "campaign": campaign,
-        }, context_instance=RequestContext(request))
-
-    else:
-        return HttpResponse(json.dumps({"success": False}), mimetype='application/json')
-
+    return wizard.process()
 
 def shop_the_look_wizard(request, store, block_type, campaign=None):
-    preview = request.is_ajax()
+    wizard = ShopTheLookWizard(**{
+        'preview'   : request.is_ajax(),
+        'request'   : request,
+        'store'     : store,
+        'block_type': block_type,
+        'campaign'  : campaign,
+        'form'      : ShopTheLookWizardForm
+    })
 
-    if request.method == 'POST':
-        form = ShopTheLookWizardForm(request.POST, request.FILES)
-
-        if form.is_valid():
-            result = _form_is_valid(block_type, form, store, preview)
-            if not preview:
-                messages.success(request, "Your page was saved successfully")
-
-            return result
-    else:
-        if campaign:
-            initial_data = {
-                "name": campaign.name,
-                "product_id": campaign.content_blocks.all()[0].data.product.id,
-                "page_description": campaign.description,
-                "description": campaign.content_blocks.all()[0].data.description,
-                "campaign_id": campaign.id,
-                }
-
-            product_image = campaign.content_blocks.all()[0].data.get_image()
-
-            if product_image.__class__.__name__ == "GenericImage":
-                initial_data["generic_media_id"] = product_image.id
-                initial_data["generic_media_list"] = product_image.get_url() + "\\" + str(product_image.id)
-
-            elif product_image.__class__.__name__ == "ProductMedia":
-                initial_data["product_media_id"] = product_image.id
-
-            form = ShopTheLookWizardForm(initial_data)
-        else:
-            form = ShopTheLookWizardForm()
-
-    if not preview:
-        return render_to_response('pinpoint/wizards/%s/ui.html' % block_type.slug, {
-            "store": store,
-            "block_types": BlockType.objects.all(),
-            "products": store.product_set.all(),
-            "form": form,
-            "campaign": campaign,
-        }, context_instance=RequestContext(request))
-
-    else:
-        return HttpResponse(json.dumps({"success": False}), mimetype='application/json')
+    return wizard.process()
