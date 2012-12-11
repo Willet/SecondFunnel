@@ -182,20 +182,41 @@ var application = (function(store_id, products, urls){
 
     onImageSelect = function ($elem, existing) {
         var $image = $elem,
-            $field  = $elem.parents('.field');
+            $field  = $elem.parents('.field'),
+            fields,
+            mid = $image.data('mid'),
+            image_fields = {
+                'featured': {
+                    'custom': $('#id_generic_media_id'),
+                    'existing': $('#id_product_media_id')
+                },
+                'look': {
+                    'custom': $('#id_ls_generic_media_id'),
+                    'existing': $('#id_ls_product_media_id')
+                }
+            };
+
+        if ($field.hasClass('featured')) {
+            fields = image_fields.featured;
+        } else {
+            fields = image_fields.look;
+        }
 
         // Hide related errors
         $field.find('.image-selector').siblings('.errorlist').children('li').fadeOut(500);
 
+        // Remove selected classes...
         $image.parents('.product-images').find('img').removeClass('selected');
+
+        // ...and add to selected element
         $image.addClass('selected');
 
         if (existing) {
-            $('#id_product_media_id').val($image.data('mid'));
-            $('#id_generic_media_id').val('');
+            fields.existing.val(mid);
+            fields.custom.val('');
         } else {
-            $('#id_generic_media_id').val($image.data('mid'));
-            $('#id_product_media_id').val('');
+            fields.existing.val('');
+            fields.custom.val(mid);
         }
     };
 
@@ -285,7 +306,9 @@ var application = (function(store_id, products, urls){
                     gif.data('mid', response.media_id);
                     gif.load(function() {
                         gif.fadeIn(500);
-                        gif.click();
+                        if ($productImages.length == 1) {
+                            gif.click();
+                        }
                     });
                     $("#id_generic_media_list").val($('#product_images img.new_image').map(
                         function(){return $(this).attr('src') + "\\" + $(this).data('mid');}).toArray().join("|"));
@@ -343,7 +366,6 @@ var application = (function(store_id, products, urls){
         $('.fine-uploader').each(function(index, elem){
             createUploader($(elem));
         });
-//        createUploader($('.fine-uploader'))
 
         // select product
         productSelected({
