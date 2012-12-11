@@ -336,8 +336,6 @@ def save_category_data(data):
                 updated_campaigns.append(row['campaign_id'])
 
     # handle engagement data
-    # total interactions
-    # product interactions
     # interactions per scope
     # clickthrough
     # open popup
@@ -370,6 +368,10 @@ def save_category_data(data):
 def process_saved_metrics():
     """Calculates "meta" metrics, which are combined out of "raw" saved data"""
     logger = process_saved_metrics.get_logger()
+
+    # remove all the existing meta metric data
+    KVStore.objects.filter(meta="meta_metric").delete()
+
 
     # data types for checking event targets
     target_types = {
@@ -405,7 +407,8 @@ def process_saved_metrics():
                         content_type=datum.content_type,
                         object_id=datum.object_id,
                         key=metric_obj['slug'],
-                        timestamp=datum.timestamp
+                        timestamp=datum.timestamp,
+                        meta="meta_metric"
                     )
                     kv.value += datum.value
                     kv.save()
@@ -417,7 +420,8 @@ def process_saved_metrics():
                         object_id=datum.object_id,
                         key=metric_obj['slug'],
                         value=datum.value,
-                        timestamp=datum.timestamp
+                        timestamp=datum.timestamp,
+                        meta="meta_metric"
                     )
                     kv.save()
 
