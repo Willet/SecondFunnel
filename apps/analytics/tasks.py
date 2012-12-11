@@ -406,7 +406,7 @@ def process_saved_metrics():
                     kv = KVStore.objects.get(
                         content_type=datum.content_type,
                         object_id=datum.object_id,
-                        key=metric_obj['slug'],
+                        key=metric_obj['key'],
                         timestamp=datum.timestamp,
                         meta="meta_metric"
                     )
@@ -418,7 +418,7 @@ def process_saved_metrics():
                     kv = KVStore(
                         content_type=datum.content_type,
                         object_id=datum.object_id,
-                        key=metric_obj['slug'],
+                        key=metric_obj['key'],
                         value=datum.value,
                         timestamp=datum.timestamp,
                         meta="meta_metric"
@@ -444,21 +444,23 @@ def process_saved_metrics():
         {
             'q_filter': Q(key__startswith="inpage-"),
             'metrics': [
+                # Product Interactions
                 # sums up all product related interactions
                 {
                     'slug': 'product-interactions',
-                    'q_filter': Q(target_type=target_types['product']),
+                    'key': 'inpage-product-interactions',
+                    'q_filter': Q(target_type=target_types['product']) & ~Q(meta="meta_metric"),
                 },
 
                 # sums up all content related interactions
                 # TODO
 
+                # Total Interactions
                 # sums up product and content interactions
                 {
                     'slug': 'total-interactions',
-                    'q_filter': Q(
-                        key__in=['product-interactions', 'content-interactions']
-                    )
+                    'key': 'inpage-total-interactions',
+                    'q_filter': Q(key__endswith='product-interactions') | Q(key__endswith='content-interactions')
                 },
             ]
         },
@@ -470,6 +472,7 @@ def process_saved_metrics():
                 # sums up all clicked-on-social-button actions
                 {
                     'slug': 'total-shares',
+                    'key': 'share-total',
                     'q_filter': Q(key='share-clicked')
                 },
             ]
