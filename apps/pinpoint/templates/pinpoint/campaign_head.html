@@ -1,0 +1,40 @@
+{% load staticfiles %}
+<!-- Additional Head Contents -->
+{% for sheet in stylesheets %}
+<link rel="stylesheet" type="text/css" href="{{ sheet }}" />
+{% endfor %}
+
+{# Required CSS #}
+<link rel="stylesheet" href="{% static "pinpoint/css/pinpoint.css" %}">
+<!-- Allows for transparent background in ie8 -->
+<!--[if IE 8]>
+<style>
+    .preview .mask {
+        background:transparent;
+        filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#B2FFFFFF,endColorstr=#B2FFFFFF);
+        zoom: 1;
+    }
+</style>
+<![endif]-->
+
+{# JS Dependencies #}
+<script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
+<script src="{% static "js/jquery.viewport.js" %}"></script>
+
+{# Our JS #}
+<script type="text/javascript">
+    (function() {
+        window.PINPOINT_INFO = {
+            'store': {
+                'id': '{{ campaign.store.slug }}'
+            },
+            'campaign': {
+                'id': '{{ campaign.id }}'
+            },
+            'featured': {
+                'id': '{{ product.id }}'
+            }
+        };
+    })();
+</script>
+<script src="{% static "pinpoint/js/pinpoint.js" %}"></script>

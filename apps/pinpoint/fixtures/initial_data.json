@@ -7,7 +7,7 @@
                "created": "2012-10-19T15:40:46.847Z", 
                "handler": "featured_product_wizard", 
                "image": "internal_images/cb-product-200x100.png", 
-               "enabled": true,
+               "enabled": true, 
                "last_modified": "2012-10-19T23:04:33.812Z", 
                "slug": "content-featured", 
                "name": "Featured Product"
@@ -20,9 +20,9 @@
                "description": "", 
                "created": "2012-10-19T23:05:25.225Z", 
                "handler": "", 
-               "image": "internal_images/cb-product-200x100.png", 
-               "enabled": false,
-               "last_modified": "2012-10-19T23:05:25.225Z", 
+               "image": "internal_images/cb-lookbook-200x100-cs.png", 
+               "enabled": false, 
+               "last_modified": "2012-12-06T23:53:30.747Z", 
                "slug": "lookbook", 
                "name": "Lookbook"
           }
@@ -34,9 +34,9 @@
                "description": "", 
                "created": "2012-10-19T23:05:45.260Z", 
                "handler": "", 
-               "image": "internal_images/cb-product-200x100.png", 
-               "enabled": false,
-               "last_modified": "2012-10-19T23:05:45.260Z", 
+               "image": "internal_images/cb-collection-200x100-cs.png", 
+               "enabled": false, 
+               "last_modified": "2012-12-06T23:53:21.844Z", 
                "slug": "themed-collection", 
                "name": "Themed Collection"
           }
@@ -48,9 +48,9 @@
                "description": "", 
                "created": "2012-10-19T23:06:05.103Z", 
                "handler": "", 
-               "image": "internal_images/cb-product-200x100.png", 
-               "enabled": false,
-               "last_modified": "2012-10-19T23:06:05.103Z", 
+               "image": "internal_images/cb-split-200x100-cs.png", 
+               "enabled": false, 
+               "last_modified": "2012-12-06T23:52:56.937Z", 
                "slug": "shop-look", 
                "name": "Shop The Look"
           }

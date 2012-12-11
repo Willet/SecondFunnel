@@ -62,3 +62,31 @@ def render_ui_block(parser, token):
         raise template.TemplateSyntaxError, "%r tag requires exactly one argument" % token.contents.split()[0]
 
     return BlockNode(ui_block)
+
+@register.inclusion_tag('pinpoint/snippets/social_buttons.html')
+def social_buttons(product, count=None):
+    if hasattr(product, 'is_featured') and product.is_featured:
+        featured = True
+        image    = product.featured_image
+    else:
+        featured = False
+        images   = product.media.all()
+        if images:
+            image = images[0].get_url()
+        else:
+            image = None
+
+    # Explicit settings override convention
+    if count is None and featured:
+        count = True
+    elif count is None:
+        count = False
+
+    url = product.original_url
+
+    return {
+        'featured': featured,
+        'url'     : url,
+        'image'   : image,
+        'count'   : count
+    }

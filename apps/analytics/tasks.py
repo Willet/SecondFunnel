@@ -1,3 +1,11 @@
+"""
+Analytics protector bunny:
+
+ ()()
+ (-_-)
+ (()())
+
+"""
 from datetime import date, datetime
 
 from functools import partial

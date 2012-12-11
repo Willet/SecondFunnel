@@ -1,3 +1,5 @@
+import re
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -6,9 +8,101 @@ from django.db import models
 from apps.assets.models import (MediaBase, BaseModel, BaseModelNamed,
     Store, GenericImage, Product, ProductMedia)
 
+def page_template_includes(value):
+    # Ought to be a staticmethod, but can't for whatever reason...
+    INCLUDE_PATTERN = re.compile('{{ *(\w*?) *}}')
+    REQUIRED_FIELDS = ['featured_content', 'discovery_area',
+                       'header_content', 'preview_area']
+
+    matches = INCLUDE_PATTERN.findall(value)
+    missing = []
+
+    for field in REQUIRED_FIELDS:
+        if not field in matches:
+            missing.append(field)
+
+    if missing:
+        raise ValidationError('Missing required includes for page '
+                              'template: {fields}'
+        .format(fields=', '.join(missing)))
 
 class StoreTheme(BaseModelNamed):
-    store = models.ForeignKey(Store)
+    DEFAULT_PAGE_TEMPLATE = """
+    <!DOCTYPE HTML>
+    <html>
+        <head>
+            {{ header_content }}
+        </head>
+        <body>
+            <div class='page'>
+                {{ featured_content }}
+                {{ discovery_area }}
+            </div>
+            {{ preview_area }}
+        </body>
+    </html>
+    """
+
+    DEFAULT_FEATURED_PRODUCT = """
+    <img src='{{ product.featured_image }}' />
+    <p>Other images</p>
+    <ul>
+    {% if product.images|length > 1 %}
+        {% for image in product.images %}
+        <li>{{ image }}</li>
+        {% endfor %}
+    {% else %}
+        <li>No other images</li>
+    {% endif %}
+    </ul>
+    <div class='title'>{{ product.name }}</div>
+    <div class='price'>{{ product.price }}</div>
+    <div class='description'>{{ product.description }}</div>
+    <div class='url'>{{ product.url }}</div>
+
+    {% social_buttons product %}
+    """
+
+    DEFAULT_PRODUCT_PREVIEW = """
+    <div class='title'></div>
+    <div class='price'></div>
+    <div class='description'></div>
+    <div class='url'></div>
+    <div class='image'></div>
+    <div class='images'></div>
+    <div class='social-buttons'></div>
+    """
+
+    DEFAULT_DISCOVERY_BLOCK = """
+    <img src='{{ product.images.0 }}'/>
+    <div>{{ product.name }}</div>
+    {% social_buttons product %}
+    <div style='display: none'>
+        <!-- Testing -->
+        <div class='price'>{{ product.price }}</div>
+        <div class='description'>{{ product.description }}</div>
+        <div class='url'>{{ product.url }}</div>
+        <ul>
+            {% for image in product.images %}
+            <li>{{ image }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    """
+
+    # TODO: Replace with ForeignKey to support mobile themes?
+    store         = models.OneToOneField(Store, related_name="theme")
+    page_template = models.TextField(default=DEFAULT_PAGE_TEMPLATE,
+                                     validators=[page_template_includes])
+
+    # Featured Content Templates
+    featured_product  = models.TextField(default=DEFAULT_FEATURED_PRODUCT)
+
+    # Preview Templates
+    preview_product   = models.TextField(default=DEFAULT_PRODUCT_PREVIEW)
+
+    # Discovery Block Templates
+    discovery_product = models.TextField(default=DEFAULT_DISCOVERY_BLOCK)
 
     def __unicode__(self):
         return u"Theme for Store: %s" % self.store

@@ -378,7 +378,8 @@
                     $(".pinterest_buttons>div").hide();
                     $(".pinterest_buttons div[data-id='" + data.title + "']").show();
 
-                    $(".twitter_buttons>div").hide();
+                    $("." +
+                            "_buttons>div").hide();
                     $(".twitter_buttons div[data-id='" + data.title + "']").show();
 
                     $(".fb_buttons>div").hide();
@@ -439,7 +440,7 @@
                         $share.addClass('fbLoaded');
                         FB.XFBML.parse($('.fb_buttons', $share)[0]);
                     }
-                    }, function() {
+                }, function() {
                     pinpointTracking.clearTimeout();
                     if (pinpointTracking.socialShareType !== "popup") {
                         _pptimeout = window.setTimeout('pinpointTracking.setSocialShareVars({"default": true})', 2000);

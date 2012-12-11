@@ -1,0 +1,35 @@
+{% load staticfiles %}
+<div class='social-buttons'>
+    {% if not featured %}
+    <div class="loading-container">
+    {% endif %}
+        <div class='button facebook{% if not featured %} no-count{% endif %}'>
+            <fb:like href="{{ url|striptags }}"
+                     width="48"
+                     layout="button_count"
+                     show_faces="false"></fb:like>
+        </div>
+        <div class='button twitter'>
+            {% if featured %}
+            <a href="https://twitter.com/share?url={{ url|striptags }}"
+               class="twitter-share-button"
+               data-lang="en">
+                Tweet
+            </a>
+            {% else %}
+            <a href="https://twitter.com/share?url={{ url|striptags }}"
+               target="_blank">
+                <img src="{% static "pinpoint/images/twitterButton.png" %}"/>
+            </a>
+            {% endif %}
+        </div>
+        <div class='button pinterest'>
+            <a href="http://pinterest.com/pin/create/button/?url={{ url|striptags }}&media={{ image }}"
+               target="_blank">
+                <img src="{% static "pinpoint/images/pinpointButton.png" %}"/>
+            </a>
+        </div>
+    {% if not featured %}
+    </div>
+    {% endif %}
+</div>
