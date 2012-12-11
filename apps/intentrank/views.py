@@ -24,7 +24,14 @@ def random_products(store, param_dict):
     store_id = Store.objects.get(slug__exact=store)
     num_results = param_dict.get('results', DEFAULT_RESULTS)
     results = Product.objects.filter(store_id__exact=store_id).order_by('?')
-    return results[:num_results]
+    if len(results) < num_results:
+        results = list(results)
+        results.extend(list(random_products(store, {
+            'results': (int(num_results) - len(results))
+        })))
+        return results
+    else:
+        return results[:num_results]
 
 def send_intentrank_request(request, url, method='GET', headers=None):
     if not headers:
