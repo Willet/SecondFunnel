@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.template import Context, Template
 import httplib2
 from apps.assets.models import Product, Store
+from django.conf import settings
 
 # All requests are get requests at the moment
 # URL to IntentRank looks something like this:
@@ -52,6 +53,9 @@ def process_intentrank_request(request, store, page, function_name,
         INTENTRANK_BASE_URL, store, page, function_name)
     params   = urlencode(param_dict)
     url = '{0}?{1}'.format(url, params)
+
+    if settings.DEBUG:
+        return random_products(store, param_dict), SUCCESS
 
     try:
         response, content = send_intentrank_request(request, url)
