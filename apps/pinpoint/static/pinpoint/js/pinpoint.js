@@ -28,8 +28,10 @@ var PINPOINT = (function($, pageInfo){
         updateClickStream,
         userClicks = 0,
         clickThreshold = 3,
-        addPreviewCallback,
         currentlyLoadingMore = false,
+        addBlocksAddedCallback,
+        blocksAddedCallbacks = [],
+        addPreviewCallback,
         previewCallbacks = [];
 
     details = pageInfo;
@@ -135,6 +137,10 @@ var PINPOINT = (function($, pageInfo){
 
     addPreviewCallback = function(f) {
         previewCallbacks.push(f);
+    }
+
+    addBlocksAddedCallback = function(f) {
+        blocksAddedCallbacks.push(f);
     }
 
     hidePreview = function() {
@@ -257,6 +263,13 @@ var PINPOINT = (function($, pageInfo){
             if (initialResults > 0) {
                 setTimeout(function() {pageScroll();}, 100);
             }
+
+            for (var i in blocksAddedCallbacks) {
+                if (blocksAddedCallbacks.hasOwnProperty(i)) {
+                    blocksAddedCallbacks[i]($block);
+                }
+            }
+
             currentlyLoadingMore = false;
         });
     };
@@ -487,7 +500,8 @@ var PINPOINT = (function($, pageInfo){
     return {
         'init': init,
         'invalidateSession': invalidateIRSession,
-        'addPreviewCallback': addPreviewCallback
+        'addPreviewCallback': addPreviewCallback,
+        'addBlocksAddedCallback': addBlocksAddedCallback
     };
 })(jQuery, window.PINPOINT_INFO || {});
 
