@@ -458,11 +458,16 @@
 
                     <div class="section_overview_metrics">
                         <ul>
-                        {% for metric in category.enabled_metrics.all %}
-                            <li>
-                                <span class="metric_overview" data-metric="{{ metric.slug }}"></span>
-                                {{ metric.name }}
-                            </li>
+                        {% regroup category.categoryhasmetric_set.all by metric as metric_list %}
+                        {% for metric in metric_list %}
+                            {% with metric.list|first as metric_meta %}
+                                {% if metric_meta.display %}
+                                <li>
+                                    <span class="metric_overview" data-metric="{{ metric.grouper.slug }}"></span>
+                                    {{ metric.grouper.name }}
+                                </li>
+                                {% endif %}
+                            {% endwith %}
                         {% endfor %}
                         </ul>
                     </div>
@@ -490,20 +495,24 @@
                     </div>
 
                     <div class="data_metrics">
-                        {% for metric in category.enabled_metrics.all %}
-                            <div class="data_metric">
-                                <div class="metric_title" data-metric="{{ metric.slug }}">
-                                    {{ metric.name }}:
-                                    <span class="metric_title_all" data-metric="{{ metric.slug }}">0</span> total
+                        {% regroup category.categoryhasmetric_set.all by metric as metric_list %}
+                        {% for metric in metric_list %}
+                            {% with metric.list|first as metric_meta %}
+                                <div class="data_metric" {% if not metric_meta.display %}style="display:none"{% endif %}>
+                                    <div class="metric_title" data-metric="{{ metric.grouper.slug }}">
+                                        {{ metric.grouper.name }}:
+                                        <span class="metric_title_all" data-metric="{{ metric.grouper.slug }}">0</span> total
+                                    </div>
+
+                                    <div class="metric_graph" id="chart_{{ metric.grouper.slug }}"></div>
+
+                                    <div class="daily_breakdown" data-metric="{{ metric.grouper.slug }}" style="display:none">
+                                        <div class="daily_title">Daily breakdown:</div>
+                                        <div class="metric_daily" id="table_{{ metric.grouper.slug }}"></div>
+                                    </div>
                                 </div>
 
-                                <div class="metric_graph" id="chart_{{ metric.slug }}"></div>
-
-                                <div class="daily_breakdown" data-metric="{{ metric.slug }}" style="display:none">
-                                    <div class="daily_title">Daily breakdown:</div>
-                                    <div class="metric_daily" id="table_{{ metric.slug }}"></div>
-                                </div>
-                            </div>
+                            {% endwith %}
                         {% endfor %}
                     </div>
                 </div>

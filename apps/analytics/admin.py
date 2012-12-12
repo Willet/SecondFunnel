@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from apps.analytics.models import AnalyticsRecency, Category, Metric, KVStore
+from apps.analytics.models import (AnalyticsRecency, Category, Metric,
+    KVStore, CategoryHasMetric)
 
 
 class AnalyticsRecencyAdmin(admin.ModelAdmin):
@@ -16,8 +17,15 @@ class AnalyticsBase(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 
+class CategoryHasMetricInline(admin.TabularInline):
+    model = CategoryHasMetric
+
+
 class CategoryAdmin(AnalyticsBase):
     list_display = AnalyticsBase.list_display + ('metrics_count',)
+    inlines = [
+        CategoryHasMetricInline,
+    ]
 
 admin.site.register(Category, CategoryAdmin)
 

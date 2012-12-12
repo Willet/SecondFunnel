@@ -31,7 +31,7 @@ class AnalyticsBase(models.Model):
 
 
 class Category(AnalyticsBase):
-    metrics = models.ManyToManyField("Metric", blank=True, null=True)
+    metrics = models.ManyToManyField("Metric", through="CategoryHasMetric", blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -55,6 +55,17 @@ class Metric(AnalyticsBase):
 
     def data_count(self):
         return self.data.all().count()
+
+
+class CategoryHasMetric(models.Model):
+    category = models.ForeignKey(Category)
+    metric = models.ForeignKey(Metric)
+
+    order = models.PositiveIntegerField(default=0)
+    display = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ('-order',)
 
 
 class KVStore(models.Model):

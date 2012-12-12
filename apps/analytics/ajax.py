@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 
 from apps.assets.models import Store
-from apps.analytics.models import Category, Metric, KVStore
+from apps.analytics.models import Category, Metric, KVStore, CategoryHasMetric
 from apps.pinpoint.models import Campaign
 from apps.utils.ajax import ajax_success, ajax_error
 
@@ -66,10 +66,12 @@ def analytics_pinpoint(request):
 
     # iterate through analytics structures and get the data
     results = {}
-    for category in Category.objects.filter(enabled=True).all():
+    for category in Category.objects.filter(enabled=True):
         results[category.slug] = {}
 
-        for metric in category.metrics.filter(enabled=True).all():
+        for metric in category.metrics.filter(enabled=True):
+            category_has_metric = CategoryHasMetric.objects.get(
+                category=category, metric=metric)
 
             # just get the KV's associated with this object
             data = metric.data.filter(
@@ -89,6 +91,8 @@ def analytics_pinpoint(request):
 
             results[category.slug][metric.slug] = {
                 'name': metric.name,
+                'order': category_has_metric.order,
+                'display': category_has_metric.display,
                 'totals': {},
 
                 # this exposes daily data for each product
