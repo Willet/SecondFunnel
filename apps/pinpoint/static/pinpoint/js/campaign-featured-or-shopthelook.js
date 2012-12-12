@@ -82,12 +82,6 @@ var application = (function(store_id, products, urls){
         // display product media
         for (var i in product.media) {
             li = $("<li><img class='prod_img existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
-
-            if (product.media[i].id == data.product_image_id) {
-//                $(".image-selector").siblings(".errorlist").children("li").hide();
-//                li.children('img').addClass('selected');
-            }
-
             $(".product-images").append(li);
         }
 
@@ -104,17 +98,9 @@ var application = (function(store_id, products, urls){
 
             $.map(uploadedImages.reverse(), function(img) {
                 var image = $("<li><img class='prod_img new_image' data-mid='" + img.id + "' src='" + img.url + "'></li>");
-
-                if (data.product_generic_image_id == img.id) {
-//                    $(".image-selector").siblings(".errorlist").children("li").hide();
-//                    image.children('img').addClass('selected');
-                }
-
                 $(".fine-uploader").closest('li').after(image);
             });
         }
-
-        $(".image-selector").siblings(".errorlist").children("li").hide();
 
         // Select the right images
         if (data.ls_generic_image_id) {
@@ -128,6 +114,8 @@ var application = (function(store_id, products, urls){
         } else {
             $("#product_images").find("[data-mid='" + data.product_image_id  + "']").addClass("selected");
         }
+
+        $('.image-selector').has('.selected').siblings(".errorlist").children("li").hide();
 
         // Update other product fields
         setProductFields(product, data)

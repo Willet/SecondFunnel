@@ -66,8 +66,7 @@ class Wizard(object):
 
             return None, result
 
-        else:
-            return None, None
+        return form, None
 
     def _process_valid_form(self, form):
         product = Product.objects.get(id = form.cleaned_data['product_id'])
