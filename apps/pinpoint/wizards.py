@@ -225,10 +225,10 @@ class ShopTheLookWizard(FeaturedProductWizard):
 
             image_url  = ls_image.get_url() + "\\" + str(ls_image.id)
             media_list = data.get('generic_media_list', '')
-            if media_list:
-                media_list += '|'
-
-            data["generic_media_list"] = media_list + image_url
+            if media_list and image_url not in media_list:
+                data["generic_media_list"] += '|' + image_url
+            else:
+                data["generic_media_list"] = image_url
 
         elif ls_image.__class__.__name__ == "ProductMedia":
             data["ls_product_media_id"] = ls_image.id
