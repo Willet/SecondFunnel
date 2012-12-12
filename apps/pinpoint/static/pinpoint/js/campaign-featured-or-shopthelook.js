@@ -28,7 +28,9 @@ var application = (function(store_id, products, urls){
             // resetting previous values
             $("#id_product_media_id").val("");
             $("#id_generic_media_id").val("");
-            $("#id_generic_media_lst").val("");
+            $("#id_ls_product_media_id").val("");
+            $("#id_ls_generic_media_id").val("");
+            $("#id_generic_media_list").val("");
 
             //TODO: Why here?
             onPageChanged();
@@ -53,8 +55,11 @@ var application = (function(store_id, products, urls){
 
     productSelected = function(data) {
         var product = products[data.product_id],
-            media_id = $("#id_product_media_id").val(),
-            li, uploadedImages;
+            media_id,
+            look_id,
+            li,
+            uploadedImages,
+            genericImages;
 
         // Hide errors
         $(".image-selector").siblings(".errorlist").children("li").fadeIn(500);
@@ -64,44 +69,65 @@ var application = (function(store_id, products, urls){
         }
 
         // clear existing image list
-
         $('.product-images').each(function(index, elem) {
             var $images = $(elem).find('li');
+
             imagesToRemove = $images.splice(1, $images.length - 1);
+
             for (var i = imagesToRemove.length - 1; i >= 0; i--) {
                 $(imagesToRemove[i]).remove();
             }
         });
 
         // display product media
-        for (i in product.media) {
+        for (var i in product.media) {
             li = $("<li><img class='prod_img existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
+
             if (product.media[i].id == data.product_image_id) {
-                $(".image-selector").siblings(".errorlist").children("li").hide();
-                li.children('img').addClass('selected');
+//                $(".image-selector").siblings(".errorlist").children("li").hide();
+//                li.children('img').addClass('selected');
             }
+
             $(".product-images").append(li);
         }
 
         if (data.product_generic_image_list) {
-            uploadedImages = $.map(
-                data.product_generic_image_list.split("|"),
-                function(str) {
-                    var s = str.split("\\"); return {url: s[0], id: s[1]};
-                }
-            );
+            genericImages = data.product_generic_image_list.split("|");
+
+            uploadedImages = $.map(genericImages, function(str) {
+                var s = str.split("\\");
+                return {
+                    url: s[0],
+                    id : s[1]
+                };
+            });
+
             $.map(uploadedImages.reverse(), function(img) {
                 var image = $("<li><img class='prod_img new_image' data-mid='" + img.id + "' src='" + img.url + "'></li>");
+
                 if (data.product_generic_image_id == img.id) {
-                    $("#image-selector").siblings(".errorlist").children("li").hide();
-                    image.children('img').addClass('selected');
+//                    $(".image-selector").siblings(".errorlist").children("li").hide();
+//                    image.children('img').addClass('selected');
                 }
-                $("#fine-uploader").closest('li').after(image);
+
+                $(".fine-uploader").closest('li').after(image);
             });
         }
 
-        // #TODO: Which product_images?
-        $("#product_images").find("[data-mid='" + media_id  + "']").addClass("selected")
+        $(".image-selector").siblings(".errorlist").children("li").hide();
+
+        // Select the right images
+        if (data.ls_generic_image_id) {
+            $("#look_images").find("[data-mid='" + data.ls_generic_image_id  + "']").addClass("selected");
+        } else {
+            $("#look_images").find("[data-mid='" + data.ls_image_id  + "']").addClass("selected");
+        }
+
+        if (data.product_generic_image_id) {
+            $("#product_images").find("[data-mid='" + data.product_generic_image_id  + "']").addClass("selected");
+        } else {
+            $("#product_images").find("[data-mid='" + data.product_image_id  + "']").addClass("selected");
+        }
 
         // Update other product fields
         setProductFields(product, data)
@@ -374,6 +400,8 @@ var application = (function(store_id, products, urls){
             product_description       : $("#id_description").val(),
             product_image_id          : $("#id_product_media_id").val(),
             product_generic_image_id  : $("#id_generic_media_id").val(),
+            ls_image_id               : $("#id_ls_product_media_id").val(),
+            ls_generic_image_id       : $("#id_ls_generic_media_id").val(),
             product_generic_image_list: $("#id_generic_media_list").val()
         });
 

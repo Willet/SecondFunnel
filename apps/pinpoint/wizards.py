@@ -47,7 +47,7 @@ class Wizard(object):
 
     def _get(self):
         if self.campaign:
-            form = self._create_form_with_initial_data()
+            form = self.form_cls(self._get_initial_form_data())
         else:
             form = self.form_cls()
 
@@ -101,7 +101,7 @@ class Wizard(object):
         return None
 
 class FeaturedProductWizard(Wizard):
-    def _create_form_with_initial_data(self):
+    def _get_initial_form_data(self):
         all_content_blocks = self.campaign.content_blocks.all()
 
         product_id   = all_content_blocks[0].data.product.id
@@ -124,22 +124,32 @@ class FeaturedProductWizard(Wizard):
         elif product_image.__class__.__name__ == "ProductMedia":
             initial_data["product_media_id"] = product_image.id
 
-        return self.form_cls(initial_data)
+        return initial_data
 
     def _edit_campaign(self, form, product):
+        campaign = Campaign.objects.get(id = form.cleaned_data['campaign_id'])
+        campaign.name = form.cleaned_data['name']
+        campaign.description = form.cleaned_data.get('page_description', '')
+
+        block_content = self._edit_content_block(campaign, form, product)
+
+        if not block_content in campaign.content_blocks.all():
+            campaign.content_blocks.clear()
+            campaign.content_blocks.add(block_content)
+
+        campaign.live = not self.preview
+        return campaign
+
+    def _edit_content_block(self, campaign, form, product):
+        block_content = campaign.content_blocks.all()[0]
+        block_content.data.product = product
+        block_content.data.description = form.cleaned_data['description']
+
         generic_media_id = form.cleaned_data.get("generic_media_id")
         product_media_id = form.cleaned_data.get("product_media_id")
 
         has_product_media = product_media_id and\
                             ProductMedia.objects.filter(pk=product_media_id).exists()
-
-        campaign = Campaign.objects.get(id = form.cleaned_data['campaign_id'])
-        campaign.name = form.cleaned_data['name']
-        campaign.description = form.cleaned_data.get('page_description', '')
-
-        block_content = campaign.content_blocks.all()[0]
-        block_content.data.product = product
-        block_content.data.description = form.cleaned_data['description']
 
         # existing product media was selected
         if has_product_media:
@@ -155,12 +165,8 @@ class FeaturedProductWizard(Wizard):
                 pk=generic_media_id)
             block_content.data.save()
 
-        if not block_content in campaign.content_blocks.all():
-            campaign.content_blocks.clear()
-            campaign.content_blocks.add(block_content)
+        return block_content
 
-        campaign.live = not self.preview
-        return campaign
 
     def _create_campaign(self, form, product):
         block = self._create_content_block(form, product)
@@ -207,11 +213,49 @@ class FeaturedProductWizard(Wizard):
         return block_content
 
 class ShopTheLookWizard(FeaturedProductWizard):
-    def _create_form_with_initial_data(self):
-        form = super(ShopTheLookWizard, self)._create_form_with_initial_data()
+    def _get_initial_form_data(self):
+        data = super(ShopTheLookWizard, self)._get_initial_form_data()
 
-    def _edit_campaign(self, form, product):
-        campaign = super(ShopTheLookWizard, self)._edit_campaign(form, product)
+        all_content_blocks = self.campaign.content_blocks.all()
+
+        ls_image = all_content_blocks[0].data.get_ls_image()
+
+        # TODO: Append to generic_media_list
+        if ls_image.__class__.__name__ == "GenericImage":
+            data["ls_generic_media_id"] = ls_image.id
+            data["generic_media_list"] = ls_image.get_url() + "\\" + str(
+                ls_image.id)
+
+        elif ls_image.__class__.__name__ == "ProductMedia":
+            data["ls_product_media_id"] = ls_image.id
+
+        return data
+
+    def _edit_content_block(self, campaign, form, product):
+        block_content = super(ShopTheLookWizard, self)._edit_content_block(
+            campaign, form, product)
+
+        ls_generic_media_id = form.cleaned_data.get("ls_generic_media_id")
+        ls_product_media_id = form.cleaned_data.get("ls_product_media_id")
+
+        has_ls_product_media = ls_product_media_id and\
+                            ProductMedia.objects.filter(pk=ls_product_media_id).exists()
+
+        # existing product media was selected
+        if has_ls_product_media:
+            block_content.data.custom_image = None
+            block_content.data.existing_image = ProductMedia.objects.get(
+                pk=ls_product_media_id)
+            block_content.data.save()
+
+        # an image was uploaded (the form checks that one of these must exist)
+        else:
+            block_content.data.existing_image = None
+            block_content.data.custom_image = GenericImage.objects.get(
+                pk=ls_generic_media_id)
+            block_content.data.save()
+
+        return block_content
 
     def _create_content_block(self, form, product):
         generic_media_id    = form.cleaned_data.get("generic_media_id")
@@ -248,7 +292,7 @@ class ShopTheLookWizard(FeaturedProductWizard):
         product_data.save()
         block_content = BlockContent(
             block_type = self.block_type,
-            content_type = ContentType.objects.get_for_model(FeaturedProductBlock),
+            content_type = ContentType.objects.get_for_model(ShopTheLookBlock),
             object_id = product_data.id
         )
         return block_content
