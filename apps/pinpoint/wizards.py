@@ -131,6 +131,7 @@ class FeaturedProductWizard(Wizard):
         campaign.description = form.cleaned_data.get('page_description', '')
 
         block_content = self._edit_content_block(campaign, form, product)
+        block_content.save()
 
         if not block_content in campaign.content_blocks.all():
             campaign.content_blocks.clear()
@@ -247,15 +248,15 @@ class ShopTheLookWizard(FeaturedProductWizard):
 
         # existing product media was selected
         if has_ls_product_media:
-            block_content.data.custom_image = None
-            block_content.data.existing_image = ProductMedia.objects.get(
+            block_content.data.custom_ls_image = None
+            block_content.data.existingls__image = ProductMedia.objects.get(
                 pk=ls_product_media_id)
             block_content.data.save()
 
         # an image was uploaded (the form checks that one of these must exist)
         else:
-            block_content.data.existing_image = None
-            block_content.data.custom_image = GenericImage.objects.get(
+            block_content.data.existing_ls_image = None
+            block_content.data.custom_ls_image = GenericImage.objects.get(
                 pk=ls_generic_media_id)
             block_content.data.save()
 
