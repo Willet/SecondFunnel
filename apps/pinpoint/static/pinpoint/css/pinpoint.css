@@ -144,3 +144,32 @@ body {
     cursor: pointer;
     float: right;
 }
+
+/* Some default css for youtube videos and lifestyle images. */
+
+.wide {
+    width: 480px;
+}
+
+.youtube {
+    width: 480px;
+    height: 360px;
+    cursor: pointer;
+}
+
+.block.product div.lifestyle {
+    float: left;
+}
+
+.block.product img.lifestyle {
+    max-width: 240px;
+}
+
+/* width : (block_width / 2) - (play_button_width / 2)
+ * height : (block_height / 2) - (play_button_height / 2)
+ * Once we have sass, this can be automatic
+ */
+.youtube_play {
+    top: 195px;
+    left: 135px;
+}
