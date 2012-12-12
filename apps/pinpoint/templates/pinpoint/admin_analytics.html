@@ -501,7 +501,7 @@
                         {% regroup category.categoryhasmetric_set.all by metric as metric_list %}
                         {% for metric in metric_list %}
                             {% with metric.list|first as metric_meta %}
-                                <div class="data_metric" {% if not metric_meta.display %}style="display:none"{% endif %}>
+                                <div class="data_metric">
                                     <div class="metric_title" data-metric="{{ metric.grouper.slug }}">
                                         {{ metric.grouper.name }}:
                                         <span class="metric_title_all" data-metric="{{ metric.grouper.slug }}">0</span> total
