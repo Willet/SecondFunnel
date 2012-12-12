@@ -264,6 +264,10 @@ var PINPOINT = (function($, pageInfo){
                 setTimeout(function() {pageScroll();}, 100);
             }
 
+            $block.find('.pinpoint-youtube-area').click(function() {
+                $(this).html($(this).data('embed'));
+            });
+
             for (var i in blocksAddedCallbacks) {
                 if (blocksAddedCallbacks.hasOwnProperty(i)) {
                     blocksAddedCallbacks[i]($block);

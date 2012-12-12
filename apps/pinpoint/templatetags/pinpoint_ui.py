@@ -3,6 +3,8 @@ from django.conf import settings
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.template import Context
+from django.utils.html import escape
+from django.template.loader_tags import do_include
 
 from apps.pinpoint.models import BlockContent
 
@@ -90,3 +92,20 @@ def social_buttons(product, count=None):
         'image'   : image,
         'count'   : count
     }
+
+
+class IncludeAENode(template.Node):
+    def __init__(self, parser, token):
+        self.parser = parser
+        self.token = token
+
+    def render(self, context):
+        parser = self.parser
+        token = self.token
+
+        return escape(do_include(parser, token).render(context))
+
+
+@register.tag(name="include_autoescaped")
+def include_autoescaped(parser, token):
+    return IncludeAENode(parser, token)
