@@ -222,8 +222,13 @@ class ShopTheLookWizard(FeaturedProductWizard):
         # TODO: Append to generic_media_list
         if ls_image.__class__.__name__ == "GenericImage":
             data["ls_generic_media_id"] = ls_image.id
-            data["generic_media_list"] = ls_image.get_url() + "\\" + str(
-                ls_image.id)
+
+            image_url  = ls_image.get_url() + "\\" + str(ls_image.id)
+            media_list = data.get('generic_media_list', '')
+            if media_list:
+                media_list += '|'
+
+            data["generic_media_list"] = media_list + image_url
 
         elif ls_image.__class__.__name__ == "ProductMedia":
             data["ls_product_media_id"] = ls_image.id
