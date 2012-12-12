@@ -371,6 +371,8 @@ def save_category_data(data):
         if not recency_created:
             campaign_recency.save()
 
+    return subtask(process_saved_metrics).delay()
+
 
 @task()
 def process_saved_metrics():
