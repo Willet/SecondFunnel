@@ -16,11 +16,11 @@ class GoogleAnalyticsBackend:
     """Mediates access to Google Analytics APIs"""
 
     def __init__(self):
-        with open('95cf162565f52f4b21bb4db214114d69f7e71152-privatekey.p12', 'rb') as private_key:
+        with open(settings.GOOGLE_API_PRIVATE_KEY, 'rb') as private_key:
             key = private_key.read()
 
         credentials = SignedJwtAssertionCredentials(
-            '248578306350@developer.gserviceaccount.com',
+            settings.GOOGLE_SERVICE_ACCOUNT,
             key,
             scope='https://www.googleapis.com/auth/analytics.readonly')
 

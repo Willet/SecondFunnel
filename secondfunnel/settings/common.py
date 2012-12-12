@@ -238,6 +238,8 @@ BROKER_TRANSPORT_OPTIONS = {
 
 GOOGLE_ANALYTICS_PROFILE = ''
 GOOGLE_ANALYTICS_PROPERTY = ''
+GOOGLE_API_PRIVATE_KEY = 'google-privatekey.p12'
+GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 
 try:
     from local_settings import *
