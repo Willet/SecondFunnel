@@ -18,15 +18,27 @@ var pinpointTracking = (function ($, window, document) {
     },
 
     trackEvent = function (o) {
-        console.log('trackEvent: ', category, o.action, o.label, o.value || undefined);
+        var category = "appname=pinpoint|"
+            + "storeid={{ campaign.store.id }}|"
+            + "campaignid={{ campaign.id }}|"
+            + "referrer=" + referrerName() + "|"
+            + "domain=" + parseUri(window.location.href).host;
+
+        // console.log(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+        _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
     },
 
-    registerShare = function (o) {
-        var action, url;
+    registerEvent = function (o) {
+        var actionData = [
+            "network=" + o.network || "",
+            "actionType=" + o.type,
+            "actionSubtype=" + o.subtype || "",
+            "actionScope=" + pinpointTracking.socialShareType,
+        ];
 
         trackEvent({
-            "action": "share|" + o.network + "|" + o.type + "|" + pinpointTracking.socialShareType,
-            "label": pinpointTracking.socialShareUrl
+            "action": actionData.join("|"),
+            "label": o.label || pinpointTracking.socialShareUrl
         });
     },
 
@@ -42,10 +54,10 @@ var pinpointTracking = (function ($, window, document) {
 
     clearTimeout = function () {
         if (typeof pinpointTracking._pptimeout == "number") {
-          window.clearTimeout(pinpointTracking._pptimeout);
+            window.clearTimeout(pinpointTracking._pptimeout);
 
-          // TODO remove this? not valid in strict mode
-          delete pinpointTracking._pptimeout;
+            // TODO remove this? not valid in strict mode
+            delete pinpointTracking._pptimeout;
         }
     },
 
@@ -60,11 +72,12 @@ var pinpointTracking = (function ($, window, document) {
             return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f) } });
         }(document, "script", "twitter-wjs"));
 
-        twttr.ready(function(twttr) {
+        twttr.ready(function (twttr) {
             twttr.events.bind('tweet', function(event) {
-                pinpointTracking.registerShare({
+                pinpointTracking.registerEvent({
                     "network": "Twitter",
-                    "type": "shared"
+                    "type": "share",
+                    "subtype": "shared"
                 });
             });
 
@@ -77,14 +90,14 @@ var pinpointTracking = (function ($, window, document) {
                 } else {
                     sType = event.region;
                 }
-                pinpointTracking.registerShare({
+                pinpointTracking.registerEvent({
                     "network": "Twitter",
-                    "type": sType
+                    "type": "share",
+                    "subtype": sType
                 });
             });
         });
     },
-
 
     // parseUri 1.2.2
     // (c) Steven Levithan <stevenlevithan.com>
@@ -120,13 +133,12 @@ var pinpointTracking = (function ($, window, document) {
     };
 
     this.socialShareType = undefined;
-    this.socialShareUrl  = undefined;
-    this._pptimeout      = undefined;
+    this.socialShareUrl = undefined;
+    this._pptimeout = undefined;
 
     return {
         "init": init,
-        "registerShare": registerShare,
-        "trackEvent": trackEvent,
+        "registerEvent": registerEvent,
         "setSocialShareVars": setSocialShareVars,
         "clearTimeout": clearTimeout
     }
