@@ -175,6 +175,9 @@
                 request['campaign_id'] = o.campaign_id || settings.campaign_id;
                 request['store_id'] = o.store_id || settings.store_id;
 
+                settings.campaign_id = request['campaign_id'];
+                settings.store_id = request['store_id'];
+
             // or based on default values if nothing is passed in
             } else {
                 request['campaign_id'] = settings.campaign_id;
