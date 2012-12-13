@@ -209,19 +209,14 @@
         injectAnalyticsData = function (data) {
             var rendered = {
                     'charts': {},
-                    'charts_data': {},
                     'tables': {},
                     'tables_data': {}
                 },
                 clearChartsAndTables, renderChart, renderTable;
 
-            clearChartsAndTables = function () {
+            clearCharts = function () {
                 for (metric_slug in rendered['charts']) {
                     rendered['charts'][metric_slug].clearChart();
-                }
-
-                for (metric_slug in rendered['charts_data']) {
-                    rendered['charts_data'][metric_slug] = [];
                 }
             };
 
@@ -229,7 +224,7 @@
                 var this_data = new google.visualization.DataTable();
                 this_data.addColumn('date', 'Date');
                 this_data.addColumn('number', 'Product');
-                this_data.addColumn('string', 'Meta');
+                this_data.addColumn('string', 'Info');
                 this_data.addColumn('number', data['name']);
 
                 if (data['data'].length == 0 || data['data'][0]['meta'] == "meta_metric") {
@@ -275,23 +270,15 @@
                         continue;
                     }
 
-                    if (!(slug in rendered['charts_data'])) {
-                        rendered['charts_data'][slug] = [];
-                    }
+                    this_data.addRow([
+                        new Date(date.split("-")[0],
 
-                    rendered['charts_data'][slug].push(
-                        [
-                            new Date(date.split("-")[0],
+                            // month is zero-based
+                            date.split("-")[1] - 1,
 
-                                // month is zero-based
-                                date.split("-")[1] - 1,
-
-                                date.split("-")[2]
-                            ), data['totals'][date]
-                        ]
-                    );
-
-                    this_data.addRows(rendered['charts_data'][slug]);
+                            date.split("-")[2]
+                        ), data['totals'][date]
+                    ]);
                 }
 
                 if (!(slug in rendered['charts'])) {
@@ -324,7 +311,7 @@
                 });
             };
 
-            clearChartsAndTables();
+            clearCharts();
 
             for (cat_slug in data) {
                 for (metric_slug in data[cat_slug]) {
