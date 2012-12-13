@@ -204,6 +204,9 @@ var PINPOINT = (function($, pageInfo){
                 dataType: 'json',
                 success: function(results) {
                     layoutResults(results);
+                },
+                failure: function() {
+                    currentlyLoadingMore = false;
                 }
             });
         }
@@ -222,6 +225,9 @@ var PINPOINT = (function($, pageInfo){
                 dataType: 'json',
                 success: function(results) {
                     layoutResults(results, belowFold);
+                },
+                failure: function() {
+                    currentlyLoadingMore = false;
                 }
             });
         }
@@ -239,26 +245,31 @@ var PINPOINT = (function($, pageInfo){
             result,
             initialResults = results.length;
 
+        // concatenate all the results together so they're in the same jquery object
         var blocks = "";
-        while (results.length) {
-            result = results.pop();
-            blocks += result;
+        for (var i = 0; i < results.length; i++) {
+            blocks += results[i];
         }
 
         $block = $(blocks);
+
+        // hide them so they can't be seen when masonry is placing them
         $block.css({opacity: 0});
+
+        // if it has a lifestyle image, add a wide class to it so it's styled properly
         $block.each(function() {
             if ($(this).find('.lifestyle').length > 0) {
                 $(this).addClass('wide');
             }
         })
+
         $('.discovery-area').append($block);
-        var numImages = $block.find('img').length;
-        var imagesLoaded = 0;
+
+        // make sure images are loaded or else masonry wont work properly
         $block.imagesLoaded(function() {
-            //$('.discovery-area').masonry('appended', $block);
-            $block.css({opacity: 1});
             $('.discovery-area').masonry('appended', $block, true);
+            $block.css({opacity: 1});
+
             // Don't continue to load results if we aren't getting more results
             if (initialResults > 0) {
                 setTimeout(function() {pageScroll();}, 100);
