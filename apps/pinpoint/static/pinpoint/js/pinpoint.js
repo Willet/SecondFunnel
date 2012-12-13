@@ -28,6 +28,10 @@ var PINPOINT = (function($, pageInfo){
         updateClickStream,
         userClicks = 0,
         clickThreshold = 3,
+        spaceBelowFoldToStartLoading = 500,
+        loadingBlocks = false,
+        addOnBlocksAppendedCallback,
+        blocksAppendedCallbacks = [],
         addPreviewCallback,
         previewCallbacks = [];
 
@@ -136,6 +140,10 @@ var PINPOINT = (function($, pageInfo){
         previewCallbacks.push(f);
     }
 
+    addOnBlocksAppendedCallback = function(f) {
+        blocksAppendedCallbacks.push(f);
+    }
+
     hidePreview = function() {
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.product');
@@ -185,33 +193,45 @@ var PINPOINT = (function($, pageInfo){
     };
 
     loadInitialResults = function () {
-        $.ajax({
-            url: '/intentrank/get-seeds/',
-            data: {
-                'store': details.store.id,
-                'campaign': details.campaign.id,
-                'seeds': details.featured.id
-            },
-            dataType: 'json',
-            success: function(results) {
-                layoutResults(results);
-            }
-        });
+        if (!loadingBlocks) {
+            loadingBlocks = true;
+            $.ajax({
+                url: '/intentrank/get-seeds/',
+                data: {
+                    'store': details.store.id,
+                    'campaign': details.campaign.id,
+                    'seeds': details.featured.id
+                },
+                dataType: 'json',
+                success: function(results) {
+                    layoutResults(results);
+                },
+                failure: function() {
+                    loadingBlocks = false;
+                }
+            });
+        }
     };
 
     loadMoreResults = function(belowFold) {
-        $.ajax({
-            url: '/intentrank/get-results/',
-            data: {
-                'store': details.store.id,
-                'campaign': details.campaign.id,
-                'results': 8 //TODO: Probably should be some calculated value
-            },
-            dataType: 'json',
-            success: function(results) {
-                layoutResults(results, belowFold);
-            }
-        });
+        if (!loadingBlocks) {
+            loadingBlocks = true;
+            $.ajax({
+                url: '/intentrank/get-results/',
+                data: {
+                    'store': details.store.id,
+                    'campaign': details.campaign.id,
+                    'results': 10 //TODO: Probably should be some calculated value
+                },
+                dataType: 'json',
+                success: function(results) {
+                    layoutResults(results, belowFold);
+                },
+                failure: function() {
+                    loadingBlocks = false;
+                }
+            });
+        }
     };
 
     invalidateIRSession = function () {
@@ -226,39 +246,70 @@ var PINPOINT = (function($, pageInfo){
             result,
             initialResults = results.length;
 
-        while (results.length) {
-            $col = getShortestColumn();
+        // concatenate all the results together so they're in the same jquery object
+        var blocks = "";
+        for (var i = 0; i < results.length; i++) {
+            blocks += results[i];
+        }
 
-            result = results.pop();
+        $block = $(blocks);
 
-            //add to shortest stack
-            if (!belowFold) {
-                $col.append(result);
-            } else {
-                $col.find('.block.product:in-viewport:last').after(result);
+        // hide them so they can't be seen when masonry is placing them
+        $block.css({opacity: 0});
+
+        // if it has a lifestyle image, add a wide class to it so it's styled properly
+        $block.each(function() {
+            if ($(this).find('.lifestyle').length > 0) {
+                $(this).addClass('wide');
             }
-        }
+        })
 
-        // Don't continue to load results if we aren't getting more results
-        if (initialResults > 0) {
-            pageScroll();
-        }
+        $('.discovery-area').append($block);
+
+        // make sure images are loaded or else masonry wont work properly
+        $block.imagesLoaded(function() {
+            $('.discovery-area').masonry('appended', $block, true);
+            $block.css({opacity: 1});
+
+            // Don't continue to load results if we aren't getting more results
+            if (initialResults > 0) {
+                setTimeout(function() {pageScroll();}, 100);
+            }
+
+            $block.find('.pinpoint-youtube-area').click(function() {
+                $(this).html($(this).data('embed'));
+            });
+
+            for (var i in blocksAppendedCallbacks) {
+                if (blocksAppendedCallbacks.hasOwnProperty(i)) {
+                    blocksAppendedCallbacks[i]($block);
+                }
+            }
+
+            loadingBlocks = false;
+        });
     };
 
     pageScroll = function () {
         var $w            = $(window),
             noResults     = ($('.discovery-area .block').length == 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
-            shortestCol   = getShortestColumn(),
-            lastBlock     = shortestCol.find('.block:last'),
+            lowestBlock,
             lowestHeight;
 
-        if (lastBlock.length <= 0) {
-            lastBlock = shortestCol;
+        $('.discovery-area .block').each(function() {
+            if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
+                lowestBlock = $(this);
+            }
+        });
+       
+        if (!lowestBlock) {
+            lowestHeight = 0;
+        } else {
+            lowestHeight = lowestBlock.offset().top + lowestBlock.height()
         }
-        lowestHeight = lastBlock.offset().top + lastBlock.height()
 
-        if ( noResults || (pageBottomPos > lowestHeight)) {
+        if ( noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
             loadMoreResults();
         }
     };
@@ -296,6 +347,12 @@ var PINPOINT = (function($, pageInfo){
         $('.discovery-area').on('click', '.block.product', updateClickStream);
         $('.discovery-area').on('mouseenter', '.block.product', productHoverOn);
         $('.discovery-area').on('mouseleave', '.block.product', productHoverOff);
+
+        $('.discovery-area').masonry({
+            itemSelector: '.block',
+            columnWidth: 960 / 4,
+            isResizable: true
+        });
 
         $('.preview .mask, .preview .close').on('click', hidePreview);
 
@@ -459,7 +516,8 @@ var PINPOINT = (function($, pageInfo){
     return {
         'init': init,
         'invalidateSession': invalidateIRSession,
-        'addPreviewCallback': addPreviewCallback
+        'addPreviewCallback': addPreviewCallback,
+        'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback
     };
 })(jQuery, window.PINPOINT_INFO || {});
 
