@@ -28,9 +28,9 @@ var PINPOINT = (function($, pageInfo){
         updateClickStream,
         userClicks = 0,
         clickThreshold = 3,
-        currentlyLoadingMore = false,
-        addBlocksAddedCallback,
-        blocksAddedCallbacks = [],
+        loadingBlocks = false,
+        addOnBlocksAppendedCallback,
+        blocksAppendedCallbacks = [],
         addPreviewCallback,
         previewCallbacks = [];
 
@@ -139,8 +139,8 @@ var PINPOINT = (function($, pageInfo){
         previewCallbacks.push(f);
     }
 
-    addBlocksAddedCallback = function(f) {
-        blocksAddedCallbacks.push(f);
+    addOnBlocksAppendedCallback = function(f) {
+        blocksAppendedCallbacks.push(f);
     }
 
     hidePreview = function() {
@@ -192,8 +192,8 @@ var PINPOINT = (function($, pageInfo){
     };
 
     loadInitialResults = function () {
-        if (!currentlyLoadingMore) {
-            currentlyLoadingMore = true;
+        if (!loadingBlocks) {
+            loadingBlocks = true;
             $.ajax({
                 url: '/intentrank/get-seeds/',
                 data: {
@@ -206,15 +206,15 @@ var PINPOINT = (function($, pageInfo){
                     layoutResults(results);
                 },
                 failure: function() {
-                    currentlyLoadingMore = false;
+                    loadingBlocks = false;
                 }
             });
         }
     };
 
     loadMoreResults = function(belowFold) {
-        if (!currentlyLoadingMore) {
-            currentlyLoadingMore = true;
+        if (!loadingBlocks) {
+            loadingBlocks = true;
             $.ajax({
                 url: '/intentrank/get-results/',
                 data: {
@@ -227,7 +227,7 @@ var PINPOINT = (function($, pageInfo){
                     layoutResults(results, belowFold);
                 },
                 failure: function() {
-                    currentlyLoadingMore = false;
+                    loadingBlocks = false;
                 }
             });
         }
@@ -279,13 +279,13 @@ var PINPOINT = (function($, pageInfo){
                 $(this).html($(this).data('embed'));
             });
 
-            for (var i in blocksAddedCallbacks) {
-                if (blocksAddedCallbacks.hasOwnProperty(i)) {
-                    blocksAddedCallbacks[i]($block);
+            for (var i in blocksAppendedCallbacks) {
+                if (blocksAppendedCallbacks.hasOwnProperty(i)) {
+                    blocksAppendedCallbacks[i]($block);
                 }
             }
 
-            currentlyLoadingMore = false;
+            loadingBlocks = false;
         });
     };
 
@@ -516,7 +516,7 @@ var PINPOINT = (function($, pageInfo){
         'init': init,
         'invalidateSession': invalidateIRSession,
         'addPreviewCallback': addPreviewCallback,
-        'addBlocksAddedCallback': addBlocksAddedCallback
+        'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback
     };
 })(jQuery, window.PINPOINT_INFO || {});
 
