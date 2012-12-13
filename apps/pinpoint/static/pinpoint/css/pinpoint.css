@@ -147,7 +147,8 @@ body {
 
 /* Some default css for youtube videos and lifestyle images. */
 
-.wide {
+/* This is for blocks that are two columsn wide */
+.block.wide {
     width: 480px;
 }
 
