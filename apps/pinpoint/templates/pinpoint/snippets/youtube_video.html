@@ -1,8 +1,9 @@
 {% load pinpoint_ui %}
 {% load pinpoint_youtube %}
+{% load staticfiles %}
 <div class='pinpoint-youtube-area'
     data-video-id="{{ video.video_id }}"
     {% autoescape on %} data-embed="{% include_escaped "pinpoint/snippets/youtube_embed.html" with video=video autoplay=1 %}"> {% endautoescape %}
-    <img class="youtube_play" src="https://s3-us-west-2.amazonaws.com/secondfunnel-public-images/common/play.png"/>
+    <img class="youtube_play" src="{% static "images/play.png" %}"/>
     {% youtube_image video %}
 </div>
