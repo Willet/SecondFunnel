@@ -156,7 +156,7 @@ def videos_to_template(request, campaign, results):
     if not video_cookie:
         video_cookie = request.session['pinpoint-video-cookie'] = VideoCookie()
 
-    videos = campaign.store.youtubevideo_set.exclude(video_id__in=video_cookie.videos_already_shown)
+    videos = campaign.store.videos.exclude(video_id__in=video_cookie.videos_already_shown)
 
     # if this is the first batch of results, or the random amount is under the
     # curve of the probability function, then add a video
