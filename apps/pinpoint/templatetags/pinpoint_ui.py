@@ -94,7 +94,7 @@ def social_buttons(product, count=None):
     }
 
 
-class IncludeAENode(template.Node):
+class IncludeEscNode(template.Node):
     def __init__(self, parser, token):
         self.parser = parser
         self.token = token
@@ -106,6 +106,6 @@ class IncludeAENode(template.Node):
         return escape(do_include(parser, token).render(context))
 
 
-@register.tag(name="include_autoescaped")
-def include_autoescaped(parser, token):
-    return IncludeAENode(parser, token)
+@register.tag(name="include_escaped")
+def include_escaped(parser, token):
+    return IncludeEscNode(parser, token)

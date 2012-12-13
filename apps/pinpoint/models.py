@@ -91,7 +91,7 @@ class StoreTheme(BaseModelNamed):
     """
 
     DEFAULT_YOUTUBE_BLOCK = """
-    {% include "pinpoint/snippets/youtube_embed.html" with video=video_id width=200 height=200 %}
+    {% youtube_video video %}
     """
 
     # TODO: Replace with ForeignKey to support mobile themes?
