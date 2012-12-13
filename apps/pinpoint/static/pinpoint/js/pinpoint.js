@@ -28,6 +28,7 @@ var PINPOINT = (function($, pageInfo){
         updateClickStream,
         userClicks = 0,
         clickThreshold = 3,
+        spaceBelowFoldToStartLoading = 500,
         loadingBlocks = false,
         addOnBlocksAppendedCallback,
         blocksAppendedCallbacks = [],
@@ -308,7 +309,7 @@ var PINPOINT = (function($, pageInfo){
             lowestHeight = lowestBlock.offset().top + lowestBlock.height()
         }
 
-        if ( noResults || (pageBottomPos + 500 > lowestHeight)) {
+        if ( noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
             loadMoreResults();
         }
     };
