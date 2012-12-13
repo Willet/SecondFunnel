@@ -90,6 +90,10 @@ class StoreTheme(BaseModelNamed):
     </div>
     """
 
+    DEFAULT_YOUTUBE_BLOCK = """
+    {% youtube_video video %}
+    """
+
     # TODO: Replace with ForeignKey to support mobile themes?
     store         = models.OneToOneField(Store, related_name="theme")
     page_template = models.TextField(default=DEFAULT_PAGE_TEMPLATE,
@@ -103,6 +107,15 @@ class StoreTheme(BaseModelNamed):
 
     # Discovery Block Templates
     discovery_product = models.TextField(default=DEFAULT_DISCOVERY_BLOCK)
+
+    # Right now this is being hardcoded in, but should be changed to support
+    # multiple block types automatically.
+
+    # A system like the one Grigory had originally made, where block type slugs
+    # mapped to templates, could be used here. Specifically, having a generic
+    # block template model that has a one to one foreign key to both a store
+    # and a block type.
+    discovery_youtube = models.TextField(default=DEFAULT_YOUTUBE_BLOCK)
 
     def __unicode__(self):
         return u"Theme for Store: %s" % self.store

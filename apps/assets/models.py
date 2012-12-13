@@ -116,6 +116,8 @@ class Product(BaseModelNamed):
     last_scraped = models.DateTimeField(blank=True, null=True)
     rescrape = models.BooleanField(default=False)
 
+    lifestyleImage = models.ForeignKey(GenericImage, blank=True, null=True)
+
     def __unicode__(self):
         return self.name
 
@@ -137,7 +139,7 @@ class Product(BaseModelNamed):
 
         images = self.images()
         image  = images[0] if images else None
-        
+
         fields = [
             ('data-title', strip_and_escape(self.name)),
             ('data-description', strip_and_escape(self.description)),
@@ -155,3 +157,8 @@ class Product(BaseModelNamed):
 
 class ProductMedia(ImageBase):
     product = models.ForeignKey(Product, related_name="media")
+
+
+class YoutubeVideo(BaseModel):
+    video_id = models.CharField(max_length=11)
+    store = models.ForeignKey(Store, null=True, related_name="videos")

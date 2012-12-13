@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage
+from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage, YoutubeVideo
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -67,10 +67,17 @@ class ProductMediaInline(admin.TabularInline):
 
 class ProductAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + [
-        'original_url', 'price', 'media_count']
+        'original_url', 'price', 'media_count', 'lifestyleImage']
 
     inlines = [
         ProductMediaInline,
     ]
 
 admin.site.register(Product, ProductAdmin)
+
+
+class YoutubeVideoAdmin(BaseAdmin):
+    list_display = BaseAdmin.list_display + [
+        'video_id', 'store']
+
+admin.site.register(YoutubeVideo, YoutubeVideoAdmin)
