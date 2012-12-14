@@ -29,11 +29,11 @@
                 <div class="bannerRight">
                     <ul>
                         {% if user.is_authenticated %}
-                        <li><a href="{% url login-redirect %}">Dashboard</a></li>
-                        <li><a href="{% url password_change %}">Change Password</a></li>
-                        <li><a href="{% url logout %}">Logout</a></li>
+                        <li><a href="{% url login-redirect %}">{% trans "Dashboard" %}</a></li>
+                        <li><a href="{% url password_change %}">{% trans "Change Password" %}</a></li>
+                        <li><a href="{% url logout %}">{% trans "Logout" %}</a></li>
                         {% else %}
-                        <li><a href="{% url login %}">Login</a></li>
+                        <li><a href="{% url login %}">{% trans "Login" %}</a></li>
                         {% endif %}
                     </ul>
                 </div>
@@ -71,8 +71,7 @@
         <script>
             {% if store.id %}
             $("#cancel_to_admin").click(function(){
-                var cancel = confirm("Are you sure you want to cancel your " +
-                        "changes?");
+                var cancel = confirm("{% trans "Are you sure you want to cancel your changes?" %}");
                 if (cancel) {
                     window.location.href = "{% url store-admin store.id %}";
                 }

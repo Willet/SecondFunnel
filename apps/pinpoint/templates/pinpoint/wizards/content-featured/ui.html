@@ -1,13 +1,14 @@
 {% extends "pinpoint/admin_base.html" %}
 {% load staticfiles %}
 {% load ajax_form_utils %}
+{% load i18n %}
 
 {% block title %}
-    {% if campaign %}Edit {% else %}New{% endif %} Page
+    {% if campaign %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}{% trans "Page" %}
 {% endblock %}
 
 {% block page_title %}
-    {% if campaign %}Edit {% else %}New{% endif %} Page
+    {% if campaign %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}{% trans "Page" %}
 {% endblock %}
 
 {% block extra_head %}
@@ -397,8 +398,7 @@
 
             $(".button.back:not(.disabled)").click(function(){
                 if (page_changed.val()) {
-                    var cancel = confirm("By going back you will lose your " +
-                            "changes on this page. Are you sure?");
+                    var cancel = confirm("{% trans "By going back you will lose your changes on this page. Are you sure?" %}");
                 }
                 if (cancel || !page_changed.val()) {
                     window.location.href = "{% url new-campaign-admin store.id %}";
@@ -410,8 +410,7 @@
 
             $("#cancel_to_admin").unbind('click').click(function(){
                 if (page_changed.val()) {
-                    var cancel = confirm("Are you sure you want to cancel your " +
-                            "changes?");
+                    var cancel = confirm("{% trans "Are you sure you want to cancel your changes?" %}");
                     }
                 if (cancel || !page_changed.val()) {
                     window.location.href = "{% url store-admin store.id %}";
@@ -480,9 +479,9 @@
                 }
 
                 $(".product_meta").mask();
-                $("#product_name").watermark("Your product name");
-                $("#id_name").watermark("Your page name");
-                $("#id_description").watermark("Featured product description");
+                $("#product_name").watermark("{% trans "Your product name" %}");
+                $("#id_name").watermark("{% trans "Your page name" %}");
+                $("#id_description").watermark("{% trans "Featured product description" %}");
                 page_changed = $("#id_page_changed");
 
                 // in case we're dealing with errors on submition,
@@ -528,7 +527,7 @@
                           var li = gif.closest('li');
                           li.addClass('broken_image');
                           gif.remove();
-                          li.html('<div class="rounded"><ul class="errorlist"><li>Error uploading image.</li><br /><li>Click this box to dismiss.</li></ul></div>')
+                          li.html('<div class="rounded"><ul class="errorlist"><li>{% trans "Error uploading image." %}</li><br /><li>{% trans "Click this box to dismiss."</li></ul></div>')
 
                           $("li.broken_image").unbind('click').click(function() {
                               $(this).animate({
@@ -584,25 +583,25 @@
         {% csrf_token %}
         <div class="product_select">
             <div class="field">
-                <label class="field-align" for="product_name">Featured Product:</label>
+                <label class="field-align" for="product_name">{% trans "Featured Product" %}:</label>
                 <input type="text" id="product_name">
-                <span class="helptext">Start typing in the name of a product you want to feature</span>
+                <span class="helptext">{% trans "Start typing in the name of a product you want to feature" %}</span>
             </div>
         </div>
 
         <div class="product_meta">
             <div class="field">
-                <label class="field-align" for="id_name">Page Name:</label>
+                <label class="field-align" for="id_name">{% trans "Page Name" %}:</label>
                 {{ form.name }}
                 {% if form.name.errors %} {{ form.name.errors }} {% else %}
                     <ul class="errorlist">
                     </ul>
                 {% endif %}
-                <span class="helptext">Enter a name for this page.</span>
+                <span class="helptext">{% trans "Enter a name for this page" %}.</span>
             </div>
 
             <div class="field">
-                <label for="image-selector">Featured Image:</label>
+                <label for="image-selector">{% trans "Featured Image" %}:</label>
                 {% if form.errors or form.non_field_errors %}
                     {{ form.non_field_errors }}
                 {% else %}
@@ -610,7 +609,7 @@
                         <li>This field is required.</li>
                     </ul>
                 {% endif %}
-                <span class="helptext">Please either select an existing product image or upload a custom one.</span>
+                <span class="helptext">{% trans "Please either select an existing product image or upload a custom one." %}</span>
                 <div id="image-selector">
                     <div class="existing_images_list">
                         <ul id="product_images">
@@ -623,7 +622,7 @@
             </div>
 
             <div class="field">
-                <label for="id_description">Product Description:</label>
+                <label for="id_description">{% trans "Product Description" %}:</label>
                 <div>
                     {% if form.description.errors %} {{form.description.errors }} {% else %}
                         <ul class="errorlist">
@@ -632,15 +631,17 @@
                     <br />
                     {{ form.description }}
                     <span class="helptext textarea">
+                        {% blocktrans %}
                         You can tailor product's
-                        description that will appear on the page. Shorter is better.<br/>
+                        description that will appear on the page. Shorter is better.
+                        {% endblocktrans %}<br/>
                         <br/>
                         <span id="character_count">
                             <span id="characters">0</span> / 250
-                            characters.
+                            {% trans "characters" context "amount of letters" %}.
                         </span>
                         <br />
-                        <span id="small_desc_warning" style="display: none">It's strongly advised to give a longer description than that.</span>
+                        <span id="small_desc_warning" style="display: none">{% trans "It's strongly advised to give a longer description than that." %}</span>
                     </span>
                 </div>
             </div>
@@ -650,10 +651,10 @@
                     {{ hidden }}
                 {% endfor %}
 
-                <input class="button submit focus" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} Page">
+                <input class="button submit focus" type="submit" value="{% if campaign %}{% trans "Save" %}{% else %}{% trans "Create" %}{% endif %}{% trans "Page" %}">
                 <input class="button preview" type="button" value="Preview Page">
-                <input id="cancel_to_admin" class="button" type="button" value="&times; Cancel">
-                <input class="button back {% if campaign %}disabled{% endif %}" type="button" value="&larr; Back">
+                <input id="cancel_to_admin" class="button" type="button" value="&times; {% trans "Cancel" %}">
+                <input class="button back {% if campaign %}disabled{% endif %}" type="button" value="&larr; {% trans "Back" %}">
             </div>
         </div>
     </form>
