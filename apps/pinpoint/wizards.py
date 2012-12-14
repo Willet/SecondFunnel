@@ -25,6 +25,11 @@ class Wizard(object):
         self.form_cls   = kwargs.get('form')
         self.block_type = kwargs.get('block_type')
 
+    def _is_editing(self):
+        # Normally would just return self.campaign, but that seems strange.
+        # Favouring explicit vs implicit
+        return bool(self.campaign)
+
     def process(self):
         if self.request.method == 'POST':
             form, response = self._post()
@@ -47,7 +52,7 @@ class Wizard(object):
             return ajax_error()
 
     def _get(self):
-        if self.campaign:
+        if self._is_editing():
             form = self.form_cls(self._get_initial_form_data())
         else:
             form = self.form_cls()
