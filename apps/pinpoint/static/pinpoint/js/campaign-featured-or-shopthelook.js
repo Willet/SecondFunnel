@@ -1,4 +1,4 @@
-var application = (function(store_id, products, urls){
+var application = (function(store_id, urls){
     var $pageChanged = $('#id_page_changed'),
         createUploader,
         productSelected,
@@ -14,6 +14,8 @@ var application = (function(store_id, products, urls){
         onPreview,
         onCancel,
         onBack,
+        onProductApiResults,
+        products = {},
         UPPER_CHARACTER_LIMIT   = 250,
         UPPER_CHARACTER_WARNING = 230,
         LOWER_CHARACTER_WARNING = 20;
@@ -54,19 +56,63 @@ var application = (function(store_id, products, urls){
     };
 
     productSelected = function(data) {
-        var product = products[data.product_id],
-            media_id,
-            look_id,
-            li,
-            uploadedImages,
-            genericImages;
+        var product = products[data.product_id];
 
         // Hide errors
         $(".image-selector").siblings(".errorlist").children("li").fadeIn(500);
 
-        if (typeof(product) === "undefined") {
+        if (data.product_id === "") {
             return;
         }
+
+        if (typeof(product) === "undefined") {
+            $.getJSON("/api/assets/v1/product/" + data.product_id, {
+                "format": "json",
+                "store": store_id
+
+            }, function(result) {
+                products[result.id] = {
+                    'id'         : result.id,
+                    'name'       : result.name,
+                    'description': result.description,
+                    'media'      : []
+                }
+
+                // fetch product media
+                $.getJSON("/api/assets/v1/product_media/", {
+                    "format": "json",
+                    "product": result.id,
+                    "store": store_id
+                }, function(media_data) {
+                    if (media_data.meta.total_count == 0) {
+                        return onProductApiResults(data, products[data.id]);
+                    }
+
+                    for (media_result in media_data.objects) {
+                        var media = media_data.objects[media_result],
+                            media_result;
+
+                        products[result.id]['media'].push({
+                            'id': media.id,
+                            'url': media.hosted || media.remote
+                        });
+                    }
+
+                    return onProductApiResults(data, products[result.id]);
+                });
+            });
+        } else {
+            return onProductApiResults(data, product);
+        }
+
+
+    };
+
+    onProductApiResults = function (data, product) {
+        var i,
+            li,
+            uploadedImages,
+            genericImages;
 
         // clear existing image list
         $('.product-images').each(function(index, elem) {
@@ -80,7 +126,7 @@ var application = (function(store_id, products, urls){
         });
 
         // display product media
-        for (var i in product.media) {
+        for (i in product.media) {
             li = $("<li><img class='prod_img existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
             $(".product-images").append(li);
         }
@@ -400,6 +446,6 @@ var application = (function(store_id, products, urls){
         'init': init
     }
 
-})(window.store, window.product_information || {}, window.url_list || {});
+})(window.store, window.url_list || {});
 
 application.init();

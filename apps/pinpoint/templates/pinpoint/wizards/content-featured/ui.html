@@ -232,24 +232,6 @@
 
     window.store = '{{ store.id }}';
 
-    window.product_information = {
-        //{% for product in products %}
-            '{{ product.id }}': {
-                'id': '{{ product.id }}',
-                'name': '{{ product.name }}',
-                'description': '{{ product.description|escapejs }}',
-                'media': [
-                    //{% for product_media in product.media.all %}
-                        {
-                            'id': '{{ product_media.id }}',
-                            'url': '{{ product_media.get_url }}'
-                        }{% if not forloop.last %},{% endif %}
-                        //{% endfor %}
-                ]
-            }{% if not forloop.last %},{% endif %}
-            //{% endfor %}
-    };
-
     window.url_list = {
         'store-admin'       : '{% url store-admin store.id %}',
         'new-campaign-admin': '{% url new-campaign-admin store.id %}',
