@@ -178,3 +178,32 @@ class FeaturedProductBlock(BaseModelNamed):
         """Get an image associated with this block"""
 
         return self.custom_image or self.existing_image or None
+
+
+class ShopTheLookBlock(BaseModelNamed):
+    """Data model for Featured Content block, to be used with BlockContent"""
+
+    product = models.ForeignKey(Product)
+
+    existing_image = models.ForeignKey(
+        ProductMedia, blank=True, null=True)
+    custom_image   = models.OneToOneField(
+        GenericImage, blank=True, null=True)
+
+    existing_ls_image = models.ForeignKey(
+        ProductMedia, blank=True, null=True, related_name='ls_image_set')
+    custom_ls_image   = models.OneToOneField(
+        GenericImage, blank=True, null=True, related_name='ls_image')
+
+    def __unicode__(self):
+        return u"Featured Content Data for %s" % self.product
+
+    def get_image(self):
+        """Get an image associated with this block"""
+
+        return self.custom_image or self.existing_image or None
+
+    def get_ls_image(self):
+        """Get a lifestyle image associated with this block"""
+
+        return self.custom_ls_image or self.existing_ls_image or None
