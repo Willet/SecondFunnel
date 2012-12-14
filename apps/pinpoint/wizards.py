@@ -13,6 +13,7 @@ from apps.pinpoint.forms import FeaturedProductWizardForm, ShopTheLookWizardForm
 
 # TODO: Consider replacing with ModelForm?
 # TODO: This is still a mess
+from apps.utils.ajax import ajax_error
 
 class Wizard(object):
     def __init__(self, *args, **kwargs):
@@ -43,7 +44,7 @@ class Wizard(object):
                 "campaign": self.campaign,
             }, context_instance=RequestContext(self.request))
         else:
-            return HttpResponse(json.dumps({"success": False}), mimetype='application/json')
+            return ajax_error()
 
     def _get(self):
         if self.campaign:
