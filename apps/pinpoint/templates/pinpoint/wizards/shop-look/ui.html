@@ -1,0 +1,24 @@
+{% extends "pinpoint/wizards/content-featured/ui.html" %}
+
+{% block shop-the-look %}
+<div class="field look">
+    <label for="image-selector">'Look' Image:</label>
+    {% if form.errors or form.non_field_errors %}
+        {{ form.non_field_errors }}
+    {% else %}
+        <ul class="errorlist">
+            <li>This field is required.</li>
+        </ul>
+    {% endif %}
+    <span class="helptext">Please either select an existing product image or upload a custom one.</span>
+    <div id="look_images" class="image-selector">
+        <div class="existing_images_list">
+            <ul class="product-images">
+                <li>
+                    <div class='fine-uploader'></div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock shop-the-look %}
