@@ -15,4 +15,4 @@ class Command(NoArgsCommand):
     ]
 
     def handle_noargs(self, **kwargs):
-        os.system("epydoc -o doc " + reduce(lambda x, y: x + " " + y, self.folders_to_include))
+        os.system("epydoc -o doc " + " ".join(self.folders_to_include))
