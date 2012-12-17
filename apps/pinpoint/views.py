@@ -14,6 +14,14 @@ import apps.pinpoint.wizards as wizards
 
 @login_required
 def login_redirect(request):
+    """
+    Redirects user to store admin page if they are only staff for one store.
+
+    @param request: The request for this page.
+
+    @return: An HttpResponseRedirect that redirects the user to either a store admin
+    page, or a page where the user can pick which store they want to view.
+    """
     store_set = request.user.store_set
     if store_set.count() == 1:
         return redirect('store-admin', store_id=str(store_set.all()[0].id))
@@ -23,6 +31,13 @@ def login_redirect(request):
 
 @login_required
 def admin(request):
+    """
+    Allows the user to select which store they want to view.
+
+    @param request: The request for this page.
+
+    @return: An HttpResponse which renders the page template.
+    """
     return render_to_response('pinpoint/admin_staff.html', {
         "stores": request.user.store_set
     }, context_instance=RequestContext(request))
@@ -30,6 +45,15 @@ def admin(request):
 
 @login_required
 def store_admin(request, store_id):
+    """
+    Displays the pinpoint pages for the given store. User can make new pages,
+    edit pages, and get links to pages.
+
+    @param request: The request for this page.
+    @param store_id: The id of the store to show pinpoint pages for.
+
+    @return: An HttpResponse which renders the page template.
+    """
     store = get_object_or_404(Store, pk=store_id)
 
     if not request.user in store.staff.all():
@@ -113,7 +137,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     featured_context = Context()
     type = content_block.content_type.name
 
-    if type == 'featured product block':
+    if type in ('featured product block', 'shop the look block'):
         content_template = theme.featured_product
         product          = content_block.data.product
 
@@ -123,6 +147,11 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         product.description    = content_block.data.description
         product.featured_image = featured_image
         product.is_featured    = True
+
+        # Piggyback off of featured product block
+        if type == 'shop the look block':
+            lifestyle_image = content_block.data.get_ls_image().get_url()
+            product.lifestyle_image = lifestyle_image
 
         featured_context.update({
             'product': product,
