@@ -1,3 +1,5 @@
+{% load i18n %}
+<script>
 var application = (function(store_id, urls){
     var $pageChanged = $('#id_page_changed'),
         createUploader,
@@ -313,8 +315,7 @@ var application = (function(store_id, urls){
         var cancel;
 
         if ($pageChanged.val()) {
-            cancel = confirm('Are you sure you want to cancel your ' +
-                'changes?');
+            var cancel = confirm("{% trans "Are you sure you want to cancel your changes?" %}");
         }
 
         if (cancel || !$pageChanged.val()) {
@@ -326,8 +327,7 @@ var application = (function(store_id, urls){
         var cancel;
 
         if ($pageChanged.val()) {
-            cancel = confirm('By going back you will lose your ' +
-                'changes on this page. Are you sure?');
+            var cancel = confirm("{% trans "By going back you will lose your changes on this page. Are you sure?" %}");
         }
 
         if (cancel || $pageChanged.val()) {
@@ -377,7 +377,8 @@ var application = (function(store_id, urls){
                     li = gif.closest('li');
                     li.addClass('broken_image');
                     gif.remove();
-                    li.html('<div class="rounded"><ul class="errorlist"><li>Error uploading image.</li><br /><li>Click this box to dismiss.</li></ul></div>')
+                    li.html('<div class="rounded"><ul class="errorlist"><li>{% trans "Error uploading image." %}' +
+                            '</li><br /><li>{% trans "Click this box to dismiss."</li></ul></div>')
 
                     $("li.broken_image").on('click', function() {
                         $(this).animate({
@@ -399,7 +400,7 @@ var application = (function(store_id, urls){
         $('#id_description').on('keydown keyup', updateCharacterCount);
         $('#product_name').autocomplete(getAutoCompleteConfig());
         $('.button.preview').on('click', onPreview);
-        $('#cancel_to_admin').on('click', onCancel);
+        $('#cancel_to_admin').unbind('click').on('click', onCancel);
         $('.button.back:not(.disabled)').on('click', onBack);
 
         $('.product-images').on('click', 'img.existing_image', onExistingImageSelect);
@@ -416,9 +417,9 @@ var application = (function(store_id, urls){
         var uploader;
 
         $(".product_meta").mask();
-        $("#product_name").watermark("Your product name");
-        $("#id_name").watermark("Your page name");
-        $("#id_description").watermark("Featured product description");
+        $("#product_name").watermark("{% trans "Your product name" %}");
+        $("#id_name").watermark("{% trans "Your page name" %}");
+        $("#id_description").watermark("{% trans "Featured product description" %}");
 
         $(document).ready(ready);
 
@@ -449,3 +450,4 @@ var application = (function(store_id, urls){
 })(window.store, window.url_list || {});
 
 application.init();
+</script>
