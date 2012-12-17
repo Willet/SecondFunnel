@@ -10,7 +10,6 @@ class Command(NoArgsCommand):
         'apps/',
         'secondfunnel/',
         'scripts/',
-        'requirements/',
         'manage.py',
         'terrain.py',
     ]
