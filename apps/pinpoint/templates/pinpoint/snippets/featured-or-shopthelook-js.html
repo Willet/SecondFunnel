@@ -400,7 +400,7 @@ var application = (function(store_id, urls){
         $('#id_description').on('keydown keyup', updateCharacterCount);
         $('#product_name').autocomplete(getAutoCompleteConfig());
         $('.button.preview').on('click', onPreview);
-        $('#cancel_to_admin').on('click', onCancel);
+        $('#cancel_to_admin').unbind('click').on('click', onCancel);
         $('.button.back:not(.disabled)').on('click', onBack);
 
         $('.product-images').on('click', 'img.existing_image', onExistingImageSelect);
