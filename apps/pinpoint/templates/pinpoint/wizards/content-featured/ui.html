@@ -606,7 +606,7 @@
                     {{ form.non_field_errors }}
                 {% else %}
                     <ul class="errorlist">
-                        <li>This field is required.</li>
+                        <li>{% trans This field is required. %}</li>
                     </ul>
                 {% endif %}
                 <span class="helptext">{% trans "Please either select an existing product image or upload a custom one." %}</span>
