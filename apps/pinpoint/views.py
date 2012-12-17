@@ -151,7 +151,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     featured_context = Context()
     type = content_block.content_type.name
 
-    if type == 'featured product block':
+    if type in ('featured product block', 'shop the look block'):
         content_template = theme.featured_product
         product          = content_block.data.product
 
@@ -161,6 +161,11 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         product.description    = content_block.data.description
         product.featured_image = featured_image
         product.is_featured    = True
+
+        # Piggyback off of featured product block
+        if type == 'shop the look block':
+            lifestyle_image = content_block.data.get_ls_image().get_url()
+            product.lifestyle_image = lifestyle_image
 
         featured_context.update({
             'product': product,
