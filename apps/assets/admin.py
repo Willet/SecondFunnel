@@ -21,6 +21,8 @@ class BaseNamedAdmin(BaseAdmin):
         'slug'
     ] + BaseAdmin.list_display
 
+    search_fields = ['name']
+
     prepopulated_fields = {"slug": ("name",)}
 
 
