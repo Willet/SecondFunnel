@@ -6,10 +6,5 @@ register = template.Library()
 
 
 @register.filter
-def encode(value):
+def shorten(value):
     return base62.encode(value)
-
-
-@register.filter
-def decode(value):
-    return base62.decode(value)
