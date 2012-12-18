@@ -1,4 +1,5 @@
 import re
+
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext, Template, Context
@@ -10,6 +11,7 @@ from apps.pinpoint.models import Campaign, BlockType, BlockContent
 from apps.assets.models import Store, Product
 
 import apps.pinpoint.wizards as wizards
+import apps.utils.base62 as base62
 
 
 @login_required
@@ -100,6 +102,10 @@ def campaign_analytics_admin(request, campaign_id):
 @login_required
 def store_analytics_admin(request, store_id):
     pass
+
+
+def campaign_short(request, campaign_id_short):
+    return campaign(request, base62.decode(campaign_id_short))
 
 
 def campaign(request, campaign_id):
