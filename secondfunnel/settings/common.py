@@ -1,5 +1,7 @@
 import os
 
+import djcelery
+
 # Django settings for secondfunnel project.
 
 DEBUG = True
@@ -225,16 +227,17 @@ FIXTURE_DIRS = (
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
 
 # CELERY SETTINGS
-import djcelery
 djcelery.setup_loader()
 
-BROKER_URL = 'sqs://%s:%s@' % (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+BROKER_TRANSPORT = 'sqs'
 BROKER_TRANSPORT_OPTIONS = {
-    'region': 'eu-west-1',
+    'region': 'us-west-1',
     'visibility_timeout': 30,
     'polling_interval': 1,
     'queue_name_prefix': 'celery-',
 }
+BROKER_USER = AWS_ACCESS_KEY_ID
+BROKER_PASSWORD = AWS_SECRET_ACCESS_KEY
 
 GOOGLE_ANALYTICS_PROFILE = ''
 GOOGLE_ANALYTICS_PROPERTY = ''
