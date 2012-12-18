@@ -13,6 +13,14 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+
+def fromProjectRoot(path):
+    return os.path.join(
+           os.path.dirname(
+           os.path.dirname(
+           os.path.dirname(
+           os.path.abspath(__file__)))), path)
+
 if 'RDS_DB_NAME' in os.environ:
     DATABASES = {
         'default': {
@@ -46,6 +54,10 @@ TIME_ZONE = 'America/Chicago'
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
 
+LOCALE_PATHS = (
+    fromProjectRoot('locale'),
+)
+
 SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
@@ -74,11 +86,7 @@ MEDIA_URL = ''
 # Example: "/home/media/media.lawrence.com/static/"
 
 # TODO: has to be a better way to get the path...
-STATIC_ROOT = os.path.join(
-    os.path.dirname(
-        os.path.dirname(
-            os.path.dirname(
-                os.path.abspath(__file__)))), 'static')
+STATIC_ROOT = fromProjectRoot('static')
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
@@ -121,8 +129,9 @@ TEMPLATE_LOADERS = (
     )
 
 MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -218,6 +227,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
     # allows for the django messages framework
     'django.contrib.messages.context_processors.messages',
+
+    # used for internationalization
+    'django.core.context_processors.i18n',
     )
 
 FIXTURE_DIRS = (
