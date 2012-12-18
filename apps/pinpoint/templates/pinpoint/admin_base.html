@@ -10,6 +10,16 @@
         <title>{% block title %}Second Funnel{% endblock %}</title>
         <link rel="shortcut icon" href="{% static "images/favicon.ico" %}" />
 
+        <!-- begin SnapEngage code -->
+        <script type="text/javascript">
+            (function() {
+                var se = document.createElement('script'); se.type = 'text/javascript'; se.async = true;
+                se.src = '//commondatastorage.googleapis.com/code.snapengage.com/js/eb5906d0-f9ba-4df9-b8e4-7c3d3632a919.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(se, s);
+            })();
+        </script>
+        <!-- end SnapEngage code -->
+
         {% block extra_head %}{% endblock %}
         <style>
             /* this needs to be here to use the static template tag */
