@@ -6,5 +6,5 @@ register = template.Library()
 
 
 @register.filter
-def shorten(value):
+def base62_encode(value):
     return base62.encode(value)
