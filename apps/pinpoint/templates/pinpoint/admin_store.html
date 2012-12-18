@@ -2,6 +2,7 @@
 {% load staticfiles %}
 {% load humanize %}
 {% load i18n %}
+{% load base62 %}
 
 {% block page_title %}
     {{ store }}
@@ -325,7 +326,7 @@
                 <td><div data-timestamp='{{ campaign.last_modified|date:"U" }}'>{% blocktrans with day=campaign.last_modified|naturalday %}{{ day }}{% endblocktrans %}</div></td>
                 <td><div><a class="get_link" href="#">Get Link</a></div></td>
                 <td><div><a href="{% url analytics-campaign-admin campaign.id %}">{% trans "Analytics" %}</a></div></td>
-                <td><div><a class="view_page" href="{% url campaign campaign.id %}" target="_blank">{% trans "View Page" %}</a></div></td>
+                <td><div><a class="view_page" href="{% url campaign_short campaign.id|encode %}" target="_blank">{% trans "View Page" %}</a></div></td>
                 <td><div><a href="{% url edit-campaign-admin campaign.store.id campaign.id %}">{% trans "Edit Page" %}</a></div></td>
             </tr>
             {% endif %}
