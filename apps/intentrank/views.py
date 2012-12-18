@@ -161,7 +161,7 @@ def videos_to_template(request, campaign, results):
     # if this is the first batch of results, or the random amount is under the
     # curve of the probability function, then add a video
     show_video = random.random() <= video_probability_function(video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
-    if video_cookie.is_empty() or (videos.exists() and show_video):
+    if videos.exists() and (video_cookie.is_empty() or show_video):
         video = videos.order_by('?')[0]
         context = Context()
         context.update({
