@@ -1,6 +1,6 @@
 from django import template
 
-import apps.pinpoint.base62 as base62
+import apps.utils.base62 as base62
 
 register = template.Library()
 

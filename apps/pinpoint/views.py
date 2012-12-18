@@ -11,7 +11,7 @@ from apps.pinpoint.models import Campaign, BlockType, BlockContent
 from apps.assets.models import Store, Product
 
 import apps.pinpoint.wizards as wizards
-from apps.pinpoint.base62 import encode, decode
+from apps.utils.base62 import encode, decode
 
 
 @login_required
