@@ -12,3 +12,4 @@ bin/*
 /static
 .elasticbeanstalk/
 doc/
+errorlog.txt
