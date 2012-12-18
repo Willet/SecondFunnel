@@ -10,6 +10,8 @@ def encode(num, alphabet=ALPHABET):
 
     @param num: The number to encode
     @param alphabet: The alphabet to use for encoding
+
+    @return: A string encoded with the given alphabet
     """
     assert(num >= 0)
     if (num == 0):
@@ -31,6 +33,8 @@ def decode(string, alphabet=ALPHABET):
 
     @param string: The encoded string
     @param alphabet: The alphabet to use for decoding
+
+    @return: A number decoded using the given alphabet
     """
     base = len(alphabet)
     strlen = len(string)
