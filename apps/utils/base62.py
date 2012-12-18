@@ -5,7 +5,7 @@ ALPHABET = "Ejw9Nf2JIp3Vxzug0Cv5d6mH4ohRQe8yFcOMZqntTbUDSBA1rPXLl7YKakiGWs"
 # Implementation taken from http://stackoverflow.com/a/1119769/1470715
 def encode(num, alphabet=ALPHABET):
     """
-    Encode a number into a string.
+    Encode a positive number into a string.
     The base is determined from the alphabet.
 
     @param num: The number to encode
@@ -28,7 +28,7 @@ def encode(num, alphabet=ALPHABET):
 
 def decode(string, alphabet=ALPHABET):
     """
-    Decode an encoded string into a number.
+    Decode an encoded string into a positive number.
     The base is determined from the alphabet.
 
     @param string: The encoded string
