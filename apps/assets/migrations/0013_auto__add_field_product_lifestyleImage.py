@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'Product.lifestyleImage'
         db.add_column('assets_product', 'lifestyleImage',
-                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.GenericImage'], null=True),
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.GenericImage'], null=True, blank=True),
                       keep_default=False)
 
 
@@ -50,7 +50,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
             'last_scraped': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'lifestyleImage': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['assets.GenericImage']", 'null': 'True'}),
+            'lifestyleImage': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['assets.GenericImage']", 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'original_url': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'price': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
