@@ -224,7 +224,7 @@ def update_clickstream(request):
     page    = request.GET.get('campaign', '-1')
     product_id = request.GET.get('product_id')
 
-    _, status = process_intentrank_request(request, store, page, 'getseeds', {
+    _, status = process_intentrank_request(request, store, page, 'updateclickstream', {
         'product_id': product_id
     })
 
