@@ -1,5 +1,7 @@
 import os
 
+import djcelery
+
 # Django settings for secondfunnel project.
 
 DEBUG = True
@@ -167,6 +169,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
 
     # external apps
+    'djcelery',
     'storages',
     'south',
     'django_extensions',
@@ -182,7 +185,6 @@ INSTALLED_APPS = (
     'apps.pinpoint',
     'apps.website',
     'apps.scraper',
-    'apps.utils',
 )
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
@@ -249,3 +251,10 @@ FIXTURE_DIRS = (
 )
 
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
+
+djcelery.setup_loader()
+
+try:
+    from local_settings import *
+except ImportError, e:
+    pass

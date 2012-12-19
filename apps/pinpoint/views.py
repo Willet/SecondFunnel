@@ -1,14 +1,17 @@
 import re
 
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext, Template, Context
 from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 
-from apps.pinpoint.models import Campaign, BlockType, BlockContent
+from apps.analytics.models import Category, AnalyticsRecency
 from apps.assets.models import Store, Product
+from apps.pinpoint.models import Campaign, BlockType, BlockContent
+from apps.pinpoint.decorators import belongs_to_store
 
 import apps.pinpoint.wizards as wizards
 import apps.utils.base62 as base62
@@ -45,6 +48,7 @@ def admin(request):
     }, context_instance=RequestContext(request))
 
 
+@belongs_to_store
 @login_required
 def store_admin(request, store_id):
     """
@@ -57,9 +61,6 @@ def store_admin(request, store_id):
     @return: An HttpResponse which renders the page template.
     """
     store = get_object_or_404(Store, pk=store_id)
-
-    if not request.user in store.staff.all():
-        raise Http404
 
     return render_to_response('pinpoint/admin_store.html', {
         "store": store
@@ -95,13 +96,50 @@ def block_type_router(request, store_id, block_type_id):
 
 
 @login_required
-def campaign_analytics_admin(request, campaign_id):
-    pass
+def store_analytics_admin(request, store_id):
+    store = get_object_or_404(Store, pk=store_id)
+
+    return analytics_admin(request, store)
 
 
 @login_required
-def store_analytics_admin(request, store_id):
-    pass
+def campaign_analytics_admin(request, store_id, campaign_id):
+    campaign = get_object_or_404(Campaign, pk=campaign_id)
+
+    return analytics_admin(
+        request, campaign.store, campaign=campaign, is_overview=False)
+
+
+@belongs_to_store
+@login_required
+def analytics_admin(request, store, campaign=False, is_overview=True):
+    categories = Category.objects.filter(enabled=True)
+    store_type = ContentType.objects.get_for_model(Store)
+    campaign_type = ContentType.objects.get_for_model(Campaign)
+
+    try:
+        if campaign:
+            recency = AnalyticsRecency.objects.get(
+                content_type=campaign_type,
+                object_id=campaign.id
+            )
+        else:
+            recency = AnalyticsRecency.objects.get(
+                content_type=store_type,
+                object_id=store.id
+            )
+    except AnalyticsRecency.DoesNotExist:
+        recency = None
+    else:
+        recency = recency.last_fetched
+
+    return render_to_response('pinpoint/admin_analytics.html', {
+        'is_overview': is_overview,
+        'store': store,
+        'campaign': campaign,
+        'categories': categories,
+        'last_updated': recency
+    }, context_instance=RequestContext(request))
 
 
 def campaign_short(request, campaign_id_short):
