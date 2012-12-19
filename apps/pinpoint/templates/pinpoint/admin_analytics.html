@@ -1,0 +1,511 @@
+{% extends "pinpoint/admin_base.html" %}
+{% load staticfiles %}
+
+{% block title %}
+    Analytics
+{% endblock %}
+
+{% block page_title %}
+    Analytics
+{% endblock %}
+
+{% block extra_head %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+
+    <style>
+        .container_12 .inner_content {
+            padding: 0;
+        }
+
+        .top_analytics_menu {
+            background-color: #fff;
+            padding: 20px 0 0 20px;
+            margin: 0;
+            height: 50px;
+            width: 920px;
+
+            box-shadow: 0px 0px 5px #888;
+        }
+
+        .page_selector {
+            display: inline;
+        }
+
+        .page_selector, .page_selector select {
+            font-size: 18px;
+        }
+
+        .range_selector {
+            display: inline;
+            margin-left: 20px;
+        }
+
+        .range_selector input {
+            font-size: 12px;
+            padding: 3px;
+            width: 80px;
+        }
+
+        .range_pair {
+            margin-left: 15px;
+        }
+
+        .section_content {
+            margin-left: 0;
+        }
+
+        .section_overview {
+            border-right: 1px solid #d6d6d6;
+            border-bottom: 1px solid #d6d6d6;
+            margin-left: 0;
+        }
+
+        .section_overview_block {
+            padding: 10px;
+            border-top: 1px solid #d6d6d6;
+        }
+
+        .section_overview_block.selected, .section_overview_block:hover {
+            background-color: #fff;
+            cursor: pointer;
+        }
+
+        .section_overview_title {
+            font-size: 18px;
+        }
+
+        .section_overview_metrics {
+            font-size: 14px;
+        }
+
+        .section_overview_metrics ul {
+            list-style: none;
+        }
+
+        .metric_overview {
+            font-weight: bold;
+        }
+
+        .section_data {
+            padding-top: 10px;
+        }
+
+        .data_title {
+            font-size: 24px;
+        }
+
+        .section_footer {
+            margin-top: 50px;
+        }
+
+        .section_meta {
+            float: right;
+            color: #b3b3b3;
+        }
+
+        .data_metric {
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+
+        .metric_title, .daily_title {
+            font-size: 16px;
+        }
+
+        .daily_title {
+            margin-top: 15px;
+        }
+
+        .metric_title_all {
+
+        }
+
+        .metric_graph {
+
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js_includes %}
+    <script src="{% static "js/jquery-ui.js" %}"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+{% endblock %}
+
+{% block top_section %}
+    <nav class="grid_3 prefix_9">
+        <ul>
+            {% if store %}
+                <li><a href="{% url store-admin store.id %}">Pages</a></li>
+                <li class="selected"><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
+            {% else %}
+                <li><a href="{% url store-admin campaign.store.id %}">Pages</a></li>
+                <li class="selected"><a href="#">Analytics</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endblock %}
+
+{% block document_ready %}
+    var app = (function($) {
+        var init, settings, setUpListeners, getDateRange,
+            injectAnalyticsData, loadAnalytics;
+
+        settings = {
+            "store_id": "{{ store.id }}",
+            "campaign_id": "{{ campaign.id }}"
+        };
+
+        getDateRange = function () {
+            var start_date = $("#start_range").datepicker("getDate"),
+                end_date = $("#end_range").datepicker("getDate");
+
+            return {
+                'start_date': $.datepicker.formatDate("yy/mm/dd", start_date),
+                'end_date': $.datepicker.formatDate("yy/mm/dd", end_date)
+            }
+        };
+
+        loadAnalytics = function (o) {
+            var request = {},
+                date_range = getDateRange();
+
+            // set request values based on what's passed it
+            if (typeof(o) !== "undefined") {
+                request['campaign_id'] = o.campaign_id || settings.campaign_id;
+                request['store_id'] = o.store_id || settings.store_id;
+
+                settings.campaign_id = request['campaign_id'];
+                settings.store_id = request['store_id'];
+
+            // or based on default values if nothing is passed in
+            } else {
+                request['campaign_id'] = settings.campaign_id;
+                request['store_id'] = settings.store_id;
+            }
+
+            // pass only one of the values down the wire
+            if (request['campaign_id']) {
+                delete(request['store_id']);
+            }
+
+            if (request['store_id']) {
+                delete(request['campaign_id']);
+            }
+
+            request['start_date'] = date_range['start_date'];
+            request['end_date'] = date_range['end_date'];
+
+            $.ajax({
+                url: "{% url ajax-analytics-pinpoint %}",
+                dataType: "json",
+                data: request,
+                success: function (data) {
+                    injectAnalyticsData(data);
+                }
+            });
+        };
+
+        injectAnalyticsData = function (data) {
+            var rendered = {
+                    'charts': {},
+                    'tables': {},
+                    'tables_data': {}
+                },
+                clearChartsAndTables, renderChart, renderTable;
+
+            clearCharts = function () {
+                for (metric_slug in rendered['charts']) {
+                    rendered['charts'][metric_slug].clearChart();
+                }
+            };
+
+            renderTable = function (data, slug) {
+                var this_data = new google.visualization.DataTable();
+                this_data.addColumn('date', 'Date');
+                this_data.addColumn('number', 'Product');
+                this_data.addColumn('string', 'Info');
+                this_data.addColumn('number', data['name']);
+
+                if (data['data'].length == 0 || data['data'][0]['meta'] == "meta_metric") {
+                    $(".daily_breakdown[data-metric='" + slug + "']").hide();
+                    return;
+                }
+
+                $(".daily_breakdown[data-metric='" + slug + "']").show();
+
+                for (i in data['data']) {
+                    this_data.addRow([
+                        new Date(data['data'][i]['date'].split("-")[0],
+
+                            // month is zero-based
+                            data['data'][i]['date'].split("-")[1] - 1,
+
+                            data['data'][i]['date'].split("-")[2]
+                        ),
+                        data['data'][i]['product_id'],
+                        data['data'][i]['meta'],
+                        data['data'][i]['value']
+                    ]);
+                }
+
+                if (!(slug in rendered['tables'])) {
+                    rendered['tables'][slug] = new google.visualization.Table(
+                        document.getElementById('table_' + slug)
+                    );
+                }
+
+                rendered['tables'][slug].draw(this_data, {
+                    showRowNumber: false
+                });
+            };
+
+            renderChart = function (data, slug) {
+                var this_data = new google.visualization.DataTable();
+                this_data.addColumn('date', 'Date');
+                this_data.addColumn('number', data['name']);
+
+                for (date in data['totals']) {
+                    if (date == "all") {
+                        continue;
+                    }
+
+                    this_data.addRow([
+                        new Date(date.split("-")[0],
+
+                            // month is zero-based
+                            date.split("-")[1] - 1,
+
+                            date.split("-")[2]
+                        ), data['totals'][date]
+                    ]);
+                }
+
+                if (!(slug in rendered['charts'])) {
+                    rendered['charts'][slug] = new google.visualization.LineChart(
+                        document.getElementById('chart_' + slug)
+                    );
+                }
+
+                rendered['charts'][slug].draw(this_data, {
+                    'width': 670,
+                    'chartArea': {
+                        'left': 35,
+                        'top': 10,
+                        'width': '95%',
+                        'height': '80%'
+                    },
+                    'legend': {
+                        'position': 'none'
+                    },
+                    'hAxis': {
+                        'format': 'MMM d',
+                        'gridlines': {
+                            'color': '#fff'
+                        }
+                    },
+                    'vAxis': {
+                        'minValue': 0
+                    },
+                    'pointSize': 3
+                });
+            };
+
+            clearCharts();
+
+            for (cat_slug in data) {
+                for (metric_slug in data[cat_slug]) {
+                    // display totals in the sidebar on in the content section
+                    $(".metric_overview[data-metric='" + metric_slug + "']").html(
+                        data[cat_slug][metric_slug]['totals']['all']
+                    );
+
+                    $(".metric_title_all[data-metric='" + metric_slug + "']").html(
+                        data[cat_slug][metric_slug]['totals']['all']
+                    );
+
+                    renderTable(data[cat_slug][metric_slug], metric_slug);
+                    renderChart(data[cat_slug][metric_slug], metric_slug);
+                }
+            }
+        };
+
+        setUpListeners = function () {
+            // date range ui and listeners
+            $("#start_range").datepicker({
+                changeMonth: true,
+                numberOfMonths: 2,
+                onClose: function(selectedDate) {
+                    $("#end_range").datepicker("option", "minDate", selectedDate);
+                }
+            });
+            $("#start_range").datepicker("setDate", "-2w");
+
+            $("#end_range").datepicker({
+                changeMonth: true,
+                numberOfMonths: 2,
+                onClose: function( selectedDate ) {
+                    $("#start_range").datepicker("option", "maxDate", selectedDate);
+                }
+            });
+            $("#end_range").datepicker("setDate", new Date());
+
+            $("#start_range, #end_range").change(function() {
+                loadAnalytics();
+            });
+
+
+            // ajax loading indicator
+            $(".loading").ajaxStart(function() {
+                $(this).show();
+            });
+
+            $(".loading").ajaxStop(function() {
+                $(this).hide();
+            });
+
+
+            // select analytics category ui
+            $(".section_overview_block").click(function() {
+                $(".data_category").hide();
+                $("div[data-cid='" + $(this).data("cid") + "']").show();
+
+                $(".section_overview_block").removeClass("selected");
+                $(this).addClass("selected");
+            });
+
+
+            // change campaign from the top menu
+            $("#campaign_list").change(function() {
+                loadAnalytics({
+                    'campaign_id': $(this).find("option:selected").attr("value")
+                });
+            });
+        };
+
+        init = function () {
+            // create UI and event listeners
+            setUpListeners();
+
+            // load and inject data
+            loadAnalytics();
+        };
+
+        return {
+            "init": init
+        };
+    }(jQuery));
+
+    google.load("visualization", "1", {
+        packages: ["corechart", "table"],
+        callback: function() {
+            app.init();
+        }
+    });
+
+{% endblock %}
+
+{% block content %}
+    <div class="top_analytics_menu">
+        <div class="page_selector">
+            <label for="campaign_list">Page:</label>
+            <select id="campaign_list" name="campaign_list">
+                {% for c in store.campaign_set.all %}
+                    <option value="{{ c.id }}" {% if c.id == campaign.id %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="range_selector">
+            <span class="range_pair">
+                <label for="start_range">Start:</label>
+                <input type="text" id="start_range" name="start_range">
+            </span>
+
+            <span class="range_pair">
+                <label for="end_range">End:</label>
+                <input type="text" id="end_range" name="end_range">
+            </span>
+
+            <span class="loading" style="display:none;">
+                Loading...
+            </span>
+        </div>
+    </div>
+
+    <div class="grid_12 section_content">
+        <div class="grid_3 section_overview">
+            <div class="section_overview_block selected" data-cid="overview">
+                <div class="section_overview_title">
+                    Overview
+                </div>
+            </div>
+            {% for category in categories %}
+                <div class="section_overview_block" data-cid="{{ category.id }}">
+                    <div class="section_overview_title">
+                        {{ category.name }}
+                    </div>
+
+                    <div class="section_overview_metrics">
+                        <ul>
+                        {% regroup category.categoryhasmetric_set.all by metric as metric_list %}
+                        {% for metric in metric_list %}
+                            {% with metric.list|first as metric_meta %}
+                                {% if metric_meta.display %}
+                                <li>
+                                    <span class="metric_overview" data-metric="{{ metric.grouper.slug }}"></span>
+                                    {{ metric.grouper.name }}
+                                </li>
+                                {% endif %}
+                            {% endwith %}
+                        {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="grid_8 section_data">
+            <div class="data_category" data-cid="overview">
+                <div class="data_title">
+                    Overview
+                </div>
+
+                <div class="data_metrics">
+                    <ul>
+                        <li>Some analytics overview</li>
+                    </ul>
+                </div>
+            </div>
+
+            {% for category in categories %}
+                <div class="data_category" data-cid="{{ category.id }}" style="display: none">
+                    <div class="data_title">
+                        {{ category.name }}
+                    </div>
+
+                    <div class="data_metrics">
+                        {% regroup category.categoryhasmetric_set.all by metric as metric_list %}
+                        {% for metric in metric_list %}
+                            {% with metric.list|first as metric_meta %}
+                                <div class="data_metric">
+                                    <div class="metric_title" data-metric="{{ metric.grouper.slug }}">
+                                        {{ metric.grouper.name }}:
+                                        <span class="metric_title_all" data-metric="{{ metric.grouper.slug }}">0</span> total
+                                    </div>
+
+                                    <div class="metric_graph" id="chart_{{ metric.grouper.slug }}"></div>
+
+                                    <div class="daily_breakdown" data-metric="{{ metric.grouper.slug }}" style="display:none">
+                                        <div class="daily_title">Daily breakdown:</div>
+                                        <div class="metric_daily" id="table_{{ metric.grouper.slug }}"></div>
+                                    </div>
+                                </div>
+                            {% endwith %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

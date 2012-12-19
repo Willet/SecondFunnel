@@ -103,19 +103,16 @@ def process_intentrank_request(request, store, page, function_name,
 
     try:
         response, content = send_intentrank_request(request, url)
-    except Exception: # TODO: Replace with more specific error
-        # TODO: Replace with error; for use until IR is running
-        return random_products(store, param_dict), SUCCESS
+    except httplib2.HttpLib2Error:
+        content = "{}"
 
     if not response.status in ALLOWED_STATUSES:
-        # TODO: Replace with error; for use until IR is running
-        return random_products(store, param_dict), SUCCESS
+        raise Exception("Invalid response code: got " +
+                str(response.status) +
+                ", expected one of " +
+                str(ALLOWED_STATUSES))
 
-    try:
-        results = json.loads(content)
-    except ValueError:
-        # TODO: Replace with error; for use until IR is running
-        return random_products(store, param_dict), SUCCESS
+    results = json.loads(content)
 
     products = Product.objects.filter(pk__in=results.get('products'),
                                       rescrape=False)
@@ -161,7 +158,7 @@ def videos_to_template(request, campaign, results):
     # if this is the first batch of results, or the random amount is under the
     # curve of the probability function, then add a video
     show_video = random.random() <= video_probability_function(video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
-    if video_cookie.is_empty() or (videos.exists() and show_video):
+    if videos.exists() and (video_cookie.is_empty() or show_video):
         video = videos.order_by('?')[0]
         context = Context()
         context.update({

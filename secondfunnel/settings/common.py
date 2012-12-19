@@ -1,5 +1,7 @@
 import os
 
+import djcelery
+
 # Django settings for secondfunnel project.
 
 DEBUG = True
@@ -167,6 +169,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
 
     # external apps
+    'djcelery',
     'storages',
     'south',
     'django_extensions',
@@ -182,7 +185,6 @@ INSTALLED_APPS = (
     'apps.pinpoint',
     'apps.website',
     'apps.scraper',
-    'apps.utils',
 )
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
@@ -195,12 +197,26 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
         }
     },
     'handlers': {
+        'logging_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'formatter': 'verbose',
+            'filename': fromProjectRoot('errorlog.txt')
+        },
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
@@ -209,7 +225,7 @@ LOGGING = {
     },
     'loggers': {
         'django.request': {
-            'handlers': ['mail_admins'],
+            'handlers': ['logging_file', 'mail_admins'],
             'level': 'ERROR',
             'propagate': True,
         },
@@ -235,3 +251,10 @@ FIXTURE_DIRS = (
 )
 
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
+
+djcelery.setup_loader()
+
+try:
+    from local_settings import *
+except ImportError, e:
+    pass

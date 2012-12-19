@@ -298,10 +298,10 @@
 
 {% block top_section %}
     <div class="grid_3 prefix_9">
-        <!--<ul>
-            <li class="selected">Pages</li>
-            <li>Analytics</li>
-        </ul>-->
+        <ul>
+            <li class="selected"><a href="{% url store-admin store.id %}">Pages</a></li>
+            <li><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
+        </ul>
     </div>
 {% endblock %}
 
@@ -325,7 +325,7 @@
                 <td><div>{{ campaign.name }}</div></td>
                 <td><div data-timestamp='{{ campaign.last_modified|date:"U" }}'>{% blocktrans with day=campaign.last_modified|naturalday %}{{ day }}{% endblocktrans %}</div></td>
                 <td><div><a class="get_link" href="#">Get Link</a></div></td>
-                <td><div><a href="{% url analytics-campaign-admin campaign.id %}">{% trans "Analytics" %}</a></div></td>
+                <td><div><a href="{% url analytics-campaign-admin campaign.store.id campaign.id %}">{% trans "Analytics" %}</a></div></td>
                 <td><div><a class="view_page" href="{% url campaign_short campaign.id|base62_encode %}" target="_blank">{% trans "View Page" %}</a></div></td>
                 <td><div><a href="{% url edit-campaign-admin campaign.store.id campaign.id %}">{% trans "Edit Page" %}</a></div></td>
             </tr>
