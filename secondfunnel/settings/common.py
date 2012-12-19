@@ -238,23 +238,7 @@ FIXTURE_DIRS = (
 
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
 
-# CELERY SETTINGS
 djcelery.setup_loader()
-
-BROKER_TRANSPORT = 'sqs'
-BROKER_TRANSPORT_OPTIONS = {
-    'region': 'us-west-1',
-    'visibility_timeout': 30,
-    'polling_interval': 1,
-    'queue_name_prefix': 'celery-',
-}
-BROKER_USER = AWS_ACCESS_KEY_ID
-BROKER_PASSWORD = AWS_SECRET_ACCESS_KEY
-
-GOOGLE_ANALYTICS_PROFILE = ''
-GOOGLE_ANALYTICS_PROPERTY = ''
-GOOGLE_API_PRIVATE_KEY = 'google-privatekey.p12'
-GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 
 try:
     from local_settings import *
