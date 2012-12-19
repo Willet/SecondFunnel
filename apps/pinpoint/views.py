@@ -69,6 +69,15 @@ def store_admin(request, store_id):
 
 @login_required
 def new_campaign(request, store_id):
+    """
+    First step in creating a new pinpoint page. Displays available block types,
+    allowing user to select one and continue.
+
+    @param request: The request for this page.
+    @param store_id: The store to create a new page for.
+
+    @return: An HttpResponse which renders the page template.
+    """
     store = get_object_or_404(Store, pk=store_id)
 
     return render_to_response('pinpoint/admin_new_campaign.html', {
@@ -79,6 +88,18 @@ def new_campaign(request, store_id):
 
 @login_required
 def edit_campaign(request, store_id, campaign_id):
+    """
+    Allows a user to edit a pre-existing pinpoint page.
+
+    This function calls the appropriate handler in apps.pinpoint.wizards using the
+    handler attribute of the block type of the given page.
+
+    @param request: The request for this page.
+    @param store_id: The id of the store the page was created for.
+    @param campaign_id: The page to edit.
+
+    @return: An HttpResponse with a form to change the pinpoint page.
+    """
     store = get_object_or_404(Store, pk=store_id)
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
     block_type = campaign_instance.content_blocks.all()[0].block_type
@@ -89,6 +110,18 @@ def edit_campaign(request, store_id, campaign_id):
 
 @login_required
 def block_type_router(request, store_id, block_type_id):
+    """
+    Allows a user to configure the main content block of the page they are creating.
+
+    This function calls the appropriate handler in apps.pinpoint.wizards using the
+    handler attribute of the given block type.
+
+    @param request: The request for this page.
+    @param store_id: The id of the store this page is being created for.
+    @param block_type_id: The id of the block type for this page.
+
+    @return: An HttpRespose with a form to configure the content block.
+    """
     store = get_object_or_404(Store, pk=store_id)
     block_type = get_object_or_404(BlockType, pk=block_type_id)
 
@@ -143,10 +176,34 @@ def analytics_admin(request, store, campaign=False, is_overview=True):
 
 
 def campaign_short(request, campaign_id_short):
+    """
+    Displays a pinpoint page using a shortened page id.
+
+    This function converts the shortened id back to a regular id,
+    then calls campaign using this id to render the page.
+
+    @param request: The request for this page.
+    @param campaign_id_short: The shortened campaign id.
+
+    @return: An HttpResponse that renders the pinpoint page.
+    See app.pinpoint.views.campaign.
+    """
     return campaign(request, base62.decode(campaign_id_short))
 
 
 def campaign(request, campaign_id):
+    """
+    Displays a pinpoint page using a page id.
+
+    This function tries to use a store's theme to render a pinpoint page.
+    If one is not found, then a default template is used.
+
+    @param request: The request for this page.
+    @param campaign_id: The id of the page to render.
+
+    @return: An HttpResponse that constructs a pinpoint page using a store
+    theme or using a default template.
+    """
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
 
     arguments = {
@@ -164,7 +221,18 @@ def campaign(request, campaign_id):
         return render_to_response('pinpoint/campaign.html', arguments,
                                   context_instance=context)
 
+
 def campaign_to_theme_to_response(campaign, arguments, context=None):
+    """
+    Renders a pinpoint page using a store theme.
+
+    @param: campaign: The store whose theme should be used.
+    @param: arguments: Context arguments to render the following:
+        discovery area, page preview, and campaign_head.
+    @param: context: Either a request context or None.
+
+    @return: An HttpResponse that renders a pinpoint page.
+    """
     if context is None:
         context = Context()
     context.update(arguments)
@@ -183,14 +251,14 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
     if type in ('featured product block', 'shop the look block'):
         content_template = theme.featured_product
-        product          = content_block.data.product
+        product = content_block.data.product
 
         # TODO: Is the featured image always in the list of images?
-        featured_image   = content_block.data.get_image().get_url()
+        featured_image = content_block.data.get_image().get_url()
 
-        product.description    = content_block.data.description
+        product.description = content_block.data.description
         product.featured_image = featured_image
-        product.is_featured    = True
+        product.is_featured = True
 
         # Piggyback off of featured product block
         if type == 'shop the look block':
@@ -203,7 +271,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
     # Pre-render templates; bottom up
     # Discovery block
-    discovery_block = theme.discovery_product # TODO: Generalize to other blocks
+    discovery_block = theme.discovery_product  # TODO: Generalize to other blocks
     modified_discovery = "".join([
         "{% extends 'pinpoint/campaign_discovery.html' %}",
         "{% load pinpoint_ui %}",
@@ -228,8 +296,8 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         theme.preview_product,
         "</div>",
         "</div>",
-        "</div>"
-    ]);
+        "</div>",
+    ])
     product_preview = Template(modified_preview).render(context)
 
     # Featured content
@@ -240,7 +308,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         "</div>"
     ])
 
-    featured_content  = Template(modified_featured).render(featured_context)
+    featured_content = Template(modified_featured).render(featured_context)
 
     # Header content
     header_context = Context(featured_context)
@@ -253,9 +321,9 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
     page_context = Context({
         'featured_content': featured_content,
-        'discovery_area'  : discovery_area,
-        'preview_area'    : product_preview,
-        'header_content'  : header_content
+        'discovery_area': discovery_area,
+        'preview_area': product_preview,
+        'header_content': header_content
     })
 
     # Page content
