@@ -17,6 +17,9 @@ from django.conf import settings
 from apps.pinpoint.models import Campaign
 from secondfunnel.settings.common import INTENTRANK_BASE_URL
 
+SUCCESS = 200
+REDIRECT = 300
+SUCCESS_STATUSES = xrange(SUCCESS, REDIRECT)
 DEFAULT_RESULTS  = 12
 MAX_BLOCKS_BEFORE_VIDEO = 50
 
@@ -49,7 +52,6 @@ def video_probability_function(x, m):
         return 1
     else:
         return 1 - (math.log(m - x) / math.log(m))
-
 
 def random_products(store, param_dict):
     store_id = Store.objects.get(slug__exact=store)
@@ -93,7 +95,7 @@ def process_intentrank_request(request, store, page, function_name,
     url = '{0}?{1}'.format(url, params)
 
     if settings.DEBUG:
-        return random_products(store, param_dict), 200
+        return random_products(store, param_dict), SUCCESS
 
     try:
         response, content = send_intentrank_request(request, url)
@@ -103,6 +105,7 @@ def process_intentrank_request(request, store, page, function_name,
     results = json.loads(content)
 
     if 'error' in results:
+        results.update({'url': url})
         return results, response.status
 
     products = Product.objects.filter(pk__in=results.get('products'),
@@ -189,7 +192,7 @@ def get_seeds(request):
         }
     )
 
-    if 200 <= status < 300:
+    if status in SUCCESS_STATUSES:
         result = get_blocks(request, results, page)
     else:
         result = results
@@ -208,7 +211,7 @@ def get_results(request):
         }
     )
 
-    if 200 <= status < 300:
+    if status in SUCCESS_STATUSES:
         result = get_blocks(request, results, page)
     else:
         result = results
