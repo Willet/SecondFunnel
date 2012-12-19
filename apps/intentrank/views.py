@@ -17,14 +17,8 @@ from django.conf import settings
 from apps.pinpoint.models import Campaign
 from secondfunnel.settings.common import INTENTRANK_BASE_URL
 
-SUCCESS          = 200
-BAD_REQUEST      = 400
 DEFAULT_RESULTS  = 12
-ALLOWED_STATUSES = [SUCCESS]
-
-
 MAX_BLOCKS_BEFORE_VIDEO = 50
-
 
 class VideoCookie(object):
     def __init__(self):
@@ -99,24 +93,21 @@ def process_intentrank_request(request, store, page, function_name,
     url = '{0}?{1}'.format(url, params)
 
     if settings.DEBUG:
-        return random_products(store, param_dict), SUCCESS
+        return random_products(store, param_dict), 200
 
     try:
         response, content = send_intentrank_request(request, url)
     except httplib2.HttpLib2Error:
         content = "{}"
 
-    if not response.status in ALLOWED_STATUSES:
-        raise Exception("Invalid response code: got " +
-                str(response.status) +
-                ", expected one of " +
-                str(ALLOWED_STATUSES))
-
     results = json.loads(content)
+
+    if 'error' in results:
+        return results, response.status
 
     products = Product.objects.filter(pk__in=results.get('products'),
                                       rescrape=False)
-    return products, SUCCESS
+    return products, response.status
 
 # TODO: We shouldn't be doing this on the backend
 # Might make more sense to just use JS templates on the front end for
@@ -198,7 +189,10 @@ def get_seeds(request):
         }
     )
 
-    result = get_blocks(request, results, page)
+    if 200 <= status < 300:
+        result = get_blocks(request, results, page)
+    else:
+        result = results
 
     return HttpResponse(json.dumps(result), mimetype='application/json',
                         status=status)
@@ -214,7 +208,10 @@ def get_results(request):
         }
     )
 
-    result = get_blocks(request, results, page)
+    if 200 <= status < 300:
+        result = get_blocks(request, results, page)
+    else:
+        result = results
 
     return HttpResponse(json.dumps(result), mimetype='application/json',
                         status=status)
@@ -224,13 +221,12 @@ def update_clickstream(request):
     page    = request.GET.get('campaign', '-1')
     product_id = request.GET.get('product_id')
 
-    results, status = process_intentrank_request(request, store, page,
-                                           'updateclickstream', {
+    results, status = process_intentrank_request(request, store, page, 'updateclickstream', {
         'product_id': product_id
     })
 
     # Return JSON results
-    return HttpResponse("[]", mimetype='application/json', status=status)
+    return HttpResponse(json.dumps(results), mimetype='application/json', status=status)
 
 def invalidate_session(request):
     #intentrank/invalidate-session
