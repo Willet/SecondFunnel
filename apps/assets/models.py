@@ -96,6 +96,9 @@ class ImageBase(BaseModelNamed):
 
         return None
 
+    def __unicode__(self):
+        return self.get_url()
+
 
 class GenericMedia(MediaBase):
     pass

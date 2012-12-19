@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 
 from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage, YoutubeVideo
 
@@ -76,6 +77,16 @@ class ProductAdmin(BaseNamedAdmin):
     inlines = [
         ProductMediaInline,
     ]
+
+    readonly_fields = ('lifestyle_preview', )
+
+    def lifestyle_preview(self, obj):
+        try:
+            url = obj.lifestyleImage.get_url()
+            return mark_safe("<img src='{url}' />".format(url=url))
+        except AttributeError:
+            return "No Image Available"
+
 
 admin.site.register(Product, ProductAdmin)
 
