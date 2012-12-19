@@ -185,6 +185,7 @@ INSTALLED_APPS = (
     'apps.pinpoint',
     'apps.website',
     'apps.scraper',
+    'apps.utils',
 )
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'

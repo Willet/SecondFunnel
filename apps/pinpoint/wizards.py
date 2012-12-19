@@ -8,29 +8,62 @@ from django.http import HttpResponseRedirect, HttpResponse
 
 from apps.assets.models import Product, ProductMedia, GenericImage
 from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
-    FeaturedProductBlock, ShopTheLookBlock)
+                                  FeaturedProductBlock, ShopTheLookBlock)
 from apps.pinpoint.forms import FeaturedProductWizardForm, ShopTheLookWizardForm
 
 # TODO: Consider replacing with ModelForm?
 # TODO: This is still a mess
 from apps.utils.ajax import ajax_error
 
+
 class Wizard(object):
+    """
+    This defines a base wizard for customizing block types.
+    Specific block type wizards will inherit from this.
+
+    @ivar preview: Whether the wizard is being run to view a preivew page.
+    @ivar request: The request for this wizard.
+    @ivar store: The store the page is being created for.
+    @ivar campaign: The page that is being created.
+    @ivar form_cls: The form class to use.
+    @ivar block_type: The block type that this wizard is handling.
+    """
+
     def __init__(self, *args, **kwargs):
+        """
+        Sets various values for the wizard.
+
+        @keyword preview: Whether this is being created for a page preview
+        @keyword request: The request for this wizard.
+        @keyword store: The store the page is being created for.
+        @keyword campaign: The page that has already been created.
+        @keyword form: The form class to use.
+        @keyword block_type: The type of block being customized.
+        """
         #TODO: Error handling
-        self.preview    = kwargs.get('preview', False)
-        self.request    = kwargs.get('request')
-        self.store      = kwargs.get('store')
-        self.campaign   = kwargs.get('campaign')
-        self.form_cls   = kwargs.get('form')
+        self.preview = kwargs.get('preview', False)
+        self.request = kwargs.get('request')
+        self.store = kwargs.get('store')
+        self.campaign = kwargs.get('campaign')
+        self.form_cls = kwargs.get('form')
         self.block_type = kwargs.get('block_type')
 
     def _is_editing(self):
+        """
+        Determines if the wizard is being used to edit an existing page.
+
+        @return: A bool indicating whether the wizard is being used to edit an existing page.
+        """
         # Normally would just return self.campaign, but that seems strange.
         # Favouring explicit vs implicit
         return bool(self.campaign)
 
     def process(self):
+        """
+        Processes the wizard's form then renders a response.
+
+        @return: An HttpResponse.
+        """
         if self.request.method == 'POST':
             form, response = self._post()
         else:
@@ -52,6 +85,12 @@ class Wizard(object):
             return ajax_error()
 
     def _get(self):
+        """
+        Handles get requests by creating a form. Since this only gets called when
+        viewing the form, and not processing it, no processing is done.
+
+        @return: A tuple with a form of the type form_cls and None
+        """
         if self._is_editing():
             form = self.form_cls(self._get_initial_form_data())
         else:
@@ -59,10 +98,14 @@ class Wizard(object):
 
         return form, None
 
-    def _create_form_with_initial_data(self):
-        return None
-
     def _post(self):
+        """
+        Handles post requests by creating a form using post and files data,
+        then attempts to process the form.
+
+        @return: A tuple with a form of the type form_cls if the form wasn't
+        processed, and an HttpResponse if the form was processed.
+        """
         form = self.form_cls(self.request.POST, self.request.FILES)
 
         if form.is_valid():
@@ -75,7 +118,15 @@ class Wizard(object):
         return form, None
 
     def _process_valid_form(self, form):
-        product = Product.objects.get(id = form.cleaned_data['product_id'])
+        """
+        Creates a pinpoint page from the cleaned form data.
+
+        @param form: The form to get cleaned data from.
+
+        @return: If this is for a preview then return a json response indicating success
+        or else return a HttpRedirect that redirects to the admin page.
+        """
+        product = Product.objects.get(id=form.cleaned_data['product_id'])
 
         if form.cleaned_data['campaign_id']:
             campaign = self._edit_campaign(form, product)
@@ -87,7 +138,7 @@ class Wizard(object):
 
         if not self.preview:
             return HttpResponseRedirect(
-                reverse('store-admin', kwargs = {'store_id': self.store.id})
+                reverse('store-admin', kwargs={'store_id': self.store.id})
             )
         else:
             response = json.dumps({
@@ -100,25 +151,77 @@ class Wizard(object):
             return HttpResponse(response, mimetype='application/json')
 
     def _create_campaign(self, form, product):
+        """
+        Creates a new pinpoint page using form data and a product
+
+        @param form: The form to get data from.
+        @param product: The product for the cotnent block.
+
+        @return: A new Campaign object.
+
+        @attention: This should be changed to support blocks that have many products.
+        """
         return None
 
     def _edit_campaign(self, form, product):
+        """
+        Edits a campaign using form data and a product.
+
+        @param form: The form to get data from.
+        @param product: The product for the cotnent block.
+
+        @return: An existing Campaign object.
+
+        @attention: This should be changed to support blocks that have many products.
+        """
         return None
+
+    def _get_initial_form_data(self):
+        """
+        Gets the initial data for the form.
+
+        @return: The initial data for the form.
+        """
+        return None
+
+    def _create_content_block(self, form, product):
+        """
+        Creates a new content block for a page using form data.
+
+        @param form: The form to get data from.
+        @param product: The product to feature.
+
+        @return: The content block that was created.
+        """
+        return None
+
+    def _edit_content_block(self, campaign, form, product):
+        """
+        Edits a content block for a page using form data.
+
+        @param campaign: The page whos content block to edit.
+        @param form: The form to get data from.
+        @param product: The product to feature.
+
+        @return: The content block that was edited.
+        """
+        return None
+
 
 class FeaturedProductWizard(Wizard):
     def _get_initial_form_data(self):
         all_content_blocks = self.campaign.content_blocks.all()
 
-        product_id   = all_content_blocks[0].data.product.id
+        product_id = all_content_blocks[0].data.product.id
         product_desc = all_content_blocks[0].data.description
 
         initial_data = {
-            "name"            : self.campaign.name,
-            "product_id"      : product_id,
+            "name": self.campaign.name,
+            "product_id": product_id,
             "page_description": self.campaign.description,
-            "description"     : product_desc,
-            "campaign_id"     : self.campaign.id,
-            }
+            "description": product_desc,
+            "campaign_id": self.campaign.id,
+        }
 
         product_image = all_content_blocks[0].data.get_image()
 
@@ -132,7 +235,7 @@ class FeaturedProductWizard(Wizard):
         return initial_data
 
     def _edit_campaign(self, form, product):
-        campaign = Campaign.objects.get(id = form.cleaned_data['campaign_id'])
+        campaign = Campaign.objects.get(id=form.cleaned_data['campaign_id'])
         campaign.name = form.cleaned_data['name']
         campaign.description = form.cleaned_data.get('page_description', '')
 
@@ -155,7 +258,7 @@ class FeaturedProductWizard(Wizard):
         product_media_id = form.cleaned_data.get("product_media_id")
 
         has_product_media = product_media_id and\
-                            ProductMedia.objects.filter(pk=product_media_id).exists()
+            ProductMedia.objects.filter(pk=product_media_id).exists()
 
         # existing product media was selected
         if has_product_media:
@@ -173,16 +276,15 @@ class FeaturedProductWizard(Wizard):
 
         return block_content
 
-
     def _create_campaign(self, form, product):
         block = self._create_content_block(form, product)
         block.save()
 
         campaign = Campaign(
-            store = self.store,
-            name = form.cleaned_data['name'],
-            description = form.cleaned_data.get('page_description', ''),
-            live = not self.preview
+            store=self.store,
+            name=form.cleaned_data['name'],
+            description=form.cleaned_data.get('page_description', ''),
+            live=not self.preview
         )
         campaign.save()
 
@@ -194,11 +296,11 @@ class FeaturedProductWizard(Wizard):
         product_media_id = form.cleaned_data.get("product_media_id")
 
         has_product_media = product_media_id and\
-                            ProductMedia.objects.filter(pk=product_media_id).exists()
+            ProductMedia.objects.filter(pk=product_media_id).exists()
 
         featured_product_data = FeaturedProductBlock(
-            product = product,
-            description = form.cleaned_data['description']
+            product=product,
+            description=form.cleaned_data['description']
         )
 
         # existing product media was selected
@@ -212,11 +314,12 @@ class FeaturedProductWizard(Wizard):
 
         featured_product_data.save()
         block_content = BlockContent(
-            block_type = self.block_type,
-            content_type = ContentType.objects.get_for_model(FeaturedProductBlock),
-            object_id = featured_product_data.id
+            block_type=self.block_type,
+            content_type=ContentType.objects.get_for_model(FeaturedProductBlock),
+            object_id=featured_product_data.id
         )
         return block_content
+
 
 class ShopTheLookWizard(FeaturedProductWizard):
     def _get_initial_form_data(self):
@@ -230,7 +333,7 @@ class ShopTheLookWizard(FeaturedProductWizard):
         if ls_image.__class__.__name__ == "GenericImage":
             data["ls_generic_media_id"] = ls_image.id
 
-            image_url  = ls_image.get_url() + "\\" + str(ls_image.id)
+            image_url = ls_image.get_url() + "\\" + str(ls_image.id)
             media_list = data.get('generic_media_list', '')
             if media_list and image_url not in media_list:
                 data["generic_media_list"] += '|' + image_url
@@ -250,7 +353,7 @@ class ShopTheLookWizard(FeaturedProductWizard):
         ls_product_media_id = form.cleaned_data.get("ls_product_media_id")
 
         has_ls_product_media = ls_product_media_id and\
-                            ProductMedia.objects.filter(pk=ls_product_media_id).exists()
+            ProductMedia.objects.filter(pk=ls_product_media_id).exists()
 
         # existing product media was selected
         if has_ls_product_media:
@@ -269,18 +372,18 @@ class ShopTheLookWizard(FeaturedProductWizard):
         return block_content
 
     def _create_content_block(self, form, product):
-        generic_media_id    = form.cleaned_data.get("generic_media_id")
-        product_media_id    = form.cleaned_data.get("product_media_id")
+        generic_media_id = form.cleaned_data.get("generic_media_id")
+        product_media_id = form.cleaned_data.get("product_media_id")
         ls_product_media_id = form.cleaned_data.get("ls_product_media_id")
         ls_generic_media_id = form.cleaned_data.get("ls_generic_media_id")
 
         product_data = ShopTheLookBlock(
-            product = product,
-            description = form.cleaned_data['description']
+            product=product,
+            description=form.cleaned_data['description']
         )
 
         has_product_media = product_media_id and\
-                            ProductMedia.objects.filter(pk=product_media_id).exists()
+            ProductMedia.objects.filter(pk=product_media_id).exists()
 
         if has_product_media:
             product_data.existing_image = ProductMedia.objects.get(
@@ -290,7 +393,7 @@ class ShopTheLookWizard(FeaturedProductWizard):
                 pk=generic_media_id)
 
         has_ls_product_media = ls_product_media_id and\
-                       ProductMedia.objects.filter(pk=ls_product_media_id).exists()
+            ProductMedia.objects.filter(pk=ls_product_media_id).exists()
 
         if has_ls_product_media:
             product_data.existing_ls_image = ProductMedia.objects.get(
@@ -299,36 +402,36 @@ class ShopTheLookWizard(FeaturedProductWizard):
             product_data.custom_ls_image = GenericImage.objects.get(
                 pk=ls_generic_media_id)
 
-
         product_data.save()
         block_content = BlockContent(
-            block_type = self.block_type,
-            content_type = ContentType.objects.get_for_model(ShopTheLookBlock),
-            object_id = product_data.id
+            block_type=self.block_type,
+            content_type=ContentType.objects.get_for_model(ShopTheLookBlock),
+            object_id=product_data.id
         )
         return block_content
 
 
 def featured_product_wizard(request, store, block_type, campaign=None):
     wizard = FeaturedProductWizard(**{
-        'preview'   : request.is_ajax(),
-        'request'   : request,
-        'store'     : store,
+        'preview': request.is_ajax(),
+        'request': request,
+        'store': store,
         'block_type': block_type,
-        'campaign'  : campaign,
-        'form'      : FeaturedProductWizardForm
+        'campaign': campaign,
+        'form': FeaturedProductWizardForm
     })
 
     return wizard.process()
 
+
 def shop_the_look_wizard(request, store, block_type, campaign=None):
     wizard = ShopTheLookWizard(**{
-        'preview'   : request.is_ajax(),
-        'request'   : request,
-        'store'     : store,
+        'preview': request.is_ajax(),
+        'request': request,
+        'store': store,
         'block_type': block_type,
-        'campaign'  : campaign,
-        'form'      : ShopTheLookWizardForm
+        'campaign': campaign,
+        'form': ShopTheLookWizardForm
     })
 
     return wizard.process()
