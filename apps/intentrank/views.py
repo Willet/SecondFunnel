@@ -187,18 +187,18 @@ def get_seeds(request):
     store   = request.GET.get('store', '-1')
     page    = request.GET.get('campaign', '-1')
     seeds   = request.GET.get('seeds', '-1')
-    results = request.GET.get('results', DEFAULT_RESULTS)
+    num_results = request.GET.get('results', DEFAULT_RESULTS)
 
     request.session['pinpoint-video-cookie'] = VideoCookie()
 
-    products, status = process_intentrank_request(
+    results, status = process_intentrank_request(
         request, store, page, 'getseeds', {
         'seeds'  : seeds,
-        'results': results
+        'results': num_results
         }
     )
 
-    result = get_blocks(request, products, page)
+    result = get_blocks(request, results, page)
 
     return HttpResponse(json.dumps(result), mimetype='application/json',
                         status=status)
@@ -206,15 +206,15 @@ def get_seeds(request):
 def get_results(request):
     store   = request.GET.get('store', '-1')
     page    = request.GET.get('campaign', '-1')
-    results = request.GET.get('results', DEFAULT_RESULTS)
+    num_results = request.GET.get('results', DEFAULT_RESULTS)
 
-    products, status = process_intentrank_request(
+    results, status = process_intentrank_request(
         request, store, page, 'getresults', {
-            'results': results
+            'results': num_results
         }
     )
 
-    result = get_blocks(request, products, page)
+    result = get_blocks(request, results, page)
 
     return HttpResponse(json.dumps(result), mimetype='application/json',
                         status=status)
@@ -224,7 +224,8 @@ def update_clickstream(request):
     page    = request.GET.get('campaign', '-1')
     product_id = request.GET.get('product_id')
 
-    _, status = process_intentrank_request(request, store, page, 'updateclickstream', {
+    results, status = process_intentrank_request(request, store, page,
+                                           'updateclickstream', {
         'product_id': product_id
     })
 
