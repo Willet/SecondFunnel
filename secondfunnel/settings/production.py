@@ -15,6 +15,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
 
     # external apps
+    'djcelery',
     'storages',
     'south',
     'django_extensions',
