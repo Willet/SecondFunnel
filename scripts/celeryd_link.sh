@@ -23,6 +23,9 @@ else
 fi
 
 # Make an unprivileged, non-password-enabled user and group to run celery
+# AWS Beanstalk script runners are likely using 'set -e'
+# which we don't want in this particular instance. Disabled it
+set +e
 useradd -M celery
 useradd_status=$?
 if [ useradd_status != 0 ]
@@ -31,6 +34,8 @@ then
 else
     echo "Created unprivileged user 'celery'"
 fi
+# Reenable it
+set -e
 
 # make a spot for the logs and the pid files
 mkdir -p /var/log/celery
