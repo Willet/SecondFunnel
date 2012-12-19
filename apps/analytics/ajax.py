@@ -1,55 +1,128 @@
 import json
 import random
-import datetime
 
 from datetime import timedelta, datetime
 
-from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 
-from apps.utils.ajax import ajax_success
+from apps.assets.models import Store
+from apps.analytics.models import Category, Metric, KVStore, CategoryHasMetric
+from apps.pinpoint.models import Campaign
+from apps.utils.ajax import ajax_success, ajax_error
 
 
 def daterange(start_date, end_date):
-    for n in range(int ((end_date - start_date).days)):
+    for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
 
-def analytics_overview(request):
-    app_slug = request.GET.get("app_slug")
+@login_required
+def analytics_pinpoint(request):
+    # one of these is required:
+    campaign_id = request.GET.get('campaign_id', False)
+    store_id = request.GET.get('store_id', False)
+    object_id = store_id or campaign_id
 
-    # if not app_slug:
-        # return ajax_error({"message": "Missing parameters"})
+    # only one must be present
+    if (campaign_id and store_id) or not object_id:
+        return ajax_error()
 
-    visits = random.randint(2000, 5000)
-    interactions = random.randint(700, 3000)
-    data = {
-        "visits": visits,
-        "interactions": {
-            "total": interactions,
-            "clickthrough": int(interactions * random.uniform(0.01, 0.25)),
-            "popup": int(interactions * random.uniform(0.01, 0.25)),
-            "shares": {
-                "featured": int(interactions * random.uniform(0.01, 0.25)),
-                "popup": int(interactions * random.uniform(0.01, 0.25))
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    if start_date:
+        start_date = datetime.strptime(start_date, "%Y/%m/%d")
+
+    if end_date:
+        end_date = datetime.strptime(end_date, "%Y/%m/%d")
+
+    # try get a store associated with this request,
+    # either directly or via campaign
+    store = None
+    try:
+        store = Store.objects.get(id=store_id)
+
+    except Store.DoesNotExist:
+        pass
+
+    if not store:
+        try:
+            campaign = Campaign.objects.get(id=campaign_id)
+            store = campaign.store
+
+        except Campaign.DoesNotExist:
+            return ajax_error()
+
+    # check if user is authorized to access this data
+    if not request.user in store.staff.all():
+        return ajax_error()
+
+    # get appropriate content type to look up data
+    if campaign_id:
+        object_type = ContentType.objects.get_for_model(Campaign)
+    else:
+        object_type = ContentType.objects.get_for_model(Store)
+
+    # iterate through analytics structures and get the data
+    results = {}
+    for category in Category.objects.filter(enabled=True):
+        results[category.slug] = {}
+
+        for metric in category.metrics.filter(enabled=True):
+            category_has_metric = CategoryHasMetric.objects.get(
+                category=category, metric=metric)
+
+            # just get the KV's associated with this object
+            data = metric.data.filter(
+                content_type=object_type, object_id=object_id
+            ).order_by('-timestamp')
+
+            if start_date:
+                data = data.filter(timestamp__gte=start_date)
+
+            if end_date:
+                data = data.filter(timestamp__lte=end_date)
+
+            # ensure we have something set here, even if user didn't do this
+            if len(data) > 0:
+                start_date = start_date or data[0].timestamp
+                end_date = end_date or data[::-1][0].timestamp
+
+            results[category.slug][metric.slug] = {
+                'name': metric.name,
+                'order': category_has_metric.order,
+                'display': category_has_metric.display,
+                'totals': {},
+
+                # this exposes daily data for each product
+                # it's a list comprehension
+                'data': [{
+                            "id": datum.id,
+                            "date": datum.timestamp.date().isoformat(),
+                            "value": int(datum.value),
+                            "product_id": datum.target_id,
+                            "meta": datum.meta
+                        } for datum in data.all()]
             }
-        },
 
-        "daily": []
-    }
+            # this aggregates and exposes daily data across all products
+            bucket = results[category.slug][metric.slug]
+            for datum in bucket['data']:
+                if datum['date'] in bucket['totals']:
+                    bucket['totals'][datum['date']] += datum['value']
+                else:
+                    bucket['totals'][datum['date']] = datum['value']
 
-    for s_date in daterange(datetime(2012, 9, 1), datetime.now()):
-        data["daily"].append({
-            "date": s_date.strftime("%Y-%m-%d"),
-            "visits": int(visits * random.uniform(0.025, 0.04)),
-            "interactions": {
-                "total": int(interactions * random.uniform(0.025, 0.04)),
-                "clickthrough": int(interactions * random.uniform(0.00033, 0.0083)),
-                "popup": int(interactions * random.uniform(0.00033, 0.0083)),
-                "shares": {
-                    "featured": int(interactions * random.uniform(0.00033, 0.0083)),
-                    "popup": int(interactions * random.uniform(0.00033, 0.0083))
-                }
-            }
-        })
+            # zero-out out missing dates
+            if start_date and end_date:
+                for date in daterange(start_date, end_date + timedelta(1)):
+                    if not date.date().isoformat() in bucket['totals']:
+                        bucket['totals'][date.date().isoformat()] = 0
 
-    return ajax_success(data)
+            if bucket['totals']:
+                bucket['totals']['all'] = sum(bucket['totals'].values())
+            else:
+                bucket['totals']['all'] = 0
+
+    return ajax_success(results)

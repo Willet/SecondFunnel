@@ -2,7 +2,7 @@
 {% load pinpoint_ui %}
 
 <!DOCTYPE html>
-<html xmlns:fb="http://ogp.me/ns/fb#">
+<html>
     <head>
         <meta http-equiv="content-type" content="text/html;charset=utf-8" />
         {% for sheet in stylesheets %}
@@ -12,175 +12,51 @@
         <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
         <script src="{% static "js/infinity.min.js" %}"></script>
 
-        <script type="text/javascript">
-            var _pptimeout, pinpointTracking = (function ($, window, document) {
-                var referrerName = function () {
-                    var host;
+        <script type="text/javascript" charset="utf-8">
+            var _gaq = _gaq || [];
 
-                    if (document.referrer === "") {
-                        return "noref";
-                    }
+            _gaq.push(['_setAccount', '{{ google_property_id }}']);
+            _gaq.push(['_trackPageview']);
 
-                    host = parseUri(document.referrer).host;
-                    // want top level domain name (i.e. tumblr.com, not site.tumblr.com)
-                    host = host.split(".").slice(host.split(".").length - 2, host.split(".").length).join(".");
-
-                    if (host === "") {
-                        return "noref";
-                    }
-
-                    return host;
-                },
-
-                trackEvent = function (o) {
-                    var category = "pinpoint|" + referrerName(), uri;
-
-                    uri = parseUri(window.location.href);
-                    category += "|" + parseUri(uri.queryKey.url).host;
-
-                    //console.log(['_trackEvent', category, o.action, o.label, o.value || undefined]);
-                    // _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
-                },
-
-                registerShare = function (o) {
-                    var action, url;
-                    //console.log(pinpointTracking.socialShareType, pinpointTracking.socialShareUrl);
-
-                    trackEvent({
-                        "action": "share|" + o.network + "|" + o.type + "|" + pinpointTracking.socialShareType,
-                        "label": pinpointTracking.socialShareUrl
-                    });
-                },
-
-                setSocialShareVars = function (o) {
-                    //console.log(o);
-
-                    if (o['default'] === true) {
-                        pinpointTracking.socialShareUrl = $("#featured_img").data("url");
-                        pinpointTracking.socialShareType = "featured";
-                    } else {
-                        pinpointTracking.socialShareUrl = o.url;
-                        pinpointTracking.socialShareType = o.sType;
-                    }
-                },
-
-                clearTimeout = function () {
-                    if (typeof _pptimeout == "number") {
-                        window.clearTimeout(_pptimeout);
-                        delete _pptimeout;
-                    }
-                },
-
-                init = function() {
-                    // load scripts
-                    $.getScript("//platform.twitter.com/widgets.js", twitterEvents);
-                    var twttr = undefined;
-                    //window.twttr = (function (d,s,id) {
-                    //    var t, js, fjs = d.getElementsByTagName(s)[0];
-                    //    if (d.getElementById(id)) return; js=d.createElement(s); js.id=id; js.async=true;
-                    //    js.src="//platform.twitter.com/widgets.js"; js.onload="pinpointTracking.registerTwitterListeners"; fjs.parentNode.insertBefore(js, fjs);
-                    //    return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f) } });
-                    //}(document, "script", "twitter-wjs"));
-
-                    var twitterEvents = function(t) {
-                        twttr = t;
-                        twttr.events.bind('tweet', function(event) {
-                            pinpointTracking.registerShare({
-                                "network": "Twitter",
-                                "type": "shared"
-                            });
-                        });
-
-                        twttr.events.bind('click', function(event) {
-                            var sType;
-                            if (event.region == "tweet") {
-                                sType = "clicked";
-                            } else if (event.region == "tweetcount") {
-                                sType = "leftFor";
-                            } else {
-                                sType = event.region;
-                            }
-                            pinpointTracking.registerShare({
-                                "network": "Twitter",
-                                "type": sType
-                            });
-                        });
-                    }
-                },
-
-
-                // parseUri 1.2.2
-                // (c) Steven Levithan <stevenlevithan.com>
-                // MIT License
-
-                parseUri = function (str) {
-                    var o   = parseUri.options,
-                    m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
-                    uri = {},
-                    i   = 14;
-
-                    while (i--) uri[o.key[i]] = m[i] || "";
-
-                    uri[o.q.name] = {};
-                    uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-                        if ($1) uri[o.q.name][$1] = $2;
-                    });
-
-                    return uri;
-                };
-
-            parseUri.options = {
-                strictMode: false,
-                key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
-                q:   {
-                    name:   "queryKey",
-                    parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-                },
-                parser: {
-                    strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-                    loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-                }
-            };
-
-            this.socialShareType = undefined;
-            this.socialShareUrl = undefined;
-
-            return {
-                "init": init,
-                    "registerShare": registerShare,
-                    "trackEvent": trackEvent,
-                    "setSocialShareVars": setSocialShareVars,
-                    "clearTimeout": clearTimeout
-            }
-
-            }(jQuery, window, document));
-
-pinpointTracking.init();
-
-</script>
-
-<script type="text/javascript" charset="utf-8">
-    var _gaq = _gaq || [];
-
-    _gaq.push(['_setAccount', 'UA-35018502-1']);
-    _gaq.push(['_trackPageview']);
-
-    (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-</script>
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        </script>
     </head>
     <body>
+        <div id="fb-root"></div>
+        <script>
+            window.fbAsyncInit = function() {
+                FB.XFBML.parse($("#featured-social .fb_buttons")[0]);
+
+                FB.Event.subscribe('xfbml.render', function(response) {
+                    $(".fbLoaded").children(".loading").hide();
+                    $(".fbLoaded").children(".buttons").hide();
+                    $(".fbLoaded").children(".buttons").css('left', 0);
+                    $(".fbLoaded").children(".buttons").fadeIn('fast');
+                });
+            };
+
+            // Load the FB SDK's source Asynchronously
+            (function(d, debug){
+             var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+             if (d.getElementById(id)) {return;}
+             js = d.createElement('script'); js.id = id; js.async = true;
+             js.src = "//connect.facebook.net/en_US/all" + (debug ? "/debug" : "") + ".js";
+             ref.parentNode.insertBefore(js, ref);
+            }(document, /*debug*/ false));
+        </script>
+
+        {% if preview %}
+            <div id="preview_header">
+                <p>This bar is only visible to you. Analytics for this page will not count when this bar is shown.</p>
+            </div>
+            <div id="preview_header_spacing">
+            </div>
+        {% endif %}
         <div id="willet-main">
-            {% if preview %}
-                <div id="preview_header">
-                    <p>This bar is only visible to you. Analytics for this page will not count when this bar is shown.</p>
-                </div>
-                <div id="preview_header_spacing">
-                </div>
-            {% endif %}
             <div id="wrapper">
                 {% if banner %}
                 <div id="banner">
@@ -249,17 +125,25 @@ pinpointTracking.init();
                 // analytics
                 pinpointTracking.setSocialShareVars({"default": true});
 
+                // track the buy now button
+                $("#light_buy").click(function() {
+                    pinpointTracking.registerEvent({
+                        "type": "clickthrough",
+                        "subtype": "buy",
+                        "label": $(this).attr("href")
+                    });
+                });
+
                 $("#featured-social").hover(function() {
                     pinpointTracking.clearTimeout();
                     pinpointTracking.setSocialShareVars({"default": true});
                 }, function() {});
 
                 $(".click .inner-pin").click(function(){
-                    var url = $(this).data("url");
-
-                    pinpointTracking.trackEvent({
-                        action: 'open_popup',
-                        label: url
+                    pinpointTracking.registerEvent({
+                        "type": "inpage",
+                        "subtype": "openpopup",
+                        "label": $(this).data("url")
                     });
                 });
 
@@ -268,16 +152,18 @@ pinpointTracking.init();
                 $("img[id='light_img']").click(function(e) {
                     var url = $(this).parent().attr("href");
 
-                    trackEvent({
-                        action: 'clickthrough',
-                        label: url
+                    pinpointTracking.registerEvent({
+                        "type": "clickthrough",
+                        "subtype": "image",
+                        "label": url
                     });
                 });
 
-                $(".pinterest_buttons a").on("click", function(e) {
-                    pinpointTracking.registerShare({
+                $(".pinterest_buttons a, #light .pinterest_buttons a").live("click", function(e) {
+                    pinpointTracking.registerEvent({
                         "network": "Pinterest",
-                        "type": "click"
+                        "type": "share",
+                        "subtype": "clicked"
                     });
                 });
 
@@ -431,7 +317,7 @@ pinpointTracking.init();
                     pinpointTracking.clearTimeout();
                     pinpointTracking.setSocialShareVars({"sType": "popup", "url": data.link});
 
-                    $("#light .fb_buttons").html('<fb:like href="' + data.link + '" layout="button_count" width="80" show_faces="true"></fb:like>')
+                    $("#light .fb_buttons").html('<div class="fb-like" data-href="' + data.link + '" data-send="false" data-layout="button_count" data-width="80" data-show-faces="false"></div>')
                     FB.XFBML.parse($("#light .fb_buttons")[0]);
                     $("#light .fb_buttons, #light .fb-like").show();
 
@@ -439,15 +325,12 @@ pinpointTracking.init();
                     '<a href="https://twitter.com/share?url=' + data.link +
                         '&text=' + data.title + '" class="twitter-share-button" data-lang="en">Tweet</a>');
 
-                    // need to create the above
-                    twttr.widgets.load();
-
                     $("#light .pinterest_buttons").html('' +
                     '<a href="http://pinterest.com/pin/create/button/' +
                         '?url=' + data.link +
                         '&media=' + imgs[0] +
                         '&description=' + data.title +
-                        '" target="_blank"' + 
+                        '" target="_blank"' +
                         ' class="pin-it-button" count-layout="horizontal">' +
                         '<img border="0" src="//assets.pinterest.com/images/PinExt.png" ' +
                         'title="Pin It" /></a>');
@@ -492,14 +375,6 @@ pinpointTracking.init();
                     $("#light_buy").attr("href", buy_url);
                     $("#light_price").text(data.price);
 
-                    //// Setup any tricky handlers that could change...
-                    //$("#light_buy").unbind("click").bind("click", function () {
-                        //    _gaq.push(["_trackEvent", "Product", "Buy Now", data.title]);
-                        //});
-
-                    //_gaq.push(["_trackEvent", "Category", "Action", "opt_label", "opt_value"]);
-                    //_gaq.push(["_trackEvent", "Product", "Preview", data.title]);
-
                     $(".pinterest_buttons>div").hide();
                     $(".pinterest_buttons div[data-id='" + data.title + "']").show();
 
@@ -514,6 +389,9 @@ pinpointTracking.init();
                     var box_height = $box.height()
                     //var box_height = 490 + getCSSNumericValue($box,'padding-top') + getCSSNumericValue($box,'padding-bottom');
                     //$box.css('top', ($(window).height() - box_height) / 2 );
+
+                    // need to register twitter buttons we've created above
+                    twttr.widgets.load();
                 };
                 var showPin = function () {
                     showPinOf(this);
@@ -550,45 +428,6 @@ pinpointTracking.init();
                     showPinOf($("#featured_img"), true);
                 });
 
-                function onFbScriptLoad() {
-                    if ($("#featured-product").length > 0) {
-                        var elem = $("#featured_img")[0];
-                        var imgs = $(elem).attr("data-img").split("|")
-                        imgs.pop();
-                        var data = {
-                            'title': $(elem).attr("data-title"),
-                            'link': $(elem).attr("data-url"),
-                        };
-
-                        $("#featured-product .fb_buttons").html('<fb:like href="' + data.link + '" layout="button_count" width="80" show_faces="true"></fb:like>')
-                        $("#featured-product .fb_buttons, #featured-product .fb-like").show();
-
-                        $("#featured-product .twitter_buttons").html('' +
-                        '<a href="https://twitter.com/share?url=' + data.link +
-                            '&text=' + data.title + '" class="twitter-share-button" data-lang="en">Tweet</a>');
-
-                        $("#featured-product .pinterest_buttons").html('' +
-                        '<a href="http://pinterest.com/pin/create/button/' +
-                            '?url=' + data.link +
-                            '&media=' + imgs[0] +
-                            '&description=' + data.title +
-                            ' class="pin-it-button" count-layout="horizontal">' +
-                            '<img border="0" src="//assets.pinterest.com/images/PinExt.png" ' +
-                            'title="Pin It" /></a>');
-                        FB.XFBML.parse($("#featured-social .fb_buttons")[0]);
-                    }
-
-                    FB.Event.subscribe('xfbml.render', function(response) {
-                        $(".fbLoaded").children(".loading").hide();
-                        $(".fbLoaded").children(".buttons").hide();
-                        $(".fbLoaded").children(".buttons").css('left', 0);
-                        $(".fbLoaded").children(".buttons").fadeIn('fast');
-                    });
-
-                    // need to create the above
-                    twttr.widgets.load();
-                }
-
                 $(".social-hover").closest(".pin").hover(function () {
                     pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(this).data("url")});
                     pinpointTracking.clearTimeout();
@@ -608,24 +447,6 @@ pinpointTracking.init();
                     }
                     $(this).children(".social-hover").fadeOut('fast');
                 });
-
-                var scripts = [
-                {
-                    "script": "http://connect.facebook.net/en_US/all.js#xfbml=0",
-                    "onload": onFbScriptLoad
-                }
-                ];
-
-                var item, script;
-                for (var i=0; i < scripts.length; i++) {
-                    item = scripts[i];
-
-                    script = document.createElement("script");
-                    script.async = true;
-                    script.src = item.script;
-                    script.onload = item.onload;
-                    document.body.appendChild(script);
-                }
             });
             </script>
         </body>

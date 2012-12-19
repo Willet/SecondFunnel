@@ -20,7 +20,7 @@ h2, .campaign_menu {
 }
 
 .campaign_menu li:hover, .selectedPage {
-    background-color: #eeeeee;
+    text-decoration: underline;
 }
 
 .campaign_analytics {
