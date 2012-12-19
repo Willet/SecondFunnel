@@ -4,26 +4,29 @@
 # ============================================
 
 # Configuration file
-if [ ! -h "/etc/default/celeryd" ]
+if [ -h "/etc/default/celeryd" ]
 then
-    ln -s `pwd`/secondfunnel/settings/celeryd /etc/default/celeryd
-    echo "Created symlink for celery config"
-else
-    echo "Skipping creating symlink for celery config"
+    rm /etc/default/celeryd
+    echo "Deleted existing symlink for celery config."
 fi
+
+ln -s `pwd`/secondfunnel/settings/celeryd /etc/default/celeryd
+echo "Created symlink for celery config"
+
 
 # Init script
-if [ ! -h "/etc/init.d/celeryd" ]
+if [ -h "/etc/init.d/celeryd" ]
 then
-    ln -s `pwd`/scripts/celeryd /etc/init.d/celeryd
-    chmod +x /etc/init.d/celeryd
-    echo "Created symlink for celery init script"
-else
-    echo "Skipping creating symlink for celery init script"
+    rm /etc/init.d/celeryd
+    echo "Deleted existing symlink for celery init script."
 fi
 
+ln -s `pwd`/scripts/celeryd /etc/init.d/celeryd
+chmod +x /etc/init.d/celeryd
+echo "Created symlink for celery init script"
+
 # Make an unprivileged, non-password-enabled user and group to run celery
-# AWS Beanstalk script runners are likely using 'set -e'
+# AWS Beanstalk script runners are using 'set -e'
 # which we don't want in this particular instance. Disabled it
 set +e
 useradd -M celery
