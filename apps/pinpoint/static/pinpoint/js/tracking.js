@@ -61,6 +61,52 @@ var pinpointTracking = (function ($, window, document) {
         }
     },
 
+    setTrackingHooks = function () {
+        // buy now
+        $(".buy").click(function() {
+            pinpointTracking.registerEvent({
+                "type": "clickthrough",
+                "subtype": "buy",
+                "label": $(this).attr("href")
+            });
+        });
+
+        // hover into featured social buttons
+        $(".info .social-buttons").hover(function() {
+            pinpointTracking.clearTimeout();
+            pinpointTracking.setSocialShareVars({"default": true});
+        }, function() {});
+
+        //
+        $(".product").click(function(){
+            pinpointTracking.registerEvent({
+                "type": "inpage",
+                "subtype": "openpopup",
+                "label": $(this).data("url")
+            });
+        });
+
+        // not tracking clickthrough via image since we don't currently have it
+        // $("img[id='light_img']").click(function(e) {
+        //     var url = $(this).parent().attr("href");
+
+        //     pinpointTracking.registerEvent({
+        //         "type": "clickthrough",
+        //         "subtype": "image",
+        //         "label": url
+        //     });
+        // });
+
+        // track pinterest clicks since they don't have an api
+        $(".pinterest").live("click", function(e) {
+            pinpointTracking.registerEvent({
+                "network": "Pinterest",
+                "type": "share",
+                "subtype": "clicked"
+            });
+        });
+    },
+
     init = function() {
         setSocialShareVars({"default": true});
 
@@ -97,6 +143,8 @@ var pinpointTracking = (function ($, window, document) {
                 });
             });
         });
+
+        setTrackingHooks();
     },
 
     // parseUri 1.2.2
