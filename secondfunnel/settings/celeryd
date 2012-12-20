@@ -3,6 +3,8 @@ BASE_BUNDLE="/opt/python/bundle"
 # Get latest bundle id
 for f in `ls /opt/python/bundle`; do LATEST_BUNDLE_ID=$f; done
 
+### Celeryd settings ###
+
 # Name of nodes to start, here we have a single node
 CELERYD_NODES="w1"
 
@@ -34,3 +36,15 @@ CELERYD_LOGLEVEL="WARNING"
 # Workers should run as an unprivileged user.
 CELERYD_USER="celery"
 CELERYD_GROUP="celery"
+
+
+### Celery Beat settings ###
+
+# Where the Django project is.
+CELERYBEAT_CHDIR=$CELERYD_CHDIR
+
+# Path to celerybeat
+CELERYBEAT="$ENV_PYTHON $CELERYBEAT_CHDIR/manage.py celerybeat"
+
+# Extra arguments to celerybeat
+CELERYBEAT_OPTS="--schedule=/var/run/celery/celerybeat-schedule"
