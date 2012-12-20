@@ -62,7 +62,7 @@ class Wizard(object):
         """
         Processes the wizard's form then renders a response.
 
-        @return: An HttpResponse.
+        @return: An HttpResponse that renders the form.
         """
         if self.request.method == 'POST':
             form, response = self._post()
@@ -209,6 +209,7 @@ class Wizard(object):
 
 
 class FeaturedProductWizard(Wizard):
+    """Wizard for customizing a featured product block"""
     def _get_initial_form_data(self):
         all_content_blocks = self.campaign.content_blocks.all()
 
@@ -322,6 +323,7 @@ class FeaturedProductWizard(Wizard):
 
 
 class ShopTheLookWizard(FeaturedProductWizard):
+    """Wizard for customizing a show the look block"""
     def _get_initial_form_data(self):
         data = super(ShopTheLookWizard, self)._get_initial_form_data()
 
@@ -412,6 +414,18 @@ class ShopTheLookWizard(FeaturedProductWizard):
 
 
 def featured_product_wizard(request, store, block_type, campaign=None):
+    """
+    Displays the wizard for customizing a featured product block.
+
+    @param request: The request for the wizard.
+    @param store: The store the page is being created for.
+    @param block_type: The featured product block type object.
+    @param campaign: Either None if the page is being created or
+        the page being edited.
+
+    @return: An HttpResponse that renders a wizard for customizing
+    a featured product block.
+    """
     wizard = FeaturedProductWizard(**{
         'preview': request.is_ajax(),
         'request': request,
@@ -425,6 +439,18 @@ def featured_product_wizard(request, store, block_type, campaign=None):
 
 
 def shop_the_look_wizard(request, store, block_type, campaign=None):
+    """
+    Displays the wizard for customizing a shop the look block.
+
+    @param request: The request for the wizard.
+    @param store: The store the page is being created for.
+    @param block_type: The shop the look block type object.
+    @param campaign: Either None if the page is being created or
+        the page being edited.
+
+    @return: An HttpResponse that renders a wizard for customizing
+    a shop the look block.
+    """
     wizard = ShopTheLookWizard(**{
         'preview': request.is_ajax(),
         'request': request,
