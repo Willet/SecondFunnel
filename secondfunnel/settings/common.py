@@ -198,12 +198,26 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
         }
     },
     'handlers': {
+        'logging_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'formatter': 'verbose',
+            'filename': fromProjectRoot('errorlog.txt')
+        },
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
@@ -212,7 +226,7 @@ LOGGING = {
     },
     'loggers': {
         'django.request': {
-            'handlers': ['mail_admins'],
+            'handlers': ['logging_file', 'mail_admins'],
             'level': 'ERROR',
             'propagate': True,
         },

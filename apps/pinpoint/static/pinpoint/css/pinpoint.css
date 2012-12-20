@@ -158,8 +158,20 @@ body {
     cursor: pointer;
 }
 
+.block.product {
+    display: table;
+    table-layout: fixed;
+}
+
+.block div.product {
+    display: table-cell;
+    vertical-align: middle;
+}
+
 .block.product div.lifestyle {
-    float: left;
+    width: 240px;
+    display: table-cell;
+    vertical-align: middle;
 }
 
 .block.product img.lifestyle {
@@ -171,6 +183,7 @@ body {
  * Once we have sass, this can be automatic
  */
 .youtube_play {
-    top: 195px;
-    left: 135px;
+    position: absolute;
+    top: 135px;
+    left: 195px;
 }
