@@ -88,7 +88,7 @@ def video_probability_function(x, m):
     This is a probability function for determining when youtube
     videos are shown.
 
-    Here's this function on wolfram alpha: http://wolfr.am/YpGRZe
+    Here's this function on wolfram alpha: U{http://wolfr.am/YpGRZe}
 
     @param x: The current number of blocks added since the last video.
     @param m: The maximum number of blocks before a video is added.
@@ -368,7 +368,7 @@ def invalidate_session(request):
 
     @return: An empty json HttpResonse.
 
-    @depreciated: This should happen automatically now.
+    @deprecated: This should happen automatically now.
     """
     #intentrank/invalidate-session
     url = '{0}/intentrank/invalidate-session'.format(INTENTRANK_BASE_URL)
