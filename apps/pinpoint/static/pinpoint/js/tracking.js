@@ -61,6 +61,51 @@ var pinpointTracking = (function ($, window, document) {
         }
     },
 
+    setTrackingDomHooks = function () {
+        // reset tracking scope: hover into featured product area
+        $(".featured").hover(function() {
+            pinpointTracking.clearTimeout();
+            pinpointTracking.setSocialShareVars({"default": true});
+        }, function() {});
+
+        // buy now event
+        $(document).on("click", "a.buy", function(e) {
+            pinpointTracking.registerEvent({
+                "type": "clickthrough",
+                "subtype": "buy",
+                "label": $(this).attr("href")
+            });
+        });
+
+        // popup open event
+        $(document).on("click", ".discovery-area > .product", function(e) {
+            pinpointTracking.registerEvent({
+                "type": "inpage",
+                "subtype": "openpopup",
+                "label": $(this).data("url")
+            });
+        });
+
+        // featured pinterest click event
+        // pinterest doesn't have an API for us to use
+        $(".pinterest").click(function() {
+            pinpointTracking.registerEvent({
+                "network": "Pinterest",
+                "type": "share",
+                "subtype": "clicked"
+            });
+        });
+
+        // social hover and popup pinterest click events
+        $(document).on("click", ".pinterest", function(e) {
+            pinpointTracking.registerEvent({
+                "network": "Pinterest",
+                "type": "share",
+                "subtype": "clicked"
+            });
+        });
+    },
+
     init = function() {
         setSocialShareVars({"default": true});
 
@@ -96,6 +141,10 @@ var pinpointTracking = (function ($, window, document) {
                     "subtype": sType
                 });
             });
+        });
+
+        $(function() {
+            setTrackingDomHooks();
         });
     },
 

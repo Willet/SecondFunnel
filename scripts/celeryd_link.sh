@@ -25,6 +25,19 @@ ln -s `pwd`/scripts/celeryd /etc/init.d/celeryd
 chmod +x /etc/init.d/celeryd
 echo "Created symlink for celery init script"
 
+
+# Beat script
+if [ -h "/etc/init.d/celerybeat" ]
+then
+    rm /etc/init.d/celerybeat
+    echo "Deleted existing symlink for celerybeat script."
+fi
+
+ln -s `pwd`/scripts/celerybeat /etc/init.d/celerybeat
+chmod +x /etc/init.d/celerybeat
+echo "Created symlink for celerybeat script"
+
+
 # Make an unprivileged, non-password-enabled user and group to run celery
 # AWS Beanstalk script runners are using 'set -e'
 # which we don't want in this particular instance. Disabled it

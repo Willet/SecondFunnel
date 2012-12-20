@@ -132,6 +132,9 @@ var PINPOINT = (function($, pageInfo){
             }
         }
 
+        pinpointTracking.clearTimeout();
+        pinpointTracking.setSocialShareVars({"sType": "popup", "url": data.url});
+
         $preview.fadeIn(100);
         $mask.fadeIn(100);
     };
@@ -148,6 +151,8 @@ var PINPOINT = (function($, pageInfo){
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.product');
 
+        pinpointTracking.setSocialShareVars({"default": true});
+
         $preview.fadeOut(100);
         $mask.fadeOut(100);
     };
@@ -160,11 +165,19 @@ var PINPOINT = (function($, pageInfo){
             FB.XFBML.parse($buttons.find('.button.facebook')[0]);
             $buttons.addClass('loaded');
         }
+
+        pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(this).data("url")});
+        pinpointTracking.clearTimeout();
     };
 
     productHoverOff = function () {
         var $buttons = $(this).find('.social-buttons');
         $buttons.fadeOut('fast');
+
+        pinpointTracking.clearTimeout();
+        if (pinpointTracking.socialShareType !== "popup") {
+            pinpointTracking._pptimeout = window.setTimeout('pinpointTracking.setSocialShareVars({"default": true})', 2000);
+        }
     };
 
     updateClickStream = function (event) {
@@ -302,7 +315,7 @@ var PINPOINT = (function($, pageInfo){
                 lowestBlock = $(this);
             }
         });
-       
+
         if (!lowestBlock) {
             lowestHeight = 0;
         } else {
@@ -371,8 +384,8 @@ var PINPOINT = (function($, pageInfo){
 
     /* --- START Social buttons --- */
     loadFB = function () {
-        FB.init({ 
-          cookie:true, 
+        FB.init({
+          cookie:true,
           status:true,
           xfbml:true
         });
@@ -388,6 +401,17 @@ var PINPOINT = (function($, pageInfo){
             $(".loaded").find(".loading-container").hide();
             $(".loaded").find(".loading-container").fadeIn('fast');
         });
+
+        FB.Event.subscribe('edge.create',
+            function(url) {
+                pinpointTracking.registerEvent({
+                    "network": "Facebook",
+                    "type": "share",
+                    "subtype": "liked",
+                    "label": url
+                });
+            }
+        );
     };
 
     loadTwitter = function () {
