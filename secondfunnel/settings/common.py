@@ -242,7 +242,7 @@ INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
 CELERYBEAT_SCHEDULE = {
     'runs-every-6-hours': {
         'task': 'apps.analytics.tasks.redo_analytics',
-        'schedule': timedelta(seconds=20),
+        'schedule': timedelta(hours=6),
     },
 }
 
