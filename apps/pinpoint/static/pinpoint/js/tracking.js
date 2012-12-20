@@ -61,9 +61,15 @@ var pinpointTracking = (function ($, window, document) {
         }
     },
 
-    setTrackingHooks = function () {
-        // buy now
-        $(".buy").click(function() {
+    setTrackingDomHooks = function () {
+        // reset tracking scope: hover into featured product area
+        $(".featured").hover(function() {
+            pinpointTracking.clearTimeout();
+            pinpointTracking.setSocialShareVars({"default": true});
+        }, function() {});
+
+        // buy now event
+        $(document).on("click", "a.buy", function(e) {
             pinpointTracking.registerEvent({
                 "type": "clickthrough",
                 "subtype": "buy",
@@ -71,14 +77,8 @@ var pinpointTracking = (function ($, window, document) {
             });
         });
 
-        // hover into featured social buttons
-        $(".info .social-buttons").hover(function() {
-            pinpointTracking.clearTimeout();
-            pinpointTracking.setSocialShareVars({"default": true});
-        }, function() {});
-
-        //
-        $(".product").click(function(){
+        // popup open event
+        $(document).on("click", ".discovery-area > .product", function(e) {
             pinpointTracking.registerEvent({
                 "type": "inpage",
                 "subtype": "openpopup",
@@ -86,19 +86,18 @@ var pinpointTracking = (function ($, window, document) {
             });
         });
 
-        // not tracking clickthrough via image since we don't currently have it
-        // $("img[id='light_img']").click(function(e) {
-        //     var url = $(this).parent().attr("href");
+        // featured pinterest click event
+        // pinterest doesn't have an API for us to use
+        $(".pinterest").click(function() {
+            pinpointTracking.registerEvent({
+                "network": "Pinterest",
+                "type": "share",
+                "subtype": "clicked"
+            });
+        });
 
-        //     pinpointTracking.registerEvent({
-        //         "type": "clickthrough",
-        //         "subtype": "image",
-        //         "label": url
-        //     });
-        // });
-
-        // track pinterest clicks since they don't have an api
-        $(".pinterest").live("click", function(e) {
+        // social hover and popup pinterest click events
+        $(document).on("click", ".pinterest", function(e) {
             pinpointTracking.registerEvent({
                 "network": "Pinterest",
                 "type": "share",
@@ -144,7 +143,9 @@ var pinpointTracking = (function ($, window, document) {
             });
         });
 
-        setTrackingHooks();
+        $(function() {
+            setTrackingDomHooks();
+        });
     },
 
     // parseUri 1.2.2
