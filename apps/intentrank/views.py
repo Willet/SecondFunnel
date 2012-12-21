@@ -102,7 +102,10 @@ def process_intentrank_request(request, store, page, function_name,
     except httplib2.HttpLib2Error:
         content = "{}"
 
-    results = json.loads(content)
+    try:
+        results = json.loads(content)
+    except ValueError:
+        results = {"error": content}
 
     if 'error' in results:
         results.update({'url': url})
