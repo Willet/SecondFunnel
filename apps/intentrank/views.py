@@ -161,7 +161,10 @@ def videos_to_template(request, campaign, results):
         context.update({
             'video': video
         })
-        position = random.randrange(len(results))
+        if len(results) == 0:
+            position = 0
+        else:
+            position = random.randrange(len(results))
         results.insert(position, Template(discovery_youtube_theme).render(context))
         video_cookie.add_video(video.video_id)
         video_cookie.add_blocks(len(results) - position)
