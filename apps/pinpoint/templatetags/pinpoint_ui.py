@@ -18,7 +18,7 @@ def ui_field_label_value(label, value):
 
 class ConfirmCampaignNode(template.Node):
     """
-    Renders a conformation page of a wizard.
+    Renders a confirmation page of a wizard.
 
     @deprecated: We no longer have a confirmation page.
     """
@@ -39,7 +39,7 @@ class ConfirmCampaignNode(template.Node):
 @register.tag(name="wizard_confirm_campaign")
 def wizard_confirm_campaign(parser, token):
     """
-    Renders a conformation page of a wizard.
+    Renders a confirmation page of a wizard.
 
     @deprecated: We no longer have a confirmation page.
     """

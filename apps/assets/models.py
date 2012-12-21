@@ -9,7 +9,7 @@ class BaseModel(models.Model):
     The base model to inherit from.
 
     @ivar created: The date this database object was created.
-    @ivar last_modified: The date this database obeject was last modified.
+    @ivar last_modified: The date this database object was last modified.
     """
     created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     last_modified = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -24,7 +24,7 @@ class BaseModelNamed(BaseModel):
     The base model to inherit from when a models needs a name.
 
     @ivar name: The name of this database object.
-    @ivar description: The description of this databse object.
+    @ivar description: The description of this database object.
 
     @ivar slug: The short label for this database object.
     """

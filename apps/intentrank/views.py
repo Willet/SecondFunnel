@@ -367,8 +367,6 @@ def invalidate_session(request):
     @param request: The request.
 
     @return: An empty json HttpResonse.
-
-    @deprecated: This should happen automatically now.
     """
     #intentrank/invalidate-session
     url = '{0}/intentrank/invalidate-session'.format(INTENTRANK_BASE_URL)
