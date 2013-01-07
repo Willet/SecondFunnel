@@ -2,7 +2,6 @@ import os
 import djcelery
 
 from datetime import timedelta
-
 import django.conf.global_settings as DEFAULT_SETTINGS
 
 # Django settings for secondfunnel project.
