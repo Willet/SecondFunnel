@@ -8,5 +8,3 @@ SolutionStack = 64bit Amazon Linux running Python
 RdsEnabled = Yes
 RdsSourceSnapshotName = 
 RdsDeletionPolicy = Snapshot
-ProductionBucket = elasticbeanstalk-us-east-1-056265713214
-ProductionCache = cache-test.yz4kz2.0001.usw2.cache.amazonaws.com:11211
