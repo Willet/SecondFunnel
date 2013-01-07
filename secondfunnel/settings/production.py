@@ -1,7 +1,13 @@
 from common import *
+from secondfunnel.errors import EnvironmentSettingsError
+
+if not all(AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION):
+    raise EnvironmentSettingsError()
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
+
+COMPRESS_ENABLED = True
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -28,7 +34,20 @@ INSTALLED_APPS = (
     'apps.pinpoint',
     'apps.website',
     'apps.scraper',
+    "compressor",
 )
+
+# URL prefix for static files.
+# Example: "http://media.lawrence.com/static/"
+STATIC_URL = 'https://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
+COMPRESS_URL = STATIC_URL
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': MEMCACHED_LOCATION
+    }
+}
 
 GOOGLE_ANALYTICS_PROFILE = '67271131'
 GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-15'
