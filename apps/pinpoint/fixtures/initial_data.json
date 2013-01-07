@@ -3,10 +3,10 @@
           "pk": 1, 
           "model": "pinpoint.blocktype", 
           "fields": {
-               "description": "", 
-               "created": "2012-10-19T15:40:46.847Z",
-               "handler": "featured_product_wizard",
-               "image": "internal_images/cb-product-200x100.png",
+               "description": "",
+               "created": "2012-10-19T15:40:46.847Z", 
+               "handler": "featured_product_wizard", 
+               "image": "internal_images/cb-product-200x100.png", 
                "enabled": true,
                "last_modified": "2012-10-19T23:04:33.812Z", 
                "slug": "content-featured", 
@@ -37,7 +37,8 @@
                "image": "internal_images/cb-lookbook-200x100-cs.png", 
                "enabled": false, 
                "last_modified": "2012-12-06T23:53:30.747Z",
-               "slug": "lookbook", 
+               "last_modified": "2012-12-06T23:53:30.747Z",
+               "slug": "lookbook",
                "name": "Lookbook"
           }
      }, 
@@ -45,7 +46,7 @@
           "pk": 4,
           "model": "pinpoint.blocktype", 
           "fields": {
-               "description": "", 
+               "description": "",
                "created": "2012-10-19T23:05:45.260Z",
                "handler": "",
                "image": "internal_images/cb-collection-200x100-cs.png", 
