@@ -1,31 +1,15 @@
 import os
 
 import django.conf.global_settings as DEFAULT_SETTINGS
-from secondfunnel.errors import EnvironmentSettingsError
 
 # Django settings for secondfunnel project.
 
-PRODUCTION = False
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 # aws environment specific settings
-if PRODUCTION:
-    # in production, missing settings throws an exception
-    AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket')
-    MEMCACHED_LOCATION = os.getenv('ProductionCache')
-    if None in (AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION):
-        raise EnvironmentSettingsError()
-else:
-    # in dev we trust the programmer knows what he's doing
-    try:
-        from dev_env import *
-        if None in (AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION):
-            raise Exception()
-    except:
-        AWS_STORAGE_BUCKET_NAME = ''
-        MEMCACHED_LOCATION = ''
-
+AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket', '')
+MEMCACHED_LOCATION = os.getenv('ProductionCache', '')
 
 ADMINS = (
 # ('Your Name', 'your_email@example.com'),
@@ -120,19 +104,6 @@ COMPRESS_PRECOMPILERS = (
     ('text/x-sass', 'sass {infile} {outfile}'),
     ('text/x-scss', 'sass {infile} {outfile}'),
 )
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': MEMCACHED_LOCATION
-    }
-}
-
-# URL prefix for static files.
-# Example: "http://media.lawrence.com/static/"
-
-STATIC_URL = 'https://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
-COMPRESS_URL = STATIC_URL
 
 COMPRESS_PARSER = 'compressor.parser.LxmlParser'
 
