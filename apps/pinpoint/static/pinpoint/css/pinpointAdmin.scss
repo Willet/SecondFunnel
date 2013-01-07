@@ -19,7 +19,7 @@ div {
     -khtml-user-select: none;
     -moz-user-select: -moz-none;
     -o-user-select: none;
-    user-select: none
+    user-select: none;
     cursor: default;
 }
 
@@ -119,11 +119,11 @@ li a,
     height: 50px;
     color: #fff;
     background: #235364;
-}
 
-#boxTop a {
-    color: #ccc;
-    text-decoration: underline;
+    a {
+        color: #ccc;
+        text-decoration: underline;
+    }
 }
 
 #boxTop a:hover {
@@ -278,14 +278,14 @@ li a,
 
 .container_12 {
     padding-bottom: 50px;
-}
 
-.container_12 .inner_content {
-    padding: 20px 30px 40px 30px;
-    /* accounts for the margins added in 960.css. We need this because
-     * we have a grid_12 inside a grid_12.
-     */
-    width: 880px;
+    .inner_content {
+        padding: 20px 30px 40px 30px;
+        /* accounts for the margins added in 960.css. We need this because
+         * we have a grid_12 inside a grid_12.
+         */
+        width: 880px;
+    }
 }
 
 .top_bar {
@@ -294,42 +294,42 @@ li a,
     height: 50px;
     -webkit-border-radius: 5px 5px 0px 0px;
     border-radius: 5px 5px 0px 0px;
-}
 
-.top_bar .page_title {
-    font-size: 17pt;
-    padding: 7px 0 0 15px;
-    text-shadow: 1px 1px 2px #4f4f4f;
-    filter: dropshadow(color=#4f4f4f, offx=1, offy=1);
+    .page_title {
+        font-size: 17pt;
+        padding: 7px 0 0 15px;
+        text-shadow: 1px 1px 2px #4f4f4f;
+        filter: dropshadow(color=#4f4f4f, offx=1, offy=1);
+    }
 }
 
 .top_section {
     margin-top: 20px;
     height: 39px;
-}
 
-.top_section ul {
-    list-style: none;
-    position: relative;
-    top: 12px;
-}
+    ul {
+        list-style: none;
+        position: relative;
+        top: 12px;
+    }
 
-.top_section li {
-    display: inline;
-    background-color: #6f98ac;
-    padding: 10px;
-    margin-left: 15px;
+    li {
+        display: inline;
+        background-color: #6f98ac;
+        padding: 10px;
+        margin-left: 15px;
+    
+        -webkit-border-radius: 5px 5px 0px 0px;
+        border-radius: 5px 5px 0px 0px;
+    }
 
-    -webkit-border-radius: 5px 5px 0px 0px;
-    border-radius: 5px 5px 0px 0px;
+    li.selected {
+        background-color: #385a71;
+    }
 }
 
 .top_section li, .top_bar .page_title {
     color: #eeeeee;
-}
-
-.top_section li.selected {
-    background-color: #385a71;
 }
 
 #second_funnel_logo {
@@ -344,56 +344,56 @@ li a,
 /* Messages */
 ul.messages {
     padding-top: 20px;
-}
 
-ul.messages li {
-    display: block;
-    margin: 0px;
-    font-size: 16px;
-    border-width: 1px;
-    border-style: solid;
-    border-radius: 5px;
-    padding: 15px;
-    background-repeat: no-repeat;
-    background-position: 99% 50%;
-    cursor: pointer;
-}
+    li {
+        display: block;
+        margin: 0px;
+        font-size: 16px;
+        border-width: 1px;
+        border-style: solid;
+        border-radius: 5px;
+        padding: 15px;
+        background-repeat: no-repeat;
+        background-position: 99% 50%;
+        cursor: pointer;
+    }
 
-ul.messages li.success {
-    border-color: #385A71;
-    background-color: #6F98AC;
-    color: white;
+    li.success {
+        border-color: #385A71;
+        background-color: #6F98AC;
+        color: white;
+    }
 }
 
 ul.errorlist {
     margin: 0 0 10px 10px;
     list-style: none;
     display: block;
-}
 
-ul.errorlist li {
-    background-color: #B94A48;
-    border-color: white;
-    border-radius: 3px;
-    border-style: none;
-    border-collapse: separate;
-    border-width: 0px;
-
-    color: white;
-    display: inline;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    font-size: 12px;
-    font-weight: bold;
-    height: auto;
-    line-height: 14px;
-    margin: 0;
-    max-width: none;
-    padding: 1px 4px 2px 4px;
-    text-align: left;
-    text-shadow: rgba(0, 0, 0, 0.247059) 0px -1px 0px;
-    vertical-align: baseline;
-    white-space: nowrap;
-    width: auto;
+    li {
+        background-color: #B94A48;
+        border-color: white;
+        border-radius: 3px;
+        border-style: none;
+        border-collapse: separate;
+        border-width: 0px;
+    
+        color: white;
+        display: inline;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-size: 12px;
+        font-weight: bold;
+        height: auto;
+        line-height: 14px;
+        margin: 0;
+        max-width: none;
+        padding: 1px 4px 2px 4px;
+        text-align: left;
+        text-shadow: rgba(0, 0, 0, 0.247059) 0px -1px 0px;
+        vertical-align: baseline;
+        white-space: nowrap;
+        width: auto;
+    }
 }
 
 span.disabled {
@@ -405,29 +405,31 @@ span.disabled {
     text-shadow: 1px 1px 1px #CCC;
 }
 
+$rotateAngle: 5deg;
+
 @-webkit-keyframes wiggle {
     0% { -webkit-transform: rotate(0deg); }
-    5% { -webkit-transform: rotate(5deg); }
+    5% { -webkit-transform: rotate($rotateAngle); }
     10% { -webkit-transform: rotate(0deg); }
-    15% { -webkit-transform: rotate(-5deg); }
+    15% { -webkit-transform: rotate(-$rotateAngle); }
     20% { -webkit-transform: rotate(0deg); }
     100% { -webkit-transform: rotate(0deg); }
 }
 
 @-moz-keyframes wiggle {
     0% { -moz-transform: rotate(0deg); }
-    5% { -moz-transform: rotate(5deg); }
+    5% { -moz-transform: rotate($rotateAngle); }
     10% { -moz-transform: rotate(0deg); }
-    15% { -moz-transform: rotate(-5deg); }
+    15% { -moz-transform: rotate(-$rotateAngle); }
     20% { -moz-transform: rotate(0deg); }
     100% { -moz-transform: rotate(0deg); }
 }
 
 @-o-keyframes wiggle {
     0% { -o-transform: rotate(0deg); }
-    5% { -o-transform: rotate(5deg); }
+    5% { -o-transform: rotate($rotateAngle); }
     10% { -o-transform: rotate(0deg); }
-    15% { -o-transform: rotate(-5deg); }
+    15% { -o-transform: rotate(-$rotateAngle); }
     20% { -o-transform: rotate(0deg); }
     100% { -o-transform: rotate(0deg); }
 }

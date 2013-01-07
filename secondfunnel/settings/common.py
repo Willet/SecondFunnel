@@ -2,11 +2,16 @@ import os
 import djcelery
 
 from datetime import timedelta
+import django.conf.global_settings as DEFAULT_SETTINGS
 
 # Django settings for secondfunnel project.
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+
+# aws environment specific settings
+AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket', '')
+MEMCACHED_LOCATION = os.getenv('ProductionCache', '')
 
 ADMINS = (
 # ('Your Name', 'your_email@example.com'),
@@ -89,15 +94,28 @@ MEDIA_URL = ''
 # TODO: has to be a better way to get the path...
 STATIC_ROOT = fromProjectRoot('static')
 
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+DEFAULT_FILE_STORAGE = 'secondfunnel.storage.CustomExpiresS3BotoStorage'
+STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = 'sgmQk+55dtCnRzhEs+4rTBZaiO2+e4EU1fZDWxvt'
-AWS_STORAGE_BUCKET_NAME = 'elasticbeanstalk-us-east-1-056265713214'
 
-# URL prefix for static files.
-# Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+STATIC_ASSET_TIMEOUT = 1209600  # two weeks
+
+AWS_EXPIRES_REGEXES = [
+    ('^CACHE/', STATIC_ASSET_TIMEOUT),
+]
+
+COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
+                        'compressor.filters.cssmin.CSSMinFilter']
+
+COMPRESS_STORAGE = STATICFILES_STORAGE
+
+COMPRESS_PRECOMPILERS = (
+    ('text/x-sass', 'sass {infile} {outfile}'),
+    ('text/x-scss', 'sass {infile} {outfile}'),
+)
+
+COMPRESS_PARSER = 'compressor.parser.LxmlParser'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -117,6 +135,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'compressor.finders.CompressorFinder',
     )
 
 # Make this unique, and don't share it with anybody.
@@ -179,6 +198,7 @@ INSTALLED_APPS = (
     'lettuce.django',
     'adminlettuce',
     'ajax_forms',
+    "compressor",
 
     # our apps
     'apps.analytics',
@@ -233,9 +253,12 @@ LOGGING = {
     }
 }
 
-TEMPLATE_CONTEXT_PROCESSORS = (
+TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
     # allows for request variable in templates
     'django.core.context_processors.request',
+
+    # allows for external settings dict
+    'secondfunnel.context_processors.expose_settings',
 
     # needed for admin
     'django.contrib.auth.context_processors.auth',
@@ -250,6 +273,10 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 FIXTURE_DIRS = (
     'secondfunnel/fixtures/',
 )
+
+EXPOSED_SETTINGS = {
+    'STATIC_ASSET_TIMEOUT': STATIC_ASSET_TIMEOUT
+}
 
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
 

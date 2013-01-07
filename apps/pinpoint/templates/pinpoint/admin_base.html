@@ -1,14 +1,34 @@
 <!DOCTYPE html>
 {% load staticfiles %}
+{% load compress %}
 {% load i18n %}
 <html>
     <head>
-        <link rel="stylesheet" href="{% static "pinpoint/css/pinpointAdmin.css" %}">
-        <link rel="stylesheet" href="{% static "css/960.css" %}">
-        <link rel="stylesheet" href="{% static "css/reset.css" %}">
-        <link rel="stylesheet" href="{% static "css/text.css" %}">
         <title>{% block title %}Second Funnel{% endblock %}</title>
-        <link rel="shortcut icon" href="{% static "images/favicon.ico" %}" />
+        {% compress css %}
+            <link rel="stylesheet" type="text/x-scss" href="{% static "pinpoint/css/pinpointAdmin.scss" %}">
+            <link rel="stylesheet" href="{% static "css/960.css" %}">
+            <link rel="stylesheet" href="{% static "css/reset.css" %}">
+            <link rel="stylesheet" href="{% static "css/text.css" %}">
+            <link rel="shortcut icon" href="{% static "images/favicon.ico" %}" />
+
+            <style>
+                /* this needs to be here to use the static template tag */
+                ul.messages li {
+                    background-image: url('{% static "pinpoint/images/stop32.png" %}');
+                }
+            </style>
+        {% endcompress %}
+
+        {% compress css %}
+            {% block extra_head %}{% endblock %}
+            <style>
+                    /* this needs to be here to use the static template tag */
+                ul.messages li {
+                    background-image: url('{% static "pinpoint/images/stop32.png" %}');
+                }
+            </style>
+        {% endcompress %}
 
         <!-- begin SnapEngage code -->
         <script type="text/javascript">
@@ -19,14 +39,6 @@
             })();
         </script>
         <!-- end SnapEngage code -->
-
-        {% block extra_head %}{% endblock %}
-        <style>
-            /* this needs to be here to use the static template tag */
-            ul.messages li {
-                background-image: url('{% static "pinpoint/images/stop32.png" %}');
-            }
-        </style>
     </head>
 
     <body>
@@ -77,6 +89,7 @@
             </div>
         </div>
 
+        {% compress js %}
         <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
         <script src="{% static "js/jquery.cookie.js" %}"></script>
         <script>
@@ -89,7 +102,6 @@
             });
             {% endif %}
         </script>
-        {% block extra_js_includes %}{% endblock %}
 
         <script type="text/javascript">
             $(function() {
@@ -114,9 +126,27 @@
                         xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
                     }
                 });
+            });
+        </script>
+        {% endcompress %}
 
+
+        <script type="text/javascript">
+            $(function() {
+                {% if store.id %}
+                $("#cancel_to_admin").click(function(){
+                    var cancel = confirm("Are you sure you want to cancel your " +
+                            "changes?");
+                    if (cancel) {
+                        window.location.href = "{% url store-admin store.id %}";
+                    }
+                });
+                {% endif %}
                 {% block document_ready %}{% endblock %}
             });
         </script>
+
+        {% block extra_js_includes %}{% endblock %}
+
     </body>
 </html>
