@@ -3,6 +3,8 @@ from django.conf import settings
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.template import Context
+from django.utils.html import escape
+from django.template.loader_tags import do_include
 
 from apps.pinpoint.models import BlockContent
 
@@ -70,7 +72,11 @@ def social_buttons(product, count=None):
         image    = product.featured_image
     else:
         featured = False
-        image    = product.media.all()[0].get_url()
+        images   = product.media.all()
+        if images:
+            image = images[0].get_url()
+        else:
+            image = None
 
     # Explicit settings override convention
     if count is None and featured:
@@ -86,3 +92,20 @@ def social_buttons(product, count=None):
         'image'   : image,
         'count'   : count
     }
+
+
+class IncludeEscNode(template.Node):
+    def __init__(self, parser, token):
+        self.parser = parser
+        self.token = token
+
+    def render(self, context):
+        parser = self.parser
+        token = self.token
+
+        return escape(do_include(parser, token).render(context))
+
+
+@register.tag(name="include_escaped")
+def include_escaped(parser, token):
+    return IncludeEscNode(parser, token)

@@ -1,6 +1,8 @@
 {% extends "pinpoint/admin_base.html" %}
 {% load staticfiles %}
 {% load humanize %}
+{% load i18n %}
+{% load base62 %}
 
 {% block page_title %}
     {{ store }}
@@ -195,8 +197,8 @@
                     ],
                     "aaSorting": [[1, "desc"]],
                     "oLanguage": {
-                        "sZeroRecords": "No pages match that search.",
-                        "sEmptyTable": "Sorry, you haven't made any pages yet :("
+                        "sZeroRecords": "{% trans "No pages match that search." %}",
+                        "sEmptyTable": "{% trans "Sorry, you haven't made any pages yet :(" %}"
                     }
                 });
 
@@ -237,7 +239,7 @@
             if (pageListTable.fnGetNodes().length == 0) {
                 $("#new_page_button").addClass('wiggle');
                 $("#new_page_button").qtip({
-                    'content': '&larr; Make your first page',
+                    'content': '&larr; {% trans "Make your first page" %}',
                     'position': {
                         'my': 'left center',
                         'at': 'right center'
@@ -298,8 +300,8 @@
 {% block top_section %}
     <div class="grid_3 prefix_9">
         <ul>
-            <li class="selected">Pages</li>
-            <li>Analytics</li>
+            <li class="selected"><a href="{% url store-admin store.id %}">Pages</a></li>
+            <li><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
         </ul>
     </div>
 {% endblock %}
@@ -309,8 +311,8 @@
     <table id="pageList" cellpadding="0" cellspacing="0" border="0" class="display" >
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Date Modified</th>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Date Modified" %}</th>
                 <th></th>
                 <th></th>
                 <th></th>
@@ -322,11 +324,11 @@
             {% if campaign.live %}
             <tr>
                 <td><div>{{ campaign.name }}</div></td>
-                <td><div data-timestamp='{{ campaign.last_modified|date:"U" }}'>{{ campaign.last_modified|naturalday }}</div></td>
+                <td><div data-timestamp='{{ campaign.last_modified|date:"U" }}'>{% blocktrans with day=campaign.last_modified|naturalday %}{{ day }}{% endblocktrans %}</div></td>
                 <td><div><a class="get_link" href="#">Get Link</a></div></td>
-                <td><div><a href="{% url analytics-campaign-admin campaign.id %}">Analytics</a></div></td>
-                <td><div><a class="view_page" href="{% url campaign campaign.id %}" target="_blank">View Page</a></div></td>
-                <td><div><a href="{% url edit-campaign-admin campaign.store.id campaign.id %}">Edit Page</a></div></td>
+                <td><div><a href="{% url analytics-campaign-admin campaign.store.id campaign.id %}">{% trans "Analytics" %}</a></div></td>
+                <td><div><a class="view_page" href="{% url campaign_short campaign.id|base62_encode %}" target="_blank">{% trans "View Page" %}</a></div></td>
+                <td><div><a href="{% url edit-campaign-admin campaign.store.id campaign.id %}">{% trans "Edit Page" %}</a></div></td>
             </tr>
             {% endif %}
             {% endfor %}

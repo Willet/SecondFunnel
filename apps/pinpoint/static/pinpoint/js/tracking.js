@@ -18,15 +18,27 @@ var pinpointTracking = (function ($, window, document) {
     },
 
     trackEvent = function (o) {
-        console.log('trackEvent: ', category, o.action, o.label, o.value || undefined);
+        var category = "appname=pinpoint|"
+            + "storeid=" + window.PINPOINT_INFO.store.id + "|"
+            + "campaignid=" + window.PINPOINT_INFO.campaign.id + "|"
+            + "referrer=" + referrerName() + "|"
+            + "domain=" + parseUri(window.location.href).host;
+
+        // console.log(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+        _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
     },
 
-    registerShare = function (o) {
-        var action, url;
+    registerEvent = function (o) {
+        var actionData = [
+            "network=" + o.network || "",
+            "actionType=" + o.type,
+            "actionSubtype=" + o.subtype || "",
+            "actionScope=" + pinpointTracking.socialShareType,
+        ];
 
         trackEvent({
-            "action": "share|" + o.network + "|" + o.type + "|" + pinpointTracking.socialShareType,
-            "label": pinpointTracking.socialShareUrl
+            "action": actionData.join("|"),
+            "label": o.label || pinpointTracking.socialShareUrl
         });
     },
 
@@ -42,11 +54,56 @@ var pinpointTracking = (function ($, window, document) {
 
     clearTimeout = function () {
         if (typeof pinpointTracking._pptimeout == "number") {
-          window.clearTimeout(pinpointTracking._pptimeout);
+            window.clearTimeout(pinpointTracking._pptimeout);
 
-          // TODO remove this? not valid in strict mode
-          delete pinpointTracking._pptimeout;
+            // TODO remove this? not valid in strict mode
+            delete pinpointTracking._pptimeout;
         }
+    },
+
+    setTrackingDomHooks = function () {
+        // reset tracking scope: hover into featured product area
+        $(".featured").hover(function() {
+            pinpointTracking.clearTimeout();
+            pinpointTracking.setSocialShareVars({"default": true});
+        }, function() {});
+
+        // buy now event
+        $(document).on("click", "a.buy", function(e) {
+            pinpointTracking.registerEvent({
+                "type": "clickthrough",
+                "subtype": "buy",
+                "label": $(this).attr("href")
+            });
+        });
+
+        // popup open event
+        $(document).on("click", ".discovery-area > .product", function(e) {
+            pinpointTracking.registerEvent({
+                "type": "inpage",
+                "subtype": "openpopup",
+                "label": $(this).data("url")
+            });
+        });
+
+        // featured pinterest click event
+        // pinterest doesn't have an API for us to use
+        $(".pinterest").click(function() {
+            pinpointTracking.registerEvent({
+                "network": "Pinterest",
+                "type": "share",
+                "subtype": "clicked"
+            });
+        });
+
+        // social hover and popup pinterest click events
+        $(document).on("click", ".pinterest", function(e) {
+            pinpointTracking.registerEvent({
+                "network": "Pinterest",
+                "type": "share",
+                "subtype": "clicked"
+            });
+        });
     },
 
     init = function() {
@@ -60,11 +117,12 @@ var pinpointTracking = (function ($, window, document) {
             return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f) } });
         }(document, "script", "twitter-wjs"));
 
-        twttr.ready(function(twttr) {
+        twttr.ready(function (twttr) {
             twttr.events.bind('tweet', function(event) {
-                pinpointTracking.registerShare({
+                pinpointTracking.registerEvent({
                     "network": "Twitter",
-                    "type": "shared"
+                    "type": "share",
+                    "subtype": "shared"
                 });
             });
 
@@ -77,14 +135,18 @@ var pinpointTracking = (function ($, window, document) {
                 } else {
                     sType = event.region;
                 }
-                pinpointTracking.registerShare({
+                pinpointTracking.registerEvent({
                     "network": "Twitter",
-                    "type": sType
+                    "type": "share",
+                    "subtype": sType
                 });
             });
         });
-    },
 
+        $(function() {
+            setTrackingDomHooks();
+        });
+    },
 
     // parseUri 1.2.2
     // (c) Steven Levithan <stevenlevithan.com>
@@ -120,13 +182,12 @@ var pinpointTracking = (function ($, window, document) {
     };
 
     this.socialShareType = undefined;
-    this.socialShareUrl  = undefined;
-    this._pptimeout      = undefined;
+    this.socialShareUrl = undefined;
+    this._pptimeout = undefined;
 
     return {
         "init": init,
-        "registerShare": registerShare,
-        "trackEvent": trackEvent,
+        "registerEvent": registerEvent,
         "setSocialShareVars": setSocialShareVars,
         "clearTimeout": clearTimeout
     }

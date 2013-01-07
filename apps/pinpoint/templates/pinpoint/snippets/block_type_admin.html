@@ -1,18 +1,19 @@
+{% load i18n %}
 <div class="grid_3 block_type {% if not block_type.enabled %}dimmed{% else %}enabled{% endif %}">
     {% if block_type.enabled %}
     <span class="url" style="display:none">{% url block-type-wizard store.id block_type.id %}</span>
         {% if linked %}
             <a href="{% url block-type-wizard store.id block_type.id %}">
                 <img src="{{ block_type.image.url }}">
-                <span class="title">{{ block_type.name }}</span>
+                <span class="title">{% blocktrans with name=block_type.name %}{{ name }}{% endblocktrans %}</span>
             </a>
         {% else %}
             <img src="{{ block_type.image.url }}">
-            <span class="title">{{ block_type.name }}</span>
+            <span class="title">{% blocktrans with name=block_type.name %}{{ name }}{% endblocktrans %}</span>
         {% endif %}
     {% else %}
         <img src="{{ block_type.image.url }}">
-        <span class="title">{{ block_type.name }}</span>
+        <span class="title">{% blocktrans with name=block_type.name %}{{ name }}{% endblocktrans %}</span>
         {% if not block_type.enabled %}<span class="disabled">Coming soon!</span>{% endif %}
     {% endif %}
 </div>

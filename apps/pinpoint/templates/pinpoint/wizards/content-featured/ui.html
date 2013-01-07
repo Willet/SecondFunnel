@@ -1,13 +1,14 @@
 {% extends "pinpoint/admin_base.html" %}
 {% load staticfiles %}
 {% load ajax_form_utils %}
+{% load i18n %}
 
 {% block title %}
-    {% if campaign %}Edit {% else %}New{% endif %} Page
+    {% if campaign %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}{% trans "Page" %}
 {% endblock %}
 
 {% block page_title %}
-    {% if campaign %}Edit {% else %}New{% endif %} Page
+    {% if campaign %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}{% trans "Page" %}
 {% endblock %}
 
 {% block extra_head %}
@@ -32,7 +33,7 @@
             font-size: 15pt;
         }
 
-        #product_images {
+        .product-images {
             height: 230px;
             overflow-x: auto;
             overflow-y: hidden;
@@ -44,12 +45,7 @@
             -moz-box-shadow:0px 0px 5px rgba(0,0,0,.5);
         }
 
-        /*#product_images ul {
-            list-style: none;
-            margin-top: 20px;
-        }*/
-
-        #product_images > li {
+        .product-images > li {
             padding-right: 8px;
             padding-bottom: 8px;
             width: 200px;
@@ -61,7 +57,7 @@
             line-height: 200px;
         }
 
-        #product_images li > img {
+        .product-images li > img {
             padding: 5px;
             vertical-align: middle;
             max-width: 200px;
@@ -69,14 +65,14 @@
             cursor:pointer;
         }
 
-        #fine-uploader {
+        .fine-uploader {
             display: inline-block;
             width: 200px;
             line-height: 20px;
             margin-top: 83px;
         }
 
-        #fine-uploader .qq-upload-button {
+        .fine-uploader .qq-upload-button {
             margin-left: auto;
             margin-right: auto;
             width: 160px;
@@ -98,7 +94,7 @@
             width: 250px;
         }
 
-        #product_images li > img.prod_img:hover, #product_images img.selected {
+        .product-images li > img.prod_img:hover, .product-images img.selected {
             background-color: #C43;
             -webkit-border-radius: 5px;
             border-radius: 5px;
@@ -226,346 +222,28 @@
     <script src="{% static "js/jquery.watermark.min.js" %}"></script>
     <script src="{% static "js/jquery.loadmask.min.js" %}"></script>
     <script src="{% static "js/fileuploader.js" %}"></script>
-
     <script>
+        // Because the django-ajax-forms library is stupid and causes an
+        // error in ie9, this workaround is needed.
+        if (window.console && !console.debug) {
+            console.debug = function(){};
+        };
 
-    var app = (function() {
-        var existing_images, products, product_selected, setUpListeners,
-            updateCharacters, init, page_changed, onPageChanged;
+        window.store = '{{ store.id }}';
 
-        existing_images = {};
-
-        onPageChanged = function() {
-            page_changed.val("true");
+        window.url_list = {
+            'store-admin'       : '{% url store-admin store.id %}',
+            'new-campaign-admin': '{% url new-campaign-admin store.id %}',
+            'loading-gif'       : '{% static "loading.gif" %}',
+            'ajax-image-upload' : '{% url ajax-upload-image %}'
         }
 
-        products = {
-            {% for product in products %}
-            '{{ product.id }}': {
-                'id': '{{ product.id }}',
-                'name': '{{ product.name }}',
-                'description': '{{ product.description|escapejs }}',
-                'media': [
-                    {% for product_media in product.media.all %}
-                    {
-                        'id': '{{ product_media.id }}',
-                        'url': '{{ product_media.get_url }}'
-                    }{% if not forloop.last %},{% endif %}
-                    {% endfor %}
-                ]
-            }{% if not forloop.last %},{% endif %}
-            {% endfor %}
-        };
-
-        product_selected = function (o) {
-            $("#image-selector").siblings(".errorlist").children("li").fadeIn(500);
-
-            var product = products[o.product_id],
-                media_id = $("#id_product_media_id").val();
-
-            if (typeof(product) === "undefined") {
-                return;
-            }
-
-            // clear existing image list
-            images = $("#product_images li");
-            imagesToRemove = images.splice(1, images.length - 1);
-            for (var i = imagesToRemove.length - 1; i >= 0; i--) {
-                $(imagesToRemove[i]).remove();
-            }
-
-            // display product media
-            for (i in product.media) {
-                var li = $("<li><img class='prod_img existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
-                if (product.media[i].id == o.product_image_id) {
-                    $("#image-selector").siblings(".errorlist").children("li").hide();
-                    li.children('img').addClass('selected');
-                }
-                $("#product_images").append(li);
-            }
-
-            if (o.product_generic_image_list) {
-                var uploadedImages = $.map(
-                    o.product_generic_image_list.split("|"),
-                    function(str) {
-                        var s = str.split("\\"); return {url: s[0], id: s[1]};
-                    });
-                $.map(uploadedImages.reverse(), function(img) {
-                    var image = $("<li><img class='prod_img new_image' data-mid='" + img.id + "' src='" + img.url + "'></li>");
-                    if (o.product_generic_image_id == img.id) {
-                        $("#image-selector").siblings(".errorlist").children("li").hide();
-                        image.children('img').addClass('selected');
-                    }
-                    $("#fine-uploader").closest('li').after(image);
-                });
-            }
-
-            $("#product_images").find("[data-mid='" + media_id  + "']")
-                .addClass("selected")
-
-            // set product's proper name
-            $("#product_name").val(product.name);
-
-            if (!o.human_invoked) {
-                $("#id_name").val(o.page_name);
-            } else {
-                // resetting previous values
-                $("#id_product_media_id").val("");
-                $("#id_generic_media_id").val("");
-                $("#id_generic_media_lst").val("");
-                onPageChanged();
-                $("#id_name").val("Featured: " + product.name);
-            }
-            // fire change event so validator updates
-            $("#id_name").change();
-
-            if (o.product_description) {
-                // set product's description
-                $("#id_description").val(o.product_description);
-            } else {
-                // set product's description
-                $("#id_description").val(product.description);
-            }
-            // fire change event so validator updates
-            $("#id_description").change();
-
-            // set the id for form submission
-            $("#id_product_id").val(product.id);
-
-            // update character count
-            updateCharacters();
-
-            $(".product_meta").unmask();
-        };
-
-        updateCharacters = function() {
-            var chars = $("#id_description").val().length;
-            $("#characters").text(chars);
-
-            var $count = $("#character_count");
-            var $buttons = $(".button:not(#cancel_to_admin, .back, .qq-upload-button)");
-
-            $count.removeClass();
-            $buttons.removeClass('disabled');
-            $buttons.removeAttr('disabled');
-
-            if (chars > 250 || chars <= 0) {
-                $count.addClass("danger");
-                $buttons.addClass('disabled');
-                $buttons.attr('disabled', 'disabled');
-            } else if ((230 <= chars) && (chars <= 250)) {
-                $count.addClass("warning");
-            }
-
-            if (chars <= 20 && chars > 0) {
-                $count.addClass("warning");
-                if ($("#small_desc_warning:hidden").length > 0) {
-                    $("#small_desc_warning").fadeIn(500);
-                }
-            } else {
-                if ($("#small_desc_warning:visible").length > 0) {
-                    $("#small_desc_warning").stop(true, true);
-                    $("#small_desc_warning").fadeOut(500);
-                }
-            }
-
-        };
-
-        setUpListeners = function () {
-            // GENERAL UI
-            $("#product_images img.existing_image").live('click', function() {
-                onPageChanged();
-                $("#image-selector").siblings(".errorlist").children("li").fadeOut(500);
-
-                $("#product_images img").removeClass("selected");
-                $(this).addClass("selected");
-
-                $("#id_product_media_id").val($(this).data('mid'));
-                $("#id_generic_media_id").val("");
-            });
-
-            $("#product_images img.new_image").live('click', function() {
-                onPageChanged();
-                $("#image-selector").siblings(".errorlist").children("li").fadeOut(500);
-
-                $("#product_images img").removeClass("selected");
-                $(this).addClass("selected");
-
-                $("#id_generic_media_id").val($(this).data('mid'));
-                $("#id_product_media_id").val("");
-            });
-
-            $(".button.back:not(.disabled)").click(function(){
-                if (page_changed.val()) {
-                    var cancel = confirm("By going back you will lose your " +
-                            "changes on this page. Are you sure?");
-                }
-                if (cancel || !page_changed.val()) {
-                    window.location.href = "{% url new-campaign-admin store.id %}";
-                }
-            });
-
-            $("#id_name, #id_description").change(onPageChanged);
-            $("#id_name, #id_description").keyup(onPageChanged);
-
-            $("#cancel_to_admin").unbind('click').click(function(){
-                if (page_changed.val()) {
-                    var cancel = confirm("Are you sure you want to cancel your " +
-                            "changes?");
-                    }
-                if (cancel || !page_changed.val()) {
-                    window.location.href = "{% url store-admin store.id %}";
-                }
-            });
-
-            // PRODUCT SEARCH AUTOCOMPLETE
-            $("#product_name").autocomplete({
-                source: function(request, response) {
-                    var term = request.term;
-                    $.getJSON("/api/assets/v1/product/", {
-                        "store": "{{ store.id }}",
-                        "format": "json",
-                        "name_or_url": term
-
-                    }, function(data) {
-                        //convert object to usable form
-                        var results = [];
-                        $.each(data.objects, function(index, value) {
-                            results.push({'label': value.name, 'id': value.id})
-                        });
-                        response(results);
-                    })
-                },
-                minLength: 2,
-                select: function( event, ui ) {
-                    if (ui.item) {
-                        product_selected({
-                            product_id: ui.item.id,
-                            human_invoked: true
-                        });
-                    }
-                }
-            });
-
-            // CHARACTER COUNT
-            $("#id_description").on("keydown keyup", updateCharacters);
-
-            $(".button.preview").click(function(){
-                var $form = $("#create_campaign");
-                var $campaign_id = $("#id_campaign_id");
-                $.ajax({
-                    async: false,
-                    type: 'POST',
-                    data: $form.serialize(),
-                    url: window.location.href,
-                    success: function(response) {
-                        if (response.success) {
-                            var url = 'http://' + window.location.host + response.url;
-                            window.open(url, "_blank");
-                            $campaign_id.val(response.campaign);
-                        } else {
-                            $form[0].submit();
-                        }
-                    }
-                })
-            });
-        };
-
-        init = function () {
-            $(function() {
-                // because the django-ajax-forms library is stupid and causes an
-                // error in ie9, this workaround is needed.
-                if (window.console && !console.debug) {
-                    console.debug = function(){};
-                }
-
-                $(".product_meta").mask();
-                $("#product_name").watermark("Your product name");
-                $("#id_name").watermark("Your page name");
-                $("#id_description").watermark("Featured product description");
-                page_changed = $("#id_page_changed");
-
-                // in case we're dealing with errors on submition,
-                // ensure we're displaying the product that was selected prior
-                product_selected({
-                    product_id: $("#id_product_id").val(),
-                    page_name: $("#id_name").val(),
-                    product_description: $("#id_description").val(),
-                    product_image_id: $("#id_product_media_id").val(),
-                    product_generic_image_id: $("#id_generic_media_id").val(),
-                    product_generic_image_list: $("#id_generic_media_list").val()
-                });
-
-                setUpListeners();
-                var uploader = new qq.FileUploader({
-                  element: document.getElementById('fine-uploader'),
-                  action: '{% url ajax-upload-image %}',
-                  csrfToken: $.cookie('csrftoken'),
-                  allowedExtensions: ['jpg' ,'png', 'jpeg'],
-                  onSubmit: function() {
-                      $("#fine-uploader").closest('li').after(
-                      "<li><img class='loading_gif' src='{% static "loading.gif" %}'></li>"
-                      );
-                  },
-                  onComplete: function(id, fileName, response) {
-                      if (response.success) {
-                          var decodedUrl = $(document.createElement('div')).html(response.url).text()
-                          var gif = $("#product_images .loading_gif");
-                          gif.hide();
-                          gif.removeClass('loading_gif');
-                          gif.addClass('prod_img');
-                          gif.addClass('new_image');
-                          gif.attr('src', decodedUrl);
-                          gif.data('mid', response.media_id);
-                          gif.load(function() {
-                              gif.fadeIn(500);
-                              gif.click();
-                          });
-                          $("#id_generic_media_list").val($('#product_images img.new_image').map(
-                              function(){return $(this).attr('src') + "\\" + $(this).data('mid');}).toArray().join("|"));
-                      } else {
-                          var gif = $("#product_images .loading_gif");
-                          var li = gif.closest('li');
-                          li.addClass('broken_image');
-                          gif.remove();
-                          li.html('<div class="rounded"><ul class="errorlist"><li>Error uploading image.</li><br /><li>Click this box to dismiss.</li></ul></div>')
-
-                          $("li.broken_image").unbind('click').click(function() {
-                              $(this).animate({
-                                  width: 0,
-                                  margin: 0,
-                                  padding: 0
-                              }, 500, function() {
-                                  $(this).remove();
-                              });
-                          });
-                      }
-                  }
-                });
-
-                $(".qq-upload-button").addClass('button');
-
-                // save existing image settings
-                app.existing_images = {
-                    "generic": $("#id_generic_media_id").val(),
-                    "existing": $("#id_product_media_id").val()
-                };
-            });
-        };
-
-        return {
-            "init": init
-        }
-    }());
-
-    app.init();
-
-    $('#create_campaign').validation({% render_ajax_fields form %}, {
-        layout: 'p',
-        validation_events: ['blur', 'keyup', 'change']
-    });
-
+        $('#create_campaign').validation({% render_ajax_fields form %}, {
+            layout: 'p',
+            validation_events: ['blur', 'keyup', 'change']
+        });
     </script>
+    {% include "pinpoint/snippets/featured-or-shopthelook-js.html" %}
 {% endblock %}
 
 {% block document_ready %}
@@ -584,38 +262,41 @@
         {% csrf_token %}
         <div class="product_select">
             <div class="field">
-                <label class="field-align" for="product_name">Featured Product:</label>
+                <label class="field-align" for="product_name">{% trans "Featured Product" %}:</label>
                 <input type="text" id="product_name">
-                <span class="helptext">Start typing in the name of a product you want to feature</span>
+                <span class="helptext">{% trans "Start typing in the name of a product you want to feature" %}</span>
             </div>
         </div>
 
         <div class="product_meta">
             <div class="field">
-                <label class="field-align" for="id_name">Page Name:</label>
+                <label class="field-align" for="id_name">{% trans "Page Name" %}:</label>
                 {{ form.name }}
                 {% if form.name.errors %} {{ form.name.errors }} {% else %}
                     <ul class="errorlist">
                     </ul>
                 {% endif %}
-                <span class="helptext">Enter a name for this page.</span>
+                <span class="helptext">{% trans "Enter a name for this page" %}.</span>
             </div>
 
-            <div class="field">
-                <label for="image-selector">Featured Image:</label>
+            {% block shop-the-look %}
+            {% endblock shop-the-look %}
+
+            <div class="field featured">
+                <label for="image-selector">{% trans "Featured Image" %}:</label>
                 {% if form.errors or form.non_field_errors %}
                     {{ form.non_field_errors }}
                 {% else %}
                     <ul class="errorlist">
-                        <li>This field is required.</li>
+                        <li>{% trans "This field is required." %}</li>
                     </ul>
                 {% endif %}
-                <span class="helptext">Please either select an existing product image or upload a custom one.</span>
-                <div id="image-selector">
+                <span class="helptext">{% trans "Please either select an existing product image or upload a custom one." %}</span>
+                <div id="image-selector" class="image-selector">
                     <div class="existing_images_list">
-                        <ul id="product_images">
+                        <ul id="product_images" class="product-images">
                             <li>
-                            <div id="fine-uploader"></div>
+                            <div id="fine-uploader" class='fine-uploader'></div>
                             </li>
                         </ul>
                     </div>
@@ -623,7 +304,7 @@
             </div>
 
             <div class="field">
-                <label for="id_description">Product Description:</label>
+                <label for="id_description">{% trans "Product Description" %}:</label>
                 <div>
                     {% if form.description.errors %} {{form.description.errors }} {% else %}
                         <ul class="errorlist">
@@ -632,15 +313,17 @@
                     <br />
                     {{ form.description }}
                     <span class="helptext textarea">
+                        {% blocktrans %}
                         You can tailor product's
-                        description that will appear on the page. Shorter is better.<br/>
+                        description that will appear on the page. Shorter is better.
+                        {% endblocktrans %}<br/>
                         <br/>
                         <span id="character_count">
                             <span id="characters">0</span> / 250
-                            characters.
+                            {% trans "characters" context "amount of letters" %}.
                         </span>
                         <br />
-                        <span id="small_desc_warning" style="display: none">It's strongly advised to give a longer description than that.</span>
+                        <span id="small_desc_warning" style="display: none">{% trans "It's strongly advised to give a longer description than that." %}</span>
                     </span>
                 </div>
             </div>
@@ -650,10 +333,10 @@
                     {{ hidden }}
                 {% endfor %}
 
-                <input class="button submit focus" type="submit" value="{% if campaign %}Save{% else %}Create{% endif %} Page">
+                <input class="button submit focus" type="submit" value="{% if campaign %}{% trans "Save" %}{% else %}{% trans "Create" %}{% endif %}{% trans "Page" %}">
                 <input class="button preview" type="button" value="Preview Page">
-                <input id="cancel_to_admin" class="button" type="button" value="&times; Cancel">
-                <input class="button back {% if campaign %}disabled{% endif %}" type="button" value="&larr; Back">
+                <input id="cancel_to_admin" class="button" type="button" value="&times; {% trans "Cancel" %}">
+                <input class="button back {% if campaign %}disabled{% endif %}" type="button" value="&larr; {% trans "Back" %}">
             </div>
         </div>
     </form>

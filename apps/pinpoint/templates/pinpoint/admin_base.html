@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% load staticfiles %}
 {% load compress %}
+{% load i18n %}
 <html>
     <head>
         <title>{% block title %}Second Funnel{% endblock %}</title>
@@ -21,7 +22,22 @@
 
         {% compress css %}
             {% block extra_head %}{% endblock %}
+            <style>
+                    /* this needs to be here to use the static template tag */
+                ul.messages li {
+                    background-image: url('{% static "pinpoint/images/stop32.png" %}');
+                }
+            </style>
         {% endcompress %}
+        <!-- begin SnapEngage code -->
+        <script type="text/javascript">
+            (function() {
+                var se = document.createElement('script'); se.type = 'text/javascript'; se.async = true;
+                se.src = '//commondatastorage.googleapis.com/code.snapengage.com/js/eb5906d0-f9ba-4df9-b8e4-7c3d3632a919.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(se, s);
+            })();
+        </script>
+        <!-- end SnapEngage code -->
     </head>
 
     <body>
@@ -35,11 +51,11 @@
                 <div class="bannerRight">
                     <ul>
                         {% if user.is_authenticated %}
-                        <li><a href="{% url login-redirect %}">Dashboard</a></li>
-                        <li><a href="{% url password_change %}">Change Password</a></li>
-                        <li><a href="{% url logout %}">Logout</a></li>
+                        <li><a href="{% url login-redirect %}">{% trans "Dashboard" %}</a></li>
+                        <li><a href="{% url password_change %}">{% trans "Change Password" %}</a></li>
+                        <li><a href="{% url logout %}">{% trans "Logout" %}</a></li>
                         {% else %}
-                        <li><a href="{% url login %}">Login</a></li>
+                        <li><a href="{% url login %}">{% trans "Login" %}</a></li>
                         {% endif %}
                     </ul>
                 </div>
@@ -76,6 +92,14 @@
         <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
         <script src="{% static "js/jquery.cookie.js" %}"></script>
         <script>
+            {% if store.id %}
+            $("#cancel_to_admin").click(function(){
+                var cancel = confirm("{% trans "Are you sure you want to cancel your changes?" %}");
+                if (cancel) {
+                    window.location.href = "{% url store-admin store.id %}";
+                }
+            });
+            {% endif %}
         </script>
 
         <script type="text/javascript">
@@ -105,23 +129,23 @@
         </script>
         {% endcompress %}
 
-        {% compress js %}
-            <script type="text/javascript">
-                $(function() {
-                    {% if store.id %}
-                    $("#cancel_to_admin").click(function(){
-                        var cancel = confirm("Are you sure you want to cancel your " +
-                                "changes?");
-                        if (cancel) {
-                            window.location.href = "{% url store-admin store.id %}";
-                        }
-                    });
-                    {% endif %}
-                    {% block document_ready %}{% endblock %}
-                });
-            </script>
 
-            {% block extra_js_includes %}{% endblock %}
-        {% endcompress %}
+        <script type="text/javascript">
+            $(function() {
+                {% if store.id %}
+                $("#cancel_to_admin").click(function(){
+                    var cancel = confirm("Are you sure you want to cancel your " +
+                            "changes?");
+                    if (cancel) {
+                        window.location.href = "{% url store-admin store.id %}";
+                    }
+                });
+                {% endif %}
+                {% block document_ready %}{% endblock %}
+            });
+        </script>
+
+        {% block extra_js_includes %}{% endblock %}
+
     </body>
 </html>

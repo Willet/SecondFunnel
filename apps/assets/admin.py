@@ -1,6 +1,7 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 
-from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage
+from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage, YoutubeVideo
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -20,6 +21,8 @@ class BaseNamedAdmin(BaseAdmin):
         'description',
         'slug'
     ] + BaseAdmin.list_display
+
+    search_fields = ['name']
 
     prepopulated_fields = {"slug": ("name",)}
 
@@ -67,10 +70,29 @@ class ProductMediaInline(admin.TabularInline):
 
 class ProductAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + [
-        'original_url', 'price', 'media_count']
+        'store', 'original_url', 'price', 'media_count', 'lifestyleImage']
+
+    list_filter = BaseNamedAdmin.list_filter + ['store',]
 
     inlines = [
         ProductMediaInline,
     ]
 
+    readonly_fields = ('lifestyle_preview', )
+
+    def lifestyle_preview(self, obj):
+        try:
+            url = obj.lifestyleImage.get_url()
+            return mark_safe("<img src='{url}' />".format(url=url))
+        except AttributeError:
+            return "No Image Available"
+
+
 admin.site.register(Product, ProductAdmin)
+
+
+class YoutubeVideoAdmin(BaseAdmin):
+    list_display = BaseAdmin.list_display + [
+        'video_id', 'store']
+
+admin.site.register(YoutubeVideo, YoutubeVideoAdmin)

@@ -1,4 +1,7 @@
 import os
+import djcelery
+
+from datetime import timedelta
 
 import django.conf.global_settings as DEFAULT_SETTINGS
 
@@ -16,6 +19,14 @@ ADMINS = (
 )
 
 MANAGERS = ADMINS
+
+
+def fromProjectRoot(path):
+    return os.path.join(
+           os.path.dirname(
+           os.path.dirname(
+           os.path.dirname(
+           os.path.abspath(__file__)))), path)
 
 if 'RDS_DB_NAME' in os.environ:
     DATABASES = {
@@ -50,6 +61,10 @@ TIME_ZONE = 'America/Chicago'
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
 
+LOCALE_PATHS = (
+    fromProjectRoot('locale'),
+)
+
 SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
@@ -78,11 +93,7 @@ MEDIA_URL = ''
 # Example: "/home/media/media.lawrence.com/static/"
 
 # TODO: has to be a better way to get the path...
-STATIC_ROOT = os.path.join(
-    os.path.dirname(
-        os.path.dirname(
-            os.path.dirname(
-                os.path.abspath(__file__)))), 'static')
+STATIC_ROOT = fromProjectRoot('static')
 
 DEFAULT_FILE_STORAGE = 'secondfunnel.storage.CustomExpiresS3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
@@ -139,8 +150,9 @@ TEMPLATE_LOADERS = (
     )
 
 MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -178,6 +190,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
 
     # external apps
+    'djcelery',
     'storages',
     'south',
     'django_extensions',
@@ -206,12 +219,26 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
         }
     },
     'handlers': {
+        'logging_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'formatter': 'verbose',
+            'filename': fromProjectRoot('errorlog.txt')
+        },
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
@@ -220,7 +247,7 @@ LOGGING = {
     },
     'loggers': {
         'django.request': {
-            'handlers': ['mail_admins'],
+            'handlers': ['logging_file', 'mail_admins'],
             'level': 'ERROR',
             'propagate': True,
         },
@@ -233,6 +260,15 @@ TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
 
     # allows for external settings dict
     'secondfunnel.context_processors.expose_settings',
+
+    # needed for admin
+    'django.contrib.auth.context_processors.auth',
+
+    # allows for the django messages framework
+    'django.contrib.messages.context_processors.messages',
+
+    # used for internationalization
+    'django.core.context_processors.i18n',
     )
 
 FIXTURE_DIRS = (
@@ -242,3 +278,19 @@ FIXTURE_DIRS = (
 EXPOSED_SETTINGS = {
     'STATIC_ASSET_TIMEOUT': STATIC_ASSET_TIMEOUT
 }
+
+INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
+
+CELERYBEAT_SCHEDULE = {
+    'runs-every-6-hours': {
+        'task': 'apps.analytics.tasks.redo_analytics',
+        'schedule': timedelta(hours=6),
+    },
+}
+
+djcelery.setup_loader()
+
+try:
+    from local_settings import *
+except ImportError, e:
+    pass

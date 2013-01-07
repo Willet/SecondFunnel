@@ -12,4 +12,5 @@ secondfunnel/local_settings.py
 bin/*
 /static
 .elasticbeanstalk/
-secondfunnel/settings/dev_env.py
+doc/
+errorlog.txt
