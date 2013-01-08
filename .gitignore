@@ -1,5 +1,5 @@
 aws_credential_file
-secondfunnel/local_settings.py
+secondfunnel/settings/local_settings.py
 *.idea
 *.ropeproject
 *.pyc
