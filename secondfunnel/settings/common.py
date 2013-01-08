@@ -238,7 +238,7 @@ LOGGING = {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
             'formatter': 'verbose',
-            'filename': fromProjectRoot('errorlog.txt')
+            'filename': '/var/log/django.log'
         },
         'mail_admins': {
             'level': 'ERROR',
