@@ -290,8 +290,3 @@ CELERYBEAT_SCHEDULE = {
 }
 
 djcelery.setup_loader()
-
-try:
-    from local_settings import *
-except ImportError, e:
-    pass
