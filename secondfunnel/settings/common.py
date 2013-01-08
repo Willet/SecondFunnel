@@ -12,8 +12,8 @@ TEMPLATE_DEBUG = DEBUG
 # aws environment specific settings
 # These values should not be hardcoded. They are only hardcoded because
 # We have not yet found a way to set environment variables :(
-AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket', "elasticbeanstalk-us-east-1-056265713214")
-MEMCACHED_LOCATION = os.getenv('ProductionCache', 'cache-test.yz4kz2.0001.usw2.cache.amazonaws.com:11211')
+AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket', 'elasticbeanstalk-us-east-1-056265713214')
+MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 
 ADMINS = (
 # ('Your Name', 'your_email@example.com'),
