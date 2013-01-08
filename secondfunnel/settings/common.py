@@ -6,7 +6,7 @@ import django.conf.global_settings as DEFAULT_SETTINGS
 
 # Django settings for secondfunnel project.
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 # aws environment specific settings
