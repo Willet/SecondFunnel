@@ -1,0 +1,2 @@
+export PRODUCTION_BUCKET="elasticbeanstalk-us-east-1-056265713214"
+export PRODUCTION_CACHE="cache-test.yz4kz2.0001.usw2.cache.amazonaws.com:11211"
