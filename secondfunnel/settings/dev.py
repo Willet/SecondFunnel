@@ -16,8 +16,10 @@ DATABASES = {
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'secondfunnel'
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': [
+            '127.0.0.1:11211',
+        ]
     }
 }
 
@@ -37,8 +39,3 @@ GOOGLE_API_PRIVATE_KEY = 'google-service-account-prod.p12'
 GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 
 BROKER_URL = 'amqp://guest:guest@localhost:5672//'
-
-try:
-    from local_settings import *
-except ImportError, e:
-    pass
