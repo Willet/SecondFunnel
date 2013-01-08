@@ -10,8 +10,11 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 # aws environment specific settings
-AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket', '')
-MEMCACHED_LOCATION = os.getenv('ProductionCache', '')
+# Why are they called PARAM1 and PARAM2?
+# Because AWS is DUMB :(
+# https://gist.github.com/808968
+AWS_STORAGE_BUCKET_NAME = os.getenv('PARAM1', '')
+MEMCACHED_LOCATION = os.getenv('PARAM2', '')
 
 ADMINS = (
 # ('Your Name', 'your_email@example.com'),
