@@ -90,6 +90,10 @@ def edit_campaign(request, store_id, campaign_id):
 
 @login_required
 def block_type_router(request, store_id, block_type_id):
+    """Resolves the handler that renders a "block type".
+
+    Handler information is stored in the database.
+    """
     store = get_object_or_404(Store, pk=store_id)
     block_type = get_object_or_404(BlockType, pk=block_type_id)
 
