@@ -23,6 +23,15 @@ CACHES = {
     }
 }
 
+# We should be able to just run `bundle exec sass` in dev as we do in
+# production. Until we've figured that out, just running things this way
+COMPRESS_PRECOMPILERS = (
+    ('text/x-sass', 'sass {infile} {outfile}'),
+    ('text/x-scss', 'sass {infile} {outfile}'),
+)
+
+#LOGGING['handlers']['logging_file']['filename'] = fromProjectRoot('errorlog.txt')
+
 DEFAULT_FILE_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 COMPRESS_STORAGE = STATICFILES_STORAGE

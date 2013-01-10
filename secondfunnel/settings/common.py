@@ -113,8 +113,8 @@ COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
 COMPRESS_STORAGE = STATICFILES_STORAGE
 
 COMPRESS_PRECOMPILERS = (
-    ('text/x-sass', 'sass {infile} {outfile}'),
-    ('text/x-scss', 'sass {infile} {outfile}'),
+    ('text/x-sass', 'bundle exec sass {infile} {outfile}'),
+    ('text/x-scss', 'bundle exec sass {infile} {outfile}'),
 )
 
 COMPRESS_PARSER = 'compressor.parser.LxmlParser'
