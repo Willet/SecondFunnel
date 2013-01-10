@@ -39,7 +39,9 @@ var application = (function(store_id, urls){
             //TODO: Why here?
             onPageChanged();
 
-            $("#id_name").val("Featured: " + product.name);
+            $("#id_name").val(
+                "{{ block_type.name|default:'Featured' }}: " + product.name
+            );
         }
 
         // fire change event so validator updates
