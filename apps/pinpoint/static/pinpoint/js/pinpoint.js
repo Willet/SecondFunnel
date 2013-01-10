@@ -471,8 +471,8 @@ var PINPOINT = (function($, pageInfo){
 
         var url = 'http://pinterest.com/pin/create/button/' +
             '?url=' + encodeURIComponent(conf.url) +
-            '&media=' + encodeURIComponent(conf.image);
-
+            '&media=' + encodeURIComponent(conf.image) +
+            '&description=' + details.store.name + '-' + conf.title;
 
         var $img = $('<img/>', {
             'src': "//assets.pinterest.com/images/PinExt.png"
