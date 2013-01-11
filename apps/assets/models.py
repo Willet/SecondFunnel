@@ -134,7 +134,11 @@ class Product(BaseModelNamed):
     def images(self):
         return [x.get_url() for x in self.media.all()]
 
-    def data(self):
+    def data(self, raw=False):
+        """HTML string representation of some of the product's properties.
+
+        If raw, then the return value remains a list.
+        """
         def strip_and_escape(text):
             modified_text = striptags(text)
             modified_text = escape(modified_text)
@@ -153,7 +157,11 @@ class Product(BaseModelNamed):
             ('data-product-id', self.id)
         ]
 
-        data = ' '.join("%s='%s'" % field for field in fields)
+        if raw:
+            # strip 'data-'
+            data = [(key[5:], val) for key, val in fields]
+        else:
+            data = ' '.join("%s='%s'" % field for field in fields)
 
         return data
 

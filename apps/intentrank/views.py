@@ -88,6 +88,7 @@ def send_intentrank_request(request, url, method='GET', headers=None):
 
 def process_intentrank_request(request, store, page, function_name,
                                param_dict):
+    """does NOT initiate a real IntentRank request if debug is set to True."""
 
     url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
         INTENTRANK_BASE_URL, store, page, function_name)
@@ -125,7 +126,7 @@ def products_to_template(products, campaign, results):
         "{% load pinpoint_ui %}",
         "<div class='block product' {{product.data|safe}}>",
         theme.discovery_product,
-        "</div>"
+        "</div>",
     ])
 
     for product in products:
@@ -183,6 +184,26 @@ def get_blocks(request, products, campaign_id):
     return results
 
 
+def get_json_data(request, products, campaign_id):
+    """returns json equivalent of get_blocks' blocks.
+
+    results will be an object {}, not an array [].
+    """
+    campaign = Campaign.objects.get(pk=campaign_id)
+    results = {'products': []}
+    for product in products:
+        product_props = product.data(raw=True)
+        product_js_obj = {}
+        for product_prop in product_props:
+            # where product_prop is ('data-key', 'value')
+            product_js_obj[product_prop[0]] = product_prop[1]
+        results['products'].append(product_js_obj)
+
+    # TODO
+    # videos_to_template(request, campaign, results)
+    return results
+
+
 def get_seeds(request):
     store   = request.GET.get('store', '-1')
     page    = request.GET.get('campaign', '-1')
@@ -218,7 +239,7 @@ def get_results(request):
     )
 
     if status in SUCCESS_STATUSES:
-        result = get_blocks(request, results, page)
+        result = get_json_data(request, results, page)
     else:
         result = results
 

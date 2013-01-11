@@ -234,7 +234,7 @@ var PINPOINT = (function($, pageInfo){
                 data: {
                     'store': details.store.id,
                     'campaign': details.campaign.id,
-                    'results': 10 //TODO: Probably should be some calculated value
+                    'results': 10 // TODO: Probably should be some calculated value
                 },
                 dataType: 'json',
                 success: function(results) {
@@ -255,6 +255,8 @@ var PINPOINT = (function($, pageInfo){
     };
 
     layoutResults = function (results, belowFold) {
+        // suppose results is (now) a legit json object:
+        // {products: [], template: ''}
         var $col,
             result,
             initialResults = results.length;
@@ -275,7 +277,7 @@ var PINPOINT = (function($, pageInfo){
             if ($(this).find('.lifestyle').length > 0) {
                 $(this).addClass('wide');
             }
-        })
+        });
 
         $('.discovery-area').append($block);
 
@@ -305,7 +307,7 @@ var PINPOINT = (function($, pageInfo){
 
     pageScroll = function () {
         var $w            = $(window),
-            noResults     = ($('.discovery-area .block').length == 0),
+            noResults     = ($('.discovery-area .block').length === 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             lowestBlock,
             lowestHeight;
