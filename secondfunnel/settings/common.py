@@ -238,8 +238,7 @@ LOGGING = {
          'stderr': {
              'level': 'ERROR',
              'class': 'logging.StreamHandler',
-             'formatter': 'verbose',
-             'stream': sys.stderr
+             'formatter': 'verbose'
          },
          'mail_admins': {
              'level': 'ERROR',
