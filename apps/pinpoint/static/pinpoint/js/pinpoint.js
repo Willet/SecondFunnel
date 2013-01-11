@@ -141,11 +141,11 @@ var PINPOINT = (function($, pageInfo){
 
     addPreviewCallback = function(f) {
         previewCallbacks.push(f);
-    }
+    };
 
     addOnBlocksAppendedCallback = function(f) {
         blocksAppendedCallbacks.push(f);
-    }
+    };
 
     hidePreview = function() {
         var $mask    = $('.preview .mask'),
@@ -246,7 +246,6 @@ var PINPOINT = (function($, pageInfo){
             });
         }
     };
-    loadMoreResults = function() {};  // fuck you (TODO: remove)
 
     invalidateIRSession = function () {
         $.ajax({
@@ -256,21 +255,32 @@ var PINPOINT = (function($, pageInfo){
     };
 
     layoutResults = function (jsonData, belowFold) {
+        // renders product divs onto the page.
         // suppose results is (now) a legit json object:
-        // {products: [], template: ''}
+        // {products: [], discoveryProductTemplate: ''}
         var $block,
             $col,
             productDoms = [],
             result,
             results = jsonData.products || [],
-            initialResults = results.length;
+            initialResults = results.length,
+            discoveryProductTemplate = jsonData.discoveryProductTemplate;
 
         // concatenate all the results together so they're in the same jquery object
         for (var i = 0; i < results.length; i++) {
-            var tempElement = $('<div />');
-            var someImage = $('<img />', {'src': results[i].image});
-            tempElement.data(results[i]).append(someImage);
-            productDoms.push(tempElement[0]);
+            if (_) {  // that is, if underscore.js is successfully loaded
+                // ... then run the template as well as it can
+                try {
+                    productDoms.push($(_.template(discoveryProductTemplate, results[i]))[0]);
+                } catch (err) {
+                    console && console.log(err);
+                }
+            } else {  // unlikely fallback: "show the product"
+                var tempElement = $('<div />');
+                var someImage = $('<img />', {'src': results[i].image});
+                tempElement.data(results[i]).append(someImage);
+                productDoms.push(tempElement[0]);
+            }
         }
 
         $block = $(productDoms);  // an array of DOM elements
@@ -474,7 +484,7 @@ var PINPOINT = (function($, pageInfo){
         }
 
         return $twitterHtml;
-    }
+    };
 
     createPinterestButton = function (config) {
         var conf = config || {};
@@ -504,12 +514,12 @@ var PINPOINT = (function($, pageInfo){
     var oldLoadTwitter = loadTwitter;
     loadTwitter = function() {
         oldLoadTwitter();
-    }
+    };
 
     var oldLoadFB = loadFB;
     loadFB = function() {
         oldLoadFB();
-    }
+    };
     /* --- END tracking --- */
 
     /* --- START Script loading --- */

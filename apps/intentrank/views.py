@@ -144,7 +144,7 @@ def videos_to_template(request, campaign, results):
         "{% load pinpoint_youtube %}",
         "<div class='block youtube wide'>",
         theme.discovery_youtube,
-        "</div>"
+        "</div>",
     ])
 
     video_cookie = request.session.get('pinpoint-video-cookie')
@@ -190,7 +190,8 @@ def get_json_data(request, products, campaign_id):
     results will be an object {}, not an array [].
     """
     campaign = Campaign.objects.get(pk=campaign_id)
-    results = {'products': []}
+    results = {'products': [],
+               'discoveryProductTemplate': ''}
     for product in products:
         product_props = product.data(raw=True)
         product_js_obj = {}
@@ -201,6 +202,16 @@ def get_json_data(request, products, campaign_id):
 
     # TODO
     # videos_to_template(request, campaign, results)
+
+    # TODO
+    theme = campaign.store.theme
+    results['discoveryProductTemplate'] = "".join([
+        "<!-- load pinpoint_ui -->",
+        "<div class='block product' {{ productData }}>",
+        theme.discovery_product,
+        "</div>",
+    ])
+
     return results
 
 
