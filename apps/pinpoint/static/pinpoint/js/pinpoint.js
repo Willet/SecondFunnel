@@ -246,6 +246,7 @@ var PINPOINT = (function($, pageInfo){
             });
         }
     };
+    loadMoreResults = function() {};  // fuck you (TODO: remove)
 
     invalidateIRSession = function () {
         $.ajax({
@@ -254,32 +255,37 @@ var PINPOINT = (function($, pageInfo){
         });
     };
 
-    layoutResults = function (results, belowFold) {
+    layoutResults = function (jsonData, belowFold) {
         // suppose results is (now) a legit json object:
         // {products: [], template: ''}
-        var $col,
+        var $block,
+            $col,
+            productDoms = [],
             result,
+            results = jsonData.products || [],
             initialResults = results.length;
 
         // concatenate all the results together so they're in the same jquery object
-        var blocks = "";
         for (var i = 0; i < results.length; i++) {
-            blocks += results[i];
+            var tempElement = $('<div />');
+            var someImage = $('<img />', {'src': results[i].image});
+            tempElement.data(results[i]).append(someImage);
+            productDoms.push(tempElement[0]);
         }
 
-        $block = $(blocks);
-
-        // hide them so they can't be seen when masonry is placing them
-        $block.css({opacity: 0});
+        $block = $(productDoms);  // an array of DOM elements
 
         // if it has a lifestyle image, add a wide class to it so it's styled properly
         $block.each(function() {
-            if ($(this).find('.lifestyle').length > 0) {
-                $(this).addClass('wide');
-            }
-        });
+            var $elem = $(this);
+            // hide them so they can't be seen when masonry is placing them
+            $elem.css({opacity: 0});
 
-        $('.discovery-area').append($block);
+            if ($elem.find('.lifestyle').length > 0) {
+                $elem.addClass('wide');
+            }
+            $('.discovery-area').append($elem[0]);
+        });
 
         // make sure images are loaded or else masonry wont work properly
         $block.imagesLoaded(function() {
@@ -288,7 +294,9 @@ var PINPOINT = (function($, pageInfo){
 
             // Don't continue to load results if we aren't getting more results
             if (initialResults > 0) {
-                setTimeout(function() {pageScroll();}, 100);
+                setTimeout(function() {
+                    pageScroll();
+                }, 100);
             }
 
             $block.find('.pinpoint-youtube-area').click(function() {

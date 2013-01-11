@@ -220,7 +220,7 @@ def get_seeds(request):
     )
 
     if status in SUCCESS_STATUSES:
-        result = get_blocks(request, results, page)
+        result = get_json_data(request, results, page)
     else:
         result = results
 
