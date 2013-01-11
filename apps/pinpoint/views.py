@@ -7,6 +7,7 @@ from django.template import RequestContext, Template, Context
 from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
+from django.views.decorators.cache import cache_page
 
 from apps.analytics.models import Category, AnalyticsRecency
 from apps.assets.models import Store, Product
@@ -89,6 +90,10 @@ def edit_campaign(request, store_id, campaign_id):
 
 @login_required
 def block_type_router(request, store_id, block_type_id):
+    """Resolves the handler that renders a "block type".
+
+    Handler information is stored in the database.
+    """
     store = get_object_or_404(Store, pk=store_id)
     block_type = get_object_or_404(BlockType, pk=block_type_id)
 
@@ -142,6 +147,7 @@ def analytics_admin(request, store, campaign=False, is_overview=True):
     }, context_instance=RequestContext(request))
 
 
+@cache_page(60 * 30)
 def campaign_short(request, campaign_id_short):
     return campaign(request, base62.decode(campaign_id_short))
 

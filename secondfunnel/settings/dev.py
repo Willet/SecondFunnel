@@ -16,10 +16,19 @@ DATABASES = {
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'secondfunnel'
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': [
+            '127.0.0.1:11211',
+        ]
     }
 }
+
+# We should be able to just run `bundle exec sass` in dev as we do in
+# production. Until we've figured that out, just running things this way
+COMPRESS_PRECOMPILERS = (
+    ('text/x-sass', 'sass {infile} {outfile}'),
+    ('text/x-scss', 'sass {infile} {outfile}'),
+)
 
 DEFAULT_FILE_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
