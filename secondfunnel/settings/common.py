@@ -5,6 +5,7 @@ from datetime import timedelta
 import django.conf.global_settings as DEFAULT_SETTINGS
 
 # Django settings for secondfunnel project.
+import sys
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -217,43 +218,43 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 # the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'formatters': {
-#         'verbose': {
-#             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-#         },
-#         'simple': {
-#             'format': '%(levelname)s %(message)s'
-#         },
-#     },
-#     'filters': {
-#         'require_debug_false': {
-#             '()': 'django.utils.log.RequireDebugFalse'
-#         }
-#     },
-#     'handlers': {
-#         'logging_file': {
-#             'level': 'ERROR',
-#             'class': 'logging.FileHandler',
-#             'formatter': 'verbose',
-#             'filename': '/var/log/django.log'
-#         },
-#         'mail_admins': {
-#             'level': 'ERROR',
-#             'filters': ['require_debug_false'],
-#             'class': 'django.utils.log.AdminEmailHandler'
-#         }
-#     },
-#     'loggers': {
-#         'django.request': {
-#             'handlers': ['logging_file', 'mail_admins'],
-#             'level': 'ERROR',
-#             'propagate': True,
-#         },
-#     }
-# }
+LOGGING = {
+     'version': 1,
+     'disable_existing_loggers': False,
+     'formatters': {
+         'verbose': {
+             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+         },
+         'simple': {
+             'format': '%(levelname)s %(message)s'
+         },
+     },
+     'filters': {
+         'require_debug_false': {
+             '()': 'django.utils.log.RequireDebugFalse'
+         }
+     },
+     'handlers': {
+         'stderr': {
+             'level': 'ERROR',
+             'class': 'logging.StreamHandler',
+             'formatter': 'verbose',
+             'stream': sys.stderr
+         },
+         'mail_admins': {
+             'level': 'ERROR',
+             'filters': ['require_debug_false'],
+             'class': 'django.utils.log.AdminEmailHandler'
+         }
+     },
+     'loggers': {
+         'django.request': {
+             'handlers': ['stderr', 'mail_admins'],
+             'level': 'ERROR',
+             'propagate': True,
+         },
+     }
+}
 
 TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
     # allows for request variable in templates
