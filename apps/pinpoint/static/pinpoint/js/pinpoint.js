@@ -257,7 +257,8 @@ var PINPOINT = (function($, pageInfo){
     layoutResults = function (results, belowFold) {
         var $col,
             result,
-            initialResults = results.length;
+            initialResults = results.length,
+            $block;
 
         // concatenate all the results together so they're in the same jquery object
         var blocks = "";
@@ -280,7 +281,10 @@ var PINPOINT = (function($, pageInfo){
         $('.discovery-area').append($block);
 
         // make sure images are loaded or else masonry wont work properly
-        $block.imagesLoaded(function() {
+        $block.imagesLoaded(function($images, $proper, $broken) {
+            $broken.parents('.block.product').remove();
+            $block.find('.block.product img[src=""]').parents('.block.product').remove();
+
             $('.discovery-area').masonry('appended', $block, true);
             $block.css({opacity: 1});
 
