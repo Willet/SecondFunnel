@@ -84,13 +84,13 @@ def social_buttons(product, count=None):
     elif count is None:
         count = False
 
-    url = product.original_url
-
     return {
         'featured': featured,
-        'url'     : url,
+        'url'     : product.original_url,
         'image'   : image,
-        'count'   : count
+        'count'   : count,
+        'name'    : product.name,
+        'brand'   : product.store.name
     }
 
 

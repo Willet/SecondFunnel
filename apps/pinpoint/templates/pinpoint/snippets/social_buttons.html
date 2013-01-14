@@ -24,7 +24,7 @@
             {% endif %}
         </div>
         <div class='button pinterest'>
-            <a href="http://pinterest.com/pin/create/button/?url={{ url|striptags }}&media={{ image }}"
+            <a href="http://pinterest.com/pin/create/button/?url={{ url|striptags }}&media={{ image }}&description={{ brand }}-{{ name }}"
                target="_blank">
                 <img src="{% static "pinpoint/images/pinpointButton.png" %}"/>
             </a>
