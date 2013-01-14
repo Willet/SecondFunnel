@@ -43,12 +43,12 @@ var pinpointTracking = (function ($, window, document) {
     },
 
     setSocialShareVars = function (o) {
-        if (o.default === true) {
-            pinpointTracking.socialShareUrl = $("#featured_img").data("url");
-            pinpointTracking.socialShareType = "featured";
-        } else {
+        if (o && o.url && o.sType) {
             pinpointTracking.socialShareUrl = o.url;
             pinpointTracking.socialShareType = o.sType;
+        } else {
+            pinpointTracking.socialShareUrl = $("#featured_img").data("url");
+            pinpointTracking.socialShareType = "featured";
         }
     },
 
@@ -65,7 +65,7 @@ var pinpointTracking = (function ($, window, document) {
         // reset tracking scope: hover into featured product area
         $(".featured").hover(function() {
             pinpointTracking.clearTimeout();
-            pinpointTracking.setSocialShareVars({"default": true});
+            pinpointTracking.setSocialShareVars();
         }, function() {});
 
         // buy now event
@@ -135,7 +135,7 @@ var pinpointTracking = (function ($, window, document) {
     },
 
     init = function() {
-        setSocialShareVars({"default": true});
+        setSocialShareVars();
 
         $(function() {
             setTrackingDomHooks();

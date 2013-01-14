@@ -150,7 +150,7 @@ var PINPOINT = (function($, pageInfo){
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.product');
 
-        pinpointTracking.setSocialShareVars({"default": true});
+        pinpointTracking.setSocialShareVars();
 
         $preview.fadeOut(100);
         $mask.fadeOut(100);
@@ -175,7 +175,7 @@ var PINPOINT = (function($, pageInfo){
 
         pinpointTracking.clearTimeout();
         if (pinpointTracking.socialShareType !== "popup") {
-            pinpointTracking._pptimeout = window.setTimeout('pinpointTracking.setSocialShareVars({"default": true})', 2000);
+            pinpointTracking._pptimeout = window.setTimeout(pinpointTracking.setSocialShareVars, 2000);
         }
     };
 
