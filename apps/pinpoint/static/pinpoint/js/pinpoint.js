@@ -530,7 +530,7 @@ var PINPOINT = (function($, pageInfo){
     init = function() {
         var _gaq = window._gaq || (window._gaq = []);
 
-        _gaq.push(['_setAccount', 'UA-35018502-1']);
+        _gaq.push(['_setAccount', 'UA-23764505-15']);
         _gaq.push(['_trackPageview']);
 
         load(scripts);
