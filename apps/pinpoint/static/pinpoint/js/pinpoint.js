@@ -488,7 +488,6 @@ var PINPOINT = (function($, pageInfo){
     /* --- START Script loading --- */
     // Either a URL, or an object with 'src' key and optional 'onload' key
     scripts = [
-        ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js',
     {
         'src'   : 'http://connect.facebook.net/en_US/all.js#xfbml=0',
         'onload': loadFB
@@ -511,11 +510,6 @@ var PINPOINT = (function($, pageInfo){
     /* --- END Script loading --- */
 
     init = function() {
-        var _gaq = window._gaq || (window._gaq = []);
-
-        _gaq.push(['_setAccount', 'UA-23764505-15']);
-        _gaq.push(['_trackPageview']);
-
         load(scripts);
         $(document).ready(ready);
     };
