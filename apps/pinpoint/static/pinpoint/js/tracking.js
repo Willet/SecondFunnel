@@ -43,12 +43,12 @@ var pinpointTracking = (function ($, window, document) {
     },
 
     setSocialShareVars = function (o) {
-        if (o.default === true) {
-            pinpointTracking.socialShareUrl = $("#featured_img").data("url");
-            pinpointTracking.socialShareType = "featured";
-        } else {
+        if (o && o.url && o.sType) {
             pinpointTracking.socialShareUrl = o.url;
             pinpointTracking.socialShareType = o.sType;
+        } else {
+            pinpointTracking.socialShareUrl = $("#featured_img").data("url");
+            pinpointTracking.socialShareType = "featured";
         }
     },
 
@@ -65,7 +65,7 @@ var pinpointTracking = (function ($, window, document) {
         // reset tracking scope: hover into featured product area
         $(".featured").hover(function() {
             pinpointTracking.clearTimeout();
-            pinpointTracking.setSocialShareVars({"default": true});
+            pinpointTracking.setSocialShareVars();
         }, function() {});
 
         // buy now event
@@ -106,17 +106,7 @@ var pinpointTracking = (function ($, window, document) {
         });
     },
 
-    init = function() {
-        setSocialShareVars({"default": true});
-
-        // load scripts
-        window.twttr = (function (d,s,id) {
-            var t, js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) return; js=d.createElement(s); js.id=id;
-            js.src="//platform.twitter.com/widgets.js"; js.onload="pinpointTracking.registerTwitterListeners"; fjs.parentNode.insertBefore(js, fjs);
-            return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f) } });
-        }(document, "script", "twitter-wjs"));
-
+    registerTwitterListeners = function() {
         twttr.ready(function (twttr) {
             twttr.events.bind('tweet', function(event) {
                 pinpointTracking.registerEvent({
@@ -142,6 +132,10 @@ var pinpointTracking = (function ($, window, document) {
                 });
             });
         });
+    },
+
+    init = function() {
+        setSocialShareVars();
 
         $(function() {
             setTrackingDomHooks();
@@ -189,7 +183,8 @@ var pinpointTracking = (function ($, window, document) {
         "init": init,
         "registerEvent": registerEvent,
         "setSocialShareVars": setSocialShareVars,
-        "clearTimeout": clearTimeout
+        "clearTimeout": clearTimeout,
+        "registerTwitterListeners": registerTwitterListeners
     }
 
 }($, window, document));
