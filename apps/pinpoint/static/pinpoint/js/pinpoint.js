@@ -494,7 +494,7 @@ var PINPOINT = (function($, pageInfo){
         'onload': loadFB
     }, {
         'src'   : '//platform.twitter.com/widgets.js',
-        'onload': 'pinpointTracking.registerTwitterListeners',
+        'onload': pinpointTracking.registerTwitterListeners,
         'id': 'twitter-wjs'
     }];
 

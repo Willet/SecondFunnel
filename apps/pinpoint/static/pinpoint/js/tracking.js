@@ -106,9 +106,7 @@ var pinpointTracking = (function ($, window, document) {
         });
     },
 
-    init = function() {
-        setSocialShareVars({"default": true});
-
+    registerTwitterListeners = function() {
         twttr.ready(function (twttr) {
             twttr.events.bind('tweet', function(event) {
                 pinpointTracking.registerEvent({
@@ -134,6 +132,10 @@ var pinpointTracking = (function ($, window, document) {
                 });
             });
         });
+    },
+
+    init = function() {
+        setSocialShareVars({"default": true});
 
         $(function() {
             setTrackingDomHooks();
@@ -181,7 +183,8 @@ var pinpointTracking = (function ($, window, document) {
         "init": init,
         "registerEvent": registerEvent,
         "setSocialShareVars": setSocialShareVars,
-        "clearTimeout": clearTimeout
+        "clearTimeout": clearTimeout,
+        "registerTwitterListeners": registerTwitterListeners
     }
 
 }($, window, document));
