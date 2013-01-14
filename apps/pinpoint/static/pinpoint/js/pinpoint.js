@@ -16,7 +16,6 @@ var PINPOINT = (function($, pageInfo){
         layoutResults,
         load,
         loadFB,
-        loadTwitter,
         loadInitialResults,
         loadMoreResults,
         pageScroll,
@@ -414,9 +413,6 @@ var PINPOINT = (function($, pageInfo){
         );
     };
 
-    loadTwitter = function () {
-    };
-
     createSocialButtons = function (config) {
         var conf           = config || {};
         var $socialButtons = $('<div/>', {'class': 'social-buttons'});
@@ -489,19 +485,6 @@ var PINPOINT = (function($, pageInfo){
     };
     /* --- END Social buttons --- */
 
-    /* --- START tracking --- */
-    // override existing implementations of methods
-    var oldLoadTwitter = loadTwitter;
-    loadTwitter = function() {
-        oldLoadTwitter();
-    }
-
-    var oldLoadFB = loadFB;
-    loadFB = function() {
-        oldLoadFB();
-    }
-    /* --- END tracking --- */
-
     /* --- START Script loading --- */
     // Either a URL, or an object with 'src' key and optional 'onload' key
     scripts = [
@@ -511,7 +494,7 @@ var PINPOINT = (function($, pageInfo){
         'onload': loadFB
     }, {
         'src'   : '//platform.twitter.com/widgets.js',
-        'onload': loadTwitter,
+        'onload': 'pinpointTracking.registerTwitterListeners',
         'id': 'twitter-wjs'
     }];
 
