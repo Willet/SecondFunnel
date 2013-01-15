@@ -17,7 +17,6 @@ var PINPOINT = (function($, pageInfo){
         layoutResults,
         load,
         loadFB,
-        loadTwitter,
         loadInitialResults,
         loadMoreResults,
         pageScroll,
@@ -155,7 +154,7 @@ var PINPOINT = (function($, pageInfo){
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.product');
 
-        pinpointTracking.setSocialShareVars({"default": true});
+        pinpointTracking.setSocialShareVars();
 
         $preview.fadeOut(100);
         $mask.fadeOut(100);
@@ -180,7 +179,7 @@ var PINPOINT = (function($, pageInfo){
 
         pinpointTracking.clearTimeout();
         if (pinpointTracking.socialShareType !== "popup") {
-            pinpointTracking._pptimeout = window.setTimeout('pinpointTracking.setSocialShareVars({"default": true})', 2000);
+            pinpointTracking._pptimeout = window.setTimeout(pinpointTracking.setSocialShareVars, 2000);
         }
     };
 
@@ -335,7 +334,10 @@ var PINPOINT = (function($, pageInfo){
         });
 
         // make sure images are loaded or else masonry wont work properly
-        $block.imagesLoaded(function() {
+        $block.imagesLoaded(function($images, $proper, $broken) {
+            $broken.parents('.block.product').remove();
+            $block.find('.block.product img[src=""]').parents('.block.product').remove();
+
             $('.discovery-area').masonry('appended', $block, true);
             $block.css({opacity: 1});
 
@@ -474,9 +476,6 @@ var PINPOINT = (function($, pageInfo){
         );
     };
 
-    loadTwitter = function () {
-    };
-
     createSocialButtons = function (config) {
         var conf           = config || {};
         var $socialButtons = $('<div/>', {'class': 'social-buttons'});
@@ -531,8 +530,8 @@ var PINPOINT = (function($, pageInfo){
 
         var url = 'http://pinterest.com/pin/create/button/' +
             '?url=' + encodeURIComponent(conf.url) +
-            '&media=' + encodeURIComponent(conf.image);
-
+            '&media=' + encodeURIComponent(conf.image) +
+            '&description=' + details.store.name + '-' + conf.title;
 
         var $img = $('<img/>', {
             'src': "//assets.pinterest.com/images/PinExt.png"
@@ -549,29 +548,15 @@ var PINPOINT = (function($, pageInfo){
     };
     /* --- END Social buttons --- */
 
-    /* --- START tracking --- */
-    // override existing implementations of methods
-    var oldLoadTwitter = loadTwitter;
-    loadTwitter = function() {
-        oldLoadTwitter();
-    };
-
-    var oldLoadFB = loadFB;
-    loadFB = function() {
-        oldLoadFB();
-    };
-    /* --- END tracking --- */
-
     /* --- START Script loading --- */
     // Either a URL, or an object with 'src' key and optional 'onload' key
     scripts = [
-        ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js',
     {
         'src'   : 'http://connect.facebook.net/en_US/all.js#xfbml=0',
         'onload': loadFB
     }, {
         'src'   : '//platform.twitter.com/widgets.js',
-        'onload': loadTwitter,
+        'onload': pinpointTracking.registerTwitterListeners,
         'id': 'twitter-wjs'
     }];
 
@@ -588,11 +573,6 @@ var PINPOINT = (function($, pageInfo){
     /* --- END Script loading --- */
 
     init = function() {
-        var _gaq = window._gaq || (window._gaq = []);
-
-        _gaq.push(['_setAccount', 'UA-35018502-1']);
-        _gaq.push(['_trackPageview']);
-
         load(scripts);
         $(document).ready(ready);
     };

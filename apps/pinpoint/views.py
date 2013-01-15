@@ -259,11 +259,19 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     header_content = render_to_string('pinpoint/campaign_head.html',
                                       arguments, header_context)
 
+    # Scripts
+    header_context.update({
+        'ga_account_number': settings.GOOGLE_ANALYTICS_PROPERTY
+    })
+    scripts_content = render_to_string('pinpoint/campaign_scripts.html',
+                                      arguments, header_context)
+
     page_context = Context({
         'featured_content': featured_content,
-        'discovery_area'  : discovery_area,
-        'preview_area'    : product_preview,
-        'header_content'  : header_content
+        'discovery_area': discovery_area,
+        'preview_area': product_preview,
+        'header_content': header_content,
+        'scripts_content': scripts_content
     })
 
     # Page content
