@@ -171,10 +171,12 @@ def campaign(request, campaign_id):
                                   context_instance=context)
 
 def campaign_to_theme_to_response(campaign, arguments, context=None):
+    """Generates the HTML page for a standard pinpoint product page."""
     if context is None:
         context = Context()
     context.update(arguments)
 
+    # retrieve theme for the store from the DB
     theme = campaign.store.theme
 
     # Determine featured content type

@@ -60,6 +60,8 @@ var PINPOINT = (function($, pageInfo){
 
     /* --- START element bindings --- */
     showPreview = function() {
+        // display overlay with more information about the selected product
+        // data is retrieved from .block.product divs
         var data     = $(this).data(),
             images,
             $element,
@@ -70,7 +72,7 @@ var PINPOINT = (function($, pageInfo){
 
         // Fill in data
         $.each(data, function(key, value) {
-            $element = $preview.find('.'+key)
+            $element = $preview.find('.'+key);
 
             if (!$element.length) {
                 // No further work to do
@@ -273,7 +275,6 @@ var PINPOINT = (function($, pageInfo){
             });
         }
     };
-    loadMoreResults = function () {};  // TODO: remove
 
     invalidateIRSession = function () {
         $.ajax({
@@ -285,9 +286,10 @@ var PINPOINT = (function($, pageInfo){
     layoutResults = function (jsonData, belowFold) {
         // renders product divs onto the page.
         // suppose results is (now) a legit json object:
-        // {products: [], discoveryProductTemplate: ''}
+        // {products: [], videos: [(sizeof 1)]}
         var $block,
             $col,
+            i = 0,
             productDoms = [],
             result,
             results = jsonData.products || [],
@@ -297,10 +299,11 @@ var PINPOINT = (function($, pageInfo){
             videos = jsonData.videos || [];
 
         // concatenate all the results together so they're in the same jquery object
-        for (var i = 0; i < results.length; i++) {
+        for (i = 0; i < results.length; i++) {
             try {
-                console.log(results[i]);
-                productDoms.push($(renderTemplate(discoveryProductTemplate, results[i]))[0]);
+                var el = $(renderTemplate(discoveryProductTemplate, results[i]));
+                el.data(results[i]);  // populate the .product.block div with data
+                productDoms.push(el[0]);
             } catch (err) {
                 // hide rendering error
                 console && console.log && console.log('oops @ product');
@@ -308,9 +311,8 @@ var PINPOINT = (function($, pageInfo){
         }
 
         // add video iframes
-        for (var i = 0; i < videos.length; i++) {
+        for (i = 0; i < videos.length; i++) {
             try {
-                console.log(videos[i]);
                 productDoms.push($(renderTemplate(youtubeVideoTemplate, videos[i]))[0]);
             } catch (err) {
                 // hide rendering error
@@ -319,7 +321,6 @@ var PINPOINT = (function($, pageInfo){
         }
 
         $block = $(productDoms);  // an array of DOM elements
-        console.log($block);
 
         // if it has a lifestyle image, add a wide class to it so it's styled properly
         $block.each(function() {
@@ -412,8 +413,11 @@ var PINPOINT = (function($, pageInfo){
         featuredAreaSetup();
 
         // Event Handling
+        // when someone clicks on a product, show the product details overlay
         $('.discovery-area').on('click', '.block.product', showPreview);
+        // and update the clickstream
         $('.discovery-area').on('click', '.block.product', updateClickStream);
+
         $('.discovery-area').on('mouseenter', '.block.product', productHoverOn);
         $('.discovery-area').on('mouseleave', '.block.product', productHoverOff);
 
