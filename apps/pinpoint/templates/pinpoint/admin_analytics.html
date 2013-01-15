@@ -435,13 +435,8 @@
 
     <div class="grid_12 section_content">
         <div class="grid_3 section_overview">
-            <div class="section_overview_block selected" data-cid="overview">
-                <div class="section_overview_title">
-                    Overview
-                </div>
-            </div>
             {% for category in categories %}
-                <div class="section_overview_block" data-cid="{{ category.id }}">
+                <div class="section_overview_block {% if forloop.first %}selected{% endif %}" data-cid="{{ category.id }}">
                     <div class="section_overview_title">
                         {{ category.name }}
                     </div>
@@ -466,20 +461,8 @@
         </div>
 
         <div class="grid_8 section_data">
-            <div class="data_category" data-cid="overview">
-                <div class="data_title">
-                    Overview
-                </div>
-
-                <div class="data_metrics">
-                    <ul>
-                        <li>Some analytics overview</li>
-                    </ul>
-                </div>
-            </div>
-
             {% for category in categories %}
-                <div class="data_category" data-cid="{{ category.id }}" style="display: none">
+                <div class="data_category" data-cid="{{ category.id }}" {% if not forloop.first %}style="display: none"{% endif %}>
                     <div class="data_title">
                         {{ category.name }}
                     </div>

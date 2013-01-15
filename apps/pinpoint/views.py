@@ -7,6 +7,7 @@ from django.template import RequestContext, Template, Context
 from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
+from django.views.decorators.cache import cache_page
 
 from apps.analytics.models import Category, AnalyticsRecency
 from apps.assets.models import Store, Product
@@ -175,6 +176,7 @@ def analytics_admin(request, store, campaign=False, is_overview=True):
     }, context_instance=RequestContext(request))
 
 
+@cache_page(60 * 30)
 def campaign_short(request, campaign_id_short):
     """
     Displays a pinpoint page using a shortened page id.
@@ -319,11 +321,19 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     header_content = render_to_string('pinpoint/campaign_head.html',
                                       arguments, header_context)
 
+    # Scripts
+    header_context.update({
+        'ga_account_number': settings.GOOGLE_ANALYTICS_PROPERTY
+    })
+    scripts_content = render_to_string('pinpoint/campaign_scripts.html',
+                                      arguments, header_context)
+
     page_context = Context({
         'featured_content': featured_content,
         'discovery_area': discovery_area,
         'preview_area': product_preview,
-        'header_content': header_content
+        'header_content': header_content,
+        'scripts_content': scripts_content
     })
 
     # Page content

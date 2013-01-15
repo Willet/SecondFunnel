@@ -1,5 +1,4 @@
 aws_credential_file
-secondfunnel/local_settings.py
 *.idea
 *.ropeproject
 *.pyc
@@ -8,6 +7,7 @@ secondfunnel/local_settings.py
 *.db
 *.sqlite
 *.DS_Store
+*.sass-cache/
 bin/*
 /static
 .elasticbeanstalk/
