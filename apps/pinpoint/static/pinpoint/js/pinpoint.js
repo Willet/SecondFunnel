@@ -292,23 +292,29 @@ var PINPOINT = (function($, pageInfo){
             result,
             results = jsonData.products || [],
             initialResults = results.length,
-            discoveryProductTemplate = $('#discovery_product_template').html();
+            discoveryProductTemplate = $('#discovery_product_template').html(),
+            youtubeVideoTemplate = $('#youtube_video_template').html(),
+            videos = jsonData.videos || [];
 
         // concatenate all the results together so they're in the same jquery object
         for (var i = 0; i < results.length; i++) {
-            if (_) {  // that is, if underscore.js is successfully loaded
-                // ... then run the template as well as it can
-                try {
-                    console.log(results[i]);
-                    productDoms.push($(renderTemplate(discoveryProductTemplate, results[i]))[0]);
-                } catch (err) {
-                    console && console.log(err);
-                }
-            } else {  // unlikely fallback: "show the product"
-                var tempElement = $('<div />');
-                var someImage = $('<img />', {'src': results[i].image});
-                tempElement.data(results[i]).append(someImage);
-                productDoms.push(tempElement[0]);
+            try {
+                console.log(results[i]);
+                productDoms.push($(renderTemplate(discoveryProductTemplate, results[i]))[0]);
+            } catch (err) {
+                // hide rendering error
+                console && console.log && console.log('oops @ product');
+            }
+        }
+
+        // add video iframes
+        for (var i = 0; i < videos.length; i++) {
+            try {
+                console.log(videos[i]);
+                productDoms.push($(renderTemplate(youtubeVideoTemplate, videos[i]))[0]);
+            } catch (err) {
+                // hide rendering error
+                console && console.log && console.log('oops @ video');
             }
         }
 

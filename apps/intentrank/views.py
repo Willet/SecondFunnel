@@ -191,7 +191,9 @@ def get_json_data(request, products, campaign_id):
     """
     campaign = Campaign.objects.get(pk=campaign_id)
     results = {'products': [],
-               'discoveryProductTemplate': ''}
+               'videos': []}
+
+    # products
     for product in products:
         product_props = product.data(raw=True)
         product_js_obj = {}
@@ -200,17 +202,30 @@ def get_json_data(request, products, campaign_id):
             product_js_obj[product_prop[0]] = product_prop[1]
         results['products'].append(product_js_obj)
 
-    # TODO
-    # videos_to_template(request, campaign, results)
+    # videos
+    video_cookie = request.session.get('pinpoint-video-cookie')
+    if not video_cookie:
+        video_cookie = request.session['pinpoint-video-cookie'] = VideoCookie()
 
-    # TODO
-    theme = campaign.store.theme
-    results['discoveryProductTemplate'] = "".join([
-        "<!-- load pinpoint_ui -->",
-        "<div class='block product' {{ productData }}>",
-        theme.discovery_product,
-        "</div>",
-    ])
+    videos = campaign.store.videos.exclude(video_id__in=video_cookie.videos_already_shown)
+
+    # if this is the first batch of results, or the random amount is under the
+    # curve of the probability function, then add a video
+    show_video = random.random() <= video_probability_function(video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
+    if videos.exists() and (video_cookie.is_empty() or show_video):
+        video = videos.order_by('?')[0]
+        results['videos'].append({
+            'video_id': video.video_id,
+            'video_provider': 'youtube',
+            'video_width': '200',
+            'video_height': '200',
+            'video_autoplay': False
+        })
+        video_cookie.add_video(video.video_id)
+    else:
+        video_cookie.add_blocks(len(results))
+
+    request.session['pinpoint-video-cookie'] = video_cookie
 
     return results
 
@@ -255,9 +270,10 @@ def get_results(request):
         result = results
 
     return HttpResponse(json.dumps(result), mimetype='application/json',
-                        status=status)
+                         status=status)
 
 def update_clickstream(request):
+    """seems to default to an erroneous return."""
     store   = request.GET.get('store', '-1')
     page    = request.GET.get('campaign', '-1')
     product_id = request.GET.get('product_id')
@@ -266,8 +282,14 @@ def update_clickstream(request):
         'product_id': product_id
     })
 
+    if status in SUCCESS_STATUSES:
+        result = get_json_data(request, results, page)
+    else:
+        result = results
+
     # Return JSON results
-    return HttpResponse(json.dumps(results), mimetype='application/json', status=status)
+    return HttpResponse(json.dumps(result), mimetype='application/json',
+                         status=status)
 
 def invalidate_session(request):
     #intentrank/invalidate-session
