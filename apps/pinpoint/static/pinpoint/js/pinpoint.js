@@ -8,6 +8,7 @@ var PINPOINT = (function($, pageInfo){
         createTwitterButton,
         createPinterestButton,
         details,
+        domTemplateCache = {},
         featuredAreaSetup,
         getShortestColumn,
         hidePreview,
@@ -23,6 +24,7 @@ var PINPOINT = (function($, pageInfo){
         productHoverOn,
         productHoverOff,
         ready,
+        renderTemplate,
         scripts,
         showPreview,
         updateClickStream,
@@ -205,6 +207,31 @@ var PINPOINT = (function($, pageInfo){
         });
     };
 
+    renderTemplate = function (str, data) {
+        // MOD of
+        // http://emptysquare.net/blog/adding-an-include-tag-to-underscore-js-templates/
+        // match "<% include template-id %>" with caching
+        return _.template(
+            str.replace(
+                /<%\s*include\s*(.*?)\s*%>/g,
+                function(match, templateId) {
+                    if (domTemplateCache[templateId]) {
+                        // cached
+                        return domTemplateCache[templateId];
+                    } else {
+                        var el = document.getElementById(templateId);
+                        if (el && el.innerHTML) {
+                            // cache
+                            domTemplateCache[templateId] = el.innerHTML;
+                        }
+                        return el ? el.innerHTML : '';
+                    }
+                }
+            ),
+            data
+        );
+    };
+
     loadInitialResults = function () {
         if (!loadingBlocks) {
             loadingBlocks = true;
@@ -246,6 +273,7 @@ var PINPOINT = (function($, pageInfo){
             });
         }
     };
+    loadMoreResults = function () {};  // TODO: remove
 
     invalidateIRSession = function () {
         $.ajax({
@@ -264,14 +292,15 @@ var PINPOINT = (function($, pageInfo){
             result,
             results = jsonData.products || [],
             initialResults = results.length,
-            discoveryProductTemplate = jsonData.discoveryProductTemplate;
+            discoveryProductTemplate = $('#discovery_product_template').html();
 
         // concatenate all the results together so they're in the same jquery object
         for (var i = 0; i < results.length; i++) {
             if (_) {  // that is, if underscore.js is successfully loaded
                 // ... then run the template as well as it can
                 try {
-                    productDoms.push($(_.template(discoveryProductTemplate, results[i]))[0]);
+                    console.log(results[i]);
+                    productDoms.push($(renderTemplate(discoveryProductTemplate, results[i]))[0]);
                 } catch (err) {
                     console && console.log(err);
                 }
@@ -284,6 +313,7 @@ var PINPOINT = (function($, pageInfo){
         }
 
         $block = $(productDoms);  // an array of DOM elements
+        console.log($block);
 
         // if it has a lifestyle image, add a wide class to it so it's styled properly
         $block.each(function() {
