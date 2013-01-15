@@ -1,0 +1,487 @@
+html, body {height:100%; margin: 0; padding: 0;}
+
+#willet-main {
+    font-family: Arial, Helvetica, Tahoma !important;
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background-color: #DDD;
+
+    h1 {
+        font-size: 20px;
+    }
+
+    p {
+        font-size: 13px;
+        margin: 0;
+        padding: 0;
+    }
+
+    table, tr, td {
+        margin: 0;
+        padding: 0;
+    }
+
+    #wrapper {
+        min-height: 100%;
+        width: 1000px;
+        margin: 0px auto;
+        text-align: center;
+        background-color: #EEE;
+    
+        -moz-box-shadow: 10px 10px 10px 0px #CECECE;
+        -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
+        -o-box-shadow: 10px 10px 10px 0px #CECECE;
+        box-shadow: 10px 10px 10px 0px #CECECE;
+    }
+
+    #banner {
+        height: 200px;
+        padding: none;
+        margin-left: auto;
+        margin-right: auto;
+
+        img {
+            height: 200px;
+            width: 1000px;
+            border-bottom: 5px solid black;
+        }
+    }
+
+    .pin {
+        margin: 0 auto 30px auto;
+        background: #cecece;
+        position: relative;
+        text-align: center;
+        overflow: visible;
+        width: 200px;
+    
+        -moz-box-shadow: 10px 10px 10px 0px #CECECE;
+        -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
+        -o-box-shadow: 10px 10px 10px 0px #CECECE;
+        box-shadow: 10px 10px 10px 0px #CECECE;
+
+        .social-hover {
+            margin: 0;
+            text-align: left;
+            position: absolute;
+            left: 10px;
+            width: 100%;
+            top: 10px;
+        }
+
+        .social-hover > div {
+            position: relative;
+            margin: 0;
+            padding:0;
+            display: block;
+            float: left;
+            margin-right: 5px;
+        }
+
+        a {
+            border: none;
+            overflow: hidden;
+
+            img {
+                border: none;
+                overflow: hidden;
+            }
+        }
+    }
+
+    .inner-pin {
+        overflow: hidden;
+        width: 200px;
+        text-align: center;
+        background:#f6f6f6;
+
+        img {
+            max-width: 200px;
+            max-height: 500px;
+        }
+
+        h5 {
+            margin: 0;
+            padding: 10px;
+            background: #AAA;
+            color: #fff;
+            text-shadow: 1px 1px #666;
+            border-top: 1px solid #999;
+        }
+
+        h5:hover {
+            text-decoration: underline;
+        }
+
+        #pin-read-less {
+            text-decoration: underline;
+            cursor: -webkit-zoom-out;
+            cursor: -moz-zoom-out;
+            cursor: zoom-out;
+        }
+
+        .pinimg a:link{
+            border-bottom: none;
+            background: #fff;
+            width: 175px;
+            padding-right: 5px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+
+    }
+
+    .pin > .inner-pin {
+        border-top: 1px solid #DDD;
+        border-left: 1px solid #DDD;
+        border-right: 1px solid #999;
+        border-bottom: 1px solid #999;
+    }
+
+    #light_img_div {
+        width: 500px;
+        height: 400px;
+
+        img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+
+    #light {
+        height: 100%;
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        display: table;
+        top:0;
+        left:0;
+        
+        #light_title:hover {
+            text-decoration: none;
+        }
+
+        #pic_selector {
+            text-align: center;
+        }
+
+        #light-inner {
+            overflow: hidden;
+            display: table-cell;
+            vertical-align: middle;
+            position: static;
+        }
+
+        #light-content {
+            overflow: hidden;
+            width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        
+            border-width: 2px;
+            border-style: solid;
+            border-color: #0F0;
+        
+            position: relative;
+        
+            padding: 30px 30px 30px 55px;
+            background: #fff;
+            z-index:1002;
+            border: 1px solid #cecece;
+        
+            -moz-box-shadow: 10px 10px 10px 0px #CECECE;
+            -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
+            -o-box-shadow: 10px 10px 10px 0px #CECECE;
+            box-shadow: 10px 10px 10px 0px #CECECE;
+        }
+
+        $contentWidth: 550px;
+
+        .content  {
+            width: $contentWidth;
+        }
+
+        .text {
+            text-align: left;
+            width: $contentWidth;
+        }
+
+        .x {
+            color: #bbb;
+            float: right;
+            top: 0;
+            font-size: 30px;
+            margin-right: 10px;
+        }
+        
+        .x:hover {
+            color: #666;
+            cursor: pointer;
+        }
+        
+        .arrow {
+            color: #bbb;
+            text-align: center;
+            font-size: 30px;
+        }
+        
+        .arrow:hover {
+            color: #666;
+            cursor: pointer;
+        }
+        
+        .social {
+            clear: right;
+            float: right;
+            margin-top: 100px;
+            text-align: left !important;
+            width: 80px;
+        }
+
+        .social>div {
+            margin-top: 10px;
+        }
+    }
+
+    a {
+        text-decoration: none;
+        color: #2d2d2d;
+
+        span {
+            visibility: hidden;
+            text-align: center;
+            width: 171px;
+            display: block;
+            padding: 3px;
+        
+        }
+    }
+    
+    a:hover {
+        text-decoration: underline;
+
+        span {
+            visibility: visible;
+            font-size: 12;
+        }
+    }
+
+    .link {
+        a {
+            color: #000;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    }
+
+    #darkbg {
+        background: #4a4a4a;
+    }
+
+    #buttons {
+        position: absolute;
+        bottom: 10;
+        
+        img {
+            width: 139px;
+        }
+    }
+
+    .overlay{
+        display: none;
+        position: fixed;
+        top: 0%;
+        left: 0%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255,0.7);
+        cursor: -webkit-zoom-out;
+        cursor: -moz-zoom-out;
+        cursor: zoom-out;
+    }
+
+    #divider {
+        position: relative;
+        width: 100%;
+        height: 10px;
+    }
+
+    h3 {
+        font-size: 30px;
+        margin: 0;
+        padding: 0;
+        margin-top: 10px;
+        text-shadow: 1px 1px #666;
+        border-bottom: 1px solid #aaa;
+    }
+
+    h4 {
+        margin: 0;
+        padding: 0;
+        margin-bottom: 5px;
+        font-weight: normal;
+    }
+
+    #product-banner {
+        display: inline-block;
+        width: 700px;
+        margin: 15px 15px 15px;
+        border: 1px solid #aaaaaa;
+        box-shadow: 0 2px 5px rgba(0,0,0, 0.3);
+        background: #fff;
+        position: relative;
+        text-align: center;
+    }
+
+    .column {
+        text-align: center;
+        float: left;
+        width: 217px;
+        text-align: center;
+        margin: 15px;
+    }
+
+    .click {
+        cursor: pointer;
+        cursor: -webkit-zoom-in;
+        cursor: -moz-zoom-in;
+        cursor: zoom-in;
+    }
+
+    .pin.small {
+        height: 150px;
+    }
+
+    .pin.medium {
+        height: 200px;
+    }
+
+    .pin.large {
+        height: 250px;
+    }
+
+    .pin.x-large {
+        height: 300px;
+    }
+
+    a.willet-pinterest-button {
+        background-image: url('http://assets.pinterest.com/images/pinit6.png');
+        background-position: 0 -7px;
+    }
+
+    a.willet-pinterest-button:hover {
+        background-position: 0 -28px;
+        cursor: pointer;
+    }
+
+    a.willet-pinterest-button:active {
+        background-position: 0 -49px;
+        cursor: pointer; 
+    }
+
+    a.willet-pinterest-button.clicked {
+        background-position:0 -70px !important;
+    }
+
+
+    #featured-product {
+        /* CSS applied by JQuery so it remains invisible when not in use */
+        min-height: 240px;
+        padding: 20px 20px 35px 20px;
+        background-color: #fff;
+        border-bottom: 1px solid #ddd;
+
+        #featured_img {
+            margin-left: auto;
+            margin-right: auto;
+            width: 450px;
+            height: 240px;
+            float:left;
+            position: relative;
+            text-align: center;
+        }
+        #featured_img img {
+            max-width: 450px;
+            max-height: 240px;
+
+            -moz-box-shadow: 10px 10px 10px 0px #CECECE;
+            -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
+            -o-box-shadow: 10px 10px 10px 0px #CECECE;
+            box-shadow: 10px 10px 10px 0px #CECECE;
+        
+            border-top: 1px solid #DDD;
+            border-left: 1px solid #DDD;
+            border-right: 1px solid #999;
+            border-bottom: 1px solid #999;
+        }
+        
+        .text {
+            padding-left: 490px;
+            text-align: left;
+            padding-top: 30px;
+            padding-right: 2em;
+        }
+
+        #featured-social {
+            padding-top: 30px;
+            display: inline-block;
+        }
+
+        #featured-social > div {
+            display: block;
+            float: left;
+            margin-right: 5px;
+        }
+    }
+
+    .buttons {
+        float: right;
+        text-align: right;
+        padding-top: 30px;
+
+        div {
+            margin-bottom: 12px;
+        }
+
+
+        * {
+            float: left;
+            margin: 0 2px;
+        }
+        
+        .fb_buttons {
+            margin-left: 0;
+            margin-right: 4px;
+            height: 24px;
+        }
+        
+        .fb_buttons.no_count {
+            width: 56px;
+            overflow: hidden;
+        }
+    }
+        
+    #preview_header, #preview_header_spacing {
+        width: 100%;
+        height: 30px;
+    }
+    
+    #preview_header {
+        background-color: #000;
+        position: fixed;
+        z-index: 9001;
+    }
+    
+    #preview_header p {
+        color: #CCC;
+        margin: 0;
+        text-align: center;
+        font-size: 15px;
+        line-height: 30px;
+    }
+}
+

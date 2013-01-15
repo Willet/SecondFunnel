@@ -1,7 +1,13 @@
 from common import *
+from secondfunnel.errors import EnvironmentSettingsError
+
+if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
+    raise EnvironmentSettingsError()
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
+
+COMPRESS_ENABLED = True
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -15,6 +21,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
 
     # external apps
+    'djcelery',
     'storages',
     'south',
     'django_extensions',
@@ -27,4 +34,31 @@ INSTALLED_APPS = (
     'apps.pinpoint',
     'apps.website',
     'apps.scraper',
+    "compressor",
 )
+
+# URL prefix for static files.
+# Example: "http://media.lawrence.com/static/"
+STATIC_URL = 'https://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
+COMPRESS_URL = STATIC_URL
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': MEMCACHED_LOCATION
+    }
+}
+
+GOOGLE_ANALYTICS_PROFILE = '67271131'
+GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-15'
+
+GOOGLE_API_PRIVATE_KEY = 'google-service-account-prod.p12'
+GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
+
+BROKER_URL = 'sqs://%s:%s@' % (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+BROKER_TRANSPORT_OPTIONS = {
+    'region': 'us-west-1',
+    'visibility_timeout': 30,
+    'polling_interval': 1,
+    'queue_name_prefix': 'celery-',
+}

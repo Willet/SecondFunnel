@@ -1,7 +1,6 @@
 {% load staticfiles %}
 <div class='social-buttons'>
     {% if not featured %}
-    <div class="loading" style="display:none;"></div>
     <div class="loading-container">
     {% endif %}
         <div class='button facebook{% if not featured %} no-count{% endif %}'>
@@ -25,7 +24,7 @@
             {% endif %}
         </div>
         <div class='button pinterest'>
-            <a href="http://pinterest.com/pin/create/button/?url={{ url|striptags }}&media={{ image }}"
+            <a href="http://pinterest.com/pin/create/button/?url={{ url|striptags }}&media={{ image }}&description={{ brand }}-{{ name }}"
                target="_blank">
                 <img src="{% static "pinpoint/images/pinpointButton.png" %}"/>
             </a>

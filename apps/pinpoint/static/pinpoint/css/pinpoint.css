@@ -1,6 +1,8 @@
 /* page */
 body {
     min-height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 .page {
@@ -14,9 +16,12 @@ body {
 
 }
 
+.social-buttons img {
+    border: 0px none;
+}
+
 .social-buttons .loading-container {
-    left: -1000px;
-    display: none;
+    visibility: hidden;
 }
 
 .social-buttons .button {
@@ -79,6 +84,10 @@ body {
     display: none;
 }
 
+.social-buttons {
+    height: 20px;
+}
+
 .block.product {
 
 }
@@ -89,12 +98,13 @@ body {
     overflow: hidden;
     position: fixed;
     display : table;
-    top     : 0;
-    left    : 0;
-    display : none;
+    width     : 100%;
+    height    : 100%;
+    top:0;
+    left:0;
 }
 
-.preview.mask {
+.preview .mask {
     position  : fixed;
     top       : 0;
     left      : 0;
@@ -104,4 +114,76 @@ body {
     cursor    : -webkit-zoom-out;
     cursor    : -moz-zoom-out;
     cursor    : zoom-out;
+    display: block;
+}
+
+.preview .tablecell {
+    display: table-cell;
+    vertical-align: middle;
+    position: static;
+}
+
+.preview .content {
+    overflow: hidden;
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+
+    background: #fff;
+    z-index:1002;
+    border: 1px solid #CECECE;
+
+    -moz-box-shadow: 10px 10px 10px 0px #CECECE;
+    -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
+    -o-box-shadow: 10px 10px 10px 0px #CECECE;
+    box-shadow: 10px 10px 10px 0px #CECECE;
+}
+
+.preview .close {
+    cursor: pointer;
+    float: right;
+}
+
+/* Some default css for youtube videos and lifestyle images. */
+
+/* This is for blocks that are two columsn wide */
+.block.wide {
+    width: 480px;
+}
+
+.youtube {
+    width: 480px;
+    height: 360px;
+    cursor: pointer;
+}
+
+.block.product {
+    display: table;
+    table-layout: fixed;
+}
+
+.block div.product {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.block.product div.lifestyle {
+    width: 240px;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.block.product img.lifestyle {
+    max-width: 240px;
+}
+
+/* width : (block_width / 2) - (play_button_width / 2)
+ * height : (block_height / 2) - (play_button_height / 2)
+ * Once we have sass, this can be automatic
+ */
+.youtube_play {
+    position: absolute;
+    top: 135px;
+    left: 195px;
 }

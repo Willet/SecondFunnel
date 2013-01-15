@@ -1,15 +1,34 @@
 import os
+import djcelery
+
+from datetime import timedelta
+import django.conf.global_settings as DEFAULT_SETTINGS
 
 # Django settings for secondfunnel project.
+import sys
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
+
+# aws environment specific settings
+# These values should not be hardcoded. They are only hardcoded because
+# We have not yet found a way to set environment variables :(
+AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket', 'elasticbeanstalk-us-east-1-056265713214')
+MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 
 ADMINS = (
 # ('Your Name', 'your_email@example.com'),
 )
 
 MANAGERS = ADMINS
+
+
+def fromProjectRoot(path):
+    return os.path.join(
+           os.path.dirname(
+           os.path.dirname(
+           os.path.dirname(
+           os.path.abspath(__file__)))), path)
 
 if 'RDS_DB_NAME' in os.environ:
     DATABASES = {
@@ -44,6 +63,10 @@ TIME_ZONE = 'America/Chicago'
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
 
+LOCALE_PATHS = (
+    fromProjectRoot('locale'),
+)
+
 SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
@@ -72,21 +95,30 @@ MEDIA_URL = ''
 # Example: "/home/media/media.lawrence.com/static/"
 
 # TODO: has to be a better way to get the path...
-STATIC_ROOT = os.path.join(
-    os.path.dirname(
-        os.path.dirname(
-            os.path.dirname(
-                os.path.abspath(__file__)))), 'static')
+STATIC_ROOT = fromProjectRoot('static')
 
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+DEFAULT_FILE_STORAGE = 'secondfunnel.storage.CustomExpiresS3BotoStorage'
+STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = 'sgmQk+55dtCnRzhEs+4rTBZaiO2+e4EU1fZDWxvt'
-AWS_STORAGE_BUCKET_NAME = 'elasticbeanstalk-us-east-1-056265713214'
 
-# URL prefix for static files.
-# Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+STATIC_ASSET_TIMEOUT = 1209600  # two weeks
+
+AWS_EXPIRES_REGEXES = [
+    ('^CACHE/', STATIC_ASSET_TIMEOUT),
+]
+
+COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
+                        'compressor.filters.cssmin.CSSMinFilter']
+
+COMPRESS_STORAGE = STATICFILES_STORAGE
+
+COMPRESS_PRECOMPILERS = (
+    ('text/x-sass', 'bundle exec sass {infile} {outfile}'),
+    ('text/x-scss', 'bundle exec sass {infile} {outfile}'),
+)
+
+COMPRESS_PARSER = 'compressor.parser.LxmlParser'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -106,6 +138,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'compressor.finders.CompressorFinder',
     )
 
 # Make this unique, and don't share it with anybody.
@@ -120,8 +153,9 @@ TEMPLATE_LOADERS = (
     )
 
 MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -161,6 +195,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
 
     # external apps
+    'djcelery',
     'storages',
     'south',
     'django_extensions',
@@ -170,6 +205,7 @@ INSTALLED_APPS = (
     'adminlettuce',
     'ajax_forms',
     'django_mobile',
+    "compressor",
 
     # our apps
     'apps.analytics',
@@ -187,32 +223,48 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
-        }
-    },
-    'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
-    },
-    'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-    }
+     'version': 1,
+     'disable_existing_loggers': False,
+     'formatters': {
+         'verbose': {
+             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+         },
+         'simple': {
+             'format': '%(levelname)s %(message)s'
+         },
+     },
+     'filters': {
+         'require_debug_false': {
+             '()': 'django.utils.log.RequireDebugFalse'
+         }
+     },
+     'handlers': {
+         'stderr': {
+             'level': 'ERROR',
+             'class': 'logging.StreamHandler',
+             'formatter': 'verbose'
+         },
+         'mail_admins': {
+             'level': 'ERROR',
+             'filters': ['require_debug_false'],
+             'class': 'django.utils.log.AdminEmailHandler'
+         }
+     },
+     'loggers': {
+         'django.request': {
+             'handlers': ['stderr', 'mail_admins'],
+             'level': 'ERROR',
+             'propagate': True,
+         },
+     }
 }
 
-TEMPLATE_CONTEXT_PROCESSORS = (
+TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
     # allows for request variable in templates
     'django.core.context_processors.request',
+
+    # allows for external settings dict
+    'secondfunnel.context_processors.expose_settings',
 
     # needed for admin
     'django.contrib.auth.context_processors.auth',
@@ -222,6 +274,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
     # allows for detecting 'flavours' in templates
     'django_mobile.context_processors.flavour'
+
+    # used for internationalization
+    'django.core.context_processors.i18n',
 )
 
 # Name of the GET parameter to determine flavour
@@ -230,3 +285,18 @@ FLAVOURS_GET_PARAMETER = 'mode'
 FIXTURE_DIRS = (
     'secondfunnel/fixtures/',
 )
+
+EXPOSED_SETTINGS = {
+    'STATIC_ASSET_TIMEOUT': STATIC_ASSET_TIMEOUT
+}
+
+INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
+
+CELERYBEAT_SCHEDULE = {
+    'runs-every-6-hours': {
+        'task': 'apps.analytics.tasks.redo_analytics',
+        'schedule': timedelta(hours=6),
+    },
+}
+
+djcelery.setup_loader()
