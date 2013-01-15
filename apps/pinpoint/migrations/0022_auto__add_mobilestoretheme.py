@@ -162,6 +162,20 @@ class Migration(SchemaMigration):
             'product': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['assets.Product']"}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'})
         },
+        'pinpoint.shopthelookblock': {
+            'Meta': {'object_name': 'ShopTheLookBlock'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
+            'custom_image': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['assets.GenericImage']", 'unique': 'True', 'null': 'True', 'blank': 'True'}),
+            'custom_ls_image': ('django.db.models.fields.related.OneToOneField', [], {'blank': 'True', 'related_name': "'ls_image'", 'unique': 'True', 'null': 'True', 'to': "orm['assets.GenericImage']"}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'existing_image': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['assets.ProductMedia']", 'null': 'True', 'blank': 'True'}),
+            'existing_ls_image': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'ls_image_set'", 'null': 'True', 'to': "orm['assets.ProductMedia']"}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'product': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['assets.Product']"}),
+            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'})
+        },
         'pinpoint.mobilestoretheme': {
             'Meta': {'object_name': 'MobileStoreTheme'},
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
@@ -185,7 +199,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'page_template': ('django.db.models.fields.TextField', [], {'default': '"\\n    <html>\\n        <head>\\n            {{ header_content }}\\n        </head>\\n        <body>\\n            <div class=\'page\'>\\n                {{ featured_content }}\\n                {{ discovery_area }}\\n            </div>\\n            {{ preview_area }}\\n        </body>\\n    </html>\\n    "'}),
+            'page_template': ('django.db.models.fields.TextField', [], {'default': '"\\n    <!DOCTYPE HTML>\\n    <html>\\n        <head>\\n            {{ header_content }}\\n        </head>\\n        <body>\\n            <div class=\'page\'>\\n                {{ featured_content }}\\n                {{ discovery_area }}\\n            </div>\\n            {{ preview_area }}\\n        </body>\\n    </html>\\n    "'}),
             'preview_product': ('django.db.models.fields.TextField', [], {'default': '"\\n    <div class=\'title\'></div>\\n    <div class=\'price\'></div>\\n    <div class=\'description\'></div>\\n    <div class=\'url\'></div>\\n    <div class=\'image\'></div>\\n    <div class=\'images\'></div>\\n    <div class=\'social-buttons\'></div>\\n    "'}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
             'store': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'theme'", 'unique': 'True', 'to': "orm['assets.Store']"})

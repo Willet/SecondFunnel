@@ -90,6 +90,14 @@ class Migration(SchemaMigration):
             'staff': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False'}),
             'theme': ('django.db.models.fields.related.OneToOneField', [], {'blank': 'True', 'related_name': "'store_theme'", 'unique': 'True', 'null': 'True', 'to': "orm['pinpoint.StoreTheme']"})
         },
+        'assets.youtubevideo': {
+            'Meta': {'object_name': 'YoutubeVideo'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
+            'store': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['assets.Store']", 'null': 'True'}),
+            'video_id': ('django.db.models.fields.CharField', [], {'max_length': '11'})
+        },
         'auth.group': {
             'Meta': {'object_name': 'Group'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),

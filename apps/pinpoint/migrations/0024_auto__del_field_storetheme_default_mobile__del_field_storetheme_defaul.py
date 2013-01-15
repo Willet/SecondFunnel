@@ -8,70 +8,23 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Removing unique constraint on 'StoreTheme', fields ['store']
-        db.delete_unique('pinpoint_storetheme', ['store_id'])
-
-        # Deleting model 'MobileStoreTheme'
-        db.delete_table('pinpoint_mobilestoretheme')
-
-        # Adding field 'Campaign.theme'
-        db.add_column('pinpoint_campaign', 'theme',
-                      self.gf('django.db.models.fields.related.OneToOneField')(blank=True, related_name='theme', unique=True, null=True, to=orm['pinpoint.StoreTheme']),
-                      keep_default=False)
-
-        # Adding field 'Campaign.mobile'
-        db.add_column('pinpoint_campaign', 'mobile',
-                      self.gf('django.db.models.fields.related.OneToOneField')(blank=True, related_name='mobile', unique=True, null=True, to=orm['pinpoint.StoreTheme']),
-                      keep_default=False)
-
-        # Adding field 'StoreTheme.default_theme'
-        db.add_column('pinpoint_storetheme', 'default_theme',
-                      self.gf('django.db.models.fields.related.OneToOneField')(blank=True, related_name='theme', unique=True, null=True, to=orm['assets.Store']),
-                      keep_default=False)
-
-        # Adding field 'StoreTheme.default_mobile'
-        db.add_column('pinpoint_storetheme', 'default_mobile',
-                      self.gf('django.db.models.fields.related.OneToOneField')(blank=True, related_name='mobile', unique=True, null=True, to=orm['assets.Store']),
-                      keep_default=False)
-
-
-        # Changing field 'StoreTheme.store'
-        db.alter_column('pinpoint_storetheme', 'store_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.Store']))
-
-    def backwards(self, orm):
-        # Adding model 'MobileStoreTheme'
-        db.create_table('pinpoint_mobilestoretheme', (
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('featured_product', self.gf('django.db.models.fields.TextField')(default="\n    <img src='{{ product.featured_image }}' />\n    <p>Other images</p>\n    <ul>\n    {% if product.images|length > 1 %}\n        {% for image in product.images %}\n        <li>{{ image }}</li>\n        {% endfor %}\n    {% else %}\n        <li>No other images</li>\n    {% endif %}\n    </ul>\n    <div class='title'>{{ product.name }}</div>\n    <div class='price'>{{ product.price }}</div>\n    <div class='description'>{{ product.description }}</div>\n    <div class='url'>{{ product.url }}</div>\n\n    {% social_buttons product %}\n    ")),
-            ('preview_product', self.gf('django.db.models.fields.TextField')(default="\n    <div class='title'></div>\n    <div class='price'></div>\n    <div class='description'></div>\n    <div class='url'></div>\n    <div class='image'></div>\n    <div class='images'></div>\n    <div class='social-buttons'></div>\n    ")),
-            ('last_modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, null=True, blank=True)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50, null=True, blank=True)),
-            ('page_template', self.gf('django.db.models.fields.TextField')(default="\n    <html>\n        <head>\n            {{ header_content }}\n        </head>\n        <body>\n            <div class='page'>\n                {{ featured_content }}\n                {{ discovery_area }}\n            </div>\n            {{ preview_area }}\n        </body>\n    </html>\n    ")),
-            ('discovery_product', self.gf('django.db.models.fields.TextField')(default="\n    <img src='{{ product.images.0 }}'/>\n    <div>{{ product.name }}</div>\n    {% social_buttons product %}\n    <div style='display: none'>\n        <!-- Testing -->\n        <div class='price'>{{ product.price }}</div>\n        <div class='description'>{{ product.description }}</div>\n        <div class='url'>{{ product.url }}</div>\n        <ul>\n            {% for image in product.images %}\n            <li>{{ image }}</li>\n            {% endfor %}\n        </ul>\n    </div>\n    ")),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, null=True, blank=True)),
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('store', self.gf('django.db.models.fields.related.OneToOneField')(related_name='mobile', unique=True, to=orm['assets.Store'])),
-        ))
-        db.send_create_signal('pinpoint', ['MobileStoreTheme'])
-
-        # Deleting field 'Campaign.theme'
-        db.delete_column('pinpoint_campaign', 'theme_id')
-
-        # Deleting field 'Campaign.mobile'
-        db.delete_column('pinpoint_campaign', 'mobile_id')
+        # Deleting field 'StoreTheme.default_mobile'
+        db.delete_column('pinpoint_storetheme', 'default_mobile_id')
 
         # Deleting field 'StoreTheme.default_theme'
         db.delete_column('pinpoint_storetheme', 'default_theme_id')
 
-        # Deleting field 'StoreTheme.default_mobile'
-        db.delete_column('pinpoint_storetheme', 'default_mobile_id')
 
+    def backwards(self, orm):
+        # Adding field 'StoreTheme.default_mobile'
+        db.add_column('pinpoint_storetheme', 'default_mobile',
+                      self.gf('django.db.models.fields.related.OneToOneField')(related_name='mobile', unique=True, null=True, to=orm['assets.Store'], blank=True),
+                      keep_default=False)
 
-        # Changing field 'StoreTheme.store'
-        db.alter_column('pinpoint_storetheme', 'store_id', self.gf('django.db.models.fields.related.OneToOneField')(unique=True, to=orm['assets.Store']))
-        # Adding unique constraint on 'StoreTheme', fields ['store']
-        db.create_unique('pinpoint_storetheme', ['store_id'])
+        # Adding field 'StoreTheme.default_theme'
+        db.add_column('pinpoint_storetheme', 'default_theme',
+                      self.gf('django.db.models.fields.related.OneToOneField')(related_name='theme', unique=True, null=True, to=orm['assets.Store'], blank=True),
+                      keep_default=False)
 
 
     models = {
@@ -119,9 +72,11 @@ class Migration(SchemaMigration):
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
+            'mobile': ('django.db.models.fields.related.OneToOneField', [], {'blank': 'True', 'related_name': "'store_mobile'", 'unique': 'True', 'null': 'True', 'to': "orm['pinpoint.StoreTheme']"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
-            'staff': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False'})
+            'staff': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False'}),
+            'theme': ('django.db.models.fields.related.OneToOneField', [], {'blank': 'True', 'related_name': "'store_theme'", 'unique': 'True', 'null': 'True', 'to': "orm['pinpoint.StoreTheme']"})
         },
         'auth.group': {
             'Meta': {'object_name': 'Group'},
@@ -202,6 +157,20 @@ class Migration(SchemaMigration):
             'custom_image': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['assets.GenericImage']", 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'existing_image': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['assets.ProductMedia']", 'null': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'product': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['assets.Product']"}),
+            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'})
+        },
+        'pinpoint.shopthelookblock': {
+            'Meta': {'object_name': 'ShopTheLookBlock'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
+            'custom_image': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['assets.GenericImage']", 'unique': 'True', 'null': 'True', 'blank': 'True'}),
+            'custom_ls_image': ('django.db.models.fields.related.OneToOneField', [], {'blank': 'True', 'related_name': "'ls_image'", 'unique': 'True', 'null': 'True', 'to': "orm['assets.GenericImage']"}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'existing_image': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['assets.ProductMedia']", 'null': 'True', 'blank': 'True'}),
+            'existing_ls_image': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'ls_image_set'", 'null': 'True', 'to': "orm['assets.ProductMedia']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
