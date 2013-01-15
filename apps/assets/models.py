@@ -26,7 +26,7 @@ class BaseModelNamed(BaseModel):
     @ivar name: The name of this database object.
     @ivar description: The description of this database object.
 
-    @ivar slug: The short label for this database object.
+    @ivar slug: The short label for this database object. Often used in URIs.
     """
     name = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
@@ -34,7 +34,6 @@ class BaseModelNamed(BaseModel):
     slug = models.SlugField(blank=True, null=True)
 
     class Meta:
-        """This is needed to allow other models to inherit from this one."""
         abstract = True
 
 
@@ -43,8 +42,6 @@ class Store(BaseModelNamed):
     This defines a store in the databse.
 
     @ivar staff: The users who are allowed to access this store's admin pages.
-
-    @ivar videos: Related name for YoutubeVideo objects.
     """
     staff = models.ManyToManyField(User)
 
@@ -55,7 +52,7 @@ class Store(BaseModelNamed):
         """
         Gets the number of staff for this store.
 
-        @return: The number of staff for this store.
+        @return: The number of staff members for this store.
         """
         return self.staff.all().count()
 
@@ -69,6 +66,9 @@ class MediaBase(BaseModelNamed):
         must not be null.
     @ivar hosted: The hosted asset as a file.
     @ivar media_type: The media type of this asset.
+
+    @warning: Investigate adding "not null" restrictions on
+        remote and hosted fields
     """
     MEDIA_TYPES = (
         ('js', 'JavaScript'),
@@ -93,7 +93,6 @@ class MediaBase(BaseModelNamed):
         null=True)
 
     class Meta:
-        """This is needed to allow other models to inherit from this one."""
         abstract = True
 
     def __unicode__(self):
@@ -101,9 +100,9 @@ class MediaBase(BaseModelNamed):
 
     def get_url(self):
         """
-        Gets a url to the asset. Prefers remote assets over hosted assets.
+        Gets a url of the asset. Prefers remote assets over hosted assets.
 
-        @return: A url to the asset.
+        @return: None if no url exists, or url of the asset.
         """
         if self.remote:
             return self.remote
@@ -135,14 +134,13 @@ class ImageBase(BaseModelNamed):
         null=True)
 
     class Meta:
-        """This is needed to allow other models to inherit from this one."""
         abstract = True
 
     def get_url(self):
         """
         Gets a url to the asset. Prefers remote assets over hosted assets.
 
-        @return: A url to the asset.
+        @return: None if no url exists, or url to the asset.
         """
         if self.remote:
             return self.remote
@@ -180,8 +178,8 @@ class Product(BaseModelNamed):
     @ivar store: The store the product is for.
     @ivar price: A string representing the price of the product.
     @ivar sku: The store's product id number.
-    @ivar last_scraped: The date the product was last scraped.
-    @ivar rescrape: Whether this product should be rescraped.
+    @ivar last_scraped: The date the product was last scraped. Used by Scraper.
+    @ivar rescrape: Whether this product should be rescraped. Used by Scraper.
     @ivar lifestyleImage: An optional image of the product being used.
 
     @ivar media: Related name for ProductMedia objects.
@@ -203,32 +201,26 @@ class Product(BaseModelNamed):
 
     def media_count(self):
         """
-        Gets the number of media objects that refer to this product.
-
-        @return: The number of media objects that refer to this product.
+        @return: The number of media objects associated to this product.
         """
         return self.media.count()
 
     # Template Aliases
     def url(self):
         """
-        Gets the url of the product page.
-
         @return: The url of the product page.
         """
         return self.original_url
 
     def images(self):
         """
-        Gets the urls of all images that refer to this product.
-
-        @return: A list of product image urls.
+        @return: A list of product image urls associated with this product.
         """
         return [x.get_url() for x in self.media.all()]
 
     def data(self):
         """
-        Creates data attributes for use in html.
+        Creates data attributes for use in templates.
 
         @return: A string containing data attribues for this product.
         """
