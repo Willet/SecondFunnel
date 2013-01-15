@@ -43,12 +43,12 @@ var pinpointTracking = (function ($, window, document) {
     },
 
     setSocialShareVars = function (o) {
-        if (o.default === true) {
-            pinpointTracking.socialShareUrl = $("#featured_img").data("url");
-            pinpointTracking.socialShareType = "featured";
-        } else {
+        if (o && o.url && o.sType) {
             pinpointTracking.socialShareUrl = o.url;
             pinpointTracking.socialShareType = o.sType;
+        } else {
+            pinpointTracking.socialShareUrl = $("#featured_img").data("url");
+            pinpointTracking.socialShareType = "featured";
         }
     },
 
@@ -61,17 +61,52 @@ var pinpointTracking = (function ($, window, document) {
         }
     },
 
-    init = function() {
-        setSocialShareVars({"default": true});
+    setTrackingDomHooks = function () {
+        // reset tracking scope: hover into featured product area
+        $(".featured").hover(function() {
+            pinpointTracking.clearTimeout();
+            pinpointTracking.setSocialShareVars();
+        }, function() {});
 
-        // load scripts
-        window.twttr = (function (d,s,id) {
-            var t, js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) return; js=d.createElement(s); js.id=id;
-            js.src="//platform.twitter.com/widgets.js"; js.onload="pinpointTracking.registerTwitterListeners"; fjs.parentNode.insertBefore(js, fjs);
-            return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f) } });
-        }(document, "script", "twitter-wjs"));
+        // buy now event
+        $(document).on("click", "a.buy", function(e) {
+            pinpointTracking.registerEvent({
+                "type": "clickthrough",
+                "subtype": "buy",
+                "label": $(this).attr("href")
+            });
+        });
 
+        // popup open event
+        $(document).on("click", ".discovery-area > .product", function(e) {
+            pinpointTracking.registerEvent({
+                "type": "inpage",
+                "subtype": "openpopup",
+                "label": $(this).data("url")
+            });
+        });
+
+        // featured pinterest click event
+        // pinterest doesn't have an API for us to use
+        $(".pinterest").click(function() {
+            pinpointTracking.registerEvent({
+                "network": "Pinterest",
+                "type": "share",
+                "subtype": "clicked"
+            });
+        });
+
+        // social hover and popup pinterest click events
+        $(document).on("click", ".pinterest", function(e) {
+            pinpointTracking.registerEvent({
+                "network": "Pinterest",
+                "type": "share",
+                "subtype": "clicked"
+            });
+        });
+    },
+
+    registerTwitterListeners = function() {
         twttr.ready(function (twttr) {
             twttr.events.bind('tweet', function(event) {
                 pinpointTracking.registerEvent({
@@ -96,6 +131,14 @@ var pinpointTracking = (function ($, window, document) {
                     "subtype": sType
                 });
             });
+        });
+    },
+
+    init = function() {
+        setSocialShareVars();
+
+        $(function() {
+            setTrackingDomHooks();
         });
     },
 
@@ -140,7 +183,8 @@ var pinpointTracking = (function ($, window, document) {
         "init": init,
         "registerEvent": registerEvent,
         "setSocialShareVars": setSocialShareVars,
-        "clearTimeout": clearTimeout
+        "clearTimeout": clearTimeout,
+        "registerTwitterListeners": registerTwitterListeners
     }
 
 }($, window, document));

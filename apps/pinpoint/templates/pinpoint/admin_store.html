@@ -14,11 +14,14 @@
     <link rel="stylesheet" href="{% static "css/jquery.qtip.min.css" %}">
     <link rel="stylesheet" href="{% static "js/DataTables/css/demo_page.css" %}">
     <link rel="stylesheet" href="{% static "js/DataTables/css/demo_table.css" %}">
-    <link href='http://fonts.googleapis.com/css?family=Shadows Into Light Two'
-          rel='stylesheet'
-          type='text/css'>
 
     <style>
+        @font-face {
+          font-family: 'Shadows Into Light Two';
+          font-style: normal;
+          font-weight: 400;
+          src: local('Shadows Into Light Two'), local('ShadowsIntoLightTwo-Regular'), url(http://themes.googleusercontent.com/static/fonts/shadowsintolighttwo/v1/gDxHeefcXIo-lOuZFCn2xU9H8fLq5zs1M0-u6-ewBcM.woff) format('woff');
+        }
         .online {
             color :#13b240;
         }
@@ -283,8 +286,6 @@
                         input.unbind('focusout').focusout(function() {
                             tooltip.qtip('hide');
                         });
-                        console.log($(".view_page", link.closest('tr')));
-                        console.log(url);
                     }
                 },
             })

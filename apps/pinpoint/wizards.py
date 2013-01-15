@@ -76,6 +76,7 @@ class Wizard(object):
             path = 'pinpoint/wizards/%s/ui.html' % self.block_type.slug
             return render_to_response(path, {
                 "store": self.store,
+                "block_type": self.block_type,
                 "block_types": BlockType.objects.all(),
                 "products": self.store.product_set.all(),
                 "form": form,
@@ -323,7 +324,10 @@ class FeaturedProductWizard(Wizard):
 
 
 class ShopTheLookWizard(FeaturedProductWizard):
-    """Wizard for customizing a show the look block"""
+    """Controller for the "Shop the Look" page style.
+
+    Template locations are specified in Wizard.process.
+    """
     def _get_initial_form_data(self):
         data = super(ShopTheLookWizard, self)._get_initial_form_data()
 

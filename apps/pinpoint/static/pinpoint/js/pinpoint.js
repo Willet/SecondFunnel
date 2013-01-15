@@ -16,7 +16,6 @@ var PINPOINT = (function($, pageInfo){
         layoutResults,
         load,
         loadFB,
-        loadTwitter,
         loadInitialResults,
         loadMoreResults,
         pageScroll,
@@ -132,6 +131,9 @@ var PINPOINT = (function($, pageInfo){
             }
         }
 
+        pinpointTracking.clearTimeout();
+        pinpointTracking.setSocialShareVars({"sType": "popup", "url": data.url});
+
         $preview.fadeIn(100);
         $mask.fadeIn(100);
     };
@@ -148,6 +150,8 @@ var PINPOINT = (function($, pageInfo){
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.product');
 
+        pinpointTracking.setSocialShareVars();
+
         $preview.fadeOut(100);
         $mask.fadeOut(100);
     };
@@ -160,11 +164,19 @@ var PINPOINT = (function($, pageInfo){
             FB.XFBML.parse($buttons.find('.button.facebook')[0]);
             $buttons.addClass('loaded');
         }
+
+        pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(this).data("url")});
+        pinpointTracking.clearTimeout();
     };
 
     productHoverOff = function () {
         var $buttons = $(this).find('.social-buttons');
         $buttons.fadeOut('fast');
+
+        pinpointTracking.clearTimeout();
+        if (pinpointTracking.socialShareType !== "popup") {
+            pinpointTracking._pptimeout = window.setTimeout(pinpointTracking.setSocialShareVars, 2000);
+        }
     };
 
     updateClickStream = function (event) {
@@ -244,7 +256,8 @@ var PINPOINT = (function($, pageInfo){
     layoutResults = function (results, belowFold) {
         var $col,
             result,
-            initialResults = results.length;
+            initialResults = results.length,
+            $block;
 
         // concatenate all the results together so they're in the same jquery object
         var blocks = "";
@@ -267,7 +280,10 @@ var PINPOINT = (function($, pageInfo){
         $('.discovery-area').append($block);
 
         // make sure images are loaded or else masonry wont work properly
-        $block.imagesLoaded(function() {
+        $block.imagesLoaded(function($images, $proper, $broken) {
+            $broken.parents('.block.product').remove();
+            $block.find('.block.product img[src=""]').parents('.block.product').remove();
+
             $('.discovery-area').masonry('appended', $block, true);
             $block.css({opacity: 1});
 
@@ -302,7 +318,7 @@ var PINPOINT = (function($, pageInfo){
                 lowestBlock = $(this);
             }
         });
-       
+
         if (!lowestBlock) {
             lowestHeight = 0;
         } else {
@@ -371,8 +387,8 @@ var PINPOINT = (function($, pageInfo){
 
     /* --- START Social buttons --- */
     loadFB = function () {
-        FB.init({ 
-          cookie:true, 
+        FB.init({
+          cookie:true,
           status:true,
           xfbml:true
         });
@@ -388,9 +404,17 @@ var PINPOINT = (function($, pageInfo){
             $(".loaded").find(".loading-container").hide();
             $(".loaded").find(".loading-container").fadeIn('fast');
         });
-    };
 
-    loadTwitter = function () {
+        FB.Event.subscribe('edge.create',
+            function(url) {
+                pinpointTracking.registerEvent({
+                    "network": "Facebook",
+                    "type": "share",
+                    "subtype": "liked",
+                    "label": url
+                });
+            }
+        );
     };
 
     createSocialButtons = function (config) {
@@ -447,8 +471,8 @@ var PINPOINT = (function($, pageInfo){
 
         var url = 'http://pinterest.com/pin/create/button/' +
             '?url=' + encodeURIComponent(conf.url) +
-            '&media=' + encodeURIComponent(conf.image);
-
+            '&media=' + encodeURIComponent(conf.image) +
+            '&description=' + details.store.name + '-' + conf.title;
 
         var $img = $('<img/>', {
             'src': "//assets.pinterest.com/images/PinExt.png"
@@ -465,29 +489,15 @@ var PINPOINT = (function($, pageInfo){
     };
     /* --- END Social buttons --- */
 
-    /* --- START tracking --- */
-    // override existing implementations of methods
-    var oldLoadTwitter = loadTwitter;
-    loadTwitter = function() {
-        oldLoadTwitter();
-    }
-
-    var oldLoadFB = loadFB;
-    loadFB = function() {
-        oldLoadFB();
-    }
-    /* --- END tracking --- */
-
     /* --- START Script loading --- */
     // Either a URL, or an object with 'src' key and optional 'onload' key
     scripts = [
-        ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js',
     {
         'src'   : 'http://connect.facebook.net/en_US/all.js#xfbml=0',
         'onload': loadFB
     }, {
         'src'   : '//platform.twitter.com/widgets.js',
-        'onload': loadTwitter,
+        'onload': pinpointTracking.registerTwitterListeners,
         'id': 'twitter-wjs'
     }];
 
@@ -504,11 +514,6 @@ var PINPOINT = (function($, pageInfo){
     /* --- END Script loading --- */
 
     init = function() {
-        var _gaq = window._gaq || (window._gaq = []);
-
-        _gaq.push(['_setAccount', 'UA-35018502-1']);
-        _gaq.push(['_trackPageview']);
-
         load(scripts);
         $(document).ready(ready);
     };
