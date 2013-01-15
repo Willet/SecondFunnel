@@ -3,6 +3,8 @@ from django.conf import settings
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.template import Context
+from django.utils.html import escape
+from django.template.loader_tags import do_include
 
 from apps.pinpoint.models import BlockContent
 
@@ -82,11 +84,28 @@ def social_buttons(product, count=None):
     elif count is None:
         count = False
 
-    url = product.original_url
-
     return {
         'featured': featured,
-        'url'     : url,
+        'url'     : product.original_url,
         'image'   : image,
-        'count'   : count
+        'count'   : count,
+        'name'    : product.name,
+        'brand'   : product.store.name
     }
+
+
+class IncludeEscNode(template.Node):
+    def __init__(self, parser, token):
+        self.parser = parser
+        self.token = token
+
+    def render(self, context):
+        parser = self.parser
+        token = self.token
+
+        return escape(do_include(parser, token).render(context))
+
+
+@register.tag(name="include_escaped")
+def include_escaped(parser, token):
+    return IncludeEscNode(parser, token)

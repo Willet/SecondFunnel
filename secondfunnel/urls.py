@@ -11,6 +11,7 @@ urlpatterns = patterns('',
 
     # APPS
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
+    url(r'p/', include('apps.pinpoint.global_urls')),
     url(r'^analytics/', include('apps.analytics.urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
 
@@ -18,15 +19,15 @@ urlpatterns = patterns('',
     url(r'^api/assets/', include('apps.assets.api_urls')),
 
     # ACCOUNTS
-    url(r'^accounts/login/$', 
+    url(r'^accounts/login/$',
         'django.contrib.auth.views.login',
         name="login"),
 
-    url(r'^accounts/logout/$', 
+    url(r'^accounts/logout/$',
         'django.contrib.auth.views.logout_then_login',
         name="logout"),
 
-    url(r'^accounts/password/reset/$', 
+    url(r'^accounts/password/reset/$',
         'django.contrib.auth.views.password_reset',
         {'template_name': 'registration/pass_reset_form.html',
             'email_template_name': 'registration/pass_reset_email.html',
@@ -35,32 +36,32 @@ urlpatterns = patterns('',
             'post_reset_redirect': 'done/'},
         name="password_reset"),
 
-    url(r'^accounts/password/reset/done/$', 
+    url(r'^accounts/password/reset/done/$',
         'django.contrib.auth.views.password_reset_done',
         {'template_name': 'registration/pass_reset_done.html'},
         name="password_reset_done"),
 
-    url(r'^accounts/reset/(?P<uidb36>[-\w]+)/(?P<token>[-\w]+)/$', 
+    url(r'^accounts/reset/(?P<uidb36>[-\w]+)/(?P<token>[-\w]+)/$',
         'django.contrib.auth.views.password_reset_confirm',
         {'template_name': 'registration/pass_reset_confirm.html'},
         name="password_reset_confirm"),
 
-    url(r'^accounts/password/reset/complete/$', 
+    url(r'^accounts/password/reset/complete/$',
         'django.contrib.auth.views.password_reset_complete',
         {'template_name': 'registration/pass_reset_complete.html'},
         name="password_reset_complete"),
 
-    url(r'^accounts/password/change/$', 
+    url(r'^accounts/password/change/$',
         'django.contrib.auth.views.password_change',
         {'template_name': 'registration/pass_change.html'},
         name="password_change"),
 
-    url(r'^accounts/password/change/done/$', 
+    url(r'^accounts/password/change/done/$',
         'django.contrib.auth.views.password_change_done',
         {'template_name': 'registration/pass_change_done.html'},
         name="password_change_done"),
 
-    url(r'^accounts/profile/$', 
+    url(r'^accounts/profile/$',
         'django.views.generic.simple.direct_to_template',
         {'template': 'registration/profile.html'},
         name="profile"),

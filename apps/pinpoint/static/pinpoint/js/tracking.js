@@ -18,53 +18,101 @@ var pinpointTracking = (function ($, window, document) {
     },
 
     trackEvent = function (o) {
-        console.log('trackEvent: ', category, o.action, o.label, o.value || undefined);
+        var category = "appname=pinpoint|"
+            + "storeid=" + window.PINPOINT_INFO.store.id + "|"
+            + "campaignid=" + window.PINPOINT_INFO.campaign.id + "|"
+            + "referrer=" + referrerName() + "|"
+            + "domain=" + parseUri(window.location.href).host;
+
+        // console.log(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+        _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
     },
 
-    registerShare = function (o) {
-        var action, url;
+    registerEvent = function (o) {
+        var actionData = [
+            "network=" + o.network || "",
+            "actionType=" + o.type,
+            "actionSubtype=" + o.subtype || "",
+            "actionScope=" + pinpointTracking.socialShareType,
+        ];
 
         trackEvent({
-            "action": "share|" + o.network + "|" + o.type + "|" + pinpointTracking.socialShareType,
-            "label": pinpointTracking.socialShareUrl
+            "action": actionData.join("|"),
+            "label": o.label || pinpointTracking.socialShareUrl
         });
     },
 
     setSocialShareVars = function (o) {
-        if (o.default === true) {
-            pinpointTracking.socialShareUrl = $("#featured_img").data("url");
-            pinpointTracking.socialShareType = "featured";
-        } else {
+        if (o && o.url && o.sType) {
             pinpointTracking.socialShareUrl = o.url;
             pinpointTracking.socialShareType = o.sType;
+        } else {
+            pinpointTracking.socialShareUrl = $("#featured_img").data("url");
+            pinpointTracking.socialShareType = "featured";
         }
     },
 
     clearTimeout = function () {
         if (typeof pinpointTracking._pptimeout == "number") {
-          window.clearTimeout(pinpointTracking._pptimeout);
+            window.clearTimeout(pinpointTracking._pptimeout);
 
-          // TODO remove this? not valid in strict mode
-          delete pinpointTracking._pptimeout;
+            // TODO remove this? not valid in strict mode
+            delete pinpointTracking._pptimeout;
         }
     },
 
-    init = function() {
-        setSocialShareVars({"default": true});
+    setTrackingDomHooks = function () {
+        // reset tracking scope: hover into featured product area
+        $(".featured").hover(function() {
+            pinpointTracking.clearTimeout();
+            pinpointTracking.setSocialShareVars();
+        }, function() {});
 
-        // load scripts
-        window.twttr = (function (d,s,id) {
-            var t, js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) return; js=d.createElement(s); js.id=id;
-            js.src="//platform.twitter.com/widgets.js"; js.onload="pinpointTracking.registerTwitterListeners"; fjs.parentNode.insertBefore(js, fjs);
-            return window.twttr || (t = { _e: [], ready: function(f){ t._e.push(f) } });
-        }(document, "script", "twitter-wjs"));
+        // buy now event
+        $(document).on("click", "a.buy", function(e) {
+            pinpointTracking.registerEvent({
+                "type": "clickthrough",
+                "subtype": "buy",
+                "label": $(this).attr("href")
+            });
+        });
 
-        twttr.ready(function(twttr) {
+        // popup open event
+        $(document).on("click", ".discovery-area > .product", function(e) {
+            pinpointTracking.registerEvent({
+                "type": "inpage",
+                "subtype": "openpopup",
+                "label": $(this).data("url")
+            });
+        });
+
+        // featured pinterest click event
+        // pinterest doesn't have an API for us to use
+        $(".pinterest").click(function() {
+            pinpointTracking.registerEvent({
+                "network": "Pinterest",
+                "type": "share",
+                "subtype": "clicked"
+            });
+        });
+
+        // social hover and popup pinterest click events
+        $(document).on("click", ".pinterest", function(e) {
+            pinpointTracking.registerEvent({
+                "network": "Pinterest",
+                "type": "share",
+                "subtype": "clicked"
+            });
+        });
+    },
+
+    registerTwitterListeners = function() {
+        twttr.ready(function (twttr) {
             twttr.events.bind('tweet', function(event) {
-                pinpointTracking.registerShare({
+                pinpointTracking.registerEvent({
                     "network": "Twitter",
-                    "type": "shared"
+                    "type": "share",
+                    "subtype": "shared"
                 });
             });
 
@@ -77,14 +125,22 @@ var pinpointTracking = (function ($, window, document) {
                 } else {
                     sType = event.region;
                 }
-                pinpointTracking.registerShare({
+                pinpointTracking.registerEvent({
                     "network": "Twitter",
-                    "type": sType
+                    "type": "share",
+                    "subtype": sType
                 });
             });
         });
     },
 
+    init = function() {
+        setSocialShareVars();
+
+        $(function() {
+            setTrackingDomHooks();
+        });
+    },
 
     // parseUri 1.2.2
     // (c) Steven Levithan <stevenlevithan.com>
@@ -120,15 +176,15 @@ var pinpointTracking = (function ($, window, document) {
     };
 
     this.socialShareType = undefined;
-    this.socialShareUrl  = undefined;
-    this._pptimeout      = undefined;
+    this.socialShareUrl = undefined;
+    this._pptimeout = undefined;
 
     return {
         "init": init,
-        "registerShare": registerShare,
-        "trackEvent": trackEvent,
+        "registerEvent": registerEvent,
         "setSocialShareVars": setSocialShareVars,
-        "clearTimeout": clearTimeout
+        "clearTimeout": clearTimeout,
+        "registerTwitterListeners": registerTwitterListeners
     }
 
 }($, window, document));

@@ -12,10 +12,10 @@ var PINPOINT = (function($, pageInfo){
         getShortestColumn,
         hidePreview,
         init,
+        invalidateIRSession,
         layoutResults,
         load,
         loadFB,
-        loadTwitter,
         loadInitialResults,
         loadMoreResults,
         pageScroll,
@@ -27,6 +27,10 @@ var PINPOINT = (function($, pageInfo){
         updateClickStream,
         userClicks = 0,
         clickThreshold = 3,
+        spaceBelowFoldToStartLoading = 500,
+        loadingBlocks = false,
+        addOnBlocksAppendedCallback,
+        blocksAppendedCallbacks = [],
         addPreviewCallback,
         previewCallbacks = [];
 
@@ -127,6 +131,9 @@ var PINPOINT = (function($, pageInfo){
             }
         }
 
+        pinpointTracking.clearTimeout();
+        pinpointTracking.setSocialShareVars({"sType": "popup", "url": data.url});
+
         $preview.fadeIn(100);
         $mask.fadeIn(100);
     };
@@ -135,9 +142,15 @@ var PINPOINT = (function($, pageInfo){
         previewCallbacks.push(f);
     }
 
+    addOnBlocksAppendedCallback = function(f) {
+        blocksAppendedCallbacks.push(f);
+    }
+
     hidePreview = function() {
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.product');
+
+        pinpointTracking.setSocialShareVars();
 
         $preview.fadeOut(100);
         $mask.fadeOut(100);
@@ -151,11 +164,19 @@ var PINPOINT = (function($, pageInfo){
             FB.XFBML.parse($buttons.find('.button.facebook')[0]);
             $buttons.addClass('loaded');
         }
+
+        pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(this).data("url")});
+        pinpointTracking.clearTimeout();
     };
 
     productHoverOff = function () {
         var $buttons = $(this).find('.social-buttons');
         $buttons.fadeOut('fast');
+
+        pinpointTracking.clearTimeout();
+        if (pinpointTracking.socialShareType !== "popup") {
+            pinpointTracking._pptimeout = window.setTimeout(pinpointTracking.setSocialShareVars, 2000);
+        }
     };
 
     updateClickStream = function (event) {
@@ -184,73 +205,127 @@ var PINPOINT = (function($, pageInfo){
     };
 
     loadInitialResults = function () {
-        $.ajax({
-            url: '/intentrank/get-seeds/',
-            data: {
-                'store': details.store.id,
-                'campaign': details.campaign.id,
-                'seeds': details.featured.id
-            },
-            dataType: 'json',
-            success: function(results) {
-                layoutResults(results);
-            }
-        });
+        if (!loadingBlocks) {
+            loadingBlocks = true;
+            $.ajax({
+                url: '/intentrank/get-seeds/',
+                data: {
+                    'store': details.store.id,
+                    'campaign': details.campaign.id,
+                    'seeds': details.featured.id
+                },
+                dataType: 'json',
+                success: function(results) {
+                    layoutResults(results);
+                },
+                failure: function() {
+                    loadingBlocks = false;
+                }
+            });
+        }
     };
 
     loadMoreResults = function(belowFold) {
+        if (!loadingBlocks) {
+            loadingBlocks = true;
+            $.ajax({
+                url: '/intentrank/get-results/',
+                data: {
+                    'store': details.store.id,
+                    'campaign': details.campaign.id,
+                    'results': 10 //TODO: Probably should be some calculated value
+                },
+                dataType: 'json',
+                success: function(results) {
+                    layoutResults(results, belowFold);
+                },
+                failure: function() {
+                    loadingBlocks = false;
+                }
+            });
+        }
+    };
+
+    invalidateIRSession = function () {
         $.ajax({
-            url: '/intentrank/get-results/',
-            data: {
-                'store': details.store.id,
-                'campaign': details.campaign.id,
-                'results': 8 //TODO: Probably should be some calculated value
-            },
-            dataType: 'json',
-            success: function(results) {
-                layoutResults(results, belowFold);
-            }
+            url: '/intentrank/invalidate-session/',
+            dataType: 'json'
         });
     };
 
     layoutResults = function (results, belowFold) {
         var $col,
             result,
-            initialResults = results.length;
+            initialResults = results.length,
+            $block;
 
-        while (results.length) {
-            $col = getShortestColumn();
+        // concatenate all the results together so they're in the same jquery object
+        var blocks = "";
+        for (var i = 0; i < results.length; i++) {
+            blocks += results[i];
+        }
 
-            result = results.pop();
+        $block = $(blocks);
 
-            //add to shortest stack
-            if (!belowFold) {
-                $col.append(result);
-            } else {
-                $col.find('.block.product:in-viewport:last').after(result);
+        // hide them so they can't be seen when masonry is placing them
+        $block.css({opacity: 0});
+
+        // if it has a lifestyle image, add a wide class to it so it's styled properly
+        $block.each(function() {
+            if ($(this).find('.lifestyle').length > 0) {
+                $(this).addClass('wide');
             }
-        }
+        })
 
-        // Don't continue to load results if we aren't getting more results
-        if (initialResults > 0) {
-            pageScroll();
-        }
+        $('.discovery-area').append($block);
+
+        // make sure images are loaded or else masonry wont work properly
+        $block.imagesLoaded(function($images, $proper, $broken) {
+            $broken.parents('.block.product').remove();
+            $block.find('.block.product img[src=""]').parents('.block.product').remove();
+
+            $('.discovery-area').masonry('appended', $block, true);
+            $block.css({opacity: 1});
+
+            // Don't continue to load results if we aren't getting more results
+            if (initialResults > 0) {
+                setTimeout(function() {pageScroll();}, 100);
+            }
+
+            $block.find('.pinpoint-youtube-area').click(function() {
+                $(this).html($(this).data('embed'));
+            });
+
+            for (var i in blocksAppendedCallbacks) {
+                if (blocksAppendedCallbacks.hasOwnProperty(i)) {
+                    blocksAppendedCallbacks[i]($block);
+                }
+            }
+
+            loadingBlocks = false;
+        });
     };
 
     pageScroll = function () {
         var $w            = $(window),
             noResults     = ($('.discovery-area .block').length == 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
-            shortestCol   = getShortestColumn(),
-            lastBlock     = shortestCol.find('.block:last'),
+            lowestBlock,
             lowestHeight;
 
-        if (lastBlock.length <= 0) {
-            lastBlock = shortestCol;
-        }
-        lowestHeight = lastBlock.offset().top + lastBlock.height()
+        $('.discovery-area .block').each(function() {
+            if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
+                lowestBlock = $(this);
+            }
+        });
 
-        if ( noResults || (pageBottomPos > lowestHeight)) {
+        if (!lowestBlock) {
+            lowestHeight = 0;
+        } else {
+            lowestHeight = lowestBlock.offset().top + lowestBlock.height()
+        }
+
+        if ( noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
             loadMoreResults();
         }
     };
@@ -289,6 +364,12 @@ var PINPOINT = (function($, pageInfo){
         $('.discovery-area').on('mouseenter', '.block.product', productHoverOn);
         $('.discovery-area').on('mouseleave', '.block.product', productHoverOff);
 
+        $('.discovery-area').masonry({
+            itemSelector: '.block',
+            columnWidth: 960 / 4,
+            isResizable: true
+        });
+
         $('.preview .mask, .preview .close').on('click', hidePreview);
 
         $(window).scroll(pageScroll);
@@ -306,15 +387,15 @@ var PINPOINT = (function($, pageInfo){
 
     /* --- START Social buttons --- */
     loadFB = function () {
-        FB.init({ 
-          cookie:true, 
+        FB.init({
+          cookie:true,
           status:true,
           xfbml:true
         });
 
         var $featuredFB = $('.featured .social-buttons .button.facebook');
 
-        if ($featuredFB) {
+        if ($featuredFB.length > 0) {
             FB.XFBML.parse($featuredFB[0]);
         }
 
@@ -323,9 +404,17 @@ var PINPOINT = (function($, pageInfo){
             $(".loaded").find(".loading-container").hide();
             $(".loaded").find(".loading-container").fadeIn('fast');
         });
-    };
 
-    loadTwitter = function () {
+        FB.Event.subscribe('edge.create',
+            function(url) {
+                pinpointTracking.registerEvent({
+                    "network": "Facebook",
+                    "type": "share",
+                    "subtype": "liked",
+                    "label": url
+                });
+            }
+        );
     };
 
     createSocialButtons = function (config) {
@@ -382,8 +471,8 @@ var PINPOINT = (function($, pageInfo){
 
         var url = 'http://pinterest.com/pin/create/button/' +
             '?url=' + encodeURIComponent(conf.url) +
-            '&media=' + encodeURIComponent(conf.image);
-
+            '&media=' + encodeURIComponent(conf.image) +
+            '&description=' + details.store.name + '-' + conf.title;
 
         var $img = $('<img/>', {
             'src': "//assets.pinterest.com/images/PinExt.png"
@@ -400,29 +489,15 @@ var PINPOINT = (function($, pageInfo){
     };
     /* --- END Social buttons --- */
 
-    /* --- START tracking --- */
-    // override existing implementations of methods
-    var oldLoadTwitter = loadTwitter;
-    loadTwitter = function() {
-        oldLoadTwitter();
-    }
-
-    var oldLoadFB = loadFB;
-    loadFB = function() {
-        oldLoadFB();
-    }
-    /* --- END tracking --- */
-
     /* --- START Script loading --- */
     // Either a URL, or an object with 'src' key and optional 'onload' key
     scripts = [
-        ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js',
     {
         'src'   : 'http://connect.facebook.net/en_US/all.js#xfbml=0',
         'onload': loadFB
     }, {
         'src'   : '//platform.twitter.com/widgets.js',
-        'onload': loadTwitter,
+        'onload': pinpointTracking.registerTwitterListeners,
         'id': 'twitter-wjs'
     }];
 
@@ -439,18 +514,15 @@ var PINPOINT = (function($, pageInfo){
     /* --- END Script loading --- */
 
     init = function() {
-        var _gaq = window._gaq || (window._gaq = []);
-
-        _gaq.push(['_setAccount', 'UA-35018502-1']);
-        _gaq.push(['_trackPageview']);
-
         load(scripts);
         $(document).ready(ready);
     };
 
     return {
         'init': init,
-        'addPreviewCallback': addPreviewCallback
+        'invalidateSession': invalidateIRSession,
+        'addPreviewCallback': addPreviewCallback,
+        'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback
     };
 })(jQuery, window.PINPOINT_INFO || {});
 

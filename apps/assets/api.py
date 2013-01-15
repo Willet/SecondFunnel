@@ -63,7 +63,7 @@ class ProductResource(ModelResource):
         if('name_or_url' in filters):
             name = filters['name_or_url']
             qset = (
-                Q(name__contains=name) |
+                Q(name__icontains=name) |
                 Q(original_url__startswith=name)
             )
             orm_filters.update({'name_or_url': qset})

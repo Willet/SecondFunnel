@@ -58,3 +58,33 @@ class FeaturedProductWizardForm(forms.Form):
             raise forms.ValidationError("This field is required.")
 
         return cleaned_data
+
+
+class ShopTheLookWizardForm(FeaturedProductWizardForm):
+    ls_product_media_id = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+        )
+
+    ls_generic_media_id = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+        )
+
+    def clean(self):
+        """Ensure that either custom or existing image is selected"""
+
+        cleaned_data = super(ShopTheLookWizardForm, self).clean()
+
+        ls_generic_media_id = cleaned_data.get("ls_generic_media_id")
+        ls_product_media_id = cleaned_data.get("ls_product_media_id")
+
+        ls_generic_media_exists = ls_generic_media_id and GenericImage\
+            .objects.filter(pk=ls_generic_media_id).exists()
+        ls_product_media_exists = ls_product_media_id and ProductMedia.objects\
+            .filter(pk=ls_product_media_id).exists()
+
+        if not (ls_generic_media_exists or ls_product_media_exists):
+            raise forms.ValidationError("You must choose a 'look' image")
+
+        return cleaned_data
