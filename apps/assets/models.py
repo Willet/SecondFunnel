@@ -137,7 +137,7 @@ class Product(BaseModelNamed):
     def data(self, raw=False):
         """HTML string representation of some of the product's properties.
 
-        If raw, then the return value remains a list.
+        If raw, then the return value remains a dict.
         """
         def strip_and_escape(text):
             modified_text = striptags(text)
@@ -147,21 +147,21 @@ class Product(BaseModelNamed):
         images = self.images()
         image  = images[0] if images else None
 
-        fields = [
-            ('data-title', strip_and_escape(self.name)),
-            ('data-description', strip_and_escape(self.description)),
-            ('data-price', strip_and_escape(self.price)),
-            ('data-url', strip_and_escape(self.original_url)),
-            ('data-image', strip_and_escape(image)),
-            ('data-images', '|'.join(strip_and_escape(x) for x in images)),
-            ('data-product-id', self.id)
-        ]
+        fields = {
+            'data-title': strip_and_escape(self.name),
+            'data-description': strip_and_escape(self.description),
+            'data-price': strip_and_escape(self.price),
+            'data-url': strip_and_escape(self.original_url),
+            'data-image': strip_and_escape(image),
+            'data-images': '|'.join(strip_and_escape(x) for x in images),
+            'data-product-id': self.id,
+        }
 
         if raw:
             # strip 'data-'
-            data = [(key[5:], val) for key, val in fields]
+            data = {field[5:]: fields[field] for field in fields}
         else:
-            data = ' '.join("%s='%s'" % field for field in fields)
+            data = ' '.join("%s='%s'" % (field, fields[field]) for field in fields)
 
         return data
 
