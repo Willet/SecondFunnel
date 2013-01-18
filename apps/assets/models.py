@@ -158,10 +158,14 @@ class Product(BaseModelNamed):
         }
 
         if raw:
-            # strip 'data-'
-            data = {field[5:]: fields[field] for field in fields}
+            data = {}
+            for field in fields:
+                # strip 'data-'
+                data[field[5:]] = fields[field]
         else:
-            data = ' '.join("%s='%s'" % (field, fields[field]) for field in fields)
+            data = ''
+            for field in fields:
+                data = data + " %s='%s'" % (field, fields[field])
 
         return data
 
