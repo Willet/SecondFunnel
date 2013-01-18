@@ -254,8 +254,14 @@ def update_clickstream(request):
         'product_id': product_id
     })
 
-    # Return JSON results
-    return HttpResponse(json.dumps(results), mimetype='application/json', status=status)
+    if status in SUCCESS_STATUSES:
+        # We don't care what we get back
+        result = []
+    else:
+        result = results
+
+    return HttpResponse(json.dumps(result), mimetype='application/json',
+                        status=status)
 
 def invalidate_session(request):
     #intentrank/invalidate-session
