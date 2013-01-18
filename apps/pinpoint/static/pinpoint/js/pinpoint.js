@@ -24,6 +24,7 @@ var PINPOINT = (function($, pageInfo){
         productHoverOff,
         ready,
         renderTemplate,
+        renderTemplates,
         scripts,
         showPreview,
         updateClickStream,
@@ -233,6 +234,32 @@ var PINPOINT = (function($, pageInfo){
         );
     };
 
+    renderTemplates = function (data) {
+        // finds templates currently on the page, and drops them onto their
+        // targets (elements with classes 'template' and 'target').
+        // Targets need a data-src attribute to indicate the template that
+        // should be used.
+        // data can be passed in, or left as default on the target element
+        // as data attributes.
+        $('.template.target').each(function () {
+            console.log('found target ' + this);
+            var mergedData = data || {},
+                target = $(this),
+                src = target.data('src') || '',
+                srcElement = $('#' + src);
+
+            $.extend(true, mergedData, target.data() || {});
+
+            // if the required template is on the page, use it
+            if (srcElement.length) {
+                target.html(renderTemplate(srcElement.html(), mergedData));
+            } else {
+                target.html('Error: required template #' + src +
+                            ' does not exist');
+            }
+        });
+    };
+
     loadInitialResults = function () {
         if (!loadingBlocks) {
             loadingBlocks = true;
@@ -398,7 +425,7 @@ var PINPOINT = (function($, pageInfo){
             'url'  : url,
             'title': title,
             'count': true
-        })
+        });
 
         $featuredArea.find('.button.twitter').empty().append(twitterButton);
         $featuredArea.find('.button.facebook').empty().append(fbButton);
@@ -412,6 +439,7 @@ var PINPOINT = (function($, pageInfo){
 
     ready = function() {
         // Special Setup
+        renderTemplates();
         featuredAreaSetup();
 
         // Event Handling
