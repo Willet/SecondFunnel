@@ -1,14 +1,14 @@
 ### Celery Beat settings ###
 
 # Where the Django project is.
-CELERYBEAT_CHDIR=$CELERYD_CHDIR
+export CELERYBEAT_CHDIR=$CELERYD_CHDIR
 
 # Path to celerybeat
-CELERYBEAT="$ENV_PYTHON $CELERYBEAT_CHDIR/manage.py celerybeat"
+export CELERYBEAT="$ENV_PYTHON $CELERYBEAT_CHDIR/manage.py celerybeat"
 
 # Extra arguments to celerybeat
-CELERYBEAT_OPTS="--schedule=/var/run/celery/celerybeat-schedule"
+export CELERYBEAT_OPTS="--schedule=/var/run/celery/celerybeat-schedule"
 
 # %n will be replaced with the nodename.
-CELERYBEAT_LOG_FILE="$CELERYBEAT_CHDIR/celerybeatlog-%n.log"
-CELERYBEAT_PID_FILE="$CELERYBEAT_CHDIR/celerybeatpid-%n.pid"
+export CELERYBEAT_LOG_FILE="$CELERYBEAT_CHDIR/celerybeatlog-%n.log"
+export CELERYBEAT_PID_FILE="$CELERYBEAT_CHDIR/celerybeatpid-%n.pid"

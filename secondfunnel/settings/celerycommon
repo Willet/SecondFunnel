@@ -7,4 +7,4 @@ for f in `ls /opt/python/bundle`; do LATEST_BUNDLE_ID=$f; done
 
 # Where to chdir at start.
 # pwd here is in the context of celeryd
-CELERYD_CHDIR="$BASE_BUNDLE/$LATEST_BUNDLE_ID/app"
+export CELERYD_CHDIR="$BASE_BUNDLE/$LATEST_BUNDLE_ID/app"
