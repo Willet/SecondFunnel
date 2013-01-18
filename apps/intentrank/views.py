@@ -66,7 +66,8 @@ def random_products(store, param_dict):
     else:
         return results[:num_results]
 
-def send_intentrank_request(request, url, method='GET', headers=None):
+def send_intentrank_request(request, url, method='GET', headers=None,
+                            http=httplib2.Http):
     if not headers:
         headers = {}
 
@@ -74,7 +75,7 @@ def send_intentrank_request(request, url, method='GET', headers=None):
     if cookie:
         headers['Cookie'] = cookie
 
-    h = httplib2.Http()
+    h = http()
     response, content = h.request(
         url,
         method=method,
