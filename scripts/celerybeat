@@ -29,12 +29,16 @@ DEFAULT_CELERYBEAT="$CELERY_BIN beat"
 
 # /etc/init.d/celerybeat: start and stop the celery periodic task scheduler daemon.
 
-if test -f /opt/python/current/app/secondfunnel/settings/celeryd; then
-    . /opt/python/current/app/secondfunnel/settings/celeryd
+if [ -f "/opt/python/current/app/secondfunnel/settings/celerycommon" ]; then
+    source /opt/python/current/app/secondfunnel/settings/celerycommon
 fi
 
-if test -f /opt/python/current/app/secondfunnel/settings/celerybeat; then
-    . /opt/python/current/app/secondfunnel/settings/celerybeat
+if [ -f "/opt/python/current/app/secondfunnel/settings/celeryd" ]; then
+    source /opt/python/current/app/secondfunnel/settings/celeryd
+fi
+
+if [ -f "/opt/python/current/app/secondfunnel/settings/celerybeat" ]; then
+    source /opt/python/current/app/secondfunnel/settings/celerybeat
 fi
 
 CELERYBEAT=${CELERYBEAT:-$DEFAULT_CELERYBEAT}
