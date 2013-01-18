@@ -4,7 +4,7 @@
 <meta property="og:type" content="product">
 <meta property="og:url" content="{{ product.url }}">
 <meta property="og:site_name" content="{{ store.name }}">
-<meta property="og:image" content="{{ product.featured_image }}">
+<meta property="og:image" content="{% if product.lifestyle_image %}{{ product.lifestyle_image}}{% else %}{{product.featured_image }}{% endif %}">
 <meta property="og:description" content="{{ product.description|striptags|truncatewords:20 }}">
 
 <!-- Additional Head Contents -->
