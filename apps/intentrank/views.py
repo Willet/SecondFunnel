@@ -6,6 +6,7 @@ import math
 from django.http import HttpResponse
 from django.template import Context, Template
 import httplib2
+from mock import Mock, MagicMock
 from apps.assets.models import Product, Store
 from django.conf import settings
 
@@ -53,15 +54,20 @@ def video_probability_function(x, m):
     else:
         return 1 - (math.log(m - x) / math.log(m))
 
-def random_products(store, param_dict):
+def random_products(store, param_dict, id_only=True):
+    """Returns a list of random product ids, as would be returned by IR."""
     store_id = Store.objects.get(slug__exact=store)
     num_results = param_dict.get('results', DEFAULT_RESULTS)
     results = Product.objects.filter(store_id__exact=store_id).order_by('?')
+
+    if id_only:
+        results = results.values('id')
+        results = map(lambda x: x.get('id'), results)
+
     if len(results) < num_results:
         results = list(results)
-        results.extend(list(random_products(store, {
-            'results': (int(num_results) - len(results))
-        })))
+        new_params = {'results': (int(num_results) - len(results))}
+        results.extend(list(random_products(store, new_params, id_only)))
         return results
     else:
         return results[:num_results]
@@ -87,6 +93,7 @@ def send_intentrank_request(request, url, method='GET', headers=None,
 
     return response, content
 
+# TODO: Is there a Guice for Python to inject dependency in live, dev?
 def process_intentrank_request(request, store, page, function_name,
                                param_dict):
 
@@ -96,10 +103,22 @@ def process_intentrank_request(request, store, page, function_name,
     url = '{0}?{1}'.format(url, params)
 
     if settings.DEBUG:
-        return random_products(store, param_dict), SUCCESS
+        # Use a mock instead of avoiding the call
+        product_results = random_products(store, param_dict, True)
+        json_results = json.dumps({'products': product_results})
+
+        http_mock = Mock()
+        http_response = MagicMock(status=SUCCESS)
+        http_response.__getitem__.return_value = None
+        http_content = json_results
+        http_mock.request.return_value = (http_response, http_content)
+
+        http = Mock(return_value=http_mock)
+    else:
+        http = httplib2.Http
 
     try:
-        response, content = send_intentrank_request(request, url)
+        response, content = send_intentrank_request(request, url, http=http)
     except httplib2.HttpLib2Error:
         content = "{}"
 
