@@ -55,7 +55,9 @@ def video_probability_function(x, m):
         return 1 - (math.log(m - x) / math.log(m))
 
 def random_products(store, param_dict, id_only=True):
-    """Returns a list of random product ids, as would be returned by IR."""
+    """Returns a list of random product ids, as would be returned by IR.
+
+    Only used in development; not in production"""
     store_id = Store.objects.get(slug__exact=store)
     num_results = param_dict.get('results', DEFAULT_RESULTS)
     results = Product.objects.filter(store_id__exact=store_id).order_by('?')
@@ -104,7 +106,8 @@ def process_intentrank_request(request, store, page, function_name,
 
     if settings.DEBUG:
         # Use a mock instead of avoiding the call
-        product_results = random_products(store, param_dict, True)
+        # Mock is onlt used in development, not in production
+        product_results = random_products(store, param_dict, id_only=True)
         json_results = json.dumps({'products': product_results})
 
         http_mock = Mock()
