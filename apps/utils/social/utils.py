@@ -11,9 +11,9 @@ class Social(object):
     def _fetch_media(self):
         return []
 
-    def get_content(self):
+    def get_content(self, since=None):
         """Returns a list of content in a standard format."""
-        results = self._fetch_media()
+        results = self._fetch_media(since=since)
 
         content = []
         for result in results:
