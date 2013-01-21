@@ -17,8 +17,8 @@ export CELERYD_OPTS="--concurrency=5"
 export CELERY_CONFIG_MODULE="celeryconfig"
 
 # %n will be replaced with the nodename.
-export CELERYD_LOG_FILE="$CELERYD_CHDIR/celerylog-%n.log"
-export CELERYD_PID_FILE="$CELERYD_CHDIR/celerypid-%n.pid"
+export CELERYD_LOG_FILE="/var/log/celery/celerylog-%n.log"
+export CELERYD_PID_FILE="/var/run/celery/celerypid-%n.pid"
 
 export CELERYD_LOGLEVEL="WARNING"
 

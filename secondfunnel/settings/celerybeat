@@ -10,5 +10,9 @@ export CELERYBEAT="$ENV_PYTHON $CELERYBEAT_CHDIR/manage.py celerybeat"
 export CELERYBEAT_OPTS="--schedule=/var/run/celery/celerybeat-schedule"
 
 # %n will be replaced with the nodename.
-export CELERYBEAT_LOG_FILE="$CELERYBEAT_CHDIR/celerybeatlog-%n.log"
-export CELERYBEAT_PID_FILE="$CELERYBEAT_CHDIR/celerybeatpid-%n.pid"
+export CELERYBEAT_LOG_FILE="/var/log/celery/celerybeatlog-%n.log"
+export CELERYBEAT_PID_FILE="/var/run/celery/celerybeatpid-%n.pid"
+
+# Beat service should run as an unprivileged user.
+export CELERYBEAT_USER="celery"
+export CELERYBEAT_GROUP="celery"
