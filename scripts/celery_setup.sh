@@ -9,7 +9,7 @@
 # which we don't want in this particular instance. Disabled it
 
 set +e
-useradd -M celery
+useradd -M celery || true
 useradd_status=$?
 if [ useradd_status != 0 ]
 then
@@ -23,7 +23,7 @@ set -e
 # make a spot for the logs and the pid files
 mkdir -p /var/log/celery
 mkdir -p /var/run/celery/bin
-mkdir /var/run/celery/config
+mkdir -p /var/run/celery/config
 echo "Ensured /var/log/celery, /var/run/celery/bin and /var/run/celery/config exist"
 
 # set ownership of log/run dirs
