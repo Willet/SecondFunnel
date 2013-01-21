@@ -8,9 +8,6 @@
 # AWS Beanstalk script runners are using 'set -e'
 # which we don't want in this particular instance. Disabled it
 
-# don't require tty for sudo
-echo Defaults:root \!requiretty >> /etc/sudoers
-
 set +e
 useradd -M celery
 useradd_status=$?
