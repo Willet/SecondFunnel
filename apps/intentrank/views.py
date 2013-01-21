@@ -254,7 +254,7 @@ def update_clickstream(request):
     product_id = request.GET.get('product_id')
 
     results, status = process_intentrank_request(request, store, page, 'updateclickstream', {
-        'product_id': product_id
+        'productid': product_id
     })
 
     if status in SUCCESS_STATUSES:
