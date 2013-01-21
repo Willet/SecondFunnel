@@ -7,6 +7,10 @@
 # Make an unprivileged, non-password-enabled user and group to run celery
 # AWS Beanstalk script runners are using 'set -e'
 # which we don't want in this particular instance. Disabled it
+
+# don't require tty for sudo
+echo Defaults:root \!requiretty >> /etc/sudoers
+
 set +e
 useradd -M celery
 useradd_status=$?
@@ -63,25 +67,25 @@ echo "Created symlink for celerybeat config"
 
 
 # Daemon celeryd
-if [ -h "/var/celery/run/bin/celeryd" ]
+if [ -h "/var/run/celery/bin/celeryd" ]
 then
-    rm /var/celery/run/bin/celeryd
+    rm /var/run/celery/bin/celeryd
     echo "Deleted existing symlink for celeryd daemon script."
 fi
 
-ln -s `pwd`/scripts/celeryd /var/celery/run/bin/celeryd
-chmod +x /var/celery/run/bin/celeryd
+ln -s `pwd`/scripts/celeryd /var/run/celery/bin/celeryd
+chmod +x /var/run/celery/bin/celeryd
 echo "Created symlink for celeryd daemon script"
 
 # Daemon celerybeat
-if [ -h "/var/celery/run/bin/celerybeat" ]
+if [ -h "/var/run/celery/bin/celerybeat" ]
 then
-    rm /var/celery/run/bin/celerybeat
+    rm /var/run/celery/bin/celerybeat
     echo "Deleted existing symlink for celerybeat daemon script."
 fi
 
-ln -s `pwd`/scripts/celerybeat /var/celery/run/bin/celerybeat
-chmod +x /var/celery/run/bin/celerybeat
+ln -s `pwd`/scripts/celerybeat /var/run/celery/bin/celerybeat
+chmod +x /var/run/celery/bin/celerybeat
 echo "Created symlink for celerybeat daemon script"
 
 echo "Done preliminary celery setup."
