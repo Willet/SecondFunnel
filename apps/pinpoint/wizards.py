@@ -338,5 +338,4 @@ def shop_the_look_wizard(request, store, block_type, campaign=None):
                                block_type=block_type,
                                campaign=campaign,
                                form=ShopTheLookWizardForm)
-    Product.create()
     return wizard.process()
