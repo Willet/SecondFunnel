@@ -1,3 +1,4 @@
+from django.contrib import messages
 import re
 
 from django.contrib.auth.decorators import login_required
@@ -86,6 +87,16 @@ def edit_campaign(request, store_id, campaign_id):
 
     return getattr(wizards, block_type.handler)(
         request, store, block_type, campaign=campaign_instance)
+
+@login_required
+def delete_campaign(request, store_id, campaign_id):
+    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
+    campaign_instance.live = False
+    campaign_instance.save()
+
+    messages.success(request, "Your page was deleted.")
+
+    return redirect('store-admin', store_id=store_id)
 
 
 @login_required
