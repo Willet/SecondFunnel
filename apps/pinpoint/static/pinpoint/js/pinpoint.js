@@ -242,13 +242,14 @@ var PINPOINT = (function($, pageInfo){
         // data can be passed in, or left as default on the target element
         // as data attributes.
         $('.template.target').each(function () {
-            console.log('found target ' + this);
             var mergedData = data || {},
                 target = $(this),
                 src = target.data('src') || '',
                 srcElement = $('#' + src);
 
-            $.extend(true, mergedData, target.data() || {});
+            $.extend(true, mergedData, {
+                'product': details.featured
+            }, target.data() || {});
 
             // if the required template is on the page, use it
             if (srcElement.length) {
