@@ -43,7 +43,7 @@ class KVStoreAdmin(admin.ModelAdmin):
 admin.site.register(KVStore, KVStoreAdmin)
 
 
-class SharedStorage(admin.ModelAdmin):
+class SharedStorageAdmin(admin.ModelAdmin):
     list_display = ('id',)
 
 admin.site.register(SharedStorage, SharedStorageAdmin)
