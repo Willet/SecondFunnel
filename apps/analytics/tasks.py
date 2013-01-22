@@ -232,8 +232,10 @@ def update_pinpoint_analytics():
                         slug=row_data['store_id']).id
 
                 except Store.DoesNotExist:
-                    logger.error("Store with id={0} does not exist. Aborting.".format(
+                    logger.error("Store with id={0} does not exist. Skipping.".format(
                         row_data['store_id']))
+
+                    continue
 
             # uniqueEvents is the last item in the list
             try:
@@ -241,8 +243,8 @@ def update_pinpoint_analytics():
 
             except ValueError:
                 logger.warning(
-                    "GA row data isn't what we're expecting: count=%s",
-                    row[row.length - 1])
+                    "GA row data isn't what we're expecting: count={0}".format(
+                        row[row.length - 1]))
                 continue
 
             # check that all variables in row_data are present
@@ -253,8 +255,8 @@ def update_pinpoint_analytics():
 
             if not all_present:
                 logger.warning(
-                    "GA row data is missing attributes, category=%s, action=%s",
-                    category, action)
+                    "GA row data is missing attributes, category={0}, action={1}".format(
+                    category, action))
                 continue
 
             if row_data['action_type'] == 'inpage':
