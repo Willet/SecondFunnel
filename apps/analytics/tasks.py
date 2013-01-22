@@ -286,7 +286,8 @@ def save_category_data(message_id):
         return
 
     try:
-        data = pickle.loads(message.data)
+        # prevent KeyError on unpickling
+        data = pickle.loads(str(message.data))
 
     # could potentially throw a whole lot of different exceptions
     except:
