@@ -90,3 +90,15 @@ class KVStore(models.Model):
 
     def __unicode__(self):
         return u"%s:%s (%s)" % (self.key, self.value, self.timestamp)
+
+
+class SharedStorage(models.Model):
+    """
+    Amazon SQS has a size limit for its messages (64kb). At times we need to pass messages
+    that are above that limit in size. In such cases, for convenience, we could use a "shared memory"
+    approach - as opposed to breaking down and parallelizing message passing/processing, for example.
+    """
+    data = models.TextField()
+
+    def __unicode__(self):
+        return u"SharedStorage %d" % self.id
