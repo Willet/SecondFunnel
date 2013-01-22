@@ -206,6 +206,14 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         featured_context.update({
             'product': product,
         })
+    else:
+        product = {
+            'title': "Unknown Product",
+            'url': 'http://secondfunnel.com',
+            'featured_image': '',
+            'description': 'Unknown Product'
+        }
+
 
     # Pre-render templates; bottom up
     # Discovery block
@@ -251,7 +259,9 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     # Header content
     header_context = Context(featured_context)
     header_context.update({
-        'campaign': campaign
+        'campaign': campaign,
+        'product': product,
+        'store': campaign.store
     })
 
     header_content = render_to_string('pinpoint/campaign_head.html',
