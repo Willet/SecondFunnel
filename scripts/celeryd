@@ -32,12 +32,12 @@ CELERY_DEFAULTS=${CELERY_DEFAULTS:-"/opt/python/current/app/secondfunnel/setting
 
 test -f "$CELERY_DEFAULTS" && . "$CELERY_DEFAULTS"
 
-if [ -f "/opt/python/current/app/secondfunnel/settings/celerycommon" ]; then
-    source /opt/python/current/app/secondfunnel/settings/celerycommon
+if [ -f "/var/run/celery/config/celerycommon" ]; then
+    source /var/run/celery/config/celerycommon
 fi
 
-if [ -f "/opt/python/current/app/secondfunnel/settings/celeryd" ]; then
-    source /opt/python/current/app/secondfunnel/settings/celeryd
+if [ -f "/var/run/celery/config/celeryd" ]; then
+    source /var/run/celery/config/celeryd
 fi
 
 # Set CELERY_CREATE_DIRS to always create log/pid dirs.
