@@ -220,6 +220,21 @@ def update_pinpoint_analytics():
                 'network':          get_by_key(action, "network"),
             }
 
+            # store_id could be a record ID or a slug :/
+            try:
+                int(row_data['store_id'])
+
+            # it's a slug!
+            except ValueError:
+
+                try:
+                    row_data['store_id'] = Store.objects.get(
+                        slug=row_data['store_id']).id
+
+                except Store.DoesNotExist:
+                    logger.error("Store with id={0} does not exist. Aborting.".format(
+                        row_data['store_id']))
+
             # uniqueEvents is the last item in the list
             try:
                 row_data['count'] = int(row[-1])
