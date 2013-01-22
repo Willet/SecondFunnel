@@ -16,6 +16,10 @@ from apps.pinpoint.forms import FeaturedProductWizardForm, ShopTheLookWizardForm
 from apps.utils.ajax import ajax_error
 
 class Wizard(object):
+    """Handles validation and processing of CAMPAIGN creation.
+
+    What looks like a controller actually includes Views.
+    """
     def __init__(self, *args, **kwargs):
         #TODO: Error handling
         self.preview    = kwargs.get('preview', False)
@@ -31,7 +35,7 @@ class Wizard(object):
         return bool(self.campaign)
 
     def process(self):
-        if self.request.method == 'POST':
+        if self.request.method == 'POST':  # really, guise
             form, response = self._post()
         else:
             form, response = self._get()
@@ -105,6 +109,7 @@ class Wizard(object):
 
     def _edit_campaign(self, form, product):
         return None
+
 
 class FeaturedProductWizard(Wizard):
     def _get_initial_form_data(self):
@@ -327,13 +332,11 @@ def featured_product_wizard(request, store, block_type, campaign=None):
     return wizard.process()
 
 def shop_the_look_wizard(request, store, block_type, campaign=None):
-    wizard = ShopTheLookWizard(**{
-        'preview'   : request.is_ajax(),
-        'request'   : request,
-        'store'     : store,
-        'block_type': block_type,
-        'campaign'  : campaign,
-        'form'      : ShopTheLookWizardForm
-    })
-
+    wizard = ShopTheLookWizard(preview=request.is_ajax(),
+                               request=request,
+                               store=store,
+                               block_type=block_type,
+                               campaign=campaign,
+                               form=ShopTheLookWizardForm)
+    Product.create()
     return wizard.process()
