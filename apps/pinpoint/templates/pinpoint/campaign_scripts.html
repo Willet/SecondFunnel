@@ -38,6 +38,21 @@
     <script type="text/javascript">
         var _gaq = _gaq || [];
         _gaq.push(['_setAccount', '{{ ga_account_number }}']);
+
+        _gaq.push(['_setCustomVar',
+            1,                          // slot id
+            'StoreID',                  // name
+            '{{ campaign.store.id }}',  // value
+            3                           // scope: page-level
+        ]);
+
+        _gaq.push(['_setCustomVar',
+            2,
+            'CampaignID',
+            '{{ campaign.id }}',
+            3
+        ]);
+
         _gaq.push(['_trackPageview']);
 
         (function() {
