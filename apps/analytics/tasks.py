@@ -312,6 +312,9 @@ def save_category_data(message_id):
             message_id, sys.exc_info()[0]))
         return
 
+    # we can safely delete the passed message at this point
+    message.delete()
+
     updated_stores = []
     updated_campaigns = []
 
