@@ -149,7 +149,7 @@
 {% block document_ready %}
     var app = (function($) {
         var init, settings, setUpListeners, getDateRange,
-            injectAnalyticsData, loadAnalytics;
+            injectAnalyticsData, loadAnalytics, cachedProducts = {};
 
         settings = {
             "store_id": "{{ store.id }}",
@@ -207,127 +207,51 @@
         };
 
         injectAnalyticsData = function (data) {
-            var rendered = {
-                    'charts': {},
-                    'tables': {},
-                    'tables_data': {}
-                },
-                clearChartsAndTables, renderChart, renderTable;
-
-            clearCharts = function () {
-                for (metric_slug in rendered['charts']) {
-                    rendered['charts'][metric_slug].clearChart();
-                }
-            };
-
-            renderTable = function (data, slug) {
-                var this_data = new google.visualization.DataTable();
-                this_data.addColumn('date', 'Date');
-                this_data.addColumn('number', 'Product');
-                this_data.addColumn('string', 'Info');
-                this_data.addColumn('number', data['name']);
-
-                if (data['data'].length == 0 || data['data'][0]['meta'] == "meta_metric") {
-                    $(".daily_breakdown[data-metric='" + slug + "']").hide();
-                    return;
-                }
-
-                $(".daily_breakdown[data-metric='" + slug + "']").show();
-
-                for (i in data['data']) {
-                    this_data.addRow([
-                        new Date(data['data'][i]['date'].split("-")[0],
-
-                            // month is zero-based
-                            data['data'][i]['date'].split("-")[1] - 1,
-
-                            data['data'][i]['date'].split("-")[2]
-                        ),
-                        data['data'][i]['product_id'],
-                        data['data'][i]['meta'],
-                        data['data'][i]['value']
-                    ]);
-                }
-
-                if (!(slug in rendered['tables'])) {
-                    rendered['tables'][slug] = new google.visualization.Table(
-                        document.getElementById('table_' + slug)
-                    );
-                }
-
-                rendered['tables'][slug].draw(this_data, {
-                    showRowNumber: false
-                });
-            };
-
-            renderChart = function (data, slug) {
-                var this_data = new google.visualization.DataTable();
-                this_data.addColumn('date', 'Date');
-                this_data.addColumn('number', data['name']);
-
-                for (date in data['totals']) {
-                    if (date == "all") {
-                        continue;
-                    }
-
-                    this_data.addRow([
-                        new Date(date.split("-")[0],
-
-                            // month is zero-based
-                            date.split("-")[1] - 1,
-
-                            date.split("-")[2]
-                        ), data['totals'][date]
-                    ]);
-                }
-
-                if (!(slug in rendered['charts'])) {
-                    rendered['charts'][slug] = new google.visualization.LineChart(
-                        document.getElementById('chart_' + slug)
-                    );
-                }
-
-                rendered['charts'][slug].draw(this_data, {
-                    'width': 670,
-                    'chartArea': {
-                        'left': 35,
-                        'top': 10,
-                        'width': '95%',
-                        'height': '80%'
-                    },
-                    'legend': {
-                        'position': 'none'
-                    },
-                    'hAxis': {
-                        'format': 'MMM d',
-                        'gridlines': {
-                            'color': '#fff'
-                        }
-                    },
-                    'vAxis': {
-                        'minValue': 0
-                    },
-                    'pointSize': 3
-                });
-            };
-
-            clearCharts();
+            var products, sortable_products,
+                product_api = "/api/assets/v1/product/%pid%/?store={{ store.id }}&format=json";
 
             for (cat_slug in data) {
                 for (metric_slug in data[cat_slug]) {
                     // display totals in the sidebar on in the content section
                     $(".metric_overview[data-metric='" + metric_slug + "']").html(
-                        data[cat_slug][metric_slug]['totals']['all']
+                        data[cat_slug][metric_slug]['totals']['date']['all']
                     );
 
                     $(".metric_title_all[data-metric='" + metric_slug + "']").html(
-                        data[cat_slug][metric_slug]['totals']['all']
+                        data[cat_slug][metric_slug]['totals']['date']['all']
                     );
-
-                    renderTable(data[cat_slug][metric_slug], metric_slug);
-                    renderChart(data[cat_slug][metric_slug], metric_slug);
                 }
             }
+
+            products = data['engagement']['inpage-openpopup']['totals']['product_id'];
+            sortable_products = [];
+            for (var pid in products) {
+                sortable_products.push([pid, products[pid]]);
+            }
+            sortable_products.sort(function(a, b) {
+                return a[1] - b[1];
+            }).pop();
+            sortable_products.reverse();
+
+            for (var pair in sortable_products) {
+                var pid = sortable_products[pair][0],
+                    count = sortable_products[pair][1];
+
+                $.ajax({
+                    url: product_api.replace("%pid%", pid),
+                    dataType: "json",
+                    async: false,
+                    success: function (data) {
+                        cachedProducts[data['id']] = data;
+                    }
+                });
+
+                console.log(cachedProducts);
+            }
+
+            //for (pid in top_products) {
+            //    $("#top_engaging_products").append("<p>" + pid + " - " + top_products[pid] + "</p>");
+            //}
         };
 
         setUpListeners = function () {
@@ -468,24 +392,19 @@
                     </div>
 
                     <div class="data_metrics">
-                        {% regroup category.categoryhasmetric_set.all by metric as metric_list %}
-                        {% for metric in metric_list %}
-                            {% with metric.list|first as metric_meta %}
-                                <div class="data_metric">
-                                    <div class="metric_title" data-metric="{{ metric.grouper.slug }}">
-                                        {{ metric.grouper.name }}:
-                                        <span class="metric_title_all" data-metric="{{ metric.grouper.slug }}">0</span> total
-                                    </div>
+                        <div class="data_metric">
 
-                                    <div class="metric_graph" id="chart_{{ metric.grouper.slug }}"></div>
+                            {% if category.name == "Engagement" %}
 
-                                    <div class="daily_breakdown" data-metric="{{ metric.grouper.slug }}" style="display:none">
-                                        <div class="daily_title">Daily breakdown:</div>
-                                        <div class="metric_daily" id="table_{{ metric.grouper.slug }}"></div>
-                                    </div>
-                                </div>
-                            {% endwith %}
-                        {% endfor %}
+                            <div class="metric_title">Top Engaging Products & Content</div>
+                            <div class="metric_content" id="top_engaging_products">
+                                <div class="top_engaging_product"></div>
+                            </div>
+
+                            {% elif category.name == "Sharing" %}
+
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             {% endfor %}
