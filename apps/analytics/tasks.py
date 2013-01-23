@@ -6,6 +6,8 @@ Analytics protector bunny:
  (()())
 
 """
+import pickle, sys
+
 from datetime import date, datetime
 
 from functools import partial
@@ -17,7 +19,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
 from apps.analytics.storage_backends import GoogleAnalyticsBackend
-from apps.analytics.models import AnalyticsRecency, Category, Metric, KVStore
+from apps.analytics.models import (AnalyticsRecency, Category, Metric, KVStore,
+    SharedStorage)
 from apps.assets.models import Store, Product
 from apps.pinpoint.models import Campaign
 
@@ -217,14 +220,31 @@ def update_pinpoint_analytics():
                 'network':          get_by_key(action, "network"),
             }
 
+            # store_id could be a record ID or a slug :/
+            try:
+                int(row_data['store_id'])
+
+            # it's a slug!
+            except ValueError:
+
+                try:
+                    row_data['store_id'] = Store.objects.get(
+                        slug=row_data['store_id']).id
+
+                except Store.DoesNotExist:
+                    logger.error("Store with id={0} does not exist. Skipping.".format(
+                        row_data['store_id']))
+
+                    continue
+
             # uniqueEvents is the last item in the list
             try:
                 row_data['count'] = int(row[-1])
 
             except ValueError:
                 logger.warning(
-                    "GA row data isn't what we're expecting: count=%s",
-                    row[row.length - 1])
+                    "GA row data isn't what we're expecting: count={0}".format(
+                        row[row.length - 1]))
                 continue
 
             # check that all variables in row_data are present
@@ -235,8 +255,8 @@ def update_pinpoint_analytics():
 
             if not all_present:
                 logger.warning(
-                    "GA row data is missing attributes, category=%s, action=%s",
-                    category, action)
+                    "GA row data is missing attributes, category={0}, action={1}".format(
+                    category, action))
                 continue
 
             if row_data['action_type'] == 'inpage':
@@ -245,19 +265,19 @@ def update_pinpoint_analytics():
             elif row_data['action_type'] == 'share':
                 analytics_categories['sharing'].append(row_data)
 
-    return subtask(save_category_data, (analytics_categories,)).delay()
+    # message could be larger than 64kb. As a quick way of circumventing the limitation,
+    # use "shared memory" approach to message passing
+    message = SharedStorage(data=pickle.dumps(analytics_categories))
+    message.save()
+
+    # pass ID of the message to the processing task
+    return subtask(save_category_data, (message.id,)).delay()
 
 
 @task()
-def save_category_data(data):
+def save_category_data(message_id):
     """Processes individual data row, saves key/value
     analytics pairs for associated store and campaign"""
-
-    logger = save_category_data.get_logger()
-
-    store_type = ContentType.objects.get_for_model(Store)
-    campaign_type = ContentType.objects.get_for_model(Campaign)
-    product_type = ContentType.objects.get_for_model(Product)
 
     def get_data_pair(store_id, campaign_id):
         return KVStore(
@@ -267,6 +287,33 @@ def save_category_data(data):
             content_type=campaign_type,
             object_id=campaign_id
         )
+
+    logger = save_category_data.get_logger()
+
+    store_type = ContentType.objects.get_for_model(Store)
+    campaign_type = ContentType.objects.get_for_model(Campaign)
+    product_type = ContentType.objects.get_for_model(Product)
+
+    try:
+        message = SharedStorage.objects.get(id=message_id)
+
+    except SharedStorage.DoesNotExist:
+        logger.error("Missing message with id={0}. Aborting.".format(
+            message_id))
+        return
+
+    try:
+        # prevent KeyError on unpickling
+        data = pickle.loads(str(message.data))
+
+    # could potentially throw a whole lot of different exceptions
+    except:
+        logger.error("Could not process the message with id={0}: {1}".format(
+            message_id, sys.exc_info()[0]))
+        return
+
+    # we can safely delete the passed message at this point
+    message.delete()
 
     updated_stores = []
     updated_campaigns = []

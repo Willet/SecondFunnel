@@ -27,14 +27,16 @@ DEFAULT_LOG_FILE="/var/log/celery/beat.log"
 DEFAULT_LOG_LEVEL="INFO"
 DEFAULT_CELERYBEAT="$CELERY_BIN beat"
 
-# /etc/init.d/celerybeat: start and stop the celery periodic task scheduler daemon.
-
-if test -f /etc/default/celeryd; then
-    . /etc/default/celeryd
+if [ -f "/var/run/celery/config/celerycommon" ]; then
+    source /var/run/celery/config/celerycommon
 fi
 
-if test -f /etc/default/celerybeat; then
-    . /etc/default/celerybeat
+if [ -f "/var/run/celery/config/celeryd" ]; then
+    source /var/run/celery/config/celeryd
+fi
+
+if [ -f "/var/run/celery/config/celerybeat" ]; then
+    source /var/run/celery/config/celerybeat
 fi
 
 CELERYBEAT=${CELERYBEAT:-$DEFAULT_CELERYBEAT}
