@@ -26,13 +26,12 @@ DEFAULT_LOG_LEVEL="INFO"
 DEFAULT_NODES="celery"
 DEFAULT_CELERYD="-m celery.bin.celeryd_detach"
 
-# /etc/init.d/celeryd: start and stop the celery task worker daemon.
+if [ -f "/var/run/celery/config/celerycommon" ]; then
+    source /var/run/celery/config/celerycommon
+fi
 
-CELERY_DEFAULTS=${CELERY_DEFAULTS:-"/etc/default/celeryd"}
-
-test -f "$CELERY_DEFAULTS" && . "$CELERY_DEFAULTS"
-if [ -f "/etc/default/celeryd" ]; then
-    . /etc/default/celeryd
+if [ -f "/var/run/celery/config/celeryd" ]; then
+    source /var/run/celery/config/celeryd
 fi
 
 # Set CELERY_CREATE_DIRS to always create log/pid dirs.
