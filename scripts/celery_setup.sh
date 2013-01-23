@@ -8,18 +8,6 @@
 # AWS Beanstalk script runners are using 'set -e'
 # which we don't want in this particular instance. Disabled it
 
-set +e
-useradd -M celery || true
-useradd_status=$?
-if [ useradd_status != 0 ]
-then
-    echo "useradd exited with an error code: '$useradd_status'"
-else
-    echo "Created unprivileged user 'celery'"
-fi
-# Reenable -e
-set -e
-
 # make a spot for the logs and the pid files
 mkdir -p /var/log/celery
 mkdir -p /var/run/celery/bin
