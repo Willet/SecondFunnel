@@ -242,6 +242,11 @@ def get_results(request):
 
     if status in SUCCESS_STATUSES:
         result = get_blocks(request, results, page)
+
+    # workaround for a weird bug on intentrank's side
+    elif status == 400:
+        return get_seeds(request)
+
     else:
         result = results
 
