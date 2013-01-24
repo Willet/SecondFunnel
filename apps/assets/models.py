@@ -121,6 +121,8 @@ class Product(BaseModelNamed):
 
     lifestyleImage = models.ForeignKey(GenericImage, blank=True, null=True)
 
+    available = models.BooleanField(default=True)
+
     def __unicode__(self):
         return self.name
 
