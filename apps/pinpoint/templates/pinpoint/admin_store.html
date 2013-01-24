@@ -151,6 +151,10 @@
             color: #EEE;
             font-size: 13px;
         }
+
+        #pageList td.delete a {
+            color: #ae432e;
+        }
     </style>
 {% endblock %}
 
@@ -193,7 +197,8 @@
                         dataRowOptions,
                         dataRowOptions,
                         dataRowOptions,
-                        dataRowOptions
+                        dataRowOptions,
+                        {'sWidth': '25px', 'bSortable': false}
                     ],
                     "aaSorting": [[1, "desc"]],
                     "oLanguage": {
@@ -295,6 +300,13 @@
                 $(this).qtip('show');
                 $("#" + $(this).attr('aria-describedby') + " input")[0].select();
             });
+
+            $(".delete a").click(function(e) {
+                var cancel = confirm("{% trans "Are you sure you want to delete this page?" %}");
+                if (!cancel) {
+                    e.preventDefault();
+                }
+            });
 {% endblock %}
 
 {% block top_section %}
@@ -317,6 +329,7 @@
                 <th></th>
                 <th></th>
                 <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -329,6 +342,11 @@
                 <td><div><a href="{% url analytics-campaign-admin campaign.store.id campaign.id %}">{% trans "Analytics" %}</a></div></td>
                 <td><div><a class="view_page" href="{% url campaign_short campaign.id|base62_encode %}" target="_blank">{% trans "View Page" %}</a></div></td>
                 <td><div><a href="{% url edit-campaign-admin campaign.store.id campaign.id %}">{% trans "Edit Page" %}</a></div></td>
+                <td class='delete'>
+                    <div>
+                        <a href="{% url delete-campaign-admin campaign.store.id campaign.id %}" title='Delete Page'>&#215;</a>
+                    </div>
+                </td>
             </tr>
             {% endif %}
             {% endfor %}
