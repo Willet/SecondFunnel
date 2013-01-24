@@ -198,7 +198,7 @@
                         dataRowOptions,
                         dataRowOptions,
                         dataRowOptions,
-                        dataRowOptions
+                        {'sWidth': '25px', 'bSortable': false}
                     ],
                     "aaSorting": [[1, "desc"]],
                     "oLanguage": {
@@ -344,9 +344,7 @@
                 <td><div><a href="{% url edit-campaign-admin campaign.store.id campaign.id %}">{% trans "Edit Page" %}</a></div></td>
                 <td class='delete'>
                     <div>
-                        <a href="{% url delete-campaign-admin campaign.store.id campaign.id %}">
-                            {% trans "Delete Page" %}
-                        </a>
+                        <a href="{% url delete-campaign-admin campaign.store.id campaign.id %}" title='Delete Page'>&#215;</a>
                     </div>
                 </td>
             </tr>
