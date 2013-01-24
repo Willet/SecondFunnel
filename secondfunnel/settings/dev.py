@@ -23,6 +23,8 @@ CACHES = {
     }
 }
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
 # We should be able to just run `bundle exec sass` in dev as we do in
 # production. Until we've figured that out, just running things this way
 COMPRESS_PRECOMPILERS = (
