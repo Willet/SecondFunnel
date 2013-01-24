@@ -35,7 +35,7 @@ class Wizard(object):
         return bool(self.campaign)
 
     def process(self):
-        if self.request.method == 'POST':  # really, guise
+        if self.request.method == 'POST':
             form, response = self._post()
         else:
             form, response = self._get()

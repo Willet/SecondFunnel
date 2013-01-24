@@ -80,6 +80,8 @@ class ProductResource(ModelResource):
         availability = filters.get('available', True)
         if availability == 'False':
             availability = False
+        else:
+            availability = True
         qset = (Q(available=availability))
         orm_filters.update({'available': qset})
 
