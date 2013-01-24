@@ -137,6 +137,9 @@ class BlockType(BaseModelNamed):
 
 
 class BlockContent(BaseModel):
+    """Holds a reference to a more specific block of content,
+    such as "Featured product block" and "Shop the look block".
+    """
     block_type = models.ForeignKey(BlockType)
     priority = models.IntegerField(blank=True, null=True)
 

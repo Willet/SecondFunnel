@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 
 from apps.assets.models import Product, Store, ProductMedia
-
+from apps.pinpoint.models import BlockContent, Campaign
 
 class UserAuthentication(Authentication):
     def is_authenticated(self, request, **kwargs):
@@ -95,3 +95,23 @@ class ProductMediaResource(ModelResource):
         }
         authentication = UserAuthentication()
         authorization = UserPartOfStore()
+
+
+class CampaignResource(ModelResource):
+    """Returns "a campaign".
+
+    Campaign definitions are saved in apps/pinpoint/models.py.
+    """
+    store = fields.ForeignKey(StoreResource, 'store')
+
+    class Meta:
+        queryset = Campaign.objects.all()
+        resource_name = 'campaign'
+
+
+class BlockContentResource(ModelResource):
+    """Returns a campaign's content blocks."""
+    class Meta:
+        queryset = BlockContent.objects.all()
+        resource_name = 'block_content'
+    pass
