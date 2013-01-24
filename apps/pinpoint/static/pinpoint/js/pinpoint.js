@@ -233,7 +233,12 @@ var PINPOINT = (function($, pageInfo){
                 data: {
                     'store': details.store.id,
                     'campaign': details.campaign.id,
-                    'results': 10 //TODO: Probably should be some calculated value
+
+                    //TODO: Probably should be some calculated value
+                    'results': 10,
+
+                    // normally ignored, unless IR call fails and we'll resort to getseeds
+                    'seeds': details.featured.id
                 },
                 dataType: 'json',
                 success: function(results) {
