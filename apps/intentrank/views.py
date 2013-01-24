@@ -98,6 +98,7 @@ def send_intentrank_request(request, url, method='GET', headers=None,
 # TODO: Is there a Guice for Python to inject dependency in live, dev?
 def process_intentrank_request(request, store, page, function_name,
                                param_dict):
+    """does NOT initiate a real IntentRank request if debug is set to True."""
 
     url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
         INTENTRANK_BASE_URL, store, page, function_name)
@@ -138,37 +139,26 @@ def process_intentrank_request(request, store, page, function_name,
                                       rescrape=False)
     return products, response.status
 
-# TODO: We shouldn't be doing this on the backend
-# Might make more sense to just use JS templates on the front end for
-# consistency
-def products_to_template(products, campaign, results):
-    # Get theme
-    theme    = campaign.store.theme
-    discovery_theme = "".join([
-        "{% load pinpoint_ui %}",
-        "<div class='block product' {{product.data|safe}}>",
-        theme.discovery_product,
-        "</div>"
-    ])
 
+def get_json_data(request, products, campaign_id):
+    """returns json equivalent of get_blocks' blocks.
+
+    results will be an object {}, not an array [].
+    """
+    campaign = Campaign.objects.get(pk=campaign_id)
+    results = {'products': [],
+               'videos': []}
+
+    # products
     for product in products:
-        context = Context()
-        context.update({
-            'product': product
-        })
-        results.append(Template(discovery_theme).render(context))
+        product_props = product.data(raw=True)
+        product_js_obj = {}
+        for prop in product_props:
+            # where product_prop is ('data-key', 'value')
+            product_js_obj[prop] = product_props[prop]
+        results['products'].append(product_js_obj)
 
-
-def videos_to_template(request, campaign, results):
-    theme = campaign.store.theme
-    discovery_youtube_theme = "".join([
-        "{% load pinpoint_ui %}",
-        "{% load pinpoint_youtube %}",
-        "<div class='block youtube wide'>",
-        theme.discovery_youtube,
-        "</div>"
-    ])
-
+    # videos
     video_cookie = request.session.get('pinpoint-video-cookie')
     if not video_cookie:
         video_cookie = request.session['pinpoint-video-cookie'] = VideoCookie()
@@ -180,29 +170,19 @@ def videos_to_template(request, campaign, results):
     show_video = random.random() <= video_probability_function(video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
     if videos.exists() and (video_cookie.is_empty() or show_video):
         video = videos.order_by('?')[0]
-        context = Context()
-        context.update({
-            'video': video
+        results['videos'].append({
+            'video_id': video.video_id,
+            'video_provider': 'youtube',
+            'video_width': '200',
+            'video_height': '200',
+            'video_autoplay': False
         })
-        if len(results) == 0:
-            position = 0
-        else:
-            position = random.randrange(len(results))
-        results.insert(position, Template(discovery_youtube_theme).render(context))
         video_cookie.add_video(video.video_id)
-        video_cookie.add_blocks(len(results) - position)
     else:
         video_cookie.add_blocks(len(results))
 
     request.session['pinpoint-video-cookie'] = video_cookie
 
-
-# combines inserting products and youtube videos
-def get_blocks(request, products, campaign_id):
-    campaign = Campaign.objects.get(pk=campaign_id)
-    results = []
-    products_to_template(products, campaign, results)
-    videos_to_template(request, campaign, results)
     return results
 
 
@@ -222,7 +202,7 @@ def get_seeds(request):
     )
 
     if status in SUCCESS_STATUSES:
-        result = get_blocks(request, results, page)
+        result = get_json_data(request, results, page)
     else:
         result = results
 
@@ -241,7 +221,7 @@ def get_results(request):
     )
 
     if status in SUCCESS_STATUSES:
-        result = get_blocks(request, results, page)
+        result = get_json_data(request, results, page)
 
     # workaround for a weird bug on intentrank's side
     elif status == 400:
@@ -251,9 +231,11 @@ def get_results(request):
         result = results
 
     return HttpResponse(json.dumps(result), mimetype='application/json',
-                        status=status)
+                         status=status)
+
 
 def update_clickstream(request):
+    """displays nothing on success."""
     store   = request.GET.get('store', '-1')
     page    = request.GET.get('campaign', '-1')
     product_id = request.GET.get('product_id')
@@ -268,8 +250,6 @@ def update_clickstream(request):
     else:
         result = results
 
-    return HttpResponse(json.dumps(result), mimetype='application/json',
-                        status=status)
 
 def invalidate_session(request):
     #intentrank/invalidate-session
