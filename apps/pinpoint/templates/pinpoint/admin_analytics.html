@@ -137,6 +137,27 @@
         .clear {
             clear: both;
         }
+
+        dl {
+            width: 300px;
+        }
+
+        /* bar graph styling */
+        dt {
+            float: left;
+            padding: 4px;
+        }
+
+        .bar {
+            margin-bottom: 10px;
+            margin-left: 80px;
+            color: #fff;
+            padding: 4px;
+            text-align: center;
+            background-color: #7C9B5F;
+            border-radius: 2px;
+        }
+
     </style>
 {% endblock %}
 
@@ -334,7 +355,29 @@
                     totals['shares']
                 );
             }, sortables['sharing_products'].slice(0, 3));
+
+            // inject top share destinations
+            map(function (i, pair) {
+                insertToBarGraph(
+                    $("#share_destinations"),
+                    pair[0],
+                    pair[1],
+                    totals['shares']
+                )
+            }, sortables['sharing_source']);
         };
+
+        insertToBarGraph = function ($parent, title, count, total) {
+            var $title = $("<dt>").html(title),
+                $bar,
+                percentage = Math.round(count/total * 100) + "%";
+
+            $bar = $("<dd>").append(
+                $("<div>").addClass("bar").css("width", percentage).html(percentage)
+            );
+
+            $parent.append($title).append($bar);
+        },
 
         insertTopProduct = function ($parent, verb, pid, count, total) {
             var $box = $("<div>").addClass("top_product"),
@@ -489,30 +532,36 @@
                     </div>
 
                     <div class="data_metrics">
-                        <div class="data_metric">
-
-                            {% if category.name == "Engagement" %}
-
-                            <div class="metric_title">Top Engaging Products</div>
-                            <div class="metric_content" id="top_engaging_products">
+                        {% if category.name == "Engagement" %}
+                            <div class="data_metric">
+                                <div class="metric_title">Top Engaging Products</div>
+                                <div class="metric_content" id="top_engaging_products"></div>
                             </div>
 
-                            <div class="metric_title">Engagement per Source</div>
-
-                            <div class="metric_title">Interaction Types</div>
-
-                            {% elif category.name == "Sharing" %}
-
-                            <div class="metric_title">Top Shared Products</div>
-                            <div class="metric_content" id="top_shared_products">
+                            <div class="data_metric">
+                                <div class="metric_title">Engagement per Source</div>
                             </div>
 
-                            <div class="metric_title">Share Destinations</div>
+                            <div class="data_metric">
+                                <div class="metric_title">Interaction Types</div>
+                            </div>
 
-                            <div class="metric_title">Sources of Shares</div>
+                        {% elif category.name == "Sharing" %}
 
-                            {% endif %}
-                        </div>
+                            <div class="data_metric">
+                                <div class="metric_title">Top Shared Products</div>
+                                <div class="metric_content" id="top_shared_products"></div>
+                            </div>
+
+                            <div class="data_metric">
+                                <div class="metric_title">Share Destinations</div>
+                                <dl class="bar_graph" id="share_destinations"></dl>
+                            </div>
+
+                            <div class="data_metric">
+                                <div class="metric_title">Sources of Shares</div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}
