@@ -26,12 +26,12 @@ class Migration(SchemaMigration):
 
         # Adding model 'StoreScraper'
         db.create_table('scraper_storescraper', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('store', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.Store'])),
+            ('store', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['assets.Store'], unique=True, primary_key=True)),
             ('list_url', self.gf('django.db.models.fields.CharField')(max_length=500)),
             ('list_scraper', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['scraper.ListScraper'])),
             ('detail_scraper', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['scraper.DetailScraper'])),
             ('scrape_interval', self.gf('django.db.models.fields.IntegerField')()),
+            ('status', self.gf('django.db.models.fields.SmallIntegerField')(default=0, null=True, blank=True)),
         ))
         db.send_create_signal('scraper', ['StoreScraper'])
 
@@ -46,6 +46,8 @@ class Migration(SchemaMigration):
         db.create_table('scraper_pythonlistscraper', (
             ('listscraper_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['scraper.ListScraper'], unique=True, primary_key=True)),
             ('script', self.gf('django.db.models.fields.TextField')()),
+            ('enable_javascript', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('enable_css', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
         db.send_create_signal('scraper', ['PythonListScraper'])
 
@@ -53,8 +55,19 @@ class Migration(SchemaMigration):
         db.create_table('scraper_pythondetailscraper', (
             ('detailscraper_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['scraper.DetailScraper'], unique=True, primary_key=True)),
             ('script', self.gf('django.db.models.fields.TextField')()),
+            ('enable_javascript', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('enable_css', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
         db.send_create_signal('scraper', ['PythonDetailScraper'])
+
+        # Adding model 'ProductSuggestion'
+        db.create_table('scraper_productsuggestion', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('product', self.gf('django.db.models.fields.related.ForeignKey')(related_name='suggestions', to=orm['assets.Product'])),
+            ('url', self.gf('django.db.models.fields.URLField')(max_length=500)),
+            ('suggested', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='suggested', null=True, to=orm['assets.Product'])),
+        ))
+        db.send_create_signal('scraper', ['ProductSuggestion'])
 
 
     def backwards(self, orm):
@@ -76,14 +89,45 @@ class Migration(SchemaMigration):
         # Deleting model 'PythonDetailScraper'
         db.delete_table('scraper_pythondetailscraper')
 
+        # Deleting model 'ProductSuggestion'
+        db.delete_table('scraper_productsuggestion')
+
 
     models = {
-        'assets.store': {
-            'Meta': {'object_name': 'Store'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+        'assets.genericimage': {
+            'Meta': {'object_name': 'GenericImage'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'hosted': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'remote': ('django.db.models.fields.CharField', [], {'max_length': '555', 'null': 'True', 'blank': 'True'}),
+            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'})
+        },
+        'assets.product': {
+            'Meta': {'object_name': 'Product'},
+            'available': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
+            'last_scraped': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'lifestyleImage': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['assets.GenericImage']", 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'original_url': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
+            'price': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'rescrape': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'sku': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
+            'store': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['assets.Store']", 'null': 'True', 'blank': 'True'})
+        },
+        'assets.store': {
+            'Meta': {'object_name': 'Store'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
             'staff': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False'})
@@ -136,13 +180,24 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'})
         },
+        'scraper.productsuggestion': {
+            'Meta': {'object_name': 'ProductSuggestion'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'product': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'suggestions'", 'to': "orm['assets.Product']"}),
+            'suggested': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'suggested'", 'null': 'True', 'to': "orm['assets.Product']"}),
+            'url': ('django.db.models.fields.URLField', [], {'max_length': '500'})
+        },
         'scraper.pythondetailscraper': {
             'Meta': {'object_name': 'PythonDetailScraper', '_ormbases': ['scraper.DetailScraper']},
             'detailscraper_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['scraper.DetailScraper']", 'unique': 'True', 'primary_key': 'True'}),
+            'enable_css': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'enable_javascript': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'script': ('django.db.models.fields.TextField', [], {})
         },
         'scraper.pythonlistscraper': {
             'Meta': {'object_name': 'PythonListScraper', '_ormbases': ['scraper.ListScraper']},
+            'enable_css': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'enable_javascript': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'listscraper_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['scraper.ListScraper']", 'unique': 'True', 'primary_key': 'True'}),
             'script': ('django.db.models.fields.TextField', [], {})
         },
@@ -154,11 +209,11 @@ class Migration(SchemaMigration):
         'scraper.storescraper': {
             'Meta': {'object_name': 'StoreScraper'},
             'detail_scraper': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['scraper.DetailScraper']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'list_scraper': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['scraper.ListScraper']"}),
             'list_url': ('django.db.models.fields.CharField', [], {'max_length': '500'}),
             'scrape_interval': ('django.db.models.fields.IntegerField', [], {}),
-            'store': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['assets.Store']"})
+            'status': ('django.db.models.fields.SmallIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
+            'store': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['assets.Store']", 'unique': 'True', 'primary_key': 'True'})
         }
     }
 
