@@ -220,13 +220,36 @@
         };
 
         injectAnalyticsData = function (data) {
-            var sortable_products = [],
+            var sortables = {
+                    'engaged_products': [],
+                    'sharing_products': [],
+                    'sharing_source': []
+                },
+                apis = {
+                    'products': "/api/assets/v1/product/%pid%/?store={{ store.id }}&format=json",
+                    'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%pid%&format=json"
+                },
 
-                product_api = "/api/assets/v1/product/%pid%/?store={{ store.id }}&format=json",
-                product_media_api = "/api/assets/v1/product_media/?store={{ store.id }}&product=%pid%&format=json",
+                totals = {
+                    'interactions': data['engagement']['product-interactions']['totals']['date']['all'],
+                    'shares': data['sharing']['total-shares']['totals']['date']['all']
+                },
 
-                total_interactions = data['engagement']['product-interactions']['totals']['date']['all'],
-                products = data['engagement']['inpage-openpopup']['totals']['product_id'];
+                top_lists = {
+                    'engaged_products': data['engagement']['inpage-openpopup']['totals']['product_id'],
+                    'sharing_products': data['sharing']['share-clicked']['totals']['product_id'],
+                    'sharing_source': data['sharing']['share-clicked']['totals']['meta']
+                },
+
+                map = function (func, iterable) {
+                    var results = [];
+
+                    for (var key in iterable) {
+                        results.push(func(key, iterable[key]));
+                    }
+
+                    return results;
+                };
 
             for (cat_slug in data) {
                 for (metric_slug in data[cat_slug]) {
@@ -241,20 +264,27 @@
                 }
             }
 
-            for (var pid in products) {
-                sortable_products.push([pid, products[pid]]);
-            }
-            sortable_products.sort(function(a, b) {
-                return a[1] - b[1];
-            }).pop();
-            sortable_products.reverse();
+            map(function (key, list) {
+                sortables[key] = map(function (pid, count) {
+                    return [pid, count];
+                }, list);
 
-            for (var pair in sortable_products) {
-                var pid = sortable_products[pair][0],
-                    count = sortable_products[pair][1];
+                sortables[key].sort(function(a, b) {
+                    return a[1] - b[1];
+                }).pop();
+
+                sortables[key].reverse();
+
+            }, top_lists);
+
+            console.log(sortables);
+
+            map(function (i, pair) {
+                var pid = pair[0],
+                    count = pair[1];
 
                 $.ajax({
-                    url: product_api.replace("%pid%", pid),
+                    url: apis['products'].replace("%pid%", pid),
                     dataType: "json",
                     async: false,
                     success: function (data) {
@@ -264,7 +294,7 @@
                 });
 
                 $.ajax({
-                    url: product_media_api.replace("%pid%", pid),
+                    url: apis['products_media'].replace("%pid%", pid),
                     dataType: "json",
                     async: false,
                     success: function (data) {
@@ -273,20 +303,28 @@
                         }
                     }
                 });
-            }
 
-            console.log(cachedProducts);
+            }, sortables['engaged_products']);
 
-            for (var pair in sortable_products.slice(0, 3)) {
-                console.log(sortable_products[pair]);
+            map(function (i, pair) {
                 insertTopProduct(
                     $("#top_engaging_products"),
                     "Interactions",
-                    sortable_products[pair][0],
-                    sortable_products[pair][1],
-                    total_interactions
+                    pair[0],
+                    pair[1],
+                    totals['interactions']
                 );
-            }
+            }, sortables['engaged_products'].slice(0, 3));
+
+            map(function (i, pair) {
+                insertTopProduct(
+                    $("#top_shared_products"),
+                    "Shares",
+                    pair[0],
+                    pair[1],
+                    totals['shares']
+                );
+            }, sortables['sharing_products'].slice(0, 3));
         };
 
         insertTopProduct = function ($parent, verb, pid, count, total) {
@@ -450,7 +488,19 @@
                             <div class="metric_content" id="top_engaging_products">
                             </div>
 
+                            <div class="metric_title">Engagement per Source</div>
+
+                            <div class="metric_title">Interaction Types</div>
+
                             {% elif category.name == "Sharing" %}
+
+                            <div class="metric_title">Top Shared Products</div>
+                            <div class="metric_content" id="top_shared_products">
+                            </div>
+
+                            <div class="metric_title">Share Destinations</div>
+
+                            <div class="metric_title">Sources of Shares</div>
 
                             {% endif %}
                         </div>
