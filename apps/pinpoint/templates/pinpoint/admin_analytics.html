@@ -181,9 +181,10 @@
 {% endblock %}
 
 {% block document_ready %}
-    var app = (function($) {
+    var app = (function ($) {
         var init, settings, setUpListeners, getDateRange,
-            injectAnalyticsData, loadAnalytics, cachedProducts = {};
+            injectAnalyticsData, insertTopProduct, insertToBarGraph,
+            loadAnalytics, cachedProducts = {};
 
         settings = {
             "store_id": "{{ store.id }}",
@@ -205,30 +206,30 @@
                 date_range = getDateRange();
 
             // set request values based on what's passed it
-            if (typeof(o) !== "undefined") {
-                request['campaign_id'] = o.campaign_id || settings.campaign_id;
-                request['store_id'] = o.store_id || settings.store_id;
+            if (o !== undefined) {
+                request.campaign_id = o.campaign_id || settings.campaign_id;
+                request.store_id = o.store_id || settings.store_id;
 
-                settings.campaign_id = request['campaign_id'];
-                settings.store_id = request['store_id'];
+                settings.campaign_id = request.campaign_id;
+                settings.store_id = request.store_id;
 
             // or based on default values if nothing is passed in
             } else {
-                request['campaign_id'] = settings.campaign_id;
-                request['store_id'] = settings.store_id;
+                request.campaign_id = settings.campaign_id;
+                request.store_id = settings.store_id;
             }
 
             // pass only one of the values down the wire
-            if (request['campaign_id']) {
-                delete(request['store_id']);
+            if (request.campaign_id) {
+                delete request.store_id;
             }
 
-            if (request['store_id']) {
-                delete(request['campaign_id']);
+            if (request.store_id) {
+                delete request.campaign_id;
             }
 
-            request['start_date'] = date_range['start_date'];
-            request['end_date'] = date_range['end_date'];
+            request.start_date = date_range.start_date;
+            request.end_date = date_range.end_date;
 
             $.ajax({
                 url: "{% url ajax-analytics-pinpoint %}",
@@ -252,40 +253,42 @@
                 },
 
                 totals = {
-                    'interactions': data['engagement']['product-interactions']['totals']['date']['all'],
-                    'shares': data['sharing']['total-shares']['totals']['date']['all']
+                    'interactions': data.engagement['product-interactions'].totals.date.all,
+                    'shares': data.sharing['total-shares'].totals.date.all
                 },
 
                 top_lists = {
-                    'engaged_products': data['engagement']['inpage-openpopup']['totals']['product_id'],
-                    'sharing_products': data['sharing']['share-clicked']['totals']['product_id'],
-                    'sharing_source': data['sharing']['share-clicked']['totals']['meta']
+                    'engaged_products': data.engagement['inpage-openpopup'].totals.product_id,
+                    'sharing_products': data.sharing['share-clicked'].totals.product_id,
+                    'sharing_source': data.sharing['share-clicked'].totals.meta
                 },
 
                 map = function (func, iterable) {
-                    var results = [], res;
+                    var results = [], res, key;
 
-                    for (var key in iterable) {
+                    for (key in iterable) {
                         res = func(key, iterable[key]);
 
-                        if (typeof(res) !== "undefined") {
+                        if (res !== undefined) {
                             results.push(res);
                         }
                     }
 
                     return results;
-                };
+                },
+
+                cat_slug, metric_slug;
 
             // insert totals for metrics into the sidebar
             for (cat_slug in data) {
                 for (metric_slug in data[cat_slug]) {
                     // display totals in the sidebar on in the content section
                     $(".metric_overview[data-metric='" + metric_slug + "']").html(
-                        data[cat_slug][metric_slug]['totals']['date']['all']
+                        data[cat_slug][metric_slug].totals.date.all
                     );
 
                     $(".metric_title_all[data-metric='" + metric_slug + "']").html(
-                        data[cat_slug][metric_slug]['totals']['date']['all']
+                        data[cat_slug][metric_slug].totals.date.all
                     );
                 }
             }
@@ -298,7 +301,7 @@
                     }
                 }, list);
 
-                sortables[key].sort(function(a, b) {
+                sortables[key].sort(function (a, b) {
                     return a[1] - b[1];
                 });
 
@@ -312,27 +315,27 @@
                     count = pair[1];
 
                 $.ajax({
-                    url: apis['products'].replace("%pid%", pid),
+                    url: apis.products.replace("%pid%", pid),
                     dataType: "json",
                     async: false,
                     success: function (data) {
-                        cachedProducts[data['id']] = data;
-                        cachedProducts[data['id']]['count'] = count;
+                        cachedProducts[data.id] = data;
+                        cachedProducts[data.id].count = count;
                     }
                 });
 
                 $.ajax({
-                    url: apis['products_media'].replace("%pid%", pid),
+                    url: apis.products_media.replace("%pid%", pid),
                     dataType: "json",
                     async: false,
                     success: function (data) {
-                        if (data['meta']['total_count'] > 0) {
-                            cachedProducts[pid]['media'] = data['objects'][0];
+                        if (data.meta.total_count > 0) {
+                            cachedProducts[pid].media = data.objects[0];
                         }
                     }
                 });
 
-            }, sortables['engaged_products']);
+            }, sortables.engaged_products);
 
             // inject top engaged products
             map(function (i, pair) {
@@ -341,9 +344,9 @@
                     "Interactions",
                     pair[0],
                     pair[1],
-                    totals['interactions']
+                    totals.interactions
                 );
-            }, sortables['engaged_products'].slice(0, 3));
+            }, sortables.engaged_products.slice(0, 3));
 
             // inject top shared products
             map(function (i, pair) {
@@ -352,9 +355,9 @@
                     "Shares",
                     pair[0],
                     pair[1],
-                    totals['shares']
+                    totals.shares
                 );
-            }, sortables['sharing_products'].slice(0, 3));
+            }, sortables.sharing_products.slice(0, 3));
 
             // inject top share destinations
             map(function (i, pair) {
@@ -362,33 +365,33 @@
                     $("#share_destinations"),
                     pair[0],
                     pair[1],
-                    totals['shares']
-                )
-            }, sortables['sharing_source']);
+                    totals.shares
+                );
+            }, sortables.sharing_source);
         };
 
         insertToBarGraph = function ($parent, title, count, total) {
             var $title = $("<dt>").html(title),
                 $bar,
-                percentage = Math.round(count/total * 100) + "%";
+                percentage = Math.round(count / total * 100) + "%";
 
             $bar = $("<dd>").append(
                 $("<div>").addClass("bar").css("width", percentage).html(count + " (" + percentage + ")")
             );
 
             $parent.append($title).append($bar);
-        },
+        };
 
         insertTopProduct = function ($parent, verb, pid, count, total) {
             var $box = $("<div>").addClass("top_product"),
-                $name = $("<div>").addClass("name").html(cachedProducts[pid]['name']),
+                $name = $("<div>").addClass("name").html(cachedProducts[pid].name),
                 $count,
                 $image = $("<div>").addClass("image").append(
                     $("<img>").attr("src",
-                        cachedProducts[pid]['media']['hosted'] || cachedProducts[pid]['media']['remote']
+                        cachedProducts[pid].media.hosted || cachedProducts[pid].media.remote
                     ));
 
-            $count = $("<div>").addClass("count").html(verb + ": " + count + " (" + Math.round(count/total * 100) + "%)");
+            $count = $("<div>").addClass("count").html(verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
 
             $box.append($name).append($image).append($count).append($("<div>").addClass("clear"));
             $parent.append($box);
@@ -399,7 +402,7 @@
             $("#start_range").datepicker({
                 changeMonth: true,
                 numberOfMonths: 2,
-                onClose: function(selectedDate) {
+                onClose: function (selectedDate) {
                     $("#end_range").datepicker("option", "minDate", selectedDate);
                 }
             });
@@ -408,29 +411,29 @@
             $("#end_range").datepicker({
                 changeMonth: true,
                 numberOfMonths: 2,
-                onClose: function( selectedDate ) {
+                onClose: function (selectedDate) {
                     $("#start_range").datepicker("option", "maxDate", selectedDate);
                 }
             });
             $("#end_range").datepicker("setDate", new Date());
 
-            $("#start_range, #end_range").change(function() {
+            $("#start_range, #end_range").change(function () {
                 loadAnalytics();
             });
 
 
             // ajax loading indicator
-            $(".loading").ajaxStart(function() {
+            $(".loading").ajaxStart(function () {
                 $(this).show();
             });
 
-            $(".loading").ajaxStop(function() {
+            $(".loading").ajaxStop(function () {
                 $(this).hide();
             });
 
 
             // select analytics category ui
-            $(".section_overview_block").click(function() {
+            $(".section_overview_block").click(function () {
                 $(".data_category").hide();
                 $("div[data-cid='" + $(this).data("cid") + "']").show();
 
@@ -440,7 +443,7 @@
 
 
             // change campaign from the top menu
-            $("#campaign_list").change(function() {
+            $("#campaign_list").change(function () {
                 loadAnalytics({
                     'campaign_id': $(this).find("option:selected").attr("value")
                 });
