@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 
 from apps.assets.models import Product, Store, ProductMedia
-
+from apps.pinpoint.models import BlockContent, Campaign
 
 class UserAuthentication(Authentication):
     def is_authenticated(self, request, **kwargs):
@@ -24,7 +24,28 @@ class UserPartOfStore(Authorization):
             return False
 
 
+class BlockContentResource(ModelResource):
+    """Returns a campaign's content blocks."""
+    class Meta:
+        queryset = BlockContent.objects.all()
+        resource_name = 'block_content'
+
+    def dehydrate(self, bundle):
+        """convert BlockContent.data to something meaningful."""
+        # http://django-tastypie.readthedocs.org/en/latest/bundles.html
+        data_type = bundle.obj.data
+
+        fields = data_type._meta.fields
+        bundle.data['data'] = {}
+        for field in fields:
+            bundle.data['data'][field.name] = getattr(data_type, field.name,
+                                                      None)
+
+        return bundle
+
+
 class StoreResource(ModelResource):
+    """REST-style store."""
     class Meta:
         queryset = Store.objects.all()
         resource_name = 'store'
@@ -126,3 +147,23 @@ class ProductMediaResource(ModelResource):
         }
         authentication = UserAuthentication()
         authorization = UserPartOfStore()
+
+
+class CampaignResource(ModelResource):
+    """Returns "a campaign".
+
+    Campaign definitions are saved in apps/pinpoint/models.py.
+    """
+    store = fields.ForeignKey(StoreResource, 'store', full=True)
+    content_blocks = fields.ToManyField(BlockContentResource, 'content_blocks',
+                                        full=True)
+    discovery_blocks = fields.ToManyField(BlockContentResource,
+                                          'discovery_blocks', full=True)
+
+    class Meta:
+        queryset = Campaign.objects.all()
+        resource_name = 'campaign'
+
+        filtering = {
+            'store': ALL,
+        }
