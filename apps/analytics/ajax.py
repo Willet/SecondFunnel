@@ -1,6 +1,7 @@
 import json
 import random
 
+from collections import defaultdict
 from datetime import timedelta, datetime
 
 from django.contrib.auth.decorators import login_required
@@ -20,16 +21,15 @@ def daterange(start_date, end_date):
 @login_required
 def analytics_pinpoint(request):
     def aggregate_by(bucket, key):
+        bucket['totals'][key] = defaultdict(int)
+
         for datum in bucket['data']:
-            if datum[key] in bucket['totals'][key]:
-                bucket['totals'][key][datum[key]] += datum['value']
-            else:
-                bucket['totals'][key][datum[key]] = datum['value']
+            bucket['totals'][key][datum[key]] += datum['value']
 
         if key == 'date':
             # zero-out out missing dates
             if start_date and end_date:
-                for date in daterange(start_date, end_date + timedelta(1)):
+                for date in daterange(start_date, end_date + timedelta(days=1)):
                     if not date.date().isoformat() in bucket['totals'][key]:
                         bucket['totals'][key][date.date().isoformat()] = 0
 
