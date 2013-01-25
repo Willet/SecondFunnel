@@ -242,15 +242,20 @@
                 },
 
                 map = function (func, iterable) {
-                    var results = [];
+                    var results = [], res;
 
                     for (var key in iterable) {
-                        results.push(func(key, iterable[key]));
+                        res = func(key, iterable[key]);
+
+                        if (typeof(res) !== "undefined") {
+                            results.push(res);
+                        }
                     }
 
                     return results;
                 };
 
+            // insert totals for metrics into the sidebar
             for (cat_slug in data) {
                 for (metric_slug in data[cat_slug]) {
                     // display totals in the sidebar on in the content section
@@ -264,21 +269,23 @@
                 }
             }
 
+            // construct lists of sorted (desc) (pid, count) pairs
             map(function (key, list) {
                 sortables[key] = map(function (pid, count) {
-                    return [pid, count];
+                    if (pid !== "all") {
+                        return [pid, count];
+                    }
                 }, list);
 
                 sortables[key].sort(function(a, b) {
                     return a[1] - b[1];
-                }).pop();
+                });
 
                 sortables[key].reverse();
 
             }, top_lists);
 
-            console.log(sortables);
-
+            // fetch meta data for products
             map(function (i, pair) {
                 var pid = pair[0],
                     count = pair[1];
@@ -306,6 +313,7 @@
 
             }, sortables['engaged_products']);
 
+            // inject top engaged products
             map(function (i, pair) {
                 insertTopProduct(
                     $("#top_engaging_products"),
@@ -316,6 +324,7 @@
                 );
             }, sortables['engaged_products'].slice(0, 3));
 
+            // inject top shared products
             map(function (i, pair) {
                 insertTopProduct(
                     $("#top_shared_products"),
