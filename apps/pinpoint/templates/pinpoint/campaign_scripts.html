@@ -26,6 +26,11 @@
                     'name': '{{ product.name }}',
                     'title': '{{ product.name }}',
                     'price': '{{ product.price }}',
+                    'images': [
+                        {% for image in product.images %}
+                            "{{ image|escapejs }}"{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ],
                     'url': '{{ product.url }}'
                 }
             };
