@@ -132,3 +132,7 @@ class CampaignResource(ModelResource):
     class Meta:
         queryset = Campaign.objects.all()
         resource_name = 'campaign'
+
+        filtering = {
+            'store': ALL,
+        }
