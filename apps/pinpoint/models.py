@@ -145,12 +145,20 @@ class BlockContent(BaseModel):
 
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
+
+    # This line was copied (and can be referenced) straight from
+    # https://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/
+    # It ties self.data with table(content_type)(pk=object_id).
     data = generic.GenericForeignKey('content_type', 'object_id')
 
     def __unicode__(self):
-        return u"BlockContent of type %s for %s" % (
-            self.content_type, self.block_type
+        return u"BlockContent of type %s for %s: %s" % (
+            self.content_type, self.block_type, self.data
         )
+
+    def get_data(self):
+        # tastypie patch
+        return self.__unicode__()
 
 
 class Campaign(BaseModelNamed):
