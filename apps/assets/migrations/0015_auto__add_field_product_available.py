@@ -9,9 +9,9 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         # Adding field 'Product.available'
-        db.add_column('assets_product', 'available',
-                      self.gf('django.db.models.fields.BooleanField')(default=True),
-                      keep_default=True)
+
+        # field is already in db, so no actions necessary
+        pass
 
 
     def backwards(self, orm):
