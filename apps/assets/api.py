@@ -43,6 +43,7 @@ class ProductResource(ModelResource):
 
         filtering = {
             'store': ALL,
+            'id': ('exact',),
             'name': ('exact', 'contains',),
             'name_or_url': ('exact'),
             'available': ('exact'),
