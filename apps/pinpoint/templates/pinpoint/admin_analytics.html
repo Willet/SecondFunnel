@@ -95,35 +95,69 @@
             font-size: 24px;
         }
 
-        .section_footer {
-            margin-top: 50px;
-        }
-
-        .section_meta {
-            float: right;
-            color: #b3b3b3;
-        }
-
         .data_metric {
             margin-top: 20px;
             margin-bottom: 40px;
         }
 
-        .metric_title, .daily_title {
+        .metric_title {
             font-size: 16px;
         }
 
-        .daily_title {
-            margin-top: 15px;
+        .top_product, .top_product:last-child {
+            border: 1px solid #a3a3a3;
         }
 
-        .metric_title_all {
-
+        #top_engaging_products {
+            margin-top: 10px;
         }
 
-        .metric_graph {
-
+        .top_product {
+            display: block;
+            background-color: #fdfdfd;
+            border-bottom: none;
+            padding: 10px;
+            width: 380px;
         }
+
+        .top_product .name {
+            width: 150px;
+            float: left;
+            font-weight: bolder;
+            margin-right: 15px;
+        }
+
+        .top_product .image img {
+            float: left;
+            width: 75px;
+            height: 75px;
+            margin-right: 15px;
+        }
+
+        .clear {
+            clear: both;
+        }
+
+        dl {
+            width: 300px;
+        }
+
+        /* bar graph styling */
+        dt {
+            float: left;
+            padding: 4px;
+        }
+
+        .bar {
+            margin-bottom: 10px;
+            margin-left: 80px;
+            color: #fff;
+            padding: 4px;
+            text-align: center;
+            background-color: #7C9B5F;
+            border-radius: 2px;
+        }
+
     </style>
 {% endblock %}
 
@@ -147,9 +181,10 @@
 {% endblock %}
 
 {% block document_ready %}
-    var app = (function($) {
+    var app = (function ($) {
         var init, settings, setUpListeners, getDateRange,
-            injectAnalyticsData, loadAnalytics;
+            injectAnalyticsData, insertTopProduct, insertToBarGraph,
+            loadAnalytics, cachedProducts = {};
 
         settings = {
             "store_id": "{{ store.id }}",
@@ -171,30 +206,30 @@
                 date_range = getDateRange();
 
             // set request values based on what's passed it
-            if (typeof(o) !== "undefined") {
-                request['campaign_id'] = o.campaign_id || settings.campaign_id;
-                request['store_id'] = o.store_id || settings.store_id;
+            if (o !== undefined) {
+                request.campaign_id = o.campaign_id || settings.campaign_id;
+                request.store_id = o.store_id || settings.store_id;
 
-                settings.campaign_id = request['campaign_id'];
-                settings.store_id = request['store_id'];
+                settings.campaign_id = request.campaign_id;
+                settings.store_id = request.store_id;
 
             // or based on default values if nothing is passed in
             } else {
-                request['campaign_id'] = settings.campaign_id;
-                request['store_id'] = settings.store_id;
+                request.campaign_id = settings.campaign_id;
+                request.store_id = settings.store_id;
             }
 
             // pass only one of the values down the wire
-            if (request['campaign_id']) {
-                delete(request['store_id']);
+            if (request.campaign_id) {
+                delete request.store_id;
             }
 
-            if (request['store_id']) {
-                delete(request['campaign_id']);
+            if (request.store_id) {
+                delete request.campaign_id;
             }
 
-            request['start_date'] = date_range['start_date'];
-            request['end_date'] = date_range['end_date'];
+            request.start_date = date_range.start_date;
+            request.end_date = date_range.end_date;
 
             $.ajax({
                 url: "{% url ajax-analytics-pinpoint %}",
@@ -207,127 +242,159 @@
         };
 
         injectAnalyticsData = function (data) {
-            var rendered = {
-                    'charts': {},
-                    'tables': {},
-                    'tables_data': {}
+            var sortables = {
+                    'engaged_products': [],
+                    'sharing_products': [],
+                    'sharing_source': []
                 },
-                clearChartsAndTables, renderChart, renderTable;
+                apis = {
+                    'products': "/api/assets/v1/product/%pid%/?store={{ store.id }}&format=json",
+                    'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%pid%&format=json"
+                },
 
-            clearCharts = function () {
-                for (metric_slug in rendered['charts']) {
-                    rendered['charts'][metric_slug].clearChart();
-                }
-            };
+                totals = {
+                    'interactions': data.engagement['product-interactions'].totals.date.all,
+                    'shares': data.sharing['total-shares'].totals.date.all
+                },
 
-            renderTable = function (data, slug) {
-                var this_data = new google.visualization.DataTable();
-                this_data.addColumn('date', 'Date');
-                this_data.addColumn('number', 'Product');
-                this_data.addColumn('string', 'Info');
-                this_data.addColumn('number', data['name']);
+                top_lists = {
+                    'engaged_products': data.engagement['inpage-openpopup'].totals.product_id,
+                    'sharing_products': data.sharing['share-clicked'].totals.product_id,
+                    'sharing_source': data.sharing['share-clicked'].totals.meta
+                },
 
-                if (data['data'].length == 0 || data['data'][0]['meta'] == "meta_metric") {
-                    $(".daily_breakdown[data-metric='" + slug + "']").hide();
-                    return;
-                }
+                map = function (func, iterable) {
+                    var results = [], res, key;
 
-                $(".daily_breakdown[data-metric='" + slug + "']").show();
+                    for (key in iterable) {
+                        res = func(key, iterable[key]);
 
-                for (i in data['data']) {
-                    this_data.addRow([
-                        new Date(data['data'][i]['date'].split("-")[0],
-
-                            // month is zero-based
-                            data['data'][i]['date'].split("-")[1] - 1,
-
-                            data['data'][i]['date'].split("-")[2]
-                        ),
-                        data['data'][i]['product_id'],
-                        data['data'][i]['meta'],
-                        data['data'][i]['value']
-                    ]);
-                }
-
-                if (!(slug in rendered['tables'])) {
-                    rendered['tables'][slug] = new google.visualization.Table(
-                        document.getElementById('table_' + slug)
-                    );
-                }
-
-                rendered['tables'][slug].draw(this_data, {
-                    showRowNumber: false
-                });
-            };
-
-            renderChart = function (data, slug) {
-                var this_data = new google.visualization.DataTable();
-                this_data.addColumn('date', 'Date');
-                this_data.addColumn('number', data['name']);
-
-                for (date in data['totals']) {
-                    if (date == "all") {
-                        continue;
+                        if (res !== undefined) {
+                            results.push(res);
+                        }
                     }
 
-                    this_data.addRow([
-                        new Date(date.split("-")[0],
+                    return results;
+                },
 
-                            // month is zero-based
-                            date.split("-")[1] - 1,
+                cat_slug, metric_slug;
 
-                            date.split("-")[2]
-                        ), data['totals'][date]
-                    ]);
-                }
-
-                if (!(slug in rendered['charts'])) {
-                    rendered['charts'][slug] = new google.visualization.LineChart(
-                        document.getElementById('chart_' + slug)
-                    );
-                }
-
-                rendered['charts'][slug].draw(this_data, {
-                    'width': 670,
-                    'chartArea': {
-                        'left': 35,
-                        'top': 10,
-                        'width': '95%',
-                        'height': '80%'
-                    },
-                    'legend': {
-                        'position': 'none'
-                    },
-                    'hAxis': {
-                        'format': 'MMM d',
-                        'gridlines': {
-                            'color': '#fff'
-                        }
-                    },
-                    'vAxis': {
-                        'minValue': 0
-                    },
-                    'pointSize': 3
-                });
-            };
-
-            clearCharts();
-
+            // insert totals for metrics into the sidebar
             for (cat_slug in data) {
                 for (metric_slug in data[cat_slug]) {
                     // display totals in the sidebar on in the content section
                     $(".metric_overview[data-metric='" + metric_slug + "']").html(
-                        data[cat_slug][metric_slug]['totals']['all']
+                        data[cat_slug][metric_slug].totals.date.all
                     );
 
                     $(".metric_title_all[data-metric='" + metric_slug + "']").html(
-                        data[cat_slug][metric_slug]['totals']['all']
+                        data[cat_slug][metric_slug].totals.date.all
                     );
-
-                    renderTable(data[cat_slug][metric_slug], metric_slug);
-                    renderChart(data[cat_slug][metric_slug], metric_slug);
                 }
             }
+
+            // construct lists of sorted (desc) (pid, count) pairs
+            map(function (key, list) {
+                sortables[key] = map(function (pid, count) {
+                    if (pid !== "all") {
+                        return [pid, count];
+                    }
+                }, list);
+
+                sortables[key].sort(function (a, b) {
+                    return a[1] - b[1];
+                });
+
+                sortables[key].reverse();
+
+            }, top_lists);
+
+            // fetch meta data for products
+            map(function (i, pair) {
+                var pid = pair[0],
+                    count = pair[1];
+
+                $.ajax({
+                    url: apis.products.replace("%pid%", pid),
+                    dataType: "json",
+                    async: false,
+                    success: function (data) {
+                        cachedProducts[data.id] = data;
+                        cachedProducts[data.id].count = count;
+                    }
+                });
+
+                $.ajax({
+                    url: apis.products_media.replace("%pid%", pid),
+                    dataType: "json",
+                    async: false,
+                    success: function (data) {
+                        if (data.meta.total_count > 0) {
+                            cachedProducts[pid].media = data.objects[0];
+                        }
+                    }
+                });
+
+            }, sortables.engaged_products);
+
+            // inject top engaged products
+            map(function (i, pair) {
+                insertTopProduct(
+                    $("#top_engaging_products"),
+                    "Interactions",
+                    pair[0],
+                    pair[1],
+                    totals.interactions
+                );
+            }, sortables.engaged_products.slice(0, 3));
+
+            // inject top shared products
+            map(function (i, pair) {
+                insertTopProduct(
+                    $("#top_shared_products"),
+                    "Shares",
+                    pair[0],
+                    pair[1],
+                    totals.shares
+                );
+            }, sortables.sharing_products.slice(0, 3));
+
+            // inject top share destinations
+            map(function (i, pair) {
+                insertToBarGraph(
+                    $("#share_destinations"),
+                    pair[0],
+                    pair[1],
+                    totals.shares
+                );
+            }, sortables.sharing_source);
+        };
+
+        insertToBarGraph = function ($parent, title, count, total) {
+            var $title = $("<dt>").html(title),
+                $bar,
+                percentage = Math.round(count / total * 100) + "%";
+
+            $bar = $("<dd>").append(
+                $("<div>").addClass("bar").css("width", percentage).html(count + " (" + percentage + ")")
+            );
+
+            $parent.append($title).append($bar);
+        };
+
+        insertTopProduct = function ($parent, verb, pid, count, total) {
+            var $box = $("<div>").addClass("top_product"),
+                $name = $("<div>").addClass("name").html(cachedProducts[pid].name),
+                $count,
+                $image = $("<div>").addClass("image").append(
+                    $("<img>").attr("src",
+                        cachedProducts[pid].media.hosted || cachedProducts[pid].media.remote
+                    ));
+
+            $count = $("<div>").addClass("count").html(verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
+
+            $box.append($name).append($image).append($count).append($("<div>").addClass("clear"));
+            $parent.append($box);
         };
 
         setUpListeners = function () {
@@ -335,7 +402,7 @@
             $("#start_range").datepicker({
                 changeMonth: true,
                 numberOfMonths: 2,
-                onClose: function(selectedDate) {
+                onClose: function (selectedDate) {
                     $("#end_range").datepicker("option", "minDate", selectedDate);
                 }
             });
@@ -344,29 +411,29 @@
             $("#end_range").datepicker({
                 changeMonth: true,
                 numberOfMonths: 2,
-                onClose: function( selectedDate ) {
+                onClose: function (selectedDate) {
                     $("#start_range").datepicker("option", "maxDate", selectedDate);
                 }
             });
             $("#end_range").datepicker("setDate", new Date());
 
-            $("#start_range, #end_range").change(function() {
+            $("#start_range, #end_range").change(function () {
                 loadAnalytics();
             });
 
 
             // ajax loading indicator
-            $(".loading").ajaxStart(function() {
+            $(".loading").ajaxStart(function () {
                 $(this).show();
             });
 
-            $(".loading").ajaxStop(function() {
+            $(".loading").ajaxStop(function () {
                 $(this).hide();
             });
 
 
             // select analytics category ui
-            $(".section_overview_block").click(function() {
+            $(".section_overview_block").click(function () {
                 $(".data_category").hide();
                 $("div[data-cid='" + $(this).data("cid") + "']").show();
 
@@ -376,7 +443,7 @@
 
 
             // change campaign from the top menu
-            $("#campaign_list").change(function() {
+            $("#campaign_list").change(function () {
                 loadAnalytics({
                     'campaign_id': $(this).find("option:selected").attr("value")
                 });
@@ -468,24 +535,36 @@
                     </div>
 
                     <div class="data_metrics">
-                        {% regroup category.categoryhasmetric_set.all by metric as metric_list %}
-                        {% for metric in metric_list %}
-                            {% with metric.list|first as metric_meta %}
-                                <div class="data_metric">
-                                    <div class="metric_title" data-metric="{{ metric.grouper.slug }}">
-                                        {{ metric.grouper.name }}:
-                                        <span class="metric_title_all" data-metric="{{ metric.grouper.slug }}">0</span> total
-                                    </div>
+                        {% if category.name == "Engagement" %}
+                            <div class="data_metric">
+                                <div class="metric_title">Top Engaging Products</div>
+                                <div class="metric_content" id="top_engaging_products"></div>
+                            </div>
 
-                                    <div class="metric_graph" id="chart_{{ metric.grouper.slug }}"></div>
+                            <!-- <div class="data_metric">
+                                <div class="metric_title">Engagement per Source</div>
+                            </div>
 
-                                    <div class="daily_breakdown" data-metric="{{ metric.grouper.slug }}" style="display:none">
-                                        <div class="daily_title">Daily breakdown:</div>
-                                        <div class="metric_daily" id="table_{{ metric.grouper.slug }}"></div>
-                                    </div>
-                                </div>
-                            {% endwith %}
-                        {% endfor %}
+                            <div class="data_metric">
+                                <div class="metric_title">Interaction Types</div>
+                            </div> -->
+
+                        {% elif category.name == "Sharing" %}
+
+                            <div class="data_metric">
+                                <div class="metric_title">Top Shared Products</div>
+                                <div class="metric_content" id="top_shared_products"></div>
+                            </div>
+
+                            <div class="data_metric">
+                                <div class="metric_title">Share Destinations</div>
+                                <dl class="bar_graph" id="share_destinations"></dl>
+                            </div>
+
+                            <!-- <div class="data_metric">
+                                <div class="metric_title">Sources of Shares</div>
+                            </div> -->
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}
