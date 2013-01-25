@@ -373,7 +373,7 @@
                 percentage = Math.round(count/total * 100) + "%";
 
             $bar = $("<dd>").append(
-                $("<div>").addClass("bar").css("width", percentage).html(percentage)
+                $("<div>").addClass("bar").css("width", percentage).html(count + " (" + percentage + ")")
             );
 
             $parent.append($title).append($bar);
@@ -538,13 +538,13 @@
                                 <div class="metric_content" id="top_engaging_products"></div>
                             </div>
 
-                            <div class="data_metric">
+                            <!-- <div class="data_metric">
                                 <div class="metric_title">Engagement per Source</div>
                             </div>
 
                             <div class="data_metric">
                                 <div class="metric_title">Interaction Types</div>
-                            </div>
+                            </div> -->
 
                         {% elif category.name == "Sharing" %}
 
@@ -558,9 +558,9 @@
                                 <dl class="bar_graph" id="share_destinations"></dl>
                             </div>
 
-                            <div class="data_metric">
+                            <!-- <div class="data_metric">
                                 <div class="metric_title">Sources of Shares</div>
-                            </div>
+                            </div> -->
                         {% endif %}
                     </div>
                 </div>
