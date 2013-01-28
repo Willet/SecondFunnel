@@ -47,10 +47,6 @@
             width: 80px;
         }
 
-        .range_pair {
-            margin-left: 15px;
-        }
-
         .section_content {
             margin-left: 0;
         }
@@ -236,16 +232,6 @@
             };
         }());
 
-        getDateRange = function () {
-            var start_date = $("#start_range").datepicker("getDate"),
-                end_date = $("#end_range").datepicker("getDate");
-
-            return {
-                'start_date': $.datepicker.formatDate("yy/mm/dd", start_date),
-                'end_date': $.datepicker.formatDate("yy/mm/dd", end_date)
-            }
-        };
-
         map = function (func, iterable) {
             var results = [], res, key;
 
@@ -328,8 +314,9 @@
         }());
 
         loadAnalytics = function (o) {
-            var request = {},
-                date_range = getDateRange();
+            var request = {
+                "range": $(".range option:selected").val()
+            };
 
             $(".no_data").show();
 
@@ -355,9 +342,6 @@
             if (request.store_id) {
                 delete request.campaign_id;
             }
-
-            request.start_date = date_range.start_date;
-            request.end_date = date_range.end_date;
 
             $.ajax({
                 url: "{% url ajax-analytics-pinpoint %}",
@@ -506,30 +490,6 @@
         };
 
         setUpListeners = function () {
-            // date range ui and listeners
-            $("#start_range").datepicker({
-                changeMonth: true,
-                numberOfMonths: 2,
-                onClose: function (selectedDate) {
-                    $("#end_range").datepicker("option", "minDate", selectedDate);
-                }
-            });
-            $("#start_range").datepicker("setDate", "-2w");
-
-            $("#end_range").datepicker({
-                changeMonth: true,
-                numberOfMonths: 2,
-                onClose: function (selectedDate) {
-                    $("#start_range").datepicker("option", "maxDate", selectedDate);
-                }
-            });
-            $("#end_range").datepicker("setDate", new Date());
-
-            $("#start_range, #end_range").change(function () {
-                loadAnalytics();
-            });
-
-
             // ajax loading indicator
             $(".progressbar").progressbar({
                 value: false,
@@ -550,6 +510,10 @@
                 $(this).addClass("selected");
             });
 
+            // change date range
+            $(".range").change(function () {
+                loadAnalytics();
+            });
 
             // change campaign from the top menu
             $("#campaign_list").change(function () {
@@ -593,15 +557,13 @@
         </div>
 
         <div class="range_selector">
-            <span class="range_pair">
-                <label for="start_range">Start:</label>
-                <input type="text" id="start_range" name="start_range">
-            </span>
-
-            <span class="range_pair">
-                <label for="end_range">End:</label>
-                <input type="text" id="end_range" name="end_range">
-            </span>
+            <select name="range" class="range">
+                <option value="total" selected>Total</option>
+                <option value="month">Past month</option>
+                <option value="two_weeks">Past two weeks</option>
+                <option value="week">Past week</option>
+                <option value="day">Past day</option>
+            </select>
         </div>
     </div>
 
