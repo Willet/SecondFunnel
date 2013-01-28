@@ -296,7 +296,7 @@
             // construct lists of sorted (desc) (pid, count) pairs
             map(function (key, list) {
                 sortables[key] = map(function (pid, count) {
-                    if (pid !== "all") {
+                    if (pid !== "all" && pid !== "null") {
                         return [pid, count];
                     }
                 }, list);
@@ -314,28 +314,37 @@
                 var pid = pair[0],
                     count = pair[1];
 
-                $.ajax({
-                    url: apis.products.replace("%pid%", pid),
-                    dataType: "json",
-                    async: false,
-                    success: function (data) {
-                        cachedProducts[data.id] = data;
-                        cachedProducts[data.id].count = count;
-                    }
-                });
-
-                $.ajax({
-                    url: apis.products_media.replace("%pid%", pid),
-                    dataType: "json",
-                    async: false,
-                    success: function (data) {
-                        if (data.meta.total_count > 0) {
-                            cachedProducts[pid].media = data.objects[0];
+                if (!(pid in cachedProducts)) {
+                    $.ajax({
+                        url: apis.products.replace("%pid%", pid),
+                        dataType: "json",
+                        async: false,
+                        success: function (data) {
+                            cachedProducts[data.id] = data;
+                            cachedProducts[data.id].count = count;
                         }
-                    }
-                });
+                    });
+                }
+
+                if (!("media" in cachedProducts[pid])) {
+                    $.ajax({
+                        url: apis.products_media.replace("%pid%", pid),
+                        dataType: "json",
+                        async: false,
+                        success: function (data) {
+                            if (data.meta.total_count > 0) {
+                                cachedProducts[pid].media = data.objects[0];
+                            }
+                        }
+                    });
+                }
 
             }, sortables.engaged_products);
+
+            // clear out top lists
+            $("#top_engaging_products").html("");
+            $("#top_shared_products").html("");
+            $("#share_destinations").html("");
 
             // inject top engaged products
             map(function (i, pair) {
@@ -346,7 +355,7 @@
                     pair[1],
                     totals.interactions
                 );
-            }, sortables.engaged_products.slice(0, 3));
+            }, sortables.engaged_products.slice(0, 5));
 
             // inject top shared products
             map(function (i, pair) {
@@ -357,7 +366,7 @@
                     pair[1],
                     totals.shares
                 );
-            }, sortables.sharing_products.slice(0, 3));
+            }, sortables.sharing_products.slice(0, 5));
 
             // inject top share destinations
             map(function (i, pair) {
