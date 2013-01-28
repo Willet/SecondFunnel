@@ -426,7 +426,7 @@
                 $(".progressbar").progressbar("value", Math.round(current / total * 100));
             }, function () {
                 // hide progress bar and show data
-                $(".data_category").slideDown();
+                $(".section_metrics").slideDown();
                 $(".progressbar").slideUp();
 
                 // inject top engaged products
@@ -625,8 +625,9 @@
         <div class="grid_8 section_data">
             <div class="progressbar"><div class="progress-label">Loading...</div></div>
 
+            <div class="section_metrics" style="display: none;">
             {% for category in categories %}
-                <div class="data_category" data-cid="{{ category.id }}" style="display: none;">
+                <div class="data_category" data-cid="{{ category.id }}" {% if not forloop.first %}style="display: none;"{% endif %}>
                     <div class="data_title">
                         {{ category.name }}
                     </div>
@@ -665,6 +666,7 @@
                     </div>
                 </div>
             {% endfor %}
+            </div>
         </div>
     </div>
 {% endblock %}
