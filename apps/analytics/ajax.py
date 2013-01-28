@@ -49,14 +49,23 @@ def analytics_pinpoint(request):
     if (campaign_id and store_id) or not object_id:
         return ajax_error()
 
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
+    date_range = request.GET.get('range')
+    end_date = datetime.now()
 
-    if start_date:
-        start_date = datetime.strptime(start_date, "%Y/%m/%d")
+    if date_range == "total":
+        start_date = datetime(year=2012, month=1, day=1)
 
-    if end_date:
-        end_date = datetime.strptime(end_date, "%Y/%m/%d")
+    elif date_range == "month":
+        start_date = end_date - timedelta(weeks=4)
+
+    elif date_range == "two_weeks":
+        start_date = end_date - timedelta(weeks=2)
+
+    elif date_range == "week":
+        start_date = end_date - timedelta(weeks=1)
+
+    else:
+        start_date = end_date - timedelta(days=1)
 
     # try get a store associated with this request,
     # either directly or via campaign
