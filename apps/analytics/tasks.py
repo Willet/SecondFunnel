@@ -237,6 +237,12 @@ def update_pinpoint_analytics():
 
                     continue
 
+            # it's neither
+            except TypeError:
+                logger.error("Received invalid store id={0}".format(
+                    row_data['store_id']))
+                continue
+
             # uniqueEvents is the last item in the list
             try:
                 row_data['count'] = int(row[-1])
