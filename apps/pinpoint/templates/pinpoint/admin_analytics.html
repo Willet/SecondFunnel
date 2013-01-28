@@ -327,6 +327,8 @@
             var request = {},
                 date_range = getDateRange();
 
+            $(".no_data").show();
+
             // set request values based on what's passed it
             if (o !== undefined) {
                 request.campaign_id = o.campaign_id || settings.campaign_id;
@@ -473,6 +475,8 @@
             );
 
             $parent.append($title).append($bar);
+
+            $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
         };
 
         insertTopProduct = function ($parent, verb, pid, count, total) {
@@ -492,6 +496,8 @@
 
                 $box.append($name).append($image).append($count).append($("<div>").addClass("clear"));
                 $parent.append($box);
+
+                $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
             });
         };
 
@@ -637,6 +643,10 @@
                             <div class="data_metric">
                                 <div class="metric_title">Top Engaging Products</div>
                                 <div class="metric_content" id="top_engaging_products"></div>
+
+                                <div class="no_data" data-metric="top_engaging_products">
+                                    <p>No engaged products yet.</p>
+                                </div>
                             </div>
 
                             <!-- <div class="data_metric">
@@ -652,15 +662,27 @@
                             <div class="data_metric">
                                 <div class="metric_title">Top Shared Products</div>
                                 <div class="metric_content" id="top_shared_products"></div>
+
+                                <div class="no_data" data-metric="top_shared_products">
+                                    <p>No shared products yet.</p>
+                                </div>
                             </div>
 
                             <div class="data_metric">
                                 <div class="metric_title">Share Destinations</div>
                                 <dl class="bar_graph" id="share_destinations"></dl>
+
+                                <div class="no_data" data-metric="top_shared_products">
+                                    <p>No shared products yet.</p>
+                                </div>
                             </div>
 
                             <!-- <div class="data_metric">
                                 <div class="metric_title">Sources of Shares</div>
+
+                                <div class="no_data" data-metric="top_shared_products">
+                                    <p>No shared products yet.</p>
+                                </div>
                             </div> -->
                         {% endif %}
                     </div>
