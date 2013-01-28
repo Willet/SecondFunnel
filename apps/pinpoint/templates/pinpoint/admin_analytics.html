@@ -279,6 +279,10 @@
             getProducts = function (pids, step, callback) {
                 var result = [];
 
+                if (pids.length == 0) {
+                    callback(result);
+                }
+
                 map(function (i, pid) {
                     getProduct(pid, function (product) {
                         result.push(product);
