@@ -192,12 +192,49 @@
     var app = (function ($) {
         var api, init, settings, setUpListeners, getDateRange,
             injectAnalyticsData, insertTopProduct, insertToBarGraph,
-            loadAnalytics, map;
+            loadAnalytics, map, cache;
 
         settings = {
             "store_id": "{{ store.id }}",
             "campaign_id": "{{ campaign.id }}"
         };
+
+        cache = (function () {
+            var get, set, hasLocalStorage, localData = {};
+
+            hasLocalStorage = function () {
+                try {
+                    return 'localStorage' in window && window['localStorage'] !== null;
+                } catch (e) {
+                    return false;
+                }
+            };
+
+            get = function (key) {
+                if (hasLocalStorage()) {
+                    return JSON.parse(localStorage.getItem(key));
+                }
+
+                if (key in localData) {
+                    return localData[key];
+                }
+
+                return null;
+            };
+
+            set = function (key, value) {
+                if (hasLocalStorage()) {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } else {
+                    localData[key] = value;
+                }
+            };
+
+            return {
+                "get": get,
+                "set": set
+            };
+        }());
 
         getDateRange = function () {
             var start_date = $("#start_range").datepicker("getDate"),
@@ -227,7 +264,7 @@
             var uris = {
                 'products': "/api/assets/v1/product/%pid%/?store={{ store.id }}&format=json",
                 'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%pid%&format=json"
-            }, getProduct, getProducts, fetchProduct, hasLocalStorage, cache;
+            }, getProduct, getProducts, fetchProduct;
 
             getProduct = function (pid, callback) {
                 var product = cache.get(pid);
@@ -279,43 +316,6 @@
                     }
                 });
             };
-
-            cache = (function () {
-                var get, set, hasLocalStorage, localData = {};
-
-                hasLocalStorage = function () {
-                    try {
-                        return 'localStorage' in window && window['localStorage'] !== null;
-                    } catch (e) {
-                        return false;
-                    }
-                };
-
-                get = function (key) {
-                    if (hasLocalStorage()) {
-                        return JSON.parse(localStorage.getItem(key));
-                    }
-
-                    if (key in localData) {
-                        return localData[key];
-                    }
-
-                    return null;
-                };
-
-                set = function (key, value) {
-                    if (hasLocalStorage()) {
-                        localStorage.setItem(key, JSON.stringify(value));
-                    } else {
-                        localData[key] = value;
-                    }
-                };
-
-                return {
-                    "get": get,
-                    "set": set
-                };
-            }());
 
             return {
                 "getProduct": getProduct,
