@@ -158,6 +158,14 @@
             border-radius: 2px;
         }
 
+        .progress-label {
+            float: left;
+            margin-left: 50%;
+            margin-top: 5px;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #fff;
+        }
+
     </style>
 {% endblock %}
 
@@ -182,14 +190,51 @@
 
 {% block document_ready %}
     var app = (function ($) {
-        var init, settings, setUpListeners, getDateRange,
+        var api, init, settings, setUpListeners, getDateRange,
             injectAnalyticsData, insertTopProduct, insertToBarGraph,
-            loadAnalytics, cachedProducts = {};
+            loadAnalytics, map, cache;
 
         settings = {
             "store_id": "{{ store.id }}",
             "campaign_id": "{{ campaign.id }}"
         };
+
+        cache = (function () {
+            var get, set, hasLocalStorage, localData = {};
+
+            hasLocalStorage = function () {
+                try {
+                    return 'localStorage' in window && window['localStorage'] !== null;
+                } catch (e) {
+                    return false;
+                }
+            };
+
+            get = function (key) {
+                if (hasLocalStorage()) {
+                    return JSON.parse(localStorage.getItem(key));
+                }
+
+                if (key in localData) {
+                    return localData[key];
+                }
+
+                return null;
+            };
+
+            set = function (key, value) {
+                if (hasLocalStorage()) {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } else {
+                    localData[key] = value;
+                }
+            };
+
+            return {
+                "get": get,
+                "set": set
+            };
+        }());
 
         getDateRange = function () {
             var start_date = $("#start_range").datepicker("getDate"),
@@ -200,6 +245,83 @@
                 'end_date': $.datepicker.formatDate("yy/mm/dd", end_date)
             }
         };
+
+        map = function (func, iterable) {
+            var results = [], res, key;
+
+            for (key in iterable) {
+                res = func(key, iterable[key]);
+
+                if (res !== undefined) {
+                    results.push(res);
+                }
+            }
+
+            return results;
+        };
+
+        api = (function () {
+            var uris = {
+                'products': "/api/assets/v1/product/%pid%/?store={{ store.id }}&format=json",
+                'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%pid%&format=json"
+            }, getProduct, getProducts, fetchProduct;
+
+            getProduct = function (pid, callback) {
+                var product = cache.get(pid);
+
+                if (product === null) {
+                    fetchProduct(pid, callback);
+                } else {
+                    callback(product);
+                }
+            };
+
+            getProducts = function (pids, step, callback) {
+                var result = [];
+
+                map(function (i, pid) {
+                    getProduct(pid, function (product) {
+                        result.push(product);
+
+                        step(result.length, pids.length);
+
+                        if (result.length == pids.length) {
+                            callback(result);
+                        }
+                    });
+                }, pids);
+            };
+
+            fetchProduct = function (pid, callback) {
+                $.ajax({
+                    url: uris.products.replace("%pid%", pid),
+                    dataType: "json",
+                    success: function (data) {
+                        cache.set(data.id, data);
+
+                        $.ajax({
+                            url: uris.products_media.replace("%pid%", pid),
+                            dataType: "json",
+                            success: function (data) {
+                                var prod = cache.get(pid);
+
+                                if (data.meta.total_count > 0) {
+                                    prod.media = data.objects[0];
+                                    cache.set(pid, prod);
+                                }
+
+                                callback(prod);
+                            }
+                        });
+                    }
+                });
+            };
+
+            return {
+                "getProduct": getProduct,
+                "getProducts": getProducts
+            };
+        }());
 
         loadAnalytics = function (o) {
             var request = {},
@@ -247,10 +369,6 @@
                     'sharing_products': [],
                     'sharing_source': []
                 },
-                apis = {
-                    'products': "/api/assets/v1/product/%pid%/?store={{ store.id }}&format=json",
-                    'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%pid%&format=json"
-                },
 
                 totals = {
                     'interactions': data.engagement['product-interactions'].totals.date.all,
@@ -261,20 +379,6 @@
                     'engaged_products': data.engagement['inpage-openpopup'].totals.product_id,
                     'sharing_products': data.sharing['share-clicked'].totals.product_id,
                     'sharing_source': data.sharing['share-clicked'].totals.meta
-                },
-
-                map = function (func, iterable) {
-                    var results = [], res, key;
-
-                    for (key in iterable) {
-                        res = func(key, iterable[key]);
-
-                        if (res !== undefined) {
-                            results.push(res);
-                        }
-                    }
-
-                    return results;
                 },
 
                 cat_slug, metric_slug;
@@ -309,74 +413,54 @@
 
             }, top_lists);
 
-            // fetch meta data for products
-            map(function (i, pair) {
-                var pid = pair[0],
-                    count = pair[1];
-
-                if (!(pid in cachedProducts)) {
-                    $.ajax({
-                        url: apis.products.replace("%pid%", pid),
-                        dataType: "json",
-                        async: false,
-                        success: function (data) {
-                            cachedProducts[data.id] = data;
-                            cachedProducts[data.id].count = count;
-                        }
-                    });
-                }
-
-                if (!("media" in cachedProducts[pid])) {
-                    $.ajax({
-                        url: apis.products_media.replace("%pid%", pid),
-                        dataType: "json",
-                        async: false,
-                        success: function (data) {
-                            if (data.meta.total_count > 0) {
-                                cachedProducts[pid].media = data.objects[0];
-                            }
-                        }
-                    });
-                }
-
-            }, sortables.engaged_products);
-
             // clear out top lists
             $("#top_engaging_products").html("");
             $("#top_shared_products").html("");
             $("#share_destinations").html("");
 
-            // inject top engaged products
-            map(function (i, pair) {
-                insertTopProduct(
-                    $("#top_engaging_products"),
-                    "Interactions",
-                    pair[0],
-                    pair[1],
-                    totals.interactions
-                );
-            }, sortables.engaged_products.slice(0, 5));
+            var pids = map(function(i, pair) {
+                return pair[0];
+            }, sortables.engaged_products);
 
-            // inject top shared products
-            map(function (i, pair) {
-                insertTopProduct(
-                    $("#top_shared_products"),
-                    "Shares",
-                    pair[0],
-                    pair[1],
-                    totals.shares
-                );
-            }, sortables.sharing_products.slice(0, 5));
+            api.getProducts(pids, function (current, total) {
+                $(".progressbar").progressbar("value", Math.round(current / total * 100));
+            }, function () {
+                // hide progress bar and show data
+                $(".data_category").slideDown();
+                $(".progressbar").slideUp();
 
-            // inject top share destinations
-            map(function (i, pair) {
-                insertToBarGraph(
-                    $("#share_destinations"),
-                    pair[0],
-                    pair[1],
-                    totals.shares
-                );
-            }, sortables.sharing_source);
+                // inject top engaged products
+                map(function (i, pair) {
+                    insertTopProduct(
+                        $("#top_engaging_products"),
+                        "Interactions",
+                        pair[0],
+                        pair[1],
+                        totals.interactions
+                    );
+                }, sortables.engaged_products.slice(0, 5));
+
+                // inject top shared products
+                map(function (i, pair) {
+                    insertTopProduct(
+                        $("#top_shared_products"),
+                        "Shares",
+                        pair[0],
+                        pair[1],
+                        totals.shares
+                    );
+                }, sortables.sharing_products.slice(0, 5));
+
+                // inject top share destinations
+                map(function (i, pair) {
+                    insertToBarGraph(
+                        $("#share_destinations"),
+                        pair[0],
+                        pair[1],
+                        totals.shares
+                    );
+                }, sortables.sharing_source);
+            });
         };
 
         insertToBarGraph = function ($parent, title, count, total) {
@@ -392,18 +476,23 @@
         };
 
         insertTopProduct = function ($parent, verb, pid, count, total) {
-            var $box = $("<div>").addClass("top_product"),
-                $name = $("<div>").addClass("name").html(cachedProducts[pid].name),
-                $count,
+            var product,
+                $box = $("<div>").addClass("top_product"),
+                $count;
+
+            api.getProduct(pid, function(product) {
+                $name = $("<div>").addClass("name").html(product.name);
+
                 $image = $("<div>").addClass("image").append(
                     $("<img>").attr("src",
-                        cachedProducts[pid].media.hosted || cachedProducts[pid].media.remote
-                    ));
+                    product.media.hosted || product.media.remote
+                ));
 
-            $count = $("<div>").addClass("count").html(verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
+                $count = $("<div>").addClass("count").html(verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
 
-            $box.append($name).append($image).append($count).append($("<div>").addClass("clear"));
-            $parent.append($box);
+                $box.append($name).append($image).append($count).append($("<div>").addClass("clear"));
+                $parent.append($box);
+            });
         };
 
         setUpListeners = function () {
@@ -432,14 +521,15 @@
 
 
             // ajax loading indicator
-            $(".loading").ajaxStart(function () {
-                $(this).show();
+            $(".progressbar").progressbar({
+                value: false,
+                change: function() {
+                    $(".progress-label").text( $(".progressbar").progressbar( "value" ) + "%" );
+                },
+                complete: function() {
+                    $(".progress-label").text( "Complete!" );
+                }
             });
-
-            $(".loading").ajaxStop(function () {
-                $(this).hide();
-            });
-
 
             // select analytics category ui
             $(".section_overview_block").click(function () {
@@ -502,10 +592,6 @@
                 <label for="end_range">End:</label>
                 <input type="text" id="end_range" name="end_range">
             </span>
-
-            <span class="loading" style="display:none;">
-                Loading...
-            </span>
         </div>
     </div>
 
@@ -537,8 +623,10 @@
         </div>
 
         <div class="grid_8 section_data">
+            <div class="progressbar"><div class="progress-label">Loading...</div></div>
+
             {% for category in categories %}
-                <div class="data_category" data-cid="{{ category.id }}" {% if not forloop.first %}style="display: none"{% endif %}>
+                <div class="data_category" data-cid="{{ category.id }}" style="display: none;">
                     <div class="data_title">
                         {{ category.name }}
                     </div>
