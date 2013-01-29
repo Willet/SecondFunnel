@@ -371,7 +371,22 @@
                     'sharing_source': data.sharing['share-clicked'].totals.meta
                 },
 
-                cat_slug, metric_slug;
+                cat_slug, metric_slug,
+
+                total_visitors = data["awareness"]["awareness-visitors"].totals.date.all,
+                total_pageviews = data["awareness"]["awareness-pageviews"].totals.date.all,
+
+                total_interactions = data["engagement"]["total-interactions"].totals.date.all,
+                total_shares = data["sharing"]["total-shares"].totals.date.all,
+
+                roundNumber = function (number, digits) {
+                    var multiple = Math.pow(10, digits);
+                    var rndedNum = Math.round(number * multiple) / multiple;
+                    if (rndedNum === Infinity || isNaN(rndedNum)) {
+                        return 0;
+                    }
+                    return rndedNum;
+                };
 
             // insert totals for metrics into the sidebar
             for (cat_slug in data) {
@@ -388,10 +403,20 @@
             }
 
             // TODO temp for awareness
-            $("#total_visitors").html("<strong>Visitors:</strong> " + data["awareness"]["awareness-visitors"].totals.date.all);
-            $("#total_pageviews").html("<strong>Pageviews:</strong> " + data["awareness"]["awareness-pageviews"].totals.date.all);
+            $("#total_visitors").html("<strong>Visitors:</strong> " + total_visitors);
+            $("#total_pageviews").html("<strong>Pageviews:</strong> " + total_pageviews);
             $("div[class='no_data'][data-metric='total_visitors']").hide();
             $("div[class='no_data'][data-metric='total_pageviews']").hide();
+
+            // These metrics aren't calculated by the backend atm, hence the ugly implementation
+            $(".per-visitor").remove();
+
+            $(".section_overview_block:first .section_overview_metrics ul").append(
+                "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + roundNumber(total_interactions/total_visitors, 2) + "</span> Interactions per visit</li>");
+
+
+            $(".section_overview_block:nth-child(2) .section_overview_metrics ul").append(
+                "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + roundNumber(total_shares/total_visitors, 2) + "</span> Shares per visit</li>");
 
             // construct lists of sorted (desc) (pid, count) pairs
             map(function (key, list) {
