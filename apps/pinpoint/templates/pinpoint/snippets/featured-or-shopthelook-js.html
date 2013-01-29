@@ -175,7 +175,7 @@ var application = (function(store_id, urls){
 
     updateCharacterCount = function() {
         var $textarea   = $('#id_description'),
-            length      = $textarea.val().length,
+            length      = $("<div>" + $textarea.val() + "</div>").text().length, // text-only length
             $characters = $('#characters'),
             $count      = $('#character_count'),
             $buttons    = $('.button:not(#cancel_to_admin, .back, .qq-upload-button)'),
@@ -399,7 +399,16 @@ var application = (function(store_id, urls){
     };
 
     ready = function() {
-        $('#id_description').on('keydown keyup', updateCharacterCount);
+        var descriptionObj = $('#id_description');
+        descriptionObj.htmlarea({
+            toolbar: [
+                ["html"],
+                ["bold", "italic", "underline"],
+                ["link", "unlink"]
+            ],
+
+        });
+        descriptionObj.on('keydown keyup change', updateCharacterCount);
         $('#product_name').autocomplete(getAutoCompleteConfig());
         $('.button.preview').on('click', onPreview);
         $('#cancel_to_admin').unbind('click').on('click', onCancel);
