@@ -387,6 +387,12 @@
                 }
             }
 
+            // TODO temp for awareness
+            $("#total_visitors").html("<strong>Visitors:</strong> " + data["awareness"]["awareness-visitors"].totals.date.all);
+            $("#total_pageviews").html("<strong>Pageviews:</strong> " + data["awareness"]["awareness-pageviews"].totals.date.all);
+            $("div[class='no_data'][data-metric='total_visitors']").hide();
+            $("div[class='no_data'][data-metric='total_pageviews']").hide();
+
             // construct lists of sorted (desc) (pid, count) pairs
             map(function (key, list) {
                 sortables[key] = map(function (pid, count) {
@@ -580,11 +586,13 @@
                         {% regroup category.categoryhasmetric_set.all by metric as metric_list %}
                         {% for metric in metric_list %}
                             {% with metric.list|first as metric_meta %}
-                                {% if metric_meta.display %}
-                                <li>
-                                    <span class="metric_overview" data-metric="{{ metric.grouper.slug }}"></span>
-                                    {{ metric.grouper.name }}
-                                </li>
+                                {% if metric.grouper.enabled %}
+                                    {% if metric_meta.display %}
+                                    <li>
+                                        <span class="metric_overview" data-metric="{{ metric.grouper.slug }}"></span>
+                                        {{ metric.grouper.name }}
+                                    </li>
+                                    {% endif %}
                                 {% endif %}
                             {% endwith %}
                         {% endfor %}
@@ -650,6 +658,24 @@
                                     <p>No shared products yet.</p>
                                 </div>
                             </div> -->
+                        {% elif category.name == "Awareness" %}
+                            <div class="data_metric">
+                                <div class="metric_title">Total Visitors</div>
+                                <div class="metric_content" id="total_visitors"></div>
+
+                                <div class="no_data" data-metric="total_visitors">
+                                    <p>No visitors yet.</p>
+                                </div>
+                            </div>
+
+                            <div class="data_metric">
+                                <div class="metric_title">Total Pageviews</div>
+                                <div class="metric_content" id="total_pageviews"></div>
+
+                                <div class="no_data" data-metric="total_pageviews">
+                                    <p>No visitors yet.</p>
+                                </div>
+                            </div>
                         {% endif %}
                     </div>
                 </div>
