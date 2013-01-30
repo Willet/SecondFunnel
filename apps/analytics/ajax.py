@@ -1,6 +1,7 @@
 import json
 import random
 
+from collections import defaultdict
 from datetime import timedelta, datetime
 
 from django.contrib.auth.decorators import login_required
@@ -19,6 +20,26 @@ def daterange(start_date, end_date):
 
 @login_required
 def analytics_pinpoint(request):
+    def aggregate_by(bucket, key):
+        bucket['totals'][key] = defaultdict(int)
+
+        for datum in bucket['data']:
+            bucket['totals'][key][datum[key]] += datum['value']
+
+        if key == 'date':
+            # zero-out out missing dates
+            if start_date and end_date:
+                for date in daterange(start_date, end_date + timedelta(days=1)):
+                    if not date.date().isoformat() in bucket['totals'][key]:
+                        bucket['totals'][key][date.date().isoformat()] = 0
+
+        if bucket['totals'][key]:
+            bucket['totals'][key]['all'] = sum(bucket['totals'][key].values())
+        else:
+            bucket['totals'][key]['all'] = 0
+
+        return bucket
+
     # one of these is required:
     campaign_id = request.GET.get('campaign_id', False)
     store_id = request.GET.get('store_id', False)
@@ -28,14 +49,23 @@ def analytics_pinpoint(request):
     if (campaign_id and store_id) or not object_id:
         return ajax_error()
 
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
+    date_range = request.GET.get('range')
+    end_date = datetime.now()
 
-    if start_date:
-        start_date = datetime.strptime(start_date, "%Y/%m/%d")
+    if date_range == "total":
+        start_date = datetime(year=2012, month=1, day=1)
 
-    if end_date:
-        end_date = datetime.strptime(end_date, "%Y/%m/%d")
+    elif date_range == "month":
+        start_date = end_date - timedelta(weeks=4)
+
+    elif date_range == "two_weeks":
+        start_date = end_date - timedelta(weeks=2)
+
+    elif date_range == "week":
+        start_date = end_date - timedelta(weeks=1)
+
+    else:
+        start_date = end_date - timedelta(days=1)
 
     # try get a store associated with this request,
     # either directly or via campaign
@@ -93,7 +123,7 @@ def analytics_pinpoint(request):
                 'name': metric.name,
                 'order': category_has_metric.order,
                 'display': category_has_metric.display,
-                'totals': {},
+                'totals': {'date': {}, 'product_id': {}, 'meta': {}},
 
                 # this exposes daily data for each product
                 # it's a list comprehension
@@ -108,21 +138,9 @@ def analytics_pinpoint(request):
 
             # this aggregates and exposes daily data across all products
             bucket = results[category.slug][metric.slug]
-            for datum in bucket['data']:
-                if datum['date'] in bucket['totals']:
-                    bucket['totals'][datum['date']] += datum['value']
-                else:
-                    bucket['totals'][datum['date']] = datum['value']
 
-            # zero-out out missing dates
-            if start_date and end_date:
-                for date in daterange(start_date, end_date + timedelta(1)):
-                    if not date.date().isoformat() in bucket['totals']:
-                        bucket['totals'][date.date().isoformat()] = 0
-
-            if bucket['totals']:
-                bucket['totals']['all'] = sum(bucket['totals'].values())
-            else:
-                bucket['totals']['all'] = 0
+            bucket = aggregate_by(bucket, 'date')
+            bucket = aggregate_by(bucket, 'product_id')
+            bucket = aggregate_by(bucket, 'meta')
 
     return ajax_success(results)

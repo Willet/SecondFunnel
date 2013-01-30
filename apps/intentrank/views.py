@@ -6,6 +6,7 @@ import math
 from django.http import HttpResponse
 from django.template import Context, Template
 import httplib2
+from mock import Mock, MagicMock
 from apps.assets.models import Product, Store
 from django.conf import settings
 
@@ -53,20 +54,28 @@ def video_probability_function(x, m):
     else:
         return 1 - (math.log(m - x) / math.log(m))
 
-def random_products(store, param_dict):
+def random_products(store, param_dict, id_only=True):
+    """Returns a list of random product ids, as would be returned by IR.
+
+    Only used in development; not in production"""
     store_id = Store.objects.get(slug__exact=store)
     num_results = param_dict.get('results', DEFAULT_RESULTS)
     results = Product.objects.filter(store_id__exact=store_id).order_by('?')
+
+    if id_only:
+        results = results.values('id')
+        results = map(lambda x: x.get('id'), results)
+
     if len(results) < num_results:
         results = list(results)
-        results.extend(list(random_products(store, {
-            'results': (int(num_results) - len(results))
-        })))
+        new_params = {'results': (int(num_results) - len(results))}
+        results.extend(list(random_products(store, new_params, id_only)))
         return results
     else:
         return results[:num_results]
 
-def send_intentrank_request(request, url, method='GET', headers=None):
+def send_intentrank_request(request, url, method='GET', headers=None,
+                            http=httplib2.Http):
     if not headers:
         headers = {}
 
@@ -74,7 +83,7 @@ def send_intentrank_request(request, url, method='GET', headers=None):
     if cookie:
         headers['Cookie'] = cookie
 
-    h = httplib2.Http()
+    h = http()
     response, content = h.request(
         url,
         method=method,
@@ -86,8 +95,10 @@ def send_intentrank_request(request, url, method='GET', headers=None):
 
     return response, content
 
+# TODO: Is there a Guice for Python to inject dependency in live, dev?
 def process_intentrank_request(request, store, page, function_name,
                                param_dict):
+    """does NOT initiate a real IntentRank request if debug is set to True."""
 
     url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
         INTENTRANK_BASE_URL, store, page, function_name)
@@ -95,10 +106,23 @@ def process_intentrank_request(request, store, page, function_name,
     url = '{0}?{1}'.format(url, params)
 
     if settings.DEBUG:
-        return random_products(store, param_dict), SUCCESS
+        # Use a mock instead of avoiding the call
+        # Mock is onlt used in development, not in production
+        product_results = random_products(store, param_dict, id_only=True)
+        json_results = json.dumps({'products': product_results})
+
+        http_mock = Mock()
+        http_response = MagicMock(status=SUCCESS)
+        http_response.__getitem__.return_value = None
+        http_content = json_results
+        http_mock.request.return_value = (http_response, http_content)
+
+        http = Mock(return_value=http_mock)
+    else:
+        http = httplib2.Http
 
     try:
-        response, content = send_intentrank_request(request, url)
+        response, content = send_intentrank_request(request, url, http=http)
     except httplib2.HttpLib2Error:
         content = "{}"
 
@@ -115,37 +139,26 @@ def process_intentrank_request(request, store, page, function_name,
                                       rescrape=False)
     return products, response.status
 
-# TODO: We shouldn't be doing this on the backend
-# Might make more sense to just use JS templates on the front end for
-# consistency
-def products_to_template(products, campaign, results):
-    # Get theme
-    theme    = campaign.store.theme
-    discovery_theme = "".join([
-        "{% load pinpoint_ui %}",
-        "<div class='block product' {{product.data|safe}}>",
-        theme.discovery_product,
-        "</div>"
-    ])
 
+def get_json_data(request, products, campaign_id):
+    """returns json equivalent of get_blocks' blocks.
+
+    results will be an object {}, not an array [].
+    """
+    campaign = Campaign.objects.get(pk=campaign_id)
+    results = {'products': [],
+               'videos': []}
+
+    # products
     for product in products:
-        context = Context()
-        context.update({
-            'product': product
-        })
-        results.append(Template(discovery_theme).render(context))
+        product_props = product.data(raw=True)
+        product_js_obj = {}
+        for prop in product_props:
+            # where product_prop is ('data-key', 'value')
+            product_js_obj[prop] = product_props[prop]
+        results['products'].append(product_js_obj)
 
-
-def videos_to_template(request, campaign, results):
-    theme = campaign.store.theme
-    discovery_youtube_theme = "".join([
-        "{% load pinpoint_ui %}",
-        "{% load pinpoint_youtube %}",
-        "<div class='block youtube wide'>",
-        theme.discovery_youtube,
-        "</div>"
-    ])
-
+    # videos
     video_cookie = request.session.get('pinpoint-video-cookie')
     if not video_cookie:
         video_cookie = request.session['pinpoint-video-cookie'] = VideoCookie()
@@ -157,29 +170,19 @@ def videos_to_template(request, campaign, results):
     show_video = random.random() <= video_probability_function(video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
     if videos.exists() and (video_cookie.is_empty() or show_video):
         video = videos.order_by('?')[0]
-        context = Context()
-        context.update({
-            'video': video
+        results['videos'].append({
+            'video_id': video.video_id,
+            'video_provider': 'youtube',
+            'video_width': '200',
+            'video_height': '200',
+            'video_autoplay': False
         })
-        if len(results) == 0:
-            position = 0
-        else:
-            position = random.randrange(len(results))
-        results.insert(position, Template(discovery_youtube_theme).render(context))
         video_cookie.add_video(video.video_id)
-        video_cookie.add_blocks(len(results) - position)
     else:
         video_cookie.add_blocks(len(results))
 
     request.session['pinpoint-video-cookie'] = video_cookie
 
-
-# combines inserting products and youtube videos
-def get_blocks(request, products, campaign_id):
-    campaign = Campaign.objects.get(pk=campaign_id)
-    results = []
-    products_to_template(products, campaign, results)
-    videos_to_template(request, campaign, results)
     return results
 
 
@@ -199,7 +202,7 @@ def get_seeds(request):
     )
 
     if status in SUCCESS_STATUSES:
-        result = get_blocks(request, results, page)
+        result = get_json_data(request, results, page)
     else:
         result = results
 
@@ -218,24 +221,35 @@ def get_results(request):
     )
 
     if status in SUCCESS_STATUSES:
-        result = get_blocks(request, results, page)
+        result = get_json_data(request, results, page)
+
+    # workaround for a weird bug on intentrank's side
+    elif status == 400:
+        return get_seeds(request)
+
     else:
         result = results
 
     return HttpResponse(json.dumps(result), mimetype='application/json',
-                        status=status)
+                         status=status)
+
 
 def update_clickstream(request):
+    """displays nothing on success."""
     store   = request.GET.get('store', '-1')
     page    = request.GET.get('campaign', '-1')
     product_id = request.GET.get('product_id')
 
     results, status = process_intentrank_request(request, store, page, 'updateclickstream', {
-        'product_id': product_id
+        'productid': product_id
     })
 
-    # Return JSON results
-    return HttpResponse(json.dumps(results), mimetype='application/json', status=status)
+    if status in SUCCESS_STATUSES:
+        # We don't care what we get back
+        result = []
+    else:
+        result = results
+
 
 def invalidate_session(request):
     #intentrank/invalidate-session

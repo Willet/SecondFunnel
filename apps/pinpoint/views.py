@@ -1,3 +1,4 @@
+from django.contrib import messages
 import re
 
 from django.contrib.auth.decorators import login_required
@@ -87,6 +88,16 @@ def edit_campaign(request, store_id, campaign_id):
     return getattr(wizards, block_type.handler)(
         request, store, block_type, campaign=campaign_instance)
 
+@login_required
+def delete_campaign(request, store_id, campaign_id):
+    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
+    campaign_instance.live = False
+    campaign_instance.save()
+
+    messages.success(request, "Your page was deleted.")
+
+    return redirect('store-admin', store_id=store_id)
+
 
 @login_required
 def block_type_router(request, store_id, block_type_id):
@@ -171,10 +182,12 @@ def campaign(request, campaign_id):
                                   context_instance=context)
 
 def campaign_to_theme_to_response(campaign, arguments, context=None):
+    """Generates the HTML page for a standard pinpoint product page."""
     if context is None:
         context = Context()
     context.update(arguments)
 
+    # retrieve theme for the store from the DB
     theme = campaign.store.theme
 
     # Determine featured content type
@@ -206,6 +219,14 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         featured_context.update({
             'product': product,
         })
+    else:
+        product = {
+            'title': "Unknown Product",
+            'url': 'http://secondfunnel.com',
+            'featured_image': '',
+            'description': 'Unknown Product'
+        }
+
 
     # Pre-render templates; bottom up
     # Discovery block
@@ -251,7 +272,9 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     # Header content
     header_context = Context(featured_context)
     header_context.update({
-        'campaign': campaign
+        'campaign': campaign,
+        'product': product,
+        'store': campaign.store
     })
 
     header_content = render_to_string('pinpoint/campaign_head.html',

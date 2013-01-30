@@ -2,6 +2,7 @@
 {% load compress %}
 
 {% compress js %}
+    <script src="{% static "js/underscore.js" %}"></script>
     <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
     <script src="{% static "js/jquery.viewport.js" %}"></script>
     <script src="{% static "js/jquery.masonry.min.js" %}"></script>
@@ -18,7 +19,14 @@
                     'id': '{{ campaign.id }}'
                 },
                 'featured': {
-                    'id': '{{ product.id }}'
+                    'id': '{{ product.id }}',
+                    'lifestyle_image': "{{ product.lifestyle_image|escapejs }}",
+                    'featured_image': "{{ product.featured_image|escapejs }}",
+                    'description': "{{ product.description|escapejs }}",
+                    'name': "{{ product.name|escapejs }}",
+                    'title': "{{ product.name|escapejs }}",
+                    'price': "{{ product.price|escapejs }}",
+                    'url': "{{ product.url|escapejs }}"
                 }
             };
         })();
@@ -30,6 +38,21 @@
     <script type="text/javascript">
         var _gaq = _gaq || [];
         _gaq.push(['_setAccount', '{{ ga_account_number }}']);
+
+        _gaq.push(['_setCustomVar',
+            1,                          // slot id
+            'StoreID',                  // name
+            '{{ campaign.store.id }}',  // value
+            3                           // scope: page-level
+        ]);
+
+        _gaq.push(['_setCustomVar',
+            2,
+            'CampaignID',
+            '{{ campaign.id }}',
+            3
+        ]);
+
         _gaq.push(['_trackPageview']);
 
         (function() {

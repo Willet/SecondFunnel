@@ -6,6 +6,8 @@ Analytics protector bunny:
  (()())
 
 """
+import pickle, sys
+
 from datetime import date, datetime
 
 from functools import partial
@@ -17,12 +19,13 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
 from apps.analytics.storage_backends import GoogleAnalyticsBackend
-from apps.analytics.models import AnalyticsRecency, Category, Metric, KVStore
+from apps.analytics.models import (AnalyticsRecency, Category, Metric, KVStore,
+    SharedStorage)
 from apps.assets.models import Store, Product
 from apps.pinpoint.models import Campaign
 
 
-# Helper methods used by the tasks below
+# Helper functions used by the tasks below
 def get_by_key(string, key):
     """
     Gets a variable stored within a Google Analytics Core API column by its key
@@ -39,6 +42,99 @@ def get_by_key(string, key):
 
     except ValueError:
         return None
+
+
+def get_ga_generator(query):
+    """
+    Constructs our own generator over pages of Google Analytics Core API results
+    """
+    ga = GoogleAnalyticsBackend()
+
+    return ga.results_iterator(
+        # start date
+        date(2013, 1, 1),
+
+        # end date
+        datetime.now().date(),
+
+        # what metrics to get
+        query['metrics'],
+
+        # which data columns to get
+        dimensions=query['dimensions'],
+
+        # what to sort by
+        sort=query['sort']
+    )
+
+
+def row_getter(query, row):
+    """
+    Get a data column from provided row
+    """
+
+    def get(key):
+        """
+        Column is looked up by an index from dimensions settings
+        """
+        try:
+            return row[query['dimensions'].index(key)]
+        except ValueError:
+            return row[query['metrics'].index(key) + len(query['dimensions'])]
+
+    return get
+
+
+def get_data_pair(store_type, campaign_type, store_id, campaign_id):
+    return KVStore(
+        content_type=store_type,
+        object_id=store_id
+    ), KVStore(
+        content_type=campaign_type,
+        object_id=campaign_id
+    )
+
+
+def get_message_by_id(message_id):
+    try:
+        message = SharedStorage.objects.get(id=message_id)
+
+    except SharedStorage.DoesNotExist:
+        logger.error("Missing message with id={0}. Aborting.".format(
+            message_id))
+        return None, None
+
+    try:
+        # str() prevents KeyError on unpickling
+        data = pickle.loads(str(message.data))
+
+    # could potentially throw a whole lot of different exceptions
+    except:
+        logger.error("Could not process message with id={0}: {1}".format(
+            message_id, sys.exc_info()[0]))
+        return None, None
+
+    return data, message
+
+
+def update_recency(object_type, object_id):
+    recency, recency_created = AnalyticsRecency.objects.get_or_create(
+        content_type=object_type,
+        object_id=object_id
+    )
+
+    if not recency_created:
+        recency.save()
+
+
+def preprocess_row(row, logger):
+    try:
+        row['date'] = datetime.strptime(row['date'], "%Y%m%d")
+
+    except (IndexError, ValueError):
+        logger.warning("Date is unrecognized: %s", row['date'])
+
+    return row
 
 
 class Categories:
@@ -73,39 +169,6 @@ class Categories:
         return self.inner_list[category_slug]
 
 
-def get_oldest_analytics_date():
-    """Figure out earliest date for which we're missing analytics data"""
-
-    oldest_analytics_data = datetime.now().date()
-
-    # iterate through our stores and find the most out of sync
-    stores = Store.objects.all()
-
-    for store in stores:
-        store_type = ContentType.objects.get_for_model(Store)
-
-        try:
-            kv_store = KVStore.objects.get(
-                content_type=store_type, object_id=store.id)
-
-        except KVStore.DoesNotExist:
-            # no pinpoint analytics data was fetched for this store
-            # get everything, use the prior-to-launch date so that
-            # we're sure everything is in scope
-
-            oldest_analytics_data = date(2012, 9, 1)
-
-            # we're done checking for dates at this point
-            break
-
-        else:
-            # have recency data, see if it's older than oldest recency
-            if kv_store.timestamp < oldest_analytics_data:
-                oldest_analytics_data = kv_store.timestamp.date()
-
-    return oldest_analytics_data
-
-
 @task()
 def redo_analytics():
     """Erases cached analytics and recency data, starts update process"""
@@ -119,84 +182,97 @@ def redo_analytics():
 
     logger.info("Removed old analytics data")
 
-    return subtask(update_pinpoint_analytics).delay()
+    subtask(fetch_awareness_data).delay()
+    subtask(fetch_event_data).delay()
 
 
 @task()
-def update_pinpoint_analytics():
+def fetch_awareness_data():
+    logger = fetch_awareness_data.get_logger()
+    logger.info("Updating awareness analytics data")
+
+    query = {
+        'metrics': ['visitBounceRate', 'visitors', 'pageviews'],
+        'dimensions': ['date', 'customVarValue1', 'customVarValue2'],
+        'sort': ['date']
+    }
+
+    fetched_rows = []
+    raw_results = get_ga_generator(query)
+
+    for data_page in raw_results:
+        rows = data_page.get('rows')
+
+        if not rows:
+            logger.info("No rows available.")
+            continue
+
+        for row in rows:
+            getter = row_getter(query, row)
+
+            row_data = {
+                'date': getter('date'),
+                'store_id': getter('customVarValue1'),
+                'campaign_id': getter('customVarValue2'),
+                'visitors': getter('visitors'),
+                'pageviews': getter('pageviews'),
+                'bounce_rate': getter('visitBounceRate'),
+            }
+
+            all_present = all(
+                # get a list of booleans for each row value
+                [row_data[key] is not None for key in row_data]
+            )
+
+            if not all_present:
+                logger.warning(
+                    "GA row data is missing attributes: {0}".format(row_data))
+                continue
+
+            fetched_rows.append(row_data)
+
+    # message could be larger than 64kb. As a quick way of circumventing the limitation,
+    # use "shared memory" approach to message passing
+    message = SharedStorage(data=pickle.dumps(fetched_rows))
+    message.save()
+
+    # pass ID of the message to the processing task
+    return subtask(process_awareness_data, (message.id,)).delay()
+
+
+@task()
+def fetch_event_data():
     """
     Figures out what analytics data we need,
     fetches that and initiates calculations
     """
 
-    # Helper methods
-    def row_getter(row):
-        """
-        Get a data column from provided row
-        """
+    logger = fetch_event_data.get_logger()
+    logger.info("Updating event analytics data")
 
-        def get(key):
-            """
-            Column is looked up by an index from dimensions settings
-            """
-
-            return row[ga_query_settings['dimensions'].index(key)]
-        return get
-
-    logger = update_pinpoint_analytics.get_logger()
-    logger.info("Updating analytics data")
-
-    # define what we're requesting from Google Analytics
-    ga_query_settings = {
+    query = {
         'metrics': ['uniqueEvents'],
         'dimensions': ['eventCategory', 'eventAction', 'eventLabel', 'date'],
         'sort': ['date']
     }
 
-    # initialize GA backend
-    ga = GoogleAnalyticsBackend()
-
-    # by default, request as much data as we can
-    start_from_date = date(2012, 9, 1)
-
-    logger.info("We need to fetch analytics data from GA starting from %s",
-        start_from_date)
-
-    raw_results = ga.results_iterator(
-        # start date
-        start_from_date,
-
-        # end date
-        datetime.now().date(),
-
-        # what metric to get
-        ga_query_settings['metrics'],
-
-        # which data columns to get
-        dimensions=ga_query_settings['dimensions'],
-
-        # what to sort by
-        sort=ga_query_settings['sort'],
-    )
+    raw_results = get_ga_generator(query)
 
     analytics_categories = {
-        'awareness': [],
         'engagement': [],
         'sharing': []
     }
 
     # iterate through potentially multi-page results from Google Analytics
     for data_page in raw_results:
-        logger.info("Processing results page %s", data_page)
+        rows = data_page.get('rows')
 
-        if not data_page.get('rows'):
+        if not rows:
             logger.info("No rows available.")
             continue
 
-        rows = data_page.get('rows')
-
         for row in rows:
-            getter = row_getter(row)
+            getter = row_getter(query, row)
 
             category = getter('eventCategory')
             action = getter('eventAction')
@@ -217,14 +293,37 @@ def update_pinpoint_analytics():
                 'network':          get_by_key(action, "network"),
             }
 
+            # store_id could be a record ID or a slug :/
+            try:
+                int(row_data['store_id'])
+
+            # it's a slug!
+            except ValueError:
+
+                try:
+                    row_data['store_id'] = Store.objects.get(
+                        slug=row_data['store_id']).id
+
+                except Store.DoesNotExist:
+                    logger.error("Store with id={0} does not exist. Skipping.".format(
+                        row_data['store_id']))
+
+                    continue
+
+            # it's neither
+            except TypeError:
+                logger.error("Received invalid store id={0}".format(
+                    row_data['store_id']))
+                continue
+
             # uniqueEvents is the last item in the list
             try:
                 row_data['count'] = int(row[-1])
 
             except ValueError:
                 logger.warning(
-                    "GA row data isn't what we're expecting: count=%s",
-                    row[row.length - 1])
+                    "GA row data isn't what we're expecting: count={0}".format(
+                        row[row.length - 1]))
                 continue
 
             # check that all variables in row_data are present
@@ -235,8 +334,8 @@ def update_pinpoint_analytics():
 
             if not all_present:
                 logger.warning(
-                    "GA row data is missing attributes, category=%s, action=%s",
-                    category, action)
+                    "GA row data is missing attributes, category={0}, action={1}".format(
+                    category, action))
                 continue
 
             if row_data['action_type'] == 'inpage':
@@ -245,28 +344,97 @@ def update_pinpoint_analytics():
             elif row_data['action_type'] == 'share':
                 analytics_categories['sharing'].append(row_data)
 
-    return subtask(save_category_data, (analytics_categories,)).delay()
+    # message could be larger than 64kb. As a quick way of circumventing the limitation,
+    # use "shared memory" approach to message passing
+    message = SharedStorage(data=pickle.dumps(analytics_categories))
+    message.save()
+
+    # pass ID of the message to the processing task
+    return subtask(process_event_data, (message.id,)).delay()
 
 
 @task()
-def save_category_data(data):
-    """Processes individual data row, saves key/value
+def process_awareness_data(message_id):
+    """Processes fetched awareness data, row by row"""
+    def save_data_pair(store_type, campaign_type, category, row, column):
+        data1, data2 = get_data_pair(store_type, campaign_type, row['store_id'], row['campaign_id'])
+        data1.key = data2.key = "{0}-{1}".format("awareness", column)
+        data1.value = data2.value = row[column]
+        data1.timestamp = data2.timestamp = row['date']
+
+        data1.save()
+        data2.save()
+
+        try:
+            category['metric'](data1.key).data.add(data1, data2)
+
+        except Metric.DoesNotExist:
+            data1.delete()
+            data2.delete()
+            logger.error(
+                "Error saving metrics: {0}, {1}. Metric {2} is not in db".format(
+                data1, data2, data1.key
+            ))
+
+
+    logger = process_awareness_data.get_logger()
+
+    store_type = ContentType.objects.get_for_model(Store)
+    campaign_type = ContentType.objects.get_for_model(Campaign)
+
+    data, message = get_message_by_id(message_id)
+    if not data:
+        return
+
+    # we can safely delete the passed message at this point
+    message.delete()
+
+    updated_stores = []
+    updated_campaigns = []
+
+    categories = Categories()
+    saver = partial(save_data_pair, store_type, campaign_type, categories.get("awareness"))
+
+    columns_to_save = ["visitors", "pageviews", "bounce_rate"]
+
+    for row in data:
+        row = preprocess_row(row, logger)
+
+        map(lambda column: saver(row, column), columns_to_save)
+
+        if row['store_id'] not in updated_stores:
+            updated_stores.append(row['store_id'])
+
+        if row['campaign_id'] not in updated_campaigns:
+            updated_campaigns.append(row['campaign_id'])
+
+    # Update analytics recency data for all affected stores and campaigns
+    recency_updater = partial(update_recency, store_type)
+    map(lambda object_id: recency_updater(object_id), updated_stores)
+
+    recency_updater = partial(update_recency, campaign_type)
+    map(lambda object_id: recency_updater(object_id), updated_campaigns)
+
+    return subtask(aggregate_saved_metrics).delay()
+
+
+@task()
+def process_event_data(message_id):
+    """Processes fetched event data, row by row, saves key/value
     analytics pairs for associated store and campaign"""
 
-    logger = save_category_data.get_logger()
+    logger = process_event_data.get_logger()
 
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
     product_type = ContentType.objects.get_for_model(Product)
 
-    def get_data_pair(store_id, campaign_id):
-        return KVStore(
-            content_type=store_type,
-            object_id=store_id
-        ), KVStore(
-            content_type=campaign_type,
-            object_id=campaign_id
-        )
+    data, message = get_message_by_id(message_id)
+    if not data:
+        return
+
+    # we can safely delete the passed message at this point
+    message.delete()
 
     updated_stores = []
     updated_campaigns = []
@@ -293,7 +461,8 @@ def save_category_data(data):
 
             category = categories.get(category_slug)
 
-            data1, data2 = get_data_pair(row['store_id'], row['campaign_id'])
+            data1, data2 = get_data_pair(
+                store_type, campaign_type, row['store_id'], row['campaign_id'])
             data1.key = data2.key = "{0}-{1}".format(
                 row['action_type'], row['action_subtype'])
 
@@ -351,37 +520,22 @@ def save_category_data(data):
     # share
 
     # Update analytics recency data for all affected stores and campaigns
-    for updated_store_id in updated_stores:
-        store_recency, recency_created = AnalyticsRecency.objects.get_or_create(
-            content_type=store_type,
-            object_id=updated_store_id
-        )
+    recency_updater = partial(update_recency, store_type)
+    map(lambda object_id: recency_updater(object_id), updated_stores)
 
-        if not recency_created:
-            store_recency.save()
+    recency_updater = partial(update_recency, campaign_type)
+    map(lambda object_id: recency_updater(object_id), updated_campaigns)
 
-    for updated_campaign_id in updated_campaigns:
-        # unpacks into (instance, created)
-        campaign_recency, recency_created = AnalyticsRecency.objects.get_or_create(
-            content_type=campaign_type,
-            object_id=updated_campaign_id
-        )
-
-        # if not created
-        if not recency_created:
-            campaign_recency.save()
-
-    return subtask(process_saved_metrics).delay()
+    return subtask(aggregate_saved_metrics).delay()
 
 
 @task()
-def process_saved_metrics():
+def aggregate_saved_metrics():
     """Calculates "meta" metrics, which are combined out of "raw" saved data"""
-    logger = process_saved_metrics.get_logger()
+    logger = aggregate_saved_metrics.get_logger()
 
     # remove all the existing meta metric data
     KVStore.objects.filter(meta="meta_metric").delete()
-
 
     # data types for checking event targets
     target_types = {
@@ -420,7 +574,13 @@ def process_saved_metrics():
                         timestamp=datum.timestamp,
                         meta="meta_metric"
                     )
-                    kv.value += datum.value
+
+                    # allows for custom aggregation: average, etc
+                    if 'aggregator' in metric_obj:
+                        kv.value = metric_obj['aggregator'](datum.value)
+                    else:
+                        kv.value += datum.value
+
                     kv.save()
 
                 # need to create the meta-kv
@@ -448,6 +608,17 @@ def process_saved_metrics():
     # to further narrow down the  category data
 
     # process_category function then does daily sums of said data
+
+    def averager():
+        values = []
+
+        def avg(value):
+            values.append(value)
+            return sum(values) / float(len(values))
+
+        return avg
+
+    avg = averager()
 
     to_process = [
         # Engagement
@@ -489,17 +660,33 @@ def process_saved_metrics():
         },
 
         # Awareness
-        # TODO
+        {
+            'q_filter': Q(key__startswith="awareness-"),
+            'metrics': [
+                # total visitors
+                {
+                    'slug': 'awareness-visitors',
+                    'key': 'awareness-visitors',
+                    'q_filter': Q(key='awareness-visitors')
+                },
+
+                # total pageviews
+                {
+                    'slug': 'awareness-pageviews',
+                    'key': 'awareness-pageviews',
+                    'q_filter': Q(key='awareness-pageviews')
+                },
+
+                # average bounce rate
+                {
+                    'slug': 'awareness-bounce_rate',
+                    'key': 'awareness-bounce_rate',
+                    'q_filter': Q(key='awareness-bounce_rate'),
+                    'aggregator': avg
+                }
+            ]
+        }
     ]
 
     for category in to_process:
         process_category(category)
-
-def preprocess_row(row, logger):
-    try:
-        row['date'] = datetime.strptime(row['date'], "%Y%m%d")
-
-    except (IndexError, ValueError):
-        logger.warning("Date is unrecognized: %s", row['date'])
-
-    return row

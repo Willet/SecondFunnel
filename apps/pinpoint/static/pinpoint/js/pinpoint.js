@@ -8,6 +8,7 @@ var PINPOINT = (function($, pageInfo){
         createTwitterButton,
         createPinterestButton,
         details,
+        domTemplateCache = {},
         featuredAreaSetup,
         getShortestColumn,
         hidePreview,
@@ -22,6 +23,8 @@ var PINPOINT = (function($, pageInfo){
         productHoverOn,
         productHoverOff,
         ready,
+        renderTemplate,
+        renderTemplates,
         scripts,
         showPreview,
         updateClickStream,
@@ -57,6 +60,8 @@ var PINPOINT = (function($, pageInfo){
 
     /* --- START element bindings --- */
     showPreview = function() {
+        // display overlay with more information about the selected product
+        // data is retrieved from .block.product divs
         var data     = $(this).data(),
             images,
             $element,
@@ -67,7 +72,7 @@ var PINPOINT = (function($, pageInfo){
 
         // Fill in data
         $.each(data, function(key, value) {
-            $element = $preview.find('.'+key)
+            $element = $preview.find('.'+key);
 
             if (!$element.length) {
                 // No further work to do
@@ -140,11 +145,11 @@ var PINPOINT = (function($, pageInfo){
 
     addPreviewCallback = function(f) {
         previewCallbacks.push(f);
-    }
+    };
 
     addOnBlocksAppendedCallback = function(f) {
         blocksAppendedCallbacks.push(f);
-    }
+    };
 
     hidePreview = function() {
         var $mask    = $('.preview .mask'),
@@ -204,6 +209,58 @@ var PINPOINT = (function($, pageInfo){
         });
     };
 
+    renderTemplate = function (str, data) {
+        // MOD of
+        // http://emptysquare.net/blog/adding-an-include-tag-to-underscore-js-templates/
+        // match "<% include template-id %>" with caching
+        return _.template(
+            str.replace(
+                /<%\s*include\s*(.*?)\s*%>/g,
+                function(match, templateId) {
+                    if (domTemplateCache[templateId]) {
+                        // cached
+                        return domTemplateCache[templateId];
+                    } else {
+                        var el = document.getElementById(templateId);
+                        if (el && el.innerHTML) {
+                            // cache
+                            domTemplateCache[templateId] = el.innerHTML;
+                        }
+                        return el ? el.innerHTML : '';
+                    }
+                }
+            ),
+            data
+        );
+    };
+
+    renderTemplates = function (data) {
+        // finds templates currently on the page, and drops them onto their
+        // targets (elements with classes 'template' and 'target').
+        // Targets need a data-src attribute to indicate the template that
+        // should be used.
+        // data can be passed in, or left as default on the target element
+        // as data attributes.
+        $('.template.target').each(function () {
+            var mergedData = data || {},
+                target = $(this),
+                src = target.data('src') || '',
+                srcElement = $('#' + src);
+
+            $.extend(true, mergedData, {
+                'product': details.featured
+            }, target.data() || {});
+
+            // if the required template is on the page, use it
+            if (srcElement.length) {
+                target.html(renderTemplate(srcElement.html(), mergedData));
+            } else {
+                target.html('Error: required template #' + src +
+                            ' does not exist');
+            }
+        });
+    };
+
     loadInitialResults = function () {
         if (!loadingBlocks) {
             loadingBlocks = true;
@@ -233,7 +290,12 @@ var PINPOINT = (function($, pageInfo){
                 data: {
                     'store': details.store.id,
                     'campaign': details.campaign.id,
-                    'results': 10 //TODO: Probably should be some calculated value
+
+                    //TODO: Probably should be some calculated value
+                    'results': 10,
+
+                    // normally ignored, unless IR call fails and we'll resort to getseeds
+                    'seeds': details.featured.id
                 },
                 dataType: 'json',
                 success: function(results) {
@@ -253,31 +315,56 @@ var PINPOINT = (function($, pageInfo){
         });
     };
 
-    layoutResults = function (results, belowFold) {
-        var $col,
+    layoutResults = function (jsonData, belowFold) {
+        // renders product divs onto the page.
+        // suppose results is (now) a legit json object:
+        // {products: [], videos: [(sizeof 1)]}
+        var $block,
+            $col,
+            i = 0,
+            productDoms = [],
             result,
+            results = jsonData.products || [],
             initialResults = results.length,
-            $block;
+            discoveryProductTemplate = $('#discovery_product_template').html(),
+            youtubeVideoTemplate = $('#youtube_video_template').html(),
+            videos = jsonData.videos || [];
 
         // concatenate all the results together so they're in the same jquery object
-        var blocks = "";
-        for (var i = 0; i < results.length; i++) {
-            blocks += results[i];
+        for (i = 0; i < results.length; i++) {
+            try {
+                var el = $(renderTemplate(discoveryProductTemplate, results[i]));
+                el.data(results[i]);  // populate the .product.block div with data
+                productDoms.push(el[0]);
+            } catch (err) {
+                // hide rendering error
+                console && console.log && console.log('oops @ product');
+            }
         }
 
-        $block = $(blocks);
+        // add video iframes
+        for (i = 0; i < videos.length; i++) {
+            try {
+                productDoms.push($(renderTemplate(youtubeVideoTemplate, videos[i]))[0]);
+            } catch (err) {
+                // hide rendering error
+                console && console.log && console.log('oops @ video');
+            }
+        }
 
-        // hide them so they can't be seen when masonry is placing them
-        $block.css({opacity: 0});
+        $block = $(productDoms);  // an array of DOM elements
 
         // if it has a lifestyle image, add a wide class to it so it's styled properly
         $block.each(function() {
-            if ($(this).find('.lifestyle').length > 0) {
-                $(this).addClass('wide');
-            }
-        })
+            var $elem = $(this);
+            // hide them so they can't be seen when masonry is placing them
+            $elem.css({opacity: 0});
 
-        $('.discovery-area').append($block);
+            if ($elem.find('.lifestyle').length > 0) {
+                $elem.addClass('wide');
+            }
+            $('.discovery-area').append($elem[0]);
+        });
 
         // make sure images are loaded or else masonry wont work properly
         $block.imagesLoaded(function($images, $proper, $broken) {
@@ -289,7 +376,9 @@ var PINPOINT = (function($, pageInfo){
 
             // Don't continue to load results if we aren't getting more results
             if (initialResults > 0) {
-                setTimeout(function() {pageScroll();}, 100);
+                setTimeout(function() {
+                    pageScroll();
+                }, 100);
             }
 
             $block.find('.pinpoint-youtube-area').click(function() {
@@ -308,7 +397,7 @@ var PINPOINT = (function($, pageInfo){
 
     pageScroll = function () {
         var $w            = $(window),
-            noResults     = ($('.discovery-area .block').length == 0),
+            noResults     = ($('.discovery-area .block').length === 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             lowestBlock,
             lowestHeight;
@@ -342,7 +431,7 @@ var PINPOINT = (function($, pageInfo){
             'url'  : url,
             'title': title,
             'count': true
-        })
+        });
 
         $featuredArea.find('.button.twitter').empty().append(twitterButton);
         $featuredArea.find('.button.facebook').empty().append(fbButton);
@@ -356,11 +445,15 @@ var PINPOINT = (function($, pageInfo){
 
     ready = function() {
         // Special Setup
+        renderTemplates();
         featuredAreaSetup();
 
         // Event Handling
+        // when someone clicks on a product, show the product details overlay
         $('.discovery-area').on('click', '.block.product', showPreview);
+        // and update the clickstream
         $('.discovery-area').on('click', '.block.product', updateClickStream);
+
         $('.discovery-area').on('mouseenter', '.block.product', productHoverOn);
         $('.discovery-area').on('mouseleave', '.block.product', productHoverOff);
 
@@ -464,7 +557,7 @@ var PINPOINT = (function($, pageInfo){
         }
 
         return $twitterHtml;
-    }
+    };
 
     createPinterestButton = function (config) {
         var conf = config || {};
