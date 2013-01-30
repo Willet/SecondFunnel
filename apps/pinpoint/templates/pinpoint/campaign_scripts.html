@@ -20,18 +20,18 @@
                 },
                 'featured': {
                     'id': '{{ product.id }}',
-                    'lifestyle_image': '{{ product.lifestyle_image }}',
-                    'featured_image': '{{ product.featured_image }}',
-                    'description': '{{ product.description }}',
-                    'name': '{{ product.name }}',
-                    'title': '{{ product.name }}',
-                    'price': '{{ product.price }}',
+                    'lifestyle_image': "{{ product.lifestyle_image|escapejs }}",
+                    'featured_image': "{{ product.featured_image|escapejs }}",
+                    'description': "{{ product.description|escapejs }}",
+                    'name': '{{ product.name|escapejs }}',
+                    'title': '{{ product.name|escapejs }}',
+                    'price': '{{ product.price|escapejs }}',
                     'images': [
                         {% for image in product.images %}
                             "{{ image|escapejs }}"{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     ],
-                    'url': '{{ product.url }}'
+                    'url': '{{ product.url|escapejs }}'
                 }
             };
         })();
