@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{% static "css/fileuploader.css" %}">
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
     <link rel="stylesheet" href="{% static "css/jquery.loadmask.css" %}">
+    <link rel="stylesheet" href="{% static "css/jquery.htmlarea.css" %}">
     <style type="text/css">
         .product_select {
 
@@ -221,13 +222,14 @@
     <script src="{% static "js/jquery.ajax_forms.validation.min.js" %}"></script>
     <script src="{% static "js/jquery.watermark.min.js" %}"></script>
     <script src="{% static "js/jquery.loadmask.min.js" %}"></script>
+    <script src="{% static "js/jquery.htmlarea.0.7.5.min.js" %}"></script>
     <script src="{% static "js/fileuploader.js" %}"></script>
     <script>
         // Because the django-ajax-forms library is stupid and causes an
         // error in ie9, this workaround is needed.
         if (window.console && !console.debug) {
             console.debug = function(){};
-        };
+        }
 
         window.store = '{{ store.id }}';
 
@@ -236,7 +238,7 @@
             'new-campaign-admin': '{% url new-campaign-admin store.id %}',
             'loading-gif'       : '{% static "loading.gif" %}',
             'ajax-image-upload' : '{% url ajax-upload-image %}'
-        }
+        };
 
         $('#create_campaign').validation({% render_ajax_fields form %}, {
             layout: 'p',
