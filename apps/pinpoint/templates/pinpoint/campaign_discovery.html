@@ -2,6 +2,7 @@
 <div class='discovery-area'>
 </div>
 <!-- JS TEMPLATES -->
+{% block discovery_block %}
 <script type="text/template" id="discovery_product_template">
     <div class='block product' data-botox="false">
         <% if (product.lifestyle_image) { %>
@@ -20,6 +21,7 @@
         </div>
     </div>
 </script>
+{% endblock discovery_block %}
 <script type="text/template" id="social_buttons">
     <% var image = product.featured_image || product.image || undefined %>
     <div class='social-buttons'>
