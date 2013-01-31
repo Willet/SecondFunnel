@@ -19,38 +19,39 @@
         </div>
     </div>
 </script>
-<script type="text/template" id="social_buttons_template">
+<script type="text/template" id="social_buttons">
+    <% var image = product.featured_image || product.image || undefined %>
     <div class='social-buttons'>
-        <% if (!product_featured) { %>
+        <% if (!product.featured_image) { %>
         <div class="loading-container">
             <% } %>
-            <div class='button facebook<% if (!product_featured { %> no-count <% } %>'>
-                <fb:like href="<%= product_url %>"
+            <div class='button facebook<% if (!product.featured_image) { %> no-count <% } %>'>
+                <fb:like href="<%= product.url %>"
                          width="48"
                          layout="button_count"
                          show_faces="false"></fb:like>
             </div>
             <div class='button twitter'>
-                <% if (product_featured) { %>
-                <a href="https://twitter.com/share?url=<%= url %>"
+                <% if (product.featured_image) { %>
+                <a href="https://twitter.com/share?url=<%= product.url %>"
                    class="twitter-share-button"
                    data-lang="en">
                     Tweet
                 </a>
                 <% } else { %>
-                <a href="https://twitter.com/share?url=<%= url %>"
+                <a href="https://twitter.com/share?url=<%= product.url %>"
                    target="_blank">
                     <img src="/pinpoint/images/twitterButton.png"/>
                 </a>
                 <% } %>
             </div>
             <div class='button pinterest'>
-                <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>"
+                <a href="http://pinterest.com/pin/create/button/?url=<%= product.url %>&media=<%= image %>"
                    target="_blank">
                     <img src="/pinpoint/images/pinpointButton.png" />
                 </a>
             </div>
-            <% if (!product_featured) { %>
+            <% if (!product.featured_image) { %>
         </div>
         <% } %>
     </div>
