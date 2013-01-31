@@ -163,7 +163,11 @@ class Product(BaseModelNamed):
             data = {}
             for field in fields:
                 # strip 'data-'
-                data[field[5:]] = fields[field]
+                field_name = field[5:]
+                if field_name == 'images':
+                    data[field_name] = fields[field].split('|')
+                else:
+                    data[field_name] = fields[field]
         else:
             data = ''
             for field in fields:
