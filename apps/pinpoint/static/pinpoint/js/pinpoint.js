@@ -96,8 +96,7 @@ var PINPOINT = (function($, pageInfo){
                     break;
                 case 'images':
                     $element.empty();
-                    images = value.split('|');
-                    $.each(images, function(index, image) {
+                    $.each(value, function(index, image) {
                         var $li = $('<li/>'),
                             $img = $('<img/>', {
                                 'src': image
