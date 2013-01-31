@@ -1,3 +1,4 @@
+{% load static %}
 <div class='discovery-area'>
 </div>
 <!-- JS TEMPLATES -->
@@ -41,16 +42,15 @@
                 <% } else { %>
                 <a href="https://twitter.com/share?url=<%= product.url %>"
                    target="_blank">
-                    Tweet
-                    <!--img src="/pinpoint/images/twitterButton.png"/-->
+                    <img src="{% static "pinpoint/images/twitterButton.png" %}"/>
                 </a>
                 <% } %>
             </div>
             <div class='button pinterest'>
                 <a href="http://pinterest.com/pin/create/button/?url=<%= product.url %>&media=<%= image %>"
                    target="_blank">
-                    Pin
-                    <!-- img src="/pinpoint/images/pinpointButton.png" /-->
+                    <img src="
+                    {% static "pinpoint/images/pinpointButton.png" %}"/>
                 </a>
             </div>
             <% if (!product.featured_image) { %>
