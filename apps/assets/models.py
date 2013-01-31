@@ -159,6 +159,9 @@ class Product(BaseModelNamed):
             'data-product-id': self.id,
         }
 
+        if self.lifestyleImage:
+            fields['data-lifestyle_image'] = strip_and_escape(self.lifestyleImage.get_url())
+
         if raw:
             data = {}
             for field in fields:
