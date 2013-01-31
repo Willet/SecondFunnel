@@ -3,19 +3,19 @@
 <!-- JS TEMPLATES -->
 <script type="text/template" id="discovery_product_template">
     <div class='block product' data-botox="false">
-        <% if (typeof lifestyle !== "undefined") { %>
+        <% if (product.lifestyle_image) { %>
         <div class='lifestyle'>
-            <img class='lifestyle' src='<%= image %>' />
+            <img class='lifestyle' src='<%= product.lifestyle_image %>' />
         </div>
         <% } %>
         <div class='product'>
             <div class='img-container'>
-                <img src='<%= image %>'/>
+                <img src='<%= product.image %>'/>
                 <div class='social'>
                     <% include social_buttons %>
                 </div>
             </div>
-            <div class='title'><b><%= title %></b></div>
+            <div class='title'><b><%= product.title %></b></div>
         </div>
     </div>
 </script>
@@ -41,14 +41,16 @@
                 <% } else { %>
                 <a href="https://twitter.com/share?url=<%= product.url %>"
                    target="_blank">
-                    <img src="/pinpoint/images/twitterButton.png"/>
+                    Tweet
+                    <!--img src="/pinpoint/images/twitterButton.png"/-->
                 </a>
                 <% } %>
             </div>
             <div class='button pinterest'>
                 <a href="http://pinterest.com/pin/create/button/?url=<%= product.url %>&media=<%= image %>"
                    target="_blank">
-                    <img src="/pinpoint/images/pinpointButton.png" />
+                    Pin
+                    <!-- img src="/pinpoint/images/pinpointButton.png" /-->
                 </a>
             </div>
             <% if (!product.featured_image) { %>

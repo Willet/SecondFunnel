@@ -332,7 +332,7 @@ var PINPOINT = (function($, pageInfo){
         // concatenate all the results together so they're in the same jquery object
         for (i = 0; i < results.length; i++) {
             try {
-                var el = $(renderTemplate(discoveryProductTemplate, results[i]));
+                var el = $(renderTemplate(discoveryProductTemplate, {'product': results[i]}));
                 el.data(results[i]);  // populate the .product.block div with data
                 productDoms.push(el[0]);
             } catch (err) {
