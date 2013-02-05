@@ -290,7 +290,7 @@ var PINPOINT = (function($, pageInfo){
                     'campaign': details.campaign.id,
 
                     //TODO: Probably should be some calculated value
-                    'results': 20,
+                    'results': 12,
 
                     // normally ignored, unless IR call fails and we'll resort to getseeds
                     'seeds': details.featured.id
