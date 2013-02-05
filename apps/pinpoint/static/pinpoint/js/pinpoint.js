@@ -290,7 +290,7 @@ var PINPOINT = (function($, pageInfo){
                     'campaign': details.campaign.id,
 
                     //TODO: Probably should be some calculated value
-                    'results': 10,
+                    'results': 20,
 
                     // normally ignored, unless IR call fails and we'll resort to getseeds
                     'seeds': details.featured.id
@@ -331,6 +331,8 @@ var PINPOINT = (function($, pageInfo){
         // concatenate all the results together so they're in the same jquery object
         for (i = 0; i < results.length; i++) {
             try {
+                // make loading (ever-so-)slightly faster
+                (new Image).src = results[i].image;
                 var el = $(renderTemplate(discoveryProductTemplate, {'product': results[i]}));
                 el.data(results[i]);  // populate the .product.block div with data
                 productDoms.push(el[0]);
@@ -354,43 +356,37 @@ var PINPOINT = (function($, pageInfo){
 
         // if it has a lifestyle image, add a wide class to it so it's styled properly
         $block.each(function() {
+            // preprocessing
             var $elem = $(this);
-            // hide them so they can't be seen when masonry is placing them
-            $elem.css({opacity: 0});
-
             if ($elem.find('.lifestyle').length > 0) {
                 $elem.addClass('wide');
             }
-            $('.discovery-area').append($elem[0]);
-        });
 
-        // make sure images are loaded or else masonry wont work properly
-        $block.imagesLoaded(function($images, $proper, $broken) {
-            $broken.parents('.block.product').remove();
-            $block.find('.block.product img[src=""]').parents('.block.product').remove();
+            $('.discovery-area').append($elem[0]);  // put the block inside our waterfall
+            $('div>img, .youtube', $elem).load(function () {
+                // have masonry reorganise the blocks whenever one is added
+                $('.discovery-area').masonry('appended', $elem, true);
 
-            $('.discovery-area').masonry('appended', $block, true);
-            $block.css({opacity: 1});
+                $block.find('.pinpoint-youtube-area').click(function() {
+                    $(this).html($(this).data('embed'));
+                });
 
-            // Don't continue to load results if we aren't getting more results
-            if (initialResults > 0) {
-                setTimeout(function() {
-                    pageScroll();
-                }, 100);
-            }
-
-            $block.find('.pinpoint-youtube-area').click(function() {
-                $(this).html($(this).data('embed'));
-            });
-
-            for (var i in blocksAppendedCallbacks) {
-                if (blocksAppendedCallbacks.hasOwnProperty(i)) {
-                    blocksAppendedCallbacks[i]($block);
+                for (var i in blocksAppendedCallbacks) {
+                    if (blocksAppendedCallbacks.hasOwnProperty(i)) {
+                        blocksAppendedCallbacks[i]($elem);
+                    }
                 }
-            }
-
-            loadingBlocks = false;
+            });
         });
+
+        // Don't continue to load results if we aren't getting more results
+        if (initialResults > 0) {
+            setTimeout(function() {
+                pageScroll();
+            }, 100);
+        }
+
+        loadingBlocks = false;
     };
 
     pageScroll = function () {
