@@ -212,6 +212,12 @@
         .product_meta ul.errorlist {
             display: inline;
         }
+
+        /* "it is not a terrible inconvenience" */
+        div.jHtmlArea .ToolBar ul { border: solid 1px #ccc; margin: 1px; padding: 1px; float: left; background: #fff url('{% static "images/jHtmlArea_Toolbar_Group_BG.png" %}') repeat-x;}
+        div.jHtmlArea .ToolBar ul li { list-style-type: none; float: left; border: none; padding: 1px; margin: 1px; }
+        div.jHtmlArea .ToolBar ul li:hover { border: solid 1px #ccc; background: #ddd url('{% static "images/jHtmlArea_Toolbar_Group__Btn_Select_BG.png" %}'); padding: 0; }
+        div.jHtmlArea .ToolBar ul li a { display: block; width: 16px; height: 16px; background: url('{% static "images/jHtmlArea.png" %}') no-repeat -16px -500px; border: none; cursor: pointer; padding: 0px; }
     </style>
 {% endblock %}
 
