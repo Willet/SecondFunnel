@@ -4,7 +4,7 @@ from secondfunnel.errors import EnvironmentSettingsError
 if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
     raise EnvironmentSettingsError()
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 COMPRESS_ENABLED = True
