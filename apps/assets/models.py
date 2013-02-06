@@ -122,7 +122,7 @@ class Product(BaseModelNamed):
     lifestyleImage = models.ForeignKey(GenericImage, blank=True, null=True,
                                        related_name='associated_product')
 
-    default_image = models.ForeignKey(GenericImage, blank=True, null=True,
+    default_image = models.ForeignKey("ProductMedia", blank=True, null=True,
                                       related_name='primary_product')
 
     available = models.BooleanField(default=True)

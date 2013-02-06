@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'Product.default_image'
         db.add_column('assets_product', 'default_image',
-                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='primary_product', null=True, to=orm['assets.GenericImage']),
+                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='primary_product', null=True, to=orm['assets.ProductMedia']),
                       keep_default=False)
 
 
@@ -47,7 +47,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Product'},
             'available': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            'default_image': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'primary_product'", 'null': 'True', 'to': "orm['assets.GenericImage']"}),
+            'default_image': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'primary_product'", 'null': 'True', 'to': "orm['assets.ProductMedia']"}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
