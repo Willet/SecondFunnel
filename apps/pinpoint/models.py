@@ -190,16 +190,35 @@ class FeaturedProductBlock(BaseModelNamed):
 
         return self.custom_image or self.existing_image or None
 
+    def save(self, *args, **kwargs):
+        """Overridden save method to do multi-field validation."""
+        self.clean()
+        super(self.__class__, self).save(self, *args, **kwargs)
+
+    def clean(self):
+        """Multi-field validation goes here.
+
+        docs.djangoproject.com/en/1.4/ref/models/instances/#validating-objects
+        """
+        if not (self.existing_image or self.custom_image):
+            # TODO: "collect all the errors and return them all at once"
+            #       (and display on the form, if model is being modified
+            #        on a form)
+            raise ValidationError('Block needs at least one product image.')
+
 
 class ShopTheLookBlock(BaseModelNamed):
     """Data model for Featured Content block, to be used with BlockContent"""
 
     product = models.ForeignKey(Product)
 
-    existing_image = models.ForeignKey(
-        ProductMedia, blank=True, null=True)
-    custom_image   = models.OneToOneField(
-        GenericImage, blank=True, null=True)
+    # existing_image is populated if the campaign was created using
+    # an image already in the database
+    existing_image = models.ForeignKey(ProductMedia, blank=True, null=True)
+
+    # custom_image is populated if the campaign was created using
+    # an image already in the database
+    custom_image   = models.OneToOneField(GenericImage, blank=True, null=True)
 
     existing_ls_image = models.ForeignKey(
         ProductMedia, blank=True, null=True, related_name='ls_image_set')
@@ -218,3 +237,21 @@ class ShopTheLookBlock(BaseModelNamed):
         """Get a lifestyle image associated with this block"""
 
         return self.custom_ls_image or self.existing_ls_image or None
+
+    def save(self, *args, **kwargs):
+        """Overridden save method to do multi-field validation."""
+        self.clean()
+        super(self.__class__, self).save(self, *args, **kwargs)
+
+    def clean(self):
+        """Multi-field validation goes here.
+
+        docs.djangoproject.com/en/1.4/ref/models/instances/#validating-objects
+        """
+        if not (self.existing_image or self.custom_image):
+            # TODO: "collect all the errors and return them all at once"
+            #       (and display on the form, if model is being modified
+            #        on a form)
+            raise ValidationError('Block needs at least one product image.')
+        if not (self.existing_ls_image or self.custom_ls_image):
+            raise ValidationError('Block needs at least one STL image.')
