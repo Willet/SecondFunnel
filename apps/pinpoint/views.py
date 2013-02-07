@@ -257,9 +257,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         "{% extends 'pinpoint/campaign_discovery.html' %}",
         "{% load pinpoint_ui %}",
         "{% block discovery_block %}",
-        "<div class='block product' {{product.data|safe}}>",
         discovery_block,
-        "</div>",
         "{% endblock discovery_block %}"
     ])
 
