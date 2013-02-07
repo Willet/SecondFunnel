@@ -201,6 +201,9 @@ class FeaturedProductBlock(BaseModelNamed):
         docs.djangoproject.com/en/1.4/ref/models/instances/#validating-objects
         """
         if not (self.existing_image or self.custom_image):
+            # TODO: "collect all the errors and return them all at once"
+            #       (and display on the form, if model is being modified
+            #        on a form)
             raise ValidationError('Block needs at least one product image.')
 
 
@@ -246,6 +249,9 @@ class ShopTheLookBlock(BaseModelNamed):
         docs.djangoproject.com/en/1.4/ref/models/instances/#validating-objects
         """
         if not (self.existing_image or self.custom_image):
+            # TODO: "collect all the errors and return them all at once"
+            #       (and display on the form, if model is being modified
+            #        on a form)
             raise ValidationError('Block needs at least one product image.')
         if not (self.existing_ls_image or self.custom_ls_image):
             raise ValidationError('Block needs at least one STL image.')
