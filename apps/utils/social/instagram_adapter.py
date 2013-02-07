@@ -34,8 +34,8 @@ class Instagram(Social):
         caption_text = getattr(caption, 'text', None)
 
         return {
-            'id': content.id,
+            'original_id': content.id,
             'type': 'instagram',
-            'caption': caption_text,
+            'text_content': caption_text,
             'image_url': image_url
         }

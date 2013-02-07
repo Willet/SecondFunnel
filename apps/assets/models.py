@@ -195,3 +195,17 @@ class ProductMedia(ImageBase):
 class YoutubeVideo(BaseModel):
     video_id = models.CharField(max_length=11)
     store = models.ForeignKey(Store, null=True, related_name="videos")
+
+class ExternalContent(BaseModel):
+    original_id = models.CharField(max_length=555, blank=True, null=True)
+    original_url = models.CharField(max_length=555, blank=True, null=True)
+    content_type = models.ForeignKey("ExternalContentType")
+    tagged_products = models.ManyToManyField(Product, blank=True, null=True)
+
+    text_content = models.TextField(blank=True, null=True)
+    image_url = models.CharField(max_length=555, blank=True, null=True)
+
+# If we need different behaviour per model, just use a proxy model.
+
+class ExternalContentType(BaseModelNamed):
+    enabled = models.BooleanField(default=True)
