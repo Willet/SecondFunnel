@@ -73,6 +73,7 @@ class Wizard(object):
         if form.is_valid():
             result = self._process_valid_form(form)
             if not self.preview:
+                # messages are shown as a function side effect
                 messages.success(self.request, "Your page was saved successfully")
 
             return None, result
@@ -310,7 +311,7 @@ class ShopTheLookWizard(FeaturedProductWizard):
                 pk=ls_generic_media_id)
 
 
-        product_data.save()
+        product_data.save()  # will raise exception if images are missing
         block_content = BlockContent(
             block_type = self.block_type,
             content_type = ContentType.objects.get_for_model(ShopTheLookBlock),
