@@ -402,12 +402,14 @@ var application = (function(store_id, urls){
         var descriptionObj = $('#id_description');
         descriptionObj.htmlarea({
             toolbar: [
-                ["html"],
                 ["bold", "italic", "underline"],
                 ["link", "unlink"]
             ]
         });
         descriptionObj.on('keydown keyup change', updateCharacterCount);
+        descriptionObj.on('change', function () {
+            descriptionObj.htmlarea('updateHtmlArea');
+        });
         $('#product_name').autocomplete(getAutoCompleteConfig());
         $('.button.preview').on('click', onPreview);
         $('#cancel_to_admin').unbind('click').on('click', onCancel);
