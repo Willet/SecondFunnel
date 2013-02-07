@@ -9,6 +9,7 @@ from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from django.views.decorators.cache import cache_page
+from social_auth.db.django_models import UserSocialAuth
 
 from apps.analytics.models import Category, AnalyticsRecency
 from apps.assets.models import Store, Product
@@ -157,6 +158,27 @@ def analytics_admin(request, store, campaign=False, is_overview=True):
         'last_updated': recency
     }, context_instance=RequestContext(request))
 
+
+@belongs_to_store
+@login_required
+def asset_manager(request, store_id):
+    store = get_object_or_404(Store, pk=store_id)
+    user = request.user
+
+    # Check if connected to Instagram... for now
+    try:
+        instagram_user = user.social_auth.get(provider='instagram')
+    except UserSocialAuth.DoesNotExist:
+        instagram_user = None
+
+    instagram_connect = True
+    if instagram_user:
+        instagram_connect = False
+
+    return render_to_response('pinpoint/asset_manager.html', {
+        "store": store,
+        "instagram_connect": instagram_connect
+    }, context_instance=RequestContext(request))
 
 @cache_page(60 * 30)
 def campaign_short(request, campaign_id_short):

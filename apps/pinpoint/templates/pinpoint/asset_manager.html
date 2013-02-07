@@ -1,0 +1,48 @@
+{% extends "pinpoint/admin_base.html" %}
+{% load staticfiles %}
+{% load humanize %}
+{% load i18n %}
+{% load base62 %}
+
+{% block page_title %}
+    {{ store }}
+{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static "css/jquery.qtip.min.css" %}">
+    <link rel="stylesheet" href="{% static "css/jquery.dataTables.css" %}">
+    <link rel="stylesheet" href="{% static "css/jquery.qtip.min.css" %}">
+    <link rel="stylesheet" href="{% static "js/DataTables/css/demo_page.css" %}">
+    <link rel="stylesheet" href="{% static "js/DataTables/css/demo_table.css" %}">
+
+    <style>
+        .container_12 .prefix_9, .container_16 .prefix_12 {
+            padding-left: 620px;
+            width: 310px;
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js_includes %}
+{% endblock %}
+
+{% block document_ready %}
+{% endblock %}
+
+{% block top_section %}
+    <div class="grid_3 prefix_9">
+        <ul>
+            <li><a href="{% url store-admin store.id %}">Pages</a></li>
+            <li class="selected"><a href="{% url asset-manager store.id %}">Asset Manager</a></li>
+            <li><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
+        </ul>
+    </div>
+{% endblock %}
+
+{% block content %}
+    {% if instagram_connect %}
+    Not currently connected to instagram. Connect?
+    {% else %}
+    Connected to Instagram
+    {% endif %}
+{% endblock %}
