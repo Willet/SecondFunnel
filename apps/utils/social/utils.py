@@ -11,13 +11,16 @@ class Social(object):
     def _fetch_media(self):
         return []
 
-    def get_content(self, since=None):
+    def get_content(self, since=None, limit=-1):
         """Returns a list of content in a standard format."""
         results = self._fetch_media(since=since)
 
         content = []
         for result in results:
+            if limit > 0:
+                break
             content.append(self.normalize(result))
+            limit -= 1
 
         return content
 

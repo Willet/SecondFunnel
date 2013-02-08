@@ -18,6 +18,7 @@ from apps.pinpoint.decorators import belongs_to_store
 
 import apps.pinpoint.wizards as wizards
 import apps.utils.base62 as base62
+from apps.utils.social.instagram_adapter import Instagram
 
 
 @login_required
@@ -190,10 +191,13 @@ def asset_manager(request, store_id):
     instagram_connect = True
     if instagram_user:
         instagram_connect = False
+        instagram_connector = Instagram(tokens=instagram_user.tokens)
+        contents = instagram_connector.get_content(limit=20)
 
     return render_to_response('pinpoint/asset_manager.html', {
         "store": store,
-        "instagram_connect": instagram_connect
+        "instagram_connect": instagram_connect,
+        "contents": contents
     }, context_instance=RequestContext(request))
 
 @cache_page(60 * 30)
