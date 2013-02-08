@@ -5,6 +5,8 @@ urlpatterns = patterns('apps.pinpoint.views',
 
     url(r'^admin/$', 'admin', name='admin'),
 
+    url(r'^admin/social-auth/$', 'social_auth', name='social-auth'),
+
     url(r'^admin/(?P<store_id>\d+)/$', 'store_admin', name='store-admin'),
 
     url(r'^admin/(?P<store_id>\d+)/asset-manager/$', 'asset_manager',

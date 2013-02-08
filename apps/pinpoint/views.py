@@ -36,6 +36,22 @@ def login_redirect(request):
     else:
         return redirect('admin')
 
+@login_required
+def social_auth(request):
+    """
+    Redirect after some social action (account association, probably).
+
+    @param request: The request for this page.
+
+    @return: An HttpResponse that redirects the user to the asset_manager
+    page, or a page where the user can pick which store they want to view
+    """
+    store_set = request.user.store_set
+    if store_set.count() == 1:
+        return redirect('asset-manager', store_id=str(store_set.all()[0].id))
+    else:
+        return redirect('admin')
+
 
 @login_required
 def admin(request):

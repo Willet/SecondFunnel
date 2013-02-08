@@ -41,7 +41,8 @@
 
 {% block content %}
     {% if instagram_connect %}
-    Not currently connected to instagram. Connect?
+    Not currently connected to instagram.
+        <a href='{% url socialauth_associate_begin 'instagram' %}'>Connect?</a>
     {% else %}
     Connected to Instagram
     {% endif %}
