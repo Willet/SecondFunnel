@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage, YoutubeVideo
+from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage, YoutubeVideo, ExternalContentType, ExternalContent
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -96,3 +96,16 @@ class YoutubeVideoAdmin(BaseAdmin):
         'video_id', 'store']
 
 admin.site.register(YoutubeVideo, YoutubeVideoAdmin)
+
+class ExternalContentTypeAdmin(BaseNamedAdmin):
+    list_display = BaseNamedAdmin.list_display + ['enabled']
+
+admin.site.register(ExternalContentType, ExternalContentTypeAdmin)
+
+class ExternalContentAdmin(BaseAdmin):
+    list_display = BaseAdmin.list_display + ['original_id',
+                                                  'original_url',
+                                                  'content_type',
+                                                  'text_content']
+
+admin.site.register(ExternalContent, ExternalContentAdmin)

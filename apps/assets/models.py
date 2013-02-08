@@ -209,3 +209,6 @@ class ExternalContent(BaseModel):
 
 class ExternalContentType(BaseModelNamed):
     enabled = models.BooleanField(default=True)
+
+    def __unicode__(self):
+        return self.name

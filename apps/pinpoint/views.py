@@ -13,7 +13,7 @@ from django.views.decorators.cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
 
 from apps.analytics.models import Category, AnalyticsRecency
-from apps.assets.models import Store, Product
+from apps.assets.models import Store, Product, ExternalContent, ExternalContentType
 from apps.pinpoint.models import Campaign, BlockType, BlockContent
 from apps.pinpoint.decorators import belongs_to_store
 
@@ -208,18 +208,27 @@ def tag_content(request, store_id):
     instagram_json = request.POST.get('instagram')
     product_id = request.POST.get('product_id', -1)
 
-    if product_id == -1 or not instagram_json:
-        # TODO: Error
+    product = Product.objects.get(id=product_id)
+
+    if not product or not instagram_json:
         messages.error(request, "Missing product or selected content.")
-        pass
+        return redirect('asset-manager', store_id=store_id)
 
     instagram_content = json.loads(instagram_json)
     for instagram_obj in instagram_content:
-        # Create object
-        pass
+        # TODO: Ensure that we can't create duplicate content
+        content_type = ExternalContentType.objects.get(slug=instagram_obj.get('type'))
+        new_content, _ = ExternalContent.objects.get_or_create(
+            original_id=instagram_obj.get('originalId'),
+            content_type=content_type,
+            text_content=instagram_obj.get('textContent'),
+            image_url=instagram_obj.get('imageUrl')
+        )
+        new_content.tagged_products.add(product)
+        new_content.save()
 
     messages.success(request, 'Successfully tagged {0} content items with "{1}"'
-    .format(len(instagram_content), 'banana'))
+    .format(len(instagram_content), product.name))
 
     return redirect('asset-manager', store_id=store_id)
 
