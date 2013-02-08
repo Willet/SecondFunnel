@@ -17,7 +17,7 @@ class Social(object):
 
         content = []
         for result in results:
-            if limit > 0:
+            if limit == 0:
                 break
             content.append(self.normalize(result))
             limit -= 1

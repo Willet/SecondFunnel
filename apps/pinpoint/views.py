@@ -1,3 +1,4 @@
+import json
 from django.contrib import messages
 import re
 
@@ -197,8 +198,30 @@ def asset_manager(request, store_id):
     return render_to_response('pinpoint/asset_manager.html', {
         "store": store,
         "instagram_connect": instagram_connect,
-        "contents": contents
+        "contents": contents,
+        "store_id": store_id
     }, context_instance=RequestContext(request))
+
+@belongs_to_store
+@login_required
+def tag_content(request, store_id):
+    instagram_json = request.POST.get('instagram')
+    product_id = request.POST.get('product_id', -1)
+
+    if product_id == -1 or not instagram_json:
+        # TODO: Error
+        messages.error(request, "Missing product or selected content.")
+        pass
+
+    instagram_content = json.loads(instagram_json)
+    for instagram_obj in instagram_content:
+        # Create object
+        pass
+
+    messages.success(request, 'Successfully tagged {0} content items with "{1}"'
+    .format(len(instagram_content), 'banana'))
+
+    return redirect('asset-manager', store_id=store_id)
 
 @cache_page(60 * 30)
 def campaign_short(request, campaign_id_short):

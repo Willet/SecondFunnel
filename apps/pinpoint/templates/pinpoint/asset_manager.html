@@ -9,36 +9,96 @@
 {% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static "css/jquery.qtip.min.css" %}">
-    <link rel="stylesheet" href="{% static "css/jquery.dataTables.css" %}">
-    <link rel="stylesheet" href="{% static "css/jquery.qtip.min.css" %}">
-    <link rel="stylesheet" href="{% static "js/DataTables/css/demo_page.css" %}">
-    <link rel="stylesheet" href="{% static "js/DataTables/css/demo_table.css" %}">
-
-    <style>
+    <style xmlns="http://www.w3.org/1999/html">
         .container_12 .prefix_9, .container_16 .prefix_12 {
             padding-left: 620px;
             width: 310px;
         }
 
-    .content_block img {
-        max-height: 150px;
-        max-width: 150px;
-    }
+        .content_block img {
+            max-height: 150px;
+            max-width: 150px;
+        }
 
-    .content_block {
-        float: left;
-        border: 1px solid #999;
-        width: 200px;
-        margin-right: 15px;
-    }
+        .content_block {
+            float: left;
+            border: 2px solid #999;
+            width: 200px;
+            margin-right: 15px;
+        }
+
+        .content_block:hover {
+            border: 2px #a00 solid;
+        }
+
+        .content_block.selected {
+            border: 2px #f00 solid;
+        }
+
+        .content_block.selected:hover {
+            border: 2px #f00 dotted;
+        }
+
+        .clear {
+            clear: both;
+        }
     </style>
 {% endblock %}
 
 {% block extra_js_includes %}
+    <script src="{% static "js/jquery-ui.js" %}"></script>
 {% endblock %}
 
 {% block document_ready %}
+    var store_id = 21; //{{ store_id }}
+
+    $('#tag').autocomplete({
+        source: function(request, response) {
+            var term = request.term;
+            $.getJSON('/api/assets/v1/product/', {
+                'store': store_id,
+                'format': 'json',
+                'name_or_url': term
+
+            }, function(data) {
+                //convert object to usable form
+                var results = [];
+                $.each(data.objects, function(index, value) {
+                    results.push({'label': value.name, 'id': value.id})
+                });
+                response(results);
+            })
+        },
+        minLength: 2,
+        select: function( event, ui ) {
+            if (ui.item) {
+                $('#product_id').val(ui.item.id)
+            }
+        }
+    });
+
+    $('.content_block').on('click', function(e) {
+        $(this).toggleClass('selected');
+
+        if($('.content_block.selected').length > 0) {
+            $('#tag_button').removeClass('disabled');
+        } else {
+            $('#tag_button').addClass('disabled');
+        }
+    });
+
+    $('#tag_button').on('click', function (e) {
+        var data = [];
+        e.preventDefault();
+
+        $('.content_block.selected').each(function(index, item) {
+            data.push($(item).data());
+        });
+
+        $('#instagram').val(JSON.stringify(data));
+
+        $(this).parents('form').submit();
+    });
 {% endblock %}
 
 {% block top_section %}
@@ -64,13 +124,30 @@
 
     {# Internal code, for now #}
     {% if request.user.is_superuser %}
-        <p>I am a robot. Beep boop.</p>
+        <form action='{% url tag-content store_id %}' method='POST'>
+            <p>I am a robot. Beep boop.</p>
 
-        {% for content in contents %}
-            <div class='content_block instagram'>
-                <img src='{{ content.image_url }}'/>
-                <span class='text'>{{ content.text_content }}</span>
-            </div>
-        {% endfor %}
+            {% for content in contents %}
+                <div class='content_block instagram'
+                    data-original-id='{{ content.original_id }}'
+                    data-image-url='{{ content.image_url }}'
+                    data-type='{{ content.type }}'
+                    data-text-content='{{ content.text_content }}'>
+                    <img src='{{ content.image_url }}'/>
+                    <span class='text'>{{ content.text_content }}</span>
+                </div>
+            {% endfor %}
+
+            <br class='clear'/>
+            <p>
+                <label for='tag'>Tag with:</label><input type='text' id='tag'/>
+            </p>
+            <input type='hidden' id='product_id' name='product_id' value='-1' />
+            <input type='hidden' id='instagram' name='instagram' value='' />
+            {% csrf_token %}
+            <a id="tag_button" class="button disabled" href="#">
+                Tag Content
+            </a>
+        </form>
     {% endif %}
 {% endblock %}
