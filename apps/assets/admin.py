@@ -108,4 +108,15 @@ class ExternalContentAdmin(BaseAdmin):
                                                   'content_type',
                                                   'text_content']
 
+    filter_horizontal = ('tagged_products',)
+
+    readonly_fields = ('preview_image', )
+
+    def preview_image(self, obj):
+        try:
+            url = obj.image_url
+            return mark_safe("<img src='{url}' />".format(url=url))
+        except AttributeError:
+            return "No Image Available"
+
 admin.site.register(ExternalContent, ExternalContentAdmin)

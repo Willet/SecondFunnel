@@ -128,7 +128,7 @@ class Product(BaseModelNamed):
     available = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return self.name
+        return unicode(self.name) or u''
 
     def media_count(self):
         return self.media.count()
@@ -205,10 +205,13 @@ class ExternalContent(BaseModel):
     text_content = models.TextField(blank=True, null=True)
     image_url = models.CharField(max_length=555, blank=True, null=True)
 
+    def __unicode__(self):
+        return u''
+
 # If we need different behaviour per model, just use a proxy model.
 
 class ExternalContentType(BaseModelNamed):
     enabled = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return self.name
+        return unicode(self.name) or u''
