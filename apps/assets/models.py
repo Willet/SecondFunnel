@@ -1,3 +1,4 @@
+import random
 from django.contrib.auth.models import User
 from django.db import models
 from django.template.defaultfilters import striptags
@@ -119,8 +120,8 @@ class Product(BaseModelNamed):
     last_scraped = models.DateTimeField(blank=True, null=True)
     rescrape = models.BooleanField(default=False)
 
-    lifestyleImage = models.ForeignKey(GenericImage, blank=True, null=True,
-                                       related_name='associated_product')
+    lifestyleImages = models.ManyToManyField(GenericImage, blank=True, null=True,
+                                       related_name='associated_products')
 
     default_image = models.ForeignKey("ProductMedia", blank=True, null=True,
                                       related_name='primary_product')
@@ -168,8 +169,11 @@ class Product(BaseModelNamed):
             'data-product-id': self.id,
         }
 
-        if self.lifestyleImage:
-            fields['data-lifestyle_image'] = strip_and_escape(self.lifestyleImage.get_url())
+        if self.lifestyleImages.all():
+            # TODO: Do we want to select lifestyle images differently?
+            random_idx = random.randint(0, self.lifestyleImages.count()-1)
+            random_img = self.lifestyleImages.all()[random_idx]
+            fields['data-lifestyle_image'] = strip_and_escape(random_img)
 
         if raw:
             data = {}
