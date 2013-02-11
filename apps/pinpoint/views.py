@@ -158,8 +158,15 @@ def analytics_admin(request, store, campaign=False, is_overview=True):
     }, context_instance=RequestContext(request))
 
 
+# origin: campaigns with short URLs are cached for 30 minutes
 @cache_page(60 * 30)
 def campaign_short(request, campaign_id_short):
+    """base62() is a custom function, so to figure out the long
+    campaign URL, go to http://elenzil.com/esoterica/baseConversion.html
+    and decode with the base in utils/base62.py.
+
+    The long URL is (currently) /pinpoint/(long ID).
+    """
     return campaign(request, base62.decode(campaign_id_short))
 
 
@@ -235,9 +242,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         "{% extends 'pinpoint/campaign_discovery.html' %}",
         "{% load pinpoint_ui %}",
         "{% block discovery_block %}",
-        "<div class='block product' {{product.data|safe}}>",
         discovery_block,
-        "</div>",
         "{% endblock discovery_block %}"
     ])
 

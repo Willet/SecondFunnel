@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.utils import simplejson as json
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -71,11 +72,15 @@ class Wizard(object):
         form = self.form_cls(self.request.POST, self.request.FILES)
 
         if form.is_valid():
-            result = self._process_valid_form(form)
-            if not self.preview:
-                messages.success(self.request, "Your page was saved successfully")
+            try:
+                result = self._process_valid_form(form)
+                if not self.preview:
+                    # messages are shown as a function side effect
+                    messages.success(self.request, "Your page was saved successfully")
 
-            return None, result
+                return None, result
+            except ValidationError:
+                pass  # use same return line below
 
         return form, None
 
@@ -310,7 +315,7 @@ class ShopTheLookWizard(FeaturedProductWizard):
                 pk=ls_generic_media_id)
 
 
-        product_data.save()
+        product_data.save()  # will raise exception if images are missing
         block_content = BlockContent(
             block_type = self.block_type,
             content_type = ContentType.objects.get_for_model(ShopTheLookBlock),
