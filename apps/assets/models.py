@@ -119,8 +119,8 @@ class Product(BaseModelNamed):
     last_scraped = models.DateTimeField(blank=True, null=True)
     rescrape = models.BooleanField(default=False)
 
-    lifestyleImage = models.ForeignKey(GenericImage, blank=True, null=True,
-                                       related_name='associated_product')
+    lifestyleImages = models.ManyToManyField(GenericImage, blank=True, null=True,
+                                       related_name='associated_products')
 
     default_image = models.ForeignKey("ProductMedia", blank=True, null=True,
                                       related_name='primary_product')
