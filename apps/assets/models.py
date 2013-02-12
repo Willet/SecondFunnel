@@ -119,7 +119,11 @@ class Product(BaseModelNamed):
     last_scraped = models.DateTimeField(blank=True, null=True)
     rescrape = models.BooleanField(default=False)
 
-    lifestyleImage = models.ForeignKey(GenericImage, blank=True, null=True)
+    lifestyleImage = models.ForeignKey(GenericImage, blank=True, null=True,
+                                       related_name='associated_product')
+
+    default_image = models.ForeignKey("ProductMedia", blank=True, null=True,
+                                      related_name='primary_product')
 
     available = models.BooleanField(default=True)
 
@@ -147,7 +151,12 @@ class Product(BaseModelNamed):
             return modified_text
 
         images = self.images()
-        image  = images[0] if images else None
+
+        if self.default_image:
+            image = self.default_image.get_url()
+            images.insert(0, image)
+        else:
+            image = images[0] if images else None
 
         fields = {
             'data-title': strip_and_escape(self.name),
@@ -159,11 +168,18 @@ class Product(BaseModelNamed):
             'data-product-id': self.id,
         }
 
+        if self.lifestyleImage:
+            fields['data-lifestyle_image'] = strip_and_escape(self.lifestyleImage.get_url())
+
         if raw:
             data = {}
             for field in fields:
                 # strip 'data-'
-                data[field[5:]] = fields[field]
+                field_name = field[5:]
+                if field_name == 'images':
+                    data[field_name] = fields[field].split('|')
+                else:
+                    data[field_name] = fields[field]
         else:
             data = ''
             for field in fields:

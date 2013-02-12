@@ -96,8 +96,7 @@ var PINPOINT = (function($, pageInfo){
                     break;
                 case 'images':
                     $element.empty();
-                    images = value.split('|');
-                    $.each(images, function(index, image) {
+                    $.each(value, function(index, image) {
                         var $li = $('<li/>'),
                             $img = $('<img/>', {
                                 'src': image
@@ -213,25 +212,24 @@ var PINPOINT = (function($, pageInfo){
         // MOD of
         // http://emptysquare.net/blog/adding-an-include-tag-to-underscore-js-templates/
         // match "<% include template-id %>" with caching
-        return _.template(
-            str.replace(
-                /<%\s*include\s*(.*?)\s*%>/g,
-                function(match, templateId) {
-                    if (domTemplateCache[templateId]) {
-                        // cached
-                        return domTemplateCache[templateId];
-                    } else {
-                        var el = document.getElementById(templateId);
-                        if (el && el.innerHTML) {
-                            // cache
-                            domTemplateCache[templateId] = el.innerHTML;
-                        }
-                        return el ? el.innerHTML : '';
+        var replaced = str.replace(
+            /<%\s*include\s*(.*?)\s*%>/g,
+            function(match, templateId) {
+                if (domTemplateCache[templateId]) {
+                    // cached
+                    return domTemplateCache[templateId];
+                } else {
+                    var el = document.getElementById(templateId);
+                    if (el && el.innerHTML) {
+                        // cache
+                        domTemplateCache[templateId] = el.innerHTML;
                     }
+                    return el ? el.innerHTML : '';
                 }
-            ),
-            data
+            }
         );
+
+        return _.template(replaced, data);
     };
 
     renderTemplates = function (data) {
@@ -333,7 +331,7 @@ var PINPOINT = (function($, pageInfo){
         // concatenate all the results together so they're in the same jquery object
         for (i = 0; i < results.length; i++) {
             try {
-                var el = $(renderTemplate(discoveryProductTemplate, results[i]));
+                var el = $(renderTemplate(discoveryProductTemplate, {'product': results[i]}));
                 el.data(results[i]);  // populate the .product.block div with data
                 productDoms.push(el[0]);
             } catch (err) {

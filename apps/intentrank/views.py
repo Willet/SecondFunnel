@@ -250,6 +250,8 @@ def update_clickstream(request):
     else:
         result = results
 
+    return HttpResponse(json.dumps(result), mimetype='application/json',
+                        status=status)
 
 def invalidate_session(request):
     #intentrank/invalidate-session

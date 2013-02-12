@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{% static "css/fileuploader.css" %}">
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
     <link rel="stylesheet" href="{% static "css/jquery.loadmask.css" %}">
+    <link rel="stylesheet" href="{% static "css/jquery.htmlarea.css" %}">
     <style type="text/css">
         .product_select {
 
@@ -211,6 +212,12 @@
         .product_meta ul.errorlist {
             display: inline;
         }
+
+        /* "it is not a terrible inconvenience" */
+        div.jHtmlArea .ToolBar ul { border: solid 1px #ccc; margin: 1px; padding: 1px; float: left; background: #fff url('{% static "images/jHtmlArea_Toolbar_Group_BG.png" %}') repeat-x;}
+        div.jHtmlArea .ToolBar ul li { list-style-type: none; float: left; border: none; padding: 1px; margin: 1px; }
+        div.jHtmlArea .ToolBar ul li:hover { border: solid 1px #ccc; background: #ddd url('{% static "images/jHtmlArea_Toolbar_Group__Btn_Select_BG.png" %}'); padding: 0; }
+        div.jHtmlArea .ToolBar ul li a { display: block; width: 16px; height: 16px; background: url('{% static "images/jHtmlArea.png" %}') no-repeat -16px -500px; border: none; cursor: pointer; padding: 0px; }
     </style>
 {% endblock %}
 
@@ -221,13 +228,14 @@
     <script src="{% static "js/jquery.ajax_forms.validation.min.js" %}"></script>
     <script src="{% static "js/jquery.watermark.min.js" %}"></script>
     <script src="{% static "js/jquery.loadmask.min.js" %}"></script>
+    <script src="{% static "js/jquery.htmlarea.0.7.5.min.js" %}"></script>
     <script src="{% static "js/fileuploader.js" %}"></script>
     <script>
         // Because the django-ajax-forms library is stupid and causes an
         // error in ie9, this workaround is needed.
         if (window.console && !console.debug) {
             console.debug = function(){};
-        };
+        }
 
         window.store = '{{ store.id }}';
 
@@ -236,7 +244,7 @@
             'new-campaign-admin': '{% url new-campaign-admin store.id %}',
             'loading-gif'       : '{% static "loading.gif" %}',
             'ajax-image-upload' : '{% url ajax-upload-image %}'
-        }
+        };
 
         $('#create_campaign').validation({% render_ajax_fields form %}, {
             layout: 'p',
