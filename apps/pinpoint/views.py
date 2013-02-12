@@ -199,10 +199,14 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
     # Determine featured content type
     # TODO: How to handle multiple block types?
+    content_block = None
     for block in campaign.content_blocks.all():
         if block.content_type.name != "campaign":
             content_block = block
             break
+
+    if not content_block:
+        raise ValueError('Could not get content block')
 
     featured_context = Context()
     type = content_block.content_type.name
@@ -227,6 +231,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
             'product': product,
         })
     else:
+        content_template = ''
         product = {
             'title': "Unknown Product",
             'url': 'http://secondfunnel.com',
@@ -261,7 +266,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         "</div>",
         "</div>",
         "</div>"
-    ]);
+    ])
     product_preview = Template(modified_preview).render(context)
 
     # Featured content
