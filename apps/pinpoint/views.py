@@ -189,119 +189,14 @@ def campaign(request, campaign_id):
                                   context_instance=context)
 
 def campaign_to_theme_to_response(campaign, arguments, context=None):
-    """Generates the HTML page for a standard pinpoint product page."""
     if context is None:
         context = Context()
     context.update(arguments)
 
-    # retrieve theme for the store from the DB
     theme = campaign.store.theme
 
-    # Determine featured content type
-    # TODO: How to handle multiple block types?
-    for block in campaign.content_blocks.all():
-        if block.content_type.name != "campaign":
-            content_block = block
-            break
-
-    featured_context = Context()
-    type = content_block.content_type.name
-
-    if type in ('featured product block', 'shop the look block'):
-        content_template = theme.featured_product
-        product          = content_block.data.product
-
-        # TODO: Is the featured image always in the list of images?
-        featured_image   = content_block.data.get_image().get_url()
-
-        product.description    = content_block.data.description
-        product.featured_image = featured_image
-        product.is_featured    = True
-
-        # Piggyback off of featured product block
-        if type == 'shop the look block':
-            lifestyle_image = content_block.data.get_ls_image().get_url()
-            product.lifestyle_image = lifestyle_image
-
-        featured_context.update({
-            'product': product,
-        })
-    else:
-        product = {
-            'title': "Unknown Product",
-            'url': 'http://secondfunnel.com',
-            'featured_image': '',
-            'description': 'Unknown Product'
-        }
-
-
-    # Pre-render templates; bottom up
-    # Discovery block
-    discovery_block = theme.discovery_product # TODO: Generalize to other blocks
-    modified_discovery = "".join([
-        "{% extends 'pinpoint/campaign_discovery.html' %}",
-        "{% load pinpoint_ui %}",
-        "{% block discovery_block %}",
-        discovery_block,
-        "{% endblock discovery_block %}"
-    ])
-
-    # Discovery area
-    discovery_area = Template(modified_discovery).render(context)
-
-    # Preview block
-    # TODO: Does this actually need any additional context?
-    modified_preview = "".join([
-        "<div class='preview product' style='display: none;'>",
-        "<div class='mask'></div>",
-        "<div class='tablecell'>",
-        "<div class='content'>",
-        "<span class='close'>X</span>",
-        theme.preview_product,
-        "</div>",
-        "</div>",
-        "</div>"
-    ]);
-    product_preview = Template(modified_preview).render(context)
-
-    # Featured content
-    modified_featured = "".join([
-        "{% load pinpoint_ui %}",
-        "<div class='featured product' {{ product.data|safe }}>",
-        content_template,
-        "</div>"
-    ])
-
-    featured_content  = Template(modified_featured).render(featured_context)
-
-    # Header content
-    header_context = Context(featured_context)
-    header_context.update({
-        'campaign': campaign,
-        'product': product,
-        'store': campaign.store
-    })
-
-    header_content = render_to_string('pinpoint/campaign_head.html',
-                                      arguments, header_context)
-
-    # Scripts
-    header_context.update({
-        'ga_account_number': settings.GOOGLE_ANALYTICS_PROPERTY
-    })
-    scripts_content = render_to_string('pinpoint/campaign_scripts.html',
-                                      arguments, header_context)
-
-    page_context = Context({
-        'featured_content': featured_content,
-        'discovery_area': discovery_area,
-        'preview_area': product_preview,
-        'header_content': header_content,
-        'scripts_content': scripts_content
-    })
-
     # Page content
-    page = Template(theme.page_template)
+    page = Template(theme.page)
 
     # Render response
-    return HttpResponse(page.render(page_context))
+    return HttpResponse(page.render(context))
