@@ -4,6 +4,7 @@ import random
 import math
 
 from django.http import HttpResponse
+from django.db.models import Count
 from django.template import Context, Template
 import httplib2
 from mock import Mock, MagicMock
@@ -54,6 +55,7 @@ def video_probability_function(x, m):
     else:
         return 1 - (math.log(m - x) / math.log(m))
 
+
 def random_products(store, param_dict, id_only=True):
     """Returns a list of random product ids, as would be returned by IR.
 
@@ -81,6 +83,7 @@ def random_products(store, param_dict, id_only=True):
 
     return results[:num_results]
 
+
 def send_intentrank_request(request, url, method='GET', headers=None,
                             http=httplib2.Http):
     if not headers:
@@ -101,6 +104,7 @@ def send_intentrank_request(request, url, method='GET', headers=None,
         request.session['ir-cookie'] = response['set-cookie']
 
     return response, content
+
 
 # TODO: Is there a Guice for Python to inject dependency in live, dev?
 def process_intentrank_request(request, store, page, function_name,
@@ -142,8 +146,15 @@ def process_intentrank_request(request, store, page, function_name,
         results.update({'url': url})
         return results, response.status
 
-    products = Product.objects.filter(pk__in=results.get('products'),
+    products = Product.objects.annotate(num_images=Count('media'))\
+                              .filter(pk__in=results.get('products'),
+                                      num_images__gt=0,
                                       rescrape=False)
+
+    if len(products) < int(param_dict['results']):
+        # TODO: manage case when we have fewer results than requested
+        pass
+
     return products, response.status
 
 
@@ -198,6 +209,8 @@ def get_seeds(request):
     page    = request.GET.get('campaign', '-1')
     seeds   = request.GET.get('seeds', '-1')
     num_results = request.GET.get('results', DEFAULT_RESULTS)
+    product_json_key = 'products'
+    result = {product_json_key: []}  # blank dummy
 
     request.session['pinpoint-video-cookie'] = VideoCookie()
 
@@ -209,12 +222,18 @@ def get_seeds(request):
     )
 
     if status in SUCCESS_STATUSES:
-        result = get_json_data(request, results, page)
+        while len(result[product_json_key]) < int(num_results):
+            # not enough results from seeds. get more results.
+            results, status = process_intentrank_request(
+                request, store, page, 'getresults', {'results': num_results})
+            more_results = get_json_data(request, results, page)
+            result[product_json_key].extend(more_results[product_json_key])
     else:
         result = results
 
     return HttpResponse(json.dumps(result), mimetype='application/json',
                         status=status)
+
 
 def get_results(request):
     store   = request.GET.get('store', '-1')
