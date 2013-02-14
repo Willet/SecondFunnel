@@ -178,7 +178,7 @@ def get_json_data(request, products, campaign_id):
     show_video = random.random() <= video_probability_function(
         video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
     if videos.exists() and (video_cookie.is_empty() or show_video):
-        video = random.choice(videos.all()[:10])
+        video = videos.order_by('?')[0]
         results['videos'].append({
             'video_id': video.video_id,
             'video_provider': 'youtube',
