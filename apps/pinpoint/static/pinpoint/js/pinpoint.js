@@ -467,8 +467,13 @@ var PINPOINT = (function($, pageInfo){
 
         $('.discovery-area').masonry({
             itemSelector: '.block',
-            columnWidth: 960 / 4,
-            isResizable: true
+
+            columnWidth: function (containerWidth) {
+                return containerWidth / 4;
+            },
+
+            isResizable: true,
+            isAnimated: true
         });
 
         $('.preview .mask, .preview .close').on('click', hidePreview);
