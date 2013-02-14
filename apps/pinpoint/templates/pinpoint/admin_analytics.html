@@ -368,7 +368,8 @@
                     },
                     shares: data.sharing['total-shares'].totals.date.all,
                     visitors: data.awareness['awareness-visitors'].totals.date.all,
-                    pageviews: data.awareness['awareness-pageviews'].totals.date.all
+                    pageviews: data.awareness['awareness-pageviews'].totals.date.all,
+                    bounce_rate: Math.round(data.awareness['awareness-bounce_rate'].totals.date.all)
                 },
 
                 top_lists = {
@@ -391,13 +392,14 @@
             // insert totals for metrics into the sidebar
             for (cat_slug in data) {
                 for (metric_slug in data[cat_slug]) {
+                    var perc_suffix = "";
+                    if (metric_slug == "awareness-bounce_rate") {
+                        perc_suffix = "%";
+                    }
+
                     // display totals in the sidebar on in the content section
                     $(".metric_overview[data-metric='" + metric_slug + "']").html(
-                        data[cat_slug][metric_slug].totals.date.all
-                    );
-
-                    $(".metric_title_all[data-metric='" + metric_slug + "']").html(
-                        data[cat_slug][metric_slug].totals.date.all
+                        Math.round(data[cat_slug][metric_slug].totals.date.all) + perc_suffix
                     );
                 }
             }
@@ -405,8 +407,11 @@
             // TODO temp for awareness
             $("#total_visitors").html("<strong>Visitors:</strong> " + totals.visitors);
             $("#total_pageviews").html("<strong>Pageviews:</strong> " + totals.pageviews);
+            $("#awareness-bounce_rate").html("<strong>Bounce Rate:</strong> " + totals.bounce_rate + "%");
+
             $("div[class='no_data'][data-metric='total_visitors']").hide();
             $("div[class='no_data'][data-metric='total_pageviews']").hide();
+            $("div[class='no_data'][data-metric='awareness-bounce_rate']").hide();
 
             // These metrics aren't calculated by the backend atm, hence the ugly implementation
             $(".per-visitor").remove();
@@ -699,6 +704,15 @@
 
                                 <div class="no_data" data-metric="total_pageviews">
                                     <p>No visitors yet.</p>
+                                </div>
+                            </div>
+
+                            <div class="data_metric">
+                                <div class="metric_title">Average Bounce Rate</div>
+                                <div class="metric_content" id="awareness-bounce_rate"></div>
+
+                                <div class="no_data" data-metric="awareness-bounce_rate">
+                                    <p>No data yet.</p>
                                 </div>
                             </div>
                         {% endif %}
