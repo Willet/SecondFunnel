@@ -68,7 +68,8 @@ def random_products(store, param_dict, id_only=True):
     while len(results) < num_results:
         query_set = Product.objects.select_related()\
                            .annotate(num_images=Count('media'))\
-                           .filter(store_id__exact=store_id)[:num_results]
+                           .filter(store_id__exact=store_id,
+                                   num_images__gt=0)[:num_results]
         results_partial = list(query_set)
 
         if id_only:
@@ -174,9 +175,10 @@ def get_json_data(request, products, campaign_id):
 
     # if this is the first batch of results, or the random amount is under the
     # curve of the probability function, then add a video
-    show_video = random.random() <= video_probability_function(video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
+    show_video = random.random() <= video_probability_function(
+        video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
     if videos.exists() and (video_cookie.is_empty() or show_video):
-        video = videos.order_by('?')[0]  # didn't you say this is slow?
+        video = random.choice(videos.all()[:10])
         results['videos'].append({
             'video_id': video.video_id,
             'video_provider': 'youtube',
