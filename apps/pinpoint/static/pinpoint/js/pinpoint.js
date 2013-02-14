@@ -91,7 +91,7 @@ var PINPOINT = (function($, pageInfo){
                 case 'image':
                     $element.empty();
                     $element.append($('<img/>', {
-                        'src': value
+                        'src': value.replace("master.jpg", "large.jpg")
                     }));
                     break;
                 case 'images':
@@ -99,7 +99,7 @@ var PINPOINT = (function($, pageInfo){
                     $.each(value, function(index, image) {
                         var $li = $('<li/>'),
                             $img = $('<img/>', {
-                                'src': image
+                                'src': image.replace("master.jpg", "thumb.jpg")
                             }),
                             $appendElem;
 
@@ -186,7 +186,7 @@ var PINPOINT = (function($, pageInfo){
     updateClickStream = function (event) {
         var $target = $(event.currentTarget),
             data      = $target.data(),
-            id        = data.productId,
+            id        = data['product-id'],
             exceededThreshold;
 
         userClicks += 1;
@@ -331,8 +331,18 @@ var PINPOINT = (function($, pageInfo){
         // concatenate all the results together so they're in the same jquery object
         for (i = 0; i < results.length; i++) {
             try {
-                var el = $(renderTemplate(discoveryProductTemplate, {'product': results[i]}));
-                el.data(results[i]);  // populate the .product.block div with data
+                var template_context = results[i], el;
+
+                // in case an image is lacking, don't bother with the product
+                if (template_context.image == "None") {
+                    continue;
+                }
+
+                // use the resized images
+                template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
+
+                el = $(renderTemplate(discoveryProductTemplate, {'product': template_context}));
+                el.data(template_context);  // populate the .product.block div with data
                 productDoms.push(el[0]);
             } catch (err) {
                 // hide rendering error
@@ -457,8 +467,13 @@ var PINPOINT = (function($, pageInfo){
 
         $('.discovery-area').masonry({
             itemSelector: '.block',
-            columnWidth: 960 / 4,
-            isResizable: true
+
+            columnWidth: function (containerWidth) {
+                return containerWidth / 4;
+            },
+
+            isResizable: true,
+            isAnimated: true
         });
 
         $('.preview .mask, .preview .close').on('click', hidePreview);
