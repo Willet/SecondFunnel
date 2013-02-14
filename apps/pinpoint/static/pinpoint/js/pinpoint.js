@@ -186,7 +186,7 @@ var PINPOINT = (function($, pageInfo){
     updateClickStream = function (event) {
         var $target = $(event.currentTarget),
             data      = $target.data(),
-            id        = data.productId,
+            id        = data['product-id'],
             exceededThreshold;
 
         userClicks += 1;
