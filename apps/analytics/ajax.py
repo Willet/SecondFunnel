@@ -35,10 +35,6 @@ def analytics_pinpoint(request):
             else:
                 bucket['totals'][key][datum[key]] += datum['value']
 
-        # bounce rate needs to an average, not a sum
-        if metric_slug == "awareness-bounce_rate":
-            bucket['totals'][key][datum[key]] = float(bucket['totals'][key][datum[key]]) / float(len(bucket['data']))
-
         if key == 'date':
             # zero-out out missing dates
             if start_date and end_date:
