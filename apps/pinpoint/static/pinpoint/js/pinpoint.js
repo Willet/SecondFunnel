@@ -91,7 +91,7 @@ var PINPOINT = (function($, pageInfo){
                 case 'image':
                     $element.empty();
                     $element.append($('<img/>', {
-                        'src': value
+                        'src': value.replace("master.jpg", "large.jpg")
                     }));
                     break;
                 case 'images':
@@ -99,7 +99,7 @@ var PINPOINT = (function($, pageInfo){
                     $.each(value, function(index, image) {
                         var $li = $('<li/>'),
                             $img = $('<img/>', {
-                                'src': image
+                                'src': image.replace("master.jpg", "thumb.jpg")
                             }),
                             $appendElem;
 
