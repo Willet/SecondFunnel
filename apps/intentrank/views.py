@@ -21,6 +21,7 @@ from secondfunnel.settings.common import INTENTRANK_BASE_URL
 
 SUCCESS = 200
 REDIRECT = 300
+FAIL400 = 400
 SUCCESS_STATUSES = xrange(SUCCESS, REDIRECT)
 DEFAULT_RESULTS  = 12
 MAX_BLOCKS_BEFORE_VIDEO = 50
@@ -62,24 +63,18 @@ def random_products(store, param_dict, id_only=True):
     Only used in development; not in production"""
     store_id = Store.objects.get(slug__exact=store)
     num_results = int(param_dict.get('results', DEFAULT_RESULTS))
-    results = list(Product.objects.filter(store_id__exact=store_id).order_by('?')[:num_results])
-
-    _results = []  # swapper
-    for result in results:
-        prod_images = result.images()
-        # exclude products with no/empty images
-        if len(prod_images) and prod_images[0]:
-            _results.append(result)
-    results = _results
-
-    if id_only:
-        results = map(lambda x: x.id, results)
+    results = []
 
     while len(results) < num_results:
-        new_params = {
-            'results': (int(num_results) - len(results))
-        }
-        results.extend(list(random_products(store, new_params, id_only)))
+        query_set = Product.objects.select_related()\
+                           .annotate(num_images=Count('media'))\
+                           .filter(store_id__exact=store_id)[:num_results]
+        results_partial = list(query_set)
+
+        if id_only:
+            results_partial = map(lambda x: x.id, results_partial)
+
+        results.extend(results_partial)
 
     return results[:num_results]
 
@@ -109,7 +104,10 @@ def send_intentrank_request(request, url, method='GET', headers=None,
 # TODO: Is there a Guice for Python to inject dependency in live, dev?
 def process_intentrank_request(request, store, page, function_name,
                                param_dict):
-    """does NOT initiate a real IntentRank request if debug is set to True."""
+    """does NOT initiate a real IntentRank request if debug is set to True.
+
+    Returns the exact number of products requested only when debug is True.
+    """
 
     url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
         INTENTRANK_BASE_URL, store, page, function_name)
@@ -119,28 +117,23 @@ def process_intentrank_request(request, store, page, function_name,
     if settings.DEBUG:
         # Use a mock instead of avoiding the call
         # Mock is onlt used in development, not in production
-        product_results = random_products(store, param_dict, id_only=True)
-        json_results = json.dumps({'products': product_results})
+        results = {'products': random_products(store, param_dict, id_only=True)}
 
-        http_mock = Mock()
-        http_response = MagicMock(status=SUCCESS)
-        http_response.__getitem__.return_value = None
-        http_content = json_results
-        http_mock.request.return_value = (http_response, http_content)
-
-        http = Mock(return_value=http_mock)
-    else:
+        response = MagicMock(status=SUCCESS)
+    else:  # live
         http = httplib2.Http
 
-    try:
-        response, content = send_intentrank_request(request, url, http=http)
-    except httplib2.HttpLib2Error:
-        content = "{}"
+        try:
+            response, content = send_intentrank_request(request, url, http=http)
+        except httplib2.HttpLib2Error:
+            # something fundamentally went wrong, and we have nothing to show
+            response = MagicMock(status=FAIL400)
+            content = "{}"
 
-    try:
-        results = json.loads(content)
-    except ValueError:
-        results = {"error": content}
+        try:
+            results = json.loads(content)
+        except ValueError:
+            results = {"error": content}
 
     if 'error' in results:
         results.update({'url': url})
@@ -150,10 +143,6 @@ def process_intentrank_request(request, store, page, function_name,
                               .filter(pk__in=results.get('products'),
                                       num_images__gt=0,
                                       rescrape=False)
-
-    if len(products) < int(param_dict['results']):
-        # TODO: manage case when we have fewer results than requested
-        pass
 
     return products, response.status
 
@@ -187,7 +176,7 @@ def get_json_data(request, products, campaign_id):
     # curve of the probability function, then add a video
     show_video = random.random() <= video_probability_function(video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
     if videos.exists() and (video_cookie.is_empty() or show_video):
-        video = videos.order_by('?')[0]
+        video = videos.order_by('?')[0]  # didn't you say this is slow?
         results['videos'].append({
             'video_id': video.video_id,
             'video_provider': 'youtube',
@@ -278,6 +267,7 @@ def update_clickstream(request):
 
     return HttpResponse(json.dumps(result), mimetype='application/json',
                         status=status)
+
 
 def invalidate_session(request):
     #intentrank/invalidate-session
