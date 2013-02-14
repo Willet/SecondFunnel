@@ -59,20 +59,27 @@ def random_products(store, param_dict, id_only=True):
 
     Only used in development; not in production"""
     store_id = Store.objects.get(slug__exact=store)
-    num_results = param_dict.get('results', DEFAULT_RESULTS)
-    results = Product.objects.filter(store_id__exact=store_id).order_by('?')
+    num_results = int(param_dict.get('results', DEFAULT_RESULTS))
+    results = list(Product.objects.filter(store_id__exact=store_id).order_by('?')[:num_results])
+
+    _results = []  # swapper
+    for result in results:
+        prod_images = result.images()
+        # exclude products with no/empty images
+        if len(prod_images) and prod_images[0]:
+            _results.append(result)
+    results = _results
 
     if id_only:
-        results = results.values('id')
-        results = map(lambda x: x.get('id'), results)
+        results = map(lambda x: x.id, results)
 
-    if len(results) < num_results:
-        results = list(results)
-        new_params = {'results': (int(num_results) - len(results))}
+    while len(results) < num_results:
+        new_params = {
+            'results': (int(num_results) - len(results))
+        }
         results.extend(list(random_products(store, new_params, id_only)))
-        return results
-    else:
-        return results[:num_results]
+
+    return results[:num_results]
 
 def send_intentrank_request(request, url, method='GET', headers=None,
                             http=httplib2.Http):
