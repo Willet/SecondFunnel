@@ -12,7 +12,8 @@ from datetime import date, datetime
 
 from functools import partial
 
-from celery import task, subtask
+from celery import task, subtask, chain
+from celery.utils.log import get_task_logger
 from oauth2client.client import SignedJwtAssertionCredentials
 
 from django.contrib.contenttypes.models import ContentType
@@ -24,6 +25,8 @@ from apps.analytics.models import (AnalyticsRecency, Category, Metric, KVStore,
 from apps.assets.models import Store, Product
 from apps.pinpoint.models import Campaign
 
+
+logger = get_task_logger(__name__)
 
 # Helper functions used by the tasks below
 def get_by_key(string, key):
@@ -172,9 +175,6 @@ class Categories:
 @task()
 def redo_analytics():
     """Erases cached analytics and recency data, starts update process"""
-
-    logger = redo_analytics.get_logger()
-
     logger.info("Redoing analytics")
 
     KVStore.objects.all().delete()
@@ -182,17 +182,19 @@ def redo_analytics():
 
     logger.info("Removed old analytics data")
 
-    subtask(fetch_awareness_data).delay()
-    subtask(fetch_event_data).delay()
+    task_chain = chain(fetch_awareness_data.s(), process_awareness_data.s(),
+                     fetch_event_data.s(), process_event_data.s(),
+                     aggregate_saved_metrics.s())
+
+    task_chain.delay()
 
 
 @task()
-def fetch_awareness_data():
-    logger = fetch_awareness_data.get_logger()
+def fetch_awareness_data(*args):
     logger.info("Updating awareness analytics data")
 
     query = {
-        'metrics': ['visitBounceRate', 'visitors', 'pageviews'],
+        'metrics': ['visitors', 'pageviews'],
         'dimensions': ['date', 'customVarValue1', 'customVarValue2'],
         'sort': ['date']
     }
@@ -216,7 +218,6 @@ def fetch_awareness_data():
                 'campaign_id': getter('customVarValue2'),
                 'visitors': getter('visitors'),
                 'pageviews': getter('pageviews'),
-                'bounce_rate': getter('visitBounceRate'),
             }
 
             all_present = all(
@@ -237,17 +238,15 @@ def fetch_awareness_data():
     message.save()
 
     # pass ID of the message to the processing task
-    return subtask(process_awareness_data, (message.id,)).delay()
+    return message.id
 
 
 @task()
-def fetch_event_data():
+def fetch_event_data(*args):
     """
     Figures out what analytics data we need,
     fetches that and initiates calculations
     """
-
-    logger = fetch_event_data.get_logger()
     logger.info("Updating event analytics data")
 
     query = {
@@ -338,7 +337,7 @@ def fetch_event_data():
                     category, action))
                 continue
 
-            if row_data['action_type'] == 'inpage':
+            if row_data['action_type'] == 'inpage' or row_data['action_type'] == 'visit':
                 analytics_categories['engagement'].append(row_data)
 
             elif row_data['action_type'] == 'share':
@@ -350,7 +349,7 @@ def fetch_event_data():
     message.save()
 
     # pass ID of the message to the processing task
-    return subtask(process_event_data, (message.id,)).delay()
+    return message.id
 
 
 @task()
@@ -376,9 +375,6 @@ def process_awareness_data(message_id):
                 data1, data2, data1.key
             ))
 
-
-    logger = process_awareness_data.get_logger()
-
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
 
@@ -395,7 +391,7 @@ def process_awareness_data(message_id):
     categories = Categories()
     saver = partial(save_data_pair, store_type, campaign_type, categories.get("awareness"))
 
-    columns_to_save = ["visitors", "pageviews", "bounce_rate"]
+    columns_to_save = ["visitors", "pageviews"]
 
     for row in data:
         row = preprocess_row(row, logger)
@@ -415,16 +411,12 @@ def process_awareness_data(message_id):
     recency_updater = partial(update_recency, campaign_type)
     map(lambda object_id: recency_updater(object_id), updated_campaigns)
 
-    return subtask(aggregate_saved_metrics).delay()
-
+    return None
 
 @task()
 def process_event_data(message_id):
     """Processes fetched event data, row by row, saves key/value
     analytics pairs for associated store and campaign"""
-
-    logger = process_event_data.get_logger()
-
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
     product_type = ContentType.objects.get_for_model(Product)
@@ -526,14 +518,11 @@ def process_event_data(message_id):
     recency_updater = partial(update_recency, campaign_type)
     map(lambda object_id: recency_updater(object_id), updated_campaigns)
 
-    return subtask(aggregate_saved_metrics).delay()
-
+    return None
 
 @task()
-def aggregate_saved_metrics():
+def aggregate_saved_metrics(*args):
     """Calculates "meta" metrics, which are combined out of "raw" saved data"""
-    logger = aggregate_saved_metrics.get_logger()
-
     # remove all the existing meta metric data
     KVStore.objects.filter(meta="meta_metric").delete()
 
@@ -623,7 +612,7 @@ def aggregate_saved_metrics():
     to_process = [
         # Engagement
         {
-            'q_filter': Q(key__startswith="inpage-"),
+            'q_filter': Q(key__startswith="inpage-") | Q(key__startswith="visit-"),
             'metrics': [
                 # Product Interactions
                 # sums up all product related interactions
@@ -643,6 +632,13 @@ def aggregate_saved_metrics():
                     'key': 'inpage-total-interactions',
                     'q_filter': Q(key__endswith='product-interactions') | Q(key__endswith='content-interactions')
                 },
+
+                # Sum up No Bounces
+                {
+                    'slug': 'total-no-bounces',
+                    'key': 'total-no-bounces',
+                    'q_filter': Q(key='visit-noBounce')
+                }
             ]
         },
 
@@ -675,14 +671,6 @@ def aggregate_saved_metrics():
                     'slug': 'awareness-pageviews',
                     'key': 'awareness-pageviews',
                     'q_filter': Q(key='awareness-pageviews')
-                },
-
-                # average bounce rate
-                {
-                    'slug': 'awareness-bounce_rate',
-                    'key': 'awareness-bounce_rate',
-                    'q_filter': Q(key='awareness-bounce_rate'),
-                    'aggregator': avg
                 }
             ]
         }
