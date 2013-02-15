@@ -148,21 +148,4 @@ def analytics_pinpoint(request):
             bucket = aggregator(bucket, 'product_id')
             bucket = aggregator(bucket, 'meta')
 
-    bounce_dates = results['awareness']['awareness-bounce_rate']['totals']['date']
-    visitor_dates = results['awareness']['awareness-visitors']['totals']['date']
-
-    total_visitors = results['awareness']['awareness-visitors']['totals']['date']['all']
-    weighted_sum = 0
-
-    for day in bounce_dates:
-        if day == 'all':
-            continue
-
-        weighted_sum += bounce_dates[day] * visitor_dates[day]
-
-    if total_visitors == 0:
-        results['awareness']['awareness-bounce_rate']['totals']['date']['all'] = 0
-    else:
-        results['awareness']['awareness-bounce_rate']['totals']['date']['all'] = weighted_sum / total_visitors
-
     return ajax_success(results)
