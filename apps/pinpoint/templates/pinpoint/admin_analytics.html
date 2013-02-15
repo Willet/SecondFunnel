@@ -369,8 +369,10 @@
                     shares: data.sharing['total-shares'].totals.date.all,
                     visitors: data.awareness['awareness-visitors'].totals.date.all,
                     pageviews: data.awareness['awareness-pageviews'].totals.date.all,
-                    bounce_rate: Math.round(data.awareness['awareness-bounce_rate'].totals.date.all)
+                    notbounces: data.engagement['total-no-bounces'].totals.date.all
                 },
+
+                bounce_rate = (1 - totals.notbounces / totals.visitors) * 100,
 
                 top_lists = {
                     'engaged_products': data.engagement['inpage-openpopup'].totals.product_id,
@@ -389,17 +391,16 @@
                     return rndedNum;
                 };
 
+            if (isNaN(bounce_rate)) {
+                bounce_rate = 0;
+            }
+
             // insert totals for metrics into the sidebar
             for (cat_slug in data) {
                 for (metric_slug in data[cat_slug]) {
-                    var perc_suffix = "";
-                    if (metric_slug == "awareness-bounce_rate") {
-                        perc_suffix = "%";
-                    }
-
                     // display totals in the sidebar on in the content section
                     $(".metric_overview[data-metric='" + metric_slug + "']").html(
-                        Math.round(data[cat_slug][metric_slug].totals.date.all) + perc_suffix
+                        Math.round(data[cat_slug][metric_slug].totals.date.all)
                     );
                 }
             }
@@ -407,11 +408,11 @@
             // TODO temp for awareness
             $("#total_visitors").html("<strong>Visitors:</strong> " + totals.visitors);
             $("#total_pageviews").html("<strong>Pageviews:</strong> " + totals.pageviews);
-            $("#awareness-bounce_rate").html("<strong>Bounce Rate:</strong> " + totals.bounce_rate + "%");
+            $("#bounce_rate").html("<strong>Bounce Rate:</strong> " + bounce_rate.toFixed(2) + "%");
 
             $("div[class='no_data'][data-metric='total_visitors']").hide();
             $("div[class='no_data'][data-metric='total_pageviews']").hide();
-            $("div[class='no_data'][data-metric='awareness-bounce_rate']").hide();
+            $("div[class='no_data'][data-metric='bounce_rate']").hide();
 
             // These metrics aren't calculated by the backend atm, hence the ugly implementation
             $(".per-visitor").remove();
@@ -422,6 +423,9 @@
 
             $(".section_overview_block:nth-child(2) .section_overview_metrics ul").append(
                 "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + roundNumber(totals.shares / totals.visitors, 2) + "</span> Shares per visit</li>");
+
+            $(".section_overview_block:nth-child(3) .section_overview_metrics ul").append(
+                "<li class='per-visitor'><span class='metric_overview' data-metric='bounce-rate'>" + bounce_rate.toFixed(2) + "%</span> Bounce Rate</li>");
 
             // construct lists of sorted (desc) (pid, count) pairs
             map(function (key, list) {
@@ -708,10 +712,10 @@
                             </div>
 
                             <div class="data_metric">
-                                <div class="metric_title">Average Bounce Rate</div>
-                                <div class="metric_content" id="awareness-bounce_rate"></div>
+                                <div class="metric_title">Bounce Rate</div>
+                                <div class="metric_content" id="bounce_rate"></div>
 
-                                <div class="no_data" data-metric="awareness-bounce_rate">
+                                <div class="no_data" data-metric="bounce_rate">
                                     <p>No data yet.</p>
                                 </div>
                             </div>
