@@ -1,10 +1,11 @@
+from functools import partial
 from django.contrib import messages
 import re
 
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.template import RequestContext, Template, Context
+from django.template import RequestContext, Template, Context, loader
 from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
@@ -193,10 +194,39 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         context = Context()
     context.update(arguments)
 
+    # TODO: How to build up the necessary context?
+    # For now, we need:
+    # - campaign
+    # - product
+
     theme = campaign.store.theme
+    page_str = theme.page
+
+    actions = {
+        'template': loader.get_template,
+        'theme': partial(getattr, theme)
+    }
+
+    # Replace necessary tags
+    for field, details in theme.REQUIRED_FIELDS.iteritems():
+        type = details.get('type')
+        values = details.get('values')
+
+        sub_values = []
+        for value in values:
+            result = actions.get(type)(value)
+
+            # TODO: Do we need to render, or can we just convert to string?
+            if isinstance(result, Template):
+                result = result.render(context)
+
+            sub_values.append(result)
+
+        regex = r'\{\{\s*' + field + '\s*\}\}'
+        page_str= re.sub(regex, ''.join(sub_values), page_str)
 
     # Page content
-    page = Template(theme.page)
+    page = Template(page_str)
 
     # Render response
     return HttpResponse(page.render(context))

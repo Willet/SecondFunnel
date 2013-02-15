@@ -89,6 +89,24 @@ class StoreTheme(BaseModelNamed):
     # Preview Templates
     preview = models.TextField(default=DEFAULT_PREVIEW)
 
+    def __init__(self, *args, **kwargs):
+        super(StoreTheme, self).__init__(*args, **kwargs)
+        self.REQUIRED_FIELDS = {
+            'header_content': {
+                'type': 'template',
+                'values': ['pinpoint/campaign_head.html']
+            },
+            'body_content': {
+                'type': 'template',
+                'values': ['pinpoint/campaign_scripts.html']
+            },
+            'js_templates': {
+                'type': 'theme',
+                'values': ['shop_the_look', 'featured_product', 'product',
+                           'combobox', 'youtube', 'preview']
+            }
+        }
+
     def __unicode__(self):
         return u"Theme: %s" % self.store
 
