@@ -12,7 +12,7 @@ from datetime import date, datetime
 
 from functools import partial
 
-from celery import task, subtask
+from celery import task, subtask, chain
 from oauth2client.client import SignedJwtAssertionCredentials
 
 from django.contrib.contenttypes.models import ContentType
@@ -182,12 +182,15 @@ def redo_analytics():
 
     logger.info("Removed old analytics data")
 
-    subtask(fetch_awareness_data).delay()
-    subtask(fetch_event_data).delay()
+    task_chain = chain(fetch_awareness_data.s(), process_awareness_data.s(),
+                     fetch_event_data.s(), process_event_data.s(),
+                     aggregate_saved_metrics.s())
+
+    task_chain.delay()
 
 
 @task()
-def fetch_awareness_data():
+def fetch_awareness_data(*args):
     logger = fetch_awareness_data.get_logger()
     logger.info("Updating awareness analytics data")
 
@@ -237,11 +240,11 @@ def fetch_awareness_data():
     message.save()
 
     # pass ID of the message to the processing task
-    return subtask(process_awareness_data, (message.id,)).delay()
+    return message.id
 
 
 @task()
-def fetch_event_data():
+def fetch_event_data(*args):
     """
     Figures out what analytics data we need,
     fetches that and initiates calculations
@@ -350,7 +353,7 @@ def fetch_event_data():
     message.save()
 
     # pass ID of the message to the processing task
-    return subtask(process_event_data, (message.id,)).delay()
+    return message.id
 
 
 @task()
@@ -415,8 +418,7 @@ def process_awareness_data(message_id):
     recency_updater = partial(update_recency, campaign_type)
     map(lambda object_id: recency_updater(object_id), updated_campaigns)
 
-    return subtask(aggregate_saved_metrics).delay()
-
+    return None
 
 @task()
 def process_event_data(message_id):
@@ -526,11 +528,10 @@ def process_event_data(message_id):
     recency_updater = partial(update_recency, campaign_type)
     map(lambda object_id: recency_updater(object_id), updated_campaigns)
 
-    return subtask(aggregate_saved_metrics).delay()
-
+    return None
 
 @task()
-def aggregate_saved_metrics():
+def aggregate_saved_metrics(*args):
     """Calculates "meta" metrics, which are combined out of "raw" saved data"""
     logger = aggregate_saved_metrics.get_logger()
 
