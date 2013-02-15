@@ -22,16 +22,11 @@ def daterange(start_date, end_date):
 @login_required
 def analytics_pinpoint(request):
     def aggregate_by(metric_slug, bucket, key):
-        to_average = ["awareness-bounce_rate"]
-
         bucket['totals'][key] = defaultdict(int)
 
-        count = 0
         for datum in bucket['data']:
-            if metric_slug in to_average:
-                count += 1
-                bucket['totals'][key][datum[key]] += datum['value']
-                bucket['totals'][key][datum[key]] /= count
+            if metric_slug == "awareness-bounce_rate":
+                bucket['totals'][key][datum[key]] = datum['value']
             else:
                 bucket['totals'][key][datum[key]] += datum['value']
 
@@ -149,9 +144,25 @@ def analytics_pinpoint(request):
             bucket = results[category.slug][metric.slug]
 
             aggregator = partial(aggregate_by, metric.slug)
-
             bucket = aggregator(bucket, 'date')
             bucket = aggregator(bucket, 'product_id')
             bucket = aggregator(bucket, 'meta')
+
+    bounce_dates = results['awareness']['awareness-bounce_rate']['totals']['date']
+    visitor_dates = results['awareness']['awareness-visitors']['totals']['date']
+
+    total_visitors = results['awareness']['awareness-visitors']['totals']['date']['all']
+    weighted_sum = 0
+
+    for day in bounce_dates:
+        if day == 'all':
+            continue
+
+        weighted_sum += bounce_dates[day] * visitor_dates[day]
+
+    if total_visitors == 0:
+        results['awareness']['awareness-bounce_rate']['totals']['date']['all'] = 0
+    else:
+        results['awareness']['awareness-bounce_rate']['totals']['date']['all'] = weighted_sum / total_visitors
 
     return ajax_success(results)
