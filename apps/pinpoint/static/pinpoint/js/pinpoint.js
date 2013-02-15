@@ -3,7 +3,8 @@
 
 // Why do we mix and match jQuery and native dom?
 var PINPOINT = (function($, pageInfo){
-    var createSocialButtons,
+    var console = window.console || {},
+        createSocialButtons,
         createFBButton,
         createTwitterButton,
         createPinterestButton,
@@ -42,6 +43,9 @@ var PINPOINT = (function($, pageInfo){
     details.store    = details.store    || {};
     details.featured = details.featured || {};
     details.campaign = details.campaign || {};
+    details.backupResults = details.backupResults || // slightly more customized
+                            details.randomResults || // than totally random
+                            {};
 
     /* --- START Utilities --- */
     getShortestColumn = function () {
@@ -57,6 +61,8 @@ var PINPOINT = (function($, pageInfo){
 
         return $column;
     };
+
+    console.log = console.log || function () {};
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
@@ -312,6 +318,7 @@ var PINPOINT = (function($, pageInfo){
                     layoutResults(results, belowFold);
                 },
                 failure: function() {
+                    layoutResults(backupResults, belowFold);
                     loadingBlocks = false;
                 }
             });

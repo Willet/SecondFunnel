@@ -12,6 +12,7 @@ from django.views.decorators.cache import cache_page
 
 from apps.analytics.models import Category, AnalyticsRecency
 from apps.assets.models import Store, Product
+from apps.intentrank.views import get_results, get_seeds
 from apps.pinpoint.models import Campaign, BlockType, BlockContent
 from apps.pinpoint.decorators import belongs_to_store
 
@@ -183,13 +184,20 @@ def campaign(request, campaign_id):
     if hasattr(campaign_instance.store, "theme"):
         context.update(arguments)
         return campaign_to_theme_to_response(campaign_instance, arguments,
-                                             context)
+                                             context, request=request)
     else:
         return render_to_response('pinpoint/campaign.html', arguments,
                                   context_instance=context)
 
-def campaign_to_theme_to_response(campaign, arguments, context=None):
-    """Generates the HTML page for a standard pinpoint product page."""
+def campaign_to_theme_to_response(campaign, arguments, context=None,
+                                  request=None):
+    """Generates the HTML page for a standard pinpoint product page.
+
+    Related products are populated statically only if a request object
+    is provided.
+    """
+    related_results = []
+
     if context is None:
         context = Context()
     context.update(arguments)
@@ -214,6 +222,12 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     if type in ('featured product block', 'shop the look block'):
         content_template = theme.featured_product
         product          = content_block.data.product
+        if request:
+            # "borrow" IR for results
+            related_results = get_seeds(request, store=campaign.store.slug,
+                                        campaign=campaign.id,
+                                        seeds=product.id,
+                                        raw=True)
 
         product.description    = content_block.data.description
         product.is_featured    = True
@@ -289,7 +303,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     header_context.update({
         'campaign': campaign,
         'product': product,
-        'store': campaign.store
+        'store': campaign.store,
     })
 
     header_content = render_to_string('pinpoint/campaign_head.html',
@@ -297,7 +311,9 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
     # Scripts
     header_context.update({
-        'ga_account_number': settings.GOOGLE_ANALYTICS_PROPERTY
+        'ga_account_number': settings.GOOGLE_ANALYTICS_PROPERTY,
+        'backup_results': related_results.get('products', []),
+        'random_results': related_results.get('products', []),
     })
     scripts_content = render_to_string('pinpoint/campaign_scripts.html',
                                       arguments, header_context)

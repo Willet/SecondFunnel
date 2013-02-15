@@ -186,11 +186,17 @@ def get_json_data(request, products, campaign_id):
     return results
 
 
-def get_seeds(request):
-    store   = request.GET.get('store', '-1')
-    page    = request.GET.get('campaign', '-1')
-    seeds   = request.GET.get('seeds', '-1')
-    num_results = request.GET.get('results', DEFAULT_RESULTS)
+def get_seeds(request, **kwargs):
+    """kwargs overrides request values when provided.
+
+    kwargs['raw'] also toggles between returning a dictionary
+    or an entire HttpResponse.
+    """
+    store   = kwargs.get('store', request.GET.get('store', '-1'))
+    page    = kwargs.get('campaign', request.GET.get('campaign', '-1'))
+    seeds   = kwargs.get('seeds', request.GET.get('seeds', '-1'))
+    num_results = kwargs.get('results', request.GET.get('results',
+                                                        DEFAULT_RESULTS))
 
     request.session['pinpoint-video-cookie'] = VideoCookie()
 
@@ -206,13 +212,22 @@ def get_seeds(request):
     else:
         result = results
 
-    return HttpResponse(json.dumps(result), mimetype='application/json',
-                        status=status)
+    if kwargs.get('raw', False):
+        return result
+    else:
+        return HttpResponse(json.dumps(result), mimetype='application/json',
+                            status=status)
 
-def get_results(request):
-    store   = request.GET.get('store', '-1')
-    page    = request.GET.get('campaign', '-1')
-    num_results = request.GET.get('results', DEFAULT_RESULTS)
+def get_results(request, **kwargs):
+    """kwargs overrides request values when provided.
+
+    kwargs['raw'] also toggles between returning a dictionary
+    or an entire HttpResponse.
+    """
+    store = kwargs.get('store', request.GET.get('store', '-1'))
+    page = kwargs.get('campaign', request.GET.get('campaign', '-1'))
+    num_results = kwargs.get('results', request.GET.get('results',
+                                                        DEFAULT_RESULTS))
 
     results, status = process_intentrank_request(
         request, store, page, 'getresults', {
@@ -230,8 +245,11 @@ def get_results(request):
     else:
         result = results
 
-    return HttpResponse(json.dumps(result), mimetype='application/json',
-                         status=status)
+    if kwargs.get('raw', False):
+        return result
+    else:
+        return HttpResponse(json.dumps(result), mimetype='application/json',
+                            status=status)
 
 
 def update_clickstream(request):
