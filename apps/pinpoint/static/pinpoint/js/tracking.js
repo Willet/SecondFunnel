@@ -72,6 +72,10 @@ var pinpointTracking = (function ($, window, document) {
             pinpointTracking.setSocialShareVars();
         }, function() {});
 
+        $(".header a").click(function() {
+            pinpointTracking.notABounce("header");
+        });
+
         // buy now event
         $(document).on("click", "a.buy", function(e) {
             pinpointTracking.registerEvent({
