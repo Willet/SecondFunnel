@@ -13,6 +13,7 @@ from datetime import date, datetime
 from functools import partial
 
 from celery import task, subtask, chain
+from celery.utils.log import get_task_logger
 from oauth2client.client import SignedJwtAssertionCredentials
 
 from django.contrib.contenttypes.models import ContentType
@@ -24,6 +25,8 @@ from apps.analytics.models import (AnalyticsRecency, Category, Metric, KVStore,
 from apps.assets.models import Store, Product
 from apps.pinpoint.models import Campaign
 
+
+logger = get_task_logger(__name__)
 
 # Helper functions used by the tasks below
 def get_by_key(string, key):
@@ -172,9 +175,6 @@ class Categories:
 @task()
 def redo_analytics():
     """Erases cached analytics and recency data, starts update process"""
-
-    logger = redo_analytics.get_logger()
-
     logger.info("Redoing analytics")
 
     KVStore.objects.all().delete()
@@ -191,7 +191,6 @@ def redo_analytics():
 
 @task()
 def fetch_awareness_data(*args):
-    logger = fetch_awareness_data.get_logger()
     logger.info("Updating awareness analytics data")
 
     query = {
@@ -248,8 +247,6 @@ def fetch_event_data(*args):
     Figures out what analytics data we need,
     fetches that and initiates calculations
     """
-
-    logger = fetch_event_data.get_logger()
     logger.info("Updating event analytics data")
 
     query = {
@@ -378,9 +375,6 @@ def process_awareness_data(message_id):
                 data1, data2, data1.key
             ))
 
-
-    logger = process_awareness_data.get_logger()
-
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
 
@@ -423,9 +417,6 @@ def process_awareness_data(message_id):
 def process_event_data(message_id):
     """Processes fetched event data, row by row, saves key/value
     analytics pairs for associated store and campaign"""
-
-    logger = process_event_data.get_logger()
-
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
     product_type = ContentType.objects.get_for_model(Product)
@@ -532,8 +523,6 @@ def process_event_data(message_id):
 @task()
 def aggregate_saved_metrics(*args):
     """Calculates "meta" metrics, which are combined out of "raw" saved data"""
-    logger = aggregate_saved_metrics.get_logger()
-
     # remove all the existing meta metric data
     KVStore.objects.filter(meta="meta_metric").delete()
 
