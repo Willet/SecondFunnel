@@ -511,8 +511,7 @@ var PINPOINT = (function($, pageInfo){
             },
 
             isResizable: true,
-            isAnimated: true,
-            isFitWidth: true
+            isAnimated: true
         });
 
         $('.preview .mask, .preview .close').on('click', hidePreview);
