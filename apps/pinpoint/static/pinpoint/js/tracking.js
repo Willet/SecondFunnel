@@ -22,7 +22,7 @@ var pinpointTracking = (function ($, window, document) {
     trackEvent = function (o) {
         var category = "appname=pinpoint|"
             + "storeid=" + window.PINPOINT_INFO.store.id + "|"
-            + "campaignid=" + window.PINPOINT_INFO.campaign.id + "|"
+            + "campaignid=" + window.PINPOINT_INFO.page.id + "|"
             + "referrer=" + referrerName() + "|"
             + "domain=" + parseUri(window.location.href).host;
 

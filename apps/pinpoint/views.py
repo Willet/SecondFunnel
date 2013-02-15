@@ -203,7 +203,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     content_block = campaign.content_blocks.all()[0]
 
     product = content_block.data.product
-    product.json = product.data(raw=True)
+    product.json = json.dumps(product.data(raw=True))
 
     campaign.stl_image = getattr(content_block.data, 'get_ls_image', noop)(url=True) or ''
     campaign.featured_image = getattr(content_block.data, 'get_image', noop)(url=True) or ''

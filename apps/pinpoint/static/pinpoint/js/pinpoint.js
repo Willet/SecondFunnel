@@ -39,9 +39,9 @@ var PINPOINT = (function($, pageInfo){
         hoverTimer;
 
     details = pageInfo;
-    details.store    = details.store    || {};
-    details.featured = details.featured || {};
-    details.campaign = details.campaign || {};
+    details.store    = details.store || {};
+    details.page     = details.page  || {};
+    details.product  = details.page.product || {};
 
     /* --- START Utilities --- */
     getShortestColumn = function () {
@@ -208,7 +208,7 @@ var PINPOINT = (function($, pageInfo){
             url: '/intentrank/update-clickstream/',
             data: {
                 'store': details.store.id,
-                'campaign': details.campaign.id,
+                'campaign': details.page.id,
                 'product_id': id
             },
             dataType: 'json',
@@ -258,7 +258,7 @@ var PINPOINT = (function($, pageInfo){
                 srcElement = $('#' + src);
 
             $.extend(true, mergedData, {
-                'product': details.featured
+                'product': details.product
             }, target.data() || {});
 
             // if the required template is on the page, use it
@@ -278,8 +278,8 @@ var PINPOINT = (function($, pageInfo){
                 url: '/intentrank/get-seeds/',
                 data: {
                     'store': details.store.id,
-                    'campaign': details.campaign.id,
-                    'seeds': details.featured.id
+                    'campaign': details.page.id,
+                    'seeds': details.product.id
                 },
                 dataType: 'json',
                 success: function(results) {
@@ -299,13 +299,13 @@ var PINPOINT = (function($, pageInfo){
                 url: '/intentrank/get-results/',
                 data: {
                     'store': details.store.id,
-                    'campaign': details.campaign.id,
+                    'campaign': details.page.id,
 
                     //TODO: Probably should be some calculated value
                     'results': 10,
 
                     // normally ignored, unless IR call fails and we'll resort to getseeds
-                    'seeds': details.featured.id
+                    'seeds': details.product.id
                 },
                 dataType: 'json',
                 success: function(results) {
@@ -336,7 +336,7 @@ var PINPOINT = (function($, pageInfo){
             result,
             results = jsonData.products || [],
             initialResults = results.length,
-            discoveryProductTemplate = $('#discovery_product_template').html(),
+            discoveryProductTemplate = $("[data-template-id='product']").html(),
             youtubeVideoTemplate = $('#youtube_video_template').html(),
             videos = jsonData.videos || [];
 
@@ -447,7 +447,7 @@ var PINPOINT = (function($, pageInfo){
 
     featuredAreaSetup = function () {
         var $featuredArea = $('.featured'),
-            data = $featuredArea.data(),
+            data = details.product,
             url = data['url'],
             title = data['name'],
             fbButton = createFBButton({ 'url': url }),
