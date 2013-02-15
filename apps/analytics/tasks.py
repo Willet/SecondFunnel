@@ -195,7 +195,7 @@ def fetch_awareness_data(*args):
     logger.info("Updating awareness analytics data")
 
     query = {
-        'metrics': ['visitBounceRate', 'visitors', 'pageviews'],
+        'metrics': ['visitors', 'pageviews'],
         'dimensions': ['date', 'customVarValue1', 'customVarValue2'],
         'sort': ['date']
     }
@@ -219,7 +219,6 @@ def fetch_awareness_data(*args):
                 'campaign_id': getter('customVarValue2'),
                 'visitors': getter('visitors'),
                 'pageviews': getter('pageviews'),
-                'bounce_rate': getter('visitBounceRate'),
             }
 
             all_present = all(
@@ -398,7 +397,7 @@ def process_awareness_data(message_id):
     categories = Categories()
     saver = partial(save_data_pair, store_type, campaign_type, categories.get("awareness"))
 
-    columns_to_save = ["visitors", "pageviews", "bounce_rate"]
+    columns_to_save = ["visitors", "pageviews"]
 
     for row in data:
         row = preprocess_row(row, logger)
@@ -624,7 +623,7 @@ def aggregate_saved_metrics(*args):
     to_process = [
         # Engagement
         {
-            'q_filter': Q(key__startswith="inpage-"),
+            'q_filter': Q(key__startswith="inpage-") | Q(key__startswith="visit-"),
             'metrics': [
                 # Product Interactions
                 # sums up all product related interactions
@@ -644,6 +643,13 @@ def aggregate_saved_metrics(*args):
                     'key': 'inpage-total-interactions',
                     'q_filter': Q(key__endswith='product-interactions') | Q(key__endswith='content-interactions')
                 },
+
+                # Sum up No Bounces
+                {
+                    'slug': 'total-no-bounces',
+                    'key': 'total-no-bounces',
+                    'q_filter': Q(key='visit-noBounce')
+                }
             ]
         },
 
@@ -676,14 +682,6 @@ def aggregate_saved_metrics(*args):
                     'slug': 'awareness-pageviews',
                     'key': 'awareness-pageviews',
                     'q_filter': Q(key='awareness-pageviews')
-                },
-
-                # average bounce rate
-                {
-                    'slug': 'awareness-bounce_rate',
-                    'key': 'awareness-bounce_rate',
-                    'q_filter': Q(key='awareness-bounce_rate'),
-                    'aggregator': avg
                 }
             ]
         }
