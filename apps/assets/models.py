@@ -139,6 +139,7 @@ class Product(BaseModelNamed):
         return self.original_url
 
     def images(self):
+        # ProductMedia foreign key
         return [x.get_url() for x in self.media.all()]
 
     def data(self, raw=False):

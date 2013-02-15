@@ -67,6 +67,7 @@ def random_products(store, param_dict, id_only=True):
 
     while len(results) < num_results:
         query_set = Product.objects.select_related()\
+                           .prefetch_related('lifestyleImages')\
                            .annotate(num_images=Count('media'))\
                            .filter(store_id__exact=store_id,
                                    num_images__gt=0)[:num_results]
