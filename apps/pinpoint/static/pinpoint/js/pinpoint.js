@@ -386,6 +386,26 @@ var PINPOINT = (function($, pageInfo){
             $('.discovery-area').append($elem[0]);
         });
 
+        // we can now load youtube videos
+        for (i = 0; i < videos.length; i++) {
+            var v = videos[i], player;
+
+            player = new YT.Player(v.video_id, {
+                height: v.video_height,
+                width: v.video_width,
+                videoId: v.video_id,
+                playerVars: {
+                    'autoplay': v.video_autoplay,
+                    'controls': 0
+                },
+                events: {
+                    'onReady': function(e) {},
+                    'onStateChange': pinpointTracking.videoStateChange,
+                    'onError': function(e) {}
+                }
+            });
+        }
+
         // make sure images are loaded or else masonry wont work properly
         $block.imagesLoaded(function($images, $proper, $broken) {
             $broken.parents('.block.product').remove();
@@ -491,7 +511,8 @@ var PINPOINT = (function($, pageInfo){
             },
 
             isResizable: true,
-            isAnimated: true
+            isAnimated: true,
+            isFitWidth: true
         });
 
         $('.preview .mask, .preview .close').on('click', hidePreview);
@@ -651,5 +672,3 @@ var PINPOINT = (function($, pageInfo){
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback
     };
 })(jQuery, window.PINPOINT_INFO || {});
-
-PINPOINT.init();

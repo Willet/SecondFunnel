@@ -1,5 +1,5 @@
 var pinpointTracking = (function ($, window, document) {
-    var isBounce = true,
+    var isBounce = true, videosPlayed = [],
 
     referrerName = function () {
         var host;
@@ -73,7 +73,11 @@ var pinpointTracking = (function ($, window, document) {
         }, function() {});
 
         $(".header a").click(function() {
-            pinpointTracking.notABounce("header");
+            pinpointTracking.registerEvent({
+                "type": "clickthrough",
+                "subtype": "header",
+                "label": $(this).attr("href")
+            });
         });
 
         // buy now event
@@ -155,9 +159,27 @@ var pinpointTracking = (function ($, window, document) {
             "subtype": "noBounce",
             "label": how
         });
-    };
+    },
 
-    init = function() {
+    videoStateChange = function (event) {
+        var video_id = event.target.g.id;
+
+        if (videosPlayed.indexOf(video_id) !== -1) {
+            return;
+        }
+
+        if (event.data == YT.PlayerState.PLAYING) {
+            videosPlayed.push(video_id);
+
+            pinpointTracking.registerEvent({
+                "type": "content",
+                "subtype": "video",
+                "label": video_id
+            });
+        }
+    },
+
+    init = function () {
         setSocialShareVars();
 
         $(function() {
@@ -208,7 +230,8 @@ var pinpointTracking = (function ($, window, document) {
         "setSocialShareVars": setSocialShareVars,
         "clearTimeout": clearTimeout,
         "registerTwitterListeners": registerTwitterListeners,
-        "notABounce": notABounce
+        "notABounce": notABounce,
+        "videoStateChange": videoStateChange
     }
 
 }($, window, document));
