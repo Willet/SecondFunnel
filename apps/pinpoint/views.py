@@ -1,6 +1,8 @@
 import os
 import re
 
+from storages.backends.s3boto import S3BotoStorage
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
@@ -192,7 +194,10 @@ def campaign(request, campaign_id):
 
 
 def generate_static_campaign(campaign, contents, force=False):
-    """write a PinPoint page to local storage."""
+    """write a PinPoint page to local storage.
+
+    returns whether the file was written.
+    """
     write = False
     filename = '%s/static/pinpoint/html/%s.html' % (os.path.dirname(
         os.path.realpath(__file__)), campaign.id)
@@ -207,6 +212,25 @@ def generate_static_campaign(campaign, contents, force=False):
     if write:
         with file(filename, 'w') as tf2:
             tf2.write(contents)
+
+    return write
+
+
+def save_static_campaign(campaign, contents, force=False):
+    # does not expire.
+    filename = '%s.html' % campaign.id
+    try:
+        storage = S3BotoStorage(bucket='campaigns.secondfunnel.com',
+                                access_key=settings.AWS_ACCESS_KEY_ID,
+                                secret_key=settings.AWS_SECRET_ACCESS_KEY)
+
+        thing = storage.open(filename, 'w')
+        thing.write(contents)
+        thing.close()
+    except IOError, err:
+        # storage is not available. bring attention if it was forced
+        if force:
+            raise IOError(err)
 
 
 def campaign_to_theme_to_response(campaign, arguments, context=None,
@@ -351,6 +375,8 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
 
     # Render response
     rendered_page = page.render(page_context)
-    generate_static_campaign(campaign, rendered_page, force=False)
+    if not settings.DEBUG:
+        written = generate_static_campaign(campaign, rendered_page, force=False)
+        save_static_campaign(campaign, rendered_page, force=written)
 
     return HttpResponse(rendered_page)

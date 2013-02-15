@@ -99,6 +99,7 @@ STATIC_ROOT = fromProjectRoot('static')
 
 DEFAULT_FILE_STORAGE = 'secondfunnel.storage.CustomExpiresS3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
+# http://django_compressor.readthedocs.org/en/latest/remote-storages/
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
 
