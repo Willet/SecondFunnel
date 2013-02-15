@@ -341,7 +341,7 @@ def fetch_event_data(*args):
                     category, action))
                 continue
 
-            if row_data['action_type'] == 'inpage':
+            if row_data['action_type'] == 'inpage' or row_data['action_type'] == 'visit':
                 analytics_categories['engagement'].append(row_data)
 
             elif row_data['action_type'] == 'share':
