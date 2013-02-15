@@ -175,10 +175,16 @@ class FeaturedProductBlock(BaseModelNamed):
     def __unicode__(self):
         return u"Featured Content Data for %s" % self.product
 
-    def get_image(self):
+    def get_image(self, url=False):
         """Get an image associated with this block"""
 
-        return self.custom_image or self.existing_image or None
+        image = self.custom_image or self.existing_image or None
+
+        if url and image:
+            return image.get_url()
+
+        return image
+
 
     def save(self, *args, **kwargs):
         """Overridden save method to do multi-field validation."""
@@ -218,15 +224,25 @@ class ShopTheLookBlock(BaseModelNamed):
     def __unicode__(self):
         return u"Featured Content Data for %s" % self.product
 
-    def get_image(self):
+    def get_image(self, url=False):
         """Get an image associated with this block"""
 
-        return self.custom_image or self.existing_image or None
+        image = self.custom_image or self.existing_image or None
 
-    def get_ls_image(self):
+        if url and image:
+            return image.get_url()
+
+        return image
+
+    def get_ls_image(self, url=False):
         """Get a lifestyle image associated with this block"""
 
-        return self.custom_ls_image or self.existing_ls_image or None
+        image = self.custom_ls_image or self.existing_ls_image or None
+
+        if url and image:
+            return image.get_url()
+
+        return image
 
     def save(self, *args, **kwargs):
         """Overridden save method to do multi-field validation."""

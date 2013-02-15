@@ -1,5 +1,7 @@
 from functools import partial
+import json
 from django.contrib import messages
+from django.template.defaultfilters import slugify
 import re
 
 from django.contrib.auth.decorators import login_required
@@ -17,6 +19,7 @@ from apps.pinpoint.models import Campaign, BlockType, BlockContent
 from apps.pinpoint.decorators import belongs_to_store
 
 import apps.pinpoint.wizards as wizards
+from apps.utils import noop
 import apps.utils.base62 as base62
 
 
@@ -194,10 +197,23 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         context = Context()
     context.update(arguments)
 
-    # TODO: How to build up the necessary context?
-    # For now, we need:
-    # - campaign
-    # - product
+    # TODO: Content blocks don't make as much sense now; when to clean up?
+    # TODO: If we keep content blocks, should this be a method?
+    # Assume only one content block
+    content_block = campaign.content_blocks.all()[0]
+
+    product = content_block.data.product
+    product.json = product.data(raw=True)
+
+    campaign.stl_image = getattr(content_block.data, 'get_ls_image', noop)(url=True) or ''
+    campaign.featured_image = getattr(content_block.data, 'get_image', noop)(url=True) or ''
+    campaign.description = content_block.data.description or product.description
+    campaign.template = slugify(content_block.block_type.name)
+
+    context.update({
+        'product': product,
+        'campaign': campaign
+    })
 
     theme = campaign.store.theme
     page_str = theme.page

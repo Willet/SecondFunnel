@@ -129,7 +129,7 @@ class Product(BaseModelNamed):
     available = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return self.name
+        return unicode(self.name)
 
     def media_count(self):
         return self.media.count()
