@@ -1,5 +1,7 @@
 var pinpointTracking = (function ($, window, document) {
-    var referrerName = function () {
+    var isBounce = true,
+
+    referrerName = function () {
         var host;
 
         if (document.referrer === "") {
@@ -35,6 +37,8 @@ var pinpointTracking = (function ($, window, document) {
             "actionSubtype=" + o.subtype || "",
             "actionScope=" + pinpointTracking.socialShareType,
         ];
+
+        notABounce(o.type);
 
         trackEvent({
             "action": actionData.join("|"),
@@ -134,6 +138,21 @@ var pinpointTracking = (function ($, window, document) {
         });
     },
 
+    notABounce = function (how) {
+        // visitor already marked as "non-bounce"
+        if (!isBounce) {
+            return;
+        }
+
+        isBounce = false;
+
+        registerEvent({
+            "type": "visit",
+            "subtype": "noBounce",
+            "label": how
+        });
+    };
+
     init = function() {
         setSocialShareVars();
 
@@ -184,7 +203,8 @@ var pinpointTracking = (function ($, window, document) {
         "registerEvent": registerEvent,
         "setSocialShareVars": setSocialShareVars,
         "clearTimeout": clearTimeout,
-        "registerTwitterListeners": registerTwitterListeners
+        "registerTwitterListeners": registerTwitterListeners,
+        "notABounce": notABounce
     }
 
 }($, window, document));
