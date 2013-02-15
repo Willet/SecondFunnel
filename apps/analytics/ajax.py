@@ -3,6 +3,7 @@ import random
 
 from collections import defaultdict
 from datetime import timedelta, datetime
+from functools import partial
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
@@ -20,11 +21,14 @@ def daterange(start_date, end_date):
 
 @login_required
 def analytics_pinpoint(request):
-    def aggregate_by(bucket, key):
+    def aggregate_by(metric_slug, bucket, key):
         bucket['totals'][key] = defaultdict(int)
 
         for datum in bucket['data']:
-            bucket['totals'][key][datum[key]] += datum['value']
+            if metric_slug == "awareness-bounce_rate":
+                bucket['totals'][key][datum[key]] = datum['value']
+            else:
+                bucket['totals'][key][datum[key]] += datum['value']
 
         if key == 'date':
             # zero-out out missing dates
@@ -139,8 +143,9 @@ def analytics_pinpoint(request):
             # this aggregates and exposes daily data across all products
             bucket = results[category.slug][metric.slug]
 
-            bucket = aggregate_by(bucket, 'date')
-            bucket = aggregate_by(bucket, 'product_id')
-            bucket = aggregate_by(bucket, 'meta')
+            aggregator = partial(aggregate_by, metric.slug)
+            bucket = aggregator(bucket, 'date')
+            bucket = aggregator(bucket, 'product_id')
+            bucket = aggregator(bucket, 'meta')
 
     return ajax_success(results)

@@ -35,7 +35,8 @@ var PINPOINT = (function($, pageInfo){
         addOnBlocksAppendedCallback,
         blocksAppendedCallbacks = [],
         addPreviewCallback,
-        previewCallbacks = [];
+        previewCallbacks = [],
+        hoverTimer;
 
     details = pageInfo;
     details.store    = details.store    || {};
@@ -164,6 +165,8 @@ var PINPOINT = (function($, pageInfo){
         var $buttons = $(this).find('.social-buttons');
         $buttons.fadeIn('fast');
 
+        hoverTimer = Date.now();
+
         if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
             FB.XFBML.parse($buttons.find('.button.facebook')[0]);
             $buttons.addClass('loaded');
@@ -176,6 +179,15 @@ var PINPOINT = (function($, pageInfo){
     productHoverOff = function () {
         var $buttons = $(this).find('.social-buttons');
         $buttons.fadeOut('fast');
+
+        hoverTimer = Date.now() - hoverTimer;
+        if (hoverTimer > 1000) {
+            pinpointTracking.registerEvent({
+                "type": "inpage",
+                "subtype": "hover",
+                "label": $(this).data("url")
+            });
+        }
 
         pinpointTracking.clearTimeout();
         if (pinpointTracking.socialShareType !== "popup") {
@@ -408,7 +420,13 @@ var PINPOINT = (function($, pageInfo){
             noResults     = ($('.discovery-area .block').length === 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             lowestBlock,
-            lowestHeight;
+            lowestHeight,
+            divider_rect = $(".divider")[0].getBoundingClientRect();
+
+        // user scrolled far enough not to be a "bounce"
+        if (divider_rect.bottom < 150) {
+            pinpointTracking.notABounce("scroll");
+        }
 
         $('.discovery-area .block').each(function() {
             if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
@@ -513,6 +531,8 @@ var PINPOINT = (function($, pageInfo){
 
         FB.Event.subscribe('edge.create',
             function(url) {
+                pinpointTracking.notABounce("liked");
+
                 pinpointTracking.registerEvent({
                     "network": "Facebook",
                     "type": "share",
