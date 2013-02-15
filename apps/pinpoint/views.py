@@ -1,6 +1,7 @@
-from django.contrib import messages
+import os
 import re
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404, redirect
@@ -189,6 +190,25 @@ def campaign(request, campaign_id):
         return render_to_response('pinpoint/campaign.html', arguments,
                                   context_instance=context)
 
+
+def generate_static_campaign(campaign, contents, force=False):
+    """write a PinPoint page to local storage."""
+    write = False
+    filename = '%s/static/pinpoint/html/%s.html' % (os.path.dirname(
+        os.path.realpath(__file__)), campaign.id)
+    # the "robust" file exists method: stackoverflow.com/a/85237
+    try:
+        with file(filename) as tf:
+            if force:
+                write = True
+    except IOError:
+        write = True
+
+    if write:
+        with file(filename, 'w') as tf2:
+            tf2.write(contents)
+
+
 def campaign_to_theme_to_response(campaign, arguments, context=None,
                                   request=None):
     """Generates the HTML page for a standard pinpoint product page.
@@ -330,4 +350,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
     page = Template(theme.page_template)
 
     # Render response
-    return HttpResponse(page.render(page_context))
+    rendered_page = page.render(page_context)
+    generate_static_campaign(campaign, rendered_page, force=False)
+
+    return HttpResponse(rendered_page)
