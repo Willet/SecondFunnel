@@ -248,6 +248,8 @@ def fetch_event_data(*args):
     fetches that and initiates calculations
     """
     logger.info("Updating event analytics data")
+    engagement_prefixes = ["inpage", "visit", "content"]
+    share_prefixes = ["share"]
 
     query = {
         'metrics': ['uniqueEvents'],
@@ -337,10 +339,10 @@ def fetch_event_data(*args):
                     category, action))
                 continue
 
-            if row_data['action_type'] == 'inpage' or row_data['action_type'] == 'visit':
+            if row_data['action_type'] in engagement_prefixes:
                 analytics_categories['engagement'].append(row_data)
 
-            elif row_data['action_type'] == 'share':
+            elif row_data['action_type'] in share_prefixes:
                 analytics_categories['sharing'].append(row_data)
 
     # message could be larger than 64kb. As a quick way of circumventing the limitation,
@@ -610,34 +612,51 @@ def aggregate_saved_metrics(*args):
     avg = averager()
 
     to_process = [
+        # Bounces
+        {
+            # 1st data filter
+            'q_filter': Q(key__startswith="visit-"),
+
+            'metrics': [
+                # Sum up No Bounces
+                {
+                    # Metric slug
+                    'slug': 'total-no-bounces',
+
+                    # KVStore key
+                    'key': 'total-no-bounces',
+
+                    # 2nd data filter
+                    'q_filter': Q(key='visit-noBounce')
+                }
+            ]
+        },
+
         # Engagement
         {
-            'q_filter': Q(key__startswith="inpage-") | Q(key__startswith="visit-"),
+            # 1st data filter
+            'q_filter': Q(key__startswith="inpage-") | Q(key__startswith="content-") | Q(key__startswith="product-"),
+
             'metrics': [
                 # Product Interactions
-                # sums up all product related interactions
                 {
                     'slug': 'product-interactions',
-                    'key': 'inpage-product-interactions',
+                    'key': 'product-interactions',
                     'q_filter': Q(target_type=target_types['product']) & ~Q(meta="meta_metric"),
                 },
 
-                # sums up all content related interactions
-                # TODO
-
-                # Total Interactions
-                # sums up product and content interactions
+                # Content Interactions
                 {
-                    'slug': 'total-interactions',
-                    'key': 'inpage-total-interactions',
-                    'q_filter': Q(key__endswith='product-interactions') | Q(key__endswith='content-interactions')
+                    'slug': 'content-interactions',
+                    'key': 'content-interactions',
+                    'q_filter': Q(key__startswith='content-') & ~Q(meta="meta_metric"),
                 },
 
-                # Sum up No Bounces
+                # Total Interactions
                 {
-                    'slug': 'total-no-bounces',
-                    'key': 'total-no-bounces',
-                    'q_filter': Q(key='visit-noBounce')
+                    'slug': 'total-interactions',
+                    'key': 'total-interactions',
+                    'q_filter': Q(key='product-interactions') | Q(key='content-interactions')
                 }
             ]
         },
