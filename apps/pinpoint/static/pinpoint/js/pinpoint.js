@@ -22,7 +22,9 @@ var PINPOINT = (function($, pageInfo){
         pageScroll,
         commonHoverOn,
         commonHoverOff,
+        lifestyleHoverOn,
         lifestyleHoverOff,
+        productHoverOn,
         productHoverOff,
         ready,
         renderTemplate,
@@ -163,19 +165,21 @@ var PINPOINT = (function($, pageInfo){
         $mask.fadeOut(100);
     };
 
-    commonHoverOn = function () {
-        var $buttons = $(this).parent().find('.social-buttons');
-        $buttons.fadeIn('fast');
-
-        hoverTimer = Date.now();
-
-        if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
-            FB.XFBML.parse($buttons.find('.button.facebook')[0]);
-            $buttons.addClass('loaded');
-        }
-
-        pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(this).parent().data("url")});
+    commonHoverOn = function (t, enableSocialButtons) {
+        pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(t).parent().data("url")});
         pinpointTracking.clearTimeout();
+
+        if (enableSocialButtons) {
+            var $buttons = $(t).parent().find('.social-buttons');
+            $buttons.fadeIn('fast');
+
+            hoverTimer = Date.now();
+
+            if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
+                FB.XFBML.parse($buttons.find('.button.facebook')[0]);
+                $buttons.addClass('loaded');
+            }
+        }
     };
 
     commonHoverOff = function (t, hoverCallback) {
@@ -193,6 +197,10 @@ var PINPOINT = (function($, pageInfo){
         }
     };
 
+    productHoverOn = function () {
+        commonHoverOn(this, true);
+    }
+
     productHoverOff = function () {
         commonHoverOff(this, function (t) {
             pinpointTracking.registerEvent({
@@ -201,6 +209,10 @@ var PINPOINT = (function($, pageInfo){
                 "label": $(t).parent().data("url")
             });
         });
+    };
+
+    lifestyleHoverOn = function () {
+        commonHoverOn(this, false);
     };
 
     lifestyleHoverOff = function () {
@@ -519,10 +531,10 @@ var PINPOINT = (function($, pageInfo){
         // and update the clickstream
         $('.discovery-area').on('click', '.block.product', updateClickStream);
 
-        $('.discovery-area').on('mouseenter', '.block.product .product', commonHoverOn);
+        $('.discovery-area').on('mouseenter', '.block.product .product', productHoverOn);
         $('.discovery-area').on('mouseleave', '.block.product .product', productHoverOff);
 
-        $('.discovery-area').on('mouseenter', '.block.product .lifestyle', commonHoverOn);
+        $('.discovery-area').on('mouseenter', '.block.product .lifestyle', lifestyleHoverOn);
         $('.discovery-area').on('mouseleave', '.block.product .lifestyle', lifestyleHoverOff);
 
         $('.discovery-area').masonry({
