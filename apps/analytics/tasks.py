@@ -650,7 +650,7 @@ def aggregate_saved_metrics(*args):
                 {
                     'slug': 'total-shares',
                     'key': 'share-total',
-                    'q_filter': Q(key='share-clicked')
+                    'q_filter': Q(key='share-clicked') | Q(key='share-liked')
                 },
             ]
         },

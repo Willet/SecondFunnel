@@ -360,6 +360,22 @@
                     'sharing_source': []
                 },
 
+                merge_totals = function (t1, t2) {
+                    var type, key;
+
+                    for (type in t2) {
+                        for (key in t2[type]) {
+                            if (t1[type][key] !== undefined) {
+                                t1[type][key] += t2[type][key];
+                            } else {
+                                t1[type][key] = t2[type][key];
+                            }
+                        }
+                    }
+
+                    return t1;
+                },
+
                 totals = {
                     interactions: {
                         all: data.engagement['total-interactions'].totals.date.all,
@@ -374,22 +390,18 @@
 
                 bounce_rate = (1 - totals.notbounces / totals.visitors) * 100,
 
-                top_lists = {
-                    'engaged_products': data.engagement['inpage-openpopup'].totals.product_id,
-                    'sharing_products': data.sharing['share-clicked'].totals.product_id,
-                    'sharing_source': data.sharing['share-clicked'].totals.meta
-                },
-
                 cat_slug, metric_slug,
 
-                roundNumber = function (number, digits) {
-                    var multiple = Math.pow(10, digits);
-                    var rndedNum = Math.round(number * multiple) / multiple;
-                    if (rndedNum === Infinity || isNaN(rndedNum)) {
-                        return 0;
-                    }
-                    return rndedNum;
-                };
+                merged_sharing, top_lists;
+
+            merged_sharing = merge_totals(data.sharing['share-clicked'].totals,
+                data.sharing['share-liked'].totals);
+
+            top_lists = {
+                'engaged_products': data.engagement['inpage-openpopup'].totals.product_id,
+                'sharing_products': merged_sharing.product_id,
+                'sharing_source': merged_sharing.meta
+            };
 
             if (isNaN(bounce_rate)) {
                 bounce_rate = 0;
@@ -400,7 +412,7 @@
                 for (metric_slug in data[cat_slug]) {
                     // display totals in the sidebar on in the content section
                     $(".metric_overview[data-metric='" + metric_slug + "']").html(
-                        Math.round(data[cat_slug][metric_slug].totals.date.all)
+                        data[cat_slug][metric_slug].totals.date.all.toFixed(0)
                     );
                 }
             }
@@ -418,11 +430,11 @@
             $(".per-visitor").remove();
 
             $(".section_overview_block:first .section_overview_metrics ul").append(
-                "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + roundNumber(totals.interactions.all / totals.visitors, 2) + "</span> Interactions per visit</li>");
+                "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / totals.visitors).toFixed(2) + "</span> Interactions per visit</li>");
 
 
             $(".section_overview_block:nth-child(2) .section_overview_metrics ul").append(
-                "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + roundNumber(totals.shares / totals.visitors, 2) + "</span> Shares per visit</li>");
+                "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + (totals.shares / totals.visitors).toFixed(2) + "</span> Shares per visit</li>");
 
             $(".section_overview_block:nth-child(3) .section_overview_metrics ul").append(
                 "<li class='per-visitor'><span class='metric_overview' data-metric='bounce-rate'>" + bounce_rate.toFixed(2) + "%</span> Bounce Rate</li>");
