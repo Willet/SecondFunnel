@@ -20,7 +20,9 @@ var PINPOINT = (function($, pageInfo){
         loadInitialResults,
         loadMoreResults,
         pageScroll,
-        productHoverOn,
+        commonHoverOn,
+        commonHoverOff,
+        lifestyleHoverOff,
         productHoverOff,
         ready,
         renderTemplate,
@@ -161,8 +163,8 @@ var PINPOINT = (function($, pageInfo){
         $mask.fadeOut(100);
     };
 
-    productHoverOn = function () {
-        var $buttons = $(this).find('.social-buttons');
+    commonHoverOn = function () {
+        var $buttons = $(this).parent().find('.social-buttons');
         $buttons.fadeIn('fast');
 
         hoverTimer = Date.now();
@@ -172,27 +174,43 @@ var PINPOINT = (function($, pageInfo){
             $buttons.addClass('loaded');
         }
 
-        pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(this).data("url")});
+        pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(this).parent().data("url")});
         pinpointTracking.clearTimeout();
     };
 
-    productHoverOff = function () {
-        var $buttons = $(this).find('.social-buttons');
+    commonHoverOff = function (t, hoverCallback) {
+        var $buttons = $(t).parent().find('.social-buttons');
         $buttons.fadeOut('fast');
 
         hoverTimer = Date.now() - hoverTimer;
         if (hoverTimer > 1000) {
-            pinpointTracking.registerEvent({
-                "type": "inpage",
-                "subtype": "hover",
-                "label": $(this).data("url")
-            });
+            hoverCallback(t);
         }
 
         pinpointTracking.clearTimeout();
         if (pinpointTracking.socialShareType !== "popup") {
             pinpointTracking._pptimeout = window.setTimeout(pinpointTracking.setSocialShareVars, 2000);
         }
+    };
+
+    productHoverOff = function () {
+        commonHoverOff(this, function (t) {
+            pinpointTracking.registerEvent({
+                "type": "inpage",
+                "subtype": "hover",
+                "label": $(t).parent().data("url")
+            });
+        });
+    };
+
+    lifestyleHoverOff = function () {
+        commonHoverOff(this, function (t) {
+            pinpointTracking.registerEvent({
+                "type": "content",
+                "subtype": "hover",
+                "label": $(t).children().attr("src")
+            });
+        });
     };
 
     updateClickStream = function (event) {
@@ -497,11 +515,15 @@ var PINPOINT = (function($, pageInfo){
         // Event Handling
         // when someone clicks on a product, show the product details overlay
         $('.discovery-area').on('click', '.block.product', showPreview);
+
         // and update the clickstream
         $('.discovery-area').on('click', '.block.product', updateClickStream);
 
-        $('.discovery-area').on('mouseenter', '.block.product', productHoverOn);
-        $('.discovery-area').on('mouseleave', '.block.product', productHoverOff);
+        $('.discovery-area').on('mouseenter', '.block.product .product', commonHoverOn);
+        $('.discovery-area').on('mouseleave', '.block.product .product', productHoverOff);
+
+        $('.discovery-area').on('mouseenter', '.block.product .lifestyle', commonHoverOn);
+        $('.discovery-area').on('mouseleave', '.block.product .lifestyle', lifestyleHoverOff);
 
         $('.discovery-area').masonry({
             itemSelector: '.block',

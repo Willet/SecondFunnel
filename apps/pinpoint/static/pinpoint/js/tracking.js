@@ -89,12 +89,21 @@ var pinpointTracking = (function ($, window, document) {
             });
         });
 
-        // popup open event
-        $(document).on("click", ".discovery-area > .product", function(e) {
+        // popup open event: product click
+        $(document).on("click", ".discovery-area > .product .product", function(e) {
             pinpointTracking.registerEvent({
                 "type": "inpage",
                 "subtype": "openpopup",
                 "label": $(this).data("url")
+            });
+        });
+
+        // lifestyle image click
+        $(document).on("click", ".discovery-area > .product .lifestyle", function(e) {
+            pinpointTracking.registerEvent({
+                "type": "content",
+                "subtype": "openpopup",
+                "label": $(this).children().attr("src")
             });
         });
 
