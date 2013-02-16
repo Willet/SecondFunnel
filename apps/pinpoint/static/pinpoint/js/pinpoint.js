@@ -551,8 +551,6 @@ var PINPOINT = (function($, pageInfo){
 
         FB.Event.subscribe('edge.create',
             function(url) {
-                pinpointTracking.notABounce("liked");
-
                 pinpointTracking.registerEvent({
                     "network": "Facebook",
                     "type": "share",
