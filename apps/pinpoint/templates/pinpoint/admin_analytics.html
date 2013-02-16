@@ -392,13 +392,16 @@
 
                 cat_slug, metric_slug,
 
-                merged_sharing, top_lists;
+                merged_sharing, merged_interactions, top_lists;
 
             merged_sharing = merge_totals(data.sharing['share-clicked'].totals,
                 data.sharing['share-liked'].totals);
 
+            merged_interactions = merge_totals(data.engagement['inpage-openpopup'].totals,
+                data.engagement['inpage-hover'].totals);
+
             top_lists = {
-                'engaged_products': data.engagement['inpage-openpopup'].totals.product_id,
+                'engaged_products': merged_interactions.product_id,
                 'sharing_products': merged_sharing.product_id,
                 'sharing_source': merged_sharing.meta
             };
