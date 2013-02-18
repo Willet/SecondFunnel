@@ -38,7 +38,10 @@ class GoogleAnalyticsBackend:
 
         return ",".join(map(lambda p: "ga:%s" % p, params))
 
-    def create_query(self, start_date, end_date, metrics, dimensions=None, sort=None, start_index="1", max_results='10000'):
+    def create_query(self, start_date, end_date, metrics, dimensions=None, sort=None, filters=None, start_index="1", max_results='10000'):
+        if filters is not None:
+            filters = ["{0}{1}".format(f, filters[f]) for f in filters.keys()]
+
         api_query = self.service.data().ga().get(
             ids="ga:%s" % self.get_profile_id(),
             start_date=start_date,
@@ -46,6 +49,7 @@ class GoogleAnalyticsBackend:
             metrics=self.join_params(metrics),
             dimensions=self.join_params(dimensions),
             sort=self.join_params(sort),
+            filters=self.join_params(filters),
             start_index=start_index,
             max_results=max_results
         )
@@ -69,7 +73,7 @@ class GoogleAnalyticsBackend:
                 'There was a Google Analytics Core API error : %s', error)
             return None
 
-    def results_iterator(self, start_date, end_date, metrics, dimensions=None, sort=None, max_results='10000', start_index="1"):
+    def results_iterator(self, start_date, end_date, metrics, dimensions=None, sort=None, filters=None, max_results='10000', start_index="1"):
         """
         Creates a generator over google analytics results data
         which is likely spanning multiple pages
@@ -82,7 +86,7 @@ class GoogleAnalyticsBackend:
         while True:
             next_query = self.create_query(
                 start_date, end_date, metrics,
-                dimensions=dimensions, sort=sort, start_index=start_index,
+                dimensions=dimensions, sort=sort, filters=filters, start_index=start_index,
                 max_results=max_results
             )
             results = self.get_results(next_query)
