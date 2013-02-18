@@ -9,7 +9,6 @@ var PINPOINT = (function($, pageInfo){
         createPinterestButton,
         details,
         domTemplateCache = {},
-        featuredAreaSetup,
         getShortestColumn,
         hidePreview,
         init,
@@ -251,19 +250,40 @@ var PINPOINT = (function($, pageInfo){
         // should be used.
         // data can be passed in, or left as default on the target element
         // as data attributes.
-        $('.template.target').each(function () {
-            var mergedData = data || {},
+        var excludeTemplates, excludeTemplatesSelector;
+
+        switch (details.page['main-block-template']) {
+            case 'shop-the-look':
+                excludeTemplates = ['featured-product'];
+                break;
+            case 'featured-product':
+                excludeTemplates = ['shop-the-look'];
+                break;
+            default:
+                excludeTemplates = '';
+        }
+
+        $.each(excludeTemplates, function (key, value) {
+            excludeTemplates[key] = "[data-src='" + value + "']";
+        });
+        excludeTemplatesSelector = excludeTemplates.join(', ');
+
+            $('.template.target').not(excludeTemplatesSelector).each(function () {
+            var originalContext = data || {},
                 target = $(this),
                 src = target.data('src') || '',
-                srcElement = $('#' + src);
+                srcElement = $('#' + src),
+                context = {};
 
-            $.extend(true, mergedData, {
-                'product': details.product
-            }, target.data() || {});
+            $.extend(context, originalContext, {
+                'page': details.page,
+                'store': details.store,
+                'data': target.data() || {}
+            });
 
             // if the required template is on the page, use it
             if (srcElement.length) {
-                target.html(renderTemplate(srcElement.html(), mergedData));
+                target.html(renderTemplate(srcElement.html(), context));
             } else {
                 target.html('Error: required template #' + src +
                             ' does not exist');
@@ -445,34 +465,9 @@ var PINPOINT = (function($, pageInfo){
         }
     };
 
-    featuredAreaSetup = function () {
-        var $featuredArea = $('.featured'),
-            data = details.product,
-            url = data['url'],
-            title = data['name'],
-            fbButton = createFBButton({ 'url': url }),
-            twitterButton;
-
-        twitterButton = createTwitterButton({
-            'url'  : url,
-            'title': title,
-            'count': true
-        });
-
-        $featuredArea.find('.button.twitter').empty().append(twitterButton);
-        $featuredArea.find('.button.facebook').empty().append(fbButton);
-        if (window.FB) {
-            FB.XFBML.parse($featuredArea.find('.button.facebook')[0]);
-        }
-        if (window.twttr && window.twttr.widgets) {
-            twttr.widgets.load();
-        }
-    };
-
     ready = function() {
         // Special Setup
         renderTemplates();
-        featuredAreaSetup();
 
         // Event Handling
         // when someone clicks on a product, show the product details overlay

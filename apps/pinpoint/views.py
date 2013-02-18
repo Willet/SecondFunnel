@@ -235,6 +235,8 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
             # TODO: Do we need to render, or can we just convert to string?
             if isinstance(result, Template):
                 result = result.render(context)
+            else:
+                result = result.encode('unicode-escape')
 
             sub_values.append(result)
 
