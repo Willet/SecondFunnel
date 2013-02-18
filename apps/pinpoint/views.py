@@ -271,6 +271,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
             related_results = get_seeds(request, store=campaign.store.slug,
                                         campaign=campaign.id,
                                         seeds=product.id,
+                                        results=100,
                                         raw=True)
 
         product.description    = content_block.data.description

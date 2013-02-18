@@ -11,6 +11,7 @@ var PINPOINT = (function($, pageInfo){
         details,
         domTemplateCache = {},
         featuredAreaSetup,
+        fisherYates,
         getShortestColumn,
         hidePreview,
         init,
@@ -20,6 +21,7 @@ var PINPOINT = (function($, pageInfo){
         loadFB,
         loadInitialResults,
         loadMoreResults,
+        MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         pageScroll,
         productHoverOn,
         productHoverOff,
@@ -47,6 +49,13 @@ var PINPOINT = (function($, pageInfo){
                             details.randomResults || // than totally random
                             {};
 
+    // fix format difference between backup results and intentRank returns.
+    if (!details.backupResults.products) {
+        details.backupResults = {
+            'products': details.backupResults
+        };
+    }
+
     /* --- START Utilities --- */
     getShortestColumn = function () {
         var $column;
@@ -63,6 +72,19 @@ var PINPOINT = (function($, pageInfo){
     };
 
     console.log = console.log || function () {};
+
+    fisherYates = function (myArray, nb_picks) {
+        // get #nb_picks random permutations of an array.
+        // http://stackoverflow.com/a/2380070
+        for (var i = myArray.length - 1; i > 1; i--) {
+            var r = Math.floor(Math.random() * i);
+            var t = myArray[i];
+            myArray[i] = myArray[r];
+            myArray[r] = t;
+        }
+
+        return myArray.slice(0, nb_picks);
+    };
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
@@ -291,7 +313,9 @@ var PINPOINT = (function($, pageInfo){
                 success: function(results) {
                     layoutResults(results);
                 },
-                failure: function() {
+                error: function() {
+                    console.log('loading backup results');
+                    layoutResults(details.backupResults);
                     loadingBlocks = false;
                 }
             });
@@ -317,8 +341,9 @@ var PINPOINT = (function($, pageInfo){
                 success: function(results) {
                     layoutResults(results, belowFold);
                 },
-                failure: function() {
-                    layoutResults(backupResults, belowFold);
+                error: function() {
+                    console.log('loading backup results');
+                    layoutResults(details.backupResults, belowFold);
                     loadingBlocks = false;
                 }
             });
@@ -341,8 +366,8 @@ var PINPOINT = (function($, pageInfo){
             i = 0,
             productDoms = [],
             result,
-            results = jsonData.products || [],
-            initialResults = results.length,
+            results = fisherYates(jsonData.products, MAX_RESULTS_PER_SCROLL) || [],
+            initialResults = Math.max(results.length, MAX_RESULTS_PER_SCROLL),
             discoveryProductTemplate = $('#discovery_product_template').html(),
             youtubeVideoTemplate = $('#youtube_video_template').html(),
             videos = jsonData.videos || [];
@@ -353,7 +378,7 @@ var PINPOINT = (function($, pageInfo){
                 var template_context = results[i], el;
 
                 // in case an image is lacking, don't bother with the product
-                if (template_context.image == "None") {
+                if (!template_context.image || template_context.image == "None") {
                     continue;
                 }
 
@@ -365,7 +390,7 @@ var PINPOINT = (function($, pageInfo){
                 productDoms.push(el[0]);
             } catch (err) {
                 // hide rendering error
-                console && console.log && console.log('oops @ product');
+                console.log('oops @ product: ' + err);
             }
         }
 
@@ -375,7 +400,7 @@ var PINPOINT = (function($, pageInfo){
                 productDoms.push($(renderTemplate(youtubeVideoTemplate, videos[i]))[0]);
             } catch (err) {
                 // hide rendering error
-                console && console.log && console.log('oops @ video');
+                console.log('oops @ video');
             }
         }
 
