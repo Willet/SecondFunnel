@@ -1,7 +1,7 @@
 from functools import partial
 import json
 from django.contrib import messages
-from django.template.defaultfilters import slugify
+from django.template.defaultfilters import slugify, safe
 import re
 
 from django.contrib.auth.decorators import login_required
@@ -207,7 +207,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
     campaign.stl_image = getattr(content_block.data, 'get_ls_image', noop)(url=True) or ''
     campaign.featured_image = getattr(content_block.data, 'get_image', noop)(url=True) or ''
-    campaign.description = content_block.data.description or product.description
+    campaign.description = safe(content_block.data.description or product.description)
     campaign.template = slugify(content_block.block_type.name)
 
     context.update({
