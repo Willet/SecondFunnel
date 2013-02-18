@@ -22,7 +22,7 @@ class BaseNamedAdmin(BaseAdmin):
         'slug'
     ] + BaseAdmin.list_display
 
-    search_fields = ['name']
+    search_fields = ['name', 'original_url',]
 
     prepopulated_fields = {"slug": ("name",)}
 
@@ -70,9 +70,12 @@ class ProductMediaInline(admin.TabularInline):
 
 class ProductAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + [
-        'store', 'original_url', 'price', 'media_count', 'lifestyleImage']
+        'store', 'original_url', 'price', 'available', 'media_count',]
 
-    list_filter = BaseNamedAdmin.list_filter + ['store',]
+    list_filter = BaseNamedAdmin.list_filter + ['available', 'store',]
+    list_editable = ['available',]
+
+    filter_horizontal = ('lifestyleImages',)
 
     inlines = [
         ProductMediaInline,
@@ -82,8 +85,11 @@ class ProductAdmin(BaseNamedAdmin):
 
     def lifestyle_preview(self, obj):
         try:
-            url = obj.lifestyleImage.get_url()
-            return mark_safe("<img src='{url}' />".format(url=url))
+            html = []
+            for image in obj.lifestyleImages.all():
+                url  = image.get_url()
+                html.append("<img src='{url}' /><br/>".format(url=url))
+            return mark_safe(''.join(html))
         except AttributeError:
             return "No Image Available"
 

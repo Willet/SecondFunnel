@@ -232,8 +232,15 @@ def tag_content(request, store_id):
 
     return redirect('asset-manager', store_id=store_id)
 
+# origin: campaigns with short URLs are cached for 30 minutes
 @cache_page(60 * 30)
 def campaign_short(request, campaign_id_short):
+    """base62() is a custom function, so to figure out the long
+    campaign URL, go to http://elenzil.com/esoterica/baseConversion.html
+    and decode with the base in utils/base62.py.
+
+    The long URL is (currently) /pinpoint/(long ID).
+    """
     return campaign(request, base62.decode(campaign_id_short))
 
 
@@ -266,10 +273,14 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
     # Determine featured content type
     # TODO: How to handle multiple block types?
+    content_block = None
     for block in campaign.content_blocks.all():
         if block.content_type.name != "campaign":
             content_block = block
             break
+
+    if not content_block:
+        raise ValueError('Could not get content block')
 
     featured_context = Context()
     type = content_block.content_type.name
@@ -278,22 +289,28 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         content_template = theme.featured_product
         product          = content_block.data.product
 
-        # TODO: Is the featured image always in the list of images?
-        featured_image   = content_block.data.get_image().get_url()
-
         product.description    = content_block.data.description
-        product.featured_image = featured_image
         product.is_featured    = True
+
+        # TODO: Is the featured image always in the list of images?
+        featured_image_obj = content_block.data.get_image()
+        if featured_image_obj:
+            featured_image = featured_image_obj.get_url()
+            product.featured_image = featured_image
 
         # Piggyback off of featured product block
         if type == 'shop the look block':
-            lifestyle_image = content_block.data.get_ls_image().get_url()
-            product.lifestyle_image = lifestyle_image
+            lifestyle_image_obj = content_block.data.get_ls_image()
+
+            if lifestyle_image_obj:
+                lifestyle_image = lifestyle_image_obj.get_url()
+                product.lifestyle_image = lifestyle_image
 
         featured_context.update({
             'product': product,
         })
     else:
+        content_template = ''
         product = {
             'title': "Unknown Product",
             'url': 'http://secondfunnel.com',
@@ -328,7 +345,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
         "</div>",
         "</div>",
         "</div>"
-    ]);
+    ])
     product_preview = Template(modified_preview).render(context)
 
     # Featured content

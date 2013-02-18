@@ -20,6 +20,10 @@ var PINPOINT = (function($, pageInfo){
         loadInitialResults,
         loadMoreResults,
         pageScroll,
+        commonHoverOn,
+        commonHoverOff,
+        lifestyleHoverOn,
+        lifestyleHoverOff,
         productHoverOn,
         productHoverOff,
         ready,
@@ -35,7 +39,8 @@ var PINPOINT = (function($, pageInfo){
         addOnBlocksAppendedCallback,
         blocksAppendedCallbacks = [],
         addPreviewCallback,
-        previewCallbacks = [];
+        previewCallbacks = [],
+        hoverTimer;
 
     details = pageInfo;
     details.store    = details.store    || {};
@@ -91,7 +96,7 @@ var PINPOINT = (function($, pageInfo){
                 case 'image':
                     $element.empty();
                     $element.append($('<img/>', {
-                        'src': value
+                        'src': value.replace("master.jpg", "large.jpg")
                     }));
                     break;
                 case 'images':
@@ -99,7 +104,7 @@ var PINPOINT = (function($, pageInfo){
                     $.each(value, function(index, image) {
                         var $li = $('<li/>'),
                             $img = $('<img/>', {
-                                'src': image
+                                'src': image.replace("master.jpg", "thumb.jpg")
                             }),
                             $appendElem;
 
@@ -160,22 +165,31 @@ var PINPOINT = (function($, pageInfo){
         $mask.fadeOut(100);
     };
 
-    productHoverOn = function () {
-        var $buttons = $(this).find('.social-buttons');
-        $buttons.fadeIn('fast');
-
-        if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
-            FB.XFBML.parse($buttons.find('.button.facebook')[0]);
-            $buttons.addClass('loaded');
-        }
-
-        pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(this).data("url")});
+    commonHoverOn = function (t, enableSocialButtons) {
+        pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(t).parent().data("url")});
         pinpointTracking.clearTimeout();
+
+        if (enableSocialButtons) {
+            var $buttons = $(t).parent().find('.social-buttons');
+            $buttons.fadeIn('fast');
+
+            hoverTimer = Date.now();
+
+            if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
+                FB.XFBML.parse($buttons.find('.button.facebook')[0]);
+                $buttons.addClass('loaded');
+            }
+        }
     };
 
-    productHoverOff = function () {
-        var $buttons = $(this).find('.social-buttons');
+    commonHoverOff = function (t, hoverCallback) {
+        var $buttons = $(t).parent().find('.social-buttons');
         $buttons.fadeOut('fast');
+
+        hoverTimer = Date.now() - hoverTimer;
+        if (hoverTimer > 1000) {
+            hoverCallback(t);
+        }
 
         pinpointTracking.clearTimeout();
         if (pinpointTracking.socialShareType !== "popup") {
@@ -183,10 +197,38 @@ var PINPOINT = (function($, pageInfo){
         }
     };
 
+    productHoverOn = function () {
+        commonHoverOn(this, true);
+    }
+
+    productHoverOff = function () {
+        commonHoverOff(this, function (t) {
+            pinpointTracking.registerEvent({
+                "type": "inpage",
+                "subtype": "hover",
+                "label": $(t).parent().data("url")
+            });
+        });
+    };
+
+    lifestyleHoverOn = function () {
+        commonHoverOn(this, false);
+    };
+
+    lifestyleHoverOff = function () {
+        commonHoverOff(this, function (t) {
+            pinpointTracking.registerEvent({
+                "type": "content",
+                "subtype": "hover",
+                "label": $(t).children().attr("src")
+            });
+        });
+    };
+
     updateClickStream = function (event) {
         var $target = $(event.currentTarget),
             data      = $target.data(),
-            id        = data.productId,
+            id        = data['product-id'],
             exceededThreshold;
 
         userClicks += 1;
@@ -331,8 +373,18 @@ var PINPOINT = (function($, pageInfo){
         // concatenate all the results together so they're in the same jquery object
         for (i = 0; i < results.length; i++) {
             try {
-                var el = $(renderTemplate(discoveryProductTemplate, {'product': results[i]}));
-                el.data(results[i]);  // populate the .product.block div with data
+                var template_context = results[i], el;
+
+                // in case an image is lacking, don't bother with the product
+                if (template_context.image == "None") {
+                    continue;
+                }
+
+                // use the resized images
+                template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
+
+                el = $(renderTemplate(discoveryProductTemplate, {'product': template_context}));
+                el.data(template_context);  // populate the .product.block div with data
                 productDoms.push(el[0]);
             } catch (err) {
                 // hide rendering error
@@ -363,6 +415,26 @@ var PINPOINT = (function($, pageInfo){
             }
             $('.discovery-area').append($elem[0]);
         });
+
+        // we can now load youtube videos
+        for (i = 0; i < videos.length; i++) {
+            var v = videos[i], player;
+
+            player = new YT.Player(v.video_id, {
+                height: v.video_height,
+                width: v.video_width,
+                videoId: v.video_id,
+                playerVars: {
+                    'autoplay': v.video_autoplay,
+                    'controls': 0
+                },
+                events: {
+                    'onReady': function(e) {},
+                    'onStateChange': pinpointTracking.videoStateChange,
+                    'onError': function(e) {}
+                }
+            });
+        }
 
         // make sure images are loaded or else masonry wont work properly
         $block.imagesLoaded(function($images, $proper, $broken) {
@@ -398,7 +470,13 @@ var PINPOINT = (function($, pageInfo){
             noResults     = ($('.discovery-area .block').length === 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             lowestBlock,
-            lowestHeight;
+            lowestHeight,
+            divider_rect = $(".divider")[0].getBoundingClientRect();
+
+        // user scrolled far enough not to be a "bounce"
+        if (divider_rect.bottom < 150) {
+            pinpointTracking.notABounce("scroll");
+        }
 
         $('.discovery-area .block').each(function() {
             if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
@@ -449,16 +527,25 @@ var PINPOINT = (function($, pageInfo){
         // Event Handling
         // when someone clicks on a product, show the product details overlay
         $('.discovery-area').on('click', '.block.product', showPreview);
+
         // and update the clickstream
         $('.discovery-area').on('click', '.block.product', updateClickStream);
 
-        $('.discovery-area').on('mouseenter', '.block.product', productHoverOn);
-        $('.discovery-area').on('mouseleave', '.block.product', productHoverOff);
+        $('.discovery-area').on('mouseenter', '.block.product .product', productHoverOn);
+        $('.discovery-area').on('mouseleave', '.block.product .product', productHoverOff);
+
+        $('.discovery-area').on('mouseenter', '.block.product .lifestyle', lifestyleHoverOn);
+        $('.discovery-area').on('mouseleave', '.block.product .lifestyle', lifestyleHoverOff);
 
         $('.discovery-area').masonry({
             itemSelector: '.block',
-            columnWidth: 960 / 4,
-            isResizable: true
+
+            columnWidth: function (containerWidth) {
+                return containerWidth / 4;
+            },
+
+            isResizable: true,
+            isAnimated: true
         });
 
         $('.preview .mask, .preview .close').on('click', hidePreview);
@@ -616,5 +703,3 @@ var PINPOINT = (function($, pageInfo){
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback
     };
 })(jQuery, window.PINPOINT_INFO || {});
-
-PINPOINT.init();
