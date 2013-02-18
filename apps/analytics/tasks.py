@@ -642,7 +642,7 @@ def aggregate_saved_metrics(*args):
                 {
                     'slug': 'product-interactions',
                     'key': 'product-interactions',
-                    'q_filter': Q(target_type=target_types['product']) & ~Q(meta="meta_metric"),
+                    'q_filter': Q(key__in=['inpage-hover', 'inpage-openpopup']),
                 },
 
                 # Content Interactions
@@ -664,12 +664,13 @@ def aggregate_saved_metrics(*args):
         # Sharing
         {
             'q_filter': Q(key__startswith="share-"),
+
             'metrics': [
-                # sums up all clicked-on-social-button actions
+                # Total Shares
                 {
                     'slug': 'total-shares',
                     'key': 'share-total',
-                    'q_filter': Q(key='share-clicked') | Q(key='share-liked')
+                    'q_filter': Q(key__in=['share-clicked', 'share-liked'])
                 },
             ]
         },
@@ -677,15 +678,16 @@ def aggregate_saved_metrics(*args):
         # Awareness
         {
             'q_filter': Q(key__startswith="awareness-"),
+
             'metrics': [
-                # total visitors
+                # Total Visitors
                 {
                     'slug': 'awareness-visitors',
                     'key': 'awareness-visitors',
                     'q_filter': Q(key='awareness-visitors')
                 },
 
-                # total pageviews
+                # Total Pageviews
                 {
                     'slug': 'awareness-pageviews',
                     'key': 'awareness-pageviews',
