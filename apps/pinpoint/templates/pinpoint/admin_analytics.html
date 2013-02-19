@@ -79,6 +79,12 @@
             list-style: none;
         }
 
+        .section_overview_metrics .meta_metric, .section_overview_metrics .per-visitor {
+            margin-top: 10px;
+            position: relative;
+            left: -7px;
+        }
+
         .metric_overview {
             font-weight: bold;
         }
@@ -637,7 +643,7 @@
                             {% with metric.list|first as metric_meta %}
                                 {% if metric.grouper.enabled %}
                                     {% if metric_meta.display %}
-                                    <li>
+                                    <li {% if metric_meta.is_meta %}class="meta_metric"{% endif %}>
                                         <span class="metric_overview" data-metric="{{ metric.grouper.slug }}"></span>
                                         {{ metric.grouper.name }}
                                     </li>
