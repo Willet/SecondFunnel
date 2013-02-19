@@ -28,14 +28,14 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # We should be able to just run `bundle exec sass` in dev as we do in
 # production. Until we've figured that out, just running things this way
 COMPRESS_PRECOMPILERS = (
-    ('text/x-sass', 'sass {infile} {outfile}'),
-    ('text/x-scss', 'sass {infile} {outfile}'),
+    ('text/x-sass', 'bundle exec sass {infile} {outfile}'),
+    ('text/x-scss', 'bundle exec sass {infile} {outfile}'),
 )
 
 DEFAULT_FILE_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 COMPRESS_STORAGE = STATICFILES_STORAGE
-COMPRESS_ENABLED = True
+COMPRESS_ENABLED = False
 
 STATIC_URL = '/static/'
 COMPRESS_URL = STATIC_URL

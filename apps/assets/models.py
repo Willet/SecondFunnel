@@ -138,8 +138,16 @@ class Product(BaseModelNamed):
     def url(self):
         return self.original_url
 
-    def images(self):
-        return [x.get_url() for x in self.media.all()]
+    def images(self, include_external=True):
+        """if include_external, then all external media (e.g. instagram photos)
+        will be included in the list.
+        """
+        product_images = [x.get_url() for x in self.media.all()]
+        if include_external:
+            for external_content in self.external_content.all():
+                if external_content.image_url:
+                    product_images.append(external_content.image_url)
+        return product_images
 
     def data(self, raw=False):
         """HTML string representation of some of the product's properties.
@@ -162,12 +170,7 @@ class Product(BaseModelNamed):
 
         # add instagram images to image list
         for content in self.external_content.all():
-            external_content.append({
-                'original-id': content.original_id,
-                'original-url': content.original_url,
-                'content-type': content.content_type.name,
-                'image-url': content.image_url,
-            })
+            external_content.append(content.to_json())
 
             if content.content_type.name.lower() == 'instagram':
                 images.append(content.image_url)
@@ -230,6 +233,15 @@ class ExternalContent(BaseModel):
 
     def __unicode__(self):
         return u''
+
+    def to_json(self):
+        """A bit like data(), but not returning an html data string"""
+        return {
+            'original-id': self.original_id,
+            'original-url': self.original_url,
+            'content-type': self.content_type.name,
+            'image-url': self.image_url,
+        }
 
 # If we need different behaviour per model, just use a proxy model.
 

@@ -140,14 +140,17 @@ def process_intentrank_request(request, store, page, function_name,
     return products, response.status
 
 
-def get_json_data(request, products, campaign_id):
+def get_json_data(request, products, campaign_id, seeds=None):
     """returns json equivalent of get_blocks' blocks.
+
+    seeds is a list of product IDs.
 
     results will be an object {}, not an array [].
     """
     campaign = Campaign.objects.get(pk=campaign_id)
     results = {'products': [],
-               'videos': []}
+               'videos': [],
+               'external-content': []}
 
     # products
     for product in products:
@@ -181,6 +184,13 @@ def get_json_data(request, products, campaign_id):
     else:
         video_cookie.add_blocks(len(results))
 
+    # return external media for all seeds too
+    if seeds:
+        seed_prods = Product.objects.filter(pk__in=seeds, rescrape=False)
+        for seed_prod in seed_prods:
+            for external_content in seed_prod.external_content.all():
+                results['external-content'].append(external_content.to_json())
+
     request.session['pinpoint-video-cookie'] = video_cookie
 
     return results
@@ -202,7 +212,8 @@ def get_seeds(request):
     )
 
     if status in SUCCESS_STATUSES:
-        result = get_json_data(request, results, page)
+        result = get_json_data(request, results, page,
+                               seeds=filter(None, seeds.split(',')))
     else:
         result = results
 
