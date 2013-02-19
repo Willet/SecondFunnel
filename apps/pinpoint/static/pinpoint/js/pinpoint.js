@@ -351,19 +351,21 @@ var PINPOINT = (function($, pageInfo){
         // {products: [], videos: [(sizeof 1)]}
         var $block,
             $col,
-            i = 0,
+            i,
             productDoms = [],
             result,
             results = jsonData.products || [],
             initialResults = results.length,
-            discoveryProductTemplate = $("[data-template-id='product']").html(),
+            template,
             youtubeVideoTemplate = $('#youtube_video_template').html(),
-            videos = jsonData.videos || [];
+            videos = jsonData.videos || [],
+            template_context, el;
 
         // concatenate all the results together so they're in the same jquery object
         for (i = 0; i < results.length; i++) {
             try {
-                var template_context = results[i], el;
+                template_context = results[i];
+                template = $("[data-template-id='" + (results[i].template || 'product')+ "']").html()
 
                 // in case an image is lacking, don't bother with the product
                 if (template_context.image == "None") {
@@ -373,7 +375,7 @@ var PINPOINT = (function($, pageInfo){
                 // use the resized images
                 template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
 
-                el = $(renderTemplate(discoveryProductTemplate, {
+                el = $(renderTemplate(template, {
                     'data': template_context,
                     'page': details.page,
                     'store': details.store
@@ -395,6 +397,9 @@ var PINPOINT = (function($, pageInfo){
                 console && console.log && console.log('oops @ video');
             }
         }
+
+        // Remove potentially bad content
+        productDoms = _.filter(productDoms, function(elem) {return !_.isEmpty(elem)})
 
         $block = $(productDoms);  // an array of DOM elements
 

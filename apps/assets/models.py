@@ -167,6 +167,7 @@ class Product(BaseModelNamed):
             'data-image': strip_and_escape(image),
             'data-images': '|'.join(strip_and_escape(x) for x in images),
             'data-product-id': self.id,
+            'data-template': 'product'
         }
 
         if self.lifestyleImages.all():
@@ -174,6 +175,7 @@ class Product(BaseModelNamed):
             random_idx = random.randint(0, self.lifestyleImages.count()-1)
             random_img = self.lifestyleImages.all()[random_idx]
             fields['data-lifestyle_image'] = strip_and_escape(random_img)
+            fields['data-template'] = 'combobox'
 
         if raw:
             data = {}
