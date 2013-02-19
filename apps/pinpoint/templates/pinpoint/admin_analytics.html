@@ -605,7 +605,7 @@
         <div class="page_selector">
             <label for="campaign_list">Page:</label>
             <select id="campaign_list" name="campaign_list">
-                {% for c in store.campaign_set.all %}
+                {% for c in store.live_campaigns %}
                     <option value="{{ c.id }}" {% if c.id == campaign.id %}selected{% endif %}>{{ c.name }}</option>
                 {% endfor %}
             </select>
