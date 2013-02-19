@@ -38,7 +38,7 @@ class GoogleAnalyticsBackend:
 
     def create_query(self, start_date, end_date, metrics, dimensions=None, sort=None, filters=None, start_index="1", max_results='10000'):
         if filters is not None:
-            filters = ["{0}{1}".format(f, filters[f]) for f in filters.keys()]
+            filters = ["{0}{1}".format(f[0], f[1]) for f in filters]
 
         api_query = self.service.data().ga().get(
             ids="ga:%s" % settings.GOOGLE_ANALYTICS_PROFILE,
