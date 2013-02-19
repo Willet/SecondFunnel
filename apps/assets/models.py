@@ -151,6 +151,7 @@ class Product(BaseModelNamed):
             modified_text = escape(modified_text)
             return modified_text
 
+        instagram_tags = []
         images = self.images()
 
         if self.default_image:
@@ -159,6 +160,16 @@ class Product(BaseModelNamed):
         else:
             image = images[0] if images else None
 
+        # add instagram images to image list
+        if self.external_content.count() > 0:
+            for content in self.external_content.all():
+                if content.content_type.name.lower() == 'instagram':
+                    images.append(content.image_url)
+                    instagram_tags.append({
+                        'original-id': content.original_id,
+                        'image-url': content.image_url
+                    })
+
         fields = {
             'data-title': strip_and_escape(self.name),
             'data-description': strip_and_escape(self.description),
@@ -166,6 +177,7 @@ class Product(BaseModelNamed):
             'data-url': strip_and_escape(self.original_url),
             'data-image': strip_and_escape(image),
             'data-images': '|'.join(strip_and_escape(x) for x in images),
+            'data-instagram-images': '|'.join(strip_and_escape(x['image-url']) for x in instagram_tags),
             'data-product-id': self.id,
         }
 
@@ -181,7 +193,9 @@ class Product(BaseModelNamed):
                 # strip 'data-'
                 field_name = field[5:]
                 if field_name == 'images':
-                    data[field_name] = fields[field].split('|')
+                    data[field_name] = filter(None, fields[field].split('|'))
+                elif field_name == 'instagram-images':
+                    data[field_name] = instagram_tags
                 else:
                     data[field_name] = fields[field]
         else:
@@ -200,11 +214,13 @@ class YoutubeVideo(BaseModel):
     video_id = models.CharField(max_length=11)
     store = models.ForeignKey(Store, null=True, related_name="videos")
 
+
 class ExternalContent(BaseModel):
     original_id = models.CharField(max_length=555, blank=True, null=True)
     original_url = models.CharField(max_length=555, blank=True, null=True)
     content_type = models.ForeignKey("ExternalContentType")
-    tagged_products = models.ManyToManyField(Product, blank=True, null=True)
+    tagged_products = models.ManyToManyField(Product, blank=True, null=True,
+                                             related_name='external_content')
 
     text_content = models.TextField(blank=True, null=True)
     image_url = models.CharField(max_length=555, blank=True, null=True)
@@ -215,6 +231,7 @@ class ExternalContent(BaseModel):
 # If we need different behaviour per model, just use a proxy model.
 
 class ExternalContentType(BaseModelNamed):
+    """i.e. "Instagram"."""
     enabled = models.BooleanField(default=True)
 
     def __unicode__(self):

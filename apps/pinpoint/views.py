@@ -180,6 +180,9 @@ def analytics_admin(request, store, campaign=False, is_overview=True):
 @belongs_to_store
 @login_required
 def asset_manager(request, store_id):
+    """renders the page that allows store owners to tag their instagram photos
+    on their products (or, logically, the other way around).
+    """
     store = get_object_or_404(Store, pk=store_id)
     user = request.user
 
@@ -189,15 +192,17 @@ def asset_manager(request, store_id):
     except UserSocialAuth.DoesNotExist:
         instagram_user = None
 
-    instagram_connect = True
+    instagram_connect_request = True
     if instagram_user:
-        instagram_connect = False
+        instagram_connect_request = False
         instagram_connector = Instagram(tokens=instagram_user.tokens)
         contents = instagram_connector.get_content(limit=20)
+    else:
+        contents = []  # also "0 photos"
 
     return render_to_response('pinpoint/asset_manager.html', {
         "store": store,
-        "instagram_connect": instagram_connect,
+        "instagram_connect_request": instagram_connect_request,
         "contents": contents,
         "store_id": store_id
     }, context_instance=RequestContext(request))
@@ -205,6 +210,7 @@ def asset_manager(request, store_id):
 @belongs_to_store
 @login_required
 def tag_content(request, store_id):
+    """Adds the instagram photo to a product """
     instagram_json = request.POST.get('instagram')
     product_id = request.POST.get('product_id', -1)
 
@@ -222,13 +228,12 @@ def tag_content(request, store_id):
             original_id=instagram_obj.get('originalId'),
             content_type=content_type,
             text_content=instagram_obj.get('textContent'),
-            image_url=instagram_obj.get('imageUrl')
-        )
+            image_url=instagram_obj.get('imageUrl'))
         new_content.tagged_products.add(product)
         new_content.save()
 
     messages.success(request, 'Successfully tagged {0} content items with "{1}"'
-    .format(len(instagram_content), product.name))
+        .format(len(instagram_content), product.name))
 
     return redirect('asset-manager', store_id=store_id)
 

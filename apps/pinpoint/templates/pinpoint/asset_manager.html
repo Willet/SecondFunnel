@@ -72,7 +72,7 @@
         minLength: 2,
         select: function( event, ui ) {
             if (ui.item) {
-                $('#product_id').val(ui.item.id)
+                $('#product_id').val(ui.item.id);
             }
         }
     });
@@ -114,7 +114,7 @@
 {% block content %}
     {# User facing code, for now #}
     <p>
-    {% if instagram_connect %}
+    {% if instagram_connect_request %}
     Not currently connected to instagram.
         <a href='{% url socialauth_associate_begin 'instagram' %}'>Connect?</a>
     {% else %}
@@ -132,7 +132,7 @@
                     data-original-id='{{ content.original_id }}'
                     data-image-url='{{ content.image_url }}'
                     data-type='{{ content.type }}'
-                    data-text-content='{{ content.text_content }}'>
+                    data-text-content='{{ content.text_content|escape }}'>
                     <img src='{{ content.image_url }}'/>
                     <span class='text'>{{ content.text_content }}</span>
                 </div>
@@ -140,7 +140,7 @@
 
             <br class='clear'/>
             <p>
-                <label for='tag'>Tag with:</label><input type='text' id='tag'/>
+                <label>Tag with:<input type='text' id='tag'/></label>
             </p>
             <input type='hidden' id='product_id' name='product_id' value='-1' />
             <input type='hidden' id='instagram' name='instagram' value='' />
