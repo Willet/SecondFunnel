@@ -69,11 +69,25 @@
         </div>
     </div>
 </script>
+<script type="text/template" id="_external_template">
+    <!-- default template for undefined external content types -->
+    <div class='block external-content'>
+        <div class='product'>
+            <% if (content['image-url']) { %>
+                <div class='img-container'>
+                    <img src='<%= content['image-url'] %>' alt='<%= content['original-id'] %>' />
+                </div>
+            <% } %>
+        </div>
+    </div>
+</script>
 <script type="text/template" id="instagram_external_template">
-    <div class='block external-content instagram'>
+    <div class='block product external-content instagram'>
         <div class='product'>
             <div class='img-container'>
-                <img src='<%= content['image-url'] %>' alt='<%= content['original-id'] %>' />
+                <img src='<%= content['image-url'] %>'
+                     alt='Instagram image'
+                     data-original-id='<%= content['original-id'] %>' />
             </div>
         </div>
     </div>

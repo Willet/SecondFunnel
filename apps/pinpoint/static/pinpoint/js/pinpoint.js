@@ -307,10 +307,18 @@ var PINPOINT = (function($, pageInfo){
         // its specified type ['content-type'].
         // the js template under the id ['content-type']_external_template
         // will be used.
+        // if the template of a request type is not found,
+        // #_external_template will be used.
+        // if that's not found, this function returns an empty string.
         var context = $.extend({}, {'content': externalContent}, defaultContext),
-            templateName = '#' + externalContent['content-type'].toLowerCase() +
+            templateName = '#' +
+                           (externalContent['content-type'] || '').toLowerCase() +
                            '_external_template',
             template = $(templateName).html();
+
+        if (!template) {
+            return '';
+        }
         return renderTemplate(template, context);
     };
 
@@ -381,10 +389,21 @@ var PINPOINT = (function($, pageInfo){
             initialResults = results.length,
             discoveryProductTemplate = $('#discovery_product_template').html(),
             youtubeVideoTemplate = $('#youtube_video_template').html(),
-            externalContent = jsonData['external-content'] || [],
+            externalContent = jsonData['external-content'] || [],  // default EC
             videos = jsonData.videos || [];
 
+
         // concatenate all the results together so they're in the same jquery object
+        // add external content for the FEATURED product
+        for (i = 0; i < externalContent.length; i++) {
+            try {
+                productDoms.push($(renderExternalContent(externalContent[i]))[0]);
+            } catch (err) {  // hide rendering error
+                console.log('oops @ externalContent');
+            }
+        }
+
+        // add products
         for (i = 0; i < results.length; i++) {
             try {
                 var template_context = results[i], el;
@@ -400,8 +419,21 @@ var PINPOINT = (function($, pageInfo){
                 el = $(renderTemplate(discoveryProductTemplate, {'product': template_context}));
                 el.data(template_context);  // populate the .product.block div with data
                 productDoms.push(el[0]);
-            } catch (err) {
-                // hide rendering error
+
+                // add external content for the related products
+                var relatedEC = template_context['external-content'] || [];
+                for (j = 0; j < relatedEC.length; j++) {
+                    try {
+                        // don't let instagram content flood the feed
+                        var randomProb = Math.random();
+                        if (randomProb < (0.8 / relatedEC.length)) {
+                            productDoms.push($(renderExternalContent(relatedEC[j]))[0]);
+                        }
+                    } catch (err) {  // hide rendering error
+                        console.log('oops @ relatedEC');
+                    }
+                }
+            } catch (err) {  // hide rendering error
                 console && console.log && console.log('oops @ product');
             }
         }
@@ -413,15 +445,6 @@ var PINPOINT = (function($, pageInfo){
             } catch (err) {
                 // hide rendering error
                 console && console.log && console.log('oops @ video');
-            }
-        }
-
-        // add external content
-        for (i = 0; i < externalContent.length; i++) {
-            try {
-                productDoms.push($(renderExternalContent(externalContent[i]))[0]);
-            } catch (err) {  // hide rendering error
-                console && console.log && console.log('oops @ externalContent');
             }
         }
 
