@@ -151,7 +151,7 @@ class Product(BaseModelNamed):
             modified_text = escape(modified_text)
             return modified_text
 
-        instagram_tags = []
+        external_content = []
         images = self.images()
 
         if self.default_image:
@@ -161,14 +161,16 @@ class Product(BaseModelNamed):
             image = images[0] if images else None
 
         # add instagram images to image list
-        if self.external_content.count() > 0:
-            for content in self.external_content.all():
-                if content.content_type.name.lower() == 'instagram':
-                    images.append(content.image_url)
-                    instagram_tags.append({
-                        'original-id': content.original_id,
-                        'image-url': content.image_url
-                    })
+        for content in self.external_content.all():
+            external_content.append({
+                'original-id': content.original_id,
+                'original-url': content.original_url,
+                'content-type': content.content_type.name,
+                'image-url': content.image_url,
+            })
+
+            if content.content_type.name.lower() == 'instagram':
+                images.append(content.image_url)
 
         fields = {
             'data-title': strip_and_escape(self.name),
@@ -177,7 +179,7 @@ class Product(BaseModelNamed):
             'data-url': strip_and_escape(self.original_url),
             'data-image': strip_and_escape(image),
             'data-images': '|'.join(strip_and_escape(x) for x in images),
-            'data-instagram-images': '|'.join(strip_and_escape(x['image-url']) for x in instagram_tags),
+            'data-external-content': '|'.join(strip_and_escape(x.get('image-url', '')) for x in external_content),
             'data-product-id': self.id,
         }
 
@@ -194,8 +196,8 @@ class Product(BaseModelNamed):
                 field_name = field[5:]
                 if field_name == 'images':
                     data[field_name] = filter(None, fields[field].split('|'))
-                elif field_name == 'instagram-images':
-                    data[field_name] = instagram_tags
+                elif field_name == 'external-content':
+                    data[field_name] = external_content
                 else:
                     data[field_name] = fields[field]
         else:
@@ -216,6 +218,7 @@ class YoutubeVideo(BaseModel):
 
 
 class ExternalContent(BaseModel):
+    # "yes, 555 is arbitrary" - other developers
     original_id = models.CharField(max_length=555, blank=True, null=True)
     original_url = models.CharField(max_length=555, blank=True, null=True)
     content_type = models.ForeignKey("ExternalContentType")

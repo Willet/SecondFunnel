@@ -50,7 +50,7 @@
 {% endblock %}
 
 {% block document_ready %}
-    var store_id = 21; //{{ store_id }}
+    var store_id = '{{ store_id }}';
 
     $('#tag').autocomplete({
         source: function(request, response) {
