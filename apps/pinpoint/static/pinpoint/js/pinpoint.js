@@ -272,7 +272,7 @@ var PINPOINT = (function($, pageInfo){
             var originalContext = data || {},
                 target = $(this),
                 src = target.data('src') || '',
-                srcElement = $('#' + src),
+                srcElement = $("[data-template-id='" + src + "']"),
                 context = {};
 
             $.extend(context, originalContext, {
