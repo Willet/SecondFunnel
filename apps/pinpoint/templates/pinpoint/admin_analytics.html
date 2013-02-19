@@ -173,7 +173,6 @@
 
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 {% endblock %}
 
 {% block top_section %}
@@ -597,12 +596,7 @@
         };
     }(jQuery));
 
-    google.load("visualization", "1", {
-        packages: ["corechart", "table"],
-        callback: function() {
-            app.init();
-        }
-    });
+    app.init();
 
 {% endblock %}
 
