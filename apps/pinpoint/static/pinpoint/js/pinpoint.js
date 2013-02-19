@@ -373,7 +373,11 @@ var PINPOINT = (function($, pageInfo){
                 // use the resized images
                 template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
 
-                el = $(renderTemplate(discoveryProductTemplate, {'product': template_context}));
+                el = $(renderTemplate(discoveryProductTemplate, {
+                    'data': template_context,
+                    'page': details.page,
+                    'store': details.store
+                }));
                 el.data(template_context);  // populate the .product.block div with data
                 productDoms.push(el[0]);
             } catch (err) {

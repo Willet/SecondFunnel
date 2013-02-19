@@ -1,41 +1,20 @@
 {% load static %}
-<div class='discovery-area'>
-</div>
-<!-- JS TEMPLATES -->
-{% block discovery_block %}
-<script type="text/template" id="discovery_product_template">
-    <div class='block product' data-botox="false">
-        <% if (product.lifestyle_image) { %>
-        <div class='lifestyle'>
-            <img class='lifestyle' src='<%= product.lifestyle_image %>' />
-        </div>
-        <% } %>
-        <div class='product'>
-            <div class='img-container'>
-                <img src='<%= product.image %>'/>
-                <div class='social'>
-                    <% include social_buttons %>
-                </div>
-            </div>
-            <div class='title'><b><%= product.title %></b></div>
-        </div>
-    </div>
-</script>
-{% endblock discovery_block %}
 <script type="text/template" id="social_buttons">
-    <% var image = product.featured_image || product.image || undefined %>
+    <% var product = data || page.product; %>
+    <% var has_featured_img = !data.title; %>
+    <% var image = (has_featured_img) ? (page['stl-image'] || page['featured-image']) : product.image;%>
     <div class='social-buttons'>
-        <% if (!product.featured_image) { %>
+        <% if (!has_featured_img) { %>
         <div class="loading-container">
             <% } %>
-            <div class='button facebook<% if (!product.featured_image) { %> no-count <% } %>'>
+            <div class='button facebook<% if (!has_featured_img) { %> no-count <% } %>'>
                 <fb:like href="<%= product.url %>"
                          width="48"
                          layout="button_count"
                          show_faces="false"></fb:like>
             </div>
             <div class='button twitter'>
-                <% if (product.featured_image) { %>
+                <% if (has_featured_img) { %>
                 <a href="https://twitter.com/share?url=<%= product.url %>"
                    class="twitter-share-button"
                    data-lang="en">
@@ -55,7 +34,7 @@
                     {% static "pinpoint/images/pinpointButton.png" %}"/>
                 </a>
             </div>
-            <% if (!product.featured_image) { %>
+            <% if (!has_featured_img) { %>
         </div>
         <% } %>
     </div>
