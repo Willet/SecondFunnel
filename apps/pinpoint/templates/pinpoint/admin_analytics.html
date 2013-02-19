@@ -625,7 +625,7 @@
     <div class="grid_12 section_content">
         <div class="grid_3 section_overview">
             {% for category in categories %}
-                <div class="section_overview_block {% if forloop.first %}selected{% endif %}" data-cid="{{ category.id }}">
+                <div class="section_overview_block {% if category.default %}selected{% endif %}" data-cid="{{ category.id }}">
                     <div class="section_overview_title">
                         {{ category.name }}
                     </div>
@@ -656,7 +656,7 @@
 
             <div class="section_metrics" style="display: none;">
             {% for category in categories %}
-                <div class="data_category" data-cid="{{ category.id }}" {% if not forloop.first %}style="display: none;"{% endif %}>
+                <div class="data_category" data-cid="{{ category.id }}" {% if not category.default %}style="display: none;"{% endif %}>
                     <div class="data_title">
                         {{ category.name }}
                     </div>
