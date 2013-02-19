@@ -361,19 +361,19 @@
                 },
 
                 merge_totals = function (t1, t2) {
-                    var type, key;
+                    var res = jQuery.extend(true, {}, t1), type, key;
 
                     for (type in t2) {
                         for (key in t2[type]) {
-                            if (t1[type][key] !== undefined) {
-                                t1[type][key] += t2[type][key];
+                            if (res[type][key] !== undefined) {
+                                res[type][key] += t2[type][key];
                             } else {
-                                t1[type][key] = t2[type][key];
+                                res[type][key] = t2[type][key];
                             }
                         }
                     }
 
-                    return t1;
+                    return res;
                 },
 
                 totals = {
