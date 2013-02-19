@@ -67,9 +67,7 @@ def get_ga_generator(query):
         dimensions=query['dimensions'],
 
         # what to sort by
-        sort=query['sort'],
-
-        filters=query['filters']
+        sort=query['sort']
     )
 
 
@@ -198,10 +196,7 @@ def fetch_awareness_data(*args):
     query = {
         'metrics': ['visitors', 'pageviews'],
         'dimensions': ['date', 'customVarValue1', 'customVarValue2'],
-        'sort': ['date'],
-
-        # filter out internal requests and previews
-        'filters': {'pagePath': '!@pinpoint'}
+        'sort': ['date']
     }
 
     fetched_rows = []
@@ -259,10 +254,7 @@ def fetch_event_data(*args):
     query = {
         'metrics': ['uniqueEvents'],
         'dimensions': ['eventCategory', 'eventAction', 'eventLabel', 'date'],
-        'sort': ['date'],
-
-        # filter out internal requests and previews
-        'filters': {'pagePath': '!@pinpoint'}
+        'sort': ['date']
     }
 
     raw_results = get_ga_generator(query)
