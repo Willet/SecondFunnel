@@ -64,6 +64,8 @@ class CategoryHasMetric(models.Model):
     order = models.PositiveIntegerField(default=0)
     display = models.BooleanField(default=True)
 
+    is_meta = models.BooleanField(default=False)
+
     class Meta:
         ordering = ('-order',)
 
