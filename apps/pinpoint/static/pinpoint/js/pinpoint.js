@@ -27,6 +27,7 @@ var PINPOINT = (function($, pageInfo){
         productHoverOn,
         productHoverOff,
         ready,
+        renderExternalContent,
         renderTemplate,
         renderTemplates,
         scripts,
@@ -301,6 +302,18 @@ var PINPOINT = (function($, pageInfo){
         });
     };
 
+    renderExternalContent = function (externalContent, defaultContext) {
+        // given ONE external content object, render it according to
+        // its specified type ['content-type'].
+        // the js template under the id ['content-type']_external_template
+        // will be used.
+        var context = $.extend({}, {'content': externalContent}, defaultContext),
+            templateName = '#' + externalContent['content-type'].toLowerCase() +
+                           '_external_template',
+            template = $(templateName).html();
+        return renderTemplate(template, context);
+    };
+
     loadInitialResults = function () {
         if (!loadingBlocks) {
             loadingBlocks = true;
@@ -368,6 +381,7 @@ var PINPOINT = (function($, pageInfo){
             initialResults = results.length,
             discoveryProductTemplate = $('#discovery_product_template').html(),
             youtubeVideoTemplate = $('#youtube_video_template').html(),
+            externalContent = jsonData['external-content'] || [],
             videos = jsonData.videos || [];
 
         // concatenate all the results together so they're in the same jquery object
@@ -399,6 +413,15 @@ var PINPOINT = (function($, pageInfo){
             } catch (err) {
                 // hide rendering error
                 console && console.log && console.log('oops @ video');
+            }
+        }
+
+        // add external content
+        for (i = 0; i < externalContent.length; i++) {
+            try {
+                productDoms.push($(renderExternalContent(externalContent[i]))[0]);
+            } catch (err) {  // hide rendering error
+                console && console.log && console.log('oops @ externalContent');
             }
         }
 
