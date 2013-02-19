@@ -230,12 +230,12 @@ var PINPOINT = (function($, pageInfo){
                     // cached
                     return domTemplateCache[templateId];
                 } else {
-                    var el = document.getElementById(templateId);
-                    if (el && el.innerHTML) {
+                    var $el = $('[data-template-id="' + templateId + '"]');
+                    if ($el.length) {
                         // cache
-                        domTemplateCache[templateId] = el.innerHTML;
+                        domTemplateCache[templateId] = $el.html();
                     }
-                    return el ? el.innerHTML : '';
+                    return $el.length ? $el.html() : '';
                 }
             }
         );
@@ -353,27 +353,36 @@ var PINPOINT = (function($, pageInfo){
             $col,
             i,
             productDoms = [],
-            result,
-            results = jsonData.products || [],
+            results = jsonData || [],
             initialResults = results.length,
             template,
             youtubeVideoTemplate = $('#youtube_video_template').html(),
-            videos = jsonData.videos || [],
-            template_context, el;
+            template_context, templateType, el;
 
         // concatenate all the results together so they're in the same jquery object
         for (i = 0; i < results.length; i++) {
             try {
                 template_context = results[i];
-                template = $("[data-template-id='" + (results[i].template || 'product')+ "']").html()
+                templateType = results[i].template || 'product';
+                template = $("[data-template-id='" + templateType + "']").html()
 
-                // in case an image is lacking, don't bother with the product
-                if (template_context.image == "None") {
-                    continue;
+                switch (templateType) {
+                    case 'product':
+                        // in case an image is lacking, don't bother with the product
+                        if (template_context.image == "None") {
+                            continue;
+                        }
+
+                        // use the resized images
+                        template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
+                        break;
+                    case 'combobox':
+                        break;
+                    default:
+                        break;
                 }
 
-                // use the resized images
-                template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
+
 
                 el = $(renderTemplate(template, {
                     'data': template_context,
@@ -384,17 +393,7 @@ var PINPOINT = (function($, pageInfo){
                 productDoms.push(el[0]);
             } catch (err) {
                 // hide rendering error
-                console && console.log && console.log('oops @ product');
-            }
-        }
-
-        // add video iframes
-        for (i = 0; i < videos.length; i++) {
-            try {
-                productDoms.push($(renderTemplate(youtubeVideoTemplate, videos[i]))[0]);
-            } catch (err) {
-                // hide rendering error
-                console && console.log && console.log('oops @ video');
+                console && console.log && console.log('oops @ item');
             }
         }
 
