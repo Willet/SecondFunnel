@@ -32,6 +32,9 @@ class Store(BaseModelNamed):
     def staff_count(self):
         return self.staff.all().count()
 
+    def live_campaigns(self):
+        return self.campaign_set.filter(live=True)
+
 
 class MediaBase(BaseModelNamed):
     MEDIA_TYPES = (

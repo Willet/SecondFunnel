@@ -12,6 +12,13 @@ from oauth2client.client import SignedJwtAssertionCredentials
 from django.conf import settings
 
 
+def join_params(params, join_with=","):
+    if not params:
+        return None
+
+    return join_with.join(map(lambda p: "ga:%s" % p, params))
+
+
 class GoogleAnalyticsBackend:
     """Mediates access to Google Analytics APIs"""
 
@@ -29,27 +36,18 @@ class GoogleAnalyticsBackend:
 
         self.service = build('analytics', 'v3', http=http)
 
-    def get_profile_id(self):
-        return settings.GOOGLE_ANALYTICS_PROFILE
-
-    def join_params(self, params):
-        if not params:
-            return None
-
-        return ",".join(map(lambda p: "ga:%s" % p, params))
-
     def create_query(self, start_date, end_date, metrics, dimensions=None, sort=None, filters=None, start_index="1", max_results='10000'):
         if filters is not None:
-            filters = ["{0}{1}".format(f, filters[f]) for f in filters.keys()]
+            filters = ["{0}{1}".format(f[0], f[1]) for f in filters]
 
         api_query = self.service.data().ga().get(
-            ids="ga:%s" % self.get_profile_id(),
+            ids="ga:%s" % settings.GOOGLE_ANALYTICS_PROFILE,
             start_date=start_date,
             end_date=end_date,
-            metrics=self.join_params(metrics),
-            dimensions=self.join_params(dimensions),
-            sort=self.join_params(sort),
-            filters=self.join_params(filters),
+            metrics=join_params(metrics),
+            dimensions=join_params(dimensions),
+            sort=join_params(sort),
+            filters=join_params(filters, join_with=";"),
             start_index=start_index,
             max_results=max_results
         )
@@ -83,10 +81,25 @@ class GoogleAnalyticsBackend:
         start_date = str(start_date)
         end_date = str(end_date)
 
+        # these filter out internal requests to pages
+        default_filters = [
+            ('pagePath', '!@pinpoint'),
+            ('hostname', '!@127'),
+            ('hostname', '!@localhost'),
+            ('hostname', '!@elasticbeanstalk'),
+            ('hostname', '!@0.0.0.0')
+        ]
+
+        if not filters:
+            filters = default_filters
+
         while True:
             next_query = self.create_query(
                 start_date, end_date, metrics,
-                dimensions=dimensions, sort=sort, filters=filters, start_index=start_index,
+                dimensions=dimensions,
+                sort=sort,
+                filters=filters,
+                start_index=start_index,
                 max_results=max_results
             )
             results = self.get_results(next_query)
