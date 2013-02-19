@@ -399,6 +399,10 @@
 
                 merged_sharing, merged_interactions, top_lists;
 
+            if (isNaN(bounce_rate)) {
+                bounce_rate = 0;
+            }
+
             merged_sharing = merge_totals(data.sharing['share-clicked'].totals,
                 data.sharing['share-liked'].totals);
 
@@ -408,12 +412,9 @@
             top_lists = {
                 'engaged_products': merged_interactions.product_id,
                 'sharing_products': merged_sharing.product_id,
-                'sharing_source': merged_sharing.meta
+                'sharing_source': merged_sharing.meta,
+                'interaction_sections': merged_interactions.meta
             };
-
-            if (isNaN(bounce_rate)) {
-                bounce_rate = 0;
-            }
 
             // insert totals for metrics into the sidebar
             for (cat_slug in data) {
@@ -467,6 +468,7 @@
             $("#top_engaging_products").html("");
             $("#top_shared_products").html("");
             $("#share_destinations").html("");
+            $("#interaction_sections").html("");
 
             var pids = map(function(i, pair) {
                 return pair[0];
@@ -510,7 +512,30 @@
                         totals.shares
                     );
                 }, sortables.sharing_source);
+                insertOtherBar($("#share_destinations"), sortables.sharing_source, totals.shares);
+
+                // inject interaction types
+                map(function (i, pair) {
+                    insertToBarGraph(
+                        $("#interaction_sections"),
+                        pair[0],
+                        pair[1],
+                        totals.interactions.all
+                    );
+                }, sortables.interaction_sections);
+                insertOtherBar($("#interaction_sections"), sortables.interaction_sections, totals.interactions.all);
             });
+        };
+
+        insertOtherBar = function ($parent, pairs, total) {
+            var current_total = 0;
+            $.each(pairs, function () {
+                current_total += this[1];
+            });
+
+            if (current_total < total) {
+                insertToBarGraph($parent, "Other", total - current_total, total);
+            }
         };
 
         insertToBarGraph = function ($parent, title, count, total) {
@@ -672,13 +697,19 @@
                                 </div>
                             </div>
 
-                            <!-- <div class="data_metric">
+                            <div class="data_metric">
                                 <div class="metric_title">Engagement per Source</div>
                             </div>
 
                             <div class="data_metric">
-                                <div class="metric_title">Interaction Types</div>
-                            </div> -->
+                                <div class="metric_title">Interactions by Sections</div>
+                                <dl class="bar_graph" id="interaction_sections"></dl>
+
+                                <div class="no_data" data-metric="interaction_sections">
+                                    <p>No engaged products yet.</p>
+                                </div>
+
+                            </div>
 
                         {% elif category.name == "Sharing" %}
 
