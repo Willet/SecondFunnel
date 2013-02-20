@@ -434,9 +434,10 @@ def process_event_data(message_id):
         if len(t) != 0:
             return t[0].id, product_type
 
-        # filter out S3's signature GET stuff
+        # filter out S3's signature GET stuff & hostname
         try:
             label = label[:label.index("?Signature")]
+            label = label[label.index("product_images"):]
         except ValueError:
             pass
 

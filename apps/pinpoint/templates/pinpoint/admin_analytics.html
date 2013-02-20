@@ -106,20 +106,27 @@
             font-size: 16px;
         }
 
-        .top_product, .top_product:last-child {
+        .top_product, .top_product:last-child, .top_content, .top_content:last-child, #top_videos {
             border: 1px solid #a3a3a3;
+        }
+
+        .top_product, .top_content {
+            border-bottom: none;
         }
 
         #top_engaging_products {
             margin-top: 10px;
         }
 
-        .top_product {
+        .top_product, .top_content, #top_videos {
             display: block;
             background-color: #fdfdfd;
-            border-bottom: none;
             padding: 10px;
             width: 380px;
+        }
+
+        .top_content {
+            width: 290px;
         }
 
         .top_product .name {
@@ -134,6 +141,17 @@
             width: 75px;
             height: 75px;
             margin-right: 15px;
+        }
+
+        .top_content .image img {
+            float: right;
+            height: 150px;
+            width: auto;
+        }
+
+        .top_content .count {
+            position: relative;
+            top: 85px;
         }
 
         .top_video {
@@ -268,7 +286,8 @@
             var uris = {
                 'product': "/api/assets/v1/product/%object_id%/?store={{ store.id }}&format=json",
                 'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%object_id%&format=json",
-                'video': "/api/assets/v1/youtube_video/%object_id%/?format=json"
+                'video': "/api/assets/v1/youtube_video/%object_id%/?format=json",
+                'generic_image': "/api/assets/v1/generic_image/%object_id%/?format=json"
             }, getProduct, getProducts, fetchProduct;
 
             getObject = function (object_type, object_id, callback) {
@@ -416,7 +435,9 @@
 
                 cat_slug, metric_slug,
 
-                merged_sharing, merged_interactions, top_lists;
+                merged_sharing, merged_product_interactions, merged_content_interactions,
+
+                top_lists;
 
             if (isNaN(bounce_rate)) {
                 bounce_rate = 0;
@@ -425,15 +446,22 @@
             merged_sharing = merge_totals(data.sharing['share-clicked'].totals,
                 data.sharing['share-liked'].totals);
 
-            merged_interactions = merge_totals(data.engagement['inpage-openpopup'].totals,
+            merged_product_interactions = merge_totals(data.engagement['inpage-openpopup'].totals,
                 data.engagement['inpage-hover'].totals);
 
+            merged_content_interactions = merge_totals(data.engagement['content-openpopup'].totals,
+                data.engagement['content-hover'].totals);
+
             top_lists = {
-                'engaged_products': merged_interactions.target_id,
+                'engaged_products': merged_product_interactions.target_id,
+                'engaged_content': merged_content_interactions.target_id,
+                'engaged_videos': data.engagement['content-video'].totals.target_id,
+
                 'sharing_products': merged_sharing.target_id,
                 'sharing_source': merged_sharing.meta,
-                'interaction_sections': merged_interactions.meta,
-                'engaged_videos': data.engagement['content-video'].totals.target_id,
+
+                'interaction_sections': merged_product_interactions.meta,
+
                 'interaction_types': {
                     "Hovers": data.engagement['inpage-hover'].totals.date.all + data.engagement['content-hover'].totals.date.all,
                     "Clicks": data.engagement['inpage-openpopup'].totals.date.all + data.engagement['content-openpopup'].totals.date.all,
@@ -491,7 +519,8 @@
 
             // clear out top lists
             $(["top_engaging_products", "top_shared_products",
-                "share_destinations", "interaction_types"]).each(function (i, val) {
+                "share_destinations", "interaction_types", "top_videos",
+                "top_engaged_content"]).each(function (i, val) {
                     $("#" + val).html("");
                 });
 
@@ -539,6 +568,17 @@
                 }, sortables.sharing_source);
                 insertOtherBar($("#share_destinations"), sortables.sharing_source, totals.shares);
             });
+
+            // inject top engaged content
+            map(function (i, pair) {
+                insertTopContent(
+                    $("#top_engaged_content"),
+                    "Interactions",
+                    pair[0],
+                    pair[1],
+                    totals.interactions.content
+                );
+            }, sortables.engaged_content.slice(0, 5));
 
             // inject top engaged videos
             map(function (i, pair) {
@@ -592,6 +632,26 @@
             $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
         };
 
+        insertTopContent = function ($parent, verb, cid, count, total) {
+            var product,
+                $box = $("<div>").addClass("top_content"),
+                $count;
+
+            api.getObject("generic_image", cid, function(generic_image) {
+                $image = $("<div>").addClass("image").append(
+                    $("<img>").attr("src",
+                    generic_image.hosted || generic_image.remote
+                ));
+
+                $count = $("<div>").addClass("count").html(verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
+
+                $box.append($count).append($image).append($("<div>").addClass("clear"));
+                $parent.append($box);
+
+                $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
+            });
+        };
+
         insertTopProduct = function ($parent, verb, pid, count, total) {
             var product,
                 $box = $("<div>").addClass("top_product"),
@@ -602,7 +662,7 @@
 
                 $image = $("<div>").addClass("image").append(
                     $("<img>").attr("src",
-                    product.media.hosted || product.media.remote
+                    (product.media.hosted || product.media.remote).replace("master.jpg", "small.jpg")
                 ));
 
                 $count = $("<div>").addClass("count").html(verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
@@ -753,6 +813,15 @@
 
                                 <div class="no_data" data-metric="top_engaging_products">
                                     <p>No engaged products yet.</p>
+                                </div>
+                            </div>
+
+                            <div class="data_metric">
+                                <div class="metric_title">Top Engaged Content</div>
+                                <div class="metric_content" id="top_engaged_content"></div>
+
+                                <div class="no_data" data-metric="top_engaged_content">
+                                    <p>No engaged content yet.</p>
                                 </div>
                             </div>
 
