@@ -141,7 +141,7 @@
         }
 
         dl {
-            width: 300px;
+            width: 500px;
         }
 
         /* bar graph styling */
@@ -152,7 +152,7 @@
 
         .bar {
             margin-bottom: 10px;
-            margin-left: 80px;
+            margin-left: 110px;
             color: #fff;
             padding: 4px;
             text-align: center;
@@ -413,7 +413,12 @@
                 'engaged_products': merged_interactions.product_id,
                 'sharing_products': merged_sharing.product_id,
                 'sharing_source': merged_sharing.meta,
-                'interaction_sections': merged_interactions.meta
+                'interaction_sections': merged_interactions.meta,
+                'interaction_types': {
+                    "Hovers": data.engagement['inpage-hover'].totals.date.all + data.engagement['content-hover'].totals.date.all,
+                    "Clicks": data.engagement['inpage-openpopup'].totals.date.all + data.engagement['content-openpopup'].totals.date.all,
+                    "Video Plays": data.engagement['content-video'].totals.date.all
+                }
             };
 
             // insert totals for metrics into the sidebar
@@ -465,10 +470,10 @@
             }, top_lists);
 
             // clear out top lists
-            $("#top_engaging_products").html("");
-            $("#top_shared_products").html("");
-            $("#share_destinations").html("");
-            $("#interaction_sections").html("");
+            $(["top_engaging_products", "top_shared_products",
+                "share_destinations", "interaction_types"]).each(function (i, val) {
+                    $("#" + val).html("");
+                });
 
             var pids = map(function(i, pair) {
                 return pair[0];
@@ -514,16 +519,16 @@
                 }, sortables.sharing_source);
                 insertOtherBar($("#share_destinations"), sortables.sharing_source, totals.shares);
 
-                // inject interaction types
-                map(function (i, pair) {
+                // inject product interaction types
+                map(function(i, pair) {
                     insertToBarGraph(
-                        $("#interaction_sections"),
+                        $("#interaction_types"),
                         pair[0],
                         pair[1],
                         totals.interactions.all
                     );
-                }, sortables.interaction_sections);
-                insertOtherBar($("#interaction_sections"), sortables.interaction_sections, totals.interactions.all);
+                }, sortables.interaction_types);
+                insertOtherBar($("#interaction_types"), sortables.interaction_types, totals.interactions.all);
             });
         };
 
@@ -542,6 +547,10 @@
             var $title = $("<dt>").html(title),
                 $bar,
                 percentage = Math.round(count / total * 100) + "%";
+
+            if (count == 0) {
+                return;
+            }
 
             $bar = $("<dd>").append(
                 $("<div>").addClass("bar").css("width", percentage).html(count + " (" + percentage + ")")
@@ -702,13 +711,12 @@
                             </div>
 
                             <div class="data_metric">
-                                <div class="metric_title">Interactions by Sections</div>
-                                <dl class="bar_graph" id="interaction_sections"></dl>
+                                <div class="metric_title">Interaction Types</div>
+                                <dl class="bar_graph" id="interaction_types"></dl>
 
-                                <div class="no_data" data-metric="interaction_sections">
+                                <div class="no_data" data-metric="interaction_types">
                                     <p>No engaged products yet.</p>
                                 </div>
-
                             </div>
 
                         {% elif category.name == "Sharing" %}
