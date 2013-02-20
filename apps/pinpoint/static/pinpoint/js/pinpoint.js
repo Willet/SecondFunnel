@@ -19,6 +19,10 @@ var PINPOINT = (function($, pageInfo){
         loadInitialResults,
         loadMoreResults,
         pageScroll,
+        commonHoverOn,
+        commonHoverOff,
+        lifestyleHoverOn,
+        lifestyleHoverOff,
         productHoverOn,
         productHoverOff,
         ready,
@@ -160,38 +164,64 @@ var PINPOINT = (function($, pageInfo){
         $mask.fadeOut(100);
     };
 
-    productHoverOn = function () {
-        var $buttons = $(this).find('.social-buttons');
-        $buttons.fadeIn('fast');
-
-        hoverTimer = Date.now();
-
-        if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
-            FB.XFBML.parse($buttons.find('.button.facebook')[0]);
-            $buttons.addClass('loaded');
-        }
-
-        pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(this).data("url")});
+    commonHoverOn = function (t, enableSocialButtons) {
+        pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(t).parent().data("url")});
         pinpointTracking.clearTimeout();
+
+        if (enableSocialButtons) {
+            var $buttons = $(t).parent().find('.social-buttons');
+            $buttons.fadeIn('fast');
+
+            hoverTimer = Date.now();
+
+            if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
+                FB.XFBML.parse($buttons.find('.button.facebook')[0]);
+                $buttons.addClass('loaded');
+            }
+        }
     };
 
-    productHoverOff = function () {
-        var $buttons = $(this).find('.social-buttons');
+    commonHoverOff = function (t, hoverCallback) {
+        var $buttons = $(t).parent().find('.social-buttons');
         $buttons.fadeOut('fast');
 
         hoverTimer = Date.now() - hoverTimer;
         if (hoverTimer > 1000) {
-            pinpointTracking.registerEvent({
-                "type": "inpage",
-                "subtype": "hover",
-                "label": $(this).data("url")
-            });
+            hoverCallback(t);
         }
 
         pinpointTracking.clearTimeout();
         if (pinpointTracking.socialShareType !== "popup") {
             pinpointTracking._pptimeout = window.setTimeout(pinpointTracking.setSocialShareVars, 2000);
         }
+    };
+
+    productHoverOn = function () {
+        commonHoverOn(this, true);
+    }
+
+    productHoverOff = function () {
+        commonHoverOff(this, function (t) {
+            pinpointTracking.registerEvent({
+                "type": "inpage",
+                "subtype": "hover",
+                "label": $(t).parent().data("url")
+            });
+        });
+    };
+
+    lifestyleHoverOn = function () {
+        commonHoverOn(this, false);
+    };
+
+    lifestyleHoverOff = function () {
+        commonHoverOff(this, function (t) {
+            pinpointTracking.registerEvent({
+                "type": "content",
+                "subtype": "hover",
+                "label": $(t).children().attr("src")
+            });
+        });
     };
 
     updateClickStream = function (event) {
@@ -350,20 +380,20 @@ var PINPOINT = (function($, pageInfo){
         // suppose results is (now) a legit json object:
         // {products: [], videos: [(sizeof 1)]}
         var $block,
-            $col,
+            result,
             i,
             productDoms = [],
             results = jsonData || [],
             initialResults = results.length,
-            template,
-            youtubeVideoTemplate = $('#youtube_video_template').html(),
-            template_context, templateType, el;
+            template, player,
+            template_context, templateType, el, videos;
 
         // concatenate all the results together so they're in the same jquery object
         for (i = 0; i < results.length; i++) {
             try {
-                template_context = results[i];
-                templateType = results[i].template || 'product';
+                result = results[i]
+                template_context = result;
+                templateType = result.template || 'product';
                 template = $("[data-template-id='" + templateType + "']").html()
 
                 switch (templateType) {
@@ -378,11 +408,11 @@ var PINPOINT = (function($, pageInfo){
                         break;
                     case 'combobox':
                         break;
+                    case 'youtube':
+                        break;
                     default:
                         break;
                 }
-
-
 
                 el = $(renderTemplate(template, {
                     'data': template_context,
@@ -412,6 +442,25 @@ var PINPOINT = (function($, pageInfo){
                 $elem.addClass('wide');
             }
             $('.discovery-area').append($elem[0]);
+        });
+
+        // Render youtube blocks with player
+        videos = _.where(results, {'template': 'youtube'});
+        _.each(videos, function(result) {
+            player = new YT.Player(result.id, {
+                height: result.height,
+                width: result.width,
+                videoId: result.id,
+                playerVars: {
+                    'autoplay': result.autoplay,
+                    'controls': 0
+                },
+                events: {
+                    'onReady': function(e) {},
+                    'onStateChange': pinpointTracking.videoStateChange,
+                    'onError': function(e) {}
+                }
+            });
         });
 
         // make sure images are loaded or else masonry wont work properly
@@ -480,11 +529,15 @@ var PINPOINT = (function($, pageInfo){
         // Event Handling
         // when someone clicks on a product, show the product details overlay
         $('.discovery-area').on('click', '.block.product', showPreview);
+
         // and update the clickstream
         $('.discovery-area').on('click', '.block.product', updateClickStream);
 
-        $('.discovery-area').on('mouseenter', '.block.product', productHoverOn);
-        $('.discovery-area').on('mouseleave', '.block.product', productHoverOff);
+        $('.discovery-area').on('mouseenter', '.block.product .product', productHoverOn);
+        $('.discovery-area').on('mouseleave', '.block.product .product', productHoverOff);
+
+        $('.discovery-area').on('mouseenter', '.block.product .lifestyle', lifestyleHoverOn);
+        $('.discovery-area').on('mouseleave', '.block.product .lifestyle', lifestyleHoverOff);
 
         $('.discovery-area').masonry({
             itemSelector: '.block',
@@ -534,8 +587,6 @@ var PINPOINT = (function($, pageInfo){
 
         FB.Event.subscribe('edge.create',
             function(url) {
-                pinpointTracking.notABounce("liked");
-
                 pinpointTracking.registerEvent({
                     "network": "Facebook",
                     "type": "share",
@@ -654,5 +705,3 @@ var PINPOINT = (function($, pageInfo){
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback
     };
 })(jQuery, window.PINPOINT_INFO || {});
-
-PINPOINT.init();

@@ -52,13 +52,7 @@
     <div class='block youtube wide'>
         <div class="pin click video">
             <div class="inner-pin">
-                <iframe <% if (data.width) { %>width="<%= data.width %>"<% }%>
-                        <% if (data.height) { %>height="<%= data.height %>"<% }%>
-                        class='youtube video'
-                        src="http://www.youtube.com/embed/<%= data.id %><% if(data.autoplay) { %>?autoplay=1<% } %>"
-                        frameborder="0"
-                        allowfullscreen>
-                </iframe>
+                <div id="<%= data.id %>"></div>
             </div>
         </div>
     </div>

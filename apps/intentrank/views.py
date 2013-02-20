@@ -172,9 +172,9 @@ def get_json_data(request, products, campaign_id):
         results.append({
             'id': video.video_id,
             'provider': 'youtube',
-            'width': '200',
-            'height': '200',
-            'autoplay': False,
+            'width': '450',
+            'height': '250',
+            'autoplay': 0,
             'template': 'youtube'
         })
         video_cookie.add_video(video.video_id)
