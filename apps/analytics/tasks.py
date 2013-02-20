@@ -22,7 +22,7 @@ from django.db.models import Q
 from apps.analytics.storage_backends import GoogleAnalyticsBackend
 from apps.analytics.models import (AnalyticsRecency, Category, Metric, KVStore,
     SharedStorage)
-from apps.assets.models import Store, Product
+from apps.assets.models import Store, Product, GenericImage, YoutubeVideo
 from apps.pinpoint.models import Campaign
 
 
@@ -67,9 +67,7 @@ def get_ga_generator(query):
         dimensions=query['dimensions'],
 
         # what to sort by
-        sort=query['sort'],
-
-        filters=query['filters']
+        sort=query['sort']
     )
 
 
@@ -198,10 +196,7 @@ def fetch_awareness_data(*args):
     query = {
         'metrics': ['visitors', 'pageviews'],
         'dimensions': ['date', 'customVarValue1', 'customVarValue2'],
-        'sort': ['date'],
-
-        # filter out internal requests and previews
-        'filters': {'pagePath': '!@pinpoint'}
+        'sort': ['date']
     }
 
     fetched_rows = []
@@ -259,10 +254,7 @@ def fetch_event_data(*args):
     query = {
         'metrics': ['uniqueEvents'],
         'dimensions': ['eventCategory', 'eventAction', 'eventLabel', 'date'],
-        'sort': ['date'],
-
-        # filter out internal requests and previews
-        'filters': {'pagePath': '!@pinpoint'}
+        'sort': ['date']
     }
 
     raw_results = get_ga_generator(query)
@@ -429,7 +421,34 @@ def process_event_data(message_id):
     analytics pairs for associated store and campaign"""
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
-    product_type = ContentType.objects.get_for_model(Product)
+
+    def target_getter(label):
+        """Locates an event target based on the label passed in.
+        Tries products first, then GenericImages, then Videos"""
+
+        product_type = ContentType.objects.get_for_model(Product)
+        generic_image_type = ContentType.objects.get_for_model(GenericImage)
+        youtube_type = ContentType.objects.get_for_model(YoutubeVideo)
+
+        t = Product.objects.filter(original_url=label)[:1]
+        if len(t) != 0:
+            return t[0].id, product_type
+
+        # filter out S3's signature GET stuff
+        try:
+            label = label[:label.index("?Signature")]
+        except ValueError:
+            pass
+
+        t = GenericImage.objects.filter(hosted__startswith=label)[:1]
+        if len(t) != 0:
+            return t[0].id, generic_image_type
+
+        t = YoutubeVideo.objects.filter(video_id=label)[:1]
+        if len(t) != 0:
+            return t[0].id, youtube_type
+
+        raise Exception("Target not found")
 
     data, message = get_message_by_id(message_id)
     if not data:
@@ -479,18 +498,12 @@ def process_event_data(message_id):
             # we're using row['label'] to track URLs of objects acted upon.
             # Assume they're products for now, but KVStore supports generic FK
             if row['label']:
-                product = Product.objects.filter(original_url=row['label'])[:1]
-                if len(product) > 0:
-                    # TODO: deal with multiple results?
-                    # What are the use cases for this?
-                    product = product[0]
-                    data1.target_id = data2.target_id = product.id
-                    data1.target_type = data2.target_type = product_type
+                try:
+                    object_id, object_type = target_getter(row['label'])
 
-                # couldn't locate a Product this event is referring to.
-                # Maybe it's not a Product?
-                else:
-                    # @TODO deal with this case
+                    data1.target_id = data2.target_id = object_id
+                    data1.target_type = data2.target_type = object_type
+                except:
                     pass
 
             data1.save()

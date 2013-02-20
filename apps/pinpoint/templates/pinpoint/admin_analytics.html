@@ -79,6 +79,12 @@
             list-style: none;
         }
 
+        .section_overview_metrics .meta_metric, .section_overview_metrics .per-visitor {
+            margin-top: 10px;
+            position: relative;
+            left: -7px;
+        }
+
         .metric_overview {
             font-weight: bold;
         }
@@ -167,7 +173,6 @@
 
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 {% endblock %}
 
 {% block top_section %}
@@ -361,19 +366,19 @@
                 },
 
                 merge_totals = function (t1, t2) {
-                    var type, key;
+                    var res = jQuery.extend(true, {}, t1), type, key;
 
                     for (type in t2) {
                         for (key in t2[type]) {
-                            if (t1[type][key] !== undefined) {
-                                t1[type][key] += t2[type][key];
+                            if (res[type][key] !== undefined) {
+                                res[type][key] += t2[type][key];
                             } else {
-                                t1[type][key] = t2[type][key];
+                                res[type][key] = t2[type][key];
                             }
                         }
                     }
 
-                    return t1;
+                    return res;
                 },
 
                 totals = {
@@ -591,12 +596,7 @@
         };
     }(jQuery));
 
-    google.load("visualization", "1", {
-        packages: ["corechart", "table"],
-        callback: function() {
-            app.init();
-        }
-    });
+    app.init();
 
 {% endblock %}
 
@@ -605,7 +605,7 @@
         <div class="page_selector">
             <label for="campaign_list">Page:</label>
             <select id="campaign_list" name="campaign_list">
-                {% for c in store.campaign_set.all %}
+                {% for c in store.live_campaigns %}
                     <option value="{{ c.id }}" {% if c.id == campaign.id %}selected{% endif %}>{{ c.name }}</option>
                 {% endfor %}
             </select>
@@ -637,7 +637,7 @@
                             {% with metric.list|first as metric_meta %}
                                 {% if metric.grouper.enabled %}
                                     {% if metric_meta.display %}
-                                    <li>
+                                    <li {% if metric_meta.is_meta %}class="meta_metric"{% endif %}>
                                         <span class="metric_overview" data-metric="{{ metric.grouper.slug }}"></span>
                                         {{ metric.grouper.name }}
                                     </li>

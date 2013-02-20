@@ -32,6 +32,9 @@ class Store(BaseModelNamed):
     def staff_count(self):
         return self.staff.all().count()
 
+    def live_campaigns(self):
+        return self.campaign_set.filter(live=True)
+
 
 class MediaBase(BaseModelNamed):
     MEDIA_TYPES = (
@@ -184,6 +187,7 @@ class Product(BaseModelNamed):
             'data-images': '|'.join(strip_and_escape(x) for x in images),
             'data-external-content': '|'.join(strip_and_escape(x.get('image-url', '')) for x in external_content),
             'data-product-id': self.id,
+            'data-template': 'product'
         }
 
         if self.lifestyleImages.all():
@@ -191,6 +195,7 @@ class Product(BaseModelNamed):
             random_idx = random.randint(0, self.lifestyleImages.count()-1)
             random_img = self.lifestyleImages.all()[random_idx]
             fields['data-lifestyle_image'] = strip_and_escape(random_img)
+            fields['data-template'] = 'combobox'
 
         if raw:
             data = {}
