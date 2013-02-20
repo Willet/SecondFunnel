@@ -11,27 +11,17 @@
     <script type="text/javascript">
         (function() {
             window.PINPOINT_INFO = {
+                'page': {
+                    'id': '{{ campaign.id }}',
+                    'main-block-template': '{{ campaign.template }}',
+                    'stl-image': '{{ campaign.stl_image }}',
+                    'featured-image': '{{ campaign.featured_image }}',
+                    'description': '{{ campaign.description }}',
+                    'product': {{ product.json|safe }}
+                },
                 'store': {
                     'id': '{{ campaign.store.slug }}',
                     'name': '{{ campaign.store.name }}'
-                },
-                'campaign': {
-                    'id': '{{ campaign.id }}'
-                },
-                'featured': {
-                    'id': '{{ product.id }}',
-                    'lifestyle_image': "{{ product.lifestyle_image|escapejs }}",
-                    'featured_image': "{{ product.featured_image|escapejs }}",
-                    'description': "{{ product.description|escapejs }}",
-                    'name': '{{ product.name|escapejs }}',
-                    'title': '{{ product.name|escapejs }}',
-                    'price': '{{ product.price|escapejs }}',
-                    'images': [
-                        {% for image in product.images %}
-                            "{{ image|escapejs }}"{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-                    'url': '{{ product.url|escapejs }}'
                 }
             };
 

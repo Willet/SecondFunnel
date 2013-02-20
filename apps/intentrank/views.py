@@ -146,8 +146,7 @@ def get_json_data(request, products, campaign_id):
     results will be an object {}, not an array [].
     """
     campaign = Campaign.objects.get(pk=campaign_id)
-    results = {'products': [],
-               'videos': []}
+    results = []
 
     # products
     for product in products:
@@ -156,7 +155,7 @@ def get_json_data(request, products, campaign_id):
         for prop in product_props:
             # where product_prop is ('data-key', 'value')
             product_js_obj[prop] = product_props[prop]
-        results['products'].append(product_js_obj)
+        results.append(product_js_obj)
 
     # videos
     video_cookie = request.session.get('pinpoint-video-cookie')
@@ -170,12 +169,13 @@ def get_json_data(request, products, campaign_id):
     show_video = random.random() <= video_probability_function(video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
     if videos.exists() and (video_cookie.is_empty() or show_video):
         video = videos.order_by('?')[0]
-        results['videos'].append({
-            'video_id': video.video_id,
-            'video_provider': 'youtube',
-            'video_width': '450',
-            'video_height': '250',
-            'video_autoplay': 0
+        results.append({
+            'id': video.video_id,
+            'provider': 'youtube',
+            'width': '450',
+            'height': '250',
+            'autoplay': 0,
+            'template': 'youtube'
         })
         video_cookie.add_video(video.video_id)
     else:

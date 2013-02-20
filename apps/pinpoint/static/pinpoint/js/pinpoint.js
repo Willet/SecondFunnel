@@ -9,7 +9,6 @@ var PINPOINT = (function($, pageInfo){
         createPinterestButton,
         details,
         domTemplateCache = {},
-        featuredAreaSetup,
         getShortestColumn,
         hidePreview,
         init,
@@ -43,9 +42,9 @@ var PINPOINT = (function($, pageInfo){
         hoverTimer;
 
     details = pageInfo;
-    details.store    = details.store    || {};
-    details.featured = details.featured || {};
-    details.campaign = details.campaign || {};
+    details.store    = details.store || {};
+    details.page     = details.page  || {};
+    details.product  = details.page.product || {};
 
     /* --- START Utilities --- */
     getShortestColumn = function () {
@@ -238,7 +237,7 @@ var PINPOINT = (function($, pageInfo){
             url: '/intentrank/update-clickstream/',
             data: {
                 'store': details.store.id,
-                'campaign': details.campaign.id,
+                'campaign': details.page.id,
                 'product_id': id
             },
             dataType: 'json',
@@ -261,12 +260,12 @@ var PINPOINT = (function($, pageInfo){
                     // cached
                     return domTemplateCache[templateId];
                 } else {
-                    var el = document.getElementById(templateId);
-                    if (el && el.innerHTML) {
+                    var $el = $('[data-template-id="' + templateId + '"]');
+                    if ($el.length) {
                         // cache
-                        domTemplateCache[templateId] = el.innerHTML;
+                        domTemplateCache[templateId] = $el.html();
                     }
-                    return el ? el.innerHTML : '';
+                    return $el.length ? $el.html() : '';
                 }
             }
         );
@@ -281,19 +280,40 @@ var PINPOINT = (function($, pageInfo){
         // should be used.
         // data can be passed in, or left as default on the target element
         // as data attributes.
-        $('.template.target').each(function () {
-            var mergedData = data || {},
+        var excludeTemplates, excludeTemplatesSelector;
+
+        switch (details.page['main-block-template']) {
+            case 'shop-the-look':
+                excludeTemplates = ['featured-product'];
+                break;
+            case 'featured-product':
+                excludeTemplates = ['shop-the-look'];
+                break;
+            default:
+                excludeTemplates = '';
+        }
+
+        $.each(excludeTemplates, function (key, value) {
+            excludeTemplates[key] = "[data-src='" + value + "']";
+        });
+        excludeTemplatesSelector = excludeTemplates.join(', ');
+
+            $('.template.target').not(excludeTemplatesSelector).each(function () {
+            var originalContext = data || {},
                 target = $(this),
                 src = target.data('src') || '',
-                srcElement = $('#' + src);
+                srcElement = $("[data-template-id='" + src + "']"),
+                context = {};
 
-            $.extend(true, mergedData, {
-                'product': details.featured
-            }, target.data() || {});
+            $.extend(context, originalContext, {
+                'page': details.page,
+                'store': details.store,
+                'data': target.data() || {}
+            });
 
             // if the required template is on the page, use it
             if (srcElement.length) {
-                target.html(renderTemplate(srcElement.html(), mergedData));
+                target.html(renderTemplate(srcElement.html(), context));
             } else {
                 target.html('Error: required template #' + src +
                             ' does not exist');
@@ -308,8 +328,8 @@ var PINPOINT = (function($, pageInfo){
                 url: '/intentrank/get-seeds/',
                 data: {
                     'store': details.store.id,
-                    'campaign': details.campaign.id,
-                    'seeds': details.featured.id
+                    'campaign': details.page.id,
+                    'seeds': details.product.id
                 },
                 dataType: 'json',
                 success: function(results) {
@@ -329,13 +349,13 @@ var PINPOINT = (function($, pageInfo){
                 url: '/intentrank/get-results/',
                 data: {
                     'store': details.store.id,
-                    'campaign': details.campaign.id,
+                    'campaign': details.page.id,
 
                     //TODO: Probably should be some calculated value
                     'results': 10,
 
                     // normally ignored, unless IR call fails and we'll resort to getseeds
-                    'seeds': details.featured.id
+                    'seeds': details.product.id
                 },
                 dataType: 'json',
                 success: function(results) {
@@ -360,47 +380,55 @@ var PINPOINT = (function($, pageInfo){
         // suppose results is (now) a legit json object:
         // {products: [], videos: [(sizeof 1)]}
         var $block,
-            $col,
-            i = 0,
-            productDoms = [],
             result,
-            results = jsonData.products || [],
+            i,
+            productDoms = [],
+            results = jsonData || [],
             initialResults = results.length,
-            discoveryProductTemplate = $('#discovery_product_template').html(),
-            youtubeVideoTemplate = $('#youtube_video_template').html(),
-            videos = jsonData.videos || [];
+            template, player,
+            template_context, templateType, el, videos;
 
         // concatenate all the results together so they're in the same jquery object
         for (i = 0; i < results.length; i++) {
             try {
-                var template_context = results[i], el;
+                result = results[i]
+                template_context = result;
+                templateType = result.template || 'product';
+                template = $("[data-template-id='" + templateType + "']").html()
 
-                // in case an image is lacking, don't bother with the product
-                if (template_context.image == "None") {
-                    continue;
+                switch (templateType) {
+                    case 'product':
+                        // in case an image is lacking, don't bother with the product
+                        if (template_context.image == "None") {
+                            continue;
+                        }
+
+                        // use the resized images
+                        template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
+                        break;
+                    case 'combobox':
+                        break;
+                    case 'youtube':
+                        break;
+                    default:
+                        break;
                 }
 
-                // use the resized images
-                template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
-
-                el = $(renderTemplate(discoveryProductTemplate, {'product': template_context}));
+                el = $(renderTemplate(template, {
+                    'data': template_context,
+                    'page': details.page,
+                    'store': details.store
+                }));
                 el.data(template_context);  // populate the .product.block div with data
                 productDoms.push(el[0]);
             } catch (err) {
                 // hide rendering error
-                console && console.log && console.log('oops @ product');
+                console && console.log && console.log('oops @ item');
             }
         }
 
-        // add video iframes
-        for (i = 0; i < videos.length; i++) {
-            try {
-                productDoms.push($(renderTemplate(youtubeVideoTemplate, videos[i]))[0]);
-            } catch (err) {
-                // hide rendering error
-                console && console.log && console.log('oops @ video');
-            }
-        }
+        // Remove potentially bad content
+        productDoms = _.filter(productDoms, function(elem) {return !_.isEmpty(elem);});
 
         $block = $(productDoms);  // an array of DOM elements
 
@@ -416,16 +444,15 @@ var PINPOINT = (function($, pageInfo){
             $('.discovery-area').append($elem[0]);
         });
 
-        // we can now load youtube videos
-        for (i = 0; i < videos.length; i++) {
-            var v = videos[i], player;
-
-            player = new YT.Player(v.video_id, {
-                height: v.video_height,
-                width: v.video_width,
-                videoId: v.video_id,
+        // Render youtube blocks with player
+        videos = _.where(results, {'template': 'youtube'});
+        _.each(videos, function(result) {
+            player = new YT.Player(result.id, {
+                height: result.height,
+                width: result.width,
+                videoId: result.id,
                 playerVars: {
-                    'autoplay': v.video_autoplay,
+                    'autoplay': result.autoplay,
                     'controls': 0
                 },
                 events: {
@@ -434,7 +461,7 @@ var PINPOINT = (function($, pageInfo){
                     'onError': function(e) {}
                 }
             });
-        }
+        });
 
         // make sure images are loaded or else masonry wont work properly
         $block.imagesLoaded(function($images, $proper, $broken) {
@@ -495,34 +522,9 @@ var PINPOINT = (function($, pageInfo){
         }
     };
 
-    featuredAreaSetup = function () {
-        var $featuredArea = $('.featured'),
-            data = $featuredArea.data(),
-            url = data['url'],
-            title = data['name'],
-            fbButton = createFBButton({ 'url': url }),
-            twitterButton;
-
-        twitterButton = createTwitterButton({
-            'url'  : url,
-            'title': title,
-            'count': true
-        });
-
-        $featuredArea.find('.button.twitter').empty().append(twitterButton);
-        $featuredArea.find('.button.facebook').empty().append(fbButton);
-        if (window.FB) {
-            FB.XFBML.parse($featuredArea.find('.button.facebook')[0]);
-        }
-        if (window.twttr && window.twttr.widgets) {
-            twttr.widgets.load();
-        }
-    };
-
     ready = function() {
         // Special Setup
         renderTemplates();
-        featuredAreaSetup();
 
         // Event Handling
         // when someone clicks on a product, show the product details overlay

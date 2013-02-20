@@ -1,10 +1,13 @@
+from functools import partial
+import json
 from django.contrib import messages
+from django.template.defaultfilters import slugify, safe
 import re
 
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.template import RequestContext, Template, Context
+from django.template import RequestContext, Template, Context, loader
 from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
@@ -16,6 +19,7 @@ from apps.pinpoint.models import Campaign, BlockType, BlockContent
 from apps.pinpoint.decorators import belongs_to_store
 
 import apps.pinpoint.wizards as wizards
+from apps.utils import noop
 import apps.utils.base62 as base62
 
 
@@ -189,129 +193,58 @@ def campaign(request, campaign_id):
                                   context_instance=context)
 
 def campaign_to_theme_to_response(campaign, arguments, context=None):
-    """Generates the HTML page for a standard pinpoint product page."""
     if context is None:
         context = Context()
     context.update(arguments)
 
-    # retrieve theme for the store from the DB
-    theme = campaign.store.theme
+    # TODO: Content blocks don't make as much sense now; when to clean up?
+    # TODO: If we keep content blocks, should this be a method?
+    # Assume only one content block
+    content_block = campaign.content_blocks.all()[0]
 
-    # Determine featured content type
-    # TODO: How to handle multiple block types?
-    content_block = None
-    for block in campaign.content_blocks.all():
-        if block.content_type.name != "campaign":
-            content_block = block
-            break
+    product = content_block.data.product
+    product.json = json.dumps(product.data(raw=True))
 
-    if not content_block:
-        raise ValueError('Could not get content block')
+    campaign.stl_image = getattr(content_block.data, 'get_ls_image', noop)(url=True) or ''
+    campaign.featured_image = getattr(content_block.data, 'get_image', noop)(url=True) or ''
+    campaign.description = safe(content_block.data.description or product.description)
+    campaign.template = slugify(content_block.block_type.name)
 
-    featured_context = Context()
-    type = content_block.content_type.name
-
-    if type in ('featured product block', 'shop the look block'):
-        content_template = theme.featured_product
-        product          = content_block.data.product
-
-        product.description    = content_block.data.description
-        product.is_featured    = True
-
-        # TODO: Is the featured image always in the list of images?
-        featured_image_obj = content_block.data.get_image()
-        if featured_image_obj:
-            featured_image = featured_image_obj.get_url()
-            product.featured_image = featured_image
-
-        # Piggyback off of featured product block
-        if type == 'shop the look block':
-            lifestyle_image_obj = content_block.data.get_ls_image()
-
-            if lifestyle_image_obj:
-                lifestyle_image = lifestyle_image_obj.get_url()
-                product.lifestyle_image = lifestyle_image
-
-        featured_context.update({
-            'product': product,
-        })
-    else:
-        content_template = ''
-        product = {
-            'title': "Unknown Product",
-            'url': 'http://secondfunnel.com',
-            'featured_image': '',
-            'description': 'Unknown Product'
-        }
-
-
-    # Pre-render templates; bottom up
-    # Discovery block
-    discovery_block = theme.discovery_product # TODO: Generalize to other blocks
-    modified_discovery = "".join([
-        "{% extends 'pinpoint/campaign_discovery.html' %}",
-        "{% load pinpoint_ui %}",
-        "{% block discovery_block %}",
-        discovery_block,
-        "{% endblock discovery_block %}"
-    ])
-
-    # Discovery area
-    discovery_area = Template(modified_discovery).render(context)
-
-    # Preview block
-    # TODO: Does this actually need any additional context?
-    modified_preview = "".join([
-        "<div class='preview product' style='display: none;'>",
-        "<div class='mask'></div>",
-        "<div class='tablecell'>",
-        "<div class='content'>",
-        "<span class='close'>X</span>",
-        theme.preview_product,
-        "</div>",
-        "</div>",
-        "</div>"
-    ])
-    product_preview = Template(modified_preview).render(context)
-
-    # Featured content
-    modified_featured = "".join([
-        "{% load pinpoint_ui %}",
-        "<div class='featured product' {{ product.data|safe }}>",
-        content_template,
-        "</div>"
-    ])
-
-    featured_content  = Template(modified_featured).render(featured_context)
-
-    # Header content
-    header_context = Context(featured_context)
-    header_context.update({
-        'campaign': campaign,
+    context.update({
         'product': product,
-        'store': campaign.store
+        'campaign': campaign
     })
 
-    header_content = render_to_string('pinpoint/campaign_head.html',
-                                      arguments, header_context)
+    theme = campaign.store.theme
+    page_str = theme.page
 
-    # Scripts
-    header_context.update({
-        'ga_account_number': settings.GOOGLE_ANALYTICS_PROPERTY
-    })
-    scripts_content = render_to_string('pinpoint/campaign_scripts.html',
-                                      arguments, header_context)
+    actions = {
+        'template': loader.get_template,
+        'theme': partial(getattr, theme)
+    }
 
-    page_context = Context({
-        'featured_content': featured_content,
-        'discovery_area': discovery_area,
-        'preview_area': product_preview,
-        'header_content': header_content,
-        'scripts_content': scripts_content
-    })
+    # Replace necessary tags
+    for field, details in theme.REQUIRED_FIELDS.iteritems():
+        type = details.get('type')
+        values = details.get('values')
+
+        sub_values = []
+        for value in values:
+            result = actions.get(type)(value)
+
+            # TODO: Do we need to render, or can we just convert to string?
+            if isinstance(result, Template):
+                result = result.render(context)
+            else:
+                result = result.encode('unicode-escape')
+
+            sub_values.append(result)
+
+        regex = r'\{\{\s*' + field + '\s*\}\}'
+        page_str= re.sub(regex, ''.join(sub_values), page_str)
 
     # Page content
-    page = Template(theme.page_template)
+    page = Template(page_str)
 
     # Render response
-    return HttpResponse(page.render(page_context))
+    return HttpResponse(page.render(context))
