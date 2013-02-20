@@ -44,6 +44,7 @@ var PINPOINT = (function($, pageInfo){
     details = pageInfo;
     details.store    = details.store || {};
     details.page     = details.page  || {};
+    details.content     = details.content  || [];
     details.product  = details.page.product || {};
 
     /* --- START Utilities --- */
@@ -230,6 +231,10 @@ var PINPOINT = (function($, pageInfo){
             id        = data['product-id'],
             exceededThreshold;
 
+        if (details.page.offline) {
+            return;
+        }
+
         userClicks += 1;
         exceededThreshold = ((userClicks % clickThreshold) == 0);
 
@@ -324,47 +329,55 @@ var PINPOINT = (function($, pageInfo){
     loadInitialResults = function () {
         if (!loadingBlocks) {
             loadingBlocks = true;
-            $.ajax({
-                url: '/intentrank/get-seeds/',
-                data: {
-                    'store': details.store.id,
-                    'campaign': details.page.id,
-                    'seeds': details.product.id
-                },
-                dataType: 'json',
-                success: function(results) {
-                    layoutResults(results);
-                },
-                failure: function() {
-                    loadingBlocks = false;
-                }
-            });
+            if (!details.page.offline) {
+                $.ajax({
+                    url: '/intentrank/get-seeds/',
+                    data: {
+                        'store': details.store.id,
+                        'campaign': details.page.id,
+                        'seeds': details.product.id
+                    },
+                    dataType: 'json',
+                    success: function(results) {
+                        layoutResults(results);
+                    },
+                    failure: function() {
+                        loadingBlocks = false;
+                    }
+                });
+            } else {
+                layoutResults(details.content);
+            }
         }
     };
 
     loadMoreResults = function(belowFold) {
         if (!loadingBlocks) {
             loadingBlocks = true;
-            $.ajax({
-                url: '/intentrank/get-results/',
-                data: {
-                    'store': details.store.id,
-                    'campaign': details.page.id,
+            if (!details.page.offline) {
+                $.ajax({
+                    url: '/intentrank/get-results/',
+                    data: {
+                        'store': details.store.id,
+                        'campaign': details.page.id,
 
-                    //TODO: Probably should be some calculated value
-                    'results': 10,
+                        //TODO: Probably should be some calculated value
+                        'results': 10,
 
-                    // normally ignored, unless IR call fails and we'll resort to getseeds
-                    'seeds': details.product.id
-                },
-                dataType: 'json',
-                success: function(results) {
-                    layoutResults(results, belowFold);
-                },
-                failure: function() {
-                    loadingBlocks = false;
-                }
-            });
+                        // normally ignored, unless IR call fails and we'll resort to getseeds
+                        'seeds': details.product.id
+                    },
+                    dataType: 'json',
+                    success: function(results) {
+                        layoutResults(results, belowFold);
+                    },
+                    failure: function() {
+                        loadingBlocks = false;
+                    }
+                });
+            } else {
+                layoutResults(details.content);
+            }
         }
     };
 
