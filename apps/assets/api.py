@@ -5,7 +5,7 @@ from tastypie.authorization import Authorization
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 
-from apps.assets.models import Product, Store, ProductMedia
+from apps.assets.models import Product, Store, ProductMedia, YoutubeVideo
 from apps.pinpoint.models import BlockContent, Campaign
 
 class UserAuthentication(Authentication):
@@ -166,4 +166,17 @@ class CampaignResource(ModelResource):
 
         filtering = {
             'store': ALL,
+        }
+
+
+class YoutubeVideoResource(ModelResource):
+    """Access to youtube video model"""
+
+    class Meta:
+        queryset = YoutubeVideo.objects.all()
+        authentication = UserAuthentication()
+        resource_name = 'youtube_video'
+
+        filtering = {
+            'id': ('exact',)
         }
