@@ -443,14 +443,14 @@
             // These metrics aren't calculated by the backend atm, hence the ugly implementation
             $(".per-visitor").remove();
 
-            $(".section_overview_block:first .section_overview_metrics ul").append(
+            $(".section_overview_block:nth-child(2) .section_overview_metrics ul").append(
                 "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / totals.visitors).toFixed(2) + "</span> Interactions per visit</li>");
 
 
-            $(".section_overview_block:nth-child(2) .section_overview_metrics ul").append(
+            $(".section_overview_block:nth-child(3) .section_overview_metrics ul").append(
                 "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + (totals.shares / totals.visitors).toFixed(2) + "</span> Shares per visit</li>");
 
-            $(".section_overview_block:nth-child(3) .section_overview_metrics ul").append(
+            $(".section_overview_block:nth-child(1) .section_overview_metrics ul").append(
                 "<li class='per-visitor'><span class='metric_overview' data-metric='bounce-rate'>" + bounce_rate.toFixed(2) + "%</span> Bounce Rate</li>");
 
             // construct lists of sorted (desc) (pid, count) pairs
