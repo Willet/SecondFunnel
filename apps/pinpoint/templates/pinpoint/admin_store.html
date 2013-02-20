@@ -237,8 +237,8 @@
             });
 
             // If we had messages, flash the most recent entry...
-            if ($("ul.messages").length >= 1 &&
-                $("ul.messages").eq(0).text().indexOf('deleted') === -1) {
+            if ($("ul.messages").length >= 1 && 
+                !$("ul.messages:contains('deleted')").length) {
                 $("#pageList tbody tr:first div").delay(500).effect("highlight", {"color": "#6F98AC"}, 2000);
             }
 
