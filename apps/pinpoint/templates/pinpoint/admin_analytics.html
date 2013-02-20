@@ -136,6 +136,19 @@
             margin-right: 15px;
         }
 
+        .top_video {
+            width: 350px;
+        }
+
+        .top_video .count {
+            position: relative;
+            top: 70px;
+        }
+
+        .top_video .video_box {
+            float: right;
+        }
+
         .clear {
             clear: both;
         }
@@ -253,68 +266,73 @@
 
         api = (function () {
             var uris = {
-                'products': "/api/assets/v1/product/%pid%/?store={{ store.id }}&format=json",
-                'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%pid%&format=json"
+                'product': "/api/assets/v1/product/%object_id%/?store={{ store.id }}&format=json",
+                'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%object_id%&format=json",
+                'video': "/api/assets/v1/youtube_video/%object_id%/?format=json"
             }, getProduct, getProducts, fetchProduct;
 
-            getProduct = function (pid, callback) {
-                var product = cache.get(pid);
+            getObject = function (object_type, object_id, callback) {
+                var object = cache.get(object_type + "_" + object_id);
 
-                if (product === null) {
-                    fetchProduct(pid, callback);
+                if (object === null) {
+                    fetchObject(object_type, object_id, callback);
                 } else {
-                    callback(product);
+                    callback(object);
                 }
             };
 
-            getProducts = function (pids, step, callback) {
+            getObjects = function (object_type, object_ids, step, callback) {
                 var result = [];
 
-                if (pids.length == 0) {
+                if (object_ids.length == 0) {
                     callback(result);
                 }
 
-                map(function (i, pid) {
-                    getProduct(pid, function (product) {
-                        result.push(product);
+                map(function (i, object_id) {
+                    getObject(object_type, object_id, function (object) {
+                        result.push(object);
 
-                        step(result.length, pids.length);
+                        step(result.length, object_ids.length);
 
-                        if (result.length == pids.length) {
+                        if (result.length == object_ids.length) {
                             callback(result);
                         }
                     });
-                }, pids);
+                }, object_ids);
             };
 
-            fetchProduct = function (pid, callback) {
+            fetchObject = function (object_type, object_id, callback) {
                 $.ajax({
-                    url: uris.products.replace("%pid%", pid),
+                    url: uris[object_type].replace("%object_id%", object_id),
                     dataType: "json",
                     success: function (data) {
-                        cache.set(data.id, data);
+                        cache.set(object_type + "_" + data.id, data);
 
-                        $.ajax({
-                            url: uris.products_media.replace("%pid%", pid),
-                            dataType: "json",
-                            success: function (data) {
-                                var prod = cache.get(pid);
+                        if (object_type == "product") {
+                            $.ajax({
+                                url: uris.products_media.replace("%object_id%", object_id),
+                                dataType: "json",
+                                success: function (data) {
+                                    var prod = cache.get(object_type + "_" + object_id);
 
-                                if (data.meta.total_count > 0) {
-                                    prod.media = data.objects[0];
-                                    cache.set(pid, prod);
+                                    if (data.meta.total_count > 0) {
+                                        prod.media = data.objects[0];
+                                        cache.set(object_type + "_" + object_id, prod);
+                                    }
+
+                                    callback(prod);
                                 }
-
-                                callback(prod);
-                            }
-                        });
+                            });
+                        } else {
+                            callback(data);
+                        }
                     }
                 });
             };
 
             return {
-                "getProduct": getProduct,
-                "getProducts": getProducts
+                "getObject": getObject,
+                "getObjects": getObjects
             };
         }());
 
@@ -361,6 +379,7 @@
         injectAnalyticsData = function (data) {
             var sortables = {
                     'engaged_products': [],
+                    'engaged_videos': [],
                     'sharing_products': [],
                     'sharing_source': []
                 },
@@ -410,10 +429,11 @@
                 data.engagement['inpage-hover'].totals);
 
             top_lists = {
-                'engaged_products': merged_interactions.product_id,
-                'sharing_products': merged_sharing.product_id,
+                'engaged_products': merged_interactions.target_id,
+                'sharing_products': merged_sharing.target_id,
                 'sharing_source': merged_sharing.meta,
                 'interaction_sections': merged_interactions.meta,
+                'engaged_videos': data.engagement['content-video'].totals.target_id,
                 'interaction_types': {
                     "Hovers": data.engagement['inpage-hover'].totals.date.all + data.engagement['content-hover'].totals.date.all,
                     "Clicks": data.engagement['inpage-openpopup'].totals.date.all + data.engagement['content-openpopup'].totals.date.all,
@@ -479,7 +499,7 @@
                 return pair[0];
             }, sortables.engaged_products);
 
-            api.getProducts(pids, function (current, total) {
+            api.getObjects("product", pids, function (current, total) {
                 $(".progressbar").progressbar("value", Math.round(current / total * 100));
             }, function () {
                 // hide progress bar and show data
@@ -518,18 +538,29 @@
                     );
                 }, sortables.sharing_source);
                 insertOtherBar($("#share_destinations"), sortables.sharing_source, totals.shares);
-
-                // inject product interaction types
-                map(function(i, pair) {
-                    insertToBarGraph(
-                        $("#interaction_types"),
-                        pair[0],
-                        pair[1],
-                        totals.interactions.all
-                    );
-                }, sortables.interaction_types);
-                insertOtherBar($("#interaction_types"), sortables.interaction_types, totals.interactions.all);
             });
+
+            // inject top engaged videos
+            map(function (i, pair) {
+                insertTopVideo(
+                    $("#top_videos"),
+                    "Plays",
+                    pair[0],
+                    pair[1],
+                    data.engagement['content-video'].totals.date.all
+                );
+            }, sortables.engaged_videos.slice(0, 3));
+
+            // inject product interaction types
+            map(function(i, pair) {
+                insertToBarGraph(
+                    $("#interaction_types"),
+                    pair[0],
+                    pair[1],
+                    totals.interactions.all
+                );
+            }, sortables.interaction_types);
+            insertOtherBar($("#interaction_types"), sortables.interaction_types, totals.interactions.all);
         };
 
         insertOtherBar = function ($parent, pairs, total) {
@@ -566,7 +597,7 @@
                 $box = $("<div>").addClass("top_product"),
                 $count;
 
-            api.getProduct(pid, function(product) {
+            api.getObject("product", pid, function(product) {
                 $name = $("<div>").addClass("name").html(product.name);
 
                 $image = $("<div>").addClass("image").append(
@@ -577,6 +608,25 @@
                 $count = $("<div>").addClass("count").html(verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
 
                 $box.append($name).append($image).append($count).append($("<div>").addClass("clear"));
+                $parent.append($box);
+
+                $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
+            });
+        };
+
+        insertTopVideo = function ($parent, verb, vid, count, total) {
+            var video,
+                $box = $("<div>").addClass("top_video"),
+                $count;
+
+            api.getObject("video", vid, function(video) {
+                $video_box = $("<div>").addClass("video_box");
+                $video = $("<iframe id='ytplayer' type='text/html' width='225' height='125' src='http://www.youtube.com/embed/" + video.video_id + "'>");
+                $video_box.append($video);
+
+                $count = $("<div>").addClass("count").html(verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
+
+                $box.append($count).append($video_box).append($("<div>").addClass("clear"));
                 $parent.append($box);
 
                 $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
@@ -707,7 +757,12 @@
                             </div>
 
                             <div class="data_metric">
-                                <div class="metric_title">Engagement per Source</div>
+                                <div class="metric_title">Top Played Videos</div>
+                                <div class="metric_content" id="top_videos"></div>
+
+                                <div class="no_data" data-metric="top_videos">
+                                    <p>No engaged videos yet.</p>
+                                </div>
                             </div>
 
                             <div class="data_metric">

@@ -127,7 +127,7 @@ def analytics_pinpoint(request):
                 'name': metric.name,
                 'order': category_has_metric.order,
                 'display': category_has_metric.display,
-                'totals': {'date': {}, 'product_id': {}, 'meta': {}},
+                'totals': {'date': {}, 'target_id': {}, 'meta': {}},
 
                 # this exposes daily data for each product
                 # it's a list comprehension
@@ -135,7 +135,7 @@ def analytics_pinpoint(request):
                             "id": datum.id,
                             "date": datum.timestamp.date().isoformat(),
                             "value": int(datum.value),
-                            "product_id": datum.target_id,
+                            "target_id": datum.target_id,
                             "meta": datum.meta
                         } for datum in data.all()]
             }
@@ -145,7 +145,7 @@ def analytics_pinpoint(request):
 
             aggregator = partial(aggregate_by, metric.slug)
             bucket = aggregator(bucket, 'date')
-            bucket = aggregator(bucket, 'product_id')
+            bucket = aggregator(bucket, 'target_id')
             bucket = aggregator(bucket, 'meta')
 
     return ajax_success(results)
