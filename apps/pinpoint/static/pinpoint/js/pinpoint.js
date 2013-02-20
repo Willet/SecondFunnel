@@ -428,7 +428,7 @@ var PINPOINT = (function($, pageInfo){
         }
 
         // Remove potentially bad content
-        productDoms = _.filter(productDoms, function(elem) {return !_.isEmpty(elem)})
+        productDoms = _.filter(productDoms, function(elem) {return !_.isEmpty(elem);});
 
         $block = $(productDoms);  // an array of DOM elements
 
