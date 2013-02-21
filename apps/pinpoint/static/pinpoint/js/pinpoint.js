@@ -20,10 +20,10 @@ var PINPOINT = (function($, pageInfo) {
         hoverTimer;
 
     details = pageInfo;
-    details.store    = details.store || {};
-    details.page     = details.page  || {};
-    details.content     = details.content  || [];
-    details.product  = details.page.product || {};
+    details.store = details.store || {};
+    details.page = details.page || {};
+    details.content = details.content || [];
+    details.product = details.page.product || {};
 
     /* --- START Utilities --- */
     function getShortestColumn () {
