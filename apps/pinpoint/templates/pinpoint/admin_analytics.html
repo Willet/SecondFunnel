@@ -758,10 +758,13 @@
 
     <script type="text/template" id="bar_chart">
         <% _.each(data, function (pair) { %>
-            <dt><%= pair[0] %>: <%= pair[1] %></dt>
-            <dd>
-                <div class="bar" style="width: <%= ((pair[1] / total) * 100).toFixed(0) %>%;"><%= ((pair[1] / total) * 100).toFixed(0) %>%</div>
-            </dd>
+            <% perc = ((pair[1] / total) * 100 || 0).toFixed(0); %>
+            <% if (perc > 0) { %>
+                <dt><%= pair[0] %>: <%= pair[1] %></dt>
+                <dd>
+                    <div class="bar" style="width: <%= perc %>%;"><%= perc %>%</div>
+                </dd>
+            <% } %>
         <% }); %>
     </script>
 
