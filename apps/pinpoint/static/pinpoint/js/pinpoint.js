@@ -2,55 +2,21 @@
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
 
 // Why do we mix and match jQuery and native dom?
-var PINPOINT = (function($, pageInfo){
-    var createSocialButtons,
-        createFBButton,
-        createTwitterButton,
-        createPinterestButton,
-        details,
+var PINPOINT = (function($, pageInfo) {
+    var details,
         domTemplateCache = {},
-        getShortestColumn,
-        hidePreview,
-        init,
-        invalidateIRSession,
-        layoutResults,
-        load,
-        loadFB,
-        loadInitialResults,
-        loadMoreResults,
-        pageScroll,
-        commonHoverOn,
-        commonHoverOff,
-        lifestyleHoverOn,
-        lifestyleHoverOff,
-        productHoverOn,
-        productHoverOff,
-        ready,
-        renderExternalContent,
-        renderTemplate,
-        renderTemplates,
         scripts,
-        showPreview,
-        updateClickStream,
         userClicks = 0,
         clickThreshold = 3,
         spaceBelowFoldToStartLoading = 500,
         loadingBlocks = false,
-        addOnBlocksAppendedCallback,
         blocksAppendedCallbacks = [],
-        addPreviewCallback,
         previewCallbacks = [],
         hoverTimer;
 
-    details = pageInfo;
-    details.store    = details.store || {};
-    details.page     = details.page  || {};
-    details.product  = details.page.product || {};
-
     /* --- START Utilities --- */
-    getShortestColumn = function () {
+    function getShortestColumn () {
         var $column;
-
         $('.discovery-area .column').each(function(index, column) {
             var height = $(column).height();
 
@@ -58,13 +24,12 @@ var PINPOINT = (function($, pageInfo){
                 $column = $(column);
             }
         });
-
         return $column;
-    };
+    }
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
-    showPreview = function() {
+    function showPreview () {
         // display overlay with more information about the selected product
         // data is retrieved from .block.product divs
         var data     = $(this).data(),
@@ -145,17 +110,17 @@ var PINPOINT = (function($, pageInfo){
 
         $preview.fadeIn(100);
         $mask.fadeIn(100);
-    };
+    }
 
-    addPreviewCallback = function(f) {
+    function addPreviewCallback(f) {
         previewCallbacks.push(f);
-    };
+    }
 
-    addOnBlocksAppendedCallback = function(f) {
+    function addOnBlocksAppendedCallback(f) {
         blocksAppendedCallbacks.push(f);
-    };
+    }
 
-    hidePreview = function() {
+    function hidePreview () {
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.product');
 
@@ -163,9 +128,9 @@ var PINPOINT = (function($, pageInfo){
 
         $preview.fadeOut(100);
         $mask.fadeOut(100);
-    };
+    }
 
-    commonHoverOn = function (t, enableSocialButtons) {
+    function commonHoverOn(t, enableSocialButtons) {
         pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(t).parent().data("url")});
         pinpointTracking.clearTimeout();
 
@@ -180,9 +145,9 @@ var PINPOINT = (function($, pageInfo){
                 $buttons.addClass('loaded');
             }
         }
-    };
+    }
 
-    commonHoverOff = function (t, hoverCallback) {
+    function commonHoverOff(t, hoverCallback) {
         var $buttons = $(t).parent().find('.social-buttons');
         $buttons.fadeOut('fast');
 
@@ -195,13 +160,13 @@ var PINPOINT = (function($, pageInfo){
         if (pinpointTracking.socialShareType !== "popup") {
             pinpointTracking._pptimeout = window.setTimeout(pinpointTracking.setSocialShareVars, 2000);
         }
-    };
+    }
 
-    productHoverOn = function () {
+    function productHoverOn () {
         commonHoverOn(this, true);
     }
 
-    productHoverOff = function () {
+    function productHoverOff () {
         commonHoverOff(this, function (t) {
             pinpointTracking.registerEvent({
                 "type": "inpage",
@@ -209,13 +174,13 @@ var PINPOINT = (function($, pageInfo){
                 "label": $(t).parent().data("url")
             });
         });
-    };
+    }
 
-    lifestyleHoverOn = function () {
+    function lifestyleHoverOn () {
         commonHoverOn(this, false);
-    };
+    }
 
-    lifestyleHoverOff = function () {
+    function lifestyleHoverOff () {
         commonHoverOff(this, function (t) {
             pinpointTracking.registerEvent({
                 "type": "content",
@@ -223,9 +188,9 @@ var PINPOINT = (function($, pageInfo){
                 "label": $(t).children().attr("src")
             });
         });
-    };
+    }
 
-    updateClickStream = function (event) {
+    function updateClickStream (event) {
         var $target = $(event.currentTarget),
             data      = $target.data(),
             id        = data['product-id'],
@@ -248,9 +213,9 @@ var PINPOINT = (function($, pageInfo){
                 }
             }
         });
-    };
+    }
 
-    renderTemplate = function (str, data) {
+    function renderTemplate (str, data) {
         // MOD of
         // http://emptysquare.net/blog/adding-an-include-tag-to-underscore-js-templates/
         // match "<% include template-id %>" with caching
@@ -272,9 +237,9 @@ var PINPOINT = (function($, pageInfo){
         );
 
         return _.template(replaced, data);
-    };
+    }
 
-    renderTemplates = function (data) {
+    function renderTemplates (data) {
         // finds templates currently on the page, and drops them onto their
         // targets (elements with classes 'template' and 'target').
         // Targets need a data-src attribute to indicate the template that
@@ -297,15 +262,19 @@ var PINPOINT = (function($, pageInfo){
         $.each(excludeTemplates, function (key, value) {
             excludeTemplates[key] = "[data-src='" + value + "']";
         });
+
         excludeTemplatesSelector = excludeTemplates.join(', ');
 
-            $('.template.target').not(excludeTemplatesSelector).each(function () {
+        // select every ".template.target" element that is NOT
+        // the main page template
+        $('.template.target').not(excludeTemplatesSelector).each(function () {
             var originalContext = data || {},
                 target = $(this),
                 src = target.data('src') || '',
                 srcElement = $("[data-template-id='" + src + "']"),
                 context = {};
 
+            // populate context with all available variables
             $.extend(context, originalContext, {
                 'page': details.page,
                 'store': details.store,
@@ -320,29 +289,9 @@ var PINPOINT = (function($, pageInfo){
                             ' does not exist');
             }
         });
-    };
+    }
 
-    renderExternalContent = function (externalContent, defaultContext) {
-        // given ONE external content object, render it according to
-        // its specified type ['content-type'].
-        // the js template under the id ['content-type']_external_template
-        // will be used.
-        // if the template of a request type is not found,
-        // #_external_template will be used.
-        // if that's not found, this function returns an empty string.
-        var context = $.extend({}, {'content': externalContent}, defaultContext),
-            templateName = '#' +
-                           (externalContent['content-type'] || '').toLowerCase() +
-                           '_external_template',
-            template = $(templateName).html();
-
-        if (!template) {
-            return '';
-        }
-        return renderTemplate(template, context);
-    };
-
-    loadInitialResults = function () {
+    function loadInitialResults () {
         if (!loadingBlocks) {
             loadingBlocks = true;
             $.ajax({
@@ -361,9 +310,9 @@ var PINPOINT = (function($, pageInfo){
                 }
             });
         }
-    };
+    }
 
-    loadMoreResults = function(belowFold) {
+    function loadMoreResults(belowFold) {
         if (!loadingBlocks) {
             loadingBlocks = true;
             $.ajax({
@@ -387,16 +336,16 @@ var PINPOINT = (function($, pageInfo){
                 }
             });
         }
-    };
+    }
 
-    invalidateIRSession = function () {
+    function invalidateIRSession () {
         $.ajax({
             url: '/intentrank/invalidate-session/',
             dataType: 'json'
         });
-    };
+    }
 
-    layoutResults = function (jsonData, belowFold) {
+    function layoutResults(jsonData, belowFold) {
         // renders product divs onto the page.
         // suppose results is (now) a legit json object:
         // {products: [], videos: [(sizeof 1)]}
@@ -409,24 +358,13 @@ var PINPOINT = (function($, pageInfo){
             template, player,
             template_context, templateType, el, videos;
 
-
-        // concatenate all the results together so they're in the same jquery object
-        // add external content for the FEATURED product
-        for (i = 0; i < externalContent.length; i++) {
-            try {
-                productDoms.push($(renderExternalContent(externalContent[i]))[0]);
-            } catch (err) {  // hide rendering error
-                console.log('oops @ externalContent');
-            }
-        }
-
         // add products
         for (i = 0; i < results.length; i++) {
             try {
                 result = results[i]
                 template_context = result;
                 templateType = result.template || 'product';
-                template = $("[data-template-id='" + templateType + "']").html()
+                template = $("[data-template-id='" + templateType + "']").html();
 
                 switch (templateType) {
                     case 'product':
@@ -454,19 +392,6 @@ var PINPOINT = (function($, pageInfo){
                 el.data(template_context);  // populate the .product.block div with data
                 productDoms.push(el[0]);
 
-                // add external content for the related products
-                var relatedEC = template_context['external-content'] || [];
-                for (j = 0; j < relatedEC.length; j++) {
-                    try {
-                        // don't let instagram content flood the feed
-                        var randomProb = Math.random();
-                        if (randomProb < (0.8 / relatedEC.length)) {
-                            productDoms.push($(renderExternalContent(relatedEC[j]))[0]);
-                        }
-                    } catch (err) {  // hide rendering error
-                        console.log('oops @ relatedEC');
-                    }
-                }
             } catch (err) {  // hide rendering error
                 console && console.log && console.log('oops @ item');
             }
@@ -535,9 +460,9 @@ var PINPOINT = (function($, pageInfo){
 
             loadingBlocks = false;
         });
-    };
+    }
 
-    pageScroll = function () {
+    function pageScroll () {
         var $w            = $(window),
             noResults     = ($('.discovery-area .block').length === 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
@@ -562,29 +487,30 @@ var PINPOINT = (function($, pageInfo){
             lowestHeight = lowestBlock.offset().top + lowestBlock.height()
         }
 
-        if ( noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
+        if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
             loadMoreResults();
         }
-    };
+    }
 
-    ready = function() {
+    function ready () {
         // Special Setup
         renderTemplates();
 
         // Event Handling
         // when someone clicks on a product, show the product details overlay
-        $('.discovery-area').on('click', '.block.product', showPreview);
+        var discoveryArea = $('.discovery-area');
+        discoveryArea.on('click', '.block.product', showPreview);
 
         // and update the clickstream
-        $('.discovery-area').on('click', '.block.product', updateClickStream);
+        discoveryArea.on('click', '.block.product', updateClickStream);
 
-        $('.discovery-area').on('mouseenter', '.block.product .product', productHoverOn);
-        $('.discovery-area').on('mouseleave', '.block.product .product', productHoverOff);
+        discoveryArea.on('mouseenter', '.block.product .product', productHoverOn);
+        discoveryArea.on('mouseleave', '.block.product .product', productHoverOff);
 
-        $('.discovery-area').on('mouseenter', '.block.product .lifestyle', lifestyleHoverOn);
-        $('.discovery-area').on('mouseleave', '.block.product .lifestyle', lifestyleHoverOff);
+        discoveryArea.on('mouseenter', '.block.product .lifestyle', lifestyleHoverOn);
+        discoveryArea.on('mouseleave', '.block.product .lifestyle', lifestyleHoverOff);
 
-        $('.discovery-area').masonry({
+        discoveryArea.masonry({
             itemSelector: '.block',
 
             columnWidth: function (containerWidth) {
@@ -607,11 +533,11 @@ var PINPOINT = (function($, pageInfo){
 
         // Take any necessary actions
         loadInitialResults();
-    };
+    }
     /* --- END element bindings --- */
 
     /* --- START Social buttons --- */
-    loadFB = function () {
+    function loadFB () {
         FB.init({
           cookie:true,
           status:true,
@@ -640,9 +566,9 @@ var PINPOINT = (function($, pageInfo){
                 });
             }
         );
-    };
+    }
 
-    createSocialButtons = function (config) {
+    function createSocialButtons(config) {
         var conf           = config || {};
         var $socialButtons = $('<div/>', {'class': 'social-buttons'});
 
@@ -657,9 +583,9 @@ var PINPOINT = (function($, pageInfo){
 
         $socialButtons.append($fbButton).append($twitterButton).append($pinterestButton);
         return $socialButtons;
-    };
+    }
 
-    createFBButton = function(config) {
+    function createFBButton(config) {
         var conf = config || {};
 
         var fbxml = "<fb:like " +
@@ -670,9 +596,9 @@ var PINPOINT = (function($, pageInfo){
             "></fb:like>";
 
         return $(fbxml);
-    };
+    }
 
-    createTwitterButton = function(config) {
+    function createTwitterButton(config) {
         var conf = config || {};
 
         var $twitterHtml = $('<a/>', {
@@ -689,9 +615,9 @@ var PINPOINT = (function($, pageInfo){
         }
 
         return $twitterHtml;
-    };
+    }
 
-    createPinterestButton = function (config) {
+    function createPinterestButton(config) {
         var conf = config || {};
 
         var url = 'http://pinterest.com/pin/create/button/' +
@@ -711,22 +637,10 @@ var PINPOINT = (function($, pageInfo){
         $pinterestHtml.append($img);
 
         return $pinterestHtml;
-    };
+    }
     /* --- END Social buttons --- */
 
-    /* --- START Script loading --- */
-    // Either a URL, or an object with 'src' key and optional 'onload' key
-    scripts = [
-    {
-        'src'   : 'http://connect.facebook.net/en_US/all.js#xfbml=0',
-        'onload': loadFB
-    }, {
-        'src'   : '//platform.twitter.com/widgets.js',
-        'onload': pinpointTracking.registerTwitterListeners,
-        'id': 'twitter-wjs'
-    }];
-
-    load = function(scripts) {
+    function load(scripts) {
         var item, script;
 
         // TODO: Check if already loaded?
@@ -735,13 +649,31 @@ var PINPOINT = (function($, pageInfo){
             item = scripts[i];
             $.getScript(item.src || item, item.onload || function() {});
         }
-    };
-    /* --- END Script loading --- */
+    }
 
-    init = function() {
+    function init() {
         load(scripts);
         $(document).ready(ready);
-    };
+    }
+
+
+    // script actually starts here
+
+
+    details = pageInfo;
+    details.store    = details.store || {};
+    details.page     = details.page  || {};
+    details.product  = details.page.product || {};
+
+    // Either a URL, or an object with 'src' key and optional 'onload' key
+    scripts = [{
+        'src'   : 'http://connect.facebook.net/en_US/all.js#xfbml=0',
+        'onload': loadFB
+    }, {
+        'src'   : '//platform.twitter.com/widgets.js',
+        'onload': pinpointTracking.registerTwitterListeners,
+        'id': 'twitter-wjs'
+    }];
 
     return {
         'init': init,

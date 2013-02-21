@@ -162,7 +162,6 @@ class Product(BaseModelNamed):
             modified_text = escape(modified_text)
             return modified_text
 
-        external_content = []
         images = self.images()
 
         if self.default_image:
@@ -171,13 +170,6 @@ class Product(BaseModelNamed):
         else:
             image = images[0] if images else None
 
-        # add instagram images to image list
-        for content in self.external_content.all():
-            external_content.append(content.to_json())
-
-            if content.content_type.name.lower() == 'instagram':
-                images.append(content.image_url)
-
         fields = {
             'data-title': strip_and_escape(self.name),
             'data-description': strip_and_escape(self.description),
@@ -185,7 +177,6 @@ class Product(BaseModelNamed):
             'data-url': strip_and_escape(self.original_url),
             'data-image': strip_and_escape(image),
             'data-images': '|'.join(strip_and_escape(x) for x in images),
-            'data-external-content': '|'.join(strip_and_escape(x.get('image-url', '')) for x in external_content),
             'data-product-id': self.id,
             'data-template': 'product'
         }
@@ -204,8 +195,6 @@ class Product(BaseModelNamed):
                 field_name = field[5:]
                 if field_name == 'images':
                     data[field_name] = filter(None, fields[field].split('|'))
-                elif field_name == 'external-content':
-                    data[field_name] = external_content
                 else:
                     data[field_name] = fields[field]
         else:
@@ -248,8 +237,8 @@ class ExternalContent(BaseModel):
             'image-url': self.image_url,
         }
 
-# If we need different behaviour per model, just use a proxy model.
 
+# If we need different behaviour per model, just use a proxy model.
 class ExternalContentType(BaseModelNamed):
     """i.e. "Instagram"."""
     enabled = models.BooleanField(default=True)
