@@ -202,6 +202,7 @@ INSTALLED_APPS = (
     'adminlettuce',
     'ajax_forms',
     "compressor",
+    'social_auth',
 
     # our apps
     'apps.analytics',
@@ -288,5 +289,11 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=6),
     },
 }
+
+AUTHENTICATION_BACKENDS = (
+    'social_auth.backends.contrib.instagram.InstagramBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+SOCIAL_AUTH_NEW_ASSOCIATION_REDIRECT_URL = '/pinpoint/admin/social-auth/'
 
 djcelery.setup_loader()
