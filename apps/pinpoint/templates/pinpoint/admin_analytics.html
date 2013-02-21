@@ -238,7 +238,7 @@
     var app = (function ($) {
         var api, init, settings, setUpListeners, getDateRange,
             injectAnalyticsData, insertTopProduct, insertToBarGraph,
-            loadAnalytics, map, cache;
+            loadAnalytics, cache;
 
         settings = {
             "store_id": "{{ store.id }}",
@@ -282,20 +282,6 @@
             };
         }());
 
-        map = function (func, iterable) {
-            var results = [], res, key;
-
-            for (key in iterable) {
-                res = func(key, iterable[key]);
-
-                if (res !== undefined) {
-                    results.push(res);
-                }
-            }
-
-            return results;
-        };
-
         api = (function () {
             var uris = {
                 'product': "/api/assets/v1/product/%object_id%/?store={{ store.id }}&format=json",
@@ -321,7 +307,7 @@
                     callback(result);
                 }
 
-                map(function (i, object_id) {
+                _.each(object_ids, function (object_id) {
                     getObject(object_type, object_id, function (object) {
                         result.push(object);
 
@@ -331,7 +317,7 @@
                             callback(result);
                         }
                     });
-                }, object_ids);
+                });
             };
 
             fetchObject = function (object_type, object_id, callback) {
@@ -410,6 +396,7 @@
         injectAnalyticsData = function (data) {
             var sortables = {
                     'engaged_products': [],
+                    'engaged_content': [],
                     'engaged_videos': [],
                     'sharing_products': [],
                     'sharing_source': []
@@ -460,6 +447,10 @@
             var insertAnalytics = function (params, pair, all_data) {
                 var actions = {
                     "common": function (api_type, template, params, pair, data_selector) {
+                        if (pair === undefined) {
+                            return;
+                        }
+
                         api.getObject(api_type, pair[0], function (data) {
                             var box_t = _.template($(template).html()),
                                 caption_t = _.template($("#count_with_percentage").html());
@@ -473,8 +464,6 @@
                                 })
                             }));
                         });
-
-                        $(params.selector).parent().children(".no_data").hide();
                         adjust_width($(params.selector));
                     },
 
@@ -524,6 +513,7 @@
                 };
 
                 actions[params.type](params, pair, all_data);
+                $(params.selector).parent().children(".no_data").hide();
             };
 
             merged_sharing = merge_totals(data.sharing['share-clicked'].totals,
@@ -585,20 +575,28 @@
                 "<li class='per-visitor'><span class='metric_overview' data-metric='bounce-rate'>" + bounce_rate.toFixed(2) + "%</span> Bounce Rate</li>");
 
             // construct lists of sorted (desc) (pid, count) pairs
-            map(function (key, list) {
-                sortables[key] = map(function (pid, count) {
+            _.each(top_lists, function (list, key) {
+                sortables[key] = _.map(list, function (count, pid) {
                     if (pid !== "all" && pid !== "null") {
                         return [pid, count];
                     }
-                }, list);
+                });
 
                 sortables[key].sort(function (a, b) {
                     return a[1] - b[1];
                 });
 
                 sortables[key].reverse();
+            });
 
-            }, top_lists);
+            // remove undefined items from the sorted lists
+            _.each(sortables, function (list, key) {
+                _.each(list, function (pair, index) {
+                    if (pair === undefined) {
+                        sortables[key].splice(index, 1);
+                    }
+                });
+            });
 
             // clear out top lists
             $(["top_engaging_products", "top_shared_products",
@@ -607,9 +605,9 @@
                     $("#" + val).html("");
                 });
 
-            var pids = map(function(i, pair) {
+            var pids = _.map(sortables.engaged_products, function (pair) {
                 return pair[0];
-            }, sortables.engaged_products);
+            });
 
             api.getObjects("product", pids, function (current, total) {
                 $(".progressbar").progressbar("value", Math.round(current / total * 100));
@@ -678,14 +676,11 @@
                     }
                 ];
 
-                map(function (i, inject) {
-                    map(function (i, pair) {
+                _.each(to_inject, function (inject) {
+                    _.each(inject.data, function (pair) {
                         insertAnalytics(inject.params, pair, inject.data);
-                    }, inject.data);
-                }, to_inject);
-
-                insertOtherBar($("#share_destinations"), sortables.sharing_source, totals.shares);
-                insertOtherBar($("#interaction_types"), sortables.interaction_types, totals.interactions.all);
+                    })
+                });
             });
         };
 
