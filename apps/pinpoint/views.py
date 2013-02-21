@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext, Template, Context, loader
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseServerError
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from django.views.decorators.cache import cache_page
@@ -329,3 +329,14 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
     # Render response
     return HttpResponse(page.render(context))
+
+
+def app_exception_handler(request):
+    import sys, traceback
+
+    type, exception, tb = sys.exc_info()
+    stack = traceback.format_exc().splitlines()
+
+    return HttpResponseServerError(loader.get_template('500.html').render(
+        Context({'exception': exception,
+                 'traceback': '\n'.join(stack)})))

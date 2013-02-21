@@ -73,3 +73,5 @@ urlpatterns = patterns('',
 )
 
 urlpatterns += staticfiles_urlpatterns()
+
+handler500 = 'apps.pinpoint.views.app_exception_handler'
