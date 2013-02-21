@@ -69,21 +69,36 @@
 
         .section_overview_block {
             height: 127px;
-            padding: 3px 10px 10px 10px;
-            border-top: 1px solid #d6d6d6;
+            padding: 3px 0px 10px 10px;
+            border: 1px solid #969696;
+            margin-left: 0px;
+            margin-right: 0px;
+            background-color: #b0b0b0;
+            cursor: pointer;
+        }
+
+        .section_overview_block:nth-child(1), .section_overview_block:nth-child(2), .section_overview_block:nth-child(3) {
+            border-left: none;
         }
 
         .section_overview_block.selected, .section_overview_block:hover {
-            background-color: #fff;
-            cursor: pointer;
+            background-color: #616161;
+            color: #bababa;
+        }
+
+        .section_overview_block:hover .section_overview_title,
+        .section_overview_block.selected .section_overview_title {
+            color: #e6e6e6;
         }
 
         .section_overview_title {
             font-size: 18px;
+            cursor: inherit;
         }
 
         .section_overview_metrics {
             font-size: 14px;
+            cursor: inherit;
         }
 
         .section_overview_metrics ul {
@@ -359,8 +374,6 @@
                 "range": $(".range option:selected").val()
             };
 
-            $(".no_data").show();
-
             // set request values based on what's passed it
             if (o !== undefined) {
                 request.campaign_id = o.campaign_id || settings.campaign_id;
@@ -436,7 +449,16 @@
 
                 merged_sharing, merged_product_interactions, merged_content_interactions,
 
-                top_lists;
+                top_lists,
+
+                postprocess_sections;
+
+            postprocess_sections = function (section_selector) {
+                var $s = $(section_selector);
+
+                // 20px accounts for margins
+                $s.css("width", $s.children().length * ($s.children().width() + 20) + "px");
+            }
 
             if (isNaN(bounce_rate)) {
                 bounce_rate = 0;
@@ -491,11 +513,11 @@
             $(".per-visitor").remove();
 
             $(".section_overview_block:nth-child(2) .section_overview_metrics ul").append(
-                "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / totals.visitors).toFixed(2) + "</span> Interactions per visit</li>");
+                "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / totals.visitors || 0).toFixed(2) + "</span> Interactions per visit</li>");
 
 
             $(".section_overview_block:nth-child(3) .section_overview_metrics ul").append(
-                "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + (totals.shares / totals.visitors).toFixed(2) + "</span> Shares per visit</li>");
+                "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + (totals.shares / totals.visitors || 0).toFixed(2) + "</span> Shares per visit</li>");
 
             $(".section_overview_block:nth-child(1) .section_overview_metrics ul").append(
                 "<li class='per-visitor'><span class='metric_overview' data-metric='bounce-rate'>" + bounce_rate.toFixed(2) + "%</span> Bounce Rate</li>");
@@ -544,7 +566,7 @@
                         totals.interactions.product
                     );
                 }, sortables.engaged_products);
-                $("#top_engaging_products").css("width", $("#top_engaging_products").children().length * 160 + "px");
+                postprocess_sections("#top_engaging_products");
 
                 // inject top shared products
                 map(function (i, pair) {
@@ -579,7 +601,7 @@
                     totals.interactions.content
                 );
             }, sortables.engaged_content);
-            $("#top_engaged_content").css("width", $("#top_engaged_content").children().length * 160 + "px");
+            postprocess_sections("#top_engaged_content");
 
             // inject top engaged videos
             map(function (i, pair) {
@@ -591,7 +613,7 @@
                     data.engagement['content-video'].totals.date.all
                 );
             }, sortables.engaged_videos.slice(0, 3));
-            $("#top_videos").css("width", $("#top_videos").children().length * 320 + "px");
+            postprocess_sections("#top_videos");
 
             // inject product interaction types
             map(function(i, pair) {
@@ -771,7 +793,7 @@
 
     <div class="grid_12 section_overview">
         {% for category in categories %}
-            <div class="grid_3 round shadow section_overview_block {% if category.default %}selected{% endif %}" data-cid="{{ category.id }}">
+            <div class="grid_3 section_overview_block {% if category.default %}selected{% endif %}" data-cid="{{ category.id }}">
                 <div class="section_overview_title">
                     {{ category.name }}
                 </div>
