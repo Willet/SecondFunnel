@@ -331,7 +331,7 @@ var PINPOINT = (function($, pageInfo) {
                     data: {
                         'store': details.store.id,
                         'campaign': details.page.id,
-                        'seeds': details.product.id
+                        'seeds': details.product['product-id']
                     },
                     dataType: 'json',
                     success: function(results) {
@@ -361,7 +361,7 @@ var PINPOINT = (function($, pageInfo) {
                         'results': 10,
 
                         // normally ignored, unless IR call fails and we'll resort to getseeds
-                        'seeds': details.product.id
+                        'seeds': details.product['product-id']
                     },
                     dataType: 'json',
                     success: function(results) {
