@@ -195,7 +195,7 @@ def fetch_awareness_data(*args):
 
     query = {
         'metrics': ['visitors', 'pageviews'],
-        'dimensions': ['date', 'customVarValue1', 'customVarValue2'],
+        'dimensions': ['date', 'customVarValue1', 'customVarValue2', 'socialNetwork'],
         'sort': ['date']
     }
 
@@ -218,6 +218,7 @@ def fetch_awareness_data(*args):
                 'campaign_id': getter('customVarValue2'),
                 'visitors': getter('visitors'),
                 'pageviews': getter('pageviews'),
+                'socialNetwork': getter('socialNetwork')
             }
 
             all_present = all(
@@ -253,7 +254,7 @@ def fetch_event_data(*args):
 
     query = {
         'metrics': ['uniqueEvents'],
-        'dimensions': ['eventCategory', 'eventAction', 'eventLabel', 'date'],
+        'dimensions': ['eventCategory', 'eventAction', 'eventLabel', 'socialNetwork', 'date'],
         'sort': ['date']
     }
 
@@ -281,7 +282,7 @@ def fetch_event_data(*args):
             row_data = {
                 'label':            getter('eventLabel'),
                 'date':             getter('date'),
-                # 'value':          getter('eventValue'),
+                'socialNetwork':    getter('socialNetwork'),
 
                 'store_id':         get_by_key(category, "storeid"),
                 'campaign_id':      get_by_key(category, "campaignid"),
@@ -362,6 +363,8 @@ def process_awareness_data(message_id):
         data1.key = data2.key = "{0}-{1}".format("awareness", column)
         data1.value = data2.value = row[column]
         data1.timestamp = data2.timestamp = row['date']
+        if row['socialNetwork'] != "(not set)":
+            data1.meta = data2.meta = row['socialNetwork']
 
         data1.save()
         data2.save()
@@ -550,11 +553,6 @@ def aggregate_saved_metrics(*args):
     # remove all the existing meta metric data
     KVStore.objects.filter(meta="meta_metric").delete()
 
-    # data types for checking event targets
-    target_types = {
-        'product': ContentType.objects.get_for_model(Product),
-    }
-
     def process_category(obj):
         """
         Adds a new KV, using it as a per-day summation for KV data
@@ -705,14 +703,14 @@ def aggregate_saved_metrics(*args):
                 # Total Visitors
                 {
                     'slug': 'awareness-visitors',
-                    'key': 'awareness-visitors',
+                    'key': 'awareness-visitors-total',
                     'q_filter': Q(key='awareness-visitors')
                 },
 
                 # Total Pageviews
                 {
                     'slug': 'awareness-pageviews',
-                    'key': 'awareness-pageviews',
+                    'key': 'awareness-pageviews-total',
                     'q_filter': Q(key='awareness-pageviews')
                 }
             ]

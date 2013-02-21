@@ -399,7 +399,8 @@
                     'engaged_content': [],
                     'engaged_videos': [],
                     'sharing_products': [],
-                    'sharing_source': []
+                    'sharing_source': [],
+                    'visitor_source': []
                 },
 
                 merge_totals = function (t1, t2) {
@@ -444,73 +445,81 @@
                 bounce_rate = 0;
             }
 
-            var insertAnalytics = function (params, pair, all_data) {
-                var actions = {
-                    "common": function (api_type, template, params, pair, data_selector) {
-                        if (pair === undefined) {
-                            return;
-                        }
+            var insertAnalytics = function (o) {
+                var params = o.params,
+                    pair = o.pair,
+                    all_data = o.data,
 
-                        api.getObject(api_type, pair[0], function (data) {
-                            var box_t = _.template($(template).html()),
-                                caption_t = _.template($("#count_with_percentage").html());
+                    actions = {
+                        "common": function (api_type, template, params, pair, data_selector) {
+                            if (pair === undefined) {
+                                return;
+                            }
 
-                            $(params.selector).append(box_t({
-                                data: data_selector(data),
-                                caption: caption_t({
-                                    verb: params.verb,
-                                    count: pair[1],
-                                    total: params.total
-                                })
+                            api.getObject(api_type, pair[0], function (data) {
+                                var box_t = _.template($(template).html()),
+                                    caption_t = _.template($("#count_with_percentage").html());
+
+                                $(params.selector).append(box_t({
+                                    data: data_selector(data),
+                                    caption: caption_t({
+                                        verb: params.verb,
+                                        count: pair[1],
+                                        total: params.total
+                                    })
+                                }));
+                            });
+                            adjust_width($(params.selector));
+                        },
+
+                        "content": function (params, pair) {
+                            actions.common("generic_image", "#top_list_item", params, pair, function (data) {
+                                // return data.hosted || data.remote;
+                                return "http://localhost/~grisha/img.jpg";
+                            });
+                        },
+
+                        "product": function (params, pair) {
+                            actions.common("product", "#top_list_item", params, pair, function (data) {
+                                return data.media.hosted || data.media.remote;
+                            });
+                        },
+
+                        "video": function (params, pair) {
+                            actions.common("video", "#video_item", params, pair, function (data) {
+                                return data.video_id;
+                            });
+                        },
+
+                        "chart": function (params, pair, all_data) {
+                            var chart_t = _.template($("#bar_chart").html()),
+                                present_total = 0;
+
+                            _.each(all_data, function (elem, i) {
+                                if (elem === undefined) {
+                                    all_data.splice(i, 1);
+                                } else {
+                                    present_total += elem[1];
+                                }
+                            });
+
+                            if (present_total < params.total) {
+                                all_data.push(["Other", params.total - present_total]);
+                            }
+
+                            $(params.selector).html(chart_t({
+                                data: all_data,
+                                total: params.total
                             }));
-                        });
-                        adjust_width($(params.selector));
-                    },
-
-                    "content": function (params, pair) {
-                        actions.common("generic_image", "#top_list_item", params, pair, function (data) {
-                            // return data.hosted || data.remote;
-                            return "http://localhost/~grisha/img.jpg";
-                        });
-                    },
-
-                    "product": function (params, pair) {
-                        actions.common("product", "#top_list_item", params, pair, function (data) {
-                            return data.media.hosted || data.media.remote;
-                        });
-                    },
-
-                    "video": function (params, pair) {
-                        actions.common("video", "#video_item", params, pair, function (data) {
-                            return data.video_id;
-                        });
-                    },
-
-                    "chart": function (params, pair, all_data) {
-                        var chart_t = _.template($("#bar_chart").html()),
-                            present_total = 0;
-
-                        $.each(all_data, function () {
-                            present_total += this[1];
-                        });
-
-                        if (present_total < params.total) {
-                            all_data.push(["Other", present_total]);
                         }
+                    },
 
-                        $(params.selector).html(chart_t({
-                            data: all_data,
-                            total: params.total
-                        }));
-                    }
-                },
+                    adjust_width = function (section_selector) {
+                        var $s = $(section_selector);
 
-                adjust_width = function (section_selector) {
-                    var $s = $(section_selector);
-
-                    // 20px accounts for margins
-                    $s.css("width", $s.children().length * ($s.children().width() + 20) + "px");
-                };
+                        // 20px accounts for margins
+                        $s.css("width", $s.children().length * ($s.children().width() + 20) + "px");
+                    };
 
                 actions[params.type](params, pair, all_data);
                 $(params.selector).parent().children(".no_data").hide();
@@ -532,6 +541,8 @@
 
                 'sharing_products': merged_sharing.target_id,
                 'sharing_source': merged_sharing.meta,
+
+                'visitor_source': data.awareness['awareness-visitors'].totals.meta,
 
                 'interaction_sections': merged_product_interactions.meta,
 
@@ -577,7 +588,7 @@
             // construct lists of sorted (desc) (pid, count) pairs
             _.each(top_lists, function (list, key) {
                 sortables[key] = _.map(list, function (count, pid) {
-                    if (pid !== "all" && pid !== "null") {
+                    if (pid !== "all" && pid !== "null" && pid !== "meta_metric") {
                         return [pid, count];
                     }
                 });
@@ -616,7 +627,7 @@
                 $(".section_metrics").slideDown();
                 $(".progressbar").slideUp();
 
-                var to_inject = [
+                var to_inject_lists = [
                     {
                         params: {
                             type: "product",
@@ -639,15 +650,6 @@
 
                     {
                         params: {
-                            type: "chart",
-                            selector: "#share_destinations",
-                            total: totals.shares
-                        },
-                        data: sortables.sharing_source
-                    },
-
-                    {
-                        params: {
                             type: "content",
                             selector: "#top_engaged_content",
                             verb: "Interactions",
@@ -664,6 +666,28 @@
                             total: data.engagement['content-video'].totals.date.all
                         },
                         data: sortables.engaged_videos.slice(0, 3)
+                    }
+                ];
+
+                _.each(to_inject_lists, function (inject) {
+                    _.each(inject.data, function (pair) {
+                        insertAnalytics({
+                            params: inject.params,
+                            pair: pair,
+                            data: inject.data
+                        });
+                    })
+                });
+
+                var to_inject_charts = [
+
+                    {
+                        params: {
+                            type: "chart",
+                            selector: "#share_destinations",
+                            total: totals.shares
+                        },
+                        data: sortables.sharing_source
                     },
 
                     {
@@ -673,13 +697,23 @@
                             total: totals.interactions.all
                         },
                         data: sortables.interaction_types
+                    },
+
+                    {
+                        params: {
+                            type: "chart",
+                            selector: "#visitor_sources",
+                            total: totals.visitors
+                        },
+                        data: sortables.visitor_source
                     }
                 ];
 
-                _.each(to_inject, function (inject) {
-                    _.each(inject.data, function (pair) {
-                        insertAnalytics(inject.params, pair, inject.data);
-                    })
+                _.each(to_inject_charts, function (inject) {
+                    insertAnalytics({
+                        params: inject.params,
+                        data: inject.data
+                    });
                 });
             });
         };
@@ -892,6 +926,15 @@
                         </div>
                     </div> -->
                 {% elif category.name == "Awareness" %}
+                    <div class="grid_4 data_metric round shadow">
+                        <div class="metric_title">Visitor Sources</div>
+                        <dl class="bar_graph" id="visitor_sources"></dl>
+
+                        <div class="no_data" data-metric="total_visitors">
+                            <p>No visitors yet.</p>
+                        </div>
+                    </div>
+
                     <div class="grid_2 data_metric round shadow">
                         <div class="metric_title">Total Visitors</div>
                         <div class="metric_content" id="total_visitors"></div>
