@@ -332,7 +332,7 @@ var PINPOINT = (function($, pageInfo) {
                     success: function(results) {
                         layoutResults(results);
                     },
-                    failure: function() {
+                    error: function() {
                         loadingBlocks = false;
                     }
                 });
@@ -362,7 +362,7 @@ var PINPOINT = (function($, pageInfo) {
                     success: function(results) {
                         layoutResults(results, belowFold);
                     },
-                    failure: function() {
+                    error: function() {
                         loadingBlocks = false;
                     }
                 });
