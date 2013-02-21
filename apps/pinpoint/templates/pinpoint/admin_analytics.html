@@ -453,49 +453,11 @@
 
                 postprocess_sections;
 
-            postprocess_sections = function (section_selector) {
-                var $s = $(section_selector);
-
-                // 20px accounts for margins
-                $s.css("width", $s.children().length * ($s.children().width() + 20) + "px");
-            }
-
             if (isNaN(bounce_rate)) {
                 bounce_rate = 0;
             }
 
-            var insertAnalytics = function (params, pair) {
-                insertOtherBar = function ($parent, pairs, total) {
-                    var current_total = 0;
-                    $.each(pairs, function () {
-                        current_total += this[1];
-                    });
-
-                    if (current_total < total) {
-                        insertToBarGraph($parent, "Other", total - current_total, total);
-                    }
-                };
-
-                insertToBarGraph = function ($parent, title, count, total) {
-                    var $title,
-                        $bar,
-                        percentage = Math.round(count / total * 100) + "%";
-
-                    if (count == 0) {
-                        return;
-                    }
-
-                    $title = $("<dt>").html(title + ": " + count);
-
-                    $bar = $("<dd>").append(
-                        $("<div>").addClass("bar").css("width", percentage).html(percentage)
-                    );
-
-                    $parent.append($title).append($bar);
-
-                    $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
-                };
-
+            var insertAnalytics = function (params, pair, all_data) {
                 var actions = {
                     "common": function (api_type, template, params, pair, data_selector) {
                         api.getObject(api_type, pair[0], function (data) {
@@ -513,7 +475,7 @@
                         });
 
                         $(params.selector).parent().children(".no_data").hide();
-                        postprocess_sections($(params.selector));
+                        adjust_width($(params.selector));
                     },
 
                     "content": function (params, pair) {
@@ -521,8 +483,6 @@
                             // return data.hosted || data.remote;
                             return "http://localhost/~grisha/img.jpg";
                         });
-
-                        postprocess_sections($(params.selector));
                     },
 
                     "product": function (params, pair) {
@@ -535,14 +495,35 @@
                         actions.common("video", "#video_item", params, pair, function (data) {
                             return data.video_id;
                         });
+                    },
+
+                    "chart": function (params, pair, all_data) {
+                        var chart_t = _.template($("#bar_chart").html()),
+                            present_total = 0;
+
+                        $.each(all_data, function () {
+                            present_total += this[1];
+                        });
+
+                        if (present_total < params.total) {
+                            all_data.push(["Other", present_total]);
+                        }
+
+                        $(params.selector).html(chart_t({
+                            data: all_data,
+                            total: params.total
+                        }));
                     }
+                },
+
+                adjust_width = function (section_selector) {
+                    var $s = $(section_selector);
+
+                    // 20px accounts for margins
+                    $s.css("width", $s.children().length * ($s.children().width() + 20) + "px");
                 };
 
-                if (params.type == "content" || params.type == "product" || params.type == "video") {
-                    actions[params.type](params, pair);
-                } else if (params.type == "chart") {
-                    insertToBarGraph($(params.selector), pair[0], pair[1], params.total);
-                }
+                actions[params.type](params, pair, all_data);
             };
 
             merged_sharing = merge_totals(data.sharing['share-clicked'].totals,
@@ -699,7 +680,7 @@
 
                 map(function (i, inject) {
                     map(function (i, pair) {
-                        insertAnalytics(inject.params, pair);
+                        insertAnalytics(inject.params, pair, inject.data);
                     }, inject.data);
                 }, to_inject);
 
@@ -778,6 +759,15 @@
                 <div><%= caption %></div>
             </div>
         </div>
+    </script>
+
+    <script type="text/template" id="bar_chart">
+        <% _.each(data, function (pair) { %>
+            <dt><%= pair[0] %>: <%= pair[1] %></dt>
+            <dd>
+                <div class="bar" style="width: <%= ((pair[1] / total) * 100).toFixed(0) %>%;"><%= ((pair[1] / total) * 100).toFixed(0) %>%</div>
+            </dd>
+        <% }); %>
     </script>
 
     <script type="text/template" id="count_with_percentage">
