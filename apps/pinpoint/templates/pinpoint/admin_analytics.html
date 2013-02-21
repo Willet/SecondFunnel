@@ -496,34 +496,14 @@
                     $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
                 };
 
-                insertTopVideo = function ($parent, verb, vid, count, total) {
-                    var video,
-                        $box = $("<div>").addClass("grid_4"),
-                        $count;
-
-                    api.getObject("video", vid, function(video) {
-                        $figure = $("<div>");
-
-                        $video = $("<iframe id='ytplayer' type='text/html' width='275' height='155' src='http://www.youtube.com/embed/" + video.video_id + "'>");
-                        $caption = $("<div>").html(verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
-
-                        $figure.append($video).append($caption);
-
-                        $box.append($figure);
-                        $parent.append($box);
-
-                        $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
-                    });
-                };
-
                 var actions = {
-                    "common": function (api_type, params, pair, image_selector) {
+                    "common": function (api_type, template, params, pair, data_selector) {
                         api.getObject(api_type, pair[0], function (data) {
-                            var box_t = _.template($("#top_list_item").html()),
+                            var box_t = _.template($(template).html()),
                                 caption_t = _.template($("#count_with_percentage").html());
 
                             $(params.selector).append(box_t({
-                                image: image_selector(data),
+                                data: data_selector(data),
                                 caption: caption_t({
                                     verb: params.verb,
                                     count: pair[1],
@@ -537,7 +517,7 @@
                     },
 
                     "content": function (params, pair) {
-                        actions.common("generic_image", params, pair, function (data) {
+                        actions.common("generic_image", "#top_list_item", params, pair, function (data) {
                             // return data.hosted || data.remote;
                             return "http://localhost/~grisha/img.jpg";
                         });
@@ -546,17 +526,20 @@
                     },
 
                     "product": function (params, pair) {
-                        actions.common("product", params, pair, function (data) {
+                        actions.common("product", "#top_list_item", params, pair, function (data) {
                             return data.media.hosted || data.media.remote;
+                        });
+                    },
+
+                    "video": function (params, pair) {
+                        actions.common("video", "#video_item", params, pair, function (data) {
+                            return data.video_id;
                         });
                     }
                 };
 
-                if (params.type == "content" || params.type == "product") {
+                if (params.type == "content" || params.type == "product" || params.type == "video") {
                     actions[params.type](params, pair);
-                } else if (params.type == "video") {
-                    insertTopVideo($(params.selector), params.verb, pair[0], pair[1], params.total);
-                    postprocess_sections($(params.selector));
                 } else if (params.type == "chart") {
                     insertToBarGraph($(params.selector), pair[0], pair[1], params.total);
                 }
@@ -782,8 +765,17 @@
     <script type="text/template" id="top_list_item">
         <div class="grid_2">
             <div>
-                <img src="<%= image %>">
+                <img src="<%= data %>">
                 <span><%= caption %></span>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/template" id="video_item">
+        <div class="grid_4">
+            <div>
+                <iframe type="text/html" width="275" height="155" src="http://www.youtube.com/embed/<%= data %>"></iframe>
+                <div><%= caption %></div>
             </div>
         </div>
     </script>
