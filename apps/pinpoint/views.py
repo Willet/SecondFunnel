@@ -12,15 +12,17 @@ from django.http import HttpResponse, Http404
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from django.views.decorators.cache import cache_page
+from social_auth.db.django_models import UserSocialAuth
 
 from apps.analytics.models import Category, AnalyticsRecency
-from apps.assets.models import Store, Product
+from apps.assets.models import Store, Product, ExternalContent, ExternalContentType
 from apps.pinpoint.models import Campaign, BlockType, BlockContent
 from apps.pinpoint.decorators import belongs_to_store
 
 import apps.pinpoint.wizards as wizards
 from apps.utils import noop
 import apps.utils.base62 as base62
+from apps.utils.social.instagram_adapter import Instagram
 
 
 @login_required
@@ -36,6 +38,22 @@ def login_redirect(request):
     store_set = request.user.store_set
     if store_set.count() == 1:
         return redirect('store-admin', store_id=str(store_set.all()[0].id))
+    else:
+        return redirect('admin')
+
+@login_required
+def social_auth(request):
+    """
+    Redirect after some social action (account association, probably).
+
+    @param request: The request for this page.
+
+    @return: An HttpResponse that redirects the user to the asset_manager
+    page, or a page where the user can pick which store they want to view
+    """
+    store_set = request.user.store_set
+    if store_set.count() == 1:
+        return redirect('asset-manager', store_id=str(store_set.all()[0].id))
     else:
         return redirect('admin')
 
@@ -162,6 +180,68 @@ def analytics_admin(request, store, campaign=False, is_overview=True):
     }, context_instance=RequestContext(request))
 
 
+@belongs_to_store
+@login_required
+def asset_manager(request, store_id):
+    """renders the page that allows store owners to tag their instagram photos
+    on their products (or, logically, the other way around).
+    """
+    store = get_object_or_404(Store, pk=store_id)
+    user = request.user
+
+    # Check if connected to Instagram... for now
+    try:
+        instagram_user = user.social_auth.get(provider='instagram')
+    except UserSocialAuth.DoesNotExist:
+        instagram_user = None
+
+    instagram_connect_request = True
+    if instagram_user:
+        instagram_connect_request = False
+        instagram_connector = Instagram(tokens=instagram_user.tokens)
+        contents = instagram_connector.get_content(limit=20)
+    else:
+        contents = []  # also "0 photos"
+
+    return render_to_response('pinpoint/asset_manager.html', {
+        "store": store,
+        "instagram_connect_request": instagram_connect_request,
+        "contents": contents,
+        "store_id": store_id
+    }, context_instance=RequestContext(request))
+
+
+@belongs_to_store
+@login_required
+def tag_content(request, store_id):
+    """Adds the instagram photo to a product """
+    instagram_json = request.POST.get('instagram')
+    product_id = request.POST.get('product_id', -1)
+
+    product = Product.objects.get(id=product_id)
+
+    if not product or not instagram_json:
+        messages.error(request, "Missing product or selected content.")
+        return redirect('asset-manager', store_id=store_id)
+
+    instagram_content = json.loads(instagram_json)
+    for instagram_obj in instagram_content:
+        # TODO: Ensure that we can't create duplicate content
+        content_type = ExternalContentType.objects.get(slug=instagram_obj.get('type'))
+        new_content, _ = ExternalContent.objects.get_or_create(
+            original_id=instagram_obj.get('originalId'),
+            content_type=content_type,
+            text_content=instagram_obj.get('textContent'),
+            image_url=instagram_obj.get('imageUrl'))
+        new_content.tagged_products.add(product)
+        new_content.save()
+
+    messages.success(request, 'Successfully tagged {0} content items with "{1}"'
+        .format(len(instagram_content), product.name))
+
+    return redirect('asset-manager', store_id=store_id)
+
+
 # origin: campaigns with short URLs are cached for 30 minutes
 @cache_page(60 * 30)
 def campaign_short(request, campaign_id_short):
@@ -191,6 +271,7 @@ def campaign(request, campaign_id):
     else:
         return render_to_response('pinpoint/campaign.html', arguments,
                                   context_instance=context)
+
 
 def campaign_to_theme_to_response(campaign, arguments, context=None):
     if context is None:
@@ -230,7 +311,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
 
         sub_values = []
         for value in values:
-            result = actions.get(type)(value)
+            result = actions.get(type, noop)(value)
 
             # TODO: Do we need to render, or can we just convert to string?
             if isinstance(result, Template):

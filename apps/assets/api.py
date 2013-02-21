@@ -5,7 +5,7 @@ from tastypie.authorization import Authorization
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 
-from apps.assets.models import Product, Store, ProductMedia
+from apps.assets.models import Product, Store, ProductMedia, ExternalContent
 from apps.pinpoint.models import BlockContent, Campaign
 
 class UserAuthentication(Authentication):
@@ -141,6 +141,20 @@ class ProductMediaResource(ModelResource):
     class Meta:
         queryset = ProductMedia.objects.all()
         resource_name = 'product_media'
+
+        filtering = {
+            'product': ALL
+        }
+        authentication = UserAuthentication()
+        authorization = UserPartOfStore()
+
+
+class ExternalContentResource(ModelResource):
+    product = fields.ForeignKey(ProductResource, 'product')
+
+    class Meta:
+        queryset = ExternalContent.objects.all()
+        resource_name = 'external_content'
 
         filtering = {
             'product': ALL
