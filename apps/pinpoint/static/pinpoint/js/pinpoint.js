@@ -679,11 +679,10 @@ var PINPOINT = (function($, pageInfo) {
         }
     }
 
-    function init() {
+    function init () {
         load(scripts);
         $(document).ready(ready);
     }
-
 
     // script actually starts here
     details = pageInfo;

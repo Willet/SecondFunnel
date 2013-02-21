@@ -146,12 +146,19 @@ def get_json_data(request, products, campaign_id, seeds=None):
     seeds is a list of product IDs.
 
     results will be an object {}, not an array [].
+    products_with_images_only should be either '0' or '1', please.
     """
     campaign = Campaign.objects.get(pk=campaign_id)
     results = []
+    products_with_images_only = True
+    if request.GET.get('products_with_images_only', '1') == '0':
+        products_with_images_only = False
 
     # products
     for product in products:
+        if not product.images() and products_with_images_only:
+            continue  # has no image, but wanted image --> ignore product
+
         product_props = product.data(raw=True)
         product_js_obj = {}
         for prop in product_props:

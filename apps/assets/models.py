@@ -141,7 +141,7 @@ class Product(BaseModelNamed):
     def url(self):
         return self.original_url
 
-    def images(self, include_external=True):
+    def images(self, include_external=False):
         """if include_external, then all external media (e.g. instagram photos)
         will be included in the list.
         """
