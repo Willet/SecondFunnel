@@ -57,13 +57,14 @@
         </div>
     </div>
 </script>
-<script type="text/template" id="instagram_external_template">
+<script type="text/template" data-template-id="instagram"
+        data-appearance-probability="0.25">
     <div class='block product external-content instagram'>
         <div class='product'>
             <div class='img-container'>
-                <img src='<%= content['image-url'] %>'
+                <img src='<%= data['image-url'] %>'
                      alt='Instagram image'
-                     data-original-id='<%= content['original-id'] %>' />
+                     data-original-id='<%= data['original-id'] %>' />
             </div>
         </div>
     </div>

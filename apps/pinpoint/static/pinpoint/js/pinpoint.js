@@ -3,7 +3,12 @@
 
 // Why do we mix and match jQuery and native dom?
 var PINPOINT = (function($, pageInfo) {
-    var details,
+    var console = window.console || {
+            // dummy
+            'log': function () {},
+            'error': function () {}
+        },
+        details,
         domTemplateCache = {},
         scripts,
         userClicks = 0,
@@ -25,6 +30,93 @@ var PINPOINT = (function($, pageInfo) {
             }
         });
         return $column;
+    }
+
+    function renderTemplate(str, data) {
+        // MOD of
+        // http://emptysquare.net/blog/adding-an-include-tag-to-underscore-js-templates/
+        // match "<% include template-id %>" with caching
+        var replaced = str.replace(
+            /<%\s*include\s*(.*?)\s*%>/g,
+            function(match, templateId) {
+                if (domTemplateCache[templateId]) {
+                    // cached
+                    return domTemplateCache[templateId];
+                } else {
+                    var $el = $('[data-template-id="' + templateId + '"]');
+                    if ($el.length) {
+                        // cache
+                        domTemplateCache[templateId] = $el.html();
+                    }
+                    return $el.length ? $el.html() : '';
+                }
+            }
+        );
+
+        // appearanceProbability dictates if a block that has its own
+        // probability of being rendered will be rendered. if specified,
+        // the value should go from 0 (not shown at all) or 1 (always).
+        var appearanceProbability = parseFloat(data.data['appearance-probability']) || 1;
+        if (appearanceProbability < 1) {
+            if (Math.random() < appearanceProbability) {
+                return '';  // no luck, not rendering
+            }
+        }
+
+        return _.template(replaced, data);
+    }
+
+    function renderTemplates(data) {
+        // finds templates currently on the page, and drops them onto their
+        // targets (elements with classes 'template' and 'target').
+        // Targets need a data-src attribute to indicate the template that
+        // should be used.
+        // data can be passed in, or left as default on the target element
+        // as data attributes.
+        var excludeTemplates, excludeTemplatesSelector;
+
+        switch (details.page['main-block-template']) {
+            case 'shop-the-look':
+                excludeTemplates = ['featured-product'];
+                break;
+            case 'featured-product':
+                excludeTemplates = ['shop-the-look'];
+                break;
+            default:
+                excludeTemplates = '';
+        }
+
+        $.each(excludeTemplates, function (key, value) {
+            excludeTemplates[key] = "[data-src='" + value + "']";
+        });
+
+        excludeTemplatesSelector = excludeTemplates.join(', ');
+
+        // select every ".template.target" element that is NOT
+        // the main page template, and render them with their data-src
+        // attribute: data-src='abc' rendered by a data-template-id='abc'
+        $('.template.target').not(excludeTemplatesSelector).each(function () {
+            var originalContext = data || {},
+                target = $(this),
+                src = target.data('src') || '',
+                srcElement = $("[data-template-id='" + src + "']"),
+                context = {};
+
+            // populate context with all available variables
+            $.extend(context, originalContext, {
+                'page': details.page,
+                'store': details.store,
+                'data': $.extend({}, srcElement.data(), target.data())
+            });
+
+            // if the required template is on the page, use it
+            if (srcElement.length) {
+                target.html(renderTemplate(srcElement.html(), context));
+            } else {
+                target.html('Error: required template #' + src +
+                    ' does not exist');
+            }
+        });
     }
     /* --- END Utilities --- */
 
@@ -190,7 +282,7 @@ var PINPOINT = (function($, pageInfo) {
         });
     }
 
-    function updateClickStream (event) {
+    function updateClickStream(event) {
         var $target = $(event.currentTarget),
             data      = $target.data(),
             id        = data['product-id'],
@@ -211,82 +303,6 @@ var PINPOINT = (function($, pageInfo) {
                 if (exceededThreshold) {
                     loadMoreResults(true)
                 }
-            }
-        });
-    }
-
-    function renderTemplate (str, data) {
-        // MOD of
-        // http://emptysquare.net/blog/adding-an-include-tag-to-underscore-js-templates/
-        // match "<% include template-id %>" with caching
-        var replaced = str.replace(
-            /<%\s*include\s*(.*?)\s*%>/g,
-            function(match, templateId) {
-                if (domTemplateCache[templateId]) {
-                    // cached
-                    return domTemplateCache[templateId];
-                } else {
-                    var $el = $('[data-template-id="' + templateId + '"]');
-                    if ($el.length) {
-                        // cache
-                        domTemplateCache[templateId] = $el.html();
-                    }
-                    return $el.length ? $el.html() : '';
-                }
-            }
-        );
-
-        return _.template(replaced, data);
-    }
-
-    function renderTemplates (data) {
-        // finds templates currently on the page, and drops them onto their
-        // targets (elements with classes 'template' and 'target').
-        // Targets need a data-src attribute to indicate the template that
-        // should be used.
-        // data can be passed in, or left as default on the target element
-        // as data attributes.
-        var excludeTemplates, excludeTemplatesSelector;
-
-        switch (details.page['main-block-template']) {
-            case 'shop-the-look':
-                excludeTemplates = ['featured-product'];
-                break;
-            case 'featured-product':
-                excludeTemplates = ['shop-the-look'];
-                break;
-            default:
-                excludeTemplates = '';
-        }
-
-        $.each(excludeTemplates, function (key, value) {
-            excludeTemplates[key] = "[data-src='" + value + "']";
-        });
-
-        excludeTemplatesSelector = excludeTemplates.join(', ');
-
-        // select every ".template.target" element that is NOT
-        // the main page template
-        $('.template.target').not(excludeTemplatesSelector).each(function () {
-            var originalContext = data || {},
-                target = $(this),
-                src = target.data('src') || '',
-                srcElement = $("[data-template-id='" + src + "']"),
-                context = {};
-
-            // populate context with all available variables
-            $.extend(context, originalContext, {
-                'page': details.page,
-                'store': details.store,
-                'data': target.data() || {}
-            });
-
-            // if the required template is on the page, use it
-            if (srcElement.length) {
-                target.html(renderTemplate(srcElement.html(), context));
-            } else {
-                target.html('Error: required template #' + src +
-                            ' does not exist');
             }
         });
     }
@@ -355,7 +371,7 @@ var PINPOINT = (function($, pageInfo) {
             productDoms = [],
             results = jsonData || [],
             initialResults = results.length,
-            template, player,
+            template, templateEl, player,
             template_context, templateType, el, videos;
 
         // add products
@@ -364,7 +380,8 @@ var PINPOINT = (function($, pageInfo) {
                 result = results[i]
                 template_context = result;
                 templateType = result.template || 'product';
-                template = $("[data-template-id='" + templateType + "']").html();
+                templateEl = $("[data-template-id='" + templateType + "']");
+                template = templateEl.html();
 
                 switch (templateType) {
                     case 'product':
@@ -384,16 +401,27 @@ var PINPOINT = (function($, pageInfo) {
                         break;
                 }
 
-                el = $(renderTemplate(template, {
+                // attach default prob to the context
+                template_context['appearance-probability'] =
+                    template_context['appearance-probability'] ||
+                    templateEl.data('appearance-probability');
+
+                rendered_block = renderTemplate(template, {
                     'data': template_context,
                     'page': details.page,
                     'store': details.store
-                }));
-                el.data(template_context);  // populate the .product.block div with data
-                productDoms.push(el[0]);
+                });
+                if (!rendered_block.length) {
+                    // template did not render.
+                    break;
+                } else {
+                    el = $(rendered_block);
+                    el.data(template_context);  // populate the .product.block div with data
+                    productDoms.push(el[0]);
+                }
 
             } catch (err) {  // hide rendering error
-                console && console.log && console.log('oops @ item');
+                console.log('oops @ item');
             }
         }
 
@@ -658,8 +686,6 @@ var PINPOINT = (function($, pageInfo) {
 
 
     // script actually starts here
-
-
     details = pageInfo;
     details.store    = details.store || {};
     details.page     = details.page  || {};
