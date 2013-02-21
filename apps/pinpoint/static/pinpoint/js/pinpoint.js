@@ -17,6 +17,7 @@ var PINPOINT = (function($, pageInfo) {
         loadingBlocks = false,
         blocksAppendedCallbacks = [],
         previewCallbacks = [],
+        readyCallbacks = [],
         hoverTimer;
 
     details = pageInfo;
@@ -140,7 +141,7 @@ var PINPOINT = (function($, pageInfo) {
 
         // Fill in data
         $.each(data, function(key, value) {
-            $element = $preview.find('.'+key);
+            $element = $preview.find('.'+key).not('.target');
 
             if (!$element.length) {
                 // No further work to do
@@ -217,6 +218,10 @@ var PINPOINT = (function($, pageInfo) {
     function addOnBlocksAppendedCallback(f) {
         blocksAppendedCallbacks.push(f);
     }
+
+    function addReadyCallback(f) {
+        readyCallbacks.push(f);
+    };
 
     function hidePreview () {
         var $mask    = $('.preview .mask'),
@@ -514,10 +519,11 @@ var PINPOINT = (function($, pageInfo) {
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             lowestBlock,
             lowestHeight,
-            divider_rect = $(".divider")[0].getBoundingClientRect();
+            $divider = $(".divider"),
+            divider_bottom = ($divider.length) ? $divider[0].getBoundingClientRect().bottom : 0;
 
         // user scrolled far enough not to be a "bounce"
-        if (divider_rect.bottom < 150) {
+        if (divider_bottom < 150) {
             pinpointTracking.notABounce("scroll");
         }
 
@@ -722,6 +728,7 @@ var PINPOINT = (function($, pageInfo) {
         'init': init,
         'invalidateSession': invalidateIRSession,
         'addPreviewCallback': addPreviewCallback,
-        'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback
+        'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
+        'addReadyCallback': addReadyCallback
     };
 })(jQuery, window.PINPOINT_INFO || {});
