@@ -464,6 +464,104 @@
                 bounce_rate = 0;
             }
 
+            var insertAnalytics = function (params, pair) {
+                insertOtherBar = function ($parent, pairs, total) {
+                    var current_total = 0;
+                    $.each(pairs, function () {
+                        current_total += this[1];
+                    });
+
+                    if (current_total < total) {
+                        insertToBarGraph($parent, "Other", total - current_total, total);
+                    }
+                };
+
+                insertToBarGraph = function ($parent, title, count, total) {
+                    var $title,
+                        $bar,
+                        percentage = Math.round(count / total * 100) + "%";
+
+                    if (count == 0) {
+                        return;
+                    }
+
+                    $title = $("<dt>").html(title + ": " + count);
+
+                    $bar = $("<dd>").append(
+                        $("<div>").addClass("bar").css("width", percentage).html(percentage)
+                    );
+
+                    $parent.append($title).append($bar);
+
+                    $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
+                };
+
+                insertTopVideo = function ($parent, verb, vid, count, total) {
+                    var video,
+                        $box = $("<div>").addClass("grid_4"),
+                        $count;
+
+                    api.getObject("video", vid, function(video) {
+                        $figure = $("<div>");
+
+                        $video = $("<iframe id='ytplayer' type='text/html' width='275' height='155' src='http://www.youtube.com/embed/" + video.video_id + "'>");
+                        $caption = $("<div>").html(verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
+
+                        $figure.append($video).append($caption);
+
+                        $box.append($figure);
+                        $parent.append($box);
+
+                        $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
+                    });
+                };
+
+                var actions = {
+                    "common": function (api_type, params, pair, image_selector) {
+                        api.getObject(api_type, pair[0], function (data) {
+                            var box_t = _.template($("#top_list_item").html()),
+                                caption_t = _.template($("#count_with_percentage").html());
+
+                            $(params.selector).append(box_t({
+                                image: image_selector(data),
+                                caption: caption_t({
+                                    verb: params.verb,
+                                    count: pair[1],
+                                    total: params.total
+                                })
+                            }));
+                        });
+
+                        $(params.selector).parent().children(".no_data").hide();
+                        postprocess_sections($(params.selector));
+                    },
+
+                    "content": function (params, pair) {
+                        actions.common("generic_image", params, pair, function (data) {
+                            // return data.hosted || data.remote;
+                            return "http://localhost/~grisha/img.jpg";
+                        });
+
+                        postprocess_sections($(params.selector));
+                    },
+
+                    "product": function (params, pair) {
+                        actions.common("product", params, pair, function (data) {
+                            return data.media.hosted || data.media.remote;
+                        });
+                    }
+                };
+
+                if (params.type == "content" || params.type == "product") {
+                    actions[params.type](params, pair);
+                } else if (params.type == "video") {
+                    insertTopVideo($(params.selector), params.verb, pair[0], pair[1], params.total);
+                    postprocess_sections($(params.selector));
+                } else if (params.type == "chart") {
+                    insertToBarGraph($(params.selector), pair[0], pair[1], params.total);
+                }
+            };
+
             merged_sharing = merge_totals(data.sharing['share-clicked'].totals,
                 data.sharing['share-liked'].totals);
 
@@ -556,165 +654,74 @@
                 $(".section_metrics").slideDown();
                 $(".progressbar").slideUp();
 
-                // inject top engaged products
-                map(function (i, pair) {
-                    insertTopProduct(
-                        $("#top_engaging_products"),
-                        "Interactions",
-                        pair[0],
-                        pair[1],
-                        totals.interactions.product
-                    );
-                }, sortables.engaged_products);
-                postprocess_sections("#top_engaging_products");
+                var to_inject = [
+                    {
+                        params: {
+                            type: "product",
+                            selector: "#top_engaging_products",
+                            verb: "Interactions",
+                            total: totals.interactions.product
+                        },
+                        data: sortables.engaged_products
+                    },
 
-                // inject top shared products
-                map(function (i, pair) {
-                    insertTopProduct(
-                        $("#top_shared_products"),
-                        "Shares",
-                        pair[0],
-                        pair[1],
-                        totals.shares
-                    );
-                }, sortables.sharing_products.slice(0, 5));
+                    {
+                        params: {
+                            type: "product",
+                            selector: "#top_shared_products",
+                            verb: "Shares",
+                            total: totals.shares
+                        },
+                        data: sortables.sharing_products
+                    },
 
-                // inject top share destinations
-                map(function (i, pair) {
-                    insertToBarGraph(
-                        $("#share_destinations"),
-                        pair[0],
-                        pair[1],
-                        totals.shares
-                    );
-                }, sortables.sharing_source);
+                    {
+                        params: {
+                            type: "chart",
+                            selector: "#share_destinations",
+                            total: totals.shares
+                        },
+                        data: sortables.sharing_source
+                    },
+
+                    {
+                        params: {
+                            type: "content",
+                            selector: "#top_engaged_content",
+                            verb: "Interactions",
+                            total: totals.interactions.content
+                        },
+                        data: sortables.engaged_content
+                    },
+
+                    {
+                        params: {
+                            type: "video",
+                            selector: "#top_videos",
+                            verb: "Plays",
+                            total: data.engagement['content-video'].totals.date.all
+                        },
+                        data: sortables.engaged_videos.slice(0, 3)
+                    },
+
+                    {
+                        params: {
+                            type: "chart",
+                            selector: "#interaction_types",
+                            total: totals.interactions.all
+                        },
+                        data: sortables.interaction_types
+                    }
+                ];
+
+                map(function (i, inject) {
+                    map(function (i, pair) {
+                        insertAnalytics(inject.params, pair);
+                    }, inject.data);
+                }, to_inject);
+
                 insertOtherBar($("#share_destinations"), sortables.sharing_source, totals.shares);
-            });
-
-            // inject top engaged content
-            map(function (i, pair) {
-                insertTopContent(
-                    $("#top_engaged_content"),
-                    "Interactions",
-                    pair[0],
-                    pair[1],
-                    totals.interactions.content
-                );
-            }, sortables.engaged_content);
-            postprocess_sections("#top_engaged_content");
-
-            // inject top engaged videos
-            map(function (i, pair) {
-                insertTopVideo(
-                    $("#top_videos"),
-                    "Plays",
-                    pair[0],
-                    pair[1],
-                    data.engagement['content-video'].totals.date.all
-                );
-            }, sortables.engaged_videos.slice(0, 3));
-            postprocess_sections("#top_videos");
-
-            // inject product interaction types
-            map(function(i, pair) {
-                insertToBarGraph(
-                    $("#interaction_types"),
-                    pair[0],
-                    pair[1],
-                    totals.interactions.all
-                );
-            }, sortables.interaction_types);
-            insertOtherBar($("#interaction_types"), sortables.interaction_types, totals.interactions.all);
-        };
-
-        insertOtherBar = function ($parent, pairs, total) {
-            var current_total = 0;
-            $.each(pairs, function () {
-                current_total += this[1];
-            });
-
-            if (current_total < total) {
-                insertToBarGraph($parent, "Other", total - current_total, total);
-            }
-        };
-
-        insertToBarGraph = function ($parent, title, count, total) {
-            var $title,
-                $bar,
-                percentage = Math.round(count / total * 100) + "%";
-
-            if (count == 0) {
-                return;
-            }
-
-            $title = $("<dt>").html(title + ": " + count);
-
-            $bar = $("<dd>").append(
-                $("<div>").addClass("bar").css("width", percentage).html(percentage)
-            );
-
-            $parent.append($title).append($bar);
-
-            $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
-        };
-
-        insertTopContent = function ($parent, verb, cid, count, total) {
-            var product,
-                $box = $("<div>").addClass("grid_2"),
-                $count;
-
-            api.getObject("generic_image", cid, function(generic_image) {
-                $figure = $("<div>");
-                // $image = $("<img>").attr("src", generic_image.hosted || generic_image.remote);
-                $image = $("<img>").attr("src", "http://localhost/~grisha/img.jpg");
-                $caption = $("<span>").html(verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
-
-                $figure.append($image).append($caption);
-
-                $box.append($figure);
-                $parent.append($box);
-
-                $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
-            });
-        };
-
-        insertTopProduct = function ($parent, verb, pid, count, total) {
-            var product,
-                $box = $("<div>").addClass("grid_2"),
-                $count;
-
-            api.getObject("product", pid, function(product) {
-                $figure = $("<div>");
-
-                $image = $("<img>").attr("src", (product.media.hosted || product.media.remote).replace("master.jpg", "small.jpg"));
-                $caption = $("<span>").html("<strong>" + product.name + "</strong>" + "<br>" + verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
-
-                $figure.append($image).append($caption);
-
-                $box.append($figure);
-                $parent.append($box);
-
-                $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
-            });
-        };
-
-        insertTopVideo = function ($parent, verb, vid, count, total) {
-            var video,
-                $box = $("<div>").addClass("grid_4"),
-                $count;
-
-            api.getObject("video", vid, function(video) {
-                $figure = $("<div>");
-
-                $video = $("<iframe id='ytplayer' type='text/html' width='275' height='155' src='http://www.youtube.com/embed/" + video.video_id + "'>");
-                $caption = $("<div>").html(verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
-
-                $figure.append($video).append($caption);
-
-                $box.append($figure);
-                $parent.append($box);
-
-                $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
+                insertOtherBar($("#interaction_types"), sortables.interaction_types, totals.interactions.all);
             });
         };
 
@@ -770,6 +777,21 @@
 {% endblock %}
 
 {% block content %}
+    <script src="{% static "js/underscore.js" %}"></script>
+
+    <script type="text/template" id="top_list_item">
+        <div class="grid_2">
+            <div>
+                <img src="<%= image %>">
+                <span><%= caption %></span>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/template" id="count_with_percentage">
+        <%= verb %>: <%= count %> (<%= ((count / total) * 100 || 0).toFixed(0) %>%)
+    </script>
+
     <div class="top_analytics_menu">
         <div class="page_selector">
             <label for="campaign_list">Page:</label>
