@@ -3,7 +3,8 @@
 
 // Why do we mix and match jQuery and native dom?
 var PINPOINT = (function($, pageInfo){
-    var createSocialButtons,
+    var addReadyCallback,
+        createSocialButtons,
         createFBButton,
         createTwitterButton,
         createPinterestButton,
@@ -39,6 +40,7 @@ var PINPOINT = (function($, pageInfo){
         blocksAppendedCallbacks = [],
         addPreviewCallback,
         previewCallbacks = [],
+        readyCallbacks = [],
         hoverTimer;
 
     details = pageInfo;
@@ -76,7 +78,7 @@ var PINPOINT = (function($, pageInfo){
 
         // Fill in data
         $.each(data, function(key, value) {
-            $element = $preview.find('.'+key);
+            $element = $preview.find('.'+key).not('.target');
 
             if (!$element.length) {
                 // No further work to do
@@ -152,6 +154,10 @@ var PINPOINT = (function($, pageInfo){
 
     addOnBlocksAppendedCallback = function(f) {
         blocksAppendedCallbacks.push(f);
+    };
+
+    addReadyCallback = function(f) {
+        readyCallbacks.push(f);
     };
 
     hidePreview = function() {
@@ -298,7 +304,7 @@ var PINPOINT = (function($, pageInfo){
         });
         excludeTemplatesSelector = excludeTemplates.join(', ');
 
-            $('.template.target').not(excludeTemplatesSelector).each(function () {
+        $('.template.target').not(excludeTemplatesSelector).each(function () {
             var originalContext = data || {},
                 target = $(this),
                 src = target.data('src') || '',
@@ -319,6 +325,12 @@ var PINPOINT = (function($, pageInfo){
                             ' does not exist');
             }
         });
+
+        for (var i in readyCallbacks) {
+            if (readyCallbacks.hasOwnProperty(i)) {
+                readyCallbacks[i]();
+            }
+        }
     };
 
     loadInitialResults = function () {
@@ -498,10 +510,11 @@ var PINPOINT = (function($, pageInfo){
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             lowestBlock,
             lowestHeight,
-            divider_rect = $(".divider")[0].getBoundingClientRect();
+            $divider = $(".divider"),
+            divider_bottom = ($divider.length) ? $divider[0].getBoundingClientRect().bottom : 0;
 
         // user scrolled far enough not to be a "bounce"
-        if (divider_rect.bottom < 150) {
+        if (divider_bottom < 150) {
             pinpointTracking.notABounce("scroll");
         }
 
@@ -702,6 +715,7 @@ var PINPOINT = (function($, pageInfo){
         'init': init,
         'invalidateSession': invalidateIRSession,
         'addPreviewCallback': addPreviewCallback,
-        'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback
+        'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
+        'addReadyCallback': addReadyCallback
     };
 })(jQuery, window.PINPOINT_INFO || {});
