@@ -28,46 +28,136 @@ def page_template_includes(value):
 
 class StoreTheme(BaseModelNamed):
     DEFAULT_PAGE = """
-    <!DOCTYPE HTML>
-    <html>
-        <head>
-            {{ header_content }}
-        </head>
-        <body>
-            {{ js_templates }}
-            {{ body_content }}
-        </body>
-    </html>
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <!--
+        This statement is required; it loads any content needed for the
+        head, and must be located in the <head> tag
+        -->
+        {{ header_content }}
+
+    </head>
+    <body>
+        <!--This div will load the 'shop-the-look' template-->
+        <div class="template target featured product" data-src="shop-the-look"></div>
+
+        <!--This div will load the 'featured-product' template-->
+        <div class="template target featured product" data-src="featured-product"></div>
+
+        <div class='divider'>
+            <div class='bar'></div>
+            <span class='text'>Browse more</span>
+        </div>
+        <div class='discovery-area'></div>
+
+        <!--
+        This statement ensures that templates are available,
+        and should come before {{body_content}}
+        -->
+        {{ js_templates }}
+
+        <!--
+        This statement loads any scripts that may be required. If you want to
+        include your own javascript, include them after this statement
+        -->
+        {{ body_content }}
+    </body>
+</html>
     """
 
     DEFAULT_SHOP_THE_LOOK = """
-    <script type='text/template' data-template-id='shop-the-look'>
-    </script>
+<script type='text/template' data-template-id='shop-the-look'>
+    <img src='<%= page["stl-image"] %>' />
+    <img src='<%= page["featured-image"] %>' />
+    <div><%= page.product.title %></b></div>
+    <div><%= page.product.price %></div>
+    <div><%= page.product.description %></div>
+    <div>
+    <% _.each(page.product.images, function(image){ %>
+        <img src='<%= image %>'/>
+    <% }); %>
+    </div>
+    <div>
+        <% include social_buttons %>
+    </div>
+    <div>
+        <a href='<%= page.product.url %>' target='_blank'>link</a>
+    </div>
+</script>
     """
 
     DEFAULT_FEATURED_PRODUCT = """
-    <script type='text/template' data-template-id='featured-product'>
-    </script>
+<script type='text/template' data-template-id='featured-product'>
+    <img src='<%= page["featured-image"] %>' />
+    <div><%= page.product.title %></b></div>
+    <div><%= page.product.price %></div>
+    <div><%= page.product.description %></div>
+    <div>
+    <% _.each(page.product.images, function(image){ %>
+        <img src='<%= image %>'/>
+    <% }); %>
+    </div>
+    <div>
+        <% include social_buttons %>
+    </div>
+    <div>
+        <a href='<%= page.product.url %>' target='_blank'>link</a>
+    </div>
+</script>
     """
 
     DEFAULT_PRODUCT = """
-    <script type='text/template' data-template-id='product'>
-    </script>
+<script type='text/template' data-template-id='product'>
+    <div class='block product'>
+        <div><%= data.title %></div>
+        <div><%= data.description %></div>
+        <img src='<%= data.image %>'/>
+        <div><%= data.url %></div>
+        <% _.each(page.product.images, function(image){ %>
+        <img src='<%= image %>'/>
+        <% }); %>
+    </div>
+</script>
     """
 
     DEFAULT_COMBOBOX = """
-    <script type='text/template' data-template-id='combobox'>
-    </script>
+<script type='text/template' data-template-id='combobox'>
+    <div class='block product'>
+        <img src='<%= data["lifestyle-image"] %>'/>
+        <div><%= data.title %></div>
+        <div><%= data.description %></div>
+        <img src='<%= data.image %>'/>
+        <div><%= data.url %></div>
+        <% _.each(page.product.images, function(image){ %>
+        <img src='<%= image %>'/>
+        <% }); %>
+    </div>
+</script>
     """
 
     DEFAULT_YOUTUBE = """
-    <script type='text/template' data-template-id='youtube'>
-    </script>
+<script type='text/template' data-template-id='youtube'>
+    <% include youtube_video_template %>
+</script>
     """
 
     DEFAULT_PREVIEW = """
-    <script type='text/template' data-template-id='preview'>
-    </script>
+<script type='text/template' data-template-id='preview'>
+    <!--
+    Unlike other templates, the preview template uses classes to determine
+    what should be rendered. Any element with a class name matching one of
+    the data attributes will have its content replaced with that data.
+    -->
+    <div class='image'></div>
+    <div class='images'></div>
+    <div class='price'></div>
+    <div class='title'></div>
+    <div class='description'></div>
+    <div class='url' target='_blank'></div>
+    <div class='social-buttons'></div>
+</div>
+</script>
     """
 
     # TODO: Replace with ForeignKey to support mobile themes?
