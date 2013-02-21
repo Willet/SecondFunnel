@@ -34,6 +34,9 @@
     <p>Username: {{ user.username }}</p>
     <p>Email: {{ user.email }}</p>
     <p id="change_password"><a href="{% url password_change %}">Change Password</a></p>
+    <p>Connect with
+        <a href="{% url socialauth_associate_begin 'instagram' %}">Instagram</a>
+    </p>
 
     <h1>Permissions</h1>
     <p>You are a staff member for:</p>
