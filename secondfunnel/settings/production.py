@@ -27,6 +27,8 @@ INSTALLED_APPS = (
     'django_extensions',
     'tastypie',
     'ajax_forms',
+    "compressor",
+    'social_auth',
 
     # our apps
     'apps.analytics',
@@ -34,7 +36,6 @@ INSTALLED_APPS = (
     'apps.pinpoint',
     'apps.website',
     'apps.scraper',
-    "compressor",
 )
 
 # URL prefix for static files.
