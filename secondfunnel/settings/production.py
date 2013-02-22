@@ -66,6 +66,6 @@ BROKER_TRANSPORT_OPTIONS = {
     'queue_name_prefix': 'celery-',
 }
 
-# Nick's test instagram client; good for localhost:8000
+# Nick's other test instagram client; good for secondfunnel-test
 INSTAGRAM_CLIENT_ID = '3fc578b28e2a4b43a51ea2fa735599fd'
 INSTAGRAM_CLIENT_SECRET = '1e12ec8c92304cd28582df05ab430762'
