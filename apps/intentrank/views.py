@@ -208,7 +208,7 @@ def get_json_data(request, products, campaign_id, seeds=None):
             for external_content in seed_prod.external_content.all():
                 seed_keys = external_content.to_json()
                 seed_keys.update({
-                    'template': external_content.content_type.name(),
+                    'template': external_content.content_type.name,
                 })
                 results.append(seed_keys)
 
