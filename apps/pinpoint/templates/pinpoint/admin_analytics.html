@@ -234,34 +234,91 @@
 
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
-{% endblock %}
+    <script>
+        function wrap (str, len) {
+            if (str.length > len) {
+                return str.slice(0, len - 1) + "&hellip;";
+            } else {
+                return str;
+            }
+        }
 
-{% block top_section %}
-    <nav class="grid_3 prefix_9">
-        <ul>
-            {% if store %}
-                <li><a href="{% url store-admin store.id %}">Pages</a></li>
-                <li class="selected"><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
-            {% else %}
-                <li><a href="{% url store-admin campaign.store.id %}">Pages</a></li>
-                <li class="selected"><a href="#">Analytics</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-{% endblock %}
+        var api = (function () {
+            var uris = {
+                'product': "/api/assets/v1/product/%object_id%/?store={{ store.id }}&format=json",
+                'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%object_id%&format=json",
+                'video': "/api/assets/v1/youtube_video/%object_id%/?format=json",
+                'generic_image': "/api/assets/v1/generic_image/%object_id%/?format=json",
+                'video_gdata': "https://gdata.youtube.com/feeds/api/videos/%object_id%?v=2&alt=json-in-script&callback=?"
+            }, getProduct, getProducts, fetchProduct;
 
-{% block document_ready %}
-    var app = (function ($) {
-        var api, init, settings, setUpListeners, getDateRange,
-            injectAnalyticsData, insertTopProduct, insertToBarGraph,
-            loadAnalytics, cache;
+            getObject = function (object_type, object_id, callback) {
+                var object = cache.get(object_type + "_" + object_id);
 
-        settings = {
-            "store_id": "{{ store.id }}",
-            "campaign_id": "{{ campaign.id }}"
-        };
+                if (object === null) {
+                    fetchObject(object_type, object_id, callback);
+                } else {
+                    callback(object);
+                }
+            };
 
-        cache = (function () {
+            getObjects = function (object_type, object_ids, step, callback) {
+                var result = [];
+
+                if (object_ids.length == 0) {
+                    callback(result);
+                }
+
+                _.each(object_ids, function (object_id) {
+                    getObject(object_type, object_id, function (object) {
+                        result.push(object);
+
+                        step(result.length, object_ids.length);
+
+                        if (result.length == object_ids.length) {
+                            callback(result);
+                        }
+                    });
+                });
+            };
+
+            fetchObject = function (object_type, object_id, callback) {
+                var dataType = (object_type == "video_gdata") ? "jsonp" : "json";
+                $.ajax({
+                    url: uris[object_type].replace("%object_id%", object_id),
+                    dataType: dataType,
+                    success: function (data) {
+                        cache.set(object_type + "_" + object_id, data);
+
+                        if (object_type == "product") {
+                            $.ajax({
+                                url: uris.products_media.replace("%object_id%", object_id),
+                                dataType: "json",
+                                success: function (data) {
+                                    var prod = cache.get(object_type + "_" + object_id);
+
+                                    if (data.meta.total_count > 0) {
+                                        prod.media = data.objects[0];
+                                        cache.set(object_type + "_" + object_id, prod);
+                                    }
+
+                                    callback(prod);
+                                }
+                            });
+                        } else {
+                            callback(data);
+                        }
+                    }
+                });
+            };
+
+            return {
+                "getObject": getObject,
+                "getObjects": getObjects
+            };
+        }());
+
+        var cache = (function () {
             var get, set, hasLocalStorage, localData = {};
 
             hasLocalStorage = function () {
@@ -297,79 +354,33 @@
                 "set": set
             };
         }());
+    </script>
+{% endblock %}
 
-        api = (function () {
-            var uris = {
-                'product': "/api/assets/v1/product/%object_id%/?store={{ store.id }}&format=json",
-                'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%object_id%&format=json",
-                'video': "/api/assets/v1/youtube_video/%object_id%/?format=json",
-                'generic_image': "/api/assets/v1/generic_image/%object_id%/?format=json"
-            }, getProduct, getProducts, fetchProduct;
+{% block top_section %}
+    <nav class="grid_3 prefix_9">
+        <ul>
+            {% if store %}
+                <li><a href="{% url store-admin store.id %}">Pages</a></li>
+                <li class="selected"><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
+            {% else %}
+                <li><a href="{% url store-admin campaign.store.id %}">Pages</a></li>
+                <li class="selected"><a href="#">Analytics</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endblock %}
 
-            getObject = function (object_type, object_id, callback) {
-                var object = cache.get(object_type + "_" + object_id);
+{% block document_ready %}
+    var app = (function ($) {
+        var init, settings, setUpListeners, getDateRange,
+            injectAnalyticsData, insertTopProduct, insertToBarGraph,
+            loadAnalytics;
 
-                if (object === null) {
-                    fetchObject(object_type, object_id, callback);
-                } else {
-                    callback(object);
-                }
-            };
-
-            getObjects = function (object_type, object_ids, step, callback) {
-                var result = [];
-
-                if (object_ids.length == 0) {
-                    callback(result);
-                }
-
-                _.each(object_ids, function (object_id) {
-                    getObject(object_type, object_id, function (object) {
-                        result.push(object);
-
-                        step(result.length, object_ids.length);
-
-                        if (result.length == object_ids.length) {
-                            callback(result);
-                        }
-                    });
-                });
-            };
-
-            fetchObject = function (object_type, object_id, callback) {
-                $.ajax({
-                    url: uris[object_type].replace("%object_id%", object_id),
-                    dataType: "json",
-                    success: function (data) {
-                        cache.set(object_type + "_" + data.id, data);
-
-                        if (object_type == "product") {
-                            $.ajax({
-                                url: uris.products_media.replace("%object_id%", object_id),
-                                dataType: "json",
-                                success: function (data) {
-                                    var prod = cache.get(object_type + "_" + object_id);
-
-                                    if (data.meta.total_count > 0) {
-                                        prod.media = data.objects[0];
-                                        cache.set(object_type + "_" + object_id, prod);
-                                    }
-
-                                    callback(prod);
-                                }
-                            });
-                        } else {
-                            callback(data);
-                        }
-                    }
-                });
-            };
-
-            return {
-                "getObject": getObject,
-                "getObjects": getObjects
-            };
-        }());
+        settings = {
+            "store_id": "{{ store.id }}",
+            "campaign_id": "{{ campaign.id }}"
+        };
 
         loadAnalytics = function (o) {
             var request = {
@@ -687,8 +698,7 @@
 
                 _.each(to_inject_lists, function (inject) {
                     if (inject.data.length == 0) {
-                        console.log(inject.data);
-                        $(inject.params.selector).parent().children(".no_data").show();
+                        $("[data-metric='" + inject.params.selector.slice(1) + "']").show();
                     }
 
                     _.each(inject.data, function (pair) {
@@ -730,6 +740,10 @@
                 ];
 
                 _.each(to_inject_charts, function (inject) {
+                    if (inject.data.length == 0) {
+                        $("[data-metric='" + inject.params.selector.slice(1) + "']").show();
+                    }
+
                     insertAnalytics({
                         params: inject.params,
                         data: inject.data
@@ -794,17 +808,19 @@
 
     <script type="text/template" id="top_list_item">
         <tr>
-            <td><%= name %></td>
+            <td><%= wrap(name, 23) %></td>
             <td><img src="<%= data %>"></td>
             <td><%= caption %></td>
         </tr>
     </script>
 
     <script type="text/template" id="video_item">
+        <% api.getObject("video_gdata", data, function (video_data) { %>
         <tr>
-            <td><%= name %></td>
+            <td><a href="http://www.youtube.com/watch?v=<%= data %>" target="_blank"><%= wrap(video_data.entry.title.$t, 17) %></a></td>
             <td><%= caption %></td>
         </tr>
+        <% }); %>
     </script>
 
     <script type="text/template" id="bar_chart">
@@ -938,7 +954,7 @@
                         <div class="metric_title">Share Destinations</div>
                         <dl class="bar_graph" id="share_destinations"></dl>
 
-                        <div class="no_data" data-metric="top_shared_products">
+                        <div class="no_data" data-metric="share_destinations">
                             <p>No shared products yet.</p>
                         </div>
                     </div>
