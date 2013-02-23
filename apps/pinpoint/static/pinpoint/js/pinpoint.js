@@ -195,8 +195,12 @@ var PINPOINT = (function($, pageInfo) {
         $preview.find('.social-buttons').replaceWith($buttons);
 
         // Parse Facebook, Twitter buttons
-        FB.XFBML.parse($preview.find('.social-buttons .button.facebook')[0]);
-        twttr.widgets.load();
+        if (FB) {
+            FB.XFBML.parse($preview.find('.social-buttons .button.facebook')[0]);
+        }
+        if (twttr) {
+            twttr.widgets.load();
+        }
 
         for (var i in previewCallbacks) {
             if (previewCallbacks.hasOwnProperty(i)) {
@@ -204,8 +208,10 @@ var PINPOINT = (function($, pageInfo) {
             }
         }
 
-        pinpointTracking.clearTimeout();
-        pinpointTracking.setSocialShareVars({"sType": "popup", "url": data.url});
+        if (window.pinpointTracking) {
+            pinpointTracking.clearTimeout();
+            pinpointTracking.setSocialShareVars({"sType": "popup", "url": data.url});
+        }
 
         $preview.fadeIn(100);
         $mask.fadeIn(100);
@@ -221,21 +227,26 @@ var PINPOINT = (function($, pageInfo) {
 
     function addReadyCallback(f) {
         readyCallbacks.push(f);
-    };
+    }
 
     function hidePreview () {
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.product');
 
-        pinpointTracking.setSocialShareVars();
+        window.pinpointTracking && pinpointTracking.setSocialShareVars();
 
         $preview.fadeOut(100);
         $mask.fadeOut(100);
     }
 
     function commonHoverOn(t, enableSocialButtons) {
-        pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(t).parent().data("url")});
-        pinpointTracking.clearTimeout();
+        if (window.pinpointTracking) {
+            pinpointTracking.setSocialShareVars({
+                "sType": "discovery",
+                "url": $(t).parent().data("url")
+            });
+            pinpointTracking.clearTimeout();
+        }
 
         if (enableSocialButtons) {
             var $buttons = $(t).parent().find('.social-buttons');
@@ -259,9 +270,11 @@ var PINPOINT = (function($, pageInfo) {
             hoverCallback(t);
         }
 
-        pinpointTracking.clearTimeout();
-        if (pinpointTracking.socialShareType !== "popup") {
-            pinpointTracking._pptimeout = window.setTimeout(pinpointTracking.setSocialShareVars, 2000);
+        if (window.pinpointTracking) {
+            pinpointTracking.clearTimeout();
+            if (pinpointTracking.socialShareType !== "popup") {
+                pinpointTracking._pptimeout = window.setTimeout(pinpointTracking.setSocialShareVars, 2000);
+            }
         }
     }
 
@@ -271,7 +284,7 @@ var PINPOINT = (function($, pageInfo) {
 
     function productHoverOff () {
         commonHoverOff(this, function (t) {
-            pinpointTracking.registerEvent({
+            window.pinpointTracking && pinpointTracking.registerEvent({
                 "type": "inpage",
                 "subtype": "hover",
                 "label": $(t).parent().data("url")
@@ -285,7 +298,7 @@ var PINPOINT = (function($, pageInfo) {
 
     function lifestyleHoverOff () {
         commonHoverOff(this, function (t) {
-            pinpointTracking.registerEvent({
+            window.pinpointTracking && pinpointTracking.registerEvent({
                 "type": "content",
                 "subtype": "hover",
                 "label": $(t).children().attr("src")
@@ -478,7 +491,9 @@ var PINPOINT = (function($, pageInfo) {
                 },
                 events: {
                     'onReady': function(e) {},
-                    'onStateChange': pinpointTracking.videoStateChange,
+                    'onStateChange': window.pinpointTracking?
+                                     pinpointTracking.videoStateChange:
+                                     function() { /* dummy */ },
                     'onError': function(e) {}
                 }
             });
@@ -524,7 +539,7 @@ var PINPOINT = (function($, pageInfo) {
 
         // user scrolled far enough not to be a "bounce"
         if (divider_bottom < 150) {
-            pinpointTracking.notABounce("scroll");
+            window.pinpointTracking && pinpointTracking.notABounce("scroll");
         }
 
         $('.discovery-area .block').each(function() {
@@ -590,34 +605,38 @@ var PINPOINT = (function($, pageInfo) {
 
     /* --- START Social buttons --- */
     function loadFB () {
-        FB.init({
-          cookie:true,
-          status:true,
-          xfbml:true
-        });
+        if (FB) {
+            FB.init({
+                cookie:true,
+                status:true,
+                xfbml:true
+            });
 
-        var $featuredFB = $('.featured .social-buttons .button.facebook');
+            var $featuredFB = $('.featured .social-buttons .button.facebook');
 
-        if ($featuredFB.length > 0) {
-            FB.XFBML.parse($featuredFB[0]);
-        }
-
-        FB.Event.subscribe('xfbml.render', function(response) {
-            $(".loaded").find(".loading-container").css('visibility', 'visible');
-            $(".loaded").find(".loading-container").hide();
-            $(".loaded").find(".loading-container").fadeIn('fast');
-        });
-
-        FB.Event.subscribe('edge.create',
-            function(url) {
-                pinpointTracking.registerEvent({
-                    "network": "Facebook",
-                    "type": "share",
-                    "subtype": "liked",
-                    "label": url
-                });
+            if ($featuredFB.length > 0) {
+                FB.XFBML.parse($featuredFB[0]);
             }
-        );
+
+            FB.Event.subscribe('xfbml.render', function(response) {
+                $(".loaded").find(".loading-container").css('visibility', 'visible');
+                $(".loaded").find(".loading-container").hide();
+                $(".loaded").find(".loading-container").fadeIn('fast');
+            });
+
+            FB.Event.subscribe('edge.create',
+                function(url) {
+                    window.pinpointTracking && pinpointTracking.registerEvent({
+                        "network": "Facebook",
+                        "type": "share",
+                        "subtype": "liked",
+                        "label": url
+                    });
+                }
+            );
+        } else {
+            (console.error || console.log)('FB button is blocked.');
+        }
     }
 
     function createSocialButtons(config) {
@@ -720,7 +739,9 @@ var PINPOINT = (function($, pageInfo) {
         'onload': loadFB
     }, {
         'src'   : '//platform.twitter.com/widgets.js',
-        'onload': pinpointTracking.registerTwitterListeners,
+        'onload': window.pinpointTracking?
+                  pinpointTracking.registerTwitterListeners:
+                  function () { /* dummy */ },
         'id': 'twitter-wjs'
     }];
 
