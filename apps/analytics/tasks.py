@@ -195,7 +195,8 @@ def fetch_awareness_data(*args):
 
     query = {
         'metrics': ['visitors', 'pageviews'],
-        'dimensions': ['date', 'customVarValue1', 'customVarValue2', 'socialNetwork'],
+        'dimensions': ['date', 'customVarValue1', 'customVarValue2',
+            'socialNetwork', 'city', 'region'],
         'sort': ['date']
     }
 
@@ -212,13 +213,21 @@ def fetch_awareness_data(*args):
         for row in rows:
             getter = row_getter(query, row)
 
+            location = u""
+            if getter('city') != "(not set)":
+                location = getter('city').encode('utf-8', 'ignore')
+
+            if getter('region') != "(not set)" and getter('region') not in location:
+                location = "{0}, {1}".format(location, getter('region').encode('utf-8', 'ignore'))
+
             row_data = {
                 'date': getter('date'),
                 'store_id': getter('customVarValue1'),
                 'campaign_id': getter('customVarValue2'),
                 'visitors': getter('visitors'),
                 'pageviews': getter('pageviews'),
-                'socialNetwork': getter('socialNetwork')
+                'socialNetwork': getter('socialNetwork'),
+                'location': location
             }
 
             all_present = all(
@@ -360,11 +369,11 @@ def process_awareness_data(message_id):
     """Processes fetched awareness data, row by row"""
     def save_data_pair(store_type, campaign_type, category, row, column):
         data1, data2 = get_data_pair(store_type, campaign_type, row['store_id'], row['campaign_id'])
-        data1.key = data2.key = "{0}-{1}".format("awareness", column)
-        data1.value = data2.value = row[column]
+        data1.key = data2.key = "{0}-{1}".format("awareness", column['key'])
+        data1.value = data2.value = row[column['value']]
         data1.timestamp = data2.timestamp = row['date']
-        if row['socialNetwork'] != "(not set)":
-            data1.meta = data2.meta = row['socialNetwork']
+        if row[column['meta']] != "(not set)":
+            data1.meta = data2.meta = row[column['meta']]
 
         data1.save()
         data2.save()
@@ -396,7 +405,23 @@ def process_awareness_data(message_id):
     categories = Categories()
     saver = partial(save_data_pair, store_type, campaign_type, categories.get("awareness"))
 
-    columns_to_save = ["visitors", "pageviews"]
+    columns_to_save = [
+        {
+            'key': 'visitors',
+            'value': 'visitors',
+            'meta': 'socialNetwork'
+        },
+        {
+            'key': 'pageviews',
+            'value': 'pageviews',
+            'meta': 'socialNetwork'
+        },
+        {
+            'key': 'location',
+            'value': 'visitors',
+            'meta': 'location'
+        }
+    ]
 
     for row in data:
         row = preprocess_row(row, logger)
