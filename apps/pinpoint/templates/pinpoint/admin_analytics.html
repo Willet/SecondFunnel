@@ -212,7 +212,7 @@
 
         .bar {
             margin-bottom: 10px;
-            margin-left: 110px;
+            margin-left: 60%;
             color: #f3f3f3;
             padding: 4px;
             text-align: center;
@@ -427,7 +427,8 @@
                     'engaged_videos': [],
                     'sharing_products': [],
                     'sharing_source': [],
-                    'visitor_source': []
+                    'visitor_source': [],
+                    'visitor_locations': []
                 },
 
                 merge_totals = function (t1, t2) {
@@ -565,6 +566,7 @@
                 'engaged_products': merged_product_interactions.target_id,
                 'engaged_content': merged_content_interactions.target_id,
                 'engaged_videos': data.engagement['content-video'].totals.target_id,
+                'visitor_locations': data.awareness['awareness-location'].totals.meta,
 
                 'sharing_products': merged_sharing.target_id,
                 'sharing_source': merged_sharing.meta,
@@ -736,6 +738,15 @@
                             total: totals.visitors
                         },
                         data: sortables.visitor_source
+                    },
+
+                    {
+                        params: {
+                            type: "chart",
+                            selector: "#visitor_locations",
+                            total: totals.visitors
+                        },
+                        data: sortables.visitor_locations
                     }
                 ];
 
@@ -827,7 +838,7 @@
         <% _.each(data, function (pair) { %>
             <% perc = ((pair[1] / total) * 100 || 0).toFixed(0); %>
             <% if (perc > 0) { %>
-                <dt><strong><%= pair[0] %></strong>: <%= pair[1] %></dt>
+                <dt><strong><%= wrap(pair[0], 30) %></strong>: <%= pair[1] %></dt>
                 <dd>
                     <div class="bar" style="width: <%= perc %>%;"><%= perc %>%</div>
                 </dd>
@@ -991,6 +1002,15 @@
                             <dl class="bar_graph" id="visitor_sources"></dl>
 
                             <div class="no_data" data-metric="total_visitors">
+                                <p>No visitors yet.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid_8 data_metric round shadow">
+                            <div class="metric_title">Visits by Location</div>
+                            <dl class="bar_graph" id="visitor_locations"></dl>
+
+                            <div class="no_data" data-metric="visitor_locations">
                                 <p>No visitors yet.</p>
                             </div>
                         </div>
