@@ -72,7 +72,6 @@
         }
 
         .section_overview_block {
-            height: 127px;
             padding: 3px 0px 10px 10px;
             border: 1px solid #969696;
             border-bottom: none;
@@ -130,6 +129,10 @@
             color: #2d2d2d;
         }
 
+        .data_metric .inner_metric {
+            margin: 0;
+        }
+
         table.metric_content {
             display: block;
             margin-top: 10px;
@@ -147,7 +150,7 @@
         }
 
         .metric_content img {
-            height: 50px;
+            max-height: 60px;
             width: auto;
         }
 
@@ -160,6 +163,12 @@
             font-size: 16px;
             color: #3b3b3b;
             font-weight: bolder;
+        }
+
+        .number_type {
+            font-weight: normal;
+            font-size: 12px;
+            color: #8a8a8a;
         }
 
         .top_product, .top_product:last-child, .top_content, .top_content:last-child {
@@ -203,7 +212,6 @@
         /* bar graph styling */
         dt {
             float: left;
-            padding: 4px;
         }
 
         .bar_graph {
@@ -212,7 +220,7 @@
 
         .bar {
             margin-bottom: 10px;
-            margin-left: 60%;
+            margin-left: 65%;
             color: #f3f3f3;
             padding: 4px;
             text-align: center;
@@ -229,6 +237,30 @@
             text-shadow: 1px 1px 0 #fff;
         }
 
+        span.metric_perc {
+            font-size: 15pt;
+        }
+
+        span.metric_count {
+            font-size: 10pt;
+            color: #8c8c8c;
+        }
+
+        span.caption_left {
+            float: left;
+        }
+
+        span.caption_right {
+            position: relative;
+            left: 20px;
+            font-weight: bolder;
+        }
+
+        .youtube_thumb {
+            max-height: 50px;
+            width: auto;
+        }
+
     </style>
 {% endblock %}
 
@@ -241,6 +273,13 @@
             } else {
                 return str;
             }
+        }
+
+        function pluralize(word, count) {
+            if (count > 1) {
+                return word + "s";
+            }
+            return word;
         }
 
         var api = (function () {
@@ -427,7 +466,9 @@
                     'engaged_videos': [],
                     'sharing_products': [],
                     'sharing_source': [],
+                    'sharing_sources_of': [],
                     'visitor_source': [],
+                    'interaction_source': [],
                     'visitor_locations': []
                 },
 
@@ -466,6 +507,7 @@
                 cat_slug, metric_slug,
 
                 merged_sharing, merged_product_interactions, merged_content_interactions,
+                merged_sources, merged_sharing_sources,
 
                 top_lists,
 
@@ -513,7 +555,7 @@
 
                         "product": function (params, pair) {
                             actions.common("product", "#top_list_item", params, pair, function (data) {
-                                return data.media.hosted || data.media.remote;
+                                return (data.media.hosted || data.media.remote).replace("master.jpg", "thumb.jpg");
                             });
                         },
 
@@ -566,6 +608,15 @@
             merged_content_interactions = merge_totals(data.engagement['content-openpopup'].totals,
                 data.engagement['content-hover'].totals);
 
+            merged_sources = merge_totals(data.engagement['content-openpopup-source'].totals,
+                data.engagement['content-hover-source'].totals);
+
+            merged_sources = merge_totals(merged_sources, data.engagement['inpage-hover-source'].totals);
+            merged_sources = merge_totals(merged_sources, data.engagement['inpage-openpopup-source'].totals);
+
+            merged_sharing_sources = merge_totals(data.sharing['share-clicked-source'].totals,
+                data.sharing['share-liked-source'].totals);
+
             top_lists = {
                 'engaged_products': merged_product_interactions.target_id,
                 'engaged_content': merged_content_interactions.target_id,
@@ -574,6 +625,9 @@
 
                 'sharing_products': merged_sharing.target_id,
                 'sharing_source': merged_sharing.meta,
+                'sharing_sources_of': merged_sharing_sources.meta,
+
+                'interaction_source': merged_sources.meta,
 
                 'visitor_source': data.awareness['awareness-visitors'].totals.meta,
 
@@ -582,7 +636,7 @@
                 'interaction_types': {
                     "Hovers": data.engagement['inpage-hover'].totals.date.all + data.engagement['content-hover'].totals.date.all,
                     "Clicks": data.engagement['inpage-openpopup'].totals.date.all + data.engagement['content-openpopup'].totals.date.all,
-                    "Video Plays": data.engagement['content-video'].totals.date.all
+                    "Videos": data.engagement['content-video'].totals.date.all
                 }
             };
 
@@ -609,7 +663,7 @@
             $(".per-visitor").remove();
 
             $(".section_overview_block:nth-child(2) .section_overview_metrics ul").append(
-                "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / not_bounced_visitors || 0).toFixed(2) + "</span> Interactions per visit</li>");
+                "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / not_bounced_visitors || 0).toFixed(2) + "</span> Interactions per engaged visitor</li>");
 
 
             $(".section_overview_block:nth-child(3) .section_overview_metrics ul").append(
@@ -665,17 +719,17 @@
                         params: {
                             type: "product",
                             selector: "#top_engaging_products",
-                            verb: "Interactions",
+                            verb: "interaction",
                             total: totals.interactions.product
                         },
-                        data: sortables.engaged_products.slice(0, 6)
+                        data: sortables.engaged_products.slice(0, 4)
                     },
 
                     {
                         params: {
                             type: "content",
                             selector: "#top_engaged_content",
-                            verb: "Interactions",
+                            verb: "interaction",
                             total: totals.interactions.content
                         },
                         data: sortables.engaged_content.slice(0, 4)
@@ -685,7 +739,7 @@
                         params: {
                             type: "product",
                             selector: "#top_shared_products",
-                            verb: "Shares",
+                            verb: "share",
                             total: totals.shares
                         },
                         data: sortables.sharing_products.slice(0, 4)
@@ -695,7 +749,7 @@
                         params: {
                             type: "video",
                             selector: "#top_videos",
-                            verb: "Plays",
+                            verb: "play",
                             total: data.engagement['content-video'].totals.date.all
                         },
                         data: sortables.engaged_videos.slice(0, 3)
@@ -751,6 +805,24 @@
                             total: totals.visitors
                         },
                         data: sortables.visitor_locations.slice(0, 5)
+                    },
+
+                    {
+                        params: {
+                            type: "chart",
+                            selector: "#interaction_sources",
+                            total: totals.interactions.all
+                        },
+                        data: sortables.interaction_source
+                    },
+
+                    {
+                        params: {
+                            type: "chart",
+                            selector: "#sources_of_shares",
+                            total: totals.shares
+                        },
+                        data: sortables.sharing_sources_of
                     }
                 ];
 
@@ -775,7 +847,7 @@
                     $(".progress-label").text( $(".progressbar").progressbar( "value" ) + "%" );
                 },
                 complete: function() {
-                    $(".progress-label").text( "Complete!" );
+                    $(".progress-label").text( "Loaded." );
                 }
             });
 
@@ -823,16 +895,15 @@
 
     <script type="text/template" id="top_list_item">
         <tr>
-            <td><%= wrap(name, 23) %></td>
             <td><img src="<%= data %>"></td>
-            <td><%= caption %></td>
+            <td><span class="caption_left"><%= caption %></span><span class="caption_right"><%= wrap(name, 30) %></span></td>
         </tr>
     </script>
 
     <script type="text/template" id="video_item">
         <% api.getObject("video_gdata", data, function (video_data) { %>
         <tr>
-            <td><a href="http://www.youtube.com/watch?v=<%= data %>" title="<%= video_data.entry.title.$t %>" target="_blank"><img src="<%= video_data.entry['media$group']['media$thumbnail'][0].url %>"></a></td>
+            <td><a href="http://www.youtube.com/watch?v=<%= data %>" title="<%= video_data.entry.title.$t %>" target="_blank"><img class="youtube_thumb" src="<%= video_data.entry['media$group']['media$thumbnail'][0].url %>"></a></td>
             <td><%= caption %></td>
         </tr>
         <% }); %>
@@ -851,7 +922,7 @@
     </script>
 
     <script type="text/template" id="count_with_percentage">
-        <%= verb %>: <%= count %> (<%= ((count / total) * 100 || 0).toFixed(0) %>%)
+        <span class="metric_perc"><%= ((count / total) * 100 || 0).toFixed(0) %>%</span><br><span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
     </script>
 
     <div class="top_analytics_menu">
@@ -910,8 +981,8 @@
             {% for category in categories %}
                 <div class="data_category" data-cid="{{ category.id }}" {% if not category.default %}style="display: none;"{% endif %}>
                     {% if category.name == "Engagement" %}
-                        <div class="grid_8 data_metric round shadow">
-                            <div class="grid_5">
+                        <div class="grid_4 data_metric round shadow">
+                            <div class="grid_4 inner_metric">
                                 <div class="metric_title">Top Engaging Products</div>
                                 <table class="metric_content" id="top_engaging_products"></table>
 
@@ -920,29 +991,42 @@
                                 </div>
                             </div>
 
-                            <div class="grid_3" style="margin: 0">
-                                <div class="metric_title">Top Engaging Content</div>
-                                <table class="metric_content" id="top_engaged_content"></table>
+                            <div class="grid_4 inner_metric">
+                                <div class="metric_title">Top Engaging Content &amp; Videos</div>
 
-                                <div class="no_data" data-metric="top_engaged_content">
-                                    <p>No engaged content.</p>
+                                <div class="grid_2 inner_metric">
+                                    <table class="metric_content" id="top_engaged_content"></table>
+
+                                    <div class="no_data" data-metric="top_engaged_content">
+                                        <p>No engaged content.</p>
+                                    </div>
                                 </div>
 
-                                <div class="metric_title">Top Played Videos</div>
-                                <table class="metric_content" id="top_videos"></table>
+                                <div class="grid_2 inner_metric" style="margin-left: 20px">
+                                    <table class="metric_content" id="top_videos"></table>
 
-                                <div class="no_data" data-metric="top_videos">
-                                    <p>No played videos.</p>
+                                    <div class="no_data" data-metric="top_videos">
+                                        <p>No played videos.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="grid_4 data_metric round shadow">
+                        <div class="grid_3 data_metric round shadow">
                             <div class="metric_title">Interaction Types</div>
                             <dl class="bar_graph" id="interaction_types"></dl>
 
                             <div class="no_data" data-metric="interaction_types">
                                 <p>No engaged products yet.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid_3 data_metric round shadow">
+                            <div class="metric_title">Interaction Sources</div>
+                            <dl class="bar_graph" id="interaction_sources"></dl>
+
+                            <div class="no_data" data-metric="interaction_sources">
+                                <p>No interactions yet.</p>
                             </div>
                         </div>
                     {% elif category.name == "Sharing" %}
@@ -964,13 +1048,14 @@
                             </div>
                         </div>
 
-                        <!-- <div class="data_metric">
+                        <div class="grid_4 data_metric round shadow">
                             <div class="metric_title">Sources of Shares</div>
+                            <dl class="bar_graph" id="sources_of_shares"></dl>
 
-                            <div class="no_data" data-metric="top_shared_products">
+                            <div class="no_data" data-metric="sources_of_shares">
                                 <p>No shared products yet.</p>
                             </div>
-                        </div> -->
+                        </div>
                     {% elif category.name == "Awareness" %}
                         <div class="grid_2 data_metric round shadow">
                             <div class="metric_title">Total Visitors</div>
