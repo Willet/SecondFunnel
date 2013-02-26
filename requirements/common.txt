@@ -31,3 +31,6 @@ google==1.04
 google-api-python-client==1.0
 pyOpenSSL==0.13
 python-gflags==2.0
+
+# hipchat
+python-simple-hipchat==0.1
