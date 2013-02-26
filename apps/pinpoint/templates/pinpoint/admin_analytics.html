@@ -548,8 +548,7 @@
 
                         "content": function (params, pair) {
                             actions.common("generic_image", "#top_list_item", params, pair, function (data) {
-                                // return data.hosted || data.remote;
-                                return "http://localhost/~grisha/img.jpg";
+                                return data.hosted || data.remote;
                             });
                         },
 
