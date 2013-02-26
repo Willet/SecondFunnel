@@ -97,8 +97,8 @@ class ProductAdmin(BaseNamedAdmin):
 admin.site.register(Product, ProductAdmin)
 
 
-class YoutubeVideoAdmin(BaseNamedAdmin):
-    list_display = BaseNamedAdmin.list_display + [
+class YoutubeVideoAdmin(BaseAdmin):
+    list_display = BaseAdmin.list_display + [
         'video_id', 'store']
 
 admin.site.register(YoutubeVideo, YoutubeVideoAdmin)
