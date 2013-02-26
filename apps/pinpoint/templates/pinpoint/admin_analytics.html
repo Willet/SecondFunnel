@@ -523,13 +523,13 @@
                             var chart_t = _.template($("#bar_chart").html()),
                                 present_total = 0;
 
-                            _.each(all_data, function (elem, i) {
-                                if (elem === undefined) {
+                            for (var i = all_data.length - 1; i >= 0; i--) {
+                                if (all_data[i] === undefined) {
                                     all_data.splice(i, 1);
                                 } else {
-                                    present_total += elem[1];
+                                    present_total += all_data[i][1];
                                 }
-                            });
+                            };
 
                             if (present_total < params.total) {
                                 all_data.push(["Other", params.total - present_total]);
@@ -746,7 +746,7 @@
                             selector: "#visitor_locations",
                             total: totals.visitors
                         },
-                        data: sortables.visitor_locations
+                        data: sortables.visitor_locations.slice(0, 5)
                     }
                 ];
 
