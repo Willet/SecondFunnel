@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.template.defaultfilters import striptags
 from django.utils.html import escape
+from social_auth.db.django_models import UserSocialAuth
 
 
 class BaseModel(models.Model):
@@ -25,6 +26,7 @@ class BaseModelNamed(BaseModel):
 
 class Store(BaseModelNamed):
     staff = models.ManyToManyField(User)
+    social_auth = models.ManyToManyField(UserSocialAuth, blank=True, null=True)
 
     def __unicode__(self):
         return self.name
