@@ -12,6 +12,7 @@
 {% block extra_head %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/tipsy.css" %}">
 
     <style>
         .round {
@@ -261,11 +262,20 @@
             width: auto;
         }
 
+        .chart rect {
+            fill: steelblue;
+            stroke: white;
+        }
+
     </style>
 {% endblock %}
 
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
+    <script src="{% static "js/d3.v3.min.js" %}"></script>
+    <script src="{% static "js/jquery.tipsy.js" %}"></script>
+    <script src="{% static "js/underscore.js" %}"></script>
+
     <script>
         function wrap (str, len) {
             if (str.length > len) {
@@ -469,7 +479,8 @@
                     'sharing_sources_of': [],
                     'visitor_source': [],
                     'interaction_source': [],
-                    'visitor_locations': []
+                    'visitor_locations': [],
+                    'visitor_dates': []
                 },
 
                 merge_totals = function (t1, t2) {
@@ -621,6 +632,7 @@
                 'engaged_content': merged_content_interactions.target_id,
                 'engaged_videos': data.engagement['content-video'].totals.target_id,
                 'visitor_locations': data.awareness['awareness-location'].totals.meta,
+                'visitor_dates': data.awareness['awareness-visitors'].totals.date,
 
                 'sharing_products': merged_sharing.target_id,
                 'sharing_source': merged_sharing.meta,
@@ -701,6 +713,8 @@
                 "top_engaged_content"]).each(function (i, val) {
                     $("#" + val).html("");
                 });
+
+            d3.select("#visitors_over_time svg").remove();
 
             var pids = _.map(sortables.engaged_products, function (pair) {
                 return pair[0];
@@ -835,6 +849,82 @@
                         data: inject.data
                     });
                 });
+
+                var max_domain = 0,
+                    date_parser = d3.time.format("%Y-%m-%d"),
+                    date_formatter = d3.time.format("%B %e");
+
+                sortables.visitor_dates.sort(function (a, b) {
+                    return new Date(a[0]) - new Date(b[0]);
+                });
+
+                for (var i = sortables.visitor_dates.length - 1; i >= 0; i--) {
+                    if (sortables.visitor_dates[i][1] > max_domain) {
+                        max_domain = sortables.visitor_dates[i][1];
+                    }
+                };
+
+                var w = 20,
+                    h = 200,
+                    calculated_width = w * sortables.visitor_dates.length - 1,
+                    chart_width = (calculated_width < 540) ? 540 : calculated_width;
+
+                var x = d3.scale.linear()
+                    .domain([0, 1])
+                    .range([0, w]);
+
+                var y = d3.scale.linear()
+                    .domain([0, max_domain])
+                    .rangeRound([0, h - 17]);
+
+                var chart = d3.select("#visitors_over_time").append("svg")
+                    .attr("class", "chart")
+                    .attr("width", chart_width)
+                    .attr("height", h);
+
+                chart.selectAll("rect")
+                    .data(sortables.visitor_dates)
+                    .enter().append("rect")
+                        .attr("x", function(d, i) { return x(i) - .5; })
+                        .attr("y", function(d) { return h - y(d[1]) - .5; })
+                        .attr("width", w)
+                        .attr("height", function(d) { return y(d[1]); })
+                        .on("mouseover", function() {d3.select(this).transition().style("fill", "black")})
+                        .on("mouseout", function() {d3.select(this).transition().style("fill", "steelblue")});
+
+                chart.selectAll("text")
+                    .data(sortables.visitor_dates)
+                    .enter().append("text")
+                        .attr("x", function(d, i) { return x(i) + 1; })
+                        .attr("y", function(d) { return h - y(d[1]) - 2; })
+                        .text(function (d) { return d[1]});
+
+
+                chart.append("line")
+                    .attr("x1", 0)
+                    .attr("x2", chart_width)
+                    .attr("y1", h - .5)
+                    .attr("y2", h - .5)
+                    .style("stroke", "#000");
+
+                chart.selectAll("line")
+                    .data(y.ticks(10))
+                    .enter().append("line")
+                        .attr("y1", y)
+                        .attr("y2", y)
+                        .attr("x1", 0)
+                        .attr("x2", chart_width)
+                        .style("stroke", "#333")
+                        .style("stroke-width", 0.1);
+
+                $('svg rect').tipsy({
+                    gravity: 'w',
+                    html: true,
+                    title: function() {
+                        var d = this.__data__;
+                        return date_formatter(new Date(d[0]));
+                    }
+                  });
             });
         };
 
@@ -890,8 +980,6 @@
 {% endblock %}
 
 {% block content %}
-    <script src="{% static "js/underscore.js" %}"></script>
-
     <script type="text/template" id="top_list_item">
         <tr>
             <td><img src="<%= data %>"></td>
@@ -1056,6 +1144,12 @@
                             </div>
                         </div>
                     {% elif category.name == "Awareness" %}
+                        <div class="grid_7 data_metric round shadow">
+                            <div class="metric_title">Visitors over Time</div>
+
+                            <div id="visitors_over_time"></div>
+                        </div>
+
                         <div class="grid_2 data_metric round shadow">
                             <div class="metric_title">Total Visitors</div>
                             <div class="metric_content" id="total_visitors"></div>
