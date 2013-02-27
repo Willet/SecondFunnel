@@ -595,6 +595,22 @@
                                 data: all_data,
                                 total: params.total
                             }));
+                        },
+
+                        "column_chart": function (params, pair, all_data) {
+                            // sort by date
+                            all_data.sort(function (a, b) {
+                                return new Date(a[0]) - new Date(b[0]);
+                            });
+
+                            var chart = new Chart({
+                                selector: params.selector,
+                                data: all_data,
+
+                                min_width: params.min_width,
+                                height: params.height,
+                                col_width: params.col_width
+                            });
                         }
                     },
 
@@ -603,7 +619,81 @@
 
                         // 20px accounts for margins
                         $s.css("width", $s.children().length * ($s.children().width() + 20) + "px");
-                    };
+                    },
+
+                    Chart = function (o) {
+                        var max_domain = 0,
+                            date_parser = d3.time.format("%Y-%m-%d"),
+                            date_formatter = d3.time.format("%B %e");
+
+                        for (var i = o.data.length - 1; i >= 0; i--) {
+                            if (o.data[i][1] > max_domain) {
+                                max_domain = o.data[i][1];
+                            }
+                        };
+
+                        var w = o.col_width,
+                            h = o.height,
+                            calculated_width = w * o.data.length - 1,
+                            chart_width = (calculated_width < o.min_width) ? o.min_width : calculated_width;
+
+                        var x = d3.scale.linear()
+                            .domain([0, 1])
+                            .range([0, w]);
+
+                        var y = d3.scale.linear()
+                            .domain([0, max_domain])
+                            .rangeRound([0, h - 17]);
+
+                        var chart = d3.select(o.selector).append("svg")
+                            .attr("class", "chart")
+                            .attr("width", chart_width)
+                            .attr("height", h);
+
+                        chart.selectAll("rect")
+                            .data(o.data)
+                            .enter().append("rect")
+                                .attr("x", function(d, i) { return x(i) - .5; })
+                                .attr("y", function(d) { return h - y(d[1]) - .5; })
+                                .attr("width", w)
+                                .attr("height", function(d) { return y(d[1]); })
+                                .on("mouseover", function() {d3.select(this).transition().style("fill", "black")})
+                                .on("mouseout", function() {d3.select(this).transition().style("fill", "steelblue")});
+
+                        chart.selectAll("text")
+                            .data(o.data)
+                            .enter().append("text")
+                                .attr("x", function(d, i) { return x(i) + 1; })
+                                .attr("y", function(d) { return h - y(d[1]) - 2; })
+                                .text(function (d) { return d[1]});
+
+
+                        chart.append("line")
+                            .attr("x1", 0)
+                            .attr("x2", chart_width)
+                            .attr("y1", h - .5)
+                            .attr("y2", h - .5)
+                            .style("stroke", "#000");
+
+                        chart.selectAll("line")
+                            .data(y.ticks(5))
+                            .enter().append("line")
+                                .attr("y1", y)
+                                .attr("y2", y)
+                                .attr("x1", 0)
+                                .attr("x2", chart_width)
+                                .style("stroke", "#333")
+                                .style("stroke-width", 0.1);
+
+                        $('svg rect').tipsy({
+                            gravity: 'w',
+                            html: true,
+                            title: function() {
+                                var d = this.__data__;
+                                return date_formatter(new Date(d[0]));
+                            }
+                          });
+                    }
 
                 actions[params.type](params, pair, all_data);
                 $(params.selector).parent().children(".no_data").hide();
@@ -836,6 +926,17 @@
                             total: totals.shares
                         },
                         data: sortables.sharing_sources_of
+                    },
+
+                    {
+                        params: {
+                            type: "column_chart",
+                            selector: "#visitors_over_time",
+                            min_width: 540,
+                            col_width: 20,
+                            height: 200
+                        },
+                        data: sortables.visitor_dates
                     }
                 ];
 
@@ -849,82 +950,6 @@
                         data: inject.data
                     });
                 });
-
-                var max_domain = 0,
-                    date_parser = d3.time.format("%Y-%m-%d"),
-                    date_formatter = d3.time.format("%B %e");
-
-                sortables.visitor_dates.sort(function (a, b) {
-                    return new Date(a[0]) - new Date(b[0]);
-                });
-
-                for (var i = sortables.visitor_dates.length - 1; i >= 0; i--) {
-                    if (sortables.visitor_dates[i][1] > max_domain) {
-                        max_domain = sortables.visitor_dates[i][1];
-                    }
-                };
-
-                var w = 20,
-                    h = 200,
-                    calculated_width = w * sortables.visitor_dates.length - 1,
-                    chart_width = (calculated_width < 540) ? 540 : calculated_width;
-
-                var x = d3.scale.linear()
-                    .domain([0, 1])
-                    .range([0, w]);
-
-                var y = d3.scale.linear()
-                    .domain([0, max_domain])
-                    .rangeRound([0, h - 17]);
-
-                var chart = d3.select("#visitors_over_time").append("svg")
-                    .attr("class", "chart")
-                    .attr("width", chart_width)
-                    .attr("height", h);
-
-                chart.selectAll("rect")
-                    .data(sortables.visitor_dates)
-                    .enter().append("rect")
-                        .attr("x", function(d, i) { return x(i) - .5; })
-                        .attr("y", function(d) { return h - y(d[1]) - .5; })
-                        .attr("width", w)
-                        .attr("height", function(d) { return y(d[1]); })
-                        .on("mouseover", function() {d3.select(this).transition().style("fill", "black")})
-                        .on("mouseout", function() {d3.select(this).transition().style("fill", "steelblue")});
-
-                chart.selectAll("text")
-                    .data(sortables.visitor_dates)
-                    .enter().append("text")
-                        .attr("x", function(d, i) { return x(i) + 1; })
-                        .attr("y", function(d) { return h - y(d[1]) - 2; })
-                        .text(function (d) { return d[1]});
-
-
-                chart.append("line")
-                    .attr("x1", 0)
-                    .attr("x2", chart_width)
-                    .attr("y1", h - .5)
-                    .attr("y2", h - .5)
-                    .style("stroke", "#000");
-
-                chart.selectAll("line")
-                    .data(y.ticks(10))
-                    .enter().append("line")
-                        .attr("y1", y)
-                        .attr("y2", y)
-                        .attr("x1", 0)
-                        .attr("x2", chart_width)
-                        .style("stroke", "#333")
-                        .style("stroke-width", 0.1);
-
-                $('svg rect').tipsy({
-                    gravity: 'w',
-                    html: true,
-                    title: function() {
-                        var d = this.__data__;
-                        return date_formatter(new Date(d[0]));
-                    }
-                  });
             });
         };
 
