@@ -455,13 +455,20 @@ var PINPOINT = (function($, pageInfo) {
 
         // if it has a lifestyle image, add a wide class to it so it's styled properly
         $block.each(function() {
-            var $elem = $(this);
+            var $elem = $(this),
+                rand_num = Math.random();
             // hide them so they can't be seen when masonry is placing them
             $elem.css({opacity: 0});
 
             if ($elem.find('.lifestyle').length > 0) {
                 $elem.addClass('wide');
             }
+
+            if ($elem.hasClass('instagram')
+                && (rand_num >= 0.5)) {
+                $elem.addClass('wide');
+            }
+
             $('.discovery-area').append($elem[0]);
         });
 

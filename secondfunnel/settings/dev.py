@@ -50,5 +50,5 @@ GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 BROKER_URL = 'amqp://guest:guest@localhost:5672//'
 
 # Nick's test instagram client; good for localhost:8000
-INSTAGRAM_CLIENT_ID = '3fc578b28e2a4b43a51ea2fa735599fd'
-INSTAGRAM_CLIENT_SECRET = '1e12ec8c92304cd28582df05ab430762'
+INSTAGRAM_CLIENT_ID = '1410bbbf8b614ebfb77081d5293cf48d'
+INSTAGRAM_CLIENT_SECRET = 'c535ee3141944cdbaab97954b6b85083'
