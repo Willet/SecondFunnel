@@ -56,21 +56,6 @@ def analytics_pinpoint(request):
     date_range = request.GET.get('range')
     end_date = datetime.now()
 
-    if date_range == "total":
-        start_date = datetime(year=2012, month=1, day=1)
-
-    elif date_range == "month":
-        start_date = end_date - timedelta(weeks=4)
-
-    elif date_range == "two_weeks":
-        start_date = end_date - timedelta(weeks=2)
-
-    elif date_range == "week":
-        start_date = end_date - timedelta(weeks=1)
-
-    else:
-        start_date = end_date - timedelta(days=1)
-
     # try get a store associated with this request,
     # either directly or via campaign
     store = None
@@ -87,6 +72,29 @@ def analytics_pinpoint(request):
 
         except Campaign.DoesNotExist:
             return ajax_error()
+
+    if date_range == "total":
+        start_date = campaign.created
+
+    elif date_range == "month":
+        start_date = end_date - timedelta(weeks=4)
+
+    elif date_range == "two_weeks":
+        start_date = end_date - timedelta(weeks=2)
+
+    elif date_range == "week":
+        start_date = end_date - timedelta(weeks=1)
+
+    else:
+        start_date = end_date - timedelta(days=1)
+
+    if start_date < campaign.created:
+        start_date = campaign.created
+
+    end_date = end_date.replace(tzinfo=start_date.tzinfo)
+
+    # account for potential timezone differences
+    start_date = start_date - timedelta(days=2)
 
     # check if user is authorized to access this data
     if not request.user in store.staff.all():
