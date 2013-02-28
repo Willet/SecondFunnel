@@ -559,7 +559,8 @@
 
                         "content": function (params, pair) {
                             actions.common("generic_image", "#top_list_item", params, pair, function (data) {
-                                return data.hosted || data.remote;
+                                var image = data.hosted || data.remote;
+                                return image.slice(0, image.indexOf("?Sig"));
                             });
                         },
 
