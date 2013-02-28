@@ -11,6 +11,7 @@ import pickle, sys
 from datetime import date, datetime
 
 from functools import partial
+from urlparse import urlparse
 
 from celery import task, subtask, chain
 from celery.utils.log import get_task_logger
@@ -88,15 +89,6 @@ def row_getter(query, row):
     return get
 
 
-def get_data_pair(store_type, campaign_type, store_id, campaign_id):
-    return KVStore(
-        content_type=store_type,
-        object_id=store_id
-    ), KVStore(
-        content_type=campaign_type,
-        object_id=campaign_id
-    )
-
 def target_getter(label):
     """Locates an event target based on the label passed in.
     Tries products first, then GenericImages, then Videos"""
@@ -111,9 +103,8 @@ def target_getter(label):
 
     # filter out S3's signature GET stuff & hostname
     try:
-        label = label[:label.index("?Signature")]
-        label = label[label.index("product_images"):]
-    except ValueError:
+        label = urlparse(label).path[1:]
+    except AttributeError:
         pass
 
     t = GenericImage.objects.filter(hosted__startswith=label)[:1]
@@ -124,11 +115,17 @@ def target_getter(label):
     if len(t) != 0:
         return t[0].id, youtube_type
 
-    raise Exception("Target not found")
+    return None, None
 
 
 def save_data_pair(store_type, campaign_type, category, row, column):
-    data1, data2 = get_data_pair(store_type, campaign_type, row['store_id'], row['campaign_id'])
+    data1, data2 = KVStore(
+        content_type=store_type,
+        object_id=row['store_id']
+    ), KVStore(
+        content_type=campaign_type,
+        object_id=row['campaign_id']
+    )
     data1.key = data2.key = column['key']
     data1.value = data2.value = row[column['value']]
     data1.timestamp = data2.timestamp = row['date']
@@ -137,11 +134,8 @@ def save_data_pair(store_type, campaign_type, category, row, column):
         data1.meta = data2.meta = row[column['meta']]
 
     if 'label' in row:
-        try:
-            object_id, object_type = target_getter(row['label'])
-        except:
-            pass
-        else:
+        object_id, object_type = target_getter(row['label'])
+        if object_id is not None:
             data1.target_id = data2.target_id = object_id
             data1.target_type = data2.target_type = object_type
 
