@@ -103,6 +103,7 @@ def target_getter(label):
 
     # filter out S3's signature GET stuff & hostname
     try:
+        # don't want the leading slash
         label = urlparse(label).path[1:]
     except AttributeError:
         pass
