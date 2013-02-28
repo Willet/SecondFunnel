@@ -6,6 +6,8 @@ from apps.assets.forms import HTMLPasswordResetForm
 admin.autodiscover()
 
 urlpatterns = patterns('',
+    url(r'', include('social_auth.urls')),
+
     # INTERNAL ADMIN
     url(r'^admin/', include(admin.site.urls)),
 
@@ -71,3 +73,5 @@ urlpatterns = patterns('',
 )
 
 urlpatterns += staticfiles_urlpatterns()
+
+handler500 = 'apps.pinpoint.views.app_exception_handler'
