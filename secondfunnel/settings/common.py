@@ -203,6 +203,7 @@ INSTALLED_APPS = (
     'adminlettuce',
     'ajax_forms',
     "compressor",
+    "maintenancemode",
 
     # our apps
     'apps.analytics',

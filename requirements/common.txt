@@ -8,7 +8,7 @@ cssmin==0.1.4
 django-ajax-forms
 django-compressor==1.2
 django-extensions==0.9
-django-maintenancemode==0.10
+requirements/django-maintenancemode-master.zip
 django-storages==1.1.5
 django-tastypie==0.9.11
 lxml==2.3.5
@@ -28,7 +28,7 @@ kombu==2.4.8
 pytz==2012h
 
 # google api libraries
-google==1.01
+google==1.04
 google-api-python-client==1.0
 pyOpenSSL==0.13
 python-gflags==2.0

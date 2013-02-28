@@ -28,6 +28,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'tastypie',
     'ajax_forms',
+    "maintenancemode",
 
     # our apps
     'apps.analytics',
