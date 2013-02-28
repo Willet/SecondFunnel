@@ -1,7 +1,5 @@
 // TODO: Split into submodules properly
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
-
-// Why do we mix and match jQuery and native dom?
 var PINPOINT = (function($, pageInfo) {
     var console = window.console || {
             // dummy
@@ -10,6 +8,7 @@ var PINPOINT = (function($, pageInfo) {
         },
         details,
         domTemplateCache = {},
+        MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         scripts,
         userClicks = 0,
         clickThreshold = 3,
@@ -19,12 +18,6 @@ var PINPOINT = (function($, pageInfo) {
         previewCallbacks = [],
         readyCallbacks = [],
         hoverTimer;
-
-    details = pageInfo;
-    details.store = details.store || {};
-    details.page = details.page || {};
-    details.content = details.content || [];
-    details.product = details.page.product || {};
 
     /* --- START Utilities --- */
     function getShortestColumn () {
@@ -37,6 +30,19 @@ var PINPOINT = (function($, pageInfo) {
             }
         });
         return $column;
+    }
+
+    function fisherYates(myArray, nb_picks) {
+        // get #nb_picks random permutations of an array.
+        // http://stackoverflow.com/a/2380070
+        for (var i = myArray.length - 1; i > 1; i--) {
+            var r = Math.floor(Math.random() * i);
+            var t = myArray[i];
+            myArray[i] = myArray[r];
+            myArray[r] = t;
+        }
+
+        return myArray.slice(0, nb_picks);
     }
 
     function renderTemplate(str, data) {
@@ -338,6 +344,8 @@ var PINPOINT = (function($, pageInfo) {
                         layoutResults(results);
                     },
                     error: function() {
+                        console.log('loading backup results');
+                        layoutResults(details.backupResults, belowFold);
                         loadingBlocks = false;
                     }
                 });
@@ -350,30 +358,28 @@ var PINPOINT = (function($, pageInfo) {
     function loadMoreResults(belowFold) {
         if (!loadingBlocks) {
             loadingBlocks = true;
-            if (!details.page.offline) {
-                $.ajax({
-                    url: '/intentrank/get-results/',
-                    data: {
-                        'store': details.store.id,
-                        'campaign': details.page.id,
+            $.ajax({
+                url: '/intentrank/get-results/',
+                data: {
+                    'store': details.store.id,
+                    'campaign': details.campaign.id,
 
-                        //TODO: Probably should be some calculated value
-                        'results': 10,
+                    //TODO: Probably should be some calculated value
+                    'results': 10,
 
-                        // normally ignored, unless IR call fails and we'll resort to getseeds
-                        'seeds': details.product['product-id']
-                    },
-                    dataType: 'json',
-                    success: function(results) {
-                        layoutResults(results, belowFold);
-                    },
-                    error: function() {
-                        loadingBlocks = false;
-                    }
-                });
-            } else {
-                layoutResults(details.content);
-            }
+                    // normally ignored, unless IR call fails and we'll resort to getseeds
+                    'seeds': details.featured.id
+                },
+                dataType: 'json',
+                success: function(results) {
+                    layoutResults(results, belowFold);
+                },
+                error: function() {
+                    console.log('loading backup results');
+                    layoutResults(details.backupResults, belowFold);
+                    loadingBlocks = false;
+                }
+            });
         }
     }
 
@@ -390,10 +396,12 @@ var PINPOINT = (function($, pageInfo) {
         // {products: [], videos: [(sizeof 1)]}
         var $block,
             result,
+            results = fisherYates(jsonData, MAX_RESULTS_PER_SCROLL) || [],
+            initialResults = Math.max(results.length, MAX_RESULTS_PER_SCROLL),
+            discoveryProductTemplate = $('#discovery_product_template').html(),
+            youtubeVideoTemplate = $('#youtube_video_template').html(),
             i,
             productDoms = [],
-            results = jsonData || [],
-            initialResults = results.length,
             template, templateEl, player,
             template_context, templateType, el, videos;
 
@@ -405,6 +413,11 @@ var PINPOINT = (function($, pageInfo) {
                 templateType = result.template || 'product';
                 templateEl = $("[data-template-id='" + templateType + "']");
                 template = templateEl.html();
+
+                // in case an image is lacking, don't bother with the product
+                if (!template_context.image || template_context.image == "None") {
+                    continue;
+                }
 
                 switch (templateType) {
                     case 'product':
@@ -717,9 +730,15 @@ var PINPOINT = (function($, pageInfo) {
 
     // script actually starts here
     details = pageInfo;
-    details.store    = details.store || {};
-    details.page     = details.page  || {};
-    details.product  = details.page.product || {};
+    details.backupResults = details.backupResults || // slightly more customized
+                            details.randomResults || // than totally random
+                            {};
+    details.campaign = details.campaign || {};
+    details.content = details.content || [];
+    details.featured = details.featured || {};
+    details.page = details.page || {};
+    details.product = details.page.product || {};
+    details.store = details.store || {};
 
     // Either a URL, or an object with 'src' key and optional 'onload' key
     scripts = [{

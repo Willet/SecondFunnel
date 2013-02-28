@@ -1,22 +1,27 @@
-from functools import partial
 import json
+import os
+import re
+
+from functools import partial
 from django.contrib import messages
 from django.template.defaultfilters import slugify, safe
-import re
+
+from storages.backends.s3boto import S3BotoStorage
 
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext, Template, Context, loader
-from django.http import HttpResponse, Http404, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseServerError
 from django.contrib.contenttypes.models import ContentType
-from django.template.loader import render_to_string
 from django.views.decorators.cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
 
 from apps.analytics.models import Category, AnalyticsRecency
-from apps.assets.models import Store, Product, ExternalContent, ExternalContentType
-from apps.pinpoint.models import Campaign, BlockType, BlockContent
+from apps.assets.models import Store, Product
+from apps.intentrank.views import get_seeds
+from apps.assets.models import ExternalContent, ExternalContentType
+from apps.pinpoint.models import Campaign, BlockType
 from apps.pinpoint.decorators import belongs_to_store
 
 import apps.pinpoint.wizards as wizards
@@ -267,16 +272,64 @@ def campaign(request, campaign_id):
     if hasattr(campaign_instance.store, "theme"):
         context.update(arguments)
         return campaign_to_theme_to_response(campaign_instance, arguments,
-                                             context)
+                                             context, request=request)
     else:
         return render_to_response('pinpoint/campaign.html', arguments,
                                   context_instance=context)
 
 
-def campaign_to_theme_to_response(campaign, arguments, context=None):
-    if context is None:
+def generate_static_campaign(campaign, contents, force=False):
+    """write a PinPoint page to local storage.
+
+    returns whether the file was written.
+    """
+    write = False
+    filename = '%s/static/pinpoint/html/%s.html' % (os.path.dirname(
+        os.path.realpath(__file__)), campaign.id)
+    # the "robust" file exists method: stackoverflow.com/a/85237
+    try:
+        with file(filename) as tf:
+            if force:
+                write = True
+    except IOError:
+        write = True
+
+    if write:
+        with file(filename, 'w') as tf2:
+            tf2.write(contents)
+
+    return write
+
+
+def save_static_campaign(campaign, contents, force=False):
+    # does not expire.
+    filename = '%s.html' % campaign.id
+    try:
+        storage = S3BotoStorage(bucket='campaigns.secondfunnel.com',
+                                access_key=settings.AWS_ACCESS_KEY_ID,
+                                secret_key=settings.AWS_SECRET_ACCESS_KEY)
+
+        thing = storage.open(filename, 'w')
+        thing.write(contents)
+        thing.close()
+    except IOError, err:
+        # storage is not available. bring attention if it was forced
+        if force:
+            raise IOError(err)
+
+
+def campaign_to_theme_to_response(campaign, arguments, context=None,
+                                  request=None):
+    """Generates the HTML page for a standard pinpoint product page.
+
+    Related products are populated statically only if a request object
+    is provided.
+    """
+    if not context:
         context = Context()
     context.update(arguments)
+
+    related_results = []
 
     # TODO: Content blocks don't make as much sense now; when to clean up?
     # TODO: If we keep content blocks, should this be a method?
@@ -291,9 +344,18 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     campaign.description = safe(content_block.data.description or product.description)
     campaign.template = slugify(content_block.block_type.name)
 
+    if request:
+        # "borrow" IR for results
+        related_results = get_seeds(request, store=campaign.store.slug,
+                                    campaign=campaign.id,
+                                    seeds=product.id,
+                                    results=100,
+                                    raw=True)
     context.update({
         'product': product,
-        'campaign': campaign
+        'campaign': campaign,
+        'backup_results': related_results,
+        'random_results': related_results,
     })
 
     theme = campaign.store.theme
@@ -328,7 +390,12 @@ def campaign_to_theme_to_response(campaign, arguments, context=None):
     page = Template(page_str)
 
     # Render response
-    return HttpResponse(page.render(context))
+    rendered_page = page.render(context)
+    if not settings.DEBUG:
+        written = generate_static_campaign(campaign, rendered_page, force=False)
+        save_static_campaign(campaign, rendered_page, force=written)
+
+    return HttpResponse(rendered_page)
 
 
 def app_exception_handler(request):
