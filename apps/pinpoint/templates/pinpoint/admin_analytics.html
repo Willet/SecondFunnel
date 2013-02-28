@@ -12,10 +12,25 @@
 {% block extra_head %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/tipsy.css" %}">
 
     <style>
+        .round {
+            -webkit-border-radius: 5px 5px 5px 5px;
+            border-radius: 5px 5px 5px 5px;
+        }
+
+        .shadow {
+            -webkit-box-shadow:  0px 3px 3px 0px rgba(0, 0, 0, 0.5);
+            box-shadow:  0px 3px 3px 0px rgba(0, 0, 0, 0.5);
+        }
+
         .container_12 .inner_content {
             padding: 0;
+        }
+
+        .content {
+            background-color: #fff;
         }
 
         .top_analytics_menu {
@@ -48,31 +63,45 @@
         }
 
         .section_content {
-            margin-left: 0;
+            margin-left: 20px;
+            padding-top: 10px;
+            padding-bottom: 0px;
         }
 
         .section_overview {
-            border-right: 1px solid #d6d6d6;
-            border-bottom: 1px solid #d6d6d6;
             margin-left: 0;
         }
 
         .section_overview_block {
-            padding: 10px;
-            border-top: 1px solid #d6d6d6;
+            padding: 3px 0px 10px 10px;
+            border: 1px solid #969696;
+            border-bottom: none;
+            margin-left: 0px;
+            margin-right: 0px;
+            background-color: #e9e9e9;
+            cursor: pointer;
+        }
+
+        .section_overview_block:nth-child(3) {
+            border-bottom: 1px solid #969696;
         }
 
         .section_overview_block.selected, .section_overview_block:hover {
             background-color: #fff;
-            cursor: pointer;
+        }
+
+        .section_overview_block.selected {
+            border-right: none;
         }
 
         .section_overview_title {
             font-size: 18px;
+            cursor: inherit;
         }
 
         .section_overview_metrics {
             font-size: 14px;
+            cursor: inherit;
         }
 
         .section_overview_metrics ul {
@@ -89,35 +118,71 @@
             font-weight: bold;
         }
 
-        .section_data {
-            padding-top: 10px;
-        }
-
         .data_title {
             font-size: 24px;
         }
 
         .data_metric {
-            margin-top: 20px;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
+            overflow: auto;
+            background-color: #e7eaef;
+            padding: 10px 10px 10px 10px;
+            color: #2d2d2d;
+        }
+
+        .data_metric .inner_metric {
+            margin: 0;
+        }
+
+        table.metric_content {
+            display: block;
+            margin-top: 10px;
+        }
+
+        .metric_content {
+            list-style: none;
+            margin-top: 10px;
+            overflow: scroll;
+        }
+
+        .metric_content li figure {
+            width: inherit;
+            margin: 0;
+        }
+
+        .metric_content img {
+            max-height: 60px;
+            width: auto;
+        }
+
+        .metric_content td {
+            padding-right: 10px;
+            padding-bottom: 10px;
         }
 
         .metric_title {
             font-size: 16px;
+            color: #3b3b3b;
+            font-weight: bolder;
         }
 
-        .top_product, .top_product:last-child {
+        .number_type {
+            font-weight: normal;
+            font-size: 12px;
+            color: #8a8a8a;
+        }
+
+        .top_product, .top_product:last-child, .top_content, .top_content:last-child {
             border: 1px solid #a3a3a3;
         }
 
-        #top_engaging_products {
-            margin-top: 10px;
+        .top_product, .top_content {
+            border-bottom: none;
         }
 
         .top_product {
             display: block;
             background-color: #fdfdfd;
-            border-bottom: none;
             padding: 10px;
             width: 380px;
         }
@@ -140,26 +205,6 @@
             clear: both;
         }
 
-        dl {
-            width: 300px;
-        }
-
-        /* bar graph styling */
-        dt {
-            float: left;
-            padding: 4px;
-        }
-
-        .bar {
-            margin-bottom: 10px;
-            margin-left: 80px;
-            color: #fff;
-            padding: 4px;
-            text-align: center;
-            background-color: #7C9B5F;
-            border-radius: 2px;
-        }
-
         .progress-label {
             float: left;
             margin-left: 50%;
@@ -168,39 +213,278 @@
             text-shadow: 1px 1px 0 #fff;
         }
 
+        span.metric_perc {
+            font-size: 15pt;
+        }
+
+        span.metric_count {
+            font-size: 10pt;
+            color: #8c8c8c;
+        }
+
+        span.caption_left {
+            float: left;
+        }
+
+        span.caption_right {
+            position: relative;
+            left: 20px;
+            font-weight: bolder;
+        }
+
+        .youtube_thumb {
+            max-height: 50px;
+            width: auto;
+        }
+
+        .chart rect {
+            fill: steelblue;
+            stroke: white;
+        }
+
+        span.large_count {
+            font-size: 16pt;
+        }
+
     </style>
 {% endblock %}
 
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
-{% endblock %}
+    <script src="{% static "js/d3.v3.min.js" %}"></script>
+    <script src="{% static "js/jquery.tipsy.js" %}"></script>
+    <script src="{% static "js/underscore.js" %}"></script>
 
-{% block top_section %}
-    <nav class="grid_3 prefix_9">
-        <ul>
-            {% if store %}
-                <li><a href="{% url store-admin store.id %}">Pages</a></li>
-                <li class="selected"><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
-            {% else %}
-                <li><a href="{% url store-admin campaign.store.id %}">Pages</a></li>
-                <li class="selected"><a href="#">Analytics</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-{% endblock %}
+    <script>
+        var BarChart = function (o) {
+            var present_total = 0;
 
-{% block document_ready %}
-    var app = (function ($) {
-        var api, init, settings, setUpListeners, getDateRange,
-            injectAnalyticsData, insertTopProduct, insertToBarGraph,
-            loadAnalytics, map, cache;
+            // inject "Other" bar if necessary
+            for (var i = o.data.length - 1; i >= 0; i--) {
+                if (o.data[i] === undefined) {
+                    o.data.splice(i, 1);
+                } else {
+                    present_total += o.data[i][1];
+                }
+            };
 
-        settings = {
-            "store_id": "{{ store.id }}",
-            "campaign_id": "{{ campaign.id }}"
+            if (present_total < o.total) {
+                o.data.push(["Other", o.total - present_total]);
+            }
+
+            var max_length = d3.max(o.data, function(val, i) {
+                var label = val[0] + ": " + val[1];
+                return label.length;
+            });
+
+            var w = o.width,
+                h = o.row_height * o.data.length,
+                label_width = max_length * 7;
+
+            var x = d3.scale.linear()
+                .domain([0, 100]);
+
+            var chart = d3.select(o.selector).append("svg")
+                .attr("class", "chart")
+                .attr("width", w)
+                .attr("height", h);
+
+            chart.selectAll("rect")
+                .data(o.data)
+                .enter().append("rect")
+                    .attr("class", o.selector)
+                    .attr("x", label_width)
+                    .attr("y", function (d, i) { return i * o.row_height; })
+                    .attr("width", function (d) {
+                        var len = (d[1] / o.total) * (w - label_width);
+                        if (len < 5) {
+                            len = 5;
+                        }
+                        return len;
+                    })
+                    .attr("height", o.row_height)
+                    .on("mouseover", function() {d3.select(this).transition().style("fill", "black")})
+                    .on("mouseout", function() {d3.select(this).transition().style("fill", "steelblue")});
+
+            chart.selectAll("text")
+                .data(o.data)
+                .enter().append("text")
+                    .attr("x", 0)
+                    .attr("y", function (d, i) { return i * o.row_height + 15; })
+                    .text(function (d) { return d[0] + ": " + d[1]; });
+
+            $("rect[class='" + o.selector + "']").tipsy({
+                gravity: 'w',
+                html: true,
+                title: function() {
+                    var d = this.__data__;
+                    return (d[1] / o.total * 100).toFixed(0) + "%";
+                }
+              });
         };
 
-        cache = (function () {
+        var ColumnChart = function (o) {
+            var max_domain = d3.max(o.data, function(val, i) {
+                    return val[1]
+                }),
+                date_parser = d3.time.format("%Y-%m-%d"),
+                date_formatter = d3.time.format("%B %e");
+
+            var w = o.col_width,
+                h = o.height,
+                calculated_width = w * o.data.length - 1,
+                chart_width = (calculated_width < o.min_width) ? o.min_width : calculated_width;
+
+            var x = d3.scale.linear()
+                .domain([0, 1])
+                .range([0, w]);
+
+            var y = d3.scale.linear()
+                .domain([0, max_domain])
+                .rangeRound([5, h - 17]);
+
+            var chart = d3.select(o.selector).append("svg")
+                .attr("class", "chart")
+                .attr("width", chart_width)
+                .attr("height", h);
+
+            chart.selectAll("rect")
+                .data(o.data)
+                .enter().append("rect")
+                    .attr("class", o.selector)
+                    .attr("x", function(d, i) { return x(i) - .5; })
+                    .attr("y", function(d) { return h - y(d[1]) - .5; })
+                    .attr("width", w)
+                    .attr("height", function(d) { return y(d[1]); })
+                    .on("mouseover", function() {d3.select(this).transition().style("fill", "black")})
+                    .on("mouseout", function() {d3.select(this).transition().style("fill", "steelblue")});
+
+            chart.selectAll("text")
+                .data(o.data)
+                .enter().append("text")
+                    .attr("x", function(d, i) { return x(i) + 1; })
+                    .attr("y", function(d) { return h - y(d[1]) - 2; })
+                    .text(function (d) { return d[1]});
+
+
+            chart.append("line")
+                .attr("x1", 0)
+                .attr("x2", chart_width)
+                .attr("y1", h - .5)
+                .attr("y2", h - .5)
+                .style("stroke", "#000");
+
+            chart.selectAll("line")
+                .data(y.ticks(5))
+                .enter().append("line")
+                    .attr("y1", y)
+                    .attr("y2", y)
+                    .attr("x1", 0)
+                    .attr("x2", chart_width)
+                    .style("stroke", "#333")
+                    .style("stroke-width", 0.1);
+
+            $("rect[class='" + o.selector + "']").tipsy({
+                gravity: 'w',
+                html: true,
+                title: function() {
+                    var d = this.__data__;
+                    return date_formatter(new Date(d[0]));
+                }
+              });
+        };
+
+        function wrap (str, len) {
+            if (str.length > len) {
+                return str.slice(0, len - 1) + "&hellip;";
+            } else {
+                return str;
+            }
+        }
+
+        function pluralize(word, count) {
+            if (count > 1) {
+                return word + "s";
+            }
+            return word;
+        }
+
+        var api = (function () {
+            var uris = {
+                'product': "/api/assets/v1/product/%object_id%/?store={{ store.id }}&format=json",
+                'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%object_id%&format=json",
+                'video': "/api/assets/v1/youtube_video/%object_id%/?format=json",
+                'generic_image': "/api/assets/v1/generic_image/%object_id%/?format=json",
+                'video_gdata': "https://gdata.youtube.com/feeds/api/videos/%object_id%?v=2&alt=json-in-script&callback=?"
+            }, getProduct, getProducts, fetchProduct;
+
+            getObject = function (object_type, object_id, callback) {
+                var object = cache.get(object_type + "_" + object_id);
+
+                if (object === null) {
+                    fetchObject(object_type, object_id, callback);
+                } else {
+                    callback(object);
+                }
+            };
+
+            getObjects = function (object_type, object_ids, step, callback) {
+                var result = [];
+
+                if (object_ids.length == 0) {
+                    callback(result);
+                }
+
+                _.each(object_ids, function (object_id) {
+                    getObject(object_type, object_id, function (object) {
+                        result.push(object);
+
+                        step(result.length, object_ids.length);
+
+                        if (result.length == object_ids.length) {
+                            callback(result);
+                        }
+                    });
+                });
+            };
+
+            fetchObject = function (object_type, object_id, callback) {
+                var dataType = (object_type == "video_gdata") ? "jsonp" : "json";
+                $.ajax({
+                    url: uris[object_type].replace("%object_id%", object_id),
+                    dataType: dataType,
+                    success: function (data) {
+                        cache.set(object_type + "_" + object_id, data);
+
+                        if (object_type == "product") {
+                            $.ajax({
+                                url: uris.products_media.replace("%object_id%", object_id),
+                                dataType: "json",
+                                success: function (data) {
+                                    var prod = cache.get(object_type + "_" + object_id);
+
+                                    if (data.meta.total_count > 0) {
+                                        prod.media = data.objects[0];
+                                        cache.set(object_type + "_" + object_id, prod);
+                                    }
+
+                                    callback(prod);
+                                }
+                            });
+                        } else {
+                            callback(data);
+                        }
+                    }
+                });
+            };
+
+            return {
+                "getObject": getObject,
+                "getObjects": getObjects
+            };
+        }());
+
+        var cache = (function () {
             var get, set, hasLocalStorage, localData = {};
 
             hasLocalStorage = function () {
@@ -236,94 +520,38 @@
                 "set": set
             };
         }());
+    </script>
+{% endblock %}
 
-        map = function (func, iterable) {
-            var results = [], res, key;
+{% block top_section %}
+    <nav class="grid_3 prefix_9">
+        <ul>
+            {% if store %}
+                <li><a href="{% url store-admin store.id %}">Pages</a></li>
+                <li class="selected"><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
+            {% else %}
+                <li><a href="{% url store-admin campaign.store.id %}">Pages</a></li>
+                <li class="selected"><a href="#">Analytics</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endblock %}
 
-            for (key in iterable) {
-                res = func(key, iterable[key]);
+{% block document_ready %}
+    var app = (function ($) {
+        var init, settings, setUpListeners, getDateRange,
+            injectAnalyticsData, insertTopProduct, insertToBarGraph,
+            loadAnalytics;
 
-                if (res !== undefined) {
-                    results.push(res);
-                }
-            }
-
-            return results;
+        settings = {
+            "store_id": "{{ store.id }}",
+            "campaign_id": "{{ campaign.id }}"
         };
-
-        api = (function () {
-            var uris = {
-                'products': "/api/assets/v1/product/%pid%/?store={{ store.id }}&format=json",
-                'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%pid%&format=json"
-            }, getProduct, getProducts, fetchProduct;
-
-            getProduct = function (pid, callback) {
-                var product = cache.get(pid);
-
-                if (product === null) {
-                    fetchProduct(pid, callback);
-                } else {
-                    callback(product);
-                }
-            };
-
-            getProducts = function (pids, step, callback) {
-                var result = [];
-
-                if (pids.length == 0) {
-                    callback(result);
-                }
-
-                map(function (i, pid) {
-                    getProduct(pid, function (product) {
-                        result.push(product);
-
-                        step(result.length, pids.length);
-
-                        if (result.length == pids.length) {
-                            callback(result);
-                        }
-                    });
-                }, pids);
-            };
-
-            fetchProduct = function (pid, callback) {
-                $.ajax({
-                    url: uris.products.replace("%pid%", pid),
-                    dataType: "json",
-                    success: function (data) {
-                        cache.set(data.id, data);
-
-                        $.ajax({
-                            url: uris.products_media.replace("%pid%", pid),
-                            dataType: "json",
-                            success: function (data) {
-                                var prod = cache.get(pid);
-
-                                if (data.meta.total_count > 0) {
-                                    prod.media = data.objects[0];
-                                    cache.set(pid, prod);
-                                }
-
-                                callback(prod);
-                            }
-                        });
-                    }
-                });
-            };
-
-            return {
-                "getProduct": getProduct,
-                "getProducts": getProducts
-            };
-        }());
 
         loadAnalytics = function (o) {
             var request = {
                 "range": $(".range option:selected").val()
             };
-
-            $(".no_data").show();
 
             // set request values based on what's passed it
             if (o !== undefined) {
@@ -361,8 +589,15 @@
         injectAnalyticsData = function (data) {
             var sortables = {
                     'engaged_products': [],
+                    'engaged_content': [],
+                    'engaged_videos': [],
                     'sharing_products': [],
-                    'sharing_source': []
+                    'sharing_source': [],
+                    'sharing_sources_of': [],
+                    'visitor_source': [],
+                    'interaction_source': [],
+                    'visitor_locations': [],
+                    'visitor_dates': []
                 },
 
                 merge_totals = function (t1, t2) {
@@ -395,25 +630,172 @@
 
                 bounce_rate = (1 - totals.notbounces / totals.visitors) * 100,
 
+                not_bounced_visitors,
+
                 cat_slug, metric_slug,
 
-                merged_sharing, merged_interactions, top_lists;
+                merged = {}, to_merge = {
+                    "sharing": [
+                        data.sharing['share-clicked'].totals,
+                        data.sharing['share-liked'].totals
+                    ],
 
-            merged_sharing = merge_totals(data.sharing['share-clicked'].totals,
-                data.sharing['share-liked'].totals);
+                    "product_interactions": [
+                        data.engagement['inpage-openpopup'].totals,
+                        data.engagement['inpage-hover'].totals
+                    ],
 
-            merged_interactions = merge_totals(data.engagement['inpage-openpopup'].totals,
-                data.engagement['inpage-hover'].totals);
+                    "content_interactions": [
+                        data.engagement['content-openpopup'].totals,
+                        data.engagement['content-hover'].totals
+                    ],
 
-            top_lists = {
-                'engaged_products': merged_interactions.product_id,
-                'sharing_products': merged_sharing.product_id,
-                'sharing_source': merged_sharing.meta
-            };
+                    "sources": [
+                        data.engagement['content-openpopup-source'].totals,
+                        data.engagement['content-hover-source'].totals,
+                        data.engagement['inpage-hover-source'].totals,
+                        data.engagement['inpage-openpopup-source'].totals
+                    ],
+
+                    "sharing_sources": [
+                        data.sharing['share-clicked-source'].totals,
+                        data.sharing['share-liked-source'].totals
+                    ]
+                },
+
+                top_lists,
+
+                postprocess_sections;
+
+            _.each(to_merge, function (list, key) {
+                var result, reduce_start = merge_totals(list[0], list[1]);
+
+                merged[key] = _.reduce(list.slice(2), function (memo, item) {
+                    return merge_totals(memo, item);
+                }, reduce_start);
+            });
 
             if (isNaN(bounce_rate)) {
                 bounce_rate = 0;
             }
+
+            not_bounced_visitors = totals.visitors - totals.visitors * bounce_rate / 100;
+
+            var insertAnalytics = function (o) {
+                var params = o.params,
+                    pair = o.pair,
+                    all_data = o.data,
+
+                    actions = {
+                        "common": function (api_type, template, params, pair, data_selector) {
+                            if (pair === undefined) {
+                                return;
+                            }
+
+                            api.getObject(api_type, pair[0], function (data) {
+                                var box_t = _.template($(template).html()),
+                                    caption_t = _.template($("#count_with_percentage").html());
+
+                                $(params.selector).append(box_t({
+                                    data: data_selector(data),
+                                    name: data.name,
+                                    caption: caption_t({
+                                        verb: params.verb,
+                                        count: pair[1],
+                                        total: params.total
+                                    })
+                                }));
+                            });
+                        },
+
+                        "content": function (params, pair) {
+                            actions.common("generic_image", "#top_list_item", params, pair, function (data) {
+                                var image = data.hosted || data.remote;
+                                return image.slice(0, image.indexOf("?Sig"));
+                            });
+                        },
+
+                        "product": function (params, pair) {
+                            actions.common("product", "#top_list_item", params, pair, function (data) {
+                                return (data.media.hosted || data.media.remote).replace("master.jpg", "thumb.jpg");
+                            });
+                        },
+
+                        "video": function (params, pair) {
+                            actions.common("video", "#video_item", params, pair, function (data) {
+                                return data.video_id;
+                            });
+                        },
+
+                        "bar_chart": function (params, pair, all_data) {
+                            var chart = new BarChart({
+                                selector: params.selector,
+                                data: all_data,
+
+                                total: params.total,
+
+                                width: params.width,
+                                row_height: params.row_height
+                            });
+                        },
+
+                        "column_chart": function (params, pair, all_data) {
+                            // sort by date
+                            all_data.sort(function (a, b) {
+                                return new Date(a[0]) - new Date(b[0]);
+                            });
+
+                            var chart = new ColumnChart({
+                                selector: params.selector,
+                                data: all_data,
+
+                                min_width: params.min_width,
+                                height: params.height,
+                                col_width: params.col_width
+                            });
+                        },
+
+                        "single_value": function (params, pair, all_data) {
+                            var t = _.template($("#single_value_t").html());
+                            $(params.selector).html(t({
+                                value: all_data
+                            }));
+                        }
+                    },
+
+                    adjust_width = function (section_selector) {
+                        var $s = $(section_selector);
+
+                        // 20px accounts for margins
+                        $s.css("width", $s.children().length * ($s.children().width() + 20) + "px");
+                    };
+
+                actions[params.type](params, pair, all_data);
+            };
+
+            top_lists = {
+                'engaged_products': merged.product_interactions.target_id,
+                'engaged_content': merged.content_interactions.target_id,
+                'engaged_videos': data.engagement['content-video'].totals.target_id,
+                'visitor_locations': data.awareness['awareness-location'].totals.meta,
+                'visitor_dates': data.awareness['awareness-visitors'].totals.date,
+
+                'sharing_products': merged.sharing.target_id,
+                'sharing_source': merged.sharing.meta,
+                'sharing_sources_of': merged.sharing_sources.meta,
+
+                'interaction_source': merged.sources.meta,
+
+                'visitor_source': data.awareness['awareness-visitors'].totals.meta,
+
+                'interaction_sections': merged.product_interactions.meta,
+
+                'interaction_types': {
+                    "Hovers": data.engagement['inpage-hover'].totals.date.all + data.engagement['content-hover'].totals.date.all,
+                    "Clicks": data.engagement['inpage-openpopup'].totals.date.all + data.engagement['content-openpopup'].totals.date.all,
+                    "Videos": data.engagement['content-video'].totals.date.all
+                }
+            };
 
             // insert totals for metrics into the sidebar
             for (cat_slug in data) {
@@ -425,127 +807,235 @@
                 }
             }
 
-            // TODO temp for awareness
-            $("#total_visitors").html("<strong>Visitors:</strong> " + totals.visitors);
-            $("#total_pageviews").html("<strong>Pageviews:</strong> " + totals.pageviews);
-            $("#bounce_rate").html("<strong>Bounce Rate:</strong> " + bounce_rate.toFixed(2) + "%");
-
-            $("div[class='no_data'][data-metric='total_visitors']").hide();
-            $("div[class='no_data'][data-metric='total_pageviews']").hide();
-            $("div[class='no_data'][data-metric='bounce_rate']").hide();
-
             // These metrics aren't calculated by the backend atm, hence the ugly implementation
             $(".per-visitor").remove();
 
-            $(".section_overview_block:first .section_overview_metrics ul").append(
-                "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / totals.visitors).toFixed(2) + "</span> Interactions per visit</li>");
-
-
             $(".section_overview_block:nth-child(2) .section_overview_metrics ul").append(
-                "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + (totals.shares / totals.visitors).toFixed(2) + "</span> Shares per visit</li>");
+                "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / not_bounced_visitors || 0).toFixed(2) + "</span> Interactions per engaged visitor</li>");
 
             $(".section_overview_block:nth-child(3) .section_overview_metrics ul").append(
+                "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + (totals.shares / not_bounced_visitors || 0).toFixed(2) + "</span> Shares per visit</li>");
+
+            $(".section_overview_block:nth-child(1) .section_overview_metrics ul").append(
                 "<li class='per-visitor'><span class='metric_overview' data-metric='bounce-rate'>" + bounce_rate.toFixed(2) + "%</span> Bounce Rate</li>");
 
             // construct lists of sorted (desc) (pid, count) pairs
-            map(function (key, list) {
-                sortables[key] = map(function (pid, count) {
-                    if (pid !== "all" && pid !== "null") {
+            _.each(top_lists, function (list, key) {
+                sortables[key] = _.map(list, function (count, pid) {
+                    if (pid !== "all" && pid !== "null" && pid !== "meta_metric") {
                         return [pid, count];
                     }
-                }, list);
+                });
 
                 sortables[key].sort(function (a, b) {
                     return a[1] - b[1];
                 });
 
                 sortables[key].reverse();
+            });
 
-            }, top_lists);
+            // remove undefined items from the sorted lists
+            _.each(sortables, function (list, key) {
+                _.each(list, function (pair, index) {
+                    if (pair === undefined) {
+                        sortables[key].splice(index, 1);
+                    }
+                });
+            });
 
-            // clear out top lists
-            $("#top_engaging_products").html("");
-            $("#top_shared_products").html("");
-            $("#share_destinations").html("");
+            // clear out charts
+            // TODO: use d3 transitions
+            $(["share_destinations", "interaction_types", "interaction_sources",
+                "visitors_over_time", "sources_of_shares", "visitor_sources",
+                "visitor_locations"]).each(function (i, val) {
+                    d3.select("#" + val + " svg").remove();
+                });
 
-            var pids = map(function(i, pair) {
+            // clean out top lists
+            $(["top_engaging_products", "top_shared_products",
+                "top_videos", "top_engaged_content"]).each(function (i, val) {
+                    $("#" + val).html("");
+                });
+
+            var pids = _.map(sortables.engaged_products, function (pair) {
                 return pair[0];
-            }, sortables.engaged_products);
+            });
 
-            api.getProducts(pids, function (current, total) {
+            api.getObjects("product", pids, function (current, total) {
                 $(".progressbar").progressbar("value", Math.round(current / total * 100));
             }, function () {
                 // hide progress bar and show data
                 $(".section_metrics").slideDown();
                 $(".progressbar").slideUp();
 
-                // inject top engaged products
-                map(function (i, pair) {
-                    insertTopProduct(
-                        $("#top_engaging_products"),
-                        "Interactions",
-                        pair[0],
-                        pair[1],
-                        totals.interactions.product
-                    );
-                }, sortables.engaged_products.slice(0, 5));
+                var to_inject_lists = [
+                    {
+                        params: {
+                            type: "product",
+                            selector: "#top_engaging_products",
+                            verb: "interaction",
+                            total: totals.interactions.product
+                        },
+                        data: sortables.engaged_products.slice(0, 4)
+                    },
 
-                // inject top shared products
-                map(function (i, pair) {
-                    insertTopProduct(
-                        $("#top_shared_products"),
-                        "Shares",
-                        pair[0],
-                        pair[1],
-                        totals.shares
-                    );
-                }, sortables.sharing_products.slice(0, 5));
+                    {
+                        params: {
+                            type: "content",
+                            selector: "#top_engaged_content",
+                            verb: "interaction",
+                            total: totals.interactions.content
+                        },
+                        data: sortables.engaged_content.slice(0, 4)
+                    },
 
-                // inject top share destinations
-                map(function (i, pair) {
-                    insertToBarGraph(
-                        $("#share_destinations"),
-                        pair[0],
-                        pair[1],
-                        totals.shares
-                    );
-                }, sortables.sharing_source);
-            });
-        };
+                    {
+                        params: {
+                            type: "product",
+                            selector: "#top_shared_products",
+                            verb: "share",
+                            total: totals.shares
+                        },
+                        data: sortables.sharing_products.slice(0, 4)
+                    },
 
-        insertToBarGraph = function ($parent, title, count, total) {
-            var $title = $("<dt>").html(title),
-                $bar,
-                percentage = Math.round(count / total * 100) + "%";
+                    {
+                        params: {
+                            type: "video",
+                            selector: "#top_videos",
+                            verb: "play",
+                            total: data.engagement['content-video'].totals.date.all
+                        },
+                        data: sortables.engaged_videos.slice(0, 3)
+                    },
 
-            $bar = $("<dd>").append(
-                $("<div>").addClass("bar").css("width", percentage).html(count + " (" + percentage + ")")
-            );
+                    {
+                        params: {
+                            type: "bar_chart",
+                            selector: "#share_destinations",
+                            total: totals.shares,
+                            row_height: 20,
+                            width: 300
+                        },
+                        data: sortables.sharing_source
+                    },
 
-            $parent.append($title).append($bar);
+                    {
+                        params: {
+                            type: "bar_chart",
+                            selector: "#interaction_types",
+                            total: totals.interactions.all,
+                            row_height: 20,
+                            width: 220
+                        },
+                        data: sortables.interaction_types
+                    },
 
-            $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
-        };
+                    {
+                        params: {
+                            type: "bar_chart",
+                            selector: "#visitor_sources",
+                            total: totals.visitors,
+                            row_height: 20,
+                            width: 620
+                        },
+                        data: sortables.visitor_source
+                    },
 
-        insertTopProduct = function ($parent, verb, pid, count, total) {
-            var product,
-                $box = $("<div>").addClass("top_product"),
-                $count;
+                    {
+                        params: {
+                            type: "bar_chart",
+                            selector: "#visitor_locations",
+                            total: totals.visitors,
+                            row_height: 20,
+                            width: 620
+                        },
+                        data: sortables.visitor_locations.slice(0, 10)
+                    },
 
-            api.getProduct(pid, function(product) {
-                $name = $("<div>").addClass("name").html(product.name);
+                    {
+                        params: {
+                            type: "bar_chart",
+                            selector: "#interaction_sources",
+                            total: totals.interactions.all,
+                            row_height: 20,
+                            width: 220
+                        },
+                        data: sortables.interaction_source
+                    },
 
-                $image = $("<div>").addClass("image").append(
-                    $("<img>").attr("src",
-                    product.media.hosted || product.media.remote
-                ));
+                    {
+                        params: {
+                            type: "bar_chart",
+                            selector: "#sources_of_shares",
+                            total: totals.shares,
+                            row_height: 20,
+                            width: 300
+                        },
+                        data: sortables.sharing_sources_of
+                    },
 
-                $count = $("<div>").addClass("count").html(verb + ": " + count + " (" + Math.round(count / total * 100) + "%)");
+                    {
+                        params: {
+                            type: "column_chart",
+                            selector: "#visitors_over_time",
+                            min_width: 540,
+                            col_width: 20,
+                            height: 200
+                        },
+                        data: sortables.visitor_dates
+                    },
 
-                $box.append($name).append($image).append($count).append($("<div>").addClass("clear"));
-                $parent.append($box);
+                    {
+                        params: {
+                            type: "single_value",
+                            selector: "#total_visitors"
+                        },
+                        data: totals.visitors
+                    },
 
-                $("div[class='no_data'][data-metric='" + $parent.attr("id") + "']").hide();
+                    {
+                        params: {
+                            type: "single_value",
+                            selector: "#total_pageviews"
+                        },
+                        data: totals.pageviews
+                    },
+
+                    {
+                        params: {
+                            type: "single_value",
+                            selector: "#bounce_rate"
+                        },
+                        data: bounce_rate.toFixed(2) + "%"
+                    }
+                ];
+
+                _.each(to_inject_lists, function (inject) {
+                    if (typeof inject.data === 'object' && inject.data.length == 0 || inject.data === undefined) {
+                        $("[data-metric='" + inject.params.selector.slice(1) + "']").show();
+                    } else {
+                        $("[data-metric='" + inject.params.selector.slice(1) + "']").hide();
+                    }
+
+                    // if we're injecting a chart or a single value
+                    if (inject.params.type.indexOf("_chart") != -1 || inject.params.type === "single_value") {
+                        insertAnalytics({
+                            params: inject.params,
+                            data: inject.data
+                        });
+
+                    // if we're injecting a list
+                    } else {
+                        _.each(inject.data, function (pair) {
+                            insertAnalytics({
+                                params: inject.params,
+                                pair: pair,
+                                data: inject.data
+                            });
+                        });
+                    }
+                });
             });
         };
 
@@ -557,7 +1047,7 @@
                     $(".progress-label").text( $(".progressbar").progressbar( "value" ) + "%" );
                 },
                 complete: function() {
-                    $(".progress-label").text( "Complete!" );
+                    $(".progress-label").text( "Loaded." );
                 }
             });
 
@@ -601,6 +1091,30 @@
 {% endblock %}
 
 {% block content %}
+    <script type="text/template" id="top_list_item">
+        <tr>
+            <td><img src="<%= data %>"></td>
+            <td><span class="caption_left"><%= caption %></span><span class="caption_right"><%= wrap(name, 30) %></span></td>
+        </tr>
+    </script>
+
+    <script type="text/template" id="video_item">
+        <% api.getObject("video_gdata", data, function (video_data) { %>
+        <tr>
+            <td><a href="http://www.youtube.com/watch?v=<%= data %>" title="<%= video_data.entry.title.$t %>" target="_blank"><img class="youtube_thumb" src="<%= video_data.entry['media$group']['media$thumbnail'][0].url %>"></a></td>
+            <td><%= caption %></td>
+        </tr>
+        <% }); %>
+    </script>
+
+    <script type="text/template" id="count_with_percentage">
+        <span class="metric_perc"><%= ((count / total) * 100 || 0).toFixed(0) %>%</span><br><span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
+    </script>
+
+    <script type="text/template" id="single_value_t">
+        <span class="large_count"><%= value %></span>
+    </script>
+
     <div class="top_analytics_menu">
         <div class="page_selector">
             <label for="campaign_list">Page:</label>
@@ -622,123 +1136,176 @@
         </div>
     </div>
 
-    <div class="grid_12 section_content">
-        <div class="grid_3 section_overview">
-            {% for category in categories %}
-                <div class="section_overview_block {% if forloop.first %}selected{% endif %}" data-cid="{{ category.id }}">
-                    <div class="section_overview_title">
-                        {{ category.name }}
-                    </div>
-
-                    <div class="section_overview_metrics">
-                        <ul>
-                        {% regroup category.categoryhasmetric_set.all by metric as metric_list %}
-                        {% for metric in metric_list %}
-                            {% with metric.list|first as metric_meta %}
-                                {% if metric.grouper.enabled %}
-                                    {% if metric_meta.display %}
-                                    <li {% if metric_meta.is_meta %}class="meta_metric"{% endif %}>
-                                        <span class="metric_overview" data-metric="{{ metric.grouper.slug }}"></span>
-                                        {{ metric.grouper.name }}
-                                    </li>
-                                    {% endif %}
-                                {% endif %}
-                            {% endwith %}
-                        {% endfor %}
-                        </ul>
-                    </div>
+    <div class="grid_3 section_overview">
+        {% for category in categories %}
+            <div class="grid_3 section_overview_block {% if category.default %}selected{% endif %}" data-cid="{{ category.id }}">
+                <div class="section_overview_title">
+                    {{ category.name }}
                 </div>
-            {% endfor %}
-        </div>
 
-        <div class="grid_8 section_data">
-            <div class="progressbar"><div class="progress-label">Loading...</div></div>
+                <div class="section_overview_metrics">
+                    <ul>
+                    {% regroup category.categoryhasmetric_set.all by metric as metric_list %}
+                    {% for metric in metric_list %}
+                        {% with metric.list|first as metric_meta %}
+                            {% if metric.grouper.enabled %}
+                                {% if metric_meta.display %}
+                                <li {% if metric_meta.is_meta %}class="meta_metric"{% endif %}>
+                                    <span class="metric_overview" data-metric="{{ metric.grouper.slug }}"></span>
+                                    {{ metric.grouper.name }}
+                                </li>
+                                {% endif %}
+                            {% endif %}
+                        {% endwith %}
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
 
-            <div class="section_metrics" style="display: none;">
+    <div class="grid_8 section_content">
+        <div class="progressbar"><div class="progress-label">Loading...</div></div>
+        <div class="section_metrics" style="display: none;">
+
             {% for category in categories %}
-                <div class="data_category" data-cid="{{ category.id }}" {% if not forloop.first %}style="display: none;"{% endif %}>
-                    <div class="data_title">
-                        {{ category.name }}
-                    </div>
-
-                    <div class="data_metrics">
-                        {% if category.name == "Engagement" %}
-                            <div class="data_metric">
+                <div class="data_category" data-cid="{{ category.id }}" {% if not category.default %}style="display: none;"{% endif %}>
+                    {% if category.name == "Engagement" %}
+                        <div class="grid_4 data_metric round shadow">
+                            <div class="grid_4 inner_metric">
                                 <div class="metric_title">Top Engaging Products</div>
-                                <div class="metric_content" id="top_engaging_products"></div>
+                                <table class="metric_content" id="top_engaging_products"></table>
 
                                 <div class="no_data" data-metric="top_engaging_products">
                                     <p>No engaged products yet.</p>
                                 </div>
                             </div>
 
-                            <!-- <div class="data_metric">
-                                <div class="metric_title">Engagement per Source</div>
-                            </div>
+                            <div class="grid_4 inner_metric">
+                                <div class="metric_title">Top Engaging Content &amp; Videos</div>
 
-                            <div class="data_metric">
-                                <div class="metric_title">Interaction Types</div>
-                            </div> -->
+                                <div class="grid_2 inner_metric">
+                                    <table class="metric_content" id="top_engaged_content"></table>
 
-                        {% elif category.name == "Sharing" %}
+                                    <div class="no_data" data-metric="top_engaged_content">
+                                        <p>No engaged content.</p>
+                                    </div>
+                                </div>
 
-                            <div class="data_metric">
-                                <div class="metric_title">Top Shared Products</div>
-                                <div class="metric_content" id="top_shared_products"></div>
+                                <div class="grid_2 inner_metric" style="margin-left: 20px">
+                                    <table class="metric_content" id="top_videos"></table>
 
-                                <div class="no_data" data-metric="top_shared_products">
-                                    <p>No shared products yet.</p>
+                                    <div class="no_data" data-metric="top_videos">
+                                        <p>No played videos.</p>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="data_metric">
-                                <div class="metric_title">Share Destinations</div>
-                                <dl class="bar_graph" id="share_destinations"></dl>
+                        <div class="grid_3 data_metric round shadow">
+                            <div class="metric_title">Interaction Types</div>
+                            <div id="interaction_types"></div>
 
-                                <div class="no_data" data-metric="top_shared_products">
-                                    <p>No shared products yet.</p>
-                                </div>
+                            <div class="no_data" data-metric="interaction_types">
+                                <p>No engaged products yet.</p>
                             </div>
+                        </div>
 
-                            <!-- <div class="data_metric">
-                                <div class="metric_title">Sources of Shares</div>
+                        <div class="grid_3 data_metric round shadow">
+                            <div class="metric_title">Interaction Sources</div>
+                            <div id="interaction_sources"></div>
 
-                                <div class="no_data" data-metric="top_shared_products">
-                                    <p>No shared products yet.</p>
-                                </div>
-                            </div> -->
-                        {% elif category.name == "Awareness" %}
-                            <div class="data_metric">
-                                <div class="metric_title">Total Visitors</div>
-                                <div class="metric_content" id="total_visitors"></div>
-
-                                <div class="no_data" data-metric="total_visitors">
-                                    <p>No visitors yet.</p>
-                                </div>
+                            <div class="no_data" data-metric="interaction_sources">
+                                <p>No interactions yet.</p>
                             </div>
+                        </div>
+                    {% elif category.name == "Sharing" %}
+                        <div class="grid_5 data_metric round shadow">
+                            <div class="metric_title">Top Shared Products</div>
+                            <div class="metric_content" id="top_shared_products"></div>
 
-                            <div class="data_metric">
-                                <div class="metric_title">Total Pageviews</div>
-                                <div class="metric_content" id="total_pageviews"></div>
-
-                                <div class="no_data" data-metric="total_pageviews">
-                                    <p>No visitors yet.</p>
-                                </div>
+                            <div class="no_data" data-metric="top_shared_products">
+                                <p>No shared products yet.</p>
                             </div>
+                        </div>
 
-                            <div class="data_metric">
-                                <div class="metric_title">Bounce Rate</div>
-                                <div class="metric_content" id="bounce_rate"></div>
+                        <div class="grid_4 data_metric round shadow">
+                            <div class="metric_title">Share Destinations</div>
+                            <div id="share_destinations"></div>
 
-                                <div class="no_data" data-metric="bounce_rate">
-                                    <p>No data yet.</p>
-                                </div>
+                            <div class="no_data" data-metric="share_destinations">
+                                <p>No shared products yet.</p>
                             </div>
-                        {% endif %}
-                    </div>
+                        </div>
+
+                        <div class="grid_4 data_metric round shadow">
+                            <div class="metric_title">Sources of Shares</div>
+                            <div id="sources_of_shares"></div>
+
+                            <div class="no_data" data-metric="sources_of_shares">
+                                <p>No shared products yet.</p>
+                            </div>
+                        </div>
+                    {% elif category.name == "Awareness" %}
+                        <div class="grid_2 data_metric round shadow">
+                            <div class="metric_title">Visitors</div>
+                            <div class="metric_content" id="total_visitors"></div>
+
+                            <div class="no_data" data-metric="total_visitors">
+                                <p>No visitors yet.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid_2 data_metric round shadow">
+                            <div class="metric_title">Pageviews</div>
+                            <div class="metric_content" id="total_pageviews"></div>
+
+                            <div class="no_data" data-metric="total_pageviews">
+                                <p>No visitors yet.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid_2 data_metric round shadow">
+                            <div class="metric_title">Bounce Rate</div>
+                            <div class="metric_content" id="bounce_rate"></div>
+
+                            <div class="no_data" data-metric="bounce_rate">
+                                <p>No data yet.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid_7 data_metric round shadow">
+                            <div class="metric_title">Visitors over Time</div>
+
+                            <div id="visitors_over_time"></div>
+
+                            <div class="no_data" data-metric="visitors_over_time">
+                                <p>No visitors yet.</p>
+                            </div>
+                        </div>
+
+                        <div class="clear"></div>
+
+                        <div class="grid_8 data_metric round shadow">
+                            <div class="metric_title">Visitor Sources</div>
+                            <div id="visitor_sources"></div>
+
+                            <div class="no_data" data-metric="visitor_sources">
+                                <p>No visitors yet.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid_8 data_metric round shadow">
+                            <div class="metric_title">Visits by Location</div>
+                            <div id="visitor_locations"></div>
+
+                            <div class="no_data" data-metric="visitor_locations">
+                                <p>No visitors yet.</p>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
             {% endfor %}
-            </div>
         </div>
     </div>
 {% endblock %}

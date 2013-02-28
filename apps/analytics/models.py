@@ -32,9 +32,12 @@ class AnalyticsBase(models.Model):
 
 class Category(AnalyticsBase):
     metrics = models.ManyToManyField("Metric", through="CategoryHasMetric", blank=True, null=True)
+    order = models.PositiveIntegerField(default=0)
+    default = models.BooleanField(default=False)
 
     class Meta:
         verbose_name_plural = "Categories"
+        ordering = ('-order',)
 
     def __unicode__(self):
         return self.name

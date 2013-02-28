@@ -11,6 +11,7 @@ import pickle, sys
 from datetime import date, datetime
 
 from functools import partial
+from urlparse import urlparse
 
 from celery import task, subtask, chain
 from celery.utils.log import get_task_logger
@@ -88,14 +89,70 @@ def row_getter(query, row):
     return get
 
 
-def get_data_pair(store_type, campaign_type, store_id, campaign_id):
-    return KVStore(
+def target_getter(label):
+    """Locates an event target based on the label passed in.
+    Tries products first, then GenericImages, then Videos"""
+
+    product_type = ContentType.objects.get_for_model(Product)
+    generic_image_type = ContentType.objects.get_for_model(GenericImage)
+    youtube_type = ContentType.objects.get_for_model(YoutubeVideo)
+
+    t = Product.objects.filter(original_url=label)[:1]
+    if len(t) != 0:
+        return t[0].id, product_type
+
+    # filter out S3's signature GET stuff & hostname
+    try:
+        # don't want the leading slash
+        label = urlparse(label).path[1:]
+    except AttributeError:
+        pass
+
+    t = GenericImage.objects.filter(hosted__startswith=label)[:1]
+    if len(t) != 0:
+        return t[0].id, generic_image_type
+
+    t = YoutubeVideo.objects.filter(video_id=label)[:1]
+    if len(t) != 0:
+        return t[0].id, youtube_type
+
+    return None, None
+
+
+def save_data_pair(store_type, campaign_type, category, row, column):
+    data1, data2 = KVStore(
         content_type=store_type,
-        object_id=store_id
+        object_id=row['store_id']
     ), KVStore(
         content_type=campaign_type,
-        object_id=campaign_id
+        object_id=row['campaign_id']
     )
+    data1.key = data2.key = column['key']
+    data1.value = data2.value = row[column['value']]
+    data1.timestamp = data2.timestamp = row['date']
+
+    if row[column['meta']] != "(not set)":
+        data1.meta = data2.meta = row[column['meta']]
+
+    if 'label' in row:
+        object_id, object_type = target_getter(row['label'])
+        if object_id is not None:
+            data1.target_id = data2.target_id = object_id
+            data1.target_type = data2.target_type = object_type
+
+    data1.save()
+    data2.save()
+
+    try:
+        category['metric'](data1.key).data.add(data1, data2)
+
+    except Metric.DoesNotExist:
+        data1.delete()
+        data2.delete()
+        logger.error(
+            "Error saving metrics: {0}, {1}. Metric {2} is not in db".format(
+            data1, data2, data1.key
+        ))
 
 
 def get_message_by_id(message_id):
@@ -195,7 +252,8 @@ def fetch_awareness_data(*args):
 
     query = {
         'metrics': ['visitors', 'pageviews'],
-        'dimensions': ['date', 'customVarValue1', 'customVarValue2'],
+        'dimensions': ['date', 'customVarValue1', 'customVarValue2',
+            'socialNetwork', 'city', 'region'],
         'sort': ['date']
     }
 
@@ -212,12 +270,21 @@ def fetch_awareness_data(*args):
         for row in rows:
             getter = row_getter(query, row)
 
+            location = u""
+            if getter('city') != "(not set)":
+                location = getter('city').encode('utf-8', 'ignore')
+
+            if getter('region') != "(not set)" and getter('region') not in location:
+                location = "{0}, {1}".format(location, getter('region').encode('utf-8', 'ignore'))
+
             row_data = {
                 'date': getter('date'),
                 'store_id': getter('customVarValue1'),
                 'campaign_id': getter('customVarValue2'),
                 'visitors': getter('visitors'),
                 'pageviews': getter('pageviews'),
+                'socialNetwork': getter('socialNetwork'),
+                'location': location
             }
 
             all_present = all(
@@ -253,7 +320,8 @@ def fetch_event_data(*args):
 
     query = {
         'metrics': ['uniqueEvents'],
-        'dimensions': ['eventCategory', 'eventAction', 'eventLabel', 'date'],
+        'dimensions': ['eventCategory', 'eventAction', 'eventLabel',
+            'socialNetwork', 'date', 'city', 'region'],
         'sort': ['date']
     }
 
@@ -281,7 +349,7 @@ def fetch_event_data(*args):
             row_data = {
                 'label':            getter('eventLabel'),
                 'date':             getter('date'),
-                # 'value':          getter('eventValue'),
+                'socialNetwork':    getter('socialNetwork'),
 
                 'store_id':         get_by_key(category, "storeid"),
                 'campaign_id':      get_by_key(category, "campaignid"),
@@ -291,7 +359,7 @@ def fetch_event_data(*args):
                 'action_type':      get_by_key(action, "actionType"),
                 'action_subtype':   get_by_key(action, "actionSubtype"),
                 'action_scope':     get_by_key(action, "actionScope"),
-                'network':          get_by_key(action, "network"),
+                'network':          get_by_key(action, "network")
             }
 
             # store_id could be a record ID or a slug :/
@@ -357,26 +425,6 @@ def fetch_event_data(*args):
 @task()
 def process_awareness_data(message_id):
     """Processes fetched awareness data, row by row"""
-    def save_data_pair(store_type, campaign_type, category, row, column):
-        data1, data2 = get_data_pair(store_type, campaign_type, row['store_id'], row['campaign_id'])
-        data1.key = data2.key = "{0}-{1}".format("awareness", column)
-        data1.value = data2.value = row[column]
-        data1.timestamp = data2.timestamp = row['date']
-
-        data1.save()
-        data2.save()
-
-        try:
-            category['metric'](data1.key).data.add(data1, data2)
-
-        except Metric.DoesNotExist:
-            data1.delete()
-            data2.delete()
-            logger.error(
-                "Error saving metrics: {0}, {1}. Metric {2} is not in db".format(
-                data1, data2, data1.key
-            ))
-
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
 
@@ -393,7 +441,23 @@ def process_awareness_data(message_id):
     categories = Categories()
     saver = partial(save_data_pair, store_type, campaign_type, categories.get("awareness"))
 
-    columns_to_save = ["visitors", "pageviews"]
+    columns_to_save = [
+        {
+            'key': 'awareness-visitors',
+            'value': 'visitors',
+            'meta': 'socialNetwork'
+        },
+        {
+            'key': 'awareness-pageviews',
+            'value': 'pageviews',
+            'meta': 'socialNetwork'
+        },
+        {
+            'key': 'awareness-location',
+            'value': 'visitors',
+            'meta': 'location'
+        }
+    ]
 
     for row in data:
         row = preprocess_row(row, logger)
@@ -422,34 +486,6 @@ def process_event_data(message_id):
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
 
-    def target_getter(label):
-        """Locates an event target based on the label passed in.
-        Tries products first, then GenericImages, then Videos"""
-
-        product_type = ContentType.objects.get_for_model(Product)
-        generic_image_type = ContentType.objects.get_for_model(GenericImage)
-        youtube_type = ContentType.objects.get_for_model(YoutubeVideo)
-
-        t = Product.objects.filter(original_url=label)[:1]
-        if len(t) != 0:
-            return t[0].id, product_type
-
-        # filter out S3's signature GET stuff
-        try:
-            label = label[:label.index("?Signature")]
-        except ValueError:
-            pass
-
-        t = GenericImage.objects.filter(hosted__startswith=label)[:1]
-        if len(t) != 0:
-            return t[0].id, generic_image_type
-
-        t = YoutubeVideo.objects.filter(video_id=label)[:1]
-        if len(t) != 0:
-            return t[0].id, youtube_type
-
-        raise Exception("Target not found")
-
     data, message = get_message_by_id(message_id)
     if not data:
         return
@@ -464,75 +500,44 @@ def process_event_data(message_id):
 
     # handle sharing data
     for category_slug in data.keys():
-        logger.info("Processing %s", category_slug)
+        saver = partial(save_data_pair, store_type, campaign_type, categories.get(category_slug))
+
         for row in data[category_slug]:
             # with each pass, we're saving a pair of KVStore objects
             # one for the specific campaign, and one for the store
             # to which the campaign belongs
 
-            # we do this here and not in "pre processing" because celery can't
+            # we do this here and not in fetching because celery can't
             # serialize certain things (e.g. datetime objects)
             row = preprocess_row(row, logger)
 
-            # total sharing
-            # total sharing per network
-            # sharing per scope
-            # sharing per scope per network
-            # share vs click
-
-            category = categories.get(category_slug)
-
-            data1, data2 = get_data_pair(
-                store_type, campaign_type, row['store_id'], row['campaign_id'])
-            data1.key = data2.key = "{0}-{1}".format(
-                row['action_type'], row['action_subtype'])
-
-            data1.value = data2.value = row['count']
-            data1.timestamp = data2.timestamp = row['date']
-
+            column = {
+                'key': '{0}-{1}'.format(
+                    row['action_type'], row['action_subtype']),
+                'value': 'count'
+            }
             if row['action_type'] == "share":
-                data1.meta = data2.meta = row['network']
+                column['meta'] = 'network'
             else:
-                data1.meta = data2.meta = row['action_scope']
+                column['meta'] = 'action_scope'
 
-            # we're using row['label'] to track URLs of objects acted upon.
-            # Assume they're products for now, but KVStore supports generic FK
-            if row['label']:
-                try:
-                    object_id, object_type = target_getter(row['label'])
+            # save main event
+            saver(row, column)
 
-                    data1.target_id = data2.target_id = object_id
-                    data1.target_type = data2.target_type = object_type
-                except:
-                    pass
-
-            data1.save()
-            data2.save()
-
-            try:
-                category['metric'](data1.key).data.add(data1, data2)
-
-            except Metric.DoesNotExist:
-                data1.delete()
-                data2.delete()
-                logger.error(
-                    "Error saving metrics: %s, %s. Metric %s is not in db",
-                    data1, data2, data1.key
-                )
-                continue
+            # save event's source network information
+            column = {
+                'key': '{0}-{1}-{2}'.format(
+                    row['action_type'], row['action_subtype'], 'source'),
+                'value': 'count',
+                'meta': 'socialNetwork'
+            }
+            saver(row, column)
 
             if row['store_id'] not in updated_stores:
                 updated_stores.append(row['store_id'])
 
             if row['campaign_id'] not in updated_campaigns:
                 updated_campaigns.append(row['campaign_id'])
-
-    # handle engagement data
-    # interactions per scope
-    # clickthrough
-    # open popup
-    # buy now
-    # share
 
     # Update analytics recency data for all affected stores and campaigns
     recency_updater = partial(update_recency, store_type)
@@ -548,11 +553,6 @@ def aggregate_saved_metrics(*args):
     """Calculates "meta" metrics, which are combined out of "raw" saved data"""
     # remove all the existing meta metric data
     KVStore.objects.filter(meta="meta_metric").delete()
-
-    # data types for checking event targets
-    target_types = {
-        'product': ContentType.objects.get_for_model(Product),
-    }
 
     def process_category(obj):
         """
@@ -704,14 +704,14 @@ def aggregate_saved_metrics(*args):
                 # Total Visitors
                 {
                     'slug': 'awareness-visitors',
-                    'key': 'awareness-visitors',
+                    'key': 'awareness-visitors-total',
                     'q_filter': Q(key='awareness-visitors')
                 },
 
                 # Total Pageviews
                 {
                     'slug': 'awareness-pageviews',
-                    'key': 'awareness-pageviews',
+                    'key': 'awareness-pageviews-total',
                     'q_filter': Q(key='awareness-pageviews')
                 }
             ]
