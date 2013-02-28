@@ -53,9 +53,6 @@ def analytics_pinpoint(request):
     if (campaign_id and store_id) or not object_id:
         return ajax_error()
 
-    date_range = request.GET.get('range')
-    end_date = datetime.now()
-
     # try get a store associated with this request,
     # either directly or via campaign
     store = None
@@ -72,6 +69,10 @@ def analytics_pinpoint(request):
 
         except Campaign.DoesNotExist:
             return ajax_error()
+
+    date_range = request.GET.get('range')
+    end_date = datetime.now()
+    end_date = end_date.replace(tzinfo=campaign.created.tzinfo)
 
     if date_range == "total":
         start_date = campaign.created
@@ -90,8 +91,6 @@ def analytics_pinpoint(request):
 
     if start_date < campaign.created:
         start_date = campaign.created
-
-    end_date = end_date.replace(tzinfo=start_date.tzinfo)
 
     # account for potential timezone differences
     start_date = start_date - timedelta(days=2)

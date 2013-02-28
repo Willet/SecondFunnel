@@ -597,13 +597,25 @@
                             }));
                         },
 
+                        "bar_chart": function (params, pair, all_data) {
+                            var chart = new BarChart({
+                                selector: params.selector,
+                                data: all_data,
+
+                                total: params.total,
+
+                                width: params.width,
+                                row_height: params.row_height
+                            });
+                        },
+
                         "column_chart": function (params, pair, all_data) {
                             // sort by date
                             all_data.sort(function (a, b) {
                                 return new Date(a[0]) - new Date(b[0]);
                             });
 
-                            var chart = new Chart({
+                            var chart = new ColumnChart({
                                 selector: params.selector,
                                 data: all_data,
 
@@ -621,16 +633,78 @@
                         $s.css("width", $s.children().length * ($s.children().width() + 20) + "px");
                     },
 
-                    Chart = function (o) {
-                        var max_domain = 0,
-                            date_parser = d3.time.format("%Y-%m-%d"),
-                            date_formatter = d3.time.format("%B %e");
+                    BarChart = function (o) {
+                        var present_total = 0;
 
                         for (var i = o.data.length - 1; i >= 0; i--) {
-                            if (o.data[i][1] > max_domain) {
-                                max_domain = o.data[i][1];
+                            if (o.data[i] === undefined) {
+                                o.data.splice(i, 1);
+                            } else {
+                                present_total += o.data[i][1];
                             }
                         };
+
+                        if (present_total < o.total) {
+                            o.data.push(["Other", o.total - present_total]);
+                        }
+
+                        var max_length = d3.max(o.data, function(val, i) {
+                            var label = val[0] + ": " + val[1];
+                            return label.length;
+                        });
+
+                        var w = o.width,
+                            h = o.row_height * o.data.length,
+                            label_width = max_length * 7;
+
+                        var x = d3.scale.linear()
+                            .domain([0, 100]);
+
+                        var chart = d3.select(o.selector).append("svg")
+                            .attr("class", "chart")
+                            .attr("width", w)
+                            .attr("height", h);
+
+                        chart.selectAll("rect")
+                            .data(o.data)
+                            .enter().append("rect")
+                                .attr("class", o.selector)
+                                .attr("x", label_width)
+                                .attr("y", function (d, i) { return i * o.row_height; })
+                                .attr("width", function (d) {
+                                    var len = (d[1] / o.total) * (w - label_width);
+                                    if (len < 5) {
+                                        len = 5;
+                                    }
+                                    return len;
+                                })
+                                .attr("height", o.row_height)
+                                .on("mouseover", function() {d3.select(this).transition().style("fill", "black")})
+                                .on("mouseout", function() {d3.select(this).transition().style("fill", "steelblue")});
+
+                        chart.selectAll("text")
+                            .data(o.data)
+                            .enter().append("text")
+                                .attr("x", 0)
+                                .attr("y", function (d, i) { return i * o.row_height + 15; })
+                                .text(function (d) { return d[0] + ": " + d[1]; });
+
+                        $("rect[class='" + o.selector + "']").tipsy({
+                            gravity: 'w',
+                            html: true,
+                            title: function() {
+                                var d = this.__data__;
+                                return (d[1] / o.total * 100).toFixed(0) + "%";
+                            }
+                          });
+                    },
+
+                    ColumnChart = function (o) {
+                        var max_domain = d3.max(o.data, function(val, i) {
+                                return val[1]
+                            }),
+                            date_parser = d3.time.format("%Y-%m-%d"),
+                            date_formatter = d3.time.format("%B %e");
 
                         var w = o.col_width,
                             h = o.height,
@@ -643,7 +717,7 @@
 
                         var y = d3.scale.linear()
                             .domain([0, max_domain])
-                            .rangeRound([0, h - 17]);
+                            .rangeRound([5, h - 17]);
 
                         var chart = d3.select(o.selector).append("svg")
                             .attr("class", "chart")
@@ -653,6 +727,7 @@
                         chart.selectAll("rect")
                             .data(o.data)
                             .enter().append("rect")
+                                .attr("class", o.selector)
                                 .attr("x", function(d, i) { return x(i) - .5; })
                                 .attr("y", function(d) { return h - y(d[1]) - .5; })
                                 .attr("width", w)
@@ -685,7 +760,7 @@
                                 .style("stroke", "#333")
                                 .style("stroke-width", 0.1);
 
-                        $('svg rect').tipsy({
+                        $("rect[class='" + o.selector + "']").tipsy({
                             gravity: 'w',
                             html: true,
                             title: function() {
@@ -876,54 +951,66 @@
                 var to_inject_charts = [
                     {
                         params: {
-                            type: "chart",
+                            type: "bar_chart",
                             selector: "#share_destinations",
-                            total: totals.shares
+                            total: totals.shares,
+                            row_height: 20,
+                            width: 300
                         },
                         data: sortables.sharing_source
                     },
 
                     {
                         params: {
-                            type: "chart",
+                            type: "bar_chart",
                             selector: "#interaction_types",
-                            total: totals.interactions.all
+                            total: totals.interactions.all,
+                            row_height: 20,
+                            width: 220
                         },
                         data: sortables.interaction_types
                     },
 
                     {
                         params: {
-                            type: "chart",
+                            type: "bar_chart",
                             selector: "#visitor_sources",
-                            total: totals.visitors
+                            total: totals.visitors,
+                            row_height: 20,
+                            width: 620
                         },
                         data: sortables.visitor_source
                     },
 
                     {
                         params: {
-                            type: "chart",
+                            type: "bar_chart",
                             selector: "#visitor_locations",
-                            total: totals.visitors
+                            total: totals.visitors,
+                            row_height: 20,
+                            width: 620
                         },
                         data: sortables.visitor_locations.slice(0, 5)
                     },
 
                     {
                         params: {
-                            type: "chart",
+                            type: "bar_chart",
                             selector: "#interaction_sources",
-                            total: totals.interactions.all
+                            total: totals.interactions.all,
+                            row_height: 20,
+                            width: 220
                         },
                         data: sortables.interaction_source
                     },
 
                     {
                         params: {
-                            type: "chart",
+                            type: "bar_chart",
                             selector: "#sources_of_shares",
-                            total: totals.shares
+                            total: totals.shares,
+                            row_height: 20,
+                            width: 300
                         },
                         data: sortables.sharing_sources_of
                     },
@@ -1204,7 +1291,7 @@
 
                         <div class="clear"></div>
 
-                        <div class="grid_4 data_metric round shadow">
+                        <div class="grid_8 data_metric round shadow">
                             <div class="metric_title">Visitor Sources</div>
                             <dl class="bar_graph" id="visitor_sources"></dl>
 
