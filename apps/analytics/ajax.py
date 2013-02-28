@@ -84,8 +84,7 @@ def analytics_pinpoint(request):
     else:
         start_date = end_date - timedelta(days=1)
 
-    if start_date < campaign.created:
-        start_date = campaign.created
+    start_date  = min(start_date, campaign.created)
 
     # account for potential timezone differences
     start_date = start_date - timedelta(days=2)
