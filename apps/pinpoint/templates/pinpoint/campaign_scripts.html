@@ -11,6 +11,14 @@
     <script type="text/javascript">
         (function() {
             window.PINPOINT_INFO = {
+                'page': {
+                    'id': '{{ campaign.id }}',
+                    'main-block-template': '{{ campaign.template }}',
+                    'stl-image': '{{ campaign.stl_image }}',
+                    'featured-image': '{{ campaign.featured_image }}',
+                    'description': '{{ campaign.description }}',
+                    'product': {{ product.json|safe }}
+                },
                 'store': {
                     'id': '{{ campaign.store.slug }}',
                     'name': '{{ campaign.store.name }}'
@@ -127,6 +135,19 @@
 
     <script src="{% static "pinpoint/js/tracking.js" %}"></script>
     <script src="{% static "pinpoint/js/pinpoint.js" %}"></script>
+
+    <script type="text/javascript">
+        // Load Youtube IFrame Player API code asynchronously
+        var tag = document.createElement('script');
+        tag.src = "//www.youtube.com/iframe_api";
+
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        function onYouTubeIframeAPIReady() {
+            PINPOINT.init();
+        }
+    </script>
 
     <script type="text/javascript">
         var _gaq = _gaq || [];

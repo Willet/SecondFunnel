@@ -1,5 +1,5 @@
 var pinpointTracking = (function ($, window, document) {
-    var isBounce = true,
+    var isBounce = true, videosPlayed = [],
 
     referrerName = function () {
         var host;
@@ -22,7 +22,7 @@ var pinpointTracking = (function ($, window, document) {
     trackEvent = function (o) {
         var category = "appname=pinpoint|"
             + "storeid=" + window.PINPOINT_INFO.store.id + "|"
-            + "campaignid=" + window.PINPOINT_INFO.campaign.id + "|"
+            + "campaignid=" + window.PINPOINT_INFO.page.id + "|"
             + "referrer=" + referrerName() + "|"
             + "domain=" + parseUri(window.location.href).host;
 
@@ -72,6 +72,14 @@ var pinpointTracking = (function ($, window, document) {
             pinpointTracking.setSocialShareVars();
         }, function() {});
 
+        $(".header a").click(function() {
+            pinpointTracking.registerEvent({
+                "type": "clickthrough",
+                "subtype": "header",
+                "label": $(this).attr("href")
+            });
+        });
+
         // buy now event
         $(document).on("click", "a.buy", function(e) {
             pinpointTracking.registerEvent({
@@ -81,12 +89,21 @@ var pinpointTracking = (function ($, window, document) {
             });
         });
 
-        // popup open event
-        $(document).on("click", ".discovery-area > .product", function(e) {
+        // popup open event: product click
+        $(document).on("click", ".discovery-area > .product .product", function(e) {
             pinpointTracking.registerEvent({
                 "type": "inpage",
                 "subtype": "openpopup",
                 "label": $(this).data("url")
+            });
+        });
+
+        // lifestyle image click
+        $(document).on("click", ".discovery-area > .product .lifestyle", function(e) {
+            pinpointTracking.registerEvent({
+                "type": "content",
+                "subtype": "openpopup",
+                "label": $(this).children().attr("src")
             });
         });
 
@@ -151,9 +168,27 @@ var pinpointTracking = (function ($, window, document) {
             "subtype": "noBounce",
             "label": how
         });
-    };
+    },
 
-    init = function() {
+    videoStateChange = function (event) {
+        var video_id = event.target.g.id;
+
+        if (videosPlayed.indexOf(video_id) !== -1) {
+            return;
+        }
+
+        if (event.data == YT.PlayerState.PLAYING) {
+            videosPlayed.push(video_id);
+
+            pinpointTracking.registerEvent({
+                "type": "content",
+                "subtype": "video",
+                "label": video_id
+            });
+        }
+    },
+
+    init = function () {
         setSocialShareVars();
 
         $(function() {
@@ -204,7 +239,8 @@ var pinpointTracking = (function ($, window, document) {
         "setSocialShareVars": setSocialShareVars,
         "clearTimeout": clearTimeout,
         "registerTwitterListeners": registerTwitterListeners,
-        "notABounce": notABounce
+        "notABounce": notABounce,
+        "videoStateChange": videoStateChange
     }
 
 }($, window, document));

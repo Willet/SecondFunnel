@@ -5,7 +5,15 @@ urlpatterns = patterns('apps.pinpoint.views',
 
     url(r'^admin/$', 'admin', name='admin'),
 
+    url(r'^admin/social-auth/$', 'social_auth', name='social-auth'),
+
     url(r'^admin/(?P<store_id>\d+)/$', 'store_admin', name='store-admin'),
+
+    url(r'^admin/(?P<store_id>\d+)/asset-manager/$', 'asset_manager',
+        name='asset-manager'),
+
+    url(r'^admin/(?P<store_id>\d+)/asset-manager/tag_content$', 'tag_content',
+        name='tag-content'),
 
     url(r'^admin/(?P<store_id>\d+)/(?P<campaign_id>\d+)/analytics/$',
         'campaign_analytics_admin', name='analytics-campaign-admin'),

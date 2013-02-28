@@ -22,7 +22,7 @@ from django.db.models import Q
 from apps.analytics.storage_backends import GoogleAnalyticsBackend
 from apps.analytics.models import (AnalyticsRecency, Category, Metric, KVStore,
     SharedStorage)
-from apps.assets.models import Store, Product
+from apps.assets.models import Store, Product, GenericImage, YoutubeVideo
 from apps.pinpoint.models import Campaign
 
 
@@ -248,6 +248,8 @@ def fetch_event_data(*args):
     fetches that and initiates calculations
     """
     logger.info("Updating event analytics data")
+    engagement_prefixes = ["inpage", "visit", "content"]
+    share_prefixes = ["share"]
 
     query = {
         'metrics': ['uniqueEvents'],
@@ -337,10 +339,10 @@ def fetch_event_data(*args):
                     category, action))
                 continue
 
-            if row_data['action_type'] == 'inpage' or row_data['action_type'] == 'visit':
+            if row_data['action_type'] in engagement_prefixes:
                 analytics_categories['engagement'].append(row_data)
 
-            elif row_data['action_type'] == 'share':
+            elif row_data['action_type'] in share_prefixes:
                 analytics_categories['sharing'].append(row_data)
 
     # message could be larger than 64kb. As a quick way of circumventing the limitation,
@@ -419,7 +421,34 @@ def process_event_data(message_id):
     analytics pairs for associated store and campaign"""
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
-    product_type = ContentType.objects.get_for_model(Product)
+
+    def target_getter(label):
+        """Locates an event target based on the label passed in.
+        Tries products first, then GenericImages, then Videos"""
+
+        product_type = ContentType.objects.get_for_model(Product)
+        generic_image_type = ContentType.objects.get_for_model(GenericImage)
+        youtube_type = ContentType.objects.get_for_model(YoutubeVideo)
+
+        t = Product.objects.filter(original_url=label)[:1]
+        if len(t) != 0:
+            return t[0].id, product_type
+
+        # filter out S3's signature GET stuff
+        try:
+            label = label[:label.index("?Signature")]
+        except ValueError:
+            pass
+
+        t = GenericImage.objects.filter(hosted__startswith=label)[:1]
+        if len(t) != 0:
+            return t[0].id, generic_image_type
+
+        t = YoutubeVideo.objects.filter(video_id=label)[:1]
+        if len(t) != 0:
+            return t[0].id, youtube_type
+
+        raise Exception("Target not found")
 
     data, message = get_message_by_id(message_id)
     if not data:
@@ -469,18 +498,12 @@ def process_event_data(message_id):
             # we're using row['label'] to track URLs of objects acted upon.
             # Assume they're products for now, but KVStore supports generic FK
             if row['label']:
-                product = Product.objects.filter(original_url=row['label'])[:1]
-                if len(product) > 0:
-                    # TODO: deal with multiple results?
-                    # What are the use cases for this?
-                    product = product[0]
-                    data1.target_id = data2.target_id = product.id
-                    data1.target_type = data2.target_type = product_type
+                try:
+                    object_id, object_type = target_getter(row['label'])
 
-                # couldn't locate a Product this event is referring to.
-                # Maybe it's not a Product?
-                else:
-                    # @TODO deal with this case
+                    data1.target_id = data2.target_id = object_id
+                    data1.target_type = data2.target_type = object_type
+                except:
                     pass
 
             data1.save()
@@ -610,34 +633,51 @@ def aggregate_saved_metrics(*args):
     avg = averager()
 
     to_process = [
-        # Engagement
+        # Bounces
         {
-            'q_filter': Q(key__startswith="inpage-") | Q(key__startswith="visit-"),
+            # 1st data filter
+            'q_filter': Q(key__startswith="visit-"),
+
             'metrics': [
-                # Product Interactions
-                # sums up all product related interactions
-                {
-                    'slug': 'product-interactions',
-                    'key': 'inpage-product-interactions',
-                    'q_filter': Q(target_type=target_types['product']) & ~Q(meta="meta_metric"),
-                },
-
-                # sums up all content related interactions
-                # TODO
-
-                # Total Interactions
-                # sums up product and content interactions
-                {
-                    'slug': 'total-interactions',
-                    'key': 'inpage-total-interactions',
-                    'q_filter': Q(key__endswith='product-interactions') | Q(key__endswith='content-interactions')
-                },
-
                 # Sum up No Bounces
                 {
+                    # Metric slug
                     'slug': 'total-no-bounces',
+
+                    # KVStore key
                     'key': 'total-no-bounces',
+
+                    # 2nd data filter
                     'q_filter': Q(key='visit-noBounce')
+                }
+            ]
+        },
+
+        # Engagement
+        {
+            # 1st data filter
+            'q_filter': Q(key__startswith="inpage-") | Q(key__startswith="content-") | Q(key__startswith="product-"),
+
+            'metrics': [
+                # Product Interactions
+                {
+                    'slug': 'product-interactions',
+                    'key': 'product-interactions',
+                    'q_filter': Q(key__in=['inpage-hover', 'inpage-openpopup']),
+                },
+
+                # Content Interactions
+                {
+                    'slug': 'content-interactions',
+                    'key': 'content-interactions',
+                    'q_filter': Q(key__startswith='content-') & ~Q(meta="meta_metric"),
+                },
+
+                # Total Interactions
+                {
+                    'slug': 'total-interactions',
+                    'key': 'total-interactions',
+                    'q_filter': Q(key='product-interactions') | Q(key='content-interactions')
                 }
             ]
         },
@@ -645,12 +685,13 @@ def aggregate_saved_metrics(*args):
         # Sharing
         {
             'q_filter': Q(key__startswith="share-"),
+
             'metrics': [
-                # sums up all clicked-on-social-button actions
+                # Total Shares
                 {
                     'slug': 'total-shares',
                     'key': 'share-total',
-                    'q_filter': Q(key='share-clicked')
+                    'q_filter': Q(key__in=['share-clicked', 'share-liked'])
                 },
             ]
         },
@@ -658,15 +699,16 @@ def aggregate_saved_metrics(*args):
         # Awareness
         {
             'q_filter': Q(key__startswith="awareness-"),
+
             'metrics': [
-                # total visitors
+                # Total Visitors
                 {
                     'slug': 'awareness-visitors',
                     'key': 'awareness-visitors',
                     'q_filter': Q(key='awareness-visitors')
                 },
 
-                # total pageviews
+                # Total Pageviews
                 {
                     'slug': 'awareness-pageviews',
                     'key': 'awareness-pageviews',

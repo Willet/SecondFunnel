@@ -27,98 +27,179 @@ def page_template_includes(value):
         .format(fields=', '.join(missing)))
 
 class StoreTheme(BaseModelNamed):
-    DEFAULT_PAGE_TEMPLATE = """
-    <!DOCTYPE HTML>
-    <html>
-        <head>
-            {{ header_content }}
-        </head>
-        <body>
-            <div class='page'>
-                {{ featured_content }}
-                {{ discovery_area }}
-            </div>
-            {{ preview_area }}
-        </body>
-    </html>
+    DEFAULT_PAGE = """
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <!--
+        This statement is required; it loads any content needed for the
+        head, and must be located in the <head> tag
+        -->
+        {{ header_content }}
+
+    </head>
+    <body>
+        <!--This div will load the 'shop-the-look' template-->
+        <div class="template target featured product" data-src="shop-the-look"></div>
+
+        <!--This div will load the 'featured-product' template-->
+        <div class="template target featured product" data-src="featured-product"></div>
+
+        <div class='divider'>
+            <div class='bar'></div>
+            <span class='text'>Browse more</span>
+        </div>
+        <div class='discovery-area'></div>
+
+        <!--
+        This statement ensures that templates are available,
+        and should come before {{body_content}}
+        -->
+        {{ js_templates }}
+
+        <!--
+        This statement loads any scripts that may be required. If you want to
+        include your own javascript, include them after this statement
+        -->
+        {{ body_content }}
+    </body>
+</html>
+    """
+
+    DEFAULT_SHOP_THE_LOOK = """
+<script type='text/template' data-template-id='shop-the-look'>
+    <img src='<%= page["stl-image"] %>' />
+    <img src='<%= page["featured-image"] %>' />
+    <div><%= page.product.title %></b></div>
+    <div><%= page.product.price %></div>
+    <div><%= page.product.description %></div>
+    <div>
+    <% _.each(page.product.images, function(image){ %>
+        <img src='<%= image %>'/>
+    <% }); %>
+    </div>
+    <div>
+        <% include social_buttons %>
+    </div>
+    <div>
+        <a href='<%= page.product.url %>' target='_blank'>link</a>
+    </div>
+</script>
     """
 
     DEFAULT_FEATURED_PRODUCT = """
-    <img src='{{ product.featured_image }}' />
-    <p>Other images</p>
-    <ul>
-    {% if product.images|length > 1 %}
-        {% for image in product.images %}
-        <li>{{ image }}</li>
-        {% endfor %}
-    {% else %}
-        <li>No other images</li>
-    {% endif %}
-    </ul>
-    <div class='title'>{{ product.name }}</div>
-    <div class='price'>{{ product.price }}</div>
-    <div class='description'>{{ product.description }}</div>
-    <div class='url'>{{ product.url }}</div>
-
-    {% social_buttons product %}
+<script type='text/template' data-template-id='featured-product'>
+    <img src='<%= page["featured-image"] %>' />
+    <div><%= page.product.title %></b></div>
+    <div><%= page.product.price %></div>
+    <div><%= page.product.description %></div>
+    <div>
+    <% _.each(page.product.images, function(image){ %>
+        <img src='<%= image %>'/>
+    <% }); %>
+    </div>
+    <div>
+        <% include social_buttons %>
+    </div>
+    <div>
+        <a href='<%= page.product.url %>' target='_blank'>link</a>
+    </div>
+</script>
     """
 
-    DEFAULT_PRODUCT_PREVIEW = """
-    <div class='title'></div>
-    <div class='price'></div>
-    <div class='description'></div>
-    <div class='url'></div>
+    DEFAULT_PRODUCT = """
+<script type='text/template' data-template-id='product'>
+    <div class='block product'>
+        <div><%= data.title %></div>
+        <div><%= data.description %></div>
+        <img src='<%= data.image %>'/>
+        <div><%= data.url %></div>
+        <% _.each(page.product.images, function(image){ %>
+        <img src='<%= image %>'/>
+        <% }); %>
+    </div>
+</script>
+    """
+
+    DEFAULT_COMBOBOX = """
+<script type='text/template' data-template-id='combobox'>
+    <div class='block product'>
+        <img src='<%= data["lifestyle-image"] %>'/>
+        <div><%= data.title %></div>
+        <div><%= data.description %></div>
+        <img src='<%= data.image %>'/>
+        <div><%= data.url %></div>
+        <% _.each(page.product.images, function(image){ %>
+        <img src='<%= image %>'/>
+        <% }); %>
+    </div>
+</script>
+    """
+
+    DEFAULT_YOUTUBE = """
+<script type='text/template' data-template-id='youtube'>
+    <% include youtube_video_template %>
+</script>
+    """
+
+    DEFAULT_PREVIEW = """
+<script type='text/template' data-template-id='preview'>
+    <!--
+    Unlike other templates, the preview template uses classes to determine
+    what should be rendered. Any element with a class name matching one of
+    the data attributes will have its content replaced with that data.
+    -->
     <div class='image'></div>
     <div class='images'></div>
+    <div class='price'></div>
+    <div class='title'></div>
+    <div class='description'></div>
+    <div class='url' target='_blank'></div>
     <div class='social-buttons'></div>
-    """
-
-    DEFAULT_DISCOVERY_BLOCK = """
-    <img src='{{ product.images.0 }}'/>
-    <div>{{ product.name }}</div>
-    {% social_buttons product %}
-    <div style='display: none'>
-        <!-- Testing -->
-        <div class='price'>{{ product.price }}</div>
-        <div class='description'>{{ product.description }}</div>
-        <div class='url'>{{ product.url }}</div>
-        <ul>
-            {% for image in product.images %}
-            <li>{{ image }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-    """
-
-    DEFAULT_YOUTUBE_BLOCK = """
-    {% youtube_video video %}
+</div>
+</script>
     """
 
     # TODO: Replace with ForeignKey to support mobile themes?
-    store         = models.OneToOneField(Store, related_name="theme")
-    page_template = models.TextField(default=DEFAULT_PAGE_TEMPLATE,
-                                     validators=[page_template_includes])
+    store = models.OneToOneField(Store, related_name="theme")
 
-    # Featured Content Templates
-    featured_product  = models.TextField(default=DEFAULT_FEATURED_PRODUCT)
+    # Django templates
+    page = models.TextField(default=DEFAULT_PAGE)
+
+    # JS Templates
+    # Main block templates
+    shop_the_look = models.TextField(default=DEFAULT_SHOP_THE_LOOK)
+    featured_product = models.TextField(default=DEFAULT_FEATURED_PRODUCT)
+
+    # Discovery block templates
+    product = models.TextField(default=DEFAULT_PRODUCT)
+    combobox = models.TextField(default=DEFAULT_COMBOBOX)
+    youtube = models.TextField(default=DEFAULT_YOUTUBE)
 
     # Preview Templates
-    preview_product   = models.TextField(default=DEFAULT_PRODUCT_PREVIEW)
+    preview = models.TextField(default=DEFAULT_PREVIEW)
 
-    # Discovery Block Templates
-    discovery_product = models.TextField(default=DEFAULT_DISCOVERY_BLOCK)
-
-    # Right now this is being hardcoded in, but should be changed to support
-    # multiple block types automatically.
-
-    # A system like the one Grigory had originally made, where block type slugs
-    # mapped to templates, could be used here. Specifically, having a generic
-    # block template model that has a one to one foreign key to both a store
-    # and a block type.
-    discovery_youtube = models.TextField(default=DEFAULT_YOUTUBE_BLOCK)
+    def __init__(self, *args, **kwargs):
+        super(StoreTheme, self).__init__(*args, **kwargs)
+        self.REQUIRED_FIELDS = {
+            'header_content': {
+                'type': 'template',
+                'values': ['pinpoint/campaign_head.html']
+            },
+            'body_content': {
+                'type': 'template',
+                'values': ['pinpoint/campaign_discovery.html',
+                           'pinpoint/campaign_scripts.html']
+            },
+            'js_templates': {
+                'type': 'theme',
+                'values': ['shop_the_look', 'featured_product', 'product',
+                           'combobox', 'youtube', 'preview']
+            }
+        }
 
     def __unicode__(self):
-        return u"Theme for Store: %s" % self.store
+        return u"Theme: %s" % self.store
 
 
 class StoreThemeMedia(MediaBase):
@@ -185,10 +266,16 @@ class FeaturedProductBlock(BaseModelNamed):
     def __unicode__(self):
         return u"Featured Content Data for %s" % self.product
 
-    def get_image(self):
+    def get_image(self, url=False):
         """Get an image associated with this block"""
 
-        return self.custom_image or self.existing_image or None
+        image = self.custom_image or self.existing_image or None
+
+        if url and image:
+            return image.get_url()
+
+        return image
+
 
     def save(self, *args, **kwargs):
         """Overridden save method to do multi-field validation."""
@@ -228,15 +315,25 @@ class ShopTheLookBlock(BaseModelNamed):
     def __unicode__(self):
         return u"Featured Content Data for %s" % self.product
 
-    def get_image(self):
+    def get_image(self, url=False):
         """Get an image associated with this block"""
 
-        return self.custom_image or self.existing_image or None
+        image = self.custom_image or self.existing_image or None
 
-    def get_ls_image(self):
+        if url and image:
+            return image.get_url()
+
+        return image
+
+    def get_ls_image(self, url=False):
         """Get a lifestyle image associated with this block"""
 
-        return self.custom_ls_image or self.existing_ls_image or None
+        image = self.custom_ls_image or self.existing_ls_image or None
+
+        if url and image:
+            return image.get_url()
+
+        return image
 
     def save(self, *args, **kwargs):
         """Overridden save method to do multi-field validation."""

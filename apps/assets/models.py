@@ -32,6 +32,9 @@ class Store(BaseModelNamed):
     def staff_count(self):
         return self.staff.all().count()
 
+    def live_campaigns(self):
+        return self.campaign_set.filter(live=True)
+
 
 class MediaBase(BaseModelNamed):
     MEDIA_TYPES = (
@@ -129,7 +132,7 @@ class Product(BaseModelNamed):
     available = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return self.name
+        return unicode(self.name) or u''
 
     def media_count(self):
         return self.media.count()
@@ -138,8 +141,16 @@ class Product(BaseModelNamed):
     def url(self):
         return self.original_url
 
-    def images(self):
-        return [x.get_url() for x in self.media.all()]
+    def images(self, include_external=False):
+        """if include_external, then all external media (e.g. instagram photos)
+        will be included in the list.
+        """
+        product_images = [x.get_url() for x in self.media.all()]
+        if include_external:
+            for external_content in self.external_content.all():
+                if external_content.image_url:
+                    product_images.append(external_content.image_url)
+        return product_images
 
     def data(self, raw=False):
         """HTML string representation of some of the product's properties.
@@ -167,6 +178,7 @@ class Product(BaseModelNamed):
             'data-image': strip_and_escape(image),
             'data-images': '|'.join(strip_and_escape(x) for x in images),
             'data-product-id': self.id,
+            'data-template': 'product'
         }
 
         if self.lifestyleImages.all():
@@ -174,6 +186,7 @@ class Product(BaseModelNamed):
             random_idx = random.randint(0, self.lifestyleImages.count()-1)
             random_img = self.lifestyleImages.all()[random_idx]
             fields['data-lifestyle_image'] = strip_and_escape(random_img)
+            fields['data-template'] = 'combobox'
 
         if raw:
             data = {}
@@ -181,7 +194,7 @@ class Product(BaseModelNamed):
                 # strip 'data-'
                 field_name = field[5:]
                 if field_name == 'images':
-                    data[field_name] = fields[field].split('|')
+                    data[field_name] = filter(None, fields[field].split('|'))
                 else:
                     data[field_name] = fields[field]
         else:
@@ -199,3 +212,36 @@ class ProductMedia(ImageBase):
 class YoutubeVideo(BaseModel):
     video_id = models.CharField(max_length=11)
     store = models.ForeignKey(Store, null=True, related_name="videos")
+
+
+class ExternalContent(BaseModel):
+    # "yes, 555 is arbitrary" - other developers
+    original_id = models.CharField(max_length=555, blank=True, null=True)
+    original_url = models.CharField(max_length=555, blank=True, null=True)
+    content_type = models.ForeignKey("ExternalContentType")
+    tagged_products = models.ManyToManyField(Product, blank=True, null=True,
+                                             related_name='external_content')
+
+    text_content = models.TextField(blank=True, null=True)
+    image_url = models.CharField(max_length=555, blank=True, null=True)
+
+    def __unicode__(self):
+        return u''
+
+    def to_json(self):
+        """A bit like data(), but not returning an html data string"""
+        return {
+            'original-id': self.original_id,
+            'original-url': self.original_url,
+            'content-type': self.content_type.name,
+            'image-url': self.image_url,
+        }
+
+
+# If we need different behaviour per model, just use a proxy model.
+class ExternalContentType(BaseModelNamed):
+    """i.e. "Instagram"."""
+    enabled = models.BooleanField(default=True)
+
+    def __unicode__(self):
+        return unicode(self.name) or u''
