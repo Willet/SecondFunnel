@@ -256,6 +256,144 @@
     <script src="{% static "js/underscore.js" %}"></script>
 
     <script>
+        var BarChart = function (o) {
+            var present_total = 0;
+
+            // inject "Other" bar if necessary
+            for (var i = o.data.length - 1; i >= 0; i--) {
+                if (o.data[i] === undefined) {
+                    o.data.splice(i, 1);
+                } else {
+                    present_total += o.data[i][1];
+                }
+            };
+
+            if (present_total < o.total) {
+                o.data.push(["Other", o.total - present_total]);
+            }
+
+            var max_length = d3.max(o.data, function(val, i) {
+                var label = val[0] + ": " + val[1];
+                return label.length;
+            });
+
+            var w = o.width,
+                h = o.row_height * o.data.length,
+                label_width = max_length * 7;
+
+            var x = d3.scale.linear()
+                .domain([0, 100]);
+
+            var chart = d3.select(o.selector).append("svg")
+                .attr("class", "chart")
+                .attr("width", w)
+                .attr("height", h);
+
+            chart.selectAll("rect")
+                .data(o.data)
+                .enter().append("rect")
+                    .attr("class", o.selector)
+                    .attr("x", label_width)
+                    .attr("y", function (d, i) { return i * o.row_height; })
+                    .attr("width", function (d) {
+                        var len = (d[1] / o.total) * (w - label_width);
+                        if (len < 5) {
+                            len = 5;
+                        }
+                        return len;
+                    })
+                    .attr("height", o.row_height)
+                    .on("mouseover", function() {d3.select(this).transition().style("fill", "black")})
+                    .on("mouseout", function() {d3.select(this).transition().style("fill", "steelblue")});
+
+            chart.selectAll("text")
+                .data(o.data)
+                .enter().append("text")
+                    .attr("x", 0)
+                    .attr("y", function (d, i) { return i * o.row_height + 15; })
+                    .text(function (d) { return d[0] + ": " + d[1]; });
+
+            $("rect[class='" + o.selector + "']").tipsy({
+                gravity: 'w',
+                html: true,
+                title: function() {
+                    var d = this.__data__;
+                    return (d[1] / o.total * 100).toFixed(0) + "%";
+                }
+              });
+        };
+
+        var ColumnChart = function (o) {
+            var max_domain = d3.max(o.data, function(val, i) {
+                    return val[1]
+                }),
+                date_parser = d3.time.format("%Y-%m-%d"),
+                date_formatter = d3.time.format("%B %e");
+
+            var w = o.col_width,
+                h = o.height,
+                calculated_width = w * o.data.length - 1,
+                chart_width = (calculated_width < o.min_width) ? o.min_width : calculated_width;
+
+            var x = d3.scale.linear()
+                .domain([0, 1])
+                .range([0, w]);
+
+            var y = d3.scale.linear()
+                .domain([0, max_domain])
+                .rangeRound([5, h - 17]);
+
+            var chart = d3.select(o.selector).append("svg")
+                .attr("class", "chart")
+                .attr("width", chart_width)
+                .attr("height", h);
+
+            chart.selectAll("rect")
+                .data(o.data)
+                .enter().append("rect")
+                    .attr("class", o.selector)
+                    .attr("x", function(d, i) { return x(i) - .5; })
+                    .attr("y", function(d) { return h - y(d[1]) - .5; })
+                    .attr("width", w)
+                    .attr("height", function(d) { return y(d[1]); })
+                    .on("mouseover", function() {d3.select(this).transition().style("fill", "black")})
+                    .on("mouseout", function() {d3.select(this).transition().style("fill", "steelblue")});
+
+            chart.selectAll("text")
+                .data(o.data)
+                .enter().append("text")
+                    .attr("x", function(d, i) { return x(i) + 1; })
+                    .attr("y", function(d) { return h - y(d[1]) - 2; })
+                    .text(function (d) { return d[1]});
+
+
+            chart.append("line")
+                .attr("x1", 0)
+                .attr("x2", chart_width)
+                .attr("y1", h - .5)
+                .attr("y2", h - .5)
+                .style("stroke", "#000");
+
+            chart.selectAll("line")
+                .data(y.ticks(5))
+                .enter().append("line")
+                    .attr("y1", y)
+                    .attr("y2", y)
+                    .attr("x1", 0)
+                    .attr("x2", chart_width)
+                    .style("stroke", "#333")
+                    .style("stroke-width", 0.1);
+
+            $("rect[class='" + o.selector + "']").tipsy({
+                gravity: 'w',
+                html: true,
+                title: function() {
+                    var d = this.__data__;
+                    return date_formatter(new Date(d[0]));
+                }
+              });
+        };
+
         function wrap (str, len) {
             if (str.length > len) {
                 return str.slice(0, len - 1) + "&hellip;";
@@ -496,12 +634,46 @@
 
                 cat_slug, metric_slug,
 
-                merged_sharing, merged_product_interactions, merged_content_interactions,
-                merged_sources, merged_sharing_sources,
+                merged = {}, to_merge = {
+                    "sharing": [
+                        data.sharing['share-clicked'].totals,
+                        data.sharing['share-liked'].totals
+                    ],
+
+                    "product_interactions": [
+                        data.engagement['inpage-openpopup'].totals,
+                        data.engagement['inpage-hover'].totals
+                    ],
+
+                    "content_interactions": [
+                        data.engagement['content-openpopup'].totals,
+                        data.engagement['content-hover'].totals
+                    ],
+
+                    "sources": [
+                        data.engagement['content-openpopup-source'].totals,
+                        data.engagement['content-hover-source'].totals,
+                        data.engagement['inpage-hover-source'].totals,
+                        data.engagement['inpage-openpopup-source'].totals
+                    ],
+
+                    "sharing_sources": [
+                        data.sharing['share-clicked-source'].totals,
+                        data.sharing['share-liked-source'].totals
+                    ]
+                },
 
                 top_lists,
 
                 postprocess_sections;
+
+            _.each(to_merge, function (list, key) {
+                var result, reduce_start = merge_totals(list[0], list[1]);
+
+                merged[key] = _.reduce(list.slice(2), function (memo, item) {
+                    return merge_totals(memo, item);
+                }, reduce_start);
+            });
 
             if (isNaN(bounce_rate)) {
                 bounce_rate = 0;
@@ -596,182 +768,27 @@
 
                         // 20px accounts for margins
                         $s.css("width", $s.children().length * ($s.children().width() + 20) + "px");
-                    },
-
-                    BarChart = function (o) {
-                        var present_total = 0;
-
-                        for (var i = o.data.length - 1; i >= 0; i--) {
-                            if (o.data[i] === undefined) {
-                                o.data.splice(i, 1);
-                            } else {
-                                present_total += o.data[i][1];
-                            }
-                        };
-
-                        if (present_total < o.total) {
-                            o.data.push(["Other", o.total - present_total]);
-                        }
-
-                        var max_length = d3.max(o.data, function(val, i) {
-                            var label = val[0] + ": " + val[1];
-                            return label.length;
-                        });
-
-                        var w = o.width,
-                            h = o.row_height * o.data.length,
-                            label_width = max_length * 7;
-
-                        var x = d3.scale.linear()
-                            .domain([0, 100]);
-
-                        var chart = d3.select(o.selector).append("svg")
-                            .attr("class", "chart")
-                            .attr("width", w)
-                            .attr("height", h);
-
-                        chart.selectAll("rect")
-                            .data(o.data)
-                            .enter().append("rect")
-                                .attr("class", o.selector)
-                                .attr("x", label_width)
-                                .attr("y", function (d, i) { return i * o.row_height; })
-                                .attr("width", function (d) {
-                                    var len = (d[1] / o.total) * (w - label_width);
-                                    if (len < 5) {
-                                        len = 5;
-                                    }
-                                    return len;
-                                })
-                                .attr("height", o.row_height)
-                                .on("mouseover", function() {d3.select(this).transition().style("fill", "black")})
-                                .on("mouseout", function() {d3.select(this).transition().style("fill", "steelblue")});
-
-                        chart.selectAll("text")
-                            .data(o.data)
-                            .enter().append("text")
-                                .attr("x", 0)
-                                .attr("y", function (d, i) { return i * o.row_height + 15; })
-                                .text(function (d) { return d[0] + ": " + d[1]; });
-
-                        $("rect[class='" + o.selector + "']").tipsy({
-                            gravity: 'w',
-                            html: true,
-                            title: function() {
-                                var d = this.__data__;
-                                return (d[1] / o.total * 100).toFixed(0) + "%";
-                            }
-                          });
-                    },
-
-                    ColumnChart = function (o) {
-                        var max_domain = d3.max(o.data, function(val, i) {
-                                return val[1]
-                            }),
-                            date_parser = d3.time.format("%Y-%m-%d"),
-                            date_formatter = d3.time.format("%B %e");
-
-                        var w = o.col_width,
-                            h = o.height,
-                            calculated_width = w * o.data.length - 1,
-                            chart_width = (calculated_width < o.min_width) ? o.min_width : calculated_width;
-
-                        var x = d3.scale.linear()
-                            .domain([0, 1])
-                            .range([0, w]);
-
-                        var y = d3.scale.linear()
-                            .domain([0, max_domain])
-                            .rangeRound([5, h - 17]);
-
-                        var chart = d3.select(o.selector).append("svg")
-                            .attr("class", "chart")
-                            .attr("width", chart_width)
-                            .attr("height", h);
-
-                        chart.selectAll("rect")
-                            .data(o.data)
-                            .enter().append("rect")
-                                .attr("class", o.selector)
-                                .attr("x", function(d, i) { return x(i) - .5; })
-                                .attr("y", function(d) { return h - y(d[1]) - .5; })
-                                .attr("width", w)
-                                .attr("height", function(d) { return y(d[1]); })
-                                .on("mouseover", function() {d3.select(this).transition().style("fill", "black")})
-                                .on("mouseout", function() {d3.select(this).transition().style("fill", "steelblue")});
-
-                        chart.selectAll("text")
-                            .data(o.data)
-                            .enter().append("text")
-                                .attr("x", function(d, i) { return x(i) + 1; })
-                                .attr("y", function(d) { return h - y(d[1]) - 2; })
-                                .text(function (d) { return d[1]});
-
-
-                        chart.append("line")
-                            .attr("x1", 0)
-                            .attr("x2", chart_width)
-                            .attr("y1", h - .5)
-                            .attr("y2", h - .5)
-                            .style("stroke", "#000");
-
-                        chart.selectAll("line")
-                            .data(y.ticks(5))
-                            .enter().append("line")
-                                .attr("y1", y)
-                                .attr("y2", y)
-                                .attr("x1", 0)
-                                .attr("x2", chart_width)
-                                .style("stroke", "#333")
-                                .style("stroke-width", 0.1);
-
-                        $("rect[class='" + o.selector + "']").tipsy({
-                            gravity: 'w',
-                            html: true,
-                            title: function() {
-                                var d = this.__data__;
-                                return date_formatter(new Date(d[0]));
-                            }
-                          });
                     };
 
                 actions[params.type](params, pair, all_data);
             };
 
-            merged_sharing = merge_totals(data.sharing['share-clicked'].totals,
-                data.sharing['share-liked'].totals);
-
-            merged_product_interactions = merge_totals(data.engagement['inpage-openpopup'].totals,
-                data.engagement['inpage-hover'].totals);
-
-            merged_content_interactions = merge_totals(data.engagement['content-openpopup'].totals,
-                data.engagement['content-hover'].totals);
-
-            merged_sources = merge_totals(data.engagement['content-openpopup-source'].totals,
-                data.engagement['content-hover-source'].totals);
-
-            merged_sources = merge_totals(merged_sources, data.engagement['inpage-hover-source'].totals);
-            merged_sources = merge_totals(merged_sources, data.engagement['inpage-openpopup-source'].totals);
-
-            merged_sharing_sources = merge_totals(data.sharing['share-clicked-source'].totals,
-                data.sharing['share-liked-source'].totals);
-
             top_lists = {
-                'engaged_products': merged_product_interactions.target_id,
-                'engaged_content': merged_content_interactions.target_id,
+                'engaged_products': merged.product_interactions.target_id,
+                'engaged_content': merged.content_interactions.target_id,
                 'engaged_videos': data.engagement['content-video'].totals.target_id,
                 'visitor_locations': data.awareness['awareness-location'].totals.meta,
                 'visitor_dates': data.awareness['awareness-visitors'].totals.date,
 
-                'sharing_products': merged_sharing.target_id,
-                'sharing_source': merged_sharing.meta,
-                'sharing_sources_of': merged_sharing_sources.meta,
+                'sharing_products': merged.sharing.target_id,
+                'sharing_source': merged.sharing.meta,
+                'sharing_sources_of': merged.sharing_sources.meta,
 
-                'interaction_source': merged_sources.meta,
+                'interaction_source': merged.sources.meta,
 
                 'visitor_source': data.awareness['awareness-visitors'].totals.meta,
 
-                'interaction_sections': merged_product_interactions.meta,
+                'interaction_sections': merged.product_interactions.meta,
 
                 'interaction_types': {
                     "Hovers": data.engagement['inpage-hover'].totals.date.all + data.engagement['content-hover'].totals.date.all,
