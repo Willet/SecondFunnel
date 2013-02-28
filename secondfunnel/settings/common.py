@@ -99,6 +99,7 @@ STATIC_ROOT = fromProjectRoot('static')
 
 DEFAULT_FILE_STORAGE = 'secondfunnel.storage.CustomExpiresS3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
+# http://django_compressor.readthedocs.org/en/latest/remote-storages/
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
 
@@ -202,6 +203,7 @@ INSTALLED_APPS = (
     'adminlettuce',
     'ajax_forms',
     "compressor",
+    'social_auth',
 
     # our apps
     'apps.analytics',
@@ -288,5 +290,11 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=6),
     },
 }
+
+AUTHENTICATION_BACKENDS = (
+    'social_auth.backends.contrib.instagram.InstagramBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+SOCIAL_AUTH_NEW_ASSOCIATION_REDIRECT_URL = '/pinpoint/admin/social-auth/'
 
 djcelery.setup_loader()

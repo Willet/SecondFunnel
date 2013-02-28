@@ -11,28 +11,29 @@
     <script type="text/javascript">
         (function() {
             window.PINPOINT_INFO = {
+                'page': {
+                    'id': '{{ campaign.id }}',
+                    'main-block-template': '{{ campaign.template }}',
+                    'stl-image': '{{ campaign.stl_image }}',
+                    'featured-image': '{{ campaign.featured_image }}',
+                    'description': '{{ campaign.description }}',
+                    'product': {{ product.json|safe }}
+                },
                 'store': {
                     'id': '{{ campaign.store.slug }}',
                     'name': '{{ campaign.store.name }}'
                 },
+                'content': [],
                 'campaign': {
                     'id': '{{ campaign.id }}'
                 },
-                'featured': {
-                    'id': '{{ product.id }}',
-                    'lifestyle_image': "{{ product.lifestyle_image|escapejs }}",
-                    'featured_image': "{{ product.featured_image|escapejs }}",
-                    'description': "{{ product.description|escapejs }}",
-                    'name': '{{ product.name|escapejs }}',
-                    'title': '{{ product.name|escapejs }}',
-                    'price': '{{ product.price|escapejs }}',
-                    'images': [
-                        {% for image in product.images %}
-                            "{{ image|escapejs }}"{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-                    'url': '{{ product.url|escapejs }}'
-                }
+                'featured': {% include "pinpoint/snippets/product_object.js" with product=product only %}
+                {% if backup_results %}{# offline, pseudo-custom results #}
+                , 'backupResults': {% include "pinpoint/snippets/product_list.js" with products=backup_results %}
+                {% endif %}
+                {% if random_results %}{# offline, totally random results #}
+                , 'randomResults': {% include "pinpoint/snippets/product_list.js" with products=random_results %}
+                {% endif %}
             };
 
             $.Mason.prototype._placeBrick = function( brick ) {
@@ -131,6 +132,19 @@
 
     <script src="{% static "pinpoint/js/tracking.js" %}"></script>
     <script src="{% static "pinpoint/js/pinpoint.js" %}"></script>
+
+    <script type="text/javascript">
+        // Load Youtube IFrame Player API code asynchronously
+        var tag = document.createElement('script');
+        tag.src = "//www.youtube.com/iframe_api";
+
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        function onYouTubeIframeAPIReady() {
+            PINPOINT.init();
+        }
+    </script>
 
     <script type="text/javascript">
         var _gaq = _gaq || [];

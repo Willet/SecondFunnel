@@ -6,6 +6,15 @@
 
 {% block content %}
 
-    <p>Something broke. We're looking into it!</p>
+<p>Something broke. We're looking into it!</p>
+{% if exception %}
+<script type="text/javascript">
+/* Exception: {{ exception|safe }}
 
+{{ traceback|safe }}
+*/
+console && console.log &&
+console.log('{{ exception|escapejs }}\n{{ traceback|escapejs }}');
+</script>
+{% endif %}
 {% endblock %}

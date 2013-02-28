@@ -79,6 +79,12 @@
             list-style: none;
         }
 
+        .section_overview_metrics .meta_metric, .section_overview_metrics .per-visitor {
+            margin-top: 10px;
+            position: relative;
+            left: -7px;
+        }
+
         .metric_overview {
             font-weight: bold;
         }
@@ -167,7 +173,6 @@
 
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 {% endblock %}
 
 {% block top_section %}
@@ -360,63 +365,87 @@
                     'sharing_source': []
                 },
 
-                totals = {
-                    'interactions': data.engagement['product-interactions'].totals.date.all,
-                    'shares': data.sharing['total-shares'].totals.date.all
+                merge_totals = function (t1, t2) {
+                    var res = jQuery.extend(true, {}, t1), type, key;
+
+                    for (type in t2) {
+                        for (key in t2[type]) {
+                            if (res[type][key] !== undefined) {
+                                res[type][key] += t2[type][key];
+                            } else {
+                                res[type][key] = t2[type][key];
+                            }
+                        }
+                    }
+
+                    return res;
                 },
 
-                top_lists = {
-                    'engaged_products': data.engagement['inpage-openpopup'].totals.product_id,
-                    'sharing_products': data.sharing['share-clicked'].totals.product_id,
-                    'sharing_source': data.sharing['share-clicked'].totals.meta
+                totals = {
+                    interactions: {
+                        all: data.engagement['total-interactions'].totals.date.all,
+                        product: data.engagement['product-interactions'].totals.date.all,
+                        content: data.engagement['content-interactions'].totals.date.all,
+                    },
+                    shares: data.sharing['total-shares'].totals.date.all,
+                    visitors: data.awareness['awareness-visitors'].totals.date.all,
+                    pageviews: data.awareness['awareness-pageviews'].totals.date.all,
+                    notbounces: data.engagement['total-no-bounces'].totals.date.all
                 },
+
+                bounce_rate = (1 - totals.notbounces / totals.visitors) * 100,
 
                 cat_slug, metric_slug,
 
-                total_visitors = data["awareness"]["awareness-visitors"].totals.date.all,
-                total_pageviews = data["awareness"]["awareness-pageviews"].totals.date.all,
+                merged_sharing, merged_interactions, top_lists;
 
-                total_interactions = data["engagement"]["total-interactions"].totals.date.all,
-                total_shares = data["sharing"]["total-shares"].totals.date.all,
+            merged_sharing = merge_totals(data.sharing['share-clicked'].totals,
+                data.sharing['share-liked'].totals);
 
-                roundNumber = function (number, digits) {
-                    var multiple = Math.pow(10, digits);
-                    var rndedNum = Math.round(number * multiple) / multiple;
-                    if (rndedNum === Infinity || isNaN(rndedNum)) {
-                        return 0;
-                    }
-                    return rndedNum;
-                };
+            merged_interactions = merge_totals(data.engagement['inpage-openpopup'].totals,
+                data.engagement['inpage-hover'].totals);
+
+            top_lists = {
+                'engaged_products': merged_interactions.product_id,
+                'sharing_products': merged_sharing.product_id,
+                'sharing_source': merged_sharing.meta
+            };
+
+            if (isNaN(bounce_rate)) {
+                bounce_rate = 0;
+            }
 
             // insert totals for metrics into the sidebar
             for (cat_slug in data) {
                 for (metric_slug in data[cat_slug]) {
                     // display totals in the sidebar on in the content section
                     $(".metric_overview[data-metric='" + metric_slug + "']").html(
-                        data[cat_slug][metric_slug].totals.date.all
-                    );
-
-                    $(".metric_title_all[data-metric='" + metric_slug + "']").html(
-                        data[cat_slug][metric_slug].totals.date.all
+                        data[cat_slug][metric_slug].totals.date.all.toFixed(0)
                     );
                 }
             }
 
             // TODO temp for awareness
-            $("#total_visitors").html("<strong>Visitors:</strong> " + total_visitors);
-            $("#total_pageviews").html("<strong>Pageviews:</strong> " + total_pageviews);
+            $("#total_visitors").html("<strong>Visitors:</strong> " + totals.visitors);
+            $("#total_pageviews").html("<strong>Pageviews:</strong> " + totals.pageviews);
+            $("#bounce_rate").html("<strong>Bounce Rate:</strong> " + bounce_rate.toFixed(2) + "%");
+
             $("div[class='no_data'][data-metric='total_visitors']").hide();
             $("div[class='no_data'][data-metric='total_pageviews']").hide();
+            $("div[class='no_data'][data-metric='bounce_rate']").hide();
 
             // These metrics aren't calculated by the backend atm, hence the ugly implementation
             $(".per-visitor").remove();
 
             $(".section_overview_block:first .section_overview_metrics ul").append(
-                "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + roundNumber(total_interactions/total_visitors, 2) + "</span> Interactions per visit</li>");
+                "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / totals.visitors).toFixed(2) + "</span> Interactions per visit</li>");
 
 
             $(".section_overview_block:nth-child(2) .section_overview_metrics ul").append(
-                "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + roundNumber(total_shares/total_visitors, 2) + "</span> Shares per visit</li>");
+                "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + (totals.shares / totals.visitors).toFixed(2) + "</span> Shares per visit</li>");
+
+            $(".section_overview_block:nth-child(3) .section_overview_metrics ul").append(
+                "<li class='per-visitor'><span class='metric_overview' data-metric='bounce-rate'>" + bounce_rate.toFixed(2) + "%</span> Bounce Rate</li>");
 
             // construct lists of sorted (desc) (pid, count) pairs
             map(function (key, list) {
@@ -457,7 +486,7 @@
                         "Interactions",
                         pair[0],
                         pair[1],
-                        totals.interactions
+                        totals.interactions.product
                     );
                 }, sortables.engaged_products.slice(0, 5));
 
@@ -567,12 +596,7 @@
         };
     }(jQuery));
 
-    google.load("visualization", "1", {
-        packages: ["corechart", "table"],
-        callback: function() {
-            app.init();
-        }
-    });
+    app.init();
 
 {% endblock %}
 
@@ -581,7 +605,7 @@
         <div class="page_selector">
             <label for="campaign_list">Page:</label>
             <select id="campaign_list" name="campaign_list">
-                {% for c in store.campaign_set.all %}
+                {% for c in store.live_campaigns %}
                     <option value="{{ c.id }}" {% if c.id == campaign.id %}selected{% endif %}>{{ c.name }}</option>
                 {% endfor %}
             </select>
@@ -613,7 +637,7 @@
                             {% with metric.list|first as metric_meta %}
                                 {% if metric.grouper.enabled %}
                                     {% if metric_meta.display %}
-                                    <li>
+                                    <li {% if metric_meta.is_meta %}class="meta_metric"{% endif %}>
                                         <span class="metric_overview" data-metric="{{ metric.grouper.slug }}"></span>
                                         {{ metric.grouper.name }}
                                     </li>
@@ -699,6 +723,15 @@
 
                                 <div class="no_data" data-metric="total_pageviews">
                                     <p>No visitors yet.</p>
+                                </div>
+                            </div>
+
+                            <div class="data_metric">
+                                <div class="metric_title">Bounce Rate</div>
+                                <div class="metric_content" id="bounce_rate"></div>
+
+                                <div class="no_data" data-metric="bounce_rate">
+                                    <p>No data yet.</p>
                                 </div>
                             </div>
                         {% endif %}
