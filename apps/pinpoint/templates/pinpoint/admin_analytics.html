@@ -581,6 +581,13 @@
                                 height: params.height,
                                 col_width: params.col_width
                             });
+                        },
+
+                        "single_value": function (params, pair, all_data) {
+                            var t = _.template($("#single_value_t").html());
+                            $(params.selector).html(t({
+                                value: all_data
+                            }));
                         }
                     },
 
@@ -726,12 +733,9 @@
                                 return date_formatter(new Date(d[0]));
                             }
                           });
-                    }
+                    };
 
                 actions[params.type](params, pair, all_data);
-                if (all_data.length > 0) {
-                    $(params.selector).parent().children(".no_data").hide();
-                }
             };
 
             merged_sharing = merge_totals(data.sharing['share-clicked'].totals,
@@ -785,15 +789,6 @@
                     );
                 }
             }
-
-            // TODO temp for awareness
-            $("#total_visitors").html("<span class='large_count'>" + totals.visitors + "</span>");
-            $("#total_pageviews").html("<span class='large_count'>" + totals.pageviews + "</span>");
-            $("#bounce_rate").html("<span class='large_count'>" + bounce_rate.toFixed(2) + "%</span>");
-
-            $("div[class='no_data'][data-metric='total_visitors']").hide();
-            $("div[class='no_data'][data-metric='total_pageviews']").hide();
-            $("div[class='no_data'][data-metric='bounce_rate']").hide();
 
             // These metrics aren't calculated by the backend atm, hence the ugly implementation
             $(".per-visitor").remove();
@@ -894,24 +889,8 @@
                             total: data.engagement['content-video'].totals.date.all
                         },
                         data: sortables.engaged_videos.slice(0, 3)
-                    }
-                ];
+                    },
 
-                _.each(to_inject_lists, function (inject) {
-                    if (inject.data.length == 0) {
-                        $("[data-metric='" + inject.params.selector.slice(1) + "']").show();
-                    }
-
-                    _.each(inject.data, function (pair) {
-                        insertAnalytics({
-                            params: inject.params,
-                            pair: pair,
-                            data: inject.data
-                        });
-                    });
-                });
-
-                var to_inject_charts = [
                     {
                         params: {
                             type: "bar_chart",
@@ -987,18 +966,57 @@
                             height: 200
                         },
                         data: sortables.visitor_dates
+                    },
+
+                    {
+                        params: {
+                            type: "single_value",
+                            selector: "#total_visitors"
+                        },
+                        data: totals.visitors
+                    },
+
+                    {
+                        params: {
+                            type: "single_value",
+                            selector: "#total_pageviews"
+                        },
+                        data: totals.pageviews
+                    },
+
+                    {
+                        params: {
+                            type: "single_value",
+                            selector: "#bounce_rate"
+                        },
+                        data: bounce_rate.toFixed(2) + "%"
                     }
                 ];
 
-                _.each(to_inject_charts, function (inject) {
-                    if (inject.data.length == 0) {
+                _.each(to_inject_lists, function (inject) {
+                    if (typeof inject.data === 'object' && inject.data.length == 0 || inject.data === undefined) {
                         $("[data-metric='" + inject.params.selector.slice(1) + "']").show();
+                    } else {
+                        $("[data-metric='" + inject.params.selector.slice(1) + "']").hide();
                     }
 
-                    insertAnalytics({
-                        params: inject.params,
-                        data: inject.data
-                    });
+                    // if we're injecting a chart or a single value
+                    if (inject.params.type.indexOf("_chart") != -1 || inject.params.type === "single_value") {
+                        insertAnalytics({
+                            params: inject.params,
+                            data: inject.data
+                        });
+
+                    // if we're injecting a list
+                    } else {
+                        _.each(inject.data, function (pair) {
+                            insertAnalytics({
+                                params: inject.params,
+                                pair: pair,
+                                data: inject.data
+                            });
+                        });
+                    }
                 });
             });
         };
@@ -1073,6 +1091,10 @@
 
     <script type="text/template" id="count_with_percentage">
         <span class="metric_perc"><%= ((count / total) * 100 || 0).toFixed(0) %>%</span><br><span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
+    </script>
+
+    <script type="text/template" id="single_value_t">
+        <span class="large_count"><%= value %></span>
     </script>
 
     <div class="top_analytics_menu">
