@@ -55,20 +55,15 @@ def analytics_pinpoint(request):
 
     # try get a store associated with this request,
     # either directly or via campaign
-    store = None
-    try:
+    if store_id:
         store = Store.objects.get(id=store_id)
 
-    except Store.DoesNotExist:
-        pass
+    elif campaign_id:
+        campaign = Campaign.objects.get(id=campaign_id)
+        store = campaign.store
 
-    if not store:
-        try:
-            campaign = Campaign.objects.get(id=campaign_id)
-            store = campaign.store
-
-        except Campaign.DoesNotExist:
-            return ajax_error()
+    else:
+        return ajax_error()
 
     date_range = request.GET.get('range')
     end_date = datetime.now()
