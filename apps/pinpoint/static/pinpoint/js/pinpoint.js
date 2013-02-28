@@ -49,13 +49,6 @@ var PINPOINT = (function($, pageInfo){
                             details.randomResults || // than totally random
                             {};
 
-    // fix format difference between backup results and intentRank returns.
-    if (!details.backupResults.products) {
-        details.backupResults = {
-            'products': details.backupResults
-        };
-    }
-
     /* --- START Utilities --- */
     getShortestColumn = function () {
         var $column;

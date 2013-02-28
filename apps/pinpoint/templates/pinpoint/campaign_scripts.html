@@ -18,64 +18,16 @@
                 'campaign': {
                     'id': '{{ campaign.id }}'
                 },
-                'featured': {
-                    'id': '{{ product.id }}',
-                    'lifestyle_image': "{{ product.lifestyle_image|escapejs }}",
-                    'featured_image': "{{ product.featured_image|escapejs }}",
-                    'description': "{{ product.description|escapejs }}",
-                    'name': '{{ product.name|escapejs }}',
-                    'title': '{{ product.name|escapejs }}',
-                    'price': '{{ product.price|escapejs }}',
-                    'images': [
-                        {% for image in product.images %}
-                            "{{ image|escapejs }}"{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    ],
-                    'url': '{{ product.url|escapejs }}'
-                }
+                'featured': {% include "pinpoint/snippets/product_object.js" with product=product only %}
                 {% if backup_results %}{# offline, pseudo-custom results #}
-                , 'backupResults': [
-                    {% for product in backup_results %}
-                        {
-                            'id': '{{ product.id }}',
-                            'lifestyle_image': "{{ product.lifestyle_image|escapejs }}",
-                            'featured_image': "{{ product.featured_image|escapejs }}",
-                            'description': "{{ product.description|escapejs }}",
-                            'name': '{{ product.name|escapejs }}',
-                            'title': '{{ product.name|escapejs }}',
-                            'price': '{{ product.price|escapejs }}',
-                            'images': [
-                                {% for image in product.images %}
-                                "{{ image|escapejs }}"{% if not forloop.last %},{% endif %}
-                                {% endfor %}
-                            ],
-                            'url': '{{ product.url|escapejs }}'
-                        }
-                        {% if not forloop.last %},{% endif %}
-                    {% endfor %}
-                ]
+                , 'backupResults': {
+                    'products': {% include "pinpoint/snippets/product_list.js" with products=backup_results %}
+                }
                 {% endif %}
                 {% if random_results %}{# offline, totally random results #}
-                , 'randomResults': [
-                    {% for product in random_results %}
-                        {
-                            'id': '{{ product.id }}',
-                            'lifestyle_image': "{{ product.lifestyle_image|escapejs }}",
-                            'featured_image': "{{ product.featured_image|escapejs }}",
-                            'description': "{{ product.description|escapejs }}",
-                            'name': '{{ product.name|escapejs }}',
-                            'title': '{{ product.name|escapejs }}',
-                            'price': '{{ product.price|escapejs }}',
-                            'images': [
-                                {% for image in product.images %}
-                                "{{ image|escapejs }}"{% if not forloop.last %},{% endif %}
-                                {% endfor %}
-                            ],
-                            'url': '{{ product.url|escapejs }}'
-                        }
-                        {% if not forloop.last %},{% endif %}
-                    {% endfor %}
-                ]
+                , 'randomResults': {
+                    'products': {% include "pinpoint/snippets/product_list.js" with products=random_results %}
+                }
                 {% endif %}
             };
 
