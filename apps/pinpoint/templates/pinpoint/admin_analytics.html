@@ -813,7 +813,6 @@
             $(".section_overview_block:nth-child(2) .section_overview_metrics ul").append(
                 "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / not_bounced_visitors || 0).toFixed(2) + "</span> Interactions per engaged visitor</li>");
 
-
             $(".section_overview_block:nth-child(3) .section_overview_metrics ul").append(
                 "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + (totals.shares / not_bounced_visitors || 0).toFixed(2) + "</span> Shares per visit</li>");
 
@@ -844,13 +843,15 @@
                 });
             });
 
-            // clear out top lists
+            // clear out charts
+            // TODO: use d3 transitions
             $(["share_destinations", "interaction_types", "interaction_sources",
                 "visitors_over_time", "sources_of_shares", "visitor_sources",
                 "visitor_locations"]).each(function (i, val) {
                     d3.select("#" + val + " svg").remove();
                 });
 
+            // clean out top lists
             $(["top_engaging_products", "top_shared_products",
                 "top_videos", "top_engaged_content"]).each(function (i, val) {
                     $("#" + val).html("");
