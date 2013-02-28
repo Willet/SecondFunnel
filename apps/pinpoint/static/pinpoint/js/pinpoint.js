@@ -1,7 +1,5 @@
 // TODO: Split into submodules properly
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
-
-// Why do we mix and match jQuery and native dom?
 var PINPOINT = (function($, pageInfo) {
     var console = window.console || {
             // dummy
@@ -20,17 +18,6 @@ var PINPOINT = (function($, pageInfo) {
         previewCallbacks = [],
         readyCallbacks = [],
         hoverTimer;
-
-    details = pageInfo;
-    details.campaign = details.campaign || {};
-    details.content = details.content || [];
-    details.featured = details.featured || {};
-    details.page = details.page || {};
-    details.product = details.page.product || {};
-    details.store = details.store || {};
-    details.backupResults = details.backupResults || // slightly more customized
-                            details.randomResults || // than totally random
-                            {};
 
     /* --- START Utilities --- */
     function getShortestColumn () {
@@ -743,9 +730,15 @@ var PINPOINT = (function($, pageInfo) {
 
     // script actually starts here
     details = pageInfo;
-    details.store    = details.store || {};
-    details.page     = details.page  || {};
-    details.product  = details.page.product || {};
+    details.backupResults = details.backupResults || // slightly more customized
+                            details.randomResults || // than totally random
+                            {};
+    details.campaign = details.campaign || {};
+    details.content = details.content || [];
+    details.featured = details.featured || {};
+    details.page = details.page || {};
+    details.product = details.page.product || {};
+    details.store = details.store || {};
 
     // Either a URL, or an object with 'src' key and optional 'onload' key
     scripts = [{

@@ -391,7 +391,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
 
     # Render response
     rendered_page = page.render(context)
-    if not settings.DEBUG or True:
+    if not settings.DEBUG:
         written = generate_static_campaign(campaign, rendered_page, force=False)
         save_static_campaign(campaign, rendered_page, force=written)
 
