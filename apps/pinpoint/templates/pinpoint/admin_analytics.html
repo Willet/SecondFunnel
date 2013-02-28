@@ -205,31 +205,6 @@
             clear: both;
         }
 
-        dl {
-            width: 60%;
-            margin-top: 30px;
-        }
-
-        /* bar graph styling */
-        dt {
-            float: left;
-        }
-
-        .bar_graph {
-            margin-top: 10px;
-        }
-
-        .bar {
-            margin-bottom: 10px;
-            margin-left: 65%;
-            color: #f3f3f3;
-            padding: 4px;
-            text-align: center;
-            background-color: #385a71;
-            border-radius: 2px;
-            min-width: 17px;
-        }
-
         .progress-label {
             float: left;
             margin-left: 50%;
@@ -265,6 +240,10 @@
         .chart rect {
             fill: steelblue;
             stroke: white;
+        }
+
+        span.large_count {
+            font-size: 16pt;
         }
 
     </style>
@@ -576,28 +555,6 @@
                             });
                         },
 
-                        "chart": function (params, pair, all_data) {
-                            var chart_t = _.template($("#bar_chart").html()),
-                                present_total = 0;
-
-                            for (var i = all_data.length - 1; i >= 0; i--) {
-                                if (all_data[i] === undefined) {
-                                    all_data.splice(i, 1);
-                                } else {
-                                    present_total += all_data[i][1];
-                                }
-                            };
-
-                            if (present_total < params.total) {
-                                all_data.push(["Other", params.total - present_total]);
-                            }
-
-                            $(params.selector).html(chart_t({
-                                data: all_data,
-                                total: params.total
-                            }));
-                        },
-
                         "bar_chart": function (params, pair, all_data) {
                             var chart = new BarChart({
                                 selector: params.selector,
@@ -772,7 +729,9 @@
                     }
 
                 actions[params.type](params, pair, all_data);
-                $(params.selector).parent().children(".no_data").hide();
+                if (all_data.length > 0) {
+                    $(params.selector).parent().children(".no_data").hide();
+                }
             };
 
             merged_sharing = merge_totals(data.sharing['share-clicked'].totals,
@@ -828,9 +787,9 @@
             }
 
             // TODO temp for awareness
-            $("#total_visitors").html("<strong>Visitors:</strong> " + totals.visitors);
-            $("#total_pageviews").html("<strong>Pageviews:</strong> " + totals.pageviews);
-            $("#bounce_rate").html("<strong>Bounce Rate:</strong> " + bounce_rate.toFixed(2) + "%");
+            $("#total_visitors").html("<span class='large_count'>" + totals.visitors + "</span>");
+            $("#total_pageviews").html("<span class='large_count'>" + totals.pageviews + "</span>");
+            $("#bounce_rate").html("<span class='large_count'>" + bounce_rate.toFixed(2) + "%</span>");
 
             $("div[class='no_data'][data-metric='total_visitors']").hide();
             $("div[class='no_data'][data-metric='total_pageviews']").hide();
@@ -874,13 +833,16 @@
             });
 
             // clear out top lists
-            $(["top_engaging_products", "top_shared_products",
-                "share_destinations", "interaction_types", "top_videos",
-                "top_engaged_content"]).each(function (i, val) {
-                    $("#" + val).html("");
+            $(["share_destinations", "interaction_types", "interaction_sources",
+                "visitors_over_time", "sources_of_shares", "visitor_sources",
+                "visitor_locations"]).each(function (i, val) {
+                    d3.select("#" + val + " svg").remove();
                 });
 
-            d3.select("#visitors_over_time svg").remove();
+            $(["top_engaging_products", "top_shared_products",
+                "top_videos", "top_engaged_content"]).each(function (i, val) {
+                    $("#" + val).html("");
+                });
 
             var pids = _.map(sortables.engaged_products, function (pair) {
                 return pair[0];
@@ -991,7 +953,7 @@
                             row_height: 20,
                             width: 620
                         },
-                        data: sortables.visitor_locations.slice(0, 5)
+                        data: sortables.visitor_locations.slice(0, 10)
                     },
 
                     {
@@ -1109,18 +1071,6 @@
         <% }); %>
     </script>
 
-    <script type="text/template" id="bar_chart">
-        <% _.each(data, function (pair) { %>
-            <% perc = ((pair[1] / total) * 100 || 0).toFixed(0); %>
-            <% if (perc > 0) { %>
-                <dt><strong><%= wrap(pair[0], 30) %></strong>: <%= pair[1] %></dt>
-                <dd>
-                    <div class="bar" style="width: <%= perc %>%;"><%= perc %>%</div>
-                </dd>
-            <% } %>
-        <% }); %>
-    </script>
-
     <script type="text/template" id="count_with_percentage">
         <span class="metric_perc"><%= ((count / total) * 100 || 0).toFixed(0) %>%</span><br><span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
     </script>
@@ -1214,7 +1164,7 @@
 
                         <div class="grid_3 data_metric round shadow">
                             <div class="metric_title">Interaction Types</div>
-                            <dl class="bar_graph" id="interaction_types"></dl>
+                            <div id="interaction_types"></div>
 
                             <div class="no_data" data-metric="interaction_types">
                                 <p>No engaged products yet.</p>
@@ -1223,7 +1173,7 @@
 
                         <div class="grid_3 data_metric round shadow">
                             <div class="metric_title">Interaction Sources</div>
-                            <dl class="bar_graph" id="interaction_sources"></dl>
+                            <div id="interaction_sources"></div>
 
                             <div class="no_data" data-metric="interaction_sources">
                                 <p>No interactions yet.</p>
@@ -1241,7 +1191,7 @@
 
                         <div class="grid_4 data_metric round shadow">
                             <div class="metric_title">Share Destinations</div>
-                            <dl class="bar_graph" id="share_destinations"></dl>
+                            <div id="share_destinations"></div>
 
                             <div class="no_data" data-metric="share_destinations">
                                 <p>No shared products yet.</p>
@@ -1250,21 +1200,15 @@
 
                         <div class="grid_4 data_metric round shadow">
                             <div class="metric_title">Sources of Shares</div>
-                            <dl class="bar_graph" id="sources_of_shares"></dl>
+                            <div id="sources_of_shares"></div>
 
                             <div class="no_data" data-metric="sources_of_shares">
                                 <p>No shared products yet.</p>
                             </div>
                         </div>
                     {% elif category.name == "Awareness" %}
-                        <div class="grid_7 data_metric round shadow">
-                            <div class="metric_title">Visitors over Time</div>
-
-                            <div id="visitors_over_time"></div>
-                        </div>
-
                         <div class="grid_2 data_metric round shadow">
-                            <div class="metric_title">Total Visitors</div>
+                            <div class="metric_title">Visitors</div>
                             <div class="metric_content" id="total_visitors"></div>
 
                             <div class="no_data" data-metric="total_visitors">
@@ -1273,7 +1217,7 @@
                         </div>
 
                         <div class="grid_2 data_metric round shadow">
-                            <div class="metric_title">Total Pageviews</div>
+                            <div class="metric_title">Pageviews</div>
                             <div class="metric_content" id="total_pageviews"></div>
 
                             <div class="no_data" data-metric="total_pageviews">
@@ -1290,11 +1234,21 @@
                             </div>
                         </div>
 
+                        <div class="grid_7 data_metric round shadow">
+                            <div class="metric_title">Visitors over Time</div>
+
+                            <div id="visitors_over_time"></div>
+
+                            <div class="no_data" data-metric="visitors_over_time">
+                                <p>No visitors yet.</p>
+                            </div>
+                        </div>
+
                         <div class="clear"></div>
 
                         <div class="grid_8 data_metric round shadow">
                             <div class="metric_title">Visitor Sources</div>
-                            <dl class="bar_graph" id="visitor_sources"></dl>
+                            <div id="visitor_sources"></div>
 
                             <div class="no_data" data-metric="total_visitors">
                                 <p>No visitors yet.</p>
@@ -1303,7 +1257,7 @@
 
                         <div class="grid_8 data_metric round shadow">
                             <div class="metric_title">Visits by Location</div>
-                            <dl class="bar_graph" id="visitor_locations"></dl>
+                            <div id="visitor_locations"></div>
 
                             <div class="no_data" data-metric="visitor_locations">
                                 <p>No visitors yet.</p>
