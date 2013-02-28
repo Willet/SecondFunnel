@@ -10,24 +10,7 @@ var PINPOINT = (function($, pageInfo) {
         },
         details,
         domTemplateCache = {},
-        featuredAreaSetup,
-        fisherYates,
-        getShortestColumn,
-        hidePreview,
-        init,
-        invalidateIRSession,
-        layoutResults,
-        load,
-        loadFB,
-        loadInitialResults,
-        loadMoreResults,
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
-        pageScroll,
-        productHoverOn,
-        productHoverOff,
-        ready,
-        renderTemplate,
-        renderTemplates,
         scripts,
         userClicks = 0,
         clickThreshold = 3,
@@ -374,6 +357,8 @@ var PINPOINT = (function($, pageInfo) {
                         layoutResults(results);
                     },
                     error: function() {
+                        console.log('loading backup results');
+                        layoutResults(details.backupResults, belowFold);
                         loadingBlocks = false;
                     }
                 });
@@ -424,11 +409,10 @@ var PINPOINT = (function($, pageInfo) {
         // {products: [], videos: [(sizeof 1)]}
         var $block,
             result,
-            results = fisherYates(jsonData.products, MAX_RESULTS_PER_SCROLL) || [],
+            results = fisherYates(jsonData, MAX_RESULTS_PER_SCROLL) || [],
             initialResults = Math.max(results.length, MAX_RESULTS_PER_SCROLL),
             discoveryProductTemplate = $('#discovery_product_template').html(),
             youtubeVideoTemplate = $('#youtube_video_template').html(),
-            videos = jsonData.videos || [],
             i,
             productDoms = [],
             template, templateEl, player,

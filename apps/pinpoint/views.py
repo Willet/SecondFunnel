@@ -1,28 +1,27 @@
-import os
-from functools import partial
 import json
+import os
+import re
+
+from functools import partial
 from django.contrib import messages
 from django.template.defaultfilters import slugify, safe
-import re
 
 from storages.backends.s3boto import S3BotoStorage
 
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext, Template, Context, loader
-from django.http import HttpResponse, Http404, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseServerError
 from django.contrib.contenttypes.models import ContentType
-from django.template.loader import render_to_string
 from django.views.decorators.cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
 
 from apps.analytics.models import Category, AnalyticsRecency
 from apps.assets.models import Store, Product
-from apps.intentrank.views import get_results, get_seeds
-from apps.assets.models import Store, Product, ExternalContent, ExternalContentType
-from apps.pinpoint.models import Campaign, BlockType, BlockContent
+from apps.intentrank.views import get_seeds
+from apps.assets.models import ExternalContent, ExternalContentType
+from apps.pinpoint.models import Campaign, BlockType
 from apps.pinpoint.decorators import belongs_to_store
 
 import apps.pinpoint.wizards as wizards
@@ -355,8 +354,8 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
     context.update({
         'product': product,
         'campaign': campaign,
-        'backup_results': related_results.get('products', []),
-        'random_results': related_results.get('products', []),
+        'backup_results': related_results,
+        'random_results': related_results,
     })
 
     theme = campaign.store.theme
@@ -392,7 +391,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
 
     # Render response
     rendered_page = page.render(context)
-    if not settings.DEBUG:
+    if not settings.DEBUG or True:
         written = generate_static_campaign(campaign, rendered_page, force=False)
         save_static_campaign(campaign, rendered_page, force=written)
 

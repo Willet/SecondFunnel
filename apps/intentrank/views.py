@@ -240,7 +240,7 @@ def get_seeds(request, **kwargs):
 
     if status in SUCCESS_STATUSES:
         result = get_json_data(request, results, page,
-                               seeds=filter(None, seeds.split(',')))
+                               seeds=filter(None, str(seeds).split(',')))
     else:
         result = results
 
