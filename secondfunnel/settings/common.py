@@ -284,6 +284,7 @@ EXPOSED_SETTINGS = {
     'STATIC_ASSET_TIMEOUT': STATIC_ASSET_TIMEOUT
 }
 
+WEBSITE_BASE_URL = 'http://www.secondfunnel.com'
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
 
 CELERYBEAT_SCHEDULE = {
@@ -298,5 +299,11 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 SOCIAL_AUTH_NEW_ASSOCIATION_REDIRECT_URL = '/pinpoint/admin/social-auth/'
+
+MAINTENANCE_IGNORE_URLS = (r'^/$',
+                           r'^/about/?$',
+                           r'^/contact/?$',
+                           r'^/static/?',
+                           r'^/why/?$', )
 
 djcelery.setup_loader()
