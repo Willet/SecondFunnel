@@ -427,15 +427,10 @@ var PINPOINT = (function($, pageInfo) {
                 templateEl = $("[data-template-id='" + templateType + "']");
                 template = templateEl.html();
 
-                // in case an image is lacking, don't bother with the product
-                if (!template_context.image || template_context.image == "None") {
-                    continue;
-                }
-
                 switch (templateType) {
                     case 'product':
                         // in case an image is lacking, don't bother with the product
-                        if (template_context.image == "None") {
+                        if (!template_context.image || template_context.image == "None") {
                             continue;
                         }
 
@@ -443,6 +438,10 @@ var PINPOINT = (function($, pageInfo) {
                         template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
                         break;
                     case 'combobox':
+                        // in case an image is lacking, don't bother with the product
+                        if (!template_context.image || template_context.image == "None") {
+                            continue;
+                        }
                         break;
                     case 'youtube':
                         break;
