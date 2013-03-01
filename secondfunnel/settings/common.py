@@ -284,6 +284,7 @@ EXPOSED_SETTINGS = {
     'STATIC_ASSET_TIMEOUT': STATIC_ASSET_TIMEOUT
 }
 
+WEBSITE_BASE_URL = 'http://www.secondfunnel.com'
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
 
 CELERYBEAT_SCHEDULE = {
