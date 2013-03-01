@@ -22,7 +22,7 @@ urlpatterns = patterns('',
 
     # ACCOUNTS
     url(r'^accounts/login/$',
-        'django.contrib.auth.views.login',
+        'apps.pinpoint.views.login_success_redirect',
         name="login"),
 
     url(r'^accounts/logout/$',

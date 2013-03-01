@@ -10,6 +10,7 @@ from storages.backends.s3boto import S3BotoStorage
 
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.contrib.auth.views import login
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext, Template, Context, loader
 from django.http import HttpResponse, HttpResponseServerError
@@ -45,6 +46,17 @@ def login_redirect(request):
         return redirect('store-admin', store_id=str(store_set.all()[0].id))
     else:
         return redirect('admin')
+
+
+def login_success_redirect(request):
+    """Redirects user to store admin page if he/she already logged in
+    and attempts to log in again.
+    """
+    if request.user.is_authenticated():
+        return login_redirect(request)
+    else:
+        return login(request)
+
 
 @login_required
 def social_auth(request):
