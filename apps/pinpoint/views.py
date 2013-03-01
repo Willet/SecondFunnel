@@ -160,28 +160,11 @@ def analytics_admin(request, store, campaign=False, is_overview=True):
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
 
-    try:
-        if campaign:
-            recency = AnalyticsRecency.objects.get(
-                content_type=campaign_type,
-                object_id=campaign.id
-            )
-        else:
-            recency = AnalyticsRecency.objects.get(
-                content_type=store_type,
-                object_id=store.id
-            )
-    except AnalyticsRecency.DoesNotExist:
-        recency = None
-    else:
-        recency = recency.last_fetched
-
     return render_to_response('pinpoint/admin_analytics.html', {
         'is_overview': is_overview,
         'store': store,
         'campaign': campaign,
-        'categories': categories,
-        'last_updated': recency
+        'categories': categories
     }, context_instance=RequestContext(request))
 
 
