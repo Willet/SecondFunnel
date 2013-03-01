@@ -197,6 +197,9 @@ class Product(BaseModelNamed):
                     data[field_name] = filter(None, fields[field].split('|'))
                 else:
                     data[field_name] = fields[field]
+                    # exception for strip_and_escape edge case
+                    if data[field_name] == "None":
+                        data[field_name] = ""
         else:
             data = ''
             for field in fields:
