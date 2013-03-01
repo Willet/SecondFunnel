@@ -1,9 +1,10 @@
 import re
+from django.db.models.signals import post_save
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.db import models
+from social_auth.db.django_models import UserSocialAuth
 
 from apps.assets.models import (MediaBase, BaseModel, BaseModelNamed,
     Store, GenericImage, Product, ProductMedia)
@@ -352,3 +353,24 @@ class ShopTheLookBlock(BaseModelNamed):
             raise ValidationError('Block needs at least one product image.')
         if not (self.existing_ls_image or self.custom_ls_image):
             raise ValidationError('Block needs at least one STL image.')
+
+
+def social_auth_changed(*args, **kwargs):
+    instance = kwargs.get('instance')
+    created = kwargs.get('created')
+
+    if not (instance and created):
+        return
+
+    # Superusers tend to belong to multiple stores; don't associate if so.
+    if instance.user.is_superuser:
+        return
+
+    stores = Store.objects.filter(staff=instance.user)
+
+    for store in stores:
+        store.social_auth.add(instance)
+        store.save()
+
+
+post_save.connect(social_auth_changed, sender=UserSocialAuth)

@@ -196,9 +196,15 @@ def asset_manager(request, store_id):
 
     # Check if connected to Instagram... for now
     try:
-        instagram_user = user.social_auth.get(provider='instagram')
+        instagram_user = store.social_auth.get(provider='instagram')
     except UserSocialAuth.DoesNotExist:
         instagram_user = None
+
+    if not instagram_user:
+        try:
+            instagram_user = user.social_auth.get(provider='instagram')
+        except UserSocialAuth.DoesNotExist:
+            instagram_user = None
 
     instagram_connect_request = True
     if instagram_user:
