@@ -57,6 +57,7 @@ def analytics_pinpoint(request):
     # either directly or via campaign
     if store_id:
         store = Store.objects.get(id=store_id)
+        campaign = store.campaign_set.all().order_by("-created")[0]
 
     elif campaign_id:
         campaign = Campaign.objects.get(id=campaign_id)
@@ -93,11 +94,8 @@ def analytics_pinpoint(request):
     if not request.user in store.staff.all():
         return ajax_error()
 
-    # get appropriate content type to look up data
-    if campaign_id:
-        object_type = ContentType.objects.get_for_model(Campaign)
-    else:
-        object_type = ContentType.objects.get_for_model(Store)
+    # what to filter kv for
+    object_type = ContentType.objects.get_for_model(Campaign)
 
     # iterate through analytics structures and get the data
     results = {}
@@ -110,7 +108,7 @@ def analytics_pinpoint(request):
 
             # just get the KV's associated with this object
             data = metric.data.filter(
-                content_type=object_type, object_id=object_id
+                content_type=object_type, object_id=campaign.id
             ).order_by('-timestamp')
 
             if start_date:

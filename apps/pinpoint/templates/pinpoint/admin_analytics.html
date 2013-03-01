@@ -1120,7 +1120,11 @@
             <label for="campaign_list">Page:</label>
             <select id="campaign_list" name="campaign_list">
                 {% for c in store.live_campaigns %}
-                    <option value="{{ c.id }}" {% if c.id == campaign.id %}selected{% endif %}>{{ c.name }}</option>
+                    {% if campaign %}
+                        <option value="{{ c.id }}" {% if c.id == campaign.id %}selected{% endif %}>{{ c.name }}</option>
+                    {% else %}
+                        <option value="{{ c.id }}" {% if forloop.last %}selected{% endif %}>{{ c.name }}</option>
+                    {% endif %}
                 {% endfor %}
             </select>
         </div>
