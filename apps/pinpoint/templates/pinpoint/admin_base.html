@@ -130,7 +130,7 @@
         </script>
         {% endcompress %}
 
-
+        {% block extra_js_includes %}{% endblock %}
         <script type="text/javascript">
             $(function() {
                 {% if store.id %}
@@ -145,8 +145,5 @@
                 {% block document_ready %}{% endblock %}
             });
         </script>
-
-        {% block extra_js_includes %}{% endblock %}
-
     </body>
 </html>
