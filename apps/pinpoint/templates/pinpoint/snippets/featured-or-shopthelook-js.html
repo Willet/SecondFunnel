@@ -5,7 +5,6 @@ var application = (function(store_id, urls){
         createUploader,
         productSelected,
         setProductFields,
-        updateCharacterCount,
         ready,
         init,
         getAutoCompleteConfig,
@@ -17,10 +16,7 @@ var application = (function(store_id, urls){
         onCancel,
         onBack,
         onProductApiResults,
-        products = {},
-        UPPER_CHARACTER_LIMIT   = 250,
-        UPPER_CHARACTER_WARNING = 230,
-        LOWER_CHARACTER_WARNING = 20;
+        products = {};
 
     setProductFields = function (product, data) {
         // set product's proper name
@@ -54,12 +50,10 @@ var application = (function(store_id, urls){
 
         // set the id for form submission
         $("#id_product_id").val(product.id);
-
-        // update character count
-        updateCharacterCount();
     };
 
     productSelected = function(data) {
+        // populate product media (image selection)
         var product = products[data.product_id];
 
         // Hide errors
@@ -171,43 +165,6 @@ var application = (function(store_id, urls){
         setProductFields(product, data)
 
         $(".product_meta").unmask();
-    };
-
-    updateCharacterCount = function() {
-        var $textarea   = $('#id_description'),
-            length      = $("<div>" + $textarea.val() + "</div>").text().length, // text-only length
-            $characters = $('#characters'),
-            $count      = $('#character_count'),
-            $buttons    = $('.button:not(#cancel_to_admin, .back, .qq-upload-button)'),
-            error,
-            low_warning,
-            high_warning,
-            warning;
-
-        error        = (UPPER_CHARACTER_LIMIT <= length) || (length == 0);
-        high_warning = (UPPER_CHARACTER_WARNING <= length && length < UPPER_CHARACTER_LIMIT);
-        low_warning  = (0 < length && length <= LOWER_CHARACTER_WARNING)
-        warning      = low_warning || high_warning;
-
-        $characters.text(length);
-        $count.removeClass();
-        $buttons.removeClass('disabled');
-        $buttons.removeAttr('disabled');
-
-        if (error) {
-            $count.addClass('danger');
-            $buttons.addClass('disabled');
-            $buttons.attr('disabled', 'disabled');
-        } else if (warning) {
-            $count.addClass('warning');
-
-            if (low_warning && $('#small_desc_warning:hidden')) {
-                $('#small_desc_warning:hidden').fadeIn(500);
-            }
-        } else {
-            $('#small_desc_warning').stop(true, true);
-            $('#small_desc_warning').fadeOut(500);
-        }
     };
 
     onPageChanged = function() {
@@ -406,7 +363,7 @@ var application = (function(store_id, urls){
                 ["link", "unlink"]
             ]
         });
-        descriptionObj.on('keydown keyup change', updateCharacterCount);
+
         descriptionObj.on('change', function () {
             descriptionObj.htmlarea('updateHtmlArea');
         });

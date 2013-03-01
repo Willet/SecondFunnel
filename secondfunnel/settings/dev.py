@@ -36,7 +36,7 @@ COMPRESS_PRECOMPILERS = (
 DEFAULT_FILE_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 COMPRESS_STORAGE = STATICFILES_STORAGE
-COMPRESS_ENABLED = True
+COMPRESS_ENABLED = False
 
 STATIC_URL = '/static/'
 COMPRESS_URL = STATIC_URL
@@ -49,3 +49,7 @@ GOOGLE_API_PRIVATE_KEY = 'google-service-account-prod.p12'
 GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 
 BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+
+# Nick's test instagram client; good for localhost:8000
+INSTAGRAM_CLIENT_ID = '1410bbbf8b614ebfb77081d5293cf48d'
+INSTAGRAM_CLIENT_SECRET = 'c535ee3141944cdbaab97954b6b85083'

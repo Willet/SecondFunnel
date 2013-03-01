@@ -22,7 +22,7 @@ class CategoryHasMetricInline(admin.TabularInline):
 
 
 class CategoryAdmin(AnalyticsBase):
-    list_display = AnalyticsBase.list_display + ('metrics_count',)
+    list_display = AnalyticsBase.list_display + ('metrics_count', 'order', 'default')
     inlines = [
         CategoryHasMetricInline,
     ]

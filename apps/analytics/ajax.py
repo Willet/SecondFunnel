@@ -3,6 +3,7 @@ import random
 
 from collections import defaultdict
 from datetime import timedelta, datetime
+from functools import partial
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
@@ -20,11 +21,14 @@ def daterange(start_date, end_date):
 
 @login_required
 def analytics_pinpoint(request):
-    def aggregate_by(bucket, key):
+    def aggregate_by(metric_slug, bucket, key):
         bucket['totals'][key] = defaultdict(int)
 
         for datum in bucket['data']:
-            bucket['totals'][key][datum[key]] += datum['value']
+            if metric_slug == "awareness-bounce_rate":
+                bucket['totals'][key][datum[key]] = datum['value']
+            else:
+                bucket['totals'][key][datum[key]] += datum['value']
 
         if key == 'date':
             # zero-out out missing dates
@@ -49,11 +53,24 @@ def analytics_pinpoint(request):
     if (campaign_id and store_id) or not object_id:
         return ajax_error()
 
+    # try get a store associated with this request,
+    # either directly or via campaign
+    if store_id:
+        store = Store.objects.get(id=store_id)
+
+    elif campaign_id:
+        campaign = Campaign.objects.get(id=campaign_id)
+        store = campaign.store
+
+    else:
+        return ajax_error()
+
     date_range = request.GET.get('range')
     end_date = datetime.now()
+    end_date = end_date.replace(tzinfo=campaign.created.tzinfo)
 
     if date_range == "total":
-        start_date = datetime(year=2012, month=1, day=1)
+        start_date = campaign.created
 
     elif date_range == "month":
         start_date = end_date - timedelta(weeks=4)
@@ -67,22 +84,10 @@ def analytics_pinpoint(request):
     else:
         start_date = end_date - timedelta(days=1)
 
-    # try get a store associated with this request,
-    # either directly or via campaign
-    store = None
-    try:
-        store = Store.objects.get(id=store_id)
+    start_date  = min(start_date, campaign.created)
 
-    except Store.DoesNotExist:
-        pass
-
-    if not store:
-        try:
-            campaign = Campaign.objects.get(id=campaign_id)
-            store = campaign.store
-
-        except Campaign.DoesNotExist:
-            return ajax_error()
+    # account for potential timezone differences
+    start_date = start_date - timedelta(days=2)
 
     # check if user is authorized to access this data
     if not request.user in store.staff.all():
@@ -123,7 +128,7 @@ def analytics_pinpoint(request):
                 'name': metric.name,
                 'order': category_has_metric.order,
                 'display': category_has_metric.display,
-                'totals': {'date': {}, 'product_id': {}, 'meta': {}},
+                'totals': {'date': {}, 'target_id': {}, 'meta': {}},
 
                 # this exposes daily data for each product
                 # it's a list comprehension
@@ -131,7 +136,7 @@ def analytics_pinpoint(request):
                             "id": datum.id,
                             "date": datum.timestamp.date().isoformat(),
                             "value": int(datum.value),
-                            "product_id": datum.target_id,
+                            "target_id": datum.target_id,
                             "meta": datum.meta
                         } for datum in data.all()]
             }
@@ -139,8 +144,9 @@ def analytics_pinpoint(request):
             # this aggregates and exposes daily data across all products
             bucket = results[category.slug][metric.slug]
 
-            bucket = aggregate_by(bucket, 'date')
-            bucket = aggregate_by(bucket, 'product_id')
-            bucket = aggregate_by(bucket, 'meta')
+            aggregator = partial(aggregate_by, metric.slug)
+            bucket = aggregator(bucket, 'date')
+            bucket = aggregator(bucket, 'target_id')
+            bucket = aggregator(bucket, 'meta')
 
     return ajax_success(results)

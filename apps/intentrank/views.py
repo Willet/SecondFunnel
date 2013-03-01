@@ -1,14 +1,16 @@
-import json
-from urllib import urlencode
-import random
-import math
-
-from django.http import HttpResponse
-from django.template import Context, Template
 import httplib2
+import json
+import math
+import random
+
+from urllib import urlencode
+
+from django.conf import settings
+from django.http import HttpResponse
+from django.db.models import Count
+from django.template import Context, Template
 from mock import Mock, MagicMock
 from apps.assets.models import Product, Store
-from django.conf import settings
 
 # All requests are get requests at the moment
 # URL to IntentRank looks something like this:
@@ -20,6 +22,7 @@ from secondfunnel.settings.common import INTENTRANK_BASE_URL
 
 SUCCESS = 200
 REDIRECT = 300
+FAIL400 = 400
 SUCCESS_STATUSES = xrange(SUCCESS, REDIRECT)
 DEFAULT_RESULTS  = 12
 MAX_BLOCKS_BEFORE_VIDEO = 50
@@ -54,25 +57,30 @@ def video_probability_function(x, m):
     else:
         return 1 - (math.log(m - x) / math.log(m))
 
+
 def random_products(store, param_dict, id_only=True):
     """Returns a list of random product ids, as would be returned by IR.
 
     Only used in development; not in production"""
     store_id = Store.objects.get(slug__exact=store)
-    num_results = param_dict.get('results', DEFAULT_RESULTS)
-    results = Product.objects.filter(store_id__exact=store_id).order_by('?')
+    num_results = int(param_dict.get('results', DEFAULT_RESULTS))
+    results = []
 
-    if id_only:
-        results = results.values('id')
-        results = map(lambda x: x.get('id'), results)
+    while len(results) < num_results:
+        query_set = Product.objects.select_related()\
+                           .prefetch_related('lifestyleImages')\
+                           .annotate(num_images=Count('media'))\
+                           .filter(store_id__exact=store_id,
+                                   num_images__gt=0)[:num_results]
+        results_partial = list(query_set)
 
-    if len(results) < num_results:
-        results = list(results)
-        new_params = {'results': (int(num_results) - len(results))}
-        results.extend(list(random_products(store, new_params, id_only)))
-        return results
-    else:
-        return results[:num_results]
+        if id_only:
+            results_partial = map(lambda x: x.id, results_partial)
+
+        results.extend(results_partial)
+
+    return results[:num_results]
+
 
 def send_intentrank_request(request, url, method='GET', headers=None,
                             http=httplib2.Http):
@@ -95,10 +103,14 @@ def send_intentrank_request(request, url, method='GET', headers=None,
 
     return response, content
 
+
 # TODO: Is there a Guice for Python to inject dependency in live, dev?
 def process_intentrank_request(request, store, page, function_name,
                                param_dict):
-    """does NOT initiate a real IntentRank request if debug is set to True."""
+    """does NOT initiate a real IntentRank request if debug is set to True.
+
+    Returns the exact number of products requested only when debug is True.
+    """
 
     url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
         INTENTRANK_BASE_URL, store, page, function_name)
@@ -108,55 +120,71 @@ def process_intentrank_request(request, store, page, function_name,
     if settings.DEBUG:
         # Use a mock instead of avoiding the call
         # Mock is onlt used in development, not in production
-        product_results = random_products(store, param_dict, id_only=True)
-        json_results = json.dumps({'products': product_results})
+        results = {'products': random_products(store, param_dict, id_only=True)}
 
-        http_mock = Mock()
-        http_response = MagicMock(status=SUCCESS)
-        http_response.__getitem__.return_value = None
-        http_content = json_results
-        http_mock.request.return_value = (http_response, http_content)
-
-        http = Mock(return_value=http_mock)
-    else:
+        response = MagicMock(status=SUCCESS)
+    else:  # live
         http = httplib2.Http
 
-    try:
-        response, content = send_intentrank_request(request, url, http=http)
-    except httplib2.HttpLib2Error:
-        content = "{}"
+        try:
+            response, content = send_intentrank_request(request, url, http=http)
+        except httplib2.HttpLib2Error:
+            # something fundamentally went wrong, and we have nothing to show
+            response = MagicMock(status=FAIL400)
+            content = "{}"
 
-    try:
-        results = json.loads(content)
-    except ValueError:
-        results = {"error": content}
+        try:
+            results = json.loads(content)
+        except ValueError:
+            results = {"error": content}
 
     if 'error' in results:
         results.update({'url': url})
         return results, response.status
 
-    products = Product.objects.filter(pk__in=results.get('products'),
+    products = Product.objects.annotate(num_images=Count('media'))\
+                              .filter(pk__in=results.get('products'),
+                                      num_images__gt=0,
                                       rescrape=False)
+
     return products, response.status
 
 
-def get_json_data(request, products, campaign_id):
+def get_json_data(request, products, campaign_id, seeds=None):
     """returns json equivalent of get_blocks' blocks.
 
+    seeds is a list of product IDs.
+
     results will be an object {}, not an array [].
+    products_with_images_only should be either '0' or '1', please.
     """
     campaign = Campaign.objects.get(pk=campaign_id)
-    results = {'products': [],
-               'videos': []}
+    results = []
+    products_with_images_only = True
+    if request.GET.get('products_with_images_only', '1') == '0':
+        products_with_images_only = False
 
     # products
     for product in products:
+        if not product.images() and products_with_images_only:
+            continue  # has no image, but wanted image --> ignore product
+
         product_props = product.data(raw=True)
         product_js_obj = {}
         for prop in product_props:
             # where product_prop is ('data-key', 'value')
             product_js_obj[prop] = product_props[prop]
-        results['products'].append(product_js_obj)
+        results.append(product_js_obj)
+
+        # for each product, add all external content of that product beside
+        # the product json
+        for external_content in product.external_content.all():
+            seed_keys = external_content.to_json()
+            seed_keys.update({
+                'template': external_content.content_type.name.lower(),
+                'product-id': product.id,
+            })
+            results.append(seed_keys)
 
     # videos
     video_cookie = request.session.get('pinpoint-video-cookie')
@@ -167,30 +195,49 @@ def get_json_data(request, products, campaign_id):
 
     # if this is the first batch of results, or the random amount is under the
     # curve of the probability function, then add a video
-    show_video = random.random() <= video_probability_function(video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
+    show_video = random.random() <= video_probability_function(
+        video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
     if videos.exists() and (video_cookie.is_empty() or show_video):
         video = videos.order_by('?')[0]
-        results['videos'].append({
-            'video_id': video.video_id,
-            'video_provider': 'youtube',
-            'video_width': '200',
-            'video_height': '200',
-            'video_autoplay': False
+        results.append({
+            'id': video.video_id,
+            'provider': 'youtube',
+            'width': '450',
+            'height': '250',
+            'autoplay': 0,
+            'template': 'youtube'
         })
         video_cookie.add_video(video.video_id)
     else:
         video_cookie.add_blocks(len(results))
+
+    # return external media for all seeds too
+    if seeds:
+        seed_prods = Product.objects.filter(pk__in=seeds, rescrape=False)
+        for seed_prod in seed_prods:
+            for external_content in seed_prod.external_content.all():
+                seed_keys = external_content.to_json()
+                seed_keys.update({
+                    'template': external_content.content_type.name,
+                })
+                results.append(seed_keys)
 
     request.session['pinpoint-video-cookie'] = video_cookie
 
     return results
 
 
-def get_seeds(request):
-    store   = request.GET.get('store', '-1')
-    page    = request.GET.get('campaign', '-1')
-    seeds   = request.GET.get('seeds', '-1')
-    num_results = request.GET.get('results', DEFAULT_RESULTS)
+def get_seeds(request, **kwargs):
+    """kwargs overrides request values when provided.
+
+    kwargs['raw'] also toggles between returning a dictionary
+    or an entire HttpResponse.
+    """
+    store   = kwargs.get('store', request.GET.get('store', '-1'))
+    page    = kwargs.get('campaign', request.GET.get('campaign', '-1'))
+    seeds   = kwargs.get('seeds', request.GET.get('seeds', '-1'))
+    num_results = kwargs.get('results', request.GET.get('results',
+                                                        DEFAULT_RESULTS))
 
     request.session['pinpoint-video-cookie'] = VideoCookie()
 
@@ -202,17 +249,28 @@ def get_seeds(request):
     )
 
     if status in SUCCESS_STATUSES:
-        result = get_json_data(request, results, page)
+        result = get_json_data(request, results, page,
+                               seeds=filter(None, str(seeds).split(',')))
     else:
         result = results
 
-    return HttpResponse(json.dumps(result), mimetype='application/json',
-                        status=status)
+    if kwargs.get('raw', False):
+        return result
+    else:
+        return HttpResponse(json.dumps(result), mimetype='application/json',
+                            status=status)
 
-def get_results(request):
-    store   = request.GET.get('store', '-1')
-    page    = request.GET.get('campaign', '-1')
-    num_results = request.GET.get('results', DEFAULT_RESULTS)
+def get_results(request, **kwargs):
+    """kwargs overrides request values when provided.
+
+    kwargs['raw'] also toggles between returning a dictionary
+    or an entire HttpResponse.
+    """
+    store = kwargs.get('store', request.GET.get('store', '-1'))
+    page = kwargs.get('campaign', request.GET.get('campaign', '-1'))
+    seeds   = kwargs.get('seeds', request.GET.get('seeds', '-1'))
+    num_results = kwargs.get('results', request.GET.get('results',
+                                                        DEFAULT_RESULTS))
 
     results, status = process_intentrank_request(
         request, store, page, 'getresults', {
@@ -221,7 +279,8 @@ def get_results(request):
     )
 
     if status in SUCCESS_STATUSES:
-        result = get_json_data(request, results, page)
+        result = get_json_data(request, results, page,
+                               seeds=filter(None, seeds.split(',')))
 
     # workaround for a weird bug on intentrank's side
     elif status == 400:
@@ -230,8 +289,11 @@ def get_results(request):
     else:
         result = results
 
-    return HttpResponse(json.dumps(result), mimetype='application/json',
-                         status=status)
+    if kwargs.get('raw', False):
+        return result
+    else:
+        return HttpResponse(json.dumps(result), mimetype='application/json',
+                            status=status)
 
 
 def update_clickstream(request):
@@ -252,6 +314,7 @@ def update_clickstream(request):
 
     return HttpResponse(json.dumps(result), mimetype='application/json',
                         status=status)
+
 
 def invalidate_session(request):
     #intentrank/invalidate-session

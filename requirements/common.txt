@@ -11,9 +11,11 @@ django-extensions==0.9
 requirements/django-maintenancemode-master.zip
 django-storages==1.1.5
 django-tastypie==0.9.11
+django-social-auth==0.7.18
 lxml==2.3.5
 python-dateutil==1.5
 python-memcached==1.48
+python-instagram==0.8.0
 httplib2==0.7.7
 wsgiref==0.1.2
 mock==1.0.0
@@ -32,3 +34,6 @@ google==1.04
 google-api-python-client==1.0
 pyOpenSSL==0.13
 python-gflags==2.0
+
+# hipchat
+python-simple-hipchat==0.1
