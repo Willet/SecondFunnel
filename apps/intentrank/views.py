@@ -7,6 +7,8 @@ from urllib import urlencode
 
 from django.conf import settings
 from django.http import HttpResponse
+from django.db.models import Count
+from django.template import Context, Template
 from mock import Mock, MagicMock
 from apps.assets.models import Product, Store
 
@@ -20,6 +22,7 @@ from secondfunnel.settings.common import INTENTRANK_BASE_URL
 
 SUCCESS = 200
 REDIRECT = 300
+FAIL400 = 400
 SUCCESS_STATUSES = xrange(SUCCESS, REDIRECT)
 DEFAULT_RESULTS  = 12
 MAX_BLOCKS_BEFORE_VIDEO = 50
@@ -54,25 +57,30 @@ def video_probability_function(x, m):
     else:
         return 1 - (math.log(m - x) / math.log(m))
 
+
 def random_products(store, param_dict, id_only=True):
     """Returns a list of random product ids, as would be returned by IR.
 
     Only used in development; not in production"""
     store_id = Store.objects.get(slug__exact=store)
-    num_results = param_dict.get('results', DEFAULT_RESULTS)
-    results = Product.objects.filter(store_id__exact=store_id).order_by('?')
+    num_results = int(param_dict.get('results', DEFAULT_RESULTS))
+    results = []
 
-    if id_only:
-        results = results.values('id')
-        results = map(lambda x: x.get('id'), results)
+    while len(results) < num_results:
+        query_set = Product.objects.select_related()\
+                           .prefetch_related('lifestyleImages')\
+                           .annotate(num_images=Count('media'))\
+                           .filter(store_id__exact=store_id,
+                                   num_images__gt=0)[:num_results]
+        results_partial = list(query_set)
 
-    if len(results) < num_results:
-        results = list(results)
-        new_params = {'results': (int(num_results) - len(results))}
-        results.extend(list(random_products(store, new_params, id_only)))
-        return results
-    else:
-        return results[:num_results]
+        if id_only:
+            results_partial = map(lambda x: x.id, results_partial)
+
+        results.extend(results_partial)
+
+    return results[:num_results]
+
 
 def send_intentrank_request(request, url, method='GET', headers=None,
                             http=httplib2.Http):
@@ -95,10 +103,14 @@ def send_intentrank_request(request, url, method='GET', headers=None,
 
     return response, content
 
+
 # TODO: Is there a Guice for Python to inject dependency in live, dev?
 def process_intentrank_request(request, store, page, function_name,
                                param_dict):
-    """does NOT initiate a real IntentRank request if debug is set to True."""
+    """does NOT initiate a real IntentRank request if debug is set to True.
+
+    Returns the exact number of products requested only when debug is True.
+    """
 
     url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
         INTENTRANK_BASE_URL, store, page, function_name)
@@ -108,35 +120,33 @@ def process_intentrank_request(request, store, page, function_name,
     if settings.DEBUG:
         # Use a mock instead of avoiding the call
         # Mock is onlt used in development, not in production
-        product_results = random_products(store, param_dict, id_only=True)
-        json_results = json.dumps({'products': product_results})
+        results = {'products': random_products(store, param_dict, id_only=True)}
 
-        http_mock = Mock()
-        http_response = MagicMock(status=SUCCESS)
-        http_response.__getitem__.return_value = None
-        http_content = json_results
-        http_mock.request.return_value = (http_response, http_content)
-
-        http = Mock(return_value=http_mock)
-    else:
+        response = MagicMock(status=SUCCESS)
+    else:  # live
         http = httplib2.Http
 
-    try:
-        response, content = send_intentrank_request(request, url, http=http)
-    except httplib2.HttpLib2Error:
-        content = "{}"
+        try:
+            response, content = send_intentrank_request(request, url, http=http)
+        except httplib2.HttpLib2Error:
+            # something fundamentally went wrong, and we have nothing to show
+            response = MagicMock(status=FAIL400)
+            content = "{}"
 
-    try:
-        results = json.loads(content)
-    except ValueError:
-        results = {"error": content}
+        try:
+            results = json.loads(content)
+        except ValueError:
+            results = {"error": content}
 
     if 'error' in results:
         results.update({'url': url})
         return results, response.status
 
-    products = Product.objects.filter(pk__in=results.get('products'),
+    products = Product.objects.annotate(num_images=Count('media'))\
+                              .filter(pk__in=results.get('products'),
+                                      num_images__gt=0,
                                       rescrape=False)
+
     return products, response.status
 
 
@@ -304,6 +314,7 @@ def update_clickstream(request):
 
     return HttpResponse(json.dumps(result), mimetype='application/json',
                         status=status)
+
 
 def invalidate_session(request):
     #intentrank/invalidate-session
