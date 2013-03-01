@@ -8,7 +8,7 @@ cssmin==0.1.4
 django-ajax-forms
 django-compressor==1.2
 django-extensions==0.9
-requirements/django-maintenancemode-master.zip
+git+git://github.com/btaylordesign/django-maintenancemode.git@3d7f15fa
 django-storages==1.1.5
 django-tastypie==0.9.11
 django-social-auth==0.7.18
