@@ -161,6 +161,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'maintenancemode.middleware.MaintenanceModeMiddleware',
     )
 
 ROOT_URLCONF = 'secondfunnel.urls'
@@ -203,6 +204,7 @@ INSTALLED_APPS = (
     'adminlettuce',
     'ajax_forms',
     "compressor",
+    "maintenancemode",
     'social_auth',
 
     # our apps

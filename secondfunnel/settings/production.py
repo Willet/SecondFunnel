@@ -6,6 +6,7 @@ if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
+MAINTENANCE_MODE = False
 
 COMPRESS_ENABLED = True
 
@@ -27,6 +28,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'tastypie',
     'ajax_forms',
+    "maintenancemode",
     "compressor",
     'social_auth',
 
