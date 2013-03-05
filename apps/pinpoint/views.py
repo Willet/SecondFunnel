@@ -310,14 +310,11 @@ def save_static_campaign(campaign, contents, request=None):
 
     Dependency resolution only goes so far - it will NOT search for
     dependencies within dependencies.
-
-    In the case that this function is called when debug is on (which
-    affects production), exceptions will be shown when necessary.
     """
     filename = '%s/index.html' % campaign.id  # does not expire.
 
     try:
-        storage = S3BotoStorage(bucket='campaigns.secondfunnel.com',
+        storage = S3BotoStorage(bucket=settings.STATIC_CAMPAIGNS_BUCKET_NAME,
                                 access_key=settings.AWS_ACCESS_KEY_ID,
                                 secret_key=settings.AWS_SECRET_ACCESS_KEY)
         thing_file = ContentFile(contents)
@@ -425,10 +422,9 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
 
     # Render response
     rendered_page = page.render(context)
-    if not settings.DEBUG:
-        written = generate_static_campaign(campaign, rendered_page, force=False)
-        if written:
-            save_static_campaign(campaign, rendered_page, request=request)
+    written = generate_static_campaign(campaign, rendered_page, force=False)
+    if written:
+        save_static_campaign(campaign, rendered_page, request=request)
 
     return HttpResponse(rendered_page)
 
