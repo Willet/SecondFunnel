@@ -1,6 +1,8 @@
 import json
 import os
 import re
+import urllib2
+from urlparse import urlunparse
 
 from functools import partial
 from django.contrib import messages
@@ -10,6 +12,7 @@ from storages.backends.s3boto import S3BotoStorage
 
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.contrib.auth.views import login
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext, Template, Context, loader
@@ -302,21 +305,51 @@ def generate_static_campaign(campaign, contents, force=False):
     return write
 
 
-def save_static_campaign(campaign, contents, force=False):
-    # does not expire.
-    filename = '%s.html' % campaign.id
+def save_static_campaign(campaign, contents, force=False, request=None):
+    """Uploads the html string (contents) to s3 under the folder (campaign).
+
+    Also _attempts_ to save its known static dependencies in the same s3
+    bucket, but ONLY if request is supplied (required).
+
+    Dependency resolution only goes so far - it will NOT search for
+    dependencies within dependencies.
+    """
+    filename = '%s/index.html' % campaign.id  # does not expire.
+
     try:
         storage = S3BotoStorage(bucket='campaigns.secondfunnel.com',
                                 access_key=settings.AWS_ACCESS_KEY_ID,
                                 secret_key=settings.AWS_SECRET_ACCESS_KEY)
+        thing_file = ContentFile(contents)
+        thing_file.content_type = 'text/html'
+        storage.save(filename, thing_file)
 
-        thing = storage.open(filename, 'w')
-        thing.write(contents)
-        thing.close()
     except IOError, err:
         # storage is not available. bring attention if it was forced
         if force:
             raise IOError(err)
+        else:
+            return None
+
+    # save dependencies
+    dependencies = re.findall('/static/[^ \'\"]+\.(?:css|js|jpe?g|png|gif)',
+                              contents)
+    try:
+        for dependency in dependencies:
+            dependency_abs_url = urlunparse(('http', request.META['HTTP_HOST'],
+                                             dependency, None, None, None))
+            try:
+                dependency_contents = urllib2.urlopen(dependency_abs_url).read()
+            except IOError:  # 404
+                continue  # I am not helpful; going to work on something else
+            yet_another_file = ContentFile(dependency_contents)
+            storage.save(dependency, yet_another_file)
+    except (IOError, AttributeError), err:
+        # AttributeError is for accessing empty requests
+        if force:
+            raise IOError(err)
+        else:
+            return None
 
 
 def campaign_to_theme_to_response(campaign, arguments, context=None,
@@ -394,12 +427,14 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
     rendered_page = page.render(context)
     if not settings.DEBUG:
         written = generate_static_campaign(campaign, rendered_page, force=False)
-        save_static_campaign(campaign, rendered_page, force=written)
+        save_static_campaign(campaign, rendered_page, force=written,
+                             request=request)
 
     return HttpResponse(rendered_page)
 
 
 def app_exception_handler(request):
+    """Renders the "something broke" page. JS console shows the error."""
     import sys, traceback
 
     type, exception, tb = sys.exc_info()
