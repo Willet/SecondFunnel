@@ -143,7 +143,21 @@ var PINPOINT = (function($, pageInfo) {
             $mask    = $('.preview .mask'),
             $preview = $('.preview.product'),
             $buttons,
-            tag;
+            tag,
+            templateEl = $("[data-template-id='preview']"),
+            template = templateEl.html(),
+            renderedTemplate,
+            srcElement;
+
+        renderedTemplate = renderTemplate(template, {
+            'data': data,
+            'page': details.page,
+            'store': details.store
+        });
+
+        $('.target.template[data-src="preview"]').html(renderedTemplate);
+
+        /*
 
         // Fill in data
         $.each(data, function(key, value) {
@@ -207,6 +221,8 @@ var PINPOINT = (function($, pageInfo) {
         if (twttr) {
             twttr.widgets.load();
         }
+
+        */
 
         for (var i in previewCallbacks) {
             if (previewCallbacks.hasOwnProperty(i)) {
