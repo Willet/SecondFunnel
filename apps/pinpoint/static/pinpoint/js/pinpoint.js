@@ -138,16 +138,13 @@ var PINPOINT = (function($, pageInfo) {
         // display overlay with more information about the selected product
         // data is retrieved from .block.product divs
         var data     = $(this).data(),
-            images,
-            $element,
             $mask    = $('.preview .mask'),
             $preview = $('.preview.product'),
-            $buttons,
-            tag,
             templateEl = $("[data-template-id='preview']"),
             template = templateEl.html(),
-            renderedTemplate,
-            srcElement;
+            renderedTemplate;
+
+        data.is_preview = data.is_preview || true;
 
         renderedTemplate = renderTemplate(template, {
             'data': data,
@@ -157,72 +154,14 @@ var PINPOINT = (function($, pageInfo) {
 
         $('.target.template[data-src="preview"]').html(renderedTemplate);
 
-        /*
-
-        // Fill in data
-        $.each(data, function(key, value) {
-            $element = $preview.find('.'+key).not('.target');
-
-            if (!$element.length) {
-                // No further work to do
-                return;
-            }
-
-            tag = $element.prop('tagName').toLowerCase();
-            switch(key) {
-                case 'url':
-                    if (tag === 'a') {
-                        $element.prop('href', value);
-                    } else {
-                        $element.html(value);
-                    }
-                    break;
-                case 'image':
-                    $element.empty();
-                    $element.append($('<img/>', {
-                        'src': value.replace("master.jpg", "large.jpg")
-                    }));
-                    break;
-                case 'images':
-                    $element.empty();
-                    $.each(value, function(index, image) {
-                        var $li = $('<li/>'),
-                            $img = $('<img/>', {
-                                'src': image.replace("master.jpg", "thumb.jpg")
-                            }),
-                            $appendElem;
-
-                        $appendElem = $img;
-                        if (tag === 'ul') {
-                            $li.append($img);
-                            $appendElem = $li;
-                        }
-                        $element.append($appendElem);
-                    });
-                    break;
-                default:
-                    $element.html(value);
-            }
-        });
-
-        // Create buttons
-        $buttons = createSocialButtons({
-            'title': data.title,
-            'url'  : data.url,
-            'image': data.image,
-            'count': true
-        });
-        $preview.find('.social-buttons').replaceWith($buttons);
-
         // Parse Facebook, Twitter buttons
-        if (FB) {
+        if (window.FB) {
             FB.XFBML.parse($preview.find('.social-buttons .button.facebook')[0]);
         }
-        if (twttr) {
+
+        if (window.twttr) {
             twttr.widgets.load();
         }
-
-        */
 
         for (var i in previewCallbacks) {
             if (previewCallbacks.hasOwnProperty(i)) {
