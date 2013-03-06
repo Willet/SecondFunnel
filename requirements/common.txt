@@ -37,6 +37,3 @@ python-gflags==2.0
 
 # hipchat
 python-simple-hipchat==0.1
-
-# CI
-django-jenkins==0.13.0
