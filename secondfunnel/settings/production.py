@@ -38,6 +38,9 @@ INSTALLED_APPS = (
     'apps.pinpoint',
     'apps.website',
     'apps.scraper',
+
+    # CI
+    'django_jenkins',
 )
 
 # URL prefix for static files.

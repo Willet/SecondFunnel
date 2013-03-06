@@ -213,6 +213,9 @@ INSTALLED_APPS = (
     'apps.pinpoint',
     'apps.website',
     'apps.scraper',
+
+    # CI
+    'django_jenkins',
 )
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
@@ -305,5 +308,11 @@ MAINTENANCE_IGNORE_URLS = (r'^/$',
                            r'^/contact/?$',
                            r'^/static/?',
                            r'^/why/?$', )
+
+JENKINS_TASKS = (
+    'django_jenkins.tasks.run_pylint',
+    'django_jenkins.tasks.with_coverage',
+    'django_jenkins.tasks.django_tests',
+)
 
 djcelery.setup_loader()
