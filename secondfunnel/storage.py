@@ -18,11 +18,11 @@ class CustomExpiresS3BotoStorage(S3BotoStorage):
     def __compile_regexes(self, regexes):
         return map(lambda x: (re.compile(x[0]), x[1]), regexes)
 
-    """
-    Overrides the default url generator to apply given expiry times to matching regexes
-    Based on source code in storages.backends.s3boto.S3BotoStorage
-    """
     def url(self, name):
+        """
+        Overrides the default url generator to apply given expiry times to matching regexes
+        Based on source code in storages.backends.s3boto.S3BotoStorage
+        """
         name = self._normalize_name(self._clean_name(name))
         if self.custom_domain:
             return "%s://%s/%s" % ('https' if self.secure_urls else 'http',
