@@ -129,9 +129,15 @@ var PINPOINT = (function($, pageInfo) {
             $preview = $('.preview.product'),
             templateEl = $("[data-template-id='preview']"),
             template = templateEl.html(),
-            renderedTemplate;
+            renderedTemplate,
+            target = $('.target.template[data-src="preview"]');
 
         data.is_preview = data.is_preview || true;
+
+        if(!templateEl.length || !target.length) {
+            console.log('oops @ no preview template');
+            return;
+        }
 
         renderedTemplate = renderTemplate(template, {
             'data': data,
@@ -139,7 +145,7 @@ var PINPOINT = (function($, pageInfo) {
             'store': details.store
         });
 
-        $('.target.template[data-src="preview"]').html(renderedTemplate);
+        target.html(renderedTemplate);
 
         // Parse Facebook, Twitter buttons
         if (window.FB) {
