@@ -86,34 +86,21 @@ var PINPOINT = (function($, pageInfo) {
         // should be used.
         // data can be passed in, or left as default on the target element
         // as data attributes.
-        var excludeTemplates, excludeTemplatesSelector;
 
-        switch (details.page['main-block-template']) {
-            case 'shop-the-look':
-                excludeTemplates = ['featured-product'];
-                break;
-            case 'featured-product':
-                excludeTemplates = ['shop-the-look'];
-                break;
-            default:
-                excludeTemplates = '';
-        }
 
-        $.each(excludeTemplates, function (key, value) {
-            excludeTemplates[key] = "[data-src='" + value + "']";
-        });
-
-        excludeTemplatesSelector = excludeTemplates.join(', ');
-
-        // select every ".template.target" element that is NOT
-        // the main page template, and render them with their data-src
+        // select every ".template.target" element and render them with their data-src
         // attribute: data-src='abc' rendered by a data-template-id='abc'
-        $('.template.target').not(excludeTemplatesSelector).each(function () {
+        $('.template.target').each(function () {
             var originalContext = data || {},
                 target = $(this),
                 src = target.data('src') || '',
                 srcElement = $("[data-template-id='" + src + "']"),
                 context = {};
+
+            if (src === 'featured') {
+                src = details.page['main-block-template'];
+                srcElement = $("[data-template-id='" + src + "']")
+            }
 
             // populate context with all available variables
             $.extend(context, originalContext, {
@@ -138,73 +125,34 @@ var PINPOINT = (function($, pageInfo) {
         // display overlay with more information about the selected product
         // data is retrieved from .block.product divs
         var data     = $(this).data(),
-            images,
-            $element,
             $mask    = $('.preview .mask'),
             $preview = $('.preview.product'),
-            $buttons,
-            tag;
+            templateEl = $("[data-template-id='preview']"),
+            template = templateEl.html(),
+            renderedTemplate,
+            target = $('.target.template[data-src="preview"]');
 
-        // Fill in data
-        $.each(data, function(key, value) {
-            $element = $preview.find('.'+key).not('.target');
+        data.is_preview = data.is_preview || true;
 
-            if (!$element.length) {
-                // No further work to do
-                return;
-            }
+        if(!templateEl.length || !target.length) {
+            console.log('oops @ no preview template');
+            return;
+        }
 
-            tag = $element.prop('tagName').toLowerCase();
-            switch(key) {
-                case 'url':
-                    if (tag === 'a') {
-                        $element.prop('href', value);
-                    } else {
-                        $element.html(value);
-                    }
-                    break;
-                case 'image':
-                    $element.empty();
-                    $element.append($('<img/>', {
-                        'src': value.replace("master.jpg", "large.jpg")
-                    }));
-                    break;
-                case 'images':
-                    $element.empty();
-                    $.each(value, function(index, image) {
-                        var $li = $('<li/>'),
-                            $img = $('<img/>', {
-                                'src': image.replace("master.jpg", "thumb.jpg")
-                            }),
-                            $appendElem;
-
-                        $appendElem = $img;
-                        if (tag === 'ul') {
-                            $li.append($img);
-                            $appendElem = $li;
-                        }
-                        $element.append($appendElem);
-                    });
-                    break;
-                default:
-                    $element.html(value);
-            }
+        renderedTemplate = renderTemplate(template, {
+            'data': data,
+            'page': details.page,
+            'store': details.store
         });
 
-        // Create buttons
-        $buttons = createSocialButtons({
-            'title': data.title,
-            'url'  : data.url,
-            'image': data.image,
-            'count': true
-        });
-        $preview.find('.social-buttons').replaceWith($buttons);
+        target.html(renderedTemplate);
 
         // Parse Facebook, Twitter buttons
-        if (FB) {
+        if (window.FB) {
             FB.XFBML.parse($preview.find('.social-buttons .button.facebook')[0]);
         }
-        if (twttr) {
+
+        if (window.twttr) {
             twttr.widgets.load();
         }
 
