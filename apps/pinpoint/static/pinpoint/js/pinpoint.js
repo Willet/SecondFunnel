@@ -86,34 +86,21 @@ var PINPOINT = (function($, pageInfo) {
         // should be used.
         // data can be passed in, or left as default on the target element
         // as data attributes.
-        var excludeTemplates, excludeTemplatesSelector;
 
-        switch (details.page['main-block-template']) {
-            case 'shop-the-look':
-                excludeTemplates = ['featured-product'];
-                break;
-            case 'featured-product':
-                excludeTemplates = ['shop-the-look'];
-                break;
-            default:
-                excludeTemplates = '';
-        }
 
-        $.each(excludeTemplates, function (key, value) {
-            excludeTemplates[key] = "[data-src='" + value + "']";
-        });
-
-        excludeTemplatesSelector = excludeTemplates.join(', ');
-
-        // select every ".template.target" element that is NOT
-        // the main page template, and render them with their data-src
+        // select every ".template.target" element and render them with their data-src
         // attribute: data-src='abc' rendered by a data-template-id='abc'
-        $('.template.target').not(excludeTemplatesSelector).each(function () {
+        $('.template.target').each(function () {
             var originalContext = data || {},
                 target = $(this),
                 src = target.data('src') || '',
                 srcElement = $("[data-template-id='" + src + "']"),
                 context = {};
+
+            if (src === 'featured') {
+                src = details.page['main-block-template'];
+                srcElement = $("[data-template-id='" + src + "']")
+            }
 
             // populate context with all available variables
             $.extend(context, originalContext, {
