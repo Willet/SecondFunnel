@@ -213,9 +213,21 @@ INSTALLED_APPS = (
     'apps.pinpoint',
     'apps.website',
     'apps.scraper',
+
+    # CI
+    'django_jenkins',
 )
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+JENKINS_TEST_RUNNER = 'django_jenkins.nose_runner.CINoseTestSuiteRunner'
+COVERAGE_REPORT_HTML_OUTPUT_DIR = os.path.join(
+        os.path.dirname(
+            os.path.dirname(
+                os.path.dirname(
+                    os.path.abspath(__file__)))), 'test_report')
+
+COVERAGE_ADDITIONAL_MODULES = ['apps']
+COVERAGE_PATH_EXCLUDES = ['.env', 'migrations']
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -305,5 +317,10 @@ MAINTENANCE_IGNORE_URLS = (r'^/$',
                            r'^/contact/?$',
                            r'^/static/?',
                            r'^/why/?$', )
+
+JENKINS_TASKS = (
+    'django_jenkins.tasks.with_coverage',
+    'django_jenkins.tasks.run_pep8',
+)
 
 djcelery.setup_loader()
