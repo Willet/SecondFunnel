@@ -317,7 +317,12 @@ def save_static_campaign(campaign, contents, request=None):
         storage = S3BotoStorage(bucket=settings.STATIC_CAMPAIGNS_BUCKET_NAME,
                                 access_key=settings.AWS_ACCESS_KEY_ID,
                                 secret_key=settings.AWS_SECRET_ACCESS_KEY)
-        thing_file = ContentFile(contents)
+        try:
+            thing_file = ContentFile(contents.decode('utf-32').encode(
+                'utf-8', 'ignore'))
+        except UnicodeDecodeError:
+            # string is NOT in UTF-32
+            thing_file = ContentFile(contents)
         thing_file.content_type = 'text/html'
         storage.save(filename, thing_file)
 
@@ -339,6 +344,8 @@ def save_static_campaign(campaign, contents, request=None):
                 dependency_contents = urllib2.urlopen(dependency_abs_url).read()
             except IOError:  # 404
                 continue  # I am not helpful; going to work on something else
+
+            # this can be binary
             yet_another_file = ContentFile(dependency_contents)
             storage.save(dependency, yet_another_file)
     except (IOError, AttributeError), err:
@@ -422,8 +429,13 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
 
     # Render response
     rendered_page = page.render(context)
+    try:
+        rendered_page = rendered_page.decode('utf-8')
+    except (TypeError, UnicodeDecodeError):
+        pass  # it is already unicode this particular time
+
     written = generate_static_campaign(campaign, rendered_page, force=False)
-    if written:
+    if written or settings.DEBUG or request.GET.get('regen', '0') == '1':
         save_static_campaign(campaign, rendered_page, request=request)
 
     return HttpResponse(rendered_page)
