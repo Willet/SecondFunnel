@@ -319,8 +319,9 @@ MAINTENANCE_IGNORE_URLS = (r'^/$',
                            r'^/why/?$', )
 
 JENKINS_TASKS = (
-    'django_jenkins.tasks.run_pep8',
     'django_jenkins.tasks.with_coverage',
+    'django_jenkins.tasks.run_pep8',
+    'django_jenkins.tasks.run_pylint',
 )
 
 djcelery.setup_loader()
