@@ -12,3 +12,4 @@ nose==1.2.1
 selenium==2.25.0
 sure==1.0.6
 django-jenkins==0.13.0
+selenose==1.3
