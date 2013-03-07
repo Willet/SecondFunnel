@@ -358,7 +358,7 @@ var PINPOINT = (function($, pageInfo) {
                     },
                     error: function() {
                         console.log('loading backup results');
-                        layoutResults(details.backupResults, belowFold);
+                        layoutResults(details.backupResults);
                         loadingBlocks = false;
                     }
                 });
