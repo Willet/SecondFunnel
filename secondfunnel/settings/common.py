@@ -220,6 +220,13 @@ INSTALLED_APPS = (
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 JENKINS_TEST_RUNNER = 'django_jenkins.nose_runner.CINoseTestSuiteRunner'
+COVERAGE_REPORT_HTML_OUTPUT_DIR = os.path.join(
+        os.path.dirname(
+            os.path.dirname(
+                os.path.dirname(
+                    os.path.abspath(__file__)))), 'test_report')
+
+COVERAGE_ADDITIONAL_MODULES = ['apps']
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
