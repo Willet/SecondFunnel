@@ -143,6 +143,14 @@ class Product(BaseModelNamed):
     def url(self):
         return self.original_url
 
+    def image(self):
+        if self.default_image:
+            return self.default_image.get_url()
+
+        images = self.images()
+
+        return images[0] if images else None
+
     def images(self, include_external=False):
         """if include_external, then all external media (e.g. instagram photos)
         will be included in the list.
@@ -165,12 +173,7 @@ class Product(BaseModelNamed):
             return modified_text
 
         images = self.images()
-
-        if self.default_image:
-            image = self.default_image.get_url()
-            images.insert(0, image)
-        else:
-            image = images[0] if images else None
+        image = self.image()
 
         fields = {
             'data-title': strip_and_escape(self.name),
@@ -187,7 +190,7 @@ class Product(BaseModelNamed):
             # TODO: Do we want to select lifestyle images differently?
             random_idx = random.randint(0, self.lifestyleImages.count()-1)
             random_img = self.lifestyleImages.all()[random_idx]
-            fields['data-lifestyle_image'] = strip_and_escape(random_img)
+            fields['data-lifestyle-image'] = strip_and_escape(random_img)
             fields['data-template'] = 'combobox'
 
         if raw:
