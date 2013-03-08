@@ -99,7 +99,7 @@ var PINPOINT = (function($, pageInfo) {
 
             if (src === 'featured') {
                 src = details.page['main-block-template'];
-                srcElement = $("[data-template-id='" + src + "']")
+                srcElement = $("[data-template-id='" + src + "']");
             }
 
             // populate context with all available variables

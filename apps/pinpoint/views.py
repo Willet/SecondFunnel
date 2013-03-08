@@ -437,7 +437,6 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
         'product': product,
         'campaign': campaign,
         'backup_results': related_results,
-        'random_results': related_results,
     })
 
     theme = campaign.store.theme
