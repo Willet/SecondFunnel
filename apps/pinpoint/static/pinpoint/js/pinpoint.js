@@ -319,28 +319,32 @@ var PINPOINT = (function($, pageInfo) {
     function loadMoreResults(belowFold) {
         if (!loadingBlocks) {
             loadingBlocks = true;
-            $.ajax({
-                url: '/intentrank/get-results/',
-                data: {
-                    'store': details.store.id,
-                    'campaign': details.campaign.id,
+            if (!details.page.offline) {
+                $.ajax({
+                    url: '/intentrank/get-results/',
+                    data: {
+                        'store': details.store.id,
+                        'campaign': details.campaign.id,
 
-                    //TODO: Probably should be some calculated value
-                    'results': 10,
+                        //TODO: Probably should be some calculated value
+                        'results': 10,
 
-                    // normally ignored, unless IR call fails and we'll resort to getseeds
-                    'seeds': details.featured.id
-                },
-                dataType: 'json',
-                success: function(results) {
-                    layoutResults(results, belowFold);
-                },
-                error: function() {
-                    console.log('loading backup results');
-                    layoutResults(details.backupResults, belowFold);
-                    loadingBlocks = false;
-                }
-            });
+                        // normally ignored, unless IR call fails and we'll resort to getseeds
+                        'seeds': details.featured.id
+                    },
+                    dataType: 'json',
+                    success: function(results) {
+                        layoutResults(results, belowFold);
+                    },
+                    error: function() {
+                        console.log('loading backup results');
+                        layoutResults(details.backupResults, belowFold);
+                        loadingBlocks = false;
+                    }
+                });
+            } else {
+                layoutResults(details.content);
+            }
         }
     }
 
