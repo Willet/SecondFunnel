@@ -17,7 +17,32 @@ var PINPOINT = (function($, pageInfo) {
         blocksAppendedCallbacks = [],
         previewCallbacks = [],
         readyCallbacks = [],
-        hoverTimer;
+        hoverTimer,
+        sizableRegex = /images\.secondfunnel\.com/,
+        imageSizes = [
+            "icon", "thumb", "small", "compact", "medium", "large",
+            "grande", "1024x1024", "master"
+        ];
+
+    function size(url, size) {
+        var newUrl, filename;
+
+        if (!sizableRegex.test(url)
+            || !_.contains(imageSizes, size)) {
+            return url;
+        }
+
+        // Replace filename with new size
+        filename = url.substring(url.lastIndexOf('/')+1)
+        newUrl = url.replace(filename, size + '.jpg');
+
+        // NOTE: We do not check if the new image exists because we implicitly
+        // trust that our service will contain the required image.
+        // ... Also, because it could be expensive to check for the required
+        // image before use
+
+        return newUrl;
+    }
 
     /* --- START Utilities --- */
     function getShortestColumn () {
@@ -75,6 +100,11 @@ var PINPOINT = (function($, pageInfo) {
                 return '';  // no luck, not rendering
             }
         }
+
+        // Append template functions to data
+        _.extend(data, {
+            'sizeImage': size
+        });
 
         return _.template(replaced, data);
     }
