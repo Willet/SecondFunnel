@@ -242,7 +242,7 @@ class ExternalContent(BaseModel):
             'original-id': self.original_id,
             'original-url': self.original_url,
             'content-type': self.content_type.name,
-            'image-url': self.image_url,
+            'image': self.image_url,
         }
 
 
