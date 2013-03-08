@@ -755,4 +755,4 @@ var PINPOINT = (function($, pageInfo) {
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
         'addReadyCallback': addReadyCallback
     };
-})(jQuery, window.PINPOINT_INFO || {});
+})(jQuery, window.PINPOINT_INFO || window.TEST_PAGE_DATA || {});
