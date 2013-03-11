@@ -27,7 +27,8 @@
                 'campaign': {
                     'id': '{{ campaign.id }}'
                 },
-                'featured': {% include "pinpoint/snippets/product_object.js" with product=product only %}
+                'featured':
+                {% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}
                 {% if backup_results %}{# offline, pseudo-custom results #}
                 , 'backupResults': {% include "pinpoint/snippets/product_list.js" with products=backup_results %}
                 {% endif %}
