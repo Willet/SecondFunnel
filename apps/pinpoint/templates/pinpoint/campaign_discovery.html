@@ -1,5 +1,5 @@
 {% load static %}
-<div class='preview product' style='display: none;'>
+<div class='preview container' style='display: none;'>
     <div class="mask"></div>
     <div class="tablecell">
         <div class="content">
@@ -62,7 +62,7 @@
 </script>
 <script type="text/template" data-template-id="instagram"
         data-appearance-probability="0.25">
-    <div class='block product external-content instagram'>
+    <div class='block image external-content instagram'>
         <div class='product'>
             <div class='img-container'>
                 <img src='<%= data["image-url"] %>'
@@ -71,4 +71,8 @@
             </div>
         </div>
     </div>
+</script>
+
+<script type="text/template" data-template-id="image-preview">
+    <img src='<%= data["image-url"] %>'/>
 </script>
