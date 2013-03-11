@@ -39,7 +39,34 @@
 
             $.Mason.prototype._placeBrick = function( brick ) {
                 var $brick = $(brick),
-                        colSpan, groupCount, groupY, groupColY, j;
+                        colSpan, groupCount, groupY, groupColY, j,
+                        dupes, instagramImg;
+
+                // START WILLET
+                this.recent = this.recent || [];
+
+                // Check to see if we've recently included this instagram
+                // image. If so, skip it.
+                if ($brick.hasClass('instagram')) {
+                    instagramImg = $brick.find('img').not('.social-buttons ' +
+                            'img').prop('src');
+                    dupes = _.filter(this.recent, function($elem) {
+                        var elemImg = $elem.find('img').not('.social-buttons ' +
+                                'img').prop('src');
+                        return (elemImg == instagramImg);
+                    });
+
+                    if (dupes.length != 0) {
+                        this.remove($brick);
+                        return;
+                    }
+                }
+
+                while(this.recent.length > 5) {
+                    this.recent.shift();
+                }
+                this.recent.push($brick);
+                // END WILLET
 
                 //how many columns does this brick span
                 colSpan = Math.ceil( $brick.outerWidth(true) / this.columnWidth );

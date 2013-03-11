@@ -151,13 +151,19 @@ var PINPOINT = (function($, pageInfo) {
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
-    function showPreview () {
-        // display overlay with more information about the selected product
-        // data is retrieved from .block.product divs
-        var data     = $(this).data(),
+    function showImagePreview() {
+        showPreview(this, 'image-preview');
+    }
+
+    function showProductPreview () {
+        showPreview(this, 'preview');
+    }
+
+    function showPreview(me, templateName) {
+        var data     = $(me).data(),
+            $preview = $('.preview.container'),
             $mask    = $('.preview .mask'),
-            $preview = $('.preview.product'),
-            templateEl = $("[data-template-id='preview']"),
+            templateEl = $("[data-template-id='" + templateName + "']"),
             template = templateEl.html(),
             renderedTemplate,
             target = $('.target.template[data-src="preview"]');
@@ -215,7 +221,7 @@ var PINPOINT = (function($, pageInfo) {
 
     function hidePreview () {
         var $mask    = $('.preview .mask'),
-            $preview = $('.preview.product');
+            $preview = $('.preview.container');
 
         window.pinpointTracking && pinpointTracking.setSocialShareVars();
 
@@ -567,7 +573,8 @@ var PINPOINT = (function($, pageInfo) {
         // Event Handling
         // when someone clicks on a product, show the product details overlay
         var discoveryArea = $('.discovery-area');
-        discoveryArea.on('click', '.block.product', showPreview);
+        discoveryArea.on('click', '.block.product', showProductPreview);
+        discoveryArea.on('click', '.block.image', showImagePreview);
 
         // and update the clickstream
         discoveryArea.on('click', '.block.product', updateClickStream);
