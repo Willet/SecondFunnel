@@ -145,19 +145,25 @@ class StoreTheme(BaseModelNamed):
 
     DEFAULT_PREVIEW = """
 <script type='text/template' data-template-id='preview'>
-    <!--
-    Unlike other templates, the preview template uses classes to determine
-    what should be rendered. Any element with a class name matching one of
-    the data attributes will have its content replaced with that data.
-    -->
-    <div class='image'></div>
-    <div class='images'></div>
-    <div class='price'></div>
-    <div class='title'></div>
-    <div class='description'></div>
-    <div class='url' target='_blank'></div>
-    <div class='social-buttons'></div>
-</div>
+    <div class='image'><img src='<%= data.image %>' /></div>
+    <div class='images'>
+        <% _.each(data.images, function(image) { %>
+        <img src='<%= image %>' />
+        <% }); %>
+    </div>
+    <div class='price'><%= data.price %></div>
+    <div class='title'><%= data.title %></div>
+    <div class='description'><%= data.description %></div>
+    <div class='url'><a href='<%= data.url %>' target="_blank">BUY
+        NOW</a></div>
+    <% include social_buttons %>
+    </div>
+</script>
+    """
+
+    DEFAULT_IMAGE_PREVIEW = """
+<script type='text/template' data-template-id='image-preview'>
+    <img src='<%= data["image"] %>'/>
 </script>
     """
 
@@ -179,6 +185,7 @@ class StoreTheme(BaseModelNamed):
 
     # Preview Templates
     preview = models.TextField(default=DEFAULT_PREVIEW)
+    image_preview = models.TextField(default=DEFAULT_IMAGE_PREVIEW)
 
     def __init__(self, *args, **kwargs):
         super(StoreTheme, self).__init__(*args, **kwargs)
@@ -195,7 +202,7 @@ class StoreTheme(BaseModelNamed):
             'js_templates': {
                 'type': 'theme',
                 'values': ['shop_the_look', 'featured_product', 'product',
-                           'combobox', 'youtube', 'preview']
+                           'combobox', 'youtube', 'preview', 'image_preview']
             }
         }
 
