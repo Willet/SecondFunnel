@@ -158,7 +158,11 @@ var PINPOINT = (function($, pageInfo) {
             renderedTemplate,
             target = $('.target.template[data-src="preview"]');
 
-        debugger;
+        console.log("Show Preview:")
+        console.log(data)
+        console.log(me)
+        console.log(templateName)
+        console.log('EndShow Preview')
 
         data.is_preview = data.is_preview || true;
 
