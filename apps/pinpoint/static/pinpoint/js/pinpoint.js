@@ -590,22 +590,30 @@ var PINPOINT = (function($, pageInfo) {
         // Special Setup
         renderTemplates();
 
-        // Event Handling
+        var $discovery = $('.discovery-area');
 
-        // preview clicks
-        $('.discovery-area .block.product').click(showProductPreview);
-        $('.discovery-area .block.combobox').click(showProductPreview);
-        $('.discovery-area .block.image').click(showImagePreview);
+        // use delegated events to reduce overhead
+        $discovery.on('click', '.block.product, .block.combobox', showProductPreview);
+        $discovery.on('click', '.block.image', showImagePreview);
 
         // update clickstream
-        $('.discovery-area .block.product').click(updateClickStream);
-        $('.discovery-area .block.combobox').click(showProductPreview);
+        $discovery.on('click', '.block.product, .block.combobox', updateClickStream);
 
         // hovers
-        $('.discovery-area .block.product').hover(productHoverOn, productHoverOff);
-        $('.discovery-area .block.youtube').hover(youtubeHoverOn, youtubeHoverOff);
-        $('.discovery-area .block.combobox .product').hover(productHoverOn, productHoverOff);
-        $('.discovery-area .block.combobox .lifestyle').hover(lifestyleHoverOn, lifestyleHoverOff);
+        $discovery.on({
+            mouseenter: productHoverOn,
+            mouseleave: productHoverOff
+        }, '.block.product, .block.combobox .product');
+
+        $discovery.on({
+            mouseenter: youtubeHoverOn,
+            mouseleave: youtubeHoverOff
+        }, '.block.youtube');
+
+        $discovery.on({
+            mouseenter: lifestyleHoverOn,
+            mouseleave: lifestyleHoverOff
+        }, '.block.combobox .lifestyle');
 
         $('.discovery-area').masonry({
             itemSelector: '.block',
