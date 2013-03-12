@@ -496,31 +496,46 @@ var PINPOINT = (function($, pageInfo) {
         });
 
         // Render youtube blocks with player
-        videos = _.where(results, {'template': 'youtube'});
-        _.each(videos, function(result) {
+        videos = _.where(results, {'template': 'youtube'});  // (haystack, criteria)
+        _.each(videos, function (video) {
             var video_state_change = window.pinpointTracking?
-                _.partial(pinpointTracking.videoStateChange, result.id):
+                _.partial(pinpointTracking.videoStateChange, video.id):
                 function() {/* dummy */};
 
-            api.getObject("video_gdata", result.id, function (video_data) {
-                $(".youtube[data-label='" + result.id + "']").children(".title").html(
-                    video_data.entry.title.$t
-                );
-            });
+            api.getObject("video_gdata", video.id, function (video_data) {
+                var thumbURL = 'url("http://i.ytimg.com/vi/' + video.id + '/0.jpg")',
+                    thumbnail = $('<div />', {
+                    'css': {  // this is to trim the 4:3 black bars
+                        'overflow': 'hidden',
+                        'height': video.height + 'px',
+                        'background-image': thumbURL,
+                        'background-position': 'center center'
+                    }
+                });
 
-            player = new YT.Player(result.id, {
-                height: result.height,
-                width: result.width,
-                videoId: result.id,
-                playerVars: {
-                    'autoplay': result.autoplay,
-                    'controls': 0
-                },
-                events: {
-                    'onReady': function(e) {},
-                    'onStateChange': video_state_change,
-                    'onError': function(e) {}
-                }
+                thumbnail.addClass('wide').click(function () {
+                    // when the thumbnail is clicked, replace itself with
+                    // the youtube video of the same size, then autoplay
+                    thumbnail.remove();
+                    player = new YT.Player(video.id, {
+                        height: video.height,
+                        width: video.width,
+                        videoId: video.id,
+                        playerVars: {
+                            'autoplay': 1,
+                            'controls': 0
+                        },
+                        events: {
+                            'onReady': function(e) {},
+                            'onStateChange': video_state_change,
+                            'onError': function(e) {}
+                        }
+                    });
+                });
+
+                $(".youtube[data-label='" + video.id + "']")
+                    .prepend(thumbnail)
+                    .children(".title").html(video_data.entry.title.$t);
             });
         });
 
