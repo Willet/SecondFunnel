@@ -91,16 +91,6 @@ var PINPOINT = (function($, pageInfo) {
             }
         );
 
-        // appearanceProbability dictates if a block that has its own
-        // probability of being rendered will be rendered. if specified,
-        // the value should go from 0 (not shown at all) or 1 (always).
-        var appearanceProbability = parseFloat(data.data['appearance-probability']) || 1;
-        if (appearanceProbability < 1) {
-            if (Math.random() < appearanceProbability) {
-                return '';  // no luck, not rendering
-            }
-        }
-
         // Append template functions to data
         _.extend(data, {
             'sizeImage': size
@@ -404,7 +394,8 @@ var PINPOINT = (function($, pageInfo) {
             i,
             productDoms = [],
             template, templateEl, player,
-            template_context, templateType, el, videos;
+            template_context, templateType, el, videos,
+            appearanceProbability;
 
         // add products
         for (i = 0; i < results.length; i++) {
@@ -438,9 +429,18 @@ var PINPOINT = (function($, pageInfo) {
                 }
 
                 // attach default prob to the context
-                template_context['appearance-probability'] =
-                    template_context['appearance-probability'] ||
-                    templateEl.data('appearance-probability');
+                appearanceProbability = template_context['appearance-probability'] ||
+                    templateEl.data('appearance-probability') || 1;
+                appearanceProbability = parseFloat(appearanceProbability);
+
+                // appearanceProbability dictates if a block that has its own
+                // probability of being rendered will be rendered. if specified,
+                // the value should go from 0 (not shown at all) or 1 (always).
+                if (appearanceProbability < 1) {
+                    if (Math.random() < appearanceProbability) {
+                        break;  // no luck, not rendering
+                    }
+                }
 
                 rendered_block = renderTemplate(template, {
                     'data': template_context,
