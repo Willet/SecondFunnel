@@ -508,7 +508,7 @@ var PINPOINT = (function($, pageInfo) {
                                '/0.jpg';
 
                 if (video_data && video_data.entry
-                        && video_data.entry.media$group
+                    && video_data.entry.media$group
                     && video_data.entry.media$group.media$thumbnail) {
                     var mediaGroup = video_data.entry.media$group,
                         thunbnailArray = mediaGroup.media$thumbnail;
