@@ -535,8 +535,8 @@ var PINPOINT = (function($, pageInfo) {
             $broken.parents('.block.product').remove();
             $block.find('.block.product img[src=""]').parents('.block.product').remove();
 
+            $block.animate({opacity: 1});
             $('.discovery-area').masonry('appended', $block, true);
-            $block.css({opacity: 1});
 
             // Don't continue to load results if we aren't getting more results
             if (initialResults > 0) {
@@ -590,10 +590,7 @@ var PINPOINT = (function($, pageInfo) {
         }
     }
 
-    function ready () {
-        // Special Setup
-        renderTemplates();
-
+    function attachListeners () {
         var $discovery = $('.discovery-area');
 
         // use delegated events to reduce overhead
@@ -624,6 +621,13 @@ var PINPOINT = (function($, pageInfo) {
             mouseenter: lifestyleHoverOn,
             mouseleave: lifestyleHoverOff
         }, '.block.combobox .lifestyle');
+    }
+
+    function ready () {
+        // Special Setup
+        renderTemplates();
+
+        attachListeners();
 
         $('.discovery-area').masonry({
             itemSelector: '.block',
