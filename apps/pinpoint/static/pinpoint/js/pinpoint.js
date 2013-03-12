@@ -598,15 +598,15 @@ var PINPOINT = (function($, pageInfo) {
 
         // use delegated events to reduce overhead
         $discovery.on('click', '.block.product, .block.combobox', function (e) {
-            showProductPreview(this, e);
+            showProductPreview(e.currentTarget, e);
         });
         $discovery.on('click', '.block.image', function (e) {
-            showImagePreview(this, e);
+            showImagePreview(e.currentTarget, e);
         });
 
         // update clickstream
         $discovery.on('click', '.block.product, .block.combobox', function (e) {
-            updateClickStream(this, e);
+            updateClickStream(e.currentTarget, e);
         });
 
         // hovers
