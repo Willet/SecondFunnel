@@ -90,20 +90,20 @@ var pinpointTracking = (function ($, window, document) {
         });
 
         // popup open event: product click
-        $(document).on("click", ".discovery-area > .product .product", function(e) {
+        $(document).on("click", ".discovery-area > .block.product, .discovery-area > .block.combobox .product", function(e) {
             pinpointTracking.registerEvent({
                 "type": "inpage",
                 "subtype": "openpopup",
-                "label": $(this).data("url")
+                "label": $(this).data("label")
             });
         });
 
         // lifestyle image click
-        $(document).on("click", ".discovery-area > .product .lifestyle", function(e) {
+        $(document).on("click", ".discovery-area > .block.combobox .lifestyle, .discovery-area > .block.image", function(e) {
             pinpointTracking.registerEvent({
                 "type": "content",
                 "subtype": "openpopup",
-                "label": $(this).children().attr("src")
+                "label": $(this).data("label")
             });
         });
 
