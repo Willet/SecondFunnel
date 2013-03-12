@@ -8,7 +8,7 @@ DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
 
-COMPRESS_ENABLED = True
+COMPRESS_ENABLED = False
 
 INSTALLED_APPS = (
     'django.contrib.auth',
