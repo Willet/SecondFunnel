@@ -585,27 +585,23 @@ var PINPOINT = (function($, pageInfo) {
         renderTemplates();
 
         // Event Handling
-        // when someone clicks on a product, show the product details overlay
-        var discoveryArea = $('.discovery-area');
-        discoveryArea.on('click', '.block.product', showProductPreview);
-        discoveryArea.on('click', '.block.combobox', showProductPreview);
-        discoveryArea.on('click', '.block.image', showImagePreview);
 
-        // and update the clickstream
-        discoveryArea.on('click', '.block.product', updateClickStream);
-        discoveryArea.on('mouseenter', '.block.product', productHoverOn);
-        discoveryArea.on('mouseleave', '.block.product', productHoverOff);
+        // preview clicks
+        $('.discovery-area .block.product').click(showProductPreview);
+        $('.discovery-area .block.combobox').click(showProductPreview);
+        $('.discovery-area .block.image').click(showImagePreview);
 
-        discoveryArea.on('mouseenter', '.block.youtube', youtubeHoverOn);
-        discoveryArea.on('mouseleave', '.block.youtube', youtubeHoverOff);
+        // update clickstream
+        $('.discovery-area .block.product').click(updateClickStream);
+        $('.discovery-area .block.combobox').click(showProductPreview);
 
-        discoveryArea.on('click', '.block.combobox', updateClickStream);
-        discoveryArea.on('mouseenter', '.block.combobox .product', productHoverOn);
-        discoveryArea.on('mouseleave', '.block.combobox .product', productHoverOff);
-        discoveryArea.on('mouseenter', '.block.combobox .lifestyle', lifestyleHoverOn);
-        discoveryArea.on('mouseleave', '.block.combobox .lifestyle', lifestyleHoverOff);
+        // hovers
+        $('.discovery-area .block.product').hover(productHoverOn, productHoverOff);
+        $('.discovery-area .block.youtube').hover(youtubeHoverOn, youtubeHoverOff);
+        $('.discovery-area .block.combobox .product').hover(productHoverOn, productHoverOff);
+        $('.discovery-area .block.combobox .lifestyle').hover(lifestyleHoverOn, lifestyleHoverOff);
 
-        discoveryArea.masonry({
+        $('.discovery-area').masonry({
             itemSelector: '.block',
 
             columnWidth: function (containerWidth) {
