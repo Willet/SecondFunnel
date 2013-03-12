@@ -573,8 +573,9 @@ var PINPOINT = (function($, pageInfo) {
         // Event Handling
         // when someone clicks on a product, show the product details overlay
         var discoveryArea = $('.discovery-area');
-        discoveryArea.on('click', '.block.product', showPreview);
-        discoveryArea.on('click', '.block.combobox', showPreview);
+        discoveryArea.on('click', '.block.product', showProductPreview);
+        discoveryArea.on('click', '.block.combobox', showProductPreview);
+        discoveryArea.on('click', '.block.image', showImagePreview);
 
         // and update the clickstream
         discoveryArea.on('click', '.block.product', updateClickStream);
