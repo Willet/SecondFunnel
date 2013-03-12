@@ -2,14 +2,17 @@
 {
     "product-id": "{{ product.id }}",
     "id": "{{ product.id }}",
-    "lifestyle_image": "{{ product.lifestyle_image|escapejs }}",
-    "lifestyle-image": "{{ product.lifestyle_image|escapejs }}",
-    "featured_image": "{{ product.featured_image|escapejs }}",
     "description": "{{ product.description|escapejs }}",
     "name": "{{ product.name|escapejs }}",
     "title": "{{ product.name|escapejs }}",
     "price": "{{ product.price|escapejs }}",
     "template": "{{ product.template|default:'product'|escapejs }}",
+    {% if featured %}
+    "stl-image": "{{ product.stl_image|escapejs }}",
+    "featured-image": "{{ product.featured_image|escapejs }}",
+    {% else %}
+    "image": "{{ product.image }}",
+    {% endif %}
     "images": [
     {% for image in product.images %}
         {% if image %}
@@ -17,7 +20,6 @@
         {% endif %}
     {% endfor %}
     ],
-    "image": "{{ product.images.0|escapejs }}",
     "url": "{{ product.url|escapejs }}"
 
     {# one thing led to another, and we are using this as some generic object now #}

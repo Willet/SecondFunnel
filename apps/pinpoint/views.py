@@ -347,7 +347,7 @@ def save_static_campaign(campaign, local_filename, request=None):
         django_file.content_type = 'text/html'
 
         try:
-            save_mode = int(request.GET.get('save_mode', '0'))
+            save_mode = int(request.GET.get('save_mode', '7'))
             if save_mode == 0:
                 storage.save(filename, django_file)
             elif save_mode == 1:

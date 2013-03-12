@@ -17,7 +17,32 @@ var PINPOINT = (function($, pageInfo) {
         blocksAppendedCallbacks = [],
         previewCallbacks = [],
         readyCallbacks = [],
-        hoverTimer;
+        hoverTimer,
+        sizableRegex = /images\.secondfunnel\.com/,
+        imageSizes = [
+            "icon", "thumb", "small", "compact", "medium", "large",
+            "grande", "1024x1024", "master"
+        ];
+
+    function size(url, size) {
+        var newUrl, filename;
+
+        if (!sizableRegex.test(url)
+            || !_.contains(imageSizes, size)) {
+            return url;
+        }
+
+        // Replace filename with new size
+        filename = url.substring(url.lastIndexOf('/')+1)
+        newUrl = url.replace(filename, size + '.jpg');
+
+        // NOTE: We do not check if the new image exists because we implicitly
+        // trust that our service will contain the required image.
+        // ... Also, because it could be expensive to check for the required
+        // image before use
+
+        return newUrl;
+    }
 
     /* --- START Utilities --- */
     function getShortestColumn () {
@@ -66,15 +91,10 @@ var PINPOINT = (function($, pageInfo) {
             }
         );
 
-        // appearanceProbability dictates if a block that has its own
-        // probability of being rendered will be rendered. if specified,
-        // the value should go from 0 (not shown at all) or 1 (always).
-        var appearanceProbability = parseFloat(data.data['appearance-probability']) || 1;
-        if (appearanceProbability < 1) {
-            if (Math.random() < appearanceProbability) {
-                return '';  // no luck, not rendering
-            }
-        }
+        // Append template functions to data
+        _.extend(data, {
+            'sizeImage': size
+        });
 
         return _.template(replaced, data);
     }
@@ -121,13 +141,19 @@ var PINPOINT = (function($, pageInfo) {
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
-    function showPreview () {
-        // display overlay with more information about the selected product
-        // data is retrieved from .block.product divs
-        var data     = $(this).data(),
+    function showImagePreview(t) {
+        showPreview(t, 'image-preview');
+    }
+
+    function showProductPreview (t) {
+        showPreview(t, 'preview');
+    }
+
+    function showPreview(me, templateName) {
+        var data     = $(me).data(),
+            $preview = $('.preview.container'),
             $mask    = $('.preview .mask'),
-            $preview = $('.preview.product'),
-            templateEl = $("[data-template-id='preview']"),
+            templateEl = $("[data-template-id='" + templateName + "']"),
             template = templateEl.html(),
             renderedTemplate,
             target = $('.target.template[data-src="preview"]');
@@ -185,7 +211,7 @@ var PINPOINT = (function($, pageInfo) {
 
     function hidePreview () {
         var $mask    = $('.preview .mask'),
-            $preview = $('.preview.product');
+            $preview = $('.preview.container');
 
         window.pinpointTracking && pinpointTracking.setSocialShareVars();
 
@@ -193,20 +219,22 @@ var PINPOINT = (function($, pageInfo) {
         $mask.fadeOut(100);
     }
 
-    function commonHoverOn(t, enableSocialButtons) {
-        if (window.pinpointTracking) {
+    function commonHoverOn(t, enableSocialButtons, enableTracking) {
+        if (window.pinpointTracking && enableTracking) {
             pinpointTracking.setSocialShareVars({
                 "sType": "discovery",
-                "url": $(t).parent().data("url")
+                "url": $(t).data("label")
             });
             pinpointTracking.clearTimeout();
         }
 
-        if (enableSocialButtons) {
-            var $buttons = $(t).parent().find('.social-buttons');
-            $buttons.fadeIn('fast');
-
+        if (enableTracking) {
             hoverTimer = Date.now();
+        }
+
+        if (enableSocialButtons) {
+            var $buttons = $(t).find('.social-buttons') || $(t).parent().find('.social-buttons');
+            $buttons.fadeIn('fast');
 
             if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
                 FB.XFBML.parse($buttons.find('.button.facebook')[0]);
@@ -215,16 +243,18 @@ var PINPOINT = (function($, pageInfo) {
         }
     }
 
-    function commonHoverOff(t, hoverCallback) {
+    function commonHoverOff(t, hoverCallback, enableTracking) {
         var $buttons = $(t).parent().find('.social-buttons');
         $buttons.fadeOut('fast');
 
-        hoverTimer = Date.now() - hoverTimer;
-        if (hoverTimer > 1000) {
-            hoverCallback(t);
+        if (enableTracking) {
+            hoverTimer = Date.now() - hoverTimer;
+            if (hoverTimer > 2000) {
+                hoverCallback(t);
+            }
         }
 
-        if (window.pinpointTracking) {
+        if (window.pinpointTracking && enableTracking) {
             pinpointTracking.clearTimeout();
             if (pinpointTracking.socialShareType !== "popup") {
                 pinpointTracking._pptimeout = window.setTimeout(pinpointTracking.setSocialShareVars, 2000);
@@ -233,7 +263,7 @@ var PINPOINT = (function($, pageInfo) {
     }
 
     function productHoverOn () {
-        commonHoverOn(this, true);
+        commonHoverOn(this, true, true);
     }
 
     function productHoverOff () {
@@ -241,13 +271,21 @@ var PINPOINT = (function($, pageInfo) {
             window.pinpointTracking && pinpointTracking.registerEvent({
                 "type": "inpage",
                 "subtype": "hover",
-                "label": $(t).parent().data("url")
+                "label": $(t).data("label")
             });
-        });
+        }, true);
+    }
+
+    function youtubeHoverOn () {
+        commonHoverOn(this, true, false);
+    }
+
+    function youtubeHoverOff () {
+        commonHoverOff(this, function() {}, false);
     }
 
     function lifestyleHoverOn () {
-        commonHoverOn(this, false);
+        commonHoverOn(this, false, true);
     }
 
     function lifestyleHoverOff () {
@@ -255,12 +293,12 @@ var PINPOINT = (function($, pageInfo) {
             window.pinpointTracking && pinpointTracking.registerEvent({
                 "type": "content",
                 "subtype": "hover",
-                "label": $(t).children().attr("src")
+                "label": $(t).data("label")
             });
-        });
+        }, true);
     }
 
-    function updateClickStream(event) {
+    function updateClickStream(t, event) {
         var $target = $(event.currentTarget),
             data      = $target.data(),
             id        = data['product-id'],
@@ -319,28 +357,32 @@ var PINPOINT = (function($, pageInfo) {
     function loadMoreResults(belowFold) {
         if (!loadingBlocks) {
             loadingBlocks = true;
-            $.ajax({
-                url: '/intentrank/get-results/',
-                data: {
-                    'store': details.store.id,
-                    'campaign': details.campaign.id,
+            if (!details.page.offline) {
+                $.ajax({
+                    url: '/intentrank/get-results/',
+                    data: {
+                        'store': details.store.id,
+                        'campaign': details.campaign.id,
 
-                    //TODO: Probably should be some calculated value
-                    'results': 10,
+                        //TODO: Probably should be some calculated value
+                        'results': 10,
 
-                    // normally ignored, unless IR call fails and we'll resort to getseeds
-                    'seeds': details.featured.id
-                },
-                dataType: 'json',
-                success: function(results) {
-                    layoutResults(results, belowFold);
-                },
-                error: function() {
-                    console.log('loading backup results');
-                    layoutResults(details.backupResults, belowFold);
-                    loadingBlocks = false;
-                }
-            });
+                        // normally ignored, unless IR call fails and we'll resort to getseeds
+                        'seeds': details.featured.id
+                    },
+                    dataType: 'json',
+                    success: function(results) {
+                        layoutResults(results, belowFold);
+                    },
+                    error: function() {
+                        console.log('loading backup results');
+                        layoutResults(details.backupResults, belowFold);
+                        loadingBlocks = false;
+                    }
+                });
+            } else {
+                layoutResults(details.content);
+            }
         }
     }
 
@@ -359,12 +401,11 @@ var PINPOINT = (function($, pageInfo) {
             result,
             results = fisherYates(jsonData, MAX_RESULTS_PER_SCROLL) || [],
             initialResults = Math.max(results.length, MAX_RESULTS_PER_SCROLL),
-            discoveryProductTemplate = $('#discovery_product_template').html(),
-            youtubeVideoTemplate = $('#youtube_video_template').html(),
             i,
             productDoms = [],
             template, templateEl, player,
-            template_context, templateType, el, videos;
+            template_context, templateType, el, videos,
+            appearanceProbability;
 
         // add products
         for (i = 0; i < results.length; i++) {
@@ -398,9 +439,18 @@ var PINPOINT = (function($, pageInfo) {
                 }
 
                 // attach default prob to the context
-                template_context['appearance-probability'] =
-                    template_context['appearance-probability'] ||
-                    templateEl.data('appearance-probability');
+                appearanceProbability = template_context['appearance-probability'] ||
+                    templateEl.data('appearance-probability') || 1;
+                appearanceProbability = parseFloat(appearanceProbability);
+
+                // appearanceProbability dictates if a block that has its own
+                // probability of being rendered will be rendered. if specified,
+                // the value should go from 0 (not shown at all) or 1 (always).
+                if (appearanceProbability < 1) {
+                    if (Math.random() < appearanceProbability) {
+                        break;  // no luck, not rendering
+                    }
+                }
 
                 rendered_block = renderTemplate(template, {
                     'data': template_context,
@@ -431,7 +481,7 @@ var PINPOINT = (function($, pageInfo) {
             var $elem = $(this),
                 rand_num = Math.random();
             // hide them so they can't be seen when masonry is placing them
-            $elem.css({opacity: 0});
+            $elem.hide();
 
             if ($elem.find('.lifestyle').length > 0) {
                 $elem.addClass('wide');
@@ -442,12 +492,22 @@ var PINPOINT = (function($, pageInfo) {
                 $elem.addClass('wide');
             }
 
-            $('.discovery-area').append($elem[0]);
+            $('.discovery-area').append($elem);
         });
 
         // Render youtube blocks with player
         videos = _.where(results, {'template': 'youtube'});
         _.each(videos, function(result) {
+            var video_state_change = window.pinpointTracking?
+                _.partial(pinpointTracking.videoStateChange, result.id):
+                function() {/* dummy */};
+
+            api.getObject("video_gdata", result.id, function (video_data) {
+                $(".youtube[data-label='" + result.id + "']").children(".title").html(
+                    video_data.entry.title.$t
+                );
+            });
+
             player = new YT.Player(result.id, {
                 height: result.height,
                 width: result.width,
@@ -458,9 +518,7 @@ var PINPOINT = (function($, pageInfo) {
                 },
                 events: {
                     'onReady': function(e) {},
-                    'onStateChange': window.pinpointTracking?
-                                     pinpointTracking.videoStateChange:
-                                     function() { /* dummy */ },
+                    'onStateChange': video_state_change,
                     'onError': function(e) {}
                 }
             });
@@ -472,7 +530,7 @@ var PINPOINT = (function($, pageInfo) {
             $block.find('.block.product img[src=""]').parents('.block.product').remove();
 
             $('.discovery-area').masonry('appended', $block, true);
-            $block.css({opacity: 1});
+            $block.show();
 
             // Don't continue to load results if we aren't getting more results
             if (initialResults > 0) {
@@ -526,25 +584,46 @@ var PINPOINT = (function($, pageInfo) {
         }
     }
 
+    function attachListeners () {
+        var $discovery = $('.discovery-area');
+
+        // use delegated events to reduce overhead
+        $discovery.on('click', '.block.product, .block.combobox', function (e) {
+            showProductPreview(e.currentTarget, e);
+        });
+        $discovery.on('click', '.block.image', function (e) {
+            showImagePreview(e.currentTarget, e);
+        });
+
+        // update clickstream
+        $discovery.on('click', '.block.product, .block.combobox', function (e) {
+            updateClickStream(e.currentTarget, e);
+        });
+
+        // hovers
+        $discovery.on({
+            mouseenter: productHoverOn,
+            mouseleave: productHoverOff
+        }, '.block.product, .block.combobox .product');
+
+        $discovery.on({
+            mouseenter: youtubeHoverOn,
+            mouseleave: youtubeHoverOff
+        }, '.block.youtube');
+
+        $discovery.on({
+            mouseenter: lifestyleHoverOn,
+            mouseleave: lifestyleHoverOff
+        }, '.block.combobox .lifestyle');
+    }
+
     function ready () {
         // Special Setup
         renderTemplates();
 
-        // Event Handling
-        // when someone clicks on a product, show the product details overlay
-        var discoveryArea = $('.discovery-area');
-        discoveryArea.on('click', '.block.product', showPreview);
+        attachListeners();
 
-        // and update the clickstream
-        discoveryArea.on('click', '.block.product', updateClickStream);
-
-        discoveryArea.on('mouseenter', '.block.product .product', productHoverOn);
-        discoveryArea.on('mouseleave', '.block.product .product', productHoverOff);
-
-        discoveryArea.on('mouseenter', '.block.product .lifestyle', lifestyleHoverOn);
-        discoveryArea.on('mouseleave', '.block.product .lifestyle', lifestyleHoverOff);
-
-        discoveryArea.masonry({
+        $('.discovery-area').masonry({
             itemSelector: '.block',
 
             columnWidth: function (containerWidth) {
@@ -725,4 +804,4 @@ var PINPOINT = (function($, pageInfo) {
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
         'addReadyCallback': addReadyCallback
     };
-})(jQuery, window.PINPOINT_INFO || {});
+})(jQuery, window.PINPOINT_INFO || window.TEST_PAGE_DATA || {});
