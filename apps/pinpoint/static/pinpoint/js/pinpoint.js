@@ -158,6 +158,8 @@ var PINPOINT = (function($, pageInfo) {
             renderedTemplate,
             target = $('.target.template[data-src="preview"]');
 
+        debugger;
+
         data.is_preview = data.is_preview || true;
 
         if(!templateEl.length || !target.length) {
