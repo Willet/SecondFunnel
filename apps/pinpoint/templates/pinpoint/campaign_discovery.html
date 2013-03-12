@@ -10,7 +10,7 @@
 </div>
 <script type="text/template" data-template-id="social_buttons">
     <% var product = data || page.product; %>
-    <% var has_featured_img = !data.title; %>
+    <% var has_featured_img = !data.title && !data.provider; %>
     <% var is_preview = data.is_preview; %>
     <% var show_count = is_preview || has_featured_img; %>
     <% var image = (has_featured_img) ? (page['stl-image'] || page['featured-image']) : (data.image || data.url);%>
