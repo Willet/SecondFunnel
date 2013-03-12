@@ -5,7 +5,9 @@ from tastypie.authorization import Authorization
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 
-from apps.assets.models import Product, Store, ProductMedia
+from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
+    YoutubeVideo, GenericImage)
+
 from apps.pinpoint.models import BlockContent, Campaign
 
 class UserAuthentication(Authentication):
@@ -149,6 +151,20 @@ class ProductMediaResource(ModelResource):
         authorization = UserPartOfStore()
 
 
+class ExternalContentResource(ModelResource):
+    product = fields.ForeignKey(ProductResource, 'product')
+
+    class Meta:
+        queryset = ExternalContent.objects.all()
+        resource_name = 'external_content'
+
+        filtering = {
+            'product': ALL
+        }
+        authentication = UserAuthentication()
+        authorization = UserPartOfStore()
+
+
 class CampaignResource(ModelResource):
     """Returns "a campaign".
 
@@ -166,4 +182,30 @@ class CampaignResource(ModelResource):
 
         filtering = {
             'store': ALL,
+        }
+
+
+class YoutubeVideoResource(ModelResource):
+    """Access to youtube video model"""
+
+    class Meta:
+        queryset = YoutubeVideo.objects.all()
+        authentication = UserAuthentication()
+        resource_name = 'youtube_video'
+
+        filtering = {
+            'id': ('exact',)
+        }
+
+
+class GenericImageResource(ModelResource):
+    """Access to GenericImage model"""
+
+    class Meta:
+        queryset = GenericImage.objects.all()
+        authentication = UserAuthentication()
+        resource_name = 'generic_image'
+
+        filtering = {
+            'id': ('exact',)
         }

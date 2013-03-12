@@ -99,10 +99,11 @@ STATIC_ROOT = fromProjectRoot('static')
 
 DEFAULT_FILE_STORAGE = 'secondfunnel.storage.CustomExpiresS3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
+# http://django_compressor.readthedocs.org/en/latest/remote-storages/
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
 
-STATIC_ASSET_TIMEOUT = 1209600  # two weeks
+STATIC_ASSET_TIMEOUT = int(60 * 60 * 24 * (365.25 / 12) * 3)  # three months
 
 AWS_EXPIRES_REGEXES = [
     ('^CACHE/', STATIC_ASSET_TIMEOUT),
@@ -160,6 +161,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'maintenancemode.middleware.MaintenanceModeMiddleware',
     )
 
 ROOT_URLCONF = 'secondfunnel.urls'
@@ -202,6 +204,8 @@ INSTALLED_APPS = (
     'adminlettuce',
     'ajax_forms',
     "compressor",
+    "maintenancemode",
+    'social_auth',
 
     # our apps
     'apps.analytics',
@@ -209,9 +213,21 @@ INSTALLED_APPS = (
     'apps.pinpoint',
     'apps.website',
     'apps.scraper',
+
+    # CI
+    'django_jenkins',
 )
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+JENKINS_TEST_RUNNER = 'django_jenkins.nose_runner.CINoseTestSuiteRunner'
+COVERAGE_REPORT_HTML_OUTPUT_DIR = os.path.join(
+        os.path.dirname(
+            os.path.dirname(
+                os.path.dirname(
+                    os.path.abspath(__file__)))), 'test_report')
+
+COVERAGE_ADDITIONAL_MODULES = ['apps']
+COVERAGE_PATH_EXCLUDES = ['.env', 'migrations']
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -280,6 +296,7 @@ EXPOSED_SETTINGS = {
     'STATIC_ASSET_TIMEOUT': STATIC_ASSET_TIMEOUT
 }
 
+WEBSITE_BASE_URL = 'http://www.secondfunnel.com'
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
 
 CELERYBEAT_SCHEDULE = {
@@ -288,5 +305,22 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=6),
     },
 }
+
+AUTHENTICATION_BACKENDS = (
+    'social_auth.backends.contrib.instagram.InstagramBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+SOCIAL_AUTH_NEW_ASSOCIATION_REDIRECT_URL = '/pinpoint/admin/social-auth/'
+
+MAINTENANCE_IGNORE_URLS = (r'^/$',
+                           r'^/about/?$',
+                           r'^/contact/?$',
+                           r'^/static/?',
+                           r'^/why/?$', )
+
+JENKINS_TASKS = (
+    'django_jenkins.tasks.with_coverage',
+    'django_jenkins.tasks.run_pep8',
+)
 
 djcelery.setup_loader()

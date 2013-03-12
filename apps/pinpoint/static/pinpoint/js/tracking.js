@@ -22,7 +22,7 @@ var pinpointTracking = (function ($, window, document) {
     trackEvent = function (o) {
         var category = "appname=pinpoint|"
             + "storeid=" + window.PINPOINT_INFO.store.id + "|"
-            + "campaignid=" + window.PINPOINT_INFO.campaign.id + "|"
+            + "campaignid=" + window.PINPOINT_INFO.page.id + "|"
             + "referrer=" + referrerName() + "|"
             + "domain=" + parseUri(window.location.href).host;
 
@@ -90,20 +90,20 @@ var pinpointTracking = (function ($, window, document) {
         });
 
         // popup open event: product click
-        $(document).on("click", ".discovery-area > .product .product", function(e) {
+        $(document).on("click", ".discovery-area > .block.product, .discovery-area > .block.combobox .product", function(e) {
             pinpointTracking.registerEvent({
                 "type": "inpage",
                 "subtype": "openpopup",
-                "label": $(this).data("url")
+                "label": $(this).data("label")
             });
         });
 
         // lifestyle image click
-        $(document).on("click", ".discovery-area > .product .lifestyle", function(e) {
+        $(document).on("click", ".discovery-area > .block.combobox .lifestyle, .discovery-area > .block.image", function(e) {
             pinpointTracking.registerEvent({
                 "type": "content",
                 "subtype": "openpopup",
-                "label": $(this).children().attr("src")
+                "label": $(this).data("label")
             });
         });
 
@@ -170,9 +170,7 @@ var pinpointTracking = (function ($, window, document) {
         });
     },
 
-    videoStateChange = function (event) {
-        var video_id = event.target.g.id;
-
+    videoStateChange = function (video_id, event) {
         if (videosPlayed.indexOf(video_id) !== -1) {
             return;
         }

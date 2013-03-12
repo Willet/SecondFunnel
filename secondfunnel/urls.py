@@ -1,11 +1,16 @@
 from django.conf.urls import patterns, include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib import admin
+from django.http import HttpResponse
 from apps.assets.forms import HTMLPasswordResetForm
 
 admin.autodiscover()
 
 urlpatterns = patterns('',
+    url(r'', include('social_auth.urls')),
+
+    url(r'^healthcheck/$', lambda x: HttpResponse('OK', status=200)),
+
     # INTERNAL ADMIN
     url(r'^admin/', include(admin.site.urls)),
 
@@ -20,7 +25,7 @@ urlpatterns = patterns('',
 
     # ACCOUNTS
     url(r'^accounts/login/$',
-        'django.contrib.auth.views.login',
+        'apps.pinpoint.views.login_success_redirect',
         name="login"),
 
     url(r'^accounts/logout/$',
@@ -71,3 +76,5 @@ urlpatterns = patterns('',
 )
 
 urlpatterns += staticfiles_urlpatterns()
+
+handler500 = 'apps.pinpoint.views.app_exception_handler'

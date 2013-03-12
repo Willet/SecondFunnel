@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.template.defaultfilters import striptags
 from django.utils.html import escape
+from social_auth.db.django_models import UserSocialAuth
 
 
 class BaseModel(models.Model):
@@ -25,6 +26,7 @@ class BaseModelNamed(BaseModel):
 
 class Store(BaseModelNamed):
     staff = models.ManyToManyField(User)
+    social_auth = models.ManyToManyField(UserSocialAuth, blank=True, null=True)
 
     def __unicode__(self):
         return self.name
@@ -132,7 +134,7 @@ class Product(BaseModelNamed):
     available = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return self.name
+        return unicode(self.name) or u''
 
     def media_count(self):
         return self.media.count()
@@ -141,8 +143,24 @@ class Product(BaseModelNamed):
     def url(self):
         return self.original_url
 
-    def images(self):
-        return [x.get_url() for x in self.media.all()]
+    def image(self):
+        if self.default_image:
+            return self.default_image.get_url()
+
+        images = self.images()
+
+        return images[0] if images else None
+
+    def images(self, include_external=False):
+        """if include_external, then all external media (e.g. instagram photos)
+        will be included in the list.
+        """
+        product_images = [x.get_url() for x in self.media.all()]
+        if include_external:
+            for external_content in self.external_content.all():
+                if external_content.image_url:
+                    product_images.append(external_content.image_url)
+        return product_images
 
     def data(self, raw=False):
         """HTML string representation of some of the product's properties.
@@ -155,12 +173,7 @@ class Product(BaseModelNamed):
             return modified_text
 
         images = self.images()
-
-        if self.default_image:
-            image = self.default_image.get_url()
-            images.insert(0, image)
-        else:
-            image = images[0] if images else None
+        image = self.image()
 
         fields = {
             'data-title': strip_and_escape(self.name),
@@ -170,13 +183,15 @@ class Product(BaseModelNamed):
             'data-image': strip_and_escape(image),
             'data-images': '|'.join(strip_and_escape(x) for x in images),
             'data-product-id': self.id,
+            'data-template': 'product'
         }
 
         if self.lifestyleImages.all():
             # TODO: Do we want to select lifestyle images differently?
             random_idx = random.randint(0, self.lifestyleImages.count()-1)
             random_img = self.lifestyleImages.all()[random_idx]
-            fields['data-lifestyle_image'] = strip_and_escape(random_img)
+            fields['data-lifestyle-image'] = strip_and_escape(random_img)
+            fields['data-template'] = 'combobox'
 
         if raw:
             data = {}
@@ -184,9 +199,12 @@ class Product(BaseModelNamed):
                 # strip 'data-'
                 field_name = field[5:]
                 if field_name == 'images':
-                    data[field_name] = fields[field].split('|')
+                    data[field_name] = filter(None, fields[field].split('|'))
                 else:
                     data[field_name] = fields[field]
+                    # exception for strip_and_escape edge case
+                    if data[field_name] == "None":
+                        data[field_name] = ""
         else:
             data = ''
             for field in fields:
@@ -202,3 +220,36 @@ class ProductMedia(ImageBase):
 class YoutubeVideo(BaseModel):
     video_id = models.CharField(max_length=11)
     store = models.ForeignKey(Store, null=True, related_name="videos")
+
+
+class ExternalContent(BaseModel):
+    # "yes, 555 is arbitrary" - other developers
+    original_id = models.CharField(max_length=555, blank=True, null=True)
+    original_url = models.CharField(max_length=555, blank=True, null=True)
+    content_type = models.ForeignKey("ExternalContentType")
+    tagged_products = models.ManyToManyField(Product, blank=True, null=True,
+                                             related_name='external_content')
+
+    text_content = models.TextField(blank=True, null=True)
+    image_url = models.CharField(max_length=555, blank=True, null=True)
+
+    def __unicode__(self):
+        return u''
+
+    def to_json(self):
+        """A bit like data(), but not returning an html data string"""
+        return {
+            'original-id': self.original_id,
+            'original-url': self.original_url,
+            'content-type': self.content_type.name,
+            'image': self.image_url,
+        }
+
+
+# If we need different behaviour per model, just use a proxy model.
+class ExternalContentType(BaseModelNamed):
+    """i.e. "Instagram"."""
+    enabled = models.BooleanField(default=True)
+
+    def __unicode__(self):
+        return unicode(self.name) or u''
