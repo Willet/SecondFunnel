@@ -239,7 +239,7 @@ var PINPOINT = (function($, pageInfo) {
         }
 
         if (enableSocialButtons) {
-            var $buttons = $(t).parent().find('.social-buttons');
+            var $buttons = $(t).find('.social-buttons') || $(t).parent().find('.social-buttons');
             $buttons.fadeIn('fast');
 
             hoverTimer = Date.now();
@@ -277,7 +277,7 @@ var PINPOINT = (function($, pageInfo) {
             window.pinpointTracking && pinpointTracking.registerEvent({
                 "type": "inpage",
                 "subtype": "hover",
-                "label": $(t).parent().data("url")
+                "label": $(t).data("label")
             });
         });
     }
@@ -291,7 +291,7 @@ var PINPOINT = (function($, pageInfo) {
             window.pinpointTracking && pinpointTracking.registerEvent({
                 "type": "content",
                 "subtype": "hover",
-                "label": $(t).children().attr("src")
+                "label": $(t).data("label")
             });
         });
     }
@@ -573,17 +573,19 @@ var PINPOINT = (function($, pageInfo) {
         // Event Handling
         // when someone clicks on a product, show the product details overlay
         var discoveryArea = $('.discovery-area');
-        discoveryArea.on('click', '.block.product', showProductPreview);
-        discoveryArea.on('click', '.block.image', showImagePreview);
+        discoveryArea.on('click', '.block.product', showPreview);
+        discoveryArea.on('click', '.block.combobox', showPreview);
 
         // and update the clickstream
         discoveryArea.on('click', '.block.product', updateClickStream);
+        discoveryArea.on('mouseenter', '.block.product', productHoverOn);
+        discoveryArea.on('mouseleave', '.block.product', productHoverOff);
 
-        discoveryArea.on('mouseenter', '.block.product .product', productHoverOn);
-        discoveryArea.on('mouseleave', '.block.product .product', productHoverOff);
-
-        discoveryArea.on('mouseenter', '.block.product .lifestyle', lifestyleHoverOn);
-        discoveryArea.on('mouseleave', '.block.product .lifestyle', lifestyleHoverOff);
+        discoveryArea.on('click', '.block.combobox', updateClickStream);
+        discoveryArea.on('mouseenter', '.block.combobox .product', productHoverOn);
+        discoveryArea.on('mouseleave', '.block.combobox .product', productHoverOff);
+        discoveryArea.on('mouseenter', '.block.combobox .lifestyle', lifestyleHoverOn);
+        discoveryArea.on('mouseleave', '.block.combobox .lifestyle', lifestyleHoverOff);
 
         discoveryArea.masonry({
             itemSelector: '.block',
