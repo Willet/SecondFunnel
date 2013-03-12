@@ -486,11 +486,16 @@ var PINPOINT = (function($, pageInfo) {
         // Render youtube blocks with player
         videos = _.where(results, {'template': 'youtube'});
         _.each(videos, function(result) {
+            var video_state_change = window.pinpointTracking?
+                _.partial(pinpointTracking.videoStateChange, result.id):
+                function() {/* dummy */};
+
             api.getObject("video_gdata", result.id, function (video_data) {
                 $(".youtube[data-label='" + result.id + "']").children(".title").html(
                     video_data.entry.title.$t
                 );
             });
+
             player = new YT.Player(result.id, {
                 height: result.height,
                 width: result.width,
@@ -501,9 +506,7 @@ var PINPOINT = (function($, pageInfo) {
                 },
                 events: {
                     'onReady': function(e) {},
-                    'onStateChange': window.pinpointTracking?
-                                     pinpointTracking.videoStateChange:
-                                     function() { /* dummy */ },
+                    'onStateChange': video_state_change,
                     'onError': function(e) {}
                 }
             });
