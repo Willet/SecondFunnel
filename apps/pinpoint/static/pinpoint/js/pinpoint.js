@@ -498,7 +498,7 @@ var PINPOINT = (function($, pageInfo) {
                 $elem.addClass('wide');
             }
 
-            $('.discovery-area').append($elem[0]);
+            $('.discovery-area').append($elem);
         });
 
         // Render youtube blocks with player
