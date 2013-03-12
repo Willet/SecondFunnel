@@ -487,7 +487,7 @@ var PINPOINT = (function($, pageInfo) {
             var $elem = $(this),
                 rand_num = Math.random();
             // hide them so they can't be seen when masonry is placing them
-            $elem.css({opacity: 0});
+            $elem.hide();
 
             if ($elem.find('.lifestyle').length > 0) {
                 $elem.addClass('wide');
@@ -535,8 +535,8 @@ var PINPOINT = (function($, pageInfo) {
             $broken.parents('.block.product').remove();
             $block.find('.block.product img[src=""]').parents('.block.product').remove();
 
-            $block.animate({opacity: 1});
             $('.discovery-area').masonry('appended', $block, true);
+            $block.show();
 
             // Don't continue to load results if we aren't getting more results
             if (initialResults > 0) {
