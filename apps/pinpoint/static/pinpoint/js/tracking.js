@@ -170,9 +170,7 @@ var pinpointTracking = (function ($, window, document) {
         });
     },
 
-    videoStateChange = function (event) {
-        var video_id = event.target.g.id;
-
+    videoStateChange = function (video_id, event) {
         if (videosPlayed.indexOf(video_id) !== -1) {
             return;
         }
