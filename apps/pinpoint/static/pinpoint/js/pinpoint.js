@@ -141,12 +141,12 @@ var PINPOINT = (function($, pageInfo) {
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
-    function showImagePreview() {
-        showPreview(this, 'image-preview');
+    function showImagePreview(t) {
+        showPreview(t, 'image-preview');
     }
 
-    function showProductPreview () {
-        showPreview(this, 'preview');
+    function showProductPreview (t) {
+        showPreview(t, 'preview');
     }
 
     function showPreview(me, templateName) {
@@ -304,7 +304,7 @@ var PINPOINT = (function($, pageInfo) {
         }, true);
     }
 
-    function updateClickStream(event) {
+    function updateClickStream(t, event) {
         var $target = $(event.currentTarget),
             data      = $target.data(),
             id        = data['product-id'],
@@ -597,11 +597,17 @@ var PINPOINT = (function($, pageInfo) {
         var $discovery = $('.discovery-area');
 
         // use delegated events to reduce overhead
-        $discovery.on('click', '.block.product, .block.combobox', showProductPreview);
-        $discovery.on('click', '.block.image', showImagePreview);
+        $discovery.on('click', '.block.product, .block.combobox', function (e) {
+            showProductPreview(this, e);
+        });
+        $discovery.on('click', '.block.image', function (e) {
+            showImagePreview(this, e);
+        });
 
         // update clickstream
-        $discovery.on('click', '.block.product, .block.combobox', updateClickStream);
+        $discovery.on('click', '.block.product, .block.combobox', function (e) {
+            updateClickStream(this, e);
+        });
 
         // hovers
         $discovery.on({
