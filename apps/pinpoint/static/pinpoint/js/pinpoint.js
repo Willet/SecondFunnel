@@ -219,8 +219,8 @@ var PINPOINT = (function($, pageInfo) {
         $mask.fadeOut(100);
     }
 
-    function commonHoverOn(t, enableSocialButtons) {
-        if (window.pinpointTracking) {
+    function commonHoverOn(t, enableSocialButtons, skipTracking) {
+        if (window.pinpointTracking && !skipTracking) {
             pinpointTracking.setSocialShareVars({
                 "sType": "discovery",
                 "url": $(t).parent().data("url")
@@ -241,7 +241,7 @@ var PINPOINT = (function($, pageInfo) {
         }
     }
 
-    function commonHoverOff(t, hoverCallback) {
+    function commonHoverOff(t, hoverCallback, skipTracking) {
         var $buttons = $(t).parent().find('.social-buttons');
         $buttons.fadeOut('fast');
 
@@ -250,7 +250,7 @@ var PINPOINT = (function($, pageInfo) {
             hoverCallback(t);
         }
 
-        if (window.pinpointTracking) {
+        if (window.pinpointTracking && !skipTracking) {
             pinpointTracking.clearTimeout();
             if (pinpointTracking.socialShareType !== "popup") {
                 pinpointTracking._pptimeout = window.setTimeout(pinpointTracking.setSocialShareVars, 2000);
@@ -270,6 +270,14 @@ var PINPOINT = (function($, pageInfo) {
                 "label": $(t).data("label")
             });
         });
+    }
+
+    function youtubeHoverOn () {
+        commonHoverOn(this, true, true);
+    }
+
+    function youtubeHoverOff () {
+        commonHoverOff(this, function() {}, true);
     }
 
     function lifestyleHoverOn () {
@@ -587,6 +595,9 @@ var PINPOINT = (function($, pageInfo) {
         discoveryArea.on('click', '.block.product', updateClickStream);
         discoveryArea.on('mouseenter', '.block.product', productHoverOn);
         discoveryArea.on('mouseleave', '.block.product', productHoverOff);
+
+        discoveryArea.on('mouseenter', '.block.youtube', youtubeHoverOn);
+        discoveryArea.on('mouseleave', '.block.youtube', youtubeHoverOff);
 
         discoveryArea.on('click', '.block.combobox', updateClickStream);
         discoveryArea.on('mouseenter', '.block.combobox .product', productHoverOn);
