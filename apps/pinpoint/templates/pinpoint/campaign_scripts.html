@@ -16,7 +16,7 @@
                     'main-block-template': '{{ campaign.template }}',
                     'stl-image': '{{ campaign.stl_image }}',
                     'featured-image': '{{ campaign.featured_image }}',
-                    'description': '{{ campaign.description }}',
+                    'description': '{{ campaign.description|escapejs }}',
                     'product': {{ product.json|safe }}
                 },
                 'store': {
