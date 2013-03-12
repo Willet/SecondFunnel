@@ -503,12 +503,29 @@ var PINPOINT = (function($, pageInfo) {
                 function() {/* dummy */};
 
             api.getObject("video_gdata", video.id, function (video_data) {
-                var thumbURL = 'url("http://i.ytimg.com/vi/' + video.id + '/0.jpg")',
-                    thumbnail = $('<div />', {
+                var preferredThumbnailQuality = 'hqdefault',
+                    thumbURL = 'http://i.ytimg.com/vi/' + video.id +
+                               '/0.jpg';
+
+                if (video_data && video_data.entry
+                        && video_data.entry.media$group
+                    && video_data.entry.media$group.media$thumbnail) {
+                    var mediaGroup = video_data.entry.media$group,
+                        thunbnailArray = mediaGroup.media$thumbnail;
+
+                    thunbnailArray = _.where(thunbnailArray, {
+                        'yt$name': preferredThumbnailQuality
+                    });
+                    if (thunbnailArray && thunbnailArray.length >= 1) {
+                        var thumbObj = thunbnailArray[0];
+                        thumbURL = thumbObj.url;
+                    }  // else fallback to the default thumbURL
+                }
+                var thumbnail = $('<div />', {
                     'css': {  // this is to trim the 4:3 black bars
                         'overflow': 'hidden',
                         'height': video.height + 'px',
-                        'background-image': thumbURL,
+                        'background-image': 'url("' + thumbURL + '")',
                         'background-position': 'center center'
                     }
                 });
@@ -526,9 +543,11 @@ var PINPOINT = (function($, pageInfo) {
                             'controls': 0
                         },
                         events: {
-                            'onReady': function(e) {},
+                            'onReady': function (e) {
+                            },
                             'onStateChange': video_state_change,
-                            'onError': function(e) {}
+                            'onError': function (e) {
+                            }
                         }
                     });
                 });
