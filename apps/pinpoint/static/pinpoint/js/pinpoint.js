@@ -389,8 +389,6 @@ var PINPOINT = (function($, pageInfo) {
             result,
             results = fisherYates(jsonData, MAX_RESULTS_PER_SCROLL) || [],
             initialResults = Math.max(results.length, MAX_RESULTS_PER_SCROLL),
-            discoveryProductTemplate = $('#discovery_product_template').html(),
-            youtubeVideoTemplate = $('#youtube_video_template').html(),
             i,
             productDoms = [],
             template, templateEl, player,
@@ -488,6 +486,11 @@ var PINPOINT = (function($, pageInfo) {
         // Render youtube blocks with player
         videos = _.where(results, {'template': 'youtube'});
         _.each(videos, function(result) {
+            api.getObject("video_gdata", result.id, function (video_data) {
+                $(".youtube[data-label='" + result.id + "']").children(".title").html(
+                    video_data.entry.title.$t
+                );
+            });
             player = new YT.Player(result.id, {
                 height: result.height,
                 width: result.width,
