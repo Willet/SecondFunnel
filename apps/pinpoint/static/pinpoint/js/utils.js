@@ -37,10 +37,6 @@ var cache = (function () {
 
 var api = (function () {
     var uris = {
-        'product': "/api/assets/v1/product/%object_id%/?store={{ store.id }}&format=json",
-        'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%object_id%&format=json",
-        'video': "/api/assets/v1/youtube_video/%object_id%/?format=json",
-        'generic_image': "/api/assets/v1/generic_image/%object_id%/?format=json",
         'video_gdata': "https://gdata.youtube.com/feeds/api/videos/%object_id%?v=2&alt=json-in-script&callback=?"
     }, getProduct, getProducts, fetchProduct;
 
