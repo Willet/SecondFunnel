@@ -229,16 +229,18 @@ var PINPOINT = (function($, pageInfo) {
         if (window.pinpointTracking && enableTracking) {
             pinpointTracking.setSocialShareVars({
                 "sType": "discovery",
-                "url": $(t).parent().data("url")
+                "url": $(t).data("label")
             });
             pinpointTracking.clearTimeout();
+        }
+
+        if (enableTracking) {
+            hoverTimer = Date.now();
         }
 
         if (enableSocialButtons) {
             var $buttons = $(t).find('.social-buttons') || $(t).parent().find('.social-buttons');
             $buttons.fadeIn('fast');
-
-            hoverTimer = Date.now();
 
             if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
                 FB.XFBML.parse($buttons.find('.button.facebook')[0]);
@@ -251,9 +253,11 @@ var PINPOINT = (function($, pageInfo) {
         var $buttons = $(t).parent().find('.social-buttons');
         $buttons.fadeOut('fast');
 
-        hoverTimer = Date.now() - hoverTimer;
-        if (hoverTimer > 1000) {
-            hoverCallback(t);
+        if (enableTracking) {
+            hoverTimer = Date.now() - hoverTimer;
+            if (hoverTimer > 2000) {
+                hoverCallback(t);
+            }
         }
 
         if (window.pinpointTracking && enableTracking) {
