@@ -202,10 +202,11 @@ def get_json_data(request, products, campaign_id, seeds=None):
         results.append({
             'id': video.video_id,
             'url': 'http://www.youtube.com/watch?v={0}'.format(video.video_id),
+            'image': 'http://i.ytimg.com/vi/{0}/0.jpg'.format(video.video_id),
             'provider': 'youtube',
             'width': '450',
             'height': '250',
-            'autoplay': 0,
+            'autoplay': 0,  # js may ignore this for its own reasons
             'template': 'youtube'
         })
         video_cookie.add_video(video.video_id)

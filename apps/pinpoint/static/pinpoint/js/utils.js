@@ -44,6 +44,7 @@ var api = (function () {
         var object;
 
         if (object_id === undefined || object_type === undefined) {
+            // invalid call.
             callback(false);
             return;
         }
