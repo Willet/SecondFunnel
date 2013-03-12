@@ -225,8 +225,8 @@ var PINPOINT = (function($, pageInfo) {
         $mask.fadeOut(100);
     }
 
-    function commonHoverOn(t, enableSocialButtons, skipTracking) {
-        if (window.pinpointTracking && !skipTracking) {
+    function commonHoverOn(t, enableSocialButtons, enableTracking) {
+        if (window.pinpointTracking && enableTracking) {
             pinpointTracking.setSocialShareVars({
                 "sType": "discovery",
                 "url": $(t).parent().data("url")
@@ -247,7 +247,7 @@ var PINPOINT = (function($, pageInfo) {
         }
     }
 
-    function commonHoverOff(t, hoverCallback, skipTracking) {
+    function commonHoverOff(t, hoverCallback, enableTracking) {
         var $buttons = $(t).parent().find('.social-buttons');
         $buttons.fadeOut('fast');
 
@@ -256,7 +256,7 @@ var PINPOINT = (function($, pageInfo) {
             hoverCallback(t);
         }
 
-        if (window.pinpointTracking && !skipTracking) {
+        if (window.pinpointTracking && enableTracking) {
             pinpointTracking.clearTimeout();
             if (pinpointTracking.socialShareType !== "popup") {
                 pinpointTracking._pptimeout = window.setTimeout(pinpointTracking.setSocialShareVars, 2000);
@@ -265,7 +265,7 @@ var PINPOINT = (function($, pageInfo) {
     }
 
     function productHoverOn () {
-        commonHoverOn(this, true);
+        commonHoverOn(this, true, true);
     }
 
     function productHoverOff () {
@@ -275,19 +275,19 @@ var PINPOINT = (function($, pageInfo) {
                 "subtype": "hover",
                 "label": $(t).data("label")
             });
-        });
+        }, true);
     }
 
     function youtubeHoverOn () {
-        commonHoverOn(this, true, true);
+        commonHoverOn(this, true, false);
     }
 
     function youtubeHoverOff () {
-        commonHoverOff(this, function() {}, true);
+        commonHoverOff(this, function() {}, false);
     }
 
     function lifestyleHoverOn () {
-        commonHoverOn(this, false);
+        commonHoverOn(this, false, true);
     }
 
     function lifestyleHoverOff () {
@@ -297,7 +297,7 @@ var PINPOINT = (function($, pageInfo) {
                 "subtype": "hover",
                 "label": $(t).data("label")
             });
-        });
+        }, true);
     }
 
     function updateClickStream(event) {
