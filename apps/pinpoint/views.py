@@ -29,7 +29,7 @@ import apps.pinpoint.wizards as wizards
 from apps.utils import noop
 import apps.utils.base62 as base62
 from apps.utils.social.instagram_adapter import Instagram
-
+from apps.utils.image_service import queue_processing
 
 @login_required
 def login_redirect(request):
@@ -201,18 +201,38 @@ def asset_manager(request, store_id):
         except UserSocialAuth.DoesNotExist:
             instagram_user = None
 
-    instagram_connect_request = True
     if instagram_user:
-        instagram_connect_request = False
         instagram_connector = Instagram(tokens=instagram_user.tokens)
-        contents = instagram_connector.get_content(limit=20)
-    else:
-        contents = []  # also "0 photos"
+        contents = instagram_connector.get_content()
+        for instagram_obj in contents:
+            content_type = ExternalContentType.objects.get(
+                slug=instagram_obj.get('type'))
+
+            new_content, created = ExternalContent.objects.get_or_create(
+                original_id=instagram_obj.get('original_id'),
+                content_type=content_type)
+
+            if created:
+                new_content.text_content = instagram_obj.get('text_content')
+
+                new_content.image_url = queue_processing(store.slug,
+                    instagram_obj.get('type'),
+                    instagram_obj.get('image_url')
+                )
+                new_content.save()
+
+            new_content.tagged_stores.add(store)
+
+    all_contents = store.external_content.all()
 
     return render_to_response('pinpoint/asset_manager.html', {
         "store": store,
-        "instagram_connect_request": instagram_connect_request,
-        "contents": contents,
+        "instagram_user": instagram_user,
+        "content": [
+            ("needs_review", all_contents.filter(approved=False, active=True)),
+            ("rejected", all_contents.filter(active=False)),
+            ("approved", all_contents.filter(approved=True, active=True))
+        ],
         "store_id": store_id
     }, context_instance=RequestContext(request))
 
