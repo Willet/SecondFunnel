@@ -212,23 +212,26 @@ def get_json_data(request, products, campaign_id, seeds=None):
 
     # 80% chance of content being added to the result batch
     if random.random() < 0.8:
-        content = choice(external_content)
-        while content.original_id in shown_content:
+        try:
             content = choice(external_content)
+            while content.original_id in shown_content:
+                content = choice(external_content)
+        except IndexError:
+            pass
+        else:
+            json_content = content.to_json()
+            json_content.update({
+                'template': content.content_type.name.lower(),
+                'product-id': 0
+            })
 
-        json_content = content.to_json()
-        json_content.update({
-            'template': content.content_type.name.lower(),
-            'product-id': 0
-        })
+            # insert content randomly into this batch
+            results.insert(randrange(len(results) + 1), json_content)
 
-        # insert content randomly into this batch
-        results.insert(randrange(len(results) + 1), json_content)
-
-        # look as far back as last 10 inserted items
-        shown_content.insert(0, content.original_id)
-        if len(shown_content) > 10:
-            shown_content.pop()
+            # look as far back as last 10 inserted items
+            shown_content.insert(0, content.original_id)
+            if len(shown_content) > 10:
+                shown_content.pop()
 
     request.session['shown_content'] = shown_content
 
