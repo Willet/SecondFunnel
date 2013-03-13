@@ -4,7 +4,7 @@ import math
 import random
 
 from urllib import urlencode
-from random import randrange
+from random import randrange, choice
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -209,21 +209,26 @@ def get_json_data(request, products, campaign_id, seeds=None):
         active=True, approved=True)
 
     shown_content = request.session.get('shown_content', [])
-    for content in external_content:
-        if random.random() < 0.1 and content.original_id not in shown_content:
-            json_content = content.to_json()
-            json_content.update({
-                'template': content.content_type.name.lower(),
-                'product-id': 0
-            })
 
-            # insert content randomly into this batch
-            results.insert(randrange(len(results) + 1), json_content)
+    # 70% chance of content being added to the result batch
+    if random.random() < 0.7:
+        content = choice(external_content)
+        while content.original_id in shown_content:
+            content = choice(external_content)
 
-            # look as far back as last 10 inserted items
-            shown_content.insert(0, content.original_id)
-            if len(shown_content) > 10:
-                shown_content.pop()
+        json_content = content.to_json()
+        json_content.update({
+            'template': content.content_type.name.lower(),
+            'product-id': 0
+        })
+
+        # insert content randomly into this batch
+        results.insert(randrange(len(results) + 1), json_content)
+
+        # look as far back as last 10 inserted items
+        shown_content.insert(0, content.original_id)
+        if len(shown_content) > 10:
+            shown_content.pop()
 
     request.session['shown_content'] = shown_content
 
