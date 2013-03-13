@@ -4,6 +4,7 @@ import math
 import random
 
 from urllib import urlencode
+from random import randrange
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -176,16 +177,6 @@ def get_json_data(request, products, campaign_id, seeds=None):
             product_js_obj[prop] = product_props[prop]
         results.append(product_js_obj)
 
-        # for each product, add all external content of that product beside
-        # the product json
-        for external_content in product.external_content.all():
-            seed_keys = external_content.to_json()
-            seed_keys.update({
-                'template': external_content.content_type.name.lower(),
-                'product-id': product.id,
-            })
-            results.append(seed_keys)
-
     # videos
     video_cookie = request.session.get('pinpoint-video-cookie')
     if not video_cookie:
@@ -212,18 +203,30 @@ def get_json_data(request, products, campaign_id, seeds=None):
     else:
         video_cookie.add_blocks(len(results))
 
-    # return external media for all seeds too
-    if seeds:
-        seed_prods = Product.objects.filter(pk__in=seeds, rescrape=False)
-        for seed_prod in seed_prods:
-            for external_content in seed_prod.external_content.all():
-                seed_keys = external_content.to_json()
-                seed_keys.update({
-                    'template': external_content.content_type.name,
-                })
-                results.append(seed_keys)
-
     request.session['pinpoint-video-cookie'] = video_cookie
+
+    # store-wide external content
+    external_content = campaign.store.external_content.filter(
+        active=True, approved=True)
+
+    shown_content = request.session.get('shown_content', [])
+    for content in external_content:
+        if random.random() < 0.1 and content.original_id not in shown_content:
+            json_content = content.to_json()
+            json_content.update({
+                'template': content.content_type.name.lower(),
+                'product-id': 0
+            })
+
+            # insert content randomly into this batch
+            results.insert(randrange(len(results) + 1), json_content)
+
+            # look as far back as last 10 inserted items
+            shown_content.insert(0, content.original_id)
+            if len(shown_content) > 10:
+                shown_content.pop()
+
+    request.session['shown_content'] = shown_content
 
     return results
 
@@ -241,6 +244,7 @@ def get_seeds(request, **kwargs):
                                                         DEFAULT_RESULTS))
 
     request.session['pinpoint-video-cookie'] = VideoCookie()
+    request.session['shown_content'] = []
 
     results, status = process_intentrank_request(
         request, store, page, 'getseeds', {
