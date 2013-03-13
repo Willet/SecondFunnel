@@ -9,8 +9,7 @@ from random import randrange
 from django.conf import settings
 from django.http import HttpResponse
 from django.db.models import Count
-from django.template import Context, Template
-from mock import Mock, MagicMock
+from mock import MagicMock
 from apps.assets.models import Product, Store
 
 # All requests are get requests at the moment
