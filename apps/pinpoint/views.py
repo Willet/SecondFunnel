@@ -205,7 +205,7 @@ def asset_manager(request, store_id):
     if instagram_user:
         instagram_connect_request = False
         instagram_connector = Instagram(tokens=instagram_user.tokens)
-        contents = instagram_connector.get_content(limit=20)
+        contents = instagram_connector.get_content()
     else:
         contents = []  # also "0 photos"
 
