@@ -237,37 +237,6 @@ def asset_manager(request, store_id):
     }, context_instance=RequestContext(request))
 
 
-@belongs_to_store
-@login_required
-def tag_content(request, store_id):
-    """Adds the instagram photo to a product """
-    instagram_json = request.POST.get('instagram')
-    product_id = request.POST.get('product_id', -1)
-
-    product = Product.objects.get(id=product_id)
-
-    if not product or not instagram_json:
-        messages.error(request, "Missing product or selected content.")
-        return redirect('asset-manager', store_id=store_id)
-
-    instagram_content = json.loads(instagram_json)
-    for instagram_obj in instagram_content:
-        # TODO: Ensure that we can't create duplicate content
-        content_type = ExternalContentType.objects.get(slug=instagram_obj.get('type'))
-        new_content, _ = ExternalContent.objects.get_or_create(
-            original_id=instagram_obj.get('originalId'),
-            content_type=content_type,
-            text_content=instagram_obj.get('textContent'),
-            image_url=instagram_obj.get('imageUrl'))
-        new_content.tagged_products.add(product)
-        new_content.save()
-
-    messages.success(request, 'Successfully tagged {0} content items with "{1}"'
-        .format(len(instagram_content), product.name))
-
-    return redirect('asset-manager', store_id=store_id)
-
-
 # origin: campaigns with short URLs are cached for 30 minutes
 @cache_page(60 * 30)
 def campaign_short(request, campaign_id_short):
