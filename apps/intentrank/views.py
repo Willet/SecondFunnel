@@ -210,8 +210,8 @@ def get_json_data(request, products, campaign_id, seeds=None):
 
     shown_content = request.session.get('shown_content', [])
 
-    # 70% chance of content being added to the result batch
-    if random.random() < 0.7:
+    # 80% chance of content being added to the result batch
+    if random.random() < 0.8:
         content = choice(external_content)
         while content.original_id in shown_content:
             content = choice(external_content)
