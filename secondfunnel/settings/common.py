@@ -10,6 +10,9 @@ import sys
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
+DEFAULT_CHARSET = 'utf-8'
+FILE_CHARSET = 'utf-8'  # apparently something we need to enforce for File()
+
 # aws environment specific settings
 # These values should not be hardcoded. They are only hardcoded because
 # We have not yet found a way to set environment variables :(
