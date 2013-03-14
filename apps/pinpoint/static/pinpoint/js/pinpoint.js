@@ -45,6 +45,28 @@ var PINPOINT = (function($, pageInfo) {
     }
 
     /* --- START Utilities --- */
+    function checkKeys(testSubject, listOfKeys) {
+        /* checks testSubject for required keys OF those sub-objects
+         * until the lookup ends.
+         *
+         * checkKeys(console, ['log', 'abc'])
+         * >> Object {log: function}  // because console.log.abc does not exist
+         *
+         * @type {Object}
+         */
+        var i = 0,
+            keyOf = testSubject,
+            refBuilder = {};
+        do {
+            keyOf = keyOf[listOfKeys[i]];
+            if (typeof keyOf === 'undefined') {
+                return refBuilder;
+            }
+            refBuilder[listOfKeys[i]] = keyOf;
+        } while (++i < listOfKeys.length);
+        return refBuilder;  // all requested key depths exist
+    }
+
     function getShortestColumn () {
         var $column;
         $('.discovery-area .column').each(function(index, column) {
@@ -505,22 +527,19 @@ var PINPOINT = (function($, pageInfo) {
             api.getObject("video_gdata", video.id, function (video_data) {
                 var preferredThumbnailQuality = 'hqdefault',
                     thumbURL = 'http://i.ytimg.com/vi/' + video.id +
-                               '/0.jpg';
+                               '/' + preferredThumbnailQuality + '.jpg',
+                    thumbObj,
+                    thumbPath = ['entry', 'media$group', 'media$thumbnail'],
+                    thumbChecker = checkKeys(video_data, thumbPath),
+                    thumbnailArray = thumbChecker.media$thumbnail || [];
 
-                if (video_data && video_data.entry
-                    && video_data.entry.media$group
-                    && video_data.entry.media$group.media$thumbnail) {
-                    var mediaGroup = video_data.entry.media$group,
-                        thunbnailArray = mediaGroup.media$thumbnail;
-
-                    thunbnailArray = _.where(thunbnailArray, {
-                        'yt$name': preferredThumbnailQuality
-                    });
-                    if (thunbnailArray && thunbnailArray.length >= 1) {
-                        var thumbObj = thunbnailArray[0];
-                        thumbURL = thumbObj.url;
-                    }  // else fallback to the default thumbURL
-                }
+                thumbObj = _.findWhere(thumbnailArray, {
+                    'yt$name': preferredThumbnailQuality
+                });
+                if (thumbObj && thumbObj.url) {
+                    thumbURL = thumbObj.url;
+                }  // else fallback to the default thumbURL
+                
                 var thumbnail = $('<div />', {
                     'css': {  // this is to trim the 4:3 black bars
                         'overflow': 'hidden',
