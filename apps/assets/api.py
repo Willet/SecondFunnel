@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 
 from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
-    YoutubeVideo, GenericImage)
+    YoutubeVideo, GenericImage, ExternalContent)
 
 from apps.pinpoint.models import BlockContent, Campaign
 
@@ -208,4 +208,19 @@ class GenericImageResource(ModelResource):
 
         filtering = {
             'id': ('exact',)
+        }
+
+
+class ExternalContentResource(ModelResource):
+    """Access to ExternalContent model"""
+
+    class Meta:
+        queryset = ExternalContent.objects.all()
+        authentication = UserAuthentication()
+        authorization= Authorization()
+        resource_name = 'external_content'
+
+        filtering = {
+            'id': ('exact',),
+            'original_id': ('exact',)
         }

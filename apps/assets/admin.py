@@ -109,10 +109,11 @@ class ExternalContentTypeAdmin(BaseNamedAdmin):
 admin.site.register(ExternalContentType, ExternalContentTypeAdmin)
 
 class ExternalContentAdmin(BaseAdmin):
-    list_display = BaseAdmin.list_display + ['original_id',
+    list_display = BaseAdmin.list_display + ['store', 'original_id',
                                                   'original_url',
                                                   'content_type',
                                                   'text_content']
+    list_filter = BaseNamedAdmin.list_filter + ['store']
 
     filter_horizontal = ('tagged_products',)
 

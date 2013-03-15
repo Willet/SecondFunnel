@@ -109,3 +109,7 @@ class IncludeEscNode(template.Node):
 @register.tag(name="include_escaped")
 def include_escaped(parser, token):
     return IncludeEscNode(parser, token)
+
+@register.filter(name='size')
+def size(value, arg):
+    return value.replace("master.jpg", "{0}.jpg".format(arg))

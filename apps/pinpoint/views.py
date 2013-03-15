@@ -30,7 +30,7 @@ import apps.pinpoint.wizards as wizards
 from apps.utils import noop
 import apps.utils.base62 as base62
 from apps.utils.social.instagram_adapter import Instagram
-
+from apps.utils.image_service import queue_processing
 
 @login_required
 def login_redirect(request):
@@ -202,51 +202,43 @@ def asset_manager(request, store_id):
         except UserSocialAuth.DoesNotExist:
             instagram_user = None
 
-    instagram_connect_request = True
     if instagram_user:
-        instagram_connect_request = False
         instagram_connector = Instagram(tokens=instagram_user.tokens)
-        contents = instagram_connector.get_content()
-    else:
-        contents = []  # also "0 photos"
+        contents = instagram_connector.get_content(count=500)
+
+        for instagram_obj in contents:
+            content_type = ExternalContentType.objects.get(
+                slug=instagram_obj.get('type'))
+
+            new_content, created = ExternalContent.objects.get_or_create(
+                store=store,
+                original_id=instagram_obj.get('original_id'),
+                content_type=content_type)
+
+            if created:
+                new_content.text_content = instagram_obj.get('text_content')
+
+                new_content.image_url = queue_processing(store.slug,
+                    instagram_obj.get('type'),
+                    instagram_obj.get('image_url')
+                )
+                new_content.save()
+
+    all_contents = store.external_content.all()
 
     return render_to_response('pinpoint/asset_manager.html', {
         "store": store,
-        "instagram_connect_request": instagram_connect_request,
-        "contents": contents,
+        "instagram_user": instagram_user,
+        "content": [
+            ("Needs Review", "needs_review",
+                all_contents.filter(approved=False, active=True)),
+            ("Rejected", "rejected",
+                all_contents.filter(active=False)),
+            ("Approved", "approved",
+                all_contents.filter(approved=True, active=True))
+        ],
         "store_id": store_id
     }, context_instance=RequestContext(request))
-
-
-@belongs_to_store
-@login_required
-def tag_content(request, store_id):
-    """Adds the instagram photo to a product """
-    instagram_json = request.POST.get('instagram')
-    product_id = request.POST.get('product_id', -1)
-
-    product = Product.objects.get(id=product_id)
-
-    if not product or not instagram_json:
-        messages.error(request, "Missing product or selected content.")
-        return redirect('asset-manager', store_id=store_id)
-
-    instagram_content = json.loads(instagram_json)
-    for instagram_obj in instagram_content:
-        # TODO: Ensure that we can't create duplicate content
-        content_type = ExternalContentType.objects.get(slug=instagram_obj.get('type'))
-        new_content, _ = ExternalContent.objects.get_or_create(
-            original_id=instagram_obj.get('originalId'),
-            content_type=content_type,
-            text_content=instagram_obj.get('textContent'),
-            image_url=instagram_obj.get('imageUrl'))
-        new_content.tagged_products.add(product)
-        new_content.save()
-
-    messages.success(request, 'Successfully tagged {0} content items with "{1}"'
-        .format(len(instagram_content), product.name))
-
-    return redirect('asset-manager', store_id=store_id)
 
 
 # origin: campaigns with short URLs are cached for 30 minutes

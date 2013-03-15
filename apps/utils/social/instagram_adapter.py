@@ -8,7 +8,7 @@ class Instagram(Social):
         self._api = InstagramAPI(access_token=self.access_token)
 
     def _fetch_media(self, **kwargs):
-        generator = self._api.user_recent_media(count=5, as_generator=True)
+        generator = self._api.user_recent_media(as_generator=True, **kwargs)
 
         for results, _ in generator:
             for result in results:

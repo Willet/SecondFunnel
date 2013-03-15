@@ -13,7 +13,7 @@ class Social(object):
 
     def get_content(self, **kwargs):
         """Returns a list of content in a standard format."""
-        generator = self._fetch_media()
+        generator = self._fetch_media(**kwargs)
 
         content = []
 

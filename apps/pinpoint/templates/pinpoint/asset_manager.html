@@ -1,47 +1,94 @@
 {% extends "pinpoint/admin_base.html" %}
 {% load staticfiles %}
-{% load humanize %}
-{% load i18n %}
-{% load base62 %}
+{% load pinpoint_ui %}
 
 {% block page_title %}
     {{ store }}
 {% endblock %}
 
 {% block extra_head %}
-    <style xmlns="http://www.w3.org/1999/html">
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+
+    <style>
         .container_12 .prefix_9, .container_16 .prefix_12 {
             padding-left: 620px;
             width: 310px;
         }
 
-        .content_block img {
-            max-height: 150px;
-            max-width: 150px;
+        .review_area {
+            margin-bottom: 20px;
         }
 
-        .content_block {
-            float: left;
-            border: 2px solid #999;
-            width: 200px;
-            margin-right: 15px;
+        .approval_block {
+            margin-bottom: 20px;
         }
 
-        .content_block:hover {
-            border: 2px #a00 solid;
+        .image {
+            display: inline;
         }
 
-        .content_block.selected {
-            border: 2px #f00 solid;
+        .approval_form label {
+            display: block;
+            font-weight: bolder;
         }
 
-        .content_block.selected:hover {
-            border: 2px #f00 dotted;
+        .approval_form textarea {
+            width: 440px;
+            height: 70px;
         }
 
-        .clear {
-            clear: both;
+        .actions {
+            float: right;
         }
+
+        .saved {
+            margin-right: 20px;
+            display: none;
+        }
+
+        .image_box {
+            width: 240px;
+            height: 240px;
+            position: relative;
+        }
+
+        .image_ribbon {
+          -webkit-transform: rotate(-45deg);
+             -moz-transform: rotate(-45deg);
+              -ms-transform: rotate(-45deg);
+               -o-transform: rotate(-45deg);
+                  transform: rotate(-45deg);
+
+            border: 25px solid transparent;
+            position: absolute;
+            bottom: 20px;
+            right: -50px;
+            padding: 0 10px;
+            width: 120px;
+            color: white;
+            font-family: sans-serif;
+            size: 11px;
+        }
+
+        .needs_review {
+            border-top: 25px solid #757575;
+        }
+
+        .approved {
+            border-top: 25px solid #407544;
+        }
+
+        .rejected {
+            border-top: 25px solid #75372a;
+        }
+
+        .image_ribbon .label {
+            position: absolute;
+            top: -23px;
+            left: 20px;
+        }​
+
     </style>
 {% endblock %}
 
@@ -50,54 +97,102 @@
 {% endblock %}
 
 {% block document_ready %}
-    var store_id = '{{ store_id }}';
+    $("#tabs").tabs();
+    $("#scroll_with_review").button();
 
-    $('#tag').autocomplete({
-        source: function(request, response) {
-            var term = request.term;
-            $.getJSON('/api/assets/v1/product/', {
-                'store': store_id,
-                'format': 'json',
-                'name_or_url': term
+    var scroll_with_review = function () {
+        return $("#scroll_with_review").prop("checked");
+    };
 
-            }, function(data) {
-                //convert object to usable form
-                var results = [];
-                $.each(data.objects, function(index, value) {
-                    results.push({'label': value.name, 'id': value.id})
+    var put_api = function (oid, put_data, callback) {
+        $.ajax({
+            url: '/api/assets/v1/external_content/',
+            type: 'GET',
+            contentType: 'application/json',
+            data: {
+                original_id: oid,
+                format: "json"
+            },
+            dataType: 'json',
+            success: function (data) {
+                $.ajax({
+                    url: data.objects[0].resource_uri,
+                    type: 'PUT',
+                    contentType: 'application/json',
+                    processData: false,
+                    data: put_data,
+                    success: function () {
+                        callback && callback();
+                    }
                 });
-                response(results);
-            })
-        },
-        minLength: 2,
-        select: function( event, ui ) {
-            if (ui.item) {
-                $('#product_id').val(ui.item.id);
             }
-        }
-    });
-
-    $('.content_block').on('click', function(e) {
-        $(this).toggleClass('selected');
-
-        if($('.content_block.selected').length > 0) {
-            $('#tag_button').removeClass('disabled');
-        } else {
-            $('#tag_button').addClass('disabled');
-        }
-    });
-
-    $('#tag_button').on('click', function (e) {
-        var data = [];
-        e.preventDefault();
-
-        $('.content_block.selected').each(function(index, item) {
-            data.push($(item).data());
         });
+    }
 
-        $('#instagram').val(JSON.stringify(data));
+    var do_action = function (target, action) {
+        var $p = $(target).parents('.approval_block'),
+            oid = $p.data("oid"),
+            $ribbon = $(".image_ribbon[data-oid='" + oid + "']"),
+            db_approved, db_active;
 
-        $(this).parents('form').submit();
+        if (scroll_with_review()) {
+            $('html, body').animate({
+                scrollTop: $p.next().offset().top
+            }, 700);
+        }
+
+        $ribbon.removeClass("needs_review");
+        if (action == "approve") {
+            $ribbon.removeClass("rejected");
+            $ribbon.addClass("approved");
+            $ribbon.children('.label').html("Approved");
+
+            db_approved = true;
+            db_active = true;
+        } else {
+            $ribbon.removeClass("approved");
+            $ribbon.addClass("rejected");
+            $ribbon.children('.label').html("Rejected");
+
+            db_approved = false;
+            db_active = false;
+        }
+
+        put_api(oid, JSON.stringify({
+            "active": db_active,
+            "approved": db_approved,
+            "text_content": $p.children(".approval_form").children("textarea")[0].value
+        }));
+
+        $(target).hide();
+        $(target).siblings().show();
+    };
+
+    $(".approve").button().click(function (event) {
+        event.preventDefault();
+        do_action(this, "approve");
+
+    });
+
+    $(".reject").button().click(function (event) {
+        event.preventDefault();
+        do_action(this, "reject");
+    });
+
+    $("textarea").on('input propertychange', function (event) {
+        var $p = $(this).parents(".approval_block"),
+            oid = $p.data("oid");
+
+        put_api(oid, JSON.stringify({
+            "text_content": $(this).val()
+        }), function () {
+            $p.children(".approval_form").children("label").children(".saved").show("slow");
+        });
+    });
+
+    $(".done_review").button().click(function (event) {
+        event.preventDefault();
+        window.location.reload();
     });
 {% endblock %}
 
@@ -114,40 +209,66 @@
 {% block content %}
     {# User facing code, for now #}
     <p>
-    {% if instagram_connect_request %}
-    Not currently connected to instagram.
+    {% if not instagram_user %}
+    Not currently connected to Instagram.
         <a href='{% url socialauth_associate_begin 'instagram' %}'>Connect?</a>
     {% else %}
-    Connected to Instagram
+    Connected to user: {{ instagram_user }}
     {% endif %}
+    </p>
+
+    <p>
+        <input type="checkbox" id="scroll_with_review"><label for="scroll_with_review">Scroll as I review</label>
     </p>
 
     {# Internal code, for now #}
     {% if request.user.is_superuser %}
-        <form action='{% url tag-content store_id %}' method='POST'>
-            <p>I am a robot. Beep boop.</p>
+        <div class="grid_11 review_area" id="tabs">
+            <ul>
+                {% for content_label, content_type, content_data in content %}
+                    <li><a href="#{{ content_type }}">{{ content_label }} ({{ content_data.count }})</a></li>
+                {% endfor %}
+            </ul>
 
-            {% for content in contents %}
-                <div class='content_block instagram'
-                    data-original-id='{{ content.original_id }}'
-                    data-image-url='{{ content.image_url }}'
-                    data-type='{{ content.type }}'
-                    data-text-content='{{ content.text_content|escape }}'>
-                    <img src='{{ content.image_url }}'/>
-                    <span class='text'>{{ content.text_content }}</span>
+
+            {% for content_label, content_type, content_data in content %}
+                <div id="{{ content_type }}">
+                    {% for data in content_data %}
+                        <div class='grid_11 approval_block' data-oid="{{ data.original_id }}">
+                            <div class="grid_3 image_box" style="background-image: url({{ data.image_url|size:"medium" }});">
+                                <div class="image_ribbon {{ content_type }}" data-oid="{{ data.original_id }}">
+                                    <div class="label">
+                                        {% if content_type == "needs_review" %}
+                                            Not Reviewed
+                                        {% elif content_type == "approved" %}
+                                            Approved
+                                        {% else %}
+                                            Rejected
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid_6 prefix_1 approval_form">
+                                <label for="caption_{{ data.original_id }}">Caption <span class="saved">Saved</span></label>
+                                <textarea id="caption_{{ data.original_id }}">{{ data.text_content }}</textarea>
+                                <div class="actions">
+                                    <span class="reject" {% if content_type == "rejected" %}style="display:none;"{% endif %}>&#x2718; Reject</span>
+                                    <span class="approve" {% if content_type == "approved" %}style="display:none;"{% endif %}>&#x2714; Approve</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p>No items here.</p>
+                    {% endfor %}
+
+                    {% if content_data %}
+                        {% if content_type == "needs_review" %}
+                            <span class="done_review" style="float:right;">Done Reviewing</span>
+                        {% endif %}
+                    {% endif %}
                 </div>
             {% endfor %}
-
-            <br class='clear'/>
-            <p>
-                <label>Tag with:<input type='text' id='tag'/></label>
-            </p>
-            <input type='hidden' id='product_id' name='product_id' value='-1' />
-            <input type='hidden' id='instagram' name='instagram' value='' />
-            {% csrf_token %}
-            <a id="tag_button" class="button disabled" href="#">
-                Tag Content
-            </a>
-        </form>
+        </div>
     {% endif %}
 {% endblock %}
