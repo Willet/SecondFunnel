@@ -208,32 +208,21 @@ def get_json_data(request, products, campaign_id, seeds=None):
     external_content = campaign.store.external_content.filter(
         active=True, approved=True)
 
-    shown_content = request.session.get('shown_content', [])
+    # content to product ration. e.g., 5 = 5x the amount of content
+    content_to_products = 1
 
-    # 80% chance of content being added to the result batch
-    if random.random() < 0.8:
-        try:
-            content = choice(external_content)
-            while content.original_id in shown_content:
-                content = choice(external_content)
-        except IndexError:
-            pass
-        else:
-            json_content = content.to_json()
+    need_to_show = int(round(len(results) * content_to_products))
+
+    if len(external_content) > 0 and need_to_show > 0:
+        need_to_show = min(need_to_show, len(external_content))
+
+        for item in random.sample(external_content, need_to_show):
+            json_content = item.to_json()
             json_content.update({
-                'template': content.content_type.name.lower(),
-                'product-id': 0
+                'template': item.content_type.name.lower()
             })
 
-            # insert content randomly into this batch
             results.insert(randrange(len(results) + 1), json_content)
-
-            # look as far back as last 10 inserted items
-            shown_content.insert(0, content.original_id)
-            if len(shown_content) > 10:
-                shown_content.pop()
-
-    request.session['shown_content'] = shown_content
 
     return results
 
@@ -251,7 +240,6 @@ def get_seeds(request, **kwargs):
                                                         DEFAULT_RESULTS))
 
     request.session['pinpoint-video-cookie'] = VideoCookie()
-    request.session['shown_content'] = []
 
     results, status = process_intentrank_request(
         request, store, page, 'getseeds', {
