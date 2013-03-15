@@ -8,13 +8,14 @@ from urlparse import urlunparse
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.files.base import ContentFile
+from django.core.files.base import ContentFile, File
 from django.contrib.auth.views import login
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext, Template, Context, loader
 from django.http import HttpResponse, HttpResponseServerError
 from django.contrib.contenttypes.models import ContentType
 from django.template.defaultfilters import slugify, safe
+from django.utils.encoding import force_unicode
 from django.views.decorators.cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
 from storages.backends.s3boto import S3BotoStorage
@@ -29,7 +30,7 @@ import apps.pinpoint.wizards as wizards
 from apps.utils import noop
 import apps.utils.base62 as base62
 from apps.utils.social.instagram_adapter import Instagram
-
+from apps.utils.image_service import queue_processing
 
 @login_required
 def login_redirect(request):
@@ -201,51 +202,43 @@ def asset_manager(request, store_id):
         except UserSocialAuth.DoesNotExist:
             instagram_user = None
 
-    instagram_connect_request = True
     if instagram_user:
-        instagram_connect_request = False
         instagram_connector = Instagram(tokens=instagram_user.tokens)
-        contents = instagram_connector.get_content(limit=20)
-    else:
-        contents = []  # also "0 photos"
+        contents = instagram_connector.get_content(count=500)
+
+        for instagram_obj in contents:
+            content_type = ExternalContentType.objects.get(
+                slug=instagram_obj.get('type'))
+
+            new_content, created = ExternalContent.objects.get_or_create(
+                store=store,
+                original_id=instagram_obj.get('original_id'),
+                content_type=content_type)
+
+            if created:
+                new_content.text_content = instagram_obj.get('text_content')
+
+                new_content.image_url = queue_processing(store.slug,
+                    instagram_obj.get('type'),
+                    instagram_obj.get('image_url')
+                )
+                new_content.save()
+
+    all_contents = store.external_content.all()
 
     return render_to_response('pinpoint/asset_manager.html', {
         "store": store,
-        "instagram_connect_request": instagram_connect_request,
-        "contents": contents,
+        "instagram_user": instagram_user,
+        "content": [
+            ("Needs Review", "needs_review",
+                all_contents.filter(approved=False, active=True)),
+            ("Rejected", "rejected",
+                all_contents.filter(active=False)),
+            ("Approved", "approved",
+                all_contents.filter(approved=True, active=True))
+        ],
         "store_id": store_id
     }, context_instance=RequestContext(request))
-
-
-@belongs_to_store
-@login_required
-def tag_content(request, store_id):
-    """Adds the instagram photo to a product """
-    instagram_json = request.POST.get('instagram')
-    product_id = request.POST.get('product_id', -1)
-
-    product = Product.objects.get(id=product_id)
-
-    if not product or not instagram_json:
-        messages.error(request, "Missing product or selected content.")
-        return redirect('asset-manager', store_id=store_id)
-
-    instagram_content = json.loads(instagram_json)
-    for instagram_obj in instagram_content:
-        # TODO: Ensure that we can't create duplicate content
-        content_type = ExternalContentType.objects.get(slug=instagram_obj.get('type'))
-        new_content, _ = ExternalContent.objects.get_or_create(
-            original_id=instagram_obj.get('originalId'),
-            content_type=content_type,
-            text_content=instagram_obj.get('textContent'),
-            image_url=instagram_obj.get('imageUrl'))
-        new_content.tagged_products.add(product)
-        new_content.save()
-
-    messages.success(request, 'Successfully tagged {0} content items with "{1}"'
-        .format(len(instagram_content), product.name))
-
-    return redirect('asset-manager', store_id=store_id)
 
 
 # origin: campaigns with short URLs are cached for 30 minutes
@@ -288,21 +281,28 @@ def generate_static_campaign(campaign, contents, force=False):
     filename = '%s/static/pinpoint/html/%s.html' % (os.path.dirname(
         os.path.realpath(__file__)), campaign.id)
     # the "robust" file exists method: stackoverflow.com/a/85237
-    try:
-        with file(filename) as tf:
-            if force:
-                write = True
-    except IOError:
+    if force:
         write = True
+    else:
+        try:
+            with file(filename) as tf:
+                pass
+        except IOError:
+            write = True
 
     if write:
-        with file(filename, 'w') as tf2:
-            tf2.write(contents)
+        try:
+            import codecs
+            tf2 = codecs.open(filename, "wb", "UTF-8")
+            tf2.write(unicode(contents))
+            tf2.close()
+        except IOError:
+            pass
 
-    return write
+    return filename, write
 
 
-def save_static_campaign(campaign, contents, request=None):
+def save_static_campaign(campaign, local_filename, request=None):
     """Uploads the html string (contents) to s3 under the folder (campaign).
 
     Also _attempts_ to save its known static dependencies in the same s3
@@ -316,14 +316,55 @@ def save_static_campaign(campaign, contents, request=None):
     try:
         storage = S3BotoStorage(bucket=settings.STATIC_CAMPAIGNS_BUCKET_NAME,
                                 access_key=settings.AWS_ACCESS_KEY_ID,
-                                secret_key=settings.AWS_SECRET_ACCESS_KEY)
-        thing_file = ContentFile(contents)
-        thing_file.content_type = 'text/html'
-        storage.save(filename, thing_file)
+                                secret_key=settings.AWS_SECRET_ACCESS_KEY,)
+        import codecs
+        # local_file = file(local_filename)
+        try:
+            open_encoding = int(request.GET.get('open_encoding', '0'))
+            if open_encoding == 0:
+                local_file = codecs.open(local_filename, encoding='utf-8')
+            elif open_encoding == 1:
+                local_file = codecs.open(local_filename, encoding='utf-32')
+            elif open_encoding == 2:
+                local_file = file(local_filename, 'r')
+        except ValueError:  # not int
+            local_file = file(local_filename, request.GET.get('open_encoding'))
+
+        contents = local_file.read()
+        local_file.seek(0)
+        if isinstance(contents, unicode):
+            contents = contents.encode('utf-8')
+
+        django_file = File(local_file)
+        django_file.content_type = 'text/html'
+
+        try:
+            save_mode = int(request.GET.get('save_mode', '7'))
+            if save_mode == 0:
+                storage.save(filename, django_file)
+            elif save_mode == 1:
+                storage.save(filename, django_file.read())
+            elif save_mode == 2:
+                storage.save(filename, django_file.read().encode('utf-8'))
+            elif save_mode == 3:
+                storage.save(filename, django_file.read().decode('utf-8'))
+            elif save_mode == 4:
+                storage.save(filename, django_file.read().encode('utf-32'))
+            elif save_mode == 5:
+                storage.save(filename, django_file.read().decode('utf-32'))
+            elif save_mode == 6:
+                storage.save(filename, contents)
+            elif save_mode == 7:
+                storage.save(filename, local_file)
+        except ValueError:  # not int
+            storage.save(filename, request.GET.get('cust_val'))
+        except UnicodeDecodeError:  # some crap happened with 2~5
+            storage.save(filename, django_file.read().encode(
+                request.GET.get('cust_encoding')))
 
     except IOError, err:
         # storage is not available. bring attention if it was forced
-        if settings.DEBUG:
+        if settings.DEBUG or request.GET.get('debug', '0') == '1':
             raise IOError(err)
         else:
             return None  # this means "don't deal with the dependencies"
@@ -339,6 +380,8 @@ def save_static_campaign(campaign, contents, request=None):
                 dependency_contents = urllib2.urlopen(dependency_abs_url).read()
             except IOError:  # 404
                 continue  # I am not helpful; going to work on something else
+
+            # this can be binary
             yet_another_file = ContentFile(dependency_contents)
             storage.save(dependency, yet_another_file)
     except (IOError, AttributeError), err:
@@ -386,7 +429,6 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
         'product': product,
         'campaign': campaign,
         'backup_results': related_results,
-        'random_results': related_results,
     })
 
     theme = campaign.store.theme
@@ -422,9 +464,14 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
 
     # Render response
     rendered_page = page.render(context)
-    written = generate_static_campaign(campaign, rendered_page, force=False)
-    if written:
-        save_static_campaign(campaign, rendered_page, request=request)
+    if isinstance(rendered_page, unicode):
+        rendered_page = rendered_page.encode('utf-8')
+    rendered_page = unicode(rendered_page, 'utf-8')
+
+    (name, written) = generate_static_campaign(campaign, rendered_page,
+        force=settings.DEBUG or request.GET.get('regen', '0') == '1')
+    if written or settings.DEBUG or request.GET.get('regen', '0') == '1':
+        save_static_campaign(campaign, name, request=request)
 
     return HttpResponse(rendered_page)
 

@@ -7,23 +7,12 @@ class Instagram(Social):
 
         self._api = InstagramAPI(access_token=self.access_token)
 
-    def _fetch_media(self, since=None, page=None):
-        if since:
-            media = []
+    def _fetch_media(self, **kwargs):
+        generator = self._api.user_recent_media(as_generator=True, **kwargs)
 
-            # For whatever reason, the generator is really ugly...
-            generator = self._api.user_recent_media(as_generator=True)
-            for results, _ in generator:
-                for result in results:
-                    if since < result.created_time:
-                        media.append(result)
-                    else:
-                        return media
-
-            return media
-        else:
-            results, _ = self._api.user_recent_media()
-            return results
+        for results, _ in generator:
+            for result in results:
+                yield result
 
     def normalize(self, content):
         # TODO: Check if content is provided

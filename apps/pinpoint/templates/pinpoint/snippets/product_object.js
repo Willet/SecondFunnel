@@ -20,4 +20,19 @@
     {% endfor %}
     ],
     "url": "{{ product.url|escapejs }}"
+
+    {# one thing led to another, and we are using this as some generic object now #}
+    {% if product.provider %}
+        , "provider": "{{ product.provider|default:'youtube' }}"
+    {% endif %}
+    {% if product.width %}
+        , "width": "{{ product.width }}"
+    {% endif %}
+    {% if product.width %}
+        , "height": "{{ product.height }}"
+    {% endif %}
+    {% if product.autoplay %}
+        {# this is supposed to be an integer }
+        , "autoplay": {{ product.autoplay }}
+    {% endif %}
 }
