@@ -208,7 +208,7 @@ def get_json_data(request, products, campaign_id, seeds=None):
     external_content = campaign.store.external_content.filter(
         active=True, approved=True)
 
-    # content to product ration. e.g., 5 = 5x the amount of content
+    # content to product ration. e.g., 2 == content to products 2:1
     content_to_products = 1
 
     need_to_show = int(round(len(results) * content_to_products))
