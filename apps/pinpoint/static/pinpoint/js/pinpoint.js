@@ -165,8 +165,8 @@ var PINPOINT = (function($, pageInfo) {
 
     function showPreview(me, templateName) {
         var data     = $(me).data(),
-            $preview = $('.preview.container'),
-            $mask    = $('.preview .mask'),
+            $preview = $('.preview.container'), // No need to change from .css
+            $mask    = $('.preview .mask'),     // because we control them (for now at least)
             templateEl = $("[data-template-id='" + templateName + "']"),
             template = templateEl.html(),
             renderedTemplate,
@@ -506,7 +506,7 @@ var PINPOINT = (function($, pageInfo) {
                 $elem.addClass('wide');
             }
 
-            $('.discovery-area').append($elem);
+            $('[data-page-area="discovery-area"]').append($elem);
         });
 
         // Render youtube blocks with player
@@ -574,7 +574,7 @@ var PINPOINT = (function($, pageInfo) {
             $broken.parents('.block.product').remove();
             $block.find('.block.product img[src=""]').parents('.block.product').remove();
 
-            $('.discovery-area').masonry('appended', $block, true);
+            $('[data-page-area="discovery-area"]').masonry('appended', $block, true);
             $block.show();
 
             // Don't continue to load results if we aren't getting more results
@@ -600,7 +600,7 @@ var PINPOINT = (function($, pageInfo) {
 
     function pageScroll () {
         var $w            = $(window),
-            noResults     = ($('.discovery-area .block').length === 0),
+            noResults     = ($('[data-page-area="discovery-area"] .block').length === 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             lowestBlock,
             lowestHeight,
@@ -612,7 +612,7 @@ var PINPOINT = (function($, pageInfo) {
             window.pinpointTracking && pinpointTracking.notABounce("scroll");
         }
 
-        $('.discovery-area .block').each(function() {
+        $('[data-page-area="discovery-area"] .block').each(function() {
             if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
                 lowestBlock = $(this);
             }
@@ -630,7 +630,7 @@ var PINPOINT = (function($, pageInfo) {
     }
 
     function attachListeners () {
-        var $discovery = $('.discovery-area');
+        var $discovery = $('[data-page-area="discovery-area"]');
 
         // use delegated events to reduce overhead
         $discovery.on('click', '.block.product, .block.combobox', function (e) {
@@ -668,7 +668,7 @@ var PINPOINT = (function($, pageInfo) {
 
         attachListeners();
 
-        $('.discovery-area').masonry({
+        $('[data-page-area="discovery-area"]').masonry({
             itemSelector: '.block',
 
             columnWidth: function (containerWidth) {
