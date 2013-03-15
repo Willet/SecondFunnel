@@ -92,11 +92,12 @@ var PINPOINT = (function($, pageInfo) {
         return myArray.slice(0, nb_picks);
     }
 
-    function renderTemplate(str, data) {
+    function renderTemplate(str, data, is_block) {
         // MOD of
         // http://emptysquare.net/blog/adding-an-include-tag-to-underscore-js-templates/
         // match "<% include template-id %>" with caching
         var appropriateSize,
+            lifestyleSize,
             replaced = str.replace(
             /<%\s*include\s*(.*?)\s*%>/g,
             function(match, templateId) {
@@ -116,7 +117,9 @@ var PINPOINT = (function($, pageInfo) {
 
         // Use 'appropriate' size images by default
         // TODO: Determine appropriate size
-        appropriateSize = 'compact'
+        appropriateSize = (is_block) ? 'compact' : 'master';
+        lifestyleSize = (is_block) ? 'large' : 'master';
+
 
         if (_.has(data.data, 'image')) {
             data.data.image = size(data.data.image, appropriateSize);
@@ -128,6 +131,9 @@ var PINPOINT = (function($, pageInfo) {
             });
         }
 
+        if (_.has(data.data, 'lifestyle-image')) {
+            data.data['lifestyle-image'] = size(data.data['lifestyle-image'], lifestyleSize);
+        }
 
         // Append template functions to data
         _.extend(data, {
@@ -494,7 +500,7 @@ var PINPOINT = (function($, pageInfo) {
                     'data': template_context,
                     'page': details.page,
                     'store': details.store
-                });
+                }, true);
                 if (!rendered_block.length) {
                     // template did not render.
                     break;
