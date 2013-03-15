@@ -230,7 +230,7 @@ class ExternalContent(BaseModel):
     tagged_products = models.ManyToManyField(Product, blank=True, null=True,
                                              related_name='external_content')
 
-    tagged_stores = models.ManyToManyField(Store, blank=True, null=True,
+    store = models.ForeignKey(Store, blank=True, null=True,
                                             related_name='external_content')
 
     text_content = models.TextField(blank=True, null=True)
@@ -238,6 +238,9 @@ class ExternalContent(BaseModel):
 
     approved = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ('original_id', 'content_type', 'store')
 
     def __unicode__(self):
         return u''

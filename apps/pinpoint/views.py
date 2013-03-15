@@ -209,6 +209,7 @@ def asset_manager(request, store_id):
                 slug=instagram_obj.get('type'))
 
             new_content, created = ExternalContent.objects.get_or_create(
+                store=store,
                 original_id=instagram_obj.get('original_id'),
                 content_type=content_type)
 
@@ -220,8 +221,6 @@ def asset_manager(request, store_id):
                     instagram_obj.get('image_url')
                 )
                 new_content.save()
-
-            new_content.tagged_stores.add(store)
 
     all_contents = store.external_content.all()
 
