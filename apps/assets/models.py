@@ -230,8 +230,17 @@ class ExternalContent(BaseModel):
     tagged_products = models.ManyToManyField(Product, blank=True, null=True,
                                              related_name='external_content')
 
+    store = models.ForeignKey(Store, blank=True, null=True,
+                                            related_name='external_content')
+
     text_content = models.TextField(blank=True, null=True)
     image_url = models.CharField(max_length=555, blank=True, null=True)
+
+    approved = models.BooleanField(default=False)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ('original_id', 'content_type', 'store')
 
     def __unicode__(self):
         return u''

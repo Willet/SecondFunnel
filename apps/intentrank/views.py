@@ -4,12 +4,12 @@ import math
 import random
 
 from urllib import urlencode
+from random import randrange, choice
 
 from django.conf import settings
 from django.http import HttpResponse
 from django.db.models import Count
-from django.template import Context, Template
-from mock import Mock, MagicMock
+from mock import MagicMock
 from apps.assets.models import Product, Store
 
 # All requests are get requests at the moment
@@ -176,16 +176,6 @@ def get_json_data(request, products, campaign_id, seeds=None):
             product_js_obj[prop] = product_props[prop]
         results.append(product_js_obj)
 
-        # for each product, add all external content of that product beside
-        # the product json
-        for external_content in product.external_content.all():
-            seed_keys = external_content.to_json()
-            seed_keys.update({
-                'template': external_content.content_type.name.lower(),
-                'product-id': product.id,
-            })
-            results.append(seed_keys)
-
     # videos
     video_cookie = request.session.get('pinpoint-video-cookie')
     if not video_cookie:
@@ -212,18 +202,27 @@ def get_json_data(request, products, campaign_id, seeds=None):
     else:
         video_cookie.add_blocks(len(results))
 
-    # return external media for all seeds too
-    if seeds:
-        seed_prods = Product.objects.filter(pk__in=seeds, rescrape=False)
-        for seed_prod in seed_prods:
-            for external_content in seed_prod.external_content.all():
-                seed_keys = external_content.to_json()
-                seed_keys.update({
-                    'template': external_content.content_type.name,
-                })
-                results.append(seed_keys)
-
     request.session['pinpoint-video-cookie'] = video_cookie
+
+    # store-wide external content
+    external_content = campaign.store.external_content.filter(
+        active=True, approved=True)
+
+    # content to product ration. e.g., 2 == content to products 2:1
+    content_to_products = 1
+
+    need_to_show = int(round(len(results) * content_to_products))
+
+    if len(external_content) > 0 and need_to_show > 0:
+        need_to_show = min(need_to_show, len(external_content))
+
+        for item in random.sample(external_content, need_to_show):
+            json_content = item.to_json()
+            json_content.update({
+                'template': item.content_type.name.lower()
+            })
+
+            results.insert(randrange(len(results) + 1), json_content)
 
     return results
 
