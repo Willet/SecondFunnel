@@ -204,7 +204,7 @@ def asset_manager(request, store_id):
 
     if instagram_user:
         instagram_connector = Instagram(tokens=instagram_user.tokens)
-        contents = instagram_connector.get_content()
+        contents = instagram_connector.get_content(count=500)
 
         for instagram_obj in contents:
             content_type = ExternalContentType.objects.get(
