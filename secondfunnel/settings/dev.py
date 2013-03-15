@@ -2,7 +2,7 @@ from common import *
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
-MAINTENANCE_MODE = True
+MAINTENANCE_MODE = False
 
 DATABASES = {
     'default': {
