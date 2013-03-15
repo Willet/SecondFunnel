@@ -96,7 +96,8 @@ var PINPOINT = (function($, pageInfo) {
         // MOD of
         // http://emptysquare.net/blog/adding-an-include-tag-to-underscore-js-templates/
         // match "<% include template-id %>" with caching
-        var replaced = str.replace(
+        var appropriateSize,
+            replaced = str.replace(
             /<%\s*include\s*(.*?)\s*%>/g,
             function(match, templateId) {
                 if (domTemplateCache[templateId]) {
@@ -112,6 +113,21 @@ var PINPOINT = (function($, pageInfo) {
                 }
             }
         );
+
+        // Use 'appropriate' size images by default
+        // TODO: Determine appropriate size
+        appropriateSize = 'compact'
+
+        if (_.has(data.data, 'image')) {
+            data.data.image = size(data.data.image, appropriateSize);
+        }
+
+        if (_.has(data.data, 'images')) {
+            data.data.images = _.map(data.data.images, function(img) {
+                return size(img, appropriateSize)
+            });
+        }
+
 
         // Append template functions to data
         _.extend(data, {
