@@ -230,9 +230,12 @@ def asset_manager(request, store_id):
         "store": store,
         "instagram_user": instagram_user,
         "content": [
-            ("needs_review", all_contents.filter(approved=False, active=True)),
-            ("rejected", all_contents.filter(active=False)),
-            ("approved", all_contents.filter(approved=True, active=True))
+            ("Needs Review", "needs_review",
+                all_contents.filter(approved=False, active=True)),
+            ("Rejected", "rejected",
+                all_contents.filter(active=False)),
+            ("Approved", "approved",
+                all_contents.filter(approved=True, active=True))
         ],
         "store_id": store_id
     }, context_instance=RequestContext(request))
