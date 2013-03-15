@@ -571,8 +571,8 @@ var PINPOINT = (function($, pageInfo) {
 
         // make sure images are loaded or else masonry wont work properly
         $block.imagesLoaded(function($images, $proper, $broken) {
-            $broken.parents('.block.product').remove();
-            $block.find('.block.product img[src=""]').parents('.block.product').remove();
+            $broken.parents('[data-content-type="block"][data-block-type="product"]').remove();
+            $block.find('[data-content-type="block"][data-block-type="product"] img[src=""]').parents('[data-content-type="block"][data-block-type="product"]').remove();
 
             $('[data-page-area="discovery-area"]').masonry('appended', $block, true);
             $block.show();
@@ -600,7 +600,7 @@ var PINPOINT = (function($, pageInfo) {
 
     function pageScroll () {
         var $w            = $(window),
-            noResults     = ($('[data-page-area="discovery-area"] .block').length === 0),
+            noResults     = ($('[data-page-area="discovery-area"] [data-content-type="block"]').length === 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             lowestBlock,
             lowestHeight,
@@ -612,7 +612,7 @@ var PINPOINT = (function($, pageInfo) {
             window.pinpointTracking && pinpointTracking.notABounce("scroll");
         }
 
-        $('[data-page-area="discovery-area"] .block').each(function() {
+        $('[data-page-area="discovery-area"] [data-content-type="block"]').each(function() {
             if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
                 lowestBlock = $(this);
             }
@@ -633,15 +633,15 @@ var PINPOINT = (function($, pageInfo) {
         var $discovery = $('[data-page-area="discovery-area"]');
 
         // use delegated events to reduce overhead
-        $discovery.on('click', '.block.product, .block.combobox', function (e) {
+        $discovery.on('click', '[data-content-type="block"][data-block-type="product"], [data-content-type="block"][data-block-type="combobox"]', function (e) {
             showProductPreview(e.currentTarget, e);
         });
-        $discovery.on('click', '.block.image', function (e) {
+        $discovery.on('click', '[data-content-type="block"][data-block-type="image"]', function (e) {
             showImagePreview(e.currentTarget, e);
         });
 
         // update clickstream
-        $discovery.on('click', '.block.product, .block.combobox', function (e) {
+        $discovery.on('click', '[data-content-type="block"][data-block-type="product"], [data-content-type="block"][data-block-type="combobox"]', function (e) {
             updateClickStream(e.currentTarget, e);
         });
 
@@ -649,17 +649,17 @@ var PINPOINT = (function($, pageInfo) {
         $discovery.on({
             mouseenter: productHoverOn,
             mouseleave: productHoverOff
-        }, '.block.product, .block.combobox .product');
+        }, '[data-content-type="block"][data-block-type="product"], [data-content-type="block"][data-block-type="combobox"] .product');
 
         $discovery.on({
             mouseenter: youtubeHoverOn,
             mouseleave: youtubeHoverOff
-        }, '.block.youtube');
+        }, '[data-content-type="block"][data-block-type="youtube"]');
 
         $discovery.on({
             mouseenter: lifestyleHoverOn,
             mouseleave: lifestyleHoverOff
-        }, '.block.combobox .lifestyle');
+        }, '[data-content-type="block"][data-block-type="combobox"] .lifestyle');
     }
 
     function ready () {
@@ -669,7 +669,7 @@ var PINPOINT = (function($, pageInfo) {
         attachListeners();
 
         $('[data-page-area="discovery-area"]').masonry({
-            itemSelector: '.block',
+            itemSelector: '[data-content-type="block"]',
 
             columnWidth: function (containerWidth) {
                 return containerWidth / 4;
