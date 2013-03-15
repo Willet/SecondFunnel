@@ -122,12 +122,12 @@ var PINPOINT = (function($, pageInfo) {
         // as data attributes.
 
 
-        // select every ".template.target" element and render them with their data-src
+        // select every "[template-target]" element and render them with their data-src
         // attribute: data-src='abc' rendered by a data-template-id='abc'
-        $('.template.target').each(function () {
+        $('[data-template-target]').each(function () {
             var originalContext = data || {},
                 target = $(this),
-                src = target.data('src') || '',
+                src = target.data('template-target') || '',
                 srcElement = $("[data-template-id='" + src + "']"),
                 context = {};
 
@@ -170,7 +170,7 @@ var PINPOINT = (function($, pageInfo) {
             templateEl = $("[data-template-id='" + templateName + "']"),
             template = templateEl.html(),
             renderedTemplate,
-            target = $('.target.template[data-src="preview"]');
+            target = $('[data-template-target="preview"]');
 
         data.is_preview = data.is_preview || true;
 
