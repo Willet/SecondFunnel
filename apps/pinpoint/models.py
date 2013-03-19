@@ -196,7 +196,7 @@ class StoreTheme(BaseModelNamed):
             },
             'body_content': {
                 'type': 'template',
-                'values': ['pinpoint/campaign_discovery.html',
+                'values': ['pinpoint/default_templates.html',
                            'pinpoint/campaign_scripts.html']
             },
             'js_templates': {
