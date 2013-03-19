@@ -2,8 +2,6 @@
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
 
 // TODO: Test this mofo so that we can refactor the **crap** out of it
-// TODO: Make sure comments are removed from minification?
-// Can we just make the changes we need without drastically changing this file, or does it make more sense to just rewrite it?
 var PINPOINT = (function($, pageInfo) {
     var console = window.console || {
             // dummy
