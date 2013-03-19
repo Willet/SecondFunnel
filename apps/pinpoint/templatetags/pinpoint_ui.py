@@ -112,4 +112,7 @@ def include_escaped(parser, token):
 
 @register.filter(name='size')
 def size(value, arg):
+    if not value:
+        return value
+
     return value.replace("master.jpg", "{0}.jpg".format(arg))
