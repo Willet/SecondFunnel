@@ -526,6 +526,7 @@ var PINPOINT = (function($, pageInfo) {
 
             api.getObject("video_gdata", video.id, function (video_data) {
                 var preferredThumbnailQuality = 'hqdefault',
+                    thumbClass = 'youtube-thumbnail',
                     thumbURL = 'http://i.ytimg.com/vi/' + video.id +
                                '/' + preferredThumbnailQuality + '.jpg',
                     thumbObj,
@@ -549,7 +550,7 @@ var PINPOINT = (function($, pageInfo) {
                     }
                 });
 
-                thumbnail.addClass('wide').click(function () {
+                thumbnail.addClass('wide ' + thumbClass).click(function () {
                     // when the thumbnail is clicked, replace itself with
                     // the youtube video of the same size, then autoplay
                     thumbnail.remove();
@@ -571,9 +572,17 @@ var PINPOINT = (function($, pageInfo) {
                     });
                 });
 
-                $(".youtube[data-label='" + video.id + "']")
-                    .prepend(thumbnail)
-                    .children(".title").html(video_data.entry.title.$t);
+                var container = $(".youtube[data-label='" + video.id + "']");
+                if (container) {
+                    if (container.find('.' + thumbClass).length === 0) {
+                        // add a thumbnail only if there isn't one already
+                        container.prepend(thumbnail);
+                        console.log('loaded video thumbnail ' + video.id);
+                    } else {
+                        console.error('prevented thumbnail dupe');
+                    }
+                    container.children(".title").html(video_data.entry.title.$t);
+                }
             });
         });
 

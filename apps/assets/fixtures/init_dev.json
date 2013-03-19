@@ -201,7 +201,7 @@
             "description": null,
             "created": "2012-11-13T19:23:28Z",
             "last_modified": "2012-11-13T19:23:29Z",
-            "hosted": "product_images/octocat.png",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/octocat.png",
             "media_type": "img",
             "slug": null,
             "name": null
@@ -228,7 +228,7 @@
             "description": null,
             "created": "2012-12-04T18:56:15Z",
             "last_modified": "2012-12-04T18:56:15Z",
-            "hosted": "product_images/octocat.png",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/octocat.png",
             "slug": null,
             "name": null
         }
@@ -267,7 +267,7 @@
             "description": "",
             "created": "2012-12-18T23:08:41Z",
             "last_modified": "2012-12-18T23:08:41Z",
-            "hosted": "product_images/pinstripe1.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/pinstripe1.jpeg",
             "slug": "",
             "name": ""
         }
@@ -280,7 +280,7 @@
             "description": "",
             "created": "2012-12-18T23:13:55Z",
             "last_modified": "2012-12-18T23:13:55Z",
-            "hosted": "product_images/red-grey_jacket_red_vest_red-blue_bowtie.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/red-grey_jacket_red_vest_red-blue_bowtie.jpeg",
             "slug": "harlem-sunset-blazer",
             "name": "harlem sunset blazer"
         }
@@ -289,11 +289,11 @@
         "pk": 7,
         "model": "assets.genericimage",
         "fields": {
-            "remote": "",
+            "hosted": "",
             "description": "",
             "created": "2012-12-18T23:15:42Z",
             "last_modified": "2012-12-18T23:15:42Z",
-            "hosted": "product_images/trench_coat_group.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/trench_coat_group.jpeg",
             "slug": "",
             "name": ""
         }
@@ -306,7 +306,7 @@
             "description": "",
             "created": "2012-12-18T23:16:49Z",
             "last_modified": "2012-12-18T23:16:49Z",
-            "hosted": "product_images/trench_coat_group.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/trench_coat_group.jpeg",
             "slug": "",
             "name": ""
         }
@@ -319,7 +319,7 @@
             "description": "",
             "created": "2012-12-18T23:17:45Z",
             "last_modified": "2012-12-18T23:17:45Z",
-            "hosted": "product_images/trench_coat_group.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/trench_coat_group.jpeg",
             "slug": "",
             "name": ""
         }
@@ -332,7 +332,7 @@
             "description": "",
             "created": "2012-12-18T23:18:34Z",
             "last_modified": "2012-12-18T23:18:34Z",
-            "hosted": "product_images/trench_coat_group.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/trench_coat_group.jpeg",
             "slug": "",
             "name": ""
         }
@@ -345,7 +345,7 @@
             "description": "",
             "created": "2012-12-18T23:19:33Z",
             "last_modified": "2012-12-18T23:19:33Z",
-            "hosted": "product_images/trench_coat_group.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/trench_coat_group.jpeg",
             "slug": "",
             "name": ""
         }
@@ -358,7 +358,7 @@
             "description": "",
             "created": "2012-12-18T23:20:25Z",
             "last_modified": "2012-12-18T23:20:25Z",
-            "hosted": "product_images/trench_coat_group.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/trench_coat_group.jpeg",
             "slug": "",
             "name": ""
         }
@@ -371,7 +371,7 @@
             "description": "",
             "created": "2012-12-18T23:23:10Z",
             "last_modified": "2012-12-18T23:23:10Z",
-            "hosted": "product_images/burgundy_suit.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/burgundy_suit.jpeg",
             "slug": "",
             "name": ""
         }
@@ -384,7 +384,7 @@
             "description": "",
             "created": "2012-12-18T23:26:57Z",
             "last_modified": "2012-12-18T23:26:57Z",
-            "hosted": "product_images/quad_custom_case_orange_and_pistachio_palette.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/quad_custom_case_orange_and_pistachio_palette.jpg",
             "slug": "",
             "name": ""
         }
@@ -397,7 +397,7 @@
             "description": "",
             "created": "2012-12-18T23:30:22Z",
             "last_modified": "2012-12-18T23:30:22Z",
-            "hosted": "product_images/blue_suit_striped_tie_checked_shirt_.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/blue_suit_striped_tie_checked_shirt_.jpeg",
             "slug": "",
             "name": ""
         }
@@ -410,7 +410,7 @@
             "description": "",
             "created": "2012-12-18T23:33:27Z",
             "last_modified": "2012-12-18T23:33:27Z",
-            "hosted": "product_images/check_shirt_grey_tie_camel_coat_blue_scarf_grey_tie.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/check_shirt_grey_tie_camel_coat_blue_scarf_grey_tie.jpeg",
             "slug": "",
             "name": ""
         }
@@ -423,7 +423,7 @@
             "description": "",
             "created": "2012-12-18T23:34:59Z",
             "last_modified": "2012-12-18T23:34:59Z",
-            "hosted": "product_images/check_shirt_grey_tie_camel_coat_blue_scarf_grey_tie.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/check_shirt_grey_tie_camel_coat_blue_scarf_grey_tie.jpeg",
             "slug": "",
             "name": ""
         }
@@ -436,7 +436,7 @@
             "description": "",
             "created": "2012-12-18T23:36:03Z",
             "last_modified": "2012-12-18T23:36:03Z",
-            "hosted": "product_images/check_shirt_grey_tie_camel_coat_blue_scarf_grey_tie.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/check_shirt_grey_tie_camel_coat_blue_scarf_grey_tie.jpeg",
             "slug": "",
             "name": ""
         }
@@ -449,7 +449,7 @@
             "description": "",
             "created": "2012-12-18T23:40:31Z",
             "last_modified": "2012-12-18T23:40:31Z",
-            "hosted": "product_images/check_shirt_grey_tie_camel_coat_blue_scarf_grey_tie.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/check_shirt_grey_tie_camel_coat_blue_scarf_grey_tie.jpeg",
             "slug": "",
             "name": ""
         }
@@ -462,7 +462,7 @@
             "description": "",
             "created": "2012-12-18T23:41:32Z",
             "last_modified": "2012-12-18T23:41:32Z",
-            "hosted": "product_images/blue_suit_striped_tie_checked_shirt_.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/blue_suit_striped_tie_checked_shirt_.jpeg",
             "slug": "",
             "name": ""
         }
@@ -475,7 +475,7 @@
             "description": "",
             "created": "2012-12-18T23:42:15Z",
             "last_modified": "2012-12-18T23:42:15Z",
-            "hosted": "product_images/checked_shirt_grey_jacket_striped_tie.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/checked_shirt_grey_jacket_striped_tie.jpeg",
             "slug": "",
             "name": ""
         }
@@ -488,7 +488,7 @@
             "description": "",
             "created": "2012-12-19T00:00:19Z",
             "last_modified": "2012-12-19T00:00:19Z",
-            "hosted": "product_images/grey_coat_green_scarf.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/grey_coat_green_scarf.jpeg",
             "slug": "",
             "name": ""
         }
@@ -501,7 +501,7 @@
             "description": "",
             "created": "2012-12-19T00:09:11Z",
             "last_modified": "2012-12-19T00:09:11Z",
-            "hosted": "product_images/grey_jacket_checked_shirt_camel_coat_grey_scarf_grey_gloves.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/grey_jacket_checked_shirt_camel_coat_grey_scarf_grey_gloves.jpeg",
             "slug": "",
             "name": ""
         }
@@ -514,7 +514,7 @@
             "description": "",
             "created": "2012-12-19T00:10:18Z",
             "last_modified": "2012-12-19T00:10:18Z",
-            "hosted": "product_images/grey_jacket_checked_shirt_camel_coat_grey_scarf_grey_gloves.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/grey_jacket_checked_shirt_camel_coat_grey_scarf_grey_gloves.jpeg",
             "slug": "",
             "name": ""
         }
@@ -527,7 +527,7 @@
             "description": "",
             "created": "2012-12-19T00:14:31Z",
             "last_modified": "2012-12-19T00:14:31Z",
-            "hosted": "product_images/grey_suit_black_tux.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/grey_suit_black_tux.jpeg",
             "slug": "",
             "name": ""
         }
@@ -540,7 +540,7 @@
             "description": "",
             "created": "2012-12-19T00:15:31Z",
             "last_modified": "2012-12-19T00:15:31Z",
-            "hosted": "product_images/grey_suit_black_tux.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/grey_suit_black_tux.jpeg",
             "slug": "",
             "name": ""
         }
@@ -553,7 +553,7 @@
             "description": "",
             "created": "2012-12-19T00:28:56Z",
             "last_modified": "2012-12-19T00:28:56Z",
-            "hosted": "product_images/monogram1_-_dark_grey.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/monogram1_-_dark_grey.jpeg",
             "slug": "",
             "name": ""
         }
@@ -566,7 +566,7 @@
             "description": "",
             "created": "2012-12-19T00:32:39Z",
             "last_modified": "2012-12-19T00:32:39Z",
-            "hosted": "product_images/red-grey_jacket_red_vest_red-blue_bowtie.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/red-grey_jacket_red_vest_red-blue_bowtie.jpeg",
             "slug": "",
             "name": ""
         }
@@ -579,7 +579,7 @@
             "description": "",
             "created": "2012-12-19T00:37:35Z",
             "last_modified": "2012-12-19T00:37:35Z",
-            "hosted": "product_images/Baltimore_Buzz_Olive_Green_Checked_Suit.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/Baltimore_Buzz_Olive_Green_Checked_Suit.jpeg",
             "slug": "",
             "name": ""
         }
@@ -592,7 +592,7 @@
             "description": "",
             "created": "2012-12-19T00:48:05Z",
             "last_modified": "2012-12-19T00:48:05Z",
-            "hosted": "product_images/Baltimore_Buzz_Olive_Green_Checked_Suit.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/Baltimore_Buzz_Olive_Green_Checked_Suit.jpeg",
             "slug": "",
             "name": ""
         }
@@ -605,7 +605,7 @@
             "description": "",
             "created": "2012-12-19T01:15:08Z",
             "last_modified": "2012-12-19T01:15:08Z",
-            "hosted": "product_images/63965257179303029_UF3AYTOC.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/63965257179303029_UF3AYTOC.jpeg",
             "slug": "",
             "name": ""
         }
@@ -618,7 +618,7 @@
             "description": "",
             "created": "2012-12-19T01:17:31Z",
             "last_modified": "2012-12-19T01:17:31Z",
-            "hosted": "product_images/LElQsrTBXN.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/LElQsrTBXN.jpeg",
             "slug": "",
             "name": ""
         }
@@ -631,7 +631,7 @@
             "description": "",
             "created": "2012-12-19T01:19:22Z",
             "last_modified": "2012-12-19T01:19:22Z",
-            "hosted": "product_images/navy-3-piece-suit-by-indochino.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/navy-3-piece-suit-by-indochino.jpeg",
             "slug": "",
             "name": ""
         }
@@ -644,7 +644,7 @@
             "description": "",
             "created": "2012-12-19T01:20:24Z",
             "last_modified": "2012-12-19T01:20:24Z",
-            "hosted": "product_images/new-navy-pinstripe-three-piece-from-indochino.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/new-navy-pinstripe-three-piece-from-indochino.jpeg",
             "slug": "",
             "name": ""
         }
@@ -657,7 +657,7 @@
             "description": "",
             "created": "2012-12-19T01:22:08Z",
             "last_modified": "2012-12-19T01:22:08Z",
-            "hosted": "product_images/PaF8HkCCPG.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/PaF8HkCCPG.jpeg",
             "slug": "",
             "name": ""
         }
@@ -670,7 +670,7 @@
             "description": "",
             "created": "2012-12-19T01:26:05Z",
             "last_modified": "2012-12-19T01:26:05Z",
-            "hosted": "product_images/void0.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/void0.jpeg",
             "slug": "",
             "name": ""
         }
@@ -683,7 +683,7 @@
             "description": "",
             "created": "2012-12-19T01:27:48Z",
             "last_modified": "2012-12-19T01:27:48Z",
-            "hosted": "product_images/navy-3-piece-suit-by-indochino-1.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/navy-3-piece-suit-by-indochino-1.jpeg",
             "slug": "",
             "name": ""
         }
@@ -696,7 +696,7 @@
             "description": "",
             "created": "2012-12-19T17:23:00Z",
             "last_modified": "2012-12-19T17:23:00Z",
-            "hosted": "product_images/quad_custom_case_orange_and_pistachio_palette.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/quad_custom_case_orange_and_pistachio_palette.jpg",
             "slug": "",
             "name": ""
         }
@@ -709,7 +709,7 @@
             "description": "",
             "created": "2012-12-19T17:24:13Z",
             "last_modified": "2012-12-19T17:24:13Z",
-            "hosted": "product_images/false_eyelashes_slant_black.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/false_eyelashes_slant_black.jpg",
             "slug": "",
             "name": ""
         }
@@ -722,7 +722,7 @@
             "description": "",
             "created": "2012-12-19T17:25:01Z",
             "last_modified": "2012-12-19T17:25:01Z",
-            "hosted": "product_images/farfallina_false_eyelashes.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/farfallina_false_eyelashes.jpg",
             "slug": "",
             "name": ""
         }
@@ -735,7 +735,7 @@
             "description": "",
             "created": "2012-12-19T17:25:36Z",
             "last_modified": "2012-12-19T17:25:36Z",
-            "hosted": "product_images/glow_on_refill_apricot.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/glow_on_refill_apricot.jpg",
             "slug": "",
             "name": ""
         }
@@ -748,7 +748,7 @@
             "description": "",
             "created": "2012-12-19T17:31:12Z",
             "last_modified": "2012-12-19T17:31:12Z",
-            "hosted": "product_images/karl_for_shu_eye_and_cheek_palette_prestigious_bordeaux.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/karl_for_shu_eye_and_cheek_palette_prestigious_bordeaux.jpg",
             "slug": "",
             "name": ""
         }
@@ -761,7 +761,7 @@
             "description": "",
             "created": "2012-12-19T17:32:39Z",
             "last_modified": "2012-12-19T17:32:39Z",
-            "hosted": "product_images/karl_for_shu_eye_and_cheek_palette_smoky_velvet.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/karl_for_shu_eye_and_cheek_palette_smoky_velvet.jpg",
             "slug": "",
             "name": ""
         }
@@ -774,7 +774,7 @@
             "description": "",
             "created": "2012-12-19T17:33:26Z",
             "last_modified": "2012-12-19T17:33:26Z",
-            "hosted": "product_images/natural_brush_10.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/natural_brush_10.jpg",
             "slug": "",
             "name": ""
         }
@@ -787,7 +787,7 @@
             "description": "",
             "created": "2012-12-19T17:33:51Z",
             "last_modified": "2012-12-19T17:33:51Z",
-            "hosted": "product_images/natural_brush_18r_red.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/natural_brush_18r_red.jpg",
             "slug": "",
             "name": ""
         }
@@ -800,7 +800,7 @@
             "description": "",
             "created": "2012-12-19T17:34:16Z",
             "last_modified": "2012-12-19T17:34:16Z",
-            "hosted": "product_images/natural_brush_27.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/natural_brush_27.jpg",
             "slug": "",
             "name": ""
         }
@@ -813,7 +813,7 @@
             "description": "",
             "created": "2012-12-19T17:35:33Z",
             "last_modified": "2012-12-19T17:35:33Z",
-            "hosted": "product_images/raspberry_and_mocha_palette.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/raspberry_and_mocha_palette.jpg",
             "slug": "",
             "name": ""
         }
@@ -826,7 +826,7 @@
             "description": "",
             "created": "2012-12-19T17:36:12Z",
             "last_modified": "2012-12-19T17:36:12Z",
-            "hosted": "product_images/red_juvenus_nutri-essence_oil.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/red_juvenus_nutri-essence_oil.jpg",
             "slug": "",
             "name": ""
         }
@@ -839,7 +839,7 @@
             "description": "",
             "created": "2012-12-19T17:37:06Z",
             "last_modified": "2012-12-19T17:37:06Z",
-            "hosted": "product_images/rouge_unlimited.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/rouge_unlimited.jpg",
             "slug": "",
             "name": ""
         }
@@ -852,7 +852,7 @@
             "description": "",
             "created": "2012-12-19T17:37:32Z",
             "last_modified": "2012-12-19T17:37:32Z",
-            "hosted": "product_images/stage_performer_instant_glow.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/stage_performer_instant_glow.jpg",
             "slug": "",
             "name": ""
         }
@@ -865,7 +865,7 @@
             "description": "",
             "created": "2012-12-19T17:38:02Z",
             "last_modified": "2012-12-19T17:38:02Z",
-            "hosted": "product_images/ultimate_expression_mascara.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/ultimate_expression_mascara.jpg",
             "slug": "",
             "name": ""
         }
@@ -878,7 +878,7 @@
             "description": "",
             "created": "2012-12-19T17:38:35Z",
             "last_modified": "2012-12-19T17:38:35Z",
-            "hosted": "product_images/ultimate_natural_mascara_red_juvenus_vitalizing_refining_lotion.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/ultimate_natural_mascara_red_juvenus_vitalizing_refining_lotion.jpg",
             "slug": "",
             "name": ""
         }
@@ -891,7 +891,7 @@
             "description": "",
             "created": "2012-12-19T17:39:23Z",
             "last_modified": "2012-12-19T17:39:23Z",
-            "hosted": "product_images/ultimate_natural_mascara_red_juvenus_vitalizing_refining_lotion.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/ultimate_natural_mascara_red_juvenus_vitalizing_refining_lotion.jpg",
             "slug": "",
             "name": ""
         }
@@ -904,7 +904,7 @@
             "description": "",
             "created": "2012-12-19T18:10:35Z",
             "last_modified": "2012-12-19T18:10:35Z",
-            "hosted": "product_images/The_Miller_in_Pigeon_Grey_Solid.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Miller_in_Pigeon_Grey_Solid.jpeg",
             "slug": "",
             "name": ""
         }
@@ -917,7 +917,7 @@
             "description": "",
             "created": "2012-12-19T18:12:14Z",
             "last_modified": "2012-12-19T18:12:14Z",
-            "hosted": "product_images/The_Paolo_in_Torch_Red_and_Beaver_Brown.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Paolo_in_Torch_Red_and_Beaver_Brown.jpeg",
             "slug": "",
             "name": ""
         }
@@ -930,7 +930,7 @@
             "description": "",
             "created": "2012-12-19T18:37:19Z",
             "last_modified": "2012-12-19T18:37:19Z",
-            "hosted": "product_images/CORRADO_-_blue_LEATHER.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/CORRADO_-_blue_LEATHER.jpeg",
             "slug": "",
             "name": ""
         }
@@ -943,7 +943,7 @@
             "description": "",
             "created": "2012-12-19T18:38:06Z",
             "last_modified": "2012-12-19T18:38:06Z",
-            "hosted": "product_images/CORRADO_-_blue_LEATHER.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/CORRADO_-_blue_LEATHER.jpeg",
             "slug": "",
             "name": ""
         }
@@ -956,7 +956,7 @@
             "description": "",
             "created": "2012-12-19T18:38:40Z",
             "last_modified": "2012-12-19T18:38:40Z",
-            "hosted": "product_images/CORRADO_-_blue_LEATHER.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/CORRADO_-_blue_LEATHER.jpeg",
             "slug": "",
             "name": ""
         }
@@ -969,7 +969,7 @@
             "description": "",
             "created": "2012-12-19T18:44:18Z",
             "last_modified": "2012-12-19T18:44:18Z",
-            "hosted": "product_images/HOWARD_-_REGATTA_BLUE.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/HOWARD_-_REGATTA_BLUE.jpeg",
             "slug": "",
             "name": ""
         }
@@ -982,7 +982,7 @@
             "description": "",
             "created": "2012-12-19T18:46:47Z",
             "last_modified": "2012-12-19T18:46:47Z",
-            "hosted": "product_images/HOWARD_-_REGATTA_BLUE.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/HOWARD_-_REGATTA_BLUE.jpeg",
             "slug": "",
             "name": ""
         }
@@ -995,7 +995,7 @@
             "description": "",
             "created": "2012-12-19T18:48:30Z",
             "last_modified": "2012-12-19T18:48:30Z",
-            "hosted": "product_images/HOWARD_-_REGATTA_BLUE.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/HOWARD_-_REGATTA_BLUE.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1008,7 +1008,7 @@
             "description": "",
             "created": "2012-12-19T18:49:03Z",
             "last_modified": "2012-12-19T18:49:03Z",
-            "hosted": "product_images/HOWARD_-_REGATTA_BLUE.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/HOWARD_-_REGATTA_BLUE.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1021,7 +1021,7 @@
             "description": "",
             "created": "2012-12-19T18:51:13Z",
             "last_modified": "2012-12-19T18:51:13Z",
-            "hosted": "product_images/HOWARD_-_SHELL_WHITE.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/HOWARD_-_SHELL_WHITE.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1034,7 +1034,7 @@
             "description": "",
             "created": "2012-12-19T18:51:48Z",
             "last_modified": "2012-12-19T18:51:48Z",
-            "hosted": "product_images/HOWARD_-_SHELL_WHITE.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/HOWARD_-_SHELL_WHITE.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1047,7 +1047,7 @@
             "description": "",
             "created": "2012-12-19T18:52:13Z",
             "last_modified": "2012-12-19T18:52:13Z",
-            "hosted": "product_images/HOWARD_-_SHELL_WHITE.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/HOWARD_-_SHELL_WHITE.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1060,7 +1060,7 @@
             "description": "",
             "created": "2012-12-19T18:53:03Z",
             "last_modified": "2012-12-19T18:53:03Z",
-            "hosted": "product_images/HUGO_-_TORCH_RED.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/HUGO_-_TORCH_RED.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1073,7 +1073,7 @@
             "description": "",
             "created": "2012-12-19T18:56:22Z",
             "last_modified": "2012-12-19T18:56:22Z",
-            "hosted": "product_images/Jefferson_red_mens.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/Jefferson_red_mens.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1086,7 +1086,7 @@
             "description": "",
             "created": "2012-12-19T18:57:18Z",
             "last_modified": "2012-12-19T18:57:18Z",
-            "hosted": "product_images/JERICHO.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JERICHO.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1099,7 +1099,7 @@
             "description": "",
             "created": "2012-12-19T19:00:12Z",
             "last_modified": "2012-12-19T19:00:12Z",
-            "hosted": "product_images/JERICHO2.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JERICHO2.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1112,7 +1112,7 @@
             "description": "",
             "created": "2012-12-19T19:02:27Z",
             "last_modified": "2012-12-19T19:02:27Z",
-            "hosted": "product_images/JIMMY_-_JIFFY_BLACK.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JIMMY_-_JIFFY_BLACK.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1125,7 +1125,7 @@
             "description": "",
             "created": "2012-12-19T19:03:12Z",
             "last_modified": "2012-12-19T19:03:12Z",
-            "hosted": "product_images/JIMMY_-_JIFFY_BLACK.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JIMMY_-_JIFFY_BLACK.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1138,7 +1138,7 @@
             "description": "",
             "created": "2012-12-19T19:14:10Z",
             "last_modified": "2012-12-19T19:14:10Z",
-            "hosted": "product_images/JIMMY_-_JIFFY_BLACK.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JIMMY_-_JIFFY_BLACK.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1151,7 +1151,7 @@
             "description": "",
             "created": "2012-12-19T19:25:43Z",
             "last_modified": "2012-12-19T19:25:43Z",
-            "hosted": "product_images/JIMMY_-_REGATTA_BLUE.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JIMMY_-_REGATTA_BLUE.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1164,7 +1164,7 @@
             "description": "",
             "created": "2012-12-19T19:31:23Z",
             "last_modified": "2012-12-19T19:31:23Z",
-            "hosted": "product_images/JIMMY_-_REGATTA_BLUE.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JIMMY_-_REGATTA_BLUE.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1177,7 +1177,7 @@
             "description": "",
             "created": "2012-12-19T19:33:08Z",
             "last_modified": "2012-12-19T19:33:08Z",
-            "hosted": "product_images/Jimmy_crayon_jeyllow.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/Jimmy_crayon_jeyllow.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1190,7 +1190,7 @@
             "description": "",
             "created": "2012-12-19T19:33:30Z",
             "last_modified": "2012-12-19T19:33:30Z",
-            "hosted": "product_images/Jimmy_crayon_jeyllow.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/Jimmy_crayon_jeyllow.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1203,7 +1203,7 @@
             "description": "",
             "created": "2012-12-19T19:35:14Z",
             "last_modified": "2012-12-19T19:35:14Z",
-            "hosted": "product_images/MILLER_-_HOLLYWOOD_PINK_MILLER_-_CRAYON_YELLOW.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/MILLER_-_HOLLYWOOD_PINK_MILLER_-_CRAYON_YELLOW.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1216,7 +1216,7 @@
             "description": "",
             "created": "2012-12-19T19:35:36Z",
             "last_modified": "2012-12-19T19:35:36Z",
-            "hosted": "product_images/MILLER_-_HOLLYWOOD_PINK_MILLER_-_CRAYON_YELLOW.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/MILLER_-_HOLLYWOOD_PINK_MILLER_-_CRAYON_YELLOW.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1229,7 +1229,7 @@
             "description": "",
             "created": "2012-12-19T19:36:12Z",
             "last_modified": "2012-12-19T19:36:12Z",
-            "hosted": "product_images/MILLER_-_HOLLYWOOD_PINK_MILLER_-_CRAYON_YELLOW.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/MILLER_-_HOLLYWOOD_PINK_MILLER_-_CRAYON_YELLOW.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1242,7 +1242,7 @@
             "description": "",
             "created": "2012-12-19T19:47:52Z",
             "last_modified": "2012-12-19T19:47:52Z",
-            "hosted": "product_images/The_Fitzsimmons_in_Jiffy_Black.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Fitzsimmons_in_Jiffy_Black.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1255,7 +1255,7 @@
             "description": "",
             "created": "2012-12-19T19:48:17Z",
             "last_modified": "2012-12-19T19:48:17Z",
-            "hosted": "product_images/The_Fitzsimmons_in_Jiffy_Black.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Fitzsimmons_in_Jiffy_Black.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1268,7 +1268,7 @@
             "description": "",
             "created": "2012-12-19T19:49:16Z",
             "last_modified": "2012-12-19T19:49:16Z",
-            "hosted": "product_images/The_Fitzsimmons_in_Torch_red.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Fitzsimmons_in_Torch_red.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1281,7 +1281,7 @@
             "description": "",
             "created": "2012-12-19T19:49:35Z",
             "last_modified": "2012-12-19T19:49:35Z",
-            "hosted": "product_images/The_Fitzsimmons_in_Torch_red.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Fitzsimmons_in_Torch_red.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1294,7 +1294,7 @@
             "description": "",
             "created": "2012-12-19T19:49:55Z",
             "last_modified": "2012-12-19T19:49:55Z",
-            "hosted": "product_images/The_Fitzsimmons_in_Torch_red.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Fitzsimmons_in_Torch_red.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1307,7 +1307,7 @@
             "description": "",
             "created": "2012-12-19T19:50:58Z",
             "last_modified": "2012-12-19T19:50:58Z",
-            "hosted": "product_images/The_Fitzsimmons_in_Torch_Red1.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Fitzsimmons_in_Torch_Red1.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1320,7 +1320,7 @@
             "description": "",
             "created": "2012-12-19T19:51:57Z",
             "last_modified": "2012-12-19T19:51:57Z",
-            "hosted": "product_images/The_Fitzsimmons_in_Torch_Red1.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Fitzsimmons_in_Torch_Red1.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1333,7 +1333,7 @@
             "description": "",
             "created": "2012-12-19T19:53:28Z",
             "last_modified": "2012-12-19T19:53:28Z",
-            "hosted": "product_images/The_Howard_in_Hot_Sauce_Red.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Howard_in_Hot_Sauce_Red.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1346,7 +1346,7 @@
             "description": "",
             "created": "2012-12-19T19:53:43Z",
             "last_modified": "2012-12-19T19:53:43Z",
-            "hosted": "product_images/The_Howard_in_Hot_Sauce_Red.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Howard_in_Hot_Sauce_Red.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1359,7 +1359,7 @@
             "description": "",
             "created": "2012-12-19T19:56:42Z",
             "last_modified": "2012-12-19T19:56:42Z",
-            "hosted": "product_images/The_Howard_in_Hot_Sauce_Red.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Howard_in_Hot_Sauce_Red.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1372,7 +1372,7 @@
             "description": "",
             "created": "2012-12-19T19:58:27Z",
             "last_modified": "2012-12-19T19:58:27Z",
-            "hosted": "product_images/The_Jericho_in_Pigeon_Grey.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Jericho_in_Pigeon_Grey.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1385,7 +1385,7 @@
             "description": "",
             "created": "2012-12-19T19:58:50Z",
             "last_modified": "2012-12-19T19:58:50Z",
-            "hosted": "product_images/The_Jericho_in_Pigeon_Grey.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Jericho_in_Pigeon_Grey.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1398,7 +1398,7 @@
             "description": "",
             "created": "2012-12-19T19:59:08Z",
             "last_modified": "2012-12-19T19:59:08Z",
-            "hosted": "product_images/The_Jericho_in_Pigeon_Grey.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Jericho_in_Pigeon_Grey.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1411,7 +1411,7 @@
             "description": "",
             "created": "2012-12-19T19:59:45Z",
             "last_modified": "2012-12-19T19:59:45Z",
-            "hosted": "product_images/The_Jimmy_in_Beaver_Brown.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Jimmy_in_Beaver_Brown.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1424,7 +1424,7 @@
             "description": "",
             "created": "2012-12-19T20:00:46Z",
             "last_modified": "2012-12-19T20:00:46Z",
-            "hosted": "product_images/The_Jimmy_in_Sherwood_Green.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Jimmy_in_Sherwood_Green.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1437,7 +1437,7 @@
             "description": "",
             "created": "2012-12-19T20:02:44Z",
             "last_modified": "2012-12-19T20:02:44Z",
-            "hosted": "product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1450,7 +1450,7 @@
             "description": "",
             "created": "2012-12-19T20:03:03Z",
             "last_modified": "2012-12-19T20:03:03Z",
-            "hosted": "product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1463,7 +1463,7 @@
             "description": "",
             "created": "2012-12-19T20:03:21Z",
             "last_modified": "2012-12-19T20:03:21Z",
-            "hosted": "product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1476,7 +1476,7 @@
             "description": "",
             "created": "2012-12-19T20:03:47Z",
             "last_modified": "2012-12-19T20:03:47Z",
-            "hosted": "product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1489,7 +1489,7 @@
             "description": "",
             "created": "2012-12-19T20:04:06Z",
             "last_modified": "2012-12-19T20:04:06Z",
-            "hosted": "product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1502,7 +1502,7 @@
             "description": "",
             "created": "2012-12-19T20:05:10Z",
             "last_modified": "2012-12-19T20:05:10Z",
-            "hosted": "product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1515,7 +1515,7 @@
             "description": "",
             "created": "2012-12-19T20:05:43Z",
             "last_modified": "2012-12-19T20:05:43Z",
-            "hosted": "product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Miller_in_Crayon_Yellow__The_Jefferson_in_Pigeon_Grey.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1528,7 +1528,7 @@
             "description": "",
             "created": "2012-12-19T20:07:00Z",
             "last_modified": "2012-12-19T20:07:00Z",
-            "hosted": "product_images/The_Miller_in_Hot_Sauce_Red.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Miller_in_Hot_Sauce_Red.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1541,7 +1541,7 @@
             "description": "",
             "created": "2012-12-19T20:07:21Z",
             "last_modified": "2012-12-19T20:07:21Z",
-            "hosted": "product_images/The_Miller_in_Hot_Sauce_Red.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Miller_in_Hot_Sauce_Red.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1554,7 +1554,7 @@
             "description": "",
             "created": "2012-12-19T20:07:38Z",
             "last_modified": "2012-12-19T20:07:38Z",
-            "hosted": "product_images/The_Miller_in_Hot_Sauce_Red.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Miller_in_Hot_Sauce_Red.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1567,7 +1567,7 @@
             "description": "",
             "created": "2012-12-19T20:09:56Z",
             "last_modified": "2012-12-19T20:09:56Z",
-            "hosted": "product_images/The_Verona_in_Shuttle_Grey_and_Popsicle_Orange.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Verona_in_Shuttle_Grey_and_Popsicle_Orange.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1580,7 +1580,7 @@
             "description": "",
             "created": "2012-12-19T20:10:14Z",
             "last_modified": "2012-12-19T20:10:14Z",
-            "hosted": "product_images/The_Veronas_in_Armada_Red_and_Autumn_Yellow.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Veronas_in_Armada_Red_and_Autumn_Yellow.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1593,7 +1593,7 @@
             "description": "",
             "created": "2012-12-19T20:10:41Z",
             "last_modified": "2012-12-19T20:10:41Z",
-            "hosted": "product_images/The_Veronas_in_Armada_Red_and_Autumn_Yellow.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Veronas_in_Armada_Red_and_Autumn_Yellow.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1606,7 +1606,7 @@
             "description": "",
             "created": "2012-12-19T20:10:57Z",
             "last_modified": "2012-12-19T20:10:57Z",
-            "hosted": "product_images/The_Veronas_in_Armada_Red_and_Autumn_Yellow.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Veronas_in_Armada_Red_and_Autumn_Yellow.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1619,7 +1619,7 @@
             "description": "",
             "created": "2012-12-19T20:11:13Z",
             "last_modified": "2012-12-19T20:11:13Z",
-            "hosted": "product_images/VERONA_-_SHELL_WHITE.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/VERONA_-_SHELL_WHITE.jpeg",
             "slug": "",
             "name": ""
         }
@@ -1632,7 +1632,7 @@
             "description": "",
             "created": "2012-12-20T19:23:53Z",
             "last_modified": "2012-12-20T19:23:53Z",
-            "hosted": "product_images/eyelas_curler_gold.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/eyelas_curler_gold.jpg",
             "slug": "",
             "name": ""
         }
@@ -1645,7 +1645,7 @@
             "description": "",
             "created": "2012-12-20T19:24:20Z",
             "last_modified": "2012-12-20T19:24:20Z",
-            "hosted": "product_images/eyelash_curler.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/eyelash_curler.jpg",
             "slug": "",
             "name": ""
         }
@@ -1658,7 +1658,7 @@
             "description": "",
             "created": "2012-12-20T19:25:02Z",
             "last_modified": "2012-12-20T19:25:02Z",
-            "hosted": "product_images/face_architect_smoothing_fluid_foundation2.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/face_architect_smoothing_fluid_foundation2.jpg",
             "slug": "",
             "name": ""
         }
@@ -1671,7 +1671,7 @@
             "description": "",
             "created": "2012-12-20T19:25:26Z",
             "last_modified": "2012-12-20T19:25:26Z",
-            "hosted": "product_images/glow_on_blush_refill.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/glow_on_blush_refill.jpg",
             "slug": "",
             "name": ""
         }
@@ -1684,7 +1684,7 @@
             "description": "",
             "created": "2012-12-20T19:25:50Z",
             "last_modified": "2012-12-20T19:25:50Z",
-            "hosted": "product_images/glow_on_refill_framboisier.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/glow_on_refill_framboisier.jpg",
             "slug": "",
             "name": ""
         }
@@ -1697,7 +1697,7 @@
             "description": "",
             "created": "2012-12-20T19:26:17Z",
             "last_modified": "2012-12-20T19:26:17Z",
-            "hosted": "product_images/karl_for_shu_premium_eyelashes.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/karl_for_shu_premium_eyelashes.jpg",
             "slug": "",
             "name": ""
         }
@@ -1710,7 +1710,7 @@
             "description": "",
             "created": "2012-12-20T19:26:40Z",
             "last_modified": "2012-12-20T19:26:40Z",
-            "hosted": "product_images/painting_liner.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/painting_liner.jpg",
             "slug": "",
             "name": ""
         }
@@ -1723,7 +1723,7 @@
             "description": "",
             "created": "2012-12-20T19:27:20Z",
             "last_modified": "2012-12-20T19:27:20Z",
-            "hosted": "product_images/purenovate_clarifying_refreshing_lotion.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/purenovate_clarifying_refreshing_lotion.jpg",
             "slug": "",
             "name": ""
         }
@@ -1736,7 +1736,7 @@
             "description": "",
             "created": "2012-12-20T19:27:42Z",
             "last_modified": "2012-12-20T19:27:42Z",
-            "hosted": "product_images/red-juvenus_roll-away_instant_eye_fatigue_corrector.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/red-juvenus_roll-away_instant_eye_fatigue_corrector.jpg",
             "slug": "",
             "name": ""
         }
@@ -1749,7 +1749,7 @@
             "description": "",
             "created": "2012-12-20T19:28:27Z",
             "last_modified": "2012-12-20T19:28:27Z",
-            "hosted": "product_images/rouge_unlimited_supreme_shine.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/rouge_unlimited_supreme_shine.jpg",
             "slug": "",
             "name": ""
         }
@@ -1762,7 +1762,7 @@
             "description": "",
             "created": "2012-12-20T19:29:36Z",
             "last_modified": "2012-12-20T19:29:36Z",
-            "hosted": "product_images/waterproof_mascara.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/waterproof_mascara.jpg",
             "slug": "",
             "name": ""
         }
@@ -1775,7 +1775,7 @@
             "description": null,
             "created": "2013-01-09T18:18:27Z",
             "last_modified": "2013-01-09T18:18:27Z",
-            "hosted": "product_images/CORRADO_-_blue_LEATHER.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/CORRADO_-_blue_LEATHER.jpeg",
             "slug": null,
             "name": null
         }
@@ -1788,7 +1788,7 @@
             "description": null,
             "created": "2013-01-09T18:25:15Z",
             "last_modified": "2013-01-09T18:25:15Z",
-            "hosted": "product_images/lookbook49.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook49.jpg",
             "slug": null,
             "name": null
         }
@@ -1801,7 +1801,7 @@
             "description": null,
             "created": "2013-01-09T18:25:56Z",
             "last_modified": "2013-01-09T18:25:56Z",
-            "hosted": "product_images/lookbook49.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook49.jpg",
             "slug": null,
             "name": null
         }
@@ -1814,7 +1814,7 @@
             "description": null,
             "created": "2013-01-11T22:49:47Z",
             "last_modified": "2013-01-11T22:49:47Z",
-            "hosted": "product_images/lookbook50.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook50.jpg",
             "slug": null,
             "name": null
         }
@@ -1827,7 +1827,7 @@
             "description": null,
             "created": "2013-01-15T00:00:58Z",
             "last_modified": "2013-01-15T00:00:58Z",
-            "hosted": "product_images/lookbook50.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook50.jpg",
             "slug": null,
             "name": null
         }
@@ -1840,7 +1840,7 @@
             "description": null,
             "created": "2013-01-15T00:35:55Z",
             "last_modified": "2013-01-15T00:35:55Z",
-            "hosted": "product_images/lookbook49.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook49.jpg",
             "slug": null,
             "name": null
         }
@@ -1853,7 +1853,7 @@
             "description": null,
             "created": "2013-01-15T21:41:49Z",
             "last_modified": "2013-01-15T21:41:49Z",
-            "hosted": "product_images/lookbook50.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook50.jpg",
             "slug": null,
             "name": null
         }
@@ -1866,7 +1866,7 @@
             "description": null,
             "created": "2013-01-15T22:15:07Z",
             "last_modified": "2013-01-15T22:15:07Z",
-            "hosted": "product_images/lookbook48.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook48.jpg",
             "slug": null,
             "name": null
         }
@@ -1879,7 +1879,7 @@
             "description": null,
             "created": "2013-01-17T17:28:10Z",
             "last_modified": "2013-01-17T17:28:10Z",
-            "hosted": "product_images/lookbook48.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook48.jpg",
             "slug": null,
             "name": null
         }
@@ -1892,7 +1892,7 @@
             "description": null,
             "created": "2013-01-17T19:23:39Z",
             "last_modified": "2013-01-17T19:23:39Z",
-            "hosted": "product_images/lookbook50.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook50.jpg",
             "slug": null,
             "name": null
         }
@@ -1905,7 +1905,7 @@
             "description": null,
             "created": "2013-01-17T20:47:16Z",
             "last_modified": "2013-01-17T20:47:16Z",
-            "hosted": "product_images/blossom-cropped.png",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/blossom-cropped.png",
             "slug": null,
             "name": null
         }
@@ -1918,7 +1918,7 @@
             "description": null,
             "created": "2013-01-18T05:29:56Z",
             "last_modified": "2013-01-18T05:29:56Z",
-            "hosted": "product_images/lookbook51.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook51.jpg",
             "slug": null,
             "name": null
         }
@@ -1931,7 +1931,7 @@
             "description": null,
             "created": "2013-01-18T23:53:57Z",
             "last_modified": "2013-01-18T23:53:57Z",
-            "hosted": "product_images/lookbook51.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook51.jpg",
             "slug": null,
             "name": null
         }
@@ -1944,7 +1944,7 @@
             "description": null,
             "created": "2013-01-19T00:30:11Z",
             "last_modified": "2013-01-19T00:30:11Z",
-            "hosted": "product_images/blossom-cropped.png",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/blossom-cropped.png",
             "slug": null,
             "name": null
         }
@@ -1957,7 +1957,7 @@
             "description": null,
             "created": "2013-01-19T00:30:28Z",
             "last_modified": "2013-01-19T00:30:28Z",
-            "hosted": "product_images/blossom-cropped.png",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/blossom-cropped.png",
             "slug": null,
             "name": null
         }
@@ -1970,7 +1970,7 @@
             "description": null,
             "created": "2013-01-21T23:27:10Z",
             "last_modified": "2013-01-21T23:27:10Z",
-            "hosted": "product_images/blossom-cropped.png",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/blossom-cropped.png",
             "slug": null,
             "name": null
         }
@@ -1983,7 +1983,7 @@
             "description": null,
             "created": "2013-01-22T23:22:12Z",
             "last_modified": "2013-01-22T23:22:12Z",
-            "hosted": "product_images/blossom-cropped.png",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/blossom-cropped.png",
             "slug": null,
             "name": null
         }
@@ -1996,7 +1996,7 @@
             "description": null,
             "created": "2013-01-25T17:59:44Z",
             "last_modified": "2013-01-25T17:59:44Z",
-            "hosted": "product_images/lookbook52.JPG",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook52.JPG",
             "slug": null,
             "name": null
         }
@@ -2009,7 +2009,7 @@
             "description": null,
             "created": "2013-01-25T18:00:51Z",
             "last_modified": "2013-01-25T18:00:51Z",
-            "hosted": "product_images/lookbook52.JPG",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook52.JPG",
             "slug": null,
             "name": null
         }
@@ -2022,7 +2022,7 @@
             "description": null,
             "created": "2013-01-28T22:18:22Z",
             "last_modified": "2013-01-28T22:18:22Z",
-            "hosted": "product_images/shu-skin.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/shu-skin.jpg",
             "slug": null,
             "name": null
         }
@@ -2035,7 +2035,7 @@
             "description": null,
             "created": "2013-01-28T22:38:36Z",
             "last_modified": "2013-01-28T22:38:36Z",
-            "hosted": "product_images/shu-bottles.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/shu-bottles.jpg",
             "slug": null,
             "name": null
         }
@@ -2048,7 +2048,7 @@
             "description": null,
             "created": "2013-01-28T22:39:29Z",
             "last_modified": "2013-01-28T22:39:29Z",
-            "hosted": "product_images/shu-bottles.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/shu-bottles.jpg",
             "slug": null,
             "name": null
         }
@@ -2061,7 +2061,7 @@
             "description": null,
             "created": "2013-01-28T23:29:41Z",
             "last_modified": "2013-01-28T23:29:41Z",
-            "hosted": "product_images/petal-shu.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/petal-shu.jpg",
             "slug": null,
             "name": null
         }
@@ -2074,7 +2074,7 @@
             "description": null,
             "created": "2013-01-29T23:46:05Z",
             "last_modified": "2013-01-29T23:46:05Z",
-            "hosted": "product_images/shu-skin.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/shu-skin.jpg",
             "slug": null,
             "name": null
         }
@@ -2087,7 +2087,7 @@
             "description": null,
             "created": "2013-01-30T19:59:56Z",
             "last_modified": "2013-01-30T19:59:56Z",
-            "hosted": "product_images/shu-skin.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/shu-skin.jpg",
             "slug": null,
             "name": null
         }
@@ -2100,7 +2100,7 @@
             "description": "\"When I opened a make-up box in Hollywood, I felt as if I had uncovered hidden treasures in a pyramid.  It was this rush of excitement that made me determined to become a professional make-up artist.\" - Mr. Shu Uemura",
             "created": "2013-01-31T16:12:09Z",
             "last_modified": "2013-01-31T16:12:09Z",
-            "hosted": "product_images/shu-colors.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/shu-colors.jpg",
             "slug": "shu-hollywood",
             "name": "Shu Hollywood"
         }
@@ -2113,7 +2113,7 @@
             "description": "Beautiful make-up starts with beautiful skin.",
             "created": "2013-01-31T16:19:29Z",
             "last_modified": "2013-01-31T16:19:29Z",
-            "hosted": "product_images/shu-skin.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/shu-skin.jpg",
             "slug": "beaty-starts-skin",
             "name": "Beaty starts with skin"
         }
@@ -2152,7 +2152,7 @@
             "description": "",
             "created": "2013-01-31T17:25:14Z",
             "last_modified": "2013-01-31T17:25:14Z",
-            "hosted": "product_images/indo-essential-black.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/indo-essential-black.jpg",
             "slug": "essential-black-suit",
             "name": "Essential Black Suit"
         }
@@ -2165,7 +2165,7 @@
             "description": "",
             "created": "2013-01-31T17:26:35Z",
             "last_modified": "2013-01-31T17:26:35Z",
-            "hosted": "product_images/indo-essential-black-2.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/indo-essential-black-2.jpg",
             "slug": "essential-black-3-piece-suit",
             "name": "Essential Black 3-piece Suit"
         }
@@ -2178,7 +2178,7 @@
             "description": "Navy Blue & Royal Purple is a great combination to try gents. Very Simple and Clean look. I wore this look to 50th #Wedding Anniversary. #menswear #mensstyle #mensfashion #debonair #sartorial #igstyle #igfashion #fashion #style #tmflook #menstagram #webstagram #indochino #suit #hookandalbert #lapelflower #tmlewin #jackspade #pocketsquare #mensweardaily #fashiongram #stylegram #wardrobeconsultant #classyblackmen #nyc #brooklyn #dailystylebattle #zionraiment",
             "created": "2013-01-31T20:23:32Z",
             "last_modified": "2013-01-31T20:23:32Z",
-            "hosted": "product_images/indo_-_blue__purple.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/indo_-_blue__purple.jpg",
             "slug": "navy-blue-purple",
             "name": "Navy Blue & Purple"
         }
@@ -2191,7 +2191,7 @@
             "description": "Love getting packages from @indochino #suits #yyc #indochino",
             "created": "2013-01-31T20:27:10Z",
             "last_modified": "2013-01-31T20:27:10Z",
-            "hosted": "product_images/indo-package.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/indo-package.jpg",
             "slug": "package",
             "name": "Package"
         }
@@ -2204,7 +2204,7 @@
             "description": "Khaki Chinos, Blue Oxford and French Cuffs from #indochino and awesome new #CuffLinks from @wildbloo for #valentinesday early!",
             "created": "2013-01-31T20:31:58Z",
             "last_modified": "2013-01-31T20:31:58Z",
-            "hosted": "product_images/indo-blue-oxford.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/indo-blue-oxford.jpg",
             "slug": "blue-oxford-collage",
             "name": "Blue Oxford collage"
         }
@@ -2217,7 +2217,7 @@
             "description": "Tony Parker in @indochino #indochino #menswear #mensstyle #diva #nba #basketball #pictureoftheday #picoftheday #beautiful #suits #meninsuits #follow #followers #fashion #instagram #instaglam #instadaily #iphonesia #tonyparker #stevenash #inspirational #instafashion #drive",
             "created": "2013-01-31T20:34:18Z",
             "last_modified": "2013-01-31T20:34:18Z",
-            "hosted": "product_images/indo-tony-parker.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/indo-tony-parker.jpg",
             "slug": "tony-parker-essential-gray",
             "name": "Tony Parker Essential Gray"
         }
@@ -2230,7 +2230,7 @@
             "description": "It's a cold day in #NYC but I'm dreaming of warmer weather and light layers. Unfortunately I will have to pull out thermals today. #mensstyle #mensfashion #ootdmagazine #ootd #outfitoftheday #steloos #mensweardaily #igstyle #igfashion #zara #bonobos #hookandalbert #nupop #aldo #indochino #stylegram #fashiongram #GQ #debonair #menstagram #stylemagazine #webstagram #fashion #style #ootnmagazine #wardrobeconsultant #zionraiment",
             "created": "2013-01-31T20:37:03Z",
             "last_modified": "2013-01-31T20:37:03Z",
-            "hosted": "product_images/indo-vest.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/indo-vest.jpg",
             "slug": "gray-vest-collage",
             "name": "Gray Vest Collage"
         }
@@ -2243,7 +2243,7 @@
             "description": "#suit#style#nojoke#church#bachelor#party#event#weddind#friend#fashion#bottles#paris#delta",
             "created": "2013-01-31T20:39:32Z",
             "last_modified": "2013-01-31T20:39:32Z",
-            "hosted": "product_images/indo-grey-suite.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/indo-grey-suite.jpg",
             "slug": "gray-suit",
             "name": "Gray Suit"
         }
@@ -2256,7 +2256,7 @@
             "description": null,
             "created": "2013-01-31T20:50:57Z",
             "last_modified": "2013-01-31T20:50:57Z",
-            "hosted": "product_images/indo-grey-suite.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/indo-grey-suite.jpg",
             "slug": null,
             "name": null
         }
@@ -2269,7 +2269,7 @@
             "description": null,
             "created": "2013-01-31T20:51:23Z",
             "last_modified": "2013-01-31T20:51:23Z",
-            "hosted": "product_images/indo-grey-suite.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/indo-grey-suite.jpg",
             "slug": null,
             "name": null
         }
@@ -2282,7 +2282,7 @@
             "description": null,
             "created": "2013-02-01T17:49:21Z",
             "last_modified": "2013-02-01T17:49:21Z",
-            "hosted": "product_images/lookbook53.JPG",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook53.JPG",
             "slug": null,
             "name": null
         }
@@ -2295,7 +2295,7 @@
             "description": null,
             "created": "2013-02-01T20:21:51Z",
             "last_modified": "2013-02-01T20:21:51Z",
-            "hosted": "product_images/shu-skin.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/shu-skin.jpg",
             "slug": null,
             "name": null
         }
@@ -2308,7 +2308,7 @@
             "description": null,
             "created": "2013-02-01T23:10:51Z",
             "last_modified": "2013-02-01T23:10:51Z",
-            "hosted": "product_images/Headshot.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/Headshot.jpeg",
             "slug": null,
             "name": null
         }
@@ -2321,7 +2321,7 @@
             "description": null,
             "created": "2013-02-01T23:11:04Z",
             "last_modified": "2013-02-01T23:11:04Z",
-            "hosted": "product_images/Headshot_Small.png",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/Headshot_Small.png",
             "slug": null,
             "name": null
         }
@@ -2334,7 +2334,7 @@
             "description": null,
             "created": "2013-02-05T17:30:42Z",
             "last_modified": "2013-02-05T17:30:42Z",
-            "hosted": "product_images/tony-parker.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/tony-parker.jpg",
             "slug": null,
             "name": null
         }
@@ -2347,7 +2347,7 @@
             "description": null,
             "created": "2013-02-05T17:31:05Z",
             "last_modified": "2013-02-05T17:31:05Z",
-            "hosted": "product_images/tony-parker.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/tony-parker.jpg",
             "slug": null,
             "name": null
         }
@@ -2360,7 +2360,7 @@
             "description": null,
             "created": "2013-02-08T17:34:27Z",
             "last_modified": "2013-02-08T17:34:27Z",
-            "hosted": "product_images/lookbook54.JPG",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook54.JPG",
             "slug": null,
             "name": null
         }
@@ -2373,7 +2373,7 @@
             "description": "",
             "created": "2013-02-09T01:27:16Z",
             "last_modified": "2013-02-09T01:27:16Z",
-            "hosted": "product_images/JERICHO.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JERICHO.jpg",
             "slug": "",
             "name": ""
         }
@@ -2386,7 +2386,7 @@
             "description": "",
             "created": "2013-02-09T01:30:13Z",
             "last_modified": "2013-02-09T01:30:13Z",
-            "hosted": "product_images/The_Jericho_in_Pigeon_Grey.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Jericho_in_Pigeon_Grey.jpg",
             "slug": "",
             "name": ""
         }
@@ -2399,7 +2399,7 @@
             "description": "",
             "created": "2013-02-09T01:31:33Z",
             "last_modified": "2013-02-09T01:31:33Z",
-            "hosted": "product_images/The_Jimmy_in_Beaver_Brown.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Jimmy_in_Beaver_Brown.jpg",
             "slug": "",
             "name": ""
         }
@@ -2412,7 +2412,7 @@
             "description": "",
             "created": "2013-02-09T01:38:12Z",
             "last_modified": "2013-02-09T01:38:12Z",
-            "hosted": "product_images/The_Miller_in_Hot_Sauce_Red.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Miller_in_Hot_Sauce_Red.jpg",
             "slug": "",
             "name": ""
         }
@@ -2425,7 +2425,7 @@
             "description": "",
             "created": "2013-02-13T16:55:29Z",
             "last_modified": "2013-02-13T16:55:29Z",
-            "hosted": "product_images/CORRADO_-_blue_LEATHER.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/CORRADO_-_blue_LEATHER.jpg",
             "slug": "",
             "name": ""
         }
@@ -2438,7 +2438,7 @@
             "description": "",
             "created": "2013-02-13T16:55:50Z",
             "last_modified": "2013-02-13T16:55:50Z",
-            "hosted": "product_images/454f5cba675e11e29a3e22000a1f90ce_7.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/454f5cba675e11e29a3e22000a1f90ce_7.jpg",
             "slug": "",
             "name": ""
         }
@@ -2451,7 +2451,7 @@
             "description": "",
             "created": "2013-02-13T16:56:12Z",
             "last_modified": "2013-02-13T16:56:12Z",
-            "hosted": "product_images/418901_10151017631496498_85200536_n.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/418901_10151017631496498_85200536_n.jpg",
             "slug": "",
             "name": ""
         }
@@ -2464,7 +2464,7 @@
             "description": "",
             "created": "2013-02-13T16:57:16Z",
             "last_modified": "2013-02-13T16:57:16Z",
-            "hosted": "product_images/393749_10151049514051498_1049711515_n.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/393749_10151049514051498_1049711515_n.jpg",
             "slug": "",
             "name": ""
         }
@@ -2477,7 +2477,7 @@
             "description": "",
             "created": "2013-02-13T16:57:28Z",
             "last_modified": "2013-02-13T16:57:28Z",
-            "hosted": "product_images/e5da552664f811e29e0522000a1fa50c_7.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/e5da552664f811e29e0522000a1fa50c_7.jpg",
             "slug": "",
             "name": ""
         }
@@ -2490,7 +2490,7 @@
             "description": "",
             "created": "2013-02-13T16:57:39Z",
             "last_modified": "2013-02-13T16:57:39Z",
-            "hosted": "product_images/CORRADO_-_blue_LEATHER.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/CORRADO_-_blue_LEATHER.jpg",
             "slug": "",
             "name": ""
         }
@@ -2503,7 +2503,7 @@
             "description": "",
             "created": "2013-02-13T17:00:22Z",
             "last_modified": "2013-02-13T17:00:22Z",
-            "hosted": "product_images/JERICHO.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JERICHO.jpg",
             "slug": "",
             "name": ""
         }
@@ -2516,7 +2516,7 @@
             "description": "",
             "created": "2013-02-13T17:02:01Z",
             "last_modified": "2013-02-13T17:02:01Z",
-            "hosted": "product_images/7ad558a465be11e299a722000a9d0ee0_7.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/7ad558a465be11e299a722000a9d0ee0_7.jpg",
             "slug": "",
             "name": ""
         }
@@ -2529,7 +2529,7 @@
             "description": "",
             "created": "2013-02-13T17:04:41Z",
             "last_modified": "2013-02-13T17:04:41Z",
-            "hosted": "product_images/HOWARD_-_SHELL_WHITE.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/HOWARD_-_SHELL_WHITE.jpg",
             "slug": "",
             "name": ""
         }
@@ -2542,7 +2542,7 @@
             "description": "",
             "created": "2013-02-13T17:05:16Z",
             "last_modified": "2013-02-13T17:05:16Z",
-            "hosted": "product_images/lookbook02_-__Howard_in_Shell_White.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook02_-__Howard_in_Shell_White.jpg",
             "slug": "",
             "name": ""
         }
@@ -2555,7 +2555,7 @@
             "description": "",
             "created": "2013-02-13T17:06:07Z",
             "last_modified": "2013-02-13T17:06:07Z",
-            "hosted": "product_images/HOWARD_-_REGATTA_BLUE.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/HOWARD_-_REGATTA_BLUE.jpg",
             "slug": "",
             "name": ""
         }
@@ -2568,7 +2568,7 @@
             "description": "",
             "created": "2013-02-13T17:06:38Z",
             "last_modified": "2013-02-13T17:06:38Z",
-            "hosted": "product_images/deathvalley_01.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/deathvalley_01.jpg",
             "slug": "",
             "name": ""
         }
@@ -2581,7 +2581,7 @@
             "description": "",
             "created": "2013-02-13T17:08:45Z",
             "last_modified": "2013-02-13T17:08:45Z",
-            "hosted": "product_images/The_Howard_in_Hot_Sauce_Red.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Howard_in_Hot_Sauce_Red.jpg",
             "slug": "",
             "name": ""
         }
@@ -2594,7 +2594,7 @@
             "description": "",
             "created": "2013-02-13T17:08:57Z",
             "last_modified": "2013-02-13T17:08:57Z",
-            "hosted": "product_images/HOWARD_-_REGATTA_BLUE.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/HOWARD_-_REGATTA_BLUE.jpg",
             "slug": "",
             "name": ""
         }
@@ -2607,7 +2607,7 @@
             "description": "",
             "created": "2013-02-13T17:10:10Z",
             "last_modified": "2013-02-13T17:10:10Z",
-            "hosted": "product_images/lookbook02_-__Howard_in_Shell_White.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook02_-__Howard_in_Shell_White.jpg",
             "slug": "",
             "name": ""
         }
@@ -2620,7 +2620,7 @@
             "description": "",
             "created": "2013-02-13T17:11:35Z",
             "last_modified": "2013-02-13T17:11:35Z",
-            "hosted": "product_images/deathvalley_01.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/deathvalley_01.jpg",
             "slug": "",
             "name": ""
         }
@@ -2633,7 +2633,7 @@
             "description": "",
             "created": "2013-02-13T17:12:47Z",
             "last_modified": "2013-02-13T17:12:47Z",
-            "hosted": "product_images/9fd25eea731f11e2a56722000a1f9d88_7.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/9fd25eea731f11e2a56722000a1f9d88_7.jpg",
             "slug": "",
             "name": ""
         }
@@ -2646,7 +2646,7 @@
             "description": "",
             "created": "2013-02-13T17:13:38Z",
             "last_modified": "2013-02-13T17:13:38Z",
-            "hosted": "product_images/Veronas.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/Veronas.jpg",
             "slug": "",
             "name": ""
         }
@@ -2659,7 +2659,7 @@
             "description": "",
             "created": "2013-02-13T17:14:31Z",
             "last_modified": "2013-02-13T17:14:31Z",
-            "hosted": "product_images/VERONA_-_SHELL_WHITE.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/VERONA_-_SHELL_WHITE.jpg",
             "slug": "",
             "name": ""
         }
@@ -2672,7 +2672,7 @@
             "description": "",
             "created": "2013-02-13T17:15:35Z",
             "last_modified": "2013-02-13T17:15:35Z",
-            "hosted": "product_images/The_Veronas_in_Armada_Red_and_Autumn_Yellow.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Veronas_in_Armada_Red_and_Autumn_Yellow.jpg",
             "slug": "",
             "name": ""
         }
@@ -2685,7 +2685,7 @@
             "description": "",
             "created": "2013-02-13T17:16:57Z",
             "last_modified": "2013-02-13T17:16:57Z",
-            "hosted": "product_images/The_Verona_in_Shuttle_Grey_and_Popsicle_Orange.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Verona_in_Shuttle_Grey_and_Popsicle_Orange.jpg",
             "slug": "",
             "name": ""
         }
@@ -2698,7 +2698,7 @@
             "description": "",
             "created": "2013-02-13T17:18:09Z",
             "last_modified": "2013-02-13T17:18:09Z",
-            "hosted": "product_images/JERICHO2.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JERICHO2.jpg",
             "slug": "",
             "name": ""
         }
@@ -2711,7 +2711,7 @@
             "description": "",
             "created": "2013-02-13T17:18:28Z",
             "last_modified": "2013-02-13T17:18:28Z",
-            "hosted": "product_images/lookbook32_-_Veronas_in_Shuttle_Grey_and_Fizz_Green.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook32_-_Veronas_in_Shuttle_Grey_and_Fizz_Green.jpg",
             "slug": "",
             "name": ""
         }
@@ -2724,7 +2724,7 @@
             "description": "",
             "created": "2013-02-13T17:19:17Z",
             "last_modified": "2013-02-13T17:19:17Z",
-            "hosted": "product_images/The_Verona_in_Shuttle_Grey_and_Popsicle_Orange.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Verona_in_Shuttle_Grey_and_Popsicle_Orange.jpg",
             "slug": "",
             "name": ""
         }
@@ -2737,7 +2737,7 @@
             "description": "",
             "created": "2013-02-13T17:19:31Z",
             "last_modified": "2013-02-13T17:19:31Z",
-            "hosted": "product_images/lookbook15_-_Verona_in_Shuttle_Grey_with_Popsicle_Orange.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook15_-_Verona_in_Shuttle_Grey_with_Popsicle_Orange.jpg",
             "slug": "",
             "name": ""
         }
@@ -2750,7 +2750,7 @@
             "description": "",
             "created": "2013-02-13T17:20:20Z",
             "last_modified": "2013-02-13T17:20:20Z",
-            "hosted": "product_images/newyears_01.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/newyears_01.jpg",
             "slug": "",
             "name": ""
         }
@@ -2763,7 +2763,7 @@
             "description": "",
             "created": "2013-02-13T17:21:54Z",
             "last_modified": "2013-02-13T17:21:54Z",
-            "hosted": "product_images/734810_10151216852986498_1491740178_n.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/734810_10151216852986498_1491740178_n.jpg",
             "slug": "",
             "name": ""
         }
@@ -2776,7 +2776,7 @@
             "description": "",
             "created": "2013-02-13T17:22:13Z",
             "last_modified": "2013-02-13T17:22:13Z",
-            "hosted": "product_images/JERICHO2.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JERICHO2.jpg",
             "slug": "",
             "name": ""
         }
@@ -2789,7 +2789,7 @@
             "description": "",
             "created": "2013-02-13T17:22:59Z",
             "last_modified": "2013-02-13T17:22:59Z",
-            "hosted": "product_images/HUGO_-_TORCH_RED.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/HUGO_-_TORCH_RED.jpg",
             "slug": "",
             "name": ""
         }
@@ -2802,7 +2802,7 @@
             "description": "",
             "created": "2013-02-13T17:23:15Z",
             "last_modified": "2013-02-13T17:23:15Z",
-            "hosted": "product_images/lookbook16_-_Hugo_in_Torch_Red.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook16_-_Hugo_in_Torch_Red.jpg",
             "slug": "",
             "name": ""
         }
@@ -2815,7 +2815,7 @@
             "description": "",
             "created": "2013-02-13T17:24:00Z",
             "last_modified": "2013-02-13T17:24:00Z",
-            "hosted": "product_images/lookbook18_-_Hugo_in_Sherwood_Green_and_Fizz_Green.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook18_-_Hugo_in_Sherwood_Green_and_Fizz_Green.jpg",
             "slug": "",
             "name": ""
         }
@@ -2828,7 +2828,7 @@
             "description": "",
             "created": "2013-02-13T17:25:12Z",
             "last_modified": "2013-02-13T17:25:12Z",
-            "hosted": "product_images/393749_10151049514051498_1049711515_n.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/393749_10151049514051498_1049711515_n.jpg",
             "slug": "",
             "name": ""
         }
@@ -2841,7 +2841,7 @@
             "description": "",
             "created": "2013-02-13T17:26:07Z",
             "last_modified": "2013-02-13T17:26:07Z",
-            "hosted": "product_images/323df79643ee11e2b5c422000a1f9a53_7.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/323df79643ee11e2b5c422000a1f9a53_7.jpg",
             "slug": "",
             "name": ""
         }
@@ -2854,7 +2854,7 @@
             "description": "",
             "created": "2013-02-13T17:26:20Z",
             "last_modified": "2013-02-13T17:26:20Z",
-            "hosted": "product_images/lookbook50_-_fitzsimmons_brown.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook50_-_fitzsimmons_brown.jpg",
             "slug": "",
             "name": ""
         }
@@ -2867,7 +2867,7 @@
             "description": "",
             "created": "2013-02-13T17:27:01Z",
             "last_modified": "2013-02-13T17:27:01Z",
-            "hosted": "product_images/JIMMY_-_JIFFY_BLACK.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JIMMY_-_JIFFY_BLACK.jpg",
             "slug": "",
             "name": ""
         }
@@ -2880,7 +2880,7 @@
             "description": "",
             "created": "2013-02-13T17:27:19Z",
             "last_modified": "2013-02-13T17:27:19Z",
-            "hosted": "product_images/lookbook52_-_Jimmy_Boot_in_Jiffy_Black__Bunker_Green-Beaver_Brown.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook52_-_Jimmy_Boot_in_Jiffy_Black__Bunker_Green-Beaver_Brown.jpg",
             "slug": "",
             "name": ""
         }
@@ -2893,7 +2893,7 @@
             "description": "",
             "created": "2013-02-13T17:27:29Z",
             "last_modified": "2013-02-13T17:27:29Z",
-            "hosted": "product_images/The_Jimmy_in_Jiffy_Black.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Jimmy_in_Jiffy_Black.jpg",
             "slug": "",
             "name": ""
         }
@@ -2906,7 +2906,7 @@
             "description": "",
             "created": "2013-02-13T17:28:09Z",
             "last_modified": "2013-02-13T17:28:09Z",
-            "hosted": "product_images/JIMMY_-_REGATTA_BLUE.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JIMMY_-_REGATTA_BLUE.jpg",
             "slug": "",
             "name": ""
         }
@@ -2919,7 +2919,7 @@
             "description": "",
             "created": "2013-02-13T17:28:21Z",
             "last_modified": "2013-02-13T17:28:21Z",
-            "hosted": "product_images/Jimmy_in_Regatta_Blue.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/Jimmy_in_Regatta_Blue.jpg",
             "slug": "",
             "name": ""
         }
@@ -2932,7 +2932,7 @@
             "description": "",
             "created": "2013-02-13T17:28:32Z",
             "last_modified": "2013-02-13T17:28:32Z",
-            "hosted": "product_images/lookbook07_Jimmy_in_Regatta_Blue.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook07_Jimmy_in_Regatta_Blue.jpg",
             "slug": "",
             "name": ""
         }
@@ -2945,7 +2945,7 @@
             "description": "",
             "created": "2013-02-13T17:29:15Z",
             "last_modified": "2013-02-13T17:29:15Z",
-            "hosted": "product_images/jimmy_red.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/jimmy_red.jpg",
             "slug": "",
             "name": ""
         }
@@ -2958,7 +2958,7 @@
             "description": "",
             "created": "2013-02-13T17:29:52Z",
             "last_modified": "2013-02-13T17:29:52Z",
-            "hosted": "product_images/lookbook25_-_Fitzsimmons_in_Torch_Red.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook25_-_Fitzsimmons_in_Torch_Red.jpg",
             "slug": "",
             "name": ""
         }
@@ -2971,7 +2971,7 @@
             "description": "",
             "created": "2013-02-13T17:30:10Z",
             "last_modified": "2013-02-13T17:30:10Z",
-            "hosted": "product_images/lookbook25_-_Fitzsimmons_in_Torch_Red.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook25_-_Fitzsimmons_in_Torch_Red.jpg",
             "slug": "",
             "name": ""
         }
@@ -2984,7 +2984,7 @@
             "description": "",
             "created": "2013-02-13T17:30:20Z",
             "last_modified": "2013-02-13T17:30:20Z",
-            "hosted": "product_images/lookbook48_-_fitzsimmons_torch_red.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook48_-_fitzsimmons_torch_red.jpg",
             "slug": "",
             "name": ""
         }
@@ -2997,7 +2997,7 @@
             "description": "",
             "created": "2013-02-13T17:30:36Z",
             "last_modified": "2013-02-13T17:30:36Z",
-            "hosted": "product_images/The_Fitzsimmons_in_Torch_red.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Fitzsimmons_in_Torch_red.jpg",
             "slug": "",
             "name": ""
         }
@@ -3010,7 +3010,7 @@
             "description": "",
             "created": "2013-02-13T17:30:46Z",
             "last_modified": "2013-02-13T17:30:46Z",
-            "hosted": "product_images/The_Fitzsimmons_in_Torch_Red1.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Fitzsimmons_in_Torch_Red1.jpg",
             "slug": "",
             "name": ""
         }
@@ -3023,7 +3023,7 @@
             "description": "",
             "created": "2013-02-13T17:31:48Z",
             "last_modified": "2013-02-13T17:31:48Z",
-            "hosted": "product_images/lookbook53_-_Fitzsimmons_in_Sherwood_Green.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook53_-_Fitzsimmons_in_Sherwood_Green.jpg",
             "slug": "",
             "name": ""
         }
@@ -3036,7 +3036,7 @@
             "description": "",
             "created": "2013-02-13T17:33:03Z",
             "last_modified": "2013-02-13T17:33:03Z",
-            "hosted": "product_images/lookbook51_-_Fitzsimmons_in_Jiffy_Black.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook51_-_Fitzsimmons_in_Jiffy_Black.jpg",
             "slug": "",
             "name": ""
         }
@@ -3049,7 +3049,7 @@
             "description": "",
             "created": "2013-02-13T17:33:30Z",
             "last_modified": "2013-02-13T17:33:30Z",
-            "hosted": "product_images/The_Fitzsimmons_in_Jiffy_Black.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Fitzsimmons_in_Jiffy_Black.jpg",
             "slug": "",
             "name": ""
         }
@@ -3062,7 +3062,7 @@
             "description": "",
             "created": "2013-02-13T17:35:11Z",
             "last_modified": "2013-02-13T17:35:11Z",
-            "hosted": "product_images/lookbook06_-__Fitzsimmons_in_Jiffy_Black_with_Torch_Red.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook06_-__Fitzsimmons_in_Jiffy_Black_with_Torch_Red.jpg",
             "slug": "",
             "name": ""
         }
@@ -3075,7 +3075,7 @@
             "description": "",
             "created": "2013-02-13T17:36:44Z",
             "last_modified": "2013-02-13T17:36:44Z",
-            "hosted": "product_images/JIMMY_-_JIFFY_BLACK.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JIMMY_-_JIFFY_BLACK.jpg",
             "slug": "",
             "name": ""
         }
@@ -3088,7 +3088,7 @@
             "description": "",
             "created": "2013-02-13T17:37:06Z",
             "last_modified": "2013-02-13T17:37:06Z",
-            "hosted": "product_images/The_Jimmy_in_Jiffy_Black.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Jimmy_in_Jiffy_Black.jpg",
             "slug": "",
             "name": ""
         }
@@ -3101,7 +3101,7 @@
             "description": "",
             "created": "2013-02-13T17:37:24Z",
             "last_modified": "2013-02-13T17:37:24Z",
-            "hosted": "product_images/lookbook52_-_Jimmy_Boot_in_Jiffy_Black__Bunker_Green-Beaver_Brown.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook52_-_Jimmy_Boot_in_Jiffy_Black__Bunker_Green-Beaver_Brown.jpg",
             "slug": "",
             "name": ""
         }
@@ -3114,7 +3114,7 @@
             "description": "",
             "created": "2013-02-13T17:38:22Z",
             "last_modified": "2013-02-13T17:38:22Z",
-            "hosted": "product_images/JIMMY_-_REGATTA_BLUE.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JIMMY_-_REGATTA_BLUE.jpg",
             "slug": "",
             "name": ""
         }
@@ -3127,7 +3127,7 @@
             "description": "",
             "created": "2013-02-13T17:38:36Z",
             "last_modified": "2013-02-13T17:38:36Z",
-            "hosted": "product_images/Jimmy_in_Regatta_Blue.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/Jimmy_in_Regatta_Blue.jpg",
             "slug": "",
             "name": ""
         }
@@ -3140,7 +3140,7 @@
             "description": "",
             "created": "2013-02-13T17:38:50Z",
             "last_modified": "2013-02-13T17:38:50Z",
-            "hosted": "product_images/lookbook07_Jimmy_in_Regatta_Blue.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook07_Jimmy_in_Regatta_Blue.jpg",
             "slug": "",
             "name": ""
         }
@@ -3153,7 +3153,7 @@
             "description": "",
             "created": "2013-02-13T17:39:25Z",
             "last_modified": "2013-02-13T17:39:25Z",
-            "hosted": "product_images/jimmy_red.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/jimmy_red.jpg",
             "slug": "",
             "name": ""
         }
@@ -3166,7 +3166,7 @@
             "description": "",
             "created": "2013-02-13T17:40:16Z",
             "last_modified": "2013-02-13T17:40:16Z",
-            "hosted": "product_images/Jimmy_Boots_in_Beaver_Brown.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/Jimmy_Boots_in_Beaver_Brown.jpg",
             "slug": "",
             "name": ""
         }
@@ -3179,7 +3179,7 @@
             "description": "",
             "created": "2013-02-13T17:40:30Z",
             "last_modified": "2013-02-13T17:40:30Z",
-            "hosted": "product_images/The_Jimmy_in_Beaver_Brown.jpg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/The_Jimmy_in_Beaver_Brown.jpg",
             "slug": "",
             "name": ""
         }
@@ -3192,7 +3192,7 @@
             "description": null,
             "created": "2013-02-15T20:32:34.993Z",
             "last_modified": "2013-02-15T20:32:34.995Z",
-            "hosted": "product_images/lookbook54_1.jpeg",
+            "remote": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/lookbook54_1.jpeg",
             "slug": null,
             "name": null
         }
