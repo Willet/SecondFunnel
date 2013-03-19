@@ -92,7 +92,7 @@ var PINPOINT = (function($, pageInfo) {
         return myArray.slice(0, nb_picks);
     }
 
-    function renderTemplate(str, data, is_block) {
+    function renderTemplate(str, context, isBlock) {
         // MOD of
         // http://emptysquare.net/blog/adding-an-include-tag-to-underscore-js-templates/
         // match "<% include template-id %>" with caching
@@ -117,30 +117,31 @@ var PINPOINT = (function($, pageInfo) {
 
         // Use 'appropriate' size images by default
         // TODO: Determine appropriate size
-        appropriateSize = (is_block) ? 'compact' : 'master';
-        lifestyleSize = (is_block) ? 'large' : 'master';
+        appropriateSize = (isBlock) ? 'compact' : 'master';
+        lifestyleSize = (isBlock) ? 'large' : 'master';
 
 
-        if (_.has(data.data, 'image')) {
-            data.data.image = size(data.data.image, appropriateSize);
+        if (_.has(context.data, 'image') && !_.isEmpty(context.data.image)) {
+            context.data.image = size(context.data.image, appropriateSize);
         }
 
-        if (_.has(data.data, 'images')) {
-            data.data.images = _.map(data.data.images, function(img) {
+        if (_.has(context.data, 'images') && !_.isEmpty(context.data.images)) {
+            context.data.images = _.map(context.data.images, function(img) {
                 return size(img, appropriateSize)
             });
         }
 
-        if (_.has(data.data, 'lifestyle-image')) {
-            data.data['lifestyle-image'] = size(data.data['lifestyle-image'], lifestyleSize);
+        if (_.has(context.data, 'lifestyle-image')
+            && !_.isEmpty(context.data['lifestyle-image'])) {
+            context.data['lifestyle-image'] = size(context.data['lifestyle-image'], lifestyleSize);
         }
 
         // Append template functions to data
-        _.extend(data, {
+        _.extend(context, {
             'sizeImage': size
         });
 
-        return _.template(replaced, data);
+        return _.template(replaced, context);
     }
 
     function renderTemplates(data) {
