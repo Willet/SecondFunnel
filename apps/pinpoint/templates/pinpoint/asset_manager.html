@@ -9,6 +9,7 @@
 {% block extra_head %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/jquery.tagit.css" %}">
 
     <style>
         .container_12 .prefix_9, .container_16 .prefix_12 {
@@ -93,7 +94,8 @@
 {% endblock %}
 
 {% block extra_js_includes %}
-    <script src="{% static "js/jquery-ui.js" %}"></script>
+    <script src="{% static "js/jquery-ui.js" %}" type="text/javascript"></script>
+    <script src="{% static "js/tag-it.min.js" %}" type="text/javascript"></script>
 {% endblock %}
 
 {% block document_ready %}
@@ -103,6 +105,8 @@
     var scroll_with_review = function () {
         return $("#scroll_with_review").prop("checked");
     };
+
+    var store_id = "{{ store.id }}";
 
     var put_api = function (oid, put_data, callback) {
         $.ajax({
@@ -194,6 +198,36 @@
         event.preventDefault();
         window.location.reload();
     });
+
+    $(".tags").tagit({
+        autocomplete: {
+            source: function(request, response) {
+                var term = request.term;
+                $.getJSON('/api/assets/v1/product/', {
+                    'store': store_id,
+                    'format': 'json',
+                    'name_or_url': term
+
+                }, function(data) {
+                    //convert object to usable form
+                    var results = [];
+                    $.each(data.objects, function(index, value) {
+                        results.push({'label': value.name, 'id': value.id})
+                    });
+                    response(results);
+                })
+            },
+            minLength: 2,
+            select: function( event, ui ) {
+                var oid = $(this).parents(".approval_block").data("oid");
+                console.log(oid);
+
+                if (ui.item) {
+                    console.log(ui.item.id);
+                }
+            }
+        },
+    });
 {% endblock %}
 
 {% block top_section %}
@@ -253,6 +287,7 @@
                                 <label for="caption_{{ data.original_id }}">Caption <span class="saved">Saved</span></label>
                                 <textarea id="caption_{{ data.original_id }}">{{ data.text_content }}</textarea>
                                 <div class="actions">
+                                    <ul class="tags"></ul>
                                     <span class="reject" {% if content_type == "rejected" %}style="display:none;"{% endif %}>&#x2718; Reject</span>
                                     <span class="approve" {% if content_type == "approved" %}style="display:none;"{% endif %}>&#x2714; Approve</span>
                                 </div>
