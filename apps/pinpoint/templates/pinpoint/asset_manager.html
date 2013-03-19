@@ -108,27 +108,46 @@
 
     var store_id = "{{ store.id }}";
 
-    var put_api = function (oid, put_data, callback) {
+    var tasty_api = function (o) {
+        if (!o.hasOwnProperty("processData")) {
+            o.processData = true;
+        }
+
         $.ajax({
-            url: '/api/assets/v1/external_content/',
-            type: 'GET',
+            url: o.resource_uri || '/api/assets/v1/' + o.resource_name + '/',
+            type: o.type || 'GET',
             contentType: 'application/json',
-            data: {
-                original_id: oid,
-                format: "json"
-            },
+            data: o.data,
             dataType: 'json',
-            success: function (data) {
-                $.ajax({
-                    url: data.objects[0].resource_uri,
-                    type: 'PUT',
-                    contentType: 'application/json',
-                    processData: false,
-                    data: put_data,
-                    success: function () {
-                        callback && callback();
-                    }
-                });
+            processData: o.processData,
+            success: function (result) {
+                o.success && o.success(result);
+            }
+        });
+    }
+
+    var put_api = function (resource_uri, data, callback) {
+        tasty_api({
+            resource_uri: resource_uri,
+            type: "PUT",
+            processData: false,
+            data: JSON.stringify(data),
+            success: function (results) {
+                callback && callback(results);
+            }
+        })
+    }
+
+    var get_put_api = function (get_data, put_data, callback) {
+        if (!get_data.hasOwnProperty("format")) {
+            get_data.format = "json";
+        }
+
+        tasty_api({
+            resource_name: 'external_content',
+            data: get_data,
+            success: function (result) {
+                put_api(result.objects[0].resource_uri, put_data, callback);
             }
         });
     }
@@ -137,39 +156,44 @@
         var $p = $(target).parents('.approval_block'),
             oid = $p.data("oid"),
             $ribbon = $(".image_ribbon[data-oid='" + oid + "']"),
-            db_approved, db_active;
+            db_approved, db_active, post_action;
 
-        if (scroll_with_review()) {
-            $('html, body').animate({
-                scrollTop: $p.next().offset().top
-            }, 700);
-        }
-
-        $ribbon.removeClass("needs_review");
         if (action == "approve") {
-            $ribbon.removeClass("rejected");
-            $ribbon.addClass("approved");
-            $ribbon.children('.label').html("Approved");
-
-            db_approved = true;
-            db_active = true;
+            post_action = function () {
+                $ribbon.removeClass("needs_review");
+                $ribbon.removeClass("rejected");
+                $ribbon.addClass("approved");
+                $ribbon.children('.label').html("Approved");
+            }
+            db_approved = db_active = true;
         } else {
-            $ribbon.removeClass("approved");
-            $ribbon.addClass("rejected");
-            $ribbon.children('.label').html("Rejected");
-
-            db_approved = false;
-            db_active = false;
+            post_action = function () {
+                $ribbon.removeClass("needs_review");
+                $ribbon.removeClass("approved");
+                $ribbon.addClass("rejected");
+                $ribbon.children('.label').html("Rejected");
+            }
+            db_approved = db_active = false;
         }
 
-        put_api(oid, JSON.stringify({
+        get_put_api({
+            original_id: oid
+        }, {
             "active": db_active,
             "approved": db_approved,
             "text_content": $p.children(".approval_form").children("textarea")[0].value
-        }));
+        }, function () {
+            post_action();
 
-        $(target).hide();
-        $(target).siblings().show();
+            if (scroll_with_review()) {
+                $('html, body').animate({
+                    scrollTop: $p.next().offset().top
+                }, 700);
+            }
+
+            $(target).hide();
+            $(target).siblings().show();
+        });
     };
 
     $(".approve").button().click(function (event) {
@@ -187,9 +211,11 @@
         var $p = $(this).parents(".approval_block"),
             oid = $p.data("oid");
 
-        put_api(oid, JSON.stringify({
+        get_put_api({
+            original_id: oid
+        }, {
             "text_content": $(this).val()
-        }), function () {
+        }, function () {
             $p.children(".approval_form").children("label").children(".saved").show("slow");
         });
     });
@@ -203,27 +229,35 @@
         autocomplete: {
             source: function(request, response) {
                 var term = request.term;
-                $.getJSON('/api/assets/v1/product/', {
-                    'store': store_id,
-                    'format': 'json',
-                    'name_or_url': term
-
-                }, function(data) {
-                    //convert object to usable form
-                    var results = [];
-                    $.each(data.objects, function(index, value) {
-                        results.push({'label': value.name, 'id': value.id})
-                    });
-                    response(results);
-                })
+                tasty_api({
+                    resource_name: "product",
+                    data: {
+                        'store': store_id,
+                        'format': 'json',
+                        'name_or_url': term
+                    },
+                    success: function (data) {
+                        //convert object to usable form
+                        var results = [];
+                        $.each(data.objects, function(index, value) {
+                            results.push({'label': value.name, 'id': value.id})
+                        });
+                        response(results);
+                    }
+                });
             },
+
             minLength: 2,
+
             select: function( event, ui ) {
                 var oid = $(this).parents(".approval_block").data("oid");
-                console.log(oid);
 
                 if (ui.item) {
-                    console.log(ui.item.id);
+                    get_put_api({
+                        original_id: oid
+                    }, {
+                        "products": [{'resource_uri': '/api/assets/v1/products/' + ui.item.id}]
+                    });
                 }
             }
         },

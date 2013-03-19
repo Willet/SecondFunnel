@@ -151,20 +151,6 @@ class ProductMediaResource(ModelResource):
         authorization = UserPartOfStore()
 
 
-class ExternalContentResource(ModelResource):
-    product = fields.ForeignKey(ProductResource, 'product')
-
-    class Meta:
-        queryset = ExternalContent.objects.all()
-        resource_name = 'external_content'
-
-        filtering = {
-            'product': ALL
-        }
-        authentication = UserAuthentication()
-        authorization = UserPartOfStore()
-
-
 class CampaignResource(ModelResource):
     """Returns "a campaign".
 
@@ -213,6 +199,8 @@ class GenericImageResource(ModelResource):
 
 class ExternalContentResource(ModelResource):
     """Access to ExternalContent model"""
+
+    products = fields.ManyToManyField(ProductResource, 'tagged_products', null=True)
 
     class Meta:
         queryset = ExternalContent.objects.all()
