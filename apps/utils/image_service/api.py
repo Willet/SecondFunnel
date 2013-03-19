@@ -4,15 +4,20 @@ import json
 import urllib2
 
 def queue_processing(image_url,
-    store_slug="generic", image_type="generic",product_id=0):
+    store_slug="generic", image_type="generic", product_id=0):
 
     """Very basic way to queue images into ImageService"""
 
     api_base = "http://imageservice.elasticbeanstalk.com"
     api_storage_base = "http://images.secondfunnel.com"
 
-    api_call = "{0}/images/{1}/product/{2}/{3}/queuebyurl?sourceUrl={4}".format(
-        api_base, store_slug, product_id, image_type, image_url)
+    if product_id == 0:
+        api_call = "{0}/images/{1}/{3}/queuebyurl?sourceUrl={4}".format(
+            api_base, store_slug, image_type, image_url)
+
+    else:
+        api_call = "{0}/images/{1}/product/{2}/{3}/queuebyurl?sourceUrl={4}".format(
+            api_base, store_slug, product_id, image_type, image_url)
 
     try:
         res = json.load(urllib2.urlopen(api_call))
