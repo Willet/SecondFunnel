@@ -218,11 +218,17 @@ def asset_manager(request, store_id):
             if created:
                 new_content.text_content = instagram_obj.get('text_content')
 
-                new_content.image_url = queue_processing(
+                new_image_url = queue_processing(
                     instagram_obj.get('image_url'),
                     store_slug=store.slug,
                     image_type=instagram_obj.get('type')
                 )
+
+                # imageservice might or might not be working today,
+                # so lets be careful with it
+                if new_image_url:
+                    new_content.image_url = new_image_url
+
                 new_content.save()
 
     all_contents = store.external_content.all()
