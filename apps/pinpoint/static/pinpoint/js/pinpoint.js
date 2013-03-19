@@ -163,29 +163,38 @@ var PINPOINT = (function($, pageInfo) {
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
-    function showImagePreview(t) {
-        showPreview(t, 'image-preview');
-    }
+    function showPreview(me) {
+        var data = $(me).data(),
+            $previewContainer = $('[data-template-id="preview-container"]'),
+            $previewMask = $previewContainer.find('.mask'),
+            $target = $previewContainer.find('.target.template'),
+            templateId,
+            template, renderedTemplate;
 
-    function showProductPreview (t) {
-        showPreview(t, 'preview');
-    }
+        // Determine the type of preview to show depending
+        // on the original template
+        switch(data.template) {
+            // Legacy cases
+            case 'instagram':
+                templateId = 'image-preview';
+                break;
+            case 'product':
+            case 'combobox':
+                templateId = 'preview';
+                break;
+            // New cases
+            default:
+                templateId = data.template + '-preview';
+        }
 
-    function showPreview(me, templateName) {
-        var data     = $(me).data(),
-            $preview = $('.preview.container'),
-            $mask    = $('.preview .mask'),
-            templateEl = $("[data-template-id='" + templateName + "']"),
-            template = templateEl.html(),
-            renderedTemplate,
-            target = $('.target.template[data-src="preview"]');
+        template = $('[data-template-id="' + templateId + '"]').html();
 
-        data.is_preview = data.is_preview || true;
-
-        if(!templateEl.length || !target.length) {
+        if (_.isEmpty(template) || _.isEmpty($target)) {
             console.log('oops @ no preview template');
             return;
         }
+
+        data.is_preview = data.is_preview || true;
 
         renderedTemplate = renderTemplate(template, {
             'data': data,
@@ -193,11 +202,11 @@ var PINPOINT = (function($, pageInfo) {
             'store': details.store
         });
 
-        target.html(renderedTemplate);
+        $target.html(renderedTemplate);
 
         // Parse Facebook, Twitter buttons
         if (window.FB) {
-            FB.XFBML.parse($preview.find('.social-buttons .button.facebook')[0]);
+            FB.XFBML.parse($previewContainer.find('.social-buttons .button.facebook')[0]);
         }
 
         if (window.twttr) {
@@ -215,8 +224,8 @@ var PINPOINT = (function($, pageInfo) {
             pinpointTracking.setSocialShareVars({"sType": "popup", "url": data.url});
         }
 
-        $preview.fadeIn(100);
-        $mask.fadeIn(100);
+        $previewContainer.fadeIn(100);
+        $previewMask.fadeIn(100);
     }
 
     function addPreviewCallback(f) {
@@ -642,10 +651,10 @@ var PINPOINT = (function($, pageInfo) {
 
         // use delegated events to reduce overhead
         $discovery.on('click', '.block.product, .block.combobox', function (e) {
-            showProductPreview(e.currentTarget, e);
+            showPreview(e.currentTarget);
         });
         $discovery.on('click', '.block.image', function (e) {
-            showImagePreview(e.currentTarget, e);
+            showPreview(e.currentTarget);
         });
 
         // update clickstream
