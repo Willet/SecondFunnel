@@ -572,8 +572,10 @@ var PINPOINT = (function($, pageInfo) {
                     });
                 });
 
-                var container = $(".youtube[data-label='" + video.id + "']");
-                if (container) {
+                var containers = $(".youtube[data-label='" + video.id + "']");
+                containers.each(function () {
+                    var container = $(this);
+
                     if (container.find('.' + thumbClass).length === 0) {
                         // add a thumbnail only if there isn't one already
                         container.prepend(thumbnail);
@@ -582,7 +584,7 @@ var PINPOINT = (function($, pageInfo) {
                         console.error('prevented thumbnail dupe');
                     }
                     container.children(".title").html(video_data.entry.title.$t);
-                }
+                });
             });
         });
 
