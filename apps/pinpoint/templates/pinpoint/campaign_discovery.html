@@ -4,7 +4,7 @@
     <div class="tablecell">
         <div class="content">
             <span class="close">X</span>
-            <div class='template target' data-src="preview"></div>
+            <div data-template-target="preview"></div>
         </div>
     </div>
 </div>
@@ -53,7 +53,7 @@
     </div>
 </script>
 <script type="text/template" data-template-id="youtube_video_template">
-    <div class='block youtube wide'>
+    <div class='wide' data-content-type='block' data-block-type='youtube'>
         <div class="pin click video">
             <div class="inner-pin">
                 <div id="<%= data.id %>"></div>
@@ -63,7 +63,8 @@
 </script>
 <script type="text/template" data-template-id="instagram"
         data-appearance-probability="0.25">
-    <div class='block image external-content instagram'>
+    <div class='external-content instagram block' data-content-type='block'
+         data-block-type='image'>
         <div class='product'>
             <div class='img-container'>
                 <img src='<%= data.image %>'

@@ -1,5 +1,7 @@
 // TODO: Split into submodules properly
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
+
+// TODO: Test this mofo so that we can refactor the **crap** out of it
 var PINPOINT = (function($, pageInfo) {
     var console = window.console || {
             // dummy
@@ -65,18 +67,6 @@ var PINPOINT = (function($, pageInfo) {
             refBuilder[listOfKeys[i]] = keyOf;
         } while (++i < listOfKeys.length);
         return refBuilder;  // all requested key depths exist
-    }
-
-    function getShortestColumn () {
-        var $column;
-        $('.discovery-area .column').each(function(index, column) {
-            var height = $(column).height();
-
-            if (!$column || (height < $column.height())) {
-                $column = $(column);
-            }
-        });
-        return $column;
     }
 
     function fisherYates(myArray, nb_picks) {
@@ -153,12 +143,12 @@ var PINPOINT = (function($, pageInfo) {
         // as data attributes.
 
 
-        // select every ".template.target" element and render them with their data-src
+        // select every "[template-target]" element and render them with their data-src
         // attribute: data-src='abc' rendered by a data-template-id='abc'
-        $('.template.target').each(function () {
+        $('[data-template-target]').each(function () {
             var originalContext = data || {},
                 target = $(this),
-                src = target.data('src') || '',
+                src = target.data('template-target') || '',
                 srcElement = $("[data-template-id='" + src + "']"),
                 context = {};
 
@@ -196,12 +186,12 @@ var PINPOINT = (function($, pageInfo) {
 
     function showPreview(me, templateName) {
         var data     = $(me).data(),
-            $preview = $('.preview.container'),
-            $mask    = $('.preview .mask'),
+            $preview = $('.preview.container'), // No need to change from .css
+            $mask    = $('.preview .mask'),     // because we control them (for now at least)
             templateEl = $("[data-template-id='" + templateName + "']"),
             template = templateEl.html(),
             renderedTemplate,
-            target = $('.target.template[data-src="preview"]');
+            target = $('[data-template-target="preview"]');
 
         data.is_preview = data.is_preview || true;
 
@@ -537,7 +527,7 @@ var PINPOINT = (function($, pageInfo) {
                 $elem.addClass('wide');
             }
 
-            $('.discovery-area').append($elem);
+            $('[data-page-area="discovery-area"]').append($elem);
         });
 
         // Render youtube blocks with player
@@ -602,10 +592,10 @@ var PINPOINT = (function($, pageInfo) {
 
         // make sure images are loaded or else masonry wont work properly
         $block.imagesLoaded(function($images, $proper, $broken) {
-            $broken.parents('.block.product').remove();
-            $block.find('.block.product img[src=""]').parents('.block.product').remove();
+            $broken.parents('[data-content-type="block"][data-block-type="product"]').remove();
+            $block.find('[data-content-type="block"][data-block-type="product"] img[src=""]').parents('[data-content-type="block"][data-block-type="product"]').remove();
 
-            $('.discovery-area').masonry('appended', $block, true);
+            $('[data-page-area="discovery-area"]').masonry('appended', $block, true);
             $block.show();
 
             // Don't continue to load results if we aren't getting more results
@@ -631,7 +621,7 @@ var PINPOINT = (function($, pageInfo) {
 
     function pageScroll () {
         var $w            = $(window),
-            noResults     = ($('.discovery-area .block').length === 0),
+            noResults     = ($('[data-page-area="discovery-area"] [data-content-type="block"]').length === 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             lowestBlock,
             lowestHeight,
@@ -643,7 +633,7 @@ var PINPOINT = (function($, pageInfo) {
             window.pinpointTracking && pinpointTracking.notABounce("scroll");
         }
 
-        $('.discovery-area .block').each(function() {
+        $('[data-page-area="discovery-area"] [data-content-type="block"]').each(function() {
             if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
                 lowestBlock = $(this);
             }
@@ -661,18 +651,18 @@ var PINPOINT = (function($, pageInfo) {
     }
 
     function attachListeners () {
-        var $discovery = $('.discovery-area');
+        var $discovery = $('[data-page-area="discovery-area"]');
 
         // use delegated events to reduce overhead
-        $discovery.on('click', '.block.product, .block.combobox', function (e) {
+        $discovery.on('click', '[data-content-type="block"][data-block-type="product"], [data-content-type="block"][data-block-type="combobox"]', function (e) {
             showProductPreview(e.currentTarget, e);
         });
-        $discovery.on('click', '.block.image', function (e) {
+        $discovery.on('click', '[data-content-type="block"][data-block-type="image"]', function (e) {
             showImagePreview(e.currentTarget, e);
         });
 
         // update clickstream
-        $discovery.on('click', '.block.product, .block.combobox', function (e) {
+        $discovery.on('click', '[data-content-type="block"][data-block-type="product"], [data-content-type="block"][data-block-type="combobox"]', function (e) {
             updateClickStream(e.currentTarget, e);
         });
 
@@ -680,17 +670,17 @@ var PINPOINT = (function($, pageInfo) {
         $discovery.on({
             mouseenter: productHoverOn,
             mouseleave: productHoverOff
-        }, '.block.product, .block.combobox .product');
+        }, '[data-content-type="block"][data-block-type="product"], [data-content-type="block"][data-block-type="combobox"] .product');
 
         $discovery.on({
             mouseenter: youtubeHoverOn,
             mouseleave: youtubeHoverOff
-        }, '.block.youtube');
+        }, '[data-content-type="block"][data-block-type="youtube"]');
 
         $discovery.on({
             mouseenter: lifestyleHoverOn,
             mouseleave: lifestyleHoverOff
-        }, '.block.combobox .lifestyle');
+        }, '[data-content-type="block"][data-block-type="combobox"] .lifestyle');
     }
 
     function ready () {
@@ -699,8 +689,8 @@ var PINPOINT = (function($, pageInfo) {
 
         attachListeners();
 
-        $('.discovery-area').masonry({
-            itemSelector: '.block',
+        $('[data-page-area="discovery-area"]').masonry({
+            itemSelector: '[data-content-type="block"]',
 
             columnWidth: function (containerWidth) {
                 return containerWidth / 4;
@@ -727,7 +717,7 @@ var PINPOINT = (function($, pageInfo) {
 
     /* --- START Social buttons --- */
     function loadFB () {
-        if (FB) {
+        if (window.FB) {
             FB.init({
                 cookie:true,
                 status:true,
@@ -759,77 +749,6 @@ var PINPOINT = (function($, pageInfo) {
         } else {
             (console.error || console.log)('FB button is blocked.');
         }
-    }
-
-    function createSocialButtons(config) {
-        var conf           = config || {};
-        var $socialButtons = $('<div/>', {'class': 'social-buttons'});
-
-        var $fbButton        = $('<div/>', {'class': 'facebook button'});
-        $fbButton.append(createFBButton(conf));
-
-        var $twitterButton   = $('<div/>', {'class': 'twitter button'});
-        $twitterButton.append(createTwitterButton(conf));
-
-        var $pinterestButton = $('<div/>', {'class': 'pinterest button'});
-        $pinterestButton.append(createPinterestButton(conf));
-
-        $socialButtons.append($fbButton).append($twitterButton).append($pinterestButton);
-        return $socialButtons;
-    }
-
-    function createFBButton(config) {
-        var conf = config || {};
-
-        var fbxml = "<fb:like " +
-                "href='" + (conf.url || '') + "' " +
-                "layout='" + (conf.button_count || 'button_count') + "' " +
-                "width='" + (conf.width || 80) + "' " +
-                "show_faces='" + (conf.show_faces || false) + "' " +
-            "></fb:like>";
-
-        return $(fbxml);
-    }
-
-    function createTwitterButton(config) {
-        var conf = config || {};
-
-        var $twitterHtml = $('<a/>', {
-            'href'     : 'https://twitter.com/share',
-            'class'    : 'twitter-share-button',
-            'text'     : 'Tweet',
-            'data-url' : conf.url,
-            'data-text': (conf.title || '') + ' ' + conf.url,
-            'data-lang': 'en'
-        });
-
-        if (!config.count) {
-            $twitterHtml.attr('data-count', 'none')
-        }
-
-        return $twitterHtml;
-    }
-
-    function createPinterestButton(config) {
-        var conf = config || {};
-
-        var url = 'http://pinterest.com/pin/create/button/' +
-            '?url=' + encodeURIComponent(conf.url) +
-            '&media=' + encodeURIComponent(conf.image) +
-            '&description=' + details.store.name + '-' + conf.title;
-
-        var $img = $('<img/>', {
-            'src': "//assets.pinterest.com/images/PinExt.png"
-        });
-
-        var $pinterestHtml = $('<a/>', {
-            'href': url,
-            'target': '_blank'
-        });
-
-        $pinterestHtml.append($img);
-
-        return $pinterestHtml;
     }
     /* --- END Social buttons --- */
 
