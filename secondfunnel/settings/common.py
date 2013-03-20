@@ -326,4 +326,7 @@ JENKINS_TASKS = (
     'django_jenkins.tasks.run_pep8',
 )
 
+IMAGE_SERVICE_API = "http://imageservice.elasticbeanstalk.com"
+IMAGE_SERVICE_STORE = "http://images.secondfunnel.com"
+
 djcelery.setup_loader()

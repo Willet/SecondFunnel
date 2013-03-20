@@ -3,7 +3,11 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.template.defaultfilters import striptags
 from django.utils.html import escape
+from django.db.models.signals import post_save
+
 from social_auth.db.django_models import UserSocialAuth
+
+from apps.utils.image_service.hooks import media_saved
 
 
 class BaseModel(models.Model):
@@ -262,3 +266,6 @@ class ExternalContentType(BaseModelNamed):
 
     def __unicode__(self):
         return unicode(self.name) or u''
+
+# signals
+post_save.connect(media_saved, sender=GenericImage)
