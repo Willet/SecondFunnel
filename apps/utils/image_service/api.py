@@ -21,7 +21,7 @@ def queue_processing(image_url,
 
     """Very basic way to queue images into ImageService"""
 
-    api_url = construct_api_url(store_slug, product_id, image_type, image_url)
+    api_url = construct_api_url(image_url, store_slug, image_type, product_id)
 
     try:
         res = json.load(urllib2.urlopen(api_url))
