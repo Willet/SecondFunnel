@@ -541,39 +541,41 @@ var PINPOINT = (function($, pageInfo) {
                     thumbURL = thumbObj.url;
                 }  // else fallback to the default thumbURL
                 
-                var thumbnail = $('<div />', {
-                    'css': {  // this is to trim the 4:3 black bars
-                        'overflow': 'hidden',
-                        'height': video.height + 'px',
-                        'background-image': 'url("' + thumbURL + '")',
-                        'background-position': 'center center'
-                    }
-                });
-
-                thumbnail.addClass('wide ' + thumbClass).click(function () {
-                    // when the thumbnail is clicked, replace itself with
-                    // the youtube video of the same size, then autoplay
-                    thumbnail.remove();
-                    player = new YT.Player(video.id, {
-                        height: video.height,
-                        width: video.width,
-                        videoId: video.id,
-                        playerVars: {
-                            'autoplay': 1,
-                            'controls': 0
-                        },
-                        events: {
-                            'onReady': function (e) {
-                            },
-                            'onStateChange': video_state_change,
-                            'onError': function (e) {
-                            }
+                var containers = $(".youtube[data-label='" + video.id + "']");
+                containers.each(function () {
+                    var container = $(this);
+                    
+                    var thumbnail = $('<div />', {
+                        'css': {  // this is to trim the 4:3 black bars
+                            'overflow': 'hidden',
+                            'height': video.height + 'px',
+                            'background-image': 'url("' + thumbURL + '")',
+                            'background-position': 'center center'
                         }
                     });
-                });
 
-                var container = $(".youtube[data-label='" + video.id + "']");
-                if (container) {
+                    thumbnail.addClass('wide ' + thumbClass).click(function () {
+                        // when the thumbnail is clicked, replace itself with
+                        // the youtube video of the same size, then autoplay
+                        thumbnail.remove();
+                        player = new YT.Player(video.id, {
+                            height: video.height,
+                            width: video.width,
+                            videoId: video.id,
+                            playerVars: {
+                                'autoplay': 1,
+                                'controls': 0
+                            },
+                            events: {
+                                'onReady': function (e) {
+                                },
+                                'onStateChange': video_state_change,
+                                'onError': function (e) {
+                                }
+                            }
+                        });
+                    });
+
                     if (container.find('.' + thumbClass).length === 0) {
                         // add a thumbnail only if there isn't one already
                         container.prepend(thumbnail);
@@ -582,7 +584,7 @@ var PINPOINT = (function($, pageInfo) {
                         console.error('prevented thumbnail dupe');
                     }
                     container.children(".title").html(video_data.entry.title.$t);
-                }
+                });
             });
         });
 
