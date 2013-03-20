@@ -29,6 +29,11 @@
             color: #b23739;
         }
 
+        .container_12 .prefix_9, .container_16 .prefix_12 {
+            padding-left: 620px;
+            width: 310px;
+        }
+
         table a, table a:visited {
             color: #4398aa;
         }
@@ -314,6 +319,7 @@
     <div class="grid_3 prefix_9">
         <ul>
             <li class="selected"><a href="{% url store-admin store.id %}">Pages</a></li>
+            <li><a href="{% url asset-manager store.id %}">Asset Manager</a></li>
             <li><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
         </ul>
     </div>

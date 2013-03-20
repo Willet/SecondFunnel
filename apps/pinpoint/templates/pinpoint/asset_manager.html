@@ -222,53 +222,51 @@
     </p>
 
     {# Internal code, for now #}
-    {% if request.user.is_superuser %}
-        <div class="grid_11 review_area" id="tabs">
-            <ul>
-                {% for content_label, content_type, content_data in content %}
-                    <li><a href="#{{ content_type }}">{{ content_label }} ({{ content_data.count }})</a></li>
-                {% endfor %}
-            </ul>
-
-
+    <div class="grid_11 review_area" id="tabs">
+        <ul>
             {% for content_label, content_type, content_data in content %}
-                <div id="{{ content_type }}">
-                    {% for data in content_data %}
-                        <div class='grid_11 approval_block' data-oid="{{ data.original_id }}">
-                            <div class="grid_3 image_box" style="background-image: url({{ data.image_url|size:"medium" }});">
-                                <div class="image_ribbon {{ content_type }}" data-oid="{{ data.original_id }}">
-                                    <div class="label">
-                                        {% if content_type == "needs_review" %}
-                                            Not Reviewed
-                                        {% elif content_type == "approved" %}
-                                            Approved
-                                        {% else %}
-                                            Rejected
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
+                <li><a href="#{{ content_type }}">{{ content_label }} ({{ content_data.count }})</a></li>
+            {% endfor %}
+        </ul>
 
-                            <div class="grid_6 prefix_1 approval_form">
-                                <label for="caption_{{ data.original_id }}">Caption <span class="saved">Saved</span></label>
-                                <textarea id="caption_{{ data.original_id }}">{{ data.text_content }}</textarea>
-                                <div class="actions">
-                                    <span class="reject" {% if content_type == "rejected" %}style="display:none;"{% endif %}>&#x2718; Reject</span>
-                                    <span class="approve" {% if content_type == "approved" %}style="display:none;"{% endif %}>&#x2714; Approve</span>
+
+        {% for content_label, content_type, content_data in content %}
+            <div id="{{ content_type }}">
+                {% for data in content_data %}
+                    <div class='grid_11 approval_block' data-oid="{{ data.original_id }}">
+                        <div class="grid_3 image_box" style="background-image: url({{ data.image_url|size:"medium" }});">
+                            <div class="image_ribbon {{ content_type }}" data-oid="{{ data.original_id }}">
+                                <div class="label">
+                                    {% if content_type == "needs_review" %}
+                                        Not Reviewed
+                                    {% elif content_type == "approved" %}
+                                        Approved
+                                    {% else %}
+                                        Rejected
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
-                    {% empty %}
-                        <p>No items here.</p>
-                    {% endfor %}
 
-                    {% if content_data %}
-                        {% if content_type == "needs_review" %}
-                            <span class="done_review" style="float:right;">Done Reviewing</span>
-                        {% endif %}
+                        <div class="grid_6 prefix_1 approval_form">
+                            <label for="caption_{{ data.original_id }}">Caption <span class="saved">Saved</span></label>
+                            <textarea id="caption_{{ data.original_id }}">{{ data.text_content }}</textarea>
+                            <div class="actions">
+                                <span class="reject" {% if content_type == "rejected" %}style="display:none;"{% endif %}>&#x2718; Reject</span>
+                                <span class="approve" {% if content_type == "approved" %}style="display:none;"{% endif %}>&#x2714; Approve</span>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>No items here.</p>
+                {% endfor %}
+
+                {% if content_data %}
+                    {% if content_type == "needs_review" %}
+                        <span class="done_review" style="float:right;">Done Reviewing</span>
                     {% endif %}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
 {% endblock %}
