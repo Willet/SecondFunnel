@@ -6,17 +6,7 @@ import urllib2
 from django.conf import settings
 
 def construct_api_url(image_url, store_slug, image_type, product_id):
-    """
-    >>> image_url = "http://example.com/image.jpg"
-    >>> store_slug = "some-store"
-    >>> image_type = "instagram"
-    >>> product_id_1 = 0
-    >>> product_id_2 = 123
-    >>> construct_api_url(image_url, store_slug, image_type, product_id_1)
-    'http://imageservice.elasticbeanstalk.com/images/some-store/instagram/queuebyurl?sourceUrl=http://example.com/image.jpg'
-    >>> construct_api_url(image_url, store_slug, image_type, product_id_2)
-    'http://imageservice.elasticbeanstalk.com/images/some-store/product/123/instagram/queuebyurl?sourceUrl=http://example.com/image.jpg'
-    """
+    """Returns ImageService API URL based on parameters passed in"""
 
     if product_id == 0:
         return "{0}/images/{1}/{2}/queuebyurl?sourceUrl={3}".format(
