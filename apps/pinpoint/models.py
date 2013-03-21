@@ -161,6 +161,24 @@ class StoreTheme(BaseModelNamed):
 </script>
     """
 
+    DEFAULT_COMBOBOX_PREVIEW = """
+<script type='text/template' data-template-id='combobox-preview'>
+    <div class='image'><img src='<%= data.image %>' /></div>
+    <div class='images'>
+        <% _.each(data.images, function(image) { %>
+        <img src='<%= image %>' />
+        <% }); %>
+    </div>
+    <div class='price'><%= data.price %></div>
+    <div class='title'><%= data.title %></div>
+    <div class='description'><%= data.description %></div>
+    <div class='url'><a href='<%= data.url %>' target="_blank">BUY
+        NOW</a></div>
+    <% include social_buttons %>
+    </div>
+</script>
+    """
+
     DEFAULT_INSTAGRAM_PREVIEW = """
 <script type='text/template' data-template-id='instagram-preview'>
     <img src='<%= data["image"] %>'/>
@@ -207,6 +225,7 @@ class StoreTheme(BaseModelNamed):
 
     # Preview Templates
     product_preview = models.TextField(default=DEFAULT_PRODUCT_PREVIEW)
+    combobox_preview = models.TextField(default=DEFAULT_COMBOBOX_PREVIEW)
     instagram_preview = models.TextField(default=DEFAULT_INSTAGRAM_PREVIEW)
     instagram_product_preview = models.TextField(
         default=DEFAULT_INSTAGRAM_PRODUCT_PREVIEW)
@@ -240,6 +259,7 @@ class StoreTheme(BaseModelNamed):
 
                     # Previews
                     'product_preview',
+                    'combobox_preview',
                     'instagram_preview',
                     'instagram_product_preview'
                 ]

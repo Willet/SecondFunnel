@@ -198,10 +198,6 @@ var PINPOINT = (function($, pageInfo) {
         // Determine the type of preview to show depending
         // on the original template
         switch(templateName) {
-            case 'product':
-            case 'combobox':
-                templateId = 'product-preview';
-                break;
             case 'instagram':
                 // TODO: Determine when we have an instagram with a product
                 if (false) {
