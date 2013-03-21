@@ -190,12 +190,11 @@ class Product(BaseModelNamed):
             'data-template': 'product'
         }
 
-        if self.lifestyleImages.all():
-            # TODO: Do we want to select lifestyle images differently?
-            random_idx = random.randint(0, self.lifestyleImages.count()-1)
-            random_img = self.lifestyleImages.all()[random_idx]
-            fields['data-lifestyle-image'] = strip_and_escape(random_img)
-            fields['data-template'] = 'combobox'
+        try:
+            fields['data-lifestyle-image'] = self._get_random_lifestyle_image()
+            fields['data-template'] = self._get_preferred_template()
+        except AttributeError:  # product has no lifestyle images.
+            pass
 
         if raw:
             data = {}
@@ -215,6 +214,34 @@ class Product(BaseModelNamed):
                 data = data + " %s='%s'" % (field, fields[field])
 
         return data
+
+    def _get_preferred_template(self):
+        """Does some check to find out if combo boxes are preferred.
+
+        Clients may completely ignore this suggestion.
+        """
+        if self.lifestyleImages.all():
+            return 'combobox'
+        return 'product'
+
+    # getter used by templating
+    template = property(_get_preferred_template)
+
+    def _get_random_lifestyle_image(self):
+        """Returns a random lifestyle image url."""
+        def strip_and_escape(text):
+            modified_text = striptags(text)
+            modified_text = escape(modified_text)
+            return modified_text
+
+        if self.lifestyleImages.all():
+            random_idx = random.randint(0, self.lifestyleImages.count()-1)
+            random_img = self.lifestyleImages.all()[random_idx]
+            return strip_and_escape(random_img)
+        raise AttributeError('No lifestyle image.')
+
+    # getter used by templating
+    lifestyle_image = property(_get_random_lifestyle_image)
 
 
 class ProductMedia(ImageBase):
