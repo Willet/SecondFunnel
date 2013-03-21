@@ -4,12 +4,14 @@ import math
 import random
 
 from urllib import urlencode
-from random import randrange, choice
+from random import randrange
 
 from django.conf import settings
-from django.http import HttpResponse
 from django.db.models import Count
+from django.http import HttpResponse
+from django.template import Context, loader, TemplateDoesNotExist
 from mock import MagicMock
+
 from apps.assets.models import Product, Store
 
 # All requests are get requests at the moment
@@ -150,6 +152,42 @@ def process_intentrank_request(request, store, page, function_name,
     return products, response.status
 
 
+def get_product_json_data(product, products_with_images_only=True):
+    """Enforce common product json structures across both
+    live and static IR.
+
+    input: Product product
+    output: Dict (json object)
+
+    This function raises an exception if products_with_images_only is True,
+    but the product has none.
+
+    """
+    if not product:
+        raise ValueError('Supplied product is not valid.')
+
+    if products_with_images_only and not product.images():
+        raise ValueError('Product has no images, but one or more is required.')
+
+    try:
+        product_template = loader.get_template('pinpoint/snippets/'
+                                               'product_object.js')
+        product_context = Context({'product': product})
+        return json.loads(product_template.render(product_context))
+    except TemplateDoesNotExist:
+        if settings.DEBUG: # tell (only) devs if something went wrong.
+            raise
+
+    # Product json template is AWOL.
+    # Fall back to however we rendered products before
+    product_props = product.data(raw=True)
+    product_js_obj = {}
+    for prop in product_props:
+        # where product_prop is ('data-key', 'value')
+        product_js_obj[prop] = product_props[prop]
+    return product_js_obj
+
+
 def get_json_data(request, products, campaign_id, seeds=None):
     """returns json equivalent of get_blocks' blocks.
 
@@ -166,15 +204,17 @@ def get_json_data(request, products, campaign_id, seeds=None):
 
     # products
     for product in products:
-        if not product.images() and products_with_images_only:
-            continue  # has no image, but wanted image --> ignore product
+        try:
+            if not product:
+                continue
 
-        product_props = product.data(raw=True)
-        product_js_obj = {}
-        for prop in product_props:
-            # where product_prop is ('data-key', 'value')
-            product_js_obj[prop] = product_props[prop]
-        results.append(product_js_obj)
+            product_js_obj = get_product_json_data(product=product,
+               products_with_images_only=products_with_images_only)
+            results.append(product_js_obj)
+        except ValueError:
+            # caused by product image requirement.
+            # if that requirement is not met, ignore product.
+            continue
 
     # videos
     video_cookie = request.session.get('pinpoint-video-cookie')
