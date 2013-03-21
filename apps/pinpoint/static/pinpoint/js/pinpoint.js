@@ -188,6 +188,7 @@ var PINPOINT = (function($, pageInfo) {
     /* --- START element bindings --- */
     function showPreview(me) {
         var data = $(me).data(),
+            templateName = data.template,
             $previewContainer = $('[data-template-id="preview-container"]'),
             $previewMask = $previewContainer.find('.mask'),
             $target = $previewContainer.find('.target.template'),
@@ -196,15 +197,18 @@ var PINPOINT = (function($, pageInfo) {
 
         // Determine the type of preview to show depending
         // on the original template
-        switch(data.template) {
-            // Legacy cases
+        switch(templateName) {
             case 'product':
             case 'combobox':
                 templateId = 'product-preview';
                 break;
-            // New cases
+            case 'instagram':
+                // TODO: Determine when we have an instagram with a product
+                if (false) {
+                    templateName += '-product'
+                }
             default:
-                templateId = data.template + '-preview';
+                templateId = templateName + '-preview';
         }
 
         template = $('[data-template-id="' + templateId + '"]').html();

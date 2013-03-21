@@ -167,6 +167,12 @@ class StoreTheme(BaseModelNamed):
 </script>
     """
 
+    DEFAULT_INSTAGRAM_PRODUCT_PREVIEW = """
+<script type='text/template' data-template-id='instagram-product-preview'>
+    <img src='<%= data["image"] %>'/>
+</script>
+    """
+
     DEFAULT_INSTAGRAM = """
 <script type='text/template' data-template-id='instagram'
         data-appearance-probability='0.25'>
@@ -202,6 +208,10 @@ class StoreTheme(BaseModelNamed):
     # Preview Templates
     product_preview = models.TextField(default=DEFAULT_PRODUCT_PREVIEW)
     instagram_preview = models.TextField(default=DEFAULT_INSTAGRAM_PREVIEW)
+    instagram_product_preview = models.TextField(
+        default=DEFAULT_INSTAGRAM_PRODUCT_PREVIEW)
+
+
 
     def __init__(self, *args, **kwargs):
         super(StoreTheme, self).__init__(*args, **kwargs)
@@ -217,10 +227,22 @@ class StoreTheme(BaseModelNamed):
             },
             'js_templates': {
                 'type': 'theme',
-                'values': ['shop_the_look', 'featured_product', 'product',
-                           'combobox', 'youtube', 'instagram',
-                           'product_preview',
-                           'instagram_preview']
+                'values': [
+                    # Featured area templates
+                    'shop_the_look',
+                    'featured_product',
+
+                    # Discovery blocks
+                    'product',
+                    'combobox',
+                    'youtube',
+                    'instagram',
+
+                    # Previews
+                    'product_preview',
+                    'instagram_preview',
+                    'instagram_product_preview'
+                ]
             }
         }
 
