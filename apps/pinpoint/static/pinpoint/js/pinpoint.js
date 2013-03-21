@@ -198,12 +198,9 @@ var PINPOINT = (function($, pageInfo) {
         // on the original template
         switch(data.template) {
             // Legacy cases
-            case 'instagram':
-                templateId = 'image-preview';
-                break;
             case 'product':
             case 'combobox':
-                templateId = 'preview';
+                templateId = 'product-preview';
                 break;
             // New cases
             default:

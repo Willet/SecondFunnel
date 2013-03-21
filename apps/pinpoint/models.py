@@ -143,8 +143,8 @@ class StoreTheme(BaseModelNamed):
 </script>
     """
 
-    DEFAULT_PREVIEW = """
-<script type='text/template' data-template-id='preview'>
+    DEFAULT_PRODUCT_PREVIEW = """
+<script type='text/template' data-template-id='product-preview'>
     <div class='image'><img src='<%= data.image %>' /></div>
     <div class='images'>
         <% _.each(data.images, function(image) { %>
@@ -161,8 +161,8 @@ class StoreTheme(BaseModelNamed):
 </script>
     """
 
-    DEFAULT_IMAGE_PREVIEW = """
-<script type='text/template' data-template-id='image-preview'>
+    DEFAULT_INSTAGRAM_PREVIEW = """
+<script type='text/template' data-template-id='instagram-preview'>
     <img src='<%= data["image"] %>'/>
 </script>
     """
@@ -200,8 +200,8 @@ class StoreTheme(BaseModelNamed):
     instagram = models.TextField(default=DEFAULT_INSTAGRAM)
 
     # Preview Templates
-    preview = models.TextField(default=DEFAULT_PREVIEW)
-    image_preview = models.TextField(default=DEFAULT_IMAGE_PREVIEW)
+    product_preview = models.TextField(default=DEFAULT_PRODUCT_PREVIEW)
+    instagram_preview = models.TextField(default=DEFAULT_INSTAGRAM_PREVIEW)
 
     def __init__(self, *args, **kwargs):
         super(StoreTheme, self).__init__(*args, **kwargs)
@@ -218,8 +218,9 @@ class StoreTheme(BaseModelNamed):
             'js_templates': {
                 'type': 'theme',
                 'values': ['shop_the_look', 'featured_product', 'product',
-                           'combobox', 'youtube', 'instagram', 'preview',
-                           'image_preview']
+                           'combobox', 'youtube', 'instagram',
+                           'product_preview',
+                           'instagram_preview']
             }
         }
 
