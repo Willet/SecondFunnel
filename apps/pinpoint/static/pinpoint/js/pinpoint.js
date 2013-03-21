@@ -195,13 +195,20 @@ var PINPOINT = (function($, pageInfo) {
             templateId,
             template, renderedTemplate;
 
+        // For our purposes, if something has multiple related products, just use the first
+        if (_.has(data, 'related-products')
+            && !_.isEmpty(data['related-products'])) {
+            data['related-product'] = data['related-products'][0];
+            delete data['related-products'];
+        }
+
         // Determine the type of preview to show depending
         // on the original template
         switch(templateName) {
             case 'instagram':
-                // TODO: Determine when we have an instagram with a product
-                if (false) {
-                    templateName += '-product'
+                if (_.has(data, 'related-product')
+                    && !_.isEmpty(data['related-product'])) {
+                    templateName += '-product';
                 }
             default:
                 templateId = templateName + '-preview';
