@@ -167,6 +167,21 @@ class StoreTheme(BaseModelNamed):
 </script>
     """
 
+    DEFAULT_INSTAGRAM = """
+<script type='text/template' data-template-id='instagram'
+        data-appearance-probability='0.25'>
+    <div class='block image external-content instagram'>
+        <div class='product'>
+            <div class='img-container'>
+                <img src='<%= sizeImage(data.image, "master") %>'
+                     alt='Instagram image'
+                     data-original-id='<%= data["original-id"] %>' />
+            </div>
+        </div>
+    </div>
+</script>
+    """
+
     # TODO: Replace with ForeignKey to support mobile themes?
     store = models.OneToOneField(Store, related_name="theme")
 
@@ -182,6 +197,7 @@ class StoreTheme(BaseModelNamed):
     product = models.TextField(default=DEFAULT_PRODUCT)
     combobox = models.TextField(default=DEFAULT_COMBOBOX)
     youtube = models.TextField(default=DEFAULT_YOUTUBE)
+    instagram = models.TextField(default=DEFAULT_INSTAGRAM)
 
     # Preview Templates
     preview = models.TextField(default=DEFAULT_PREVIEW)
@@ -202,7 +218,8 @@ class StoreTheme(BaseModelNamed):
             'js_templates': {
                 'type': 'theme',
                 'values': ['shop_the_look', 'featured_product', 'product',
-                           'combobox', 'youtube', 'preview', 'image_preview']
+                           'combobox', 'youtube', 'instagram', 'preview',
+                           'image_preview']
             }
         }
 
