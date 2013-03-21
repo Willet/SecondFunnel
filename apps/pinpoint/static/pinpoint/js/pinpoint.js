@@ -92,11 +92,13 @@ var PINPOINT = (function($, pageInfo) {
         return myArray.slice(0, nb_picks);
     }
 
-    function renderTemplate(str, data) {
+    function renderTemplate(str, context, isBlock) {
         // MOD of
         // http://emptysquare.net/blog/adding-an-include-tag-to-underscore-js-templates/
         // match "<% include template-id %>" with caching
-        var replaced = str.replace(
+        var appropriateSize,
+            lifestyleSize,
+            replaced = str.replace(
             /<%\s*include\s*(.*?)\s*%>/g,
             function(match, templateId) {
                 if (domTemplateCache[templateId]) {
@@ -113,12 +115,33 @@ var PINPOINT = (function($, pageInfo) {
             }
         );
 
+        // Use 'appropriate' size images by default
+        // TODO: Determine appropriate size
+        appropriateSize = (isBlock) ? 'compact' : 'master';
+        lifestyleSize = (isBlock) ? 'large' : 'master';
+
+
+        if (_.has(context.data, 'image') && !_.isEmpty(context.data.image)) {
+            context.data.image = size(context.data.image, appropriateSize);
+        }
+
+        if (_.has(context.data, 'images') && !_.isEmpty(context.data.images)) {
+            context.data.images = _.map(context.data.images, function(img) {
+                return size(img, appropriateSize)
+            });
+        }
+
+        if (_.has(context.data, 'lifestyle-image')
+            && !_.isEmpty(context.data['lifestyle-image'])) {
+            context.data['lifestyle-image'] = size(context.data['lifestyle-image'], lifestyleSize);
+        }
+
         // Append template functions to data
-        _.extend(data, {
+        _.extend(context, {
             'sizeImage': size
         });
 
-        return _.template(replaced, data);
+        return _.template(replaced, context);
     }
 
     function renderTemplates(data) {
@@ -478,7 +501,7 @@ var PINPOINT = (function($, pageInfo) {
                     'data': template_context,
                     'page': details.page,
                     'store': details.store
-                });
+                }, true);
                 if (!rendered_block.length) {
                     // template did not render.
                     break;
@@ -526,6 +549,7 @@ var PINPOINT = (function($, pageInfo) {
 
             api.getObject("video_gdata", video.id, function (video_data) {
                 var preferredThumbnailQuality = 'hqdefault',
+                    thumbClass = 'youtube-thumbnail',
                     thumbURL = 'http://i.ytimg.com/vi/' + video.id +
                                '/' + preferredThumbnailQuality + '.jpg',
                     thumbObj,
@@ -540,40 +564,50 @@ var PINPOINT = (function($, pageInfo) {
                     thumbURL = thumbObj.url;
                 }  // else fallback to the default thumbURL
                 
-                var thumbnail = $('<div />', {
-                    'css': {  // this is to trim the 4:3 black bars
-                        'overflow': 'hidden',
-                        'height': video.height + 'px',
-                        'background-image': 'url("' + thumbURL + '")',
-                        'background-position': 'center center'
-                    }
-                });
-
-                thumbnail.addClass('wide').click(function () {
-                    // when the thumbnail is clicked, replace itself with
-                    // the youtube video of the same size, then autoplay
-                    thumbnail.remove();
-                    player = new YT.Player(video.id, {
-                        height: video.height,
-                        width: video.width,
-                        videoId: video.id,
-                        playerVars: {
-                            'autoplay': 1,
-                            'controls': 0
-                        },
-                        events: {
-                            'onReady': function (e) {
-                            },
-                            'onStateChange': video_state_change,
-                            'onError': function (e) {
-                            }
+                var containers = $(".youtube[data-label='" + video.id + "']");
+                containers.each(function () {
+                    var container = $(this);
+                    
+                    var thumbnail = $('<div />', {
+                        'css': {  // this is to trim the 4:3 black bars
+                            'overflow': 'hidden',
+                            'height': video.height + 'px',
+                            'background-image': 'url("' + thumbURL + '")',
+                            'background-position': 'center center'
                         }
                     });
-                });
 
-                $(".youtube[data-label='" + video.id + "']")
-                    .prepend(thumbnail)
-                    .children(".title").html(video_data.entry.title.$t);
+                    thumbnail.addClass('wide ' + thumbClass).click(function () {
+                        // when the thumbnail is clicked, replace itself with
+                        // the youtube video of the same size, then autoplay
+                        thumbnail.remove();
+                        player = new YT.Player(video.id, {
+                            height: video.height,
+                            width: video.width,
+                            videoId: video.id,
+                            playerVars: {
+                                'autoplay': 1,
+                                'controls': 0
+                            },
+                            events: {
+                                'onReady': function (e) {
+                                },
+                                'onStateChange': video_state_change,
+                                'onError': function (e) {
+                                }
+                            }
+                        });
+                    });
+
+                    if (container.find('.' + thumbClass).length === 0) {
+                        // add a thumbnail only if there isn't one already
+                        container.prepend(thumbnail);
+                        console.log('loaded video thumbnail ' + video.id);
+                    } else {
+                        console.error('prevented thumbnail dupe');
+                    }
+                    container.children(".title").html(video_data.entry.title.$t);
+                });
             });
         });
 
