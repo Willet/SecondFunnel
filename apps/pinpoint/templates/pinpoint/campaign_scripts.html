@@ -31,10 +31,15 @@
                 'featured':
                 {% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}
                 {% if backup_results %}{# offline, pseudo-custom results #}
-                , 'backupResults': {% include "pinpoint/snippets/product_list.js" with products=backup_results %}
+                , 'backupResults': [
+                    {% for product3 in backup_results %}
+                        {% include 'pinpoint/snippets/product_object.js' with product=product3 featured=False only %}
+                        {% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ]
                 {% endif %}
                 {% if random_results %}{# offline, totally random results #}
-                , 'randomResults': {% include "pinpoint/snippets/product_list.js" with products=random_results %}
+                , 'randomResults': {% include "pinpoint/snippets/product_list.js" with products=random_results only %}
                 {% endif %}
             };
 

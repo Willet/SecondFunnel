@@ -229,16 +229,11 @@ class Product(BaseModelNamed):
 
     def _get_random_lifestyle_image(self):
         """Returns a random lifestyle image url."""
-        def strip_and_escape(text):
-            modified_text = striptags(text)
-            modified_text = escape(modified_text)
-            return modified_text
-
         if self.lifestyleImages.all():
             random_idx = random.randint(0, self.lifestyleImages.count()-1)
             random_img = self.lifestyleImages.all()[random_idx]
-            return strip_and_escape(random_img)
-        raise AttributeError('No lifestyle image.')
+            return unicode(random_img)
+        return 'No lifestyle image.'
 
     # getter used by templating
     lifestyle_image = property(_get_random_lifestyle_image)

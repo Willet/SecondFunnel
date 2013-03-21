@@ -13,7 +13,7 @@
     "image": "{{ product.image }}",
     {% endif %}
     {% ifequal product.template "combobox" %}
-    "lifestyle-image": "{{ product.lifestyle_image|escapejs }}",
+    "lifestyle-image": "{{ product.lifestyle_image }}",
     {% endifequal %}
     "images": [
     {% for image in product.images %}
