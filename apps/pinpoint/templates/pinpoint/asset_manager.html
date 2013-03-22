@@ -116,7 +116,9 @@
     });
 
     var tasty_api = function (o) {
-        o.processData = o.processData || true;
+        if (!("processData" in o)) {
+            o.processData = true;
+        }
         o.resource_id = (o.resource_id) ? o.resource_id + "/" : "";
 
         $.ajax({
