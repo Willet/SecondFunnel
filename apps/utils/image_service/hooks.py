@@ -6,7 +6,7 @@ from apps.utils.image_service.api import queue_processing
 
 
 def process_image(instance):
-    if instance.hosted and not instance.hosted.startswith("http"):
+    if instance.hosted and not instance.hosted.url.startswith("http"):
         image_url = "{0}{1}".format(settings.STATIC_URL, instance.hosted)
 
     else:
