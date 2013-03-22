@@ -102,6 +102,8 @@
     $("#tabs").tabs();
     $("#scroll_with_review").button();
 
+    var tag_associations = {}, products = {};
+
     var scroll_with_review = function () {
         return $("#scroll_with_review").prop("checked");
     };
@@ -124,19 +126,18 @@
                 o.success && o.success(result);
             }
         });
-    }
+    };
 
     var put_api = function (resource_uri, data, callback) {
         tasty_api({
             resource_uri: resource_uri,
-            type: "PUT",
-            processData: false,
+            type: 'PATCH',
             data: JSON.stringify(data),
             success: function (results) {
                 callback && callback(results);
             }
         })
-    }
+    };
 
     var get_put_api = function (get_data, put_data, callback) {
         if (!get_data.hasOwnProperty("format")) {
@@ -150,7 +151,17 @@
                 put_api(result.objects[0].resource_uri, put_data, callback);
             }
         });
-    }
+    };
+
+    var post_tags = function (oid) {
+        get_put_api({
+            original_id: oid
+        }, {
+            "products": $.map(tag_associations[oid], function (pid) {
+                return "/api/assets/v1/product/" + pid + "/";
+            })
+        });
+    };
 
     var do_action = function (target, action) {
         var $p = $(target).parents('.approval_block'),
@@ -225,6 +236,24 @@
         window.location.reload();
     });
 
+    // this is a bit of a hack
+    // template renders IDs for each product tag; tagit loses these
+    // once it renders the widget and loads initial tags via li elems.
+    // So, we need to preserve the associations, and associate product
+    // names (tags) with product IDs for future use.
+    $(".tags").each(function(index) {
+        var oid = $(this).parents(".approval_block").data("oid");
+
+        $(this).children("li").each(function(index) {
+            if (!tag_associations.hasOwnProperty(oid)) {
+                tag_associations[oid] = [];
+            }
+
+            tag_associations[oid].push($(this).data("pid"));
+            products[$(this).text()] = $(this).data("pid");
+        });
+    });
+
     $(".tags").tagit({
         autocomplete: {
             source: function(request, response) {
@@ -249,18 +278,36 @@
 
             minLength: 2,
 
+            // we're handling addition here and not in beforeTagAdded
+            // because we need access to product id (ui.item.id)
             select: function( event, ui ) {
                 var oid = $(this).parents(".approval_block").data("oid");
 
                 if (ui.item) {
-                    get_put_api({
-                        original_id: oid
-                    }, {
-                        "products": [{'resource_uri': '/api/assets/v1/products/' + ui.item.id}]
-                    });
+                    if (tag_associations[oid] && tag_associations[oid].indexOf(ui.item.id) != -1) {
+                        return;
+                    }
+
+                    products[ui.item.value] = ui.item.id;
+
+                    if (tag_associations[oid] === undefined) {
+                        tag_associations[oid] = [ui.item.id];
+                    } else {
+                        tag_associations[oid].push(ui.item.id);
+                    }
+
+                    post_tags(oid);
                 }
             }
         },
+
+        beforeTagRemoved: function (event, ui) {
+            var oid = $(this).parents(".approval_block").data("oid"),
+                pid = products[ui.tagLabel];
+
+            tag_associations[oid].splice(tag_associations[oid].indexOf(pid), 1);
+            post_tags(oid);
+        }
     });
 {% endblock %}
 
@@ -320,7 +367,12 @@
                             <label for="caption_{{ data.original_id }}">Caption <span class="saved">Saved</span></label>
                             <textarea id="caption_{{ data.original_id }}">{{ data.text_content }}</textarea>
                             <div class="actions">
-                                <ul class="tags"></ul>
+                                <strong>Tagged Products:</strong>
+                                <ul class="tags" style="width: 350px; max-height: 80px;">
+                                    {% for product in data.tagged_products.all %}
+                                    <li data-pid="{{ product.id }}">{{ product.name }}</li>
+                                    {% endfor %}
+                                </ul>
                                 <span class="reject" {% if content_type == "rejected" %}style="display:none;"{% endif %}>&#x2718; Reject</span>
                                 <span class="approve" {% if content_type == "approved" %}style="display:none;"{% endif %}>&#x2714; Approve</span>
                             </div>
