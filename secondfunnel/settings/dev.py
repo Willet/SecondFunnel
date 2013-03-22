@@ -55,3 +55,32 @@ INSTAGRAM_CLIENT_ID = '1410bbbf8b614ebfb77081d5293cf48d'
 INSTAGRAM_CLIENT_SECRET = 'c535ee3141944cdbaab97954b6b85083'
 
 STATIC_CAMPAIGNS_BUCKET_NAME = 'campaigns-test.secondfunnel.com'
+
+# Monkeypatch decorator care of Van Rossum himself!
+# http://mail.python.org/pipermail/python-dev/2008-January/076194.html
+def monkeypatch_method(cls):
+    def decorator(func):
+        setattr(cls, func.__name__, func)
+        return func
+    return decorator
+
+# Fix for SQLite DBs and potential migration problems
+# https://groups.google.com/forum/#!msg/south-users/y0ZYm6hSeWc/by7d8GwuN68J
+from south.db.sqlite3 import DatabaseOperations
+
+@monkeypatch_method(DatabaseOperations)
+def _get_full_table_description(self, connection, cursor, table_name):
+    cursor.execute('PRAGMA table_info(%s)' % connection.ops.quote_name(table_name))
+    # cid, name, type, notnull, dflt_value, pk
+
+    def _normalize(field):
+        if field is not None:
+            field = field.replace('%', '%%')
+        return field
+
+    return [{'name': field[1],
+             'type': field[2],
+             'null_ok': not field[3],
+             'dflt_value': _normalize(field[4]),
+             'pk': field[5]     # undocumented
+            } for field in cursor.fetchall()]
