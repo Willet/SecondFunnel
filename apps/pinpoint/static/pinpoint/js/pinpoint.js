@@ -15,6 +15,7 @@ var PINPOINT = (function($, pageInfo) {
         spaceBelowFoldToStartLoading = 500,
         loadingBlocks = false,
         blocksAppendedCallbacks = [],
+        globalIdCounters = {},
         previewCallbacks = [],
         readyCallbacks = [],
         hoverTimer,
@@ -65,6 +66,12 @@ var PINPOINT = (function($, pageInfo) {
             refBuilder[listOfKeys[i]] = keyOf;
         } while (++i < listOfKeys.length);
         return refBuilder;  // all requested key depths exist
+    }
+
+    function generateID(baseStr) {
+        // multi-baseStr variant of generateID: stackoverflow.com/a/6861381
+        globalIdCounters[baseStr] = globalIdCounters[baseStr] + 1 || 0;
+        return baseStr + globalIdCounters[baseStr];
     }
 
     function getShortestColumn () {
@@ -566,7 +573,8 @@ var PINPOINT = (function($, pageInfo) {
                 
                 var containers = $(".youtube[data-label='" + video.id + "']");
                 containers.each(function () {
-                    var container = $(this);
+                    var container = $(this),
+                        uniqueThumbnailID = generateID('thumb-' + video.id);
                     
                     var thumbnail = $('<div />', {
                         'css': {  // this is to trim the 4:3 black bars
@@ -574,14 +582,14 @@ var PINPOINT = (function($, pageInfo) {
                             'height': video.height + 'px',
                             'background-image': 'url("' + thumbURL + '")',
                             'background-position': 'center center'
-                        }
+                        },
+                        'id': uniqueThumbnailID
                     });
 
                     thumbnail.addClass('wide ' + thumbClass).click(function () {
                         // when the thumbnail is clicked, replace itself with
                         // the youtube video of the same size, then autoplay
-                        thumbnail.remove();
-                        player = new YT.Player(video.id, {
+                        player = new YT.Player(uniqueThumbnailID, {
                             height: video.height,
                             width: video.width,
                             videoId: video.id,
