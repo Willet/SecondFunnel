@@ -436,7 +436,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
     context.update({
         'product': product,
         'campaign': campaign,
-        'backup_results': related_results,
+        'backup_results': json.dumps(related_results),
         'pub_date': datetime.now(),
     })
 

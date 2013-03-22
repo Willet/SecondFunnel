@@ -272,6 +272,8 @@ def get_seeds(request, **kwargs):
 
     kwargs['raw'] also toggles between returning a dictionary
     or an entire HttpResponse.
+
+    returns a list of (json) dicts representing e.g. products.
     """
     store   = kwargs.get('store', request.GET.get('store', '-1'))
     page    = kwargs.get('campaign', request.GET.get('campaign', '-1'))
