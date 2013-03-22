@@ -262,6 +262,12 @@ def get_json_data(request, products, campaign_id, seeds=None):
                 'template': item.content_type.name.lower()
             })
 
+            related_products = item.tagged_products.all()
+            if related_products:
+                json_content.update({
+                    'related-products': [x.data(raw=True) for x in related_products]
+                })
+
             results.insert(randrange(len(results) + 1), json_content)
 
     return results

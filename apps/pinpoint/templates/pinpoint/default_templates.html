@@ -1,5 +1,6 @@
 {% load static %}
-<div class='preview container' style='display: none;'>
+<div class='preview container' style='display: none;'
+     data-template-id='preview-container'>
     <div class="mask"></div>
     <div class="tablecell">
         <div class="content">
@@ -57,18 +58,6 @@
         <div class="pin click video">
             <div class="inner-pin">
                 <div id="<%= data.id %>"></div>
-            </div>
-        </div>
-    </div>
-</script>
-<script type="text/template" data-template-id="instagram"
-        data-appearance-probability="0.25">
-    <div class='block image external-content instagram'>
-        <div class='product'>
-            <div class='img-container'>
-                <img src='<%= sizeImage(data.image, "1024x1024") %>'
-                     alt='Instagram image'
-                     data-original-id='<%= data["original-id"] %>' />
             </div>
         </div>
     </div>

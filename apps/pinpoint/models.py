@@ -143,8 +143,8 @@ class StoreTheme(BaseModelNamed):
 </script>
     """
 
-    DEFAULT_PREVIEW = """
-<script type='text/template' data-template-id='preview'>
+    DEFAULT_PRODUCT_PREVIEW = """
+<script type='text/template' data-template-id='product-preview'>
     <div class='image'><img src='<%= data.image %>' /></div>
     <div class='images'>
         <% _.each(data.images, function(image) { %>
@@ -161,9 +161,48 @@ class StoreTheme(BaseModelNamed):
 </script>
     """
 
-    DEFAULT_IMAGE_PREVIEW = """
-<script type='text/template' data-template-id='image-preview'>
+    DEFAULT_COMBOBOX_PREVIEW = """
+<script type='text/template' data-template-id='combobox-preview'>
+    <div class='image'><img src='<%= data.image %>' /></div>
+    <div class='images'>
+        <% _.each(data.images, function(image) { %>
+        <img src='<%= image %>' />
+        <% }); %>
+    </div>
+    <div class='price'><%= data.price %></div>
+    <div class='title'><%= data.title %></div>
+    <div class='description'><%= data.description %></div>
+    <div class='url'><a href='<%= data.url %>' target="_blank">BUY
+        NOW</a></div>
+    <% include social_buttons %>
+    </div>
+</script>
+    """
+
+    DEFAULT_INSTAGRAM_PREVIEW = """
+<script type='text/template' data-template-id='instagram-preview'>
     <img src='<%= data["image"] %>'/>
+</script>
+    """
+
+    DEFAULT_INSTAGRAM_PRODUCT_PREVIEW = """
+<script type='text/template' data-template-id='instagram-product-preview'>
+    <img src='<%= data["image"] %>'/>
+</script>
+    """
+
+    DEFAULT_INSTAGRAM = """
+<script type='text/template' data-template-id='instagram'
+        data-appearance-probability='0.25'>
+    <div class='block image external-content instagram'>
+        <div class='product'>
+            <div class='img-container'>
+                <img src='<%= sizeImage(data.image, "master") %>'
+                     alt='Instagram image'
+                     data-original-id='<%= data["original-id"] %>' />
+            </div>
+        </div>
+    </div>
 </script>
     """
 
@@ -182,10 +221,16 @@ class StoreTheme(BaseModelNamed):
     product = models.TextField(default=DEFAULT_PRODUCT)
     combobox = models.TextField(default=DEFAULT_COMBOBOX)
     youtube = models.TextField(default=DEFAULT_YOUTUBE)
+    instagram = models.TextField(default=DEFAULT_INSTAGRAM)
 
     # Preview Templates
-    preview = models.TextField(default=DEFAULT_PREVIEW)
-    image_preview = models.TextField(default=DEFAULT_IMAGE_PREVIEW)
+    product_preview = models.TextField(default=DEFAULT_PRODUCT_PREVIEW)
+    combobox_preview = models.TextField(default=DEFAULT_COMBOBOX_PREVIEW)
+    instagram_preview = models.TextField(default=DEFAULT_INSTAGRAM_PREVIEW)
+    instagram_product_preview = models.TextField(
+        default=DEFAULT_INSTAGRAM_PRODUCT_PREVIEW)
+
+
 
     def __init__(self, *args, **kwargs):
         super(StoreTheme, self).__init__(*args, **kwargs)
@@ -196,13 +241,28 @@ class StoreTheme(BaseModelNamed):
             },
             'body_content': {
                 'type': 'template',
-                'values': ['pinpoint/campaign_discovery.html',
+                'values': ['pinpoint/default_templates.html',
                            'pinpoint/campaign_scripts.html']
             },
             'js_templates': {
                 'type': 'theme',
-                'values': ['shop_the_look', 'featured_product', 'product',
-                           'combobox', 'youtube', 'preview', 'image_preview']
+                'values': [
+                    # Featured area templates
+                    'shop_the_look',
+                    'featured_product',
+
+                    # Discovery blocks
+                    'product',
+                    'combobox',
+                    'youtube',
+                    'instagram',
+
+                    # Previews
+                    'product_preview',
+                    'combobox_preview',
+                    'instagram_preview',
+                    'instagram_product_preview'
+                ]
             }
         }
 
