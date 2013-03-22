@@ -193,29 +193,42 @@ var PINPOINT = (function($, pageInfo) {
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
-    function showImagePreview(t) {
-        showPreview(t, 'image-preview');
-    }
+    function showPreview(me) {
+        var data = $(me).data(),
+            templateName = data.template,
+            $previewContainer = $('[data-template-id="preview-container"]'),
+            $previewMask = $previewContainer.find('.mask'),
+            $target = $previewContainer.find('.target.template'),
+            templateId,
+            template, renderedTemplate;
 
-    function showProductPreview (t) {
-        showPreview(t, 'preview');
-    }
+        // Since we don't know how to handle /multiple/ products
+        // provide a way to access /one/ related product
+        if (_.has(data, 'related-products')
+            && !_.isEmpty(data['related-products'])) {
+            data['related-product'] = data['related-products'][0];
+        }
 
-    function showPreview(me, templateName) {
-        var data     = $(me).data(),
-            $preview = $('.preview.container'),
-            $mask    = $('.preview .mask'),
-            templateEl = $("[data-template-id='" + templateName + "']"),
-            template = templateEl.html(),
-            renderedTemplate,
-            target = $('.target.template[data-src="preview"]');
+        // Determine the type of preview to show depending
+        // on the original template
+        switch(templateName) {
+            case 'instagram':
+                if (_.has(data, 'related-products')
+                    && !_.isEmpty(data['related-products'])) {
+                    templateName += '-product';
+                }
+            default:
+                templateId = templateName + '-preview';
+        }
 
-        data.is_preview = data.is_preview || true;
+        template = $('[data-template-id="' + templateId + '"]').html();
 
-        if(!templateEl.length || !target.length) {
+        if (_.isEmpty(template) || _.isEmpty($target)) {
             console.log('oops @ no preview template');
             return;
         }
+
+        data.is_preview = !_.isUndefined(data.is_preview) ? data.is_preview : true;
 
         renderedTemplate = renderTemplate(template, {
             'data': data,
@@ -223,11 +236,11 @@ var PINPOINT = (function($, pageInfo) {
             'store': details.store
         });
 
-        target.html(renderedTemplate);
+        $target.html(renderedTemplate);
 
         // Parse Facebook, Twitter buttons
         if (window.FB) {
-            FB.XFBML.parse($preview.find('.social-buttons .button.facebook')[0]);
+            FB.XFBML.parse($previewContainer.find('.social-buttons .button.facebook')[0]);
         }
 
         if (window.twttr) {
@@ -245,8 +258,8 @@ var PINPOINT = (function($, pageInfo) {
             pinpointTracking.setSocialShareVars({"sType": "popup", "url": data.url});
         }
 
-        $preview.fadeIn(100);
-        $mask.fadeIn(100);
+        $previewContainer.fadeIn(100);
+        $previewMask.fadeIn(100);
     }
 
     function addPreviewCallback(f) {
@@ -684,10 +697,10 @@ var PINPOINT = (function($, pageInfo) {
 
         // use delegated events to reduce overhead
         $discovery.on('click', '.block.product, .block.combobox', function (e) {
-            showProductPreview(e.currentTarget, e);
+            showPreview(e.currentTarget);
         });
         $discovery.on('click', '.block.image', function (e) {
-            showImagePreview(e.currentTarget, e);
+            showPreview(e.currentTarget);
         });
 
         // update clickstream
