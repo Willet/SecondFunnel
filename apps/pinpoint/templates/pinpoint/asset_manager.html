@@ -110,6 +110,11 @@
 
     var store_id = "{{ store.id }}";
 
+    $(document).ajaxError(function (event, request, settings) {
+        alert("There was an error performing your action.");
+        console.log(event, request, settings);
+    });
+
     var tasty_api = function (o) {
         o.processData = o.processData || true;
         o.resource_id = (o.resource_id) ? o.resource_id + "/" : "";
