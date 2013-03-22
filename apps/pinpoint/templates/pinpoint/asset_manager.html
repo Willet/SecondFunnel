@@ -9,6 +9,7 @@
 {% block extra_head %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/jquery.tagit.css" %}">
 
     <style>
         .container_12 .prefix_9, .container_16 .prefix_12 {
@@ -93,79 +94,114 @@
 {% endblock %}
 
 {% block extra_js_includes %}
-    <script src="{% static "js/jquery-ui.js" %}"></script>
+    <script src="{% static "js/jquery-ui.js" %}" type="text/javascript"></script>
+    <script src="{% static "js/tag-it.min.js" %}" type="text/javascript"></script>
 {% endblock %}
 
 {% block document_ready %}
     $("#tabs").tabs();
     $("#scroll_with_review").button();
 
+    var tag_associations = {}, products = {};
+
     var scroll_with_review = function () {
         return $("#scroll_with_review").prop("checked");
     };
 
-    var put_api = function (oid, put_data, callback) {
+    var store_id = "{{ store.id }}";
+
+    $(document).ajaxError(function (event, request, settings) {
+        alert("There was an error performing your action.");
+        console.log(event, request, settings);
+    });
+
+    var tasty_api = function (o) {
+        if (!("processData" in o)) {
+            o.processData = true;
+        }
+        o.resource_id = (o.resource_id) ? o.resource_id + "/" : "";
+
         $.ajax({
-            url: '/api/assets/v1/external_content/',
-            type: 'GET',
+            url: o.resource_uri || '/api/assets/v1/' + o.resource_name + '/' + o.resource_id,
+            type: o.type || 'GET',
             contentType: 'application/json',
-            data: {
-                original_id: oid,
-                format: "json"
-            },
+            data: o.data,
             dataType: 'json',
-            success: function (data) {
-                $.ajax({
-                    url: data.objects[0].resource_uri,
-                    type: 'PUT',
-                    contentType: 'application/json',
-                    processData: false,
-                    data: put_data,
-                    success: function () {
-                        callback && callback();
-                    }
-                });
+            processData: o.processData,
+            success: function (result) {
+                o.success && o.success(result);
             }
         });
-    }
+    };
+
+    var patch_api = function (oid, data, callback) {
+        tasty_api({
+            resource_name: 'external_content',
+            resource_id: oid,
+
+            // not using PUT because we don't have to pass in
+            // the whole object this way, just what we want to change
+            type: 'PATCH',
+
+            data: JSON.stringify(data),
+            success: function (results) {
+                callback && callback(results);
+            }
+        })
+    };
+
+    var post_tags = function (oid) {
+        patch_api(oid, {
+            "products": $.map(tag_associations[oid], function (pid) {
+                return "/api/assets/v1/product/" + pid + "/";
+            })
+        });
+    };
 
     var do_action = function (target, action) {
         var $p = $(target).parents('.approval_block'),
             oid = $p.data("oid"),
             $ribbon = $(".image_ribbon[data-oid='" + oid + "']"),
-            db_approved, db_active;
+            db_approved, db_active, post_action;
 
-        if (scroll_with_review()) {
-            $('html, body').animate({
-                scrollTop: $p.next().offset().top
-            }, 700);
-        }
-
-        $ribbon.removeClass("needs_review");
         if (action == "approve") {
-            $ribbon.removeClass("rejected");
-            $ribbon.addClass("approved");
-            $ribbon.children('.label').html("Approved");
-
-            db_approved = true;
-            db_active = true;
+            post_action = function () {
+                $ribbon.removeClass("needs_review");
+                $ribbon.removeClass("rejected");
+                $ribbon.addClass("approved");
+                $ribbon.children('.label').html("Approved");
+            }
+            db_approved = db_active = true;
         } else {
-            $ribbon.removeClass("approved");
-            $ribbon.addClass("rejected");
-            $ribbon.children('.label').html("Rejected");
-
-            db_approved = false;
-            db_active = false;
+            post_action = function () {
+                $ribbon.removeClass("needs_review");
+                $ribbon.removeClass("approved");
+                $ribbon.addClass("rejected");
+                $ribbon.children('.label').html("Rejected");
+            }
+            db_approved = db_active = false;
         }
 
-        put_api(oid, JSON.stringify({
-            "active": db_active,
-            "approved": db_approved,
-            "text_content": $p.children(".approval_form").children("textarea")[0].value
-        }));
+        patch_api(
+            oid,
+            {
+                "active": db_active,
+                "approved": db_approved,
+                "text_content": $p.children(".approval_form").children("textarea")[0].value
+            },
+            function () {
+                post_action();
 
-        $(target).hide();
-        $(target).siblings().show();
+                if (scroll_with_review()) {
+                    $('html, body').animate({
+                        scrollTop: $p.next().offset().top
+                    }, 700);
+                }
+
+                $(target).hide();
+                $(target).siblings().show();
+            }
+        );
     };
 
     $(".approve").button().click(function (event) {
@@ -183,9 +219,7 @@
         var $p = $(this).parents(".approval_block"),
             oid = $p.data("oid");
 
-        put_api(oid, JSON.stringify({
-            "text_content": $(this).val()
-        }), function () {
+        patch_api(oid, {"text_content": $(this).val()}, function () {
             $p.children(".approval_form").children("label").children(".saved").show("slow");
         });
     });
@@ -193,6 +227,78 @@
     $(".done_review").button().click(function (event) {
         event.preventDefault();
         window.location.reload();
+    });
+
+    // this is a bit of a hack
+    // template renders IDs for each product tag; tagit loses these
+    // once it renders the widget and loads initial tags via li elems.
+    // So, we need to preserve the associations, and associate product
+    // names (tags) with product IDs for future use.
+    $(".tags").each(function(index) {
+        var oid = $(this).parents(".approval_block").data("oid");
+
+        $(this).children("li").each(function(index) {
+            tag_associations[oid] = tag_associations[oid] || [];
+
+            tag_associations[oid].push($(this).data("pid"));
+            products[$(this).text()] = $(this).data("pid");
+        });
+    });
+
+    $(".tags").tagit({
+        autocomplete: {
+            source: function(request, response) {
+                var term = request.term;
+                tasty_api({
+                    resource_name: "product",
+                    data: {
+                        'store': store_id,
+                        'format': 'json',
+                        'name_or_url': term
+                    },
+                    success: function (data) {
+                        //convert object to usable form
+                        var results = [];
+                        $.each(data.objects, function(index, value) {
+                            results.push({'label': value.name, 'id': value.id})
+                        });
+                        response(results);
+                    }
+                });
+            },
+
+            minLength: 2,
+
+            // we're handling addition here and not in beforeTagAdded
+            // because we need access to product id (ui.item.id)
+            select: function( event, ui ) {
+                var oid = $(this).parents(".approval_block").data("oid");
+
+                if (ui.item) {
+                    if (tag_associations[oid] && tag_associations[oid].indexOf(ui.item.id) != -1) {
+                        return;
+                    }
+
+                    products[ui.item.value] = ui.item.id;
+
+                    if (tag_associations[oid] === undefined) {
+                        tag_associations[oid] = [ui.item.id];
+                    } else {
+                        tag_associations[oid].push(ui.item.id);
+                    }
+
+                    post_tags(oid);
+                }
+            }
+        },
+
+        beforeTagRemoved: function (event, ui) {
+            var oid = $(this).parents(".approval_block").data("oid"),
+                pid = products[ui.tagLabel];
+
+            tag_associations[oid].splice(tag_associations[oid].indexOf(pid), 1);
+            post_tags(oid);
+        }
     });
 {% endblock %}
 
@@ -233,9 +339,9 @@
         {% for content_label, content_type, content_data in content %}
             <div id="{{ content_type }}">
                 {% for data in content_data %}
-                    <div class='grid_11 approval_block' data-oid="{{ data.original_id }}">
+                    <div class='grid_11 approval_block' data-oid="{{ data.id }}">
                         <div class="grid_3 image_box" style="background-image: url({{ data.image_url|size:"medium" }});">
-                            <div class="image_ribbon {{ content_type }}" data-oid="{{ data.original_id }}">
+                            <div class="image_ribbon {{ content_type }}" data-oid="{{ data.id }}">
                                 <div class="label">
                                     {% if content_type == "needs_review" %}
                                         Not Reviewed
@@ -249,9 +355,15 @@
                         </div>
 
                         <div class="grid_6 prefix_1 approval_form">
-                            <label for="caption_{{ data.original_id }}">Caption <span class="saved">Saved</span></label>
-                            <textarea id="caption_{{ data.original_id }}">{{ data.text_content }}</textarea>
+                            <label for="caption_{{ data.id }}">Caption <span class="saved">Saved</span></label>
+                            <textarea id="caption_{{ data.id }}">{{ data.text_content }}</textarea>
                             <div class="actions">
+                                <strong>Tagged Products:</strong>
+                                <ul class="tags" style="width: 350px; max-height: 80px;">
+                                    {% for product in data.tagged_products.all %}
+                                    <li data-pid="{{ product.id }}">{{ product.name }}</li>
+                                    {% endfor %}
+                                </ul>
                                 <span class="reject" {% if content_type == "rejected" %}style="display:none;"{% endif %}>&#x2718; Reject</span>
                                 <span class="approve" {% if content_type == "approved" %}style="display:none;"{% endif %}>&#x2714; Approve</span>
                             </div>
