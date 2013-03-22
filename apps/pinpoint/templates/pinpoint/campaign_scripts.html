@@ -12,6 +12,7 @@
         (function() {
             window.PINPOINT_INFO = {
                 'page': {
+                    'pubDate': '{{ pub_date }}',  // for verifying the original upload date of a static campaign. for human use only
                     'id': '{{ campaign.id }}',
                     'main-block-template': '{{ campaign.template }}',
                     'stl-image': '{{ campaign.stl_image }}',
@@ -27,13 +28,12 @@
                 'campaign': {
                     'id': '{{ campaign.id }}'
                 },
-                'featured':
-                {% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}
+                'featured': {% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}
                 {% if backup_results %}{# offline, pseudo-custom results #}
-                , 'backupResults': {% include "pinpoint/snippets/product_list.js" with products=backup_results %}
+                , 'backupResults': {{ backup_results|safe }}
                 {% endif %}
                 {% if random_results %}{# offline, totally random results #}
-                , 'randomResults': {% include "pinpoint/snippets/product_list.js" with products=random_results %}
+                , 'randomResults': {{ random_results|safe }}
                 {% endif %}
             };
 
