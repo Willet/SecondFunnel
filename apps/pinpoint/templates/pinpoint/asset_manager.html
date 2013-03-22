@@ -131,6 +131,9 @@
     var put_api = function (resource_uri, data, callback) {
         tasty_api({
             resource_uri: resource_uri,
+
+            // not using PUT because we don't have to pass in
+            // the whole object this way, just what we want to change
             type: 'PATCH',
             data: JSON.stringify(data),
             success: function (results) {
