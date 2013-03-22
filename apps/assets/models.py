@@ -233,7 +233,7 @@ class Product(BaseModelNamed):
             random_idx = random.randint(0, self.lifestyleImages.count()-1)
             random_img = self.lifestyleImages.all()[random_idx]
             return unicode(random_img)
-        return 'No lifestyle image.'
+        raise AttributeError('No lifestyle image.')
 
     # getter used by templating
     lifestyle_image = property(_get_random_lifestyle_image)
