@@ -221,7 +221,7 @@ var PINPOINT = (function($, pageInfo) {
             return;
         }
 
-        data.is_preview = data.is_preview || true;
+        data.is_preview = !_.isUndefined(data.is_preview) ? data.is_preview : true;
 
         renderedTemplate = renderTemplate(template, {
             'data': data,
