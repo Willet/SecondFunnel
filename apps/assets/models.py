@@ -191,8 +191,8 @@ class Product(BaseModelNamed):
         }
 
         try:
-            fields['data-lifestyle-image'] = self._get_random_lifestyle_image()
-            fields['data-template'] = self._get_preferred_template()
+            fields['data-lifestyle-image'] = self.lifestyle_image  # getter
+            fields['data-template'] = self.template  # getter
         except AttributeError:  # product has no lifestyle images.
             pass
 
