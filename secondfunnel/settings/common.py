@@ -315,6 +315,8 @@ AUTHENTICATION_BACKENDS = (
 )
 SOCIAL_AUTH_NEW_ASSOCIATION_REDIRECT_URL = '/pinpoint/admin/social-auth/'
 
+INSTAGRAM_AUTH_EXTRA_ARGUMENTS = {'scope': 'likes'}
+
 MAINTENANCE_IGNORE_URLS = (r'^/$',
                            r'^/about/?$',
                            r'^/contact/?$',
