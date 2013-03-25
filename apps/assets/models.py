@@ -286,7 +286,8 @@ class ExternalContent(BaseModel):
             'image': self.image_url,
             'username': self.username,
             'user-image': self.user_image,
-            'likes': self.likes
+            'likes': self.likes,
+            'caption': self.text_content
         }
 
 
