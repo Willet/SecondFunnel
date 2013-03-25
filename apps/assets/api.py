@@ -74,14 +74,6 @@ class ProductResource(ModelResource):
         authentication = UserAuthentication()
         authorization = UserPartOfStore()
 
-    def get_object_list(self, request):
-        """Extended defined function from ModelResource in tastypie."""
-        result = super(ProductResource, self).get_object_list(request)
-        if 'store' in request.GET:
-            return result.filter(store=request.GET['store'])
-        else:
-            return result.none()
-
     def build_filters(self, filters=None):
         """build_filters (transitions) resource lookup to an ORM lookup.
 
@@ -151,20 +143,6 @@ class ProductMediaResource(ModelResource):
         authorization = UserPartOfStore()
 
 
-class ExternalContentResource(ModelResource):
-    product = fields.ForeignKey(ProductResource, 'product')
-
-    class Meta:
-        queryset = ExternalContent.objects.all()
-        resource_name = 'external_content'
-
-        filtering = {
-            'product': ALL
-        }
-        authentication = UserAuthentication()
-        authorization = UserPartOfStore()
-
-
 class CampaignResource(ModelResource):
     """Returns "a campaign".
 
@@ -213,6 +191,9 @@ class GenericImageResource(ModelResource):
 
 class ExternalContentResource(ModelResource):
     """Access to ExternalContent model"""
+
+    products = fields.ManyToManyField(ProductResource, 'tagged_products',
+        null=True, full=False, related_name='external_content')
 
     class Meta:
         queryset = ExternalContent.objects.all()
