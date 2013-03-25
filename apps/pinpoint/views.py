@@ -232,11 +232,12 @@ def asset_manager(request, store_id):
                 if new_image_url:
                     new_content.image_url = new_image_url
 
-
-                new_content.likes = instagram_obj.get('likes')
-                new_content.user_image = instagram_obj.get('user-image')
-
                 new_content.save()
+
+            # Any fields that should be periodically updated
+            new_content.likes = instagram_obj.get('likes')
+            new_content.user_image = instagram_obj.get('user-image')
+            new_content.save()
 
     all_contents = store.external_content.all()
 
