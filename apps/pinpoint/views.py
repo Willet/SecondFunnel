@@ -216,9 +216,7 @@ def asset_manager(request, store_id):
                 original_url=instagram_obj.get('original_url'),
                 original_id=instagram_obj.get('original_id'),
                 content_type=content_type,
-                likes=instagram_obj.get('likes'),
-                username=instagram_obj.get('username'),
-                user_image=instagram_obj.get('user-image'))
+                username=instagram_obj.get('username'))
 
             if created:
                 new_content.text_content = instagram_obj.get('text_content')
@@ -233,6 +231,10 @@ def asset_manager(request, store_id):
                 # so lets be careful with it
                 if new_image_url:
                     new_content.image_url = new_image_url
+
+
+                new_content.likes = instagram_obj.get('likes')
+                new_content.user_image = instagram_obj.get('user-image')
 
                 new_content.save()
 
