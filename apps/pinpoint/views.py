@@ -213,8 +213,12 @@ def asset_manager(request, store_id):
 
             new_content, created = ExternalContent.objects.get_or_create(
                 store=store,
+                original_url=instagram_obj.get('original_url'),
                 original_id=instagram_obj.get('original_id'),
-                content_type=content_type)
+                content_type=content_type,
+                likes=instagram_obj.get('likes'),
+                username=instagram_obj.get('username'),
+                user_image=instagram_obj.get('user-image'))
 
             if created:
                 new_content.text_content = instagram_obj.get('text_content')

@@ -29,8 +29,6 @@ class Instagram(Social):
             'text_content': caption_text,
             'image_url': image_url,
             'likes': content.like_count,
-            'user': {
-                'username': content.user.username,
-                'image': content.user.profile_picture
-            }
+            'username': content.user.username,
+            'user-image': content.user.profile_picture
         }
