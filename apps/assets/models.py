@@ -262,6 +262,10 @@ class ExternalContent(BaseModel):
     text_content = models.TextField(blank=True, null=True)
     image_url = models.CharField(max_length=555, blank=True, null=True)
 
+    likes = models.IntegerField(default=0)
+    username = models.CharField(max_length=50, blank=True, null=True)
+    user_image = models.CharField(max_length=555, blank=True, null=True)
+
     approved = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
 
@@ -273,11 +277,17 @@ class ExternalContent(BaseModel):
 
     def to_json(self):
         """A bit like data(), but not returning an html data string"""
+
         return {
             'original-id': self.original_id,
             'original-url': self.original_url,
+            'url': self.original_url,
             'content-type': self.content_type.name,
             'image': self.image_url,
+            'username': self.username,
+            'user-image': self.user_image,
+            'likes': self.likes,
+            'caption': self.text_content
         }
 
 
