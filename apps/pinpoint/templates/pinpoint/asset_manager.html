@@ -8,7 +8,7 @@
 
 {% block extra_head %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/smoothness/jquery-ui.css" %}">
     <link rel="stylesheet" href="{% static "css/jquery.tagit.css" %}">
 
     <style>
@@ -204,13 +204,21 @@
         );
     };
 
-    $(".approve").button().click(function (event) {
+    $(".approve").button({
+        icons: {
+            primary: 'ui-icon-check'
+        }
+    }).click(function (event) {
         event.preventDefault();
         do_action(this, "approve");
 
     });
 
-    $(".reject").button().click(function (event) {
+    $(".reject").button({
+        icons: {
+            primary: 'ui-icon-trash'
+        }
+    }).click(function (event) {
         event.preventDefault();
         do_action(this, "reject");
     });
@@ -364,8 +372,8 @@
                                     <li data-pid="{{ product.id }}">{{ product.name }}</li>
                                     {% endfor %}
                                 </ul>
-                                <span class="reject" {% if content_type == "rejected" %}style="display:none;"{% endif %}>&#x2718; Reject</span>
-                                <span class="approve" {% if content_type == "approved" %}style="display:none;"{% endif %}>&#x2714; Approve</span>
+                                <span class="reject" {% if content_type == "rejected" %}style="display:none;"{% endif %}>Reject</span>
+                                <span class="approve" {% if content_type == "approved" %}style="display:none;"{% endif %}>Approve</span>
                             </div>
                         </div>
                     </div>
