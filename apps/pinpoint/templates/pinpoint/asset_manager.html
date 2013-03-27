@@ -8,7 +8,7 @@
 
 {% block extra_head %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static "css/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/smoothness/jquery-ui.css" %}">
     <link rel="stylesheet" href="{% static "css/jquery.tagit.css" %}">
 
     <style>
@@ -95,7 +95,7 @@
 
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}" type="text/javascript"></script>
-    <script src="{% static "js/tag-it.min.js" %}" type="text/javascript"></script>
+    <script src="{% static "js/tag-it.js" %}" type="text/javascript"></script>
 {% endblock %}
 
 {% block document_ready %}
@@ -204,13 +204,21 @@
         );
     };
 
-    $(".approve").button().click(function (event) {
+    $(".approve").button({
+        icons: {
+            primary: 'ui-icon-check'
+        }
+    }).click(function (event) {
         event.preventDefault();
         do_action(this, "approve");
 
     });
 
-    $(".reject").button().click(function (event) {
+    $(".reject").button({
+        icons: {
+            primary: 'ui-icon-trash'
+        }
+    }).click(function (event) {
         event.preventDefault();
         do_action(this, "reject");
     });
@@ -247,6 +255,7 @@
 
     $(".tags").tagit({
         autocomplete: {
+            autoFocus: true,
             source: function(request, response) {
                 var term = request.term;
                 tasty_api({
@@ -288,6 +297,12 @@
                     }
 
                     post_tags(oid);
+
+                    $("ul#" + oid).tagit("createTag", ui.item.label);
+
+                    // prevent the tag input from being updated with the chosen value
+                    // we already did it just above
+                    return false;
                 }
             }
         },
@@ -359,13 +374,13 @@
                             <textarea id="caption_{{ data.id }}">{{ data.text_content }}</textarea>
                             <div class="actions">
                                 <strong>Tagged Products:</strong>
-                                <ul class="tags" style="width: 350px; max-height: 80px;">
+                                <ul class="tags" id="{{ data.id }}" style="width: 350px; max-height: 80px;">
                                     {% for product in data.tagged_products.all %}
                                     <li data-pid="{{ product.id }}">{{ product.name }}</li>
                                     {% endfor %}
                                 </ul>
-                                <span class="reject" {% if content_type == "rejected" %}style="display:none;"{% endif %}>&#x2718; Reject</span>
-                                <span class="approve" {% if content_type == "approved" %}style="display:none;"{% endif %}>&#x2714; Approve</span>
+                                <span class="reject" {% if content_type == "rejected" %}style="display:none;"{% endif %}>Reject</span>
+                                <span class="approve" {% if content_type == "approved" %}style="display:none;"{% endif %}>Approve</span>
                             </div>
                         </div>
                     </div>
