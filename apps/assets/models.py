@@ -190,12 +190,11 @@ class Product(BaseModelNamed):
             'data-template': 'product'
         }
 
-        if self.lifestyleImages.all():
-            # TODO: Do we want to select lifestyle images differently?
-            random_idx = random.randint(0, self.lifestyleImages.count()-1)
-            random_img = self.lifestyleImages.all()[random_idx]
-            fields['data-lifestyle-image'] = strip_and_escape(random_img)
-            fields['data-template'] = 'combobox'
+        try:
+            fields['data-lifestyle-image'] = self.lifestyle_image  # getter
+            fields['data-template'] = self.template  # getter
+        except AttributeError:  # product has no lifestyle images.
+            pass
 
         if raw:
             data = {}
@@ -215,6 +214,29 @@ class Product(BaseModelNamed):
                 data = data + " %s='%s'" % (field, fields[field])
 
         return data
+
+    def _get_preferred_template(self):
+        """Does some check to find out if combo boxes are preferred.
+
+        Clients may completely ignore this suggestion.
+        """
+        if self.lifestyleImages.all():
+            return 'combobox'
+        return 'product'
+
+    # getter used by templating
+    template = property(_get_preferred_template)
+
+    def _get_random_lifestyle_image(self):
+        """Returns a random lifestyle image url."""
+        if self.lifestyleImages.all():
+            random_idx = random.randint(0, self.lifestyleImages.count()-1)
+            random_img = self.lifestyleImages.all()[random_idx]
+            return unicode(random_img)
+        raise AttributeError('No lifestyle image.')
+
+    # getter used by templating
+    lifestyle_image = property(_get_random_lifestyle_image)
 
 
 class ProductMedia(ImageBase):
@@ -240,6 +262,10 @@ class ExternalContent(BaseModel):
     text_content = models.TextField(blank=True, null=True)
     image_url = models.CharField(max_length=555, blank=True, null=True)
 
+    likes = models.IntegerField(default=0)
+    username = models.CharField(max_length=50, blank=True, null=True)
+    user_image = models.CharField(max_length=555, blank=True, null=True)
+
     approved = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
 
@@ -251,11 +277,17 @@ class ExternalContent(BaseModel):
 
     def to_json(self):
         """A bit like data(), but not returning an html data string"""
+
         return {
             'original-id': self.original_id,
             'original-url': self.original_url,
+            'url': self.original_url,
             'content-type': self.content_type.name,
             'image': self.image_url,
+            'username': self.username,
+            'user-image': self.user_image,
+            'likes': self.likes,
+            'caption': self.text_content
         }
 
 

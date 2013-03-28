@@ -17,14 +17,18 @@ class Instagram(Social):
     def normalize(self, content):
         # TODO: Check if content is provided
         image = content.images.get('standard_resolution')
-        image_url = getattr(image, 'url', None)
+        image_url = getattr(image, 'url', '')
 
         caption = content.caption
-        caption_text = getattr(caption, 'text', None)
+        caption_text = getattr(caption, 'text', '')
 
         return {
-            'original_id': content.id,
             'type': 'instagram',
+            'original_id': content.id,
+            'original_url': content.link,
             'text_content': caption_text,
-            'image_url': image_url
+            'image_url': image_url,
+            'likes': content.like_count,
+            'username': content.user.username,
+            'user-image': content.user.profile_picture
         }
