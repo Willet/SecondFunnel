@@ -340,10 +340,10 @@ def save_static_campaign(campaign, local_filename, request=None):
         ]
         # store-specific bucket (e.g. nativeshoes.secondfunnel.com)
         # written only on production
-        # if not settings.DEBUG:
-        storages.append(S3BotoStorage(bucket=store_bucket_name,
-                        access_key=settings.AWS_ACCESS_KEY_ID,
-                        secret_key=settings.AWS_SECRET_ACCESS_KEY,))
+        if not settings.DEBUG:
+            storages.append(S3BotoStorage(bucket=store_bucket_name,
+                            access_key=settings.AWS_ACCESS_KEY_ID,
+                            secret_key=settings.AWS_SECRET_ACCESS_KEY,))
 
         import codecs
         try:
