@@ -9,15 +9,11 @@ https://github.com/laironald/PythonBase/blob/master/messaround/route53.mess.py
 
 from django.conf import settings
 
-try:
-    import boto
-    from boto.route53.connection import Route53Connection
-    from boto.route53.record import ResourceRecordSets
-    from boto.route53.exception import DNSServerError
-    from boto.s3.connection import S3Connection
-except:
-    raise ImportError("Cannot import boto. "
-                      "Please load a production-compatible environment.")
+import boto
+from boto.route53.connection import Route53Connection
+from boto.route53.record import ResourceRecordSets
+from boto.route53.exception import DNSServerError
+from boto.s3.connection import S3Connection
 
 
 def get_s3_connection():
@@ -121,6 +117,14 @@ def get_or_create_s3_website(desired_name):
             if not 'already exists' in str(err):
                 # if it's any error besides "there's already a record", show it
                 raise
+    except IndexError, err:
+        # suddenly a wild (new) amazon endpoint appears -
+        # silence the error on production
+        if settings.DEBUG:
+            raise ValueError('Please update '
+                             'get_s3_hosted_zone_endpoint_id '
+                             'with new amazon endpoints:\n%s' % str(err))
+
 
     return True  # this return is really just for kicks, because boto would've
                  # throw nasty errors at you anyway
