@@ -268,7 +268,13 @@ def campaign_short(request, campaign_id_short):
 
     The long URL is (currently) /pinpoint/(long ID).
     """
-    return campaign(request, base62.decode(campaign_id_short))
+
+    campaign_id = base62.decode(campaign_id_short)
+
+    if any(x in request.GET for x in ['dev', 'unshorten']):
+        return redirect('campaign', campaign_id=campaign_id)
+
+    return campaign(request, campaign_id)
 
 
 def campaign(request, campaign_id):
