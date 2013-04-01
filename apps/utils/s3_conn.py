@@ -16,18 +16,6 @@ from boto.route53.exception import DNSServerError
 from boto.s3.connection import S3Connection
 
 
-def get_s3_connection():
-    conn = S3Connection(aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
-    return conn
-
-
-def get_route53_connection():
-    conn = Route53Connection(aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
-    return conn
-
-
 def get_or_create_s3_bucket(conn, bucket_name):
     try:
         bucket = conn.create_bucket(bucket_name)
@@ -44,21 +32,20 @@ def get_hosted_zone(conn, hosted_zone_name):
             'name': hosted_zone['GetHostedZoneResponse']['HostedZone']['Name']}
 
 
-def get_hostedzone_simple_id(long_id):
-    """/hostedzone/ZRJYRHMHTYIM6 -> ZRJYRHMHTYIM6"""
-    # return '/'.join(long_id.split('/')[2:])
-    return long_id.replace('/hostedzone/', '')
-
-
 def get_or_create_record_set(conn, hosted_zone_obj):
+    # /hostedzone/ZRJYRHMHTYIM6 -> ZRJYRHMHTYIM6
+    simple_id = hosted_zone_obj['id'].replace('/hostedzone/', '')
     recordset = ResourceRecordSets(conn,
-        hosted_zone_id=get_hostedzone_simple_id(hosted_zone_obj['id']))
+        hosted_zone_id=simple_id)
     return recordset
 
 
 def get_s3_hosted_zone_endpoint_id(zone_id):
     """There isn't an API for this, apparently, Fortunately, there are only
     two website hosts. So, we're going to hope that the API doesn't change.
+
+    More zones:
+    http://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteEndpoints.html
     """
     return {
         's3-website-us-east-1.amazonaws.com': 'Z3AQBSTGFYJSTF',
@@ -81,15 +68,17 @@ def get_or_create_s3_website(desired_name):
         desired_name = '%s.secondfunnel.com' % desired_name
 
     # connect
-    s3_conn = get_s3_connection()
-    r53_conn = get_route53_connection()
+    s3_conn = S3Connection(aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+    r53_conn = Route53Connection(aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
     
     # configure the bucket
     bucket = get_or_create_s3_bucket(s3_conn, desired_name)
 
-    try:  # 2.6
+    try:  # boto 2.6
         bucket.set_acl('public-read')
-    except: # not 2.6 (which, apparently, makes no difference)
+    except: # not boto 2.6 (which, apparently, makes no difference)
         pass
 
     convert_bucket_to_web_endpoint(bucket)
