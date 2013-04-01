@@ -21,6 +21,9 @@ from django.views.decorators.cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
 from storages.backends.s3boto import S3BotoStorage
 
+import boto
+from boto.s3.connection import S3Connection
+
 from apps.analytics.models import Category
 from apps.assets.models import ExternalContent, ExternalContentType, \
     Product, Store
@@ -30,6 +33,7 @@ from apps.pinpoint.decorators import belongs_to_store
 import apps.pinpoint.wizards as wizards
 from apps.utils import noop
 import apps.utils.base62 as base62
+from apps.utils.s3_conn import get_or_create_s3_website
 from apps.utils.social.instagram_adapter import Instagram
 from apps.utils.image_service.api import queue_processing
 
@@ -325,13 +329,23 @@ def save_static_campaign(campaign, local_filename, request=None):
     dependencies within dependencies.
     """
     filename = '%s/index.html' % campaign.id  # does not expire.
+    
+    store_bucket_name = '%s.secondfunnel.com' % campaign.store.slug
 
     try:
-        storage = S3BotoStorage(bucket=settings.STATIC_CAMPAIGNS_BUCKET_NAME,
-                                access_key=settings.AWS_ACCESS_KEY_ID,
-                                secret_key=settings.AWS_SECRET_ACCESS_KEY,)
+        storages = [
+            S3BotoStorage(bucket=settings.STATIC_CAMPAIGNS_BUCKET_NAME,
+                          access_key=settings.AWS_ACCESS_KEY_ID,
+                          secret_key=settings.AWS_SECRET_ACCESS_KEY,)
+        ]
+        # store-specific bucket (e.g. nativeshoes.secondfunnel.com)
+        # written only on production
+        if not settings.DEBUG:
+            storages.append(S3BotoStorage(bucket=store_bucket_name,
+                            access_key=settings.AWS_ACCESS_KEY_ID,
+                            secret_key=settings.AWS_SECRET_ACCESS_KEY,))
+
         import codecs
-        # local_file = file(local_filename)
         try:
             open_encoding = int(request.GET.get('open_encoding', '0'))
             if open_encoding == 0:
@@ -344,36 +358,37 @@ def save_static_campaign(campaign, local_filename, request=None):
             local_file = file(local_filename, request.GET.get('open_encoding'))
 
         contents = local_file.read()
-        local_file.seek(0)
         if isinstance(contents, unicode):
             contents = contents.encode('utf-8')
 
         django_file = File(local_file)
         django_file.content_type = 'text/html'
 
-        try:
-            save_mode = int(request.GET.get('save_mode', '7'))
-            if save_mode == 0:
-                storage.save(filename, django_file)
-            elif save_mode == 1:
-                storage.save(filename, django_file.read())
-            elif save_mode == 2:
-                storage.save(filename, django_file.read().encode('utf-8'))
-            elif save_mode == 3:
-                storage.save(filename, django_file.read().decode('utf-8'))
-            elif save_mode == 4:
-                storage.save(filename, django_file.read().encode('utf-32'))
-            elif save_mode == 5:
-                storage.save(filename, django_file.read().decode('utf-32'))
-            elif save_mode == 6:
-                storage.save(filename, contents)
-            elif save_mode == 7:
-                storage.save(filename, local_file)
-        except ValueError:  # not int
-            storage.save(filename, request.GET.get('cust_val'))
-        except UnicodeDecodeError:  # some crap happened with 2~5
-            storage.save(filename, django_file.read().encode(
-                request.GET.get('cust_encoding')))
+        for storage in storages:
+            local_file.seek(0)
+            try:
+                save_mode = int(request.GET.get('save_mode', '7'))
+                if save_mode == 0:
+                    storage.save(filename, django_file)
+                elif save_mode == 1:
+                    storage.save(filename, django_file.read())
+                elif save_mode == 2:
+                    storage.save(filename, django_file.read().encode('utf-8'))
+                elif save_mode == 3:
+                    storage.save(filename, django_file.read().decode('utf-8'))
+                elif save_mode == 4:
+                    storage.save(filename, django_file.read().encode('utf-32'))
+                elif save_mode == 5:
+                    storage.save(filename, django_file.read().decode('utf-32'))
+                elif save_mode == 6:
+                    storage.save(filename, contents)
+                elif save_mode == 7:
+                    storage.save(filename, local_file)
+            except ValueError:  # not int
+                storage.save(filename, request.GET.get('cust_val'))
+            except UnicodeDecodeError:  # some crap happened with 2~5
+                storage.save(filename, django_file.read().encode(
+                    request.GET.get('cust_encoding')))
 
     except IOError, err:
         # storage is not available. bring attention if it was forced
@@ -403,6 +418,9 @@ def save_static_campaign(campaign, local_filename, request=None):
             raise IOError(err)
         else:
             return None
+
+    # turn the bucket into a website
+    get_or_create_s3_website(store_bucket_name)
 
 
 def campaign_to_theme_to_response(campaign, arguments, context=None,
