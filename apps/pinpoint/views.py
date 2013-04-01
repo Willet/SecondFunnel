@@ -17,7 +17,7 @@ from django.http import HttpResponse, HttpResponseServerError
 from django.contrib.contenttypes.models import ContentType
 from django.template.defaultfilters import slugify, safe
 from django.utils.encoding import force_unicode
-from django.views.decorators.cache import cache_page
+from fancy_cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
 from storages.backends.s3boto import S3BotoStorage
 
@@ -33,6 +33,7 @@ from apps.pinpoint.decorators import belongs_to_store
 import apps.pinpoint.wizards as wizards
 from apps.utils import noop
 import apps.utils.base62 as base62
+from apps.utils.caching import nocache
 from apps.utils.s3_conn import get_or_create_s3_website
 from apps.utils.social.instagram_adapter import Instagram
 from apps.utils.image_service.api import queue_processing
@@ -259,7 +260,7 @@ def asset_manager(request, store_id):
 
 
 # origin: campaigns with short URLs are cached for 30 minutes
-@cache_page(60 * 30)
+@cache_page(60 * 30, key_prefix=nocache)
 def campaign_short(request, campaign_id_short):
     """base62() is a custom function, so to figure out the long
     campaign URL, go to http://elenzil.com/esoterica/baseConversion.html
