@@ -1,11 +1,41 @@
 # Apparently, it is not possible to import two levels deep in Django?
-# Copied from `dev.py`
+# Modified from `dev.py`
 
 from common import *
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
+
+INSTALLED_APPS = (
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.admin',
+    'django.contrib.admindocs',
+    'django.contrib.humanize',
+
+    # external apps
+    'djcelery',
+    'storages',
+    'south',
+    'django_extensions',
+    'tastypie',
+    'ajax_forms',
+    "maintenancemode",
+    "compressor",
+    'social_auth',
+
+    # our apps
+    'apps.analytics',
+    'apps.assets',
+    'apps.pinpoint',
+    'apps.website',
+    'apps.scraper',
+)
 
 DATABASES = {
     'default': {
