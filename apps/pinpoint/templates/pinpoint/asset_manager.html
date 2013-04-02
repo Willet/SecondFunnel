@@ -4,7 +4,20 @@
 
 {% block page_title %}
     <div class='connection_bar' style=''>
-        <a href=''>+ Connect More</a>
+        <ul class='services'>
+            <li class='service youtube'>
+                <span class='text'>Youtube</span>
+            </li>
+            <li class='service instagram'>
+                <span class='text'>Instagram</span>
+            </li>
+            <li class='service tumblr'>
+                <span class='text'>Tumblr</span>
+            </li>
+            <li>
+                <a href='#'>+ Connect More</a>
+            </li>
+        </ul>
     </div>
     {{ store }}
 {% endblock %}
@@ -27,13 +40,57 @@
         .connection_bar {
             position: absolute;
             right: 15px;
-            top: 15px;
             font-size: 14px;
+            line-height: 33px;
+        }
+
+        .connection_bar .services {
+            list-style: none;
+            display: inline;
+        }
+
+        .connection_bar .services li {
+            display: inline-block;
+            margin: 0px;
+        }
+
+        .connection_bar .services .service {
+            width: 32px;
+            height: 32px;
+            margin-left: 5px;
+        }
+
+        .service:after {
+            background: url("{% static 'pinpoint/images/icon-check-12x12.png'%}") no-repeat;
+            display: block;
+            width: 12px;
+            height: 12px;
+            content: '';
+            position: relative;
+            top: -13px;
+            left: 23px;
+        }
+
+        .service.instagram {
+            background-image: url("{% static 'pinpoint/images/icon-instagram-32.png'%}")
+        }
+
+        .service.youtube {
+            background-image: url("{% static 'pinpoint/images/icon-youtube-32.png'%}")
+        }
+
+        .service.tumblr {
+            background-image: url("{% static 'pinpoint/images/icon-tumblr-32.png'%}")
+        }
+
+        .service .text {
+            visibility: hidden;
         }
 
         .connection_bar a {
             border-bottom: 1px solid #eee;
             font-weight: bold;
+            margin-left: 16px;
         }
 
         .connection_bar a:hover {
