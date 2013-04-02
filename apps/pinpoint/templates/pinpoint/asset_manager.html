@@ -3,6 +3,9 @@
 {% load pinpoint_ui %}
 
 {% block page_title %}
+    <div class='connection_bar' style=''>
+        <a href=''>+ Connect More</a>
+    </div>
     {{ store }}
 {% endblock %}
 
@@ -15,6 +18,30 @@
         .container_12 .prefix_9, .container_16 .prefix_12 {
             padding-left: 620px;
             width: 310px;
+        }
+
+        .page_title {
+            position: relative;
+        }
+
+        .connection_bar {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 14px;
+        }
+
+        .connection_bar a {
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+        }
+
+        .connection_bar a:hover {
+            text-decoration: none;
+        }
+
+        .connection_bar a, .connection_bar a:visited {
+            color: #eee;
         }
 
         .review_area {
@@ -88,8 +115,7 @@
             position: absolute;
             top: -23px;
             left: 20px;
-        }​
-
+        }
     </style>
 {% endblock %}
 
