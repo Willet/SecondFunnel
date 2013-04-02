@@ -1,0 +1,9 @@
+{% load compress %}
+
+{% if compressed %}
+    {% compress js %}
+    {% include 'pinpoint/campaign_scripts.html' %}
+    {% endcompress %}
+{% else %}
+    {% include 'pinpoint/campaign_scripts.html' %}
+{% endif %}

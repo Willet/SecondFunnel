@@ -7,6 +7,7 @@ boto==2.8.0
 cssmin==0.1.4
 django-ajax-forms
 django-compressor==1.2
+django-fancy-cache==0.4.0
 django-extensions==0.9
 git+git://github.com/Willet/django-maintenancemode.git@fed4195
 django-storages==1.1.5
