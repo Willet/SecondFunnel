@@ -4,6 +4,7 @@ import json
 import os
 import re
 import urllib2
+from urllib import urlencode
 from urlparse import urlunparse
 
 from django.conf import settings
@@ -272,7 +273,9 @@ def campaign_short(request, campaign_id_short):
     campaign_id = base62.decode(campaign_id_short)
 
     if any(x in request.GET for x in ['dev', 'unshorten']):
-        return redirect('campaign', campaign_id=campaign_id)
+        response = redirect('campaign', campaign_id=campaign_id)
+        response['Location'] += '?{0}'.format(urlencode(request.GET))
+        return response
 
     return campaign(request, campaign_id)
 
@@ -280,10 +283,15 @@ def campaign_short(request, campaign_id_short):
 def campaign(request, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
 
+    compressed = getattr(settings, 'COMPRESS_ENABLED', True)
+    if any(x in request.GET for x in ['dev', 'no-cache']):
+        compressed = False
+
     arguments = {
         "campaign": campaign_instance,
         "columns": range(4),
-        "preview": not campaign_instance.live
+        "preview": not campaign_instance.live,
+        "compressed": compressed
     }
     context = RequestContext(request)
 
