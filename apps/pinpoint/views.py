@@ -245,7 +245,11 @@ def asset_manager(request, store_id):
 
     return render_to_response('pinpoint/asset_manager.html', {
         "store": store,
-        "instagram_user": instagram_user,
+        "accounts": [{
+            'type': 'instagram',
+            'connected': instagram_user,
+            'data': instagram_user
+        }],
         "content": [
             ("Needs Review", "needs_review",
                 all_contents.filter(approved=False, active=True)),

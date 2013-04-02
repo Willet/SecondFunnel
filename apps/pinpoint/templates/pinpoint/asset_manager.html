@@ -5,15 +5,13 @@
 {% block page_title %}
     <div class='connection_bar' style=''>
         <ul class='services'>
-            <li class='service youtube'>
-                <span class='text'>Youtube</span>
+            {% for account in accounts %}
+            {% if account.connected %}
+            <li class='service {{ account.type }}'>
+                <span class='text'>{{ account.type }}</span>
             </li>
-            <li class='service instagram'>
-                <span class='text'>Instagram</span>
-            </li>
-            <li class='service tumblr'>
-                <span class='text'>Tumblr</span>
-            </li>
+            {% endif %}
+            {% endfor %}
             <li>
                 <a href='#' class='connect'>+ Connect More</a>
             </li>
@@ -529,16 +527,6 @@
 {% endblock %}
 
 {% block content %}
-    {# User facing code, for now #}
-    <p>
-    {% if not instagram_user %}
-    Not currently connected to Instagram.
-        <a href='{% url socialauth_associate_begin 'instagram' %}'>Connect?</a>
-    {% else %}
-    Connected to user: {{ instagram_user }}
-    {% endif %}
-    </p>
-
     <p>
         <input type="checkbox" id="scroll_with_review"><label for="scroll_with_review">Scroll as I review</label>
     </p>
@@ -606,38 +594,31 @@
                     Connect social accounts:
                 </div>
 
+                {% for account in accounts %}
                 <div class='account-row'>
-                    <div class='icon tumblr'>
-                        <span class='text'>Tumblr</span>
+                    <div class='icon {{ account.type }}'>
+                        <span class='text'>{{ account.type }}</span>
                     </div>
-                    <div class='connection-status'>
-                        <a href='' class='button'>Connect Account</a>
-                    </div>
-                </div>
-                <div class='account-row'>
-                    <div class='icon instagram'>
-                        <span class='text'>Instagram</span>
-                    </div>
+                    {% if account.connected %}
                     <div class='connection-status'>
                         <span class='status'></span>
-                        <span class='username'>@nativeshoes</span>
+                        <span class='username'>{{ account.data }}</span>
                     </div>
+                    {# TODO: Disconnect #}
+                    <!--
                     <div class='disconnection-status'>
                         <a href="">Disconnect</a>
                     </div>
-                </div>
-                <div class='account-row'>
-                    <div class='icon youtube'>
-                        <span class='text'>Youtube</span>
-                    </div>
+                    -->
+                    {% else %}
                     <div class='connection-status'>
-                        <span class='status'></span>
-                        <span class='username'>Native-Shoes</span>
+                        <a href='{% url socialauth_associate_begin account.type %}'
+                           class='button'>Connect Account</a>
                     </div>
-                    <div class='disconnection-status'>
-                        <a href="">Disconnect</a>
-                    </div>
+                    {% endif %}
+
                 </div>
+                {% endfor %}
             </div>
         </div>
     </div>
