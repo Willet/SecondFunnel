@@ -69,3 +69,24 @@ class Instagram(Social):
             'username': content.user.username,
             'user-image': content.user.profile_picture
         }
+
+class Youtube(Social):
+    def __init__(self, *args, **kwargs):
+        super(Youtube, self).__init__(*args, **kwargs)
+
+        # self._api = InstagramAPI(access_token=self.access_token)
+
+    def _fetch_media(self, **kwargs):
+        return []
+
+    def normalize(self, content):
+        return {
+            'type': 'youtube',
+            'original_id': '',
+            'original_url': '',
+            'text_content': '',
+            'image_url': '',
+            'likes': '',
+            'username': '',
+            'user-image': ''
+        }

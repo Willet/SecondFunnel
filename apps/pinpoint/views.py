@@ -244,11 +244,11 @@ def asset_manager(request, store_id):
                 new_content.user_image = obj.get('user-image')
                 new_content.save()
 
-            accounts.append({
-                'type': xcontent_type.slug,
-                'connected': account_user,
-                'data': getattr(account_user, 'extra_data', {})
-            })
+        accounts.append({
+            'type': xcontent_type.slug,
+            'connected': account_user,
+            'data': getattr(account_user, 'extra_data', {})
+        })
 
     all_contents = store.external_content.all()
 
