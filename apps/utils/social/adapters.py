@@ -89,15 +89,22 @@ class Tumblr(Social):
         #TODO: Make generator?
         media = []
         for blog in self._get_blogs():
-            posts = self._api.get('posts', blog_url=blog.get('url'))
-            media.append(posts)
+            # Note: We cannnot supply multiple types
+            # In other words. We either get one type,
+            # or filter ourselves
+            response = self._api.get(
+                'posts',
+                blog_url=blog.get('url'),
+                params={'type': 'photo'}
+            )
+            media.extend(response.get('posts'))
 
         return media
 
     def _get_blogs(self):
-        results = self._api.post('user/info')
+        response = self._api.post('user/info')
 
-        return [blog for blog in results['user']['blogs']]
+        return [blog for blog in response['user']['blogs']]
 
     def normalize(self, content):
         return {
