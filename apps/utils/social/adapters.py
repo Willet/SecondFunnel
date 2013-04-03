@@ -1,4 +1,6 @@
+from django.conf import settings
 from instagram import InstagramAPI
+from tumblpy import Tumblpy
 
 
 class Social(object):
@@ -74,13 +76,28 @@ class Tumblr(Social):
         tokens = kwargs.get('tokens')
         if tokens:
             self.access_token = tokens.get('oauth_token')
+            self.secret_token = tokens.get('oauth_token_secret')
 
         super(Tumblr, self).__init__(*args, **kwargs)
 
-        # self._api = InstagramAPI(access_token=self.access_token)
+        self._api = Tumblpy(app_key=settings.TUMBLR_CONSUMER_KEY,
+                            app_secret=settings.TUMBLR_CONSUMER_SECRET,
+                            oauth_token=self.access_token,
+                            oauth_token_secret=self.secret_token)
 
     def _fetch_media(self, **kwargs):
-        return []
+        #TODO: Make generator?
+        media = []
+        for blog in self._get_blogs():
+            posts = self._api.get('posts', blog_url=blog.get('url'))
+            media.append(posts)
+
+        return media
+
+    def _get_blogs(self):
+        results = self._api.post('user/info')
+
+        return [blog for blog in results['user']['blogs']]
 
     def normalize(self, content):
         return {
