@@ -3,11 +3,6 @@ from instagram import InstagramAPI
 
 class Social(object):
     def __init__(self, *args, **kwargs):
-        tokens = kwargs.get('tokens')
-
-        if tokens:
-            self.access_token = tokens.get('access_token')
-
         if not self.access_token:
             raise
 
@@ -40,6 +35,10 @@ class Social(object):
 
 class Instagram(Social):
     def __init__(self, *args, **kwargs):
+        tokens = kwargs.get('tokens')
+        if tokens:
+            self.access_token = tokens.get('access_token')
+
         super(Instagram, self).__init__(*args, **kwargs)
 
         self._api = InstagramAPI(access_token=self.access_token)
@@ -68,4 +67,29 @@ class Instagram(Social):
             'likes': content.like_count,
             'username': content.user.username,
             'user-image': content.user.profile_picture
+        }
+
+class Tumblr(Social):
+    def __init__(self, *args, **kwargs):
+        tokens = kwargs.get('tokens')
+        if tokens:
+            self.access_token = tokens.get('oauth_token')
+
+        super(Tumblr, self).__init__(*args, **kwargs)
+
+        # self._api = InstagramAPI(access_token=self.access_token)
+
+    def _fetch_media(self, **kwargs):
+        return []
+
+    def normalize(self, content):
+        return {
+            'type': 'tumblr',
+            'original_id': '',
+            'original_url': '',
+            'text_content': '',
+            'image_url': '',
+            'likes': '',
+            'username': '',
+            'user-image': ''
         }

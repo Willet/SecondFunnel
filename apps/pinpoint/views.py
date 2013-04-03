@@ -197,7 +197,7 @@ def asset_manager(request, store_id):
     user = request.user
 
     accounts = []
-    xcontent_types = ExternalContentType.objects.all()
+    xcontent_types = ExternalContentType.objects.filter(enabled=True)
     for xcontent_type in xcontent_types:
         try:
             account_user = store.social_auth.get(provider=xcontent_type.slug)
@@ -244,11 +244,11 @@ def asset_manager(request, store_id):
                 new_content.user_image = obj.get('user-image')
                 new_content.save()
 
-            accounts.append({
-                'type': xcontent_type.slug,
-                'connected': account_user,
-                'data': getattr(account_user, 'extra_data', {})
-            })
+        accounts.append({
+            'type': xcontent_type.slug,
+            'connected': account_user,
+            'data': getattr(account_user, 'extra_data', {})
+        })
 
     all_contents = store.external_content.all()
 

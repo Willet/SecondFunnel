@@ -311,6 +311,7 @@ CELERYBEAT_SCHEDULE = {
 
 AUTHENTICATION_BACKENDS = (
     'social_auth.backends.contrib.instagram.InstagramBackend',
+    'social_auth.backends.contrib.tumblr.TumblrBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
