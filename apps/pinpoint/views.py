@@ -34,8 +34,9 @@ import apps.pinpoint.wizards as wizards
 from apps.utils import noop
 import apps.utils.base62 as base62
 from apps.utils.s3_conn import get_or_create_s3_website
-from apps.utils.social.instagram_adapter import Instagram
 from apps.utils.image_service.api import queue_processing
+from apps.utils.social.utils import get_adapter_class
+
 
 @login_required
 def login_redirect(request):
@@ -195,61 +196,65 @@ def asset_manager(request, store_id):
     store = get_object_or_404(Store, pk=store_id)
     user = request.user
 
-    # Check if connected to Instagram... for now
-    try:
-        instagram_user = store.social_auth.get(provider='instagram')
-    except UserSocialAuth.DoesNotExist:
-        instagram_user = None
-
-    if not instagram_user:
+    accounts = []
+    xcontent_types = ExternalContentType.objects.all()
+    for xcontent_type in xcontent_types:
         try:
-            instagram_user = user.social_auth.get(provider='instagram')
+            account_user = store.social_auth.get(provider=xcontent_type.slug)
         except UserSocialAuth.DoesNotExist:
-            instagram_user = None
+            account_user = None
 
-    if instagram_user:
-        instagram_connector = Instagram(tokens=instagram_user.tokens)
-        contents = instagram_connector.get_content(count=500)
+        if not account_user:
+            try:
+                account_user = user.social_auth.get(provider=xcontent_type.slug)
+            except UserSocialAuth.DoesNotExist:
+                account_user = None
 
-        for instagram_obj in contents:
-            content_type = ExternalContentType.objects.get(
-                slug=instagram_obj.get('type'))
+        if account_user:
+            cls = get_adapter_class(xcontent_type.classname)
+            adapter = cls(tokens=account_user.tokens)
+            contents = adapter.get_content(count=500)
 
-            new_content, created = ExternalContent.objects.get_or_create(
-                store=store,
-                original_id=instagram_obj.get('original_id'),
-                content_type=content_type)
+            for obj in contents:
+                content_type = ExternalContentType.objects.get(slug=obj.get('type'))
 
-            if created:
-                new_content.text_content = instagram_obj.get('text_content')
+                new_content, created = ExternalContent.objects.get_or_create(
+                    store=store,
+                    original_id=obj.get('original_id'),
+                    content_type=content_type)
 
-                new_image_url = queue_processing(
-                    instagram_obj.get('image_url'),
-                    store_slug=store.slug,
-                    image_type=instagram_obj.get('type')
-                )
+                if created:
+                    new_content.text_content = obj.get('text_content')
 
-                # imageservice might or might not be working today,
-                # so lets be careful with it
-                if new_image_url:
-                    new_content.image_url = new_image_url
+                    new_image_url = queue_processing(
+                        obj.get('image_url'),
+                        store_slug=store.slug,
+                        image_type=obj.get('type')
+                    )
 
-            # Any fields that should be periodically updated
-            new_content.original_url=instagram_obj.get('original_url')
-            new_content.username=instagram_obj.get('username')
-            new_content.likes = instagram_obj.get('likes')
-            new_content.user_image = instagram_obj.get('user-image')
-            new_content.save()
+                    # imageservice might or might not be working today,
+                    # so lets be careful with it
+                    if new_image_url:
+                        new_content.image_url = new_image_url
+
+                # Any fields that should be periodically updated
+                new_content.original_url=obj.get('original_url')
+                new_content.username=obj.get('username')
+                new_content.likes = obj.get('likes')
+                new_content.user_image = obj.get('user-image')
+                new_content.save()
+
+            accounts.append({
+                'type': xcontent_type.slug,
+                'connected': account_user,
+                'data': getattr(account_user, 'extra_data', {})
+            })
 
     all_contents = store.external_content.all()
 
     return render_to_response('pinpoint/asset_manager.html', {
         "store": store,
-        "accounts": [{
-            'type': 'instagram',
-            'connected': instagram_user,
-            'data': getattr(instagram_user, 'extra_data', {})
-        }],
+        "accounts": accounts,
         "content": [
             ("Needs Review", "needs_review",
                 all_contents.filter(approved=False, active=True)),
