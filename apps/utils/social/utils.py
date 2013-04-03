@@ -1,3 +1,6 @@
+import json
+
+
 class Social(object):
     def __init__(self, *args, **kwargs):
         tokens = kwargs.get('tokens')
@@ -33,3 +36,41 @@ class Social(object):
         #       What is content? Images? Posts? Etc.
         #       ...Is that it? Really?
         #           Well, we'll need to marshall the content, maybe fetch it offline...
+
+
+def update_social_auth(backend, details, response, social_user, uid, user,
+                       *args, **kwargs):
+
+    if getattr(backend, 'name', None) == 'instagram':
+        social_user.extra_data['username'] = details.get('username')
+
+    social_user.save()
+
+"""
+is_new = False
+new_association=True
+backend = { 'name' }
+details={'username'}
+response['data']
+uid
+"""
+
+def social_auth_changed(*args, **kwargs):
+    instance = kwargs.get('instance')
+    created = kwargs.get('created')
+
+    if not (instance and created):
+        return
+
+    # Superusers tend to belong to multiple stores; don't associate if so.
+    if instance.user.is_superuser:
+        return
+
+    stores = Store.objects.filter(staff=instance.user)
+
+    for store in stores:
+        store.social_auth.add(instance)
+        store.save()
+
+
+        # post_save.connect(social_auth_changed, sender=UserSocialAuth)

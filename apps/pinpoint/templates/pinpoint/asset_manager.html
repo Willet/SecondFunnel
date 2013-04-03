@@ -602,7 +602,9 @@
                     {% if account.connected %}
                     <div class='connection-status'>
                         <span class='status'></span>
-                        <span class='username'>{{ account.data }}</span>
+                        <span class='username'>
+                            {{ account.data.username }}
+                        </span>
                     </div>
                     {# TODO: Disconnect #}
                     <!--
