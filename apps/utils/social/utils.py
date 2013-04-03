@@ -1,4 +1,5 @@
 import json
+from apps.assets.models import Store
 
 
 class Social(object):
@@ -40,37 +41,22 @@ class Social(object):
 
 def update_social_auth(backend, details, response, social_user, uid, user,
                        *args, **kwargs):
-
     if getattr(backend, 'name', None) == 'instagram':
         social_user.extra_data['username'] = details.get('username')
 
     social_user.save()
 
-"""
-is_new = False
-new_association=True
-backend = { 'name' }
-details={'username'}
-response['data']
-uid
-"""
+    associate_user_with_stores(user, social_user)
 
-def social_auth_changed(*args, **kwargs):
-    instance = kwargs.get('instance')
-    created = kwargs.get('created')
-
-    if not (instance and created):
+# TODO: Should this be part of the pipeline?
+def associate_user_with_stores(user, social_user):
+    # Since superuser is connected to all stores,
+    # DON'T associate with stores if superuser
+    if user.is_superuser:
         return
 
-    # Superusers tend to belong to multiple stores; don't associate if so.
-    if instance.user.is_superuser:
-        return
-
-    stores = Store.objects.filter(staff=instance.user)
+    stores = Store.objects.filter(staff=user)
 
     for store in stores:
-        store.social_auth.add(instance)
+        store.social_auth.add(social_user)
         store.save()
-
-
-        # post_save.connect(social_auth_changed, sender=UserSocialAuth)

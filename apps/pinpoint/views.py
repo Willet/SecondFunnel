@@ -248,7 +248,7 @@ def asset_manager(request, store_id):
         "accounts": [{
             'type': 'instagram',
             'connected': instagram_user,
-            'data': instagram_user.extra_data
+            'data': getattr(instagram_user, 'extra_data', {})
         }],
         "content": [
             ("Needs Review", "needs_review",
