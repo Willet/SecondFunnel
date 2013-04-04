@@ -106,14 +106,23 @@ class Tumblr(Social):
 
         return [blog for blog in response['user']['blogs']]
 
+    def _get_avatar(self, blog):
+        blog_url = '{0}.tumblr.com'.format(blog)
+        avatar = self._api.get_avatar_url(blog_url=blog_url, size=512)
+        return avatar['url']
+
     def normalize(self, content):
+        # Assuming content is a photo
+        blog_name = content.get('blog_name')
+        avatar = self._get_avatar(blog_name)
+
         return {
             'type': 'tumblr',
-            'original_id': '',
-            'original_url': '',
-            'text_content': '',
-            'image_url': '',
-            'likes': '',
-            'username': '',
-            'user-image': ''
+            'original_id': content.get('id'),
+            'original_url': content.get('post_url'),
+            'text_content': content.get('caption'),
+            'image_url': content['photos'][0]['original_size'].get('url'),
+            'likes': content.get('note_count'),
+            'username': blog_name,
+            'user-image': avatar
         }
