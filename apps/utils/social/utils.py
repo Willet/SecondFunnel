@@ -8,14 +8,20 @@ def get_adapter_class(classname):
 
 def update_social_auth(backend, details, response, social_user, uid, user,
                        *args, **kwargs):
+
+    # Until the `extra_data` method is fixed for instagram and tumblr
+    # (and likely, any other `contrib` backends), need to do this instead
+    # of just using *_EXTRA_DATA
     if getattr(backend, 'name', None) == 'instagram':
+        social_user.extra_data['username'] = details.get('username')
+    if getattr(backend, 'name', None) == 'tumblr':
         social_user.extra_data['username'] = details.get('username')
 
     social_user.save()
 
     associate_user_with_stores(user, social_user)
 
-# TODO: Should this be part of the pipeline?
+# Make this part of the pipeline, if desired
 def associate_user_with_stores(user, social_user):
     # Since superuser is connected to all stores,
     # DON'T associate with stores if superuser
