@@ -197,7 +197,7 @@ def asset_manager(request, store_id):
     user = request.user
 
     accounts = []
-    xcontent_types = ExternalContentType.objects.all()
+    xcontent_types = ExternalContentType.objects.filter(enabled=True)
     for xcontent_type in xcontent_types:
         try:
             account_user = store.social_auth.get(provider=xcontent_type.slug)

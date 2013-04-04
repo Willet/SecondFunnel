@@ -326,6 +326,7 @@ SOCIAL_AUTH_PIPELINE = (
 SOCIAL_AUTH_NEW_ASSOCIATION_REDIRECT_URL = '/pinpoint/admin/social-auth/'
 
 INSTAGRAM_AUTH_EXTRA_ARGUMENTS = {'scope': 'likes'}
+GOOGLE_OAUTH_EXTRA_SCOPE = ['https://gdata.youtube.com']
 
 MAINTENANCE_IGNORE_URLS = (r'^/$',
                            r'^/about/?$',
