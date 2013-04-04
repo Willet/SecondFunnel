@@ -15,7 +15,7 @@ def update_social_auth(backend, details, response, social_user, uid, user,
 
     associate_user_with_stores(user, social_user)
 
-# TODO: Should this be part of the pipeline?
+# TODO: Separate step in pipeline
 def associate_user_with_stores(user, social_user):
     # Since superuser is connected to all stores,
     # DON'T associate with stores if superuser
