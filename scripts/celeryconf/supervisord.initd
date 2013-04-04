@@ -7,7 +7,7 @@
 
 SUPERVISORD=/usr/bin/supervisord
 SUPERVISORCTL=/usr/bin/supervisorctl
-CONFIG=/home/ec2-user/pinpoint/env/SecondFunnel/scripts/serverconf/supervisord.conf
+CONFIG=/home/ec2-user/pinpoint/env/SecondFunnel/scripts/celeryconf/supervisord.conf
 
 case $1 in
 start)
