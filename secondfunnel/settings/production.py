@@ -62,7 +62,7 @@ GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 
 BROKER_URL = 'sqs://%s:%s@' % (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
 BROKER_TRANSPORT_OPTIONS = {
-    'region': 'us-west-1',
+    'region': 'us-west-2',
     'visibility_timeout': 30,
     'polling_interval': 1,
     'queue_name_prefix': 'celery-',
