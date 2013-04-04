@@ -1,0 +1,31 @@
+# Supervisord auto-start
+#
+# chkconfig: 345 99 01
+# description: Auto-starts supervisord
+# processname: supervisord
+# pidfile: /var/run/supervisord.pid
+
+SUPERVISORD=/usr/bin/supervisord
+SUPERVISORCTL=/usr/bin/supervisorctl
+CONFIG=/home/ec2-user/pinpoint/env/SecondFunnel/scripts/serverconf/supervisord.conf
+
+case $1 in
+start)
+        echo -n "Starting supervisord: "
+        sudo $SUPERVISORD -c $CONFIG
+        echo
+        ;;
+stop)
+        echo -n "Stopping supervisord: "
+        sudo $SUPERVISORCTL shutdown
+        echo
+        ;;
+restart)
+        echo -n "Stopping supervisord: "
+        sudo $SUPERVISORCTL shutdown
+        echo
+        echo -n "Starting supervisord: "
+        sudo $SUPERVISORD -c $CONFIG
+        echo
+        ;;
+esac
