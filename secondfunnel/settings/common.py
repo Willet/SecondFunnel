@@ -302,13 +302,6 @@ EXPOSED_SETTINGS = {
 WEBSITE_BASE_URL = 'http://www.secondfunnel.com'
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
 
-CELERYBEAT_SCHEDULE = {
-    'runs-every-6-hours': {
-        'task': 'apps.analytics.tasks.redo_analytics',
-        'schedule': timedelta(hours=6),
-    },
-}
-
 AUTHENTICATION_BACKENDS = (
     'social_auth.backends.contrib.instagram.InstagramBackend',
     'django.contrib.auth.backends.ModelBackend',
