@@ -40,7 +40,12 @@ def generate_static_campaigns():
 def generate_static_campaign(campaign_id):
     """Renders individual campaign and saves it to S3"""
 
-    campaign = Campaign.objects.get(id=campaign_id)
+    try:
+        campaign = Campaign.objects.get(id=campaign_id)
+
+    except Campaign.DoesNotExist:
+        logger.error("Campaign #{} does not exist".format(campaign_id))
+        return
 
     rendered_content = render_campaign(campaign)
     save_to_static_storage(campaign, rendered_content)
