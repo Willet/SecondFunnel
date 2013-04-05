@@ -61,7 +61,8 @@ def save_to_static_storage(campaign, content):
     filename = "{}/index.html".format(campaign.id)
 
     if settings.DEBUG:
-        bucket_name = "campaigns-test.secondfunnel.com"
+        bucket_name = "{}.secondfunnel.com".format(
+            settings.STATIC_CAMPAIGNS_BUCKET_NAME)
     else:
         bucket_name = "{}.secondfunnel.com".format(campaign.store.slug)
 
