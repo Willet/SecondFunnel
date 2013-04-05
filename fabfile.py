@@ -27,12 +27,17 @@ def deploy_celery():
         sudo("chown root:root /etc/init.d/supervisord")
         sudo("chmod 0755 /etc/init.d/supervisord")
 
-    result = run("/etc/init.d/supervisord stop")
+    # run until confirmed
+    run("/etc/init.d/supervisord stop")
+
+    # wait until supervisord is definitely not running
+    result = run("/etc/init.d/supervisord status")
     while not "no such file" in result:
-        result = run("/etc/init.d/supervisord stop")
+        result = run("/etc/init.d/supervisord status")
 
     run("/etc/init.d/supervisord start")
 
+    # wait until supervisord started celery worker and/or beat
     result = run("/etc/init.d/supervisord status")
     while "STARTING" in result:
         result = run("/etc/init.d/supervisord status")
