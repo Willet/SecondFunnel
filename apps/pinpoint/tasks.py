@@ -9,7 +9,6 @@ from urlparse import urlunparse
 from celery import task, group
 from celery.utils.log import get_task_logger
 
-from django.core.files.base import ContentFile, File
 from django.conf import settings
 
 from boto.s3.connection import S3Connection
