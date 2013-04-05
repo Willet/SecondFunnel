@@ -26,4 +26,3 @@ def associate_user_with_stores(user, social_user):
 
     for store in stores:
         store.social_auth.add(social_user)
-        store.save()
