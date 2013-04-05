@@ -20,12 +20,9 @@ stop)
         sudo $SUPERVISORCTL -c $CONFIG shutdown
         echo
         ;;
-restart)
-        echo -n "Stopping supervisord: "
-        sudo $SUPERVISORCTL -c $CONFIG shutdown
-        echo
-        echo -n "Starting supervisord: "
-        sudo $SUPERVISORD -c $CONFIG
+status)
+        echo -n "Supervised processes status: "
+        sudo $SUPERVISORCTL -c $CONFIG status
         echo
         ;;
 esac

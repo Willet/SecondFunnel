@@ -29,6 +29,7 @@ def deploy_celery():
 
     run("/etc/init.d/supervisord stop")
     run("/etc/init.d/supervisord start")
+    run("/etc/init.d/supervisord status")
 
 def deploy():
     """Runs all of our deployment tasks"""
