@@ -9,14 +9,9 @@ export RDS_PORT="3306"
 export RDS_USERNAME="ebroot"
 export RDS_PASSWORD="braTh9hU"
 export RDS_DB_NAME="ebdb"
-export RDS_HOSTNAME="aa1tf2ugh38h7kf.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com"
+export RDS_HOSTNAME="db.secondfunnel.com"
 
-WORKING_DIR=../
 ACTIVATE_PATH=../bin/activate
-MY_PATH="`dirname \"$0\"`"              # relative
-MY_PATH="`( cd \"$MY_PATH\" && pwd )`"  # absolutized and normalized
 
-cd ${MY_PATH}
-cd ${WORKING_DIR}
 source ${ACTIVATE_PATH}
 exec $@
