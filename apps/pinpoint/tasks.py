@@ -73,7 +73,7 @@ def save_to_static_storage(campaign, content):
     obj = Key(bucket)
     obj.key = filename
     obj.set_contents_from_string(
-        content.encode("utf-32"),
+        content.encode("utf-8"),
         headers={"Content-Type": "text/html"}
     )
     obj.set_acl('public-read')
