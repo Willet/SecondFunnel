@@ -322,7 +322,10 @@ SOCIAL_AUTH_PIPELINE = (
     'apps.utils.social.utils.update_social_auth'
 )
 
-SOCIAL_AUTH_NEW_ASSOCIATION_REDIRECT_URL = '/pinpoint/admin/social-auth/'
+SOCIAL_AUTH_NEW_ASSOCIATION_REDIRECT_URL = \
+    '/pinpoint/admin/social-auth/connect/'
+SOCIAL_AUTH_DISCONNECT_REDIRECT_URL = \
+    '/pinpoint/admin/social-auth/disconnect/'
 
 INSTAGRAM_AUTH_EXTRA_ARGUMENTS = {'scope': 'likes'}
 
