@@ -58,7 +58,7 @@
             margin-left: 5px;
         }
 
-        .service:after {
+        .connection_bar .service:after {
             background: url("{% static 'pinpoint/images/icon-check-12x12.png'%}") no-repeat;
             display: block;
             width: 12px;
@@ -153,6 +153,18 @@
             font-size: 12px;
         }
 
+        .icon.instagram.large {
+            background-image: url("{% static 'pinpoint/images/icon-instagram-alt-48.png'%}")
+        }
+
+        .icon.youtube {
+            background-image: url("{% static 'pinpoint/images/icon-youtube-alt-48.png'%}")
+        }
+
+        .icon.tumblr.large {
+            background-image: url("{% static 'pinpoint/images/icon-tumblr-alt-48.png'%}")
+        }
+
         .icon.instagram {
             background-image: url("{% static 'pinpoint/images/icon-instagram-alt-32.png'%}")
         }
@@ -170,6 +182,26 @@
             cursor: -webkit-zoom-out;
             cursor: -moz-zoom-out;
             cursor: zoom-out;
+        }
+
+        .connections .service {
+            width: 180px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .connections .icon {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+
+        .connections .icon {
+            display: block;
+            width: 48px;
+            height: 48px;
+            background-repeat: no-repeat;
+            background-position: center center;
         }
 
         .tablecell {
@@ -553,6 +585,25 @@
                     </div>
                 {% empty %}
                     <p>No items here.</p>
+                    <div class='connect-text'>
+                        Import content by connecting social accounts
+                        <!--or by uploading from file-->:
+                    </div>
+                    <div class='connections'>
+                    {% for account in accounts %}
+                        {% if not account.connected %}
+                    <div class='service'>
+                        <div class='icon {{ account.type }} large'>
+                        </div>
+                        <a href='{% url socialauth_associate_begin account.type %}'
+                           class='button'>
+                            Connect Account
+                        </a>
+                    </div>
+                        {%  endif %}
+                    {% endfor %}
+                    </div>
+                    {# TODO: File Upload #}
                 {% endfor %}
 
                 {% if content_data %}
@@ -564,7 +615,7 @@
         {% endfor %}
     </div>
 
-    <div class='connect-window'>
+    <div class='connect-window' style='display: none;'>
         <div class="tablecell">
             <div class='window-content'>
                 <div class='connect-text'>
