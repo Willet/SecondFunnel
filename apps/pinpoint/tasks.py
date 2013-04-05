@@ -72,7 +72,7 @@ def save_to_static_storage(campaign, content):
 
     for storage in storages:
         # TODO: is ContentFile wrapping required?
-        storage.save(filename, ContentFile(content))
+        storage.save(filename, ContentFile(content.encode("utf-32")))
 
 
     # TODO: code below is screwed up since it relies on the state of storage
