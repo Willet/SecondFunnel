@@ -97,7 +97,16 @@ class Tumblr(Social):
                 blog_url=blog.get('url'),
                 params={'type': 'photo'}
             )
-            media.extend(response.get('posts'))
+
+            posts = response.get('posts')
+
+            # I feel like there's a more susinct way to do this, I just don't
+            # know how...
+            for post in posts:
+                for photo in post['photos']:
+                    revised_post = post
+                    revised_post['photo'] = photo
+                    media.append(revised_post)
 
         return media
 
@@ -121,7 +130,7 @@ class Tumblr(Social):
             'original_id': content.get('id'),
             'original_url': content.get('post_url'),
             'text_content': content.get('caption'),
-            'image_url': content['photos'][0]['original_size'].get('url'),
+            'image_url': content['photo']['original_size'].get('url'),
             'likes': content.get('note_count'),
             'username': blog_name,
             'user-image': avatar
