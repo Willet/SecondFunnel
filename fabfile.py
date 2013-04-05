@@ -23,6 +23,8 @@ def deploy_celery():
         run("git checkout master")
         run("git pull origin master")
 
+        run("source ../bin/activate && pip install -r requirements.txt")
+
         sudo("cp scripts/celeryconf/supervisord.initd /etc/init.d/supervisord")
         sudo("chown root:root /etc/init.d/supervisord")
         sudo("chmod 0755 /etc/init.d/supervisord")
