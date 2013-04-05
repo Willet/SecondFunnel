@@ -12,7 +12,7 @@ env.roledefs = {
 }
 
 @roles('celery')
-def deploy_celery():
+def deploy_celery(branch):
     """Deploys new code to celery workers and restarts them"""
 
     env_path = "/home/ec2-user/pinpoint/env"
@@ -24,8 +24,8 @@ def deploy_celery():
             run("git clone {}".format(git_path))
 
     with cd(project_path):
-        run("git checkout master")
-        run("git pull origin master")
+        run("git checkout {}".format(branch))
+        run("git pull origin {}".format(branch))
 
         run("source ../bin/activate && pip install -r requirements.txt")
 
@@ -49,6 +49,6 @@ def deploy_celery():
         result = run("/etc/init.d/supervisord status")
 
 
-def deploy():
+def deploy(branch='master'):
     """Runs all of our deployment tasks"""
-    execute(deploy_celery)
+    execute(deploy_celery, branch)
