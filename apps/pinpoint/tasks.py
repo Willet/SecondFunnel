@@ -50,6 +50,23 @@ def generate_static_campaign(campaign_id):
     save_to_static_storage(campaign, rendered_content)
 
 
+@task()
+def upload_static(bucket, static_name):
+    url = "{0}{1}".format(settings.STATIC_URL, static_name)
+    logger.info("Uploading {}".format(url))
+
+    try:
+        content = urllib2.urlopen(url)
+
+    except urllib2.HTTPError:
+        logger.warning("Couldn't open {}".format(url))
+
+    else:
+        obj = Key(bucket)
+        obj.key = static_name
+        obj.set_contents_from_file(content)
+
+
 def save_to_static_storage(campaign, content):
     """Saves rendered campaign to S3"""
 
@@ -61,8 +78,7 @@ def save_to_static_storage(campaign, content):
     filename = "{}/index.html".format(campaign.id)
 
     if settings.DEBUG:
-        bucket_name = "{}.secondfunnel.com".format(
-            settings.STATIC_CAMPAIGNS_BUCKET_NAME)
+        bucket_name = settings.STATIC_CAMPAIGNS_BUCKET_NAME
     else:
         bucket_name = "{}.secondfunnel.com".format(campaign.store.slug)
 
@@ -80,8 +96,12 @@ def save_to_static_storage(campaign, content):
     )
 
 
-    # dependencies = re.findall('/static/[^ \'\"]+\.(?:css|js|jpe?g|png|gif)',
-                              # content)
+    dependencies = re.findall('static/[^ \'\"]+\.(?:css|js|jpe?g|png|gif)',
+                              content)
+
+    upload_group = group(upload_static.s(bucket, d) for d in dependencies)
+    upload_group.apply_async()
+
 
     # try:
         # for dependency in dependencies:
