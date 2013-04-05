@@ -67,6 +67,7 @@ BROKER_TRANSPORT_OPTIONS = {
     'polling_interval': 1,
     'queue_name_prefix': 'celery-',
 }
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 INSTAGRAM_CLIENT_ID = 'be95027932f64f4aaa465ffed160a8fb'
 INSTAGRAM_CLIENT_SECRET = 'aac059c1acb341d3b44b9139dc106dbe'
