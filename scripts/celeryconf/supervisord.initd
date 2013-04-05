@@ -17,12 +17,12 @@ start)
         ;;
 stop)
         echo -n "Stopping supervisord: "
-        sudo $SUPERVISORCTL shutdown
+        sudo $SUPERVISORCTL -c $CONFIG shutdown
         echo
         ;;
 restart)
         echo -n "Stopping supervisord: "
-        sudo $SUPERVISORCTL shutdown
+        sudo $SUPERVISORCTL -c $CONFIG shutdown
         echo
         echo -n "Starting supervisord: "
         sudo $SUPERVISORD -c $CONFIG
