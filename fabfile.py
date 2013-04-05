@@ -15,7 +15,7 @@ def deploy_celery():
     """Deploys new code to celery workers and restarts them"""
 
     env_path = "/home/ec2-user/pinpoint/env"
-    project_path = "/home/ec2-user/pinpoint/env/SecondFunnel"
+    project_path = "{}/SecondFunnel".format(env_path)
     git_path = "ssh://git@github.com/Willet/SecondFunnel.git"
 
     with cd(env_path):
