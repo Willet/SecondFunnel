@@ -27,9 +27,16 @@ def deploy_celery():
         sudo("chown root:root /etc/init.d/supervisord")
         sudo("chmod 0755 /etc/init.d/supervisord")
 
-    run("/etc/init.d/supervisord stop")
+    result = run("/etc/init.d/supervisord stop")
+    while not "no such file" in result:
+        result = run("/etc/init.d/supervisord stop")
+
     run("/etc/init.d/supervisord start")
-    run("/etc/init.d/supervisord status")
+
+    result = run("/etc/init.d/supervisord status")
+    while "STARTING" in result:
+        result = run("/etc/init.d/supervisord status")
+
 
 def deploy():
     """Runs all of our deployment tasks"""
