@@ -20,8 +20,8 @@ def deploy_celery():
             run("git clone {}".format(git_path))
 
     with cd(project_path):
-        run("git checkout celeryservices")
-        run("git pull origin celeryservices")
+        run("git checkout master")
+        run("git pull origin master")
 
         sudo("cp scripts/celeryconf/supervisord.initd /etc/init.d/supervisord")
         sudo("chown root:root /etc/init.d/supervisord")
