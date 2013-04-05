@@ -6,7 +6,7 @@ import re
 import urllib2
 from urlparse import urlunparse
 
-from celery import task, subtask, chain
+from celery import task, group
 from celery.utils.log import get_task_logger
 
 from django.core.files.base import ContentFile, File
@@ -26,17 +26,29 @@ logger = get_task_logger(__name__)
 
 @task()
 def generate_static_campaigns():
+    """Creates a group of tasks to generate/save campaigns,
+    and runs them in parallel"""
+
     campaigns = Campaign.objects.filter(has_static_copy=False)
 
-    for campaign in campaigns:
-        # TODO: figure out get_seeds support here (rneeds 'request')
-        rendered_content = render_campaign(campaign)
+    task_group = group(generate_static_campaign.s(c.id) for c in campaigns)
 
-        save_to_static_storage.delay(campaign, rendered_content)
+    task_group.apply_async()
 
 
 @task()
+def generate_static_campaign(campaign_id):
+    """Renders individual campaign and saves it to S3"""
+
+    campaign = Campaign.objects.get(id=campaign_id)
+
+    rendered_content = render_campaign(campaign)
+    save_to_static_storage(campaign, rendered_content)
+
+
 def save_to_static_storage(campaign, content):
+    """Saves rendered campaign to S3"""
+
     filename = '%s/index.html' % campaign.id
     store_bucket_name = '%s.secondfunnel.com' % campaign.store.slug
 
@@ -61,38 +73,38 @@ def save_to_static_storage(campaign, content):
     # TODO: code below is screwed up since it relies on the state of storage
     # TODO: var that's defined as part of the for loop above;
     # TODO: need to refactor this
-    dependencies = re.findall('/static/[^ \'\"]+\.(?:css|js|jpe?g|png|gif)',
-                              content)
-    try:
-        for dependency in dependencies:
-            # TODO: don't have request here; deal with it
-            dependency_abs_url = urlunparse(
-                ('http', request.META['HTTP_HOST'],
-                 dependency, None, None, None))
+    # dependencies = re.findall('/static/[^ \'\"]+\.(?:css|js|jpe?g|png|gif)',
+    #                           content)
+    # try:
+    #     for dependency in dependencies:
+    #         # TODO: don't have request here; deal with it
+    #         dependency_abs_url = urlunparse(
+    #             ('http', request.META['HTTP_HOST'],
+    #              dependency, None, None, None))
 
-            try:
-                dependency_contents = urllib2.urlopen(
-                    dependency_abs_url).read()
+    #         try:
+    #             dependency_contents = urllib2.urlopen(
+    #                 dependency_abs_url).read()
 
-            # HTTP errors
-            except urllib2.HTTPError:
-                continue  # I am not helpful; going to work on something else
+    #         # HTTP errors
+    #         except urllib2.HTTPError:
+    #             continue  # I am not helpful; going to work on something else
 
-            # other errors
-            except IOError:
-                continue
+    #         # other errors
+    #         except IOError:
+    #             continue
 
-            # this can be binary
-            yet_another_file = ContentFile(dependency_contents)
+    #         # this can be binary
+    #         yet_another_file = ContentFile(dependency_contents)
 
-            # TODO: storage is not explicitely defined!
-            storage.save(dependency, yet_another_file)
-    except (IOError, AttributeError), err:
-        # AttributeError is for accessing empty requests
-        if settings.DEBUG:
-            raise IOError(err)
-        else:
-            return None
+    #         # TODO: storage is not explicitely defined!
+    #         storage.save(dependency, yet_another_file)
+    # except (IOError, AttributeError), err:
+    #     # AttributeError is for accessing empty requests
+    #     if settings.DEBUG:
+    #         raise IOError(err)
+    #     else:
+    #         return None
 
     # turn the bucket into a website
-    get_or_create_s3_website(store_bucket_name)
+    # get_or_create_s3_website(store_bucket_name)
