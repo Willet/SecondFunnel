@@ -94,45 +94,4 @@ def save_to_static_storage(campaign, content):
         content.encode("utf-32"),
         headers={"Content-Type": "text/html"}
     )
-
-
-    dependencies = re.findall('static/[^ \'\"]+\.(?:css|js|jpe?g|png|gif)',
-                              content)
-
-    upload_group = group(upload_static.s(bucket, d) for d in dependencies)
-    upload_group.apply_async()
-
-
-    # try:
-        # for dependency in dependencies:
-    #         # TODO: don't have request here; deal with it
-    #         dependency_abs_url = urlunparse(
-    #             ('http', request.META['HTTP_HOST'],
-    #              dependency, None, None, None))
-
-    #         try:
-    #             dependency_contents = urllib2.urlopen(
-    #                 dependency_abs_url).read()
-
-    #         # HTTP errors
-    #         except urllib2.HTTPError:
-    #             continue  # I am not helpful; going to work on something else
-
-    #         # other errors
-    #         except IOError:
-    #             continue
-
-    #         # this can be binary
-    #         yet_another_file = ContentFile(dependency_contents)
-
-    #         # TODO: storage is not explicitely defined!
-    #         storage.save(dependency, yet_another_file)
-    # except (IOError, AttributeError), err:
-    #     # AttributeError is for accessing empty requests
-    #     if settings.DEBUG:
-    #         raise IOError(err)
-    #     else:
-    #         return None
-
-    # turn the bucket into a website
-    # get_or_create_s3_website(store_bucket_name)
+    obj.set_acl('public-read')
