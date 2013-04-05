@@ -12,13 +12,12 @@ from celery.utils.log import get_task_logger
 from django.core.files.base import ContentFile, File
 from django.conf import settings
 
-from storages.backends.s3boto import S3BotoStorage
+from boto.s3.connection import S3Connection
+from boto.s3.key import Key
+from boto.exception import S3ResponseError
 
 from apps.pinpoint.models import Campaign
 from apps.pinpoint.utils import render_campaign
-
-from apps.utils.s3_conn import get_or_create_s3_website
-
 
 # TODO: make use of logging, instead of suppressing errors as is done now
 logger = get_task_logger(__name__)
@@ -54,34 +53,37 @@ def generate_static_campaign(campaign_id):
 def save_to_static_storage(campaign, content):
     """Saves rendered campaign to S3"""
 
-    filename = '%s/index.html' % campaign.id
-    store_bucket_name = '%s.secondfunnel.com' % campaign.store.slug
+    conn = S3Connection(
+        settings.AWS_ACCESS_KEY_ID,
+        settings.AWS_SECRET_ACCESS_KEY
+    )
 
-    storages = [
-        S3BotoStorage(bucket=settings.STATIC_CAMPAIGNS_BUCKET_NAME,
-                      access_key=settings.AWS_ACCESS_KEY_ID,
-                      secret_key=settings.AWS_SECRET_ACCESS_KEY)
-    ]
+    filename = "{}/index.html".format(campaign.id)
 
-    # store-specific bucket (e.g. nativeshoes.secondfunnel.com)
-    # written only on production
-    if not settings.DEBUG:
-        storages.append(S3BotoStorage(bucket=store_bucket_name,
-            access_key=settings.AWS_ACCESS_KEY_ID,
-            secret_key=settings.AWS_SECRET_ACCESS_KEY))
+    if settings.DEBUG:
+        bucket_name = "campaigns-test.secondfunnel.com"
+    else:
+        bucket_name = "{}.secondfunnel.com".format(campaign.store.slug)
 
-    for storage in storages:
-        # TODO: is ContentFile wrapping required?
-        storage.save(filename, ContentFile(content.encode("utf-32")))
+    try:
+        bucket = conn.get_bucket(bucket_name)
+
+    except S3ResponseError:
+        bucket = conn.create_bucket(bucket_name)
+
+    obj = Key(bucket)
+    obj.key = filename
+    obj.set_contents_from_string(
+        content.encode("utf-32"),
+        headers={"Content-Type": "text/html"}
+    )
 
 
-    # TODO: code below is screwed up since it relies on the state of storage
-    # TODO: var that's defined as part of the for loop above;
-    # TODO: need to refactor this
     # dependencies = re.findall('/static/[^ \'\"]+\.(?:css|js|jpe?g|png|gif)',
-    #                           content)
+                              # content)
+
     # try:
-    #     for dependency in dependencies:
+        # for dependency in dependencies:
     #         # TODO: don't have request here; deal with it
     #         dependency_abs_url = urlunparse(
     #             ('http', request.META['HTTP_HOST'],
