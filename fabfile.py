@@ -4,7 +4,10 @@ Automated deployment tasks
 from fabric.api import roles, run, cd, execute, settings, env, sudo
 
 env.roledefs = {
-    'celery': ['ec2-user@ec2-54-244-159-249.us-west-2.compute.amazonaws.com'],
+    'celery': [
+        'ec2-user@ec2-54-244-159-249.us-west-2.compute.amazonaws.com',
+        'ec2-user@ec2-54-244-215-223.us-west-2.compute.amazonaws.com',
+    ],
 }
 
 @roles('celery')
