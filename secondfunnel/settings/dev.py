@@ -50,11 +50,14 @@ GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 
 BROKER_URL = 'amqp://guest:guest@localhost:5672//'
 
+STATIC_CAMPAIGNS_BUCKET_NAME = 'campaigns-test.secondfunnel.com'
+
 # Nick's test instagram client; good for localhost:8000
 INSTAGRAM_CLIENT_ID = '1410bbbf8b614ebfb77081d5293cf48d'
 INSTAGRAM_CLIENT_SECRET = 'c535ee3141944cdbaab97954b6b85083'
 
-STATIC_CAMPAIGNS_BUCKET_NAME = 'campaigns-test.secondfunnel.com'
+TUMBLR_CONSUMER_KEY = 'iKb1SAF5JwVnhLPSv7R7sqTYYekvkYOmmyYIRV8anFiT1xx2lD'
+TUMBLR_CONSUMER_SECRET = 'qIiqecbZeR3LSLjGcuzmkkkgAmYFrpd3ilSDHkNe5HksZHKInH'
 
 # Monkeypatch decorator care of Van Rossum himself!
 # http://mail.python.org/pipermail/python-dev/2008-January/076194.html
