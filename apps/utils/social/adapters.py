@@ -1,3 +1,6 @@
+from apiclient.discovery import build
+import httplib2
+from oauth2client.client import AccessTokenCredentials
 from django.conf import settings
 from instagram import InstagramAPI
 from tumblpy import Tumblpy
@@ -70,6 +73,64 @@ class Instagram(Social):
             'username': content.user.username,
             'user-image': content.user.profile_picture
         }
+
+
+class Youtube(Social):
+    def __init__(self, *args, **kwargs):
+        tokens = kwargs.get('tokens')
+
+        if tokens:
+            self.access_token = tokens.get('access_token')
+
+        super(Youtube, self).__init__(*args, **kwargs)
+
+        credentials = AccessTokenCredentials(
+            self.access_token, 'SecondFunnel/1.0'
+        )
+
+        http = httplib2.Http()
+        http = credentials.authorize(http)
+
+        self._api = build('youtube', 'v3', http=http)
+
+    def _fetch_media(self, **kwargs):
+        # Modified from example:
+        # https://developers.google.com/youtube/v3/code_samples/python#my_uploads
+        response = self._api.channels().list(
+            mine=True,
+            part="contentDetails"
+        ).execute()
+
+        media = []
+        for channel in response['items']:
+            uploads_list_id = channel["contentDetails"]["relatedPlaylists"]["uploads"]
+
+            next_page_token = ''
+            while next_page_token is not None:
+                item_response = self._api.playlistItems().list(
+                    playlistId=uploads_list_id,
+                    part="snippet",
+                    maxResults=50,
+                    pageToken=next_page_token
+                ).execute()
+
+                media.extend(item['snippet'] for item in item_response['items'])
+
+                next_page_token = item_response.get("tokenPagination", {}).get("nextPageToken")
+
+        return []
+
+    def normalize(self, content):
+        return {
+            'type': 'youtube',
+            'original_id': '',
+            'original_url': '',
+            'text_content': '',
+            'image_url': '',
+            'likes': '',
+            'username': '',
+            'user-image': ''
+
 
 class Tumblr(Social):
     def __init__(self, *args, **kwargs):

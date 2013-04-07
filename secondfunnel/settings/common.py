@@ -311,6 +311,7 @@ CELERYBEAT_SCHEDULE = {
 
 AUTHENTICATION_BACKENDS = (
     'social_auth.backends.contrib.instagram.InstagramBackend',
+    'social_auth.backends.google.GoogleOAuth2Backend',
     'social_auth.backends.contrib.tumblr.TumblrBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
@@ -326,6 +327,9 @@ SOCIAL_AUTH_PIPELINE = (
 SOCIAL_AUTH_NEW_ASSOCIATION_REDIRECT_URL = '/pinpoint/admin/social-auth/'
 
 INSTAGRAM_AUTH_EXTRA_ARGUMENTS = {'scope': 'likes'}
+GOOGLE_OAUTH_EXTRA_SCOPE = ['https://gdata.youtube.com']
+
+GOOGLE_OAUTH2_EXTRA_DATA = [('email', 'username')]
 
 MAINTENANCE_IGNORE_URLS = (r'^/$',
                            r'^/about/?$',
