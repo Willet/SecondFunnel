@@ -68,9 +68,9 @@ def login_success_redirect(request):
 
 
 @login_required
-def social_auth(request):
+def social_auth_redirect(request):
     """
-    Redirect after some social action (account association, probably).
+    Redirect after some social-auth action (association, or disconnection).
 
     @param request: The request for this page.
 
