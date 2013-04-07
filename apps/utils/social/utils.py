@@ -8,7 +8,11 @@ def get_adapter_class(classname):
 
 def update_social_auth(backend, details, response, social_user, uid, user,
                        *args, **kwargs):
-    if getattr(backend, 'name', None) == 'instagram':
+
+    # Until the `extra_data` method is fixed for instagram and tumblr
+    # (and likely, any other `contrib` backends), need to do this instead
+    # of just using *_EXTRA_DATA
+    if getattr(backend, 'name', None) in ('instagram', 'tumblr'):
         social_user.extra_data['username'] = details.get('username')
 
     social_user.save()

@@ -1,7 +1,9 @@
 from apiclient.discovery import build
 import httplib2
-from instagram import InstagramAPI
 from oauth2client.client import AccessTokenCredentials
+from django.conf import settings
+from instagram import InstagramAPI
+from tumblpy import Tumblpy
 
 
 class Social(object):
@@ -39,7 +41,6 @@ class Social(object):
 class Instagram(Social):
     def __init__(self, *args, **kwargs):
         tokens = kwargs.get('tokens')
-
         if tokens:
             self.access_token = tokens.get('access_token')
 
@@ -72,6 +73,7 @@ class Instagram(Social):
             'username': content.user.username,
             'user-image': content.user.profile_picture
         }
+
 
 class Youtube(Social):
     def __init__(self, *args, **kwargs):
@@ -128,4 +130,69 @@ class Youtube(Social):
             'likes': '',
             'username': '',
             'user-image': ''
+
+
+class Tumblr(Social):
+    def __init__(self, *args, **kwargs):
+        tokens = kwargs.get('tokens')
+        if tokens:
+            self.access_token = tokens.get('oauth_token')
+            self.secret_token = tokens.get('oauth_token_secret')
+
+        super(Tumblr, self).__init__(*args, **kwargs)
+
+        self._api = Tumblpy(app_key=settings.TUMBLR_CONSUMER_KEY,
+                            app_secret=settings.TUMBLR_CONSUMER_SECRET,
+                            oauth_token=self.access_token,
+                            oauth_token_secret=self.secret_token)
+
+    def _fetch_media(self, **kwargs):
+        #TODO: Make generator?
+        media = []
+        for blog in self._get_blogs():
+            # Note: We cannnot supply multiple types
+            # In other words. We either get one type,
+            # or filter ourselves
+            response = self._api.get(
+                'posts',
+                blog_url=blog.get('url'),
+                params={'type': 'photo'}
+            )
+
+            posts = response.get('posts')
+
+            # I feel like there's a more susinct way to do this, I just don't
+            # know how...
+            for post in posts:
+                for photo in post['photos']:
+                    revised_post = post
+                    revised_post['photo'] = photo
+                    media.append(revised_post)
+
+        return media
+
+    def _get_blogs(self):
+        response = self._api.post('user/info')
+
+        return [blog for blog in response['user']['blogs']]
+
+    def _get_avatar(self, blog):
+        blog_url = '{0}.tumblr.com'.format(blog)
+        avatar = self._api.get_avatar_url(blog_url=blog_url, size=512)
+        return avatar['url']
+
+    def normalize(self, content):
+        # Assuming content is a photo
+        blog_name = content.get('blog_name')
+        avatar = self._get_avatar(blog_name)
+
+        return {
+            'type': 'tumblr',
+            'original_id': content.get('id'),
+            'original_url': content.get('post_url'),
+            'text_content': content.get('caption'),
+            'image_url': content['photo']['original_size'].get('url'),
+            'likes': content.get('note_count'),
+            'username': blog_name,
+            'user-image': avatar
         }

@@ -60,6 +60,9 @@ INSTAGRAM_CLIENT_SECRET = 'c535ee3141944cdbaab97954b6b85083'
 GOOGLE_OAUTH2_CLIENT_ID = '795682257380-lrs259cts0o2p05u0e9gb1ivc2lt22e7.apps.googleusercontent.com'
 GOOGLE_OAUTH2_CLIENT_SECRET = 'DfLOTNwAEZEJwObKgtcgu4fJ'
 
+TUMBLR_CONSUMER_KEY = 'iKb1SAF5JwVnhLPSv7R7sqTYYekvkYOmmyYIRV8anFiT1xx2lD'
+TUMBLR_CONSUMER_SECRET = 'qIiqecbZeR3LSLjGcuzmkkkgAmYFrpd3ilSDHkNe5HksZHKInH'
+
 # Monkeypatch decorator care of Van Rossum himself!
 # http://mail.python.org/pipermail/python-dev/2008-January/076194.html
 def monkeypatch_method(cls):
