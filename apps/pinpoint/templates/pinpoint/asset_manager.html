@@ -637,12 +637,12 @@
                             {{ account.data.username }}
                         </span>
                     </div>
-                    {# TODO: Disconnect #}
-                    <!--
                     <div class='disconnection-status'>
-                        <a href="">Disconnect</a>
+                        <a href='
+                        {% url socialauth_disconnect account.type %}'>
+                            Disconnect
+                        </a>
                     </div>
-                    -->
                     {% else %}
                     <div class='connection-status'>
                         <a href='{% url socialauth_associate_begin account.type %}'
