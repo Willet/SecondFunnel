@@ -3,6 +3,20 @@
 {% load pinpoint_ui %}
 
 {% block page_title %}
+    <div class='connection_bar' style=''>
+        <ul class='services'>
+            {% for account in accounts %}
+            {% if account.connected %}
+            <li class='service {{ account.type }}'>
+                <span class='text'>{{ account.type }}</span>
+            </li>
+            {% endif %}
+            {% endfor %}
+            <li>
+                <a href='#' class='connect'>+ Connect More</a>
+            </li>
+        </ul>
+    </div>
     {{ store }}
 {% endblock %}
 
@@ -15,6 +29,185 @@
         .container_12 .prefix_9, .container_16 .prefix_12 {
             padding-left: 620px;
             width: 310px;
+        }
+
+        .page_title {
+            position: relative;
+        }
+
+        .connection_bar {
+            position: absolute;
+            right: 15px;
+            font-size: 14px;
+            line-height: 33px;
+        }
+
+        .connection_bar .services {
+            list-style: none;
+            display: inline;
+        }
+
+        .connection_bar .services li {
+            display: inline-block;
+            margin: 0px;
+        }
+
+        .connection_bar .services .service {
+            width: 32px;
+            height: 32px;
+            margin-left: 5px;
+        }
+
+        .connection_bar .service:after {
+            background: url("{% static 'pinpoint/images/icon-check-12x12.png'%}") no-repeat;
+            display: block;
+            width: 12px;
+            height: 12px;
+            content: '';
+            position: relative;
+            top: -13px;
+            left: 23px;
+        }
+
+        .service.instagram {
+            background-image: url("{% static 'pinpoint/images/icon-instagram-32.png'%}")
+        }
+
+        .service.youtube {
+            background-image: url("{% static 'pinpoint/images/icon-youtube-32.png'%}")
+        }
+
+        .service.tumblr {
+            background-image: url("{% static 'pinpoint/images/icon-tumblr-32.png'%}")
+        }
+
+        .service .text, .icon .text {
+            visibility: hidden;
+        }
+
+        .connection_bar a {
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+            margin-left: 16px;
+        }
+
+        .connection_bar a:hover {
+            text-decoration: none;
+        }
+
+        .connection_bar a, .connection_bar a:visited {
+            color: #eee;
+        }
+
+        .ui-dialog.no-title .ui-dialog-titlebar {
+            display: none;
+        }
+
+        .connect-text {
+            font-size: 18px;
+            padding-bottom: 20px;
+        }
+
+        .account-row {
+            margin-left: auto;
+            margin-right: auto;
+            width: 350px;
+            line-height: 32px;
+            padding-top: 10px;
+        }
+
+        .account-row .icon, .account-row .connection-status,
+        .account-row .disconnection-status {
+            display: inline-block;
+        }
+
+        .account-row .connection-status {
+            width: 180px;
+        }
+
+        .account-row .disconnection-status {
+            width: 100px;
+        }
+
+        .account-row .connection-status .status {
+            display: block;
+            background: url("{% static 'pinpoint/images/icon-check-16x16.png'%}") center center no-repeat;
+            height: 32px;
+            width:  32px;
+            float: left;
+        }
+
+        .account-row .icon {
+            width: 60px;
+            height: 32px;
+            background: no-repeat center center;
+        }
+
+        .account-row .button {
+            height: 32px;
+            padding: 0px 10px;
+        }
+
+        .account-row .disconnection-status a {
+            text-decoration: underline;
+            font-size: 12px;
+        }
+
+        .icon.instagram.large {
+            background-image: url("{% static 'pinpoint/images/icon-instagram-alt-48.png'%}")
+        }
+
+        .icon.youtube {
+            background-image: url("{% static 'pinpoint/images/icon-youtube-alt-48.png'%}")
+        }
+
+        .icon.tumblr.large {
+            background-image: url("{% static 'pinpoint/images/icon-tumblr-alt-48.png'%}")
+        }
+
+        .icon.instagram {
+            background-image: url("{% static 'pinpoint/images/icon-instagram-alt-32.png'%}")
+        }
+
+        .icon.youtube {
+            background-image: url("{% static 'pinpoint/images/icon-youtube-alt-32.png'%}")
+        }
+
+        .icon.tumblr {
+            background-image: url("{% static 'pinpoint/images/icon-tumblr-alt-32.png'%}")
+        }
+
+        .ui-widget-overlay {
+            background: rgba(255,255,255,0.7);
+            cursor: -webkit-zoom-out;
+            cursor: -moz-zoom-out;
+            cursor: zoom-out;
+        }
+
+        .connections .service {
+            width: 180px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .connections .icon {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+
+        .connections .icon {
+            display: block;
+            width: 48px;
+            height: 48px;
+            background-repeat: no-repeat;
+            background-position: center center;
+        }
+
+        .tablecell {
+            display: table-cell;
+            vertical-align: middle;
+            position: static;
         }
 
         .review_area {
@@ -88,8 +281,7 @@
             position: absolute;
             top: -23px;
             left: 20px;
-        }​
-
+        }
     </style>
 {% endblock %}
 
@@ -315,6 +507,23 @@
             post_tags(oid);
         }
     });
+
+    /* Connection bar*/
+    $('.connect').on('click', function() {
+        $('.connect-window').dialog({
+            'width': 400,
+            'modal': true,
+            'resizable': false,
+            'draggable': false,
+            'dialogClass': 'no-title'
+        });
+    });
+
+    // Did you know that jquery UI has no way to close a dialog
+    // via the overlay? I certainly didn't.
+    $('body').on('click', '.ui-widget-overlay', function() {
+        $('.connect-window').dialog('close');
+    });
 {% endblock %}
 
 {% block top_section %}
@@ -328,16 +537,6 @@
 {% endblock %}
 
 {% block content %}
-    {# User facing code, for now #}
-    <p>
-    {% if not instagram_user %}
-    Not currently connected to Instagram.
-        <a href='{% url socialauth_associate_begin 'instagram' %}'>Connect?</a>
-    {% else %}
-    Connected to user: {{ instagram_user }}
-    {% endif %}
-    </p>
-
     <p>
         <input type="checkbox" id="scroll_with_review"><label for="scroll_with_review">Scroll as I review</label>
     </p>
@@ -386,6 +585,25 @@
                     </div>
                 {% empty %}
                     <p>No items here.</p>
+                    <div class='connect-text'>
+                        Import content by connecting social accounts
+                        <!--or by uploading from file-->:
+                    </div>
+                    <div class='connections'>
+                    {% for account in accounts %}
+                        {% if not account.connected %}
+                    <div class='service'>
+                        <div class='icon {{ account.type }} large'>
+                        </div>
+                        <a href='{% url socialauth_associate_begin account.type %}'
+                           class='button'>
+                            Connect Account
+                        </a>
+                    </div>
+                        {%  endif %}
+                    {% endfor %}
+                    </div>
+                    {# TODO: File Upload #}
                 {% endfor %}
 
                 {% if content_data %}
@@ -396,4 +614,43 @@
             </div>
         {% endfor %}
     </div>
+
+    <div class='connect-window' style='display: none;'>
+        <div class="tablecell">
+            <div class='window-content'>
+                <div class='connect-text'>
+                    Connect social accounts:
+                </div>
+
+                {% for account in accounts %}
+                <div class='account-row'>
+                    <div class='icon {{ account.type }}'>
+                        <span class='text'>{{ account.type }}</span>
+                    </div>
+                    {% if account.connected %}
+                    <div class='connection-status'>
+                        <span class='status'></span>
+                        <span class='username'>
+                            {{ account.data.username }}
+                        </span>
+                    </div>
+                    {# TODO: Disconnect #}
+                    <!--
+                    <div class='disconnection-status'>
+                        <a href="">Disconnect</a>
+                    </div>
+                    -->
+                    {% else %}
+                    <div class='connection-status'>
+                        <a href='{% url socialauth_associate_begin account.type %}'
+                           class='button'>Connect Account</a>
+                    </div>
+                    {% endif %}
+
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
