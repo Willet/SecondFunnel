@@ -291,7 +291,6 @@
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}" type="text/javascript"></script>
     <script src="{% static "js/tag-it.js" %}" type="text/javascript"></script>
-    <script src="{% static "js/fileuploader.js" %}"></script>
 {% endblock %}
 
 {% block document_ready %}
@@ -528,14 +527,6 @@
     $('body').on('click', '.ui-widget-overlay', function() {
         $('.connect-window').dialog('close');
     });
-
-    /* File uploader */
-    uploader = new qq.FileUploader({
-        element: $('.file-uploader')[0],
-        action: '{% url ajax-upload-image %}',
-        csrfToken: $.cookie('csrftoken'),
-        allowedExtensions: ['jpg' ,'png', 'jpeg'],
-    });
 {% endblock %}
 
 {% block top_section %}
@@ -599,9 +590,7 @@
                     <p>No items here.</p>
                     <div class='connect-text'>
                         Import content by connecting social accounts
-                        or by uploading from file:
-                        {% csrf_token %}
-                        <div class='file-uploader'></div>
+                        <!--or by uploading from file-->:
                     </div>
                     <div class='connections'>
                     {% for account in accounts %}

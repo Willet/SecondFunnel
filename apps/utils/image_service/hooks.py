@@ -2,11 +2,21 @@
 
 from django.conf import settings
 
-from apps.utils.image_service.api import queue_processing, queue_upload
+from apps.utils.image_service.api import queue_processing
 
 
 def process_image(instance):
-    instance.remote = queue_upload(instance.hosted.file)
+    if instance.hosted and not instance.hosted.url.startswith("http"):
+        image_url = "{0}{1}".format(settings.STATIC_URL, instance.hosted)
+
+    else:
+        image_url = instance.remote or instance.hosted
+
+    # both remote and hosted are missing
+    if not image_url:
+        return
+
+    instance.remote = queue_processing(image_url)
     if instance.remote:
         instance.hosted = None
         instance.save()
