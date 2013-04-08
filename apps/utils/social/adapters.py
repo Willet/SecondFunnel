@@ -130,6 +130,7 @@ class Youtube(Social):
             'likes': '',
             'username': '',
             'user-image': ''
+        }
 
 
 class Tumblr(Social):
