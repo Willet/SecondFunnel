@@ -62,11 +62,12 @@ GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 
 BROKER_URL = 'sqs://%s:%s@' % (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
 BROKER_TRANSPORT_OPTIONS = {
-    'region': 'us-west-1',
+    'region': 'us-west-2',
     'visibility_timeout': 30,
     'polling_interval': 1,
     'queue_name_prefix': 'celery-',
 }
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 INSTAGRAM_CLIENT_ID = 'be95027932f64f4aaa465ffed160a8fb'
 INSTAGRAM_CLIENT_SECRET = 'aac059c1acb341d3b44b9139dc106dbe'
