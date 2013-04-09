@@ -23,13 +23,15 @@ def queue_processing(image_url,
     store_slug="generic", image_type="generic", product_id=0):
 
     """Very basic way to queue images into ImageService"""
+    if 'imageservice.elasticbeanstalk.com' in image_url:
+        return image_url
 
     api_url = construct_api_url(image_url, store_slug, image_type, product_id)
 
     try:
         res = json.load(urllib2.urlopen(api_url))
 
-    except (urllib2.URLError, urllib2.HTTPError, ValueError):
+    except (urllib2.URLError, urllib2.HTTPError, ValueError), e:
         return None
 
     else:
