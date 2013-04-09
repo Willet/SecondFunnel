@@ -230,12 +230,13 @@ def upload_asset(request, store_id):
 
     try:
         media = upload_image(request)
+        url = media.get_url()
         asset = create_external_content(
             store,
             type='upload-image',
-            original_id=media.get_url(),
-            text_content=media.get_url(),
-            image_url=media.get_url()
+            original_id=url,
+            text_content=url,
+            image_url=url
         )
     except Exception, e:
         ajax_error()
