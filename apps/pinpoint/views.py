@@ -29,10 +29,12 @@ from apps.analytics.models import Category
 from apps.assets.models import ExternalContent, ExternalContentType, \
     Product, Store
 from apps.intentrank.views import get_seeds
+from apps.pinpoint.ajax import upload_image
 from apps.pinpoint.models import Campaign, BlockType
 from apps.pinpoint.decorators import belongs_to_store
 import apps.pinpoint.wizards as wizards
 from apps.utils import noop
+from apps.utils.ajax import ajax_error, ajax_success
 import apps.utils.base62 as base62
 from apps.utils.caching import nocache
 from apps.utils.s3_conn import get_or_create_s3_website
@@ -189,6 +191,57 @@ def analytics_admin(request, store, campaign=False, is_overview=True):
     }, context_instance=RequestContext(request))
 
 
+def create_external_content(store, **obj):
+    content_type = ExternalContentType.objects.get(slug=obj.get('type'))
+
+    new_content, created = ExternalContent.objects.get_or_create(
+        store=store,
+        original_id=obj.get('original_id'),
+        content_type=content_type)
+
+    if created:
+        new_content.text_content = obj.get('text_content')
+
+        new_image_url = queue_processing(
+            obj.get('image_url'),
+            store_slug=store.slug,
+            image_type=obj.get('type')
+        )
+
+        # imageservice might or might not be working today,
+        # so lets be careful with it
+        if new_image_url:
+            new_content.image_url = new_image_url
+
+    # Any fields that should be periodically updated
+    new_content.original_url = obj.get('original_url')
+    new_content.username = obj.get('username')
+    new_content.likes = obj.get('likes')
+    new_content.user_image = obj.get('user-image')
+    new_content.save()
+    return new_content
+
+@login_required
+def upload_asset(request, store_id):
+    store = get_object_or_404(Store, pk=store_id)
+
+    if not request.method == 'POST':
+        return ajax_error()
+
+    try:
+        media = upload_image(request)
+        asset = create_external_content(
+            store,
+            type='upload-image',
+            original_id=media.get_url(),
+            text_content=media.get_url(),
+            image_url=media.get_url()
+        )
+    except Exception, e:
+        ajax_error()
+
+    return ajax_success()
+
 @belongs_to_store
 @login_required
 def asset_manager(request, store_id):
@@ -201,6 +254,9 @@ def asset_manager(request, store_id):
     accounts = []
     xcontent_types = ExternalContentType.objects.filter(enabled=True)
     for xcontent_type in xcontent_types:
+        if xcontent_type.slug.startswith('upload'):
+            continue
+
         try:
             account_user = store.social_auth.get(provider=xcontent_type.slug)
         except UserSocialAuth.DoesNotExist:
@@ -218,33 +274,7 @@ def asset_manager(request, store_id):
             contents = adapter.get_content(count=500)
 
             for obj in contents:
-                content_type = ExternalContentType.objects.get(slug=obj.get('type'))
-
-                new_content, created = ExternalContent.objects.get_or_create(
-                    store=store,
-                    original_id=obj.get('original_id'),
-                    content_type=content_type)
-
-                if created:
-                    new_content.text_content = obj.get('text_content')
-
-                    new_image_url = queue_processing(
-                        obj.get('image_url'),
-                        store_slug=store.slug,
-                        image_type=obj.get('type')
-                    )
-
-                    # imageservice might or might not be working today,
-                    # so lets be careful with it
-                    if new_image_url:
-                        new_content.image_url = new_image_url
-
-                # Any fields that should be periodically updated
-                new_content.original_url=obj.get('original_url')
-                new_content.username=obj.get('username')
-                new_content.likes = obj.get('likes')
-                new_content.user_image = obj.get('user-image')
-                new_content.save()
+                create_external_content(store, **obj)
 
         accounts.append({
             'type': xcontent_type.slug,

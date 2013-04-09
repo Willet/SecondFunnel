@@ -39,10 +39,7 @@ def modify_campaign(request, live):
     return ajax_success()
 
 
-@login_required
 def upload_image(request):
-    if not request.method == 'POST':
-        return ajax_error()
     # in IE this gets sent as a file
     if 'qqfile' in request.FILES:
         try:
@@ -50,10 +47,8 @@ def upload_image(request):
             imgField = ImageField().clean(request.FILES['qqfile'], media)
             media.hosted.save(imgField.name, imgField)
             media.save()
-        except KeyError:
-            return ajax_error()
-        except ValidationError:
-            return ajax_error()
+        except (KeyError, ValidationError), e:
+            raise e
 
     # in other browsers we read this using request.read
     else:
@@ -63,8 +58,8 @@ def upload_image(request):
         try:
             # get file size
             fileSize = int(uploaded.im_self.META.get("CONTENT_LENGTH", None))
-        except TypeError:
-            return ajax_error()
+        except TypeError, e:
+            raise e
 
         # get file name
         fileName = request.GET.get('qqfile', None)
@@ -80,8 +75,20 @@ def upload_image(request):
             imgField = ImageField().clean(ContentFile(fileContent, name=fileName), media)
             media.hosted.save(fileName, imgField)
             media.save()
-        except ValidationError:
-            return ajax_error()
+        except ValidationError, e:
+            raise e
+
+    return media
+
+@login_required
+def ajax_upload_image(request):
+    if not request.method == 'POST':
+        return ajax_error()
+
+    try:
+        media = upload_image(request)
+    except:
+        return ajax_error()
 
     return ajax_success({
         'media_id': media.id,
