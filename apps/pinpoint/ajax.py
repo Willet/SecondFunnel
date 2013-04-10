@@ -55,11 +55,8 @@ def upload_image(request):
         # read file info from stream
         uploaded = request.read
 
-        try:
-            # get file size
-            fileSize = int(uploaded.im_self.META.get("CONTENT_LENGTH", None))
-        except TypeError, e:
-            raise e
+        # get file size
+        fileSize = int(uploaded.im_self.META.get("CONTENT_LENGTH", None))
 
         # get file name
         fileName = request.GET.get('qqfile', None)
@@ -70,13 +67,10 @@ def upload_image(request):
         # read the file content, if it is not read when the request is multi part then the client get an error
         fileContent = uploaded(fileSize)
 
-        try:
-            media = GenericImage()
-            imgField = ImageField().clean(ContentFile(fileContent, name=fileName), media)
-            media.hosted.save(fileName, imgField)
-            media.save()
-        except ValidationError, e:
-            raise e
+        media = GenericImage()
+        imgField = ImageField().clean(ContentFile(fileContent, name=fileName), media)
+        media.hosted.save(fileName, imgField)
+        media.save()
 
     return media
 
