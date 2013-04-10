@@ -18,6 +18,7 @@ from apps.pinpoint.utils import render_campaign
 import apps.pinpoint.wizards as wizards
 
 import apps.utils.base62 as base62
+import apps.utils.caching.nocache as nocache
 
 from apps.utils.image_service.api import queue_processing
 from apps.utils.social.utils import get_adapter_class
