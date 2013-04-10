@@ -11,6 +11,7 @@ from celery import task, group
 from celery.utils.log import get_task_logger
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 
 from apps.assets.models import Store
 from apps.pinpoint.models import Campaign
