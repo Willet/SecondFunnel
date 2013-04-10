@@ -8,7 +8,6 @@ from django.db.models.signals import post_save
 from social_auth.db.django_models import UserSocialAuth
 
 from apps.utils.image_service.hooks import media_saved
-from apps.static_pages.hooks import store_saved
 
 
 class BaseModel(models.Model):
@@ -303,4 +302,3 @@ class ExternalContentType(BaseModelNamed):
 
 # signals
 post_save.connect(media_saved, sender=GenericImage)
-post_save.connect(store_saved, sender=Store)
