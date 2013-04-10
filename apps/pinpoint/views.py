@@ -285,7 +285,7 @@ def app_exception_handler(request):
     """Renders the "something broke" page. JS console shows the error."""
     import sys, traceback
 
-    exception_type, exception, tb = sys.exc_info()
+    _, exception, _ = sys.exc_info()
     stack = traceback.format_exc().splitlines()
 
     return HttpResponseServerError(loader.get_template('500.html').render(
