@@ -75,12 +75,14 @@ def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
 
     obj = Key(bucket)
     obj.key = filename
-    obj.set_contents_from_string(
+    bytes_written = obj.set_contents_from_string(
         content.encode("utf-8"),
         headers={"Content-Type": content_type}
     )
     if public:
         obj.set_acl('public-read')
+
+    return bytes_written
 
 
 def get_bucket_zone_id(bucket):

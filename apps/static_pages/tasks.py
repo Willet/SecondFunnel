@@ -159,6 +159,13 @@ def generate_static_campaign(campaign_id):
     else:
         bucket_name = "{}.secondfunnel.com".format(campaign.store.slug)
 
-    upload_to_bucket(bucket_name, filename, rendered_content, public=True)
+    bytes_written = upload_to_bucket(
+        bucket_name, filename, rendered_content, public=True)
 
-    save_static_log(Campaign, campaign.id, "CA")
+    if bytes_written > 0:
+        save_static_log(Campaign, campaign.id, "CA")
+
+    # boto claims it didn't write anything to S3
+    else:
+        logger.error("Error uploading campaign #{}: wrote 0 bytes".format(
+            campaign_id))
