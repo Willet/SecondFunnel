@@ -3,6 +3,7 @@ S3 and Route53 helpers
 """
 
 import re
+import functools
 
 from django.conf import settings
 
@@ -13,6 +14,7 @@ from boto.route53.connection import Route53Connection
 from boto.route53.record import ResourceRecordSets
 from boto.route53.exception import DNSServerError
 
+from apps.static_pages.decorators import connection_required, get_connection
 
 
 # Source: http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
@@ -29,32 +31,12 @@ S3_WEBSITE_HOSTED_ZONE_IDS = {
     's3-website-us-gov-west-1.amazonaws.com': 'Z31GFT0UA1I2HV'
 }
 
-S3_SERVICE_CLASSES = {
-    's3': S3Connection,
-    'route53': Route53Connection
-}
 
-def get_connection(service):
-    """
-    Returns an appropriate connection object.
-    """
-    service_class = S3_SERVICE_CLASSES.get(service)
-
-    if not service_class:
-        raise ValueError(
-            "Connection to service not supported: {}".format(service))
-
-    return service_class(aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
-
-
+@connection_required("route53")
 def get_route53_change_status(change_id, conn=None):
     """
     Returns change status, or None if change is missing.
     """
-    if not conn:
-        conn = get_connection('route53')
-
     try:
         change = conn.get_change(change_id)
 
@@ -104,13 +86,11 @@ def get_bucket_zone_id(bucket):
     return zone, endpoint
 
 
+@connection_required("route53")
 def get_hosted_zone_id(zone_name, conn=None):
     """
     Looks up a hosted zone by provided name and returns its ID
     """
-    if not conn:
-        conn = get_connection('route53')
-
     zone = conn.get_hosted_zone_by_name(zone_name)
     if not zone:
         raise KeyError(
@@ -126,15 +106,13 @@ def get_hosted_zone_id(zone_name, conn=None):
     return zoneid_match.group('zoneid')
 
 
+@connection_required("s3")
 def get_or_create_website_bucket(bucket_name, conn=None):
     """
     Gets or creates an S3 bucket by name. If created, bucket is set as public
     and configured with website hosting enabled. If bucket already exists,
     it is not modified.
     """
-    if not conn:
-        conn = get_connection('s3')
-
     new_bucket = False
     bucket = conn.lookup(bucket_name)
 
