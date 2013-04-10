@@ -324,7 +324,7 @@ class Campaign(BaseModelNamed):
     # static generators work towards having this flag as True for all campaigns
     # to regenerate, mark it as False
     has_static_copy = models.BooleanField(default=False)
-    static_copy_timestamp = models.DateTimeField(blank=True)
+    static_copy_timestamp = models.DateTimeField(blank=True, null=True)
 
     def __unicode__(self):
         return u"Campaign: %s" % self.name
