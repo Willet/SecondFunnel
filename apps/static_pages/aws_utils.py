@@ -94,13 +94,14 @@ def get_bucket_zone_id(bucket):
     endpoint = bucket.get_website_endpoint()
     endpoint = endpoint.replace("{}.".format(bucket.name), "")
 
-    try:
-        return S3_WEBSITE_HOSTED_ZONE_IDS[endpoint], endpoint
+    zone = S3_WEBSITE_HOSTED_ZONE_IDS.get(endpoint)
 
-    except KeyError:
+    if not zone:
         raise KeyError(
             "Unrecognized S3 Website endpoint: {}. Consult AWS documentation.".format(
                 endpoint))
+
+    return zone, endpoint
 
 
 def get_hosted_zone_id(zone_name, conn=None):
