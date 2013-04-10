@@ -8,6 +8,7 @@ from social_auth.db.django_models import UserSocialAuth
 
 from apps.assets.models import (MediaBase, BaseModel, BaseModelNamed,
     Store, GenericImage, Product, ProductMedia)
+from apps.static_pages.hooks import campaign_saved
 
 def page_template_includes(value):
     # Ought to be a staticmethod, but can't for whatever reason...
@@ -420,3 +421,6 @@ class ShopTheLookBlock(BaseModelNamed):
             raise ValidationError('Block needs at least one product image.')
         if not (self.existing_ls_image or self.custom_ls_image):
             raise ValidationError('Block needs at least one STL image.')
+
+# signals
+post_save.connect(campaign_saved, sender=Campaign)

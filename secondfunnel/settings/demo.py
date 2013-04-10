@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'apps.pinpoint',
     'apps.website',
     'apps.scraper',
+    'apps.static_pages',
 )
 
 # URL prefix for static files.

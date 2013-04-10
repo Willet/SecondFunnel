@@ -377,13 +377,13 @@ var PINPOINT = (function($, pageInfo) {
         exceededThreshold = ((userClicks % clickThreshold) == 0);
 
         $.ajax({
-            url: '/intentrank/update-clickstream/',
+            url: 'http://secondfunnel.com/intentrank/update-clickstream/?callback=?',
             data: {
                 'store': details.store.id,
                 'campaign': details.page.id,
                 'product_id': id
             },
-            dataType: 'json',
+            dataType: 'jsonp',
             success: function() {
                 if (exceededThreshold) {
                     loadMoreResults(true)
@@ -397,13 +397,13 @@ var PINPOINT = (function($, pageInfo) {
             loadingBlocks = true;
             if (!details.page.offline) {
                 $.ajax({
-                    url: '/intentrank/get-seeds/',
+                    url: 'http://secondfunnel.com/intentrank/get-seeds/?callback=?',
                     data: {
                         'store': details.store.id,
                         'campaign': details.page.id,
                         'seeds': details.product['product-id']
                     },
-                    dataType: 'json',
+                    dataType: 'jsonp',
                     success: function(results) {
                         layoutResults(results);
                     },
@@ -424,7 +424,7 @@ var PINPOINT = (function($, pageInfo) {
             loadingBlocks = true;
             if (!details.page.offline) {
                 $.ajax({
-                    url: '/intentrank/get-results/',
+                    url: 'http://secondfunnel.com/intentrank/get-results/?callback=?',
                     data: {
                         'store': details.store.id,
                         'campaign': details.campaign.id,
@@ -435,7 +435,7 @@ var PINPOINT = (function($, pageInfo) {
                         // normally ignored, unless IR call fails and we'll resort to getseeds
                         'seeds': details.featured.id
                     },
-                    dataType: 'json',
+                    dataType: 'jsonp',
                     success: function(results) {
                         layoutResults(results, belowFold);
                     },
@@ -453,8 +453,8 @@ var PINPOINT = (function($, pageInfo) {
 
     function invalidateIRSession () {
         $.ajax({
-            url: '/intentrank/invalidate-session/',
-            dataType: 'json'
+            url: 'http://secondfunnel.com/intentrank/invalidate-session/?callback=?',
+            dataType: 'jsonp'
         });
     }
 
@@ -583,12 +583,12 @@ var PINPOINT = (function($, pageInfo) {
                 if (thumbObj && thumbObj.url) {
                     thumbURL = thumbObj.url;
                 }  // else fallback to the default thumbURL
-                
+
                 var containers = $(".youtube[data-label='" + video.id + "']");
                 containers.each(function () {
                     var container = $(this),
                         uniqueThumbnailID = generateID('thumb-' + video.id);
-                    
+
                     var thumbnail = $('<div />', {
                         'css': {  // this is to trim the 4:3 black bars
                             'overflow': 'hidden',
