@@ -58,6 +58,7 @@ def get_route53_change_status(change_id, conn=None):
     try:
         change = conn.get_change(change_id)
 
+    # Change with provided ID does not exist
     except DNSServerError:
         return None
 
