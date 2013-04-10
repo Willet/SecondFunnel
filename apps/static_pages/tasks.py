@@ -17,7 +17,7 @@ from apps.pinpoint.models import Campaign
 from apps.pinpoint.utils import render_campaign
 from apps.static_pages.models import StaticLog
 
-from apps.static_pages.s3_utils import (create_bucket_website_alias,
+from apps.static_pages.aws_utils import (create_bucket_website_alias,
     get_route53_change_status, get_or_create_website_bucket, upload_to_bucket)
 from apps.static_pages.utils import save_static_log
 
