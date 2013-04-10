@@ -92,11 +92,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
     page = Template(page_str)
 
     # Render response
-    # TODO: what's happening with this IF? I heard you like unicode...
     rendered_page = page.render(context)
-    if isinstance(rendered_page, unicode):
-        rendered_page = rendered_page.encode('utf-8')
-
     rendered_page = unicode(rendered_page, 'utf-8')
 
     return rendered_page
