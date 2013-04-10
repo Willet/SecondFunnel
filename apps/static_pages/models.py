@@ -11,6 +11,7 @@ class StaticLog(models.Model):
     LOG_TYPES = (
         ('BU', 'Static Website Bucket'),
         ('CA', 'Static Campaign Page'),
+        ('PE', 'Pending'),
     )
 
     content_type = models.ForeignKey(ContentType)

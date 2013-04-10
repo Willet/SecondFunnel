@@ -174,11 +174,13 @@ def create_bucket_website_alias(desired_name):
     try:
         res = all_changes.commit()
 
+        change_info = res['ChangeResourceRecordSetsResponse']['ChangeInfo']
+        return bucket, change_info['Status'], change_info['Id'].split("/")[2]
+
     except DNSServerError, err:
         # attempts to create duplicate records are ignored
         if not "already exists" in str(err):
             raise
 
-    else:
-        change_info = res['ChangeResourceRecordSetsResponse']['ChangeInfo']
-        return bucket, change_info['Status'], change_info['Id'].split("/")[2]
+        else:
+            return bucket, "INSYNC", 0

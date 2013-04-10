@@ -12,6 +12,7 @@ from celery.utils.log import get_task_logger
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
 
 from apps.assets.models import Store
 from apps.pinpoint.models import Campaign
@@ -20,31 +21,22 @@ from apps.static_pages.models import StaticLog
 
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
     get_route53_change_status, get_or_create_website_bucket, upload_to_bucket)
-from apps.static_pages.utils import save_static_log
+from apps.static_pages.utils import (save_static_log, remove_static_log,
+    bucket_exists_or_pending)
 
 # TODO: make use of logging, instead of suppressing errors as is done now
 logger = get_task_logger(__name__)
 
 
-@task()
-def create_bucket_for_stores():
-    stores = Store.objects.all()
-    store_type = ContentType.objects.get_for_model(Store)
+ROUTE_53_LOCK_EXPIRE = 60 * 5
+ROUTE_53_LOCK = "r53-lock"
 
-    without_buckets = []
-    for store in stores:
-        log_entries = StaticLog.objects.filter(
-            content_type=store_type, object_id=store.id, key="BU")
-
-        if len(log_entries) == 0:
-            without_buckets.append(store)
-
-    task_group = group(create_bucket_for_store.s(s.id) for s in without_buckets)
-    task_group.apply_async()
+ACQUIRE_LOCK = lambda: cache.add(
+    ROUTE_53_LOCK, "true", ROUTE_53_LOCK_EXPIRE)
+RELEASE_LOCK = lambda: cache.delete(ROUTE_53_LOCK)
 
 
-@task()
-def create_bucket_for_store(store_id):
+def change_complete(store_id):
     try:
         store = Store.objects.get(id=store_id)
 
@@ -52,12 +44,53 @@ def create_bucket_for_store(store_id):
         logger.error("Store #{} does not exist".format(store_id))
         return
 
-    bucket_name = "{}.secondfunnel.com".format(store.slug)
-    _, change_status, change_id = create_bucket_website_alias(bucket_name)
+    save_static_log(Store, store.id, "BU")
+    remove_static_log(Store, store.id, "PE")
 
-    if change_status == "PENDING":
-        # wait at least 10 seconds before executing a check
-        confirm_change_success.subtask((change_id, store_id), countdown=10)
+    RELEASE_LOCK()
+
+
+@task()
+def create_bucket_for_stores():
+    stores = Store.objects.all()
+
+    without_buckets = []
+    for store in stores:
+        if not bucket_exists_or_pending(store):
+            without_buckets.append(store)
+
+    task_group = group(create_bucket_for_store.s(s.id) for s in without_buckets)
+
+    task_group.apply_async()
+
+
+@task()
+def create_bucket_for_store(store_id):
+    if ACQUIRE_LOCK():
+        try:
+            store = Store.objects.get(id=store_id)
+
+        except Store.DoesNotExist:
+            logger.error("Store #{} does not exist".format(store_id))
+            return
+
+        if bucket_exists_or_pending(store):
+            return
+
+        save_static_log(Store, store.id, "PE")
+
+        _, change_status, change_id = create_bucket_website_alias(
+            "{}.secondfunnel.com".format(store.slug))
+
+        if change_status == "PENDING":
+            confirm_change_success.subtask((change_id, store_id)).delay()
+
+        else:
+            change_complete(store_id)
+
+    # route53 is currently locked; try again in >5 seconds
+    else:
+        create_bucket_for_store.subtask((store_id,), countdown=5).delay()
 
 
 @task()
@@ -71,18 +104,11 @@ def confirm_change_success(change_id, store_id):
 
     # change has not been applied yet
     if change_status == "PENDING":
-        confirm_change_success.subtask((change_id, store_id), countdown=10)
+        confirm_change_success.subtask((change_id, store_id), countdown=5).delay()
 
     # change has been applied. Save that into log
     elif change_status == "INSYNC":
-        try:
-            store = Store.objects.get(id=store_id)
-
-        except Store.DoesNotExist:
-            logger.error("Store #{} does not exist".format(store_id))
-            return
-
-        save_static_log(Store, store.id, "BU")
+        change_complete(store_id)
 
     # not supposed to happen.
     # somehow Route53 API is returning an unknown change status
