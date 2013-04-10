@@ -29,18 +29,18 @@ S3_WEBSITE_HOSTED_ZONE_IDS = {
     's3-website-us-gov-west-1.amazonaws.com': 'Z31GFT0UA1I2HV'
 }
 
+S3_SERVICE_CLASSES = {
+    's3': S3Connection,
+    'route53': Route53Connection
+}
 
 def get_connection(service):
     """
     Returns an appropriate connection object.
     """
-    if service == 's3':
-        service_class = S3Connection
+    service_class = S3_SERVICE_CLASSES.get(service)
 
-    elif service == 'route53':
-        service_class = Route53Connection
-
-    else:
+    if not service_class:
         raise ValueError(
             "Connection to service not supported: {}".format(service))
 
