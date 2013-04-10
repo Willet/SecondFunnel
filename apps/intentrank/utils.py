@@ -63,6 +63,6 @@ def random_products(store, param_dict, id_only=True):
 
     return results[:num_results]
 
-def ajax_jsonp(result, callback, status=200):
-    return HttpResponse("{0}({1});".format(callback, json.dumps(result)),
+def ajax_jsonp(result, callback_name, status=200):
+    return HttpResponse("{0}({1});".format(callback_name, json.dumps(result)),
         mimetype='application/json', status=status)
