@@ -5,6 +5,7 @@ Various PinPoint celery tasks: static pages, asset manager, etc
 import re
 import urllib2
 from urlparse import urlunparse
+from datetime import datetime
 
 from celery import task, group
 from celery.utils.log import get_task_logger
@@ -47,6 +48,10 @@ def generate_static_campaign(campaign_id):
 
     rendered_content = render_campaign(campaign)
     save_to_static_storage(campaign, rendered_content)
+
+    campaign.has_static_copy = True
+    campaign.static_copy_timestamp = datetime.now()
+    campaign.save()
 
 
 def save_to_static_storage(campaign, content):
