@@ -242,7 +242,7 @@ class StoreTheme(BaseModelNamed):
             'body_content': {
                 'type': 'template',
                 'values': ['pinpoint/default_templates.html',
-                           'pinpoint/campaign_scripts.html']
+                           'pinpoint/campaign_scripts_container.html']
             },
             'js_templates': {
                 'type': 'theme',
@@ -420,24 +420,3 @@ class ShopTheLookBlock(BaseModelNamed):
             raise ValidationError('Block needs at least one product image.')
         if not (self.existing_ls_image or self.custom_ls_image):
             raise ValidationError('Block needs at least one STL image.')
-
-
-def social_auth_changed(*args, **kwargs):
-    instance = kwargs.get('instance')
-    created = kwargs.get('created')
-
-    if not (instance and created):
-        return
-
-    # Superusers tend to belong to multiple stores; don't associate if so.
-    if instance.user.is_superuser:
-        return
-
-    stores = Store.objects.filter(staff=instance.user)
-
-    for store in stores:
-        store.social_auth.add(instance)
-        store.save()
-
-
-post_save.connect(social_auth_changed, sender=UserSocialAuth)

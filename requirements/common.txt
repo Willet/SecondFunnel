@@ -1,4 +1,5 @@
 Django==1.4.1
+Fabric==1.6.0
 MySQL-python==1.2.3
 PIL==1.1.7
 South==0.7.6
@@ -7,15 +8,17 @@ boto==2.8.0
 cssmin==0.1.4
 django-ajax-forms
 django-compressor==1.2
+django-fancy-cache==0.4.0
 django-extensions==0.9
 git+git://github.com/Willet/django-maintenancemode.git@fed4195
 django-storages==1.1.5
 django-tastypie==0.9.11
-django-social-auth==0.7.18
+django-social-auth==0.7.22
 lxml==2.3.2
 python-dateutil==1.5
 python-memcached==1.48
 python-instagram==0.8.0
+python-tumblpy==0.7.1
 httplib2==0.7.7
 wsgiref==0.1.2
 mock==1.0.0

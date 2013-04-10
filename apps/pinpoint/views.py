@@ -1,28 +1,15 @@
-import json
-import re
-from datetime import datetime
-from functools import partial
-from urlparse import urlunparse
-
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.template import RequestContext, Template, Context, loader
+from django.template import RequestContext, Context, loader
 from django.http import HttpResponse, HttpResponseServerError
 from django.contrib.contenttypes.models import ContentType
-from django.template.defaultfilters import slugify, safe
-from django.utils.encoding import force_unicode
-from django.views.decorators.cache import cache_page
+from fancy_cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
 
-import boto
-from boto.s3.connection import S3Connection
-
 from apps.analytics.models import Category
-from apps.assets.models import ExternalContent, ExternalContentType, \
-    Product, Store
+from apps.assets.models import ExternalContent, ExternalContentType, Store
 from apps.intentrank.views import get_seeds
 
 from apps.pinpoint.models import Campaign, BlockType
@@ -30,10 +17,11 @@ from apps.pinpoint.decorators import belongs_to_store
 from apps.pinpoint.utils import render_campaign
 import apps.pinpoint.wizards as wizards
 
-from apps.utils import noop
 import apps.utils.base62 as base62
-from apps.utils.social.instagram_adapter import Instagram
+
 from apps.utils.image_service.api import queue_processing
+from apps.utils.social.utils import get_adapter_class
+
 
 @login_required
 def login_redirect(request):
@@ -63,9 +51,9 @@ def login_success_redirect(request):
 
 
 @login_required
-def social_auth(request):
+def social_auth_redirect(request):
     """
-    Redirect after some social action (account association, probably).
+    Redirect after some social-auth action (association, or disconnection).
 
     @param request: The request for this page.
 
@@ -193,57 +181,65 @@ def asset_manager(request, store_id):
     store = get_object_or_404(Store, pk=store_id)
     user = request.user
 
-    # Check if connected to Instagram... for now
-    try:
-        instagram_user = store.social_auth.get(provider='instagram')
-    except UserSocialAuth.DoesNotExist:
-        instagram_user = None
-
-    if not instagram_user:
+    accounts = []
+    xcontent_types = ExternalContentType.objects.filter(enabled=True)
+    for xcontent_type in xcontent_types:
         try:
-            instagram_user = user.social_auth.get(provider='instagram')
+            account_user = store.social_auth.get(provider=xcontent_type.slug)
         except UserSocialAuth.DoesNotExist:
-            instagram_user = None
+            account_user = None
 
-    if instagram_user:
-        instagram_connector = Instagram(tokens=instagram_user.tokens)
-        contents = instagram_connector.get_content(count=500)
+        if not account_user:
+            try:
+                account_user = user.social_auth.get(provider=xcontent_type.slug)
+            except UserSocialAuth.DoesNotExist:
+                account_user = None
 
-        for instagram_obj in contents:
-            content_type = ExternalContentType.objects.get(
-                slug=instagram_obj.get('type'))
+        if account_user:
+            cls = get_adapter_class(xcontent_type.classname)
+            adapter = cls(tokens=account_user.tokens)
+            contents = adapter.get_content(count=500)
 
-            new_content, created = ExternalContent.objects.get_or_create(
-                store=store,
-                original_id=instagram_obj.get('original_id'),
-                content_type=content_type)
+            for obj in contents:
+                content_type = ExternalContentType.objects.get(slug=obj.get('type'))
 
-            if created:
-                new_content.text_content = instagram_obj.get('text_content')
+                new_content, created = ExternalContent.objects.get_or_create(
+                    store=store,
+                    original_id=obj.get('original_id'),
+                    content_type=content_type)
 
-                new_image_url = queue_processing(
-                    instagram_obj.get('image_url'),
-                    store_slug=store.slug,
-                    image_type=instagram_obj.get('type')
-                )
+                if created:
+                    new_content.text_content = obj.get('text_content')
 
-                # imageservice might or might not be working today,
-                # so lets be careful with it
-                if new_image_url:
-                    new_content.image_url = new_image_url
+                    new_image_url = queue_processing(
+                        obj.get('image_url'),
+                        store_slug=store.slug,
+                        image_type=obj.get('type')
+                    )
 
-            # Any fields that should be periodically updated
-            new_content.original_url=instagram_obj.get('original_url')
-            new_content.username=instagram_obj.get('username')
-            new_content.likes = instagram_obj.get('likes')
-            new_content.user_image = instagram_obj.get('user-image')
-            new_content.save()
+                    # imageservice might or might not be working today,
+                    # so lets be careful with it
+                    if new_image_url:
+                        new_content.image_url = new_image_url
+
+                # Any fields that should be periodically updated
+                new_content.original_url=obj.get('original_url')
+                new_content.username=obj.get('username')
+                new_content.likes = obj.get('likes')
+                new_content.user_image = obj.get('user-image')
+                new_content.save()
+
+        accounts.append({
+            'type': xcontent_type.slug,
+            'connected': account_user,
+            'data': getattr(account_user, 'extra_data', {})
+        })
 
     all_contents = store.external_content.all()
 
     return render_to_response('pinpoint/asset_manager.html', {
         "store": store,
-        "instagram_user": instagram_user,
+        "accounts": accounts,
         "content": [
             ("Needs Review", "needs_review",
                 all_contents.filter(approved=False, active=True)),
@@ -257,7 +253,7 @@ def asset_manager(request, store_id):
 
 
 # origin: campaigns with short URLs are cached for 30 minutes
-@cache_page(60 * 30)
+@cache_page(60 * 30, key_prefix=nocache)
 def campaign_short(request, campaign_id_short):
     """base62() is a custom function, so to figure out the long
     campaign URL, go to http://elenzil.com/esoterica/baseConversion.html
@@ -265,7 +261,15 @@ def campaign_short(request, campaign_id_short):
 
     The long URL is (currently) /pinpoint/(long ID).
     """
-    return campaign(request, base62.decode(campaign_id_short))
+
+    campaign_id = base62.decode(campaign_id_short)
+
+    if any(x in request.GET for x in ['dev', 'unshorten']):
+        response = redirect('campaign', campaign_id=campaign_id)
+        response['Location'] += '?{0}'.format(urlencode(request.GET))
+        return response
+
+    return campaign(request, campaign_id)
 
 
 def campaign(request, campaign_id):

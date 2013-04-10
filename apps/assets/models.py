@@ -295,6 +295,7 @@ class ExternalContent(BaseModel):
 class ExternalContentType(BaseModelNamed):
     """i.e. "Instagram"."""
     enabled = models.BooleanField(default=True)
+    classname = models.CharField(max_length=128, default='')
 
     def __unicode__(self):
         return unicode(self.name) or u''
