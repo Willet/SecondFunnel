@@ -1,3 +1,4 @@
+from urllib import urlencode
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login
@@ -196,8 +197,22 @@ def asset_manager(request, store_id):
             except UserSocialAuth.DoesNotExist:
                 account_user = None
 
+        # Add the account regardless of if we have a user or not
+        # We use this to determine which accounts to show
+        accounts.append({
+            'type': xcontent_type.slug,
+            'connected': account_user,
+            'data': getattr(account_user, 'extra_data', {})
+        })
+
+        # If we do have an account, start fetching content
         if account_user:
             cls = get_adapter_class(xcontent_type.classname)
+
+            # If we can't get an adapter class, don't try to load content
+            if not cls:
+                continue
+
             adapter = cls(tokens=account_user.tokens)
             contents = adapter.get_content(count=500)
 
@@ -229,12 +244,6 @@ def asset_manager(request, store_id):
                 new_content.likes = obj.get('likes')
                 new_content.user_image = obj.get('user-image')
                 new_content.save()
-
-        accounts.append({
-            'type': xcontent_type.slug,
-            'connected': account_user,
-            'data': getattr(account_user, 'extra_data', {})
-        })
 
     all_contents = store.external_content.all()
 
