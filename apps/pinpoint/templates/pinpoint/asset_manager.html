@@ -633,7 +633,7 @@
                 <div class='connection-status'>
                     <span class='status'></span>
                     <span class='username'>
-                        {{ account.data.username }}
+                        {{ account.data.username|default:'<em>Unavailable</em>' }}
                     </span>
                 </div>
                 <div class='disconnection-status'>
