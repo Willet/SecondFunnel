@@ -73,3 +73,9 @@ STATIC_CAMPAIGNS_BUCKET_NAME = 'campaigns-test.secondfunnel.com'
 # Nick's test instagram client; good for secondfunnel-test
 INSTAGRAM_CLIENT_ID = '3fc578b28e2a4b43a51ea2fa735599fd'
 INSTAGRAM_CLIENT_SECRET = '1e12ec8c92304cd28582df05ab430762'
+
+TUMBLR_CONSUMER_KEY = '0Y1uvESsK0gXkxfIFXfpU8OdlQN1QmMWenLo7ErDew3xDwtmcm'
+TUMBLR_CONSUMER_SECRET = 'x2ElUhS9USOO57rqWZv8ElVYgAkaHoIbvTkExSR6vH5HeUnh5R'
+
+GOOGLE_OAUTH2_CLIENT_ID = '218187505707-qj44j9dm83erjq9rukb5i4qvjd06q6pn.apps.googleusercontent.com'
+GOOGLE_OAUTH2_CLIENT_SECRET = '1neVql1cfpEbP8XGhTM60Taa'
