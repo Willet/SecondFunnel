@@ -112,7 +112,7 @@
             margin-left: auto;
             margin-right: auto;
             width: 350px;
-            line-height: 32px;
+            line-height: 48px;
             padding-top: 10px;
         }
 
@@ -132,19 +132,19 @@
         .account-row .connection-status .status {
             display: block;
             background: url("{% static 'pinpoint/images/icon-check-16x16.png'%}") center center no-repeat;
-            height: 32px;
+            height: 48px;
             width:  32px;
             float: left;
         }
 
         .account-row .icon {
             width: 60px;
-            height: 32px;
+            height: 48px;
             background: no-repeat center center;
         }
 
         .account-row .button {
-            height: 32px;
+            height: 48px;
             padding: 0px 10px;
         }
 
@@ -157,7 +157,7 @@
             background-image: url("{% static 'pinpoint/images/icon-instagram-alt-48.png'%}")
         }
 
-        .icon.youtube {
+        .icon.youtube.large, .icon.google-oauth2.large {
             background-image: url("{% static 'pinpoint/images/icon-youtube-alt-48.png'%}")
         }
 
@@ -626,8 +626,8 @@
 
             {% for account in accounts %}
             <div class='account-row'>
-                <div class='icon {{ account.type }}'>
-                    <span class='text'>{{ account.type }}</span>
+                <div class='icon large {{ account.type }}'>
+                    <span class='text'>&nbsp;</span>
                 </div>
                 {% if account.connected %}
                 <div class='connection-status'>
