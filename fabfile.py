@@ -2,18 +2,18 @@
 Automated deployment tasks
 """
 from fabric.api import roles, run, cd, execute, settings, env, sudo
+from fabric.colors import green, yellow
+from secondfunnel.settings import common as settings
+
+import boto.ec2
+import itertools
 
 env.user = 'ec2-user'
-env.roledefs = {
-    'celery': [
-        'ec2-54-244-159-249.us-west-2.compute.amazonaws.com',
-        'ec2-54-244-215-223.us-west-2.compute.amazonaws.com',
-    ],
-}
 
 @roles('celery')
 def deploy_celery(branch):
     """Deploys new code to celery workers and restarts them"""
+    print green("Deploying '{}' to celery worker".format(branch))
 
     env_path = "/home/ec2-user/pinpoint/env"
     project_path = "{}/SecondFunnel".format(env_path)
@@ -51,4 +51,15 @@ def deploy_celery(branch):
 
 def deploy(branch='master'):
     """Runs all of our deployment tasks"""
-    execute(deploy_celery, branch)
+
+    ec2 = boto.ec2.connect_to_region("us-west-2",
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+
+    res = ec2.get_all_instances(filters={'tag:Name': 'CeleryWorker'})
+    instances = [r.instances for r in res]
+    chain = itertools.chain(*instances)
+    celery_workers = [i.public_dns_name for i in list(chain)]
+
+    print yellow("Celery Worker instances: {}".format(celery_workers))
+    execute(deploy_celery, branch, hosts=celery_workers)
