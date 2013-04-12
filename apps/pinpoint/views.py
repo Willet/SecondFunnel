@@ -18,6 +18,7 @@ from django.http import HttpResponse, HttpResponseServerError
 from django.contrib.contenttypes.models import ContentType
 from django.template.defaultfilters import slugify, safe
 from django.utils.encoding import force_unicode
+from django.views.decorators.http import require_POST
 from fancy_cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
 from storages.backends.s3boto import S3BotoStorage
@@ -221,13 +222,11 @@ def create_external_content(store, **obj):
     new_content.save()
     return new_content
 
+@require_POST
 @login_required
 def upload_asset(request, store_id):
     store = get_object_or_404(Store, pk=store_id)
-
-    if not request.method == 'POST':
-        return ajax_error()
-
+    
     try:
         media = upload_image(request)
         url = media.get_url()

@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.forms import ImageField, ValidationError
+from django.views.decorators.http import require_POST
 
 from apps.assets.models import GenericImage
 from apps.pinpoint.models import Campaign
@@ -16,12 +17,10 @@ def campaign_save_draft(request):
 def campaign_publish(request):
     return modify_campaign(request, True)
 
-
+@require_POST
 def modify_campaign(request, live):
-    if not request.method == 'POST':
-        return ajax_error()
-
     campaign_id = request.POST.get('campaign_id')
+    
     if not campaign_id:
         return ajax_error()
 
@@ -74,11 +73,9 @@ def upload_image(request):
 
     return media
 
+@require_POST
 @login_required
 def ajax_upload_image(request):
-    if not request.method == 'POST':
-        return ajax_error()
-
     try:
         media = upload_image(request)
     except:
