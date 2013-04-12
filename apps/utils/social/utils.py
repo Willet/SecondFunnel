@@ -3,7 +3,7 @@ from apps.utils.social import adapters
 
 
 def get_adapter_class(classname):
-    return getattr(adapters, classname)
+    return getattr(adapters, classname, None)
 
 
 def update_social_auth(backend, details, response, social_user, uid, user,
