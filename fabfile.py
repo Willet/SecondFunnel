@@ -2,11 +2,12 @@
 Automated deployment tasks
 """
 from fabric.api import roles, run, cd, execute, settings, env, sudo, hide
-from fabric.colors import green, yellow
+from fabric.colors import green, yellow, red
 from secondfunnel.settings import common as django_settings
 
 import boto.ec2
 import itertools
+import time
 
 env.user = 'ec2-user'
 
@@ -25,10 +26,10 @@ def get_celery_workers():
     ec2 = get_ec2_conn()
     res = ec2.get_all_instances(filters={'tag:Name': 'CeleryWorker'})
 
-    instances = flatten_reservations(res)
-    return [i.public_dns_name for i in instances if i.public_dns_name]
+    # we only want running instances
+    return [i for i in flatten_reservations(res) if i.state in ['running', 'pending']]
 
-def launch_celery_worker():
+def launch_celery_worker(branch):
     ec2 = get_ec2_conn()
 
     # our celery worker AMI
@@ -41,12 +42,77 @@ def launch_celery_worker():
         security_groups=['CeleryWorkers']
     )
 
-    instance_id = reservations.instances[0].id
-    print green("Launched new celery instance: {}".format(instance_id))
+    launched_instance = reservations.instances[0]
 
-    ec2.create_tags([instance_id], {"Name": "CeleryWorker"})
+    print green("Waiting for new instance to startup...")
+    status = launched_instance.update()
+    while status == 'pending':
+        time.sleep(5)
+        status = launched_instance.update()
 
-@roles('celery')
+    if status == "running":
+        ec2.create_tags([launched_instance.id], {"Name": "CeleryWorker"})
+
+        with settings(hide('stdout', 'commands')):
+            execute(deploy_celery, branch, hosts=[launched_instance.public_dns_name])
+
+        print green("Finalized new celery instance: {}".format(launched_instance.id))
+
+    else:
+        print red("New instance {0} is not running. Its status: {1}".format(launched_instance.id, status))
+
+
+def stop_celery_services():
+    print green("Waiting for worker services to stop...")
+    # run until confirmed
+    result = run("/etc/init.d/supervisord stop")
+    if "could not find config file" in result:
+        print green("Doesn't seem like celery was deployed onto this instance. Skipping.")
+        return
+
+    # wait until supervisord is definitely not running
+    result = run("/etc/init.d/supervisord status")
+    while not "no such file" in result:
+        result = run("/etc/init.d/supervisord status")
+
+def start_celery_services():
+    print green("Starting worker services...")
+    run("/etc/init.d/supervisord start")
+
+    # wait until supervisord started celery worker and/or beat
+    result = run("/etc/init.d/supervisord status")
+    while "STARTING" in result:
+        result = run("/etc/init.d/supervisord status")
+
+def celery_cluster_size(number_of_instances=None, branch='master'):
+    celery_workers = get_celery_workers()
+
+    current_size = len(celery_workers)
+    print green("Current celery cluster size: {}".format(current_size))
+
+    if number_of_instances and number_of_instances != current_size:
+        number_of_instances = int(number_of_instances)
+
+        print green("Adjusting cluster size to {}".format(number_of_instances))
+
+        if number_of_instances > current_size:
+            for i in range(number_of_instances - current_size):
+                launch_celery_worker(branch)
+
+        else:
+            workers_to_terminate = celery_workers[:current_size - number_of_instances]
+            workers_dns = [i.public_dns_name for i in workers_to_terminate]
+
+            with settings(hide('stdout', 'commands')):
+                execute(stop_celery_services, hosts=workers_dns)
+
+            print green("Terminating instances...")
+            ec2 = get_ec2_conn()
+            ec2.terminate_instances(
+                instance_ids=[i.id for i in workers_to_terminate])
+
+        print green("Finished adjusting celery cluster size to {}".format(number_of_instances))
+
 def deploy_celery(branch):
     """Deploys new code to celery workers and restarts them"""
     print
@@ -73,22 +139,8 @@ def deploy_celery(branch):
         sudo("chown root:root /etc/init.d/supervisord")
         sudo("chmod 0755 /etc/init.d/supervisord")
 
-    print green("Waiting for worker services to stop...")
-    # run until confirmed
-    run("/etc/init.d/supervisord stop")
-
-    # wait until supervisord is definitely not running
-    result = run("/etc/init.d/supervisord status")
-    while not "no such file" in result:
-        result = run("/etc/init.d/supervisord status")
-
-    print green("Starting worker services...")
-    run("/etc/init.d/supervisord start")
-
-    # wait until supervisord started celery worker and/or beat
-    result = run("/etc/init.d/supervisord status")
-    while "STARTING" in result:
-        result = run("/etc/init.d/supervisord status")
+    stop_celery_services()
+    start_celery_services()
 
     print green("Success! Celery worker is running latest code from '{}'".format(branch))
 
@@ -99,7 +151,9 @@ def deploy(branch='master'):
     print green("Obtaining a list of celery workers...")
 
     celery_workers = get_celery_workers()
-    print yellow("Celery Worker instances: {}".format(celery_workers))
+    celery_workers_dns = [i.public_dns_name for i in celery_workers]
+
+    print yellow("Celery Worker instances: {}".format(celery_workers_dns))
 
     with settings(hide('stdout', 'commands')):
-        execute(deploy_celery, branch, hosts=celery_workers)
+        execute(deploy_celery, branch, hosts=celery_workers_dns)
