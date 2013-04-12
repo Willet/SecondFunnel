@@ -10,15 +10,41 @@ import itertools
 
 env.user = 'ec2-user'
 
-def get_celery_workers():
-    ec2 = boto.ec2.connect_to_region("us-west-2",
+def get_ec2_conn():
+    return boto.ec2.connect_to_region("us-west-2",
         aws_access_key_id=django_settings.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=django_settings.AWS_SECRET_ACCESS_KEY)
 
-    res = ec2.get_all_instances(filters={'tag:Name': 'CeleryWorker'})
-    instances = [r.instances for r in res]
+def flatten_reservations(reservations):
+    instances = [r.instances for r in reservations]
     chain = itertools.chain(*instances)
-    return [i.public_dns_name for i in list(chain)]
+
+    return [i for i in list(chain)]
+
+def get_celery_workers():
+    ec2 = get_ec2_conn()
+    res = ec2.get_all_instances(filters={'tag:Name': 'CeleryWorker'})
+
+    instances = flatten_reservations(res)
+    return [i.public_dns_name for i in instances if i.public_dns_name]
+
+def launch_celery_worker():
+    ec2 = get_ec2_conn()
+
+    # our celery worker AMI
+    ami_id = 'ami-c00c98f0'
+
+    reservations = ec2.run_instances(
+        ami_id,
+        key_name='gri-public',
+        instance_type='t1.micro',
+        security_groups=['CeleryWorkers']
+    )
+
+    instance_id = reservations.instances[0].id
+    print green("Launched new celery instance: {}".format(instance_id))
+
+    ec2.create_tags([instance_id], {"Name": "CeleryWorker"})
 
 @roles('celery')
 def deploy_celery(branch):
