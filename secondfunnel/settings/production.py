@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'apps.pinpoint',
     'apps.website',
     'apps.scraper',
+    'apps.static_pages',
 )
 
 # URL prefix for static files.
@@ -71,5 +72,11 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 INSTAGRAM_CLIENT_ID = 'be95027932f64f4aaa465ffed160a8fb'
 INSTAGRAM_CLIENT_SECRET = 'aac059c1acb341d3b44b9139dc106dbe'
+
+TUMBLR_CONSUMER_KEY = 'Kr9rF0bykYZ2J2ncURUkwG0BBAEaDy7VGGzWZnVjna0bKPbRTn'
+TUMBLR_CONSUMER_SECRET = 'aLK2zeDeTbITx03iFSPntIBRV9EIel6pl2Sp9ARbyMIEykGHXF'
+
+GOOGLE_OAUTH2_CLIENT_ID = '218187505707-usif3u64gdr68rposjubk4461elk1e5c.apps.googleusercontent.com'
+GOOGLE_OAUTH2_CLIENT_SECRET = 'O_C-_zo1dXQQkg989-LwJNbt'
 
 STATIC_CAMPAIGNS_BUCKET_NAME = 'campaigns.secondfunnel.com'

@@ -1,41 +1,26 @@
-from datetime import datetime
-from functools import partial
-import json
-import os
-import re
-import urllib2
 from urllib import urlencode
-from urlparse import urlunparse
-
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.files.base import ContentFile, File
 from django.contrib.auth.views import login
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.template import RequestContext, Template, Context, loader
+from django.template import RequestContext, Context, loader
 from django.http import HttpResponse, HttpResponseServerError
 from django.contrib.contenttypes.models import ContentType
-from django.template.defaultfilters import slugify, safe
-from django.utils.encoding import force_unicode
 from fancy_cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
-from storages.backends.s3boto import S3BotoStorage
-
-import boto
-from boto.s3.connection import S3Connection
 
 from apps.analytics.models import Category
-from apps.assets.models import ExternalContent, ExternalContentType, \
-    Product, Store
+from apps.assets.models import ExternalContent, ExternalContentType, Store
 from apps.intentrank.views import get_seeds
+
 from apps.pinpoint.models import Campaign, BlockType
 from apps.pinpoint.decorators import belongs_to_store
+from apps.pinpoint.utils import render_campaign
 import apps.pinpoint.wizards as wizards
-from apps.utils import noop
+
 import apps.utils.base62 as base62
 from apps.utils.caching import nocache
-from apps.utils.s3_conn import get_or_create_s3_website
+
 from apps.utils.image_service.api import queue_processing
 from apps.utils.social.utils import get_adapter_class
 
@@ -212,8 +197,22 @@ def asset_manager(request, store_id):
             except UserSocialAuth.DoesNotExist:
                 account_user = None
 
+        # Add the account regardless of if we have a user or not
+        # We use this to determine which accounts to show
+        accounts.append({
+            'type': xcontent_type.slug,
+            'connected': account_user,
+            'data': getattr(account_user, 'extra_data', {})
+        })
+
+        # If we do have an account, start fetching content
         if account_user:
             cls = get_adapter_class(xcontent_type.classname)
+
+            # If we can't get an adapter class, don't try to load content
+            if not cls:
+                continue
+
             adapter = cls(tokens=account_user.tokens)
             contents = adapter.get_content(count=500)
 
@@ -245,12 +244,6 @@ def asset_manager(request, store_id):
                 new_content.likes = obj.get('likes')
                 new_content.user_image = obj.get('user-image')
                 new_content.save()
-
-        accounts.append({
-            'type': xcontent_type.slug,
-            'connected': account_user,
-            'data': getattr(account_user, 'extra_data', {})
-        })
 
     all_contents = store.external_content.all()
 
@@ -292,251 +285,17 @@ def campaign_short(request, campaign_id_short):
 def campaign(request, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
 
-    compressed = getattr(settings, 'COMPRESS_ENABLED', True)
-    if any(x in request.GET for x in ['dev', 'no-cache']):
-        compressed = False
+    rendered_content = render_campaign(campaign_instance,
+        request=request, get_seeds_func=get_seeds)
 
-    arguments = {
-        "campaign": campaign_instance,
-        "columns": range(4),
-        "preview": not campaign_instance.live,
-        "compressed": compressed
-    }
-    context = RequestContext(request)
-
-    if hasattr(campaign_instance.store, "theme"):
-        context.update(arguments)
-        return campaign_to_theme_to_response(campaign_instance, arguments,
-                                             context, request=request)
-    else:
-        return render_to_response('pinpoint/campaign.html', arguments,
-                                  context_instance=context)
-
-
-def generate_static_campaign(campaign, contents, force=False):
-    """write a PinPoint page to local storage.
-
-    returns whether the file was written.
-    """
-    write = False
-    filename = '%s/static/pinpoint/html/%s.html' % (os.path.dirname(
-        os.path.realpath(__file__)), campaign.id)
-    # the "robust" file exists method: stackoverflow.com/a/85237
-    if force:
-        write = True
-    else:
-        try:
-            with file(filename) as tf:
-                pass
-        except IOError:
-            write = True
-
-    if write:
-        try:
-            import codecs
-            tf2 = codecs.open(filename, "wb", "UTF-8")
-            tf2.write(unicode(contents))
-            tf2.close()
-        except IOError:
-            pass
-
-    return filename, write
-
-
-def save_static_campaign(campaign, local_filename, request=None):
-    """Uploads the html string (contents) to s3 under the folder (campaign).
-
-    Also _attempts_ to save its known static dependencies in the same s3
-    bucket, but ONLY if request is supplied (required).
-
-    Dependency resolution only goes so far - it will NOT search for
-    dependencies within dependencies.
-    """
-    filename = '%s/index.html' % campaign.id  # does not expire.
-    
-    store_bucket_name = '%s.secondfunnel.com' % campaign.store.slug
-
-    try:
-        storages = [
-            S3BotoStorage(bucket=settings.STATIC_CAMPAIGNS_BUCKET_NAME,
-                          access_key=settings.AWS_ACCESS_KEY_ID,
-                          secret_key=settings.AWS_SECRET_ACCESS_KEY,)
-        ]
-        # store-specific bucket (e.g. nativeshoes.secondfunnel.com)
-        # written only on production
-        if not settings.DEBUG:
-            storages.append(S3BotoStorage(bucket=store_bucket_name,
-                            access_key=settings.AWS_ACCESS_KEY_ID,
-                            secret_key=settings.AWS_SECRET_ACCESS_KEY,))
-
-        import codecs
-        try:
-            open_encoding = int(request.GET.get('open_encoding', '0'))
-            if open_encoding == 0:
-                local_file = codecs.open(local_filename, encoding='utf-8')
-            elif open_encoding == 1:
-                local_file = codecs.open(local_filename, encoding='utf-32')
-            elif open_encoding == 2:
-                local_file = file(local_filename, 'r')
-        except ValueError:  # not int
-            local_file = file(local_filename, request.GET.get('open_encoding'))
-
-        contents = local_file.read()
-        if isinstance(contents, unicode):
-            contents = contents.encode('utf-8')
-
-        django_file = File(local_file)
-        django_file.content_type = 'text/html'
-
-        for storage in storages:
-            local_file.seek(0)
-            try:
-                save_mode = int(request.GET.get('save_mode', '7'))
-                if save_mode == 0:
-                    storage.save(filename, django_file)
-                elif save_mode == 1:
-                    storage.save(filename, django_file.read())
-                elif save_mode == 2:
-                    storage.save(filename, django_file.read().encode('utf-8'))
-                elif save_mode == 3:
-                    storage.save(filename, django_file.read().decode('utf-8'))
-                elif save_mode == 4:
-                    storage.save(filename, django_file.read().encode('utf-32'))
-                elif save_mode == 5:
-                    storage.save(filename, django_file.read().decode('utf-32'))
-                elif save_mode == 6:
-                    storage.save(filename, contents)
-                elif save_mode == 7:
-                    storage.save(filename, local_file)
-            except ValueError:  # not int
-                storage.save(filename, request.GET.get('cust_val'))
-            except UnicodeDecodeError:  # some crap happened with 2~5
-                storage.save(filename, django_file.read().encode(
-                    request.GET.get('cust_encoding')))
-
-    except IOError, err:
-        # storage is not available. bring attention if it was forced
-        if settings.DEBUG or request.GET.get('debug', '0') == '1':
-            raise IOError(err)
-        else:
-            return None  # this means "don't deal with the dependencies"
-
-    # save dependencies
-    dependencies = re.findall('/static/[^ \'\"]+\.(?:css|js|jpe?g|png|gif)',
-                              contents)
-    try:
-        for dependency in dependencies:
-            dependency_abs_url = urlunparse(('http', request.META['HTTP_HOST'],
-                                             dependency, None, None, None))
-            try:
-                dependency_contents = urllib2.urlopen(dependency_abs_url).read()
-            except IOError:  # 404
-                continue  # I am not helpful; going to work on something else
-
-            # this can be binary
-            yet_another_file = ContentFile(dependency_contents)
-            storage.save(dependency, yet_another_file)
-    except (IOError, AttributeError), err:
-        # AttributeError is for accessing empty requests
-        if settings.DEBUG:
-            raise IOError(err)
-        else:
-            return None
-
-    # turn the bucket into a website
-    get_or_create_s3_website(store_bucket_name)
-
-
-def campaign_to_theme_to_response(campaign, arguments, context=None,
-                                  request=None):
-    """Generates the HTML page for a standard pinpoint product page.
-
-    Related products are populated statically only if a request object
-    is provided.
-    """
-    if not context:
-        context = Context()
-    context.update(arguments)
-
-    related_results = []
-
-    # TODO: Content blocks don't make as much sense now; when to clean up?
-    # TODO: If we keep content blocks, should this be a method?
-    # Assume only one content block
-    content_block = campaign.content_blocks.all()[0]
-
-    product = content_block.data.product
-    product.json = json.dumps(product.data(raw=True))
-
-    campaign.stl_image = getattr(content_block.data, 'get_ls_image', noop)(url=True) or ''
-    campaign.featured_image = getattr(content_block.data, 'get_image', noop)(url=True) or ''
-    campaign.description = safe(content_block.data.description or product.description)
-    campaign.template = slugify(content_block.block_type.name)
-
-    if request:
-        # "borrow" IR for results
-        related_results = get_seeds(request, store=campaign.store.slug,
-                                    campaign=campaign.id,
-                                    seeds=product.id,
-                                    results=100,
-                                    raw=True)
-    context.update({
-        'product': product,
-        'campaign': campaign,
-        'backup_results': json.dumps(related_results),
-        'pub_date': datetime.now(),
-    })
-
-    theme = campaign.store.theme
-    page_str = theme.page
-
-    actions = {
-        'template': loader.get_template,
-        'theme': partial(getattr, theme)
-    }
-
-    # Replace necessary tags
-    for field, details in theme.REQUIRED_FIELDS.iteritems():
-        type = details.get('type')
-        values = details.get('values')
-
-        sub_values = []
-        for value in values:
-            result = actions.get(type, noop)(value)
-
-            # TODO: Do we need to render, or can we just convert to string?
-            if isinstance(result, Template):
-                result = result.render(context)
-            else:
-                result = result.encode('unicode-escape')
-
-            sub_values.append(result)
-
-        regex = r'\{\{\s*' + field + '\s*\}\}'
-        page_str= re.sub(regex, ''.join(sub_values), page_str)
-
-    # Page content
-    page = Template(page_str)
-
-    # Render response
-    rendered_page = page.render(context)
-    if isinstance(rendered_page, unicode):
-        rendered_page = rendered_page.encode('utf-8')
-    rendered_page = unicode(rendered_page, 'utf-8')
-
-    (name, written) = generate_static_campaign(campaign, rendered_page,
-        force=settings.DEBUG or request.GET.get('regen', '0') == '1')
-    if written or settings.DEBUG or request.GET.get('regen', '0') == '1':
-        save_static_campaign(campaign, name, request=request)
-
-    return HttpResponse(rendered_page)
+    return HttpResponse(rendered_content)
 
 
 def app_exception_handler(request):
     """Renders the "something broke" page. JS console shows the error."""
     import sys, traceback
 
-    type, exception, tb = sys.exc_info()
+    _, exception, _ = sys.exc_info()
     stack = traceback.format_exc().splitlines()
 
     return HttpResponseServerError(loader.get_template('500.html').render(
