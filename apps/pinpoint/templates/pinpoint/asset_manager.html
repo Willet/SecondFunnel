@@ -307,6 +307,10 @@
 {% endblock %}
 
 {% block document_ready %}
+    var console = window.console || {
+        log: function() {},
+        debug: function() {}
+    }
     $("#tabs").tabs();
     $("#scroll_with_review").button();
 
