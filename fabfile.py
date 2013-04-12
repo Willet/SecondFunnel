@@ -45,21 +45,29 @@ def launch_celery_worker(branch):
     launched_instance = reservations.instances[0]
 
     print green("Waiting for new instance to startup...")
+
+    # give it some time to become available to API requests
+    time.sleep(5)
+
     status = launched_instance.update()
     while status == 'pending':
         time.sleep(5)
         status = launched_instance.update()
 
     if status == "running":
+        print green("Instance is running. Tagging it...")
         ec2.create_tags([launched_instance.id], {"Name": "CeleryWorker"})
 
-        with settings(hide('stdout', 'commands')):
-            execute(deploy_celery, branch, hosts=[launched_instance.public_dns_name])
+        # with settings(hide('stdout', 'commands')):
+        # execute(deploy_celery, branch, hosts=[launched_instance.public_dns_name])
+        print yellow("Not launching celery bootstrap at this point, as it's being buggy.")
 
         print green("Finalized new celery instance: {}".format(launched_instance.id))
 
     else:
         print red("New instance {0} is not running. Its status: {1}".format(launched_instance.id, status))
+
+    return launched_instance.public_dns_name
 
 
 def stop_celery_services():
@@ -88,16 +96,27 @@ def celery_cluster_size(number_of_instances=None, branch='master'):
     celery_workers = get_celery_workers()
 
     current_size = len(celery_workers)
-    print green("Current celery cluster size: {}".format(current_size))
-
-    if number_of_instances and number_of_instances != current_size:
+    if number_of_instances:
         number_of_instances = int(number_of_instances)
 
-        print green("Adjusting cluster size to {}".format(number_of_instances))
+    print green("Current celery cluster size: {}".format(current_size))
+
+    if number_of_instances and number_of_instances != current_size or number_of_instances == 0:
+        print green("Adjusting cluster size to {0}".format(
+            number_of_instances, branch))
 
         if number_of_instances > current_size:
+            public_dns_names = []
             for i in range(number_of_instances - current_size):
-                launch_celery_worker(branch)
+                new_dns = launch_celery_worker(branch)
+                public_dns_names.append(new_dns)
+
+            # env.user is ignored w/ hosts passed in from CLI, so add it in
+            public_dns_names = ["ec2-user@{}".format(i) for i in public_dns_names]
+            public_dns_names = ";".join(public_dns_names)
+
+            print yellow('Now run the following: fab deploy_celery:{0},hosts="{1}"'.format(
+                branch, public_dns_names))
 
         else:
             workers_to_terminate = celery_workers[:current_size - number_of_instances]
