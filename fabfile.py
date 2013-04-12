@@ -22,7 +22,7 @@ def deploy_celery(branch):
 
     print green("Pulling latest code")
     with cd(env_path):
-        with settings(warn_only=True):
+        with settings(hide('warnings'), warn_only=True):
             run("git clone {}".format(git_path))
 
     with cd(project_path):
