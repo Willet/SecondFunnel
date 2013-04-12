@@ -10,6 +10,16 @@ import itertools
 
 env.user = 'ec2-user'
 
+def get_celery_workers():
+    ec2 = boto.ec2.connect_to_region("us-west-2",
+        aws_access_key_id=django_settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=django_settings.AWS_SECRET_ACCESS_KEY)
+
+    res = ec2.get_all_instances(filters={'tag:Name': 'CeleryWorker'})
+    instances = [r.instances for r in res]
+    chain = itertools.chain(*instances)
+    return [i.public_dns_name for i in list(chain)]
+
 @roles('celery')
 def deploy_celery(branch):
     """Deploys new code to celery workers and restarts them"""
@@ -60,15 +70,10 @@ def deploy_celery(branch):
 def deploy(branch='master'):
     """Runs all of our deployment tasks"""
 
-    ec2 = boto.ec2.connect_to_region("us-west-2",
-        aws_access_key_id=django_settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=django_settings.AWS_SECRET_ACCESS_KEY)
+    print green("Obtaining a list of celery workers...")
 
-    res = ec2.get_all_instances(filters={'tag:Name': 'CeleryWorker'})
-    instances = [r.instances for r in res]
-    chain = itertools.chain(*instances)
-    celery_workers = [i.public_dns_name for i in list(chain)]
-
+    celery_workers = get_celery_workers()
     print yellow("Celery Worker instances: {}".format(celery_workers))
+
     with settings(hide('stdout', 'commands')):
         execute(deploy_celery, branch, hosts=celery_workers)
