@@ -41,7 +41,7 @@ def change_complete(store_id):
         store = Store.objects.get(id=store_id)
 
     except Store.DoesNotExist:
-        logger.error("Store #{} does not exist".format(store_id))
+        logger.error("Store #{0} does not exist".format(store_id))
         return
 
     save_static_log(Store, store.id, "BU")
@@ -71,7 +71,7 @@ def create_bucket_for_store(store_id):
             store = Store.objects.get(id=store_id)
 
         except Store.DoesNotExist:
-            logger.error("Store #{} does not exist".format(store_id))
+            logger.error("Store #{0} does not exist".format(store_id))
             return
 
         if bucket_exists_or_pending(store):
@@ -80,7 +80,7 @@ def create_bucket_for_store(store_id):
         save_static_log(Store, store.id, "PE")
 
         _, change_status, change_id = create_bucket_website_alias(
-            "{}.secondfunnel.com".format(store.slug))
+            "{0}.secondfunnel.com".format(store.slug))
 
         if change_status == "PENDING":
             confirm_change_success.subtask((change_id, store_id)).delay()
@@ -98,7 +98,8 @@ def confirm_change_success(change_id, store_id):
     change_status = get_route53_change_status(change_id)
 
     if not change_status:
-        logger.error("Change #{} is missing. Can not verify its status.".format(
+        logger.error("Change #{0} is missing. Can not verify its status."
+        .format(
             change_id))
         return
 
@@ -147,17 +148,17 @@ def generate_static_campaign(campaign_id):
         campaign = Campaign.objects.get(id=campaign_id)
 
     except Campaign.DoesNotExist:
-        logger.error("Campaign #{} does not exist".format(campaign_id))
+        logger.error("Campaign #{0} does not exist".format(campaign_id))
         return
 
     rendered_content = render_campaign(campaign)
 
-    filename = "{}/index.html".format(campaign.id)
+    filename = "{0}/index.html".format(campaign.id)
 
     if settings.DEBUG:
         bucket_name = settings.STATIC_CAMPAIGNS_BUCKET_NAME
     else:
-        bucket_name = "{}.secondfunnel.com".format(campaign.store.slug)
+        bucket_name = "{0}.secondfunnel.com".format(campaign.store.slug)
 
     bytes_written = upload_to_bucket(
         bucket_name, filename, rendered_content, public=True)
@@ -167,5 +168,5 @@ def generate_static_campaign(campaign_id):
 
     # boto claims it didn't write anything to S3
     else:
-        logger.error("Error uploading campaign #{}: wrote 0 bytes".format(
+        logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
             campaign_id))

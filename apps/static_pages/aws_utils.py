@@ -74,13 +74,14 @@ def get_bucket_zone_id(bucket):
     Docs: http://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteEndpoints.html
     """
     endpoint = bucket.get_website_endpoint()
-    endpoint = endpoint.replace("{}.".format(bucket.name), "")
+    endpoint = endpoint.replace("{0}.".format(bucket.name), "")
 
     zone = S3_WEBSITE_HOSTED_ZONE_IDS.get(endpoint)
 
     if not zone:
         raise KeyError(
-            "Unrecognized S3 Website endpoint: {}. Consult AWS documentation.".format(
+            "Unrecognized S3 Website endpoint: {0}. Consult AWS documentation"
+            ".".format(
                 endpoint))
 
     return zone, endpoint
@@ -94,13 +95,14 @@ def get_hosted_zone_id(zone_name, conn=None):
     zone = conn.get_hosted_zone_by_name(zone_name)
     if not zone:
         raise KeyError(
-            "Could not find HostedZone with name {}".format(zone_name))
+            "Could not find HostedZone with name {0}".format(zone_name))
 
     zoneid_match = re.match("/hostedzone/(?P<zoneid>\w+)",
         zone['GetHostedZoneResponse']['HostedZone']['Id'])
 
     if not zoneid_match:
-        raise RuntimeError("Route53 returned unexpected HostedZone Id: {}".format(
+        raise RuntimeError("Route53 returned unexpected HostedZone Id: {0}"
+        .format(
             zone['GetHostedZoneResponse']['HostedZone']['Id']))
 
     return zoneid_match.group('zoneid')

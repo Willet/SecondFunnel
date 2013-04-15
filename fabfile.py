@@ -62,7 +62,8 @@ def launch_celery_worker(branch):
         # execute(deploy_celery, branch, hosts=[launched_instance.public_dns_name])
         print yellow("Not launching celery bootstrap at this point, as it's being buggy.")
 
-        print green("Finalized new celery instance: {}".format(launched_instance.id))
+        print green("Finalized new celery instance: {0}".format(
+            launched_instance.id))
 
     else:
         print red("New instance {0} is not running. Its status: {1}".format(launched_instance.id, status))
@@ -99,7 +100,7 @@ def celery_cluster_size(number_of_instances=None, branch='master'):
     if number_of_instances:
         number_of_instances = int(number_of_instances)
 
-    print green("Current celery cluster size: {}".format(current_size))
+    print green("Current celery cluster size: {0}".format(current_size))
 
     if number_of_instances and number_of_instances != current_size or number_of_instances == 0:
         print green("Adjusting cluster size to {0}".format(
@@ -112,7 +113,8 @@ def celery_cluster_size(number_of_instances=None, branch='master'):
                 public_dns_names.append(new_dns)
 
             # env.user is ignored w/ hosts passed in from CLI, so add it in
-            public_dns_names = ["ec2-user@{}".format(i) for i in public_dns_names]
+            public_dns_names = ["ec2-user@{0}".format(i) for i in
+                                public_dns_names]
             public_dns_names = ";".join(public_dns_names)
 
             print yellow('Now run the following: fab deploy_celery:{0},hosts="{1}"'.format(
@@ -130,25 +132,26 @@ def celery_cluster_size(number_of_instances=None, branch='master'):
             ec2.terminate_instances(
                 instance_ids=[i.id for i in workers_to_terminate])
 
-        print green("Finished adjusting celery cluster size to {}".format(number_of_instances))
+        print green("Finished adjusting celery cluster size to {0}".format(
+            number_of_instances))
 
 def deploy_celery(branch):
     """Deploys new code to celery workers and restarts them"""
     print
-    print green("Deploying '{}' to celery worker".format(branch))
+    print green("Deploying '{0}' to celery worker".format(branch))
 
     env_path = "/home/ec2-user/pinpoint/env"
-    project_path = "{}/SecondFunnel".format(env_path)
+    project_path = "{0}/SecondFunnel".format(env_path)
     git_path = "ssh://git@github.com/Willet/SecondFunnel.git"
 
     print green("Pulling latest code")
     with cd(env_path):
         with settings(hide('warnings'), warn_only=True):
-            run("git clone {}".format(git_path))
+            run("git clone {0}".format(git_path))
 
     with cd(project_path):
-        run("git checkout {}".format(branch))
-        run("git pull origin {}".format(branch))
+        run("git checkout {0}".format(branch))
+        run("git pull origin {0}".format(branch))
 
         print green("Installing required libraries")
         run("source ../bin/activate && pip install -r requirements.txt")
@@ -161,7 +164,8 @@ def deploy_celery(branch):
     stop_celery_services()
     start_celery_services()
 
-    print green("Success! Celery worker is running latest code from '{}'".format(branch))
+    print green("Success! Celery worker is running latest code from '{0}'"
+    .format(branch))
 
 
 def deploy(branch='master'):
@@ -172,7 +176,7 @@ def deploy(branch='master'):
     celery_workers = get_celery_workers()
     celery_workers_dns = [i.public_dns_name for i in celery_workers]
 
-    print yellow("Celery Worker instances: {}".format(celery_workers_dns))
+    print yellow("Celery Worker instances: {0}".format(celery_workers_dns))
 
     with settings(hide('stdout', 'commands')):
         execute(deploy_celery, branch, hosts=celery_workers_dns)

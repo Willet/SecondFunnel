@@ -20,7 +20,7 @@ def get_connection(service):
 
     if not service_class:
         raise ValueError(
-            "Connection to service not supported: {}".format(service))
+            "Connection to service not supported: {0}".format(service))
 
     return service_class(aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
@@ -36,7 +36,7 @@ def connection_required(service_class):
         def wrapper(*args, **kwargs):
             proper_conn = S3_SERVICE_CLASSES.get(service_class)
             if not proper_conn:
-                raise TypeError("Service class not recognized: {}".format(
+                raise TypeError("Service class not recognized: {0}".format(
                     service_class))
 
             conn = kwargs.get("conn")
