@@ -46,7 +46,6 @@ def random_products(store, param_dict, id_only=True):
     Only used in development; not in production"""
     store_id = Store.objects.get(slug__exact=store)
     num_results = int(param_dict.get('results', DEFAULT_RESULTS))
-    category = param_dict.get('category')
     results = []
 
     while len(results) < num_results:
@@ -54,10 +53,7 @@ def random_products(store, param_dict, id_only=True):
                            .prefetch_related('lifestyleImages')\
                            .annotate(num_images=Count('media'))\
                            .filter(store_id__exact=store_id,
-                                   num_images__gt=0)
-        if category:
-            query_set = query_set.filter(name__icontains=category)
-        query_set = query_set[:num_results]
+                                   num_images__gt=0)[:num_results]
         results_partial = list(query_set)
 
         if id_only:

@@ -233,23 +233,17 @@ def get_seeds(request, **kwargs):
     store   = kwargs.get('store', request.GET.get('store', '-1'))
     page    = kwargs.get('campaign', request.GET.get('campaign', '-1'))
     seeds   = kwargs.get('seeds', request.GET.get('seeds', '-1'))
-    category = kwargs.get('category', request.GET.get('category'))
     num_results = kwargs.get('results', request.GET.get('results',
                                                         DEFAULT_RESULTS))
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
 
     request.session['pinpoint-video-cookie'] = VideoCookie()
 
-    params = {
+    results, status = process_intentrank_request(
+        request, store, page, 'getseeds', {
         'seeds'  : seeds,
         'results': num_results
-    }
-
-    if category:
-        params['category'] = category
-
-    results, status = process_intentrank_request(
-        request, store, page, 'getseeds', params
+        }
     )
 
     if status in SUCCESS_STATUSES:
@@ -273,24 +267,14 @@ def get_results(request, **kwargs):
     store = kwargs.get('store', request.GET.get('store', '-1'))
     page = kwargs.get('campaign', request.GET.get('campaign', '-1'))
     seeds   = kwargs.get('seeds', request.GET.get('seeds', '-1'))
-    category = kwargs.get('category', request.GET.get('category'))
     num_results = kwargs.get('results', request.GET.get('results',
                                                         DEFAULT_RESULTS))
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
 
-    params = {
-        'results': num_results
-    }
-
-    if category:
-        params['category'] = category
-
     results, status = process_intentrank_request(
-        request, store, page, 'getseeds', params
-    )
-
-    results, status = process_intentrank_request(
-        request, store, page, 'getresults', params
+        request, store, page, 'getresults', {
+            'results': num_results
+        }
     )
 
     if status in SUCCESS_STATUSES:
@@ -315,19 +299,12 @@ def update_clickstream(request):
     store   = request.GET.get('store', '-1')
     page    = request.GET.get('campaign', '-1')
     product_id = request.GET.get('product_id')
-    category = request.GET.get('category')
     callback = request.GET.get('callback', 'fn')
 
-    params = {
-        'productid': product_id
-    }
-
-    if category:
-        params['category'] = category
-
-
     results, status = process_intentrank_request(
-        request, store, page, 'updateclickstream', params)
+        request, store, page, 'updateclickstream', {
+            'productid': product_id
+    })
 
     if status in SUCCESS_STATUSES:
         # We don't care what we get back
