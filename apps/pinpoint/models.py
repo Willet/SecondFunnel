@@ -327,10 +327,8 @@ class Campaign(BaseModelNamed):
         return u"Campaign: %s" % self.name
 
     def save(self, force_insert=False, force_update=False):
-        try:
-            self.intentrank
-        except IntentRankCampaign.DoesNotExist:
-            intentrank = IntentRankCampaign(id=self.id)
+        if not self.intentrank:
+            intentrank = IntentRankCampaign()
             intentrank.save()
 
         super(Campaign, self).save(force_insert, force_update)
