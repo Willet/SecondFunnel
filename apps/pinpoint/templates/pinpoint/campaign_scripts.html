@@ -15,7 +15,19 @@
                 'stl-image': '{{ campaign.stl_image }}',
                 'featured-image': '{{ campaign.featured_image }}',
                 'description': '{{ campaign.description|escapejs }}',
-                'product': {{ product.json|safe }}
+                'product': {{ product.json|safe }},
+                'categories': [
+                {% with categories=campaign.intentrank.all%}
+                {% if categories|length > 1 %}
+                {% for category in categories %}
+                    {
+                        'id': '{{ category.id }}',
+                        'name': '{{ category.name }}'
+                    }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+                ]
             },
             'store': {
                 'id': '{{ campaign.store.slug }}',
