@@ -321,17 +321,14 @@ class Campaign(BaseModelNamed):
         related_name="discovery_campaign", blank=True, null=True)
 
     live = models.BooleanField(default=True)
-    intentrank = models.ForeignKey(IntentRankCampaign, blank=True, null=True)
+
+    default_intentrank = models.ForeignKey(IntentRankCampaign, blank=True,
+        null=True)
+    intentrank = models.ManyToManyField(IntentRankCampaign,
+        related_name="categories", blank=True, null=True)
 
     def __unicode__(self):
         return u"Campaign: %s" % self.name
-
-    def save(self, force_insert=False, force_update=False):
-        if not self.intentrank:
-            intentrank = IntentRankCampaign()
-            intentrank.save()
-
-        super(Campaign, self).save(force_insert, force_update)
 
 
 class FeaturedProductBlock(BaseModelNamed):

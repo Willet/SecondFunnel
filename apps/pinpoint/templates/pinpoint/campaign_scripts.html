@@ -10,7 +10,7 @@
         window.PINPOINT_INFO = {
             'page': {
                 'pubDate': '{{ pub_date }}',  // for verifying the original upload date of a static campaign. for human use only
-                'id': '{{ campaign.intentrank.id|default:campaign.id }}',
+                'id': '{{ campaign.default_intentrank.id|default:campaign.id }}',
                 'main-block-template': '{{ campaign.template }}',
                 'stl-image': '{{ campaign.stl_image }}',
                 'featured-image': '{{ campaign.featured_image }}',
