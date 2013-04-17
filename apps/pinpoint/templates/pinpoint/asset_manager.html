@@ -153,6 +153,10 @@
             font-size: 12px;
         }
 
+        .icon.large, .icon {
+            background-image: url('{% static "loading.gif" %}')
+        }
+
         .icon.instagram.large {
             background-image: url("{% static 'pinpoint/images/icon-instagram-alt-48.png'%}")
         }
@@ -163,6 +167,10 @@
 
         .icon.tumblr.large {
             background-image: url("{% static 'pinpoint/images/icon-tumblr-alt-48.png'%}")
+        }
+
+        .icon.file.large {
+            background-image: url("{% static 'pinpoint/images/icon-folder-alt-48.png'%}")
         }
 
         .icon.instagram {
@@ -202,6 +210,10 @@
             height: 48px;
             background-repeat: no-repeat;
             background-position: center center;
+        }
+
+        .qq-upload-list {
+            display: none;
         }
 
         .tablecell {
@@ -291,9 +303,14 @@
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}" type="text/javascript"></script>
     <script src="{% static "js/tag-it.js" %}" type="text/javascript"></script>
+    <script src="{% static "js/fileuploader.js" %}"></script>
 {% endblock %}
 
 {% block document_ready %}
+    var console = window.console || {
+        log: function() {},
+        debug: function() {}
+    }
     $("#tabs").tabs();
     $("#scroll_with_review").button();
 
@@ -527,6 +544,31 @@
     $('body').on('click', '.ui-widget-overlay', function() {
         $('.connect-window').dialog('close');
     });
+
+    /* File Upload */
+    var $fileUpload = $('.file-upload');
+    if ($fileUpload.length) {
+        uploader = new qq.FileUploader({
+            element: $fileUpload[0],
+            action: '{% url upload-asset store.id %}',
+            csrfToken: $.cookie('csrftoken'),
+            allowedExtensions: ['jpg' ,'png', 'jpeg'],
+            uploadButtonText: 'Upload from file',
+            onSubmit: function() {
+                $('.qq-upload-button').parents('.service').find('.icon').removeClass('file');
+                // TODO: Actual disable clicking on the button
+                $('.qq-upload-button').addClass('disabled');
+                $('.qq-upload-button').text('Uploading...');
+            },
+            onComplete: function(id, fileName, response) {
+                location.reload();
+            },
+            onError: function(id, fileName, reason) {
+                console.log(reason);
+            }
+        });
+        $(".qq-upload-button").addClass('button');
+    }
 {% endblock %}
 
 {% block top_section %}
@@ -590,23 +632,27 @@
                     <p>No items here.</p>
                     <div class='connect-text'>
                         Import content by connecting social accounts
-                        <!--or by uploading from file-->:
+                        or by uploading from file:
+                        {%  csrf_token %}
                     </div>
                     <div class='connections'>
                     {% for account in accounts %}
                         {% if not account.connected %}
-                    <div class='service'>
-                        <div class='icon {{ account.type }} large'>
+                        <div class='service'>
+                            <div class='icon {{ account.type }} large'>
+                            </div>
+                            <a href='{% url socialauth_associate_begin account.type %}'
+                               class='button'>
+                                Connect Account
+                            </a>
                         </div>
-                        <a href='{% url socialauth_associate_begin account.type %}'
-                           class='button'>
-                            Connect Account
-                        </a>
-                    </div>
                         {%  endif %}
                     {% endfor %}
+                        <div class='service'>
+                            <div class='icon file large'></div>
+                            <div class='file-upload'></div>
+                        </div>
                     </div>
-                    {# TODO: File Upload #}
                 {% endfor %}
 
                 {% if content_data %}

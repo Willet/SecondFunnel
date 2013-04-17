@@ -6,17 +6,23 @@ from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext, Context, loader
 from django.http import HttpResponse, HttpResponseServerError
 from django.contrib.contenttypes.models import ContentType
+from django.template.defaultfilters import slugify, safe
+from django.utils.encoding import force_unicode
+from django.views.decorators.http import require_POST
 from fancy_cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
 
 from apps.analytics.models import Category
 from apps.assets.models import ExternalContent, ExternalContentType, Store
 from apps.intentrank.views import get_seeds
+from apps.pinpoint.ajax import upload_image
 
 from apps.pinpoint.models import Campaign, BlockType
 from apps.pinpoint.decorators import belongs_to_store
 from apps.pinpoint.utils import render_campaign
 import apps.pinpoint.wizards as wizards
+from apps.utils import noop
+from apps.utils.ajax import ajax_error, ajax_success
 
 import apps.utils.base62 as base62
 from apps.utils.caching import nocache
@@ -174,6 +180,56 @@ def analytics_admin(request, store, campaign=False, is_overview=True):
     }, context_instance=RequestContext(request))
 
 
+def create_external_content(store, **obj):
+    content_type = ExternalContentType.objects.get(slug=obj.get('type'))
+
+    new_content, created = ExternalContent.objects.get_or_create(
+        store=store,
+        original_id=obj.get('original_id'),
+        content_type=content_type)
+
+    if created:
+        new_content.text_content = obj.get('text_content')
+
+        new_image_url = queue_processing(
+            obj.get('image_url'),
+            store_slug=store.slug,
+            image_type=obj.get('type')
+        )
+
+        # imageservice might or might not be working today,
+        # so lets be careful with it
+        if new_image_url:
+            new_content.image_url = new_image_url
+
+    # Any fields that should be periodically updated
+    new_content.original_url = obj.get('original_url')
+    new_content.username = obj.get('username')
+    new_content.likes = obj.get('likes')
+    new_content.user_image = obj.get('user-image')
+    new_content.save()
+    return new_content
+
+@require_POST
+@login_required
+def upload_asset(request, store_id):
+    store = get_object_or_404(Store, pk=store_id)
+    
+    try:
+        media = upload_image(request)
+        url = media.get_url()
+        asset = create_external_content(
+            store,
+            type='upload-image',
+            original_id=url,
+            text_content=url,
+            image_url=url
+        )
+    except Exception, e:
+        ajax_error()
+
+    return ajax_success()
+
 @belongs_to_store
 @login_required
 def asset_manager(request, store_id):
@@ -186,6 +242,9 @@ def asset_manager(request, store_id):
     accounts = []
     xcontent_types = ExternalContentType.objects.filter(enabled=True)
     for xcontent_type in xcontent_types:
+        if xcontent_type.slug.startswith('upload'):
+            continue
+
         try:
             account_user = store.social_auth.get(provider=xcontent_type.slug)
         except UserSocialAuth.DoesNotExist:
@@ -217,33 +276,7 @@ def asset_manager(request, store_id):
             contents = adapter.get_content(count=500)
 
             for obj in contents:
-                content_type = ExternalContentType.objects.get(slug=obj.get('type'))
-
-                new_content, created = ExternalContent.objects.get_or_create(
-                    store=store,
-                    original_id=obj.get('original_id'),
-                    content_type=content_type)
-
-                if created:
-                    new_content.text_content = obj.get('text_content')
-
-                    new_image_url = queue_processing(
-                        obj.get('image_url'),
-                        store_slug=store.slug,
-                        image_type=obj.get('type')
-                    )
-
-                    # imageservice might or might not be working today,
-                    # so lets be careful with it
-                    if new_image_url:
-                        new_content.image_url = new_image_url
-
-                # Any fields that should be periodically updated
-                new_content.original_url=obj.get('original_url')
-                new_content.username=obj.get('username')
-                new_content.likes = obj.get('likes')
-                new_content.user_image = obj.get('user-image')
-                new_content.save()
+                create_external_content(store, **obj)
 
     all_contents = store.external_content.all()
 
