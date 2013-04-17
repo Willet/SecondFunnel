@@ -377,7 +377,7 @@ var PINPOINT = (function($, pageInfo) {
         exceededThreshold = ((userClicks % clickThreshold) == 0);
 
         $.ajax({
-            url: 'http://secondfunnel.com/intentrank/update-clickstream/?callback=?',
+            url: PINPOINT_INFO.base_url + '/intentrank/update-clickstream/?callback=?',
             data: {
                 'store': details.store.id,
                 'campaign': details.page.id,
@@ -397,7 +397,7 @@ var PINPOINT = (function($, pageInfo) {
             loadingBlocks = true;
             if (!details.page.offline) {
                 $.ajax({
-                    url: 'http://secondfunnel.com/intentrank/get-seeds/?callback=?',
+                    url: PINPOINT_INFO.base_url + '/intentrank/get-seeds/?callback=?',
                     data: {
                         'store': details.store.id,
                         'campaign': details.page.id,
@@ -424,7 +424,7 @@ var PINPOINT = (function($, pageInfo) {
             loadingBlocks = true;
             if (!details.page.offline) {
                 $.ajax({
-                    url: 'http://secondfunnel.com/intentrank/get-results/?callback=?',
+                    url: PINPOINT_INFO.base_url + '/intentrank/get-results/?callback=?',
                     data: {
                         'store': details.store.id,
                         'campaign': details.campaign.id,
@@ -453,7 +453,7 @@ var PINPOINT = (function($, pageInfo) {
 
     function invalidateIRSession () {
         $.ajax({
-            url: 'http://secondfunnel.com/intentrank/invalidate-session/?callback=?',
+            url: PINPOINT_INFO.base_url + '/intentrank/invalidate-session/?callback=?',
             dataType: 'jsonp'
         });
     }

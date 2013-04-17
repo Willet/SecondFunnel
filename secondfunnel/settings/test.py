@@ -41,6 +41,9 @@ INSTALLED_APPS = (
     'apps.static_pages',
 )
 
+WEBSITE_BASE_URL = 'http://secondfunnel-test.elasticbeanstalk.com'
+AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
+
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = 'https://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
