@@ -40,7 +40,7 @@ COMPRESS_ENABLED = False
 
 WEBSITE_BASE_URL = 'http://127.0.0.1:8000'
 
-STATIC_URL = '{}/static/'.format(WEBSITE_BASE_URL)
+STATIC_URL = '{0}/static/'.format(WEBSITE_BASE_URL)
 COMPRESS_URL = STATIC_URL
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
