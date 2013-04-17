@@ -5,6 +5,7 @@ import json
 import re
 from datetime import datetime
 
+from django.conf import settings
 from django.template import Context, RequestContext, Template, loader
 from django.template.defaultfilters import slugify, safe
 
@@ -51,6 +52,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
         "product": product,
         "backup_results": json.dumps(related_results),
         "pub_date": datetime.now(),
+        "base_url": settings.WEBSITE_BASE_URL
     }
     if request:
         context = RequestContext(request, attributes)
