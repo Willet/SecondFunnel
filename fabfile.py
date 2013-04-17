@@ -72,6 +72,7 @@ def launch_celery_worker(branch):
 
 
 def stop_celery_services():
+    """Stops celery services and waits until they're confirmed stopped"""
     print green("Waiting for worker services to stop...")
     # run until confirmed
     result = run("/etc/init.d/supervisord stop")
@@ -84,9 +85,10 @@ def stop_celery_services():
     while not "no such file" in result:
         result = run("/etc/init.d/supervisord status")
 
-def start_celery_services():
+def start_celery_services(environment):
+    """Starts celery services and waits until they're confirmed running"""
     print green("Starting worker services...")
-    run("/etc/init.d/supervisord start")
+    run("/etc/init.d/supervisord start {0}".format(environment))
 
     # wait until supervisord started celery worker and/or beat
     result = run("/etc/init.d/supervisord status")
@@ -135,7 +137,7 @@ def celery_cluster_size(number_of_instances=None, branch='master'):
         print green("Finished adjusting celery cluster size to {0}".format(
             number_of_instances))
 
-def deploy_celery(branch):
+def deploy_celery(branch, environment):
     """Deploys new code to celery workers and restarts them"""
     print
     print green("Deploying '{0}' to celery worker".format(branch))
@@ -162,13 +164,13 @@ def deploy_celery(branch):
         sudo("chmod 0755 /etc/init.d/supervisord")
 
     stop_celery_services()
-    start_celery_services()
+    start_celery_services(environment)
 
     print green("Success! Celery worker is running latest code from '{0}'"
     .format(branch))
 
 
-def deploy(branch='master'):
+def deploy(branch='master', environment='test'):
     """Runs all of our deployment tasks"""
 
     print green("Obtaining a list of celery workers...")
@@ -179,4 +181,4 @@ def deploy(branch='master'):
     print yellow("Celery Worker instances: {0}".format(celery_workers_dns))
 
     with settings(hide('stdout', 'commands')):
-        execute(deploy_celery, branch, hosts=celery_workers_dns)
+        execute(deploy_celery, branch, environment, hosts=celery_workers_dns)
