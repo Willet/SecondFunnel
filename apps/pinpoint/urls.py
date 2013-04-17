@@ -16,6 +16,9 @@ urlpatterns = patterns('apps.pinpoint.views',
     url(r'^admin/(?P<store_id>\d+)/asset-manager/$', 'asset_manager',
         name='asset-manager'),
 
+    url(r'^admin/(?P<store_id>\d+)/asset-manager/upload/$', 'upload_asset',
+        name='upload-asset'),
+
     url(r'^admin/(?P<store_id>\d+)/(?P<campaign_id>\d+)/analytics/$',
         'campaign_analytics_admin', name='analytics-campaign-admin'),
 
@@ -46,5 +49,5 @@ urlpatterns += patterns('apps.pinpoint.ajax',
         'campaign_publish', name='ajax-campaign-publish'),
 
     url(r'^ajax/upload_image/$',
-        'upload_image', name='ajax-upload-image'),
+        'ajax_upload_image', name='ajax-upload-image'),
 )
