@@ -24,6 +24,8 @@ CACHES = {
     }
 }
 
+AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
+
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # We should be able to just run `bundle exec sass` in dev as we do in
