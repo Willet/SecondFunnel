@@ -11,7 +11,7 @@ from django.template.defaultfilters import slugify, safe
 
 from apps.utils import noop
 
-def render_campaign(campaign, request=None, get_seeds_func=None):
+def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
     """Generates the HTML page for a standard pinpoint product page.
 
     Related products are populated statically only if a request object
@@ -59,7 +59,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
     else:
         context = Context(attributes)
 
-    theme = campaign.get_theme(request.flavour)
+    theme = campaign.get_theme(mode)
 
     if not theme:
         #TODO: ERROR
