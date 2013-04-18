@@ -1,3 +1,4 @@
+from django_extensions.db.fields import UUIDField
 import re
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
@@ -309,6 +310,8 @@ class BlockContent(BaseModel):
         return self.__unicode__()
 
 class IntentRankCampaign(BaseModelNamed):
+    id = UUIDField(primary_key=True)
+
     def __unicode__(self):
         try:
             campaign = self.campaign.name
@@ -335,6 +338,15 @@ class Campaign(BaseModelNamed):
 
     def __unicode__(self):
         return u"Campaign: %s" % self.name
+
+    def save(self, force_insert=False, force_update=False, using=None):
+        super(Campaign, self).save(force_insert, force_update, using)
+
+        if not self.default_intentrank:
+            ir_campaign = IntentRankCampaign()
+            ir_campaign.save()
+            self.default_intentrank = ir_campaign
+            self.intentrank.add(ir_campaign)
 
 
 class FeaturedProductBlock(BaseModelNamed):
