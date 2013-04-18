@@ -17,10 +17,10 @@ start)
         sudo $SUPERVISORD -c $CONFIG
         if [ "$2" = "test" ]; then
             echo -n "Starting within test environment"
-            sudo $SUPERVISORCTL -c $CONFIG start celery_test
+            sudo $SUPERVISORCTL -c $CONFIG start celery_test:*
         elif [ "$2" = "production" ]; then
             echo -n "Starting within production environment"
-            sudo $SUPERVISORCTL -c $CONFIG start celery_production
+            sudo $SUPERVISORCTL -c $CONFIG start celery_production:*
         else
             echo "Missing environment name. Must be 'test' or 'production'."
             exit $E_BADARGS
