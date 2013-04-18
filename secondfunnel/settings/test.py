@@ -5,6 +5,7 @@ if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
     raise EnvironmentSettingsError()
 
 DEBUG = True
+ENVIRONMENT = "test"
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
 

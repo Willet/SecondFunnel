@@ -4,6 +4,7 @@ from secondfunnel.errors import EnvironmentSettingsError
 if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
     raise EnvironmentSettingsError()
 
+ENVIRONMENT = "production"
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
