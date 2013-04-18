@@ -54,8 +54,6 @@ GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 
 BROKER_URL = 'amqp://guest:guest@localhost:5672//'
 
-STATIC_CAMPAIGNS_BUCKET_NAME = 'campaigns-test.secondfunnel.com'
-
 # Social Auth
 # Nick's test instagram client; good for localhost:8000
 INSTAGRAM_CLIENT_ID = '1410bbbf8b614ebfb77081d5293cf48d'
