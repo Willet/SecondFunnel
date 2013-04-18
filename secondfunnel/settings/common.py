@@ -152,7 +152,6 @@ SECRET_KEY = '44$s)fsfz#liv*o3^ax82m!9jh1!%lmg&amp;)@1b5z+m*)uhrn4=l'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-    'django_mobile.loader.Loader',
     #     'django.template.loaders.eggs.Loader',
     )
 
@@ -163,8 +162,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django_mobile.middleware.MobileDetectionMiddleware',
-    'django_mobile.middleware.SetFlavourMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'maintenancemode.middleware.MaintenanceModeMiddleware',
@@ -209,7 +206,6 @@ INSTALLED_APPS = (
     'lettuce.django',
     'adminlettuce',
     'ajax_forms',
-    'django_mobile',
     "compressor",
     "maintenancemode",
     'social_auth',
@@ -292,15 +288,9 @@ TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
     # allows for the django messages framework
     'django.contrib.messages.context_processors.messages',
 
-    # allows for detecting 'flavours' in templates
-    'django_mobile.context_processors.flavour',
-
     # used for internationalization
     'django.core.context_processors.i18n',
     )
-
-# Name of the GET parameter to determine flavour
-FLAVOURS_GET_PARAMETER = 'mode'
 
 FIXTURE_DIRS = (
     'secondfunnel/fixtures/',

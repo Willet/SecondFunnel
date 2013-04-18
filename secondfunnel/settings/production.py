@@ -28,7 +28,6 @@ INSTALLED_APPS = (
     'django_extensions',
     'tastypie',
     'ajax_forms',
-    'django_mobile',
     "maintenancemode",
     "compressor",
     'social_auth',
