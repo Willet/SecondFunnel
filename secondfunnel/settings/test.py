@@ -4,12 +4,12 @@ from secondfunnel.errors import EnvironmentSettingsError
 if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
     raise EnvironmentSettingsError()
 
-DEBUG = True
 ENVIRONMENT = "test"
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
 
-COMPRESS_ENABLED = False
+COMPRESS_ENABLED = True
 
 INSTALLED_APPS = (
     'django.contrib.auth',
