@@ -4,6 +4,7 @@ from secondfunnel.errors import EnvironmentSettingsError
 if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
     raise EnvironmentSettingsError()
 
+ENVIRONMENT = "production"
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
@@ -28,8 +29,8 @@ INSTALLED_APPS = (
     'django_extensions',
     'tastypie',
     'ajax_forms',
-    "maintenancemode",
-    "compressor",
+    'maintenancemode',
+    'compressor',
     'social_auth',
 
     # our apps
@@ -78,5 +79,3 @@ TUMBLR_CONSUMER_SECRET = 'aLK2zeDeTbITx03iFSPntIBRV9EIel6pl2Sp9ARbyMIEykGHXF'
 
 GOOGLE_OAUTH2_CLIENT_ID = '218187505707-usif3u64gdr68rposjubk4461elk1e5c.apps.googleusercontent.com'
 GOOGLE_OAUTH2_CLIENT_SECRET = 'O_C-_zo1dXQQkg989-LwJNbt'
-
-STATIC_CAMPAIGNS_BUCKET_NAME = 'campaigns.secondfunnel.com'
