@@ -317,9 +317,10 @@ def campaign_short(request, campaign_id_short):
 
 def campaign(request, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
+    mode = request.GET.get('mode', 'full')
 
     rendered_content = render_campaign(campaign_instance,
-        request=request, get_seeds_func=get_seeds)
+        request=request, get_seeds_func=get_seeds, mode=mode)
 
     return HttpResponse(rendered_content)
 

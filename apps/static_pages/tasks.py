@@ -155,10 +155,17 @@ def generate_static_campaign(campaign_id):
 
     filename = "{0}/index.html".format(campaign.id)
 
-    if settings.DEBUG:
-        bucket_name = settings.STATIC_CAMPAIGNS_BUCKET_NAME
-    else:
+    if settings.ENVIRONMENT in ["test", "dev"]:
+        bucket_name = "{0}-{1}.secondfunnel.com".format(
+            settings.ENVIRONMENT, campaign.store.slug)
+
+    elif settings.ENVIRONMENT == "production":
         bucket_name = "{0}.secondfunnel.com".format(campaign.store.slug)
+
+    else:
+        logger.error("Unknown environment name: {0}".format(
+            settings.ENVIRONMENT))
+        return
 
     bytes_written = upload_to_bucket(
         bucket_name, filename, rendered_content, public=True)
