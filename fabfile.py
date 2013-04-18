@@ -195,7 +195,7 @@ def deploy_celery(cluster_type, branch):
     .format(branch))
 
 
-def deploy(branch='master', cluster_type='test'):
+def deploy(cluster_type='test', branch='master'):
     """Runs all of our deployment tasks"""
 
     print green("Obtaining a list of celery workers...")
