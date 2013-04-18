@@ -32,6 +32,18 @@ class Store(BaseModelNamed):
     staff = models.ManyToManyField(User)
     social_auth = models.ManyToManyField(UserSocialAuth, blank=True, null=True)
 
+    theme  = models.OneToOneField('pinpoint.StoreTheme',
+        related_name='store_theme',
+        blank=True,
+        null=True,
+        verbose_name='Default theme')
+
+    mobile = models.OneToOneField('pinpoint.StoreTheme',
+        related_name='store_mobile',
+        blank=True,
+        null=True,
+        verbose_name='Default mobile theme')
+
     def __unicode__(self):
         return self.name
 

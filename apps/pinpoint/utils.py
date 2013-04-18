@@ -11,7 +11,7 @@ from django.template.defaultfilters import slugify, safe
 
 from apps.utils import noop
 
-def render_campaign(campaign, request=None, get_seeds_func=None):
+def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
     """Generates the HTML page for a standard pinpoint product page.
 
     Related products are populated statically only if a request object
@@ -59,10 +59,16 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
     else:
         context = Context(attributes)
 
-    page_str = campaign.store.theme.page
+    theme = campaign.get_theme(mode)
+
+    if not theme:
+        #TODO: ERROR
+        pass
+
+    page_str = theme.page
 
     # Replace necessary tags
-    for field, details in campaign.store.theme.REQUIRED_FIELDS.iteritems():
+    for field, details in theme.REQUIRED_FIELDS.iteritems():
         field_type = details.get('type')
         values = details.get('values')
 
@@ -73,7 +79,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
                 result = loader.get_template(value)
 
             elif field_type == "theme":
-                result = getattr(campaign.store.theme, value)
+                result = getattr(theme, value)
 
             else:
                 result = None

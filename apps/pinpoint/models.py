@@ -205,8 +205,8 @@ class StoreTheme(BaseModelNamed):
 </script>
     """
 
-    # TODO: Replace with ForeignKey to support mobile themes?
-    store = models.OneToOneField(Store, related_name="theme")
+    store = models.ForeignKey(Store, related_name='themes',
+        verbose_name='Belongs to')
 
     # Django templates
     page = models.TextField(default=DEFAULT_PAGE)
@@ -266,7 +266,7 @@ class StoreTheme(BaseModelNamed):
         }
 
     def __unicode__(self):
-        return u"Theme: %s" % self.store
+        return u"Theme: %s" % self.name
 
 
 class StoreThemeMedia(MediaBase):
@@ -311,6 +311,16 @@ class BlockContent(BaseModel):
 
 class Campaign(BaseModelNamed):
     store = models.ForeignKey(Store)
+    theme = models.OneToOneField(StoreTheme,
+        related_name='theme',
+        blank=True,
+        null=True,
+        verbose_name='Campaign Theme')
+    mobile = models.OneToOneField(StoreTheme,
+        related_name='mobile',
+        blank=True,
+        null=True,
+        verbose_name='Campaign Mobile Theme')
     content_blocks = models.ManyToManyField(BlockContent,
         related_name="content_campaign")
 
@@ -321,6 +331,36 @@ class Campaign(BaseModelNamed):
 
     def __unicode__(self):
         return u"Campaign: %s" % self.name
+
+    def get_theme(self, type):
+        """Returns the best match for the given theme type.
+
+        type: a string; either 'full' or 'mobile'
+        """
+        priorities = {
+            'full'  : [
+                self.theme,
+                self.store.theme,
+                None
+            ],
+            'mobile': [
+                self.mobile,
+                self.store.mobile,
+                self.theme,
+                self.store.theme,
+                None
+            ]
+        }
+
+        themes = priorities.get(type)
+        if not themes:
+            return None
+
+        results = filter(None, themes)
+        if not results:
+            return None
+
+        return results[0]
 
 
 class FeaturedProductBlock(BaseModelNamed):
