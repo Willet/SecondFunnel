@@ -1,5 +1,6 @@
 from common import *
 
+ENVIRONMENT = "dev"
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
@@ -23,6 +24,8 @@ CACHES = {
         ]
     }
 }
+
+AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
@@ -51,8 +54,6 @@ GOOGLE_API_PRIVATE_KEY = 'google-service-account-prod.p12'
 GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 
 BROKER_URL = 'amqp://guest:guest@localhost:5672//'
-
-STATIC_CAMPAIGNS_BUCKET_NAME = 'campaigns-test.secondfunnel.com'
 
 # Social Auth
 # Nick's test instagram client; good for localhost:8000
