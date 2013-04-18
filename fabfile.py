@@ -140,7 +140,8 @@ def celery_cluster_size(number_of_instances=None, branch='master'):
 def deploy_celery(branch, environment):
     """Deploys new code to celery workers and restarts them"""
     print
-    print green("Deploying '{0}' to celery worker".format(branch))
+    print green("Deploying '{0}' to celery worker within {1} environment".format(
+        branch, environment))
 
     env_path = "/home/ec2-user/pinpoint/env"
     project_path = "{0}/SecondFunnel".format(env_path)
@@ -152,8 +153,9 @@ def deploy_celery(branch, environment):
             run("git clone {0}".format(git_path))
 
     with cd(project_path):
-        run("git checkout {0}".format(branch))
+        run("git fetch")
         run("git pull origin {0}".format(branch))
+        run("git checkout {0}".format(branch))
 
         print green("Installing required libraries")
         run("source ../bin/activate && pip install -r requirements.txt")
