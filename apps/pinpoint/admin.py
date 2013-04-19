@@ -32,8 +32,7 @@ class BlockContentAdmin(BaseAdmin):
 admin.site.register(BlockContent, BlockContentAdmin)
 
 class IntentRankCampaignAdmin(BaseNamedAdmin):
-    list_display = BaseNamedAdmin.list_display
-    list_filter = BaseNamedAdmin.list_filter
+    pass
 
 admin.site.register(IntentRankCampaign, IntentRankCampaignAdmin)
 
