@@ -4,6 +4,8 @@ S3 and Route53 helpers
 
 import re
 import functools
+import StringIO
+import gzip
 
 from django.conf import settings
 
@@ -49,7 +51,7 @@ def get_route53_change_status(change_id, conn=None):
 
 
 def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
-    public=False):
+    public=False, do_gzip=True):
     """
     Uploads a key to bucket, setting provided content, content type and publicity
     """
@@ -57,10 +59,23 @@ def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
 
     obj = Key(bucket)
     obj.key = filename
-    bytes_written = obj.set_contents_from_string(
-        content.encode("utf-8"),
-        headers={"Content-Type": content_type}
-    )
+    headers = {"Content-Type": content_type}
+    content = content.encode("utf-8")
+
+    if do_gzip:
+        zipr = StringIO.StringIO()
+
+        # GzipFile doesn't support 'with', so we close it manually
+        tmpf = gzip.GzipFile(filename='index.html', mode='wb', fileobj=zipr)
+        tmpf.write(content)
+        tmpf.close()
+
+        content = zipr.getvalue()
+
+        headers["Content-Encoding"] = "gzip"
+
+    bytes_written = obj.set_contents_from_string(content, headers=headers)
+
     if public:
         obj.set_acl('public-read')
 
