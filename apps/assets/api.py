@@ -1,4 +1,5 @@
 from tastypie import fields
+from tastypie.constants import ALL_WITH_RELATIONS
 from tastypie.resources import ModelResource, ALL
 from tastypie.authentication import Authentication
 from tastypie.authorization import Authorization
@@ -53,6 +54,10 @@ class StoreResource(ModelResource):
         resource_name = 'store'
         authentication = UserAuthentication()
         authorization = UserPartOfStore()
+        filtering = {
+            'id': ('exact',),
+            'name': ('icontains',),
+        }
 
 
 class ProductResource(ModelResource):
@@ -207,6 +212,7 @@ class ExternalContentResource(ModelResource):
 
     type = fields.ForeignKey(ExternalContentTypeResource, 'content_type',
                              full=True)
+    store = fields.ForeignKey(StoreResource, 'store')
 
     class Meta:
         queryset = ExternalContent.objects.all()
@@ -216,5 +222,9 @@ class ExternalContentResource(ModelResource):
 
         filtering = {
             'id': ('exact',),
-            'original_id': ('exact',)
+            'original_id': ('exact',),
+            'store': ALL_WITH_RELATIONS
         }
+
+    def dehydrate_type(self, bundle):
+        return bundle.data['type'].data['slug']
