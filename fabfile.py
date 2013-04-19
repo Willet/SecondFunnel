@@ -118,7 +118,10 @@ def celery_cluster_size(cluster_type, number_of_instances=None, branch='master')
     if number_of_instances:
         number_of_instances = int(number_of_instances)
 
-    print green("'{0}' celery cluster size: {1}".format(cluster_type, current_size))
+    print green("'{0}' celery cluster size: {1}".format(
+        cluster_type, current_size))
+    print green("'{0}' cluster instances: {1}".format(
+        cluster_type, [i.public_dns_name for i in celery_workers]))
 
     if number_of_instances and number_of_instances != current_size or number_of_instances == 0:
         print green("Adjusting cluster size to {0}".format(
