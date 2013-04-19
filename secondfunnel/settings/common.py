@@ -2,6 +2,7 @@ import os
 import djcelery
 
 from datetime import timedelta
+import django.conf.global_settings as DEFAULT_SETTINGS
 
 # Django settings for secondfunnel project.
 import sys
@@ -270,6 +271,11 @@ LOGGING = {
          },
      }
 }
+
+TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
+    # allows for request variable in templates
+    'django.core.context_processors.request',
+)
 
 FIXTURE_DIRS = (
     'secondfunnel/fixtures/',
