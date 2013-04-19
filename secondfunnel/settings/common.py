@@ -100,17 +100,14 @@ MEDIA_URL = ''
 # TODO: has to be a better way to get the path...
 STATIC_ROOT = fromProjectRoot('static')
 
-DEFAULT_FILE_STORAGE = 'secondfunnel.storage.CustomExpiresS3BotoStorage'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 # http://django_compressor.readthedocs.org/en/latest/remote-storages/
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
 
-STATIC_ASSET_TIMEOUT = int(60 * 60 * 24 * (365.25 / 12) * 3)  # three months
-
-AWS_EXPIRES_REGEXES = [
-    ('^CACHE/', STATIC_ASSET_TIMEOUT),
-]
+# Disable signature/accesskey/expire attrs being appended to s3 links
+AWS_QUERYSTRING_AUTH = False
 
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
                         'compressor.filters.cssmin.CSSMinFilter']
@@ -206,8 +203,8 @@ INSTALLED_APPS = (
     'lettuce.django',
     'adminlettuce',
     'ajax_forms',
-    "compressor",
-    "maintenancemode",
+    'compressor',
+    'maintenancemode',
     'social_auth',
 
     # our apps
@@ -278,27 +275,11 @@ LOGGING = {
 TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
     # allows for request variable in templates
     'django.core.context_processors.request',
-
-    # allows for external settings dict
-    'secondfunnel.context_processors.expose_settings',
-
-    # needed for admin
-    'django.contrib.auth.context_processors.auth',
-
-    # allows for the django messages framework
-    'django.contrib.messages.context_processors.messages',
-
-    # used for internationalization
-    'django.core.context_processors.i18n',
-    )
+)
 
 FIXTURE_DIRS = (
     'secondfunnel/fixtures/',
 )
-
-EXPOSED_SETTINGS = {
-    'STATIC_ASSET_TIMEOUT': STATIC_ASSET_TIMEOUT
-}
 
 WEBSITE_BASE_URL = 'http://www.secondfunnel.com'
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
