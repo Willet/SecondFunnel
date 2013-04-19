@@ -177,11 +177,14 @@ def deploy_celery(cluster_type, branch):
 
     with cd(project_path):
         run("git fetch")
-        run("git pull origin {0}".format(branch))
         run("git checkout {0}".format(branch))
 
         print green("Installing required libraries")
         run("source ../bin/activate && pip install -r requirements.txt")
+
+        print green("Running schema migrations")
+        run("{0}/scripts/run_as.sh test python manage.py migrate".format(
+            project_path))
 
         print green("Configuring supervisord")
         sudo("cp scripts/celeryconf/supervisord.initd /etc/init.d/supervisord")
