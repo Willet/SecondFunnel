@@ -1,12 +1,16 @@
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
 from tastypie import fields
+from tastypie.constants import ALL_WITH_RELATIONS
+from tastypie.models import create_api_key
 from tastypie.resources import ModelResource, ALL
-from tastypie.authentication import Authentication
+from tastypie.authentication import Authentication, ApiKeyAuthentication, MultiAuthentication
 from tastypie.authorization import Authorization
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 
 from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
-    YoutubeVideo, GenericImage, ExternalContent)
+    YoutubeVideo, GenericImage, ExternalContent, ExternalContentType)
 
 from apps.pinpoint.models import BlockContent, Campaign
 
@@ -53,6 +57,10 @@ class StoreResource(ModelResource):
         resource_name = 'store'
         authentication = UserAuthentication()
         authorization = UserPartOfStore()
+        filtering = {
+            'id': ('exact',),
+            'name': ('icontains',),
+        }
 
 
 class ProductResource(ModelResource):
@@ -189,19 +197,42 @@ class GenericImageResource(ModelResource):
         }
 
 
+class ExternalContentTypeResource(ModelResource):
+    """Access to list of content types"""
+
+    class Meta:
+        queryset = ExternalContentType.objects.all()
+        authentication = UserAuthentication()
+        authorization= Authorization()
+        resource_name = 'external_content_type'
+
+
 class ExternalContentResource(ModelResource):
     """Access to ExternalContent model"""
 
     products = fields.ManyToManyField(ProductResource, 'tagged_products',
         null=True, full=False, related_name='external_content')
 
+    type = fields.ForeignKey(ExternalContentTypeResource, 'content_type',
+                             full=True)
+    store = fields.ForeignKey(StoreResource, 'store')
+
     class Meta:
         queryset = ExternalContent.objects.all()
-        authentication = UserAuthentication()
+        authentication = MultiAuthentication(
+            UserAuthentication(),
+            ApiKeyAuthentication())
         authorization= Authorization()
         resource_name = 'external_content'
 
         filtering = {
             'id': ('exact',),
-            'original_id': ('exact',)
+            'original_id': ('exact',),
+            'store': ALL_WITH_RELATIONS
         }
+
+    def dehydrate_type(self, bundle):
+        return bundle.data['type'].data['slug']
+
+# signals
+post_save.connect(create_api_key, sender=User)
