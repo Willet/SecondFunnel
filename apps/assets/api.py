@@ -4,7 +4,7 @@ from tastypie import fields
 from tastypie.constants import ALL_WITH_RELATIONS
 from tastypie.models import create_api_key
 from tastypie.resources import ModelResource, ALL
-from tastypie.authentication import Authentication, ApiKeyAuthentication
+from tastypie.authentication import Authentication, ApiKeyAuthentication, MultiAuthentication
 from tastypie.authorization import Authorization
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
@@ -219,7 +219,9 @@ class ExternalContentResource(ModelResource):
 
     class Meta:
         queryset = ExternalContent.objects.all()
-        authentication = ApiKeyAuthentication()
+        authentication = MultiAuthentication(
+            UserAuthentication(),
+            ApiKeyAuthentication())
         authorization= Authorization()
         resource_name = 'external_content'
 
