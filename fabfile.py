@@ -178,6 +178,7 @@ def deploy_celery(cluster_type, branch):
     with cd(project_path):
         run("git fetch")
         run("git checkout {0}".format(branch))
+        run("git pull".format(branch))
 
         print green("Installing required libraries")
         run("source ../bin/activate && pip install -r requirements.txt")
