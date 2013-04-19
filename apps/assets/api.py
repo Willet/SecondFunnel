@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 
 from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
-    YoutubeVideo, GenericImage, ExternalContent)
+    YoutubeVideo, GenericImage, ExternalContent, ExternalContentType)
 
 from apps.pinpoint.models import BlockContent, Campaign
 
@@ -189,11 +189,23 @@ class GenericImageResource(ModelResource):
         }
 
 
+class ExternalContentTypeResource(ModelResource):
+    """Access to list of content types"""
+
+    class Meta:
+        queryset = ExternalContentType.objects.all()
+        authentication = UserAuthentication()
+        authorization= Authorization()
+        resource_name = 'external_content_type'
+
+
 class ExternalContentResource(ModelResource):
     """Access to ExternalContent model"""
 
     products = fields.ManyToManyField(ProductResource, 'tagged_products',
         null=True, full=False, related_name='external_content')
+
+    type = fields.ForeignKey(ExternalContentTypeResource, 'content_type')
 
     class Meta:
         queryset = ExternalContent.objects.all()
