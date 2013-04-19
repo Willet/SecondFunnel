@@ -4,11 +4,12 @@ from secondfunnel.errors import EnvironmentSettingsError
 if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
     raise EnvironmentSettingsError()
 
-DEBUG = True
+ENVIRONMENT = "test"
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
 
-COMPRESS_ENABLED = False
+COMPRESS_ENABLED = True
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -41,10 +42,15 @@ INSTALLED_APPS = (
     'apps.static_pages',
 )
 
+WEBSITE_BASE_URL = 'http://secondfunnel-test.elasticbeanstalk.com'
+AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
+
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = 'https://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
 COMPRESS_URL = STATIC_URL
+
+MEMCACHED_LOCATION = 'secondfunnel-test.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 
 CACHES = {
     'default': {
@@ -63,13 +69,11 @@ GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 
 BROKER_URL = 'sqs://%s:%s@' % (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
 BROKER_TRANSPORT_OPTIONS = {
-    'region': 'us-west-1',
+    'region': 'us-west-2',
     'visibility_timeout': 30,
     'polling_interval': 1,
-    'queue_name_prefix': 'celery-',
+    'queue_name_prefix': 'celery-test-',
     }
-
-STATIC_CAMPAIGNS_BUCKET_NAME = 'campaigns-test.secondfunnel.com'
 
 # Nick's test instagram client; good for secondfunnel-test
 INSTAGRAM_CLIENT_ID = '3fc578b28e2a4b43a51ea2fa735599fd'

@@ -32,6 +32,18 @@ class Store(BaseModelNamed):
     staff = models.ManyToManyField(User)
     social_auth = models.ManyToManyField(UserSocialAuth, blank=True, null=True)
 
+    theme  = models.OneToOneField('pinpoint.StoreTheme',
+        related_name='store_theme',
+        blank=True,
+        null=True,
+        verbose_name='Default theme')
+
+    mobile = models.OneToOneField('pinpoint.StoreTheme',
+        related_name='store_mobile',
+        blank=True,
+        null=True,
+        verbose_name='Default mobile theme')
+
     def __unicode__(self):
         return self.name
 
@@ -262,7 +274,7 @@ class ExternalContent(BaseModel):
     text_content = models.TextField(blank=True, null=True)
     image_url = models.CharField(max_length=555, blank=True, null=True)
 
-    likes = models.IntegerField(default=0)
+    likes = models.IntegerField(default=0, blank=True, null=True)
     username = models.CharField(max_length=50, blank=True, null=True)
     user_image = models.CharField(max_length=555, blank=True, null=True)
 

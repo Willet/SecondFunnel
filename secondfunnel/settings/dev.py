@@ -1,5 +1,6 @@
 from common import *
 
+ENVIRONMENT = "dev"
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
@@ -24,6 +25,8 @@ CACHES = {
     }
 }
 
+AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
+
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # We should be able to just run `bundle exec sass` in dev as we do in
@@ -38,7 +41,9 @@ STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 COMPRESS_STORAGE = STATICFILES_STORAGE
 COMPRESS_ENABLED = False
 
-STATIC_URL = '/static/'
+WEBSITE_BASE_URL = 'http://127.0.0.1:8000'
+
+STATIC_URL = '{0}/static/'.format(WEBSITE_BASE_URL)
 COMPRESS_URL = STATIC_URL
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
@@ -49,8 +54,6 @@ GOOGLE_API_PRIVATE_KEY = 'google-service-account-prod.p12'
 GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 
 BROKER_URL = 'amqp://guest:guest@localhost:5672//'
-
-STATIC_CAMPAIGNS_BUCKET_NAME = 'campaigns-test.secondfunnel.com'
 
 # Social Auth
 # Nick's test instagram client; good for localhost:8000
