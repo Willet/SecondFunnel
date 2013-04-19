@@ -1,7 +1,10 @@
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
 from tastypie import fields
 from tastypie.constants import ALL_WITH_RELATIONS
+from tastypie.models import create_api_key
 from tastypie.resources import ModelResource, ALL
-from tastypie.authentication import Authentication
+from tastypie.authentication import Authentication, ApiKeyAuthentication
 from tastypie.authorization import Authorization
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
@@ -216,7 +219,7 @@ class ExternalContentResource(ModelResource):
 
     class Meta:
         queryset = ExternalContent.objects.all()
-        authentication = UserAuthentication()
+        authentication = ApiKeyAuthentication()
         authorization= Authorization()
         resource_name = 'external_content'
 
@@ -228,3 +231,6 @@ class ExternalContentResource(ModelResource):
 
     def dehydrate_type(self, bundle):
         return bundle.data['type'].data['slug']
+
+# signals
+post_save.connect(create_api_key, sender=User)
