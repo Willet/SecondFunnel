@@ -52,7 +52,8 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
         "product": product,
         "backup_results": json.dumps(related_results),
         "pub_date": datetime.now(),
-        "base_url": settings.WEBSITE_BASE_URL
+        "base_url": settings.WEBSITE_BASE_URL,
+        "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY
     }
     if request:
         context = RequestContext(request, attributes)
