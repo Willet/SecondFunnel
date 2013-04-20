@@ -11,12 +11,24 @@
             'base_url': '{{ base_url }}',
             'page': {
                 'pubDate': '{{ pub_date }}',  // for verifying the original upload date of a static campaign. for human use only
-                'id': '{{ campaign.id }}',
+                'id': '{{ campaign.default_intentrank.id|default:campaign.id }}',
                 'main-block-template': '{{ campaign.template }}',
                 'stl-image': '{{ campaign.stl_image }}',
                 'featured-image': '{{ campaign.featured_image }}',
                 'description': '{{ campaign.description|escapejs }}',
-                'product': {{ product.json|safe }}
+                'product': {{ product.json|safe }},
+                'categories': [
+                {% with categories=campaign.intentrank.all%}
+                {% if categories|length > 1 %}
+                {% for category in categories %}
+                    {
+                        'id': '{{ category.id }}',
+                        'name': '{{ category.name }}'
+                    }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+                ]
             },
             'store': {
                 'id': '{{ campaign.store.slug }}',
