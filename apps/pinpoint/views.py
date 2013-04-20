@@ -436,6 +436,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
         'product': product,
         'campaign': campaign,
         'backup_results': related_results,
+        'ga_account_number': settings.GOOGLE_ANALYTICS_PROPERTY,
     })
 
     theme = campaign.store.theme
