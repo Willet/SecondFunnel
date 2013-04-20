@@ -1,3 +1,4 @@
+from django_extensions.db.fields import UUIDField
 import re
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
@@ -308,6 +309,17 @@ class BlockContent(BaseModel):
         # tastypie patch
         return self.__unicode__()
 
+class IntentRankCampaign(BaseModelNamed):
+    uuid = UUIDField(primary_key=True)
+
+    def __unicode__(self):
+        try:
+            campaign = self.campaign.name
+        except Campaign.DoesNotExist:
+            campaign = 'No Campaign'
+
+        return u'{0} ({1})'.format(self.name, campaign)
+
 
 class Campaign(BaseModelNamed):
     store = models.ForeignKey(Store)
@@ -329,8 +341,22 @@ class Campaign(BaseModelNamed):
 
     live = models.BooleanField(default=True)
 
+    default_intentrank = models.OneToOneField(IntentRankCampaign,
+        related_name='campaign', blank=True, null=True)
+    intentrank = models.ManyToManyField(IntentRankCampaign,
+        related_name='campaigns', blank=True, null=True)
+
     def __unicode__(self):
         return u"Campaign: %s" % self.name
+
+    def save(self, *args, **kwargs):
+        super(Campaign, self).save(*args, **kwargs)
+
+        if not self.default_intentrank:
+            ir_campaign = IntentRankCampaign()
+            ir_campaign.save()
+            self.default_intentrank = ir_campaign
+            self.intentrank.add(ir_campaign)
 
     def get_theme(self, type):
         """Returns the best match for the given theme type.
