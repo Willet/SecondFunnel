@@ -44,6 +44,9 @@ class Store(BaseModelNamed):
         null=True,
         verbose_name='Default mobile theme')
 
+    public_base_url = models.URLField(
+        help_text="e.g. explore.nativeshoes.com", blank=True, null=True)
+
     def __unicode__(self):
         return self.name
 
