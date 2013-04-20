@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import partial
 import json
 import os
@@ -229,7 +230,12 @@ def asset_manager(request, store_id):
                 if new_image_url:
                     new_content.image_url = new_image_url
 
-                new_content.save()
+            # Any fields that should be periodically updated
+            new_content.original_url=instagram_obj.get('original_url')
+            new_content.username=instagram_obj.get('username')
+            new_content.likes = instagram_obj.get('likes')
+            new_content.user_image = instagram_obj.get('user-image')
+            new_content.save()
 
     all_contents = store.external_content.all()
 
@@ -435,7 +441,8 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
     context.update({
         'product': product,
         'campaign': campaign,
-        'backup_results': related_results,
+        'backup_results': json.dumps(related_results),
+        'pub_date': datetime.now(),
         'ga_account_number': settings.GOOGLE_ANALYTICS_PROPERTY,
     })
 
