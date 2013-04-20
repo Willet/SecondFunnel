@@ -310,7 +310,7 @@ class BlockContent(BaseModel):
         return self.__unicode__()
 
 class IntentRankCampaign(BaseModelNamed):
-    id = UUIDField(primary_key=True)
+    uuid = UUIDField(primary_key=True)
 
     def __unicode__(self):
         try:
