@@ -443,6 +443,7 @@ def campaign_to_theme_to_response(campaign, arguments, context=None,
         'campaign': campaign,
         'backup_results': json.dumps(related_results),
         'pub_date': datetime.now(),
+        'ga_account_number': settings.GOOGLE_ANALYTICS_PROPERTY,
     })
 
     theme = campaign.store.theme
