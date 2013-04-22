@@ -20,10 +20,14 @@ class Social(object):
 
         content = []
 
-        # TODO: Do this more intelligently
-        # As it stands, this could take a long time to get all the contents
-        for result in generator:
-            content.append(self.normalize(result))
+        #TODO: find out why rate limit exceeded, etc.
+        try:
+            # TODO: Do this more intelligently
+            # As it stands, this could take a long time to get all the contents
+            for result in generator:
+                content.append(self.normalize(result))
+        except Exception:
+            pass
 
         return content
 
