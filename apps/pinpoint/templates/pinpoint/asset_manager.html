@@ -328,18 +328,22 @@
     });
 
     var tasty_api = function (o) {
+        var type;
         if (!("processData" in o)) {
             o.processData = true;
         }
         o.resource_id = (o.resource_id) ? o.resource_id + "/" : "";
 
+        type = o.type || 'GET';
+
         $.ajax({
             url: o.resource_uri || '/api/assets/v1/' + o.resource_name + '/' + o.resource_id,
-            type: o.type || 'GET',
+            type: type,
             contentType: 'application/json',
             data: o.data,
             dataType: 'json',
             processData: o.processData,
+            headers: {'X-HTTP-Method-Override': type},
             success: function (result) {
                 o.success && o.success(result);
             }
