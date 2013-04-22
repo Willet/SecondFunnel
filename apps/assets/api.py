@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from tastypie import fields
 from tastypie.constants import ALL_WITH_RELATIONS
-from tastypie.models import create_api_key
+from tastypie.models import ApiKey
 from tastypie.resources import ModelResource, ALL
 from tastypie.authentication import Authentication, ApiKeyAuthentication, MultiAuthentication
 from tastypie.authorization import Authorization
@@ -234,5 +234,16 @@ class ExternalContentResource(ModelResource):
     def dehydrate_type(self, bundle):
         return bundle.data['type'].data['slug']
 
+# Apparently, create_api_key only creates on user creation
+# Resolve this by creating a key if the key doesn't exist.
+def get_or_create_api_key(sender, **kwargs):
+    user = kwargs.get('instance')
+
+    if not user:
+        return
+
+    ApiKey.objects.get_or_create(user=user)
+
+
 # signals
-post_save.connect(create_api_key, sender=User)
+post_save.connect(get_or_create_api_key, sender=User)
