@@ -3198,19 +3198,6 @@
         }
     },
     {
-        "pk": 231,
-        "model": "assets.genericimage",
-        "fields": {
-            "remote": "",
-            "description": "",
-            "created": "2013-02-16T08:21:48.780Z",
-            "last_modified": "2013-02-19T20:26:01.036Z",
-            "hosted": "https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/product_images/JIMMY_-_REGATTA_BLUE.jpg?Signature=duaqVZDZQhbSvYnurDlaCFOrCuU%3D&Expires=1361219423&AWSAccessKeyId=AKIAJUDE7P2MMXMR55OQ",
-            "slug": "girl-red-shoe",
-            "name": "girl with red shoe"
-        }
-    },
-    {
         "pk": 5139,
         "model": "assets.product",
         "fields": {
