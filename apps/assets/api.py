@@ -231,8 +231,6 @@ class ExternalContentResource(ModelResource):
             'store': ALL_WITH_RELATIONS
         }
 
-    def dehydrate_type(self, bundle):
-        return bundle.data['type'].data['slug']
 
 # Apparently, create_api_key only creates on user creation
 # Resolve this by creating a key if the key doesn't exist.
