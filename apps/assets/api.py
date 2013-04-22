@@ -220,8 +220,8 @@ class ExternalContentResource(ModelResource):
     class Meta:
         queryset = ExternalContent.objects.all()
         authentication = MultiAuthentication(
-            UserAuthentication(),
-            ApiKeyAuthentication())
+            ApiKeyAuthentication(),
+            UserAuthentication())
         authorization= Authorization()
         resource_name = 'external_content'
 
