@@ -297,7 +297,7 @@ def asset_manager(request, store_id):
 
 # origin: campaigns with short URLs are cached for 30 minutes
 @cache_page(60 * 30, key_prefix=nocache)
-def campaign_short(request, campaign_id_short, mode=None):
+def campaign_short(request, campaign_id_short, mode='full'):
     """base62() is a custom function, so to figure out the long
     campaign URL, go to http://elenzil.com/esoterica/baseConversion.html
     and decode with the base in utils/base62.py.
@@ -315,9 +315,8 @@ def campaign_short(request, campaign_id_short, mode=None):
     return campaign(request, campaign_id)
 
 
-def campaign(request, campaign_id, mode=None):
+def campaign(request, campaign_id, mode='full'):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
-    mode = mode or request.GET.get('mode', 'full')
 
     rendered_content = render_campaign(campaign_instance,
         request=request, get_seeds_func=get_seeds, mode=mode)
