@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
 from apps.static_pages.models import StaticLog
@@ -24,3 +25,19 @@ def bucket_exists_or_pending(store):
             content_type=store_type, object_id=store.id)
 
     return len(log_records) > 1
+
+
+def get_bucket_name(slug):
+    """
+    Generates a bucket name based on current environment.
+    """
+    if settings.ENVIRONMENT in ["test", "dev"]:
+        return "{0}-{1}.secondfunnel.com".format(
+            settings.ENVIRONMENT, slug)
+
+    elif settings.ENVIRONMENT == "production":
+        return "{0}.secondfunnel.com".format(slug)
+
+    else:
+        raise Exception("Unknown ENVIRONMENT name: {0}".format(
+            settings.ENVIRONMENT))

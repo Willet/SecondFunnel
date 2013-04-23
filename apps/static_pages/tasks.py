@@ -2,15 +2,9 @@
 Static pages celery tasks
 """
 
-import re
-import urllib2
-from urlparse import urlunparse
-from datetime import datetime
-
 from celery import task, group
 from celery.utils.log import get_task_logger
 
-from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 
@@ -20,9 +14,9 @@ from apps.pinpoint.utils import render_campaign
 from apps.static_pages.models import StaticLog
 
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
-    get_route53_change_status, get_or_create_website_bucket, upload_to_bucket)
+    get_route53_change_status, upload_to_bucket)
 from apps.static_pages.utils import (save_static_log, remove_static_log,
-    bucket_exists_or_pending)
+    bucket_exists_or_pending, get_bucket_name)
 
 # TODO: make use of logging, instead of suppressing errors as is done now
 logger = get_task_logger(__name__)
@@ -80,7 +74,7 @@ def create_bucket_for_store(store_id):
         save_static_log(Store, store.id, "PE")
 
         _, change_status, change_id = create_bucket_website_alias(
-            "{0}.secondfunnel.com".format(store.slug))
+            get_bucket_name(store.slug))
 
         if change_status == "PENDING":
             confirm_change_success.subtask((change_id, store_id)).delay()
@@ -105,7 +99,8 @@ def confirm_change_success(change_id, store_id):
 
     # change has not been applied yet
     if change_status == "PENDING":
-        confirm_change_success.subtask((change_id, store_id), countdown=5).delay()
+        confirm_change_success.subtask(
+            (change_id, store_id), countdown=5).delay()
 
     # change has been applied. Save that into log
     elif change_status == "INSYNC":
@@ -154,18 +149,7 @@ def generate_static_campaign(campaign_id):
     rendered_content = render_campaign(campaign)
 
     filename = "{0}/index.html".format(campaign.id)
-
-    if settings.ENVIRONMENT in ["test", "dev"]:
-        bucket_name = "{0}-{1}.secondfunnel.com".format(
-            settings.ENVIRONMENT, campaign.store.slug)
-
-    elif settings.ENVIRONMENT == "production":
-        bucket_name = "{0}.secondfunnel.com".format(campaign.store.slug)
-
-    else:
-        logger.error("Unknown environment name: {0}".format(
-            settings.ENVIRONMENT))
-        return
+    bucket_name = get_bucket_name(campaign.store.slug)
 
     bytes_written = upload_to_bucket(
         bucket_name, filename, rendered_content, public=True)
