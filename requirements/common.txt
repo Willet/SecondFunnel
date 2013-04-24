@@ -26,11 +26,11 @@ mock==1.0.0
 # celery
 amqplib==1.0.2
 anyjson==0.3.3
-billiard==2.7.3.18
-celery==3.0.12
-django-celery==3.0.11
-kombu==2.4.8
-pytz==2012h
+billiard==2.7.3.28
+celery==3.0.19
+django-celery==3.0.17
+kombu==2.5.10
+pytz==2013b
 
 # google api libraries
 google==1.04
