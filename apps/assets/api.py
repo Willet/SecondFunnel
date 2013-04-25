@@ -228,8 +228,7 @@ class ExternalContentResource(ModelResource):
     products = fields.ManyToManyField(ProductResource, 'tagged_products',
         null=True, full=False, related_name='external_content')
 
-    type = fields.ForeignKey(ExternalContentTypeResource, 'content_type',
-                             full=True)
+    type = fields.ForeignKey(ExternalContentTypeResource, 'content_type')
     store = fields.ForeignKey(StoreResource, 'store')
 
     class Meta:
