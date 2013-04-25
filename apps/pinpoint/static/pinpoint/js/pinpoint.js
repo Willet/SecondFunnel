@@ -25,6 +25,27 @@ var PINPOINT = (function($, pageInfo) {
             "grande", "1024x1024", "master"
         ];
 
+    function getDisplayType() {
+        //for now, we cheat to determine which display type to use.
+        if ($.browser.mobile) {
+            return 'mobile'
+        }
+
+        return 'full';
+    };
+
+    function redirect(type) {
+        var newLocation;
+
+        if (!type) {
+            return;
+        }
+
+        newLocation = window.location.href += type + '.html'
+
+        window.location.replace(newLocation);
+    }
+
     function size(url, size) {
         var newUrl, filename;
 
@@ -877,6 +898,10 @@ var PINPOINT = (function($, pageInfo) {
     }
 
     function init () {
+        var displayType = getDisplayType();
+        if (displayType !== 'full') {
+            redirect(displayType);
+        }
         load(scripts);
         $(document).ready(ready);
     }
