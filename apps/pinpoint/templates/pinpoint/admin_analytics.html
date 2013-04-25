@@ -532,6 +532,7 @@
 
     <nav class="grid_3 prefix_9">
         <ul>
+            {# TODO: This should be part of the base template, probably #}
             {% if store %}
                 <li><a href="{% url store-admin store.id %}">Pages</a></li>
                 <li><a href="{% url asset-manager store.id %}">Asset Manager</a></li>

@@ -61,7 +61,8 @@ class Store(BaseModelNamed):
 
 
 class StoreFeature(BaseModelNamed):
-    pass
+    def __unicode__(self):
+        return self.name
 
 
 class MediaBase(BaseModelNamed):
