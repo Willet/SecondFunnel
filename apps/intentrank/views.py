@@ -333,6 +333,9 @@ def get_related_content_product(request, id=None):
     results = []
     result = get_product_json_data(product,
                                    products_with_images_only=False)
+    result.update({
+        'db-id': product.id
+    })
 
     # Append the product JSON itself
     results.append(result)
@@ -342,13 +345,20 @@ def get_related_content_product(request, id=None):
     for content in related_content:
         item = content.to_json()
         item.update({
+            'db-id': content.id,
             'template': content.content_type.name.lower()
         })
 
+        # Need to include related products to duplicate existing functionality
         related_products = content.tagged_products.all()
+        rel_product_results = []
+        for rel_product in related_products:
+            data = rel_product.data(raw=True)
+            data.update({'db-id': rel_product.id})
+            rel_product_results.append(data)
+
         item.update({
-            'related-products': [x.data(raw=True)
-                                 for x in related_products]
+            'related-products': [rel_product_results]
         })
 
         results.append(item)
@@ -367,14 +377,20 @@ def get_related_content_store(request, id=None):
     for content in related_external_content:
         item = content.to_json()
         item.update({
+            'db-id': content.id,
             'template': content.content_type.name.lower()
         })
 
         # Need to include related products to duplicate existing functionality
         related_products = content.tagged_products.all()
+        rel_product_results = []
+        for rel_product in related_products:
+            data = rel_product.data(raw=True)
+            data.update({'db-id': rel_product.id})
+            rel_product_results.append(data)
+
         item.update({
-            'related-products': [x.data(raw=True)
-                                 for x in related_products]
+            'related-products': [rel_product_results]
         })
 
         results.append(item)
@@ -383,6 +399,7 @@ def get_related_content_store(request, id=None):
     videos = store.videos.all()
     for video in videos:
         results.append({
+            'db-id': video.id,
             'id': video.video_id,
             'url': 'http://www.youtube.com/watch?v={0}'.format(video.video_id),
             'provider': 'youtube',
