@@ -56,6 +56,10 @@ class StoreResource(ModelResource):
         'apps.assets.api.ExternalContentResource',
         'external_content',
         null=True, full=False, related_name='store')
+    related_videos = fields.ManyToManyField(
+        'apps.assets.api.YoutubeVideoResource',
+        'videos',
+        null=True, full=False, related_name='store')
 
     class Meta:
         queryset = Store.objects.all()
