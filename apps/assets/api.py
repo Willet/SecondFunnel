@@ -66,6 +66,10 @@ class StoreResource(ModelResource):
 class ProductResource(ModelResource):
     """REST (tastypie) version of a Product."""
     store = fields.ForeignKey(StoreResource, 'store')
+    related_content = fields.ManyToManyField(
+        'apps.assets.api.ExternalContentResource',
+        'external_content',
+        null=True, full=False, related_name='tagged_products')
 
     class Meta:
         """Django's way of defining a model's metadata."""
@@ -79,7 +83,9 @@ class ProductResource(ModelResource):
             'name_or_url': ('exact'),
             'available': ('exact'),
         }
-        authentication = UserAuthentication()
+        authentication = MultiAuthentication(
+            ApiKeyAuthentication(),
+            UserAuthentication())
         authorization = UserPartOfStore()
 
     def build_filters(self, filters=None):
