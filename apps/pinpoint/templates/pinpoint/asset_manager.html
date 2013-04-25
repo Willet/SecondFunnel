@@ -579,9 +579,17 @@
     <div class="grid_3 prefix_9">
         <ul>
             {# TODO: This should be part of the base template, probably #}
-            <li><a href="{% url store-admin store.id %}">Pages</a></li>
-            <li class="selected"><a href="{% url asset-manager store.id %}">Asset Manager</a></li>
-            <li><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
+            {% with features=store.features_list %}
+                {% if 'pages' in features %}
+                <li><a href="{% url store-admin store.id %}">Pages</a></li>
+                {% endif %}
+                {% if 'asset-manager' in features %}
+                <li class="selected"><a href="{% url asset-manager store.id %}">Asset Manager</a></li>
+                {% endif %}
+                {% if 'analytics' in features %}
+                <li><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
+                {% endif %}
+            {% endwith %}
         </ul>
     </div>
 {% endblock %}

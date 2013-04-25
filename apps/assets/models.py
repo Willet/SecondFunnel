@@ -59,6 +59,9 @@ class Store(BaseModelNamed):
     def live_campaigns(self):
         return self.campaign_set.filter(live=True)
 
+    def features_list(self):
+        return [x.slug for x in self.features.all()]
+
 
 class StoreFeature(BaseModelNamed):
     def __unicode__(self):
