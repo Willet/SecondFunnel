@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from django.template import Context, loader, TemplateDoesNotExist
 from mock import MagicMock
 
-from apps.assets.models import Product
+from apps.assets.models import Product, Store
 
 from apps.intentrank.utils import (random_products, VideoCookie,
     video_probability_function, ajax_jsonp)
@@ -321,32 +321,64 @@ def invalidate_session(request):
     send_intentrank_request(request, url)
     return HttpResponse("[]", mimetype='application/json')
 
+
+# WARNING: As soon as Neal's service is up and running,
+# REMOVE THESE TWO METHODS BELOW
 def get_related_content_product(request, id=None):
     if not id:
         raise Exception('No ID')
 
-    products = Product.objects.filter(id=id)
+    product = Product.objects.get(id=id)
 
     results = []
-    for product in products:
-        result = get_product_json_data(product,
-                                       products_with_images_only=False)
+    result = get_product_json_data(product,
+                                   products_with_images_only=False)
 
-        results.append(result)
+    results.append(result)
 
-        related_content = product.external_content.all().filter(active=True, approved=True)
-        for content in related_content:
-            item = content.to_json()
+    related_content = product.external_content.filter(active=True, approved=True)
+    for content in related_content:
+        item = content.to_json()
 
-            related_products = content.tagged_products.all()
-            item.update({
-                'related-products': [x.data(raw=True)
-                                     for x in related_products]
-            })
+        related_products = content.tagged_products.all()
+        item.update({
+            'related-products': [x.data(raw=True)
+                                 for x in related_products]
+        })
 
-            results.append(item)
+        results.append(item)
 
     return HttpResponse(json.dumps(results))
 
 def get_related_content_store(request, id=None):
-    pass
+    if not id:
+        raise Exception('No ID')
+
+    store = Store.objects.get(id=id)
+
+    results = []
+    related_external_content = store.external_content.filter(active=True, approved=True)
+    for content in related_external_content:
+        item = content.to_json()
+
+        related_products = content.tagged_products.all()
+        item.update({
+            'related-products': [x.data(raw=True)
+                                 for x in related_products]
+        })
+
+        results.append(item)
+
+    videos = store.videos.all()
+    for video in videos:
+        results.append({
+            'id': video.video_id,
+            'url': 'http://www.youtube.com/watch?v={0}'.format(video.video_id),
+            'provider': 'youtube',
+            'width': '450',
+            'height': '250',
+            'autoplay': 0,
+            'template': 'youtube'
+        })
+
+    return HttpResponse(json.dumps(results))
