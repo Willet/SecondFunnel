@@ -334,11 +334,16 @@ def get_related_content_product(request, id=None):
     result = get_product_json_data(product,
                                    products_with_images_only=False)
 
+    # Append the product JSON itself
     results.append(result)
 
+    # Need to include related products to duplicate existing functionality
     related_content = product.external_content.filter(active=True, approved=True)
     for content in related_content:
         item = content.to_json()
+        item.update({
+            'template': content.content_type.name.lower()
+        })
 
         related_products = content.tagged_products.all()
         item.update({
@@ -356,11 +361,16 @@ def get_related_content_store(request, id=None):
 
     store = Store.objects.get(id=id)
 
+    # Get external content associated with store
     results = []
     related_external_content = store.external_content.filter(active=True, approved=True)
     for content in related_external_content:
         item = content.to_json()
+        item.update({
+            'template': content.content_type.name.lower()
+        })
 
+        # Need to include related products to duplicate existing functionality
         related_products = content.tagged_products.all()
         item.update({
             'related-products': [x.data(raw=True)
@@ -369,6 +379,7 @@ def get_related_content_store(request, id=None):
 
         results.append(item)
 
+    # Get Youtube content associated with store
     videos = store.videos.all()
     for video in videos:
         results.append({
