@@ -322,9 +322,10 @@ def invalidate_session(request):
     return HttpResponse("[]", mimetype='application/json')
 
 def get_related_content_product(request, id=None):
-    products = Product.objects.all()
-    if id:
-        products = products.filter(id=id)
+    if not id:
+        raise Exception('No ID')
+
+    products = Product.objects.filter(id=id)
 
     results = []
     for product in products:
