@@ -320,3 +320,19 @@ def invalidate_session(request):
     url = '{0}/intentrank/invalidate-session'.format(INTENTRANK_BASE_URL)
     send_intentrank_request(request, url)
     return HttpResponse("[]", mimetype='application/json')
+
+def get_related_content_product(request, id=None):
+    products = Product.objects.all()
+    if id:
+        products = products.filter(id=id)
+
+    results = []
+    for product in products:
+        result = get_product_json_data(product,
+                                       products_with_images_only=False)
+        results.append(result)
+
+    return HttpResponse(json.dumps(results))
+
+def get_related_content_store(request, id=None):
+    pass
