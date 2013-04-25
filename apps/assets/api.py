@@ -52,6 +52,11 @@ class BlockContentResource(ModelResource):
 
 class StoreResource(ModelResource):
     """REST-style store."""
+    related_content = fields.ManyToManyField(
+        'apps.assets.api.ExternalContentResource',
+        'external_content',
+        null=True, full=False, related_name='store')
+
     class Meta:
         queryset = Store.objects.all()
         resource_name = 'store'
