@@ -64,7 +64,9 @@ class StoreResource(ModelResource):
     class Meta:
         queryset = Store.objects.all()
         resource_name = 'store'
-        authentication = UserAuthentication()
+        authentication = MultiAuthentication(
+            ApiKeyAuthentication(),
+            UserAuthentication())
         authorization = UserPartOfStore()
         filtering = {
             'id': ('exact',),
@@ -191,7 +193,9 @@ class YoutubeVideoResource(ModelResource):
 
     class Meta:
         queryset = YoutubeVideo.objects.all()
-        authentication = UserAuthentication()
+        authentication = MultiAuthentication(
+            ApiKeyAuthentication(),
+            UserAuthentication())
         resource_name = 'youtube_video'
 
         filtering = {
@@ -217,7 +221,9 @@ class ExternalContentTypeResource(ModelResource):
 
     class Meta:
         queryset = ExternalContentType.objects.all()
-        authentication = UserAuthentication()
+        authentication = MultiAuthentication(
+            ApiKeyAuthentication(),
+            UserAuthentication())
         authorization= Authorization()
         resource_name = 'external_content_type'
 
