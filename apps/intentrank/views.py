@@ -330,7 +330,20 @@ def get_related_content_product(request, id=None):
     for product in products:
         result = get_product_json_data(product,
                                        products_with_images_only=False)
+
         results.append(result)
+
+        related_content = product.external_content.all().filter(active=True, approved=True)
+        for content in related_content:
+            item = content.to_json()
+
+            related_products = content.tagged_products.all()
+            item.update({
+                'related-products': [x.data(raw=True)
+                                     for x in related_products]
+            })
+
+            results.append(item)
 
     return HttpResponse(json.dumps(results))
 
