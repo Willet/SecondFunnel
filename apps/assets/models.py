@@ -47,6 +47,9 @@ class Store(BaseModelNamed):
     public_base_url = models.URLField(
         help_text="e.g. explore.nativeshoes.com", blank=True, null=True)
 
+    features = models.ManyToManyField('assets.StoreFeature', blank=True,
+        null=True, related_name='stores')
+
     def __unicode__(self):
         return self.name
 
@@ -55,6 +58,10 @@ class Store(BaseModelNamed):
 
     def live_campaigns(self):
         return self.campaign_set.filter(live=True)
+
+
+class StoreFeature(BaseModelNamed):
+    pass
 
 
 class MediaBase(BaseModelNamed):

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage, YoutubeVideo, ExternalContentType, ExternalContent
+from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage, YoutubeVideo, ExternalContentType, ExternalContent, StoreFeature
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -62,6 +62,12 @@ class StoreAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + ['staff_count']
 
 admin.site.register(Store, StoreAdmin)
+
+
+class StoreFeaturesAdmin(BaseNamedAdmin):
+    pass
+
+admin.site.register(StoreFeature, StoreFeaturesAdmin)
 
 
 class ProductMediaInline(admin.TabularInline):
