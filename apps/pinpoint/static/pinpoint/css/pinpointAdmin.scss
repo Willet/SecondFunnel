@@ -456,3 +456,9 @@ $rotateAngle: 5deg;
     padding: 2px;
     font-family: monospace;
 }
+
+/* Fixing tabs */
+.tab_bar {
+  float: right;
+  padding-right: 30px;
+}
