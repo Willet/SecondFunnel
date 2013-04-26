@@ -54,7 +54,16 @@ class Store(BaseModelNamed):
         return self.staff.all().count()
 
     def live_campaigns(self):
-        return self.campaign_set.filter(live=True)
+        results = []
+        live_campaigns = self.campaign_set.filter(live=True)
+        for campaign in live_campaigns:
+            intentrank_objects = campaign.intentrank.all()
+            if intentrank_objects:
+                results.extend(intentrank_objects)
+            else:
+                results.append(campaign)
+
+        return results
 
 
 class MediaBase(BaseModelNamed):
