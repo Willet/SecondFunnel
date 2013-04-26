@@ -42,6 +42,9 @@ def has_store_feature(*features):
     def decorator(view_func):
         @wraps(view_func)
         def inner(request, *args, **kwargs):
+            # Superuser don't care!
+            if request.user.is_superuser:
+                return view_func(request, *args, **kwargs)
 
             try:
                 # Assume args[0] exists and is a store instance
