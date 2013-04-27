@@ -206,14 +206,18 @@ def create_parent_data(data):
     missing_data = []
     for row in data:
         category_id = row.get('campaign_id')
-        ir = IntentRankCampaign.objects.get(pk = category_id)
+        try:
+            ir = IntentRankCampaign.objects.get(pk=category_id)
 
-        # Since it's a M2M rel'n, even though we never associate
-        # categories with other stores, we need to look through all of
-        # the related campaigns and pick the *only* result
-        parent_category = ir.campaigns.all()[0].default_intentrank_id
+            # Since it's a M2M rel'n, even though we never associate
+            # categories with other stores, we need to look through all of
+            # the related campaigns and pick the *only* result
 
-        if category_id == parent_category:
+            parent_category = ir.campaigns.all()[0].default_intentrank_id
+        except (IntentRankCampaign.DoesNotExist, AttributeError, IndexError):
+            continue
+
+        if int(category_id) == parent_category:
             continue
 
         new_row = deepcopy(row)
