@@ -211,6 +211,17 @@ var PINPOINT = (function($, pageInfo) {
             }
         });
     }
+
+    function changeCategory(category) {
+        var categories = details.page.categories;
+        if (!categories || !_.findWhere(categories, {'id': category})) {
+            return
+        }
+
+        // If there are categories, and a valid category is supplied
+        // change the category
+        details.page.id = category;
+    }
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */

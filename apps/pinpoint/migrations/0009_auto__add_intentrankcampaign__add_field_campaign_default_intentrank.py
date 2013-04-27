@@ -8,20 +8,41 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding model 'IntentRankCampaign'
+        db.create_table('pinpoint_intentrankcampaign', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, null=True, blank=True)),
+            ('last_modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, null=True, blank=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50, null=True, blank=True)),
+        ))
+        db.send_create_signal('pinpoint', ['IntentRankCampaign'])
 
-        # Changing field 'Campaign.default_intentrank'
-        db.alter_column('pinpoint_campaign', 'default_intentrank_id', self.gf('django.db.models.fields.related.OneToOneField')(unique=True, null=True, to=orm['pinpoint.IntentRankCampaign']))
-        # Adding unique constraint on 'Campaign', fields ['default_intentrank']
-        db.create_unique('pinpoint_campaign', ['default_intentrank_id'])
+        # Adding field 'Campaign.default_intentrank'
+        db.add_column('pinpoint_campaign', 'default_intentrank',
+                      self.gf('django.db.models.fields.related.OneToOneField')(blank=True, related_name='campaign', unique=True, null=True, to=orm['pinpoint.IntentRankCampaign']),
+                      keep_default=False)
+
+        # Adding M2M table for field intentrank on 'Campaign'
+        db.create_table('pinpoint_campaign_intentrank', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('campaign', models.ForeignKey(orm['pinpoint.campaign'], null=False)),
+            ('intentrankcampaign', models.ForeignKey(orm['pinpoint.intentrankcampaign'], null=False))
+        ))
+        db.create_unique('pinpoint_campaign_intentrank', ['campaign_id', 'intentrankcampaign_id'])
 
 
     def backwards(self, orm):
-        # Removing unique constraint on 'Campaign', fields ['default_intentrank']
-        db.delete_unique('pinpoint_campaign', ['default_intentrank_id'])
+        # Deleting model 'IntentRankCampaign'
+        db.delete_table('pinpoint_intentrankcampaign')
 
+        # Deleting field 'Campaign.default_intentrank'
+        db.delete_column('pinpoint_campaign', 'default_intentrank_id')
 
-        # Changing field 'Campaign.default_intentrank'
-        db.alter_column('pinpoint_campaign', 'default_intentrank_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['pinpoint.IntentRankCampaign'], null=True))
+        # Removing M2M table for field intentrank on 'Campaign'
+        db.delete_table('pinpoint_campaign_intentrank')
+
 
     models = {
         'assets.genericimage': {
@@ -73,6 +94,7 @@ class Migration(SchemaMigration):
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
             'mobile': ('django.db.models.fields.related.OneToOneField', [], {'blank': 'True', 'related_name': "'store_mobile'", 'unique': 'True', 'null': 'True', 'to': "orm['pinpoint.StoreTheme']"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'public_base_url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
             'social_auth': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['social_auth.UserSocialAuth']", 'null': 'True', 'blank': 'True'}),
             'staff': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False'}),
@@ -169,7 +191,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'IntentRankCampaign'},
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'uuid': ('django.db.models.fields.CharField', [], {'max_length': '36', 'primary_key': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'})
