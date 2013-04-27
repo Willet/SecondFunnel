@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from django.template import Context, loader, TemplateDoesNotExist
 from mock import MagicMock
 
-from apps.assets.models import Product
+from apps.assets.models import Product, Store
 
 from apps.intentrank.utils import (random_products, VideoCookie,
     video_probability_function, ajax_jsonp)
@@ -320,3 +320,93 @@ def invalidate_session(request):
     url = '{0}/intentrank/invalidate-session'.format(INTENTRANK_BASE_URL)
     send_intentrank_request(request, url)
     return HttpResponse("[]", mimetype='application/json')
+
+
+# WARNING: As soon as Neal's service is up and running,
+# REMOVE THESE TWO METHODS BELOW
+def get_related_content_product(request, id=None):
+    if not id:
+        raise Exception('No ID')
+
+    product = Product.objects.get(id=id)
+
+    results = []
+    result = get_product_json_data(product,
+                                   products_with_images_only=False)
+    result.update({
+        'db-id': product.id
+    })
+
+    # Append the product JSON itself
+    results.append(result)
+
+    # Need to include related products to duplicate existing functionality
+    related_content = product.external_content.filter(active=True, approved=True)
+    for content in related_content:
+        item = content.to_json()
+        item.update({
+            'db-id': content.id,
+            'template': content.content_type.name.lower()
+        })
+
+        # Need to include related products to duplicate existing functionality
+        related_products = content.tagged_products.all()
+        rel_product_results = []
+        for rel_product in related_products:
+            data = rel_product.data(raw=True)
+            data.update({'db-id': rel_product.id})
+            rel_product_results.append(data)
+
+        item.update({
+            'related-products': [rel_product_results]
+        })
+
+        results.append(item)
+
+    return HttpResponse(json.dumps(results))
+
+def get_related_content_store(request, id=None):
+    if not id:
+        raise Exception('No ID')
+
+    store = Store.objects.get(id=id)
+
+    # Get external content associated with store
+    results = []
+    related_external_content = store.external_content.filter(active=True, approved=True)
+    for content in related_external_content:
+        item = content.to_json()
+        item.update({
+            'db-id': content.id,
+            'template': content.content_type.name.lower()
+        })
+
+        # Need to include related products to duplicate existing functionality
+        related_products = content.tagged_products.all()
+        rel_product_results = []
+        for rel_product in related_products:
+            data = rel_product.data(raw=True)
+            data.update({'db-id': rel_product.id})
+            rel_product_results.append(data)
+
+        item.update({
+            'related-products': [rel_product_results]
+        })
+
+        results.append(item)
+
+    # Get Youtube content associated with store
+    videos = store.videos.all()
+    for video in videos:
+        results.append({
+            'db-id': video.id,
+            'id': video.video_id,
+            'url': 'http://www.youtube.com/watch?v={0}'.format(video.video_id),
+            'provider': 'youtube',
+            'width': '450',
+            'height': '250',
+            'autoplay': 0,
+            'template': 'youtube'
+        })
+
+    return HttpResponse(json.dumps(results))
