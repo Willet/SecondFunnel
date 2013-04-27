@@ -36,3 +36,33 @@ def belongs_to_store(view_func):
         return view_func(request, *args, **kwargs)
 
     return wrapper
+
+def has_store_feature(*features):
+    """Decorator for views that are only accessible if features enabled"""
+    def decorator(view_func):
+        @wraps(view_func)
+        def inner(request, *args, **kwargs):
+            # Superuser don't care!
+            if request.user.is_superuser:
+                return view_func(request, *args, **kwargs)
+
+            try:
+                # Assume args[0] exists and is a store instance
+                store_id = kwargs.get('store_id')
+                if not store_id:
+                    store_id = args[0].id
+                store = Store.objects.get(pk=store_id)
+            except IndexError:
+                raise ValueError("Store instance or store_id must be present")
+            except AttributeError:
+                raise ValueError("First argument must be either Store instance or store_id")
+            except Store.DoesNotExist:
+                raise ValueError("Store does not exist")
+
+            feature_list = store.features_list()
+            if not all(x in feature_list for x in features):
+                raise PermissionDenied('Requires feature(s) {0}'.format(features))
+
+            return view_func(request, *args, **kwargs)
+        return inner
+    return decorator

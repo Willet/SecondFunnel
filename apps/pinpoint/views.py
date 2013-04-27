@@ -18,7 +18,7 @@ from apps.intentrank.views import get_seeds
 from apps.pinpoint.ajax import upload_image
 
 from apps.pinpoint.models import Campaign, BlockType
-from apps.pinpoint.decorators import belongs_to_store
+from apps.pinpoint.decorators import belongs_to_store, has_store_feature
 from apps.pinpoint.utils import render_campaign
 import apps.pinpoint.wizards as wizards
 from apps.utils import noop
@@ -90,6 +90,7 @@ def admin(request):
 
 
 @belongs_to_store
+@has_store_feature('pages')
 @login_required
 def store_admin(request, store_id):
     """
@@ -166,6 +167,7 @@ def campaign_analytics_admin(request, store_id, campaign_id):
 
 
 @belongs_to_store
+@has_store_feature('analytics')
 @login_required
 def analytics_admin(request, store, campaign=False, is_overview=True):
     categories = Category.objects.filter(enabled=True)
@@ -231,6 +233,7 @@ def upload_asset(request, store_id):
     return ajax_success()
 
 @belongs_to_store
+@has_store_feature('asset-manager')
 @login_required
 def asset_manager(request, store_id):
     """renders the page that allows store owners to tag their instagram photos
