@@ -1,5 +1,5 @@
+from django_extensions.db.fields import UUIDField
 import re
-from django.db.models.signals import post_save
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -206,8 +206,8 @@ class StoreTheme(BaseModelNamed):
 </script>
     """
 
-    # TODO: Replace with ForeignKey to support mobile themes?
-    store = models.OneToOneField(Store, related_name="theme")
+    store = models.ForeignKey(Store, related_name='themes',
+        verbose_name='Belongs to')
 
     # Django templates
     page = models.TextField(default=DEFAULT_PAGE)
@@ -242,7 +242,7 @@ class StoreTheme(BaseModelNamed):
             'body_content': {
                 'type': 'template',
                 'values': ['pinpoint/default_templates.html',
-                           'pinpoint/campaign_scripts.html']
+                           'pinpoint/campaign_scripts_container.html']
             },
             'js_templates': {
                 'type': 'theme',
@@ -267,7 +267,7 @@ class StoreTheme(BaseModelNamed):
         }
 
     def __unicode__(self):
-        return u"Theme: %s" % self.store
+        return u"Theme: %s" % self.name
 
 
 class StoreThemeMedia(MediaBase):
@@ -309,9 +309,28 @@ class BlockContent(BaseModel):
         # tastypie patch
         return self.__unicode__()
 
+class IntentRankCampaign(BaseModelNamed):
+    def __unicode__(self):
+        try:
+            campaign = self.campaign.name
+        except Campaign.DoesNotExist:
+            campaign = 'No Campaign'
+
+        return u'{0} ({1})'.format(self.name, campaign)
+
 
 class Campaign(BaseModelNamed):
     store = models.ForeignKey(Store)
+    theme = models.OneToOneField(StoreTheme,
+        related_name='theme',
+        blank=True,
+        null=True,
+        verbose_name='Campaign Theme')
+    mobile = models.OneToOneField(StoreTheme,
+        related_name='mobile',
+        blank=True,
+        null=True,
+        verbose_name='Campaign Mobile Theme')
     content_blocks = models.ManyToManyField(BlockContent,
         related_name="content_campaign")
 
@@ -320,8 +339,56 @@ class Campaign(BaseModelNamed):
 
     live = models.BooleanField(default=True)
 
+    default_intentrank = models.OneToOneField(IntentRankCampaign,
+        related_name='campaign', blank=True, null=True)
+    intentrank = models.ManyToManyField(IntentRankCampaign,
+        related_name='campaigns', blank=True, null=True)
+
     def __unicode__(self):
         return u"Campaign: %s" % self.name
+
+    def save(self, *args, **kwargs):
+        super(Campaign, self).save(*args, **kwargs)
+
+        if not self.default_intentrank:
+            ir_campaign = IntentRankCampaign(
+                name=self.name,
+                slug=self.slug,
+                description=self.description
+            )
+            ir_campaign.save()
+            self.default_intentrank = ir_campaign
+            self.intentrank.add(ir_campaign)
+
+    def get_theme(self, type):
+        """Returns the best match for the given theme type.
+
+        type: a string; either 'full' or 'mobile'
+        """
+        priorities = {
+            'full'  : [
+                self.theme,
+                self.store.theme,
+                None
+            ],
+            'mobile': [
+                self.mobile,
+                self.store.mobile,
+                self.theme,
+                self.store.theme,
+                None
+            ]
+        }
+
+        themes = priorities.get(type)
+        if not themes:
+            return None
+
+        results = filter(None, themes)
+        if not results:
+            return None
+
+        return results[0]
 
 
 class FeaturedProductBlock(BaseModelNamed):
@@ -420,24 +487,3 @@ class ShopTheLookBlock(BaseModelNamed):
             raise ValidationError('Block needs at least one product image.')
         if not (self.existing_ls_image or self.custom_ls_image):
             raise ValidationError('Block needs at least one STL image.')
-
-
-def social_auth_changed(*args, **kwargs):
-    instance = kwargs.get('instance')
-    created = kwargs.get('created')
-
-    if not (instance and created):
-        return
-
-    # Superusers tend to belong to multiple stores; don't associate if so.
-    if instance.user.is_superuser:
-        return
-
-    stores = Store.objects.filter(staff=instance.user)
-
-    for store in stores:
-        store.social_auth.add(instance)
-        store.save()
-
-
-post_save.connect(social_auth_changed, sender=UserSocialAuth)

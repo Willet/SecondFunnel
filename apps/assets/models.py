@@ -32,6 +32,24 @@ class Store(BaseModelNamed):
     staff = models.ManyToManyField(User)
     social_auth = models.ManyToManyField(UserSocialAuth, blank=True, null=True)
 
+    theme  = models.OneToOneField('pinpoint.StoreTheme',
+        related_name='store_theme',
+        blank=True,
+        null=True,
+        verbose_name='Default theme')
+
+    mobile = models.OneToOneField('pinpoint.StoreTheme',
+        related_name='store_mobile',
+        blank=True,
+        null=True,
+        verbose_name='Default mobile theme')
+
+    public_base_url = models.URLField(
+        help_text="e.g. explore.nativeshoes.com", blank=True, null=True)
+
+    features = models.ManyToManyField('assets.StoreFeature', blank=True,
+        null=True, related_name='stores')
+
     def __unicode__(self):
         return self.name
 
@@ -39,7 +57,24 @@ class Store(BaseModelNamed):
         return self.staff.all().count()
 
     def live_campaigns(self):
-        return self.campaign_set.filter(live=True)
+        results = []
+        live_campaigns = self.campaign_set.filter(live=True)
+        for campaign in live_campaigns:
+            intentrank_objects = campaign.intentrank.all()
+            if intentrank_objects:
+                results.extend(intentrank_objects)
+            else:
+                results.append(campaign)
+
+        return results
+
+    def features_list(self):
+        return [x.slug for x in self.features.all()]
+
+
+class StoreFeature(BaseModelNamed):
+    def __unicode__(self):
+        return self.name
 
 
 class MediaBase(BaseModelNamed):
@@ -262,7 +297,7 @@ class ExternalContent(BaseModel):
     text_content = models.TextField(blank=True, null=True)
     image_url = models.CharField(max_length=555, blank=True, null=True)
 
-    likes = models.IntegerField(default=0)
+    likes = models.IntegerField(default=0, blank=True, null=True)
     username = models.CharField(max_length=50, blank=True, null=True)
     user_image = models.CharField(max_length=555, blank=True, null=True)
 
@@ -295,6 +330,7 @@ class ExternalContent(BaseModel):
 class ExternalContentType(BaseModelNamed):
     """i.e. "Instagram"."""
     enabled = models.BooleanField(default=True)
+    classname = models.CharField(max_length=128, default='')
 
     def __unicode__(self):
         return unicode(self.name) or u''

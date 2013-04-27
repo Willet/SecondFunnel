@@ -25,6 +25,27 @@ var PINPOINT = (function($, pageInfo) {
             "grande", "1024x1024", "master"
         ];
 
+    function getDisplayType() {
+        //for now, we cheat to determine which display type to use.
+        if ($.browser.mobile) {
+            return 'mobile'
+        }
+
+        return 'full';
+    };
+
+    function redirect(type) {
+        var newLocation;
+
+        if (!type) {
+            return;
+        }
+
+        newLocation = window.location.href += type + '.html'
+
+        window.location.replace(newLocation);
+    }
+
     function size(url, size) {
         var newUrl, filename;
 
@@ -189,6 +210,17 @@ var PINPOINT = (function($, pageInfo) {
                     ' does not exist');
             }
         });
+    }
+
+    function changeCategory(category) {
+        var categories = details.page.categories;
+        if (!categories || !_.findWhere(categories, {'id': category})) {
+            return
+        }
+
+        // If there are categories, and a valid category is supplied
+        // change the category
+        details.page.id = category;
     }
     /* --- END Utilities --- */
 
@@ -377,13 +409,13 @@ var PINPOINT = (function($, pageInfo) {
         exceededThreshold = ((userClicks % clickThreshold) == 0);
 
         $.ajax({
-            url: '/intentrank/update-clickstream/',
+            url: PINPOINT_INFO.base_url + '/intentrank/update-clickstream/?callback=?',
             data: {
                 'store': details.store.id,
                 'campaign': details.page.id,
                 'product_id': id
             },
-            dataType: 'json',
+            dataType: 'jsonp',
             success: function() {
                 if (exceededThreshold) {
                     loadMoreResults(true)
@@ -397,13 +429,13 @@ var PINPOINT = (function($, pageInfo) {
             loadingBlocks = true;
             if (!details.page.offline) {
                 $.ajax({
-                    url: '/intentrank/get-seeds/',
+                    url: PINPOINT_INFO.base_url + '/intentrank/get-seeds/?callback=?',
                     data: {
                         'store': details.store.id,
                         'campaign': details.page.id,
                         'seeds': details.product['product-id']
                     },
-                    dataType: 'json',
+                    dataType: 'jsonp',
                     success: function(results) {
                         layoutResults(results);
                     },
@@ -424,7 +456,7 @@ var PINPOINT = (function($, pageInfo) {
             loadingBlocks = true;
             if (!details.page.offline) {
                 $.ajax({
-                    url: '/intentrank/get-results/',
+                    url: PINPOINT_INFO.base_url + '/intentrank/get-results/?callback=?',
                     data: {
                         'store': details.store.id,
                         'campaign': details.campaign.id,
@@ -435,7 +467,7 @@ var PINPOINT = (function($, pageInfo) {
                         // normally ignored, unless IR call fails and we'll resort to getseeds
                         'seeds': details.featured.id
                     },
-                    dataType: 'json',
+                    dataType: 'jsonp',
                     success: function(results) {
                         layoutResults(results, belowFold);
                     },
@@ -453,8 +485,8 @@ var PINPOINT = (function($, pageInfo) {
 
     function invalidateIRSession () {
         $.ajax({
-            url: '/intentrank/invalidate-session/',
-            dataType: 'json'
+            url: PINPOINT_INFO.base_url + '/intentrank/invalidate-session/?callback=?',
+            dataType: 'jsonp'
         });
     }
 
@@ -583,12 +615,12 @@ var PINPOINT = (function($, pageInfo) {
                 if (thumbObj && thumbObj.url) {
                     thumbURL = thumbObj.url;
                 }  // else fallback to the default thumbURL
-                
+
                 var containers = $(".youtube[data-label='" + video.id + "']");
                 containers.each(function () {
                     var container = $(this),
                         uniqueThumbnailID = generateID('thumb-' + video.id);
-                    
+
                     var thumbnail = $('<div />', {
                         'css': {  // this is to trim the 4:3 black bars
                             'overflow': 'hidden',
@@ -877,6 +909,10 @@ var PINPOINT = (function($, pageInfo) {
     }
 
     function init () {
+        var displayType = getDisplayType();
+        if (displayType !== 'full') {
+            redirect(displayType);
+        }
         load(scripts);
         $(document).ready(ready);
     }

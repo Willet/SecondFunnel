@@ -10,7 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from apps.assets.models import Store
 from apps.analytics.models import Category, Metric, KVStore, CategoryHasMetric
-from apps.pinpoint.models import Campaign
+from apps.pinpoint.models import Campaign, IntentRankCampaign
 from apps.utils.ajax import ajax_success, ajax_error
 
 
@@ -60,8 +60,12 @@ def analytics_pinpoint(request):
         campaign = store.campaign_set.all().order_by("-created")[0]
 
     elif campaign_id:
-        campaign = Campaign.objects.get(id=campaign_id)
-        store = campaign.store
+        campaign = IntentRankCampaign.objects.get(id=campaign_id)
+
+        # Since it's a M2M rel'n, even though we never associate
+        # categories with other stores, we need to look through all of
+        # the related campaigns and pick the *only* result
+        store = campaign.campaigns.all()[0].store
 
     else:
         return ajax_error()

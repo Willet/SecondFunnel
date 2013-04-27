@@ -5,12 +5,19 @@ urlpatterns = patterns('apps.pinpoint.views',
 
     url(r'^admin/$', 'admin', name='admin'),
 
-    url(r'^admin/social-auth/$', 'social_auth', name='social-auth'),
+    url(r'^admin/social-auth/connect/$', 'social_auth_redirect',
+        name='social-auth-connect'),
+
+    url(r'^admin/social-auth/disconnect/$', 'social_auth_redirect',
+        name='social-auth-disconnect'),
 
     url(r'^admin/(?P<store_id>\d+)/$', 'store_admin', name='store-admin'),
 
     url(r'^admin/(?P<store_id>\d+)/asset-manager/$', 'asset_manager',
         name='asset-manager'),
+
+    url(r'^admin/(?P<store_id>\d+)/asset-manager/upload/$', 'upload_asset',
+        name='upload-asset'),
 
     url(r'^admin/(?P<store_id>\d+)/(?P<campaign_id>\d+)/analytics/$',
         'campaign_analytics_admin', name='analytics-campaign-admin'),
@@ -30,7 +37,10 @@ urlpatterns = patterns('apps.pinpoint.views',
     url(r'^admin/(?P<store_id>\d+)/new_campaign/(?P<block_type_id>\d+)/$',
         'block_type_router', name='block-type-wizard'),
 
+    # As suggested in the docs, but how will this affect reverse / url?
+    # https://docs.djangoproject.com/en/dev/topics/http/urls/#notes-on-capturing-text-in-urls
     url(r'^(?P<campaign_id>\d+)/$', 'campaign', name='campaign'),
+    url(r'^(?P<campaign_id>\d+)/(?:(?P<mode>\w+).html)?$', 'campaign', name='campaign'),
 )
 
 # AJAX
@@ -42,5 +52,5 @@ urlpatterns += patterns('apps.pinpoint.ajax',
         'campaign_publish', name='ajax-campaign-publish'),
 
     url(r'^ajax/upload_image/$',
-        'upload_image', name='ajax-upload-image'),
+        'ajax_upload_image', name='ajax-upload-image'),
 )
