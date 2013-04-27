@@ -358,7 +358,7 @@ def get_related_content_product(request, id=None):
             rel_product_results.append(data)
 
         item.update({
-            'related-products': [rel_product_results]
+            'related-products': rel_product_results
         })
 
         results.append(item)
@@ -389,8 +389,9 @@ def get_related_content_store(request, id=None):
             data.update({'db-id': rel_product.id})
             rel_product_results.append(data)
 
+
         item.update({
-            'related-products': [rel_product_results]
+            'related-products': rel_product_results
         })
 
         results.append(item)
