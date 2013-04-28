@@ -201,8 +201,13 @@ def preprocess_row(row, logger):
 def create_parent_data(data):
     """
     For all subcategories, need to create additional rows for 'parent'
-    category. Modify the data in place
+    category
     """
+
+    # TODO: There must be a faster way to do this,
+    # it will likely be incredibly slow getting the IR id one by one and
+    # getting the related campaign
+
     missing_data = []
     for row in data:
         category_id = row.get('campaign_id')
