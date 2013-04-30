@@ -1,0 +1,18 @@
+### Celery Beat settings ###
+
+# Where the Django project is.
+export CELERYBEAT_CHDIR=$CELERYD_CHDIR
+
+# Path to celerybeat
+export CELERYBEAT="$ENV_PYTHON $CELERYBEAT_CHDIR/manage.py celerybeat"
+
+# Extra arguments to celerybeat
+export CELERYBEAT_OPTS="--schedule=/var/run/celery/celerybeat-schedule"
+
+# %n will be replaced with the nodename.
+export CELERYBEAT_LOG_FILE="/var/log/celery/celerybeatlog-%n.log"
+export CELERYBEAT_PID_FILE="/var/run/celery/celerybeatpid-%n.pid"
+
+# Beat service should run as an unprivileged user.
+export CELERYBEAT_USER="celery"
+export CELERYBEAT_GROUP="celery"

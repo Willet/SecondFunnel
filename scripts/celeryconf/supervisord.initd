@@ -1,0 +1,40 @@
+# Supervisord auto-start
+#
+# chkconfig: 345 99 01
+# description: Auto-starts supervisord
+# processname: supervisord
+# pidfile: /var/run/supervisord.pid
+
+SUPERVISORD=/usr/bin/supervisord
+SUPERVISORCTL=/usr/bin/supervisorctl
+CONFIG=/home/ec2-user/pinpoint/env/SecondFunnel/scripts/celeryconf/supervisord.conf
+
+E_BADARGS=85
+
+case $1 in
+start)
+        echo -n "Starting supervisord: "
+        sudo $SUPERVISORD -c $CONFIG
+        if [ "$2" = "test" ]; then
+            echo -n "Starting within test environment"
+            sudo $SUPERVISORCTL -c $CONFIG start celery_test:*
+        elif [ "$2" = "production" ]; then
+            echo -n "Starting within production environment"
+            sudo $SUPERVISORCTL -c $CONFIG start celery_production:*
+        else
+            echo "Missing environment name. Must be 'test' or 'production'."
+            exit $E_BADARGS
+        fi
+        echo
+        ;;
+stop)
+        echo -n "Stopping supervisord: "
+        sudo $SUPERVISORCTL -c $CONFIG shutdown
+        echo
+        ;;
+status)
+        echo -n "Supervised processes status: "
+        sudo $SUPERVISORCTL -c $CONFIG status
+        echo
+        ;;
+esac

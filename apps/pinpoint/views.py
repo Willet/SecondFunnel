@@ -1,21 +1,34 @@
-import re
-
+from urllib import urlencode
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.conf import settings
+from django.contrib.auth.views import login
 from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.template import RequestContext, Template, Context
-from django.http import HttpResponse, Http404
+from django.template import RequestContext, Context, loader
+from django.http import HttpResponse, HttpResponseServerError
 from django.contrib.contenttypes.models import ContentType
-from django.template.loader import render_to_string
-from django.views.decorators.cache import cache_page
+from django.template.defaultfilters import slugify, safe
+from django.utils.encoding import force_unicode
+from django.views.decorators.http import require_POST
+from fancy_cache import cache_page
+from social_auth.db.django_models import UserSocialAuth
 
-from apps.analytics.models import Category, AnalyticsRecency
-from apps.assets.models import Store, Product
-from apps.pinpoint.models import Campaign, BlockType, BlockContent
-from apps.pinpoint.decorators import belongs_to_store
+from apps.analytics.models import Category
+from apps.assets.models import ExternalContent, ExternalContentType, Store
+from apps.intentrank.views import get_seeds
+from apps.pinpoint.ajax import upload_image
 
+from apps.pinpoint.models import Campaign, BlockType
+from apps.pinpoint.decorators import belongs_to_store, has_store_feature
+from apps.pinpoint.utils import render_campaign
 import apps.pinpoint.wizards as wizards
+from apps.utils import noop
+from apps.utils.ajax import ajax_error, ajax_success
+
 import apps.utils.base62 as base62
+from apps.utils.caching import nocache
+
+from apps.utils.image_service.api import queue_processing
+from apps.utils.social.utils import get_adapter_class
 
 
 @login_required
@@ -35,6 +48,33 @@ def login_redirect(request):
         return redirect('admin')
 
 
+def login_success_redirect(request):
+    """Redirects user to store admin page if he/she already logged in
+    and attempts to log in again.
+    """
+    if request.user.is_authenticated():
+        return login_redirect(request)
+    else:
+        return login(request)
+
+
+@login_required
+def social_auth_redirect(request):
+    """
+    Redirect after some social-auth action (association, or disconnection).
+
+    @param request: The request for this page.
+
+    @return: An HttpResponse that redirects the user to the asset_manager
+    page, or a page where the user can pick which store they want to view
+    """
+    store_set = request.user.store_set
+    if store_set.count() == 1:
+        return redirect('asset-manager', store_id=str(store_set.all()[0].id))
+    else:
+        return redirect('admin')
+
+
 @login_required
 def admin(request):
     """
@@ -50,6 +90,7 @@ def admin(request):
 
 
 @belongs_to_store
+@has_store_feature('pages')
 @login_required
 def store_admin(request, store_id):
     """
@@ -108,6 +149,16 @@ def edit_campaign(request, store_id, campaign_id):
     return getattr(wizards, block_type.handler)(
         request, store, block_type, campaign=campaign_instance)
 
+@login_required
+def delete_campaign(request, store_id, campaign_id):
+    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
+    campaign_instance.live = False
+    campaign_instance.save()
+
+    messages.success(request, "Your page was deleted.")
+
+    return redirect('store-admin', store_id=store_id)
+
 
 @login_required
 def block_type_router(request, store_id, block_type_id):
@@ -145,199 +196,172 @@ def campaign_analytics_admin(request, store_id, campaign_id):
 
 
 @belongs_to_store
+@has_store_feature('analytics')
 @login_required
 def analytics_admin(request, store, campaign=False, is_overview=True):
     categories = Category.objects.filter(enabled=True)
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
 
-    try:
-        if campaign:
-            recency = AnalyticsRecency.objects.get(
-                content_type=campaign_type,
-                object_id=campaign.id
-            )
-        else:
-            recency = AnalyticsRecency.objects.get(
-                content_type=store_type,
-                object_id=store.id
-            )
-    except AnalyticsRecency.DoesNotExist:
-        recency = None
-    else:
-        recency = recency.last_fetched
-
     return render_to_response('pinpoint/admin_analytics.html', {
         'is_overview': is_overview,
         'store': store,
         'campaign': campaign,
-        'categories': categories,
-        'last_updated': recency
+        'categories': categories
     }, context_instance=RequestContext(request))
 
 
-@cache_page(60 * 30)
-def campaign_short(request, campaign_id_short):
+def create_external_content(store, **obj):
+    content_type = ExternalContentType.objects.get(slug=obj.get('type'))
+
+    new_content, created = ExternalContent.objects.get_or_create(
+        store=store,
+        original_id=obj.get('original_id'),
+        content_type=content_type)
+
+    if created:
+        new_content.text_content = obj.get('text_content')
+        
+        new_image_url = queue_processing( obj.get('image_url'),
+                                          store_slug = store.slug,
+                                          image_type = obj.get('type') )
+
+        # imageservice might or might not be working today
+        #so lets be careful with it
+        if new_image_url:
+            new_content.image_url = new_image_url
+
+    # Any fields that should be periodically updated                                                                                                                              
+    new_content.original_url = obj.get('original_url')
+    new_content.username = obj.get('username')
+    new_content.likes = obj.get('likes')
+    new_content.user_image = obj.get('user-image')
+    new_content.save()
+    return new_content
+
+
+@require_POST
+@login_required
+def upload_asset(request, store_id):
+    store = get_object_or_404(Store, pk=store_id)
+    
+    try:
+        media = upload_image(request)
+        url = media.get_url()
+        asset = create_external_content(
+            store,
+            type='upload-image',
+            original_id=url,
+            text_content=url,
+            image_url=url
+        )
+    except Exception, e:
+        ajax_error()
+
+    return ajax_success()
+
+@belongs_to_store
+@has_store_feature('asset-manager')
+@login_required
+def asset_manager(request, store_id):
+    """renders the page that allows store owners to tag their instagram photos
+    on their products (or, logically, the other way around).
     """
-    Displays a pinpoint page using a shortened page id.
+    store = get_object_or_404(Store, pk=store_id)
+    user = request.user
 
-    This function converts the shortened id back to a regular id,
-    then calls campaign using this id to render the page.
+    accounts = []
+    xcontent_types = ExternalContentType.objects.filter(enabled=True)
+    for xcontent_type in xcontent_types:
+        if xcontent_type.slug.startswith('upload'):
+            continue
 
-    @param request: The request for this page.
-    @param campaign_id_short: The shortened campaign id.
+        try:
+            account_user = store.social_auth.get(provider=xcontent_type.slug)
+        except UserSocialAuth.DoesNotExist:
+            account_user = None
 
-    @return: An HttpResponse that renders the pinpoint page.
-    See app.pinpoint.views.campaign.
-    """
-    return campaign(request, base62.decode(campaign_id_short))
+        if not account_user:
+            try:
+                account_user = user.social_auth.get(provider=xcontent_type.slug)
+            except UserSocialAuth.DoesNotExist:
+                account_user = None
 
-
-def campaign(request, campaign_id):
-    """
-    Displays a pinpoint page using a page id.
-
-    This function tries to use a store's theme to render a pinpoint page.
-    If one is not found, then a default template is used.
-
-    @param request: The request for this page.
-    @param campaign_id: The id of the page to render.
-
-    @return: An HttpResponse that constructs a pinpoint page using a store
-    theme or using a default template.
-    """
-    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
-
-    arguments = {
-        "campaign": campaign_instance,
-        "columns": range(4),
-        "preview": not campaign_instance.live
-    }
-    context = RequestContext(request)
-
-    if hasattr(campaign_instance.store, "theme"):
-        context.update(arguments)
-        return campaign_to_theme_to_response(campaign_instance, arguments,
-                                             context)
-    else:
-        return render_to_response('pinpoint/campaign.html', arguments,
-                                  context_instance=context)
-
-
-def campaign_to_theme_to_response(campaign, arguments, context=None):
-    """
-    Renders a pinpoint page using a store theme.
-
-    @param: campaign: The store whose theme should be used.
-    @param: arguments: Context arguments to render the following:
-        discovery area, page preview, and campaign_head.
-    @param: context: Either a request context or None.
-
-    @return: An HttpResponse that renders a pinpoint page.
-    """
-    if context is None:
-        context = Context()
-    context.update(arguments)
-
-    theme = campaign.store.theme
-
-    # Determine featured content type
-    # TODO: How to handle multiple block types?
-    for block in campaign.content_blocks.all():
-        if block.content_type.name != "campaign":
-            content_block = block
-            break
-
-    featured_context = Context()
-    type = content_block.content_type.name
-
-    if type in ('featured product block', 'shop the look block'):
-        content_template = theme.featured_product
-        product = content_block.data.product
-
-        # TODO: Is the featured image always in the list of images?
-        featured_image = content_block.data.get_image().get_url()
-
-        product.description = content_block.data.description
-        product.featured_image = featured_image
-        product.is_featured = True
-
-        # Piggyback off of featured product block
-        if type == 'shop the look block':
-            lifestyle_image = content_block.data.get_ls_image().get_url()
-            product.lifestyle_image = lifestyle_image
-
-        featured_context.update({
-            'product': product,
+        # Add the account regardless of if we have a user or not
+        # We use this to determine which accounts to show
+        accounts.append({
+            'type': xcontent_type.slug,
+            'connected': account_user,
+            'data': getattr(account_user, 'extra_data', {})
         })
 
-    # Pre-render templates; bottom up
-    # Discovery block
-    discovery_block = theme.discovery_product  # TODO: Generalize to other blocks
-    modified_discovery = "".join([
-        "{% extends 'pinpoint/campaign_discovery.html' %}",
-        "{% load pinpoint_ui %}",
-        "{% block discovery_block %}",
-        "<div class='block product' {{product.data|safe}}>",
-        discovery_block,
-        "</div>",
-        "{% endblock discovery_block %}"
-    ])
+        # If we do have an account, start fetching content
+        if account_user:
+            cls = get_adapter_class(xcontent_type.classname)
 
-    # Discovery area
-    discovery_area = Template(modified_discovery).render(context)
+            # If we can't get an adapter class, don't try to load content
+            if not cls:
+                continue
 
-    # Preview block
-    # TODO: Does this actually need any additional context?
-    modified_preview = "".join([
-        "<div class='preview product' style='display: none;'>",
-        "<div class='mask'></div>",
-        "<div class='tablecell'>",
-        "<div class='content'>",
-        "<span class='close'>X</span>",
-        theme.preview_product,
-        "</div>",
-        "</div>",
-        "</div>",
-    ])
-    product_preview = Template(modified_preview).render(context)
+            adapter = cls(tokens=account_user.tokens)
+            contents = adapter.get_content(count=500)
 
-    # Featured content
-    modified_featured = "".join([
-        "{% load pinpoint_ui %}",
-        "<div class='featured product' {{ product.data|safe }}>",
-        content_template,
-        "</div>"
-    ])
+            for obj in contents:
+                create_external_content(store, **obj)
 
-    featured_content = Template(modified_featured).render(featured_context)
+    all_contents = store.external_content.all()
 
-    # Header content
-    header_context = Context(featured_context)
-    header_context.update({
-        'campaign': campaign
-    })
+    return render_to_response('pinpoint/asset_manager.html', {
+        "store": store,
+        "accounts": accounts,
+        "content": [
+            ("Needs Review", "needs_review",
+                all_contents.filter(approved=False, active=True)),
+            ("Rejected", "rejected",
+                all_contents.filter(active=False)),
+            ("Approved", "approved",
+                all_contents.filter(approved=True, active=True))
+        ],
+        "store_id": store_id
+    }, context_instance=RequestContext(request))
 
-    header_content = render_to_string('pinpoint/campaign_head.html',
-                                      arguments, header_context)
 
-    # Scripts
-    header_context.update({
-        'ga_account_number': settings.GOOGLE_ANALYTICS_PROPERTY
-    })
-    scripts_content = render_to_string('pinpoint/campaign_scripts.html',
-                                      arguments, header_context)
+# origin: campaigns with short URLs are cached for 30 minutes
+@cache_page(60 * 30, key_prefix=nocache)
+def campaign_short(request, campaign_id_short, mode='full'):
+    """base62() is a custom function, so to figure out the long
+    campaign URL, go to http://elenzil.com/esoterica/baseConversion.html
+    and decode with the base in utils/base62.py.
 
-    page_context = Context({
-        'featured_content': featured_content,
-        'discovery_area': discovery_area,
-        'preview_area': product_preview,
-        'header_content': header_content,
-        'scripts_content': scripts_content
-    })
+    The long URL is (currently) /pinpoint/(long ID).
+    """
 
-    # Page content
-    page = Template(theme.page_template)
+    campaign_id = base62.decode(campaign_id_short)
 
-    # Render response
-    return HttpResponse(page.render(page_context))
+    if any(x in request.GET for x in ['dev', 'unshorten']):
+        response = redirect('campaign', campaign_id=campaign_id, mode=mode)
+        response['Location'] += '?{0}'.format(urlencode(request.GET))
+        return response
+
+    return campaign(request, campaign_id)
+
+
+def campaign(request, campaign_id, mode='full'):
+    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
+
+    rendered_content = render_campaign(campaign_instance,
+        request=request, get_seeds_func=get_seeds, mode=mode)
+
+    return HttpResponse(rendered_content)
+
+
+def app_exception_handler(request):
+    """Renders the "something broke" page. JS console shows the error."""
+    import sys, traceback
+
+    _, exception, _ = sys.exc_info()
+    stack = traceback.format_exc().splitlines()
+
+    return HttpResponseServerError(loader.get_template('500.html').render(
+        Context({'exception': exception,
+                 'traceback': '\n'.join(stack)})))

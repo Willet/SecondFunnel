@@ -32,9 +32,12 @@ class AnalyticsBase(models.Model):
 
 class Category(AnalyticsBase):
     metrics = models.ManyToManyField("Metric", through="CategoryHasMetric", blank=True, null=True)
+    order = models.PositiveIntegerField(default=0)
+    default = models.BooleanField(default=False)
 
     class Meta:
         verbose_name_plural = "Categories"
+        ordering = ('-order',)
 
     def __unicode__(self):
         return self.name
@@ -64,6 +67,8 @@ class CategoryHasMetric(models.Model):
     order = models.PositiveIntegerField(default=0)
     display = models.BooleanField(default=True)
 
+    is_meta = models.BooleanField(default=False)
+
     class Meta:
         ordering = ('-order',)
 
@@ -90,3 +95,15 @@ class KVStore(models.Model):
 
     def __unicode__(self):
         return u"%s:%s (%s)" % (self.key, self.value, self.timestamp)
+
+
+class SharedStorage(models.Model):
+    """
+    Amazon SQS has a size limit for its messages (64kb). At times we need to pass messages
+    that are above that limit in size. In such cases, for convenience, we could use a "shared memory"
+    approach - as opposed to breaking down and parallelizing message passing/processing, for example.
+    """
+    data = models.TextField()
+
+    def __unicode__(self):
+        return u"SharedStorage %d" % self.id

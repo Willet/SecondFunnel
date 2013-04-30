@@ -135,3 +135,10 @@ class IncludeEscNode(template.Node):
 def include_escaped(parser, token):
     """Renders a template with the contents excaped."""
     return IncludeEscNode(parser, token)
+
+@register.filter(name='size')
+def size(value, arg):
+    if not value:
+        return value
+
+    return value.replace("master.jpg", "{0}.jpg".format(arg))

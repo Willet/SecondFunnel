@@ -29,6 +29,11 @@
             color: #b23739;
         }
 
+        .container_12 .prefix_9, .container_16 .prefix_12 {
+            padding-left: 620px;
+            width: 310px;
+        }
+
         table a, table a:visited {
             color: #4398aa;
         }
@@ -151,6 +156,10 @@
             color: #EEE;
             font-size: 13px;
         }
+
+        #pageList td.delete a {
+            color: #ae432e;
+        }
     </style>
 {% endblock %}
 
@@ -193,7 +202,8 @@
                         dataRowOptions,
                         dataRowOptions,
                         dataRowOptions,
-                        dataRowOptions
+                        dataRowOptions,
+                        {'sWidth': '25px', 'bSortable': false}
                     ],
                     "aaSorting": [[1, "desc"]],
                     "oLanguage": {
@@ -232,7 +242,8 @@
             });
 
             // If we had messages, flash the most recent entry...
-            if ($("ul.messages").length >= 1) {
+            if ($("ul.messages").length >= 1 &&
+                !$("ul.messages:contains('deleted')").length) {
                 $("#pageList tbody tr:first div").delay(500).effect("highlight", {"color": "#6F98AC"}, 2000);
             }
 
@@ -257,7 +268,7 @@
 
             $(".get_link").qtip({
                 content: {
-                    text: '<input type="textbox" value=""></input>',
+                    text: '<input type="textbox" value="" />',
                     title: {
                     text: 'Press <span class="keyboard">Ctrl-C</span> or <span class="keyboard">&#8984;-C</span> to copy'
                     }
@@ -277,7 +288,7 @@
                         var tooltip = $(this)
                         var input = $('input', tooltip);
                         var link = $(".get_link[aria-describedby=" + tooltip.attr('id') + "]");
-                        var url = "{{ request.get_host }}" + $(".view_page", link.closest('tr')).attr('href');
+                        var url = "{{ store.public_base_url }}" + link.data("cid");
                         input.val(url);
                         input[0].select();
                         input.unbind('click').click(function() {
@@ -295,16 +306,33 @@
                 $(this).qtip('show');
                 $("#" + $(this).attr('aria-describedby') + " input")[0].select();
             });
+
+            $(".delete a").click(function(e) {
+                var cancel = confirm("{% trans "Are you sure you want to delete this page?" %}");
+                if (!cancel) {
+                    e.preventDefault();
+                }
+            });
 {% endblock %}
 
 {% block top_section %}
-    <div class="grid_3 prefix_9">
+    <div class="tab_bar">
         <ul>
-            <li class="selected"><a href="{% url store-admin store.id %}">Pages</a></li>
-            <li><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
+            {# TODO: This should be part of the base template, probably #}
+            {% with features=store.features_list %}
+                {% if 'pages' in features %}
+                    <li class="selected"><a href="{% url store-admin store.id %}">Pages</a></li>
+                {% endif %}
+                {% if 'asset-manager' in features %}
+                    <li><a href="{% url asset-manager store.id %}">Asset Manager</a></li>
+                {% endif %}
+                {% if 'analytics' in features %}
+                    <li><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
+                {% endif %}
+            {% endwith features %}
         </ul>
     </div>
-{% endblock %}
+{% endblock top_section%}
 
 {% block content %}
     <a id="new_page_button" class="button focus" href="{% url new-campaign-admin store.id %}">New Page</a>
@@ -317,6 +345,7 @@
                 <th></th>
                 <th></th>
                 <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -325,10 +354,15 @@
             <tr>
                 <td><div>{{ campaign.name }}</div></td>
                 <td><div data-timestamp='{{ campaign.last_modified|date:"U" }}'>{% blocktrans with day=campaign.last_modified|naturalday %}{{ day }}{% endblocktrans %}</div></td>
-                <td><div><a class="get_link" href="#">Get Link</a></div></td>
+                <td><div><a class="get_link" href="#" data-cid="{{ campaign.id }}">Get Link</a></div></td>
                 <td><div><a href="{% url analytics-campaign-admin campaign.store.id campaign.id %}">{% trans "Analytics" %}</a></div></td>
                 <td><div><a class="view_page" href="{% url campaign_short campaign.id|base62_encode %}" target="_blank">{% trans "View Page" %}</a></div></td>
                 <td><div><a href="{% url edit-campaign-admin campaign.store.id campaign.id %}">{% trans "Edit Page" %}</a></div></td>
+                <td class='delete'>
+                    <div>
+                        <a href="{% url delete-campaign-admin campaign.store.id campaign.id %}" title='Delete Page'>&#215;</a>
+                    </div>
+                </td>
             </tr>
             {% endif %}
             {% endfor %}

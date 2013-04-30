@@ -1,25 +1,26 @@
-from django.conf.urls.defaults import patterns, url
-from django.views.generic import TemplateView
+from django.conf import settings
+from django.conf.urls import patterns, url
+from django.http import HttpResponsePermanentRedirect
 
 urlpatterns = patterns('apps.website.urls',
     url(
         r'^$',
-        TemplateView.as_view(template_name="website/index.html"),
+        lambda x: HttpResponsePermanentRedirect(settings.WEBSITE_BASE_URL),
         name='website-index'
     ),
     url(
         r'^about$',
-        TemplateView.as_view(template_name="website/about.html"),
+        lambda x: HttpResponsePermanentRedirect('%s/about' % settings.WEBSITE_BASE_URL),
         name='website-about'
     ),
     url(
         r'^contact$',
-        TemplateView.as_view(template_name="website/contact.html"),
+        lambda x: HttpResponsePermanentRedirect('%s/contact' % settings.WEBSITE_BASE_URL),
         name='website-contact'
     ),
     url(
         r'^why$',
-        TemplateView.as_view(template_name="website/why.html"),
+        lambda x: HttpResponsePermanentRedirect('%s/why' % settings.WEBSITE_BASE_URL),
         name='website-why'
     ),
 )

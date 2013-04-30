@@ -318,7 +318,7 @@ li a,
         background-color: #6f98ac;
         padding: 10px;
         margin-left: 15px;
-    
+
         -webkit-border-radius: 5px 5px 0px 0px;
         border-radius: 5px 5px 0px 0px;
     }
@@ -328,7 +328,7 @@ li a,
     }
 }
 
-.top_section li, .top_bar .page_title {
+.top_section li, .top_section li a, .top_bar .page_title {
     color: #eeeeee;
 }
 
@@ -377,7 +377,7 @@ ul.errorlist {
         border-style: none;
         border-collapse: separate;
         border-width: 0px;
-    
+
         color: white;
         display: inline;
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -398,11 +398,6 @@ ul.errorlist {
 
 span.disabled {
     display: none;
-}
-
-* {
-    color: #333;
-    text-shadow: 1px 1px 1px #CCC;
 }
 
 $rotateAngle: 5deg;
@@ -460,4 +455,10 @@ $rotateAngle: 5deg;
     margin: 2px;
     padding: 2px;
     font-family: monospace;
+}
+
+/* Fixing tabs */
+.tab_bar {
+  float: right;
+  padding-right: 30px;
 }

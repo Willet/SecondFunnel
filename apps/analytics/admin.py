@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from apps.analytics.models import (AnalyticsRecency, Category, Metric,
-    KVStore, CategoryHasMetric)
+    KVStore, CategoryHasMetric, SharedStorage)
 
 
 class AnalyticsRecencyAdmin(admin.ModelAdmin):
@@ -22,7 +22,7 @@ class CategoryHasMetricInline(admin.TabularInline):
 
 
 class CategoryAdmin(AnalyticsBase):
-    list_display = AnalyticsBase.list_display + ('metrics_count',)
+    list_display = AnalyticsBase.list_display + ('metrics_count', 'order', 'default')
     inlines = [
         CategoryHasMetricInline,
     ]
@@ -41,3 +41,9 @@ class KVStoreAdmin(admin.ModelAdmin):
     list_filter = ('key',)
 
 admin.site.register(KVStore, KVStoreAdmin)
+
+
+class SharedStorageAdmin(admin.ModelAdmin):
+    list_display = ('id',)
+
+admin.site.register(SharedStorage, SharedStorageAdmin)

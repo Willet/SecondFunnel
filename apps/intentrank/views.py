@@ -1,13 +1,20 @@
-import json
-from urllib import urlencode
-import random
-import math
-
-from django.http import HttpResponse
-from django.template import Context, Template
 import httplib2
-from apps.assets.models import Product, Store
+import json
+import random
+
+from urllib import urlencode
+from random import randrange
+
 from django.conf import settings
+from django.db.models import Count
+from django.http import HttpResponse
+from django.template import Context, loader, TemplateDoesNotExist
+from mock import MagicMock
+
+from apps.assets.models import Product, Store
+
+from apps.intentrank.utils import (random_products, VideoCookie,
+    video_probability_function, ajax_jsonp)
 
 # All requests are get requests at the moment
 # URL to IntentRank looks something like this:
@@ -18,112 +25,14 @@ from apps.pinpoint.models import Campaign
 from secondfunnel.settings.common import INTENTRANK_BASE_URL
 
 SUCCESS = 200
-REDIRECT = 300
-SUCCESS_STATUSES = xrange(SUCCESS, REDIRECT)
-DEFAULT_RESULTS = 12
+FAIL400 = 400
+SUCCESS_STATUSES = xrange(SUCCESS, 300)
+DEFAULT_RESULTS  = 12
 MAX_BLOCKS_BEFORE_VIDEO = 50
 
 
-class VideoCookie(object):
-    """
-    Defines a cookie that tracks how many blocks have been placed since
-    the last video has been placed, and what videos have already been placed.
-
-    @ivar blocks_since_last: The number of blocks since the last video.
-    @ivar videos_already_shown: A list of video ids already shown.
-    """
-
-    def __init__(self):
-        """
-        Creates a new video cookie that is empty (has no blocks since last
-        video and no videos already shown).
-        """
-        self.blocks_since_last = 0
-        self.videos_already_shown = []
-
-    def add_video(self, video_id):
-        """
-        Adds a video to the list of videos already shown.
-
-        @param video_id: The id of the video to add.
-
-        @return: self
-        """
-        self.videos_already_shown.append(video_id)
-        self.blocks_since_last = 0
-        return self
-
-    def add_blocks(self, blocks):
-        """
-        Adds blocks to the number of blocks since a video was shown.
-
-        @param blocks: The number of blocks to add.
-
-        @return: self
-        """
-        self.blocks_since_last += blocks
-        return self
-
-    def is_empty(self):
-        """
-        Checks if the cookie is empty (no blocks since last and
-        no videos already shown).
-
-        @return: Whether the cookie is empty.
-        """
-        return self.blocks_since_last == 0 \
-            and self.videos_already_shown == []
-
-    def __str__(self):
-        """
-        String representation of a VideoCookie
-
-        @return: A string representation of a VideoCookie
-        """
-        return str(self.blocks_since_last) + ", " + str(self.videos_already_shown)
-
-
-def video_probability_function(x, m):
-    """
-    This is a probability function for determining when youtube
-    videos are shown.
-
-    Here's this function on wolfram alpha: U{http://wolfr.am/YpGRZe}
-
-    @param x: The current number of blocks added since the last video.
-    @param m: The maximum number of blocks before a video is added.
-
-    @return: A number in the range [0, 1] which represents the
-    probability of a video showing up.
-    """
-    if x <= 0:
-        return 0
-    elif x >= m:
-        return 1
-    else:
-        return 1 - (math.log(m - x) / math.log(m))
-
-
-def random_products(store, num_results):
-    """
-    Gets a specified number of random products from a store.
-
-    @param store: The store to get products from.
-    @param num_results: The number of results to get.
-
-    @return: The requested number of products.
-    """
-    store_id = Store.objects.get(slug__exact=store)
-    results = Product.objects.filter(store_id__exact=store_id).order_by('?')
-    if len(results) < num_results:
-        results = list(results)
-        results.extend(list(random_products(store, (num_results) - len(results))))
-        return results
-    else:
-        return results[:num_results]
-
-
-def send_intentrank_request(request, url, method='GET', headers=None):
+def send_intentrank_request(request, url, method='GET', headers=None,
+                            http=httplib2.Http):
     """
     Sends a given request to intentrank with the given headers.
 
@@ -141,7 +50,7 @@ def send_intentrank_request(request, url, method='GET', headers=None):
     if cookie:
         headers['Cookie'] = cookie
 
-    h = httplib2.Http()
+    h = http()
     response, content = h.request(
         url,
         method=method,
@@ -154,10 +63,12 @@ def send_intentrank_request(request, url, method='GET', headers=None):
     return response, content
 
 
+# TODO: Is there a Guice for Python to inject dependency in live, dev?
 def process_intentrank_request(request, store, page, function_name,
                                param_dict):
-    """
-    Processes an intentrank request, builing the correct url and sending the request.
+    """does NOT initiate a real IntentRank request if debug is set to True.
+
+    Returns the exact number of products requested only when debug is True.
 
     @param request: The request to the django intentrank api.
     @param store: The store this request is for.
@@ -167,139 +78,180 @@ def process_intentrank_request(request, store, page, function_name,
 
     @return: A tuple with QuerySet of products and a response status.
     """
+
     url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
         INTENTRANK_BASE_URL, store, page, function_name)
     params = urlencode(param_dict)
     url = '{0}?{1}'.format(url, params)
 
     if settings.DEBUG:
-        return random_products(
-            store, int(param_dict.get('results', DEFAULT_RESULTS))), SUCCESS
+        # Use a mock instead of avoiding the call
+        # Mock is onlt used in development, not in production
+        results = {'products': random_products(store, param_dict, id_only=True)}
 
-    try:
-        response, content = send_intentrank_request(request, url)
-    except httplib2.HttpLib2Error:
-        content = "{}"
+        response = MagicMock(status=SUCCESS)
+    else:  # live
+        http = httplib2.Http
 
-    try:
-        results = json.loads(content)
-    except ValueError:
-        results = {"error": content}
+        try:
+            response, content = send_intentrank_request(request, url, http=http)
+        except httplib2.HttpLib2Error:
+            # something fundamentally went wrong, and we have nothing to show
+            response = MagicMock(status=FAIL400)
+            content = "{}"
+
+        try:
+            results = json.loads(content)
+        except ValueError:
+            results = {"error": content}
 
     if 'error' in results:
         results.update({'url': url})
         return results, response.status
 
-    products = Product.objects.filter(pk__in=results.get('products'),
+    products = Product.objects.annotate(num_images=Count('media'))\
+                              .filter(pk__in=results.get('products'),
+                                      num_images__gt=0,
                                       rescrape=False)
+
     return products, response.status
 
 
-# TODO: We shouldn't be doing this on the backend
-# Might make more sense to just use JS templates on the front end for
-# consistency
-def products_to_template(products, campaign, results):
-    """
-    Renders the given products and appends them to the given results list.
+def get_product_json_data(product, products_with_images_only=True):
+    """Enforce common product json structures across both
+    live and static IR.
 
-    @param products: The products to add to the results.
-    @param campaign: The page that this request is being processed for.
-    @param results: The list of results to add rendered products to.
-    """
-    # Get theme
-    theme = campaign.store.theme
-    discovery_theme = "".join([
-        "{% load pinpoint_ui %}",
-        "<div class='block product' {{product.data|safe}}>",
-        theme.discovery_product,
-        "</div>"
-    ])
+    input: Product product
+    output: Dict (json object)
 
+    This function raises an exception if products_with_images_only is True,
+    but the product has none.
+
+    """
+    if not product:
+        raise ValueError('Supplied product is not valid.')
+
+    if products_with_images_only and not product.images():
+        raise ValueError('Product has no images, but one or more is required.')
+
+    try:
+        product_template = loader.get_template('pinpoint/snippets/'
+                                               'product_object.js')
+        product_context = Context({'product': product})
+        return json.loads(product_template.render(product_context))
+    except TemplateDoesNotExist:
+        if settings.DEBUG: # tell (only) devs if something went wrong.
+            raise
+
+    # Product json template is AWOL.
+    # Fall back to however we rendered products before
+    product_props = product.data(raw=True)
+    product_js_obj = {}
+    for prop in product_props:
+        # where product_prop is ('data-key', 'value')
+        product_js_obj[prop] = product_props[prop]
+    return product_js_obj
+
+
+def get_json_data(request, products, campaign_id, seeds=None):
+    """returns json equivalent of get_blocks' blocks.
+
+    seeds is a list of product IDs.
+
+    results will be an object {}, not an array [].
+    products_with_images_only should be either '0' or '1', please.
+    """
+    campaign = Campaign.objects.get(pk=campaign_id)
+    results = []
+    products_with_images_only = True
+    if request.GET.get('products_with_images_only', '1') == '0':
+        products_with_images_only = False
+
+    # products
     for product in products:
-        context = Context()
-        context.update({
-            'product': product
-        })
-        results.append(Template(discovery_theme).render(context))
+        try:
+            if not product:
+                continue
 
+            product_js_obj = get_product_json_data(product=product,
+               products_with_images_only=products_with_images_only)
+            results.append(product_js_obj)
+        except ValueError:
+            # caused by product image requirement.
+            # if that requirement is not met, ignore product.
+            continue
 
-def videos_to_template(request, campaign, results):
-    """
-    Determines if a video should be added to the results using video_probability_function.
-    If a video is to be added, then this renderes a random video that hasn't been seen
-    on the current page, and adds it to the results.
-
-    @param request: The request to the django intentrank api.
-    @param campaign: The page that this request is for.
-    @param results: The list to add rendered videos to.
-    """
-    theme = campaign.store.theme
-    discovery_youtube_theme = "".join([
-        "{% load pinpoint_ui %}",
-        "{% load pinpoint_youtube %}",
-        "<div class='block youtube wide'>",
-        theme.discovery_youtube,
-        "</div>"
-    ])
-
+    # videos
     video_cookie = request.session.get('pinpoint-video-cookie')
     if not video_cookie:
         video_cookie = request.session['pinpoint-video-cookie'] = VideoCookie()
 
-    videos = campaign.store.videos.exclude(video_id__in=video_cookie.videos_already_shown)
+    videos = campaign.store.videos.exclude(
+        video_id__in=video_cookie.videos_already_shown)
 
     # if this is the first batch of results, or the random amount is under the
     # curve of the probability function, then add a video
-    show_video = random.random() <= video_probability_function(video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
+    show_video = random.random() <= video_probability_function(
+        video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
     if videos.exists() and (video_cookie.is_empty() or show_video):
         video = videos.order_by('?')[0]
-        context = Context()
-        context.update({
-            'video': video
+        results.append({
+            'id': video.video_id,
+            'url': 'http://www.youtube.com/watch?v={0}'.format(video.video_id),
+            'provider': 'youtube',
+            'width': '450',
+            'height': '250',
+            'autoplay': 0,
+            'template': 'youtube'
         })
-        if len(results) == 0:
-            position = 0
-        else:
-            position = random.randrange(len(results))
-        results.insert(position, Template(discovery_youtube_theme).render(context))
         video_cookie.add_video(video.video_id)
-        video_cookie.add_blocks(len(results) - position)
     else:
         video_cookie.add_blocks(len(results))
 
     request.session['pinpoint-video-cookie'] = video_cookie
 
+    # store-wide external content
+    external_content = campaign.store.external_content.filter(
+        active=True, approved=True)
 
-# combines inserting products and youtube videos
-def get_blocks(request, products, campaign_id):
+    # content to product ration. e.g., 2 == content to products 2:1
+    content_to_products = 1
+
+    need_to_show = int(round(len(results) * content_to_products))
+
+    if len(external_content) > 0 and need_to_show > 0:
+        need_to_show = min(need_to_show, len(external_content))
+
+        for item in random.sample(external_content, need_to_show):
+            json_content = item.to_json()
+            json_content.update({
+                'template': item.content_type.name.lower()
+            })
+
+            related_products = item.tagged_products.all()
+            if related_products:
+                json_content.update({
+                    'related-products': [x.data(raw=True)
+                        for x in related_products]
+                })
+
+            results.insert(randrange(len(results) + 1), json_content)
+
+
+def get_seeds(request, **kwargs):
+    """kwargs overrides request values when provided.
+
+    kwargs['raw'] also toggles between returning a dictionary
+    or an entire HttpResponse.
+
+    returns a list of (json) dicts representing e.g. products.
     """
-    Generates a list of discovery blocks of different types.
-
-    @param request: The request to the django intentrank api.
-    @param products: The QuerySet of products to render.
-    @param campaign_id: The page this request is for.
-
-    @return: A list of rendered discovery blocks.
-    """
-    campaign = Campaign.objects.get(pk=campaign_id)
-    results = []
-    products_to_template(products, campaign, results)
-    videos_to_template(request, campaign, results)
-    return results
-
-
-def get_seeds(request):
-    """
-    Gets initial seeds for a page. Should be called when a page loads.
-
-    @param request: The request.
-
-    @return: A json HttpResonse that contains rendered products or an error.
-    """
-    store = request.GET.get('store', '-1')
-    page = request.GET.get('campaign', '-1')
-    seeds = request.GET.get('seeds', '-1')
-    num_results = request.GET.get('results', DEFAULT_RESULTS)
+    store   = kwargs.get('store', request.GET.get('store', '-1'))
+    page    = kwargs.get('campaign', request.GET.get('campaign', '-1'))
+    seeds   = kwargs.get('seeds', request.GET.get('seeds', '-1'))
+    num_results = kwargs.get('results', request.GET.get('results',
+                                                        DEFAULT_RESULTS))
+    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
 
     request.session['pinpoint-video-cookie'] = VideoCookie()
 
@@ -311,25 +263,29 @@ def get_seeds(request):
     )
 
     if status in SUCCESS_STATUSES:
-        result = get_blocks(request, results, page)
+        result = get_json_data(request, results, page,
+                               seeds=filter(None, str(seeds).split(',')))
     else:
         result = results
 
-    return HttpResponse(json.dumps(result), mimetype='application/json',
-                        status=status)
+    if kwargs.get('raw', False):
+        return result
+    else:
+        return ajax_jsonp(result, callback, status=status)
 
 
-def get_results(request):
+def get_results(request, **kwargs):
+    """kwargs overrides request values when provided.
+
+    kwargs['raw'] also toggles between returning a dictionary
+    or an entire HttpResponse.
     """
-    Gets products using intentrank.
-
-    @param request: The request.
-
-    @return: A json HttpResonse that contains rendered products or an error.
-    """
-    store = request.GET.get('store', '-1')
-    page = request.GET.get('campaign', '-1')
-    num_results = request.GET.get('results', DEFAULT_RESULTS)
+    store = kwargs.get('store', request.GET.get('store', '-1'))
+    page = kwargs.get('campaign', request.GET.get('campaign', '-1'))
+    seeds   = kwargs.get('seeds', request.GET.get('seeds', '-1'))
+    num_results = kwargs.get('results', request.GET.get('results',
+                                                        DEFAULT_RESULTS))
+    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
 
     results, status = process_intentrank_request(
         request, store, page, 'getresults', {
@@ -338,12 +294,21 @@ def get_results(request):
     )
 
     if status in SUCCESS_STATUSES:
-        result = get_blocks(request, results, page)
+        result = get_json_data(request, results, page,
+                               seeds=filter(None, seeds.split(',')))
+
+    # workaround for a weird bug on intentrank's side
+    elif status == 400:
+        return get_seeds(request)
+
     else:
         result = results
 
-    return HttpResponse(json.dumps(result), mimetype='application/json',
-                        status=status)
+    if kwargs.get('raw', False):
+        return result
+    else:
+        return ajax_jsonp(result, callback, status=status)
+
 
 
 def update_clickstream(request):
@@ -352,18 +317,26 @@ def update_clickstream(request):
 
     @param request: The request.
 
-    @return: A json HttpResonse that is empty or contains an error.
+    @return: A json HttpResonse that is empty or contains an error.  Displays nothing on success.
     """
-    store = request.GET.get('store', '-1')
-    page = request.GET.get('campaign', '-1')
+    store   = request.GET.get('store', '-1')
+    page    = request.GET.get('campaign', '-1')
     product_id = request.GET.get('product_id')
+    callback = request.GET.get('callback', 'fn')
 
-    results, status = process_intentrank_request(request, store, page, 'updateclickstream', {
-        'product_id': product_id
+    results, status = process_intentrank_request(
+        request, store, page, 'updateclickstream', {
+            'productid': product_id
     })
 
-    # Return JSON results
-    return HttpResponse(json.dumps(results), mimetype='application/json', status=status)
+    if status in SUCCESS_STATUSES:
+        # We don't care what we get back
+        result = []
+    else:
+        result = results
+
+    return ajax_jsonp(result, callback, status=status)
+
 
 
 def invalidate_session(request):
@@ -378,3 +351,94 @@ def invalidate_session(request):
     url = '{0}/intentrank/invalidate-session'.format(INTENTRANK_BASE_URL)
     send_intentrank_request(request, url)
     return HttpResponse("[]", mimetype='application/json')
+
+
+# WARNING: As soon as Neal's service is up and running,
+# REMOVE THESE TWO METHODS BELOW
+def get_related_content_product(request, id=None):
+    if not id:
+        raise Exception('No ID')
+
+    product = Product.objects.get(id=id)
+
+    results = []
+    result = get_product_json_data(product,
+                                   products_with_images_only=False)
+    result.update({
+        'db-id': product.id
+    })
+
+    # Append the product JSON itself
+    results.append(result)
+
+    # Need to include related products to duplicate existing functionality
+    related_content = product.external_content.filter(active=True, approved=True)
+    for content in related_content:
+        item = content.to_json()
+        item.update({
+            'db-id': content.id,
+            'template': content.content_type.name.lower()
+        })
+
+        # Need to include related products to duplicate existing functionality
+        related_products = content.tagged_products.all()
+        rel_product_results = []
+        for rel_product in related_products:
+            data = rel_product.data(raw=True)
+            data.update({'db-id': rel_product.id})
+            rel_product_results.append(data)
+
+        item.update({
+            'related-products': rel_product_results
+        })
+
+        results.append(item)
+
+    return HttpResponse(json.dumps(results))
+
+def get_related_content_store(request, id=None):
+    if not id:
+        raise Exception('No ID')
+
+    store = Store.objects.get(id=id)
+
+    # Get external content associated with store
+    results = []
+    related_external_content = store.external_content.filter(active=True, approved=True)
+    for content in related_external_content:
+        item = content.to_json()
+        item.update({
+            'db-id': content.id,
+            'template': content.content_type.name.lower()
+        })
+
+        # Need to include related products to duplicate existing functionality
+        related_products = content.tagged_products.all()
+        rel_product_results = []
+        for rel_product in related_products:
+            data = rel_product.data(raw=True)
+            data.update({'db-id': rel_product.id})
+            rel_product_results.append(data)
+
+
+        item.update({
+            'related-products': rel_product_results
+        })
+
+        results.append(item)
+
+    # Get Youtube content associated with store
+    videos = store.videos.all()
+    for video in videos:
+        results.append({
+            'db-id': video.id,
+            'id': video.video_id,
+            'url': 'http://www.youtube.com/watch?v={0}'.format(video.video_id),
+            'provider': 'youtube',
+            'width': '450',
+            'height': '250',
+            'autoplay': 0,
+            'template': 'youtube'
+        })
+
+    return HttpResponse(json.dumps(results))
