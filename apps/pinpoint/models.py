@@ -461,24 +461,24 @@ class FeaturedProductBlock(BaseModelNamed):
     existing_image = models.ForeignKey(ProductMedia, blank=True, null=True)
     custom_image = models.OneToOneField(GenericImage, blank=True, null=True)
 
-   def __unicode__(self):
+    def __unicode__(self):
         return u"Featured Content Data for %s" % self.product
-
-   def get_image(self, url=False):
+    
+    def get_image(self, url=False):
         """
         Get an image associated with this block. Prefer custom image over existing image.
-
+        
         @return: A Generic Image object.
         """
-
+        
         image = self.custom_image or self.existing_image or None
-
+        
         if url and image:
             return image.get_url()
-
+        
         return image
-
-
+    
+    
     def save(self, *args, **kwargs):
         """Overridden save method to do multi-field validation."""
         self.clean()
