@@ -221,6 +221,7 @@ var PINPOINT = (function($, pageInfo) {
         // If there are categories, and a valid category is supplied
         // change the category
         details.page.id = category;
+        pinpointTracking.changeCampaign(category);
     }
     /* --- END Utilities --- */
 
