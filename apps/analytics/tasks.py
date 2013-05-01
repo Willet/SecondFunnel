@@ -6,6 +6,7 @@ Analytics protector bunny:
  (()())
 
 """
+from copy import deepcopy
 import pickle, sys
 
 from datetime import date, datetime
@@ -24,7 +25,7 @@ from apps.analytics.storage_backends import GoogleAnalyticsBackend
 from apps.analytics.models import (AnalyticsRecency, Category, Metric, KVStore,
     SharedStorage)
 from apps.assets.models import Store, Product, GenericImage, YoutubeVideo
-from apps.pinpoint.models import Campaign
+from apps.pinpoint.models import Campaign, IntentRankCampaign
 
 
 logger = get_task_logger(__name__)
@@ -195,6 +196,40 @@ def preprocess_row(row, logger):
         logger.warning("Date is unrecognized: %s", row['date'])
 
     return row
+
+
+def create_parent_data(data):
+    """
+    For all subcategories, need to create additional rows for 'parent'
+    category
+    """
+
+    # TODO: There must be a faster way to do this,
+    # it will likely be incredibly slow getting the IR id one by one and
+    # getting the related campaign
+
+    missing_data = []
+    for row in data:
+        category_id = row.get('campaign_id')
+        try:
+            ir = IntentRankCampaign.objects.get(pk=category_id)
+
+            # Since it's a M2M rel'n, even though we never associate
+            # categories with other stores, we need to look through all of
+            # the related campaigns and pick the *only* result
+
+            parent_category = ir.campaigns.all()[0].default_intentrank_id
+        except (IntentRankCampaign.DoesNotExist, AttributeError, IndexError):
+            continue
+
+        if int(category_id) == parent_category:
+            continue
+
+        new_row = deepcopy(row)
+        new_row['campaign_id'] = parent_category
+        missing_data.append(new_row)
+
+    return missing_data
 
 
 class Categories:
@@ -459,6 +494,9 @@ def process_awareness_data(message_id):
         }
     ]
 
+    missing_data = create_parent_data(data)
+    data.extend(missing_data)
+
     for row in data:
         row = preprocess_row(row, logger)
 
@@ -501,6 +539,9 @@ def process_event_data(message_id):
     # handle sharing data
     for category_slug in data.keys():
         saver = partial(save_data_pair, store_type, campaign_type, categories.get(category_slug))
+
+        missing_data = create_parent_data(data[category_slug])
+        data[category_slug].extend(missing_data)
 
         for row in data[category_slug]:
             # with each pass, we're saving a pair of KVStore objects
