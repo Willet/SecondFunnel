@@ -206,9 +206,6 @@ class StoreTheme(BaseModelNamed):
 </script>
     """
 
-    store = models.ForeignKey(Store, related_name='themes',
-        verbose_name='Belongs to')
-
     # Django templates
     page = models.TextField(default=DEFAULT_PAGE)
 
