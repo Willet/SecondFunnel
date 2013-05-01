@@ -8,7 +8,7 @@
         {% for sheet in stylesheets %}
         <link rel="stylesheet" type="text/css" href="{{ sheet }}" />
         {% endfor %}
-        <link rel="stylesheet" href="{% static "pinpoint/css/pinpoint.css" %}">
+        <link rel="stylesheet" href="{% static "pinpoint/css/pages.css" %}">
         <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
         <script src="{% static "js/infinity.min.js" %}"></script>
 
@@ -123,11 +123,11 @@
                 listView = new infinity.ListView($("#waterfall"));
 
                 // analytics
-                pinpointTracking.setSocialShareVars({"default": true});
+                pagesTracking.setSocialShareVars({"default": true});
 
                 // track the buy now button
                 $("#light_buy").click(function() {
-                    pinpointTracking.registerEvent({
+                    pagesTracking.registerEvent({
                         "type": "clickthrough",
                         "subtype": "buy",
                         "label": $(this).attr("href")
@@ -135,12 +135,12 @@
                 });
 
                 $("#featured-social").hover(function() {
-                    pinpointTracking.clearTimeout();
-                    pinpointTracking.setSocialShareVars({"default": true});
+                    pagesTracking.clearTimeout();
+                    pagesTracking.setSocialShareVars({"default": true});
                 }, function() {});
 
                 $(".click .inner-pin").click(function(){
-                    pinpointTracking.registerEvent({
+                    pagesTracking.registerEvent({
                         "type": "inpage",
                         "subtype": "openpopup",
                         "label": $(this).data("url")
@@ -152,7 +152,7 @@
                 $("img[id='light_img']").click(function(e) {
                     var url = $(this).parent().attr("href");
 
-                    pinpointTracking.registerEvent({
+                    pagesTracking.registerEvent({
                         "type": "clickthrough",
                         "subtype": "image",
                         "label": url
@@ -160,7 +160,7 @@
                 });
 
                 $(".pinterest_buttons a, #light .pinterest_buttons a").live("click", function(e) {
-                    pinpointTracking.registerEvent({
+                    pagesTracking.registerEvent({
                         "network": "Pinterest",
                         "type": "share",
                         "subtype": "clicked"
@@ -314,8 +314,8 @@
                         'buy': $(elem).attr("data-url")
                     };
 
-                    pinpointTracking.clearTimeout();
-                    pinpointTracking.setSocialShareVars({"sType": "popup", "url": data.link});
+                    pagesTracking.clearTimeout();
+                    pagesTracking.setSocialShareVars({"sType": "popup", "url": data.link});
 
                     $("#light .fb_buttons").html('<div class="fb-like" data-href="' + data.link + '" data-send="false" data-layout="button_count" data-width="80" data-show-faces="false"></div>')
                     FB.XFBML.parse($("#light .fb_buttons")[0]);
@@ -412,7 +412,7 @@
                     $("#fade").fadeOut(100);
                 });
                 $(".x").click(function() {
-                    pinpointTracking.setSocialShareVars({"default": true});
+                    pagesTracking.setSocialShareVars({"default": true});
                 });
                 $(".click .inner-pin, #featured-product .click").click(function() {
                     showPinOf($(this).closest(".click")[0]);
@@ -429,8 +429,8 @@
                 });
 
                 $(".social-hover").closest(".pin").hover(function () {
-                    pinpointTracking.setSocialShareVars({"sType": "discovery", "url": $(this).data("url")});
-                    pinpointTracking.clearTimeout();
+                    pagesTracking.setSocialShareVars({"sType": "discovery", "url": $(this).data("url")});
+                    pagesTracking.clearTimeout();
 
                     $(this).children(".social-hover").fadeIn('fast');
 
@@ -441,9 +441,9 @@
                         FB.XFBML.parse($('.fb_buttons', $share)[0]);
                     }
                 }, function() {
-                    pinpointTracking.clearTimeout();
-                    if (pinpointTracking.socialShareType !== "popup") {
-                        _pptimeout = window.setTimeout('pinpointTracking.setSocialShareVars({"default": true})', 2000);
+                    pagesTracking.clearTimeout();
+                    if (pagesTracking.socialShareType !== "popup") {
+                        _pptimeout = window.setTimeout('pagesTracking.setSocialShareVars({"default": true})', 2000);
                     }
                     $(this).children(".social-hover").fadeOut('fast');
                 });
