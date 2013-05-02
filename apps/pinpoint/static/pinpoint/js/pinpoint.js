@@ -521,8 +521,8 @@ var PINPOINT = (function($, pageInfo) {
                         }
 
                         // use the resized images
-			template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
-			break;
+                        template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
+                        break;
                     case 'combobox':
                         // in case an image is lacking, don't bother with the product
                         if (!template_context.image || template_context.image == "None") {
