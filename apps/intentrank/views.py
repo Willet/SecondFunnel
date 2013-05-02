@@ -173,6 +173,7 @@ def get_json_data(request, products, campaign_id, seeds=None):
 
     videos = campaign.store.videos.exclude(
         video_id__in=video_cookie.videos_already_shown)
+    # TODO: Add additional filtering here
 
     # if this is the first batch of results, or the random amount is under the
     # curve of the probability function, then add a video
@@ -198,6 +199,7 @@ def get_json_data(request, products, campaign_id, seeds=None):
     # store-wide external content
     external_content = campaign.store.external_content.filter(
         active=True, approved=True)
+    # TODO: Add additional filtering here
 
     # content to product ration. e.g., 2 == content to products 2:1
     content_to_products = 1
