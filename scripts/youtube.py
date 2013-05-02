@@ -42,25 +42,33 @@ def user_content_generator(username, get_params=None):
             'start-index': start_index + items
         })
 
-def import_from_user(username, store_id, category_ids=None, **kwargs):
+def import_from_user(store_id, usernames, category_ids=None, **kwargs):
     if not category_ids:
         category_ids = []
 
     if not isinstance(category_ids, list):
         category_ids = [category_ids]
 
-    results = user_content_generator(username, {'max-results': 10})
+    if not isinstance(usernames, list):
+        usernames = [usernames]
 
-    ids = [];
-    for entry in results:
-        for link in entry['link']:
-            if link.get('rel') == 'self':
-                href = link.get('href')
-                id = href.split('/')[-1]
-                ids.append(id)
+    ids = []
+
+    for username in usernames:
+        results = user_content_generator(username, {'max-results': 10})
+
+        for entry in results:
+            for link in entry['link']:
+                if link.get('rel') == 'self':
+                    href = link.get('href')
+                    id = href.split('/')[-1]
+                    ids.append(id)
 
     for id in ids:
-        video = YoutubeVideo(video_id=id, store_id=store_id)
+        video, created = YoutubeVideo.objects.get_or_create(
+            video_id=id, store_id=store_id
+        )
+
         if kwargs.get('dry_run', False):
             print 'Saving video: {0} (categories: {2})'.format(
                 id, category_ids
