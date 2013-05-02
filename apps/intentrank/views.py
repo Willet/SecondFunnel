@@ -416,7 +416,8 @@ def get_related_content_store(request, id=None):
             'width': '450',
             'height': '250',
             'autoplay': 0,
-            'template': 'youtube'
+            'template': 'youtube',
+            'categories': list(video.categories.all().values_list('id', flat='true'))
         })
 
     return HttpResponse(json.dumps(results))
