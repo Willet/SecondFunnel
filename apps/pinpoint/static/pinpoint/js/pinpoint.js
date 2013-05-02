@@ -593,18 +593,18 @@ var PINPOINT = (function($, pageInfo) {
 	    $elem.remainingImages = $elemImgObjs.length;
 
 	    $elemImgObjs.each(function() { 
-		// Pinterest links are desgned differently, can't make them load in this fashion
-		if ( $(this).attr('src').indexOf("pin") < 0 ) {
-		    $(this).load(function() {
-			    $elem.remainingImages = $elem.remainingImages - 1;
-			    // we added the spinner, so there'd be two images if we were to go look to remove it
-			    if ($elem.remainingImages == 2) { 
-				$elem.find('.image-loading-spinner').remove(); 
-			    }
-			});
-		    $(this).hide();
-		}
-	    });
+		    // Pinterest links are desgned differently, can't make them load in this fashion
+		    if ( $(this).attr('src').indexOf("pin") < 0 ) {
+			$(this).load(function() {
+				$elem.remainingImages = $elem.remainingImages - 1;
+				// we added the spinner, so there'd be two images if we were to go look to remove it
+				if ($elem.remainingImages == 2) { 
+				    $elem.find('.image-loading-spinner').remove(); 
+				}
+			    });
+			$(this).hide();
+		    }
+		});
 
 	    // if it has a lifestyle image, add a wide class to it so it's styled properly
             if ($elem.find('.lifestyle').length > 0) {
@@ -699,7 +699,7 @@ var PINPOINT = (function($, pageInfo) {
 	    $block.find('.block.product img[src=""]').parents('.block.product').remove();
 	    // Now we layout the block and make it visible
 	    // Note that all images may not be loaded yet
-            $('.discovery-area').masonry('appended', $block, true); 
+	    $('.discovery-area').masonry('appended', $block, true); 
 	    
 	    // Centre the spinner if applicable
 	    var $spinner = $block.find('.image-loading-spinner');
@@ -717,7 +717,7 @@ var PINPOINT = (function($, pageInfo) {
                 $(this).html($(this).data('embed'));
             });
 
-        }
+	}
 	displayBlock(); // display the block directly bypassing image loading
 
 	// all the images in the block are finally loaded (except for broken ones), so clean up
@@ -746,7 +746,7 @@ var PINPOINT = (function($, pageInfo) {
 			blocksAppendedCallbacks[i]($block);
 		    }
 		}
-	
+		
 		loadingBlocks = false; //can load more blocks now if needed/desired
 	    });
     }
