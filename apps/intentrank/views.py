@@ -355,7 +355,10 @@ def get_related_content_product(request, id=None):
         item = content.to_json()
         item.update({
             'db-id': content.id,
-            'template': content.content_type.name.lower()
+            'template': content.content_type.name.lower(),
+            'categories': list(
+                content.categories.all().values_list('id', flat='true')
+            )
         })
 
         # Need to include related products to duplicate existing functionality
@@ -387,7 +390,10 @@ def get_related_content_store(request, id=None):
         item = content.to_json()
         item.update({
             'db-id': content.id,
-            'template': content.content_type.name.lower()
+            'template': content.content_type.name.lower(),
+            'categories': list(
+                content.categories.all().values_list('id', flat='true')
+            )
         })
 
         # Need to include related products to duplicate existing functionality
@@ -417,7 +423,9 @@ def get_related_content_store(request, id=None):
             'height': '250',
             'autoplay': 0,
             'template': 'youtube',
-            'categories': list(video.categories.all().values_list('id', flat='true'))
+            'categories': list(
+                video.categories.all().values_list('id', flat='true')
+            )
         })
 
     return HttpResponse(json.dumps(results))
