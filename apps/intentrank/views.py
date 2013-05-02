@@ -202,7 +202,8 @@ def get_json_data(request, products, campaign_id, seeds=None):
     # store-wide external content
     external_content = campaign.store.external_content.filter(
         active=True, approved=True)
-    # TODO: Add additional filtering here
+    if supports_categories:
+        external_content = external_content.filter(categories__id=campaign_id)
 
     # content to product ration. e.g., 2 == content to products 2:1
     content_to_products = 1
