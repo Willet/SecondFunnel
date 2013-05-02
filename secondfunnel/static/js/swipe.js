@@ -3,6 +3,7 @@
  *
  * Brad Birdsall
  * Copyright 2013, MIT License
+ * Source: https://github.com/bradbirdsall/Swipe/, http://swipejs.com/
  *
 */
 
