@@ -1,52 +1,13 @@
 {% load staticfiles %}
-<script src="{{ WEBSITE_URL }}{% static "js/underscore.js" %}"></script>
-<script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
+{% load compress %}
+
+{% compress js %}
 <script src="{% static "js/jquery.viewport.js" %}"></script>
 <script src="{% static "js/jquery.masonry.min.js" %}"></script>
 <script src="{% static "js/jquery.imagesloaded.min.js" %}"></script>
 
 <script type="text/javascript">
     (function() {
-        window.PINPOINT_INFO = {
-            'base_url': '{{ base_url }}',
-            'page': {
-                'pubDate': '{{ pub_date }}',  // for verifying the original upload date of a static campaign. for human use only
-                'id': '{{ campaign.default_intentrank.id|default:campaign.id }}',
-                'main-block-template': '{{ campaign.template }}',
-                'stl-image': '{{ campaign.stl_image }}',
-                'featured-image': '{{ campaign.featured_image }}',
-                'description': '{{ campaign.description|escapejs }}',
-                'product': {{ product.json|safe }},
-                'categories': [
-                {% with categories=campaign.intentrank.all%}
-                {% if categories|length > 1 %}
-                {% for category in categories %}
-                    {
-                        'id': '{{ category.id }}',
-                        'name': '{{ category.name }}'
-                    }{% if not forloop.last %},{% endif %}
-                {% endfor %}
-                {% endif %}
-                {% endwith %}
-                ]
-            },
-            'store': {
-                'id': '{{ campaign.store.slug }}',
-                'name': '{{ campaign.store.name }}'
-            },
-            'content': [],
-            'campaign': {
-                'id': '{{ campaign.id }}'
-            },
-            'featured': {% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}
-            {% if backup_results %}{# offline, pseudo-custom results #}
-            , 'backupResults': {{ backup_results|safe }}
-            {% endif %}
-            {% if random_results %}{# offline, totally random results #}
-            , 'randomResults': {{ random_results|safe }}
-            {% endif %}
-        };
-
         $.Mason.prototype._placeBrick = function( brick ) {
             var $brick = $(brick),
                     colSpan, groupCount, groupY, groupColY, j,
@@ -169,7 +130,6 @@
 </script>
 
 <script src="{% static "pinpoint/js/utils.js" %}"></script>
-<script src="{% static "pinpoint/js/tracking.js" %}"></script>
 <script src="{% static "pinpoint/js/pinpoint.js" %}"></script>
 
 <script type="text/javascript">
@@ -184,30 +144,4 @@
         PINPOINT.init();
     }
 </script>
-
-<script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', '{{ ga_account_number }}']);
-
-    _gaq.push(['_setCustomVar',
-        1,                          // slot id
-        'StoreID',                  // name
-        '{{ campaign.store.id }}',  // value
-        3                           // scope: page-level
-    ]);
-
-    _gaq.push(['_setCustomVar',
-        2,
-        'CampaignID',
-        '{{ campaign.default_intentrank.id|default:campaign.id }}',
-        3
-    ]);
-
-    _gaq.push(['_trackPageview']);
-
-    (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-</script>
+{% endcompress %}
