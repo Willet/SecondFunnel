@@ -460,7 +460,7 @@ var PINPOINT = (function($, pageInfo) {
                     url: PINPOINT_INFO.base_url + '/intentrank/get-results/?callback=?',
                     data: {
                         'store': details.store.id,
-                        'campaign': details.campaign.id,
+                        'campaign': details.page.id,
 
                         //TODO: Probably should be some calculated value
                         'results': 10,
@@ -923,7 +923,6 @@ var PINPOINT = (function($, pageInfo) {
     details.backupResults = details.backupResults || // slightly more customized
                             details.randomResults || // than totally random
                             {};
-    details.campaign = details.campaign || {};
     details.content = details.content || [];
     details.featured = details.featured || {};
     details.page = details.page || {};

@@ -35,9 +35,6 @@
                 'name': '{{ campaign.store.name }}'
             },
             'content': [],
-            'campaign': {
-                'id': '{{ campaign.id }}'
-            },
             'featured': {% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}
             {% if backup_results %}{# offline, pseudo-custom results #}
             , 'backupResults': {{ backup_results|safe }}

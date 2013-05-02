@@ -146,6 +146,7 @@ def get_json_data(request, products, campaign_id, seeds=None):
     ir_campaign = IntentRankCampaign.objects.get(pk=campaign_id)
 
     campaign = ir_campaign.campaigns.all()[0]
+    supports_categories = campaign.supports_categories
 
     results = []
     products_with_images_only = True
@@ -173,7 +174,9 @@ def get_json_data(request, products, campaign_id, seeds=None):
 
     videos = campaign.store.videos.exclude(
         video_id__in=video_cookie.videos_already_shown)
-    # TODO: Add additional filtering here
+
+    if supports_categories:
+        videos = videos.filter(categories__id=campaign_id)
 
     # if this is the first batch of results, or the random amount is under the
     # curve of the probability function, then add a video
