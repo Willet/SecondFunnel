@@ -589,7 +589,6 @@ var PINPOINT = (function($, pageInfo) {
 			'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
 		    });
 		$elem.first().append($spinner);
-		$elem.addClass("unclickable");
 	    }
 	    $elem.remainingImages = $elemImgObjs.length;
 
