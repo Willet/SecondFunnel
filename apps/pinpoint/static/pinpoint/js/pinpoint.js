@@ -521,8 +521,8 @@ var PINPOINT = (function($, pageInfo) {
                         }
 
                         // use the resized images
-                        template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
-                        break;
+			template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
+			break;
                     case 'combobox':
                         // in case an image is lacking, don't bother with the product
                         if (!template_context.image || template_context.image == "None") {
@@ -559,7 +559,7 @@ var PINPOINT = (function($, pageInfo) {
                     break;
                 } else {
                     el = $(rendered_block);
-                    el.data(template_context);  // populate the .product.block div with data
+		    el.data(template_context);  // populate the .product.block div with data
                     productDoms.push(el[0]);
                 }
 
@@ -573,13 +573,41 @@ var PINPOINT = (function($, pageInfo) {
 
         $block = $(productDoms);  // an array of DOM elements
 
-        // if it has a lifestyle image, add a wide class to it so it's styled properly
         $block.each(function() {
             var $elem = $(this),
                 rand_num = Math.random();
             // hide them so they can't be seen when masonry is placing them
             $elem.hide();
 
+	    var $elemImgObjs = $elem.find('img');
+	    // add a single loading spinner to the centre of the element; use element dimensions to place
+	    // only want the elements with images so ignore videos
+	    // by default, pinterest button counts as 1
+	    if ( $elemImgObjs.length > 1 ) {
+		var $spinner = $('<img/>', {
+			'class': "image-loading-spinner",
+			'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
+		    });
+		$elem.first().append($spinner);
+		$elem.addClass("unclickable");
+	    }
+	    $elem.remainingImages = $elemImgObjs.length;
+
+	    $elemImgObjs.each(function() { 
+		// Pinterest links are desgned differently, can't make them load in this fashion
+		if ( $(this).attr('src').indexOf("pin") < 0 ) {
+		    $(this).load(function() {
+			    $elem.remainingImages = $elem.remainingImages - 1;
+			    // we added the spinner, so there'd be two images if we were to go look to remove it
+			    if ($elem.remainingImages == 2) { 
+				$elem.find('.image-loading-spinner').remove(); 
+			    }
+			});
+		    $(this).hide();
+		}
+	    });
+
+	    // if it has a lifestyle image, add a wide class to it so it's styled properly
             if ($elem.find('.lifestyle').length > 0) {
                 $elem.addClass('wide');
             }
@@ -664,33 +692,64 @@ var PINPOINT = (function($, pageInfo) {
             });
         });
 
-        // make sure images are loaded or else masonry wont work properly
-        $block.imagesLoaded(function($images, $proper, $broken) {
-            $broken.parents('.block.product').remove();
-            $block.find('.block.product img[src=""]').parents('.block.product').remove();
+	function displayBlock() {
+	    /* Usually masonry loads the images prior to placing them, we get around this by placing the
+	       blocks directly.  Hide the child divs until the images have loaded.
 
-            $('.discovery-area').masonry('appended', $block, true);
-            $block.show();
-
-            // Don't continue to load results if we aren't getting more results
-            if (initialResults > 0) {
-                setTimeout(function() {
-                    pageScroll();
-                }, 100);
-            }
+	       @return: none */
+	    $block.find('.block.product img[src=""]').parents('.block.product').remove();
+	    // Now we layout the block and make it visible
+	    // Note that all images may not be loaded yet
+            $('.discovery-area').masonry('appended', $block, true); 
+	    
+	    // Centre the spinner if applicable
+	    var $spinner = $block.find('.image-loading-spinner');
+	    if ( $spinner.length > 0) {
+		// found a spinner, so we're waiting for an image to load
+		// position spinner and deem block unclickable
+		$spinner.offset({top: $block.offset().top, left: $block.offset().left + $block.width() / 2});
+		$spinner.css('padding-top', $block.height()).css('padding-bottom', $block.height() / 2);
+		$block.addClass("unclickable");
+	    } 
+	    $block.show();
+	    $block.children().find('div').hide();
 
             $block.find('.pinpoint-youtube-area').click(function() {
                 $(this).html($(this).data('embed'));
             });
 
-            for (var i in blocksAppendedCallbacks) {
-                if (blocksAppendedCallbacks.hasOwnProperty(i)) {
-                    blocksAppendedCallbacks[i]($block);
-                }
-            }
+        }
+	displayBlock(); // display the block directly bypassing image loading
 
-            loadingBlocks = false;
-        });
+	// all the images in the block are finally loaded (except for broken ones), so clean up
+	// and reload masonry to ensure the images are placed properly and don't overlap
+	$block.imagesLoaded(function($images, $proper, $broken){ 
+		// make the children visible first so that the blocks look whole when they're reloaded
+		// renable the block to make it clickable once more
+		$block.children().find('div').show();
+		$block.children().find('img').show();
+		$block.removeClass("unclickable");
+		
+		// remove the broken images and reload
+		$broken.parents('.block.product').remove();
+		$('.discovery-area').masonry('remove', $broken);
+		$('.discovery-area').masonry('reload'); 
+		
+		// Don't continue to load results if we aren't getting more results
+		if (initialResults > 0) {
+		    setTimeout(function() {
+			    pageScroll();
+			}, 100);
+		}
+
+		for (var i in blocksAppendedCallbacks) {
+		    if (blocksAppendedCallbacks.hasOwnProperty(i)) {
+			blocksAppendedCallbacks[i]($block);
+		    }
+		}
+	
+		loadingBlocks = false; //can load more blocks now if needed/desired
+	    });
     }
 
     function pageScroll () {
@@ -728,15 +787,15 @@ var PINPOINT = (function($, pageInfo) {
         var $discovery = $('.discovery-area');
 
         // use delegated events to reduce overhead
-        $discovery.on('click', '.block.product, .block.combobox', function (e) {
+        $discovery.on('click', '.block.product:not(unclickable), .block.combobox:not(.unclickable)', function (e) {
             showPreview(e.currentTarget);
         });
-        $discovery.on('click', '.block.image', function (e) {
+        $discovery.on('click', '.block.image:not(.unclickable)', function (e) {
             showPreview(e.currentTarget);
         });
 
         // update clickstream
-        $discovery.on('click', '.block.product, .block.combobox', function (e) {
+        $discovery.on('click', '.block.product:not(.unclickable), .block.combobox:not(.unclickable)', function (e) {
             updateClickStream(e.currentTarget, e);
         });
 
@@ -744,7 +803,7 @@ var PINPOINT = (function($, pageInfo) {
         $discovery.on({
             mouseenter: productHoverOn,
             mouseleave: productHoverOff
-        }, '.block.product, .block.combobox .product');
+        }, '.block.product:not(.unclickable), .block.combobox:not(.unclickable) .product');
 
         $discovery.on({
             mouseenter: youtubeHoverOn,
@@ -754,7 +813,7 @@ var PINPOINT = (function($, pageInfo) {
         $discovery.on({
             mouseenter: lifestyleHoverOn,
             mouseleave: lifestyleHoverOff
-        }, '.block.combobox .lifestyle');
+        }, '.block.combobox:not(.unclickable) .lifestyle');
     }
 
     function ready () {
