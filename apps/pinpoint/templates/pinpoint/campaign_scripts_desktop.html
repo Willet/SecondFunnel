@@ -7,7 +7,7 @@
 <script src="{% static "js/jquery.imagesloaded.min.js" %}"></script>
 
 <script type="text/javascript">
-    (function() {
+    $(function() {
         $.Mason.prototype._placeBrick = function( brick ) {
             var $brick = $(brick),
                     colSpan, groupCount, groupY, groupColY, j,
@@ -126,11 +126,10 @@
                 this.colYs[ shortCol + i ] = setHeight;
             }
         }
-    })();
+    });
 </script>
 
-<script src="{% static "pinpoint/js/utils.js" %}"></script>
-<script src="{% static "pinpoint/js/pinpoint.js" %}"></script>
+<script src="{% static "pinpoint/js/pages.js" %}"></script>
 
 <script type="text/javascript">
     // Load Youtube IFrame Player API code asynchronously
@@ -141,7 +140,7 @@
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
     function onYouTubeIframeAPIReady() {
-        PINPOINT.init();
+        PAGES.init();
     }
 </script>
 {% endcompress %}
