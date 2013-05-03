@@ -1,5 +1,6 @@
 /**
  * MBP - Mobile boilerplate helper functions
+ * Source: https://github.com/h5bp/mobile-boilerplate
  */
 
 (function(document) {
