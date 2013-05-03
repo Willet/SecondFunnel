@@ -785,7 +785,7 @@ var PINPOINT = (function($, pageInfo) {
         var $discovery = $('.discovery-area');
 
         // use delegated events to reduce overhead
-        $discovery.on('click', '.block.product:not(unclickable), .block.combobox:not(.unclickable)', function (e) {
+        $discovery.on('click', '.block.product:not(.unclickable), .block.combobox:not(.unclickable)', function (e) {
             showPreview(e.currentTarget);
         });
         $discovery.on('click', '.block.image:not(.unclickable)', function (e) {
