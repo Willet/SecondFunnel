@@ -206,9 +206,6 @@ class StoreTheme(BaseModelNamed):
 </script>
     """
 
-    store = models.ForeignKey(Store, related_name='themes',
-        verbose_name='Belongs to')
-
     # Django templates
     page = models.TextField(default=DEFAULT_PAGE)
 
@@ -239,10 +236,16 @@ class StoreTheme(BaseModelNamed):
                 'type': 'template',
                 'values': ['pinpoint/campaign_head.html']
             },
-            'body_content': {
+            'desktop_content': {
                 'type': 'template',
-                'values': ['pinpoint/default_templates.html',
-                           'pinpoint/campaign_scripts_container.html']
+                'values': ['pinpoint/campaign_scripts_core.html',
+                        'pinpoint/campaign_scripts_desktop.html',
+                        'pinpoint/default_templates.html']
+            },
+            'mobile_content': {
+                'type': 'template',
+                'values': ['pinpoint/campaign_scripts_core.html',
+                        'pinpoint/campaign_scripts_mobile.html']
             },
             'js_templates': {
                 'type': 'theme',

@@ -34,7 +34,7 @@ class Store(BaseModelNamed):
     social_auth = models.ManyToManyField(UserSocialAuth, blank=True, null=True)
 
     theme  = models.OneToOneField('pinpoint.StoreTheme',
-        related_name='store_theme',
+        related_name='store',
         blank=True,
         null=True,
         verbose_name='Default theme')

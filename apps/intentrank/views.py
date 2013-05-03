@@ -146,7 +146,6 @@ def get_json_data(request, products, campaign_id, seeds=None):
     ir_campaign = IntentRankCampaign.objects.get(pk=campaign_id)
 
     campaign = ir_campaign.campaigns.all()[0]
-    supports_categories = campaign.supports_categories
 
     results = []
     products_with_images_only = True
@@ -175,7 +174,7 @@ def get_json_data(request, products, campaign_id, seeds=None):
     videos = campaign.store.videos.exclude(
         video_id__in=video_cookie.videos_already_shown)
 
-    if supports_categories:
+    if campaign.supports_categories:
         videos = videos.filter(categories__id=campaign_id)
 
     # if this is the first batch of results, or the random amount is under the
@@ -202,7 +201,7 @@ def get_json_data(request, products, campaign_id, seeds=None):
     # store-wide external content
     external_content = campaign.store.external_content.filter(
         active=True, approved=True)
-    if supports_categories:
+    if campaign.supports_categories:
         external_content = external_content.filter(categories__id=campaign_id)
 
     # content to product ration. e.g., 2 == content to products 2:1
@@ -357,7 +356,7 @@ def get_related_content_product(request, id=None):
             'db-id': content.id,
             'template': content.content_type.name.lower(),
             'categories': list(
-                content.categories.all().values_list('id', flat='true')
+                content.categories.all().values_list('id', flat=True)
             )
         })
 
@@ -392,7 +391,7 @@ def get_related_content_store(request, id=None):
             'db-id': content.id,
             'template': content.content_type.name.lower(),
             'categories': list(
-                content.categories.all().values_list('id', flat='true')
+                content.categories.all().values_list('id', flat=True)
             )
         })
 
@@ -424,7 +423,7 @@ def get_related_content_store(request, id=None):
             'autoplay': 0,
             'template': 'youtube',
             'categories': list(
-                video.categories.all().values_list('id', flat='true')
+                video.categories.all().values_list('id', flat=True)
             )
         })
 
