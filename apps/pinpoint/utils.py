@@ -37,11 +37,13 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
 
     if get_seeds_func and request:
         # "borrow" IR for results
-        related_results = get_seeds_func(request, store=campaign.store.slug,
-                                    campaign=campaign.id,
-                                    seeds=product.id,
-                                    results=100,
-                                    raw=True)
+        related_results = get_seeds_func(
+            request, store=campaign.store.slug,
+            campaign=campaign.default_intentrank_id or campaign.id,
+            seeds=product.id,
+            results=100,
+            raw=True
+        )
     else:
         related_results = []
 

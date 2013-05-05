@@ -341,6 +341,7 @@ class Campaign(BaseModelNamed):
         related_name="discovery_campaign", blank=True, null=True)
 
     live = models.BooleanField(default=True)
+    supports_categories = models.BooleanField(default=False)
 
     default_intentrank = models.OneToOneField(IntentRankCampaign,
         related_name='campaign', blank=True, null=True)
