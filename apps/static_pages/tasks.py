@@ -146,18 +146,23 @@ def generate_static_campaign(campaign_id):
         logger.error("Campaign #{0} does not exist".format(campaign_id))
         return
 
-    rendered_content = render_campaign(campaign)
+    rendered_content = [
+        ("index.html", render_campaign(campaign)),
+        ("mobile.html", render_campaign(campaign, mode="mobile"))
+    ]
 
-    filename = "{0}/index.html".format(campaign.id)
-    bucket_name = get_bucket_name(campaign.store.slug)
+    for s3_file_name, page_content in rendered_content:
 
-    bytes_written = upload_to_bucket(
-        bucket_name, filename, rendered_content, public=True)
+        s3_path = "{0}/{1}".format(campaign.id, s3_file_name)
+        bucket_name = get_bucket_name(campaign.store.slug)
 
-    if bytes_written > 0:
-        save_static_log(Campaign, campaign.id, "CA")
+        bytes_written = upload_to_bucket(
+            bucket_name, s3_path, page_content, public=True)
 
-    # boto claims it didn't write anything to S3
-    else:
-        logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
-            campaign_id))
+        if bytes_written > 0:
+            save_static_log(Campaign, campaign.id, "CA")
+
+        # boto claims it didn't write anything to S3
+        else:
+            logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
+                campaign_id))
