@@ -1,6 +1,7 @@
 import random
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import get_model
 from django.template.defaultfilters import striptags
 from django.utils.html import escape
 from django.db.models.signals import post_save
@@ -281,6 +282,12 @@ class ProductMedia(ImageBase):
 class YoutubeVideo(BaseModel):
     video_id = models.CharField(max_length=11)
     store = models.ForeignKey(Store, null=True, related_name="videos")
+    categories = models.ManyToManyField(
+        get_model('pinpoint', 'IntentRankCampaign'),
+        blank=True,
+        null=True,
+        related_name='videos'
+    )
 
 
 class ExternalContent(BaseModel):
@@ -293,6 +300,13 @@ class ExternalContent(BaseModel):
 
     store = models.ForeignKey(Store, blank=True, null=True,
                                             related_name='external_content')
+
+    categories = models.ManyToManyField(
+        get_model('pinpoint', 'IntentRankCampaign'),
+        blank=True,
+        null=True,
+        related_name='external_content'
+    )
 
     text_content = models.TextField(blank=True, null=True)
     image_url = models.CharField(max_length=555, blank=True, null=True)
