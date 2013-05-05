@@ -74,7 +74,7 @@ class Migration(SchemaMigration):
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
             'social_auth': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['social_auth.UserSocialAuth']", 'null': 'True', 'blank': 'True'}),
             'staff': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.User']", 'symmetrical': 'False'}),
-            'theme': ('django.db.models.fields.related.OneToOneField', [], {'blank': 'True', 'related_name': "'store_theme'", 'unique': 'True', 'null': 'True', 'to': "orm['pinpoint.StoreTheme']"})
+            'theme': ('django.db.models.fields.related.OneToOneField', [], {'blank': 'True', 'related_name': "'store'", 'unique': 'True', 'null': 'True', 'to': "orm['pinpoint.StoreTheme']"})
         },
         'assets.storefeature': {
             'Meta': {'object_name': 'StoreFeature'},
@@ -214,7 +214,6 @@ class Migration(SchemaMigration):
             'product_preview': ('django.db.models.fields.TextField', [], {'default': '\'\\n<script type=\\\'text/template\\\' data-template-id=\\\'product-preview\\\'>\\n    <div class=\\\'image\\\'><img src=\\\'<%= data.image %>\\\' /></div>\\n    <div class=\\\'images\\\'>\\n        <% _.each(data.images, function(image) { %>\\n        <img src=\\\'<%= image %>\\\' />\\n        <% }); %>\\n    </div>\\n    <div class=\\\'price\\\'><%= data.price %></div>\\n    <div class=\\\'title\\\'><%= data.title %></div>\\n    <div class=\\\'description\\\'><%= data.description %></div>\\n    <div class=\\\'url\\\'><a href=\\\'<%= data.url %>\\\' target="_blank">BUY\\n        NOW</a></div>\\n    <% include social_buttons %>\\n    </div>\\n</script>\\n    \''}),
             'shop_the_look': ('django.db.models.fields.TextField', [], {'default': '\'\\n<script type=\\\'text/template\\\' data-template-id=\\\'shop-the-look\\\'>\\n    <img src=\\\'<%= page["stl-image"] %>\\\' />\\n    <img src=\\\'<%= page["featured-image"] %>\\\' />\\n    <div><%= page.product.title %></b></div>\\n    <div><%= page.product.price %></div>\\n    <div><%= page.product.description %></div>\\n    <div>\\n    <% _.each(page.product.images, function(image){ %>\\n        <img src=\\\'<%= image %>\\\'/>\\n    <% }); %>\\n    </div>\\n    <div>\\n        <% include social_buttons %>\\n    </div>\\n    <div>\\n        <a href=\\\'<%= page.product.url %>\\\' target=\\\'_blank\\\'>link</a>\\n    </div>\\n</script>\\n    \''}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
-            'store': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'themes'", 'to': "orm['assets.Store']"}),
             'youtube': ('django.db.models.fields.TextField', [], {'default': '"\\n<script type=\'text/template\' data-template-id=\'youtube\'>\\n    <% include youtube_video_template %>\\n</script>\\n    "'})
         },
         'pinpoint.storethememedia': {
