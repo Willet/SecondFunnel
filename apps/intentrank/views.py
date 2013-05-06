@@ -21,7 +21,7 @@ from apps.intentrank.utils import (random_products, VideoCookie,
 # /intentrank/intentrank/store/<STORE SLUG>/page/<PAGE ID>/<FUNCTION>
 
 # getseeds?seeds=1,2,3,4&results=2
-from apps.pinpoint.models import Campaign
+from apps.pinpoint.models import Campaign, IntentRankCampaign
 from secondfunnel.settings.common import INTENTRANK_BASE_URL
 
 SUCCESS = 200
@@ -143,7 +143,10 @@ def get_json_data(request, products, campaign_id, seeds=None):
     results will be an object {}, not an array [].
     products_with_images_only should be either '0' or '1', please.
     """
-    campaign = Campaign.objects.get(pk=campaign_id)
+    ir_campaign = IntentRankCampaign.objects.get(pk=campaign_id)
+
+    campaign = ir_campaign.campaigns.all()[0]
+
     results = []
     products_with_images_only = True
     if request.GET.get('products_with_images_only', '1') == '0':
