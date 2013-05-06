@@ -7,4 +7,17 @@
 <script src="{% static "js/mbp.js" %}"></script>
 <script src="{% static "js/swipe.js" %}"></script>
 
+<script type="text/javascript">
+    PAGES.init(
+        function () {
+            console.log('custom ready');
+            PAGES.loadInitialResults();
+        },
+        function (jsonData, belowFold) {
+            console.log('layout!');
+            console.log(jsonData, belowFold);
+        }
+    );
+</script>
+
 {% endcompress %}
