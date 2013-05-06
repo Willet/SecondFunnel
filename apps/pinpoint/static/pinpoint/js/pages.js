@@ -741,6 +741,7 @@ var PAGES = (function($, pageInfo) {
         'changeCategory': changeCategory,
         'checkKeys': checkKeys,
         'generateID': generateID,
-        'details': details
+        'details': details,
+        'loadingBlocks': loadingBlocks
     };
 })(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});
