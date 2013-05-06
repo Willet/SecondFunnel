@@ -48,6 +48,9 @@
             MBP.hideUrlBarOnLoad();
             MBP.preventZoom();
 
+            $(window).scroll(PAGES.pageScroll);
+            $(window).resize(PAGES.pageScroll);
+
             PAGES.loadInitialResults();
         },
 
