@@ -728,6 +728,7 @@ var PAGES = (function($, pageInfo) {
         'addPreviewCallback': addPreviewCallback,
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
         'setBlocksAppendedCallback': setBlocksAppendedCallback,
+        'blocksAppendedCallbacks': blocksAppendedCallbacks,
         'renderTemplate': renderTemplate,
         'renderTemplates': renderTemplates,
         'loadInitialResults': loadInitialResults,
@@ -737,6 +738,8 @@ var PAGES = (function($, pageInfo) {
         'MAX_RESULTS_PER_SCROLL': MAX_RESULTS_PER_SCROLL,
         'fisherYates': fisherYates,
         'addReadyCallback': addReadyCallback,
-        'changeCategory': changeCategory
+        'changeCategory': changeCategory,
+        'checkKeys': checkKeys,
+        'generateID': generateID
     };
 })(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});

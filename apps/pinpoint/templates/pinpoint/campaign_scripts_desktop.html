@@ -288,7 +288,7 @@
                                    '/' + preferredThumbnailQuality + '.jpg',
                         thumbObj,
                         thumbPath = ['entry', 'media$group', 'media$thumbnail'],
-                        thumbChecker = checkKeys(video_data, thumbPath),
+                        thumbChecker = PAGES.checkKeys(video_data, thumbPath),
                         thumbnailArray = thumbChecker.media$thumbnail || [];
 
                     thumbObj = _.findWhere(thumbnailArray, {
@@ -301,7 +301,7 @@
                     var containers = $(".youtube[data-label='" + video.id + "']");
                     containers.each(function () {
                         var container = $(this),
-                            uniqueThumbnailID = generateID('thumb-' + video.id);
+                            uniqueThumbnailID = PAGES.generateID('thumb-' + video.id);
 
                         var thumbnail = $('<div />', {
                             'css': {  // this is to trim the 4:3 black bars
@@ -365,7 +365,7 @@
                     $(this).html($(this).data('embed'));
                 });
 
-                for (var i in blocksAppendedCallbacks) {
+                for (var i in PAGES.blocksAppendedCallbacks) {
                     PAGES.setBlocksAppendedCallback(i, $block);
                 }
 
