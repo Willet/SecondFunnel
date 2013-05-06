@@ -717,6 +717,9 @@ var PAGES = (function($, pageInfo) {
                   pagesTracking.registerTwitterListeners:
                   function () { /* dummy */ },
         'id': 'twitter-wjs'
+    }, {
+        'src'   : '//assets.pinterest.com/js/pinit.js',
+        'onload': function() { /* dummy */ },
     }];
 
     return {
