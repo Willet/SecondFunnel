@@ -66,12 +66,12 @@
                 // render supported templates
                 if (["product", "instagram"].indexOf(product.template) !== -1) {
 
-                    render_to_view("#product" + product.id, product.template, {
+                    render_to_view("#product" + product.id, product.template + "-preview", {
                         product: product
                     });
 
                     // render product list
-                    render_to_view(".product_list", "product", {
+                    render_to_view(".product_list", product.template, {
                         product: product
                     }, true);
                 }
