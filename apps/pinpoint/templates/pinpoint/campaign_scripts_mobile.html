@@ -61,12 +61,12 @@
             _.each(jsonData, function (product) {
 
                 // create jquery mobile product 'pages'
-                create_page("product" + product.id);
+                create_page("product" + product.id || product['original-id']);
 
                 // render supported templates
                 if (["product", "instagram"].indexOf(product.template) !== -1) {
 
-                    render_to_view("#product" + product.id, product.template + "-preview", {
+                    render_to_view("#" + product.template + product.id || product['original-id'], product.template + "-preview", {
                         product: product
                     });
 
