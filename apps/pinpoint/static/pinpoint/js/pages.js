@@ -431,7 +431,6 @@ var PAGES = (function($, pageInfo) {
     }
 
     function loadInitialResults () {
-        console.log("FUUUCK");
         if (!loadingBlocks) {
             loadingBlocks = true;
             if (!details.page.offline) {
