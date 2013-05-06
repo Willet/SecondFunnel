@@ -63,15 +63,18 @@
                 // create jquery mobile product 'pages'
                 create_page("product" + product.id);
 
-                // render product pages
-                render_to_view("#product" + product.id, "product-preview", {
-                    product: product
-                });
+                // render supported templates
+                if (["product", "instagram"].indexOf(product.template) !== -1) {
 
-                // render product list
-                render_to_view(".product_list", "product", {
-                    product: product
-                }, true);
+                    render_to_view("#product" + product.id, "product-preview", {
+                        product: product
+                    });
+
+                    // render product list
+                    render_to_view(".product_list", "product", {
+                        product: product
+                    }, true);
+                }
             });
 
             // _.each(jsonData, function (product, pid) {
