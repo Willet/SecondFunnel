@@ -174,6 +174,9 @@ def get_json_data(request, products, campaign_id, seeds=None):
     videos = campaign.store.videos.exclude(
         video_id__in=video_cookie.videos_already_shown)
 
+    if campaign.supports_categories:
+        videos = videos.filter(categories__id=campaign_id)
+
     # if this is the first batch of results, or the random amount is under the
     # curve of the probability function, then add a video
     show_video = random.random() <= video_probability_function(
@@ -198,6 +201,8 @@ def get_json_data(request, products, campaign_id, seeds=None):
     # store-wide external content
     external_content = campaign.store.external_content.filter(
         active=True, approved=True)
+    if campaign.supports_categories:
+        external_content = external_content.filter(categories__id=campaign_id)
 
     # content to product ration. e.g., 2 == content to products 2:1
     content_to_products = 1
@@ -349,7 +354,10 @@ def get_related_content_product(request, id=None):
         item = content.to_json()
         item.update({
             'db-id': content.id,
-            'template': content.content_type.name.lower()
+            'template': content.content_type.name.lower(),
+            'categories': list(
+                content.categories.all().values_list('id', flat=True)
+            )
         })
 
         # Need to include related products to duplicate existing functionality
@@ -381,7 +389,10 @@ def get_related_content_store(request, id=None):
         item = content.to_json()
         item.update({
             'db-id': content.id,
-            'template': content.content_type.name.lower()
+            'template': content.content_type.name.lower(),
+            'categories': list(
+                content.categories.all().values_list('id', flat=True)
+            )
         })
 
         # Need to include related products to duplicate existing functionality
@@ -410,7 +421,10 @@ def get_related_content_store(request, id=None):
             'width': '450',
             'height': '250',
             'autoplay': 0,
-            'template': 'youtube'
+            'template': 'youtube',
+            'categories': list(
+                video.categories.all().values_list('id', flat=True)
+            )
         })
 
     return HttpResponse(json.dumps(results))

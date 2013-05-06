@@ -34,6 +34,10 @@ var PAGES = (function($, pageInfo) {
         return 'full';
     };
 
+    function setLoadingBlocks(bool) {
+        loadingBlocks = bool;
+    }
+
     function redirect(type) {
         var newLocation;
 
@@ -214,13 +218,14 @@ var PAGES = (function($, pageInfo) {
 
     function changeCategory(category) {
         var categories = details.page.categories;
-        if (!categories || !_.findWhere(categories, {'id': category})) {
+        if (!categories || !_.findWhere(categories, {'id': ''+category})) {
             return
         }
 
         // If there are categories, and a valid category is supplied
         // change the category
         details.page.id = category;
+        pagesTracking.changeCampaign(category);
     }
     /* --- END Utilities --- */
 
@@ -300,6 +305,12 @@ var PAGES = (function($, pageInfo) {
 
     function addOnBlocksAppendedCallback(f) {
         blocksAppendedCallbacks.push(f);
+    }
+
+    function setBlocksAppendedCallback(i, $block) {
+        if (blocksAppendedCallbacks.hasOwnProperty(i)) {
+            blocksAppendedCallbacks[i]($block);
+        }
     }
 
     function addReadyCallback(f) {
@@ -459,7 +470,7 @@ var PAGES = (function($, pageInfo) {
                     url: PAGES_INFO.base_url + '/intentrank/get-results/?callback=?',
                     data: {
                         'store': details.store.id,
-                        'campaign': details.campaign.id,
+                        'campaign': details.page.id,
 
                         //TODO: Probably should be some calculated value
                         'results': 10,
@@ -487,209 +498,6 @@ var PAGES = (function($, pageInfo) {
         $.ajax({
             url: PAGES_INFO.base_url + '/intentrank/invalidate-session/?callback=?',
             dataType: 'jsonp'
-        });
-    }
-
-    function layoutResults(jsonData, belowFold) {
-        // renders product divs onto the page.
-        // suppose results is (now) a legit json object:
-        // {products: [], videos: [(sizeof 1)]}
-        var $block,
-            result,
-            results = fisherYates(jsonData, MAX_RESULTS_PER_SCROLL) || [],
-            initialResults = Math.max(results.length, MAX_RESULTS_PER_SCROLL),
-            i,
-            productDoms = [],
-            template, templateEl, player,
-            template_context, templateType, el, videos,
-            appearanceProbability;
-
-        // add products
-        for (i = 0; i < results.length; i++) {
-            try {
-                result = results[i]
-                template_context = result;
-                templateType = result.template || 'product';
-                templateEl = $("[data-template-id='" + templateType + "']");
-                template = templateEl.html();
-
-                switch (templateType) {
-                    case 'product':
-                        // in case an image is lacking, don't bother with the product
-                        if (!template_context.image || template_context.image == "None") {
-                            continue;
-                        }
-
-                        // use the resized images
-                        template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
-                        break;
-                    case 'combobox':
-                        // in case an image is lacking, don't bother with the product
-                        if (!template_context.image || template_context.image == "None") {
-                            continue;
-                        }
-                        break;
-                    case 'youtube':
-                        break;
-                    default:
-                        break;
-                }
-
-                // attach default prob to the context
-                appearanceProbability = template_context['appearance-probability'] ||
-                    templateEl.data('appearance-probability') || 1;
-                appearanceProbability = parseFloat(appearanceProbability);
-
-                // appearanceProbability dictates if a block that has its own
-                // probability of being rendered will be rendered. if specified,
-                // the value should go from 0 (not shown at all) or 1 (always).
-                if (appearanceProbability < 1) {
-                    if (Math.random() < appearanceProbability) {
-                        break;  // no luck, not rendering
-                    }
-                }
-
-                rendered_block = renderTemplate(template, {
-                    'data': template_context,
-                    'page': details.page,
-                    'store': details.store
-                }, true);
-                if (!rendered_block.length) {
-                    // template did not render.
-                    break;
-                } else {
-                    el = $(rendered_block);
-                    el.data(template_context);  // populate the .product.block div with data
-                    productDoms.push(el[0]);
-                }
-
-            } catch (err) {  // hide rendering error
-                console.log('oops @ item');
-            }
-        }
-
-        // Remove potentially bad content
-        productDoms = _.filter(productDoms, function(elem) {return !_.isEmpty(elem);});
-
-        $block = $(productDoms);  // an array of DOM elements
-
-        // if it has a lifestyle image, add a wide class to it so it's styled properly
-        $block.each(function() {
-            var $elem = $(this),
-                rand_num = Math.random();
-            // hide them so they can't be seen when masonry is placing them
-            $elem.hide();
-
-            if ($elem.find('.lifestyle').length > 0) {
-                $elem.addClass('wide');
-            }
-
-            if ($elem.hasClass('instagram')
-                && (rand_num >= 0.5)) {
-                $elem.addClass('wide');
-            }
-
-            $('.discovery-area').append($elem);
-        });
-
-        // Render youtube blocks with player
-        videos = _.where(results, {'template': 'youtube'});  // (haystack, criteria)
-        _.each(videos, function (video) {
-            var video_state_change = window.pagesTracking?
-                _.partial(pagesTracking.videoStateChange, video.id):
-                function() {/* dummy */};
-
-            api.getObject("video_gdata", video.id, function (video_data) {
-                var preferredThumbnailQuality = 'hqdefault',
-                    thumbClass = 'youtube-thumbnail',
-                    thumbURL = 'http://i.ytimg.com/vi/' + video.id +
-                               '/' + preferredThumbnailQuality + '.jpg',
-                    thumbObj,
-                    thumbPath = ['entry', 'media$group', 'media$thumbnail'],
-                    thumbChecker = checkKeys(video_data, thumbPath),
-                    thumbnailArray = thumbChecker.media$thumbnail || [];
-
-                thumbObj = _.findWhere(thumbnailArray, {
-                    'yt$name': preferredThumbnailQuality
-                });
-                if (thumbObj && thumbObj.url) {
-                    thumbURL = thumbObj.url;
-                }  // else fallback to the default thumbURL
-
-                var containers = $(".youtube[data-label='" + video.id + "']");
-                containers.each(function () {
-                    var container = $(this),
-                        uniqueThumbnailID = generateID('thumb-' + video.id);
-
-                    var thumbnail = $('<div />', {
-                        'css': {  // this is to trim the 4:3 black bars
-                            'overflow': 'hidden',
-                            'height': video.height + 'px',
-                            'background-image': 'url("' + thumbURL + '")',
-                            'background-position': 'center center'
-                        },
-                        'id': uniqueThumbnailID
-                    });
-
-                    thumbnail.addClass('wide ' + thumbClass).click(function () {
-                        // when the thumbnail is clicked, replace itself with
-                        // the youtube video of the same size, then autoplay
-                        player = new YT.Player(uniqueThumbnailID, {
-                            height: video.height,
-                            width: video.width,
-                            videoId: video.id,
-                            playerVars: {
-                                'autoplay': 1,
-                                'controls': 0
-                            },
-                            events: {
-                                'onReady': function (e) {
-                                },
-                                'onStateChange': video_state_change,
-                                'onError': function (e) {
-                                }
-                            }
-                        });
-                    });
-
-                    if (container.find('.' + thumbClass).length === 0) {
-                        // add a thumbnail only if there isn't one already
-                        container.prepend(thumbnail);
-                        console.log('loaded video thumbnail ' + video.id);
-                    } else {
-                        console.error('prevented thumbnail dupe');
-                    }
-                    container.children(".title").html(video_data.entry.title.$t);
-                });
-            });
-        });
-
-        // make sure images are loaded or else masonry wont work properly
-        $block.imagesLoaded(function($images, $proper, $broken) {
-            $broken.parents('.block.product').remove();
-            $block.find('.block.product img[src=""]').parents('.block.product').remove();
-
-            $('.discovery-area').masonry('appended', $block, true);
-            $block.show();
-
-            // Don't continue to load results if we aren't getting more results
-            if (initialResults > 0) {
-                setTimeout(function() {
-                    pageScroll();
-                }, 100);
-            }
-
-            $block.find('.pinpoint-youtube-area').click(function() {
-                $(this).html($(this).data('embed'));
-            });
-
-            for (var i in blocksAppendedCallbacks) {
-                if (blocksAppendedCallbacks.hasOwnProperty(i)) {
-                    blocksAppendedCallbacks[i]($block);
-                }
-            }
-
-            loadingBlocks = false;
         });
     }
 
@@ -757,36 +565,6 @@ var PAGES = (function($, pageInfo) {
         }, '.block.combobox .lifestyle');
     }
 
-    function ready () {
-        // Special Setup
-        renderTemplates();
-
-        attachListeners();
-
-        $('.discovery-area').masonry({
-            itemSelector: '.block',
-
-            columnWidth: function (containerWidth) {
-                return containerWidth / 4;
-            },
-
-            isResizable: true,
-            isAnimated: true
-        });
-
-        $('.preview .mask, .preview .close').on('click', hidePreview);
-
-        $(window).scroll(pageScroll);
-        $(window).resize(pageScroll);
-
-        // Prevent social buttons from causing other events
-        $('.social-buttons .button').on('click', function(e) {
-            e.stopPropagation();
-        });
-
-        // Take any necessary actions
-        loadInitialResults();
-    }
     /* --- END element bindings --- */
 
     /* --- START Social buttons --- */
@@ -908,11 +686,16 @@ var PAGES = (function($, pageInfo) {
         }
     }
 
-    function init () {
+    function init (readyFunc, layoutFunc) {
+        console.log('init');
         var displayType = getDisplayType();
         if (displayType !== 'full') {
             redirect(displayType);
         }
+
+        ready = readyFunc;
+        layoutResults = layoutFunc;
+
         load(scripts);
         $(document).ready(ready);
     }
@@ -922,7 +705,6 @@ var PAGES = (function($, pageInfo) {
     details.backupResults = details.backupResults || // slightly more customized
                             details.randomResults || // than totally random
                             {};
-    details.campaign = details.campaign || {};
     details.content = details.content || [];
     details.featured = details.featured || {};
     details.page = details.page || {};
@@ -939,6 +721,9 @@ var PAGES = (function($, pageInfo) {
                   pagesTracking.registerTwitterListeners:
                   function () { /* dummy */ },
         'id': 'twitter-wjs'
+    }, {
+        'src'   : '//assets.pinterest.com/js/pinit.js',
+        'onload': function() { /* dummy */ }
     }];
 
     return {
@@ -946,6 +731,21 @@ var PAGES = (function($, pageInfo) {
         'invalidateSession': invalidateIRSession,
         'addPreviewCallback': addPreviewCallback,
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
-        'addReadyCallback': addReadyCallback
+        'setBlocksAppendedCallback': setBlocksAppendedCallback,
+        'blocksAppendedCallbacks': blocksAppendedCallbacks,
+        'renderTemplate': renderTemplate,
+        'renderTemplates': renderTemplates,
+        'loadInitialResults': loadInitialResults,
+        'attachListeners': attachListeners,
+        'hidePreview': hidePreview,
+        'pageScroll': pageScroll,
+        'MAX_RESULTS_PER_SCROLL': MAX_RESULTS_PER_SCROLL,
+        'fisherYates': fisherYates,
+        'addReadyCallback': addReadyCallback,
+        'changeCategory': changeCategory,
+        'checkKeys': checkKeys,
+        'generateID': generateID,
+        'details': details,
+        'setLoadingBlocks': setLoadingBlocks
     };
 })(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});

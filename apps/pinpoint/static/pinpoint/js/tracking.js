@@ -46,6 +46,21 @@ var pagesTracking = (function ($, window, document) {
         });
     },
 
+
+    setCustomVar = function(o) {
+        var conf = o || {},
+            slotId = o.slotId,
+            name = o.name,
+            value = o.value,
+            scope = o.scope || 3; // 3 = page-level
+
+        if (!(slotId && name && value)) {
+            return;
+        }
+
+        _gaq.push(['_setCustomVar', slotId, name, value, scope]);
+    },
+
     setSocialShareVars = function (o) {
         if (o && o.url && o.sType) {
             pagesTracking.socialShareUrl = o.url;
@@ -186,6 +201,14 @@ var pagesTracking = (function ($, window, document) {
         }
     },
 
+    changeCampaign = function(campaignId) {
+        setCustomVar({
+            'slotId': 2,
+            'name': 'CampaignID',
+            'value': '' + campaignId
+        });
+    },
+
     init = function () {
         setSocialShareVars();
 
@@ -238,7 +261,8 @@ var pagesTracking = (function ($, window, document) {
         "clearTimeout": clearTimeout,
         "registerTwitterListeners": registerTwitterListeners,
         "notABounce": notABounce,
-        "videoStateChange": videoStateChange
+        "videoStateChange": videoStateChange,
+        "changeCampaign": changeCampaign
     }
 
 }($, window, document));
