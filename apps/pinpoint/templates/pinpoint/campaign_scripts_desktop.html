@@ -370,6 +370,9 @@
                 }
 
                 PAGES.setLoadingBlocks(false);
+
+                // hack. tell masonry to reposition blocks
+                $(window).resize();
             });
         });
     }
