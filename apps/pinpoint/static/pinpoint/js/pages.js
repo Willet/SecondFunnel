@@ -1,6 +1,6 @@
 // TODO: Split into submodules properly
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
-var PINPOINT = (function($, pageInfo) {
+var PAGES = (function($, pageInfo) {
     var console = window.console || {
             // dummy
             'log': function () {},
@@ -221,7 +221,7 @@ var PINPOINT = (function($, pageInfo) {
         // If there are categories, and a valid category is supplied
         // change the category
         details.page.id = category;
-        pinpointTracking.changeCampaign(category);
+        pagesTracking.changeCampaign(category);
     }
     /* --- END Utilities --- */
 
@@ -286,9 +286,9 @@ var PINPOINT = (function($, pageInfo) {
             }
         }
 
-        if (window.pinpointTracking) {
-            pinpointTracking.clearTimeout();
-            pinpointTracking.setSocialShareVars({"sType": "popup", "url": data.url});
+        if (window.pagesTracking) {
+            pagesTracking.clearTimeout();
+            pagesTracking.setSocialShareVars({"sType": "popup", "url": data.url});
         }
 
         $previewContainer.fadeIn(100);
@@ -311,19 +311,19 @@ var PINPOINT = (function($, pageInfo) {
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.container');
 
-        window.pinpointTracking && pinpointTracking.setSocialShareVars();
+        window.pagesTracking && pagesTracking.setSocialShareVars();
 
         $preview.fadeOut(100);
         $mask.fadeOut(100);
     }
 
     function commonHoverOn(t, enableSocialButtons, enableTracking) {
-        if (window.pinpointTracking && enableTracking) {
-            pinpointTracking.setSocialShareVars({
+        if (window.pagesTracking && enableTracking) {
+            pagesTracking.setSocialShareVars({
                 "sType": "discovery",
                 "url": $(t).data("label")
             });
-            pinpointTracking.clearTimeout();
+            pagesTracking.clearTimeout();
         }
 
         if (enableTracking) {
@@ -352,10 +352,10 @@ var PINPOINT = (function($, pageInfo) {
             }
         }
 
-        if (window.pinpointTracking && enableTracking) {
-            pinpointTracking.clearTimeout();
-            if (pinpointTracking.socialShareType !== "popup") {
-                pinpointTracking._pptimeout = window.setTimeout(pinpointTracking.setSocialShareVars, 2000);
+        if (window.pagesTracking && enableTracking) {
+            pagesTracking.clearTimeout();
+            if (pagesTracking.socialShareType !== "popup") {
+                pagesTracking._pptimeout = window.setTimeout(pagesTracking.setSocialShareVars, 2000);
             }
         }
     }
@@ -366,7 +366,7 @@ var PINPOINT = (function($, pageInfo) {
 
     function productHoverOff () {
         commonHoverOff(this, function (t) {
-            window.pinpointTracking && pinpointTracking.registerEvent({
+            window.pagesTracking && pagesTracking.registerEvent({
                 "type": "inpage",
                 "subtype": "hover",
                 "label": $(t).data("label")
@@ -388,7 +388,7 @@ var PINPOINT = (function($, pageInfo) {
 
     function lifestyleHoverOff () {
         commonHoverOff(this, function (t) {
-            window.pinpointTracking && pinpointTracking.registerEvent({
+            window.pagesTracking && pagesTracking.registerEvent({
                 "type": "content",
                 "subtype": "hover",
                 "label": $(t).data("label")
@@ -410,7 +410,7 @@ var PINPOINT = (function($, pageInfo) {
         exceededThreshold = ((userClicks % clickThreshold) == 0);
 
         $.ajax({
-            url: PINPOINT_INFO.base_url + '/intentrank/update-clickstream/?callback=?',
+            url: PAGES_INFO.base_url + '/intentrank/update-clickstream/?callback=?',
             data: {
                 'store': details.store.id,
                 'campaign': details.page.id,
@@ -430,7 +430,7 @@ var PINPOINT = (function($, pageInfo) {
             loadingBlocks = true;
             if (!details.page.offline) {
                 $.ajax({
-                    url: PINPOINT_INFO.base_url + '/intentrank/get-seeds/?callback=?',
+                    url: PAGES_INFO.base_url + '/intentrank/get-seeds/?callback=?',
                     data: {
                         'store': details.store.id,
                         'campaign': details.page.id,
@@ -457,10 +457,10 @@ var PINPOINT = (function($, pageInfo) {
             loadingBlocks = true;
             if (!details.page.offline) {
                 $.ajax({
-                    url: PINPOINT_INFO.base_url + '/intentrank/get-results/?callback=?',
+                    url: PAGES_INFO.base_url + '/intentrank/get-results/?callback=?',
                     data: {
                         'store': details.store.id,
-                        'campaign': details.campaign.id,
+                        'campaign': details.page.id,
 
                         //TODO: Probably should be some calculated value
                         'results': 10,
@@ -486,7 +486,7 @@ var PINPOINT = (function($, pageInfo) {
 
     function invalidateIRSession () {
         $.ajax({
-            url: PINPOINT_INFO.base_url + '/intentrank/invalidate-session/?callback=?',
+            url: PAGES_INFO.base_url + '/intentrank/invalidate-session/?callback=?',
             dataType: 'jsonp'
         });
     }
@@ -596,8 +596,8 @@ var PINPOINT = (function($, pageInfo) {
         // Render youtube blocks with player
         videos = _.where(results, {'template': 'youtube'});  // (haystack, criteria)
         _.each(videos, function (video) {
-            var video_state_change = window.pinpointTracking?
-                _.partial(pinpointTracking.videoStateChange, video.id):
+            var video_state_change = window.pagesTracking?
+                _.partial(pagesTracking.videoStateChange, video.id):
                 function() {/* dummy */};
 
             api.getObject("video_gdata", video.id, function (video_data) {
@@ -705,7 +705,7 @@ var PINPOINT = (function($, pageInfo) {
 
         // user scrolled far enough not to be a "bounce"
         if (divider_bottom < 150) {
-            window.pinpointTracking && pinpointTracking.notABounce("scroll");
+            window.pagesTracking && pagesTracking.notABounce("scroll");
         }
 
         $('.discovery-area .block').each(function() {
@@ -813,7 +813,7 @@ var PINPOINT = (function($, pageInfo) {
 
             FB.Event.subscribe('edge.create',
                 function(url) {
-                    window.pinpointTracking && pinpointTracking.registerEvent({
+                    window.pagesTracking && pagesTracking.registerEvent({
                         "network": "Facebook",
                         "type": "share",
                         "subtype": "liked",
@@ -923,7 +923,6 @@ var PINPOINT = (function($, pageInfo) {
     details.backupResults = details.backupResults || // slightly more customized
                             details.randomResults || // than totally random
                             {};
-    details.campaign = details.campaign || {};
     details.content = details.content || [];
     details.featured = details.featured || {};
     details.page = details.page || {};
@@ -936,8 +935,8 @@ var PINPOINT = (function($, pageInfo) {
         'onload': loadFB
     }, {
         'src'   : '//platform.twitter.com/widgets.js',
-        'onload': window.pinpointTracking?
-                  pinpointTracking.registerTwitterListeners:
+        'onload': window.pagesTracking?
+                  pagesTracking.registerTwitterListeners:
                   function () { /* dummy */ },
         'id': 'twitter-wjs'
     }];
@@ -950,4 +949,4 @@ var PINPOINT = (function($, pageInfo) {
         'addReadyCallback': addReadyCallback,
         'changeCategory': changeCategory
     };
-})(jQuery, window.PINPOINT_INFO || window.TEST_PAGE_DATA || {});
+})(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});
