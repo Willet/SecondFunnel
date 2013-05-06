@@ -40,6 +40,8 @@
     }
 
     PAGES.init(
+
+        // ready
         function () {
             console.log('custom ready');
 
@@ -48,6 +50,8 @@
 
             PAGES.loadInitialResults();
         },
+
+        // layoutResults
         function (jsonData, belowFold) {
             console.log('layout!');
 
@@ -79,6 +83,8 @@
                 // slideshow element, but firing resize 'solves' that
 
             });
+
+            PAGES.setLoadingBlocks(false);
         }
     );
 </script>

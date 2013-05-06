@@ -34,6 +34,10 @@ var PAGES = (function($, pageInfo) {
         return 'full';
     };
 
+    function setLoadingBlocks(bool) {
+        loadingBlocks = bool;
+    }
+
     function redirect(type) {
         var newLocation;
 
@@ -742,6 +746,6 @@ var PAGES = (function($, pageInfo) {
         'checkKeys': checkKeys,
         'generateID': generateID,
         'details': details,
-        'loadingBlocks': loadingBlocks
+        'setLoadingBlocks': setLoadingBlocks
     };
 })(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});
