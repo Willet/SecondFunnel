@@ -460,7 +460,7 @@ var PAGES = (function($, pageInfo) {
                     url: PAGES_INFO.base_url + '/intentrank/get-results/?callback=?',
                     data: {
                         'store': details.store.id,
-                        'campaign': details.campaign.id,
+                        'campaign': details.page.id,
 
                         //TODO: Probably should be some calculated value
                         'results': 10,
