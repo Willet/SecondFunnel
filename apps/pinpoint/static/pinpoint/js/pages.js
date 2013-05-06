@@ -740,6 +740,7 @@ var PAGES = (function($, pageInfo) {
         'addReadyCallback': addReadyCallback,
         'changeCategory': changeCategory,
         'checkKeys': checkKeys,
-        'generateID': generateID
+        'generateID': generateID,
+        'details': details
     };
 })(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});

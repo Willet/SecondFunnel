@@ -233,8 +233,8 @@
 
                     rendered_block = PAGES.renderTemplate(template, {
                         'data': template_context,
-                        'page': details.page,
-                        'store': details.store
+                        'page': PAGES.details.page,
+                        'store': PAGES.details.store
                     }, true);
                     if (!rendered_block.length) {
                         // template did not render.
