@@ -62,11 +62,11 @@
 
                 var object_id = product.id || product['original-id'];
 
-                // create jquery mobile product 'pages'
-                create_page("product" + object_id);
-
                 // render instagram
                 if (product.template == "instagram") {
+                    // create jquery mobile product 'pages'
+                    create_page("instagram" + object_id);
+
                     console.log("Rendering instagram block", product);
                     render_to_view("#instagram" + object_id, product.template + "-preview", {
                         instagram: product
@@ -79,6 +79,9 @@
 
                 // render product
                 } else if (product.template == "product") {
+                    // create jquery mobile product 'pages'
+                    create_page("product" + object_id);
+
                     console.log("Rendering product block", product);
                     render_to_view("#product" + object_id, product.template + "-preview", {
                         product: product
