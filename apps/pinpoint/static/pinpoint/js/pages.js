@@ -214,13 +214,14 @@ var PAGES = (function($, pageInfo) {
 
     function changeCategory(category) {
         var categories = details.page.categories;
-        if (!categories || !_.findWhere(categories, {'id': category})) {
+        if (!categories || !_.findWhere(categories, {'id': ''+category})) {
             return
         }
 
         // If there are categories, and a valid category is supplied
         // change the category
         details.page.id = category;
+        pagesTracking.changeCampaign(category);
     }
     /* --- END Utilities --- */
 
@@ -465,7 +466,7 @@ var PAGES = (function($, pageInfo) {
                     url: PAGES_INFO.base_url + '/intentrank/get-results/?callback=?',
                     data: {
                         'store': details.store.id,
-                        'campaign': details.campaign.id,
+                        'campaign': details.page.id,
 
                         //TODO: Probably should be some calculated value
                         'results': 10,
@@ -700,7 +701,6 @@ var PAGES = (function($, pageInfo) {
     details.backupResults = details.backupResults || // slightly more customized
                             details.randomResults || // than totally random
                             {};
-    details.campaign = details.campaign || {};
     details.content = details.content || [];
     details.featured = details.featured || {};
     details.page = details.page || {};
@@ -728,7 +728,6 @@ var PAGES = (function($, pageInfo) {
         'addPreviewCallback': addPreviewCallback,
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
         'setBlocksAppendedCallback': setBlocksAppendedCallback,
-        'addReadyCallback': addReadyCallback,
         'renderTemplate': renderTemplate,
         'renderTemplates': renderTemplates,
         'loadInitialResults': loadInitialResults,
@@ -737,5 +736,7 @@ var PAGES = (function($, pageInfo) {
         'pageScroll': pageScroll,
         'MAX_RESULTS_PER_SCROLL': MAX_RESULTS_PER_SCROLL,
         'fisherYates': fisherYates
+        'addReadyCallback': addReadyCallback,
+        'changeCategory': changeCategory
     };
 })(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});
