@@ -719,7 +719,7 @@ var PAGES = (function($, pageInfo) {
         'id': 'twitter-wjs'
     }, {
         'src'   : '//assets.pinterest.com/js/pinit.js',
-        'onload': function() { /* dummy */ },
+        'onload': function() { /* dummy */ }
     }];
 
     return {
@@ -735,7 +735,7 @@ var PAGES = (function($, pageInfo) {
         'hidePreview': hidePreview,
         'pageScroll': pageScroll,
         'MAX_RESULTS_PER_SCROLL': MAX_RESULTS_PER_SCROLL,
-        'fisherYates': fisherYates
+        'fisherYates': fisherYates,
         'addReadyCallback': addReadyCallback,
         'changeCategory': changeCategory
     };
