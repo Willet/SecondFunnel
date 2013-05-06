@@ -74,13 +74,13 @@
                 }, true);
             });
 
-            _.each(jsonData, function (product, pid) {
-                // initialize slideshow
-                swipes[pid] = $("#slideshow" + product.id).Swipe({
-                    auto: 3000,
-                    continuous: true
-                }).data("Swipe");
-            });
+            // _.each(jsonData, function (product, pid) {
+            //     // initialize slideshow
+            //     swipes[pid] = Swipe(document.getElementById("slideshow" + product.id), {
+            //         auto: 3000,
+            //         continuous: true
+            //     });
+            // });
 
             // here we need to fire a "resize" event that will propogate down to every slideshow element
             // this is because swipe in combination with jquerymobile is for some reason not getting the width of the
