@@ -153,7 +153,7 @@ def generate_static_campaign(campaign_id):
 
     for s3_file_name, page_content in rendered_content:
 
-        s3_path = "{0}/{1}".format(campaign.id, s3_file_name)
+        s3_path = "{0}/{1}".format(campaign.slug or campaign.id, s3_file_name)
         bucket_name = get_bucket_name(campaign.store.slug)
 
         bytes_written = upload_to_bucket(
