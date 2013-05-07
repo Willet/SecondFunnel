@@ -108,13 +108,14 @@ class YoutubeVideoAdmin(BaseAdmin):
         'video_id', 'store' ]
     readonly_fields = ('preview_video', )
 
-    #TO-DO: Add ability to filter by categories                                                                                                                                   
     list_filter = BaseNamedAdmin.list_filter + ['store'] + ['categories']
+    
+    class Media:
+        js = ( "js/youtube_admin_look.js", )
 
     def preview_video( self, obj ):
         try:
             id = obj.video_id
-            #TO-DO: Dynamic sizing of the YT Player?                                                                                                                              
             return mark_safe('<iframe src="http://www.youtube.com/embed/' + id + '" width="640" height="385"> </iframe><br/>')
         except AttributeError:
             return "<p>Invalid video id.</p>"
