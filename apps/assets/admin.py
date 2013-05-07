@@ -105,9 +105,23 @@ admin.site.register(Product, ProductAdmin)
 
 class YoutubeVideoAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display + [
-        'video_id', 'store']
+        'video_id', 'store' ]
+    readonly_fields = ('preview_video', )
+
+    #TO-DO: Add ability to filter by categories                                                                                                                                   
+    list_filter = BaseNamedAdmin.list_filter + ['store'] + ['categories']
+
+    def preview_video( self, obj ):
+        try:
+            id = obj.video_id
+            #TO-DO: Dynamic sizing of the YT Player?                                                                                                                              
+            return mark_safe('<iframe src="http://www.youtube.com/embed/' + id + '" width="640" height="385"> </iframe><br/>')
+        except AttributeError:
+            return "<p>Invalid video id.</p>"
+
 
 admin.site.register(YoutubeVideo, YoutubeVideoAdmin)
+
 
 class ExternalContentTypeAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + ['enabled']
