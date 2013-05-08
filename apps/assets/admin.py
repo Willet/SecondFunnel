@@ -108,7 +108,7 @@ class YoutubeVideoAdmin(BaseAdmin):
         'video_id', 'store' ]
     readonly_fields = ('preview_video', )
 
-    list_filter = BaseNamedAdmin.list_filter + ['store'] + ['categories']
+    list_filter = BaseNamedAdmin.list_filter + ['store', 'categories']
     
     class Media:
         js = ( "js/youtube_admin_look.js", )
