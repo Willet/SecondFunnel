@@ -153,6 +153,8 @@ TEMPLATE_LOADERS = (
     )
 
 MIDDLEWARE_CLASSES = (
+    'django.middleware.gzip.GZipMiddleware', # NOTE: Must be the first in this tuple
+    'django.middleware.cache.CacheMiddleware', # Manages caching
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -163,6 +165,8 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'maintenancemode.middleware.MaintenanceModeMiddleware',
     )
+
+CACHE_MIDDLEWARE_SECONDS = 604800 # Set the cache to atleast a week; will only affect production.
 
 ROOT_URLCONF = 'secondfunnel.urls'
 
@@ -214,6 +218,7 @@ INSTALLED_APPS = (
     'apps.website',
     'apps.scraper',
     'apps.static_pages',
+    'apps.utils',
 
     # CI
     'django_jenkins',
