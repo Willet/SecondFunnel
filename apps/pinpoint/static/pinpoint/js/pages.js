@@ -23,6 +23,14 @@ var PAGES = (function($, pageInfo) {
         imageSizes = [
             "icon", "thumb", "small", "compact", "medium", "large",
             "grande", "1024x1024", "master"
+        ],
+        templateNames = [
+            'shop-the-look', 'featured-product',
+            'product', 'combobox', 'youtube', 'image', //formerly instagram
+            'product-preview', 'combobox-preview', 'image-preview', 'image-product-preview'
+        ],
+        imageTypes = [
+            'styld-by', 'tumblr', 'pinterest', 'facebook', 'instagram'
         ];
 
     function getDisplayType() {
@@ -32,11 +40,37 @@ var PAGES = (function($, pageInfo) {
         }
 
         return 'full';
-    };
+    }
 
     function setLoadingBlocks(bool) {
         loadingBlocks = bool;
     }
+
+    function getModifiedTemplateName(name) {
+        var i, type, preview, previewWithProducts;
+        if (_.contains(templateNames, name)) {
+            return name;
+        }
+
+        for (i = 0; i < imageTypes.length; i++) {
+            type = imageTypes[i];
+            if (name === type) {
+                return 'image';
+            }
+
+            preview = type + '-preview';
+            if (name === preview) {
+                return 'image-preview';
+            }
+
+            previewWithProducts = type + '-product-preview';
+            if (name === previewWithProducts) {
+                return 'image-product-preview';
+            }
+        }
+
+        return name;
+    };
 
     function redirect(type) {
         var newLocation;
@@ -746,6 +780,7 @@ var PAGES = (function($, pageInfo) {
         'checkKeys': checkKeys,
         'generateID': generateID,
         'details': details,
-        'setLoadingBlocks': setLoadingBlocks
+        'setLoadingBlocks': setLoadingBlocks,
+        'getModifiedTemplateName': getModifiedTemplateName
     };
 })(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});

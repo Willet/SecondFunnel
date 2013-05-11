@@ -191,7 +191,8 @@
                 try {
                     result = results[i]
                     template_context = result;
-                    templateType = result.template || 'product';
+                    templateType = result.template ||
+                            'product';
                     templateEl = $("[data-template-id='" + templateType + "']");
                     template = templateEl.html();
 
