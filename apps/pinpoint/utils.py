@@ -71,6 +71,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
     page_str = theme.page
 
     # Replace necessary tags
+    # REQUIRED is a bit of a misnomer...
     for field, details in theme.REQUIRED_FIELDS.iteritems():
         field_type = details.get('type')
         values = details.get('values')
