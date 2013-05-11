@@ -184,15 +184,15 @@
                 productDoms = [],
                 template, templateEl, player,
                 template_context, templateType, el, videos,
-                appearanceProbability;
+                appearanceProbability,
+                revisedType;
 
             // add products
             for (i = 0; i < results.length; i++) {
                 try {
                     result = results[i]
                     template_context = result;
-                    templateType = result.template ||
-                            'product';
+                    templateType = PAGES.getModifiedTemplateName(result.template) || 'product';
                     templateEl = $("[data-template-id='" + templateType + "']");
                     template = templateEl.html();
 
@@ -214,6 +214,30 @@
                             break;
                         case 'youtube':
                             break;
+                        case 'image':
+                            // Legacy themes do not support these templates
+                            revisedType = 'instagram';
+                            if (!template) {
+                                templateEl = $("[data-template-id='" + revisedType + "']");
+                                template = templateEl.html();
+                            }
+                            break;
+                        case 'image-preview':
+                            // Legacy themes do not support these templates
+                            revisedType = 'instagram-preview';
+                            if (!template) {
+                                templateEl = $("[data-template-id='" + revisedType + "']");
+                                template = templateEl.html();
+                            }
+                            break;
+                        case 'image-product-preview':
+                            // Legacy themes do not support these templates
+                            revisedType = 'instagram-product-preview';
+                            if (!template) {
+                                templateEl = $("[data-template-id='" + revisedType + "']");
+                                template = templateEl.html();
+                            }
+                            break
                         default:
                             break;
                     }
