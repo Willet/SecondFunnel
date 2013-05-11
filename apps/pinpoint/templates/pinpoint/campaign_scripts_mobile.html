@@ -48,11 +48,20 @@
 
                 var object_id = data.id || data['original-id'];
 
+                var templateName = PAGES.getModifiedTemplateName(data.template);
+
+                // Old themes used 'instagram',
+                // need to verify template exists
+                if (templateName === 'image' &&
+                    !$("[data-template-id='" + templateName + "']").html()) {
+                    templateName = 'instagram';
+                }
+
                 // cache content's data for future rendering
-                local_data[data.template + object_id] = data;
+                local_data[templateName + object_id] = data;
 
                 // render object if possible
-                render_to_view(".content_list", data.template, {
+                render_to_view(".content_list", templateName, {
                     data: data
                 }, true);
 

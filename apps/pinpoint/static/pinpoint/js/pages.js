@@ -23,6 +23,14 @@ var PAGES = (function($, pageInfo) {
         imageSizes = [
             "icon", "thumb", "small", "compact", "medium", "large",
             "grande", "1024x1024", "master"
+        ],
+        templateNames = [
+            'shop-the-look', 'featured-product',
+            'product', 'combobox', 'youtube', 'image', //formerly instagram
+            'product-preview', 'combobox-preview', 'image-preview', 'image-product-preview'
+        ],
+        imageTypes = [
+            'styld-by', 'tumblr', 'pinterest', 'facebook', 'instagram'
         ];
 
     function getDisplayType() {
@@ -32,11 +40,37 @@ var PAGES = (function($, pageInfo) {
         }
 
         return 'full';
-    };
+    }
 
     function setLoadingBlocks(bool) {
         loadingBlocks = bool;
     }
+
+    function getModifiedTemplateName(name) {
+        var i, type, preview, previewWithProducts;
+        if (_.contains(templateNames, name)) {
+            return name;
+        }
+
+        for (i = 0; i < imageTypes.length; i++) {
+            type = imageTypes[i];
+            if (name === type) {
+                return 'image';
+            }
+
+            preview = type + '-preview';
+            if (name === preview) {
+                return 'image-preview';
+            }
+
+            previewWithProducts = type + '-product-preview';
+            if (name === previewWithProducts) {
+                return 'image-product-preview';
+            }
+        }
+
+        return name;
+    };
 
     function redirectToProperTheme() {
         var pathname = window.location.pathname,
@@ -232,7 +266,7 @@ var PAGES = (function($, pageInfo) {
     /* --- START element bindings --- */
     function showPreview(me) {
         var data = $(me).data(),
-            templateName = data.template,
+            templateName = getModifiedTemplateName(data.template),
             $previewContainer = $('[data-template-id="preview-container"]'),
             $previewMask = $previewContainer.find('.mask'),
             $target = $previewContainer.find('.target.template'),
@@ -246,19 +280,20 @@ var PAGES = (function($, pageInfo) {
             data['related-product'] = data['related-products'][0];
         }
 
-        // Determine the type of preview to show depending
-        // on the original template
-        switch(templateName) {
-            case 'instagram':
-                if (_.has(data, 'related-products')
-                    && !_.isEmpty(data['related-products'])) {
-                    templateName += '-product';
-                }
-            default:
-                templateId = templateName + '-preview';
+        if (_.has(data, 'related-products')
+            && !_.isEmpty(data['related-products'])) {
+            templateName += '-product';
         }
 
+        templateId = templateName + '-preview';
+
         template = $('[data-template-id="' + templateId + '"]').html();
+
+        if (!template && (templateId.indexOf('image') == 0)) {
+            // legacy themes don't have 'image-' templates
+            templateId = 'instagram' + templateId.slice(5);
+            template = $('[data-template-id="' + templateId + '"]').html();
+        }
 
         if (_.isEmpty(template) || _.isEmpty($target)) {
             console.log('oops @ no preview template');
@@ -748,6 +783,7 @@ var PAGES = (function($, pageInfo) {
         'checkKeys': checkKeys,
         'generateID': generateID,
         'details': details,
-        'setLoadingBlocks': setLoadingBlocks
+        'setLoadingBlocks': setLoadingBlocks,
+        'getModifiedTemplateName': getModifiedTemplateName
     };
 })(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});
