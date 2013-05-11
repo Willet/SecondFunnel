@@ -124,7 +124,7 @@ def generate_static_campaigns():
     without_static_pages = []
     for campaign in campaigns:
         log_entries = StaticLog.objects.filter(
-            content_type=campaign_type, object_id=campaign.id, key="CA")
+            content_type=campaign_type, object_id=campaign.id, key__in=["CD", "CM"])
 
         if len(log_entries) == 0:
             without_static_pages.append(campaign)
@@ -147,11 +147,11 @@ def generate_static_campaign(campaign_id):
         return
 
     rendered_content = [
-        ("index.html", render_campaign(campaign)),
-        ("mobile.html", render_campaign(campaign, mode="mobile"))
+        ("index.html", "CD", render_campaign(campaign)),
+        ("mobile.html", "CM", render_campaign(campaign, mode="mobile"))
     ]
 
-    for s3_file_name, page_content in rendered_content:
+    for s3_file_name, log_key, page_content in rendered_content:
 
         s3_path = "{0}/{1}".format(campaign.slug or campaign.id, s3_file_name)
         bucket_name = get_bucket_name(campaign.store.slug)
@@ -160,7 +160,11 @@ def generate_static_campaign(campaign_id):
             bucket_name, s3_path, page_content, public=True)
 
         if bytes_written > 0:
-            save_static_log(Campaign, campaign.id, "CA")
+            # remove any old entries
+            remove_static_log(Campaign, campaign.id, log_key)
+
+            # write a new log entry for this static campaign
+            save_static_log(Campaign, campaign.id, log_key)
 
         # boto claims it didn't write anything to S3
         else:
