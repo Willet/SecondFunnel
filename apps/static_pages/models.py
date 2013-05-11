@@ -10,7 +10,8 @@ from apps.pinpoint.models import Campaign
 class StaticLog(models.Model):
     LOG_TYPES = (
         ('BU', 'Static Website Bucket'),
-        ('CA', 'Static Campaign Page'),
+        ('CD', 'Static Campaign Desktop Page'),
+        ('CM', 'Static Campaign Mobile Page'),
         ('PE', 'Pending'),
     )
 
