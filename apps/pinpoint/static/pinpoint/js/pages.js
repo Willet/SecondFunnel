@@ -266,7 +266,7 @@ var PAGES = (function($, pageInfo) {
     /* --- START element bindings --- */
     function showPreview(me) {
         var data = $(me).data(),
-            templateName = data.template,
+            templateName = getModifiedTemplateName(data.template),
             $previewContainer = $('[data-template-id="preview-container"]'),
             $previewMask = $previewContainer.find('.mask'),
             $target = $previewContainer.find('.target.template'),
@@ -280,19 +280,20 @@ var PAGES = (function($, pageInfo) {
             data['related-product'] = data['related-products'][0];
         }
 
-        // Determine the type of preview to show depending
-        // on the original template
-        switch(templateName) {
-            case 'instagram':
-                if (_.has(data, 'related-products')
-                    && !_.isEmpty(data['related-products'])) {
-                    templateName += '-product';
-                }
-            default:
-                templateId = templateName + '-preview';
+        if (_.has(data, 'related-products')
+            && !_.isEmpty(data['related-products'])) {
+            templateName += '-product';
         }
 
+        templateId = templateName + '-preview';
+
         template = $('[data-template-id="' + templateId + '"]').html();
+
+        if (!template && (templateId.indexOf('image') == 0)) {
+            // legacy themes don't have 'image-' templates
+            templateId = 'instagram' + templateId.slice(5);
+            template = $('[data-template-id="' + templateId + '"]').html();
+        }
 
         if (_.isEmpty(template) || _.isEmpty($target)) {
             console.log('oops @ no preview template');

@@ -222,22 +222,6 @@
                                 template = templateEl.html();
                             }
                             break;
-                        case 'image-preview':
-                            // Legacy themes do not support these templates
-                            revisedType = 'instagram-preview';
-                            if (!template) {
-                                templateEl = $("[data-template-id='" + revisedType + "']");
-                                template = templateEl.html();
-                            }
-                            break;
-                        case 'image-product-preview':
-                            // Legacy themes do not support these templates
-                            revisedType = 'instagram-product-preview';
-                            if (!template) {
-                                templateEl = $("[data-template-id='" + revisedType + "']");
-                                template = templateEl.html();
-                            }
-                            break
                         default:
                             break;
                     }
