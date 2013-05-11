@@ -119,18 +119,9 @@ def generate_static_campaigns():
     and runs them in parallel"""
 
     campaigns = Campaign.objects.all()
-    campaign_type = ContentType.objects.get_for_model(Campaign)
-
-    without_static_pages = []
-    for campaign in campaigns:
-        log_entries = StaticLog.objects.filter(
-            content_type=campaign_type, object_id=campaign.id, key__in=["CD", "CM"])
-
-        if len(log_entries) == 0:
-            without_static_pages.append(campaign)
 
     task_group = group(generate_static_campaign.s(c.id)
-        for c in without_static_pages)
+        for c in campaigns)
 
     task_group.apply_async()
 
@@ -138,6 +129,8 @@ def generate_static_campaigns():
 @task()
 def generate_static_campaign(campaign_id):
     """Renders individual campaign and saves it to S3"""
+
+    campaign_type = ContentType.objects.get_for_model(Campaign)
 
     try:
         campaign = Campaign.objects.get(id=campaign_id)
@@ -153,20 +146,31 @@ def generate_static_campaign(campaign_id):
 
     for s3_file_name, log_key, page_content in rendered_content:
 
-        s3_path = "{0}/{1}".format(campaign.slug or campaign.id, s3_file_name)
-        bucket_name = get_bucket_name(campaign.store.slug)
+        # if we think this static page already exists, skip to the next one
+        try:
+            log_entry = StaticLog.objects.get(
+                content_type=campaign_type, object_id=campaign.id, key=log_key)
 
-        bytes_written = upload_to_bucket(
-            bucket_name, s3_path, page_content, public=True)
+            continue
 
-        if bytes_written > 0:
-            # remove any old entries
-            remove_static_log(Campaign, campaign.id, log_key)
+        # otherwise, render and upload it
+        except StaticLog.DoesNotExist:
 
-            # write a new log entry for this static campaign
-            save_static_log(Campaign, campaign.id, log_key)
+            s3_path = "{0}/{1}".format(
+                campaign.slug or campaign.id, s3_file_name)
+            bucket_name = get_bucket_name(campaign.store.slug)
 
-        # boto claims it didn't write anything to S3
-        else:
-            logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
-                campaign_id))
+            bytes_written = upload_to_bucket(
+                bucket_name, s3_path, page_content, public=True)
+
+            if bytes_written > 0:
+                # remove any old entries
+                remove_static_log(Campaign, campaign.id, log_key)
+
+                # write a new log entry for this static campaign
+                save_static_log(Campaign, campaign.id, log_key)
+
+            # boto claims it didn't write anything to S3
+            else:
+                logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
+                    campaign_id))
