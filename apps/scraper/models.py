@@ -67,8 +67,12 @@ class ProductTags(models.Model):
 
     def parsed(self):
         try:
-            return dict([(pair.split("_")[0], urllib.unquote(pair.split("_")[1]))
-                for pair in self.tags.split()])
+            return dict(
+                [(
+                    urllib.unquote(pair.split("_")[0]),
+                    urllib.unquote(pair.split("_")[1])
+                ) for pair in self.tags.split()]
+            )
 
         # in case self.tags is missing, or formatted not how we expect, etc
         except:
