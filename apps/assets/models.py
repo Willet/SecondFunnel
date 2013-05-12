@@ -200,6 +200,14 @@ class Product(BaseModelNamed):
             for external_content in self.external_content.all():
                 if external_content.image_url:
                     product_images.append(external_content.image_url)
+
+        # Default image should be first
+        if self.default_image:
+            first_image = self.default_image.get_url()
+            if first_image in product_images:
+                product_images.remove(first_image)
+            product_images.insert(0, first_image)
+
         return product_images
 
     def data(self, raw=False):
