@@ -1,3 +1,5 @@
+import urllib
+
 from django.db import models
 
 from apps.assets.models import Store, Product
@@ -51,3 +53,23 @@ class ProductSuggestion(models.Model):
     product = models.ForeignKey(Product, related_name="suggestions")
     url = models.URLField(max_length=500)
     suggested = models.ForeignKey(Product, related_name="suggested", blank=True, null=True)
+
+
+class ProductTags(models.Model):
+    id = models.OneToOneField(Product,
+        primary_key=True, related_name="tags", db_column="id")
+
+    tags = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = 'scraper_product_tags'
+
+    def parsed(self):
+        try:
+            return dict([(pair.split("_")[0], urllib.unquote(pair.split("_")[1]))
+                for pair in self.tags.split()])
+
+        # in case self.tags is missing, or formatted not how we expect, etc
+        except:
+            return {}
