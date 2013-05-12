@@ -223,9 +223,15 @@ class Product(BaseModelNamed):
             'data-image': strip_and_escape(image),
             'data-images': '|'.join(strip_and_escape(x) for x in images),
             'data-product-id': self.id,
-            'data-tags': self.tags.parsed(),
             'data-template': 'product',
         }
+
+        try:
+            fields['data-tags'] = self.tags.tags
+
+        # ProductTags.DoesNotExist
+        except:
+            fields['data-tags'] = {}
 
         try:
             fields['data-lifestyle-image'] = self.lifestyle_image  # getter
