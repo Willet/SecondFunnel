@@ -223,7 +223,8 @@ class Product(BaseModelNamed):
             'data-image': strip_and_escape(image),
             'data-images': '|'.join(strip_and_escape(x) for x in images),
             'data-product-id': self.id,
-            'data-template': 'product'
+            'data-tags': self.tags.parsed(),
+            'data-template': 'product',
         }
 
         try:
