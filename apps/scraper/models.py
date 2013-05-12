@@ -61,10 +61,6 @@ class ProductTags(models.Model):
 
     raw_tags = models.TextField(db_column='tags')
 
-    class Meta:
-        managed = False
-        db_table = 'scraper_product_tags'
-
     @property
     def tags(self):
         try:
