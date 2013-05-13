@@ -69,8 +69,8 @@ class ProductTags(models.Model):
         try:
             return dict(
                 [(
-                    urllib.unquote(pair.split("_")[0]),
-                    urllib.unquote(pair.split("_")[1])
+                    urllib.unquote(pair.split(":")[0]),
+                    urllib.unquote(pair.split(":")[1])
                 ) for pair in self.raw_tags.split()]
             )
 
