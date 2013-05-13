@@ -1,6 +1,7 @@
 """
 Static pages celery tasks
 """
+from urlparse import urlparse
 
 from celery import task, group
 from celery.utils.log import get_task_logger
@@ -74,8 +75,16 @@ def create_bucket_for_store(store_id):
 
         save_static_log(Store, store.id, "PE")
 
+        bucket_name = store.slug
+        raw = False
+        if store.public_base_url:
+            url = urlparse(store.public_base_url).hostname
+            if url:
+                bucket_name = url
+                raw = True
+
         _, change_status, change_id = create_bucket_website_alias(
-            get_bucket_name(store.slug))
+            get_bucket_name(bucket_name, raw))
 
         if change_status == "PENDING":
             confirm_change_success.subtask((change_id, store_id)).delay()
@@ -167,7 +176,16 @@ def generate_static_campaign(campaign_id):
 
             s3_path = "{0}/{1}".format(
                 campaign.slug or campaign.id, s3_file_name)
-            bucket_name = get_bucket_name(campaign.store.slug)
+
+            slug = campaign.store.slug
+            raw = False
+            if campaign.store.public_base_url:
+                url = urlparse(campaign.store.public_base_url).hostname
+                if url:
+                    slug = url
+                    raw = True
+
+            bucket_name = get_bucket_name(slug, raw)
 
             bytes_written = upload_to_bucket(
                 bucket_name, s3_path, page_content, public=True)
