@@ -442,9 +442,11 @@ var PAGES = (function($, pageInfo) {
     }
 
     function updateClickStream(t, event) {
+        /* Loads more content if user clicks has exceeded threshold.  On each click, loads related content below
+           a block that the user has clicked. */
         var $target = $(event.currentTarget),
             data      = $target.data(),
-            id        = data['product-id'] || data['id'],
+            id        = data['product-id'],
             exceededThreshold;
 
         if (details.page.offline) {
@@ -453,6 +455,7 @@ var PAGES = (function($, pageInfo) {
 
         userClicks += 1;
         exceededThreshold = ((userClicks % clickThreshold) == 0);
+        updateContentStream(t); 
 
         $.ajax({
             url: PAGES_INFO.base_url + '/intentrank/update-clickstream/?callback=?',
@@ -469,6 +472,25 @@ var PAGES = (function($, pageInfo) {
             }
         });
     }
+
+    function updateContentStream( product ) {
+        /* @return: none */
+        loadMoreResults( false, product );
+    }
+
+    function layoutRelated( product, relatedContent ) {
+        /* Load related content into the masonry instance.
+           @return: none */
+        var $discovery = $('.discovery-area');
+        
+        // Inserts content after the clicked product block (Animated)
+        relatedContent.insertAfter($(product));
+        $discovery.masonry('reload');
+        relatedContent.show();
+        /* Inserts content after the clicked product block (Non-Animated)
+           $.when($discovery.masonry('reload')).then(function(){ relatedContent.show();}); */
+    }
+
 
     function loadInitialResults () {
         if (!loadingBlocks) {
@@ -497,9 +519,9 @@ var PAGES = (function($, pageInfo) {
         }
     }
 
-    function loadMoreResults(belowFold) {
+    function loadMoreResults(belowFold, related) {
         if (!loadingBlocks) {
-            loadingBlocks = true;
+            loadingBlocks = !(related);
             if (!details.page.offline) {
                 $.ajax({
                     url: PAGES_INFO.base_url + '/intentrank/get-results/?callback=?',
@@ -515,16 +537,16 @@ var PAGES = (function($, pageInfo) {
                     },
                     dataType: 'jsonp',
                     success: function(results) {
-                        layoutResults(results, belowFold);
+                        layoutResults(results, belowFold, related);
                     },
                     error: function() {
                         console.log('loading backup results');
-                        layoutResults(details.backupResults, belowFold);
+                        layoutResults(details.backupResults, belowFold, related);
                         loadingBlocks = false;
                     }
                 });
             } else {
-                layoutResults(details.content);
+                layoutResults(details.content, undefined, related);
             }
         }
     }
@@ -574,6 +596,7 @@ var PAGES = (function($, pageInfo) {
         $discovery.on('click', '.block.product, .block.combobox', function (e) {
             showPreview(e.currentTarget);
         });
+
         $discovery.on('click', '.block.image', function (e) {
             showPreview(e.currentTarget);
         });
@@ -773,6 +796,7 @@ var PAGES = (function($, pageInfo) {
         'renderTemplate': renderTemplate,
         'renderTemplates': renderTemplates,
         'loadInitialResults': loadInitialResults,
+        'layoutRelated': layoutRelated,
         'attachListeners': attachListeners,
         'hidePreview': hidePreview,
         'pageScroll': pageScroll,
