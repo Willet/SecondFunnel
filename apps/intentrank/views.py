@@ -5,6 +5,7 @@ import random
 from urllib import urlencode
 from random import randrange
 
+from django.core.cache import cache
 from django.conf import settings
 from django.db.models import Count
 from django.http import HttpResponse
@@ -91,10 +92,8 @@ def process_intentrank_request(request, store, page, function_name,
         results.update({'url': url})
         return results, response.status
 
-    products = Product.objects.annotate(num_images=Count('media'))\
-                              .filter(pk__in=results.get('products'),
-                                      num_images__gt=0,
-                                      available=True)
+    products = Product.objects.filter(
+        pk__in=results.get('products'), available=True).exclude(media=None)
 
     return products, response.status
 
@@ -158,8 +157,23 @@ def get_json_data(request, products, campaign_id, seeds=None):
             if not product:
                 continue
 
-            product_js_obj = get_product_json_data(product=product,
-               products_with_images_only=products_with_images_only)
+            product_js_obj = cache.get("product_js_obj-{0}-{1}".format(
+                product.id, products_with_images_only))
+
+            if not product_js_obj:
+                product_js_obj = get_product_json_data(product=product,
+                   products_with_images_only=products_with_images_only)
+
+                cache.set(
+                    "product_js_obj-{0}-{1}".format(
+                        product.id, products_with_images_only),
+
+                    product_js_obj,
+
+                    # cache for 3 hours
+                    60*60*4
+                )
+
             results.append(product_js_obj)
         except ValueError:
             # caused by product image requirement.
@@ -171,11 +185,15 @@ def get_json_data(request, products, campaign_id, seeds=None):
     if not video_cookie:
         video_cookie = request.session['pinpoint-video-cookie'] = VideoCookie()
 
-    videos = campaign.store.videos.exclude(
-        video_id__in=video_cookie.videos_already_shown)
+    videos = cache.get('videos-campaign-{0}'.format(campaign_id))
+    if not videos:
+        videos = campaign.store.videos.exclude(
+            video_id__in=video_cookie.videos_already_shown)
 
-    if campaign.supports_categories:
-        videos = videos.filter(categories__id=campaign_id)
+        if campaign.supports_categories:
+            videos = videos.filter(categories__id=campaign_id)
+
+        cache.set('videos-campaign-{0}'.format(campaign_id), videos, 60*60*3)
 
     # if this is the first batch of results, or the random amount is under the
     # curve of the probability function, then add a video
@@ -199,10 +217,17 @@ def get_json_data(request, products, campaign_id, seeds=None):
     request.session['pinpoint-video-cookie'] = video_cookie
 
     # store-wide external content
-    external_content = campaign.store.external_content.filter(
-        active=True, approved=True)
-    if campaign.supports_categories:
-        external_content = external_content.filter(categories__id=campaign_id)
+    external_content = cache.get('storec-external-content-{0}-{1}'.format(
+        campaign.store.id, campaign_id))
+
+    if not external_content:
+        external_content = campaign.store.external_content.filter(
+            active=True, approved=True)
+        if campaign.supports_categories:
+            external_content = external_content.filter(categories__id=campaign_id)
+
+        cache.set('storec-external-content-{0}-{1}'.format(
+            campaign.store.id, campaign_id),external_content, 60*60*4)
 
     # content to product ration. e.g., 2 == content to products 2:1
     content_to_products = 1
@@ -218,7 +243,13 @@ def get_json_data(request, products, campaign_id, seeds=None):
                 'template': item.content_type.name.lower()
             })
 
-            related_products = item.tagged_products.all()
+            related_products = cache.get('ec-tagged-prods-{0}'.format(item.id))
+            if not related_products:
+                related_products = item.tagged_products.all()
+
+                cache.set('ec-tagged-prods-{0}'.format(item.id),
+                    related_products, 60*60)
+
             if related_products:
                 json_content.update({
                     'related-products': [x.data(raw=True)
