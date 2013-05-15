@@ -172,7 +172,7 @@
             },
 
         // layoutData
-        function (jsonData, belowFold) {
+        function (jsonData, belowFold, related) {
             // renders product divs onto the page.
             // suppose results is (now) a legit json object:
             // {products: [], videos: [(sizeof 1)]}
@@ -360,14 +360,16 @@
                 $broken.parents('.block.product').remove();
                 $block.find('.block.product img[src=""]').parents('.block.product').remove();
 
-                $('.discovery-area').masonry('appended', $block, true);
-                $block.show();
+                if (!related) {
+                    $('.discovery-area').masonry('appended', $block, true);
+                    $block.show();
 
-                // Don't continue to load results if we aren't getting more results
-                if (initialResults > 0) {
-                    setTimeout(function() {
-                        PAGES.pageScroll();
-                    }, 100);
+                    // Don't continue to load results if we aren't getting more results
+                    if (initialResults > 0) {
+                        setTimeout(function() {
+                            PAGES.pageScroll();
+                        }, 100);
+                    }
                 }
 
                 $block.find('.pinpoint-youtube-area').click(function() {
@@ -376,6 +378,11 @@
 
                 for (var i in PAGES.blocksAppendedCallbacks) {
                     PAGES.setBlocksAppendedCallback(i, $block);
+                }
+
+                if (related) {
+                    PAGES.layoutRelated(related, $block);
+                    return;
                 }
 
                 PAGES.setLoadingBlocks(false);
