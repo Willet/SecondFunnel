@@ -487,7 +487,7 @@ var PAGES = (function($, pageInfo) {
         relatedContent.insertAfter($(product));
         $discovery.masonry('reload');
         relatedContent.show();
-        /* Inserts content after the clicked product block (Non-Animated)
+        /* // Inserts content after the clicked product block (Non-Animated)
            $.when($discovery.masonry('reload')).then(function(){ relatedContent.show();}); */
     }
 
@@ -521,7 +521,9 @@ var PAGES = (function($, pageInfo) {
 
     function loadMoreResults(belowFold, related) {
         if (!loadingBlocks || related) {
-            if (!related) loadingBlocks = true;
+            if (!related) {
+                loadingBlocks = true;
+            }
             if (!details.page.offline) {
                 $.ajax({
                     url: PAGES_INFO.base_url + '/intentrank/get-results/?callback=?',
@@ -542,7 +544,9 @@ var PAGES = (function($, pageInfo) {
                     error: function() {
                         console.log('loading backup results');
                         layoutResults(details.backupResults, belowFold, related);
-                        if (!related) loadingBlocks = false;
+                        if (!related) {
+                            loadingBlocks = false;
+                        }
                     }
                 });
             } else {
