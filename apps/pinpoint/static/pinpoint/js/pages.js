@@ -446,7 +446,7 @@ var PAGES = (function($, pageInfo) {
            a block that the user has clicked. */
         var $target = $(event.currentTarget),
             data      = $target.data(),
-            id        = data['product-id'],
+            id        = data['product-id'] || data['id'],
             exceededThreshold;
 
         if (details.page.offline) {
