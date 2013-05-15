@@ -92,15 +92,8 @@ def process_intentrank_request(request, store, page, function_name,
         results.update({'url': url})
         return results, response.status
 
-    # caching here probably not necessary, but shouldn't hurt
-    ckey = "".join([str(x) for x in sorted(results.get('products'))])
-    products = cache.get('prods-imgs-{0}'.format(ckey))
-
-    if not products:
-        products = Product.objects.filter(
-            pk__in=results.get('products'), available=True).exclude(media=None)
-
-        cache.set('prods-imgs-{0}'.format(ckey), products, 60*60*4)
+    products = Product.objects.filter(
+        pk__in=results.get('products'), available=True).exclude(media=None)
 
     return products, response.status
 
