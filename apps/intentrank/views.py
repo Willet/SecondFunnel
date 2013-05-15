@@ -224,10 +224,17 @@ def get_json_data(request, products, campaign_id, seeds=None):
     request.session['pinpoint-video-cookie'] = video_cookie
 
     # store-wide external content
-    external_content = campaign.store.external_content.filter(
-        active=True, approved=True)
-    if campaign.supports_categories:
-        external_content = external_content.filter(categories__id=campaign_id)
+    external_content = cache.get('storec-external-content-{0}-{1}'.format(
+        campaign.store.id, campaign_id))
+
+    if not external_content:
+        external_content = campaign.store.external_content.filter(
+            active=True, approved=True)
+        if campaign.supports_categories:
+            external_content = external_content.filter(categories__id=campaign_id)
+
+        cache.set('storec-external-content-{0}-{1}'.format(
+            campaign.store.id, campaign_id),external_content, 60*60*4)
 
     # content to product ration. e.g., 2 == content to products 2:1
     content_to_products = 1
@@ -243,7 +250,13 @@ def get_json_data(request, products, campaign_id, seeds=None):
                 'template': item.content_type.name.lower()
             })
 
-            related_products = item.tagged_products.all()
+            related_products = cache.get('ec-tagged-prods-{0}'.format(item.id))
+            if not related_products:
+                related_products = item.tagged_products.all()
+
+                cache.set('ec-tagged-prods-{0}'.format(item.id),
+                    related_products, 60*60)
+
             if related_products:
                 json_content.update({
                     'related-products': [x.data(raw=True)
