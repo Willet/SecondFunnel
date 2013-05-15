@@ -9,6 +9,10 @@ var PAGES = (function($, pageInfo) {
         details,
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
+        MASONRY_MIN,
+        dom_nodes = [[], []],
+        empty_area,
+        freeingDOMS = false,
         scripts,
         userClicks = 0,
         clickThreshold = 3,
@@ -501,36 +505,102 @@ var PAGES = (function($, pageInfo) {
         });
     }
 
-    function pageScroll () {
-        var $w            = $(window),
-            noResults     = ($('.discovery-area .block').length === 0),
-            pageBottomPos = $w.innerHeight() + $w.scrollTop(),
-            lowestBlock,
-            lowestHeight,
-            $divider = $(".divider"),
-            divider_bottom = ($divider.length) ? $divider[0].getBoundingClientRect().bottom : 0;
+    function freeDOM() {
+        /* Frees up memory in the DOM by adjusting the discovery-area's top and removing elements from
+           the DOM; elements freed don't have to be redrawn on page scroll which speeds up the masonry load.
+           @return: None */
 
-        // user scrolled far enough not to be a "bounce"
-        if (divider_bottom < 150) {
-            window.pagesTracking && pagesTracking.notABounce("scroll");
-        }
-
-        $('.discovery-area .block').each(function() {
-            if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
-                lowestBlock = $(this);
+        if (!freeingDOMS) {
+            /* TO-DO: SMOOTH ANIMATION, HIDE BLOCKS THAT ARE BEING PUT BACK IN POSITION, SMOOTH SCROLLING, SMOOTH LOADING */
+            
+            freeingDOMS = true; // Limit an instance of this function to one
+            var $discovery = $('.discovery-area');
+            if (!MASONRY_MIN) MASONRY_MIN = $discovery.offset().top;
+            // We need an empty area since the position of the masonry container is relative
+            if (!empty_area && $discovery.before($('<div class="empty-area"></div>'))) empty_area = $discovery.prev();
+            
+            var reloadTrigger    = false, // Signal to trigger a reload if applicable
+                new_empty_height = empty_area.height(),
+                block,
+                // Threshold limits for what is visible on the screen
+                upper_threshold  = 0.6 * ($(window).scrollTop()),
+                lower_threshold  = 2.0 * ($(window).scrollTop() + $(window).height());
+            
+            $discovery.find('.block').each(function() {
+                var bottom = $(this).height() + $(this).offset().top,
+                    top    = $(this).offset().top,
+                    left   = $(this).offset().left;
+                // If the items are no longer visible, eject them from our masonry instance.
+                if ( bottom < upper_threshold ) {
+                    new_empty_height = Math.max(new_empty_height, bottom);
+                    dom_nodes[0].push({top: top, bottom: bottom, left: left, height: $(this).height(), obj: $(this).detach()});
+                } else if ( top > lower_threshold ) 
+                    dom_nodes[1].push({top: top, left: left, height: $(this).height(), obj: $(this).detach()});
+            });
+            empty_area.height(new_empty_height); // Set height afterwards to not interfere with ejection
+            
+            // Reload erased DOM nodes if they are now in our FOV.
+            for ( var i = 0; i < 2; ++i ) {
+                var new_node_list = [];
+                for ( var j = dom_nodes[i].length - 1; j >= 0; --j ) {
+                    // Iterate over each element, skip the element if it's still out of view
+                    elem = dom_nodes[i][j];
+                    if ((elem.bottom < upper_threshold || elem.top > lower_threshold) && new_node_list.push(elem)) continue;
+                    reloadTrigger = true;
+                    if ( i == 0 ) {
+                        block = $(elem.obj).offset({top: elem.top, left: elem.left}).height(elem.height);
+                        $discovery.prepend(block);
+                        empty_area.height(elem.top - MASONRY_MIN);
+                    } else {
+                        /* TO-DO: FIX ISSUE WITH BLANK SPACES APPEARING BEFORE BLOCKS APPEAR */
+                        block = $(elem.obj).height(elem.height).offset({top: elem.top, left: elem.left});
+                        $discovery.append(block).masonry('appended', block, true);
+                    }
+                }
+                // Copy the *new* DOM node list
+                dom_nodes[i] = new_node_list;
             }
-        });
-
-        if (!lowestBlock) {
-            lowestHeight = 0;
-        } else {
-            lowestHeight = lowestBlock.offset().top + lowestBlock.height()
+            if ( reloadTrigger ) $discovery.masonry('reload');
+            freeingDOMS = false;
         }
+        return true;
+    }
 
-        if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
-            loadMoreResults();
+
+    function pageScroll () {
+
+        if (freeDOM()) {
+            var $w            = $(window),
+                noResults     = ($('.discovery-area .block').length === 0),
+                pageBottomPos = $w.innerHeight() + $w.scrollTop(),
+                lowestBlock,
+                lowestHeight,
+                $divider = $(".divider"),
+                divider_bottom = ($divider.length) ? $divider[0].getBoundingClientRect().bottom : 0;
+               
+            // user scrolled far enough not to be a "bounce"
+            if (divider_bottom < 150) {
+                window.pagesTracking && pagesTracking.notABounce("scroll");
+            }
+            
+            $('.discovery-area .block').each(function() {
+                if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
+                    lowestBlock = $(this);
+                }
+            });
+
+            if (!lowestBlock) {
+                lowestHeight = 0;
+            } else {
+                lowestHeight = lowestBlock.offset().top + lowestBlock.height()
+            }
+            
+            if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
+                loadMoreResults();
+            }
         }
     }
+
 
     function attachListeners () {
         var $discovery = $('.discovery-area');
