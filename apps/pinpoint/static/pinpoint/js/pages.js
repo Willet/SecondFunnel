@@ -444,7 +444,7 @@ var PAGES = (function($, pageInfo) {
     function updateClickStream(t, event) {
         var $target = $(event.currentTarget),
             data      = $target.data(),
-            id        = data['product-id'],
+            id        = data['product-id'] || data['id'],
             exceededThreshold;
 
         if (details.page.offline) {

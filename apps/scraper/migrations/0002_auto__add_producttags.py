@@ -9,7 +9,7 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         # Adding model 'ProductTags'
-        db.create_table('scraper_producttags', (
+        db.create_table('scraper_product_tags', (
             ('id', self.gf('django.db.models.fields.related.OneToOneField')(related_name='tags', unique=True, primary_key=True, db_column='id', to=orm['assets.Product'])),
             ('raw_tags', self.gf('django.db.models.fields.TextField')(db_column='tags')),
         ))
@@ -18,7 +18,7 @@ class Migration(SchemaMigration):
 
     def backwards(self, orm):
         # Deleting model 'ProductTags'
-        db.delete_table('scraper_producttags')
+        db.delete_table('scraper_product_tags')
 
 
     models = {
