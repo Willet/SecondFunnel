@@ -56,18 +56,21 @@ class ProductSuggestion(models.Model):
 
 
 class ProductTags(models.Model):
-    id = models.OneToOneField(Product,
+    product = models.OneToOneField(Product,
         primary_key=True, related_name="tags", db_column="id")
 
     raw_tags = models.TextField(db_column='tags')
+
+    class Meta:
+        db_table = 'scraper_product_tags'
 
     @property
     def tags(self):
         try:
             return dict(
                 [(
-                    urllib.unquote(pair.split("_")[0]),
-                    urllib.unquote(pair.split("_")[1])
+                    urllib.unquote(pair.split(":")[0]),
+                    urllib.unquote(pair.split(":")[1])
                 ) for pair in self.raw_tags.split()]
             )
 
