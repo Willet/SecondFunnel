@@ -33,7 +33,7 @@ kombu==2.5.10
 pytz==2013b
 
 # google api libraries
-google==1.04
+google==1.05
 google-api-python-client==1.0
 pyOpenSSL==0.13
 python-gflags==2.0
