@@ -520,8 +520,8 @@ var PAGES = (function($, pageInfo) {
     }
 
     function loadMoreResults(belowFold, related) {
-        if (!loadingBlocks) {
-            loadingBlocks = !(related);
+        if (!loadingBlocks || related) {
+            if (!related) loadingBlocks = true;
             if (!details.page.offline) {
                 $.ajax({
                     url: PAGES_INFO.base_url + '/intentrank/get-results/?callback=?',
@@ -542,7 +542,7 @@ var PAGES = (function($, pageInfo) {
                     error: function() {
                         console.log('loading backup results');
                         layoutResults(details.backupResults, belowFold, related);
-                        loadingBlocks = false;
+                        if (!related) loadingBlocks = false;
                     }
                 });
             } else {
