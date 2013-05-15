@@ -195,7 +195,7 @@ def get_json_data(request, products, campaign_id, seeds=None):
         if campaign.supports_categories:
             videos = videos.filter(categories__id=campaign_id)
 
-        cache.set('videos-campaign-{0}'.format(campaign_id), 60*60*3)
+        cache.set('videos-campaign-{0}'.format(campaign_id), videos, 60*60*3)
 
     # if this is the first batch of results, or the random amount is under the
     # curve of the probability function, then add a video
