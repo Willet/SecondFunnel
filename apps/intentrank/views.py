@@ -5,6 +5,7 @@ import random
 from urllib import urlencode
 from random import randrange
 
+from django.core.cache import cache
 from django.conf import settings
 from django.db.models import Count
 from django.http import HttpResponse
@@ -158,8 +159,23 @@ def get_json_data(request, products, campaign_id, seeds=None):
             if not product:
                 continue
 
-            product_js_obj = get_product_json_data(product=product,
-               products_with_images_only=products_with_images_only)
+            product_js_obj = cache.get("product_js_obj-{0}-{1}".format(
+                product.id, products_with_images_only))
+
+            if not product_js_obj:
+                product_js_obj = get_product_json_data(product=product,
+                   products_with_images_only=products_with_images_only)
+
+                cache.set(
+                    "product_js_obj-{0}-{1}".format(
+                        product.id, products_with_images_only),
+
+                    product_js_obj,
+
+                    # cache for 3 hours
+                    60*60*3
+                )
+
             results.append(product_js_obj)
         except ValueError:
             # caused by product image requirement.
@@ -171,11 +187,15 @@ def get_json_data(request, products, campaign_id, seeds=None):
     if not video_cookie:
         video_cookie = request.session['pinpoint-video-cookie'] = VideoCookie()
 
-    videos = campaign.store.videos.exclude(
-        video_id__in=video_cookie.videos_already_shown)
+    videos = cache.get('videos-campaign-{0}'.format(campaign_id))
+    if not videos:
+        videos = campaign.store.videos.exclude(
+            video_id__in=video_cookie.videos_already_shown)
 
-    if campaign.supports_categories:
-        videos = videos.filter(categories__id=campaign_id)
+        if campaign.supports_categories:
+            videos = videos.filter(categories__id=campaign_id)
+
+        cache.set('videos-campaign-{0}'.format(campaign_id), 60*60*3)
 
     # if this is the first batch of results, or the random amount is under the
     # curve of the probability function, then add a video
