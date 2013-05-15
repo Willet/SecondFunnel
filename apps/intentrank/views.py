@@ -92,10 +92,15 @@ def process_intentrank_request(request, store, page, function_name,
         results.update({'url': url})
         return results, response.status
 
-    products = Product.objects.annotate(num_images=Count('media'))\
-                              .filter(pk__in=results.get('products'),
-                                      num_images__gt=0,
-                                      available=True)
+    # caching here probably not necessary, but shouldn't hurt
+    ckey = "".join([str(x) for x in sorted(results.get('products'))])
+    products = cache.get('prods-imgs-{0}'.format(ckey))
+
+    if not products:
+        products = Product.objects.filter(
+            pk__in=results.get('products'), available=True).exclude(media=None)
+
+        cache.set('prods-imgs-{0}'.format(ckey), products, 60*60*4)
 
     return products, response.status
 
@@ -173,7 +178,7 @@ def get_json_data(request, products, campaign_id, seeds=None):
                     product_js_obj,
 
                     # cache for 3 hours
-                    60*60*3
+                    60*60*4
                 )
 
             results.append(product_js_obj)
