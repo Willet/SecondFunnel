@@ -9,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 
 from apps.assets.models import Store
+from apps.intentrank.views import get_seeds
 from apps.pinpoint.models import Campaign
 from apps.pinpoint.utils import render_campaign
 from apps.static_pages.models import StaticLog
@@ -16,7 +17,7 @@ from apps.static_pages.models import StaticLog
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
     get_route53_change_status, upload_to_bucket)
 from apps.static_pages.utils import (save_static_log, remove_static_log,
-    bucket_exists_or_pending, get_bucket_name)
+    bucket_exists_or_pending, get_bucket_name, create_dummy_request)
 
 # TODO: make use of logging, instead of suppressing errors as is done now
 logger = get_task_logger(__name__)
@@ -139,9 +140,16 @@ def generate_static_campaign(campaign_id):
         logger.error("Campaign #{0} does not exist".format(campaign_id))
         return
 
+    dummy_request = create_dummy_request()
+
     rendered_content = [
-        ("index.html", "CD", render_campaign(campaign)),
-        ("mobile.html", "CM", render_campaign(campaign, mode="mobile"))
+        ("index.html", "CD", render_campaign(
+            campaign, get_seeds_func=get_seeds, request=dummy_request
+        )),
+        ("mobile.html", "CM", render_campaign(
+            campaign, get_seeds_func=get_seeds, request=dummy_request,
+            mode="mobile"
+        ))
     ]
 
     for s3_file_name, log_key, page_content in rendered_content:
