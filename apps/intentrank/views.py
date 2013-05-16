@@ -310,27 +310,36 @@ def get_results(request, **kwargs):
                                                         DEFAULT_RESULTS))
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
 
-    results, status = process_intentrank_request(
-        request, store, page, 'getresults', {
-            'results': num_results
-        }
-    )
+    cache_version = random.randrange(50)
+    cache_key = 'getresults-json-{0}-{1}-{2}'.format(
+        store, page, seeds)
+    cached_results = cache.get(cache_key, version=cache_version)
 
-    if status in SUCCESS_STATUSES:
-        result = get_json_data(request, results, page,
-                               seeds=filter(None, seeds.split(',')))
+    if not cached_results:
 
-    # workaround for a weird bug on intentrank's side
-    elif status == 400:
-        return get_seeds(request)
+        results, status = process_intentrank_request(
+            request, store, page, 'getresults', {
+                'results': num_results
+            }
+        )
 
-    else:
-        result = results
+        if status in SUCCESS_STATUSES:
+            cached_results = get_json_data(request, results, page,
+                                   seeds=filter(None, seeds.split(',')))
+
+        # workaround for a weird bug on intentrank's side
+        elif status == 400:
+            return get_seeds(request)
+
+        else:
+            cached_results = results
+
+        cache.set(cache_key, cached_results, 60*5, version=cache_version)
 
     if kwargs.get('raw', False):
-        return result
+        return cached_results
     else:
-        return ajax_jsonp(result, callback, status=status)
+        return ajax_jsonp(cached_results, callback, status=200)
 
 
 def update_clickstream(request):
