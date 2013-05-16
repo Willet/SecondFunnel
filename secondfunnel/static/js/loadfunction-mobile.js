@@ -1,0 +1,99 @@
+    var swipes = {};
+
+    function render_to_view(view_selector, template_name, context, append) {
+        var template = $("[data-template-id='" + template_name + "']").html(),
+            rendered_block = _.template(template, context);
+
+        if (append) {
+            $(view_selector).append(rendered_block);
+        } else {
+            $(view_selector).html(rendered_block);
+        }
+    }
+
+    function page_exists(id) {
+        if ($("#" + id).length) {
+            return true;
+        }
+    }
+
+    function create_page(id, created_callback) {
+        if (page_exists(id)) {
+            return $("#" + id);
+        }
+
+        var new_page = $("<div class='preview' id='" + id + "' data-role='page'>");
+
+        $("body").append(new_page);
+
+        return new_page;
+    }
+
+    PAGES.init(
+
+        // ready
+        function () {
+            console.log('custom ready');
+
+            MBP.hideUrlBarOnLoad();
+            MBP.preventZoom();
+
+            $(window).scroll(PAGES.pageScroll);
+            $(window).resize(PAGES.pageScroll);
+
+            PAGES.loadInitialResults();
+        },
+
+        // layoutResults
+        function (jsonData, belowFold) {
+            console.log('layout!');
+
+            _.each(jsonData, function (product) {
+
+                var object_id = product.id || product['original-id'];
+
+                // create jquery mobile product 'pages'
+                create_page("product" + object_id);
+
+                // render instagram
+                if (product.template == "instagram") {
+                    console.log("Rendering instagram block", product);
+                    render_to_view("#instagram" + object_id, product.template + "-preview", {
+                        instagram: product
+                    });
+
+                    // render product list
+                    render_to_view(".product_list", product.template, {
+                        instagram: product
+                    }, true);
+
+                // render product
+                } else if (product.template == "product") {
+                    console.log("Rendering product block", product);
+                    render_to_view("#product" + object_id, product.template + "-preview", {
+                        product: product
+                    });
+
+                    // render product list
+                    render_to_view(".product_list", product.template, {
+                        product: product
+                    }, true);
+                }
+            });
+
+            // _.each(jsonData, function (product, pid) {
+            //     // initialize slideshow
+            //     swipes[pid] = Swipe(document.getElementById("slideshow" + product.id), {
+            //         auto: 3000,
+            //         continuous: true
+            //     });
+            // });
+
+            // here we need to fire a "resize" event that will propogate down to every slideshow element
+            // this is because swipe in combination with jquerymobile is for some reason not getting the width of the
+            // slideshow element, but firing resize 'solves' that
+
+
+            PAGES.setLoadingBlocks(false);
+        }
+    );
