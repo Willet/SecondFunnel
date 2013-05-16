@@ -337,9 +337,9 @@ def get_results(request, **kwargs):
         cache.set(cache_key, result, 60*5, version=cache_version)
 
     if kwargs.get('raw', False):
-        return result
+        return cached_results
     else:
-        return ajax_jsonp(result, callback, status=status)
+        return ajax_jsonp(cached_results, callback, status=status)
 
 
 def update_clickstream(request):
