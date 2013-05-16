@@ -310,22 +310,31 @@ def get_results(request, **kwargs):
                                                         DEFAULT_RESULTS))
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
 
-    results, status = process_intentrank_request(
-        request, store, page, 'getresults', {
-            'results': num_results
-        }
-    )
+    cache_version = random.randrange(20)
+    cached_results = cache.get('getresults-json-{0}-{1]-{2}'.format(
+        store, page, seeds), version=cache_version)
 
-    if status in SUCCESS_STATUSES:
-        result = get_json_data(request, results, page,
-                               seeds=filter(None, seeds.split(',')))
+    if not cached_results:
 
-    # workaround for a weird bug on intentrank's side
-    elif status == 400:
-        return get_seeds(request)
+        results, status = process_intentrank_request(
+            request, store, page, 'getresults', {
+                'results': num_results
+            }
+        )
 
-    else:
-        result = results
+        if status in SUCCESS_STATUSES:
+            result = get_json_data(request, results, page,
+                                   seeds=filter(None, seeds.split(',')))
+
+        # workaround for a weird bug on intentrank's side
+        elif status == 400:
+            return get_seeds(request)
+
+        else:
+            result = results
+
+        cache.set('getresults-json-{0}-{1]-{2}'.format(
+            store, page, seeds), result, 60*5, version=cache_version)
 
     if kwargs.get('raw', False):
         return result
