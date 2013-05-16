@@ -324,7 +324,7 @@ def get_results(request, **kwargs):
         )
 
         if status in SUCCESS_STATUSES:
-            result = get_json_data(request, results, page,
+            cached_results = get_json_data(request, results, page,
                                    seeds=filter(None, seeds.split(',')))
 
         # workaround for a weird bug on intentrank's side
@@ -332,14 +332,14 @@ def get_results(request, **kwargs):
             return get_seeds(request)
 
         else:
-            result = results
+            cached_results = results
 
-        cache.set(cache_key, result, 60*5, version=cache_version)
+        cache.set(cache_key, cached_results, 60*5, version=cache_version)
 
     if kwargs.get('raw', False):
         return cached_results
     else:
-        return ajax_jsonp(cached_results, callback, status=status)
+        return ajax_jsonp(cached_results, callback, status=200)
 
 
 def update_clickstream(request):
