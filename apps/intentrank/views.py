@@ -310,9 +310,10 @@ def get_results(request, **kwargs):
                                                         DEFAULT_RESULTS))
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
 
-    cache_version = random.randrange(20)
-    cached_results = cache.get('getresults-json-{0}-{1}-{2}'.format(
-        store, page, seeds), version=cache_version)
+    cache_version = random.randrange(10)
+    cache_key = 'getresults-json-{0}-{1}-{2}'.format(
+        store, page, seeds)
+    cached_results = cache.get(cache_key, version=cache_version)
 
     if not cached_results:
 
@@ -333,8 +334,7 @@ def get_results(request, **kwargs):
         else:
             result = results
 
-        cache.set('getresults-json-{0}-{1}-{2}'.format(
-            store, page, seeds), result, 60*5, version=cache_version)
+        cache.set(cache_key, result, 60*5, version=cache_version)
 
     if kwargs.get('raw', False):
         return result
