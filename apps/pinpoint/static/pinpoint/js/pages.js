@@ -455,8 +455,7 @@ var PAGES = (function($, pageInfo) {
 
         userClicks += 1;
         exceededThreshold = ((userClicks % clickThreshold) == 0);
-        updateContentStream(t); 
-
+        
         $.ajax({
             url: PAGES_INFO.base_url + '/intentrank/update-clickstream/?callback=?',
             data: {
@@ -608,6 +607,11 @@ var PAGES = (function($, pageInfo) {
         // update clickstream
         $discovery.on('click', '.block.product, .block.combobox', function (e) {
             updateClickStream(e.currentTarget, e);
+        });
+
+        // load related content; update contentstream
+        $discovery.on('click', '.block:not(.youtube)', function(e) {
+            updateContentStream(e.currentTarget);
         });
 
         // hovers
