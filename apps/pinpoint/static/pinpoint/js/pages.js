@@ -455,8 +455,7 @@ var PAGES = (function($, pageInfo) {
 
         userClicks += 1;
         exceededThreshold = ((userClicks % clickThreshold) == 0);
-        updateContentStream(t); 
-
+        
         $.ajax({
             url: PAGES_INFO.base_url + '/intentrank/update-clickstream/?callback=?',
             data: {
@@ -495,26 +494,30 @@ var PAGES = (function($, pageInfo) {
     function loadInitialResults () {
         if (!loadingBlocks) {
             loadingBlocks = true;
-            if (!details.page.offline) {
-                $.ajax({
-                    url: PAGES_INFO.base_url + '/intentrank/get-seeds/?callback=?',
-                    data: {
-                        'store': details.store.id,
-                        'campaign': details.page.id,
-                        'seeds': details.product['product-id']
-                    },
-                    dataType: 'jsonp',
-                    success: function(results) {
-                        layoutResults(results);
-                    },
-                    error: function() {
-                        console.log('loading backup results');
-                        layoutResults(details.backupResults);
-                        loadingBlocks = false;
-                    }
-                });
+            if (!_.isEmpty(details.backupResults)) {
+                layoutResults(details.backupResults);
             } else {
-                layoutResults(details.content);
+                if (!details.page.offline) {
+                    $.ajax({
+                        url: PAGES_INFO.base_url + '/intentrank/get-seeds/?callback=?',
+                        data: {
+                            'store': details.store.id,
+                            'campaign': details.page.id,
+                            'seeds': details.product['product-id']
+                        },
+                        dataType: 'jsonp',
+                        success: function(results) {
+                            layoutResults(results);
+                        },
+                        error: function() {
+                            console.log('loading backup results');
+                            layoutResults(details.backupResults);
+                            loadingBlocks = false;
+                        }
+                    });
+                } else {
+                    layoutResults(details.content);
+                }
             }
         }
     }
@@ -608,6 +611,11 @@ var PAGES = (function($, pageInfo) {
         // update clickstream
         $discovery.on('click', '.block.product, .block.combobox', function (e) {
             updateClickStream(e.currentTarget, e);
+        });
+
+        // load related content; update contentstream
+        $discovery.on('click', '.block:not(.youtube)', function(e) {
+            updateContentStream(e.currentTarget);
         });
 
         // hovers
