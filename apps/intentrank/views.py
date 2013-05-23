@@ -23,7 +23,6 @@ from apps.intentrank.utils import (random_products, VideoCookie,
 
 # getseeds?seeds=1,2,3,4&results=2
 from apps.pinpoint.models import Campaign, IntentRankCampaign
-from secondfunnel.settings.common import INTENTRANK_BASE_URL
 
 SUCCESS = 200
 FAIL400 = 400
@@ -63,7 +62,7 @@ def process_intentrank_request(request, store, page, function_name,
     """
 
     url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
-        INTENTRANK_BASE_URL, store, page, function_name)
+        settings.INTENTRANK_BASE_URL, store, page, function_name)
     params   = urlencode(param_dict)
     url = '{0}?{1}'.format(url, params)
 
