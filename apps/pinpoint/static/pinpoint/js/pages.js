@@ -493,10 +493,18 @@ var PAGES = (function($, pageInfo) {
     function layoutRelated( product, relatedContent ) {
         /* Load related content into the masonry instance.
            @return: none */
-        var $discovery = $('.discovery-area');
-        
+        var $discovery = $('.discovery-area'),
+            $product = $(product),
+            initialBottom = $product.position().top + $product.height(),
+            $target = $product.next();
+
+        // Find a target that is low enough on screen
+        if (($target.position().top) <= initialBottom) {
+            $target = $target.next()
+        }
+
         // Inserts content after the clicked product block (Animated)
-        relatedContent.insertAfter($(product));
+        relatedContent.insertAfter($target);
         $discovery.masonry('reload');
         relatedContent.show();
         /* // Inserts content after the clicked product block (Non-Animated)
