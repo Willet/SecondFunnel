@@ -261,6 +261,19 @@ var PAGES = (function($, pageInfo) {
         details.page.id = category;
         pagesTracking.changeCampaign(category);
     }
+
+    function changeSeed(seed) {
+        // If you're calling this function, you probably know what
+        // you're doing...
+
+        // Usually called in conjunction with `changeCategory`...
+
+        if (!seed) {
+            return;
+        }
+
+        details.product['product-id'] = seed;
+    }
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
@@ -491,8 +504,10 @@ var PAGES = (function($, pageInfo) {
     }
 
 
-    function loadInitialResults () {
+    function loadInitialResults (seed) {
         if (!loadingBlocks) {
+            changeSeed(seed);
+
             loadingBlocks = true;
             if (!_.isEmpty(details.backupResults)) {
                 layoutResults(details.backupResults);
