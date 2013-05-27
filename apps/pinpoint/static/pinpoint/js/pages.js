@@ -511,6 +511,7 @@ var PAGES = (function($, pageInfo) {
             loadingBlocks = true;
             if (!_.isEmpty(details.backupResults)) {
                 layoutResults(details.backupResults);
+                details.backupResults = [];
             } else {
                 if (!details.page.offline) {
                     $.ajax({
