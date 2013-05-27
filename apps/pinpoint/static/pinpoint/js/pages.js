@@ -798,10 +798,10 @@ var VIEWMANAGER = (function($) {
             var triggerReload = false,
                 newHeight     = $filler.height(),
                 $blocks       = $discovery.find('.block');
-            minOffset    = minOffset || $discovery.offset().top;
+            managing  = true;
+            minOffset = minOffset || $discovery.offset().top;
             $discovery.masonry({isAnimated: false});
-            managing     = true;
-        
+            
             $blocks.each(function() {
                 // Knockout blocks if they are no longer visible
                var properties  = { left: $(this).offset().left, height: $(this).height(), top: $(this).offset().top },
@@ -809,8 +809,9 @@ var VIEWMANAGER = (function($) {
                        properties.obj = elem.detach();
                        return properties;
                    };
-               
+
                if ( above($(this)) ) {
+                   // Need to do additional things when elements are removed from before.
                    triggerReload = true;
                    newHeight = Math.max(newHeight, properties.height + properties.top);
                    knockoutArray['above'].push(deconstruct($(this)));
@@ -818,11 +819,12 @@ var VIEWMANAGER = (function($) {
                    triggerReload = true;
                    knockoutArray['below'].push(deconstruct($(this)));
                }
-           });
+            });
         
             $.each(knockoutArray, function(key, value) {
                 // Add back blocks that can now be considered a part of our "view"
-                var elem, 
+                var elem,
+                    firstBlock = $discovery.find('.block').first(),
                     array      = value,
                     newArray   = [],
                     construct  = function ( elem ) { 
@@ -833,28 +835,35 @@ var VIEWMANAGER = (function($) {
                     };
                 
                 for ( var i = 0; i < array.length; i++ ) {
+                    // Iterate over the knocked out blocks, add back those that are now in view.
                     elem = array[i];
                     if ( key == "above" && !above(undefined, elem.top + elem.height) ) {
+                        // We have to do additional things to prepend the item properly to the Masonry instance.
+                        var $constructed = construct(elem);
+                        firstBlock = firstBlock.before($constructed).prev();
                         triggerReload = true;
-                        $discovery.find('.block').first().before(construct(elem));
                         newHeight = Math.min( newHeight, elem.top - minOffset );
                     } else if ( key == "below" && !below(undefined, elem.top) ) {
+                        var $constructed = construct(elem);
                         triggerReload = true;
-                        $discovery.append(construct(elem));
-                    }
-                    else newArray.push(elem);
+                        $discovery.append($constructed);
+                    } else newArray.push(elem);
                 }
+                // Copy over our *new* knockout array
                 knockoutArray[key] = newArray;
             });
 
             if ( triggerReload ) {
+                // Page scroll is called multiple times so just update when we actually change things.
                 $filler.height(newHeight);
                 $discovery.masonry('reload');
-                $(window).scrollTop(lockedScroll);
             }
             $discovery.masonry({isAnimated: true});
             managing = false;
+            // Debugging Line:
+            //console.log("# OF BLOCKS = " + $discovery.find('.block').length);
         }
+        // Default behaviour.
         PAGES.pageScroll();
     }
 
