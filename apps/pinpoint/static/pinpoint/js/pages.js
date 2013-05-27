@@ -835,6 +835,7 @@ var PAGES = (function($, pageInfo) {
         'generateID': generateID,
         'details': details,
         'setLoadingBlocks': setLoadingBlocks,
-        'getModifiedTemplateName': getModifiedTemplateName
+        'getModifiedTemplateName': getModifiedTemplateName,
+        'changeSeed': changeSeed
     };
 })(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});
