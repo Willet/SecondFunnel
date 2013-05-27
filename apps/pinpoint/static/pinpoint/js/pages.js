@@ -756,8 +756,9 @@ var PAGES = (function($, pageInfo) {
 
 
 var VIEWMANAGER = (function($) {
-    /* The View Manager keeps track of what is visible and not visible on the screen.  If something is not visible,
-       it unloads it and replaces it with a filler div.  Filler divs are combined whenever a common height is reached. 
+    /* The View Manager keeps track of what is visible and not visible on the screen.  If something is not visible, it is
+       detached from the DOM tree.  When a detached thing should be visible, it is added back to the DOM tree and to the
+       Masonry instance.
        @return init
        @return view */
     var knockoutArray = { above: [], below: [] },
