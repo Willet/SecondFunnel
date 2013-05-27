@@ -9,9 +9,6 @@ var PAGES = (function($, pageInfo) {
         details,
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
-        MASONRY_MIN,
-        dom_nodes = [[], []],
-        empty_area,
         scripts,
         userClicks = 0,
         clickThreshold = 3,
@@ -504,62 +501,6 @@ var PAGES = (function($, pageInfo) {
         });
     }
 
-    function masonryKnockout() {
-        /* Frees up memory in the DOM by adjusting the discovery-area's top and removing elements from
-           the DOM; elements freed don't have to be redrawn on page scroll which speeds up the masonry load.
-           @return: None */
-
-        var $discovery = $('.discovery-area');
-        if (!MASONRY_MIN) {
-            // Initialize our global variables; by default, both are undefined
-            MASONRY_MIN = $discovery.offset().top;
-            empty_area = $discovery.insertBefore($('<div class="empty-area"></div>')).prev();
-        }
-            
-        var new_empty_height = empty_area.height(),
-            // Threshold limits for what is visible on the screen; 3 screens worth.
-            upper_threshold  = $(window).scrollTop() - $(window).height(),
-            lower_threshold  = $(window).scrollTop() + 2 * $(window).height();
-            
-        $discovery.find('.block').each(function() {
-            var properties = { bottom: $(this).height() + $(this).offset().top, top: $(this).offset().top, height: $(this).height(), left: $(this).offset().left };
-            // If the items are no longer visible, eject them from our masonry instance.
-            if ( properties.bottom < upper_threshold || properties.top > lower_threshold ) {
-                properties.obj = $(this).detach();
-                if ( properties.bottom < upper_threshold) {
-                    new_empty_height = Math.max(new_empty_height, properties.top);
-                    dom_nodes[0].push(properties);
-                } else if ( properties.top > lower_threshold ) {
-                    dom_nodes[1].push(properties);
-                }
-            }
-        });
-        empty_area.height(new_empty_height); 
-        
-        // Reload detached DOM nodes if they are now in our FOV; disable animation for smooth scrolling.
-        $discovery.masonry({isAnimated: false});
-        for ( var i = 0; i < 2; ++i ) {
-            var new_node_list = [], block;
-            for ( var j = dom_nodes[i].length - 1; j >= 0; --j ) {
-                // Iterate over each element, skip the element if it's still out of view
-                elem = dom_nodes[i][j];
-                if ((elem.bottom < upper_threshold || elem.top > lower_threshold) && new_node_list.push(elem)) continue;
-                block = $(elem.obj).offset({top: elem.top - MASONRY_MIN, left: elem.left}).height(elem.height).hide();
-                if ( i == 0 ) {
-                    $discovery.prepend(block).masonry('reload');
-                    empty_area.height(elem.top - MASONRY_MIN);
-                } else {
-                    $discovery.append(block).masonry('appended', block).masonry('reload');
-                }
-                block.show();
-            }
-            dom_nodes[i] = new_node_list;
-        }
-        $discovery.masonry({isAnimated: true});
-        pageScroll();
-    }
-
-
     function pageScroll () {
         
         var $w            = $(window),
@@ -759,6 +700,7 @@ var PAGES = (function($, pageInfo) {
 
         load(scripts);
         $(document).ready(ready);
+        VIEWMANAGER.init();
     }
 
     // script actually starts here
@@ -800,7 +742,6 @@ var PAGES = (function($, pageInfo) {
         'attachListeners': attachListeners,
         'hidePreview': hidePreview,
         'pageScroll': pageScroll,
-        'masonryKnockout': masonryKnockout,
         'MAX_RESULTS_PER_SCROLL': MAX_RESULTS_PER_SCROLL,
         'fisherYates': fisherYates,
         'addReadyCallback': addReadyCallback,
@@ -811,3 +752,115 @@ var PAGES = (function($, pageInfo) {
         'setLoadingBlocks': setLoadingBlocks
     };
 })(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});
+
+
+
+var VIEWMANAGER = (function($) {
+    /* The View Manager keeps track of what is visible and not visible on the screen.  If something is not visible,
+       it unloads it and replaces it with a filler div.  Filler divs are combined whenever a common height is reached. 
+       @return init
+       @return view */
+    var knockoutArray = { above: [], below: [] },
+        managing      = false,
+        minOffset,
+        $filler,
+        $discovery;
+    
+    function init() {
+        /* @return none */
+        $discovery = $('.discovery-area');
+        $filler    = $discovery.before('<div class="filler"></div>').prev();
+    }
+
+    function above( elem, bottom ) {
+        /* Returns true if element is above our visible area.
+           @return none */
+        var upper_threshold = $(window).scrollTop() - $(window).height(),
+            bottom          = bottom || elem.offset().top + elem.height();
+        return bottom < upper_threshold;
+    }
+
+    function below( elem, top ) {
+        /* Returns true if element is below our visible area.
+           @return none */
+        var lower_threshold = $(window).scrollTop() + 2 * $(window).height(),
+            top             = top || elem.offset().top;
+        return top > lower_threshold;
+    }
+    
+    function view() {
+        /* View unload blocks by replacing them with blank filler divs as to not upset masonry.
+           At any time once two divs are of the same height, all divs previous to that are merged
+           into this new div.  Each filler div must keep track of the divs that it replaced.  This is not
+           necessary for adding/removing from below.
+           @return none */
+        if ( !managing ) {
+            var triggerReload = false,
+                newHeight     = $filler.height(),
+                $blocks       = $discovery.find('.block');
+            minOffset    = minOffset || $discovery.offset().top;
+            $discovery.masonry({isAnimated: false});
+            managing     = true;
+        
+            $blocks.each(function() {
+                // Knockout blocks if they are no longer visible
+               var properties  = { left: $(this).offset().left, height: $(this).height(), top: $(this).offset().top },
+                   deconstruct = function ( elem ) { //Deconstruct a block and return it's properties
+                       properties.obj = elem.detach();
+                       return properties;
+                   };
+               
+               if ( above($(this)) ) {
+                   triggerReload = true;
+                   newHeight = Math.max(newHeight, properties.height + properties.top);
+                   knockoutArray['above'].push(deconstruct($(this)));
+               } else if ( below($(this)) ) {
+                   triggerReload = true;
+                   knockoutArray['below'].push(deconstruct($(this)));
+               }
+           });
+        
+            $.each(knockoutArray, function(key, value) {
+                // Add back blocks that can now be considered a part of our "view"
+                var elem, 
+                    array      = value,
+                    newArray   = [],
+                    construct  = function ( elem ) { 
+                        var constructed = $(elem.obj).offset({top: elem.top, left: elem.left}).height(elem.height);
+                        constructed.hide();
+                        constructed.imagesLoaded(function(){ constructed.show(); });
+                        return constructed; 
+                    };
+                
+                for ( var i = 0; i < array.length; i++ ) {
+                    elem = array[i];
+                    if ( key == "above" && !above(undefined, elem.top + elem.height) ) {
+                        triggerReload = true;
+                        $discovery.find('.block').first().before(construct(elem));
+                        newHeight = Math.min( newHeight, elem.top - minOffset );
+                    } else if ( key == "below" && !below(undefined, elem.top) ) {
+                        triggerReload = true;
+                        $discovery.append(construct(elem));
+                    }
+                    else newArray.push(elem);
+                }
+                knockoutArray[key] = newArray;
+            });
+
+            if ( triggerReload ) {
+                $filler.height(newHeight);
+                $discovery.masonry('reload');
+                $(window).scrollTop(lockedScroll);
+            }
+            $discovery.masonry({isAnimated: true});
+            managing = false;
+        }
+        PAGES.pageScroll();
+    }
+
+    return {
+        'init': init,
+        'view': view
+    };
+
+})(jQuery);

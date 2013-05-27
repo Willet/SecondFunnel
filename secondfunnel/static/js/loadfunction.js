@@ -27,8 +27,8 @@
 
                 $('.preview .mask, .preview .close').on('click', PAGES.hidePreview);
 
-                $(window).scroll(PAGES.masonryKnockout);
-                $(window).resize(PAGES.masonryKnockout);
+                $(window).scroll(VIEWMANAGER.view);
+                $(window).resize(VIEWMANAGER.view);
 
                 // Prevent social buttons from causing other events
                 $('.social-buttons .button').on('click', function(e) {
