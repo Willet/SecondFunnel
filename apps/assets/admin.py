@@ -116,7 +116,7 @@ class YoutubeVideoAdmin(BaseAdmin):
     def preview_video( self, obj ):
         try:
             id = obj.video_id
-            return mark_safe('<iframe src="http://www.youtube.com/embed/' + id + '" width="640" height="385"> </iframe><br/>')
+            return mark_safe('<iframe src="http://www.youtube.com/embed/' + id + '" width="720" height="480"> </iframe><br/>')
         except AttributeError:
             return "<p>Invalid video id.</p>"
 
