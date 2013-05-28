@@ -200,6 +200,14 @@ class Product(BaseModelNamed):
             for external_content in self.external_content.all():
                 if external_content.image_url:
                     product_images.append(external_content.image_url)
+
+        # Default image should be first
+        if self.default_image:
+            first_image = self.default_image.get_url()
+            if first_image in product_images:
+                product_images.remove(first_image)
+            product_images.insert(0, first_image)
+
         return product_images
 
     def data(self, raw=False):
@@ -223,8 +231,15 @@ class Product(BaseModelNamed):
             'data-image': strip_and_escape(image),
             'data-images': '|'.join(strip_and_escape(x) for x in images),
             'data-product-id': self.id,
-            'data-template': 'product'
+            'data-template': 'product',
         }
+
+        try:
+            fields['data-tags'] = self.tags.tags
+
+        # ProductTags.DoesNotExist
+        except:
+            fields['data-tags'] = {}
 
         try:
             fields['data-lifestyle-image'] = self.lifestyle_image  # getter

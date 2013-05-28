@@ -94,7 +94,7 @@ def process_intentrank_request(request, store, page, function_name,
     products = Product.objects.annotate(num_images=Count('media'))\
                               .filter(pk__in=results.get('products'),
                                       num_images__gt=0,
-                                      rescrape=False)
+                                      available=True)
 
     return products, response.status
 
