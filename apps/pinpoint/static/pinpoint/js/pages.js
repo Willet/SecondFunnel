@@ -261,6 +261,19 @@ var PAGES = (function($, pageInfo) {
         details.page.id = category;
         pagesTracking.changeCampaign(category);
     }
+
+    function changeSeed(seed) {
+        // If you're calling this function, you probably know what
+        // you're doing...
+
+        // Usually called in conjunction with `changeCategory`...
+
+        if (!seed) {
+            return;
+        }
+
+        details.product['product-id'] = seed;
+    }
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
@@ -446,7 +459,7 @@ var PAGES = (function($, pageInfo) {
            a block that the user has clicked. */
         var $target = $(event.currentTarget),
             data      = $target.data(),
-            id        = data['product-id'],
+            id        = data['product-id'] || data['id'],
             exceededThreshold;
 
         if (details.page.offline) {
@@ -455,8 +468,7 @@ var PAGES = (function($, pageInfo) {
 
         userClicks += 1;
         exceededThreshold = ((userClicks % clickThreshold) == 0);
-        updateContentStream(t); 
-
+        
         $.ajax({
             url: PAGES_INFO.base_url + '/intentrank/update-clickstream/?callback=?',
             data: {
@@ -481,47 +493,64 @@ var PAGES = (function($, pageInfo) {
     function layoutRelated( product, relatedContent ) {
         /* Load related content into the masonry instance.
            @return: none */
-        var $discovery = $('.discovery-area');
-        
+        var $discovery = $('.discovery-area'),
+            $product = $(product),
+            initialBottom = $product.position().top + $product.height(),
+            $target = $product.next();
+
+        // Find a target that is low enough on screen
+        if (($target.position().top) <= initialBottom) {
+            $target = $target.next()
+        }
+
         // Inserts content after the clicked product block (Animated)
-        relatedContent.insertAfter($(product));
+        relatedContent.insertAfter($target);
         $discovery.masonry('reload');
         relatedContent.show();
-        /* Inserts content after the clicked product block (Non-Animated)
+        /* // Inserts content after the clicked product block (Non-Animated)
            $.when($discovery.masonry('reload')).then(function(){ relatedContent.show();}); */
     }
 
 
-    function loadInitialResults () {
+    function loadInitialResults (seed) {
         if (!loadingBlocks) {
+            changeSeed(seed);
+
             loadingBlocks = true;
-            if (!details.page.offline) {
-                $.ajax({
-                    url: PAGES_INFO.base_url + '/intentrank/get-seeds/?callback=?',
-                    data: {
-                        'store': details.store.id,
-                        'campaign': details.page.id,
-                        'seeds': details.product['product-id']
-                    },
-                    dataType: 'jsonp',
-                    success: function(results) {
-                        layoutResults(results);
-                    },
-                    error: function() {
-                        console.log('loading backup results');
-                        layoutResults(details.backupResults);
-                        loadingBlocks = false;
-                    }
-                });
+            if (!_.isEmpty(details.backupResults)) {
+                layoutResults(details.backupResults);
+                details.backupResults = [];
             } else {
-                layoutResults(details.content);
+                if (!details.page.offline) {
+                    $.ajax({
+                        url: PAGES_INFO.base_url + '/intentrank/get-seeds/?callback=?',
+                        data: {
+                            'store': details.store.id,
+                            'campaign': details.page.id,
+                            'seeds': details.product['product-id']
+                        },
+                        dataType: 'jsonp',
+                        success: function(results) {
+                            layoutResults(results);
+                        },
+                        error: function() {
+                            console.log('loading backup results');
+                            layoutResults(details.backupResults);
+                            loadingBlocks = false;
+                        }
+                    });
+                } else {
+                    layoutResults(details.content);
+                }
             }
         }
     }
 
     function loadMoreResults(belowFold, related) {
-        if (!loadingBlocks) {
-            loadingBlocks = !(related);
+        if (!loadingBlocks || related) {
+            if (!related) {
+                loadingBlocks = true;
+            }
             if (!details.page.offline) {
                 $.ajax({
                     url: PAGES_INFO.base_url + '/intentrank/get-results/?callback=?',
@@ -542,7 +571,9 @@ var PAGES = (function($, pageInfo) {
                     error: function() {
                         console.log('loading backup results');
                         layoutResults(details.backupResults, belowFold, related);
-                        loadingBlocks = false;
+                        if (!related) {
+                            loadingBlocks = false;
+                        }
                     }
                 });
             } else {
@@ -604,6 +635,11 @@ var PAGES = (function($, pageInfo) {
         // update clickstream
         $discovery.on('click', '.block.product, .block.combobox', function (e) {
             updateClickStream(e.currentTarget, e);
+        });
+
+        // load related content; update contentstream
+        $discovery.on('click', '.block:not(.youtube)', function(e) {
+            updateContentStream(e.currentTarget);
         });
 
         // hovers
@@ -808,6 +844,7 @@ var PAGES = (function($, pageInfo) {
         'generateID': generateID,
         'details': details,
         'setLoadingBlocks': setLoadingBlocks,
-        'getModifiedTemplateName': getModifiedTemplateName
+        'getModifiedTemplateName': getModifiedTemplateName,
+        'changeSeed': changeSeed
     };
 })(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});

@@ -484,7 +484,7 @@ class ShopTheLookBlock(BaseModelNamed):
     def save(self, *args, **kwargs):
         """Overridden save method to do multi-field validation."""
         self.clean()
-        super(self.__class__, self).save(self, *args, **kwargs)
+        super(self.__class__, self).save(*args, **kwargs)
 
     def clean(self):
         """Multi-field validation goes here.
