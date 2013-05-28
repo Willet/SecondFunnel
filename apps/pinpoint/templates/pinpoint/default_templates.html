@@ -37,7 +37,7 @@
                 <% } else { %>
                 <a href="https://twitter.com/share?url=<%= url %>"
                    target="_blank">
-                    <img src="{% static "pinpoint/images/twitterButton.png" %}" width="56" height="20"/>
+                    <img src="{% static "pinpoint/images/twitterButton.png" %}" />
                 </a>
                 <% } %>
             </div>
@@ -45,7 +45,7 @@
                 <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>"
                    target="_blank">
                     <img src="
-                    {% static "pinpoint/images/pinpointButton.png" %}" width="43" height="20"/>
+                    {% static "pinpoint/images/pinpointButton.png" %}" />
                 </a>
             </div>
             <% if (!show_count) { %>
