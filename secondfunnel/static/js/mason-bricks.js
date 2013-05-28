@@ -11,12 +11,12 @@ $(function() {
         // image. If so, skip it.
         if ($brick.hasClass('instagram')) {
             instagramImg = $brick.find('img').not('.social-buttons ' +
-                                                  'img').prop('src');
+                    'img').prop('src');
             dupes = _.filter(this.recent, function($elem) {
-                        var elemImg = $elem.find('img').not('.social-buttons ' +
-                                                            'img').prop('src');
-                        return (elemImg == instagramImg);
-                    });
+                var elemImg = $elem.find('img').not('.social-buttons ' +
+                        'img').prop('src');
+                return (elemImg == instagramImg);
+            });
 
             if (dupes.length != 0) {
                 this.remove($brick);
@@ -63,8 +63,8 @@ $(function() {
         var minYObjs = []
         for (var k=0; k < dupeGroupY.length; k++) {
             minYObjs.push({
-                    'column': k,
-                    'value': dupeGroupY[k]
+                'column': k,
+                'value': dupeGroupY[k]
             });
         }
 
@@ -112,7 +112,7 @@ $(function() {
         
         // apply setHeight to necessary columns
         var setHeight = minimumY + $brick.outerHeight(true),
-        setSpan = this.cols + 1 - len;
+            setSpan = this.cols + 1 - len;
         for ( i=0; i < setSpan; i++ ) {
             this.colYs[ shortCol + i ] = setHeight;
         }

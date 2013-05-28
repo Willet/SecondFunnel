@@ -41,6 +41,7 @@ INSTALLED_APPS = (
 )
 
 WEBSITE_BASE_URL = 'http://secondfunnel-test.elasticbeanstalk.com'
+INTENTRANK_BASE_URL = 'http://intentrank-test.elasticbeanstalk.com'
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
 
 # URL prefix for static files.
