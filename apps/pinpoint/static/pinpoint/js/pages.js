@@ -862,9 +862,8 @@ var VIEWMANAGER = (function($) {
             }
             $discovery.masonry({isAnimated: true});
             managing = false;
+            PAGES.pageScroll();
         }
-        // Default behaviour.
-        PAGES.pageScroll();
     }
 
     return {
