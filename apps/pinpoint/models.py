@@ -321,12 +321,7 @@ class BlockContent(BaseModel):
 
 class IntentRankCampaign(BaseModelNamed):
     def __unicode__(self):
-        try:
-            campaign = self.campaign.name
-        except Campaign.DoesNotExist:
-            campaign = 'No Campaign'
-
-        return u'{0} ({1})'.format(self.name, campaign)
+        return u'{0}'.format(self.name)
 
 
 class Campaign(BaseModelNamed):
@@ -350,7 +345,7 @@ class Campaign(BaseModelNamed):
     live = models.BooleanField(default=True)
     supports_categories = models.BooleanField(default=False)
 
-    default_intentrank = models.OneToOneField(IntentRankCampaign,
+    default_intentrank = models.ForeignKey(IntentRankCampaign,
         related_name='campaign', blank=True, null=True)
     intentrank = models.ManyToManyField(IntentRankCampaign,
         related_name='campaigns', blank=True, null=True)
