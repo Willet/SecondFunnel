@@ -206,9 +206,6 @@ class StoreTheme(BaseModelNamed):
 </script>
     """
 
-    store = models.ForeignKey(Store, related_name='themes',
-        verbose_name='Belongs to')
-
     # Django templates
     page = models.TextField(default=DEFAULT_PAGE)
 
@@ -234,15 +231,28 @@ class StoreTheme(BaseModelNamed):
 
     def __init__(self, *args, **kwargs):
         super(StoreTheme, self).__init__(*args, **kwargs)
+        # Required is a bit of a misnomer...
         self.REQUIRED_FIELDS = {
+            'opengraph_tags': {
+                'type': 'template',
+                'values': [
+                    'pinpoint/campaign_opengraph_tags.html'
+                ]
+            },
             'header_content': {
                 'type': 'template',
                 'values': ['pinpoint/campaign_head.html']
             },
-            'body_content': {
+            'desktop_content': {
                 'type': 'template',
-                'values': ['pinpoint/default_templates.html',
-                           'pinpoint/campaign_scripts_container.html']
+                'values': ['pinpoint/campaign_scripts_core.html',
+                        'pinpoint/campaign_scripts_desktop.html',
+                        'pinpoint/default_templates.html']
+            },
+            'mobile_content': {
+                'type': 'template',
+                'values': ['pinpoint/campaign_scripts_core.html',
+                        'pinpoint/campaign_scripts_mobile.html']
             },
             'js_templates': {
                 'type': 'theme',
@@ -338,6 +348,7 @@ class Campaign(BaseModelNamed):
         related_name="discovery_campaign", blank=True, null=True)
 
     live = models.BooleanField(default=True)
+    supports_categories = models.BooleanField(default=False)
 
     default_intentrank = models.OneToOneField(IntentRankCampaign,
         related_name='campaign', blank=True, null=True)
@@ -473,7 +484,7 @@ class ShopTheLookBlock(BaseModelNamed):
     def save(self, *args, **kwargs):
         """Overridden save method to do multi-field validation."""
         self.clean()
-        super(self.__class__, self).save(self, *args, **kwargs)
+        super(self.__class__, self).save(*args, **kwargs)
 
     def clean(self):
         """Multi-field validation goes here.

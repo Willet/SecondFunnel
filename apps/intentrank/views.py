@@ -5,6 +5,7 @@ import random
 from urllib import urlencode
 from random import randrange
 
+from django.core.cache import cache
 from django.conf import settings
 from django.db.models import Count
 from django.http import HttpResponse
@@ -22,7 +23,6 @@ from apps.intentrank.utils import (random_products, VideoCookie,
 
 # getseeds?seeds=1,2,3,4&results=2
 from apps.pinpoint.models import Campaign, IntentRankCampaign
-from secondfunnel.settings.common import INTENTRANK_BASE_URL
 
 SUCCESS = 200
 FAIL400 = 400
@@ -62,7 +62,7 @@ def process_intentrank_request(request, store, page, function_name,
     """
 
     url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
-        INTENTRANK_BASE_URL, store, page, function_name)
+        settings.INTENTRANK_BASE_URL, store, page, function_name)
     params   = urlencode(param_dict)
     url = '{0}?{1}'.format(url, params)
 
@@ -91,10 +91,8 @@ def process_intentrank_request(request, store, page, function_name,
         results.update({'url': url})
         return results, response.status
 
-    products = Product.objects.annotate(num_images=Count('media'))\
-                              .filter(pk__in=results.get('products'),
-                                      num_images__gt=0,
-                                      rescrape=False)
+    products = Product.objects.filter(
+        pk__in=results.get('products'), available=True).exclude(media=None)
 
     return products, response.status
 
@@ -158,8 +156,23 @@ def get_json_data(request, products, campaign_id, seeds=None):
             if not product:
                 continue
 
-            product_js_obj = get_product_json_data(product=product,
-               products_with_images_only=products_with_images_only)
+            product_js_obj = cache.get("product_js_obj-{0}-{1}".format(
+                product.id, products_with_images_only))
+
+            if not product_js_obj:
+                product_js_obj = get_product_json_data(product=product,
+                   products_with_images_only=products_with_images_only)
+
+                cache.set(
+                    "product_js_obj-{0}-{1}".format(
+                        product.id, products_with_images_only),
+
+                    product_js_obj,
+
+                    # cache for 3 hours
+                    60*60*4
+                )
+
             results.append(product_js_obj)
         except ValueError:
             # caused by product image requirement.
@@ -171,8 +184,15 @@ def get_json_data(request, products, campaign_id, seeds=None):
     if not video_cookie:
         video_cookie = request.session['pinpoint-video-cookie'] = VideoCookie()
 
-    videos = campaign.store.videos.exclude(
-        video_id__in=video_cookie.videos_already_shown)
+    videos = cache.get('videos-campaign-{0}'.format(campaign_id))
+    if not videos:
+        videos = campaign.store.videos.exclude(
+            video_id__in=video_cookie.videos_already_shown)
+
+        if campaign.supports_categories:
+            videos = videos.filter(categories__id=campaign_id)
+
+        cache.set('videos-campaign-{0}'.format(campaign_id), videos, 60*60*3)
 
     # if this is the first batch of results, or the random amount is under the
     # curve of the probability function, then add a video
@@ -196,8 +216,17 @@ def get_json_data(request, products, campaign_id, seeds=None):
     request.session['pinpoint-video-cookie'] = video_cookie
 
     # store-wide external content
-    external_content = campaign.store.external_content.filter(
-        active=True, approved=True)
+    external_content = cache.get('storec-external-content-{0}-{1}'.format(
+        campaign.store.id, campaign_id))
+
+    if not external_content:
+        external_content = campaign.store.external_content.filter(
+            active=True, approved=True)
+        if campaign.supports_categories:
+            external_content = external_content.filter(categories__id=campaign_id)
+
+        cache.set('storec-external-content-{0}-{1}'.format(
+            campaign.store.id, campaign_id),external_content, 60*60*4)
 
     # content to product ration. e.g., 2 == content to products 2:1
     content_to_products = 1
@@ -213,7 +242,13 @@ def get_json_data(request, products, campaign_id, seeds=None):
                 'template': item.content_type.name.lower()
             })
 
-            related_products = item.tagged_products.all()
+            related_products = cache.get('ec-tagged-prods-{0}'.format(item.id))
+            if not related_products:
+                related_products = item.tagged_products.all()
+
+                cache.set('ec-tagged-prods-{0}'.format(item.id),
+                    related_products, 60*60)
+
             if related_products:
                 json_content.update({
                     'related-products': [x.data(raw=True)
@@ -274,27 +309,36 @@ def get_results(request, **kwargs):
                                                         DEFAULT_RESULTS))
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
 
-    results, status = process_intentrank_request(
-        request, store, page, 'getresults', {
-            'results': num_results
-        }
-    )
+    cache_version = random.randrange(50)
+    cache_key = 'getresults-json-{0}-{1}-{2}'.format(
+        store, page, seeds)
+    cached_results = cache.get(cache_key, version=cache_version)
 
-    if status in SUCCESS_STATUSES:
-        result = get_json_data(request, results, page,
-                               seeds=filter(None, seeds.split(',')))
+    if not cached_results:
 
-    # workaround for a weird bug on intentrank's side
-    elif status == 400:
-        return get_seeds(request)
+        results, status = process_intentrank_request(
+            request, store, page, 'getresults', {
+                'results': num_results
+            }
+        )
 
-    else:
-        result = results
+        if status in SUCCESS_STATUSES:
+            cached_results = get_json_data(request, results, page,
+                                   seeds=filter(None, seeds.split(',')))
+
+        # workaround for a weird bug on intentrank's side
+        elif status == 400:
+            return get_seeds(request)
+
+        else:
+            cached_results = results
+
+        cache.set(cache_key, cached_results, 60*5, version=cache_version)
 
     if kwargs.get('raw', False):
-        return result
+        return cached_results
     else:
-        return ajax_jsonp(result, callback, status=status)
+        return ajax_jsonp(cached_results, callback, status=200)
 
 
 def update_clickstream(request):
@@ -349,7 +393,10 @@ def get_related_content_product(request, id=None):
         item = content.to_json()
         item.update({
             'db-id': content.id,
-            'template': content.content_type.name.lower()
+            'template': content.content_type.name.lower(),
+            'categories': list(
+                content.categories.all().values_list('id', flat=True)
+            )
         })
 
         # Need to include related products to duplicate existing functionality
@@ -381,7 +428,10 @@ def get_related_content_store(request, id=None):
         item = content.to_json()
         item.update({
             'db-id': content.id,
-            'template': content.content_type.name.lower()
+            'template': content.content_type.name.lower(),
+            'categories': list(
+                content.categories.all().values_list('id', flat=True)
+            )
         })
 
         # Need to include related products to duplicate existing functionality
@@ -410,7 +460,10 @@ def get_related_content_store(request, id=None):
             'width': '450',
             'height': '250',
             'autoplay': 0,
-            'template': 'youtube'
+            'template': 'youtube',
+            'categories': list(
+                video.categories.all().values_list('id', flat=True)
+            )
         })
 
     return HttpResponse(json.dumps(results))

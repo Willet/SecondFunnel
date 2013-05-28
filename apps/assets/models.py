@@ -1,6 +1,7 @@
 import random
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import get_model
 from django.template.defaultfilters import striptags
 from django.utils.html import escape
 from django.db.models.signals import post_save
@@ -33,7 +34,7 @@ class Store(BaseModelNamed):
     social_auth = models.ManyToManyField(UserSocialAuth, blank=True, null=True)
 
     theme  = models.OneToOneField('pinpoint.StoreTheme',
-        related_name='store_theme',
+        related_name='store',
         blank=True,
         null=True,
         verbose_name='Default theme')
@@ -199,6 +200,14 @@ class Product(BaseModelNamed):
             for external_content in self.external_content.all():
                 if external_content.image_url:
                     product_images.append(external_content.image_url)
+
+        # Default image should be first
+        if self.default_image:
+            first_image = self.default_image.get_url()
+            if first_image in product_images:
+                product_images.remove(first_image)
+            product_images.insert(0, first_image)
+
         return product_images
 
     def data(self, raw=False):
@@ -222,8 +231,15 @@ class Product(BaseModelNamed):
             'data-image': strip_and_escape(image),
             'data-images': '|'.join(strip_and_escape(x) for x in images),
             'data-product-id': self.id,
-            'data-template': 'product'
+            'data-template': 'product',
         }
+
+        try:
+            fields['data-tags'] = self.tags.tags
+
+        # ProductTags.DoesNotExist
+        except:
+            fields['data-tags'] = {}
 
         try:
             fields['data-lifestyle-image'] = self.lifestyle_image  # getter
@@ -281,6 +297,12 @@ class ProductMedia(ImageBase):
 class YoutubeVideo(BaseModel):
     video_id = models.CharField(max_length=11)
     store = models.ForeignKey(Store, null=True, related_name="videos")
+    categories = models.ManyToManyField(
+        get_model('pinpoint', 'IntentRankCampaign'),
+        blank=True,
+        null=True,
+        related_name='videos'
+    )
 
 
 class ExternalContent(BaseModel):
@@ -293,6 +315,13 @@ class ExternalContent(BaseModel):
 
     store = models.ForeignKey(Store, blank=True, null=True,
                                             related_name='external_content')
+
+    categories = models.ManyToManyField(
+        get_model('pinpoint', 'IntentRankCampaign'),
+        blank=True,
+        null=True,
+        related_name='external_content'
+    )
 
     text_content = models.TextField(blank=True, null=True)
     image_url = models.CharField(max_length=555, blank=True, null=True)

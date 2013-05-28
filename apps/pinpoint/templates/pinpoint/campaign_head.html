@@ -1,19 +1,11 @@
 {% load staticfiles %}
-<!-- Opengraph tags -->
-<meta property="og:title" content="{{ product.json.title }}">
-<meta property="og:type" content="product">
-<meta property="og:url" content="{{ product.json.url }}">
-<meta property="og:site_name" content="{{ campaign.store.name }}">
-<meta property="og:image" content="{% if campaign.stl_image %}{{ campaign.stl_image }}{% else %}{{campaign.featured_image }}{% endif %}">
-<meta property="og:description" content="{{ campaign.description|striptags|truncatewords:20 }}">
-
 <!-- Additional Head Contents -->
 {% for sheet in stylesheets %}
 <link rel="stylesheet" type="text/css" href="{{ sheet }}" />
 {% endfor %}
 
 {# Required CSS #}
-<link rel="stylesheet" href="{% static "pinpoint/css/pinpoint.css" %}">
+<link rel="stylesheet" href="{% static "pinpoint/css/pages.css" %}">
 <!-- Allows for transparent background in ie8 -->
 <!--[if IE 8]>
 <style>

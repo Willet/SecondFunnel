@@ -9,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 
 from apps.assets.models import Store
+from apps.intentrank.views import get_seeds
 from apps.pinpoint.models import Campaign
 from apps.pinpoint.utils import render_campaign
 from apps.static_pages.models import StaticLog
@@ -16,7 +17,7 @@ from apps.static_pages.models import StaticLog
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
     get_route53_change_status, upload_to_bucket)
 from apps.static_pages.utils import (save_static_log, remove_static_log,
-    bucket_exists_or_pending, get_bucket_name)
+    bucket_exists_or_pending, get_bucket_name, create_dummy_request)
 
 # TODO: make use of logging, instead of suppressing errors as is done now
 logger = get_task_logger(__name__)
@@ -119,18 +120,9 @@ def generate_static_campaigns():
     and runs them in parallel"""
 
     campaigns = Campaign.objects.all()
-    campaign_type = ContentType.objects.get_for_model(Campaign)
-
-    without_static_pages = []
-    for campaign in campaigns:
-        log_entries = StaticLog.objects.filter(
-            content_type=campaign_type, object_id=campaign.id, key="CA")
-
-        if len(log_entries) == 0:
-            without_static_pages.append(campaign)
 
     task_group = group(generate_static_campaign.s(c.id)
-        for c in without_static_pages)
+        for c in campaigns)
 
     task_group.apply_async()
 
@@ -139,6 +131,8 @@ def generate_static_campaigns():
 def generate_static_campaign(campaign_id):
     """Renders individual campaign and saves it to S3"""
 
+    campaign_type = ContentType.objects.get_for_model(Campaign)
+
     try:
         campaign = Campaign.objects.get(id=campaign_id)
 
@@ -146,18 +140,45 @@ def generate_static_campaign(campaign_id):
         logger.error("Campaign #{0} does not exist".format(campaign_id))
         return
 
-    rendered_content = render_campaign(campaign)
+    dummy_request = create_dummy_request()
 
-    filename = "{0}/index.html".format(campaign.id)
-    bucket_name = get_bucket_name(campaign.store.slug)
+    rendered_content = [
+        ("index.html", "CD", render_campaign(
+            campaign, get_seeds_func=get_seeds, request=dummy_request
+        )),
+        ("mobile.html", "CM", render_campaign(
+            campaign, get_seeds_func=get_seeds, request=dummy_request,
+            mode="mobile"
+        ))
+    ]
 
-    bytes_written = upload_to_bucket(
-        bucket_name, filename, rendered_content, public=True)
+    for s3_file_name, log_key, page_content in rendered_content:
 
-    if bytes_written > 0:
-        save_static_log(Campaign, campaign.id, "CA")
+        # if we think this static page already exists, skip to the next one
+        try:
+            log_entry = StaticLog.objects.get(
+                content_type=campaign_type, object_id=campaign.id, key=log_key)
 
-    # boto claims it didn't write anything to S3
-    else:
-        logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
-            campaign_id))
+            continue
+
+        # otherwise, render and upload it
+        except StaticLog.DoesNotExist:
+
+            s3_path = "{0}/{1}".format(
+                campaign.slug or campaign.id, s3_file_name)
+            bucket_name = get_bucket_name(campaign.store.slug)
+
+            bytes_written = upload_to_bucket(
+                bucket_name, s3_path, page_content, public=True)
+
+            if bytes_written > 0:
+                # remove any old entries
+                remove_static_log(Campaign, campaign.id, log_key)
+
+                # write a new log entry for this static campaign
+                save_static_log(Campaign, campaign.id, log_key)
+
+            # boto claims it didn't write anything to S3
+            else:
+                logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
+                    campaign_id))

@@ -1,4 +1,4 @@
-var pinpointTracking = (function ($, window, document) {
+var pagesTracking = (function ($, window, document) {
     var isBounce = true, videosPlayed = [],
 
     referrerName = function () {
@@ -21,8 +21,8 @@ var pinpointTracking = (function ($, window, document) {
 
     trackEvent = function (o) {
         var category = "appname=pinpoint|"
-            + "storeid=" + window.PINPOINT_INFO.store.id + "|"
-            + "campaignid=" + window.PINPOINT_INFO.page.id + "|"
+            + "storeid=" + window.PAGES_INFO.store.id + "|"
+            + "campaignid=" + window.PAGES_INFO.page.id + "|"
             + "referrer=" + referrerName() + "|"
             + "domain=" + parseUri(window.location.href).host;
 
@@ -35,45 +35,60 @@ var pinpointTracking = (function ($, window, document) {
             "network=" + o.network || "",
             "actionType=" + o.type,
             "actionSubtype=" + o.subtype || "",
-            "actionScope=" + pinpointTracking.socialShareType,
+            "actionScope=" + pagesTracking.socialShareType,
         ];
 
         notABounce(o.type);
 
         trackEvent({
             "action": actionData.join("|"),
-            "label": o.label || pinpointTracking.socialShareUrl
+            "label": o.label || pagesTracking.socialShareUrl
         });
+    },
+
+
+    setCustomVar = function(o) {
+        var conf = o || {},
+            slotId = o.slotId,
+            name = o.name,
+            value = o.value,
+            scope = o.scope || 3; // 3 = page-level
+
+        if (!(slotId && name && value)) {
+            return;
+        }
+
+        _gaq.push(['_setCustomVar', slotId, name, value, scope]);
     },
 
     setSocialShareVars = function (o) {
         if (o && o.url && o.sType) {
-            pinpointTracking.socialShareUrl = o.url;
-            pinpointTracking.socialShareType = o.sType;
+            pagesTracking.socialShareUrl = o.url;
+            pagesTracking.socialShareType = o.sType;
         } else {
-            pinpointTracking.socialShareUrl = $("#featured_img").data("url");
-            pinpointTracking.socialShareType = "featured";
+            pagesTracking.socialShareUrl = $("#featured_img").data("url");
+            pagesTracking.socialShareType = "featured";
         }
     },
 
     clearTimeout = function () {
-        if (typeof pinpointTracking._pptimeout == "number") {
-            window.clearTimeout(pinpointTracking._pptimeout);
+        if (typeof pagesTracking._pptimeout == "number") {
+            window.clearTimeout(pagesTracking._pptimeout);
 
             // TODO remove this? not valid in strict mode
-            delete pinpointTracking._pptimeout;
+            delete pagesTracking._pptimeout;
         }
     },
 
     setTrackingDomHooks = function () {
         // reset tracking scope: hover into featured product area
         $(".featured").hover(function() {
-            pinpointTracking.clearTimeout();
-            pinpointTracking.setSocialShareVars();
+            pagesTracking.clearTimeout();
+            pagesTracking.setSocialShareVars();
         }, function() {});
 
         $(".header a").click(function() {
-            pinpointTracking.registerEvent({
+            pagesTracking.registerEvent({
                 "type": "clickthrough",
                 "subtype": "header",
                 "label": $(this).attr("href")
@@ -82,7 +97,7 @@ var pinpointTracking = (function ($, window, document) {
 
         // buy now event
         $(document).on("click", "a.buy", function(e) {
-            pinpointTracking.registerEvent({
+            pagesTracking.registerEvent({
                 "type": "clickthrough",
                 "subtype": "buy",
                 "label": $(this).attr("href")
@@ -91,7 +106,7 @@ var pinpointTracking = (function ($, window, document) {
 
         // popup open event: product click
         $(document).on("click", ".discovery-area > .block.product, .discovery-area > .block.combobox .product", function(e) {
-            pinpointTracking.registerEvent({
+            pagesTracking.registerEvent({
                 "type": "inpage",
                 "subtype": "openpopup",
                 "label": $(this).data("label")
@@ -100,7 +115,7 @@ var pinpointTracking = (function ($, window, document) {
 
         // lifestyle image click
         $(document).on("click", ".discovery-area > .block.combobox .lifestyle, .discovery-area > .block.image", function(e) {
-            pinpointTracking.registerEvent({
+            pagesTracking.registerEvent({
                 "type": "content",
                 "subtype": "openpopup",
                 "label": $(this).data("label")
@@ -110,7 +125,7 @@ var pinpointTracking = (function ($, window, document) {
         // featured pinterest click event
         // pinterest doesn't have an API for us to use
         $(".pinterest").click(function() {
-            pinpointTracking.registerEvent({
+            pagesTracking.registerEvent({
                 "network": "Pinterest",
                 "type": "share",
                 "subtype": "clicked"
@@ -119,7 +134,7 @@ var pinpointTracking = (function ($, window, document) {
 
         // social hover and popup pinterest click events
         $(document).on("click", ".pinterest", function(e) {
-            pinpointTracking.registerEvent({
+            pagesTracking.registerEvent({
                 "network": "Pinterest",
                 "type": "share",
                 "subtype": "clicked"
@@ -130,7 +145,7 @@ var pinpointTracking = (function ($, window, document) {
     registerTwitterListeners = function() {
         twttr.ready(function (twttr) {
             twttr.events.bind('tweet', function(event) {
-                pinpointTracking.registerEvent({
+                pagesTracking.registerEvent({
                     "network": "Twitter",
                     "type": "share",
                     "subtype": "shared"
@@ -146,7 +161,7 @@ var pinpointTracking = (function ($, window, document) {
                 } else {
                     sType = event.region;
                 }
-                pinpointTracking.registerEvent({
+                pagesTracking.registerEvent({
                     "network": "Twitter",
                     "type": "share",
                     "subtype": sType
@@ -178,12 +193,20 @@ var pinpointTracking = (function ($, window, document) {
         if (event.data == YT.PlayerState.PLAYING) {
             videosPlayed.push(video_id);
 
-            pinpointTracking.registerEvent({
+            pagesTracking.registerEvent({
                 "type": "content",
                 "subtype": "video",
                 "label": video_id
             });
         }
+    },
+
+    changeCampaign = function(campaignId) {
+        setCustomVar({
+            'slotId': 2,
+            'name': 'CampaignID',
+            'value': '' + campaignId
+        });
     },
 
     init = function () {
@@ -238,9 +261,10 @@ var pinpointTracking = (function ($, window, document) {
         "clearTimeout": clearTimeout,
         "registerTwitterListeners": registerTwitterListeners,
         "notABounce": notABounce,
-        "videoStateChange": videoStateChange
+        "videoStateChange": videoStateChange,
+        "changeCampaign": changeCampaign
     }
 
 }($, window, document));
 
-pinpointTracking.init();
+pagesTracking.init();
