@@ -807,10 +807,10 @@ var VIEWMANAGER = (function($) {
             $blocks.each(function() {
                 // Knockout blocks if they are no longer visible
                 var properties  = { left: $(this).offset().left, height: $(this).height(), top: $(this).offset().top, relativeTop: $(this).position().top },
-                   deconstruct = function ( elem ) { //Deconstruct a block and return it's properties
+                    deconstruct = function ( elem ) { //Deconstruct a block and return it's properties
                        properties.obj = elem.detach();
                        return properties;
-                   };
+                    };
 
                if ( above($(this)) ) {
                    // Need to do additional things when elements are removed from before.
