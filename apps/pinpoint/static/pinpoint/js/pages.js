@@ -763,14 +763,16 @@ var VIEWMANAGER = (function($) {
        @return view */
     var knockoutArray = { above: [], below: [] },
         managing      = false,
-        minOffset,
         $filler,
         $discovery;
     
     function init() {
         /* @return none */
         $discovery = $('.discovery-area');
-        $filler    = $discovery.before('<div class="filler"></div>').prev();
+        $filler    = $discovery.prepend('<div class="filler"></div>').children().first();
+        $filler.height(0).width($discovery.width()).css({'position': 'absolute', 'background-color': 'red', 'top': '0', 'left':'0'});
+        // Masonry CornerStamp: http://masonry.desandro.com/demos/corner-stamp.html
+        $discovery.masonry({cornerStampSelector: '.filler'});
     }
 
     function above( elem, bottom ) {
@@ -800,12 +802,11 @@ var VIEWMANAGER = (function($) {
                 newHeight     = $filler.height(),
                 $blocks       = $discovery.find('.block');
             managing  = true;
-            minOffset = minOffset || $discovery.offset().top;
             $discovery.masonry({isAnimated: false});
             
             $blocks.each(function() {
                 // Knockout blocks if they are no longer visible
-               var properties  = { left: $(this).offset().left, height: $(this).height(), top: $(this).offset().top },
+                var properties  = { left: $(this).offset().left, height: $(this).height(), top: $(this).offset().top, relativeTop: $(this).position().top },
                    deconstruct = function ( elem ) { //Deconstruct a block and return it's properties
                        properties.obj = elem.detach();
                        return properties;
@@ -814,7 +815,7 @@ var VIEWMANAGER = (function($) {
                if ( above($(this)) ) {
                    // Need to do additional things when elements are removed from before.
                    triggerReload = true;
-                   newHeight = Math.max(newHeight, properties.height + properties.top);
+                   newHeight = Math.max(newHeight, properties.height + $(this).position().top);
                    knockoutArray['above'].push(deconstruct($(this)));
                } else if ( below($(this)) ) {
                    triggerReload = true;
@@ -843,7 +844,7 @@ var VIEWMANAGER = (function($) {
                         var $constructed = construct(elem);
                         firstBlock = firstBlock.before($constructed).prev();
                         triggerReload = true;
-                        newHeight = Math.min( newHeight, elem.top - minOffset );
+                        newHeight = Math.min( newHeight, elem.relativeTop );
                     } else if ( key == "below" && !below(undefined, elem.top) ) {
                         var $constructed = construct(elem);
                         triggerReload = true;
@@ -861,8 +862,6 @@ var VIEWMANAGER = (function($) {
             }
             $discovery.masonry({isAnimated: true});
             managing = false;
-            // Debugging Line:
-            //console.log("# OF BLOCKS = " + $discovery.find('.block').length);
         }
         // Default behaviour.
         PAGES.pageScroll();

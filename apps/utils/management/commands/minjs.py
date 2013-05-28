@@ -13,7 +13,8 @@ GOOGLECLOSURE='compiler.jar' #where are google closure is
 LANGUAGE='ECMASCRIPT5' #the level of browser we expect to be interacting with
 MIN_JS_FILES = [ #format of [[files to minimize], outputfile]
         [ ['apps/pinpoint/static/pinpoint/js/pages.js', 'secondfunnel/static/js/jquery.viewport.js', 'secondfunnel/static/js/jquery.masonry.min.js', 
-           'secondfunnel/static/js/jquery.imagesloaded.min.js', 'secondfunnel/static/js/mason-bricks.js', 'secondfunnel/static/js/loadfunction.js'], 
+           'secondfunnel/static/js/jquery.masonry.prototypes.js', 'secondfunnel/static/js/jquery.imagesloaded.min.js', 'secondfunnel/static/js/mason-bricks.js', 
+           'secondfunnel/static/js/loadfunction.js'], 
           'secondfunnel/static/js/willet-desktop.min.js'],
         [ ['secondfunnel/static/js/jquery-1.8.1.js', 'secondfunnel/static/js/underscore.js', 'apps/pinpoint/static/pinpoint/js/utils.js', 
            'apps/pinpoint/static/pinpoint/js/tracking.js'], 'secondfunnel/static/js/willet-core.min.js'],
