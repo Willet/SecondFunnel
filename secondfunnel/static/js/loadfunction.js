@@ -1,43 +1,43 @@
-    // Load Youtube IFrame Player API code asynchronously
-    var tag = document.createElement('script');
-    tag.src = "//www.youtube.com/iframe_api";
+// Load Youtube IFrame Player API code asynchronously
+var tag = document.createElement('script');
+tag.src = "//www.youtube.com/iframe_api";
 
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-    function onYouTubeIframeAPIReady() {
-        PAGES.init(
-            // ready
-            function () {
-                // Special Setup
-                PAGES.renderTemplates();
+function onYouTubeIframeAPIReady() {
+    PAGES.init(
+        // ready
+        function () {
+            // Special Setup
+            PAGES.renderTemplates();
+            
+            PAGES.attachListeners();
+            
+            $('.discovery-area').masonry({
+                itemSelector: '.block',
+                        
+                columnWidth: function (containerWidth) {
+                    return containerWidth / 4;
+                },
 
-                PAGES.attachListeners();
+                isResizable: true,
+                isAnimated: true
+            });
 
-                $('.discovery-area').masonry({
-                    itemSelector: '.block',
+            $('.preview .mask, .preview .close').on('click', PAGES.hidePreview);
+            
+            $(window).scroll(VIEWMANAGER.view);
+            $(window).resize(VIEWMANAGER.view);
+            
+            // Prevent social buttons from causing other events
+            $('.social-buttons .button').on('click', function(e) {
+                e.stopPropagation();
+            });
 
-                    columnWidth: function (containerWidth) {
-                        return containerWidth / 4;
-                    },
-
-                    isResizable: true,
-                    isAnimated: true
-                });
-
-                $('.preview .mask, .preview .close').on('click', PAGES.hidePreview);
-
-                $(window).scroll(VIEWMANAGER.view);
-                $(window).resize(VIEWMANAGER.view);
-
-                // Prevent social buttons from causing other events
-                $('.social-buttons .button').on('click', function(e) {
-                    e.stopPropagation();
-                });
-
-                // Take any necessary actions
-                PAGES.loadInitialResults();
-            },
+            // Take any necessary actions
+            PAGES.loadInitialResults();
+        },
 
         // layoutData
         function (jsonData, belowFold) {
@@ -242,5 +242,5 @@
                 // hack. tell masonry to reposition blocks
                 $(window).resize();
             });
-        });
-    }
+    });
+}

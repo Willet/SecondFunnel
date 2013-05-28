@@ -770,7 +770,7 @@ var VIEWMANAGER = (function($) {
         /* @return none */
         $discovery = $('.discovery-area');
         $filler    = $discovery.prepend('<div class="filler"></div>').children().first();
-        $filler.height(0).width($discovery.width()).css({'position': 'absolute', 'background-color': 'red', 'top': '0', 'left':'0'});
+        $filler.height(0).width($discovery.width()).css({'position': 'absolute', 'top': '0', 'left':'0'});
         // Masonry CornerStamp: http://masonry.desandro.com/demos/corner-stamp.html
         $discovery.masonry({cornerStampSelector: '.filler'});
     }
