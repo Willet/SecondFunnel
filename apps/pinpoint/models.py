@@ -357,12 +357,18 @@ class Campaign(BaseModelNamed):
         super(Campaign, self).save(*args, **kwargs)
 
         if not self.default_intentrank:
-            ir_campaign = IntentRankCampaign(
-                name=self.name,
-                slug=self.slug,
-                description=self.description
-            )
-            ir_campaign.save()
+            if re.search(r'native shoes', self.store.name, re.I):
+                ir_campaign = IntentRankCampaign.objects.get(
+                    name='NATIVE SHOES COMMUNITY LOOKBOOK #066'
+                )
+            else:
+                ir_campaign = IntentRankCampaign(
+                    name=self.name,
+                    slug=self.slug,
+                    description=self.description
+                )
+                ir_campaign.save()
+
             self.default_intentrank = ir_campaign
             self.intentrank.add(ir_campaign)
 
