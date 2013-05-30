@@ -874,19 +874,19 @@ var VIEWMANAGER = (function($) {
         $discovery.masonry({cornerStampSelector: '.filler'});
     }
 
-    function above( elem, bottom ) {
+    function above( $elem, bottom ) {
         /* Returns true if element is above our visible area.
-           @return none */
+           @return boolean */
         var upper_threshold = $(window).scrollTop() - $(window).height(),
-            bottom          = bottom || elem.offset().top + elem.height();
+            bottom          = bottom || $elem.offset().top + $elem.height();
         return bottom < upper_threshold;
     }
 
-    function below( elem, top ) {
+    function below( $elem, top ) {
         /* Returns true if element is below our visible area.
-           @return none */
+           @return boolean */
         var lower_threshold = $(window).scrollTop() + 2 * $(window).height(),
-            top             = top || elem.offset().top;
+            top             = top || $elem.offset().top;
         return top > lower_threshold;
     }
     

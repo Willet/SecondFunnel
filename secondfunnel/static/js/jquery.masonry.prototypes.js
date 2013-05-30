@@ -1,3 +1,8 @@
+/* JQuery Masonry Prototype Function
+   Author: David DeSandro
+   License: MIT License
+   Reference Url: http://masonry.desandro.com/demos/corner-stamp.html
+*/
 (function($) {
     // Masonry corner stamp modifications
     $.Mason.prototype.resize = function() {

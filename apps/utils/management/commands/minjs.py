@@ -9,25 +9,27 @@ from optparse import make_option
 
 from django.core.management.base import NoArgsCommand, CommandError
 
-GOOGLECLOSURE='compiler.jar' #where are google closure is
-LANGUAGE='ECMASCRIPT5' #the level of browser we expect to be interacting with
-MIN_JS_FILES = [ #format of [[files to minimize], outputfile]
-        [ ['apps/pinpoint/static/pinpoint/js/pages.js', 'secondfunnel/static/js/jquery.viewport.js', 'secondfunnel/static/js/jquery.masonry.min.js', 
-           'secondfunnel/static/js/jquery.masonry.prototypes.js', 'secondfunnel/static/js/jquery.imagesloaded.min.js', 'secondfunnel/static/js/mason-bricks.js', 
-           'secondfunnel/static/js/loadfunction.js'], 
-          'secondfunnel/static/js/willet-desktop.min.js'],
-        [ ['secondfunnel/static/js/jquery-1.8.1.js', 'secondfunnel/static/js/underscore.js', 'apps/pinpoint/static/pinpoint/js/utils.js', 
-           'apps/pinpoint/static/pinpoint/js/tracking.js'], 'secondfunnel/static/js/willet-core.min.js'],
-        #[ ['apps/pinpoint/static/pinpoint/js/pages.js'], 'apps/pinpoint/static/pinpoint/js/pages.min.js'],
-        [ ['apps/pinpoint/static/pinpoint/js/pages.js', 'secondfunnel/static/js/loadfunction-mobile.js', 'secondfunnel/static/js/mbp.js', 
-           'secondfunnel/static/js/jquery.mobile-1.2.1.js', 'secondfunnel/static/js/swipe.js'], 'secondfunnel/static/js/willet-mobile.min.js']]
-CAMPAIGNSCRIPTS = [ #campaign files we've made changes to, we'll have to change them for production or dev
-             [ 'apps/pinpoint/templates/pinpoint/campaign_scripts_desktop.html',
-               { 'production': MIN_JS_FILES[0][1], 'development': MIN_JS_FILES[0][0] } ],
-             [ 'apps/pinpoint/templates/pinpoint/campaign_scripts_mobile.html',
-               { 'production': MIN_JS_FILES[2][1], 'development': MIN_JS_FILES[2][0] } ],
-             [ 'apps/pinpoint/templates/pinpoint/campaign_scripts_core.html',
-               { 'production': MIN_JS_FILES[1][1], 'development': MIN_JS_FILES[1][0] } ]]
+GOOGLECLOSURE='compiler.jar' # where are google closure is
+LANGUAGE='ECMASCRIPT5' # the level of browser we expect to be interacting with
+
+# TO-DO: Abstract these out
+PINPOINT_URL = 'apps/pinpoint/static/pinpoint/js/'
+SECONDFUNNEL_URL = 'secondfunnel/static/js/'
+TEMPLATE_URL = 'apps/pinpoint/templates/pinpoint/'
+
+def buildpath( url, lst ):
+    return map(lambda x: url + x, lst)
+
+RESOURCES = [ 
+    {'template': TEMPLATE_URL + 'campaign_scripts_desktop.html', 'production': SECONDFUNNEL_URL + 'willet-desktop.min.js',
+     'development': buildpath(PINPOINT_URL,['pages.js']) + buildpath(SECONDFUNNEL_URL, ['jquery.viewport.js', 'jquery.masonry.min.js', 'jquery.masonry.prototypes.js', 
+                                                                                        'jquery.imagesloaded.min.js', 'mason-bricks.js', 'loadfunction.js'])},
+    {'template': TEMPLATE_URL + 'campaign_scripts_core.html', 'production': SECONDFUNNEL_URL + 'willet-core.min.js', 
+     'development': buildpath(SECONDFUNNEL_URL, ['jquery-1.8.1.js', 'underscore.js']) + buildpath(PINPOINT_URL, ['utils.js', 'tracking.js'])},
+    {'template': TEMPLATE_URL + 'campaign_scripts_mobile.html', 'production': SECONDFUNNEL_URL + 'willet-mobile.min.js',
+     'development': buildpath(PINPOINT_URL,['pages.js']) + buildpath(SECONDFUNNEL_URL, ['loadfunction-mobile.js', 'mbp.js', 'jquery.mobile-1.2.1.js', 'swipe.js'])}
+    ]
+
 PATTERN = '<script src="\{% static "(.*)" %\}"></script>'
 
 
@@ -45,48 +47,51 @@ class Command(NoArgsCommand):
         if options['development']:
             #if we are developing, we must switch the campaign script html to use the unminified/unconcatenated versions
             #of the JS files
-            for CAMPAIGN in CAMPAIGNSCRIPTS:
+            for i in xrange(0, len(RESOURCES)):
+                CAMPAIGN = RESOURCES[i]['template']
                 data = ''
-                with open(CAMPAIGN[0], 'r') as inputfile:
+                with open(CAMPAIGN, 'r') as inputfile:
                     #open the file and adjust the appropriate lines
                     for line in inputfile:
                         if re.match(PATTERN, line.rstrip()) and "min.js" in line and "willet" in line:
                             count += 1
-                            for newfile in CAMPAIGN[1]['development']:
+                            for newfile in RESOURCES[i]['development']:
                                 data += PATTERN.replace("(.*)", newfile.replace(re.match('(.*)/static/', newfile).group(0), '')).replace('\\', "") + "\n"
                         else: data += line
                 if count > 0:
                     #only update if we've actually made changes to the file
                     globalcount += 1
-                    with open(CAMPAIGN[0], 'w') as outputfile: outputfile.writelines(data)
+                    with open(CAMPAIGN, 'w') as outputfile: outputfile.writelines(data)
             print "Using unminimized files. (%d files changed)"%(globalcount)
         elif options['production']:
             #if we are pushing to production, we want to use the minified versions of the JS files, so we update the
             #campaign scripts accordingly.
-            for CAMPAIGN in CAMPAIGNSCRIPTS:
+            for i in xrange(0, len(RESOURCES)):
+                CAMPAIGN = RESOURCES[i]['template']
                 data, changes = '', 0
-                with open(CAMPAIGN[0], 'r') as inputfile:
+                with open(CAMPAIGN, 'r') as inputfile:
                     #open the file and adjust the appropriate lines
                     for line in inputfile:
                         PATTERNMATCH =  re.match(PATTERN, line.rstrip())
-                        if PATTERNMATCH and ("apps/pinpoint/static/" + PATTERNMATCH.group(1) in CAMPAIGN[1]['development'] or 
-                                             "secondfunnel/static/" + PATTERNMATCH.group(1) in CAMPAIGN[1]['development']):
+                        if PATTERNMATCH and ("apps/pinpoint/static/" + PATTERNMATCH.group(1) in RESOURCES[i]['development'] or 
+                                             "secondfunnel/static/" + PATTERNMATCH.group(1) in RESOURCES[i]['development']):
                             count += 1
                         else:
                             if count > 0:
                                 changes += 1
                                 count = 0
-                                newfile = CAMPAIGN[1]['production']
+                                newfile = RESOURCES[i]['production']
                                 data += PATTERN.replace("(.*)", newfile.replace(re.match('(.*)/static/', newfile).group(0), '')).replace('\\', "") + "\n"
                             data += line
                 if changes > 0: 
                     #once again, only update if we've actually made changes to files
                     globalcount += 1 
-                    with open(CAMPAIGN[0], 'w') as outputfile: outputfile.writelines(data)
+                    with open(CAMPAIGN, 'w') as outputfile:
+                        outputfile.writelines(data)
             print "Using minimized files. (%d files changed)"%(globalcount)
         if not(options['development']):
             #As long as it's not the development, lets update the minified files
-            for SET in MIN_JS_FILES:
+            for SET in [ (x['development'], x['production']) for x in RESOURCES ]:
                 #for each SET of input and output, we want to generate the appropriate command and run it
                 COMMAND = ['java', '-jar', GOOGLECLOSURE, '--language_in', LANGUAGE]
                 for inputfile in SET[0]:
