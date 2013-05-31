@@ -166,7 +166,7 @@ MIDDLEWARE_CLASSES = (
     'maintenancemode.middleware.MaintenanceModeMiddleware',
     )
 
-CACHE_MIDDLEWARE_SECONDS = 604800 # Set the cache to atleast a week; will only affect production.
+CACHE_MIDDLEWARE_SECONDS = 604800 # Set the cache to atleast a week; will only affect production/test/demo
 
 ROOT_URLCONF = 'secondfunnel.urls'
 
