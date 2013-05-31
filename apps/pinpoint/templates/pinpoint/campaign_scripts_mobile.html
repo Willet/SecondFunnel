@@ -2,5 +2,14 @@
 {% load compress %}
 
 {% compress js %}
-<script src="{% static "js/willet-mobile.min.js" %}"></script>
+<!-- Use unminified files for dev.  Otherwise use compressed. -->
+{% if ENVIRONMENT == "dev" or ENVIRONMENT == "test" %}
+    <script src="{% static "pinpoint/js/pages.js"%}"></script>
+    <script src="{% static "js/loadfunction-mobile.js"%}"></script>
+    <script src="{% static "js/mbp.js"%}"></script>
+    <script src="{% static "js/jquery.mobile-1.2.1.js"%}"></script>
+    <script src="{% static "js/swipe.js"%}"></script>
+{% else %}
+    <script src="{% static "js/willet-mobile.min.js" %}"></script>
+{% endif %}
 {% endcompress %}

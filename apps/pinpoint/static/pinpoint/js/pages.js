@@ -486,7 +486,8 @@ var PAGES = (function($, pageInfo) {
     }
 
     function updateContentStream( product ) {
-        /* @return: none */
+        /* Layouts more content below the fold.
+           @return: none */
         loadMoreResults( false, product );
     }
 
@@ -866,7 +867,8 @@ var VIEWMANAGER = (function($) {
         $discovery;
     
     function init() {
-        /* @return none */
+        /* Initializes the ViewManager by creating the filler area and marking it as a corner-stamp.
+           @return none */
         $discovery = $('.discovery-area');
         $filler    = $discovery.prepend('<div class="filler"></div>').children().first();
         $filler.height(0).width($discovery.width()).css({'position': 'absolute', 'top': '0', 'left':'0'});

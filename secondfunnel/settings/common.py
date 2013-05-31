@@ -280,6 +280,8 @@ LOGGING = {
 TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
     # allows for request variable in templates
     'django.core.context_processors.request',
+    # add custom context processors here
+    'secondfunnel.context_processors.environment',
 )
 
 FIXTURE_DIRS = (
