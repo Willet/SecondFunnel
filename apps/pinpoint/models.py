@@ -321,12 +321,7 @@ class BlockContent(BaseModel):
 
 class IntentRankCampaign(BaseModelNamed):
     def __unicode__(self):
-        try:
-            campaign = self.campaign.name
-        except Campaign.DoesNotExist:
-            campaign = 'No Campaign'
-
-        return u'{0} ({1})'.format(self.name, campaign)
+        return u'{0}'.format(self.name)
 
 
 class Campaign(BaseModelNamed):
@@ -350,7 +345,7 @@ class Campaign(BaseModelNamed):
     live = models.BooleanField(default=True)
     supports_categories = models.BooleanField(default=False)
 
-    default_intentrank = models.OneToOneField(IntentRankCampaign,
+    default_intentrank = models.ForeignKey(IntentRankCampaign,
         related_name='campaign', blank=True, null=True)
     intentrank = models.ManyToManyField(IntentRankCampaign,
         related_name='campaigns', blank=True, null=True)
@@ -362,12 +357,18 @@ class Campaign(BaseModelNamed):
         super(Campaign, self).save(*args, **kwargs)
 
         if not self.default_intentrank:
-            ir_campaign = IntentRankCampaign(
-                name=self.name,
-                slug=self.slug,
-                description=self.description
-            )
-            ir_campaign.save()
+            if re.search(r'native shoes', self.store.name, re.I):
+                ir_campaign = IntentRankCampaign.objects.get(
+                    name='NATIVE SHOES COMMUNITY LOOKBOOK #066'
+                )
+            else:
+                ir_campaign = IntentRankCampaign(
+                    name=self.name,
+                    slug=self.slug,
+                    description=self.description
+                )
+                ir_campaign.save()
+
             self.default_intentrank = ir_campaign
             self.intentrank.add(ir_campaign)
 
