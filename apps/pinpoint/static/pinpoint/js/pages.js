@@ -797,7 +797,6 @@ var PAGES = (function($, pageInfo) {
 
         load(scripts);
         $(document).ready(ready);
-        VIEWMANAGER.init();
     }
 
     // script actually starts here

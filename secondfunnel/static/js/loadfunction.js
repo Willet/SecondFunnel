@@ -22,13 +22,14 @@ function onYouTubeIframeAPIReady() {
                     },
 
                     isResizable: true,
-                    isAnimated: true
+                    isAnimated: true,
+                    smartNodes: true,
             });
 
             $('.preview .mask, .preview .close').on('click', PAGES.hidePreview);
             
-            $(window).scroll(VIEWMANAGER.view);
-            $(window).resize(VIEWMANAGER.view);
+            $(window).scroll(PAGES.pageScroll);
+            $(window).resize(PAGES.pageScroll);
             
             // Prevent social buttons from causing other events
             $('.social-buttons .button').on('click', function(e) {
