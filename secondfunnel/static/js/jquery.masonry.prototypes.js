@@ -19,14 +19,15 @@
      */
 
     var event = $.event,
+        scrollevents = "scroll mousewheel wheel",
         scrollTimeout;
 
     event.special.smartscroll = {
         setup: function() {
-            $(this).bind( "scroll", event.special.smartscroll.handler );
+            $(this).bind( scrollevents, event.special.smartscroll.handler );
         },
         teardown: function() {
-            $(this).unbind( "scroll", event.special.smartscroll.handler );
+            $(this).unbind( scrollevents, event.special.smartscroll.handler );
         },
         handler: function( event, execAsap ) {
             // Save the context
@@ -145,9 +146,14 @@
         });
 
         if ( destroyed > 0 ) {
-            // Apply positioning logic and reload the blocks
             this.$bricks = this._getBricks( this.element.children() );
-            this.relativeOffset.y = this.element.children().first().position().top;
+            // In the case of really fast scrolling, we need to wait until we can actually grab the children, as
+            // children might be being positioned in the instance while additional scrolling events are triggered.
+            var waitForChildren = function() {
+                if (!(instance.element.children().first().position())) setTimeout(waitForChildren, 1);
+                else instance.relativeOffset.y = instance.element.children().first().position().top;
+            };
+            waitForChildren();
         }
         //Lastly, check if we need to reinsert stuff
         this._reInsert();
