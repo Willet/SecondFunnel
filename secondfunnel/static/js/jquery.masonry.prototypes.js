@@ -49,26 +49,22 @@
         return fn ? this.bind( "smartscroll", fn ) : this.trigger( "smartscroll", ["execAsap"] );
     };
 
+    //=============================HELPER FUNCTIONS========================================================================================
+    function screenout( $brick, top, bottom ) {
+        var upper_threshold = $(window).scrollTop() - $(window).height(),
+            lower_threshold = $(window).scrollTop() + 2 * $(window).height();
+        bottom = bottom || ($brick.offset().top + $brick.height());
+        top    = top || $brick.offset().top;
+        return bottom < upper_threshold || top > lower_threshold;
+    }
+
+    function above( $brick, bottom ) {
+        bottom = bottom || ($brick.offset().top + $brick.height());
+        return bottom < $(window).scrollTop();
+    }
 
     //=============================MASONRY FUNCTIONS & EXTENDED PROTOTYPES=================================================================
     
-    // Helper functions
-    function above( $brick, bottom ) {
-        /* Returns true if element is above our visible area.
-           @return boolean */
-        var upper_threshold = $(window).scrollTop() - $(window).height();
-        bottom = bottom || ($brick.offset().top + $brick.height());
-        return bottom < upper_threshold;
-    }
-
-    function below( $brick, top ) {
-        /* Returns true if element is below our visible area.
-           @return boolean */
-        var lower_threshold = $(window).scrollTop() + 2 * $(window).height();
-        top = top || $brick.offset().top;
-        return top > lower_threshold;
-    }
-
     // Rewrite default functions to allow for the changes we are making.
     // Change how layouts work.
     $.Mason.prototype._reLayout = function( callback ) {
@@ -91,8 +87,7 @@
     $.Mason.prototype._create = function( options ) {
         var instance = this;
         this.__create__( options );
-        this.nodes = { 'above': [],
-                       'below': [] };
+        this.nodes = [];
         this.relativeOffset = {
             'x': this.offset.x,
             'y': this.offset.y,
@@ -136,13 +131,12 @@
             // For each block that is no longer in view, knock it into our saved arrays
             // and increment our counter; only want to reload when stuff have been destroyed.
             var $brick      = $(this),
-                key         = above($brick)? 'above' : (below($brick)? 'below': undefined),
                 deconstruct = function( $obj ) {
                     destroyed++;
                     return { 'top': $obj.offset().top, 'left': $obj.position().left, 
                              'bottom': $obj.offset().top + $obj.height(), 'offsetTop': $obj.position().top, 'obj': $obj.detach() }
                 };
-            if ( key ) instance.nodes[key].push(deconstruct($brick));
+            if (screenout($brick)) instance.nodes.push(deconstruct($brick));
         });
 
         if ( destroyed > 0 ) {
@@ -171,18 +165,14 @@
                 return $(properties.obj).css({'top': properties.offsetTop, 'left': properties.left});
             };
         // Now check both arrays.
-        $.each(['above', 'below'], function(index, key) {
-            instance.nodes[key] = $.grep(instance.nodes[key], function(properties, index) {
-                var test     = (key == 'above'? above : below),
-                    fn       = (key == 'above'? 'prepend' : 'append'),
-                    property = properties[(key == 'above'? 'bottom': 'top')];
-                if (!test(undefined, property)) {
-                    instance.relativeOffset.y = Math.min(instance.relativeOffset.y, properties.offsetTop);
-                    instance.element[fn](construct( properties ));
-                    return false;
-                }
-                return true;
-            });
+        this.nodes = $.grep(this.nodes, function(properties, index) {
+            var fn  = (above(undefined, properties.bottom)? 'prepend' : 'append');
+            if (!screenout(undefined, properties.top, properties.bottom)) {
+                instance.relativeOffset.y = Math.min(instance.relativeOffset.y, properties.offsetTop);
+                instance.element[fn](construct( properties ));
+                return false;
+            }
+            return true;
         });
         // Reload the instance if we actually constructed something
         if ( constructed > 0 ) this.reload();
