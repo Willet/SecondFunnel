@@ -1,4 +1,4 @@
-/* JQuery Masonry Prototype functions
+/* JQuery Masonry Prototype Functions
  *
  * Provided Option: smartNodes
  * To-Use: Specify "smartNodes: True" when creating the Masonry instance.
@@ -8,6 +8,7 @@
  * from its instance and the DOM when the elements are no longer visible to the user.  These elements are re-added
  * in the same order when they become visible again.
  *
+ * Copyright 2013 Willet Inc.
  */
 (function(window, $, undefined) {   
     /* 
@@ -47,22 +48,22 @@
     };
 
 
-    //=============================MASONRY PROTOTYPES=================================================================
+    //=============================MASONRY FUNCTIONS & EXTENDED PROTOTYPES=================================================================
 
     // Helper functions
     function above( $brick, bottom ) {
         /* Returns true if element is above our visible area.
            @return boolean */
-        var upper_threshold = $(window).scrollTop() - $(window).height(),
-            bottom          = bottom || ($brick.offset().top + $brick.height());
+        var upper_threshold = $(window).scrollTop() - $(window).height();
+        bottom = bottom || ($brick.offset().top + $brick.height());
         return bottom < upper_threshold;
     }
 
     function below( $brick, top ) {
         /* Returns true if element is below our visible area.
            @return boolean */
-        var lower_threshold = $(window).scrollTop() + 2 * $(window).height(),
-            top             = top || $brick.offset().top;
+        var lower_threshold = $(window).scrollTop() + 2 * $(window).height();
+        top = top || $brick.offset().top;
         return top > lower_threshold;
     }
 
@@ -153,7 +154,6 @@
 
         if ( destroyed > 0 ) {
             // Apply positioning logic and reload the blocks
-            this.reloadItems();
             this.relativeOffset.y = this.element.children().first().position().top;
             this.reload();
         }
@@ -174,25 +174,20 @@
                 return $(properties.obj).css({'top': properties.offsetTop, 'left': properties.left});
             };
         // Now check both arrays.
-        $.each(this.nodes['above'], function(index, properties) {
-            if (!above(undefined, properties.bottom)) {
-                instance.relativeOffset.y = Math.min(instance.relativeOffset.y, properties.offsetTop);
-                instance.element.prepend(construct( properties ));
-            } else {
-                nodes.push(properties);
-            }
+        $.each(['above', 'below'], function(index, key) {
+            instance.nodes[key] = $.grep(instance.nodes[key], function(properties, index) {
+                var test     = (key == 'above'? above : below),
+                    property = (key == 'above'? properties.bottom: properties.top),
+                    fn       = ( key == 'above'? 'prepend' : 'append');
+                if (!test(undefined, property)) {
+                    instance.relativeOffset.y = Math.min(instance.relativeOffset.y, properties.offsetTop);
+                    instance.element[fn](construct( properties ));
+                    return false;
+                } else {
+                    return true;
+                }
+            });
         });
-        this.nodes['above'] = nodes;
-        nodes = [];
-        
-        $.each(this.nodes['below'], function(index, properties) {
-            if (!below(undefined, properties.top)) {
-                instance.element.append(construct( properties ));
-            } else {
-                nodes.push(properties);
-            }
-        });
-        this.nodes['below'] = nodes;
         // Reload the instance if we actually constructed something
         if ( constructed > 0 ) this.reload();
     };
