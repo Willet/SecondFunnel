@@ -1,4 +1,5 @@
-/* JQuery Masonry Prototype Functions
+/**
+ * JQuery Masonry Prototype Functions
  *
  * Provided Option: smartNodes
  * To-Use: Specify "smartNodes: True" when creating the Masonry instance.
@@ -50,7 +51,7 @@
 
 
     //=============================MASONRY FUNCTIONS & EXTENDED PROTOTYPES=================================================================
-
+    
     // Helper functions
     function above( $brick, bottom ) {
         /* Returns true if element is above our visible area.
@@ -96,7 +97,6 @@
             'x': this.offset.x,
             'y': this.offset.y,
         };        
-            
         if ( this.options.smartNodes ) {
             $(window).bind('smartscroll.masonry', function() {
                 instance.knockout();
@@ -186,6 +186,64 @@
         });
         // Reload the instance if we actually constructed something
         if ( constructed > 0 ) this.reload();
+    };
+
+
+    /*
+     * jQuery Masonry v2.1.08 layout
+     * http://masonry.desandro.com
+     *
+     * Licensed under the MIT license.
+     * Copyright 2012 Davide DeSandro
+     */
+    $.Mason.prototype.layout = function( $bricks, callback ) {
+        
+        // place each brick
+        for (var i=0, len = $bricks.length; i < len; i++) {
+            this._placeBrick( $bricks[i] );
+        }
+      
+        // set the size of the container
+        var containerSize = {};
+        containerSize.height = Math.max(this.element.height(), Math.max.apply( Math, this.colYs ));
+        if ( this.options.isFitWidth ) {
+            var unusedCols = 0;
+            i = this.cols;
+            // count unused columns
+            while ( --i ) {
+                if ( this.colYs[i] !== 0 ) {
+                    break;
+                }
+                unusedCols++;
+            }
+            // fit container to columns that have been used;
+            containerSize.width = (this.cols - unusedCols) * this.columnWidth - this.options.gutterWidth;
+        }
+        this.styleQueue.push({ $el: this.element, style: containerSize });
+
+        // are we animating the layout arrangement?
+        // use plugin-ish syntax for css or animate
+        var styleFn = !this.isLaidOut ? 'css' : (
+                                                 this.options.isAnimated ? 'animate' : 'css'
+                                                 ),
+        animOpts = this.options.animationOptions;
+
+        // process styleQueue
+        var obj;
+        for (i=0, len = this.styleQueue.length; i < len; i++) {
+            obj = this.styleQueue[i];
+            obj.$el[ styleFn ]( obj.style, animOpts );
+        }
+
+        // clear out queue for next time
+        this.styleQueue = [];
+
+        // provide $elems as context for the callback
+        if ( callback ) {
+            callback.call( $bricks );
+        }
+      
+        this.isLaidOut = true;
     };
 
 })(window, jQuery);
