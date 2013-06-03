@@ -92,6 +92,7 @@
         this.nodes = { 'above': [],
                        'below': [] };
         this.relativeOffset = {
+            'x': this.offset.x,
             'y': this.offset.y,
         };        
             
@@ -139,23 +140,20 @@
         this.$bricks.each(function() {
             // For each block that is no longer in view, knock it into our saved arrays
             // and increment our counter; only want to reload when stuff have been destroyed.
-            var $brick = $(this),
+            var $brick      = $(this),
+                key         = above($brick)? 'above' : (below($brick)? 'below': undefined),
                 deconstruct = function( $obj ) {
                     destroyed++;
                     return { 'top': $obj.offset().top, 'left': $obj.position().left, 
                              'bottom': $obj.offset().top + $obj.height(), 'offsetTop': $obj.position().top, 'obj': $obj.detach() }
                 };
-            if ( above($brick) ) {
-                instance.nodes['above'].push(deconstruct($brick));
-            } else if ( below($brick) ) {
-                instance.nodes['below'].push(deconstruct($brick));
-            }
+            if ( key ) instance.nodes[key].push(deconstruct($brick));
         });
 
         if ( destroyed > 0 ) {
             // Apply positioning logic and reload the blocks
+            this.$bricks = this._getBricks( this.element.children() );
             this.relativeOffset.y = this.element.children().first().position().top;
-            this.reload();
         }
         //Lastly, check if we need to reinsert stuff
         this._reInsert();
@@ -164,10 +162,9 @@
     // Extend the Masonry instance to allow detached/deconstructed bricks to be added back to the instance
     // when they should be visible.
     $.Mason.prototype._reInsert = function() {
-        // This method allows content to be inserted to the top of the Masonry instance.  Particularly effective
-        // when combined with SmartNodes.
-        var nodes       = [],
-            instance    = this,
+        // This method allows content removed by _knockout to be re-inserted into the Masonry instance in thier
+        // original positions.
+        var instance    = this,
             constructed = 0,
             construct   = function( properties ) {
                 constructed++;
@@ -177,15 +174,14 @@
         $.each(['above', 'below'], function(index, key) {
             instance.nodes[key] = $.grep(instance.nodes[key], function(properties, index) {
                 var test     = (key == 'above'? above : below),
-                    property = (key == 'above'? properties.bottom: properties.top),
-                    fn       = ( key == 'above'? 'prepend' : 'append');
+                    fn       = (key == 'above'? 'prepend' : 'append'),
+                    property = properties[(key == 'above'? 'bottom': 'top')];
                 if (!test(undefined, property)) {
                     instance.relativeOffset.y = Math.min(instance.relativeOffset.y, properties.offsetTop);
                     instance.element[fn](construct( properties ));
                     return false;
-                } else {
-                    return true;
                 }
+                return true;
             });
         });
         // Reload the instance if we actually constructed something
