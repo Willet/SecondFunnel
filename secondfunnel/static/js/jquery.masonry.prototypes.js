@@ -39,7 +39,7 @@
             if (scrollTimeout) { clearTimeout(scrollTimeout); }
             scrollTimeout = setTimeout(function() {
                 jQuery.event.handle.apply( context, args );
-            }, execAsap === "execAsap"? 0 : 10);
+            }, execAsap === "execAsap"? 0 : 0);
         }
     };
 
@@ -77,7 +77,7 @@
             if ( this.relativeOffset )
                 this.colYs.push( this.relativeOffset.y );
             else
-                this.colYs.push( 0 );
+                this.colYs.push( this.offset.y );
         }
         // apply layout logic to all bricks
         this.layout( this.$bricks, callback );
@@ -97,7 +97,6 @@
         };        
             
         if ( this.options.smartNodes ) {
-            this.options.isKnockingOut = false;
             $(window).bind('smartscroll.masonry', function() {
                 instance.knockout();
             });
@@ -123,13 +122,8 @@
     // to cleanup elemenets from the DOM that are no longer visible.  We have to extend Masonry to allow for the method
     // to be called on resizes and scrolls.
     $.Mason.prototype.knockout = function() {
-        if ( this.options.isKnockingOut ) {
-            return;
-        } else {
-            this.options.isKnockingOut = true;
-            this._knockout();
-            this.options.isKnockingOut = false;
-        }
+        // Convenience method
+        this._knockout();
     };
 
     $.Mason.prototype._knockout = function() {
