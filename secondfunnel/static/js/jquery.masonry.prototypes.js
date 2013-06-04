@@ -92,6 +92,7 @@
         this._getColumns();
         for ( var i = 0; i < this.cols; i++ ) this.relativeOffset.y.push( this.offset.y );
         if ( this.options.smartNodes ) {
+            this.lastScrollTop = $(window).scrollTop();
             $(window).bind('smartscroll.masonry', function() {
                 instance.knockout();
             });
@@ -118,7 +119,7 @@
     // to be called on resizes and scrolls.
     $.Mason.prototype.knockout = function() {
         // Convenience method
-        if (!PAGES.loadingBlocks) this._knockout();
+        this._knockout();
     };
 
     $.Mason.prototype._updateColYs = function() {
@@ -184,7 +185,11 @@
             return true;
         });
         this.nodes = new_nodes;
-        if ( constructed > 0 ) this._updateColYs();
+        if ( constructed > 0 ) {
+            this._updateColYs();
+            if (this.lastScrollTop < $(window).scrollTop()) this.reload();
+        }
+        this.lastScrollTop = $(window).scrollTop();
     };
 
 
