@@ -159,6 +159,7 @@
         if ( destroyed > 0 ) {
             this.$bricks = this._getBricks( this.element.children() );
             this._updateColYs();
+            if (this.lastScrollTop < $(window).scrollTop()) this.reload();
         }
         //Lastly, check if we need to reinsert stuff
         this._reInsert();
@@ -187,7 +188,6 @@
         this.nodes = new_nodes;
         if ( constructed > 0 ) {
             this._updateColYs();
-            if (this.lastScrollTop < $(window).scrollTop()) this.reload();
         }
         this.lastScrollTop = $(window).scrollTop();
     };
