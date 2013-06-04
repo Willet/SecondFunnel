@@ -173,7 +173,7 @@
             constructed = 0,
             construct   = function( properties ) {
                 constructed++;
-                return $(properties.obj).css({'top': properties.offsetTop, 'left': properties.left});
+                return $(properties.obj).offset({'top': properties.top}).css({'top': properties.offsetTop, 'left': properties.left});
             };
         // Now check the array of nodes.
         var new_nodes = $.grep(this.nodes, function(properties, index) {
