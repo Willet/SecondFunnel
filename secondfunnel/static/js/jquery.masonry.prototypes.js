@@ -92,6 +92,7 @@
         this._getColumns();
         for ( var i = 0; i < this.cols; i++ ) this.relativeOffset.y.push( this.offset.y );
         if ( this.options.smartNodes ) {
+            this.amLayingOut = false;
             $(window).bind('smartscroll.masonry', function() {
                 instance.knockout();
             });
@@ -118,7 +119,7 @@
     // to be called on resizes and scrolls.
     $.Mason.prototype.knockout = function() {
         // Convenience method
-        if (!this.isLaidOut) return;
+        if (!this.isLaidOut || this.amLayingOut) return;
         this._knockout();
     };
 
@@ -197,7 +198,9 @@
      * Copyright 2012 Davide DeSandro
      */
     $.Mason.prototype.layout = function( $bricks, callback ) {
-        
+
+        this.amLayingOut = true;
+
         // place each brick
         for (var i=0, len = $bricks.length; i < len; i++) {
             this._placeBrick( $bricks[i] );
@@ -244,6 +247,7 @@
         }
       
         this.isLaidOut = true;
+        this.amLayingOut = false;
     };
 
 })(window, jQuery);
