@@ -205,7 +205,7 @@
       
         // set the size of the container
         var containerSize = {};
-        containerSize.height = Math.max(this.element.height(), Math.max.apply( Math, this.colYs ));
+        containerSize.height = Math.max(this.element.innerHeight(), Math.max.apply( Math, this.colYs ));
         if ( this.options.isFitWidth ) {
             var unusedCols = 0;
             i = this.cols;

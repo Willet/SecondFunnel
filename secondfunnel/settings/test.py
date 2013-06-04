@@ -8,6 +8,7 @@ ENVIRONMENT = "test"
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
+AWS_IS_GZIPPED = True # GZip Middleware isn't recognized without this line for some reason
 
 INSTALLED_APPS = (
     'django.contrib.auth',

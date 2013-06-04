@@ -8,6 +8,7 @@ ENVIRONMENT = "production"
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
+AWS_IS_GZIPPED = True
 
 INSTALLED_APPS = (
     'django.contrib.auth',
