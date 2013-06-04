@@ -121,7 +121,7 @@
         this._knockout();
     };
 
-    $.Mason.prototype._updateColYs = function( elem ) {
+    $.Mason.prototype._updateColYs = function() {
         var instance = this;
         this.reloadItems();
         this._getColumns();
