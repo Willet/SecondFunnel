@@ -58,9 +58,8 @@
         return bottom < upper_threshold || top > lower_threshold;
     }
 
-    function above( $brick, bottom ) {
-        bottom = bottom || ($brick.offset().top + $brick.height());
-        return bottom < $(window).scrollTop();
+    function screenin( $brick, top, bottom ) {
+        return !(screenout($brick, top, bottom));
     }
 
     //=============================MASONRY FUNCTIONS & EXTENDED PROTOTYPES=================================================================
@@ -69,11 +68,10 @@
     // Change how layouts work.
     $.Mason.prototype._reLayout = function( callback ) {
         // reset columns
-        var i = this.cols;
         this.colYs = [];
-        while (i--) {
+        for ( var i = 0; i < this.cols; i++ ) {
             if ( this.relativeOffset )
-                this.colYs.push( this.relativeOffset.y );
+                this.colYs.push( this.relativeOffset.y[i] );
             else
                 this.colYs.push( this.offset.y );
         }
@@ -89,9 +87,10 @@
         this.__create__( options );
         this.nodes = [];
         this.relativeOffset = {
-            'x': this.offset.x,
-            'y': this.offset.y,
-        };        
+            'y': [],
+        };
+        this._getColumns();
+        for ( var i = 0; i < this.cols; i++ ) this.relativeOffset.y.push( this.offset.y );
         if ( this.options.smartNodes ) {
             $(window).bind('smartscroll.masonry', function() {
                 instance.knockout();
@@ -122,6 +121,23 @@
         this._knockout();
     };
 
+    $.Mason.prototype._updateColYs = function( elem ) {
+        var instance = this;
+        this.reloadItems();
+        this._getColumns();
+        for ( var col = 0; col < this.cols; col++ ) {
+            // Find the minimumY for each column.
+            var minimumColYs = $.grep(this.$bricks, function(el, i) {
+                var colOffset = col * instance.columnWidth,
+                    $el       = $(el),
+                    elOffset  = parseInt($el.css('left'), 10);
+                return elOffset == colOffset || (elOffset <= colOffset && elOffset + $el.width() >= colOffset);
+            });
+            for ( var i = 0; i < minimumColYs.length; i++ ) minimumColYs[i] = parseInt($(minimumColYs[i]).css('top'), 10);
+            this.relativeOffset.y[col] = (minimumColYs.length == 0?  this.offset.y : Math.min.apply(Math, minimumColYs));
+        }
+    };
+
     $.Mason.prototype._knockout = function() {
         // Handle Masonry and DOM cleanup by what is visible and not visible on the screen.
         var destroyed = 0,
@@ -141,13 +157,7 @@
 
         if ( destroyed > 0 ) {
             this.$bricks = this._getBricks( this.element.children() );
-            // In the case of really fast scrolling, we need to wait until we can actually grab the children, as
-            // children might be being positioned in the instance while additional scrolling events are triggered.
-            var waitForChildren = function() {
-                if (!(instance.element.children().first().position())) setTimeout(waitForChildren, 1);
-                else instance.relativeOffset.y = instance.element.children().first().position().top;
-            };
-            waitForChildren();
+            this._updateColYs();
         }
         //Lastly, check if we need to reinsert stuff
         this._reInsert();
@@ -164,18 +174,21 @@
                 constructed++;
                 return $(properties.obj).css({'top': properties.offsetTop, 'left': properties.left});
             };
-        // Now check both arrays.
-        this.nodes = $.grep(this.nodes, function(properties, index) {
-            var fn  = (above(undefined, properties.bottom)? 'prepend' : 'append');
-            if (!screenout(undefined, properties.top, properties.bottom)) {
-                instance.relativeOffset.y = Math.min(instance.relativeOffset.y, properties.offsetTop);
+        // Now check the array of nodes.
+        var new_nodes = $.grep(this.nodes, function(properties, index) {
+            var fn = (properties.bottom < $(window).scrollTop()? 'prepend' : 'append');
+            if (screenin(undefined, properties.top, properties.bottom)) {
                 instance.element[fn](construct( properties ));
                 return false;
             }
             return true;
         });
+        this.nodes = new_nodes;
         // Reload the instance if we actually constructed something
-        if ( constructed > 0 ) this.reload();
+        if ( constructed > 0 ) {
+            this._updateColYs();
+            this._reLayout();
+        }
     };
 
 
