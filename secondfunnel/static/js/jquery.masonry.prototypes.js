@@ -92,6 +92,7 @@
         this._getColumns();
         for ( var i = 0; i < this.cols; i++ ) this.relativeOffset.y.push( this.offset.y );
         if ( this.options.smartNodes ) {
+            this.oldWindowScrollTop = $(window).scrollTop();
             $(window).bind('smartscroll.masonry', function() {
                 instance.knockout();
             });
@@ -187,8 +188,12 @@
         // Reload the instance if we actually constructed something
         if ( constructed > 0 ) {
             this._updateColYs();
-            this._reLayout();
+            if (!($(window).scrollTop() <= this.oldWindowScrollTop)) {
+                // Only trigger reflow when scrolling down.
+                this._reLayout();
+            }
         }
+        this.oldWindowScrollTop = $(window).scrollTop(); // Reset Scroll Top
     };
 
 
