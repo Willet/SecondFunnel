@@ -118,6 +118,7 @@
     // to be called on resizes and scrolls.
     $.Mason.prototype.knockout = function() {
         // Convenience method
+        if (!this.isLaidOut) return;
         this._knockout();
     };
 
