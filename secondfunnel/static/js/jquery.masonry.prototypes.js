@@ -92,7 +92,6 @@
         this._getColumns();
         for ( var i = 0; i < this.cols; i++ ) this.relativeOffset.y.push( this.offset.y );
         if ( this.options.smartNodes ) {
-            this.lastScrollTop = $(window).scrollTop();
             $(window).bind('smartscroll.masonry', function() {
                 instance.knockout();
             });
@@ -156,11 +155,7 @@
             if (screenout($brick)) instance.nodes.push(deconstruct($brick));
         });
 
-        if ( destroyed > 0 ) {
-            this.$bricks = this._getBricks( this.element.children() );
-            this._updateColYs();
-            if (this.lastScrollTop < $(window).scrollTop()) this.reload();
-        }
+        if ( destroyed > 0 ) this._updateColYs();
         //Lastly, check if we need to reinsert stuff
         this._reInsert();
     };
@@ -171,10 +166,11 @@
         // This method allows content removed by _knockout to be re-inserted into the Masonry instance in thier
         // original positions.
         var instance    = this,
-            constructed = 0,
+            $bricks      = $(),
             construct   = function( properties ) {
-                constructed++;
-                return $(properties.obj).offset({'top': properties.top}).css({'top': properties.offsetTop, 'left': properties.left});
+                var $brick = $(properties.obj).offset({'top': properties.top}).css({'top': properties.offsetTop, 'left': properties.left});
+                $bricks.add($brick);
+                return $brick;
             };
         // Now check the array of nodes.
         var new_nodes = $.grep(this.nodes, function(properties, index) {
@@ -186,10 +182,10 @@
             return true;
         });
         this.nodes = new_nodes;
-        if ( constructed > 0 ) {
+        if ( $bricks[0] !== undefined ) {
             this._updateColYs();
+            this.layout($bricks);
         }
-        this.lastScrollTop = $(window).scrollTop();
     };
 
 
