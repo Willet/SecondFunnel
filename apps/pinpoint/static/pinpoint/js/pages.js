@@ -74,13 +74,14 @@ var PAGES = (function($, pageInfo) {
 
     function redirectToProperTheme() {
         var pathname = window.location.pathname,
-            isOnMobilePage = pathname.indexOf("mobile.html", pathname.length - "mobile.html".length) !== -1;
+            isOnMobilePage = pathname.indexOf("mobile.html", pathname.length - "mobile.html".length) !== -1,
+            url = window.location.protocol + '//' + window.location.hostname + window.location.pathname;
 
         if ($.browser.mobile && !isOnMobilePage) {
-            window.location.replace(window.location.href + "mobile.html");
+            window.location.replace(url + "mobile.html");
 
         } else if (!$.browser.mobile && isOnMobilePage && window.location.hash.indexOf("disableRedirect") === -1) {
-            window.location.replace(window.location.href.replace("mobile.html", ""));
+            window.location.replace(url.replace("mobile.html", ""));
         }
     }
 
