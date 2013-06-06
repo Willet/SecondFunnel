@@ -75,13 +75,16 @@ var PAGES = (function($, pageInfo) {
     function redirectToProperTheme() {
         var pathname = window.location.pathname,
             isOnMobilePage = pathname.indexOf("mobile.html", pathname.length - "mobile.html".length) !== -1,
-            url = window.location.protocol + '//' + window.location.hostname + window.location.pathname;
+            url = window.location.protocol + '//' + window.location.hostname + window.location.pathname,
+            query = window.location.href.split('?')[1] || "";
 
         if ($.browser.mobile && !isOnMobilePage) {
-            window.location.replace(url + "mobile.html");
+            url += 'mobile.html' + (query ? '?' + query : "");
+            window.location.replace(url);
 
         } else if (!$.browser.mobile && isOnMobilePage && window.location.hash.indexOf("disableRedirect") === -1) {
-            window.location.replace(url.replace("mobile.html", ""));
+            url = url.replace('mobile.html', '') + (query ? '?' + query : "");
+            window.location.replace(url);
         }
     }
 
