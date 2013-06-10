@@ -244,8 +244,24 @@
             height: 70px;
         }
 
+        .approval_form .tags{
+            width: 450px !important;
+        }
+
+        .grid_4.approval_form {
+            padding-left: 0px;
+        }
+
+        .grid_4.approval_form textarea {
+            width: 280px;
+        }
+
+        .grid_4.approval_form .tags {
+            width:  290px !important;
+        }
+
         .actions {
-            float: right;
+            /*float: right;*/
         }
 
         .saved {
@@ -255,6 +271,15 @@
 
         .image_box {
             width: 240px;
+            height: 240px;
+            position: relative;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-color: #ddd;
+        }
+
+        .video_box {
+            width: 426px;
             height: 240px;
             position: relative;
             background-repeat: no-repeat;
@@ -612,6 +637,7 @@
             <div id="{{ content_type }}">
                 {% for data in content_data %}
                     <div class='grid_11 approval_block' data-oid="{{ data.id }}">
+                        {% if 'youtube' not in data.content_type.name|lower %}
                         <div class="grid_3 image_box" style="background-image: url({{ data.image_url|size:"medium" }});">
                             <div class="image_ribbon {{ content_type }}" data-oid="{{ data.id }}">
                                 <div class="label">
@@ -625,8 +651,12 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="grid_6 prefix_1 approval_form">
+                        {% else %}
+                        <div class="grid_6 video_box">
+                        </div>
+                        <div class="grid_4 prefix_1 approval_form">
+                        {% endif %}
                             <label for="caption_{{ data.id }}">Caption <span class="saved">Saved</span></label>
                             <textarea id="caption_{{ data.id }}">{{ data.text_content }}</textarea>
                             <div class="actions">
