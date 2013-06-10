@@ -248,16 +248,16 @@
             width: 450px !important;
         }
 
-        .grid_4.approval_form {
+        .grid_5.approval_form {
             padding-left: 0px;
         }
 
-        .grid_4.approval_form textarea {
-            width: 280px;
+        .grid_5.approval_form textarea {
+            width: 314px;
         }
 
-        .grid_4.approval_form .tags {
-            width:  290px !important;
+        .grid_5.approval_form .tags {
+            width:  324px !important;
         }
 
         .actions {
@@ -279,7 +279,7 @@
         }
 
         .video_box {
-            width: 426px;
+            width: 426px !important;
             height: 240px;
             position: relative;
             background-repeat: no-repeat;
@@ -598,6 +598,34 @@
         });
         $(".qq-upload-button").addClass('button');
     }
+
+    // Load Youtube IFrame Player API code asynchronously
+    var tag = document.createElement('script');
+    tag.src = "//www.youtube.com/iframe_api";
+
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    /* Youtube */
+    $('.video_box').click(function() {
+        var $me = $(this),
+            id = $me.data('videoId');
+
+        player = new YT.Player($me.attr('id'), {
+            height: 240,
+            width: 426,
+            videoId: id,
+            playerVars: {
+                'autoplay': 1,
+                'controls': 1
+            },
+            events: {
+                'onReady': function (e) {},
+                'onStateChange': function(e) {},
+                'onError': function (e) {}
+            }
+        });
+    });
 {% endblock %}
 
 {% block top_section %}
@@ -654,9 +682,11 @@
                         <div class="grid_6 prefix_1 approval_form">
                         {% else %}
                         <div class="grid_6 video_box"
-                             style="background-image: url('http://i.ytimg.com/vi/{{data.original_id}}/hqdefault.jpg');">
+                             style="background-image: url('http://i.ytimg.com/vi/{{data.original_id}}/hqdefault.jpg');"
+                             id="yt-{{ data.original_id }}"
+                             data-video-id='{{ data.original_id }}'>
                         </div>
-                        <div class="grid_4 prefix_1 approval_form">
+                        <div class="grid_5 prefix_1 approval_form">
                         {% endif %}
                             <label for="caption_{{ data.id }}">Caption <span class="saved">Saved</span></label>
                             <textarea id="caption_{{ data.id }}">{{ data.text_content }}</textarea>
