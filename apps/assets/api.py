@@ -52,10 +52,21 @@ class BlockContentResource(ModelResource):
 
 class StoreResource(ModelResource):
     """REST-style store."""
+    related_content = fields.ManyToManyField(
+        'apps.assets.api.ExternalContentResource',
+        'external_content',
+        null=True, full=False, related_name='store')
+    related_videos = fields.ManyToManyField(
+        'apps.assets.api.YoutubeVideoResource',
+        'videos',
+        null=True, full=False, related_name='store')
+
     class Meta:
         queryset = Store.objects.all()
         resource_name = 'store'
-        authentication = UserAuthentication()
+        authentication = MultiAuthentication(
+            ApiKeyAuthentication(),
+            UserAuthentication())
         authorization = UserPartOfStore()
         filtering = {
             'id': ('exact',),
@@ -66,6 +77,10 @@ class StoreResource(ModelResource):
 class ProductResource(ModelResource):
     """REST (tastypie) version of a Product."""
     store = fields.ForeignKey(StoreResource, 'store')
+    related_content = fields.ManyToManyField(
+        'apps.assets.api.ExternalContentResource',
+        'external_content',
+        null=True, full=False, related_name='tagged_products')
 
     class Meta:
         """Django's way of defining a model's metadata."""
@@ -79,7 +94,9 @@ class ProductResource(ModelResource):
             'name_or_url': ('exact'),
             'available': ('exact'),
         }
-        authentication = UserAuthentication()
+        authentication = MultiAuthentication(
+            ApiKeyAuthentication(),
+            UserAuthentication())
         authorization = UserPartOfStore()
 
     def build_filters(self, filters=None):
@@ -176,7 +193,9 @@ class YoutubeVideoResource(ModelResource):
 
     class Meta:
         queryset = YoutubeVideo.objects.all()
-        authentication = UserAuthentication()
+        authentication = MultiAuthentication(
+            ApiKeyAuthentication(),
+            UserAuthentication())
         resource_name = 'youtube_video'
 
         filtering = {
@@ -202,7 +221,9 @@ class ExternalContentTypeResource(ModelResource):
 
     class Meta:
         queryset = ExternalContentType.objects.all()
-        authentication = UserAuthentication()
+        authentication = MultiAuthentication(
+            ApiKeyAuthentication(),
+            UserAuthentication())
         authorization= Authorization()
         resource_name = 'external_content_type'
 
@@ -213,8 +234,7 @@ class ExternalContentResource(ModelResource):
     products = fields.ManyToManyField(ProductResource, 'tagged_products',
         null=True, full=False, related_name='external_content')
 
-    type = fields.ForeignKey(ExternalContentTypeResource, 'content_type',
-                             full=True)
+    type = fields.ForeignKey(ExternalContentTypeResource, 'content_type')
     store = fields.ForeignKey(StoreResource, 'store')
 
     class Meta:
