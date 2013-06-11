@@ -112,9 +112,9 @@ AWS_QUERYSTRING_AUTH = False
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
                         'compressor.filters.cssmin.CSSMinFilter']
 
-COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter',
-                       'compressor.filters.jsmin.SlimItFilter']
-
+COMPRESS_JS_FILTERS = ['compressor.filters.template.TemplateFilter',
+                       'compressor.filters.jsmin.JSMinFilter']
+                       
 COMPRESS_REBUILD_TIMEOUT = 2592000 # Rebuilds compressed files after 30 days (in seconds)
 
 COMPRESS = True # Force true for testing purposes
@@ -162,6 +162,7 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.gzip.GZipMiddleware', # NOTE: Must be the first in this tuple
+    'htmlmin.middleware.HtmlMinifyMiddleware', # Enables compression of HTML
     'django.middleware.cache.CacheMiddleware', # Manages caching
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',

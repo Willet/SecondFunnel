@@ -5,7 +5,7 @@
  * To-Use: Specify "smartNodes: True" when creating the Masonry instance.
  *
  * Implementation Details:
- *    These prototype functions extend Masonry to allow it to perform self-cleanup, that is it removes elements
+ *    These prototype functions extend Masonry to allow it to perform self-cleanup, that is, it removes elements
  * from its instance and the DOM when the elements are no longer visible to the user.  These elements are re-added
  * in the same order when they become visible again.
  *
@@ -49,6 +49,7 @@
                 instance.knockout();
             });
         }
+        this.min_height = this.element.height();
     };
 
     $.Mason.prototype.resize = function() {
@@ -65,28 +66,53 @@
         }
     };
 
-    $.Mason.prototype._updateColYs = function() {
-        var instance = this;
+    $.Mason.prototype._updateColVals = function() {
+        // Get the minimum offset of each column relative to the container.
+        var instance    = this,
+            minColVals  = [],
+            maxColVals  = [];
+        // Initialize the array of arrays
         this.reloadItems();
         for ( var col = 0; col < this.cols; col++ ) {
-            // Find the minimumY for each column.
-            var minimumColYs = $.grep(this.$bricks, function(el, i) {
-                var colOffset = col * instance.columnWidth,
-                    $el       = $(el),
-                    elOffset  = parseInt($el.css('left'), 10);
-                return elOffset == colOffset || (elOffset <= colOffset && elOffset + $el.width() >= colOffset);
-            });
-            for ( var i = 0; i < minimumColYs.length; i++ ) minimumColYs[i] = parseInt($(minimumColYs[i]).css('top'), 10);
-            this.relativeOffset.y[col] = (minimumColYs.length == 0?  this.offset.y : Math.min.apply(Math, minimumColYs));
+            minColVals.push([]);
+            maxColVals.push([]);
         }
+        $.each(this.$bricks, function() {
+            // Can't access attributes via jquery CSS for some reason.  Maybe a problem with JQuery 1.8.3?  Use
+            // position instead.
+            var $brick     = $(this),
+                brickLeft  = $brick.position().left,
+                brickTop   = $brick.position().top,
+                brickWidth = $brick.width(),
+                colSpan    = Math.min(instance.cols, Math.ceil( $brick.outerWidth(true) / instance.columnWidth )),
+                col        = 0;
+            while (col * instance.columnWidth < brickLeft) ++col;
+            for ( var i = col; i < col + colSpan; ++i ) {
+                minColVals[i].push(brickTop);
+                maxColVals[i].push(brickTop + $brick.outerHeight(true));
+            }
+        });
+        for ( var col = 0; col < this.cols; col++ ) {
+            minColVals[col] = (minColVals[col].length == 0? this.relativeOffset.y[col] : Math.min.apply(Math, minColVals[col]));
+            maxColVals[col] = (maxColVals[col].length == 0? this.colYs[col] : Math.max.apply(Math, maxColVals[col]));
+        }
+        this.relativeOffset.y = minColVals;
+        this.colYs = maxColVals;
     };
 
     // Start the code for the knockout logic and handling; a prototype function that provides Masonry with the ability
     // to cleanup elemenets from the DOM that are no longer visible.  We have to extend Masonry to allow for the method
     // to be called on resizes and scrolls.
     $.Mason.prototype.knockout = function() {
-        // console.log("Total # of Blocks: " + (this.$bricks.length + this.nodes.length) + "\tBlocks in DOM: " + this.$bricks.length);
-        $.queue(this._knockout());
+        if ( this.isLaidOut ) {
+            $(this).queue(function(next) {
+                var instance = this;
+                instance._knockout();
+                $('#nodecount').text(instance.element.children().length + instance.nodes.length);
+                $('#domcount').text(instance.element.children().length);
+                next();
+            });
+        }
     };
 
     $.Mason.prototype._knockout = function() {
@@ -94,19 +120,16 @@
         var instance    = this,
             destroyed   = 0,
             deconstruct = function ( $obj ) {
-                destroyed++;
                 var properties = { top: $obj.offset().top, 
-                                   left: $obj.position().left, 
-                                   bottom: $obj.offset().top + $obj.height(), 
-                                   offsetTop: $obj.position().top,
                                    width: $obj.width(),
                                    height: $obj.height(),
+                                   left: $obj.offset().left,
                 };
+                destroyed++;
                 properties.obj = $obj.detach();
                 return properties;
-            }; 
-            
-        this.$bricks.each(function() {
+            };
+        this.element.children().each(function() {
             var $brick = $(this);
             if (outOfScreen($brick.offset().top, $brick.offset().top + $brick.height())) {
                 // Ignore animated content, we don't know how it will be laid out yet
@@ -115,12 +138,31 @@
                 }
             }
         });
-
-        if ( destroyed > 0 ) {
-            this._updateColYs();
-        }
-
+        if ( destroyed > 0 ) this._updateColVals();
         this._reInsert();
+    };
+
+
+    $.Mason.prototype._collides = function( a, $bricks ) {
+        var collision   = false,
+            getPosition = function( $brick ) {
+                return { top: $brick.offset().top,
+                         width: $brick.width(),
+                         height: $brick.height(),
+                         left: $brick.offset().left };
+            }; 
+        $bricks.each(function(){
+            var b = getPosition($(this));
+            // http://stackoverflow.com/questions/2440377/javascript-collision-detection
+            if ($(this).is(':animated')) {
+                // Pass if it's animated
+            } else if (!(((a.top + a.height) < (b.top)) || (a.top > (b.top + b.height)) || 
+                         ((a.left + a.width) < b.left) || (a.left > (b.left + b.width)))) {
+                collision = true;
+                return false;
+            }
+        });
+        return collision;
     };
 
     // Extend the Masonry instance to allow detached/deconstructed bricks to be added back to the instance
@@ -128,27 +170,40 @@
     $.Mason.prototype._reInsert = function() {
         // This method allows content removed by _knockout to be re-inserted into the Masonry instance in thier
         // original positions.
-        var instance    = this,
-            constructed = 0,
-            construct   = function( fn, properties ) {
-                var $brick  = $(properties.obj).css({top: properties.offsetTop, left: properties.left});
+        var instance        = this,
+            constructed     = 0,
+            collidedBricks  = [],
+            construct       = function( fn, properties ) {
+                var $brick  = $(properties.obj);
                 constructed++;
-                instance.element[fn]($brick);
+                if (instance._collides(properties, instance.element.children())) {
+                    collidedBricks.push($brick);
+                } else {
+                    instance.element[fn]($brick);
+                }
             };
         // Now check the array of nodes.
         var new_nodes = $.grep(this.nodes, function(properties, index) {
-            var fn = (properties.bottom < $(window).scrollTop()? 'prepend' : 'append');
-            if (!outOfScreen(properties.top, properties.bottom)) {
+            var fn = (properties.top + properties.height < $(window).scrollTop()? 'prepend' : 'append');
+            if (!outOfScreen(properties.top, properties.top + properties.height)) {
                 construct(fn, properties);
                 return false;
             }
             return true;
         });
         this.nodes = new_nodes;
-
         if ( constructed > 0 ) {
-            this._updateColYs();
-            this.reload();
+            this._updateColVals();
+            if ( collidedBricks.length > 0 ) {
+                // If we had a collision, we want to add the elements that collided after the elements they
+                // collided with.
+                var instance = this;
+                $.each(collidedBricks, function(index, $brick){
+                    instance.element.append($brick);
+                    instance.appended($brick, true);
+                });
+                this._updateColVals(); // Need two updates in this case
+            }
         }
     };
 
@@ -161,7 +216,6 @@
      * Copyright 2012 Davide DeSandro
      */
     $.Mason.prototype.layout = function( $bricks, callback ) {
-
         // place each brick
         for (var i=0, len = $bricks.length; i < len; i++) {
             this._placeBrick( $bricks[i] );
@@ -169,7 +223,8 @@
       
         // set the size of the container
         var containerSize = {};
-        containerSize.height = Math.max(this.element.height(), Math.max.apply( Math, this.colYs ));
+        this.min_height = Math.max(this.min_height, Math.max.apply(Math, this.colYs));
+        containerSize.height = this.min_height;
         if ( this.options.isFitWidth ) {
             var unusedCols = 0;
             i = this.cols;
