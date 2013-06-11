@@ -10,8 +10,9 @@ TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
 AWS_IS_GZIPPED = True
 AWS_HEADERS =  {
-    'ExpiresDefault': "access plus 1 month",
-    'Cache-Control': "max-age=604800",
+    'Expires': BROWSER_CACHE_EXPIRATION_DATE,
+    'Cache-Control': "public, max-age=604800",
+    'Vary': 'Accept-Encoding',
 }
 
 INSTALLED_APPS = (

@@ -1,7 +1,7 @@
 import os
 import djcelery
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 import django.conf.global_settings as DEFAULT_SETTINGS
 
 # Django settings for secondfunnel project.
@@ -25,6 +25,7 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(days=30)).strftime("%a, %d %b %Y %H:%M:%S GMT")
 
 def fromProjectRoot(path):
     return os.path.join(
