@@ -129,6 +129,21 @@ COMPRESS_PRECOMPILERS = (
 
 COMPRESS_PARSER = 'compressor.parser.LxmlParser'
 
+# When GZIP is enabled, these types will be GZIPPED
+GZIP_CONTENT_TYPES = (
+    'text/plain',
+    'text/html',
+    'text/xml',
+    'text/css',
+    'text/javascript',
+    'application/xml',
+    'application/xhtml+xml',
+    'application/rss+xml',
+    'application/javascript',
+    'application/x-javascript',
+)
+    
+
 # Additional locations of static files
 STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".

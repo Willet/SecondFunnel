@@ -9,6 +9,10 @@ DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
 AWS_IS_GZIPPED = True # GZip Middleware isn't recognized without this line for some reason
+AWS_HEADERS =  {
+    'ExpiresDefault': "access plus 1 month",
+    'Cache-Control': "max-age=604800",
+}
 
 INSTALLED_APPS = (
     'django.contrib.auth',
