@@ -42,7 +42,7 @@ def launch_celery_worker(cluster_type, branch):
 
     reservations = ec2.run_instances(
         ami_id,
-        key_name='gri-public',
+        key_name='nterwoord-guardian',
         instance_type='t1.micro',
         security_groups=['CeleryWorkers']
     )
