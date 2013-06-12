@@ -160,9 +160,9 @@ def get_json_data(request, products, campaign_id, seeds=None):
     products_with_images_only should be either '0' or '1', please.
     """
     ir_campaign = IntentRankCampaign.objects.get(pk=campaign_id)
-
+    
     campaign = ir_campaign.campaigns.all()[0]
-
+    
     results = []
     products_with_images_only = True
     if request.GET.get('products_with_images_only', '1') == '0':
@@ -197,6 +197,7 @@ def get_json_data(request, products, campaign_id, seeds=None):
             # if that requirement is not met, ignore product.
             continue
 
+    
     # videos
     video_cookie = request.session.get('pinpoint-video-cookie')
     if not video_cookie:
@@ -274,7 +275,9 @@ def get_json_data(request, products, campaign_id, seeds=None):
                 })
 
             results.insert(randrange(len(results) + 1), json_content)
-
+            
+    return results
+        
 
 def get_seeds(request, **kwargs):
     """kwargs overrides request values when provided.
