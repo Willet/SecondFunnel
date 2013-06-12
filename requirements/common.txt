@@ -4,14 +4,15 @@ MySQL-python==1.2.3
 PIL==1.1.7
 South==0.7.6
 BeautifulSoup==3.2.1
-boto==2.8.0
+boto==2.9.5
 cssmin==0.1.4
 django-ajax-forms
+django-htmlmin
 django-compressor==1.2
 django-fancy-cache==0.4.0
 django-extensions==0.9
 git+git://github.com/Willet/django-maintenancemode.git@fed4195
-django-storages==1.1.5
+django-storages==1.1.8
 django-tastypie==0.9.12
 django-social-auth==0.7.22
 lxml==2.3.2
