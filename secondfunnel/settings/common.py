@@ -214,6 +214,7 @@ INSTALLED_APPS = (
     'apps.website',
     'apps.scraper',
     'apps.static_pages',
+    'apps.utils',
 
     # CI
     'django_jenkins',

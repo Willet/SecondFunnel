@@ -111,6 +111,15 @@ def store_admin(request, store_id):
 
 @login_required
 def new_campaign(request, store_id):
+    """
+    First step in creating a new pinpoint page. Displays available block types,
+    allowing user to select one and continue.
+
+    @param request: The request for this page.
+    @param store_id: The store to create a new page for.
+
+    @return: An HttpResponse which renders the page template.
+    """
     store = get_object_or_404(Store, pk=store_id)
 
     return render_to_response('pinpoint/admin_new_campaign.html', {
@@ -121,6 +130,18 @@ def new_campaign(request, store_id):
 
 @login_required
 def edit_campaign(request, store_id, campaign_id):
+    """
+    Allows a user to edit a pre-existing pinpoint page.
+
+    This function calls the appropriate handler in apps.pinpoint.wizards using the
+    handler attribute of the block type of the given page.
+
+    @param request: The request for this page.
+    @param store_id: The id of the store the page was created for.
+    @param campaign_id: The page to edit.
+
+    @return: An HttpResponse with a form to change the pinpoint page.
+    """
     store = get_object_or_404(Store, pk=store_id)
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
     block_type = campaign_instance.content_blocks.all()[0].block_type
@@ -141,9 +162,17 @@ def delete_campaign(request, store_id, campaign_id):
 
 @login_required
 def block_type_router(request, store_id, block_type_id):
-    """Resolves the handler that renders a "block type".
+    """
+    Allows a user to configure the main content block of the page they are creating.
 
-    Handler information is stored in the database.
+    This function calls the appropriate handler in apps.pinpoint.wizards using the
+    handler attribute of the given block type.
+
+    @param request: The request for this page.
+    @param store_id: The id of the store this page is being created for.
+    @param block_type_id: The id of the block type for this page.
+
+    @return: An HttpRespose with a form to configure the content block.
     """
     store = get_object_or_404(Store, pk=store_id)
     block_type = get_object_or_404(BlockType, pk=block_type_id)
@@ -192,25 +221,24 @@ def create_external_content(store, **obj):
 
     if created:
         new_content.text_content = obj.get('text_content')
+        
+        new_image_url = queue_processing( obj.get('image_url'),
+                                          store_slug = store.slug,
+                                          image_type = obj.get('type') )
 
-        new_image_url = queue_processing(
-            obj.get('image_url'),
-            store_slug=store.slug,
-            image_type=obj.get('type')
-        )
-
-        # imageservice might or might not be working today,
-        # so lets be careful with it
+        # imageservice might or might not be working today
+        #so lets be careful with it
         if new_image_url:
             new_content.image_url = new_image_url
 
-    # Any fields that should be periodically updated
+    # Any fields that should be periodically updated                                                                                                                              
     new_content.original_url = obj.get('original_url')
     new_content.username = obj.get('username')
     new_content.likes = obj.get('likes')
     new_content.user_image = obj.get('user-image')
     new_content.save()
     return new_content
+
 
 @require_POST
 @login_required
