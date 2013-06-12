@@ -186,37 +186,6 @@ class Wizard(object):
         """
         return None
 
-    def _get_initial_form_data(self):
-        """
-        Gets the initial data for the form.
-
-        @return: The initial data for the form.
-        """
-        return None
-
-    def _create_content_block(self, form, product):
-        """
-        Creates a new content block for a page using form data.
-
-        @param form: The form to get data from.
-        @param product: The product to feature.
-
-        @return: The content block that was created.
-        """
-        return None
-
-    def _edit_content_block(self, campaign, form, product):
-        """
-        Edits a content block for a page using form data.
-
-        @param campaign: The page whos content block to edit.
-        @param form: The form to get data from.
-        @param product: The product to feature.
-
-        @return: The content block that was edited.
-        """
-        return None
-
 
 class FeaturedProductWizard(Wizard):
     """Wizard for customizing a featured product block"""
