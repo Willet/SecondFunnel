@@ -641,7 +641,7 @@ var PAGES = (function($, pageInfo) {
         });
 
         // load related content; update contentstream
-        $discovery.on('click', '.block:not(.youtube)', function(e) {
+        $discovery.on('click', '.block:not(.youtube):not(.unclickable)', function(e) {
             updateContentStream(e.currentTarget);
         });
 

@@ -187,3 +187,7 @@ body {
     top: 135px;
     left: 195px;
 }
+
+.unclickable {
+    cursor: default !important;
+}
