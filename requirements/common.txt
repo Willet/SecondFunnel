@@ -33,7 +33,9 @@ kombu==2.5.10
 pytz==2013b
 
 # google api libraries
-google==1.04
+# This library has a tendency of disappearing...
+# So we keep our own copy of it
+https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/packages/google-1.05.zip
 google-api-python-client==1.0
 pyOpenSSL==0.13
 python-gflags==2.0

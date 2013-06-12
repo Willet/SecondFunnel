@@ -172,7 +172,7 @@
             },
 
         // layoutData
-        function (jsonData, belowFold) {
+        function (jsonData, belowFold, related) {
             // renders product divs onto the page.
             // suppose results is (now) a legit json object:
             // {products: [], videos: [(sizeof 1)]}
@@ -184,14 +184,15 @@
                 productDoms = [],
                 template, templateEl, player,
                 template_context, templateType, el, videos,
-                appearanceProbability;
+                appearanceProbability,
+                revisedType;
 
             // add products
             for (i = 0; i < results.length; i++) {
                 try {
                     result = results[i]
                     template_context = result;
-                    templateType = result.template || 'product';
+                    templateType = PAGES.getModifiedTemplateName(result.template) || 'product';
                     templateEl = $("[data-template-id='" + templateType + "']");
                     template = templateEl.html();
 
@@ -212,6 +213,14 @@
                             }
                             break;
                         case 'youtube':
+                            break;
+                        case 'image':
+                            // Legacy themes do not support these templates
+                            revisedType = 'instagram';
+                            if (!template) {
+                                templateEl = $("[data-template-id='" + revisedType + "']");
+                                template = templateEl.html();
+                            }
                             break;
                         default:
                             break;
@@ -351,14 +360,16 @@
                 $broken.parents('.block.product').remove();
                 $block.find('.block.product img[src=""]').parents('.block.product').remove();
 
-                $('.discovery-area').masonry('appended', $block, true);
-                $block.show();
+                if (!related) {
+                    $('.discovery-area').masonry('appended', $block, true);
+                    $block.show();
 
-                // Don't continue to load results if we aren't getting more results
-                if (initialResults > 0) {
-                    setTimeout(function() {
-                        PAGES.pageScroll();
-                    }, 100);
+                    // Don't continue to load results if we aren't getting more results
+                    if (initialResults > 0) {
+                        setTimeout(function() {
+                            PAGES.pageScroll();
+                        }, 100);
+                    }
                 }
 
                 $block.find('.pinpoint-youtube-area').click(function() {
@@ -367,6 +378,11 @@
 
                 for (var i in PAGES.blocksAppendedCallbacks) {
                     PAGES.setBlocksAppendedCallback(i, $block);
+                }
+
+                if (related) {
+                    PAGES.layoutRelated(related, $block);
+                    return;
                 }
 
                 PAGES.setLoadingBlocks(false);
