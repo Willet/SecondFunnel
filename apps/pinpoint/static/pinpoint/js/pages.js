@@ -627,21 +627,21 @@ var PAGES = (function($, pageInfo) {
         var $discovery = $('.discovery-area');
 
         // use delegated events to reduce overhead
-        $discovery.on('click', '.block.product, .block.combobox', function (e) {
+        $discovery.on('click', '.block.product:not(.unclickable), .block.combobox:not(.unclickable)', function (e) {
             showPreview(e.currentTarget);
         });
 
-        $discovery.on('click', '.block.image', function (e) {
+        $discovery.on('click', '.block.image:not(.unclickable)', function (e) {
             showPreview(e.currentTarget);
         });
 
         // update clickstream
-        $discovery.on('click', '.block.product, .block.combobox', function (e) {
+        $discovery.on('click', '.block.product:not(.unclickable), .block.combobox:not(.unclickable)', function (e) {
             updateClickStream(e.currentTarget, e);
         });
 
         // load related content; update contentstream
-        $discovery.on('click', '.block:not(.youtube)', function(e) {
+        $discovery.on('click', '.block:not(.youtube):not(.unclickable)', function(e) {
             updateContentStream(e.currentTarget);
         });
 
@@ -649,7 +649,7 @@ var PAGES = (function($, pageInfo) {
         $discovery.on({
             mouseenter: productHoverOn,
             mouseleave: productHoverOff
-        }, '.block.product, .block.combobox .product');
+        }, '.block.product:not(.unclickable), .block.combobox:not(.unclickable) .product');
 
         $discovery.on({
             mouseenter: youtubeHoverOn,
@@ -659,7 +659,7 @@ var PAGES = (function($, pageInfo) {
         $discovery.on({
             mouseenter: lifestyleHoverOn,
             mouseleave: lifestyleHoverOff
-        }, '.block.combobox .lifestyle');
+        }, '.block.combobox:not(.unclickable) .lifestyle');
     }
 
     /* --- END element bindings --- */
