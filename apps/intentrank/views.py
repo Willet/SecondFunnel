@@ -33,6 +33,16 @@ MAX_BLOCKS_BEFORE_VIDEO = 50
 
 def send_intentrank_request(request, url, method='GET', headers=None,
                             http=httplib2.Http):
+    """
+    Sends a given request to intentrank with the given headers.
+
+    @param request: The request to the django intentrank api.
+    @param url: The url to the intentrank service.
+    @param method:
+    @param headers: The headers for the request to the intentrank service.
+
+    @return: A tuple with a response code and the content that was returned.
+    """
     if not headers:
         headers = {}
 
@@ -59,6 +69,14 @@ def process_intentrank_request(request, store, page, function_name,
     """does NOT initiate a real IntentRank request if debug is set to True.
 
     Returns the exact number of products requested only when debug is True.
+
+    @param request: The request to the django intentrank api.
+    @param store: The store this request is for.
+    @param page: The page this request is for.
+    @param function_name: The intentrank api function to call.
+    @param param_dict: The query parameters to send to intentrank.
+
+    @return: A tuple with QuerySet of products and a response status.
     """
 
     url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
@@ -142,9 +160,9 @@ def get_json_data(request, products, campaign_id, seeds=None):
     products_with_images_only should be either '0' or '1', please.
     """
     ir_campaign = IntentRankCampaign.objects.get(pk=campaign_id)
-
+    
     campaign = ir_campaign.campaigns.all()[0]
-
+    
     results = []
     products_with_images_only = True
     if request.GET.get('products_with_images_only', '1') == '0':
@@ -179,6 +197,7 @@ def get_json_data(request, products, campaign_id, seeds=None):
             # if that requirement is not met, ignore product.
             continue
 
+    
     # videos
     video_cookie = request.session.get('pinpoint-video-cookie')
     if not video_cookie:
@@ -256,9 +275,9 @@ def get_json_data(request, products, campaign_id, seeds=None):
                 })
 
             results.insert(randrange(len(results) + 1), json_content)
-
+            
     return results
-
+        
 
 def get_seeds(request, **kwargs):
     """kwargs overrides request values when provided.
@@ -279,8 +298,8 @@ def get_seeds(request, **kwargs):
 
     results, status = process_intentrank_request(
         request, store, page, 'getseeds', {
-        'seeds'  : seeds,
-        'results': num_results
+            'seeds': seeds,
+            'results': num_results
         }
     )
 
@@ -341,8 +360,15 @@ def get_results(request, **kwargs):
         return ajax_jsonp(cached_results, callback, status=200)
 
 
+
 def update_clickstream(request):
-    """displays nothing on success."""
+    """
+    Tells intentrank what producs have been clicked on.
+
+    @param request: The request.
+
+    @return: A json HttpResonse that is empty or contains an error.  Displays nothing on success.
+    """
     store   = request.GET.get('store', '-1')
     page    = request.GET.get('campaign', '-1')
     product_id = request.GET.get('product_id')
@@ -362,7 +388,15 @@ def update_clickstream(request):
     return ajax_jsonp(result, callback, status=status)
 
 
+
 def invalidate_session(request):
+    """
+    Invalidates an intentrank session.
+
+    @param request: The request.
+
+    @return: An empty json HttpResonse.
+    """
     #intentrank/invalidate-session
     url = '{0}/intentrank/invalidate-session'.format(INTENTRANK_BASE_URL)
     send_intentrank_request(request, url)
