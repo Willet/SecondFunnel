@@ -102,28 +102,6 @@ class ProductAdmin(BaseNamedAdmin):
 
 admin.site.register(Product, ProductAdmin)
 
-
-class YoutubeVideoAdmin(BaseAdmin):
-    list_display = BaseAdmin.list_display + [
-        'video_id', 'store' ]
-    readonly_fields = ('preview_video', )
-
-    list_filter = BaseNamedAdmin.list_filter + ['store', 'categories']
-    
-    class Media:
-        js = ( "js/youtube_admin_look.js", )
-
-    def preview_video( self, obj ):
-        try:
-            id = obj.video_id
-            return mark_safe('<iframe src="http://www.youtube.com/embed/' + id + '" width="720" height="480"> </iframe><br/>')
-        except AttributeError:
-            return "<p>Invalid video id.</p>"
-
-
-admin.site.register(YoutubeVideo, YoutubeVideoAdmin)
-
-
 class ExternalContentTypeAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + ['enabled']
 
@@ -134,17 +112,24 @@ class ExternalContentAdmin(BaseAdmin):
                                                   'original_url',
                                                   'content_type',
                                                   'text_content']
-    list_filter = BaseNamedAdmin.list_filter + ['store']
+    list_filter = BaseNamedAdmin.list_filter + ['store', 'categories']
 
     filter_horizontal = ('tagged_products',)
+    
+    class Media:
+        js = ( "js/youtube_admin_look.js", )
 
-    readonly_fields = ('preview_image', )
+    readonly_fields = ('preview', )
 
-    def preview_image(self, obj):
+    def preview(self, obj):
         try:
-            url = obj.image_url
-            return mark_safe("<img src='{url}' />".format(url=url))
-        except AttributeError:
-            return "No Image Available"
+            if 'youtube' in obj.original_url:
+                id = obj.original_id
+                return mark_safe('<iframe src="http://www.youtube.com/embed/' + id + '" width="720" height="480"> </iframe><br/>')
+            else:
+                url = obj.image_url
+                return mark_safe("<img src='{url}' />".format(url=url))
+        except AttributeError as e:
+            return "Preview Unavailable"
 
 admin.site.register(ExternalContent, ExternalContentAdmin)
