@@ -102,10 +102,12 @@ class ProductAdmin(BaseNamedAdmin):
 
 admin.site.register(Product, ProductAdmin)
 
+
 class ExternalContentTypeAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + ['enabled']
 
 admin.site.register(ExternalContentType, ExternalContentTypeAdmin)
+
 
 class ExternalContentAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display + ['store', 'original_id',
