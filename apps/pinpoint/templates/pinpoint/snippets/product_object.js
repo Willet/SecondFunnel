@@ -6,6 +6,11 @@
     "title": "{{ product.name|escapejs }}",
     "price": "{{ product.price|escapejs }}",
     "template": "{{ product.template|default:'product' }}",
+    "tags": {
+        {% for key, value in product.tags.tags.items %}
+            "{{ key }}": "{{ value }}"{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    },
     {% if featured %}
     "stl-image": "{{ product.stl_image|escapejs }}",
     "featured-image": "{{ product.featured_image|escapejs }}",

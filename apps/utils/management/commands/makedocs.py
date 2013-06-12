@@ -15,4 +15,4 @@ class Command(NoArgsCommand):
     ]
 
     def handle_noargs(self, **kwargs):
-        os.system("epydoc -o doc " + " ".join(self.folders_to_include))
+        os.system("epydoc --parse-only -name SecondFunnel -o doc " + " ".join(self.folders_to_include))
