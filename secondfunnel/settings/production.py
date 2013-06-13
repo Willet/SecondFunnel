@@ -8,12 +8,6 @@ ENVIRONMENT = "production"
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
-AWS_IS_GZIPPED = True
-AWS_HEADERS =  {
-    'Expires': BROWSER_CACHE_EXPIRATION_DATE,
-    'Cache-Control': "public, max-age=604800",
-    'Vary': 'Accept-Encoding',
-}
 
 # Enable GZIP and Minification
 COMPRESS = True

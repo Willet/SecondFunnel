@@ -594,7 +594,6 @@ var PAGES = (function($, pageInfo) {
     }
 
     function pageScroll () {
-        
         var $w            = $(window),
             noResults     = ($('.discovery-area .block').length === 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
@@ -602,12 +601,12 @@ var PAGES = (function($, pageInfo) {
             lowestHeight,
             $divider = $(".divider"),
             divider_bottom = ($divider.length) ? $divider[0].getBoundingClientRect().bottom : 0;
-               
+
         // user scrolled far enough not to be a "bounce"
         if (divider_bottom < 150) {
             window.pagesTracking && pagesTracking.notABounce("scroll");
         }
-        
+
         $('.discovery-area .block').each(function() {
             if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
                 lowestBlock = $(this);
@@ -619,12 +618,11 @@ var PAGES = (function($, pageInfo) {
         } else {
             lowestHeight = lowestBlock.offset().top + lowestBlock.height()
         }
-        
+
         if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
             loadMoreResults();
         }
     }
-
 
     function attachListeners () {
         var $discovery = $('.discovery-area');

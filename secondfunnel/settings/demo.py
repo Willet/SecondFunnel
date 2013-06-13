@@ -10,12 +10,6 @@ if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
-AWS_IS_GZIPPED = True
-AWS_HEADERS =  {
-    'Expires': BROWSER_CACHE_EXPIRATION_DATE,
-    'Cache-Control': "public, max-age=604800",
-    'Vary': 'Accept-Encoding',
-}
 
 # Enable GZIP and Minification
 COMPRESS = True
