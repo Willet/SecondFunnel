@@ -118,9 +118,6 @@ COMPRESS_JS_FILTERS = ['compressor.filters.template.TemplateFilter',
                        
 COMPRESS_REBUILD_TIMEOUT = 2592000 # Rebuilds compressed files after 30 days (in seconds)
 
-COMPRESS = True # Force true for testing purposes
-COMPRESS_VERSION = True
-
 COMPRESS_STORAGE = STATICFILES_STORAGE
 
 COMPRESS_PRECOMPILERS = (

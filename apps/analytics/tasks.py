@@ -1,9 +1,9 @@
 """
 Analytics protector bunny:
 
- ()()
- (-_-)
- (()())
+()()
+(-_-)
+(()())
 
 """
 from copy import deepcopy
@@ -236,9 +236,9 @@ class Categories:
     """
     Caches analytics categories internally while providing useful shortcuts.
     Available keys per category slug:
-    - instance: model instance
-    - metric: function, takes metric slug and returns metric instance
-              if metric does not exist, throws an exception
+        - instance: model instance
+        - metric: function, takes metric slug and returns metric instance
+                  if metric does not exist, throws an exception
     """
 
     def __init__(self):

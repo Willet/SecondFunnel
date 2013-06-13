@@ -10,15 +10,41 @@ from apps.utils.ajax import ajax_success, ajax_error
 
 @login_required
 def campaign_save_draft(request):
+    """
+    Sets a campaign given by the the request to be inaccessable to the public.
+
+    @deprecated: Pinpoint pages are now always live.
+
+    @return: An HttpsResponse containing json with a success attribute.
+    """
     return modify_campaign(request, False)
 
 
 @login_required
 def campaign_publish(request):
+    """
+    Sets a campaign given by the the request to be publicly accessable.
+
+    @deprecated: Pinpoint pages are now always live.
+
+    @param request: The request containing the campaign id.
+
+    @return: An HttpsResponse containing json with a success attribute.
+    """
     return modify_campaign(request, True)
 
 @require_POST
 def modify_campaign(request, live):
+    """
+    Sets a campaign's accessability given by the the request.
+
+    @deprecated: Pinpoint pages are now always live.
+
+    @param request: The request containing the campaign id.
+    @param live: Whether the page should be live or not.
+
+    @return: An HttpsResponse containing json with a success attribute.
+    """
     campaign_id = request.POST.get('campaign_id')
     
     if not campaign_id:
@@ -39,6 +65,13 @@ def modify_campaign(request, live):
 
 
 def upload_image(request):
+    """
+    Uploads an image given by the request.
+
+    @param request: The request containing the image.
+
+    @return: An HttpResponse object containing json.
+    """
     # in IE this gets sent as a file
     if 'qqfile' in request.FILES:
         try:

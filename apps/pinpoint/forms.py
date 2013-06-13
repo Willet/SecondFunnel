@@ -2,7 +2,27 @@ from django import forms
 
 from apps.assets.models import ProductMedia, GenericImage
 
+
 class FeaturedProductWizardForm(forms.Form):
+    """
+    Defines the form for configuring a featured product block.
+
+    @ivar name: The name of the pinpoint page.
+    @ivar product_id: The id of the selected product to feature.
+    @ivar page_changed: Hidden from the user. Keeps track of
+        whether the page has changed when the form returns errors.
+    @ivar description: The description to override the default
+        product's description.
+    @ivar product_media_id: Hidden from the user. Keeps track of
+        the image id if the user picked an existing product image.
+    @ivar generic_media_id: Hidden from the user. Keeps track of
+        the iamge id if the user uploaded a new image.
+    @ivar generic_media_list: Hidden from the user. Keeps track of
+        all uploaded images so they persist when the form returns
+        errors.
+    @ivar campaign_id: Hidden from the user. Keeps track of the id
+        of the page being edited.
+    """
     name = forms.CharField(
         max_length=255,
         label="Page Name",
@@ -61,15 +81,26 @@ class FeaturedProductWizardForm(forms.Form):
 
 
 class ShopTheLookWizardForm(FeaturedProductWizardForm):
+    """
+    Defines the form for configuring a shop the look block.
+
+    @ivar ls_product_media_id: Hidden from the user. Keeps track of
+        the image id if the user picked an existing product image
+        as a lifestyle image.
+    @ivar ls_generic_media_id: Hidden from the user. Keeps track of
+        the iamge id if the user uploaded a new image as a lifestyle
+        image.
+    """
+
     ls_product_media_id = forms.CharField(
         required=False,
         widget=forms.HiddenInput(),
-        )
+    )
 
     ls_generic_media_id = forms.CharField(
         required=False,
         widget=forms.HiddenInput(),
-        )
+    )
 
     def clean(self):
         """Ensure that either custom or existing image is selected"""

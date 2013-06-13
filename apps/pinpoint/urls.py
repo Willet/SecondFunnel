@@ -44,6 +44,7 @@ urlpatterns = patterns('apps.pinpoint.views',
 )
 
 # AJAX
+# Deprecated
 urlpatterns += patterns('apps.pinpoint.ajax',
     url(r'^ajax/campaign/save_draft/$',
         'campaign_save_draft', name='ajax-campaign-save-draft'),
