@@ -11,6 +11,18 @@ DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
 
+# Enable GZIP and Minification
+COMPRESS = True
+COMPRESS_VERSION = True
+COMPRESS_ENABLED = True
+
+AWS_IS_GZIPPED = True
+AWS_HEADERS =  {
+    'Expires': BROWSER_CACHE_EXPIRATION_DATE,
+    'Cache-Control': "public, max-age=604800",
+    'Vary': 'Accept-Encoding',
+}
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',

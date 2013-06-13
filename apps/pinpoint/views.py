@@ -11,6 +11,7 @@ from django.utils.encoding import force_unicode
 from django.views.decorators.http import require_POST
 from fancy_cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
+from django.views.decorators.vary import vary_on_headers
 
 from apps.analytics.models import Category
 from apps.assets.models import ExternalContent, ExternalContentType, Store
@@ -346,6 +347,7 @@ def campaign_short(request, campaign_id_short, mode='full'):
     return campaign(request, campaign_id)
 
 
+@vary_on_headers('Accept-Encoding')
 def campaign(request, campaign_id, mode='full'):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
 
