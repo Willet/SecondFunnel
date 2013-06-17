@@ -1,8 +1,12 @@
 from urllib import urlencode
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.shortcuts import render_to_response, get_object_or_404, redirect, render
 from django.template import RequestContext, Context, loader
 from django.http import HttpResponse, HttpResponseServerError
 from django.contrib.contenttypes.models import ContentType
@@ -12,6 +16,7 @@ from django.views.decorators.http import require_POST
 from fancy_cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
 from django.views.decorators.vary import vary_on_headers
+from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnInteger
 
 from apps.analytics.models import Category
 from apps.assets.models import ExternalContent, ExternalContentType, Store
@@ -310,21 +315,41 @@ def asset_manager(request, store_id):
             for obj in contents:
                 create_external_content(store, **obj)
 
-    all_contents = store.external_content.all()
+    all_contents = store.external_content.all().order_by('id')
+    filtered_contents = OrderedDict([ ('needs_review', all_contents.filter(approved=False, active=True).order_by('id')),
+                                      ('rejected', all_contents.filter(active=False).order_by('id')),
+                                      ('approved', all_contents.filter(approved=True, active=True).order_by('id')),
+                                     ])
 
-    return render_to_response('pinpoint/asset_manager.html', {
-        "store": store,
-        "accounts": accounts,
-        "content": [
-            ("Needs Review", "needs_review",
-                all_contents.filter(approved=False, active=True)),
-            ("Rejected", "rejected",
-                all_contents.filter(active=False)),
-            ("Approved", "approved",
-                all_contents.filter(approved=True, active=True))
-        ],
-        "store_id": store_id
-    }, context_instance=RequestContext(request))
+    if not request.is_ajax():
+        content = []
+        for k, v in filtered_contents.iteritems():
+            content.append((k.replace('_', ' ').title(), k, len(v)))
+        return render_to_response('pinpoint/asset_manager.html', {
+                "store": store,
+                "accounts": accounts,
+                "content": content,
+                "store_id": store_id,
+                }, context_instance=RequestContext(request))
+    else:
+        # request is an ajax request, determine which content we're loading
+        content_type = request.GET['content_type']
+        selected_content = next(v for k,v in filtered_contents.iteritems() if k == content_type)
+        # set up pagination
+        paginator = Paginator(selected_content, 10)
+        try:
+            page = request.GET['page']
+            content = paginator.page(page)
+        except PageNotAnInteger:
+            content = paginator.page(1)
+        except (EmptyPage, InvalidPage):
+            content = paginator.page(paginator.num_pages)
+        content = {
+            'content_data': content.object_list,
+            'content_type': content_type,
+            'paginator': content,
+            }
+        return render(request, 'pinpoint/assets.html', content, context_instance=RequestContext(request))
 
 
 # origin: campaigns with short URLs are cached for 30 minutes
