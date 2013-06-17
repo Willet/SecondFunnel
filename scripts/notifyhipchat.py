@@ -13,7 +13,7 @@ def hipchat_broadcast(by='HipChat', message='Hello, World!', room_id=115122):
 where = ''
 try:
     import os
-    where = os.getenv('HOSTNAME') or os.environ['HOSTNAME']
+    where = os.getenv('PARAM1')
     if where:
         where = ' on %s' % where
 except KeyError:
