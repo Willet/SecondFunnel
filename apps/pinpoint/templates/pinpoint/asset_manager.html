@@ -341,9 +341,17 @@
     <script src="{% static "js/jquery-ui.js" %}" type="text/javascript"></script>
     <script src="{% static "js/tag-it.js" %}" type="text/javascript"></script>
     <script src="{% static "js/fileuploader.js" %}"></script>
+    <script src="{% static "js/jquery.imagesloaded.min.js" %}"></script>
 {% endblock %}
 
 {% block document_ready %}
+    // Load Youtube IFrame Player API code asynchronously
+    var tag = document.createElement('script');
+    tag.src = "//www.youtube.com/iframe_api";
+
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
     var console = window.console || {
         log: function() {},
         debug: function() {}
@@ -457,117 +465,195 @@
         );
     };
 
-    $(".approve").button({
-        icons: {
-            primary: 'ui-icon-check'
-        }
-    }).click(function (event) {
-        event.preventDefault();
-        do_action(this, "approve");
+    function attachListeners( $content ) {
 
-    });
+        // Render images and indicate if an image is broken
 
-    $(".reject").button({
-        icons: {
-            primary: 'ui-icon-trash'
-        }
-    }).click(function (event) {
-        event.preventDefault();
-        do_action(this, "reject");
-    });
+        var $images = $content.find("div.grid_3.image_box");
+        $images.each(function(){
+            var style = "position:relative; left:45%; top:45%;",
+                $spinner = $('<img/>', { 'style': style,
+                    'src': '{% static "images/ajax-spinner.gif" %}'
+                }),
+                // http://stackoverflow.com/questions/6397529/get-url-from-background-image-property  
+                bg_url = $(this).css('background-image').replace(/^url\(["']?/, '').replace(/["']?\)$/, ''), 
+                $bg_image = $('<img>').attr('src', bg_url),
+                instance = $(this).prepend($spinner).css('background-image', '');
 
-    $("textarea").on('input propertychange', function (event) {
-        var $p = $(this).parents(".approval_block"),
-            oid = $p.data("oid");
-
-        patch_api(oid, {"text_content": $(this).val()}, function () {
-            $p.children(".approval_form").children("label").children(".saved").show("slow");
+            $bg_image.imagesLoaded(function($images, $proper, $broken) {
+                if ($broken.length >= 1) {
+                    // TODO: FIND AND INCLUDE BROKEN IMAGE LINK ICON OR SOME WAY OF INDICATING BROKEN
+                    {% if request.user.is_superuser %}
+                        instance.click(function(){
+                            window.location = "/admin/assets/externalcontent/" + instance.parent().attr('data-oid');
+                        }).css('cursor', 'pointer');
+                    {% endif %}
+                    instance.css('background-image', 'url({% static "images/broken_image_icon.png" %})');
+                    
+                } else {
+                    instance.css('background-image', 'url("' + bg_url + '")');
+                }
+                $spinner.remove();
+            });
         });
-    });
 
-    $(".done_review").button().click(function (event) {
-        event.preventDefault();
-        window.location.reload();
-    });
+        /* Youtube */
+        $content.find('.video_box').css('cursor', 'pointer').on('click', function() {
+            var $me = $(this),
+                id = $me.data('videoId');
 
-    // this is a bit of a hack
-    // template renders IDs for each product tag; tagit loses these
-    // once it renders the widget and loads initial tags via li elems.
-    // So, we need to preserve the associations, and associate product
-    // names (tags) with product IDs for future use.
-    $(".tags").each(function(index) {
-        var oid = $(this).parents(".approval_block").data("oid");
-
-        $(this).children("li").each(function(index) {
-            tag_associations[oid] = tag_associations[oid] || [];
-
-            tag_associations[oid].push($(this).data("pid"));
-            products[$(this).text()] = $(this).data("pid");
+            player = new YT.Player($me.attr('id'), {
+                height: 240,
+                width: 426,
+                videoId: id,
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 1
+                },
+                events: {
+                    'onReady': function (e) {},
+                    'onStateChange': function(e) {},
+                    'onError': function (e) {}
+                }
+            });
         });
-    });
 
-    $(".tags").tagit({
-        autocomplete: {
-            autoFocus: true,
-            source: function(request, response) {
-                var term = request.term;
-                tasty_api({
-                    resource_name: "product",
-                    data: {
-                        'store': store_id,
-                        'format': 'json',
-                        'name_or_url': term
-                    },
-                    success: function (data) {
-                        //convert object to usable form
-                        var results = [];
-                        $.each(data.objects, function(index, value) {
-                            results.push({'label': value.name, 'id': value.id})
-                        });
-                        response(results);
+        $content.find(".approve").button({
+            icons: {
+                primary: 'ui-icon-check'
+            }
+        }).on('click', function (event) {
+            event.preventDefault();
+            do_action(this, "approve");
+        });
+
+        $content.find(".reject").button({
+            icons: {
+                primary: 'ui-icon-trash'
+            }
+        }).on('click', function (event) {
+            event.preventDefault();
+            do_action(this, "reject");
+        });
+
+        $content.find("textarea").on('input propertychange', function (event) {
+            var $p = $(this).parents(".approval_block"),
+                oid = $p.data("oid");
+
+            patch_api(oid, {"text_content": $(this).val()}, function () {
+                $p.children(".approval_form").children("label").children(".saved").show("slow");
+            });
+        });
+
+        $(".done_review").button().on('click', function (event) {
+            event.preventDefault();
+            window.location.reload();
+        });
+
+        // this is a bit of a hack
+        // template renders IDs for each product tag; tagit loses these
+        // once it renders the widget and loads initial tags via li elems.
+        // So, we need to preserve the associations, and associate product
+        // names (tags) with product IDs for future use.
+        $content.find(".tags").each(function(index) {
+            var oid = $(this).parents(".approval_block").data("oid");
+
+            $(this).children("li").each(function(index) {
+                tag_associations[oid] = tag_associations[oid] || [];
+
+                tag_associations[oid].push($(this).data("pid"));
+                products[$(this).text()] = $(this).data("pid");
+            });
+        });
+
+        $content.find(".tags").tagit({
+            autocomplete: {
+                autoFocus: true,
+                source: function(request, response) {
+                    var term = request.term;
+                    tasty_api({
+                        resource_name: "product",
+                        data: {
+                            'store': store_id,
+                            'format': 'json',
+                            'name_or_url': term
+                        },
+                        success: function (data) {
+                            //convert object to usable form
+                            var results = [];
+                            $.each(data.objects, function(index, value) {
+                                results.push({'label': value.name, 'id': value.id})
+                            });
+                            response(results);
+                        }
+                    });
+                },
+
+                minLength: 2,
+
+                // we're handling addition here and not in beforeTagAdded
+                // because we need access to product id (ui.item.id)
+                select: function( event, ui ) {
+                    var oid = $(this).parents(".approval_block").data("oid");
+
+                    if (ui.item) {
+                        if (tag_associations[oid] && tag_associations[oid].indexOf(ui.item.id) != -1) {
+                            return;
+                        }
+
+                        products[ui.item.value] = ui.item.id;
+
+                        if (tag_associations[oid] === undefined) {
+                            tag_associations[oid] = [ui.item.id];
+                        } else {
+                            tag_associations[oid].push(ui.item.id);
+                        }
+
+                        post_tags(oid);
+
+                        $("ul#" + oid).tagit("createTag", ui.item.label);
+
+                        // prevent the tag input from being updated with the chosen value
+                        // we already did it just above
+                        return false;
                     }
-                });
+                }
             },
 
-            minLength: 2,
+            beforeTagRemoved: function (event, ui) {
+                var oid = $(this).parents(".approval_block").data("oid"),
+                    pid = products[ui.tagLabel];
 
-            // we're handling addition here and not in beforeTagAdded
-            // because we need access to product id (ui.item.id)
-            select: function( event, ui ) {
-                var oid = $(this).parents(".approval_block").data("oid");
-
-                if (ui.item) {
-                    if (tag_associations[oid] && tag_associations[oid].indexOf(ui.item.id) != -1) {
-                        return;
-                    }
-
-                    products[ui.item.value] = ui.item.id;
-
-                    if (tag_associations[oid] === undefined) {
-                        tag_associations[oid] = [ui.item.id];
-                    } else {
-                        tag_associations[oid].push(ui.item.id);
-                    }
-
-                    post_tags(oid);
-
-                    $("ul#" + oid).tagit("createTag", ui.item.label);
-
-                    // prevent the tag input from being updated with the chosen value
-                    // we already did it just above
-                    return false;
-                }
+                tag_associations[oid].splice(tag_associations[oid].indexOf(pid), 1);
+                post_tags(oid);
             }
-        },
+        });
 
-        beforeTagRemoved: function (event, ui) {
-            var oid = $(this).parents(".approval_block").data("oid"),
-                pid = products[ui.tagLabel];
-
-            tag_associations[oid].splice(tag_associations[oid].indexOf(pid), 1);
-            post_tags(oid);
+        /* File Upload */
+        var $fileUpload = $content.find('.file-upload');
+        if ($fileUpload.length) {
+            uploader = new qq.FileUploader({
+                element: $fileUpload[0],
+                action: '{% url upload-asset store.id %}',
+                csrfToken: $.cookie('csrftoken'),
+                allowedExtensions: ['jpg' ,'png', 'jpeg'],
+                uploadButtonText: 'Upload from file',
+                onSubmit: function() {
+                    $('.qq-upload-button').parents('.service').find('.icon').removeClass('file');
+                    // TODO: Actual disable clicking on the button
+                    $('.qq-upload-button').addClass('disabled');
+                    $('.qq-upload-button').text('Uploading...');
+                },
+                onComplete: function(id, fileName, response) {
+                    location.reload();
+                },
+                onError: function(id, fileName, reason) {
+                    console.log(reason);
+                }
+            });
+            $(".qq-upload-button").addClass('button');
         }
-    });
+    }
 
     /* Connection bar*/
     $('.connect').on('click', function() {
@@ -586,58 +672,49 @@
         $('.connect-window').dialog('close');
     });
 
-    /* File Upload */
-    var $fileUpload = $('.file-upload');
-    if ($fileUpload.length) {
-        uploader = new qq.FileUploader({
-            element: $fileUpload[0],
-            action: '{% url upload-asset store.id %}',
-            csrfToken: $.cookie('csrftoken'),
-            allowedExtensions: ['jpg' ,'png', 'jpeg'],
-            uploadButtonText: 'Upload from file',
-            onSubmit: function() {
-                $('.qq-upload-button').parents('.service').find('.icon').removeClass('file');
-                // TODO: Actual disable clicking on the button
-                $('.qq-upload-button').addClass('disabled');
-                $('.qq-upload-button').text('Uploading...');
-            },
-            onComplete: function(id, fileName, response) {
-                location.reload();
-            },
-            onError: function(id, fileName, reason) {
-                console.log(reason);
+    // Initial loading content for current container
+    load_content(1);
+    
+    $('#tabs ul li').on('click', function(){
+        var $tab = $($(this).children('a').attr('href'));
+        if ($tab.children().length == 0) {
+            load_content(1);
+        }
+    }); 
+
+    
+    $(window).scroll(function(){
+        var break_point = $(document).height() - ($(window).height() * 1.02),
+            $currentTab = $($('.ui-tabs-active a').attr('href'));
+        if ($(window).scrollTop() >= break_point) {
+            var next_page = $currentTab.children().last().attr('data-next');
+            if (next_page) {
+                load_content(next_page);
             }
-        });
-        $(".qq-upload-button").addClass('button');
-    }
-
-    // Load Youtube IFrame Player API code asynchronously
-    var tag = document.createElement('script');
-    tag.src = "//www.youtube.com/iframe_api";
-
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-    /* Youtube */
-    $('.video_box').click(function() {
-        var $me = $(this),
-            id = $me.data('videoId');
-
-        player = new YT.Player($me.attr('id'), {
-            height: 240,
-            width: 426,
-            videoId: id,
-            playerVars: {
-                'autoplay': 1,
-                'controls': 1
-            },
-            events: {
-                'onReady': function (e) {},
-                'onStateChange': function(e) {},
-                'onError': function (e) {}
-            }
-        });
+        }
     });
+
+    var loadingContent = false;
+
+    function load_content( page ) {
+        if (!loadingContent) {
+            loadingContent = true;
+            var url = "{% url asset-manager store.id %}",
+                $currentTab = $($('.ui-tabs-active a').attr('href'));
+            url += "?content_type=" + $currentTab.attr('id').replace('#', '') + "&page=" + page;
+            $.get(url, function( response ) {
+                if ($.isEmptyObject(response)) {
+                    console.log("End of page.");
+                } else {
+                    var $newcontent = $(response);
+
+                    $currentTab.append($newcontent);
+                    attachListeners($newcontent);
+                    loadingContent = false;
+                }
+            });
+        }
+    }
 {% endblock %}
 
 {% block top_section %}
@@ -657,7 +734,7 @@
             {% endwith %}
         </ul>
     </div>
-{% endblock top_section%}
+{% endblock top_section %}
 
 {% block content %}
     <p>
@@ -668,87 +745,15 @@
     <div class="grid_11 review_area" id="tabs">
         <ul>
             {% for content_label, content_type, content_data in content %}
-                <li><a href="#{{ content_type }}">{{ content_label }} ({{ content_data.count }})</a></li>
+                <li><a href="#{{ content_type }}">{{ content_label }} ({{ content_data }})</a></li>
             {% endfor %}
         </ul>
 
-
         {% for content_label, content_type, content_data in content %}
-            <div id="{{ content_type }}">
-                {% for data in content_data %}
-                    <div class='grid_11 approval_block' data-oid="{{ data.id }}">
-                        {% if 'youtube' not in data.content_type.name|lower %}
-                        <div class="grid_3 image_box" style="background-image: url({{ data.image_url|size:"medium" }});">
-                            <div class="image_ribbon {{ content_type }}" data-oid="{{ data.id }}">
-                                <div class="label">
-                                    {% if content_type == "needs_review" %}
-                                        Not Reviewed
-                                    {% elif content_type == "approved" %}
-                                        Approved
-                                    {% else %}
-                                        Rejected
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="grid_6 prefix_1 approval_form">
-                        {% else %}
-                        <div class="grid_6 video_box"
-                             style="background-image: url('http://i.ytimg.com/vi/{{data.original_id}}/hqdefault.jpg');"
-                             id="yt-{{ data.original_id }}"
-                             data-video-id='{{ data.original_id }}'>
-                        </div>
-                        <div class="grid_5 prefix_1 approval_form">
-                        {% endif %}
-                            <label for="caption_{{ data.id }}">Caption <span class="saved">Saved</span></label>
-                            <textarea id="caption_{{ data.id }}">{{ data.text_content }}</textarea>
-                            <div class="actions">
-                                <strong>Tagged Products:</strong>
-                                <ul class="tags" id="{{ data.id }}" style="width: 350px; max-height: 80px;">
-                                    {% for product in data.tagged_products.all %}
-                                    <li data-pid="{{ product.id }}">{{ product.name }}</li>
-                                    {% endfor %}
-                                </ul>
-                                <span class="reject" {% if content_type == "rejected" %}style="display:none;"{% endif %}>Reject</span>
-                                <span class="approve" {% if content_type == "approved" %}style="display:none;"{% endif %}>Approve</span>
-                            </div>
-                        </div>
-                    </div>
-                {% empty %}
-                    <p>No items here.</p>
-                    <div class='connect-text'>
-                        Import content by connecting social accounts
-                        or by uploading from file:
-                        {%  csrf_token %}
-                    </div>
-                    <div class='connections'>
-                    {% for account in accounts %}
-                        {% if not account.connected %}
-                        <div class='service'>
-                            <div class='icon {{ account.type }} large'>
-                            </div>
-                            <a href='{% url socialauth_associate_begin account.type %}'
-                               class='button'>
-                                Connect Account
-                            </a>
-                        </div>
-                        {%  endif %}
-                    {% endfor %}
-                        <div class='service'>
-                            <div class='icon file large'></div>
-                            <div class='file-upload'></div>
-                        </div>
-                    </div>
-                {% endfor %}
-
-                {% if content_data %}
-                    {% if content_type == "needs_review" %}
-                        <span class="done_review" style="float:right;">Done Reviewing</span>
-                    {% endif %}
-                {% endif %}
-            </div>
+            <div id="{{ content_type }}"></div>
         {% endfor %}
     </div>
+
 
     <div class='connect-window' style='display: none;'>
         <div class='window-content'>
