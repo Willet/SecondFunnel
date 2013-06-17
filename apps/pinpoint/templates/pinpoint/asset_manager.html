@@ -244,8 +244,24 @@
             height: 70px;
         }
 
+        .approval_form .tags{
+            width: 450px !important;
+        }
+
+        .grid_5.approval_form {
+            padding-left: 0px;
+        }
+
+        .grid_5.approval_form textarea {
+            width: 314px;
+        }
+
+        .grid_5.approval_form .tags {
+            width:  324px !important;
+        }
+
         .actions {
-            float: right;
+            /*float: right;*/
         }
 
         .saved {
@@ -260,6 +276,27 @@
             background-repeat: no-repeat;
             background-position: center center;
             background-color: #ddd;
+        }
+
+        .video_box {
+            width: 426px !important;
+            height: 240px;
+            position: relative;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-color: #ddd;
+        }
+
+        .video_box:before {
+            background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/playbtn.png');
+            content: "";
+            width: 426px;
+            height: 240px;
+            position: absolute;
+            background-repeat: no-repeat;
+            left: 58px;
+            top:  0px;
+
         }
 
         .image_ribbon {
@@ -308,6 +345,13 @@
 {% endblock %}
 
 {% block document_ready %}
+    // Load Youtube IFrame Player API code asynchronously
+    var tag = document.createElement('script');
+    tag.src = "//www.youtube.com/iframe_api";
+
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
     var console = window.console || {
         log: function() {},
         debug: function() {}
@@ -453,11 +497,32 @@
             });
         });
 
+        /* Youtube */
+        $content.find('.video_box').css('cursor', 'pointer').on('click', function() {
+            var $me = $(this),
+                id = $me.data('videoId');
+
+            player = new YT.Player($me.attr('id'), {
+                height: 240,
+                width: 426,
+                videoId: id,
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 1
+                },
+                events: {
+                    'onReady': function (e) {},
+                    'onStateChange': function(e) {},
+                    'onError': function (e) {}
+                }
+            });
+        });
+
         $content.find(".approve").button({
             icons: {
                 primary: 'ui-icon-check'
             }
-        }).click(function (event) {
+        }).on('click', function (event) {
             event.preventDefault();
             do_action(this, "approve");
         });
@@ -466,7 +531,7 @@
             icons: {
                 primary: 'ui-icon-trash'
             }
-        }).click(function (event) {
+        }).on('click', function (event) {
             event.preventDefault();
             do_action(this, "reject");
         });
@@ -480,7 +545,7 @@
             });
         });
 
-        $(".done_review").button().click(function (event) {
+        $(".done_review").button().on('click', function (event) {
             event.preventDefault();
             window.location.reload();
         });
@@ -650,7 +715,6 @@
             });
         }
     }
-
 {% endblock %}
 
 {% block top_section %}

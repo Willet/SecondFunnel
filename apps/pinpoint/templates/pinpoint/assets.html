@@ -3,6 +3,7 @@
 
 {% for data in content_data %}
     <div class='grid_11 approval_block' data-oid="{{ data.id }}" {% if paginator.has_next %} data-next="{{ paginator.next_page_number }}" {% endif %} >
+        {% if 'youtube' not in data.content_type.name|lower %}
         <div class="grid_3 image_box" style="background-image: url({{ data.image_url|size:"medium" }});">
             <div class="image_ribbon {{ content_type }}" data-oid="{{ data.id }}">
                 <div class="label">
@@ -18,6 +19,14 @@
         </div>
                 
         <div class="grid_6 prefix_1 approval_form">
+        {% else %}
+        <div class="grid_6 video_box"
+             style="background-image: url('http://i.ytimg.com/vi/{{data.original_id}}/hqdefault.jpg');"
+             id="yt-{{ data.original_id }}"
+             data-video-id='{{ data.original_id }}'>
+        </div>
+        <div class="grid_5 prefix_1 approval_form">
+        {% endif %}
             <label for="caption_{{ data.id }}">Caption <span class="saved">Saved</span></label>
             <textarea id="caption_{{ data.id }}">{{ data.text_content }}</textarea>
             <div class="actions">
