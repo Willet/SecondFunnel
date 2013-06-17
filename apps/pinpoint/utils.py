@@ -65,8 +65,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
     theme = campaign.get_theme(mode)
 
     if not theme:
-        #TODO: ERROR
-        pass
+        raise ValueError('Neither campaign nor its store has a theme defined')
 
     page_str = theme.page
 

@@ -348,8 +348,14 @@ def campaign_short(request, campaign_id_short, mode='full'):
 
 
 @vary_on_headers('Accept-Encoding')
-def campaign(request, campaign_id, mode='full'):
+def campaign(request, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
+
+    is_mobile = getattr(request, 'mobile', False)
+    if is_mobile:
+        mode = 'mobile'
+    else:
+        mode = 'full'
 
     rendered_content = render_campaign(campaign_instance,
         request=request, get_seeds_func=get_seeds, mode=mode)
