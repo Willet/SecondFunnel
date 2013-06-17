@@ -316,14 +316,15 @@
             // Render youtube blocks with player
             videos = _.where(results, {'template': 'youtube'});  // (haystack, criteria)
             _.each(videos, function (video) {
+                var video_id = video['original-id'];
                 var video_state_change = window.pagesTracking?
-                    _.partial(pagesTracking.videoStateChange, video.id):
+                    _.partial(pagesTracking.videoStateChange, video_id):
                     function() {/* dummy */};
 
-                api.getObject("video_gdata", video.id, function (video_data) {
+                api.getObject("video_gdata", video_id, function (video_data) {
                     var preferredThumbnailQuality = 'hqdefault',
                         thumbClass = 'youtube-thumbnail',
-                        thumbURL = 'http://i.ytimg.com/vi/' + video.id +
+                        thumbURL = 'http://i.ytimg.com/vi/' + video_id +
                                    '/' + preferredThumbnailQuality + '.jpg',
                         thumbObj,
                         thumbPath = ['entry', 'media$group', 'media$thumbnail'],
@@ -337,15 +338,15 @@
                         thumbURL = thumbObj.url;
                     }  // else fallback to the default thumbURL
 
-                    var containers = $(".youtube[data-label='" + video.id + "']");
+                    var containers = $(".youtube[data-label='" + video_id + "']");
                     containers.each(function () {
                         var container = $(this),
-                            uniqueThumbnailID = PAGES.generateID('thumb-' + video.id);
+                            uniqueThumbnailID = PAGES.generateID('thumb-' + video_id);
 
                         var thumbnail = $('<div />', {
                             'css': {  // this is to trim the 4:3 black bars
                                 'overflow': 'hidden',
-                                'height': video.height + 'px',
+                                'height': 250 + 'px',
                                 'background-image': 'url("' + thumbURL + '")',
                                 'background-position': 'center center'
                             },
@@ -358,9 +359,9 @@
                             // when the thumbnail is clicked, replace itself with
                             // the youtube video of the same size, then autoplay
                             player = new YT.Player(uniqueThumbnailID, {
-                                height: video.height,
-                                width: video.width,
-                                videoId: video.id,
+                                height: 250,
+                                width: 450,
+                                videoId: video_id,
                                 playerVars: {
                                     'autoplay': 1,
                                     'controls': 0
@@ -378,7 +379,7 @@
                         if (container.find('.' + thumbClass).length === 0) {
                             // add a thumbnail only if there isn't one already
                             container.prepend(thumbnail);
-                            console.log('loaded video thumbnail ' + video.id);
+                            console.log('loaded video thumbnail ' + video_id);
                         } else {
                             console.error('prevented thumbnail dupe');
                         }
