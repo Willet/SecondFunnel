@@ -64,7 +64,7 @@
     </div>
 {% endfor %}
 {% if content_data %}
-    {% if content_type == "needs_review" %}
+    {% if content_type == "needs_review" and not paginator.has_next %}
         <span class="done_review" style="float:right;">Done Reviewing</span>
     {% endif %}
 {% endif %}
