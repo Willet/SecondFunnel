@@ -1,4 +1,5 @@
 from urllib import urlencode
+from collections import OrderedDict
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login
@@ -312,15 +313,14 @@ def asset_manager(request, store_id):
                 create_external_content(store, **obj)
 
     all_contents = store.external_content.all().order_by('id')
-    filtered_contents = [ ('needs_review', all_contents.filter(approved=False, active=True).order_by('id')),
-                          ('rejected', all_contents.filter(active=False).order_by('id')),
-                          ('approved', all_contents.filter(approved=True, active=True).order_by('id')),
-                        ]
+    filtered_contents = OrderedDict([ ('needs_review', all_contents.filter(approved=False, active=True).order_by('id')),
+                                      ('rejected', all_contents.filter(active=False).order_by('id')),
+                                      ('approved', all_contents.filter(approved=True, active=True).order_by('id')),
+                                     ])
 
     if not request.is_ajax():
         content = []
-        for pair in filtered_contents:
-            k, v = pair[0], pair[1]
+        for k, v in filtered_contents.iteritems():
             content.append((k.replace('_', ' ').title(), k, len(v)))
         return render_to_response('pinpoint/asset_manager.html', {
                 "store": store,
@@ -331,7 +331,7 @@ def asset_manager(request, store_id):
     else:
         # request is an ajax request, determine which content we're loading
         content_type = request.GET['content_type']
-        selected_content = [ x for x in filtered_contents if x[0] == content_type ][0][1]
+        selected_content = next(v for k,v in filtered_contents.iteritems() if k == content_type)
         # set up pagination
         paginator = Paginator(selected_content, 10)
         try:

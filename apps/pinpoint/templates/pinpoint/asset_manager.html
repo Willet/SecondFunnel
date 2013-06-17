@@ -473,7 +473,7 @@
         $images.each(function(){
             var style = "position:relative; left:45%; top:45%;",
                 $spinner = $('<img/>', { 'style': style,
-                    'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
+                    'src': '{% static "images/ajax-spinner.gif" %}'
                 }),
                 // http://stackoverflow.com/questions/6397529/get-url-from-background-image-property  
                 bg_url = $(this).css('background-image').replace(/^url\(["']?/, '').replace(/["']?\)$/, ''), 
