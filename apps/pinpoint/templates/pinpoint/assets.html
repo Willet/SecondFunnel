@@ -1,0 +1,70 @@
+{% load staticfiles %}
+{% load pinpoint_ui %}
+
+{% for data in content_data %}
+    <div class='grid_11 approval_block' data-oid="{{ data.id }}" {% if paginator.has_next %} data-next="{{ paginator.next_page_number }}" {% endif %} >
+        {% if 'youtube' not in data.content_type.name|lower %}
+        <div class="grid_3 image_box" style="background-image: url({{ data.image_url|size:"medium" }});">
+            <div class="image_ribbon {{ content_type }}" data-oid="{{ data.id }}">
+                <div class="label">
+                    {% if content_type == "needs_review" %}
+                        Not Reviewed
+                    {% elif content_type == "approved" %}
+                        Approved
+                    {% else %}
+                        Rejected
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+                
+        <div class="grid_6 prefix_1 approval_form">
+        {% else %}
+        <div class="grid_6 video_box"
+             style="background-image: url('http://i.ytimg.com/vi/{{data.original_id}}/hqdefault.jpg');"
+             id="yt-{{ data.original_id }}"
+             data-video-id='{{ data.original_id }}'>
+        </div>
+        <div class="grid_5 prefix_1 approval_form">
+        {% endif %}
+            <label for="caption_{{ data.id }}">Caption <span class="saved">Saved</span></label>
+            <textarea id="caption_{{ data.id }}">{{ data.text_content }}</textarea>
+            <div class="actions">
+                <strong>Tagged Products:</strong>
+                <ul class="tags" id="{{ data.id }}" style="width: 350px; max-height: 80px;">
+                    {% for product in data.tagged_products.all %}
+                        <li data-pid="{{ product.id }}">{{ product.name }}</li>
+                    {% endfor %}
+                </ul>
+                <span class="reject" {% if content_type == "rejected" %}style="display:none;"{% endif %}>Reject</span>
+                <span class="approve" {% if content_type == "approved" %}style="display:none;"{% endif %}>Approve</span>
+            </div>
+        </div>
+    </div>
+{% empty %}
+    <p>No items here.</p>
+    <div class='connect-text'>
+        Import content by connecting social accounts
+        or by uploading from file:
+        {%  csrf_token %}
+    </div>
+    <div class='connections'>
+        {% for account in accounts %}
+            {% if not account.connected %}
+                <div class='service'>
+                    <div class='icon {{ account.type }} large'></div>
+                    <a href='{% url socialauth_associate_begin account.type %}' class='button'> Connect Account</a>
+                </div>
+            {% endif %}
+        {% endfor %}
+        <div class='service'>
+            <div class='icon file large'></div>
+            <div class='file-upload'></div>
+        </div>
+    </div>
+{% endfor %}
+{% if content_data %}
+    {% if content_type == "needs_review" %}
+        <span class="done_review" style="float:right;">Done Reviewing</span>
+    {% endif %}
+{% endif %}
