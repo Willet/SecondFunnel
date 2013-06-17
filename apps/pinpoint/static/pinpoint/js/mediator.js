@@ -1,12 +1,12 @@
 var Willet = Willet || {};
 
 // Willet's very own mediator
-// github.com/Willet/Willet-Referrals/blob/master/templates/sibt/js/willet.mediator.js
 Willet.mediator = (function (me) {
     // example on: Willet.mediator.on('eventName', function (params) {
     //     alert(params);
     // });
     // example fire: Willet.mediator.fire('eventName', 'hello world');
+    "use strict";
 
     // you shouldn't need to manipulate this object, but you can if you want.
     me.hooks = me.hooks || {
@@ -32,17 +32,24 @@ Willet.mediator = (function (me) {
     // trigger an event. fire all functions assigned to that event.
     // params is optional.
     me.fire = me.fire || function (event, params) {
+        var i;
+
         if (!me.hooks[event]) {
             return me; // no functions registered with this event.
         }
         // console.log(me.hooks[event].length + ' events to run');
-        for (var i = 0; i < me.hooks[event].length; i++) {
+        for (i = 0; i < me.hooks[event].length; i++) {
             try {
-                params = params || me.hooks[event][i][1];
+                params = params || me.hooks[event][i][1] || [];
+
+                // if params given as a non-list, auto-correct it for .apply()
+                if (!params instanceof Array) {
+                    params = [params];
+                }
 
                 // the following shitty line executes one of the callback
                 // functions for this event.
-                me.hooks[event][i][0](params);
+                me.hooks[event][i][0].apply(this, params);
 
                 // if (event !== 'log') {
                 //     me.fire('log', 'called event: ' + event);
@@ -73,11 +80,12 @@ Willet.mediator = (function (me) {
         // e.g. autoEventCall will be called when "eventCall" is fired.
 
         // auto-camel-case the function that we will be calling.
-        var funcName = 'auto' + event[0].toUpperCase() + event.substr(1);
-        for (var module in Willet) {
+        var funcName = 'auto' + event[0].toUpperCase() + event.substr(1),
+            module;
+        for (module in Willet) {
             if (Willet.hasOwnProperty(module)) {
                 if (module[funcName]) {
-                    module[funcName](params);
+                    module[funcName].apply(this, params);
                 }
             }
         }

@@ -262,7 +262,7 @@ var PAGES = (function($, pageInfo) {
         // If there are categories, and a valid category is supplied
         // change the category
         details.page.id = category;
-        pagesTracking.changeCampaign(category);
+        window.Willet.mediator.fire('tracking.changeCampaign', [category]);
     }
 
     function changeSeed(seed) {
@@ -341,9 +341,11 @@ var PAGES = (function($, pageInfo) {
             }
         }
 
-        if (window.pagesTracking) {
-            pagesTracking.clearTimeout();
-            pagesTracking.setSocialShareVars({"sType": "popup", "url": data.url});
+        if (window.Willet.mediator) {
+            window.Willet.mediator.fire('tracking.clearTimeout');
+            window.Willet.mediator.fire('tracking.setSocialShareVars', [
+                {"sType": "popup", "url": data.url}
+            ]);
         }
 
         $previewContainer.fadeIn(100);
@@ -372,19 +374,19 @@ var PAGES = (function($, pageInfo) {
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.container');
 
-        window.pagesTracking && pagesTracking.setSocialShareVars();
+        window.Willet.mediator.fire('tracking.setSocialShareVars', []);
 
         $preview.fadeOut(100);
         $mask.fadeOut(100);
     }
 
     function commonHoverOn(t, enableSocialButtons, enableTracking) {
-        if (window.pagesTracking && enableTracking) {
-            pagesTracking.setSocialShareVars({
+        if (enableTracking) {
+            window.Willet.mediator.fire('tracking.setSocialShareVars', [{
                 "sType": "discovery",
                 "url": $(t).data("label")
-            });
-            pagesTracking.clearTimeout();
+            }]);
+            window.Willet.mediator.fire('tracking.clearTimeout');
         }
 
         if (enableTracking) {
@@ -413,10 +415,12 @@ var PAGES = (function($, pageInfo) {
             }
         }
 
-        if (window.pagesTracking && enableTracking) {
-            pagesTracking.clearTimeout();
-            if (pagesTracking.socialShareType !== "popup") {
-                pagesTracking._pptimeout = window.setTimeout(pagesTracking.setSocialShareVars, 2000);
+        if (enableTracking) {
+            window.Willet.mediator.fire('tracking.clearTimeout');
+            if (window.pagesTracking) {
+                if (pagesTracking.socialShareType !== "popup") {
+                    pagesTracking._pptimeout = window.setTimeout(pagesTracking.setSocialShareVars, 2000);
+                }
             }
         }
     }
@@ -427,11 +431,11 @@ var PAGES = (function($, pageInfo) {
 
     function productHoverOff () {
         commonHoverOff(this, function (t) {
-            window.pagesTracking && pagesTracking.registerEvent({
+            window.Willet.mediator.fire('tracking.registerEvent', [{
                 "type": "inpage",
                 "subtype": "hover",
                 "label": $(t).data("label")
-            });
+            }]);
         }, true);
     }
 
@@ -449,11 +453,11 @@ var PAGES = (function($, pageInfo) {
 
     function lifestyleHoverOff () {
         commonHoverOff(this, function (t) {
-            window.pagesTracking && pagesTracking.registerEvent({
+            window.Willet.mediator.fire('tracking.registerEvent', [{
                 "type": "content",
                 "subtype": "hover",
                 "label": $(t).data("label")
-            });
+            }]);
         }, true);
     }
 
@@ -603,7 +607,7 @@ var PAGES = (function($, pageInfo) {
 
         // user scrolled far enough not to be a "bounce"
         if (divider_bottom < 150) {
-            window.pagesTracking && pagesTracking.notABounce("scroll");
+            window.Willet.mediator.fire('tracking.notABounce', ["scroll"]);
         }
 
         $('.discovery-area .block').each(function() {
@@ -687,12 +691,12 @@ var PAGES = (function($, pageInfo) {
 
             FB.Event.subscribe('edge.create',
                 function(url) {
-                    window.pagesTracking && pagesTracking.registerEvent({
+                    window.Willet.mediator.fire('tracking.registerEvent', [{
                         "network": "Facebook",
                         "type": "share",
                         "subtype": "liked",
                         "label": url
-                    });
+                    }]);
                 }
             );
         } else {
@@ -816,9 +820,7 @@ var PAGES = (function($, pageInfo) {
         'onload': loadFB
     }, {
         'src'   : '//platform.twitter.com/widgets.js',
-        'onload': window.pagesTracking?
-                  pagesTracking.registerTwitterListeners:
-                  function () { /* dummy */ },
+        'onload': window.Willet.mediator.callback('tracking.registerTwitterListeners'),
         'id': 'twitter-wjs'
     }, {
         'src'   : '//assets.pinterest.com/js/pinit.js',

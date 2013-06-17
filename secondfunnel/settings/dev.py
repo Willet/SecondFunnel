@@ -36,6 +36,8 @@ COMPRESS_PRECOMPILERS = (
     ('text/x-scss', 'sass {infile} {outfile}'),
 )
 
+COMPRESS_ENABLED = False
+
 DEFAULT_FILE_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 COMPRESS_STORAGE = STATICFILES_STORAGE
