@@ -17,6 +17,11 @@ def ui_field_label_value(label, value):
 
 
 class ConfirmCampaignNode(template.Node):
+    """
+    Renders a confirmation page of a wizard.
+
+    @deprecated: We no longer have a confirmation page.
+    """
     def __init__(self, campaign):
         self.campaign = template.Variable(campaign)
 
@@ -30,8 +35,14 @@ class ConfirmCampaignNode(template.Node):
             'campaign': campaign
         })
 
+
 @register.tag(name="wizard_confirm_campaign")
 def wizard_confirm_campaign(parser, token):
+    """
+    Renders a confirmation page of a wizard.
+
+    @deprecated: We no longer have a confirmation page.
+    """
     try:
         # split_contents() knows not to split quoted strings.
         tag_name, campaign = token.split_contents()
@@ -42,6 +53,11 @@ def wizard_confirm_campaign(parser, token):
 
 
 class BlockNode(template.Node):
+    """
+    Renders a content block.
+
+    @deprecated: We now render blocks using themes.
+    """
     def __init__(self, ui_block):
         self.ui_block = template.Variable(ui_block)
 
@@ -55,8 +71,14 @@ class BlockNode(template.Node):
             'data': ui_block.data
         })
 
+
 @register.tag(name="render_ui_block")
 def render_ui_block(parser, token):
+    """
+    Renders a content block.
+
+    @deprecated: We now render blocks using themes.
+    """
     try:
         # split_contents() knows not to split quoted strings.
         tag_name, ui_block = token.split_contents()
@@ -65,14 +87,16 @@ def render_ui_block(parser, token):
 
     return BlockNode(ui_block)
 
+
 @register.inclusion_tag('pinpoint/snippets/social_buttons.html')
 def social_buttons(product, count=None):
+    """Renders social buttons."""
     if hasattr(product, 'is_featured') and product.is_featured:
         featured = True
-        image    = product.featured_image
+        image = product.featured_image
     else:
         featured = False
-        images   = product.media.all()
+        images = product.media.all()
         if images:
             image = images[0].get_url()
         else:
@@ -95,6 +119,7 @@ def social_buttons(product, count=None):
 
 
 class IncludeEscNode(template.Node):
+    """Renders a template with the contents excaped."""
     def __init__(self, parser, token):
         self.parser = parser
         self.token = token
@@ -108,6 +133,7 @@ class IncludeEscNode(template.Node):
 
 @register.tag(name="include_escaped")
 def include_escaped(parser, token):
+    """Renders a template with the contents excaped."""
     return IncludeEscNode(parser, token)
 
 @register.filter(name='size')

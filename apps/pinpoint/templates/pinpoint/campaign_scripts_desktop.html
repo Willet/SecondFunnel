@@ -251,6 +251,7 @@
                     } else {
                         el = $(rendered_block);
                         el.data(template_context);  // populate the .product.block div with data
+                        
                         productDoms.push(el[0]);
                     }
 
@@ -267,10 +268,39 @@
             // if it has a lifestyle image, add a wide class to it so it's styled properly
             $block.each(function() {
                 var $elem = $(this),
+                    $images = $elem.find('img'),
                     rand_num = Math.random();
-                // hide them so they can't be seen when masonry is placing them
-                $elem.hide();
+                
+                // Create a spinner image that can be used to indicate a block is loading.
+                var $spinner = $('<img/>', {
+                    'class': "image-loading-spinner",
+                    'style': "padding-top:100px; padding-bottom:100px; width:32px; height:32px; position:relative; left:50%;",
+                    'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
+                });
 
+                $elem.toLoad = $images.length;
+                
+                // If there's images to be loaded, place a spinner in the block and load the content
+                // in the background.
+                if (!related && $elem.toLoad > 0) {
+                    // If the block actually has images, render the loading block.
+                    $elem.find('div').hide();
+                    $elem.addClass('unclickable').append($spinner);
+                    $images.each(function(){
+                        $(this).load(function(){
+                            $elem.toLoad -= 1;
+                            if ($elem.toLoad == 0) {
+                                // This block is ready to go, render it on the page.
+                                $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
+                                $elem.find('div').show();
+                                // Trigger a window resize event because Masonry's resize logic is better (faster)
+                                // than it's reload logic.
+                                $(window).resize();
+                            }
+                        });
+                    });
+                }
+                    
                 if ($elem.find('.lifestyle').length > 0) {
                     $elem.addClass('wide');
                 }
@@ -279,21 +309,22 @@
                     && (rand_num >= 0.5)) {
                     $elem.addClass('wide');
                 }
-
-                $('.discovery-area').append($elem);
+                
+                if (!related) $('.discovery-area').append($elem).masonry('appended', $elem, true); 
             });
 
             // Render youtube blocks with player
             videos = _.where(results, {'template': 'youtube'});  // (haystack, criteria)
             _.each(videos, function (video) {
+                var video_id = video['original-id'];
                 var video_state_change = window.pagesTracking?
-                    _.partial(pagesTracking.videoStateChange, video.id):
+                    _.partial(pagesTracking.videoStateChange, video_id):
                     function() {/* dummy */};
 
-                api.getObject("video_gdata", video.id, function (video_data) {
+                api.getObject("video_gdata", video_id, function (video_data) {
                     var preferredThumbnailQuality = 'hqdefault',
                         thumbClass = 'youtube-thumbnail',
-                        thumbURL = 'http://i.ytimg.com/vi/' + video.id +
+                        thumbURL = 'http://i.ytimg.com/vi/' + video_id +
                                    '/' + preferredThumbnailQuality + '.jpg',
                         thumbObj,
                         thumbPath = ['entry', 'media$group', 'media$thumbnail'],
@@ -307,28 +338,30 @@
                         thumbURL = thumbObj.url;
                     }  // else fallback to the default thumbURL
 
-                    var containers = $(".youtube[data-label='" + video.id + "']");
+                    var containers = $(".youtube[data-label='" + video_id + "']");
                     containers.each(function () {
                         var container = $(this),
-                            uniqueThumbnailID = PAGES.generateID('thumb-' + video.id);
+                            uniqueThumbnailID = PAGES.generateID('thumb-' + video_id);
 
                         var thumbnail = $('<div />', {
                             'css': {  // this is to trim the 4:3 black bars
                                 'overflow': 'hidden',
-                                'height': video.height + 'px',
+                                'height': 250 + 'px',
                                 'background-image': 'url("' + thumbURL + '")',
                                 'background-position': 'center center'
                             },
                             'id': uniqueThumbnailID
                         });
 
+                        thumbnail.hide();
+
                         thumbnail.addClass('wide ' + thumbClass).click(function () {
                             // when the thumbnail is clicked, replace itself with
                             // the youtube video of the same size, then autoplay
                             player = new YT.Player(uniqueThumbnailID, {
-                                height: video.height,
-                                width: video.width,
-                                videoId: video.id,
+                                height: 250,
+                                width: 450,
+                                videoId: video_id,
                                 playerVars: {
                                     'autoplay': 1,
                                     'controls': 0
@@ -346,7 +379,7 @@
                         if (container.find('.' + thumbClass).length === 0) {
                             // add a thumbnail only if there isn't one already
                             container.prepend(thumbnail);
-                            console.log('loaded video thumbnail ' + video.id);
+                            console.log('loaded video thumbnail ' + video_id);
                         } else {
                             console.error('prevented thumbnail dupe');
                         }
@@ -357,19 +390,14 @@
 
             // make sure images are loaded or else masonry wont work properly
             $block.imagesLoaded(function($images, $proper, $broken) {
-                $broken.parents('.block.product').remove();
-                $block.find('.block.product img[src=""]').parents('.block.product').remove();
+                $broken.parents('.block').remove();
+                $block.find('.block img[src=""]').parents('.block').remove();
 
-                if (!related) {
-                    $('.discovery-area').masonry('appended', $block, true);
-                    $block.show();
-
-                    // Don't continue to load results if we aren't getting more results
-                    if (initialResults > 0) {
-                        setTimeout(function() {
-                            PAGES.pageScroll();
-                        }, 100);
-                    }
+                // Don't continue to load results if we aren't getting more results
+                if (!related && initialResults > 0) {
+                    setTimeout(function() {
+                        PAGES.pageScroll();
+                    }, 100);
                 }
 
                 $block.find('.pinpoint-youtube-area').click(function() {

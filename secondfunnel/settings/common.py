@@ -1,7 +1,7 @@
 import os
 import djcelery
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 import django.conf.global_settings as DEFAULT_SETTINGS
 
 # Django settings for secondfunnel project.
@@ -25,6 +25,7 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(days=30)).strftime("%a, %d %b %Y %H:%M:%S GMT")
 
 def fromProjectRoot(path):
     return os.path.join(
@@ -112,6 +113,11 @@ AWS_QUERYSTRING_AUTH = False
 COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
                         'compressor.filters.cssmin.CSSMinFilter']
 
+COMPRESS_JS_FILTERS = ['compressor.filters.template.TemplateFilter',
+                       'compressor.filters.jsmin.JSMinFilter']
+                       
+COMPRESS_REBUILD_TIMEOUT = 2592000 # Rebuilds compressed files after 30 days (in seconds)
+
 COMPRESS_STORAGE = STATICFILES_STORAGE
 
 COMPRESS_PRECOMPILERS = (
@@ -120,6 +126,21 @@ COMPRESS_PRECOMPILERS = (
 )
 
 COMPRESS_PARSER = 'compressor.parser.LxmlParser'
+
+# When GZIP is enabled, these types will be GZIPPED
+GZIP_CONTENT_TYPES = (
+    'text/plain',
+    'text/html',
+    'text/xml',
+    'text/css',
+    'text/javascript',
+    'application/xml',
+    'application/xhtml+xml',
+    'application/rss+xml',
+    'application/javascript',
+    'application/x-javascript',
+)
+    
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -153,6 +174,9 @@ TEMPLATE_LOADERS = (
     )
 
 MIDDLEWARE_CLASSES = (
+    'django.middleware.gzip.GZipMiddleware', # NOTE: Must be the first in this tuple
+    'htmlmin.middleware.HtmlMinifyMiddleware', # Enables compression of HTML
+    'django.middleware.cache.CacheMiddleware', # Manages caching
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -163,6 +187,8 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'maintenancemode.middleware.MaintenanceModeMiddleware',
     )
+
+CACHE_MIDDLEWARE_SECONDS = 604800 # Set the cache to atleast a week; will only affect production/test/demo
 
 ROOT_URLCONF = 'secondfunnel.urls'
 
@@ -214,6 +240,7 @@ INSTALLED_APPS = (
     'apps.website',
     'apps.scraper',
     'apps.static_pages',
+    'apps.utils',
 
     # CI
     'django_jenkins',
@@ -275,6 +302,8 @@ LOGGING = {
 TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
     # allows for request variable in templates
     'django.core.context_processors.request',
+    # add custom context processors here
+    'secondfunnel.context_processors.environment',
 )
 
 FIXTURE_DIRS = (
