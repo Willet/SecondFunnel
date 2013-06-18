@@ -509,7 +509,6 @@
 
             $bg_image.imagesLoaded(function($images, $proper, $broken) {
                 if ($broken.length >= 1) {
-                    // TODO: FIND AND INCLUDE BROKEN IMAGE LINK ICON OR SOME WAY OF INDICATING BROKEN
                     {% if request.user.is_superuser %}
                         instance.click(function(){
                             window.location = "/admin/assets/externalcontent/" + instance.parent().attr('data-oid');
@@ -849,7 +848,6 @@
             {% endfor %}
         </ul>
 
-       {# TODO: IMPLEMENT FILTERING AND WHANOT #}
        <div class="filter-row">
            <span class="filter-block">Sort By</span>
            <ul id="sort-menu" class="filter-block">

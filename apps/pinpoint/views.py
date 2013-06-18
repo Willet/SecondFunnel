@@ -316,8 +316,6 @@ def asset_manager(request, store_id):
                 create_external_content(store, **obj)
 
     all_contents = store.external_content.all().order_by('id')
-    seen = set()
-    seen_add = seen.add
     external_content_types = [ type.name for type in xcontent_types ]
     filtered_contents = OrderedDict([ ('needs_review', all_contents.filter(approved=False, active=True).order_by('id')),
                                       ('rejected', all_contents.filter(active=False).order_by('id')),
