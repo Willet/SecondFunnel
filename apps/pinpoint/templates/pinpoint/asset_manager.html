@@ -757,7 +757,7 @@
     $('#tabs ul li').on('click', function(){
         var $currentTab = $($(this).children('a').attr('href'));
         if ($currentTab.find('.review-row').children().length == 0) {
-            $currentTab.attr('page-number', 1)
+            $currentTab.attr('page-number', 1);
         }
         reload_content();
     }); 
@@ -789,31 +789,30 @@
             loadingContent = true;
             var url = "{% url asset-manager store.id %}",
                 $currentTab = $($('.ui-tabs-active a').attr('href')),
-                filter = "",
-                all = "";
+                filter = "";
 
             $.each($("#filter-menu li.filter a"), function(){
                 if ($(this).parent().hasClass("ui-state-active")) {
-                    filter += $(this).text() + ",";
+                    filter = $(this).text();
+                    return false;
                 }
-                all += $(this).text() + ",";
             });
 
             $.get(url, {
-                  "content_type": $currentTab.attr('id').replace('#', ''),
-                    "sortby": sort,
-                    "page": page,
-                    "filterby": (filter == ""? all : filter)
-                  }, function( response ) {
-                         if ($.isEmptyObject(response)) {
-                             console.log("End of page.");
-                         } else {
-                             var $newcontent = $(response);
-                             $currentTab.find('.review-row').append($newcontent);
-                             $currentTab.attr('page-number', page);
-                             attachListeners($newcontent);
-                             loadingContent = false;
-                         }
+                "content_type": $currentTab.attr('id').replace('#', ''),
+                "sortby": sort,
+                "page": page,
+                "filterby": filter
+                }, function( response ) {
+                       if ($.isEmptyObject(response)) {
+                           console.log("End of page.");
+                       } else {
+                           var $newcontent = $(response);
+                           $currentTab.find('.review-row').append($newcontent);
+                           $currentTab.attr('page-number', page);
+                           attachListeners($newcontent);
+                           loadingContent = false;
+                       }
             });
         }
     }

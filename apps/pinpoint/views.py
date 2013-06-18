@@ -336,15 +336,16 @@ def asset_manager(request, store_id):
     else:
         # request is an ajax request, determine which content we're loading
         content_type = request.GET['content_type']
-        selected_content = next(v for k,v in filtered_contents.iteritems() if k == content_type)
-    
         # select our ordering
         ordering = { "newest": "-id", "oldest": "id" }
         order_key = request.GET['sortby'].lower()
+        selected_content = next(v for k,v in filtered_contents.iteritems() if k == content_type).order_by(ordering[order_key])
+    
         #select our filters
-        filter_xcontents = request.GET['filterby'].split(",")
-        selected_content = [ selected for selected in selected_content.order_by(ordering[order_key]) if selected.content_type.name in filter_xcontents ]
-
+        xcontent_type = request.GET['filterby']
+        if not xcontent_type == "":
+            selected_content = selected_content.filter(content_type__name = xcontent_type)
+        
         # set up pagination
         paginator = Paginator(selected_content, 10)
         try:
