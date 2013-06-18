@@ -316,6 +316,9 @@ def asset_manager(request, store_id):
                 create_external_content(store, **obj)
 
     all_contents = store.external_content.all().order_by('id')
+    seen = set()
+    seen_add = seen.add
+    external_content_types = [ type.name for type in xcontent_types ]
     filtered_contents = OrderedDict([ ('needs_review', all_contents.filter(approved=False, active=True).order_by('id')),
                                       ('rejected', all_contents.filter(active=False).order_by('id')),
                                       ('approved', all_contents.filter(approved=True, active=True).order_by('id')),
@@ -330,11 +333,20 @@ def asset_manager(request, store_id):
                 "accounts": accounts,
                 "content": content,
                 "store_id": store_id,
+                "external_content_types": external_content_types,
                 }, context_instance=RequestContext(request))
     else:
         # request is an ajax request, determine which content we're loading
         content_type = request.GET['content_type']
         selected_content = next(v for k,v in filtered_contents.iteritems() if k == content_type)
+    
+        # select our ordering
+        ordering = { "newest": "-id", "oldest": "id" }
+        order_key = request.GET['sortby'].lower()
+        #select our filters
+        filter_xcontents = request.GET['filterby'].split(",")
+        selected_content = [ selected for selected in selected_content.order_by(ordering[order_key]) if selected.content_type.name in filter_xcontents ]
+
         # set up pagination
         paginator = Paginator(selected_content, 10)
         try:
@@ -344,12 +356,13 @@ def asset_manager(request, store_id):
             content = paginator.page(1)
         except (EmptyPage, InvalidPage):
             content = paginator.page(paginator.num_pages)
-        content = {
+        
+        return render(request, 'pinpoint/assets.html', {
             'content_data': content.object_list,
             'content_type': content_type,
             'paginator': content,
-            }
-        return render(request, 'pinpoint/assets.html', content, context_instance=RequestContext(request))
+            'external_content_types': external_content_types,
+            }, context_instance=RequestContext(request))
 
 
 # origin: campaigns with short URLs are cached for 30 minutes
