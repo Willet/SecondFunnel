@@ -1,4 +1,6 @@
 from urllib import urlencode
+from django.db.models import Q
+
 try:
     from collections import OrderedDict
 except ImportError:
@@ -23,7 +25,7 @@ from apps.assets.models import ExternalContent, ExternalContentType, Store
 from apps.intentrank.views import get_seeds
 from apps.pinpoint.ajax import upload_image
 
-from apps.pinpoint.models import Campaign, BlockType
+from apps.pinpoint.models import Campaign, BlockType, StoreTheme
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
 from apps.pinpoint.utils import render_campaign
 import apps.pinpoint.wizards as wizards
@@ -351,6 +353,41 @@ def asset_manager(request, store_id):
             }
         return render(request, 'pinpoint/assets.html', content, context_instance=RequestContext(request))
 
+
+@belongs_to_store
+@has_store_feature('theme-manager')
+@login_required
+def theme_manager(request, store_id):
+    store = get_object_or_404(Store, pk=store_id)
+
+    themes = list(StoreTheme.objects.filter(
+        Q(store__id=store_id)
+        | Q(theme__isnull=False)
+        | Q(mobile__isnull=False)
+    ))
+
+    theme_list = []
+    for theme in themes:
+        associations = []
+        for key in ['store', 'store_mobile', 'theme', 'mobile']:
+            try:
+                associations.append({
+                    'type': key,
+                    'obj': getattr(theme, key)
+                })
+            except:
+                pass
+
+        theme_list.append({
+            'obj': theme,
+            'associations': associations
+        })
+
+    return render_to_response('pinpoint/theme_manager.html', {
+        "store": store,
+        "store_id": store_id,
+        "themes": theme_list
+    }, context_instance=RequestContext(request))
 
 # origin: campaigns with short URLs are cached for 30 minutes
 @cache_page(60 * 30, key_prefix=nocache)
