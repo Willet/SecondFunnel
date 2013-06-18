@@ -32,13 +32,29 @@ Willet.mediator = (function (me) {
     // trigger an event. fire all functions assigned to that event.
     // params is optional.
     me.fire = me.fire || function (event, params) {
-        var i;
+        var i, cb;
 
         if (!me.hooks[event]) {
-            return me; // no functions registered with this event.
+            var hook;
+            for (i = 0; i < me.hooks.length; i++) {
+                // look for moduleName.functionName auto-triggers.
+                var hook = me.hooks[i],
+                    dotIndex = hook.indexOf('.');
+                if (dotIndex > 0) {  // has a dot and (moduleName.length > 0)
+                    if (Willet[hook.substr(0, dotIndex)]) {  // check for module
+                        cb = Willet[hook.substr(0, dotIndex)][hook.substr(dotIndex + 1)];
+                        if (cb) {  // check for function
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!cb) {
+                return me; // no functions registered with this event.
+            }
         }
         // console.log(me.hooks[event].length + ' events to run');
-        for (i = 0; i < me.hooks[event].length; i++) {
+        for (i = 0; i < (me.hooks[event] || [cb]).length; i++) {
             try {
                 params = params || me.hooks[event][i][1] || [];
 
@@ -136,4 +152,4 @@ Willet.mediator = (function (me) {
     };
 
     return me;  // insecure augmentation (doesn't matter)
-} (Willet.mediator || {}));
+}(Willet.mediator || {}));

@@ -661,111 +661,6 @@ var PAGES = (function ($, pageInfo) {
     /* --- END element bindings --- */
 
     /* --- START Social buttons --- */
-    function loadFB () {
-        if (FB) {
-            FB.init({
-                cookie:true,
-                status:true,
-                xfbml:true
-            });
-
-            var $featuredFB = $('.featured .social-buttons .button.facebook');
-
-            if ($featuredFB.length > 0) {
-                FB.XFBML.parse($featuredFB[0]);
-            }
-
-            FB.Event.subscribe('xfbml.render', function(response) {
-                $(".loaded").find(".loading-container").css('visibility', 'visible');
-                $(".loaded").find(".loading-container").hide();
-                $(".loaded").find(".loading-container").fadeIn('fast');
-            });
-
-            FB.Event.subscribe('edge.create',
-                function(url) {
-                    window.Willet.mediator.fire('tracking.registerEvent', [{
-                        "network": "Facebook",
-                        "type": "share",
-                        "subtype": "liked",
-                        "label": url
-                    }]);
-                }
-            );
-        } else {
-            (console.error || console.log)('FB button is blocked.');
-        }
-    }
-
-    function createSocialButtons(config) {
-        var conf           = config || {};
-        var $socialButtons = $('<div/>', {'class': 'social-buttons'});
-
-        var $fbButton        = $('<div/>', {'class': 'facebook button'});
-        $fbButton.append(createFBButton(conf));
-
-        var $twitterButton   = $('<div/>', {'class': 'twitter button'});
-        $twitterButton.append(createTwitterButton(conf));
-
-        var $pinterestButton = $('<div/>', {'class': 'pinterest button'});
-        $pinterestButton.append(createPinterestButton(conf));
-
-        $socialButtons.append($fbButton).append($twitterButton).append($pinterestButton);
-        return $socialButtons;
-    }
-
-    function createFBButton(config) {
-        var conf = config || {};
-
-        var fbxml = "<fb:like " +
-                "href='" + (conf.url || '') + "' " +
-                "layout='" + (conf.button_count || 'button_count') + "' " +
-                "width='" + (conf.width || 80) + "' " +
-                "show_faces='" + (conf.show_faces || false) + "' " +
-            "></fb:like>";
-
-        return $(fbxml);
-    }
-
-    function createTwitterButton(config) {
-        var conf = config || {};
-
-        var $twitterHtml = $('<a/>', {
-            'href'     : 'https://twitter.com/share',
-            'class'    : 'twitter-share-button',
-            'text'     : 'Tweet',
-            'data-url' : conf.url,
-            'data-text': (conf.title || '') + ' ' + conf.url,
-            'data-lang': 'en'
-        });
-
-        if (!config.count) {
-            $twitterHtml.attr('data-count', 'none')
-        }
-
-        return $twitterHtml;
-    }
-
-    function createPinterestButton(config) {
-        var conf = config || {};
-
-        var url = 'http://pinterest.com/pin/create/button/' +
-            '?url=' + encodeURIComponent(conf.url) +
-            '&media=' + encodeURIComponent(conf.image) +
-            '&description=' + details.store.name + '-' + conf.title;
-
-        var $img = $('<img/>', {
-            'src': "//assets.pinterest.com/images/PinExt.png"
-        });
-
-        var $pinterestHtml = $('<a/>', {
-            'href': url,
-            'target': '_blank'
-        });
-
-        $pinterestHtml.append($img);
-
-        return $pinterestHtml;
-    }
     /* --- END Social buttons --- */
 
     function load(scripts) {
@@ -795,13 +690,15 @@ var PAGES = (function ($, pageInfo) {
     details.product = details.page.product || {};
     details.store = details.store || {};
 
+    Willet.mediator.fire('buttonMaker.init', details);
+
     // Either a URL, or an object with 'src' key and optional 'onload' key
     scripts = [{
         'src'   : 'http://connect.facebook.net/en_US/all.js#xfbml=0',
-        'onload': loadFB
+        'onload': Willet.mediator.callback('buttonMaker.loadFB')
     }, {
         'src'   : '//platform.twitter.com/widgets.js',
-        'onload': window.Willet.mediator.callback('tracking.registerTwitterListeners'),
+        'onload': Willet.mediator.callback('tracking.registerTwitterListeners'),
         'id': 'twitter-wjs'
     }, {
         'src'   : '//assets.pinterest.com/js/pinit.js',
