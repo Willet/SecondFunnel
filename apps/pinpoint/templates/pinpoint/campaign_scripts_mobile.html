@@ -10,7 +10,7 @@
 <script type="text/javascript">
     var local_data = {};
 
-    function render_to_view(view_selector, template_name, context, append) {
+    function renderToView(view_selector, template_name, context, append) {
         var template = $("[data-template-id='" + template_name + "']").html(),
             rendered_block;
 
@@ -61,7 +61,7 @@
                 local_data[templateName + object_id] = data;
 
                 // render object if possible
-                render_to_view(".content_list", templateName, {
+                renderToView(".content_list", templateName, {
                     data: data
                 }, true);
 

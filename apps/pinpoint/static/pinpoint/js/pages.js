@@ -24,6 +24,7 @@ var PAGES = (function ($, pageInfo) {
             "icon", "thumb", "small", "compact", "medium", "large",
             "grande", "1024x1024", "master"
         ],
+        layoutResults,
         templateNames = [
             'shop-the-look', 'featured-product',
             'product', 'combobox', 'youtube', 'image', //formerly instagram
@@ -112,8 +113,12 @@ var PAGES = (function ($, pageInfo) {
             keyOf = testSubject,
             refBuilder = {};
         do {
-            keyOf = keyOf[listOfKeys[i]];
-            if (keyOf === 'undefined') {
+            try {
+                keyOf = keyOf[listOfKeys[i]];
+                if (keyOf === 'undefined') {
+                    return refBuilder;
+                }
+            } catch (err) {
                 return refBuilder;
             }
             refBuilder[listOfKeys[i]] = keyOf;
@@ -674,7 +679,8 @@ var PAGES = (function ($, pageInfo) {
         }
     }
 
-    function init (readyFunc) {
+    function init (readyFunc, layoutFunc) {
+        layoutResults = layoutFunc;
         load(scripts);
         $(document).ready(readyFunc);
     }
