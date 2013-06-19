@@ -47,11 +47,14 @@
 {% endblock %}
 
 {% block content %}
-    <form method="post" action="{% url edit-theme store_id theme_id %}">
+    <form method="POST" action="{% url edit-theme store_id theme_id %}">
         {% csrf_token %}
         {{ formset.management_form }}
         {% for form in formset %}
             {% for field in form %}
+                {% if field.errors %}
+                <div>{{ field.errors }}</div>
+                {% endif %}
                 <div>
                     {{ field.label_tag }}:
                     {{ field }}

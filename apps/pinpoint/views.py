@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login
 from django.shortcuts import render_to_response, get_object_or_404, redirect, render
 from django.template import RequestContext, Context, loader
-from django.http import HttpResponse, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseServerError, HttpResponseNotAllowed
 from django.contrib.contenttypes.models import ContentType
 from django.template.defaultfilters import slugify, safe
 from django.utils.encoding import force_unicode
@@ -425,12 +425,10 @@ def edit_theme(request, store_id, theme_id=None):
                 '"{0}" saved successfully.'.format(form.cleaned_data['name'])
             )
             return redirect('theme-manager', store_id=store_id)
-        else:
-            #TODO: Error
-            pass
+
+        template_vars['formset'] = form
     else:
-        # TODO: What are you doing?
-        pass
+        return HttpResponseNotAllowed(['GET', 'POST'])
 
     return render_to_response(
         'pinpoint/theme_editor.html',
