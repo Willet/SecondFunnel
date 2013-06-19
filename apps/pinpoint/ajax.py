@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
+from django.core.files.images import get_image_dimensions
 from django.forms import ImageField, ValidationError
 from django.views.decorators.http import require_POST
 
@@ -77,8 +78,11 @@ def upload_image(request):
         try:
             media = GenericImage()
             imgField = ImageField().clean(request.FILES['qqfile'], media)
-            media.hosted.save(imgField.name, imgField)
-            media.save()
+            if valid_dimensions(imgField):
+                media.hosted.save(imgField.name, imgField)
+                media.save()
+            else:
+                return ajax_error({'error': "minSizeError", 'minSizeError': "'s dimensions are too small.  Minimum file width is 480px."})
         except (KeyError, ValidationError), e:
             raise e
 
@@ -98,12 +102,14 @@ def upload_image(request):
 
         # read the file content, if it is not read when the request is multi part then the client get an error
         fileContent = uploaded(fileSize)
-
         media = GenericImage()
         imgField = ImageField().clean(ContentFile(fileContent, name=fileName), media)
-        media.hosted.save(fileName, imgField)
-        media.save()
-
+        
+        if valid_dimensions(imgField):
+            media.hosted.save(fileName, imgField)
+            media.save()
+        else:
+            return ajax_error({'error': "minSizeError", 'minSizeError': "'s dimensions are too small.  Minimum file width is 480px."})
     return media
 
 @require_POST
@@ -118,3 +124,17 @@ def ajax_upload_image(request):
         'media_id': media.id,
         'url': media.get_url()
     })
+
+
+def valid_dimensions( product_image ):
+    """
+    Ensures that the dimensions of the image are atleast the minimum dimensions
+    for an image.  Returns true if valid, otherwise raises an ajax_error.
+    @return bool
+    """
+    dimensions = get_image_dimensions( product_image )
+    if  dimensions < (480, 1):
+        # image has to be able to fit a wide block
+        return False
+    return True
+    
