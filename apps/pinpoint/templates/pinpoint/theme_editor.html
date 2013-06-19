@@ -1,0 +1,49 @@
+{% extends "pinpoint/admin_base.html" %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block title %}
+    {% trans "New Page" %}
+{% endblock %}
+
+{% block page_title %}
+    {% trans "Theme Editor" %}
+{% endblock %}
+
+{% block extra_head %}
+    <style type="text/css">
+    </style>
+{% endblock %}
+
+{% block extra_js_includes %}
+    <script>
+
+    </script>
+{% endblock %}
+
+{% block document_ready %}
+
+{% endblock %}
+
+{% block top_section %}
+    <div class="grid_3 prefix_9">
+        <ul>
+        </ul>
+    </div>
+{% endblock %}
+
+{% block content %}
+    Testing text.
+
+    <form method="post" action="{% url edit-theme store_id theme_id %}">
+        {{ formset.management_form }}
+        {% for form in formset %}
+            {% for field in form %}
+                <div>
+                    {{ field.label_tag }}:
+                    {{ field }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </form>
+{% endblock %}

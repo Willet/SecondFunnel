@@ -1,5 +1,6 @@
 from urllib import urlencode
 from django.db.models import Q
+from apps.pinpoint.forms import ThemeForm
 
 try:
     from collections import OrderedDict
@@ -402,7 +403,31 @@ def edit_theme(request, store_id, theme_id=None):
     # Should handle both creation and editing of themes
     store = get_object_or_404(Store, pk=store_id)
 
-    return HttpResponse(theme_id)
+    try:
+        theme = StoreTheme.objects.get(pk=theme_id)
+    except StoreTheme.DoesNotExist:
+        theme = None
+
+    template_vars = {
+        'store_id': store_id,
+        'theme_id': theme_id
+    }
+
+    if request.method == 'GET' and theme:
+        # Only have to do something if the theme already exists
+        template_vars['formset'] = ThemeForm(instance=theme)
+    elif request.method == 'POST':
+        # Edit / create
+        pass
+    else:
+        # TODO: What are you doing?
+        pass
+
+    return render_to_response(
+        'pinpoint/theme_editor.html',
+        template_vars,
+        context_instance=RequestContext(request)
+    )
 
 # origin: campaigns with short URLs are cached for 30 minutes
 @cache_page(60 * 30, key_prefix=nocache)
