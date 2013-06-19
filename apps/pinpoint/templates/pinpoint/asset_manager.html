@@ -382,7 +382,8 @@
             log: function() {},
             debug: function() {}
         },
-        sort = 'Newest';
+        sort = 'Newest',
+        filesBeingUploaded = 0;
 
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     $("#tabs").tabs();
@@ -677,28 +678,34 @@
                 allowedExtensions: ['jpg' ,'png', 'jpeg'],
                 uploadButtonText: '<span class="upload-text">Upload from file</span>',
                 onSubmit: function() {
-                    $('.qq-upload-button').parents('.service').find('.icon').removeClass('file');
-                    $('.qq-upload-button input').prop('disabled', true);
-                    $('.qq-upload-button .upload-text').text('Uploading...');
+                    if (filesBeingUploaded == 0) {
+                        $('.qq-upload-button').parents('.service').find('.icon').removeClass('file');
+                        $('.qq-upload-button input').prop('disabled', true);
+                        $('.qq-upload-button .upload-text').text('Uploading...');
+                    }
+                    filesBeingUploaded++;
                 },
                 onComplete: function(id, fileName, response) {
                     // This method triggers whether the upload was successful or not, so only trigger
                     // reload here if successful.
                     var messages = { 'minSizeError': "'s dimensions are too small.  Minimum file width is 480px.",
                                      'emptyError': " does not exist.  Are you sure you entered correctly?" }
+                    filesBeingUploaded--;
                     if (response.success == false) {
                         if (response.error && messages[response.error]) {
                             alert(fileName + messages[response.error]);
                         }
-                    } else {
+                    } else if (filesBeingUploaded == 0) {
                         location.reload();
                     }
                 },
                 onError: function(id, fileName, reason) {
                     console.log(reason);
-                    $('.qq-upload-button').parents('.service').find('.icon').addClass('file');
-                    $('.qq-upload-button input').prop('disabled', false);
-                    $('.qq-upload-button .upload-text').text('Upload from file');
+                    if ( filesBeingUploaded == 0 ) {
+                        $('.qq-upload-button').parents('.service').find('.icon').addClass('file');
+                        $('.qq-upload-button input').prop('disabled', false);
+                        $('.qq-upload-button .upload-text').text('Upload from file');
+                    }
                 }
             });
     }
