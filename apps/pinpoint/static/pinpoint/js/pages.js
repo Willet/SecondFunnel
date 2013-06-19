@@ -490,7 +490,8 @@ var PAGES = (function ($, pageInfo, mediator) {
     }
 
     function updateContentStream( product ) {
-        /* @return: none */
+        /* Layouts more content below the fold.
+           @return: none */
         loadMoreResults( false, product );
     }
 
