@@ -194,10 +194,7 @@
 
 {% block content %}
     {% for theme in themes %}
-        {{ theme.obj.name }} - (
-        {% for association in theme.associations%}
-            {{ association.obj.name }},
-        {% endfor %}
-        )<br/>
+        {{ theme.obj.name }} -
+        ({% for tag in theme.tags%}{{ tag }}{% if not forloop.last %}, {% endif %}{% endfor %})<br/>
     {% endfor %}
 {% endblock %}

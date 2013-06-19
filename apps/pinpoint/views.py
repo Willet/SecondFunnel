@@ -362,25 +362,32 @@ def theme_manager(request, store_id):
 
     themes = list(StoreTheme.objects.filter(
         Q(store__id=store_id)
+        | Q(store_mobile__id=store_id)
         | Q(theme__isnull=False)
         | Q(mobile__isnull=False)
     ))
 
     theme_list = []
+    tag_map = {
+        'store': ['Store Default'],
+        'store_mobile': ['Store Default', 'Mobile'],
+        'theme': ['Campaign'],
+        'mobile': ['Campaign', 'Mobile']
+    }
     for theme in themes:
-        associations = []
+        tags = []
         for key in ['store', 'store_mobile', 'theme', 'mobile']:
             try:
-                associations.append({
-                    'type': key,
-                    'obj': getattr(theme, key)
-                })
+                if hasattr(theme, key):
+                    tags.extend(tag_map[key])
             except:
                 pass
 
+            tags = list(set(tags))
+
         theme_list.append({
             'obj': theme,
-            'associations': associations
+            'tags': tags
         })
 
     return render_to_response('pinpoint/theme_manager.html', {
