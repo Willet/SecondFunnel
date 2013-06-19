@@ -396,6 +396,14 @@ def theme_manager(request, store_id):
         "themes": theme_list
     }, context_instance=RequestContext(request))
 
+@belongs_to_store
+@login_required
+def edit_theme(request, store_id, theme_id=None):
+    # Should handle both creation and editing of themes
+    store = get_object_or_404(Store, pk=store_id)
+
+    return HttpResponse(theme_id)
+
 # origin: campaigns with short URLs are cached for 30 minutes
 @cache_page(60 * 30, key_prefix=nocache)
 def campaign_short(request, campaign_id_short, mode='full'):
