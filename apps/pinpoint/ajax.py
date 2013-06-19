@@ -82,7 +82,7 @@ def upload_image(request):
                 media.hosted.save(imgField.name, imgField)
                 media.save()
             else:
-                return ajax_error({'error': "minSizeError", 'minSizeError': "'s dimensions are too small.  Minimum file width is 480px."})
+                return ajax_error({'error': "minSizeError"})
         except (KeyError, ValidationError), e:
             raise e
 
@@ -109,7 +109,7 @@ def upload_image(request):
             media.hosted.save(fileName, imgField)
             media.save()
         else:
-            return ajax_error({'error': "minSizeError", 'minSizeError': "'s dimensions are too small.  Minimum file width is 480px."})
+            return ajax_error({'error': "minSizeError"})
     return media
 
 @require_POST
