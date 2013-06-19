@@ -1,3 +1,5 @@
+# Because we use python 2.6  :(
+ordereddict==1.1
 Django==1.4.1
 Fabric==1.6.0
 MySQL-python==1.2.3
