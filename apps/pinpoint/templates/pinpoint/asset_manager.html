@@ -685,10 +685,13 @@
                 onComplete: function(id, fileName, response) {
                     // This method triggers whether the upload was successful or not, so only trigger
                     // reload here if successful.
-                    var messages = { 'minSizeError': "'s dimensions are too small.  Minimum file width is 480px." }
+                    var messages = { 'minSizeError': "'s dimensions are too small.  Minimum file width is 480px.",
+                                     'emptyError': " does not exist.  Are you sure you entered correctly?" }
                     if (response.success == false) {
-                        alert(fileName + messages[response.error]);
-                        location.reload();
+                        if (response.error && messages[response.error]) {
+                            alert(fileName + messages[response.error]);
+                            location.reload();
+                        }
                     } else {
                         location.reload();
                     }

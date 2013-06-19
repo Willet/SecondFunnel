@@ -264,7 +264,7 @@ def upload_asset(request, store_id):
     except Exception, e:
         if isinstance(media, HttpResponse):
             return media
-        return ajax_error()
+        return ajax_error({'error': e})
 
     return ajax_success()
 

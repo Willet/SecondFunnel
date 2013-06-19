@@ -98,7 +98,7 @@ def upload_image(request):
         fileName = request.GET.get('qqfile', None)
 
         if None in (fileSize, fileName):
-            return ajax_error()
+            return ajax_error({'error': "emptyError")
 
         # read the file content, if it is not read when the request is multi part then the client get an error
         fileContent = uploaded(fileSize)
