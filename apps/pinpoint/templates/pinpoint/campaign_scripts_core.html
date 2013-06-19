@@ -9,6 +9,7 @@
             'pubDate': '{{ pub_date }}',  // for verifying the original upload date of a static campaign. for human use only
             'id': '{{ campaign.default_intentrank.id|default:campaign.id }}',
             'main-block-template': '{{ campaign.template }}',
+            'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},
             'stl-image': '{{ campaign.stl_image }}',
             'featured-image': '{{ campaign.featured_image }}',
             'description': '{{ campaign.description|escapejs }}',
@@ -34,9 +35,6 @@
         'featured': {% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}
         {% if backup_results %}{# offline, pseudo-custom results #}
         , 'backupResults': {{ backup_results|safe }}
-        {% endif %}
-        {% if random_results %}{# offline, totally random results #}
-        , 'randomResults': {{ random_results|safe }}
         {% endif %}
     };
 </script>

@@ -1,5 +1,5 @@
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
-var PAGES = (function ($, pageInfo) {
+var PAGES = (function ($, pageInfo, mediator) {
     "use strict";
     var console = window.console || {
             // dummy
@@ -9,6 +9,7 @@ var PAGES = (function ($, pageInfo) {
         details,
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
+        SHUFFLE_RESULTS = pageInfo.page.SHUFFLE_RESULTS || true,
         scripts,
         userClicks = 0,
         clickThreshold = 3,
@@ -259,7 +260,7 @@ var PAGES = (function ($, pageInfo) {
         // If there are categories, and a valid category is supplied
         // change the category
         details.page.id = category;
-        window.Willet.mediator.fire('tracking.changeCampaign', [category]);
+        mediator.fire('tracking.changeCampaign', [category]);
     }
 
     function changeSeed(seed) {
@@ -338,9 +339,9 @@ var PAGES = (function ($, pageInfo) {
             }
         }
 
-        if (window.Willet.mediator) {
-            window.Willet.mediator.fire('tracking.clearTimeout');
-            window.Willet.mediator.fire('tracking.setSocialShareVars', [
+        if (mediator) {
+            mediator.fire('tracking.clearTimeout');
+            mediator.fire('tracking.setSocialShareVars', [
                 {"sType": "popup", "url": data.url}
             ]);
         }
@@ -371,7 +372,7 @@ var PAGES = (function ($, pageInfo) {
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.container');
 
-        window.Willet.mediator.fire('tracking.setSocialShareVars', []);
+        mediator.fire('tracking.setSocialShareVars', []);
 
         $preview.fadeOut(100);
         $mask.fadeOut(100);
@@ -379,11 +380,11 @@ var PAGES = (function ($, pageInfo) {
 
     function commonHoverOn(t, enableSocialButtons, enableTracking) {
         if (enableTracking) {
-            window.Willet.mediator.fire('tracking.setSocialShareVars', [{
+            mediator.fire('tracking.setSocialShareVars', [{
                 "sType": "discovery",
                 "url": $(t).data("label")
             }]);
-            window.Willet.mediator.fire('tracking.clearTimeout');
+            mediator.fire('tracking.clearTimeout');
         }
 
         if (enableTracking) {
@@ -413,7 +414,7 @@ var PAGES = (function ($, pageInfo) {
         }
 
         if (enableTracking) {
-            window.Willet.mediator.fire('tracking.clearTimeout');
+            mediator.fire('tracking.clearTimeout');
             if (window.pagesTracking) {
                 if (pagesTracking.socialShareType !== "popup") {
                     pagesTracking._pptimeout = window.setTimeout(pagesTracking.setSocialShareVars, 2000);
@@ -428,7 +429,7 @@ var PAGES = (function ($, pageInfo) {
 
     function productHoverOff () {
         commonHoverOff(this, function (t) {
-            window.Willet.mediator.fire('tracking.registerEvent', [{
+            mediator.fire('tracking.registerEvent', [{
                 "type": "inpage",
                 "subtype": "hover",
                 "label": $(t).data("label")
@@ -450,7 +451,7 @@ var PAGES = (function ($, pageInfo) {
 
     function lifestyleHoverOff () {
         commonHoverOff(this, function (t) {
-            window.Willet.mediator.fire('tracking.registerEvent', [{
+            mediator.fire('tracking.registerEvent', [{
                 "type": "content",
                 "subtype": "hover",
                 "label": $(t).data("label")
@@ -521,7 +522,8 @@ var PAGES = (function ($, pageInfo) {
             changeSeed(seed);
 
             loadingBlocks = true;
-            if (!_.isEmpty(details.backupResults)) {
+            if (!_.isEmpty(details.backupResults) &&
+                !('error' in details.backupResults)) {  // saved IR proxy error
                 layoutResults(details.backupResults);
                 details.backupResults = [];
             } else {
@@ -604,7 +606,7 @@ var PAGES = (function ($, pageInfo) {
 
         // user scrolled far enough not to be a "bounce"
         if (divider_bottom < 150) {
-            window.Willet.mediator.fire('tracking.notABounce', ["scroll"]);
+            mediator.fire('tracking.notABounce', ["scroll"]);
         }
 
         $('.discovery-area .block').each(function() {
@@ -665,9 +667,6 @@ var PAGES = (function ($, pageInfo) {
 
     /* --- END element bindings --- */
 
-    /* --- START Social buttons --- */
-    /* --- END Social buttons --- */
-
     function load(scripts) {
         var item, script;
 
@@ -696,15 +695,15 @@ var PAGES = (function ($, pageInfo) {
     details.product = details.page.product || {};
     details.store = details.store || {};
 
-    Willet.mediator.fire('buttonMaker.init', details);
+    mediator.fire('buttonMaker.init', [details]);
 
     // Either a URL, or an object with 'src' key and optional 'onload' key
     scripts = [{
         'src'   : 'http://connect.facebook.net/en_US/all.js#xfbml=0',
-        'onload': Willet.mediator.callback('buttonMaker.loadFB')
+        'onload': mediator.callback('buttonMaker.loadFB')
     }, {
         'src'   : '//platform.twitter.com/widgets.js',
-        'onload': Willet.mediator.callback('tracking.registerTwitterListeners'),
+        'onload': mediator.callback('tracking.registerTwitterListeners'),
         'id': 'twitter-wjs'
     }, {
         'src'   : '//assets.pinterest.com/js/pinit.js',
@@ -726,6 +725,7 @@ var PAGES = (function ($, pageInfo) {
         'hidePreview': hidePreview,
         'pageScroll': pageScroll,
         'MAX_RESULTS_PER_SCROLL': MAX_RESULTS_PER_SCROLL,
+        'SHUFFLE_RESULTS': SHUFFLE_RESULTS,
         'fisherYates': fisherYates,
         'addReadyCallback': addReadyCallback,
         'changeCategory': changeCategory,
@@ -736,4 +736,6 @@ var PAGES = (function ($, pageInfo) {
         'getModifiedTemplateName': getModifiedTemplateName,
         'changeSeed': changeSeed
     };
-})(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});
+})(jQuery,
+   window.PAGES_INFO || window.TEST_PAGE_DATA || {},
+   (Willet && Willet.mediator) || {});

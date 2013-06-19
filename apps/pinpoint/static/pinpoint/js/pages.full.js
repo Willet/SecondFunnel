@@ -10,12 +10,19 @@ PAGES.full = (function (me) {
             // {products: [], videos: [(sizeof 1)]}
             var $block,
                 result,
-                results = PAGES.fisherYates(jsonData, PAGES.MAX_RESULTS_PER_SCROLL) || [],
+                results = (PAGES.SHUFFLE_RESULTS) ?
+                        (PAGES.fisherYates(jsonData, PAGES.MAX_RESULTS_PER_SCROLL) || []) :
+                        $(jsonData).slice(0, PAGES.MAX_RESULTS_PER_SCROLL),  // no shuffle
                 initialResults = Math.max(results.length, PAGES.MAX_RESULTS_PER_SCROLL),
                 i,
                 productDoms = [],
-                template, templateEl, player,
-                template_context, templateType, el, videos,
+                template,
+                templateEl,
+                player,
+                template_context,
+                templateType,
+                el,
+                videos,
                 appearanceProbability,
                 revisedType;
 
@@ -78,7 +85,7 @@ PAGES.full = (function (me) {
                         'store': PAGES.details.store
                     }, true);
                     if (!rendered_block.length) {
-                        // template did not render.
+                        console.error('warning: not drawing empty template block');
                         break;
                     } else {
                         el = $(rendered_block);
