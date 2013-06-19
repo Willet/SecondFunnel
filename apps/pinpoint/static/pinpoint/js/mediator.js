@@ -65,6 +65,7 @@ Willet.mediator = (function (me) {
 
                 // the following shitty line executes one of the callback
                 // functions for this event.
+                event && console.log('firing ' + event);
                 me.hooks[event][i][0].apply(this, params);
 
                 // if (event !== 'log') {

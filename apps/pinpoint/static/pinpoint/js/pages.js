@@ -438,18 +438,15 @@ var PAGES = (function ($, details, mediator) {
         }
 
         mediator.fire('IR.changeSeed', [seed]);
-        setLoadingBlocks(true);
         mediator.fire('IR.getInitialResults', [layoutResults]);
-        setLoadingBlocks(false);
     }
 
     function loadMoreResults(belowFold, related) {
         if (!loadingBlocks || related) {
-            if (!related) {
+            /* if (!related) {
                 setLoadingBlocks(true);
-            }
+            }*/
             mediator.fire('IR.getMoreResults', [layoutResults, belowFold, related]);
-            setLoadingBlocks(false);
         }
     }
 
@@ -618,7 +615,7 @@ var PAGES = (function ($, details, mediator) {
         'generateID': generateID,
         'details': details,
         'setLoadingBlocks': setLoadingBlocks,
-        'getModifiedTemplateName': getModifiedTemplateName,
+        'getModifiedTemplateName': getModifiedTemplateName
     };
 })(jQuery,
    window.PAGES_INFO || window.TEST_PAGE_DATA || {},

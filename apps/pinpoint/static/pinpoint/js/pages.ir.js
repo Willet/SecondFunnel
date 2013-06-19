@@ -49,6 +49,7 @@ PAGES.intentRank = (function (me, details, mediator) {
 
     me.getInitialResults = function (callback, seed) {
         // callback function will receive a list of results as first param.
+        PAGES.setLoadingBlocks(true);
         if (!_.isEmpty(details.backupResults) &&
                 !('error' in details.backupResults)) {  // saved IR proxy error
             callback(details.backupResults);
@@ -75,10 +76,12 @@ PAGES.intentRank = (function (me, details, mediator) {
                 callback(details.content);
             }
         }
+        PAGES.setLoadingBlocks(false);
     };
 
     me.getMoreResults = function (callback, belowFold, related) {
         // callback function will receive a list of results as first param.
+        PAGES.setLoadingBlocks(true);
         if (!details.page.offline) {
             $.ajax({
                 url: details.base_url + '/intentrank/get-results/?callback=?',
@@ -103,6 +106,7 @@ PAGES.intentRank = (function (me, details, mediator) {
         } else {
             callback(details.content, undefined, related);
         }
+        PAGES.setLoadingBlocks(false);
     };
 
     me.invalidateIRSession = function () {

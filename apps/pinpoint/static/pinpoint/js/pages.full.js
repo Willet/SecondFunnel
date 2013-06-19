@@ -286,7 +286,9 @@ PAGES.full = (function (me) {
             });
 
             // Take any necessary actions
+            PAGES.setLoadingBlocks(true);
             PAGES.loadInitialResults();
+            PAGES.setLoadingBlocks(false);
         }
     };
 
