@@ -701,7 +701,8 @@
                 },
                 onError: function(id, fileName, reason) {
                     console.log(reason);
-                    if ( filesBeingUploaded == 0 ) {
+                    if ( filesBeingUploaded == 1 ) {
+                        // This has to be 1, as the order in which things are called is different.
                         $('.qq-upload-button').parents('.service').find('.icon').addClass('file');
                         $('.qq-upload-button input').prop('disabled', false);
                         $('.qq-upload-button .upload-text').text('Upload from file');
