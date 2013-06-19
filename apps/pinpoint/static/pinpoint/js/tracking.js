@@ -1,5 +1,6 @@
 var pagesTracking = (function ($, window, document) {
-    var isBounce = true, videosPlayed = [],
+    var mediator,
+        isBounce = true, videosPlayed = [],
 
     referrerName = function () {
         var host;
@@ -253,6 +254,22 @@ var pagesTracking = (function ($, window, document) {
     this.socialShareType = undefined;
     this.socialShareUrl = undefined;
     this._pptimeout = undefined;
+
+    // add mediator triggers if the module exists.
+    if (window.Willet && window.Willet.mediator) {
+        mediator = window.Willet.mediator;
+        mediator.on('tracking.init', init);
+        mediator.on('tracking.registerEvent', registerEvent);
+        mediator.on('tracking.setSocialShareVars', setSocialShareVars);
+        mediator.on('tracking.clearTimeout', clearTimeout);
+        mediator.on('tracking.registerTwitterListeners', registerTwitterListeners);
+        mediator.on('tracking.notABounce', notABounce);
+        mediator.on('tracking.videoStateChange', videoStateChange);
+        mediator.on('tracking.changeCampaign', changeCampaign);
+    } else {
+        window.console && window.console.error && window.console.error(
+            'Could not add tracking.js hooks to mediator');
+    }
 
     return {
         "init": init,

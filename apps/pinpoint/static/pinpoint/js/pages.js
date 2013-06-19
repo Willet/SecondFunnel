@@ -1,6 +1,6 @@
-// TODO: Split into submodules properly
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
-var PAGES = (function($, pageInfo) {
+var PAGES = (function ($, pageInfo, mediator) {
+    "use strict";
     var console = window.console || {
             // dummy
             'log': function () {},
@@ -9,6 +9,7 @@ var PAGES = (function($, pageInfo) {
         details,
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
+        SHUFFLE_RESULTS = pageInfo.page.SHUFFLE_RESULTS || true,
         scripts,
         userClicks = 0,
         clickThreshold = 3,
@@ -24,6 +25,7 @@ var PAGES = (function($, pageInfo) {
             "icon", "thumb", "small", "compact", "medium", "large",
             "grande", "1024x1024", "master"
         ],
+        layoutResults,
         templateNames = [
             'shop-the-look', 'featured-product',
             'product', 'combobox', 'youtube', 'image', //formerly instagram
@@ -32,15 +34,6 @@ var PAGES = (function($, pageInfo) {
         imageTypes = [
             'styld-by', 'tumblr', 'pinterest', 'facebook', 'instagram'
         ];
-
-    function getDisplayType() {
-        //for now, we cheat to determine which display type to use.
-        if ($.browser.mobile) {
-            return 'mobile'
-        }
-
-        return 'full';
-    }
 
     function setLoadingBlocks(bool) {
         loadingBlocks = bool;
@@ -70,10 +63,10 @@ var PAGES = (function($, pageInfo) {
         }
 
         return name;
-    };
+    }
 
     function redirectToProperTheme() {
-        var isOnMobilePage = /\/mobile.html/.test(window.location.pathname),
+        var isOnMobilePage = /\/mobile\.html/.test(window.location.pathname),
             url = window.location.protocol + '//' + window.location.hostname + window.location.pathname,
             query = window.location.href.split('?')[1] || "";
 
@@ -87,17 +80,16 @@ var PAGES = (function($, pageInfo) {
         }
     }
 
-    function size(url, size) {
+    function size(url, desiredSize) {
         var newUrl, filename;
 
-        if (!sizableRegex.test(url)
-            || !_.contains(imageSizes, size)) {
+        if (!sizableRegex.test(url) || !_.contains(imageSizes, desiredSize)) {
             return url;
         }
 
         // Replace filename with new size
-        filename = url.substring(url.lastIndexOf('/')+1)
-        newUrl = url.replace(filename, size + '.jpg');
+        filename = url.substring(url.lastIndexOf('/') + 1);
+        newUrl = url.replace(filename, desiredSize + '.jpg');
 
         // NOTE: We do not check if the new image exists because we implicitly
         // trust that our service will contain the required image.
@@ -121,8 +113,12 @@ var PAGES = (function($, pageInfo) {
             keyOf = testSubject,
             refBuilder = {};
         do {
-            keyOf = keyOf[listOfKeys[i]];
-            if (typeof keyOf === 'undefined') {
+            try {
+                keyOf = keyOf[listOfKeys[i]];
+                if (keyOf === 'undefined') {
+                    return refBuilder;
+                }
+            } catch (err) {
                 return refBuilder;
             }
             refBuilder[listOfKeys[i]] = keyOf;
@@ -136,9 +132,9 @@ var PAGES = (function($, pageInfo) {
         return baseStr + globalIdCounters[baseStr];
     }
 
-    function getShortestColumn () {
+    function getShortestColumn() {
         var $column;
-        $('.discovery-area .column').each(function(index, column) {
+        $('.discovery-area .column').each(function (index, column) {
             var height = $(column).height();
 
             if (!$column || (height < $column.height())) {
@@ -151,7 +147,8 @@ var PAGES = (function($, pageInfo) {
     function fisherYates(myArray, nb_picks) {
         // get #nb_picks random permutations of an array.
         // http://stackoverflow.com/a/2380070
-        for (var i = myArray.length - 1; i > 1; i--) {
+        var i;
+        for (i = myArray.length - 1; i > 1; i--) {
             var r = Math.floor(Math.random() * i);
             var t = myArray[i];
             myArray[i] = myArray[r];
@@ -168,26 +165,26 @@ var PAGES = (function($, pageInfo) {
         var appropriateSize,
             lifestyleSize,
             replaced = str.replace(
-            /<%\s*include\s*(.*?)\s*%>/g,
-            function(match, templateId) {
-                if (domTemplateCache[templateId]) {
-                    // cached
-                    return domTemplateCache[templateId];
-                } else {
-                    var $el = $('[data-template-id="' + templateId + '"]');
-                    if ($el.length) {
-                        // cache
-                        domTemplateCache[templateId] = $el.html();
+                /<%\s*include\s*(.*?)\s*%>/g,
+                function (match, templateId) {
+                    if (domTemplateCache[templateId]) {
+                        // cached
+                        return domTemplateCache[templateId];
+                    } else {
+                        var $el = $('[data-template-id="' + templateId + '"]');
+                        if ($el.length) {
+                            // cache
+                            domTemplateCache[templateId] = $el.html();
+                        }
+                        return $el.length ? $el.html() : '';
                     }
-                    return $el.length ? $el.html() : '';
                 }
-            }
-        );
+            );
 
         // Use 'appropriate' size images by default
         // TODO: Determine appropriate size
-        appropriateSize = (isBlock) ? 'compact' : 'master';
-        lifestyleSize = (isBlock) ? 'large' : 'master';
+        appropriateSize = isBlock ? 'compact' : 'master';
+        lifestyleSize = isBlock ? 'large' : 'master';
 
 
         if (_.has(context.data, 'image') && !_.isEmpty(context.data.image)) {
@@ -195,13 +192,13 @@ var PAGES = (function($, pageInfo) {
         }
 
         if (_.has(context.data, 'images') && !_.isEmpty(context.data.images)) {
-            context.data.images = _.map(context.data.images, function(img) {
-                return size(img, appropriateSize)
+            context.data.images = _.map(context.data.images, function (img) {
+                return size(img, appropriateSize);
             });
         }
 
-        if (_.has(context.data, 'lifestyle-image')
-            && !_.isEmpty(context.data['lifestyle-image'])) {
+        if (_.has(context.data, 'lifestyle-image') &&
+            !_.isEmpty(context.data['lifestyle-image'])) {
             context.data['lifestyle-image'] = size(context.data['lifestyle-image'], lifestyleSize);
         }
 
@@ -255,14 +252,14 @@ var PAGES = (function($, pageInfo) {
 
     function changeCategory(category) {
         var categories = details.page.categories;
-        if (!categories || !_.findWhere(categories, {'id': ''+category})) {
-            return
+        if (!categories || !_.findWhere(categories, {'id': '' + category})) {
+            return;
         }
 
         // If there are categories, and a valid category is supplied
         // change the category
         details.page.id = category;
-        pagesTracking.changeCampaign(category);
+        mediator.fire('tracking.changeCampaign', [category]);
     }
 
     function changeSeed(seed) {
@@ -287,7 +284,8 @@ var PAGES = (function($, pageInfo) {
             $previewMask = $previewContainer.find('.mask'),
             $target = $previewContainer.find('.target.template'),
             templateId,
-            template, renderedTemplate;
+            template,
+            renderedTemplate;
 
         // Since we don't know how to handle /multiple/ products
         // provide a way to access /one/ related product
@@ -296,8 +294,7 @@ var PAGES = (function($, pageInfo) {
             data['related-product'] = data['related-products'][0];
         }
 
-        if (_.has(data, 'related-products')
-            && !_.isEmpty(data['related-products'])) {
+        if (_.has(data, 'related-products') && !_.isEmpty(data['related-products'])) {
             templateName += '-product';
         }
 
@@ -305,7 +302,7 @@ var PAGES = (function($, pageInfo) {
 
         template = $('[data-template-id="' + templateId + '"]').html();
 
-        if (!template && (templateId.indexOf('image') == 0)) {
+        if (!template && (templateId.indexOf('image') === 0)) {
             // legacy themes don't have 'image-' templates
             templateId = 'instagram' + templateId.slice(5);
             template = $('[data-template-id="' + templateId + '"]').html();
@@ -328,11 +325,11 @@ var PAGES = (function($, pageInfo) {
 
         // Parse Facebook, Twitter buttons
         if (window.FB) {
-            FB.XFBML.parse($previewContainer.find('.social-buttons .button.facebook')[0]);
+            window.FB.XFBML.parse($previewContainer.find('.social-buttons .button.facebook')[0]);
         }
 
         if (window.twttr) {
-            twttr.widgets.load();
+            window.twttr.widgets.load();
         }
 
         for (var i in previewCallbacks) {
@@ -341,9 +338,11 @@ var PAGES = (function($, pageInfo) {
             }
         }
 
-        if (window.pagesTracking) {
-            pagesTracking.clearTimeout();
-            pagesTracking.setSocialShareVars({"sType": "popup", "url": data.url});
+        if (mediator) {
+            mediator.fire('tracking.clearTimeout');
+            mediator.fire('tracking.setSocialShareVars', [
+                {"sType": "popup", "url": data.url}
+            ]);
         }
 
         $previewContainer.fadeIn(100);
@@ -372,19 +371,19 @@ var PAGES = (function($, pageInfo) {
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.container');
 
-        window.pagesTracking && pagesTracking.setSocialShareVars();
+        mediator.fire('tracking.setSocialShareVars', []);
 
         $preview.fadeOut(100);
         $mask.fadeOut(100);
     }
 
     function commonHoverOn(t, enableSocialButtons, enableTracking) {
-        if (window.pagesTracking && enableTracking) {
-            pagesTracking.setSocialShareVars({
+        if (enableTracking) {
+            mediator.fire('tracking.setSocialShareVars', [{
                 "sType": "discovery",
                 "url": $(t).data("label")
-            });
-            pagesTracking.clearTimeout();
+            }]);
+            mediator.fire('tracking.clearTimeout');
         }
 
         if (enableTracking) {
@@ -413,10 +412,12 @@ var PAGES = (function($, pageInfo) {
             }
         }
 
-        if (window.pagesTracking && enableTracking) {
-            pagesTracking.clearTimeout();
-            if (pagesTracking.socialShareType !== "popup") {
-                pagesTracking._pptimeout = window.setTimeout(pagesTracking.setSocialShareVars, 2000);
+        if (enableTracking) {
+            mediator.fire('tracking.clearTimeout');
+            if (window.pagesTracking) {
+                if (pagesTracking.socialShareType !== "popup") {
+                    pagesTracking._pptimeout = window.setTimeout(pagesTracking.setSocialShareVars, 2000);
+                }
             }
         }
     }
@@ -427,11 +428,11 @@ var PAGES = (function($, pageInfo) {
 
     function productHoverOff () {
         commonHoverOff(this, function (t) {
-            window.pagesTracking && pagesTracking.registerEvent({
+            mediator.fire('tracking.registerEvent', [{
                 "type": "inpage",
                 "subtype": "hover",
                 "label": $(t).data("label")
-            });
+            }]);
         }, true);
     }
 
@@ -449,11 +450,11 @@ var PAGES = (function($, pageInfo) {
 
     function lifestyleHoverOff () {
         commonHoverOff(this, function (t) {
-            window.pagesTracking && pagesTracking.registerEvent({
+            mediator.fire('tracking.registerEvent', [{
                 "type": "content",
                 "subtype": "hover",
                 "label": $(t).data("label")
-            });
+            }]);
         }, true);
     }
 
@@ -520,7 +521,8 @@ var PAGES = (function($, pageInfo) {
             changeSeed(seed);
 
             loadingBlocks = true;
-            if (!_.isEmpty(details.backupResults)) {
+            if (!_.isEmpty(details.backupResults) &&
+                !('error' in details.backupResults)) {  // saved IR proxy error
                 layoutResults(details.backupResults);
                 details.backupResults = [];
             } else {
@@ -603,7 +605,7 @@ var PAGES = (function($, pageInfo) {
 
         // user scrolled far enough not to be a "bounce"
         if (divider_bottom < 150) {
-            window.pagesTracking && pagesTracking.notABounce("scroll");
+            mediator.fire('tracking.notABounce', ["scroll"]);
         }
 
         $('.discovery-area .block').each(function() {
@@ -664,114 +666,6 @@ var PAGES = (function($, pageInfo) {
 
     /* --- END element bindings --- */
 
-    /* --- START Social buttons --- */
-    function loadFB () {
-        if (FB) {
-            FB.init({
-                cookie:true,
-                status:true,
-                xfbml:true
-            });
-
-            var $featuredFB = $('.featured .social-buttons .button.facebook');
-
-            if ($featuredFB.length > 0) {
-                FB.XFBML.parse($featuredFB[0]);
-            }
-
-            FB.Event.subscribe('xfbml.render', function(response) {
-                $(".loaded").find(".loading-container").css('visibility', 'visible');
-                $(".loaded").find(".loading-container").hide();
-                $(".loaded").find(".loading-container").fadeIn('fast');
-            });
-
-            FB.Event.subscribe('edge.create',
-                function(url) {
-                    window.pagesTracking && pagesTracking.registerEvent({
-                        "network": "Facebook",
-                        "type": "share",
-                        "subtype": "liked",
-                        "label": url
-                    });
-                }
-            );
-        } else {
-            (console.error || console.log)('FB button is blocked.');
-        }
-    }
-
-    function createSocialButtons(config) {
-        var conf           = config || {};
-        var $socialButtons = $('<div/>', {'class': 'social-buttons'});
-
-        var $fbButton        = $('<div/>', {'class': 'facebook button'});
-        $fbButton.append(createFBButton(conf));
-
-        var $twitterButton   = $('<div/>', {'class': 'twitter button'});
-        $twitterButton.append(createTwitterButton(conf));
-
-        var $pinterestButton = $('<div/>', {'class': 'pinterest button'});
-        $pinterestButton.append(createPinterestButton(conf));
-
-        $socialButtons.append($fbButton).append($twitterButton).append($pinterestButton);
-        return $socialButtons;
-    }
-
-    function createFBButton(config) {
-        var conf = config || {};
-
-        var fbxml = "<fb:like " +
-                "href='" + (conf.url || '') + "' " +
-                "layout='" + (conf.button_count || 'button_count') + "' " +
-                "width='" + (conf.width || 80) + "' " +
-                "show_faces='" + (conf.show_faces || false) + "' " +
-            "></fb:like>";
-
-        return $(fbxml);
-    }
-
-    function createTwitterButton(config) {
-        var conf = config || {};
-
-        var $twitterHtml = $('<a/>', {
-            'href'     : 'https://twitter.com/share',
-            'class'    : 'twitter-share-button',
-            'text'     : 'Tweet',
-            'data-url' : conf.url,
-            'data-text': (conf.title || '') + ' ' + conf.url,
-            'data-lang': 'en'
-        });
-
-        if (!config.count) {
-            $twitterHtml.attr('data-count', 'none')
-        }
-
-        return $twitterHtml;
-    }
-
-    function createPinterestButton(config) {
-        var conf = config || {};
-
-        var url = 'http://pinterest.com/pin/create/button/' +
-            '?url=' + encodeURIComponent(conf.url) +
-            '&media=' + encodeURIComponent(conf.image) +
-            '&description=' + details.store.name + '-' + conf.title;
-
-        var $img = $('<img/>', {
-            'src': "//assets.pinterest.com/images/PinExt.png"
-        });
-
-        var $pinterestHtml = $('<a/>', {
-            'href': url,
-            'target': '_blank'
-        });
-
-        $pinterestHtml.append($img);
-
-        return $pinterestHtml;
-    }
-    /* --- END Social buttons --- */
-
     function load(scripts) {
         var item, script;
 
@@ -784,19 +678,15 @@ var PAGES = (function($, pageInfo) {
     }
 
     function init (readyFunc, layoutFunc) {
-        console.log('init');
-
         // ensure we actually determine if we're desktop or mobile
         // regex from http://detectmobilebrowsers.com/
         (function(a){(jQuery.browser=jQuery.browser||{}).mobile=/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))})(navigator.userAgent||navigator.vendor||window.opera);
 
         redirectToProperTheme();
 
-        ready = readyFunc;
         layoutResults = layoutFunc;
-
         load(scripts);
-        $(document).ready(ready);
+        $(document).ready(readyFunc);
     }
 
     // script actually starts here
@@ -810,15 +700,15 @@ var PAGES = (function($, pageInfo) {
     details.product = details.page.product || {};
     details.store = details.store || {};
 
+    mediator.fire('buttonMaker.init', [details]);
+
     // Either a URL, or an object with 'src' key and optional 'onload' key
     scripts = [{
         'src'   : 'http://connect.facebook.net/en_US/all.js#xfbml=0',
-        'onload': loadFB
+        'onload': mediator.callback('buttonMaker.loadFB')
     }, {
         'src'   : '//platform.twitter.com/widgets.js',
-        'onload': window.pagesTracking?
-                  pagesTracking.registerTwitterListeners:
-                  function () { /* dummy */ },
+        'onload': mediator.callback('tracking.registerTwitterListeners'),
         'id': 'twitter-wjs'
     }, {
         'src'   : '//assets.pinterest.com/js/pinit.js',
@@ -840,6 +730,7 @@ var PAGES = (function($, pageInfo) {
         'hidePreview': hidePreview,
         'pageScroll': pageScroll,
         'MAX_RESULTS_PER_SCROLL': MAX_RESULTS_PER_SCROLL,
+        'SHUFFLE_RESULTS': SHUFFLE_RESULTS,
         'fisherYates': fisherYates,
         'addReadyCallback': addReadyCallback,
         'changeCategory': changeCategory,
@@ -850,4 +741,6 @@ var PAGES = (function($, pageInfo) {
         'getModifiedTemplateName': getModifiedTemplateName,
         'changeSeed': changeSeed
     };
-})(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {});
+})(jQuery,
+   window.PAGES_INFO || window.TEST_PAGE_DATA || {},
+   (Willet && Willet.mediator) || {});

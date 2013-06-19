@@ -55,7 +55,8 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
         "backup_results": json.dumps(related_results),
         "pub_date": datetime.now(),
         "base_url": settings.WEBSITE_BASE_URL,
-        "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY
+        "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
+        "device_mode": mode,
     }
     if request:
         context = RequestContext(request, attributes)
@@ -65,8 +66,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
     theme = campaign.get_theme(mode)
 
     if not theme:
-        #TODO: ERROR
-        pass
+        raise ValueError('Neither campaign nor its store has a theme defined')
 
     page_str = theme.page
 

@@ -143,6 +143,7 @@ def generate_static_campaign(campaign_id):
     dummy_request = create_dummy_request()
 
     rendered_content = [
+        # s3_file_name, log_key, page_content
         ("index.html", "CD", render_campaign(
             campaign, get_seeds_func=get_seeds, request=dummy_request
         )),
