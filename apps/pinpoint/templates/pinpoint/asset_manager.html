@@ -675,12 +675,11 @@
                 action: '{% url upload-asset store.id %}',
                 csrfToken: $.cookie('csrftoken'),
                 allowedExtensions: ['jpg' ,'png', 'jpeg'],
-                uploadButtonText: 'Upload from file',
+                uploadButtonText: '<span class="upload-text">Upload from file</span>',
                 onSubmit: function() {
                     $('.qq-upload-button').parents('.service').find('.icon').removeClass('file');
-                    // TODO: Actual disable clicking on the button
-                    $('.qq-upload-button').addClass('disabled');
-                    $('.qq-upload-button').text('Uploading...');
+                    $('.qq-upload-button input').prop('disabled', true);
+                    $('.qq-upload-button .upload-text').text('Uploading...');
                 },
                 onComplete: function(id, fileName, response) {
                     // This method triggers whether the upload was successful or not, so only trigger
@@ -690,7 +689,6 @@
                     if (response.success == false) {
                         if (response.error && messages[response.error]) {
                             alert(fileName + messages[response.error]);
-                            location.reload();
                         }
                     } else {
                         location.reload();
@@ -698,6 +696,9 @@
                 },
                 onError: function(id, fileName, reason) {
                     console.log(reason);
+                    $('.qq-upload-button').parents('.service').find('.icon').addClass('file');
+                    $('.qq-upload-button input').prop('disabled', false);
+                    $('.qq-upload-button .upload-text').text('Upload from file');
                 }
             });
     }
