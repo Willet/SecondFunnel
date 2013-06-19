@@ -171,6 +171,61 @@
 {% endblock %}
 
 {% block document_ready %}
+    jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+        "timestamp-numeric-pre": function ( a ) {
+            var x = a.match(/data-timestamp="*(-?[0-9\.]+)/)[1];
+            return parseFloat( x );
+        },
+
+        "timestamp-numeric-asc": function ( a, b ) {
+            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+        },
+
+        "timestamp-numeric-desc": function ( a, b ) {
+            return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+        }
+    });
+
+    var dataRowOptions = { sWidth: '50px', bSortable: false },
+        pageListTable = $("#pageList").dataTable({
+            "bScrollInfinite": true,
+            "bScrollCollapse": true,
+            "sScrollY": "400px",
+            "bPaginate": false,
+            "fnDrawCallback": function() {
+                $("#pageList tr.even").removeClass('even').addClass('odd');
+            },
+            "bAutoWidth": false,
+            "aoColumns" : [
+                null,
+                { "sType": "timestamp-numeric"},
+                null,
+            ],
+            "aaSorting": [[1, "desc"]],
+            "oLanguage": {
+                "sZeroRecords": "{% trans "No pages match that search." %}",
+                "sEmptyTable": "{% trans "Sorry, you haven't made any pages yet :(" %}"
+            }
+        });
+
+    var ajax_urls = {
+        "save_as_draft": "{% url ajax-campaign-save-draft %}",
+        "publish": "{% url ajax-campaign-publish %}"
+    };
+
+    $("#pageList_filter input").unbind("keyup").keyup(function() {
+        pageListTable.fnFilter( this.value, 0 );
+    })
+
+    $("ul.messages li").on('click', function() {
+        $(this).slideUp();
+    });
+
+    // If we had messages, flash the most recent entry...
+    if ($("ul.messages").length >= 1 &&
+        !$("ul.messages:contains('deleted')").length) {
+        $("#pageList tbody tr:first div").delay(500).effect("highlight", {"color": "#6F98AC"}, 2000);
+    }
 {% endblock %}
 
 {% block top_section %}
@@ -193,8 +248,22 @@
 {% endblock top_section%}
 
 {% block content %}
-    {% for theme in themes %}
-        {{ theme.obj.name }} -
-        ({% for tag in theme.tags%}{{ tag }}{% if not forloop.last %}, {% endif %}{% endfor %})<br/>
-    {% endfor %}
+    <table id="pageList" cellpadding="0" cellspacing="0" border="0" class="display" >
+        <thead>
+        <tr>
+            <th>{% trans "Name" %}</th>
+            <th>{% trans "Date Modified" %}</th>
+            <th>{% trans "Properties" %}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for theme in themes %}
+            <tr>
+                <td><div>{{ theme.obj.name }}</div></td>
+                <td><div data-timestamp='{{ theme.obj.last_modified|date:"U" }}'>{% blocktrans with day=theme.obj.last_modified|naturalday %}{{ day }}{% endblocktrans %}</div></td>
+                <td><div>{% for tag in theme.tags%}{{ tag }}{% if not forloop.last %}, {% endif %}{% endfor %}</div></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}
