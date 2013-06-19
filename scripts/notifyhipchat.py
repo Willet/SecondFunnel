@@ -20,4 +20,4 @@ try:
 except KeyError:
     pass
 
-hipchat_broadcast(by="Hubert" % where, message="(goodnews) New version%s!")
+hipchat_broadcast(by="Hubert", message="(goodnews) New version%s!" % where)
