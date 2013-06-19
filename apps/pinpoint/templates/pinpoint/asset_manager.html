@@ -647,10 +647,6 @@
                     }
                 }
             },
-            //TODO: SHOULD USERS BE ABLE TO CREATE TAGS?
-            beforeTagAdded: function (event, ui) {
-                
-            },
             beforeTagRemoved: function (event, ui) {
                 var oid = $(this).parents(".approval_block").data("oid"),
                     pid = products[ui.tagLabel];
