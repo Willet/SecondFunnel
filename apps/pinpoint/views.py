@@ -417,8 +417,17 @@ def edit_theme(request, store_id, theme_id=None):
         # Only have to do something if the theme already exists
         template_vars['formset'] = ThemeForm(instance=theme)
     elif request.method == 'POST':
-        # Edit / create
-        pass
+        form = ThemeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                '"{0}" saved successfully.'.format(form.cleaned_data['name'])
+            )
+            return redirect('theme-manager', store_id=store_id)
+        else:
+            #TODO: Error
+            pass
     else:
         # TODO: What are you doing?
         pass

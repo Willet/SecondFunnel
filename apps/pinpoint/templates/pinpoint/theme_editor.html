@@ -12,6 +12,20 @@
 
 {% block extra_head %}
     <style type="text/css">
+        .button {
+            float: right;
+            position: relative;
+        }
+
+        .button.submit, .button.preview {
+            height: 50px;
+            width: 150px;
+            font-size: 14px;
+        }
+
+        .actions {
+            line-height: 60px;
+        }
     </style>
 {% endblock %}
 
@@ -33,9 +47,8 @@
 {% endblock %}
 
 {% block content %}
-    Testing text.
-
     <form method="post" action="{% url edit-theme store_id theme_id %}">
+        {% csrf_token %}
         {{ formset.management_form }}
         {% for form in formset %}
             {% for field in form %}
@@ -45,5 +58,8 @@
                 </div>
             {% endfor %}
         {% endfor %}
+        <div class="actions">
+            <input class="button submit focus" type="submit" value="{% trans "Save" %}" />
+        </div>
     </form>
 {% endblock %}
