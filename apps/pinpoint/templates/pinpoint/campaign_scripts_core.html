@@ -4,7 +4,7 @@
 {% compress js %}
 <script type="text/javascript">
     window.PAGES_INFO = {
-        'base_url': '{{ base_url }}',
+        'base_url': '{{ base_url }}',  // might be absent in TEST_PAGE_DATA
         'page': {
             'pubDate': '{{ pub_date }}',  // for verifying the original upload date of a static campaign. for human use only
             'id': '{{ campaign.default_intentrank.id|default:campaign.id }}',
@@ -13,6 +13,7 @@
             'stl-image': '{{ campaign.stl_image }}',
             'featured-image': '{{ campaign.featured_image }}',
             'description': '{{ campaign.description|escapejs }}',
+            'offline': false,  // true only in TEST_PAGE_DATA
             'product': {{ product.json|safe }},
             'categories': [
             {% with categories=campaign.intentrank.all%}
@@ -45,6 +46,7 @@
 <script src="{% static "pinpoint/js/utils.js" %}"></script>
 <script src="{% static "pinpoint/js/tracking.js" %}"></script>
 <script src="{% static "pinpoint/js/pages.js" %}"></script>
+<script src="{% static "pinpoint/js/pages.ir.js" %}"></script>
 
 {% if not device_mode %}
     <script>console.error('device_mode missing');</script>

@@ -1,18 +1,16 @@
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
-var PAGES = (function ($, pageInfo, mediator) {
+var PAGES = (function ($, details, mediator) {
     "use strict";
-    var console = window.console || {
-            // dummy
-            'log': function () {},
-            'error': function () {}
+    var i = 0,  // counter
+        noop = function () {},
+        console = window.console || {  // dummy
+            'log': noop,
+            'error': noop
         },
-        details,
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
-        SHUFFLE_RESULTS = pageInfo.page.SHUFFLE_RESULTS || true,
+        SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || true,
         scripts,
-        userClicks = 0,
-        clickThreshold = 3,
         spaceBelowFoldToStartLoading = 500,
         loadingBlocks = false,
         blocksAppendedCallbacks = [],
@@ -198,7 +196,7 @@ var PAGES = (function ($, pageInfo, mediator) {
         }
 
         if (_.has(context.data, 'lifestyle-image') &&
-            !_.isEmpty(context.data['lifestyle-image'])) {
+                !_.isEmpty(context.data['lifestyle-image'])) {
             context.data['lifestyle-image'] = size(context.data['lifestyle-image'], lifestyleSize);
         }
 
@@ -250,30 +248,6 @@ var PAGES = (function ($, pageInfo, mediator) {
         });
     }
 
-    function changeCategory(category) {
-        var categories = details.page.categories;
-        if (!categories || !_.findWhere(categories, {'id': '' + category})) {
-            return;
-        }
-
-        // If there are categories, and a valid category is supplied
-        // change the category
-        details.page.id = category;
-        mediator.fire('tracking.changeCampaign', [category]);
-    }
-
-    function changeSeed(seed) {
-        // If you're calling this function, you probably know what
-        // you're doing...
-
-        // Usually called in conjunction with `changeCategory`...
-
-        if (!seed) {
-            return;
-        }
-
-        details.product['product-id'] = seed;
-    }
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
@@ -395,7 +369,7 @@ var PAGES = (function ($, pageInfo, mediator) {
             $buttons.fadeIn('fast');
 
             if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
-                FB.XFBML.parse($buttons.find('.button.facebook')[0]);
+                window.FB.XFBML.parse($buttons.find('.button.facebook')[0]);
                 $buttons.addClass('loaded');
             }
         }
@@ -458,40 +432,25 @@ var PAGES = (function ($, pageInfo, mediator) {
         }, true);
     }
 
-    function updateClickStream(t, event) {
-        /* Loads more content if user clicks has exceeded threshold.  On each click, loads related content below
-           a block that the user has clicked. */
-        var $target = $(event.currentTarget),
-            data      = $target.data(),
-            id        = data['product-id'] || data['id'],
-            exceededThreshold;
-
-        if (details.page.offline) {
+    function loadInitialResults(seed) {
+        if (!loadingBlocks) {
             return;
         }
 
-        userClicks += 1;
-        exceededThreshold = ((userClicks % clickThreshold) == 0);
-        
-        $.ajax({
-            url: PAGES_INFO.base_url + '/intentrank/update-clickstream/?callback=?',
-            data: {
-                'store': details.store.id,
-                'campaign': details.page.id,
-                'product_id': id
-            },
-            dataType: 'jsonp',
-            success: function() {
-                if (exceededThreshold) {
-                    loadMoreResults(true)
-                }
-            }
-        });
+        mediator.fire('IR.changeSeed', [seed]);
+        setLoadingBlocks(true);
+        mediator.fire('IR.getInitialResults', [layoutResults]);
+        setLoadingBlocks(false);
     }
 
-    function updateContentStream( product ) {
-        /* @return: none */
-        loadMoreResults( false, product );
+    function loadMoreResults(belowFold, related) {
+        if (!loadingBlocks || related) {
+            if (!related) {
+                setLoadingBlocks(true);
+            }
+            mediator.fire('IR.getMoreResults', [layoutResults, belowFold, related]);
+            setLoadingBlocks(false);
+        }
     }
 
     function layoutRelated( product, relatedContent ) {
@@ -515,88 +474,10 @@ var PAGES = (function ($, pageInfo, mediator) {
            $.when($discovery.masonry('reload')).then(function(){ relatedContent.show();}); */
     }
 
-
-    function loadInitialResults (seed) {
-        if (!loadingBlocks) {
-            changeSeed(seed);
-
-            loadingBlocks = true;
-            if (!_.isEmpty(details.backupResults) &&
-                !('error' in details.backupResults)) {  // saved IR proxy error
-                layoutResults(details.backupResults);
-                details.backupResults = [];
-            } else {
-                if (!details.page.offline) {
-                    $.ajax({
-                        url: PAGES_INFO.base_url + '/intentrank/get-seeds/?callback=?',
-                        data: {
-                            'store': details.store.id,
-                            'campaign': details.page.id,
-                            'seeds': details.product['product-id']
-                        },
-                        dataType: 'jsonp',
-                        success: function(results) {
-                            layoutResults(results);
-                        },
-                        error: function() {
-                            console.log('loading backup results');
-                            layoutResults(details.backupResults);
-                            loadingBlocks = false;
-                        }
-                    });
-                } else {
-                    layoutResults(details.content);
-                }
-            }
-        }
-    }
-
-    function loadMoreResults(belowFold, related) {
-        if (!loadingBlocks || related) {
-            if (!related) {
-                loadingBlocks = true;
-            }
-            if (!details.page.offline) {
-                $.ajax({
-                    url: PAGES_INFO.base_url + '/intentrank/get-results/?callback=?',
-                    data: {
-                        'store': details.store.id,
-                        'campaign': details.page.id,
-
-                        //TODO: Probably should be some calculated value
-                        'results': 10,
-
-                        // normally ignored, unless IR call fails and we'll resort to getseeds
-                        'seeds': details.featured.id
-                    },
-                    dataType: 'jsonp',
-                    success: function(results) {
-                        layoutResults(results, belowFold, related);
-                    },
-                    error: function() {
-                        console.log('loading backup results');
-                        layoutResults(details.backupResults, belowFold, related);
-                        if (!related) {
-                            loadingBlocks = false;
-                        }
-                    }
-                });
-            } else {
-                layoutResults(details.content, undefined, related);
-            }
-        }
-    }
-
-    function invalidateIRSession () {
-        $.ajax({
-            url: PAGES_INFO.base_url + '/intentrank/invalidate-session/?callback=?',
-            dataType: 'jsonp'
-        });
-    }
-
-    function pageScroll () {
+    function pageScroll() {
         var $w            = $(window),
-            noResults     = ($('.discovery-area .block').length === 0),
+            discoveryBlocks = $('.discovery-area .block'),
+            noResults     = (discoveryBlocks.length === 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             lowestBlock,
             lowestHeight,
@@ -604,11 +485,11 @@ var PAGES = (function ($, pageInfo, mediator) {
             divider_bottom = ($divider.length) ? $divider[0].getBoundingClientRect().bottom : 0;
 
         // user scrolled far enough not to be a "bounce"
-        if (divider_bottom < 150) {
+        if (divider_bottom < 150) {  // arbitrary
             mediator.fire('tracking.notABounce', ["scroll"]);
         }
 
-        $('.discovery-area .block').each(function() {
+        discoveryBlocks.each(function() {
             if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
                 lowestBlock = $(this);
             }
@@ -621,11 +502,11 @@ var PAGES = (function ($, pageInfo, mediator) {
         }
 
         if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
-            loadMoreResults();
+            loadMoreResults(layoutResults);
         }
     }
 
-    function attachListeners () {
+    function attachListeners() {
         var $discovery = $('.discovery-area');
 
         // use delegated events to reduce overhead
@@ -639,12 +520,12 @@ var PAGES = (function ($, pageInfo, mediator) {
 
         // update clickstream
         $discovery.on('click', '.block.product:not(.unclickable), .block.combobox:not(.unclickable)', function (e) {
-            updateClickStream(e.currentTarget, e);
+            mediator.fire('IR.updateClickStream', [e.currentTarget, e]);
         });
 
         // load related content; update contentstream
         $discovery.on('click', '.block:not(.youtube):not(.unclickable)', function(e) {
-            updateContentStream(e.currentTarget);
+            mediator.fire('IR.updateContentStream', [e.currentTarget]);
         });
 
         // hovers
@@ -690,15 +571,13 @@ var PAGES = (function ($, pageInfo, mediator) {
     }
 
     // script actually starts here
-    details = pageInfo;
-    details.backupResults = details.backupResults || // slightly more customized
-                            details.randomResults || // than totally random
-                            {};
+    var requiredInfo = [
+        'backupResults', 'featured', 'page', 'product', 'store'
+    ];
+    for (i = 0; i < requiredInfo.length; i++) {
+        details[requiredInfo[i]] = details[requiredInfo[i]] || {};
+    }
     details.content = details.content || [];
-    details.featured = details.featured || {};
-    details.page = details.page || {};
-    details.product = details.page.product || {};
-    details.store = details.store || {};
 
     mediator.fire('buttonMaker.init', [details]);
 
@@ -717,7 +596,7 @@ var PAGES = (function ($, pageInfo, mediator) {
 
     return {
         'init': init,
-        'invalidateSession': invalidateIRSession,
+        // 'invalidateSession': invalidateIRSession,
         'addPreviewCallback': addPreviewCallback,
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
         'setBlocksAppendedCallback': setBlocksAppendedCallback,
@@ -725,6 +604,7 @@ var PAGES = (function ($, pageInfo, mediator) {
         'renderTemplate': renderTemplate,
         'renderTemplates': renderTemplates,
         'loadInitialResults': loadInitialResults,
+        'loadMoreResults': loadMoreResults,
         'layoutRelated': layoutRelated,
         'attachListeners': attachListeners,
         'hidePreview': hidePreview,
@@ -733,13 +613,12 @@ var PAGES = (function ($, pageInfo, mediator) {
         'SHUFFLE_RESULTS': SHUFFLE_RESULTS,
         'fisherYates': fisherYates,
         'addReadyCallback': addReadyCallback,
-        'changeCategory': changeCategory,
+        // 'changeCategory': changeCategory,
         'checkKeys': checkKeys,
         'generateID': generateID,
         'details': details,
         'setLoadingBlocks': setLoadingBlocks,
         'getModifiedTemplateName': getModifiedTemplateName,
-        'changeSeed': changeSeed
     };
 })(jQuery,
    window.PAGES_INFO || window.TEST_PAGE_DATA || {},

@@ -60,7 +60,7 @@ PAGES.mobile = (function (me) {
             $(window).scroll(PAGES.pageScroll);
             $(window).resize(PAGES.pageScroll);
 
-            PAGES.loadInitialResults();
+            Willet.mediator.fire('IR.loadInitialResults');
         }
     };
 
