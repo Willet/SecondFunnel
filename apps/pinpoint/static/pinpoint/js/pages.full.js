@@ -1,6 +1,6 @@
 var PAGES = PAGES || {};
 
-PAGES.full = (function (me) {
+PAGES.full = (function (me, mediator) {
     "use strict";
 
     me = {
@@ -8,6 +8,19 @@ PAGES.full = (function (me) {
             // renders product divs onto the page.
             // suppose results is (now) a legit json object:
             // {products: [], videos: [(sizeof 1)]}
+            try {
+                if (jsonData.error) {
+                    mediator.fire(
+                        'error',  // usually "Campaign xxx has no product for id xxx"
+                        [jsonData.error + ' (' + (jsonData.url || '') + ')']
+                    );
+                    return;
+                }
+            } catch (err) {
+                /* neither an array nor object - even worse */
+                mediator.fire('error', ['malformed jsonData', jsonData]);
+                return;
+            }
             var $block,
                 result,
                 results = (PAGES.SHUFFLE_RESULTS) ?
@@ -85,7 +98,7 @@ PAGES.full = (function (me) {
                         'store': PAGES.details.store
                     }, true);
                     if (!rendered_block.length) {
-                        Willet.mediator.fire('error', ['warning: not drawing empty template block']);
+                        mediator.fire('error', ['warning: not drawing empty template block']);
                         break;
                     } else {
                         el = $(rendered_block);
@@ -95,7 +108,7 @@ PAGES.full = (function (me) {
                     }
 
                 } catch (err) {  // hide rendering error
-                    Willet.mediator.fire('log', ['oops @ item', err]);
+                    mediator.fire('log', ['oops @ item', err]);
                 }
             }
 
@@ -218,9 +231,9 @@ PAGES.full = (function (me) {
                         if (container.find('.' + thumbClass).length === 0) {
                             // add a thumbnail only if there isn't one already
                             container.prepend(thumbnail);
-                            Willet.mediator.fire('log', ['loaded video thumbnail ' + video_id]);
+                            mediator.fire('log', ['loaded video thumbnail ' + video_id]);
                         } else {
-                            Willet.mediator.fire('log', ['prevented thumbnail dupe']);
+                            mediator.fire('log', ['prevented thumbnail dupe']);
                         }
                         container.children(".title").html(video_data.entry.title.$t);
                     });
@@ -293,4 +306,4 @@ PAGES.full = (function (me) {
     };
 
     return me;
-})();
+})(PAGES.full || {}, Willet.mediator);
