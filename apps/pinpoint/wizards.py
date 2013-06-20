@@ -85,7 +85,7 @@ class Wizard(object):
                 "campaign": self.campaign,
             }, context_instance=RequestContext(self.request))
         else:
-            return ajax_error()
+            return ajax_error({'error': "Preview requested."})
 
     def _get(self):
         """
