@@ -1,6 +1,7 @@
 var pagesTracking = (function ($, window, document) {
     var mediator,
-        isBounce = true, videosPlayed = [],
+        isBounce = true,  // this flag set to false once user scrolls down
+        videosPlayed = [],
 
         referrerName = function () {
             var host;

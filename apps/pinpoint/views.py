@@ -9,9 +9,6 @@ from django.contrib.auth.views import login
 from django.shortcuts import render_to_response, get_object_or_404, redirect, render
 from django.template import RequestContext, Context, loader
 from django.http import HttpResponse, HttpResponseServerError
-from django.contrib.contenttypes.models import ContentType
-from django.template.defaultfilters import slugify, safe
-from django.utils.encoding import force_unicode
 from django.views.decorators.http import require_POST
 from fancy_cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
@@ -27,7 +24,6 @@ from apps.pinpoint.models import Campaign, BlockType
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
 from apps.pinpoint.utils import render_campaign
 import apps.pinpoint.wizards as wizards
-from apps.utils import noop
 from apps.utils.ajax import ajax_error, ajax_success
 
 import apps.utils.base62 as base62
@@ -206,8 +202,6 @@ def campaign_analytics_admin(request, store_id, campaign_id):
 @login_required
 def analytics_admin(request, store, campaign=False, is_overview=True):
     categories = Category.objects.filter(enabled=True)
-    store_type = ContentType.objects.get_for_model(Store)
-    campaign_type = ContentType.objects.get_for_model(Campaign)
 
     return render_to_response('pinpoint/admin_analytics.html', {
         'is_overview': is_overview,
@@ -364,7 +358,7 @@ def asset_manager(request, store_id):
             }, context_instance=RequestContext(request))
 
 
-# origin: campaigns with short URLs are cached for 30 minutes
+# campaigns with short URLs are cached for 30 minutes
 @cache_page(60 * 30, key_prefix=nocache)
 def campaign_short(request, campaign_id_short, mode='auto'):
     """base62() is a custom function, so to figure out the long
@@ -386,6 +380,7 @@ def campaign_short(request, campaign_id_short, mode='auto'):
 
 @vary_on_headers('Accept-Encoding')
 def campaign(request, campaign_id, mode='auto'):
+    """Returns a rendered campaign response of the given id."""
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
 
     if mode == 'auto':
