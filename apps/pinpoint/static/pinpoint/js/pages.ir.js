@@ -12,7 +12,8 @@ PAGES.intentRank = (function (me, details, mediator) {
     };
 
     me.updateClickStream = function (t, event) {
-        /* Loads more content if user clicks has exceeded threshold.  On each click, loads related content below
+        /* Loads more content if user clicks has exceeded threshold.
+           On each click, loads related content below
            a block that the user has clicked. */
         var $target = $(event.currentTarget),
             data      = $target.data(),

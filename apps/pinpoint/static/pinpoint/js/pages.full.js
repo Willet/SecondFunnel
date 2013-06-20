@@ -95,7 +95,7 @@ PAGES.full = (function (me) {
                     }
 
                 } catch (err) {  // hide rendering error
-                    console.log('oops @ item');
+                    console.log('oops @ item', err);
                 }
             }
 
@@ -155,13 +155,14 @@ PAGES.full = (function (me) {
             // Render youtube blocks with player
             videos = _.where(results, {'template': 'youtube'});  // (haystack, criteria)
             _.each(videos, function (video) {
-                var video_id = video['original-id'];
-                var video_state_change = window.pagesTracking?
-                    _.partial(pagesTracking.videoStateChange, video_id):
-                    function() {/* dummy */};
+                var video_id = video['original-id'] || video.id,
+                    video_state_change = window.pagesTracking ?
+                        _.partial(window.pagesTracking.videoStateChange, video_id) :
+                            function () {/* dummy */};
 
-                api.getObject("video_gdata", video_id, function (video_data) {
-                    var preferredThumbnailQuality = 'hqdefault',
+                Willet.mediaAPI.getObject("video_gdata", video_id, function (video_data) {
+                    var containers,
+                        preferredThumbnailQuality = 'hqdefault',
                         thumbClass = 'youtube-thumbnail',
                         thumbURL = 'http://i.ytimg.com/vi/' + video_id +
                             '/' + preferredThumbnailQuality + '.jpg',
@@ -177,11 +178,10 @@ PAGES.full = (function (me) {
                         thumbURL = thumbObj.url;
                     }  // else fallback to the default thumbURL
 
-                    var containers = $(".youtube[data-label='" + video_id + "']");
+                    containers = $(".youtube[data-label='" + video_id + "']");
                     containers.each(function () {
                         var container = $(this),
                             uniqueThumbnailID = PAGES.generateID('thumb-' + video_id);
-
                         var thumbnail = $('<div />', {
                             'css': {  // this is to trim the 4:3 black bars
                                 'overflow': 'hidden',
