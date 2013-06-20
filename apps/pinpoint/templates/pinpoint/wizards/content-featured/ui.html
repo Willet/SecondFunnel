@@ -336,7 +336,7 @@
                     {{ hidden }}
                 {% endfor %}
 
-                <input class="button submit focus" type="submit" value="{% if campaign %}{% trans "Save" %}{% else %}{% trans "Create" %}{% endif %}{% trans "Page" %}">
+                <input class="button submit focus" type="submit" value="{% if campaign %}{% trans "Save" %}{% else %}{% trans "Create" %}{% endif %} {% trans "Page" %}">
                 <input class="button preview" type="button" value="Preview Page">
                 <input id="cancel_to_admin" class="button" type="button" value="&times; {% trans "Cancel" %}">
                 <input class="button back {% if campaign %}disabled{% endif %}" type="button" value="&larr; {% trans "Back" %}">
