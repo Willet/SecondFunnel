@@ -661,7 +661,6 @@ PAGES.full = (function (me, mediator) {
                 templateType,
                 el,
                 videos,
-                appearanceProbability,
                 revisedType;
 
             // add products
@@ -701,20 +700,6 @@ PAGES.full = (function (me, mediator) {
                         break;
                     default:
                         break;
-                    }
-
-                    // attach default prob to the context
-                    appearanceProbability = template_context['appearance-probability'] ||
-                        templateEl.data('appearance-probability') || 1;
-                    appearanceProbability = parseFloat(appearanceProbability);
-
-                    // appearanceProbability dictates if a block that has its own
-                    // probability of being rendered will be rendered. if specified,
-                    // the value should go from 0 (not shown at all) or 1 (always).
-                    if (appearanceProbability < 1) {
-                        if (Math.random() < appearanceProbability) {
-                            break;  // no luck, not rendering
-                        }
                     }
 
                     var rendered_block = PAGES.renderTemplate(template, {

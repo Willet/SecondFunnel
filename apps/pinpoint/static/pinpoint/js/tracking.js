@@ -3,6 +3,27 @@ var pagesTracking = (function ($, window, document) {
         isBounce = true,  // this flag set to false once user scrolls down
         videosPlayed = [],
 
+        parseUri = function (str) {
+            // parseUri 1.2.2
+            // (c) Steven Levithan <stevenlevithan.com>
+            // MIT License
+            var o   = parseUri.options,
+                m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+                uri = {},
+                i   = 14;
+
+            while (i--) uri[o.key[i]] = m[i] || "";
+
+            uri[o.q.name] = {};
+            uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+                if ($1) {
+                    uri[o.q.name][$1] = $2;
+                }
+            });
+
+            return uri;
+        },
+
         referrerName = function () {
             var host;
 
@@ -216,26 +237,6 @@ var pagesTracking = (function ($, window, document) {
             $(function() {
                 setTrackingDomHooks();
             });
-        },
-
-        // parseUri 1.2.2
-        // (c) Steven Levithan <stevenlevithan.com>
-        // MIT License
-
-        parseUri = function (str) {
-            var o   = parseUri.options,
-                m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
-                uri = {},
-                i   = 14;
-
-            while (i--) uri[o.key[i]] = m[i] || "";
-
-            uri[o.q.name] = {};
-            uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-                if ($1) uri[o.q.name][$1] = $2;
-            });
-
-            return uri;
         };
 
     parseUri.options = {
