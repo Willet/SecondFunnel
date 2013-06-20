@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.forms import ImageField, ValidationError
 from django.views.decorators.http import require_POST
-
+from django.http import HttpResponse
 from apps.assets.models import GenericImage
 from apps.pinpoint.models import Campaign
 from apps.utils.ajax import ajax_success, ajax_error
@@ -111,10 +111,14 @@ def upload_image(request):
 def ajax_upload_image(request):
     try:
         media = upload_image(request)
+        media_id = media.id
+        media_url = media.get_url()
     except Exception as e:
+        if isistance(media, HttpResponse):
+            return media
         return ajax_error({'error': e})
 
     return ajax_success({
-        'media_id': media.id,
-        'url': media.get_url()
+        'media_id': media_id,
+        'url': media_url
     })
