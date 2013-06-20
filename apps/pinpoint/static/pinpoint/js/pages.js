@@ -3,10 +3,6 @@ var PAGES = (function ($, details, mediator) {
     "use strict";
     var i = 0,  // counter
         noop = function () {},
-        console = window.console || {  // dummy
-            'log': noop,
-            'error': noop
-        },
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || true,
@@ -283,7 +279,7 @@ var PAGES = (function ($, details, mediator) {
         }
 
         if (_.isEmpty(template) || _.isEmpty($target)) {
-            console.log('oops @ no preview template');
+            mediator.fire('log', ['oops @ no preview template']);
             return;
         }
 
@@ -312,12 +308,10 @@ var PAGES = (function ($, details, mediator) {
             }
         }
 
-        if (mediator) {
-            mediator.fire('tracking.clearTimeout');
-            mediator.fire('tracking.setSocialShareVars', [
-                {"sType": "popup", "url": data.url}
-            ]);
-        }
+        mediator.fire('tracking.clearTimeout');
+        mediator.fire('tracking.setSocialShareVars', [
+            {"sType": "popup", "url": data.url}
+        ]);
 
         $previewContainer.fadeIn(100);
         $previewMask.fadeIn(100);

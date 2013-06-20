@@ -36,33 +36,33 @@ PAGES.full = (function (me) {
                     template = templateEl.html();
 
                     switch (templateType) {
-                        case 'product':
-                            // in case an image is lacking, don't bother with the product
-                            if (!template_context.image || template_context.image == "None") {
-                                continue;
-                            }
+                    case 'product':
+                        // in case an image is lacking, don't bother with the product
+                        if (!template_context.image || template_context.image == "None") {
+                            continue;
+                        }
 
-                            // use the resized images
-                            template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
-                            break;
-                        case 'combobox':
-                            // in case an image is lacking, don't bother with the product
-                            if (!template_context.image || template_context.image == "None") {
-                                continue;
-                            }
-                            break;
-                        case 'youtube':
-                            break;
-                        case 'image':
-                            // Legacy themes do not support these templates
-                            revisedType = 'instagram';
-                            if (!template) {
-                                templateEl = $("[data-template-id='" + revisedType + "']");
-                                template = templateEl.html();
-                            }
-                            break;
-                        default:
-                            break;
+                        // use the resized images
+                        template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
+                        break;
+                    case 'combobox':
+                        // in case an image is lacking, don't bother with the product
+                        if (!template_context.image || template_context.image == "None") {
+                            continue;
+                        }
+                        break;
+                    case 'youtube':
+                        break;
+                    case 'image':
+                        // Legacy themes do not support these templates
+                        revisedType = 'instagram';
+                        if (!template) {
+                            templateEl = $("[data-template-id='" + revisedType + "']");
+                            template = templateEl.html();
+                        }
+                        break;
+                    default:
+                        break;
                     }
 
                     // attach default prob to the context
@@ -85,7 +85,7 @@ PAGES.full = (function (me) {
                         'store': PAGES.details.store
                     }, true);
                     if (!rendered_block.length) {
-                        console.error('warning: not drawing empty template block');
+                        Willet.mediator.fire('error', ['warning: not drawing empty template block']);
                         break;
                     } else {
                         el = $(rendered_block);
@@ -95,7 +95,7 @@ PAGES.full = (function (me) {
                     }
 
                 } catch (err) {  // hide rendering error
-                    console.log('oops @ item', err);
+                    Willet.mediator.fire('log', ['oops @ item', err]);
                 }
             }
 
@@ -125,8 +125,8 @@ PAGES.full = (function (me) {
                     // If the block actually has images, render the loading block.
                     $elem.find('div').hide();
                     $elem.addClass('unclickable').append($spinner);
-                    $images.each(function(){
-                        $(this).load(function(){
+                    $images.each(function () {
+                        $(this).load(function () {
                             $elem.toLoad -= 1;
                             if ($elem.toLoad == 0) {
                                 // This block is ready to go, render it on the page.
@@ -181,16 +181,16 @@ PAGES.full = (function (me) {
                     containers = $(".youtube[data-label='" + video_id + "']");
                     containers.each(function () {
                         var container = $(this),
-                            uniqueThumbnailID = PAGES.generateID('thumb-' + video_id);
-                        var thumbnail = $('<div />', {
-                            'css': {  // this is to trim the 4:3 black bars
-                                'overflow': 'hidden',
-                                'height': 250 + 'px',
-                                'background-image': 'url("' + thumbURL + '")',
-                                'background-position': 'center center'
-                            },
-                            'id': uniqueThumbnailID
-                        });
+                            uniqueThumbnailID = PAGES.generateID('thumb-' + video_id),
+                            thumbnail = $('<div />', {
+                                'css': {  // this is to trim the 4:3 black bars
+                                    'overflow': 'hidden',
+                                    'height': 250 + 'px',
+                                    'background-image': 'url("' + thumbURL + '")',
+                                    'background-position': 'center center'
+                                },
+                                'id': uniqueThumbnailID
+                            });
 
                         thumbnail.hide();
 
@@ -218,9 +218,9 @@ PAGES.full = (function (me) {
                         if (container.find('.' + thumbClass).length === 0) {
                             // add a thumbnail only if there isn't one already
                             container.prepend(thumbnail);
-                            console.log('loaded video thumbnail ' + video_id);
+                            Willet.mediator.fire('log', ['loaded video thumbnail ' + video_id]);
                         } else {
-                            console.error('prevented thumbnail dupe');
+                            Willet.mediator.fire('log', ['prevented thumbnail dupe']);
                         }
                         container.children(".title").html(video_data.entry.title.$t);
                     });

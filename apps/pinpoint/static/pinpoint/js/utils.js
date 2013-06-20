@@ -46,7 +46,6 @@ Willet.mediaAPI = (function () {
         },
 
         getObject = function (object_type, object_id, callback) {
-            console.log([object_type, object_id, callback]);
             var object;
 
             if (object_id === undefined || object_type === undefined) {
@@ -118,3 +117,47 @@ Willet.mediaAPI = (function () {
         "getObjects": getObjects
     };
 }());
+
+Willet.debug = (function (me, mediator) {
+    // willet debugger. This is/was mostly code by Nicholas Terwoord.
+    "use strict";
+    var log_array = [],
+        _log,
+        _error;
+
+    if (typeof (window.console) === 'object'
+            && ((typeof (window.console.log) === 'function'
+            && typeof (window.console.error) === 'function')
+            || (typeof (window.console.log) === 'object' // IE
+                && typeof (window.console.error) === 'object'))) {
+        _log = function () {
+            if (window.console.log.apply) {
+                window.console.log.apply(window.console, arguments);
+            } else {
+                window.console.log(arguments);
+            }
+            log_array.push(arguments); // Add to logs
+        };
+        _error = function () {
+            if (window.console.error.apply) {
+                window.console.error.apply(window.console, arguments);
+            } else {
+                window.console.error(arguments);
+            }
+            log_array.push(arguments); // Add to logs
+        };
+    }
+
+    me.logs = me.logs || function () {
+        // Returns as list of all log & error items
+        return log_array;
+    };
+
+    // set up a hook to let log and error be fired
+    if (mediator.on) {
+        mediator.on('log', _log);
+        mediator.on('error', _error);
+    }
+
+    return me;
+}(Willet.debug || {}, Willet.mediator));
