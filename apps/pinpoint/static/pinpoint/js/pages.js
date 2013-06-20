@@ -7,6 +7,7 @@ var PAGES = (function ($, details, mediator) {
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || true,
         scripts,
+        scriptsLoaded = [],
         spaceBelowFoldToStartLoading = 500,
         loadingBlocks = false,
         blocksAppendedCallbacks = [],
@@ -541,15 +542,22 @@ var PAGES = (function ($, details, mediator) {
     function load(scripts) {
         var item, script;
 
-        // TODO: Check if already loaded?
         // Use a dictionary, or just check all script tags?
         for (var i=0; i < scripts.length; i++) {
             item = scripts[i];
-            $.getScript(item.src || item, item.onload || function() {});
+            if (item.src in scriptsLoaded) {
+                mediator.fire(
+                    'log',
+                    ['script ' + item.src + ' already loaded; skipping.']
+                );
+            } else {
+                $.getScript(item.src || item, item.onload || function() {});
+                scriptsLoaded.push(item.src);
+            }
         }
     }
 
-    function init (readyFunc, layoutFunc) {
+    function init(readyFunc, layoutFunc) {
         redirectToProperTheme();
 
         layoutResults = layoutFunc;
