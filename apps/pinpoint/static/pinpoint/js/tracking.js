@@ -280,7 +280,7 @@ var pagesTracking = (function ($, window, document) {
         "notABounce": notABounce,
         "videoStateChange": videoStateChange,
         "changeCampaign": changeCampaign
-    }
+    };
 
 }($, window, document));
 

@@ -2,6 +2,7 @@
 var PAGES = (function ($, details, mediator) {
     "use strict";
     var i = 0,  // counter
+        context = window,
         noop = function () {},
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
@@ -20,40 +21,42 @@ var PAGES = (function ($, details, mediator) {
             "icon", "thumb", "small", "compact", "medium", "large",
             "grande", "1024x1024", "master"
         ],
-        layoutResults,
-        templateNames = [
-            'shop-the-look', 'featured-product',
-            'product', 'combobox', 'youtube', 'image', //formerly instagram
-            'product-preview', 'combobox-preview', 'image-preview', 'image-product-preview'
-        ],
-        imageTypes = [
-            'styld-by', 'tumblr', 'pinterest', 'facebook', 'instagram'
-        ];
+        layoutResults;
 
     function setLoadingBlocks(bool) {
         loadingBlocks = bool;
     }
 
     function getModifiedTemplateName(name) {
-        var i, type, preview, previewWithProducts;
+        // returns the template name suitabl
+        var i,
+            type,
+            templateNames = [
+                'shop-the-look', 'featured-product',
+                'product', 'combobox', 'youtube', 'image', //formerly instagram
+                'product-preview', 'combobox-preview', 'image-preview',
+                'image-product-preview'
+            ],
+            imageTypes = [
+                // templates of these names will all use the "image" template.
+                'styld-by', 'tumblr', 'pinterest', 'facebook', 'instagram'
+            ];
+
         if (_.contains(templateNames, name)) {
             return name;
         }
 
         for (i = 0; i < imageTypes.length; i++) {
             type = imageTypes[i];
-            if (name === type) {
+            switch (name) {
+            case type:
                 return 'image';
-            }
-
-            preview = type + '-preview';
-            if (name === preview) {
+            case type + '-preview':
                 return 'image-preview';
-            }
-
-            previewWithProducts = type + '-product-preview';
-            if (name === previewWithProducts) {
+            case type + '-product-preview':
                 return 'image-product-preview';
+            default:
+                // move on
             }
         }
 
@@ -61,21 +64,26 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function redirectToProperTheme() {
-        var isOnMobilePage = /\/mobile\.html/.test(window.location.pathname),
+        var isOnMobilePage = (window.location.pathname.indexOf('mobile.html') > 0),
             url = window.location.protocol + '//' + window.location.hostname + window.location.pathname,
             query = window.location.href.split('?')[1] || "";
 
         if ($.browser.mobile && !isOnMobilePage) {
+            // on desktop page, going to mobile page
             url += 'mobile.html' + (query ? '?' + query : "");
             window.location.replace(url);
-
         } else if (!$.browser.mobile && isOnMobilePage && window.location.hash.indexOf("disableRedirect") === -1) {
+            // on mobile page, going to desktop page
             url = url.replace('mobile.html', '') + (query ? '?' + query : "");
             window.location.replace(url);
         }
     }
 
     function size(url, desiredSize) {
+        // NOTE: We do not check if the new image exists because we implicitly
+        // trust that our service will contain the required image.
+        // ... Also, because it could be expensive to check for the required
+        // image before use
         var newUrl, filename;
 
         if (!sizableRegex.test(url) || !_.contains(imageSizes, desiredSize)) {
@@ -85,11 +93,6 @@ var PAGES = (function ($, details, mediator) {
         // Replace filename with new size
         filename = url.substring(url.lastIndexOf('/') + 1);
         newUrl = url.replace(filename, desiredSize + '.jpg');
-
-        // NOTE: We do not check if the new image exists because we implicitly
-        // trust that our service will contain the required image.
-        // ... Also, because it could be expensive to check for the required
-        // image before use
 
         return newUrl;
     }
@@ -125,18 +128,6 @@ var PAGES = (function ($, details, mediator) {
         // multi-baseStr variant of generateID: stackoverflow.com/a/6861381
         globalIdCounters[baseStr] = globalIdCounters[baseStr] + 1 || 0;
         return baseStr + globalIdCounters[baseStr];
-    }
-
-    function getShortestColumn() {
-        var $column;
-        $('.discovery-area .column').each(function (index, column) {
-            var height = $(column).height();
-
-            if (!$column || (height < $column.height())) {
-                $column = $(column);
-            }
-        });
-        return $column;
     }
 
     function fisherYates(myArray, nb_picks) {
@@ -182,18 +173,18 @@ var PAGES = (function ($, details, mediator) {
         lifestyleSize = isBlock ? 'large' : 'master';
 
 
-        if (_.has(context.data, 'image') && !_.isEmpty(context.data.image)) {
+        // _.isEmpty does its own _.has check.
+        if (!_.isEmpty(context.data.image)) {
             context.data.image = size(context.data.image, appropriateSize);
         }
 
-        if (_.has(context.data, 'images') && !_.isEmpty(context.data.images)) {
+        if (!_.isEmpty(context.data.images)) {
             context.data.images = _.map(context.data.images, function (img) {
                 return size(img, appropriateSize);
             });
         }
 
-        if (_.has(context.data, 'lifestyle-image') &&
-                !_.isEmpty(context.data['lifestyle-image'])) {
+        if (!_.isEmpty(context.data['lifestyle-image'])) {
             context.data['lifestyle-image'] = size(context.data['lifestyle-image'], lifestyleSize);
         }
 
@@ -220,36 +211,36 @@ var PAGES = (function ($, details, mediator) {
             var originalContext = data || {},
                 target = $(this),
                 src = target.data('src') || '',
-                srcElement = $("[data-template-id='" + src + "']"),
+                srcElement,
                 context = {};
 
             if (src === 'featured') {
+                // this is supposed to make things easier for designers
                 src = details.page['main-block-template'];
-                srcElement = $("[data-template-id='" + src + "']");
             }
 
-            // populate context with all available variables
-            $.extend(context, originalContext, {
-                'page': details.page,
-                'store': details.store,
-                'data': $.extend({}, srcElement.data(), target.data())
-            });
-
             // if the required template is on the page, use it
+            srcElement = $("[data-template-id='" + src + "']");
             if (srcElement.length) {
+                // populate context with all available variables
+                $.extend(context, originalContext, {
+                    'page': details.page,
+                    'store': details.store,
+                    'data': $.extend({}, srcElement.data(), target.data())
+                });
+
                 target.html(renderTemplate(srcElement.html(), context));
             } else {
-                target.html('Error: required template #' + src +
-                    ' does not exist');
+                target.html('Error: missing template #' + src);
             }
         });
     }
-
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
     function showPreview(me) {
-        var data = $(me).data(),
+        var i,
+            data = $(me).data(),
             templateName = getModifiedTemplateName(data.template),
             $previewContainer = $('[data-template-id="preview-container"]'),
             $previewMask = $previewContainer.find('.mask'),
@@ -260,7 +251,7 @@ var PAGES = (function ($, details, mediator) {
 
         // Since we don't know how to handle /multiple/ products
         // provide a way to access /one/ related product
-        if (_.has(data, 'related-products') && !_.isEmpty(data['related-products'])) {
+        if (!_.isEmpty(data['related-products'])) {
             data['related-product'] = data['related-products'][0];
             templateName += '-product';
         }
@@ -299,7 +290,7 @@ var PAGES = (function ($, details, mediator) {
             window.twttr.widgets.load();
         }
 
-        for (var i in previewCallbacks) {
+        for (i in previewCallbacks) {
             if (previewCallbacks.hasOwnProperty(i)) {
                 previewCallbacks[i]();
             }
@@ -370,29 +361,30 @@ var PAGES = (function ($, details, mediator) {
         var $buttons = $(t).parent().find('.social-buttons');
         $buttons.fadeOut('fast');
 
-        if (enableTracking) {
-            hoverTimer = Date.now() - hoverTimer;
-            if (hoverTimer > 2000) {
-                hoverCallback(t);
-            }
+        if (!enableTracking) {
+            return;
+        }
+        hoverTimer = Date.now() - hoverTimer;
+        if (hoverTimer > 2000) {
+            hoverCallback(t);
         }
 
-        if (enableTracking) {
-            mediator.fire('tracking.clearTimeout');
-            if (window.pagesTracking) {
-                if (pagesTracking.socialShareType !== "popup") {
-                    pagesTracking._pptimeout = window.setTimeout(pagesTracking.setSocialShareVars, 2000);
-                }
+        mediator.fire('tracking.clearTimeout');
+        if (window.pagesTracking) {
+            if (pagesTracking.socialShareType !== "popup") {
+                pagesTracking._pptimeout = window.setTimeout(pagesTracking.setSocialShareVars, 2000);
             }
+        } else {
+            mediator.fire('error', ['cannot find pagesTracking']);
         }
     }
 
-    function productHoverOn () {
-        commonHoverOn(this, true, true);
+    function productHoverOn() {
+        commonHoverOn(context, true, true);
     }
 
-    function productHoverOff () {
-        commonHoverOff(this, function (t) {
+    function productHoverOff() {
+        commonHoverOff(context, function (t) {
             mediator.fire('tracking.registerEvent', [{
                 "type": "inpage",
                 "subtype": "hover",
@@ -401,20 +393,20 @@ var PAGES = (function ($, details, mediator) {
         }, true);
     }
 
-    function youtubeHoverOn () {
-        commonHoverOn(this, true, false);
+    function youtubeHoverOn() {
+        commonHoverOn(context, true, false);
     }
 
-    function youtubeHoverOff () {
-        commonHoverOff(this, function() {}, false);
+    function youtubeHoverOff() {
+        commonHoverOff(context, noop, false);
     }
 
-    function lifestyleHoverOn () {
-        commonHoverOn(this, false, true);
+    function lifestyleHoverOn() {
+        commonHoverOn(context, false, true);
     }
 
-    function lifestyleHoverOff () {
-        commonHoverOff(this, function (t) {
+    function lifestyleHoverOff() {
+        commonHoverOff(context, function (t) {
             mediator.fire('tracking.registerEvent', [{
                 "type": "content",
                 "subtype": "hover",
@@ -438,7 +430,7 @@ var PAGES = (function ($, details, mediator) {
         }
     }
 
-    function layoutRelated( product, relatedContent ) {
+    function layoutRelated(product, relatedContent) {
         /* Load related content into the masonry instance.
            @return: none */
         var $discovery = $('.discovery-area'),
@@ -447,8 +439,9 @@ var PAGES = (function ($, details, mediator) {
             $target = $product.next();
 
         // Find a target that is low enough on screen
+        // TODO: can $target.next() also be above initialBottom?
         if (($target.position().top) <= initialBottom) {
-            $target = $target.next()
+            $target = $target.next();
         }
 
         // Inserts content after the clicked product block (Animated)
@@ -460,6 +453,8 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function pageScroll() {
+        // calculates screen location and decide if more results
+        // should be displayed.
         var $w            = $(window),
             discoveryBlocks = $('.discovery-area .block'),
             noResults     = (discoveryBlocks.length === 0),
@@ -497,15 +492,13 @@ var PAGES = (function ($, details, mediator) {
         // use delegated events to reduce overhead
         $discovery.on('click', '.block.product:not(.unclickable), .block.combobox:not(.unclickable)', function (e) {
             showPreview(e.currentTarget);
+
+            // update clickstream
+            mediator.fire('IR.updateClickStream', [e.currentTarget, e]);
         });
 
         $discovery.on('click', '.block.image:not(.unclickable)', function (e) {
             showPreview(e.currentTarget);
-        });
-
-        // update clickstream
-        $discovery.on('click', '.block.product:not(.unclickable), .block.combobox:not(.unclickable)', function (e) {
-            mediator.fire('IR.updateClickStream', [e.currentTarget, e]);
         });
 
         // load related content; update contentstream
@@ -533,18 +526,18 @@ var PAGES = (function ($, details, mediator) {
     /* --- END element bindings --- */
 
     function load(scripts) {
-        var item, script;
+        var i, item, script;
 
         // Use a dictionary, or just check all script tags?
-        for (var i=0; i < scripts.length; i++) {
+        for (i = 0; i < scripts.length; i++) {
             item = scripts[i];
-            if (item.src in scriptsLoaded) {
+            if (_.contains(scriptsLoaded, item.src)) {
                 mediator.fire(
                     'log',
                     ['script ' + item.src + ' already loaded; skipping.']
                 );
             } else {
-                $.getScript(item.src || item, item.onload || function() {});
+                $.getScript(item.src || item, item.onload || noop);
                 scriptsLoaded.push(item.src);
             }
         }
@@ -583,12 +576,11 @@ var PAGES = (function ($, details, mediator) {
         'id': 'twitter-wjs'
     }, {
         'src'   : '//assets.pinterest.com/js/pinit.js',
-        'onload': function() { /* dummy */ }
+        'onload': noop
     }];
 
     return {
         'init': init,
-        // 'invalidateSession': invalidateIRSession,
         'addPreviewCallback': addPreviewCallback,
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
         'setBlocksAppendedCallback': setBlocksAppendedCallback,
@@ -611,9 +603,9 @@ var PAGES = (function ($, details, mediator) {
         'setLoadingBlocks': setLoadingBlocks,
         'getModifiedTemplateName': getModifiedTemplateName
     };
-})(jQuery,
-   window.PAGES_INFO || window.TEST_PAGE_DATA || {},
-   (Willet && Willet.mediator) || {});
+}(jQuery,
+    window.PAGES_INFO || window.TEST_PAGE_DATA || {},
+    (Willet && Willet.mediator) || {}));
 
 
 // full (desktop) component
@@ -680,12 +672,10 @@ PAGES.full = (function (me, mediator) {
                             continue;
                         }
                         break;
-                    case 'youtube':
-                        break;
                     case 'image':
-                        // Legacy themes do not support these templates
-                        revisedType = 'instagram';
                         if (!template) {
+                            // Legacy themes do not support these templates
+                            revisedType = 'instagram';
                             templateEl = $("[data-template-id='" + revisedType + "']");
                             template = templateEl.html();
                         }
@@ -715,22 +705,23 @@ PAGES.full = (function (me, mediator) {
             }
 
             // Remove potentially bad content
-            productDoms = _.filter(productDoms, function(elem) {return !_.isEmpty(elem);});
+            productDoms = _.filter(productDoms, function (elem) {
+                return !_.isEmpty(elem);
+            });
 
             $block = $(productDoms);  // an array of DOM elements
 
             // if it has a lifestyle image, add a wide class to it so it's styled properly
-            $block.each(function() {
+            $block.each(function () {
                 var $elem = $(this),
                     $images = $elem.find('img'),
-                    rand_num = Math.random();
 
-                // Create a spinner image that can be used to indicate a block is loading.
-                var $spinner = $('<img/>', {
-                    'class': "image-loading-spinner",
-                    'style': "padding-top:100px; padding-bottom:100px; width:32px; height:32px; position:relative; left:50%;",
-                    'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
-                });
+                    // Create a spinner image that can be used to indicate a block is loading.
+                    $spinner = $('<img/>', {
+                        'class': "image-loading-spinner",
+                        'style': "padding-top:100px; padding-bottom:100px; width:32px; height:32px; position:relative; left:50%;",
+                        'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
+                    });
 
                 $elem.toLoad = $images.length;
 
@@ -743,7 +734,7 @@ PAGES.full = (function (me, mediator) {
                     $images.each(function () {
                         $(this).load(function () {
                             $elem.toLoad -= 1;
-                            if ($elem.toLoad == 0) {
+                            if ($elem.toLoad === 0) {
                                 // This block is ready to go, render it on the page.
                                 $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
                                 $elem.find('div').show();
@@ -759,12 +750,13 @@ PAGES.full = (function (me, mediator) {
                     $elem.addClass('wide');
                 }
 
-                if ($elem.hasClass('instagram')
-                    && (rand_num >= 0.5)) {
+                if ($elem.hasClass('instagram') && (Math.random() >= 0.5)) {
                     $elem.addClass('wide');
                 }
 
-                if (!related) $('.discovery-area').append($elem).masonry('appended', $elem, true);
+                if (!related) {
+                    $('.discovery-area').append($elem).masonry('appended', $elem, true);
+                }
             });
 
             // Render youtube blocks with player
@@ -807,28 +799,29 @@ PAGES.full = (function (me, mediator) {
                                 'id': uniqueThumbnailID
                             });
 
-                        thumbnail.hide();
-
-                        thumbnail.addClass('wide ' + thumbClass).click(function () {
-                            // when the thumbnail is clicked, replace itself with
-                            // the youtube video of the same size, then autoplay
-                            player = new YT.Player(uniqueThumbnailID, {
-                                height: 250,
-                                width: 450,
-                                videoId: video_id,
-                                playerVars: {
-                                    'autoplay': 1,
-                                    'controls': 0
-                                },
-                                events: {
-                                    'onReady': function (e) {
+                        thumbnail
+                            .hide()
+                            .addClass('wide ' + thumbClass)
+                            .click(function () {
+                                // when the thumbnail is clicked, replace itself with
+                                // the youtube video of the same size, then autoplay
+                                player = new YT.Player(uniqueThumbnailID, {
+                                    height: 250,
+                                    width: 450,
+                                    videoId: video_id,
+                                    playerVars: {
+                                        'autoplay': 1,
+                                        'controls': 0
                                     },
-                                    'onStateChange': video_state_change,
-                                    'onError': function (e) {
+                                    events: {
+                                        'onReady': function (e) {
+                                        },
+                                        'onStateChange': video_state_change,
+                                        'onError': function (e) {
+                                        }
                                     }
-                                }
+                                });
                             });
-                        });
 
                         if (container.find('.' + thumbClass).length === 0) {
                             // add a thumbnail only if there isn't one already
@@ -843,7 +836,7 @@ PAGES.full = (function (me, mediator) {
             });
 
             // make sure images are loaded or else masonry wont work properly
-            $block.imagesLoaded(function($images, $proper, $broken) {
+            $block.imagesLoaded(function ($images, $proper, $broken) {
                 $broken.parents('.block').remove();
                 $block.find('.block img[src=""]').parents('.block').remove();
 
@@ -901,9 +894,7 @@ PAGES.full = (function (me, mediator) {
             });
 
             // Take any necessary actions
-            PAGES.setLoadingBlocks(true);
             PAGES.loadInitialResults();
-            PAGES.setLoadingBlocks(false);
         }
     };
 
