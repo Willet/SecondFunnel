@@ -92,6 +92,8 @@ MEDIA_ROOT = ''
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
 MEDIA_URL = ''
+MIN_MEDIA_WIDTH = 480
+MIN_MEDIA_HEIGHT = 1
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
@@ -305,6 +307,7 @@ TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
     'django.core.context_processors.request',
     # add custom context processors here
     'secondfunnel.context_processors.environment',
+    'secondfunnel.context_processors.required_dimensions',
 )
 
 FIXTURE_DIRS = (
