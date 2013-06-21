@@ -250,7 +250,7 @@ def create_external_content(store, **obj):
 @login_required
 def upload_asset(request, store_id):
     store = get_object_or_404(Store, pk=store_id)
-    
+    media = ''
     try:
         media = upload_image(request)
         url = media.get_url()
@@ -262,7 +262,9 @@ def upload_asset(request, store_id):
             image_url=url
         )
     except Exception, e:
-        ajax_error()
+        if isinstance(media, HttpResponse):
+            return media
+        return ajax_error({'error': str(e)})
 
     return ajax_success()
 

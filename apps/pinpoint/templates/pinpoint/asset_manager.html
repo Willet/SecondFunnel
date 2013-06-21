@@ -382,7 +382,8 @@
             log: function() {},
             debug: function() {}
         },
-        sort = 'Newest';
+        sort = 'Newest',
+        filesBeingUploaded = 0;
 
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     $("#tabs").tabs();
@@ -593,6 +594,8 @@
         });
 
         $content.find(".tags").tagit({
+            allowSpaces: true,
+            removeConfirmation: false,
             autocomplete: {
                 autoFocus: true,
                 source: function(request, response) {
@@ -621,7 +624,7 @@
                 // because we need access to product id (ui.item.id)
                 select: function( event, ui ) {
                     var oid = $(this).parents(".approval_block").data("oid");
-
+                    
                     if (ui.item) {
                         if (tag_associations[oid] && tag_associations[oid].indexOf(ui.item.id) != -1) {
                             return;
@@ -645,54 +648,76 @@
                     }
                 }
             },
-
             beforeTagRemoved: function (event, ui) {
                 var oid = $(this).parents(".approval_block").data("oid"),
                     pid = products[ui.tagLabel];
 
-                tag_associations[oid].splice(tag_associations[oid].indexOf(pid), 1);
-                post_tags(oid);
+                if ( tag_associations[oid] && tag_associations[oid][pid] ) {
+                    tag_associations[oid].splice(tag_associations[oid].indexOf(pid), 1);
+                    post_tags(oid);
+                }
+                return true;
             }
         });
 
         /* File Upload */
         var $fileUpload = $content.find('.file-upload');
         if ($fileUpload.length) {
-            makeUploader($fileUpload);
-            $fileUpload.find(".qq-upload-button").addClass('button');
+            $fileUpload.each(function() {
+               var uploader1 = makeUploader($(this));
+               $(this).find(".qq-upload-button").addClass('button');
+            });
         }
     }
 
     function makeUploader( $elem ) {
-        uploader = new qq.FileUploader({
+        return new qq.FileUploader({
                 element: $elem[0],
                 action: '{% url upload-asset store.id %}',
                 csrfToken: $.cookie('csrftoken'),
                 allowedExtensions: ['jpg' ,'png', 'jpeg'],
-                uploadButtonText: 'Upload from file',
+                uploadButtonText: '<span class="upload-text">Upload from file</span>',
                 onSubmit: function() {
-                    $('.qq-upload-button').parents('.service').find('.icon').removeClass('file');
-                    // TODO: Actual disable clicking on the button
-                    $('.qq-upload-button').addClass('disabled');
-                    $('.qq-upload-button').text('Uploading...');
+                    if (filesBeingUploaded == 0) {
+                        $('.qq-upload-button').parents('.service').find('.icon').removeClass('file');
+                        $('.qq-upload-button input').prop('disabled', true);
+                        $('.qq-upload-button .upload-text').text('Uploading...');
+                    }
+                    filesBeingUploaded++;
                 },
                 onComplete: function(id, fileName, response) {
-                    location.reload();
+                    // This method triggers whether the upload was successful or not, so only trigger
+                    // reload here if successful.
+                    var messages = { 'minSizeError': "'s dimensions are too small.  Minimum file width is {{ MIN_MEDIA_WIDTH }}px.",
+                                     'emptyError': " does not exist.  Are you sure you entered correctly?" }
+                    filesBeingUploaded--;
+                    
+                    if (response.success == false) {
+                        if (response.error && messages[response.error]) {
+                            alert(fileName + messages[response.error]);
+                        }
+                    } else if (filesBeingUploaded == 0) {
+                        location.reload();
+                    }
                 },
                 onError: function(id, fileName, reason) {
                     console.log(reason);
+                    if ( filesBeingUploaded == 1 ) {
+                        // This has to be 1, as the order in which things are called is different.
+                        $('.qq-upload-button').parents('.service').find('.icon').addClass('file');
+                        $('.qq-upload-button input').prop('disabled', false);
+                        $('.qq-upload-button .upload-text').text('Upload from file');
+                    }
                 }
             });
     }
 
     // Create our persistent file-upload button
-    $('.persistent-file-upload').each(function(){
-        makeUploader($(this));
-        $(this).find(".qq-upload-button").button({
-            icons: {
-                primary: 'ui-icon-plus'
-            }
-        });
+    $(".persistent-file-upload").each(function(){
+        var uploader2 = makeUploader($(this));
+        $('.qq-uploader').wrapInner('<span class="qq-uploader ui-button-text" style="padding-left:.4em;" />').children().unwrap();
+        $('.qq-upload-button').prepend('<span class="ui-button-icon-primary ui-icon ui-icon-plus" style="float:left;" ></span>');
+        $(this).addClass("ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only");
     });
 
     // Setup our menus using the defined menu propeties
@@ -867,7 +892,7 @@
                    </ul>
                </li>
            </ul>
-           <span class="filter-block persistent-file-upload" style="float:right;"></span>
+           <div class="filter-block persistent-file-upload" style="float:right;"></div>
            <span class="filter-block" style="float:right;">
                <input type="checkbox" id="scroll_with_review" class="scroll_with_review">
                <label for="scroll_with_review">Scroll as I review</label>
