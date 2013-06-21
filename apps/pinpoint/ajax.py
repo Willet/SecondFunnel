@@ -36,6 +36,7 @@ def campaign_publish(request):
     """
     return modify_campaign(request, True)
 
+
 @require_POST
 def modify_campaign(request, live):
     """
@@ -49,17 +50,17 @@ def modify_campaign(request, live):
     @return: An HttpsResponse containing json with a success attribute.
     """
     campaign_id = request.POST.get('campaign_id')
-    
+
     if not campaign_id:
-        return ajax_error()
+        return ajax_error({'error': "Campaign ID doesn't exist."})
 
     try:
         campaign = Campaign.objects.get(id=campaign_id)
     except Campaign.DoesNotExist:
-        return ajax_error()
+        return ajax_error({'error': "Campaign doesn't exist."})
     else:
         if not request.user in campaign.store.staff.all():
-            return ajax_error()
+            return ajax_error({'error': "User is not staff for the given store."})
 
         campaign.live = live
         campaign.save()
@@ -113,6 +114,7 @@ def upload_image(request):
         else:
             return ajax_error({'error': "minSizeError"})
     return media
+
 
 @require_POST
 @login_required

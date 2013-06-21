@@ -338,15 +338,16 @@ def asset_manager(request, store_id):
     else:
         # request is an ajax request, determine which content we're loading
         content_type = request.GET['content_type']
-        selected_content = next(v for k,v in filtered_contents.iteritems() if k == content_type)
-    
         # select our ordering
         ordering = { "newest": "-id", "oldest": "id" }
         order_key = request.GET['sortby'].lower()
+        selected_content = next(v for k,v in filtered_contents.iteritems() if k == content_type).order_by(ordering[order_key])
+    
         #select our filters
-        filter_xcontents = request.GET['filterby'].split(",")
-        selected_content = [ selected for selected in selected_content.order_by(ordering[order_key]) if selected.content_type.name in filter_xcontents ]
-
+        xcontent_type = request.GET['filterby']
+        if not xcontent_type == "":
+            selected_content = selected_content.filter(content_type__name = xcontent_type)
+        
         # set up pagination
         paginator = Paginator(selected_content, 10)
         try:
@@ -367,7 +368,7 @@ def asset_manager(request, store_id):
 
 # origin: campaigns with short URLs are cached for 30 minutes
 @cache_page(60 * 30, key_prefix=nocache)
-def campaign_short(request, campaign_id_short, mode='full'):
+def campaign_short(request, campaign_id_short, mode='auto'):
     """base62() is a custom function, so to figure out the long
     campaign URL, go to http://elenzil.com/esoterica/baseConversion.html
     and decode with the base in utils/base62.py.
@@ -382,12 +383,19 @@ def campaign_short(request, campaign_id_short, mode='full'):
         response['Location'] += '?{0}'.format(urlencode(request.GET))
         return response
 
-    return campaign(request, campaign_id)
+    return campaign(request, campaign_id, mode)
 
 
 @vary_on_headers('Accept-Encoding')
-def campaign(request, campaign_id, mode='full'):
+def campaign(request, campaign_id, mode='auto'):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
+
+    if mode == 'auto':
+        is_mobile = getattr(request, 'mobile', False)
+        if is_mobile:
+            mode = 'mobile'
+        else:
+            mode = 'full'
 
     rendered_content = render_campaign(campaign_instance,
         request=request, get_seeds_func=get_seeds, mode=mode)

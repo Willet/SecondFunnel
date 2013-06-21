@@ -7,18 +7,17 @@ def hipchat_broadcast(by='HipChat', message='Hello, World!', room_id=115122):
     """Says random stuff on our Hipchat boards."""
     hip = hipchat.HipChat(token="675a844c309ec3227fa9437d022d05")
     hip.method("rooms/message", method="POST",
-               parameters={"room_id": room_id, "from": by, "message": message})
+               parameters={"room_id": room_id, "from": by,
+                           "message": message, "message_format": "text"})
 
 
 where = ''
 try:
     import os
-    where = os.getenv('HOSTNAME') or os.environ['HOSTNAME']
+    where = os.getenv('PARAM1')
     if where:
         where = ' on %s' % where
 except KeyError:
     pass
 
-hipchat_broadcast(by="Mr. T%s" % where,
-                  message="I pity the fool who doesn't deploy!"
-                          " New version is up!")
+hipchat_broadcast(by="Hubert", message="(goodnews) New version%s!" % where)
