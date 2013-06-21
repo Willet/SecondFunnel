@@ -262,7 +262,7 @@ def upload_asset(request, store_id):
             image_url=url
         )
     except Exception, e:
-        ajax_error()
+        return ajax_error({'error': e})
 
     return ajax_success()
 
