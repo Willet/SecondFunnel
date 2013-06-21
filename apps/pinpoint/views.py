@@ -262,7 +262,7 @@ def upload_asset(request, store_id):
             image_url=url
         )
     except Exception, e:
-        ajax_error()
+        return ajax_error({'error': e})
 
     return ajax_success()
 
@@ -316,6 +316,7 @@ def asset_manager(request, store_id):
                 create_external_content(store, **obj)
 
     all_contents = store.external_content.all().order_by('id')
+    external_content_types = [ type.name for type in xcontent_types ]
     filtered_contents = OrderedDict([ ('needs_review', all_contents.filter(approved=False, active=True).order_by('id')),
                                       ('rejected', all_contents.filter(active=False).order_by('id')),
                                       ('approved', all_contents.filter(approved=True, active=True).order_by('id')),
@@ -330,11 +331,21 @@ def asset_manager(request, store_id):
                 "accounts": accounts,
                 "content": content,
                 "store_id": store_id,
+                "external_content_types": external_content_types,
                 }, context_instance=RequestContext(request))
     else:
         # request is an ajax request, determine which content we're loading
         content_type = request.GET['content_type']
-        selected_content = next(v for k,v in filtered_contents.iteritems() if k == content_type)
+        # select our ordering
+        ordering = { "newest": "-id", "oldest": "id" }
+        order_key = request.GET['sortby'].lower()
+        selected_content = next(v for k,v in filtered_contents.iteritems() if k == content_type).order_by(ordering[order_key])
+    
+        #select our filters
+        xcontent_type = request.GET['filterby']
+        if not xcontent_type == "":
+            selected_content = selected_content.filter(content_type__name = xcontent_type)
+        
         # set up pagination
         paginator = Paginator(selected_content, 10)
         try:
@@ -344,17 +355,18 @@ def asset_manager(request, store_id):
             content = paginator.page(1)
         except (EmptyPage, InvalidPage):
             content = paginator.page(paginator.num_pages)
-        content = {
+        
+        return render(request, 'pinpoint/assets.html', {
             'content_data': content.object_list,
             'content_type': content_type,
             'paginator': content,
-            }
-        return render(request, 'pinpoint/assets.html', content, context_instance=RequestContext(request))
+            'external_content_types': external_content_types,
+            }, context_instance=RequestContext(request))
 
 
 # origin: campaigns with short URLs are cached for 30 minutes
 @cache_page(60 * 30, key_prefix=nocache)
-def campaign_short(request, campaign_id_short, mode='full'):
+def campaign_short(request, campaign_id_short, mode='auto'):
     """base62() is a custom function, so to figure out the long
     campaign URL, go to http://elenzil.com/esoterica/baseConversion.html
     and decode with the base in utils/base62.py.
@@ -369,12 +381,19 @@ def campaign_short(request, campaign_id_short, mode='full'):
         response['Location'] += '?{0}'.format(urlencode(request.GET))
         return response
 
-    return campaign(request, campaign_id)
+    return campaign(request, campaign_id, mode)
 
 
 @vary_on_headers('Accept-Encoding')
-def campaign(request, campaign_id, mode='full'):
+def campaign(request, campaign_id, mode='auto'):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
+
+    if mode == 'auto':
+        is_mobile = getattr(request, 'mobile', False)
+        if is_mobile:
+            mode = 'mobile'
+        else:
+            mode = 'full'
 
     rendered_content = render_campaign(campaign_instance,
         request=request, get_seeds_func=get_seeds, mode=mode)
