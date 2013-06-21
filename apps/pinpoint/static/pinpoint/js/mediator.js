@@ -50,6 +50,10 @@ Willet.mediator = (function (me) {
                 }
             }
             if (!cb) {
+                if (console && console.warn) {
+                    console.warn(event + ' was triggered, ' +
+                        'but nothing was associated with it.');
+                }
                 return me; // no functions registered with this event.
             }
         }

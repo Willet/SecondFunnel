@@ -23,6 +23,10 @@ var PAGES = (function ($, details, mediator) {
         ],
         layoutResults;
 
+    function getLoadingBlocks(bool) {
+        return loadingBlocks;
+    }
+
     function setLoadingBlocks(bool) {
         loadingBlocks = bool;
     }
@@ -596,6 +600,7 @@ var PAGES = (function ($, details, mediator) {
         'checkKeys': checkKeys,
         'generateID': generateID,
         'details': details,
+        'getLoadingBlocks': getLoadingBlocks,
         'setLoadingBlocks': setLoadingBlocks,
         'getModifiedTemplateName': getModifiedTemplateName
     };

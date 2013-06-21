@@ -50,6 +50,10 @@ PAGES.intentRank = (function (me, details, mediator) {
 
     me.getInitialResults = function (callback, seed) {
         // callback function will receive a list of results as first param.
+        if (PAGES.getLoadingBlocks()) {
+            return;
+        }
+
         PAGES.setLoadingBlocks(true);
         if (!_.isEmpty(details.backupResults) &&
                 !('error' in details.backupResults)) {  // saved IR proxy error
@@ -146,6 +150,7 @@ PAGES.intentRank = (function (me, details, mediator) {
     if (mediator) {
         mediator.on('IR.init', me.init);
         mediator.on('IR.updateClickStream', me.updateClickStream);
+        mediator.on('IR.getInitialResults', me.getInitialResults);
         mediator.on('IR.getMoreResults', me.getMoreResults);
         mediator.on('IR.invalidateIRSession', me.invalidateIRSession);
         mediator.on('IR.changeSeed', me.changeSeed);
