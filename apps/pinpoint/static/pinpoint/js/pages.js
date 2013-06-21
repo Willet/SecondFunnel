@@ -260,12 +260,8 @@ var PAGES = (function ($, details, mediator) {
 
         // Since we don't know how to handle /multiple/ products
         // provide a way to access /one/ related product
-        if (_.has(data, 'related-products')
-            && !_.isEmpty(data['related-products'])) {
-            data['related-product'] = data['related-products'][0];
-        }
-
         if (_.has(data, 'related-products') && !_.isEmpty(data['related-products'])) {
+            data['related-product'] = data['related-products'][0];
             templateName += '-product';
         }
 
@@ -438,9 +434,6 @@ var PAGES = (function ($, details, mediator) {
 
     function loadMoreResults(belowFold, related) {
         if (!loadingBlocks || related) {
-            /* if (!related) {
-                setLoadingBlocks(true);
-            }*/
             mediator.fire('IR.getMoreResults', [layoutResults, belowFold, related]);
         }
     }
@@ -612,7 +605,6 @@ var PAGES = (function ($, details, mediator) {
         'SHUFFLE_RESULTS': SHUFFLE_RESULTS,
         'fisherYates': fisherYates,
         'addReadyCallback': addReadyCallback,
-        // 'changeCategory': changeCategory,
         'checkKeys': checkKeys,
         'generateID': generateID,
         'details': details,
