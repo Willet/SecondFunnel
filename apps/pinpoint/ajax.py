@@ -33,6 +33,7 @@ def campaign_publish(request):
     """
     return modify_campaign(request, True)
 
+
 @require_POST
 def modify_campaign(request, live):
     """
@@ -46,7 +47,7 @@ def modify_campaign(request, live):
     @return: An HttpsResponse containing json with a success attribute.
     """
     campaign_id = request.POST.get('campaign_id')
-    
+
     if not campaign_id:
         return ajax_error({'error': "Campaign ID doesn't exist."})
 
@@ -106,6 +107,7 @@ def upload_image(request):
 
     return media
 
+
 @require_POST
 @login_required
 def ajax_upload_image(request):
@@ -114,7 +116,7 @@ def ajax_upload_image(request):
         media_id = media.id
         media_url = media.get_url()
     except Exception as e:
-        if isistance(media, HttpResponse):
+        if isinstance(media, HttpResponse):
             return media
         return ajax_error({'error': e})
 

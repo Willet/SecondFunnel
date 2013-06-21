@@ -316,7 +316,7 @@ var application = (function(store_id, urls){
                 if (response.success) {
                     decodedUrl = $(document.createElement('div')).html(response.url).text();
                     gif = $productImages.find('.loading_gif');
-
+                    
                     gif.hide();
                     gif.removeClass('loading_gif');
                     gif.addClass('prod_img');
@@ -332,7 +332,6 @@ var application = (function(store_id, urls){
                     $("#id_generic_media_list").val($('#product_images img.new_image').map(
                         function(){return $(this).attr('src') + "\\" + $(this).data('mid');}).toArray().join("|"));
                 } else {
-                    console.log(response);
                     console.log(response.error);
                     gif = $productImages.find('.loading_gif');
                     li = gif.closest('li');
