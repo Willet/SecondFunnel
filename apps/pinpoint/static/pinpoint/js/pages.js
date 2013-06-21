@@ -416,10 +416,6 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function loadInitialResults(seed) {
-        if (!loadingBlocks) {
-            return;
-        }
-
         mediator.fire('IR.changeSeed', [seed]);
         mediator.fire('IR.getInitialResults', [layoutResults]);
     }
