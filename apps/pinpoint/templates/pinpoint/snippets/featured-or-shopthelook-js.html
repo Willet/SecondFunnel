@@ -332,7 +332,6 @@ var application = (function(store_id, urls){
                     $("#id_generic_media_list").val($('#product_images img.new_image').map(
                         function(){return $(this).attr('src') + "\\" + $(this).data('mid');}).toArray().join("|"));
                 } else {
-                    console.log(response.error);
                     gif = $productImages.find('.loading_gif');
                     li = gif.closest('li');
                     li.addClass('broken_image');
