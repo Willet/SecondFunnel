@@ -12,9 +12,6 @@ from django.contrib.auth.views import login
 from django.shortcuts import render_to_response, get_object_or_404, redirect, render
 from django.template import RequestContext, Context, loader
 from django.http import HttpResponse, HttpResponseServerError, HttpResponseNotAllowed
-from django.contrib.contenttypes.models import ContentType
-from django.template.defaultfilters import slugify, safe
-from django.utils.encoding import force_unicode
 from django.views.decorators.http import require_POST
 from fancy_cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
