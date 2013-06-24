@@ -209,11 +209,6 @@
             }
         });
 
-    var ajax_urls = {
-        "save_as_draft": "{% url ajax-campaign-save-draft %}",
-        "publish": "{% url ajax-campaign-publish %}"
-    };
-
     $("#pageList_filter input").unbind("keyup").keyup(function() {
         pageListTable.fnFilter( this.value, 0 );
     })
