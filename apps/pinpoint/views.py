@@ -419,6 +419,7 @@ def edit_theme(request, store_id, theme_id=None):
         theme = None
 
     template_vars = {
+        'store': store,
         'store_id': store_id,
         'theme_id': theme_id
     }
