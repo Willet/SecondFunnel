@@ -16,42 +16,6 @@ def ui_field_label_value(label, value):
     return {'label': label, 'value': value}
 
 
-class ConfirmCampaignNode(template.Node):
-    """
-    Renders a confirmation page of a wizard.
-
-    @deprecated: We no longer have a confirmation page.
-    """
-    def __init__(self, campaign):
-        self.campaign = template.Variable(campaign)
-
-    def render(self, context):
-        campaign = self.campaign.resolve(context)
-
-        content_block = campaign.content_blocks.all()[0]
-
-        return render_to_string("pinpoint/wizards/%s/confirm.html" % content_block.block_type.slug, {
-            'content_block': content_block,
-            'campaign': campaign
-        })
-
-
-@register.tag(name="wizard_confirm_campaign")
-def wizard_confirm_campaign(parser, token):
-    """
-    Renders a confirmation page of a wizard.
-
-    @deprecated: We no longer have a confirmation page.
-    """
-    try:
-        # split_contents() knows not to split quoted strings.
-        tag_name, campaign = token.split_contents()
-    except ValueError:
-        raise template.TemplateSyntaxError, "%r tag requires exactly one argument" % token.contents.split()[0]
-
-    return ConfirmCampaignNode(campaign)
-
-
 class BlockNode(template.Node):
     """
     Renders a content block.

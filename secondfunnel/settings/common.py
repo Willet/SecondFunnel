@@ -92,6 +92,8 @@ MEDIA_ROOT = ''
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
 MEDIA_URL = ''
+MIN_MEDIA_WIDTH = 480
+MIN_MEDIA_HEIGHT = 1
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
@@ -186,6 +188,7 @@ MIDDLEWARE_CLASSES = (
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'maintenancemode.middleware.MaintenanceModeMiddleware',
+    'minidetector.Middleware',
     )
 
 CACHE_MIDDLEWARE_SECONDS = 604800 # Set the cache to atleast a week; will only affect production/test/demo
@@ -304,6 +307,7 @@ TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
     'django.core.context_processors.request',
     # add custom context processors here
     'secondfunnel.context_processors.environment',
+    'secondfunnel.context_processors.required_dimensions',
 )
 
 FIXTURE_DIRS = (

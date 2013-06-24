@@ -108,6 +108,29 @@
             padding-bottom: 20px;
         }
 
+        .filter-row {
+            clear:both;
+            padding:10px 20px 0px 20px;
+        }
+
+        .filter-row .filter-block {
+            margin-right:10px;
+            display:inline-block;
+        }
+
+        #filter-menu .filter.ui-state-active a, #filter-menu li.filter.ui-state-active {
+            background:grey !important;
+        }
+
+        #filter-menu .filter.ui-state-active a:hover, #filter-menu li.filter.ui-state-active:hover {
+            background:#D3D3D3 !important;
+        }
+
+        .ui-menu {
+            z-index:99;
+            width:150px;
+        }
+
         .account-row {
             margin-left: auto;
             margin-right: auto;
@@ -224,6 +247,11 @@
 
         .review_area {
             margin-bottom: 20px;
+        }
+
+        .review-row {
+            clear:both;
+            padding-top:10px;
         }
 
         .approval_block {
@@ -349,23 +377,23 @@
     var tag = document.createElement('script');
     tag.src = "//www.youtube.com/iframe_api";
 
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    var firstScriptTag = document.getElementsByTagName('script')[0],
+        console = window.console || {
+            log: function() {},
+            debug: function() {}
+        },
+        sort = 'Newest',
+        filesBeingUploaded = 0;
 
-    var console = window.console || {
-        log: function() {},
-        debug: function() {}
-    }
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     $("#tabs").tabs();
     $("#scroll_with_review").button();
 
-    var tag_associations = {}, products = {};
-
-    var scroll_with_review = function () {
-        return $("#scroll_with_review").prop("checked");
-    };
-
-    var store_id = "{{ store.id }}";
+    var tag_associations = {}, products = {},
+        scroll_with_review = function () {
+            return $("#scroll_with_review").prop("checked");
+        },
+        store_id = "{{ store.id }}";
 
     $(document).ajaxError(function (event, request, settings) {
         alert("There was an error performing your action.");
@@ -482,7 +510,6 @@
 
             $bg_image.imagesLoaded(function($images, $proper, $broken) {
                 if ($broken.length >= 1) {
-                    // TODO: FIND AND INCLUDE BROKEN IMAGE LINK ICON OR SOME WAY OF INDICATING BROKEN
                     {% if request.user.is_superuser %}
                         instance.click(function(){
                             window.location = "/admin/assets/externalcontent/" + instance.parent().attr('data-oid');
@@ -567,6 +594,8 @@
         });
 
         $content.find(".tags").tagit({
+            allowSpaces: true,
+            removeConfirmation: false,
             autocomplete: {
                 autoFocus: true,
                 source: function(request, response) {
@@ -595,7 +624,7 @@
                 // because we need access to product id (ui.item.id)
                 select: function( event, ui ) {
                     var oid = $(this).parents(".approval_block").data("oid");
-
+                    
                     if (ui.item) {
                         if (tag_associations[oid] && tag_associations[oid].indexOf(ui.item.id) != -1) {
                             return;
@@ -619,42 +648,117 @@
                     }
                 }
             },
-
             beforeTagRemoved: function (event, ui) {
                 var oid = $(this).parents(".approval_block").data("oid"),
                     pid = products[ui.tagLabel];
 
-                tag_associations[oid].splice(tag_associations[oid].indexOf(pid), 1);
-                post_tags(oid);
+                if ( tag_associations[oid] && tag_associations[oid][pid] ) {
+                    tag_associations[oid].splice(tag_associations[oid].indexOf(pid), 1);
+                    post_tags(oid);
+                }
+                return true;
             }
         });
 
         /* File Upload */
         var $fileUpload = $content.find('.file-upload');
         if ($fileUpload.length) {
-            uploader = new qq.FileUploader({
-                element: $fileUpload[0],
-                action: '{% url upload-asset store.id %}',
-                csrfToken: $.cookie('csrftoken'),
-                allowedExtensions: ['jpg' ,'png', 'jpeg'],
-                uploadButtonText: 'Upload from file',
-                onSubmit: function() {
-                    $('.qq-upload-button').parents('.service').find('.icon').removeClass('file');
-                    // TODO: Actual disable clicking on the button
-                    $('.qq-upload-button').addClass('disabled');
-                    $('.qq-upload-button').text('Uploading...');
-                },
-                onComplete: function(id, fileName, response) {
-                    location.reload();
-                },
-                onError: function(id, fileName, reason) {
-                    console.log(reason);
-                }
+            $fileUpload.each(function() {
+               var uploader1 = makeUploader($(this));
+               $(this).find(".qq-upload-button").addClass('button');
             });
-            $(".qq-upload-button").addClass('button');
         }
     }
 
+    function makeUploader( $elem ) {
+        return new qq.FileUploader({
+                element: $elem[0],
+                action: '{% url upload-asset store.id %}',
+                csrfToken: $.cookie('csrftoken'),
+                allowedExtensions: ['jpg' ,'png', 'jpeg'],
+                uploadButtonText: '<span class="upload-text">Upload from file</span>',
+                onSubmit: function() {
+                    if (filesBeingUploaded == 0) {
+                        $('.qq-upload-button').parents('.service').find('.icon').removeClass('file');
+                        $('.qq-upload-button input').prop('disabled', true);
+                        $('.qq-upload-button .upload-text').text('Uploading...');
+                    }
+                    filesBeingUploaded++;
+                },
+                onComplete: function(id, fileName, response) {
+                    // This method triggers whether the upload was successful or not, so only trigger
+                    // reload here if successful.
+                    var messages = { 'minSizeError': "'s dimensions are too small.  Minimum file width is {{ MIN_MEDIA_WIDTH }}px.",
+                                     'emptyError': " does not exist.  Are you sure you entered correctly?" }
+                    filesBeingUploaded--;
+                    
+                    if (response.success == false) {
+                        if (response.error && messages[response.error]) {
+                            alert(fileName + messages[response.error]);
+                        }
+                    } else if (filesBeingUploaded == 0) {
+                        location.reload();
+                    }
+                },
+                onError: function(id, fileName, reason) {
+                    console.log(reason);
+                    if ( filesBeingUploaded == 1 ) {
+                        // This has to be 1, as the order in which things are called is different.
+                        $('.qq-upload-button').parents('.service').find('.icon').addClass('file');
+                        $('.qq-upload-button input').prop('disabled', false);
+                        $('.qq-upload-button .upload-text').text('Upload from file');
+                    }
+                }
+            });
+    }
+
+    // Create our persistent file-upload button
+    $(".persistent-file-upload").each(function(){
+        var uploader2 = makeUploader($(this));
+        $('.qq-uploader').wrapInner('<span class="qq-uploader ui-button-text" style="padding-left:.4em;" />').children().unwrap();
+        $('.qq-upload-button').prepend('<span class="ui-button-icon-primary ui-icon ui-icon-plus" style="float:left;" ></span>');
+        $(this).addClass("ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only");
+    });
+
+    // Setup our menus using the defined menu propeties
+    var menuProperties = {
+        icons: {
+            submenu: 'ui-icon-carat-1-s'
+        },
+        position: { my: 'left top', at: 'left bottom'}
+    };
+
+    $("#sort-menu").menu(menuProperties);
+    $("#sort-menu").find("a").on("click", function(event){
+        if ($(this).parent().hasClass("filter")) {
+            var sorted = $(this).text();
+            $("#sort-menu a:first span:last").text(sorted);
+            sort = sorted.split(" ")[0];
+            reload_content();
+        }   
+        $("#sort-menu").menu( "collapseAll", null, true );
+        return false; 
+    });
+
+    $("#filter-menu").menu(menuProperties);
+    $("#filter-menu").find("a").on('click', function(e){
+        if ($(this).parent().hasClass("filter")) {
+            var $mainText = $("#filter-menu a:first span:last"),
+                $parent   = $(this).parent();
+            if ($parent.hasClass('ui-state-active')) {
+                $mainText.text("Select Filters");
+                $parent.removeClass('ui-state-active');
+            } else {
+                $mainText.text($(this).text());
+                $parent.addClass('ui-state-active').siblings().removeClass('ui-state-active');
+            }
+            reload_content();       
+        }
+        $("#filter-menu").menu( "collapseAll", null, true );
+        return false;
+    });
+
+    
     /* Connection bar*/
     $('.connect').on('click', function() {
         $('.connect-window').dialog({
@@ -676,10 +780,11 @@
     load_content(1);
     
     $('#tabs ul li').on('click', function(){
-        var $tab = $($(this).children('a').attr('href'));
-        if ($tab.children().length == 0) {
-            load_content(1);
+        var $currentTab = $($(this).children('a').attr('href'));
+        if ($currentTab.find('.review-row').children().length == 0) {
+            $currentTab.attr('page-number', 1);
         }
+        reload_content();
     }); 
 
     
@@ -687,7 +792,7 @@
         var break_point = $(document).height() - ($(window).height() * 1.02),
             $currentTab = $($('.ui-tabs-active a').attr('href'));
         if ($(window).scrollTop() >= break_point) {
-            var next_page = $currentTab.children().last().attr('data-next');
+            var next_page = $currentTab.find('.review-row').children().last().attr('data-next');
             if (next_page) {
                 load_content(next_page);
             }
@@ -696,22 +801,43 @@
 
     var loadingContent = false;
 
+    function reload_content() {
+        var $currentTab = $($('.ui-tabs-active a').attr('href')),
+            current_page = parseInt($currentTab.attr('page-number'), 10);
+        // Reload with the sorted content
+        $currentTab.find(".review-row").children().remove();
+        load_content(1);
+    }
+
     function load_content( page ) {
         if (!loadingContent) {
             loadingContent = true;
             var url = "{% url asset-manager store.id %}",
-                $currentTab = $($('.ui-tabs-active a').attr('href'));
-            url += "?content_type=" + $currentTab.attr('id').replace('#', '') + "&page=" + page;
-            $.get(url, function( response ) {
-                if ($.isEmptyObject(response)) {
-                    console.log("End of page.");
-                } else {
-                    var $newcontent = $(response);
+                $currentTab = $($('.ui-tabs-active a').attr('href')),
+                filter = "";
 
-                    $currentTab.append($newcontent);
-                    attachListeners($newcontent);
-                    loadingContent = false;
+            $.each($("#filter-menu li.filter a"), function(){
+                if ($(this).parent().hasClass("ui-state-active")) {
+                    filter = $(this).text();
+                    return false;
                 }
+            });
+
+            $.get(url, {
+                "content_type": $currentTab.attr('id').replace('#', ''),
+                "sortby": sort,
+                "page": page,
+                "filterby": filter
+                }, function( response ) {
+                       if ($.isEmptyObject(response)) {
+                           console.log("End of page.");
+                       } else {
+                           var $newcontent = $(response);
+                           $currentTab.find('.review-row').append($newcontent);
+                           $currentTab.attr('page-number', page);
+                           attachListeners($newcontent);
+                           loadingContent = false;
+                       }
             });
         }
     }
@@ -722,10 +848,7 @@
 {% endblock top_section %}
 
 {% block content %}
-    <p>
-        <input type="checkbox" id="scroll_with_review"><label for="scroll_with_review">Scroll as I review</label>
-    </p>
-
+    
     {# Internal code, for now #}
     <div class="grid_11 review_area" id="tabs">
         <ul>
@@ -734,11 +857,37 @@
             {% endfor %}
         </ul>
 
-        {% for content_label, content_type, content_data in content %}
-            <div id="{{ content_type }}"></div>
-        {% endfor %}
-    </div>
+       <div class="filter-row">
+           <span class="filter-block">Sort By</span>
+           <ul id="sort-menu" class="filter-block">
+               <li><a href="#"><span>Newest Content</span></a>
+                   <ul>
+                       <li class="filter"><a href="#"><span>Newest Content</span></a></li>
+                       <li class="filter"><a href="#"><span>Oldest Content</span></a></li>
+                   </ul>
+               </li>
+           </ul>
+           <span class="filter-block" style="margin-left:20px;">Filter By</span>
+           <ul id="filter-menu" class="filter-block">
+               <li><a href="#"><span>Select Filters</span></a>
+                   <ul>
+                       {% for type in external_content_types %}
+                       <li class="filter"><a href="#">{{ type }}</a></li>
+                       {% endfor %}
+                   </ul>
+               </li>
+           </ul>
+           <div class="filter-block persistent-file-upload" style="float:right;"></div>
+           <span class="filter-block" style="float:right;">
+               <input type="checkbox" id="scroll_with_review" class="scroll_with_review">
+               <label for="scroll_with_review">Scroll as I review</label>
+           </span>
+       </div>
 
+       {% for content_label, content_type, content_data in content %}
+           <div id="{{ content_type }}"><div class="review-row"></div></div>
+       {% endfor %}
+    </div>
 
     <div class='connect-window' style='display: none;'>
         <div class='window-content'>

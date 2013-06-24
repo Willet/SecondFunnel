@@ -301,13 +301,11 @@ class StoreTheme(BaseModelNamed):
             'desktop_content': {
                 'type': 'template',
                 'values': ['pinpoint/campaign_scripts_core.html',
-                        'pinpoint/campaign_scripts_desktop.html',
-                        'pinpoint/default_templates.html']
+                           'pinpoint/default_templates.html']
             },
             'mobile_content': {
                 'type': 'template',
-                'values': ['pinpoint/campaign_scripts_core.html',
-                        'pinpoint/campaign_scripts_mobile.html']
+                'values': ['pinpoint/campaign_scripts_core.html']
             },
             'js_templates': {
                 'type': 'theme',
