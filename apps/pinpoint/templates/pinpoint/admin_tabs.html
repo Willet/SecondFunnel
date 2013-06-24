@@ -1,0 +1,36 @@
+<div class="tab_bar">
+    <ul>
+        {% with a_store=campaign.store|default:store %}
+            {% with features=a_store.features_list %}
+                {% if 'pages' in features %}
+                    <li
+                        {% if selected == 'pages' %}
+                        class="selected"
+                        {% endif %}
+                    ><a href="{% url store-admin a_store.id %}">Pages</a></li>
+                {% endif %}
+                {% if 'asset-manager' in features %}
+                    <li
+                        {% if selected == 'asset-manager' %}
+                            class="selected"
+                        {% endif %}
+                    ><a href="{% url asset-manager a_store.id %}">Asset Manager</a></li>
+                {% endif %}
+                {% if 'theme-manager' in features %}
+                    <li
+                        {% if selected == 'theme-manager' %}
+                            class="selected"
+                        {% endif %}
+                    ><a href="{% url theme-manager a_store.id %}">Theme Manager</a></li>
+                {% endif %}
+                {% if 'analytics' in features %}
+                    <li
+                        {% if selected == 'analytics' %}
+                            class="selected"
+                        {% endif %}
+                    ><a href="{% url analytics-store-admin a_store.id %}">Analytics</a></li>
+                {% endif %}
+            {% endwith features%}
+        {% endwith a_store %}
+    </ul>
+</div>
