@@ -13,8 +13,7 @@ admin.site.register(StoreThemeMedia, StoreThemeMediaAdmin)
 
 
 class StoreThemeAdmin(BaseNamedAdmin):
-    list_display = BaseNamedAdmin.list_display + ['store']
-    list_filter = BaseNamedAdmin.list_filter + ['store']
+    pass
 
 admin.site.register(StoreTheme, StoreThemeAdmin)
 

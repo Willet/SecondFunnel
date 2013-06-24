@@ -1,6 +1,8 @@
 from django import forms
+from django.forms import ModelForm
 
 from apps.assets.models import ProductMedia, GenericImage
+from apps.pinpoint.models import StoreTheme
 
 
 class FeaturedProductWizardForm(forms.Form):
@@ -119,3 +121,8 @@ class ShopTheLookWizardForm(FeaturedProductWizardForm):
             raise forms.ValidationError("You must choose a 'look' image")
 
         return cleaned_data
+
+class ThemeForm(ModelForm):
+    class Meta:
+        model = StoreTheme
+        exclude = ['slug', 'created', 'last_modified']

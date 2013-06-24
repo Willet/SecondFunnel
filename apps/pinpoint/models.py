@@ -235,27 +235,54 @@ class StoreTheme(BaseModelNamed):
     """
 
     # Django templates
-    page = models.TextField(default=DEFAULT_PAGE)
+    page = models.TextField(default=DEFAULT_PAGE, verbose_name='Page')
 
     # JS Templates
     # Main block templates
-    shop_the_look = models.TextField(default=DEFAULT_SHOP_THE_LOOK)
-    featured_product = models.TextField(default=DEFAULT_FEATURED_PRODUCT)
+    shop_the_look = models.TextField(
+        default=DEFAULT_SHOP_THE_LOOK,
+        verbose_name='"Shop the look"'
+    )
+    featured_product = models.TextField(
+        default=DEFAULT_FEATURED_PRODUCT,
+        verbose_name='"Featured product"'
+    )
 
     # Discovery block templates
-    product = models.TextField(default=DEFAULT_PRODUCT)
-    combobox = models.TextField(default=DEFAULT_COMBOBOX)
-    youtube = models.TextField(default=DEFAULT_YOUTUBE)
-    instagram = models.TextField(default=DEFAULT_INSTAGRAM)
+    product = models.TextField(
+        default=DEFAULT_PRODUCT,
+        verbose_name='Product'
+    )
+    combobox = models.TextField(
+        default=DEFAULT_COMBOBOX,
+        verbose_name='Combobox'
+    )
+    youtube = models.TextField(
+        default=DEFAULT_YOUTUBE,
+        verbose_name='Youtube'
+    )
+    instagram = models.TextField(
+        default=DEFAULT_INSTAGRAM,
+        verbose_name='Image'
+    )
 
     # Preview Templates
-    product_preview = models.TextField(default=DEFAULT_PRODUCT_PREVIEW)
-    combobox_preview = models.TextField(default=DEFAULT_COMBOBOX_PREVIEW)
-    instagram_preview = models.TextField(default=DEFAULT_INSTAGRAM_PREVIEW)
+    product_preview = models.TextField(
+        default=DEFAULT_PRODUCT_PREVIEW,
+        verbose_name='Product preview'
+    )
+    combobox_preview = models.TextField(
+        default=DEFAULT_COMBOBOX_PREVIEW,
+        verbose_name='Combobox preview'
+    )
+    instagram_preview = models.TextField(
+        default=DEFAULT_INSTAGRAM_PREVIEW,
+        verbose_name='Image preview'
+    )
     instagram_product_preview = models.TextField(
-        default=DEFAULT_INSTAGRAM_PRODUCT_PREVIEW)
-
-
+        default=DEFAULT_INSTAGRAM_PRODUCT_PREVIEW,
+        verbose_name='Image product preview'
+    )
 
     def __init__(self, *args, **kwargs):
         super(StoreTheme, self).__init__(*args, **kwargs)

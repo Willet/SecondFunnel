@@ -296,22 +296,7 @@
 {% endblock %}
 
 {% block top_section %}
-    <div class="tab_bar">
-        <ul>
-            {# TODO: This should be part of the base template, probably #}
-            {% with features=store.features_list %}
-                {% if 'pages' in features %}
-                    <li class="selected"><a href="{% url store-admin store.id %}">Pages</a></li>
-                {% endif %}
-                {% if 'asset-manager' in features %}
-                    <li><a href="{% url asset-manager store.id %}">Asset Manager</a></li>
-                {% endif %}
-                {% if 'analytics' in features %}
-                    <li><a href="{% url analytics-store-admin store.id %}">Analytics</a></li>
-                {% endif %}
-            {% endwith features %}
-        </ul>
-    </div>
+    {% include 'pinpoint/admin_tabs.html' with selected='pages' %}
 {% endblock top_section%}
 
 {% block content %}
