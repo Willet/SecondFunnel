@@ -369,6 +369,9 @@ def asset_manager(request, store_id):
 @has_store_feature('theme-manager')
 @login_required
 def theme_manager(request, store_id):
+    """renders the page that allows store owners to view themes associated with
+    their store or campaigns.
+    """
     store = get_object_or_404(Store, pk=store_id)
 
     themes = list(StoreTheme.objects.filter(
@@ -410,7 +413,9 @@ def theme_manager(request, store_id):
 @belongs_to_store
 @login_required
 def edit_theme(request, store_id, theme_id=None):
-    # Should handle both creation and editing of themes
+    """renders the page that allows store owners to edit themes or create new
+     themes
+    """
     store = get_object_or_404(Store, pk=store_id)
 
     try:
