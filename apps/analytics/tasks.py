@@ -308,11 +308,16 @@ def fetch_awareness_data(*args):
             getter = row_getter(query, row)
 
             location = u""
-            if getter('city') != "(not set)":
-                location = getter('city').encode('utf-8', 'ignore')
+            try:
+                if getter('city') != "(not set)":
+                    location = getter('city').encode('utf-8', 'ignore')
 
-            if getter('region') != "(not set)" and getter('region') not in location:
-                location = "{0}, {1}".format(location, getter('region').encode('utf-8', 'ignore'))
+                if getter('region') != "(not set)" and getter('region') not in location:
+                    location = "{0}, {1}".format(
+                        location, getter('region').encode('utf-8', 'ignore'))
+            except UnicodeDecodeError:  # happens with region names
+                pass  # (location = location)
+
 
             row_data = {
                 'date': getter('date'),

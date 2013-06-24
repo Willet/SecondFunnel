@@ -126,8 +126,11 @@ class GoogleAnalyticsBackend:
             results = self.get_results(next_query)
             yield results
 
-            if not results.get('nextLink'):
-                return
-            else:
+            logging.error([int(start_index) + int(results.get('itemsPerPage')),
+                                  int(results.get('totalResults'))])
+            if results.get('itemsPerPage') and results.get('totalResults'):
                 # start_index = results.get('nextLink')
+                start_index = min(int(start_index) + int(results.get('itemsPerPage')),
+                                  int(results.get('totalResults')))
+            else:
                 return
