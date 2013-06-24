@@ -109,6 +109,8 @@ def process_intentrank_request(request, store, page, function_name,
         results.update({'url': url})
         return results, response.status
 
+    # if too few products are returned, check the difference
+    # between results (ids) and products (objects).
     products = Product.objects.filter(
         pk__in=results.get('products'), available=True).exclude(media=None)
 
@@ -333,7 +335,7 @@ def get_results(request, **kwargs):
         store, page, seeds)
     cached_results = cache.get(cache_key, version=cache_version)
 
-    if not cached_results:
+    if not cached_results or settings.DEBUG:
 
         results, status = process_intentrank_request(
             request, store, page, 'getresults', {

@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage, YoutubeVideo, ExternalContentType, ExternalContent, StoreFeature
+from apps.assets.models import Product, ProductMedia, Store, GenericMedia, \
+    GenericImage, ExternalContentType, ExternalContent, StoreFeature
 
 
 class BaseAdmin(admin.ModelAdmin):

@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+"""
+TODO: @deprecated / what's this
+"""
+
 import time, os
 
 THEMES_PATH = '/Users/grisha/Code/SecondFunnel-Themes'

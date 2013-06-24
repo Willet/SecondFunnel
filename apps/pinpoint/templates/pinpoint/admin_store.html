@@ -212,26 +212,6 @@
                     }
                 });
 
-            var ajax_urls = {
-                "save_as_draft": "{% url ajax-campaign-save-draft %}",
-                "publish": "{% url ajax-campaign-publish %}"
-            };
-
-            $("button[data-type='ajax']").click(function (e) {
-                e.preventDefault();
-
-                $.ajax({
-                    url: ajax_urls[$(this).data("action")],
-                    type: "POST",
-                    dataType: 'json',
-                    data: {'campaign_id': $(this).data("content")},
-                    success: function(data) {
-                        if (data.success) {
-                            window.location.href = "{% url store-admin store.id %}";
-                        }
-                    }
-                });
-            });
 
             $("#pageList_filter input").unbind("keyup").keyup(function() {
                 pageListTable.fnFilter( this.value, 0 );
