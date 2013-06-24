@@ -58,6 +58,7 @@ PAGES.intentRank = (function (me, details, mediator) {
         if (!_.isEmpty(details.backupResults) &&
                 !('error' in details.backupResults)) {  // saved IR proxy error
             callback(details.backupResults);
+            PAGES.setLoadingBlocks(false);
 
             details.backupResults = [];
         } else {
@@ -72,20 +73,26 @@ PAGES.intentRank = (function (me, details, mediator) {
                     dataType: 'jsonp',
                     success: function(results) {
                         callback(results);
+                        PAGES.setLoadingBlocks(false);
                     },
                     error: function () {
                         callback(details.backupResults);
+                        PAGES.setLoadingBlocks(false);
                     }
                 });
             } else {
                 callback(details.content);
+                PAGES.setLoadingBlocks(false);
             }
         }
-        PAGES.setLoadingBlocks(false);
     };
 
     me.getMoreResults = function (callback, belowFold, related) {
         // callback function will receive a list of results as first param.
+        if (PAGES.getLoadingBlocks()) {
+            return;
+        }
+
         PAGES.setLoadingBlocks(true);
         if (!details.page.offline) {
             $.ajax({
@@ -103,15 +110,17 @@ PAGES.intentRank = (function (me, details, mediator) {
                 dataType: 'jsonp',
                 success: function(results) {
                     callback(results, belowFold, related);
+                    PAGES.setLoadingBlocks(false);
                 },
                 error: function () {
                     callback(details.backupResults, belowFold, related);
+                    PAGES.setLoadingBlocks(false);
                 }
             });
         } else {
             callback(details.content, undefined, related);
+            PAGES.setLoadingBlocks(false);
         }
-        PAGES.setLoadingBlocks(false);
     };
 
     me.invalidateIRSession = function () {
