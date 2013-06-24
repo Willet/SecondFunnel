@@ -1,6 +1,5 @@
 <div class="tab_bar">
     <ul>
-        {# TODO: This should be part of the base template, probably #}
         {% with a_store=campaign.store|default:store %}
             {% with features=a_store.features_list %}
                 {% if 'pages' in features %}
