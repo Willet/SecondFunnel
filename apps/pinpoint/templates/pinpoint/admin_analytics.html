@@ -21,8 +21,16 @@
     <script src="{% static "js/d3.v3.min.js" %}"></script>
     <script src="{% static "js/jquery.tipsy.js" %}"></script>
     <script src="{% static "js/underscore.js" %}"></script>
+    <script src="{% static "pinpoint/js/admin_analytics.js" %}"></script>
 
     <script>
+        // supply analytics variables
+        var analyticsSettings = {
+            "ajaxURL": "{% url ajax-analytics-pinpoint %}",
+            "store_id": "{{ store.id }}",
+            "campaign_id": "{{ campaign.id }}"
+        };
+
         var BarChart = function (o) {
             var present_total = 0;
 
@@ -183,7 +191,7 @@
                 'video': "/api/assets/v1/youtube_video/%object_id%/?format=json",
                 'generic_image': "/api/assets/v1/generic_image/%object_id%/?format=json",
                 'video_gdata': "https://gdata.youtube.com/feeds/api/videos/%object_id%?v=2&alt=json-in-script&callback=?"
-            }, getProduct, getProducts, fetchProduct;
+            }, getObject, getObjects, fetchObject;
 
             getObject = function (object_type, object_id, callback) {
                 var object = cache.get(object_type + "_" + object_id);
@@ -288,16 +296,9 @@
             };
         }());
 
-        // supply analytics variables
-        var Willet = Willet || {};
-        Willet.analytics = {
-            'settings': {
-                "store_id": "{{ store.id }}",
-                "campaign_id": "{{ campaign.id }}"
-            }
-        };
+        // start (explicitly-required) module
+        Willet.analytics.init(analyticsSettings);
     </script>
-    <script type="text/javascript" src="{% static "pinpoint/js/admin_analytics.js" %}"></script>
 {% endblock %}
 
 {% block top_section %}
