@@ -39,7 +39,7 @@ Structure
 ---------
 The SecondFunnel project is broken into different folders for the application.
 
-- `scripts`: ???
+- `scripts`: Python and Bash scripts for deployment and/or utility
 - `secondfunnel`: Where settings and site-wide URLs are recorded
 - `apps`: Applications and common code
     - `analytics`: Our analytics framework for tracking users
@@ -48,7 +48,7 @@ The SecondFunnel project is broken into different folders for the application.
 
 Documentation
 -------------
-Coming Soon
+Documentation for the SecondFunnel project can be found ..... **COMING SOON**
 
 License
 -------
