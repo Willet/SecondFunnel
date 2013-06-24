@@ -159,6 +159,7 @@ PAGES.intentRank = (function (me, details, mediator) {
     if (mediator) {
         mediator.on('IR.init', me.init);
         mediator.on('IR.updateClickStream', me.updateClickStream);
+        mediator.on('IR.updateContentStream', me.updateContentStream);
         mediator.on('IR.getInitialResults', me.getInitialResults);
         mediator.on('IR.getMoreResults', me.getMoreResults);
         mediator.on('IR.invalidateIRSession', me.invalidateIRSession);

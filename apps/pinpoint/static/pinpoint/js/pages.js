@@ -2,7 +2,6 @@
 var PAGES = (function ($, details, mediator) {
     "use strict";
     var i = 0,  // counter
-        context = window,
         noop = function () {},
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
@@ -384,11 +383,11 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function productHoverOn() {
-        commonHoverOn(context, true, true);
+        commonHoverOn(this, true, true);
     }
 
     function productHoverOff() {
-        commonHoverOff(context, function (t) {
+        commonHoverOff(this, function (t) {
             mediator.fire('tracking.registerEvent', [{
                 "type": "inpage",
                 "subtype": "hover",
@@ -398,19 +397,19 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function youtubeHoverOn() {
-        commonHoverOn(context, true, false);
+        commonHoverOn(this, true, false);
     }
 
     function youtubeHoverOff() {
-        commonHoverOff(context, noop, false);
+        commonHoverOff(this, noop, false);
     }
 
     function lifestyleHoverOn() {
-        commonHoverOn(context, false, true);
+        commonHoverOn(this, false, true);
     }
 
     function lifestyleHoverOff() {
-        commonHoverOff(context, function (t) {
+        commonHoverOff(this, function (t) {
             mediator.fire('tracking.registerEvent', [{
                 "type": "content",
                 "subtype": "hover",
