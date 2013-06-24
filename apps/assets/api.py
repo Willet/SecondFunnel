@@ -7,7 +7,6 @@ from tastypie.resources import ModelResource, ALL
 from tastypie.authentication import Authentication, ApiKeyAuthentication, MultiAuthentication
 from tastypie.authorization import Authorization
 from django.db.models import Q
-from django.core.exceptions import ObjectDoesNotExist
 
 from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
     YoutubeVideo, GenericImage, ExternalContent, ExternalContentType)

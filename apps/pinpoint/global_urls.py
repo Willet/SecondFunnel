@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 
 urlpatterns = patterns('apps.pinpoint.views',
    # As suggested in the docs, but how will this affect reverse / url?
