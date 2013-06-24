@@ -5,6 +5,9 @@ Analytics protector bunny:
 (-_-)
 (()())
 
+django celery uses settings.BROKER_URL and settings.BROKER_TRANSPORT_OPTIONS.
+http://docs.celeryproject.org/en/latest/django/first-steps-with-django.html
+
 """
 from copy import deepcopy
 import pickle, sys
@@ -14,9 +17,9 @@ from datetime import date, datetime
 from functools import partial
 from urlparse import urlparse
 
-from celery import task, subtask, chain
+from celery import task, chain
+from celery.app.base import Celery
 from celery.utils.log import get_task_logger
-from oauth2client.client import SignedJwtAssertionCredentials
 
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q

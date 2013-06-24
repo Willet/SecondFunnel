@@ -36,7 +36,9 @@ class GoogleAnalyticsBackend:
 
         self.service = build('analytics', 'v3', http=http)
 
-    def create_query(self, start_date, end_date, metrics, dimensions=None, sort=None, filters=None, start_index="1", max_results='10000'):
+    def create_query(self, start_date, end_date, metrics, dimensions=None,
+                     sort=None, filters=None, start_index="1",
+                     max_results='10000'):
         if filters is not None:
             filters = ["{0}{1}".format(f[0], f[1]) for f in filters]
 

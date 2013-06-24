@@ -1,15 +1,12 @@
-import json
-import random
-
+"""Ajax (read-only) interface for analytics data."""
 from collections import defaultdict
 from datetime import timedelta, datetime
-from functools import partial
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 
 from apps.assets.models import Store
-from apps.analytics.models import Category, Metric, KVStore, CategoryHasMetric
+from apps.analytics.models import Category, CategoryHasMetric
 from apps.pinpoint.models import Campaign, IntentRankCampaign
 from apps.utils.ajax import ajax_success, ajax_error
 
@@ -21,11 +18,18 @@ def daterange(start_date, end_date):
 
 @login_required
 def analytics_pinpoint(request):
+    """Aggregates analytics data found in the DB, and returns
+    aggregate values.
+
+    @param request: django request handler
+    """
     def aggregate_by(metric_slug, bucket, key):
+        """Generates a dictionary that contains data tallies."""
         bucket['totals'][key] = defaultdict(int)
 
         for datum in bucket['data']:
             if metric_slug == "awareness-bounce_rate":
+                # TODO: why is this prop special?
                 bucket['totals'][key][datum[key]] = datum['value']
             else:
                 bucket['totals'][key][datum[key]] += datum['value']
@@ -51,7 +55,8 @@ def analytics_pinpoint(request):
 
     # only one must be present
     if (campaign_id and store_id) or not object_id:
-        return ajax_error()
+        return ajax_error({'error': 'campaign_id xor store_id must be present,'
+                                    'and object_id must be present.'})
 
     # try get a store associated with this request,
     # either directly or via campaign
@@ -68,7 +73,12 @@ def analytics_pinpoint(request):
         store = campaign.campaigns.all()[0].store
 
     else:
-        return ajax_error()
+        return ajax_error({'error': 'cannot find store and/or campaign '
+                                    'with the given id(s).'})
+
+    # check if user is authorized to access this data
+    if not request.user in store.staff.all():
+        return ajax_error({'error': 'this user cannot access requested data'})
 
     date_range = request.GET.get('range')
     end_date = datetime.now()
@@ -94,16 +104,13 @@ def analytics_pinpoint(request):
     # account for potential timezone differences
     start_date = start_date - timedelta(days=2)
 
-    # check if user is authorized to access this data
-    if not request.user in store.staff.all():
-        return ajax_error()
-
     # what to filter kv for
     object_type = ContentType.objects.get_for_model(Campaign)
 
     # iterate through analytics structures and get the data
     results = {}
     for category in Category.objects.filter(enabled=True):
+        # categories: e.g. Awareness, Engagement, Sharing. In DB.
         results[category.slug] = {}
 
         for metric in category.metrics.filter(enabled=True):
@@ -145,10 +152,8 @@ def analytics_pinpoint(request):
 
             # this aggregates and exposes daily data across all products
             bucket = results[category.slug][metric.slug]
-
-            aggregator = partial(aggregate_by, metric.slug)
-            bucket = aggregator(bucket, 'date')
-            bucket = aggregator(bucket, 'target_id')
-            bucket = aggregator(bucket, 'meta')
+            bucket = aggregate_by(metric.slug, bucket, 'date')
+            bucket = aggregate_by(metric.slug, bucket, 'target_id')
+            bucket = aggregate_by(metric.slug, bucket, 'meta')
 
     return ajax_success(results)
