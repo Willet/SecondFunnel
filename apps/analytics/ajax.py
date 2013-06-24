@@ -46,8 +46,6 @@ def analytics_pinpoint(request):
         else:
             bucket['totals'][key]['all'] = 0
 
-        return bucket
-
     # one of these is required:
     campaign_id = request.GET.get('campaign_id', False)
     store_id = request.GET.get('store_id', False)
@@ -55,8 +53,7 @@ def analytics_pinpoint(request):
 
     # only one must be present
     if (campaign_id and store_id) or not object_id:
-        return ajax_error({'error': 'campaign_id xor store_id must be present,'
-                                    'and object_id must be present.'})
+        return ajax_error({'error': 'campaign_id xor store_id must be present'})
 
     # try get a store associated with this request,
     # either directly or via campaign
@@ -84,7 +81,7 @@ def analytics_pinpoint(request):
     end_date = datetime.now()
     end_date = end_date.replace(tzinfo=campaign.created.tzinfo)
 
-    if date_range == "total":
+    if date_range == "total":  # since the beginning of collection
         start_date = campaign.created
 
     elif date_range == "month":
@@ -152,8 +149,8 @@ def analytics_pinpoint(request):
 
             # this aggregates and exposes daily data across all products
             bucket = results[category.slug][metric.slug]
-            bucket = aggregate_by(metric.slug, bucket, 'date')
-            bucket = aggregate_by(metric.slug, bucket, 'target_id')
-            bucket = aggregate_by(metric.slug, bucket, 'meta')
+            aggregate_by(metric.slug, bucket, 'date')  # mutable
+            aggregate_by(metric.slug, bucket, 'target_id')  # mutable
+            aggregate_by(metric.slug, bucket, 'meta')  # mutable
 
     return ajax_success(results)

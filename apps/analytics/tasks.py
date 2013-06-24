@@ -17,8 +17,8 @@ from datetime import date, datetime
 from functools import partial
 from urlparse import urlparse
 
+# http://docs.celeryproject.org/en/latest/django/first-steps-with-django.html#defining-and-calling-tasks
 from celery import task, chain
-from celery.app.base import Celery
 from celery.utils.log import get_task_logger
 
 from django.contrib.contenttypes.models import ContentType
@@ -58,21 +58,12 @@ def get_ga_generator(query):
     """
     ga = GoogleAnalyticsBackend()
 
-    return ga.results_iterator(
-        # start date
-        date(2013, 1, 1),
-
-        # end date
-        datetime.now().date(),
-
-        # what metrics to get
-        query['metrics'],
-
-        # which data columns to get
-        dimensions=query['dimensions'],
-
-        # what to sort by
-        sort=query['sort']
+    return ga.results_iterator(start_date=date(2013, 1, 1),  # start date
+                               end_date=datetime.now().date(),  # end date
+                               metrics=query['metrics'],  # what metrics to get
+                               dimensions=query['dimensions'],  # which data columns to get
+                               sort=query['sort'],  # what to sort by
+                               start_index='1'
     )
 
 
@@ -269,7 +260,14 @@ class Categories:
 
 @task()
 def redo_analytics():
-    """Erases cached analytics and recency data, starts update process"""
+    """Erases cached analytics and recency data, starts update process.
+
+    To use:   (http://stackoverflow.com/a/12900126)
+
+    (venv)$ python manage.py shell
+    > from apps.analytics.tasks import redo_analytics
+    > redo_analytics.apply()
+    """
     logger.info("Redoing analytics")
 
     KVStore.objects.all().delete()
@@ -278,14 +276,15 @@ def redo_analytics():
     logger.info("Removed old analytics data")
 
     task_chain = chain(fetch_awareness_data.s(), process_awareness_data.s(),
-                     fetch_event_data.s(), process_event_data.s(),
-                     aggregate_saved_metrics.s())
+                       fetch_event_data.s(), process_event_data.s(),
+                       aggregate_saved_metrics.s())
 
-    task_chain.delay()
+    task_chain.delay()  # === .run()
 
 
 @task()
 def fetch_awareness_data(*args):
+    """obtains data from google analytics via the GA API."""
     logger.info("Updating awareness analytics data")
 
     query = {
