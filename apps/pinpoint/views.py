@@ -27,6 +27,7 @@ from apps.pinpoint.models import Campaign, BlockType, StoreTheme
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
 from apps.pinpoint.utils import render_campaign
 import apps.pinpoint.wizards as wizards
+from apps.pinpoint.wizards import Wizard
 from apps.utils.ajax import ajax_error, ajax_success
 
 import apps.utils.base62 as base62
@@ -459,11 +460,8 @@ def preview_theme(request, store_id, theme_id=None):
     The page is not saved anywhere.
     """
     store = get_object_or_404(Store, pk=store_id)
-
-    try:
-        theme = StoreTheme.objects.get(pk=theme_id)
-    except StoreTheme.DoesNotExist:
-        theme = None
+    theme = get_object_or_404(StoreTheme, pk=theme_id)
+    dummy_theme_name = '(preview)'
 
     template_vars = {
         'store': store,
@@ -471,11 +469,21 @@ def preview_theme(request, store_id, theme_id=None):
         'theme_id': theme_id
     }
 
-    return render_to_response(
-        'pinpoint/theme_preview.html',
-        template_vars,
-        context_instance=RequestContext(request)
-    )
+    theme.pk = None  # clone obj
+    for key in request.POST:
+        try:
+            setattr(theme, key, request.POST[key])
+        except:
+            raise
+    theme.save()
+
+    # generate a dummy page (campaign is not saved)
+    campaign = Campaign.objects.filter(store=store).order_by('?')[0]
+    campaign.theme=theme
+
+    # return HttpResponse(render_campaign(campaign, request, get_seeds, 'full'))
+    return redirect(render_campaign(campaign, request, get_seeds, 'full'))
+
 
 
 # campaigns with short URLs are cached for 30 minutes

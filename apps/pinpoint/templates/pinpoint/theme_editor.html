@@ -44,30 +44,21 @@
         .row input, .row textarea {
             width: 650px;
         }
-
-        .row textarea {
-        }
     </style>
 {% endblock %}
 
 {% block extra_js_includes %}
     <script>
         $(document).ready(function () {
-            var form = $('#theme_parts_form'),
-                oldAction = form.prop('action');
+            var form = $('#theme_parts_form');
             $('#preview_button').click(function (e) {
-                e.preventDefault();
-
-                form.prop({  // override original form function
-                    'target': '_blank',
-                    'action': '{% url preview-theme store_id theme_id %}'
-                });
-
-                form.submit();
-
-                form.prop({  // restore original form function
-                    'target': '',
-                    'action': oldAction
+                $.ajax({
+                    'url': '{% url preview-theme store_id theme_id %}',
+                    'type': 'POST',
+                    'data': form.serializeArray(),
+                    'success': function (data) {
+                        window.open(data.url, '_blank');
+                    }
                 });
             });
         });
