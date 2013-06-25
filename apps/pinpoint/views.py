@@ -469,20 +469,26 @@ def preview_theme(request, store_id, theme_id=None):
         'theme_id': theme_id
     }
 
-    theme.pk = None  # clone obj
-    for key in request.POST:
-        try:
-            setattr(theme, key, request.POST[key])
-        except:
-            raise
-    theme.save()
-
-    # generate a dummy page (campaign is not saved)
     campaign = Campaign.objects.filter(store=store).order_by('-last_modified')[0]
-    campaign.theme=theme
 
-    return HttpResponse(render_campaign(campaign, request, get_seeds, 'full'))
-    # return ajax_success({'page': render_campaign(campaign, request, get_seeds, 'full')})
+    # call this func, first with POST, then with GET, to bypass
+    # chrome's xss ban
+    if request.method == 'GET':
+        # generate a dummy page (campaign is not saved)
+        campaign.theme = theme
+
+        return HttpResponse(render_campaign(campaign, request, get_seeds, 'full'))
+    elif request.method == 'POST':
+        theme.pk = None  # clone obj
+        for key in request.POST:
+            try:
+                setattr(theme, key, request.POST[key])
+            except:
+                raise
+        theme.save()
+
+        # return redirect('/pinpoint/%d' % campaign.id)
+        return ajax_success({'nextUrl': '/pinpoint/%d' % campaign.id})
 
 
 

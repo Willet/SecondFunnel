@@ -46,6 +46,11 @@
         .row input, .row textarea {
             width: 640px;
         }
+
+        #preview-iframe {
+            width:100%;
+            height:1600px; /* enough to trigger waterfall */
+        }
     </style>
 {% endblock %}
 
@@ -55,22 +60,21 @@
         $(document).ready(function () {
             var form = $('#theme_parts_form');
             $('#preview_button').click(function (e) {
+                /*
                 e.preventDefault();
-
-                form.target = 'preview-iframe';
-                form.action = '{% url preview-theme store_id theme_id %}';
+                form.prop('target', 'preview-iframe');
+                form.prop('action', '{% url preview-theme store_id theme_id %}');
                 form.submit();
                 return false;
-                /*
+                */
                 $.ajax({
                     'url': '{% url preview-theme store_id theme_id %}',
                     'type': 'POST',
                     'data': form.serializeArray(),
                     'success': function (data) {
-                        $('#preview-iframe').html(data.page);
+                        $('#preview-iframe').prop('src', data.nextUrl);
                     }
                 });
-                */
             });
             $('.tabs').tabs();
         });
@@ -87,33 +91,37 @@
 
 {% block content %}
     <div class="tabs">
-    <ul>
-        <li><a href="#tabs-1">Source</a></li>
-        <li><a href="#tabs-2">Preview</a></li>
-    </ul>
-    <div id="tabs-1">
-        <form id="theme_parts_form" method="POST"
-              action="{% url edit-theme store_id theme_id %}">
-            {% csrf_token %}
-            {{ formset.management_form }}
-            {% for form in formset %}
-                {% for field in form %}
-                    {% if field.errors %}
-                    <div class='row error'>{{ field.errors }}</div>
-                    {% endif %}
-                    <div class='row'>
-                        <span class='field'>{{ field.label }}:</span>
-                        {{ field }}
-                    </div>
+        <ul>
+            <li><a href="#tabs-1">Source</a></li>
+            <li><a href="#tabs-2">Preview</a></li>
+        </ul>
+        <div id="tabs-1">
+            <form id="theme_parts_form" method="POST"
+                  action="{% url edit-theme store_id theme_id %}">
+                {% csrf_token %}
+                {{ formset.management_form }}
+                {% for form in formset %}
+                    {% for field in form %}
+                        {% if field.errors %}
+                        <div class='row error'>{{ field.errors }}</div>
+                        {% endif %}
+                        <div class='row'>
+                            <span class='field'>{{ field.label }}:</span>
+                            {{ field }}
+                        </div>
+                    {% endfor %}
                 {% endfor %}
-            {% endfor %}
-            <div class="actions">
-                <input class="preview button" id="preview_button" type="button" value="{% trans "Preview" %}" />
-                <input class="button submit focus" type="submit" value="{% trans "Save" %}" />
-            </div>
-        </form>
-    </div>
-    <div id="tabs-2">
-        <iframe id="preview-iframe" name="preview-iframe" src="" frameborder="1"></iframe>
+                <div class="actions">
+                    <input class="preview button" id="preview_button"
+                           type="button" value="{% trans "Preview" %}" />
+                    <input class="button submit focus"
+                           type="submit" value="{% trans "Save" %}" />
+                </div>
+            </form>
+        </div>
+        <div id="tabs-2">
+            <iframe id="preview-iframe" name="preview-iframe"
+                    src="" frameborder="0"></iframe>
+        </div>
     </div>
 {% endblock %}
