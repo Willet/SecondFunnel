@@ -34,14 +34,10 @@ class BaseNamedMediaAdmin(BaseNamedAdmin):
 
     list_filter = BaseNamedAdmin.list_filter + ['media_type']
 
-    search_fields = BaseNamedAdmin.search_fields + ['original_url']
-
 
 class BaseNamedImageAdmin(BaseNamedAdmin):
     list_display = ['id'] + BaseNamedAdmin.list_display + [
         'remote', 'hosted']
-    
-    search_fields = BaseNamedAdmin.search_fields + ['original_url']
 
 
 class GenericMediaAdmin(BaseNamedMediaAdmin):
@@ -65,8 +61,6 @@ admin.site.register(ProductMedia, ProductMediaAdmin)
 
 class StoreAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + ['staff_count']
-    
-    search_fields = BaseNamedAdmin.search_fields + ['original_url']
 
 admin.site.register(Store, StoreAdmin)
 
@@ -115,8 +109,6 @@ admin.site.register(Product, ProductAdmin)
 class ExternalContentTypeAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + ['enabled']
 
-    search_fields = BaseNamedAdmin.search_fields + ['original_url']
-
 admin.site.register(ExternalContentType, ExternalContentTypeAdmin)
 
 
@@ -128,8 +120,6 @@ class ExternalContentAdmin(BaseAdmin):
     list_filter = BaseNamedAdmin.list_filter + ['store', 'categories']
 
     filter_horizontal = ('tagged_products',)
-
-    search_fields = BaseNamedAdmin.search_fields + ['original_url']
     
     class Media:
         js = ( "js/youtube_admin_look.js", )
