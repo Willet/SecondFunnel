@@ -478,11 +478,11 @@ def preview_theme(request, store_id, theme_id=None):
     theme.save()
 
     # generate a dummy page (campaign is not saved)
-    campaign = Campaign.objects.filter(store=store).order_by('?')[0]
+    campaign = Campaign.objects.filter(store=store).order_by('-last_modified')[0]
     campaign.theme=theme
 
-    # return HttpResponse(render_campaign(campaign, request, get_seeds, 'full'))
-    return redirect(render_campaign(campaign, request, get_seeds, 'full'))
+    return HttpResponse(render_campaign(campaign, request, get_seeds, 'full'))
+    # return ajax_success({'page': render_campaign(campaign, request, get_seeds, 'full')})
 
 
 
