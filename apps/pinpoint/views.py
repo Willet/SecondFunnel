@@ -449,6 +449,35 @@ def edit_theme(request, store_id, theme_id=None):
         context_instance=RequestContext(request)
     )
 
+
+@has_store_feature('theme-manager')
+@belongs_to_store
+@login_required
+def preview_theme(request, store_id, theme_id=None):
+    """Generates a dummy page based on the theme data the user supplies.
+
+    The page is not saved anywhere.
+    """
+    store = get_object_or_404(Store, pk=store_id)
+
+    try:
+        theme = StoreTheme.objects.get(pk=theme_id)
+    except StoreTheme.DoesNotExist:
+        theme = None
+
+    template_vars = {
+        'store': store,
+        'store_id': store_id,
+        'theme_id': theme_id
+    }
+
+    return render_to_response(
+        'pinpoint/theme_preview.html',
+        template_vars,
+        context_instance=RequestContext(request)
+    )
+
+
 # campaigns with short URLs are cached for 30 minutes
 @cache_page(60 * 30, key_prefix=nocache)
 def campaign_short(request, campaign_id_short, mode='auto'):

@@ -52,7 +52,25 @@
 
 {% block extra_js_includes %}
     <script>
+        $(document).ready(function () {
+            var form = $('#theme_parts_form'),
+                oldAction = form.prop('action');
+            $('#preview_button').click(function (e) {
+                e.preventDefault();
 
+                form.prop({  // override original form function
+                    'target': '_blank',
+                    'action': '{% url preview-theme store_id theme_id %}'
+                });
+
+                form.submit();
+
+                form.prop({  // restore original form function
+                    'target': '',
+                    'action': oldAction
+                });
+            });
+        });
     </script>
 {% endblock %}
 
@@ -65,7 +83,8 @@
 {% endblock %}
 
 {% block content %}
-    <form method="POST" action="{% url edit-theme store_id theme_id %}">
+    <form id="theme_parts_form" method="POST"
+          action="{% url edit-theme store_id theme_id %}">
         {% csrf_token %}
         {{ formset.management_form }}
         {% for form in formset %}
@@ -80,6 +99,7 @@
             {% endfor %}
         {% endfor %}
         <div class="actions">
+            <input class="preview button" id="preview_button" type="button" value="{% trans "Preview" %}" />
             <input class="button submit focus" type="submit" value="{% trans "Save" %}" />
         </div>
     </form>
