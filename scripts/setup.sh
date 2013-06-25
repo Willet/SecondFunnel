@@ -4,6 +4,7 @@
 
 OS=`uname`
 AWSOS=''
+HOME=~
 if [ ${OS} = "Darwin" ]; then
     # We'll use 'brew' for Mac users
     ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"    
@@ -64,9 +65,6 @@ sudo pip install -r $WORKON_HOME/$PROJECT_NAME/requirements/dev.txt
 gem install bundler
 bundle install
 
-# re-fix
-chown -R $USER:$USER $WORKON_HOME/$PROJECT_NAME
-
 # rabbitmq
 if [ ${OS} = "Darwin" ]; then
     brew install rabbitmq
@@ -92,6 +90,13 @@ cp -r .AWS-ElasticBeanstalk-CLI/AWSDevTools/Linux/scripts/* scripts/
 cp .AWS-ElasticBeanstalk-CLI/AWSDevTools/Linux/AWSDevTools-RepositorySetup.sh .
 sh AWSDevTools-RepositorySetup.sh
 rm AWSDevTools-RepositorySetup.sh
+if [ ! -d "$HOME/.ssh" ]; then
+    # User needs an ssh key                                                                                                                                                       
+    echo "Enter your email address: "
+    read emailaddr
+    ssh-keygen -t rsa -C "$emailaddr"
+fi
+cat ~/.ssh/id_rsa.pub >> ssh_keys
 
 # re-fix
 chown -R $USER:$USER $WORKON_HOME/$PROJECT_NAME
@@ -109,8 +114,9 @@ python manage.py syncdb && python manage.py migrate && python manage.py collects
 # Theming
 cd $WORKON_HOME
 git clone git@github.com/Willet/SecondFunnel-Themes.git
+chown -R $USER:$USER $WORKON_HOME/SecondFunnel-Themes
 cd $PROJECT_NAME
-python manage.py theming
+echo "$WORKON_HOME/SecondFunnel-Themes" | python manage.py theming
 
 # Fixtures
 fixtures = ( "./apps/assets/fixtures/init_dev.json" "./apps/pinpoint/fixtures/init_dev.json" "./secondfunnel/fixtures/init_dev.json" "apps/analytics/fixtures/data.json" )

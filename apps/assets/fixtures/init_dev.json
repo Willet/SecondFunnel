@@ -24,6 +24,8 @@
             "name": "shuuemura",
             "last_modified": "2013-01-22T20:41:08Z",
             "slug": "shuuemura",
+            "desktop": 8,
+            "mobile": 8,
             "staff": [
                 1
             ]
@@ -41,7 +43,9 @@
             "slug": "nelou",
             "staff": [
                 1
-            ]
+            ],
+            "desktop": 18,
+            "mobile": 18
         }
     },
     {
@@ -86,6 +90,34 @@
             "slug": "gap",
             "staff": [
                 1
+            ],
+            "desktop": 13,
+            "mobile": 14,
+            "features": [
+                1,
+                2,
+                3
+            ]
+        }
+    },
+    {
+        "pk": ,
+        "model": "assets.store",
+        "fields": {
+            "description": "",
+            "created": "2013-06-02T11:23:00Z",
+            "social_auth": [],
+            "name": "NewEgg",
+            "last_modified": "2013-06-29T14:29:00Z",
+            "slug": "newegg",
+            "staff": [
+               1
+            ],
+            "desktop": 6,
+            "mobile": 7,
+            "features": [
+                1
+                3
             ]
         }
     },
@@ -102,6 +134,8 @@
             "staff": [
                 1
             ],
+            "desktop": 5,
+            "mobile": 5,
             "features": [
                 1,
                 2,
@@ -121,7 +155,9 @@
             "slug": "indochino",
             "staff": [
                 1
-            ]
+            ],
+            "desktop": 4,
+            "mobile": 4
         }
     },
     {
@@ -136,7 +172,9 @@
             "slug": "moxiejean",
             "staff": [
                 1
-            ]
+            ],
+            "desktop": 17,
+            "mobile": 17
         }
     },
     {
@@ -151,7 +189,9 @@
             "slug": "bentoandco",
             "staff": [
                 1
-            ]
+            ],
+            "desktop": 15,
+            "mobile": 15
         }
     },
     {
@@ -166,7 +206,9 @@
             "slug": "esther",
             "staff": [
                 1
-            ]
+            ],
+            "desktop": 16,
+            "mobile": 16
         }
     },
     {
@@ -181,7 +223,9 @@
             "slug": "test-store",
             "staff": [
                 1
-            ]
+            ],
+            "desktop": 3,
+            "mobile": 3
         }
     },
     {
@@ -25146,7 +25190,7 @@
         "fields": {
             "name": "Youtube",
             "slug": "youtube",
-            "classname": "youtube"
+            "classname": "not-used"
         }
     },   
     {   
@@ -25155,7 +25199,7 @@
         "fields": {
             "name": "Pinterest",
             "slug": "pinterest",
-            "classname": "pinterest"
+            "classname": ""
         }
     },
     {
@@ -25164,7 +25208,7 @@
         "fields": {
             "name": "Instagram",
             "slug": "instagram",
-            "classname": "instagram"
+            "classname": ""
         }
     },
     {   
@@ -25173,7 +25217,7 @@
         "fields": {
             "name": "Tumblr",
             "slug": "tumblr",
-            "classname": "tumblr"
+            "classname": ""
         }
     },
     {
@@ -25181,8 +25225,8 @@
         "model": "assets.externalcontenttype",
         "fields": {
             "name": "Styld.by",
-            "slug": "styld",
-            "classname": "styld"
+            "slug": "styld-by",
+            "classname": ""
         }
     },
     {
@@ -25191,7 +25235,7 @@
         "fields": {
             "name": "Facebook",
             "slug": "facebook",
-            "classname": "facebook"
+            "classname": ""
         }
     },
     {

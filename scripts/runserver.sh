@@ -25,23 +25,23 @@ elif [ $RUNNING != "0" ]; then
         python manage.py runserver > errorlog.txt 2>&1 &
         echo "Django server restarted."
     elif [ ${1} = "stop" ]; then
-        echo "Shutting down RabbitMQ and Celery...this make take a few moments."
+        echo "Shutting down RabbitMQ...this make take a few moments."
         sudo rabbitmqctl stop > /dev/null
         # ps auxww | grep 'celery worker' | awk '{print $2}' | xargs kill > /dev/null 2>&1
         killall memcached
         pkill -f "runserver"
-        echo "RabbitMQ, Celery, and Django server successfully stopped."
+        echo "RabbitMQ, Memcached, and Django server successfully stopped."
     else
         usage
     fi
 elif [ ${1} = "start" ]; then
     rm errorlog.txt serverlog.txt > /dev/null 2>&1
-    echo "Starting RabbitMQ and Celery...this make take a few moments."
+    echo "Starting RabbitMQ...this make take a few moments."
     sudo rabbitmq-server -detached 2> /dev/null
     memcached -d -p 8000 start
     python manage.py runserver > serverlog.txt 2>&1 &
     # python manage.py celery worker --loglevel=info 2> errorlog.txt 1> /dev/null &
-    echo "RabbitMQ, Celery, and Django server successfully started."
+    echo "RabbitMQ, Memcached, and Django server successfully started."
 else
     usage
 fi

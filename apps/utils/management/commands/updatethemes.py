@@ -2,9 +2,8 @@
 # Since we don't want to have to copy over the HTML each time and maintain an updated
 # copy of the themes, this script will allow us to update/import the themes from our
 # local git theming repository.
-import sys, os
+import os
 
-from django.conf import settings
 from django.core.management.base import NoArgsCommand
 
 from apps.pinpoint.models import StoreTheme
@@ -14,7 +13,6 @@ class Command (NoArgsCommand):
     help = "Imports the SecondFunnel themes and creates new themes or updates existing ones."
 
     def handle_noargs(self, **kwargs):
-        REPO = ''
         try:
             REPO = str(raw_input("Enter the location of the SecondFunnel Theming Directory: "))
             if not os.path.isdir(REPO):
@@ -30,8 +28,7 @@ class Command (NoArgsCommand):
     def readfile(self, filepath):
         output = ""
         with open(filepath, 'r') as source:
-            for line in source.readlines():
-                output += line
+            output = source.read()
         return output
 
     def update(self, dir, files, name):
@@ -55,6 +52,8 @@ class Command (NoArgsCommand):
                 attr = file.replace(".html", "").replace("-", "_")
                 if attr in attributes:
                     required[attr] = self.readfile(os.path.join(dir, file))
+            if len(required) <= 1:
+                return None
             theme = StoreTheme(**required) 
         print "Done"
         theme.save()
@@ -70,5 +69,5 @@ class Command (NoArgsCommand):
             elif len(walk[2]) > 0:
                 # Found a theme directory, generate the name and create the theme.
                 name = theme.replace("/", "-")
-                self.update( dir + theme, walk[2], name )
+                self.update(os.path.join(dir, theme), walk[2], name)
 

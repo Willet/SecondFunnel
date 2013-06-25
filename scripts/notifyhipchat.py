@@ -18,6 +18,7 @@ try:
     if where:
         where = ' on %s' % where
 except KeyError:
+    where = ' on PRODUCTION'
     pass
 
 hipchat_broadcast(by="Hubert", message="(goodnews) New version%s!" % where)
