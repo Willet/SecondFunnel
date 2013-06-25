@@ -41,6 +41,11 @@ Willet.analytics = (function ($) {
     };
 
     injectAnalyticsData = function (data) {
+        if (data.error) {
+            $(".ajax.error").slideDown();
+            $(".progressbar").slideUp();
+            return;
+        }
         var sortables = {
                 'engaged_products': [],
                 'engaged_content': [],
@@ -321,6 +326,7 @@ Willet.analytics = (function ($) {
             // hide progress bar and show data
             $(".section_metrics").slideDown();
             $(".progressbar").slideUp();
+            $(".error").slideUp();
 
             var to_inject_lists = [
                 {

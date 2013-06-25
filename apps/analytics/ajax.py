@@ -62,13 +62,16 @@ def analytics_pinpoint(request):
         campaign = store.campaign_set.all().order_by("-created")[0]
 
     elif campaign_id:
-        campaign = IntentRankCampaign.objects.get(id=campaign_id)
+        try:
+            campaign = IntentRankCampaign.objects.get(id=campaign_id)
 
-        # Since it's a M2M rel'n, even though we never associate
-        # categories with other stores, we need to look through all of
-        # the related campaigns and pick the *only* result
-        store = campaign.campaigns.all()[0].store
-
+            # Since it's a M2M rel'n, even though we never associate
+            # categories with other stores, we need to look through all of
+            # the related campaigns and pick the *only* result
+            store = campaign.campaigns.all()[0].store
+        except IntentRankCampaign.DoesNotExist, err:
+            return ajax_error(
+                {'error': 'IntentRankCampaign %s not found' % campaign_id})
     else:
         return ajax_error({'error': 'cannot find store and/or campaign '
                                     'with the given id(s).'})
