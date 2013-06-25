@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage, YoutubeVideo, ExternalContentType, ExternalContent, StoreFeature
+from apps.assets.models import Product, ProductMedia, Store, GenericMedia, \
+    GenericImage, ExternalContentType, ExternalContent, StoreFeature
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -22,7 +23,7 @@ class BaseNamedAdmin(BaseAdmin):
         'slug'
     ] + BaseAdmin.list_display
 
-    search_fields = ['name', 'original_url',]
+    search_fields = ['name']
 
     prepopulated_fields = {"slug": ("name",)}
 
@@ -33,10 +34,14 @@ class BaseNamedMediaAdmin(BaseNamedAdmin):
 
     list_filter = BaseNamedAdmin.list_filter + ['media_type']
 
+    search_fields = BaseNamedAdmin.search_fields + ['original_url']
+
 
 class BaseNamedImageAdmin(BaseNamedAdmin):
     list_display = ['id'] + BaseNamedAdmin.list_display + [
         'remote', 'hosted']
+    
+    search_fields = BaseNamedAdmin.search_fields + ['original_url']
 
 
 class GenericMediaAdmin(BaseNamedMediaAdmin):
@@ -60,6 +65,8 @@ admin.site.register(ProductMedia, ProductMediaAdmin)
 
 class StoreAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + ['staff_count']
+    
+    search_fields = BaseNamedAdmin.search_fields + ['original_url']
 
 admin.site.register(Store, StoreAdmin)
 
@@ -82,6 +89,8 @@ class ProductAdmin(BaseNamedAdmin):
     list_editable = ['available',]
 
     filter_horizontal = ('lifestyleImages',)
+
+    search_fields = BaseNamedAdmin.search_fields + ['original_url']
 
     inlines = [
         ProductMediaInline,
@@ -106,6 +115,8 @@ admin.site.register(Product, ProductAdmin)
 class ExternalContentTypeAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + ['enabled']
 
+    search_fields = BaseNamedAdmin.search_fields + ['original_url']
+
 admin.site.register(ExternalContentType, ExternalContentTypeAdmin)
 
 
@@ -117,6 +128,8 @@ class ExternalContentAdmin(BaseAdmin):
     list_filter = BaseNamedAdmin.list_filter + ['store', 'categories']
 
     filter_horizontal = ('tagged_products',)
+
+    search_fields = BaseNamedAdmin.search_fields + ['original_url']
     
     class Media:
         js = ( "js/youtube_admin_look.js", )
