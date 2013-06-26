@@ -49,7 +49,11 @@
         }
 
         .row input, .row textarea {
-            width: 640px;
+            width: 320px;
+        }
+
+        .row textarea {
+            font-family: monaco, monospace;
         }
 
         #preview-iframe {
@@ -76,6 +80,21 @@
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
     <script>
+        var extractStyles = function (htmlStr) {
+            // returns combined non-inline CSS styles in html source code.
+            var src = htmlStr,
+                regex = /(?:<style[^>]*>)([^\<]*)(?=\<\/style>)/i,
+                regexMatches,
+                results = [];
+            while (src.length) {
+                regexMatches = src.match(regex);
+                if (!regexMatches) break;
+                results.push(regexMatches[1]);
+                src = src.substr(regexMatches.index + regexMatches[0].length);
+            } while (regexMatches);
+            return results.join(';\n');
+        };
+
         $(document).ready(function () {
             var form = $('#theme_parts_form');
             $('.preview-tab-trigger').click(function () {
@@ -128,9 +147,10 @@
                         <div class='row error'>{{ field.errors }}</div>
                         {% endif %}
                         <div class='row'>
-                            <span class='field'>{{ field.label }}:</span>
+                            <span class='field'>{{ field.label|default:field.name }}:</span>
                             {{ field }}
-                            <textarea>{% extract_style field.value|safe %}</textarea>
+                            <iframe class="block preview" src=""
+                                    frameborder="1" style="border:1px black solid;"></iframe>
                         </div>
                     {% endfor %}
                 {% endfor %}

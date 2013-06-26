@@ -24,6 +24,8 @@ urlpatterns = patterns('apps.pinpoint.views',
         name='edit-theme'),
     url(r'^admin/(?P<store_id>\d+)/theme/(?P<theme_id>\d+)/preview$', 'preview_theme',
         name='preview-theme'),
+    url(r'^admin/(?P<store_id>\d+)/theme/(?P<theme_id>\d+)/live$', 'live_theme',
+        name='live-theme'),
 
     url(r'^admin/(?P<store_id>\d+)/asset-manager/upload/$', 'upload_asset',
         name='upload-asset'),

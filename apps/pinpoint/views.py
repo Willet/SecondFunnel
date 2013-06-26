@@ -460,6 +460,32 @@ def edit_theme(request, store_id, theme_id=None):
     )
 
 
+@belongs_to_store
+@login_required
+def live_theme(request, store_id, theme_id=None):
+    """
+    """
+    store = get_object_or_404(Store, pk=store_id)
+
+    try:
+        theme = StoreTheme.objects.get(pk=theme_id)
+    except StoreTheme.DoesNotExist:
+        theme = None
+
+    template_vars = {
+        'store': store,
+        'store_id': store_id,
+        'theme_id': theme_id,
+        'preview_enabled': True,
+    }
+
+    return render_to_response(
+        'pinpoint/theme_preview.html',
+        template_vars,
+        context_instance=RequestContext(request)
+    )
+
+
 @has_store_feature('theme-manager')
 @belongs_to_store
 @login_required
@@ -488,13 +514,14 @@ def preview_theme(request, store_id, theme_id=None):
     # chrome's xss ban
     if request.method == 'GET':
         # generate a campaign page using a dummy theme (campaign is not saved)
-        theme_id = request.GET.get('dummy_theme_id')
+        theme_id = request.GET.get('dummy_theme_id') or theme_id
         theme = get_object_or_404(StoreTheme, pk=theme_id)
 
         campaign.theme = theme
 
         page = HttpResponse(render_campaign(campaign, request, get_seeds, 'full'))
-        theme.delete()  # remove temporary theme
+        if request.GET.get('dummy_theme_id'):  # delete only if made to mock
+            theme.delete()  # remove temporary theme
         return page
 
     elif request.method == 'POST':

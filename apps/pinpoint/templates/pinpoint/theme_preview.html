@@ -1,1 +1,54 @@
-Poop
+<html>
+<head>
+    <style type="text/css">
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+        #preview_frame {
+            width:100%;
+            height:100%;
+        }
+        #overlay {
+            position: fixed;
+            z-index: 100;
+            width: 100%;
+            height: 200px;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+        }
+    </style>
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+</head>
+<body>
+    <div id="overlay"></div>
+    <iframe id="preview_frame" src="/pinpoint/admin/120/theme/1/preview"
+            frameborder="0"></iframe>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var page, pageFrame = $('#preview_frame');
+
+            var highlightClass = function (className, invert) {
+                var selector;
+                if (!page) return;
+                if (invert) {
+                    selector = ':not(.' + className + ')';
+                } else {
+                    selector = '.' + className;
+                }
+                page.find(selector).each(function (idx, obj) {
+                    $(obj).css('border', '3px solid red');
+                });
+            };
+
+            pageFrame.load(function (){
+                page = pageFrame.contents().find('html');
+                console.log(page);
+
+                window.page = page;
+                window.highlightClass = highlightClass;
+            });
+        });
+    </script>
+</body>
+</html>
