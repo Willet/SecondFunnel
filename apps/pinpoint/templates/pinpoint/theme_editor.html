@@ -1,6 +1,7 @@
 {% extends "pinpoint/admin_base.html" %}
 {% load staticfiles %}
 {% load i18n %}
+{% load pinpoint_ui %}
 
 {% block title %}
     {% trans "New Page" %}
@@ -11,7 +12,8 @@
 {% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static "css/smoothness/jquery-ui.css" %}">
+    <link rel="stylesheet" href="{% static "css/smoothness/jquery-ui.css" %}"
+          xmlns="http://www.w3.org/1999/html">
     <style type="text/css">
         .button {
             float: right;
@@ -128,6 +130,7 @@
                         <div class='row'>
                             <span class='field'>{{ field.label }}:</span>
                             {{ field }}
+                            <textarea>{% extract_style field.value|safe %}</textarea>
                         </div>
                     {% endfor %}
                 {% endfor %}
