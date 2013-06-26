@@ -26,7 +26,7 @@
             frameborder="0"></iframe>
     <script type="text/javascript">
         $(document).ready(function () {
-            var page, pageFrame = $('#preview_frame');
+            var page, pageFrame = $('#preview_frame'), pageWindow;
 
             var highlightClass = function (className, invert) {
                 var selector;
@@ -37,16 +37,39 @@
                     selector = '.' + className;
                 }
                 page.find(selector).each(function (idx, obj) {
-                    $(obj).css('border', '3px solid red');
+                    var $obj = $(obj);
+                    $obj.data('preview-outline', $obj.css('outline'))
+                        .css('outline', '3px solid red');
                 });
             };
 
-            pageFrame.load(function (){
-                page = pageFrame.contents().find('html');
-                console.log(page);
+            var unhighlightClass = function (className) {
+                if (!page) return;
+                page.find('.' + className).each(function (idx, obj) {
+                    var $obj = $(obj);
+                    $obj.css('outline', $obj.data('preview-outline'));
+                });
+            };
 
+            var injectScript = function (url) {
+                if (!page) return;
+                var script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = url;
+                page.find('head').append(script);
+            };
+
+            pageFrame.load(function (){
+                page = pageFrame.contents();
+                pageWindow = $(pageFrame[0].contentWindow);
+
+                // debug
+                console.log(page);
                 window.page = page;
+                window.pageWindow = pageWindow;
                 window.highlightClass = highlightClass;
+                window.unhighlightClass = unhighlightClass;
+                window.injectScript = injectScript;
             });
         });
     </script>
