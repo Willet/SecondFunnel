@@ -49,9 +49,8 @@
 
         #preview-iframe {
             width:1115px;
-            height:2000px; /* enough to trigger waterfall */
+            height:1600px; /* enough to trigger waterfall */
 
-            /* zoom: 0.75; */
             -moz-transform: scale(0.75);
             -moz-transform-origin: 0 0;
             -o-transform: scale(0.75);
@@ -60,6 +59,13 @@
             -webkit-transform-origin: 0 0;
         }
     </style>
+    <!--[if IE 8]>
+        <style>
+            #preview-iframe {
+                zoom: 0.75; /* ie8 hack */
+            }
+        </style>
+    <![endif]-->
 {% endblock %}
 
 {% block extra_js_includes %}
@@ -67,7 +73,8 @@
     <script>
         $(document).ready(function () {
             var form = $('#theme_parts_form');
-            $('#preview_button').click(function (e) {
+            $('#preview_button').click(function () {
+                // can't do direct GET/POST
                 $.ajax({
                     'url': '{% url preview-theme store_id theme_id %}',
                     'type': 'POST',
@@ -75,6 +82,9 @@
                     'success': function (data) {
                         $('#preview-iframe').prop('src', data.nextUrl);
                         $('#tabs').tabs({active: 1});
+                        $('html, body').animate({
+                            'scrollTop': $('#tabs').offset().top
+                        }, 650);
                     }
                 });
             });
@@ -92,14 +102,14 @@
 {% endblock %}
 
 {% block content %}
-    <div id="tabs" class="tabs">
-        <ul>
-            <li><a href="#edit-tab">Source</a></li>
-            <li><a href="#preview-tab">Preview</a></li>
-        </ul>
-        <div id="edit-tab">
-            <form id="theme_parts_form" method="POST"
-                  action="{% url edit-theme store_id theme_id %}">
+    <form id="theme_parts_form" method="POST"
+          action="{% url edit-theme store_id theme_id %}">
+        <div id="tabs" class="tabs">
+            <ul>
+                <li><a href="#edit-tab">Edit theme</a></li>
+                <li><a href="#preview-tab">Preview</a></li>
+            </ul>
+            <div id="edit-tab">
                 {% csrf_token %}
                 {{ formset.management_form }}
                 {% for form in formset %}
@@ -113,17 +123,19 @@
                         </div>
                     {% endfor %}
                 {% endfor %}
-                <div class="actions">
-                    <input class="preview button" id="preview_button"
-                           type="button" value="{% trans "Preview" %}" />
-                    <input class="button submit focus"
-                           type="submit" value="{% trans "Save" %}" />
-                </div>
-            </form>
+            </div>
+            <div id="preview-tab">
+                <iframe id="preview-iframe" name="preview-iframe"
+                        src="" frameborder="0"></iframe>
+            </div>
         </div>
-        <div id="preview-tab">
-            <iframe id="preview-iframe" name="preview-iframe"
-                    src="" frameborder="0"></iframe>
+        <div class="actions">
+            {% if preview_enabled %}
+                <input class="preview button" id="preview_button"
+                       type="button" value="{% trans "Preview" %}" />
+            {% endif %}
+            <input class="button submit focus"
+                   type="submit" value="{% trans "Save" %}" />
         </div>
-    </div>
+    </form>
 {% endblock %}

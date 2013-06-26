@@ -9,6 +9,7 @@ except ImportError:
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login
+from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, get_object_or_404, redirect, render
 from django.template import RequestContext, Context, loader
 from django.http import HttpResponse, HttpResponseServerError, HttpResponseNotAllowed
@@ -424,8 +425,16 @@ def edit_theme(request, store_id, theme_id=None):
     template_vars = {
         'store': store,
         'store_id': store_id,
-        'theme_id': theme_id
+        'theme_id': theme_id,
+        'preview_enabled': True,
     }
+
+
+    try:
+        campaign = Campaign.objects.filter(store=store).order_by('-last_modified')[0]
+    except IndexError:  # store has no campaigns
+        # can't preview without an existing campaign
+        template_vars.update({'preview_enabled': False})
 
     if request.method == 'GET' and theme:
         # Only have to do something if the theme already exists
@@ -457,10 +466,10 @@ def edit_theme(request, store_id, theme_id=None):
 def preview_theme(request, store_id, theme_id=None):
     """Generates a dummy page based on the theme data the user supplies.
 
-    The page is not saved anywhere.
+    POST creates a dummy theme.
+    GET generates a dummy page, then deletes the dummy theme.
     """
     store = get_object_or_404(Store, pk=store_id)
-    theme = get_object_or_404(StoreTheme, pk=theme_id)
     dummy_theme_name = '(preview)'
 
     template_vars = {
@@ -469,27 +478,40 @@ def preview_theme(request, store_id, theme_id=None):
         'theme_id': theme_id
     }
 
-    campaign = Campaign.objects.filter(store=store).order_by('-last_modified')[0]
+    try:
+        campaign = Campaign.objects.filter(store=store).order_by('-last_modified')[0]
+    except IndexError:  # store has no campaigns
+        return ajax_error({
+            'error': 'Theme preview requires at least one campaign in your account.'})
 
     # call this func, first with POST, then with GET, to bypass
     # chrome's xss ban
     if request.method == 'GET':
-        # generate a dummy page (campaign is not saved)
+        # generate a campaign page using a dummy theme (campaign is not saved)
+        theme_id = request.GET.get('dummy_theme_id')
+        theme = get_object_or_404(StoreTheme, pk=theme_id)
+
         campaign.theme = theme
 
-        return HttpResponse(render_campaign(campaign, request, get_seeds, 'full'))
+        page = HttpResponse(render_campaign(campaign, request, get_seeds, 'full'))
+        theme.delete()  # remove temporary theme
+        return page
+
     elif request.method == 'POST':
+        theme = get_object_or_404(StoreTheme, pk=theme_id)
         theme.pk = None  # clone obj
         for key in request.POST:
             try:
                 setattr(theme, key, request.POST[key])
             except:
                 raise
-        theme.save()
+        theme.save()  # create (temporary) theme
 
-        # return redirect('/pinpoint/%d' % campaign.id)
-        return ajax_success({'nextUrl': '/pinpoint/%d' % campaign.id})
-
+        return ajax_success({
+            'nextUrl': '%s?dummy_theme_id=%s' % (
+                reverse('preview-theme', args=(store_id, theme.pk)),
+                theme.pk),
+            'dummy_theme_id': theme.pk})
 
 
 # campaigns with short URLs are cached for 30 minutes
