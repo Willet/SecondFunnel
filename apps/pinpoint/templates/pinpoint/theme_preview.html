@@ -1,54 +1,93 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load pinpoint_ui %}
+
 <html>
 <head>
+    <link rel="stylesheet" href="{% static "css/960.css" %}">
+    <link rel="stylesheet" href="{% static "css/reset.css" %}">
+    <link rel="stylesheet" href="{% static "css/text.css" %}">
+    <link rel="stylesheet" href="{% static "css/smoothness/jquery-ui.css" %}">
+
+    <link rel="shortcut icon" href="{% static "images/favicon.ico" %}" />
     <style type="text/css">
         html, body {
             margin: 0;
             padding: 0;
         }
         #preview_frame {
-            width:100%;
-            height:100%;
+            width: 100%;
+            height: 100%;
         }
         #overlay {
             position: fixed;
             z-index: 100;
-            width: 100%;
-            height: 200px;
-            bottom: 0;
-            background: rgba(0,0,0,0.9);
+            width: 300px;
+            height: 100%;
+            right: 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 0 15px #222;
+            overflow: auto;
+        }
+        #overlay textarea {
+            width: 280px;
         }
     </style>
-    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+    <script type="text/javascript"
+            src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 </head>
 <body>
-    <div id="overlay"></div>
+    <div id="overlay">
+        <h1>Edit Theme</h1>
+        <p>Here, you can edit styles for your theme.</p>
+        <form id="themer" action="">
+            <h2>.cell</h2>
+            <p>Featured product area</p>
+            <textarea name="" id="" cols="30" rows="10"></textarea>
+
+            <h2>.lifestyle.cell</h2>
+            <p>Shop-the-look area</p>
+            <textarea name="" id="" cols="30" rows="10"></textarea>
+
+            <h2>.block</h2>
+            <p>Generic block</p>
+            <textarea name="" id="" cols="30" rows="10"></textarea>
+
+            <h2>.product.block</h2>
+            <p>Product block</p>
+            <textarea name="" id="" cols="30" rows="10"></textarea>
+
+            <h2>.featured.product</h2>
+            <p>Featured product area</p>
+            <textarea name="" id="" cols="30" rows="10"></textarea>
+
+            <h2>.preview</h2>
+            <p>Preview area</p>
+            <textarea name="" id="" cols="30" rows="10"></textarea>
+
+            <h2>.preview.container .content .instagram</h2>
+            <p>Instagram preview area</p>
+            <textarea name="" id="" cols="30" rows="10"></textarea>
+        </form>
+    </div>
     <iframe id="preview_frame" src="/pinpoint/admin/120/theme/1/preview"
             frameborder="0"></iframe>
     <script type="text/javascript">
         $(document).ready(function () {
-            var page, pageFrame = $('#preview_frame'), pageWindow;
+            var page, pageFrame = $('#preview_frame'), pageWindow, pageQuery;
 
-            var highlightClass = function (className, invert) {
-                var selector;
+            var highlight = function (selector) {
                 if (!page) return;
-                if (invert) {
-                    selector = ':not(.' + className + ')';
-                } else {
-                    selector = '.' + className;
-                }
-                page.find(selector).each(function (idx, obj) {
-                    var $obj = $(obj);
-                    $obj.data('preview-outline', $obj.css('outline'))
-                        .css('outline', '3px solid red');
-                });
+                unhighlight();
+                setTimeout(function () {
+                    pageQuery(selector).expose({color: '#555', closeSpeed: 0});
+                }, 500);
             };
 
-            var unhighlightClass = function (className) {
+            var unhighlight = function () {
                 if (!page) return;
-                page.find('.' + className).each(function (idx, obj) {
-                    var $obj = $(obj);
-                    $obj.css('outline', $obj.data('preview-outline'));
-                });
+                pageQuery.mask.close();  // this call is non-blocking.
             };
 
             var injectScript = function (url) {
@@ -62,13 +101,18 @@
             pageFrame.load(function (){
                 page = pageFrame.contents();
                 pageWindow = $(pageFrame[0].contentWindow);
+                pageQuery = $(pageWindow)[0].$;
+
+                $('#themer h2').mouseenter(function (that) {
+                    highlight($.trim($(that.target).text()));
+                });
 
                 // debug
                 console.log(page);
                 window.page = page;
                 window.pageWindow = pageWindow;
-                window.highlightClass = highlightClass;
-                window.unhighlightClass = unhighlightClass;
+                window.highlight = highlight;
+                window.unhighlight = unhighlight;
                 window.injectScript = injectScript;
             });
         });
