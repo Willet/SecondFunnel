@@ -76,7 +76,7 @@
     <script>
         $(document).ready(function () {
             var form = $('#theme_parts_form');
-            $('#preview_button').click(function () {
+            $('.preview-tab-trigger').click(function () {
                 // can't do direct GET/POST
                 $.ajax({
                     'url': '{% url preview-theme store_id theme_id %}',
@@ -91,7 +91,11 @@
                     }
                 });
             });
-            $('.tabs').tabs();
+            {% if preview_enabled %}
+                $('.tabs').tabs();
+            {% else %}
+                $('.tabs').tabs({disabled: [0]});
+            {% endif %}
         });
     </script>
 {% endblock %}
@@ -110,7 +114,8 @@
         <div id="tabs" class="tabs">
             <ul>
                 <li><a href="#edit-tab">Edit theme</a></li>
-                <li><a href="#preview-tab">Preview</a></li>
+                <li><a href="#preview-tab"
+                       class="preview-tab-trigger">Preview</a></li>
             </ul>
             <div id="edit-tab">
                 {% csrf_token %}
@@ -133,14 +138,6 @@
             </div>
         </div>
         <div class="actions">
-            {% if preview_enabled %}
-                <input class="preview button" id="preview_button"
-                       type="button" value="{% trans "Preview" %}" />
-            {% else %}
-                <input class="disabled preview button" id="preview_button"
-                       disabled="disabled"
-                       type="button" value="{% trans "Create a campaign to enable Preview" %}" />
-            {% endif %}
             <input class="button submit focus"
                    type="submit" value="{% trans "Save" %}" />
         </div>
