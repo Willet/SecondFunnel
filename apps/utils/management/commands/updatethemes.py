@@ -2,7 +2,7 @@
 # Since we don't want to have to copy over the HTML each time and maintain an updated
 # copy of the themes, this script will allow us to update/import the themes from our
 # local git theming repository.
-import os
+import os, string, re
 
 from django.core.management.base import NoArgsCommand
 
@@ -33,7 +33,7 @@ class Command (NoArgsCommand):
 
     def update(self, dir, files, name):
         # Create or update the theme.  Update if it exists, otherwise create it.
-        theme, attributes = None, StoreTheme.__dict__.keys()
+        theme, attributes = None, [field.name for field in StoreTheme._meta.fields]
         try:
             # Attempt to retrive the theme, if successful, update it, otherwise create a
             # new one.
@@ -68,6 +68,10 @@ class Command (NoArgsCommand):
                     themeDirectories.append(os.path.join(theme, directory))
             elif len(walk[2]) > 0:
                 # Found a theme directory, generate the name and create the theme.
-                name = theme.replace("/", "-")
-                self.update(os.path.join(dir, theme), walk[2], name)
+                name = re.sub(r'([' + string.ascii_uppercase + '])', r' \1', theme).replace("/", "").replace("Gap", "GAP")
+                if not("Mobile" in name or "Desktop" in name):
+                    name += " Default Theme"
+                else:
+                    name += " Theme"
+                self.update(os.path.join(dir, theme), walk[2], name[1:])
 
