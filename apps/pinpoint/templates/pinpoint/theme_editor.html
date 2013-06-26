@@ -20,8 +20,11 @@
 
         .button.submit, .button.preview {
             height: 50px;
-            width: 150px;
             font-size: 14px;
+        }
+
+        .button.submit {
+            width: 150px;
         }
 
         .actions {
@@ -133,6 +136,10 @@
             {% if preview_enabled %}
                 <input class="preview button" id="preview_button"
                        type="button" value="{% trans "Preview" %}" />
+            {% else %}
+                <input class="disabled preview button" id="preview_button"
+                       disabled="disabled"
+                       type="button" value="{% trans "Create a campaign to enable Preview" %}" />
             {% endif %}
             <input class="button submit focus"
                    type="submit" value="{% trans "Save" %}" />
