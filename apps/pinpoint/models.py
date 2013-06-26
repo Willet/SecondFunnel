@@ -241,25 +241,25 @@ class StoreTheme(BaseModelNamed):
     # Main block templates
     shop_the_look = models.TextField(
         default=DEFAULT_SHOP_THE_LOOK,
-        verbose_name='"Shop the look"'
+        verbose_name='"Shop the look"',
     )
     featured_product = models.TextField(
         default=DEFAULT_FEATURED_PRODUCT,
-        verbose_name='"Featured product"'
+        verbose_name='"Featured product"',
     )
 
     # Discovery block templates
     product = models.TextField(
         default=DEFAULT_PRODUCT,
-        verbose_name='Product'
+        verbose_name='Product',
     )
     combobox = models.TextField(
         default=DEFAULT_COMBOBOX,
-        verbose_name='Combobox'
+        verbose_name='Combobox',
     )
     youtube = models.TextField(
         default=DEFAULT_YOUTUBE,
-        verbose_name='Youtube'
+        verbose_name='Youtube',
     )
     instagram = models.TextField(
         default=DEFAULT_INSTAGRAM,
