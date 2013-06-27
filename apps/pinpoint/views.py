@@ -1,4 +1,7 @@
 from urllib import urlencode
+from django.db.models import Q
+from apps.pinpoint.forms import ThemeForm
+
 try:
     from collections import OrderedDict
 except ImportError:
@@ -8,10 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login
 from django.shortcuts import render_to_response, get_object_or_404, redirect, render
 from django.template import RequestContext, Context, loader
-from django.http import HttpResponse, HttpResponseServerError
-from django.contrib.contenttypes.models import ContentType
-from django.template.defaultfilters import slugify, safe
-from django.utils.encoding import force_unicode
+from django.http import HttpResponse, HttpResponseServerError, HttpResponseNotAllowed
 from django.views.decorators.http import require_POST
 from fancy_cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
@@ -23,11 +23,10 @@ from apps.assets.models import ExternalContent, ExternalContentType, Store
 from apps.intentrank.views import get_seeds
 from apps.pinpoint.ajax import upload_image
 
-from apps.pinpoint.models import Campaign, BlockType
+from apps.pinpoint.models import Campaign, BlockType, StoreTheme
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
 from apps.pinpoint.utils import render_campaign
 import apps.pinpoint.wizards as wizards
-from apps.utils import noop
 from apps.utils.ajax import ajax_error, ajax_success
 
 import apps.utils.base62 as base62
@@ -206,8 +205,6 @@ def campaign_analytics_admin(request, store_id, campaign_id):
 @login_required
 def analytics_admin(request, store, campaign=False, is_overview=True):
     categories = Category.objects.filter(enabled=True)
-    store_type = ContentType.objects.get_for_model(Store)
-    campaign_type = ContentType.objects.get_for_model(Campaign)
 
     return render_to_response('pinpoint/admin_analytics.html', {
         'is_overview': is_overview,
@@ -250,7 +247,7 @@ def create_external_content(store, **obj):
 @login_required
 def upload_asset(request, store_id):
     store = get_object_or_404(Store, pk=store_id)
-    
+    media = ''
     try:
         media = upload_image(request)
         url = media.get_url()
@@ -262,7 +259,9 @@ def upload_asset(request, store_id):
             image_url=url
         )
     except Exception, e:
-        return ajax_error({'error': e})
+        if isinstance(media, HttpResponse):
+            return media
+        return ajax_error({'error': str(e)})
 
     return ajax_success()
 
@@ -363,8 +362,94 @@ def asset_manager(request, store_id):
             'external_content_types': external_content_types,
             }, context_instance=RequestContext(request))
 
+@belongs_to_store
+@has_store_feature('theme-manager')
+@login_required
+def theme_manager(request, store_id):
+    """renders the page that allows store owners to view themes associated with
+    their store or campaigns.
+    """
+    store = get_object_or_404(Store, pk=store_id)
 
-# origin: campaigns with short URLs are cached for 30 minutes
+    themes = list(StoreTheme.objects.filter(
+        Q(store__id=store_id)
+        | Q(store_mobile__id=store_id)
+        | Q(theme__isnull=False)
+        | Q(mobile__isnull=False)
+    ))
+
+    theme_list = []
+    tag_map = {
+        'store': ['Store Default'],
+        'store_mobile': ['Store Default', 'Mobile'],
+        'theme': ['Campaign'],
+        'mobile': ['Campaign', 'Mobile']
+    }
+    for theme in themes:
+        tags = []
+        for key in ['store', 'store_mobile', 'theme', 'mobile']:
+            try:
+                if hasattr(theme, key):
+                    tags.extend(tag_map[key])
+            except:
+                pass
+
+            tags = list(set(tags))
+
+        theme_list.append({
+            'obj': theme,
+            'tags': tags
+        })
+
+    return render_to_response('pinpoint/theme_manager.html', {
+        "store": store,
+        "store_id": store_id,
+        "themes": theme_list
+    }, context_instance=RequestContext(request))
+
+@belongs_to_store
+@login_required
+def edit_theme(request, store_id, theme_id=None):
+    """renders the page that allows store owners to edit themes or create new
+     themes
+    """
+    store = get_object_or_404(Store, pk=store_id)
+
+    try:
+        theme = StoreTheme.objects.get(pk=theme_id)
+    except StoreTheme.DoesNotExist:
+        theme = None
+
+    template_vars = {
+        'store': store,
+        'store_id': store_id,
+        'theme_id': theme_id
+    }
+
+    if request.method == 'GET' and theme:
+        # Only have to do something if the theme already exists
+        template_vars['formset'] = ThemeForm(instance=theme)
+    elif request.method == 'POST':
+        form = ThemeForm(request.POST, instance=theme)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                '"{0}" saved successfully.'.format(form.cleaned_data['name'])
+            )
+            return redirect('theme-manager', store_id=store_id)
+
+        template_vars['formset'] = form
+    else:
+        return HttpResponseNotAllowed(['GET', 'POST'])
+
+    return render_to_response(
+        'pinpoint/theme_editor.html',
+        template_vars,
+        context_instance=RequestContext(request)
+    )
+
+# campaigns with short URLs are cached for 30 minutes
 @cache_page(60 * 30, key_prefix=nocache)
 def campaign_short(request, campaign_id_short, mode='auto'):
     """base62() is a custom function, so to figure out the long
@@ -386,6 +471,7 @@ def campaign_short(request, campaign_id_short, mode='auto'):
 
 @vary_on_headers('Accept-Encoding')
 def campaign(request, campaign_id, mode='auto'):
+    """Returns a rendered campaign response of the given id."""
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
 
     if mode == 'auto':

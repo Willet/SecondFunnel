@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from apps.assets.models import Product, ProductMedia, Store, GenericMedia, GenericImage, YoutubeVideo, ExternalContentType, ExternalContent, StoreFeature
+from apps.assets.models import Product, ProductMedia, Store, GenericMedia, \
+    GenericImage, ExternalContentType, ExternalContent, StoreFeature
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -22,7 +23,7 @@ class BaseNamedAdmin(BaseAdmin):
         'slug'
     ] + BaseAdmin.list_display
 
-    search_fields = ['name', 'original_url',]
+    search_fields = ['name']
 
     prepopulated_fields = {"slug": ("name",)}
 
@@ -82,6 +83,8 @@ class ProductAdmin(BaseNamedAdmin):
     list_editable = ['available',]
 
     filter_horizontal = ('lifestyleImages',)
+
+    search_fields = BaseNamedAdmin.search_fields + ['original_url']
 
     inlines = [
         ProductMediaInline,

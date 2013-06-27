@@ -38,8 +38,8 @@ Willet.mediator = (function (me) {
             var hook;
             for (i = 0; i < me.hooks.length; i++) {
                 // look for moduleName.functionName auto-triggers.
-                var hook = me.hooks[i],
-                    dotIndex = hook.indexOf('.');
+                var dotIndex = hook.indexOf('.');
+                hook = me.hooks[i];
                 if (dotIndex > 0) {  // has a dot and (moduleName.length > 0)
                     if (Willet[hook.substr(0, dotIndex)]) {  // check for module
                         cb = Willet[hook.substr(0, dotIndex)][hook.substr(dotIndex + 1)];
@@ -49,12 +49,19 @@ Willet.mediator = (function (me) {
                     }
                 }
             }
-            if (!cb) {
+            if (cb) {
+                // a list of [ function, [parameters] ]
+                me.hooks[event] = [[cb, []]];
+            } else {
+                if (console && console.warn) {
+                    console.warn(event + ' was triggered, ' +
+                        'but nothing was associated with it.');
+                }
                 return me; // no functions registered with this event.
             }
         }
         // console.log(me.hooks[event].length + ' events to run');
-        for (i = 0; i < (me.hooks[event] || [cb]).length; i++) {
+        for (i = 0; i < me.hooks[event].length; i++) {
             try {
                 params = params || me.hooks[event][i][1] || [];
 

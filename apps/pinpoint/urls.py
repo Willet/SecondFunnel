@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 
 urlpatterns = patterns('apps.pinpoint.views',
     url(r'^login/redirect/$', 'login_redirect', name='login-redirect'),
@@ -15,6 +15,12 @@ urlpatterns = patterns('apps.pinpoint.views',
 
     url(r'^admin/(?P<store_id>\d+)/asset-manager/$', 'asset_manager',
         name='asset-manager'),
+
+    url(r'^admin/(?P<store_id>\d+)/theme-manager/$', 'theme_manager',
+        name='theme-manager'),
+
+    url(r'^admin/(?P<store_id>\d+)/theme/$', 'edit_theme', name='edit-theme'),
+    url(r'^admin/(?P<store_id>\d+)/theme/(?P<theme_id>\d+)$', 'edit_theme', name='edit-theme'),
 
     url(r'^admin/(?P<store_id>\d+)/asset-manager/upload/$', 'upload_asset',
         name='upload-asset'),
@@ -43,15 +49,8 @@ urlpatterns = patterns('apps.pinpoint.views',
     url(r'^(?P<campaign_id>\d+)/(?:(?P<mode>\w+).html)?$', 'campaign', name='campaign'),
 )
 
-# AJAX
-# Deprecated
+# @deprecated (AJAX)
 urlpatterns += patterns('apps.pinpoint.ajax',
-    url(r'^ajax/campaign/save_draft/$',
-        'campaign_save_draft', name='ajax-campaign-save-draft'),
-
-    url(r'^ajax/campaign/publish/$',
-        'campaign_publish', name='ajax-campaign-publish'),
-
     url(r'^ajax/upload_image/$',
         'ajax_upload_image', name='ajax-upload-image'),
 )

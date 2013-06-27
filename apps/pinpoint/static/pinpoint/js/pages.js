@@ -1,18 +1,13 @@
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
-var PAGES = (function ($, pageInfo, mediator) {
+var PAGES = (function ($, details, mediator) {
     "use strict";
-    var console = window.console || {
-            // dummy
-            'log': function () {},
-            'error': function () {}
-        },
-        details,
+    var i = 0,  // counter
+        noop = function () {},
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
-        SHUFFLE_RESULTS = pageInfo.page.SHUFFLE_RESULTS || true,
+        SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || true,
         scripts,
-        userClicks = 0,
-        clickThreshold = 3,
+        scriptsLoaded = [],
         spaceBelowFoldToStartLoading = 500,
         loadingBlocks = false,
         blocksAppendedCallbacks = [],
@@ -25,40 +20,46 @@ var PAGES = (function ($, pageInfo, mediator) {
             "icon", "thumb", "small", "compact", "medium", "large",
             "grande", "1024x1024", "master"
         ],
-        layoutResults,
-        templateNames = [
-            'shop-the-look', 'featured-product',
-            'product', 'combobox', 'youtube', 'image', //formerly instagram
-            'product-preview', 'combobox-preview', 'image-preview', 'image-product-preview'
-        ],
-        imageTypes = [
-            'styld-by', 'tumblr', 'pinterest', 'facebook', 'instagram'
-        ];
+        layoutResults;
+
+    function getLoadingBlocks(bool) {
+        return loadingBlocks;
+    }
 
     function setLoadingBlocks(bool) {
         loadingBlocks = bool;
     }
 
     function getModifiedTemplateName(name) {
-        var i, type, preview, previewWithProducts;
+        // returns the template name suitabl
+        var i,
+            type,
+            templateNames = [
+                'shop-the-look', 'featured-product',
+                'product', 'combobox', 'youtube', 'image', //formerly instagram
+                'product-preview', 'combobox-preview', 'image-preview',
+                'image-product-preview'
+            ],
+            imageTypes = [
+                // templates of these names will all use the "image" template.
+                'styld-by', 'tumblr', 'pinterest', 'facebook', 'instagram'
+            ];
+
         if (_.contains(templateNames, name)) {
             return name;
         }
 
         for (i = 0; i < imageTypes.length; i++) {
             type = imageTypes[i];
-            if (name === type) {
+            switch (name) {
+            case type:
                 return 'image';
-            }
-
-            preview = type + '-preview';
-            if (name === preview) {
+            case type + '-preview':
                 return 'image-preview';
-            }
-
-            previewWithProducts = type + '-product-preview';
-            if (name === previewWithProducts) {
+            case type + '-product-preview':
                 return 'image-product-preview';
+            default:
+                // move on
             }
         }
 
@@ -66,21 +67,26 @@ var PAGES = (function ($, pageInfo, mediator) {
     }
 
     function redirectToProperTheme() {
-        var isOnMobilePage = /\/mobile\.html/.test(window.location.pathname),
+        var isOnMobilePage = (window.location.pathname.indexOf('mobile.html') > 0),
             url = window.location.protocol + '//' + window.location.hostname + window.location.pathname,
             query = window.location.href.split('?')[1] || "";
 
         if ($.browser.mobile && !isOnMobilePage) {
+            // on desktop page, going to mobile page
             url += 'mobile.html' + (query ? '?' + query : "");
             window.location.replace(url);
-
         } else if (!$.browser.mobile && isOnMobilePage && window.location.hash.indexOf("disableRedirect") === -1) {
+            // on mobile page, going to desktop page
             url = url.replace('mobile.html', '') + (query ? '?' + query : "");
             window.location.replace(url);
         }
     }
 
     function size(url, desiredSize) {
+        // NOTE: We do not check if the new image exists because we implicitly
+        // trust that our service will contain the required image.
+        // ... Also, because it could be expensive to check for the required
+        // image before use
         var newUrl, filename;
 
         if (!sizableRegex.test(url) || !_.contains(imageSizes, desiredSize)) {
@@ -90,11 +96,6 @@ var PAGES = (function ($, pageInfo, mediator) {
         // Replace filename with new size
         filename = url.substring(url.lastIndexOf('/') + 1);
         newUrl = url.replace(filename, desiredSize + '.jpg');
-
-        // NOTE: We do not check if the new image exists because we implicitly
-        // trust that our service will contain the required image.
-        // ... Also, because it could be expensive to check for the required
-        // image before use
 
         return newUrl;
     }
@@ -130,18 +131,6 @@ var PAGES = (function ($, pageInfo, mediator) {
         // multi-baseStr variant of generateID: stackoverflow.com/a/6861381
         globalIdCounters[baseStr] = globalIdCounters[baseStr] + 1 || 0;
         return baseStr + globalIdCounters[baseStr];
-    }
-
-    function getShortestColumn() {
-        var $column;
-        $('.discovery-area .column').each(function (index, column) {
-            var height = $(column).height();
-
-            if (!$column || (height < $column.height())) {
-                $column = $(column);
-            }
-        });
-        return $column;
     }
 
     function fisherYates(myArray, nb_picks) {
@@ -187,18 +176,18 @@ var PAGES = (function ($, pageInfo, mediator) {
         lifestyleSize = isBlock ? 'large' : 'master';
 
 
-        if (_.has(context.data, 'image') && !_.isEmpty(context.data.image)) {
+        // _.isEmpty does its own _.has check.
+        if (!_.isEmpty(context.data.image)) {
             context.data.image = size(context.data.image, appropriateSize);
         }
 
-        if (_.has(context.data, 'images') && !_.isEmpty(context.data.images)) {
+        if (!_.isEmpty(context.data.images)) {
             context.data.images = _.map(context.data.images, function (img) {
                 return size(img, appropriateSize);
             });
         }
 
-        if (_.has(context.data, 'lifestyle-image') &&
-            !_.isEmpty(context.data['lifestyle-image'])) {
+        if (!_.isEmpty(context.data['lifestyle-image'])) {
             context.data['lifestyle-image'] = size(context.data['lifestyle-image'], lifestyleSize);
         }
 
@@ -225,60 +214,36 @@ var PAGES = (function ($, pageInfo, mediator) {
             var originalContext = data || {},
                 target = $(this),
                 src = target.data('src') || '',
-                srcElement = $("[data-template-id='" + src + "']"),
+                srcElement,
                 context = {};
 
             if (src === 'featured') {
+                // this is supposed to make things easier for designers
                 src = details.page['main-block-template'];
-                srcElement = $("[data-template-id='" + src + "']");
             }
-
-            // populate context with all available variables
-            $.extend(context, originalContext, {
-                'page': details.page,
-                'store': details.store,
-                'data': $.extend({}, srcElement.data(), target.data())
-            });
 
             // if the required template is on the page, use it
+            srcElement = $("[data-template-id='" + src + "']");
             if (srcElement.length) {
+                // populate context with all available variables
+                $.extend(context, originalContext, {
+                    'page': details.page,
+                    'store': details.store,
+                    'data': $.extend({}, srcElement.data(), target.data())
+                });
+
                 target.html(renderTemplate(srcElement.html(), context));
             } else {
-                target.html('Error: required template #' + src +
-                    ' does not exist');
+                target.html('Error: missing template #' + src);
             }
         });
-    }
-
-    function changeCategory(category) {
-        var categories = details.page.categories;
-        if (!categories || !_.findWhere(categories, {'id': '' + category})) {
-            return;
-        }
-
-        // If there are categories, and a valid category is supplied
-        // change the category
-        details.page.id = category;
-        mediator.fire('tracking.changeCampaign', [category]);
-    }
-
-    function changeSeed(seed) {
-        // If you're calling this function, you probably know what
-        // you're doing...
-
-        // Usually called in conjunction with `changeCategory`...
-
-        if (!seed) {
-            return;
-        }
-
-        details.product['product-id'] = seed;
     }
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
     function showPreview(me) {
-        var data = $(me).data(),
+        var i,
+            data = $(me).data(),
             templateName = getModifiedTemplateName(data.template),
             $previewContainer = $('[data-template-id="preview-container"]'),
             $previewMask = $previewContainer.find('.mask'),
@@ -289,12 +254,8 @@ var PAGES = (function ($, pageInfo, mediator) {
 
         // Since we don't know how to handle /multiple/ products
         // provide a way to access /one/ related product
-        if (_.has(data, 'related-products')
-            && !_.isEmpty(data['related-products'])) {
+        if (!_.isEmpty(data['related-products'])) {
             data['related-product'] = data['related-products'][0];
-        }
-
-        if (_.has(data, 'related-products') && !_.isEmpty(data['related-products'])) {
             templateName += '-product';
         }
 
@@ -309,7 +270,7 @@ var PAGES = (function ($, pageInfo, mediator) {
         }
 
         if (_.isEmpty(template) || _.isEmpty($target)) {
-            console.log('oops @ no preview template');
+            mediator.fire('log', ['oops @ no preview template']);
             return;
         }
 
@@ -332,18 +293,16 @@ var PAGES = (function ($, pageInfo, mediator) {
             window.twttr.widgets.load();
         }
 
-        for (var i in previewCallbacks) {
+        for (i in previewCallbacks) {
             if (previewCallbacks.hasOwnProperty(i)) {
                 previewCallbacks[i]();
             }
         }
 
-        if (mediator) {
-            mediator.fire('tracking.clearTimeout');
-            mediator.fire('tracking.setSocialShareVars', [
-                {"sType": "popup", "url": data.url}
-            ]);
-        }
+        mediator.fire('tracking.clearTimeout');
+        mediator.fire('tracking.setSocialShareVars', [
+            {"sType": "popup", "url": data.url}
+        ]);
 
         $previewContainer.fadeIn(100);
         $previewMask.fadeIn(100);
@@ -395,7 +354,7 @@ var PAGES = (function ($, pageInfo, mediator) {
             $buttons.fadeIn('fast');
 
             if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
-                FB.XFBML.parse($buttons.find('.button.facebook')[0]);
+                window.FB.XFBML.parse($buttons.find('.button.facebook')[0]);
                 $buttons.addClass('loaded');
             }
         }
@@ -405,28 +364,29 @@ var PAGES = (function ($, pageInfo, mediator) {
         var $buttons = $(t).parent().find('.social-buttons');
         $buttons.fadeOut('fast');
 
-        if (enableTracking) {
-            hoverTimer = Date.now() - hoverTimer;
-            if (hoverTimer > 2000) {
-                hoverCallback(t);
-            }
+        if (!enableTracking) {
+            return;
+        }
+        hoverTimer = Date.now() - hoverTimer;
+        if (hoverTimer > 2000) {
+            hoverCallback(t);
         }
 
-        if (enableTracking) {
-            mediator.fire('tracking.clearTimeout');
-            if (window.pagesTracking) {
-                if (pagesTracking.socialShareType !== "popup") {
-                    pagesTracking._pptimeout = window.setTimeout(pagesTracking.setSocialShareVars, 2000);
-                }
+        mediator.fire('tracking.clearTimeout');
+        if (window.pagesTracking) {
+            if (pagesTracking.socialShareType !== "popup") {
+                pagesTracking._pptimeout = window.setTimeout(pagesTracking.setSocialShareVars, 2000);
             }
+        } else {
+            mediator.fire('error', ['cannot find pagesTracking']);
         }
     }
 
-    function productHoverOn () {
+    function productHoverOn() {
         commonHoverOn(this, true, true);
     }
 
-    function productHoverOff () {
+    function productHoverOff() {
         commonHoverOff(this, function (t) {
             mediator.fire('tracking.registerEvent', [{
                 "type": "inpage",
@@ -436,19 +396,19 @@ var PAGES = (function ($, pageInfo, mediator) {
         }, true);
     }
 
-    function youtubeHoverOn () {
+    function youtubeHoverOn() {
         commonHoverOn(this, true, false);
     }
 
-    function youtubeHoverOff () {
-        commonHoverOff(this, function() {}, false);
+    function youtubeHoverOff() {
+        commonHoverOff(this, noop, false);
     }
 
-    function lifestyleHoverOn () {
+    function lifestyleHoverOn() {
         commonHoverOn(this, false, true);
     }
 
-    function lifestyleHoverOff () {
+    function lifestyleHoverOff() {
         commonHoverOff(this, function (t) {
             mediator.fire('tracking.registerEvent', [{
                 "type": "content",
@@ -458,43 +418,18 @@ var PAGES = (function ($, pageInfo, mediator) {
         }, true);
     }
 
-    function updateClickStream(t, event) {
-        /* Loads more content if user clicks has exceeded threshold.  On each click, loads related content below
-           a block that the user has clicked. */
-        var $target = $(event.currentTarget),
-            data      = $target.data(),
-            id        = data['product-id'] || data['id'],
-            exceededThreshold;
+    function loadInitialResults(seed) {
+        mediator.fire('IR.changeSeed', [seed]);
+        mediator.fire('IR.getInitialResults', [layoutResults]);
+    }
 
-        if (details.page.offline) {
-            return;
+    function loadMoreResults(belowFold, related) {
+        if (!loadingBlocks || related) {
+            mediator.fire('IR.getMoreResults', [layoutResults, belowFold, related]);
         }
-
-        userClicks += 1;
-        exceededThreshold = ((userClicks % clickThreshold) == 0);
-        
-        $.ajax({
-            url: PAGES_INFO.base_url + '/intentrank/update-clickstream/?callback=?',
-            data: {
-                'store': details.store.id,
-                'campaign': details.page.id,
-                'product_id': id
-            },
-            dataType: 'jsonp',
-            success: function() {
-                if (exceededThreshold) {
-                    loadMoreResults(true)
-                }
-            }
-        });
     }
 
-    function updateContentStream( product ) {
-        /* @return: none */
-        loadMoreResults( false, product );
-    }
-
-    function layoutRelated( product, relatedContent ) {
+    function layoutRelated(product, relatedContent) {
         /* Load related content into the masonry instance.
            @return: none */
         var $discovery = $('.discovery-area'),
@@ -503,8 +438,9 @@ var PAGES = (function ($, pageInfo, mediator) {
             $target = $product.next();
 
         // Find a target that is low enough on screen
+        // TODO: can $target.next() also be above initialBottom?
         if (($target.position().top) <= initialBottom) {
-            $target = $target.next()
+            $target = $target.next();
         }
 
         // Inserts content after the clicked product block (Animated)
@@ -515,88 +451,12 @@ var PAGES = (function ($, pageInfo, mediator) {
            $.when($discovery.masonry('reload')).then(function(){ relatedContent.show();}); */
     }
 
-
-    function loadInitialResults (seed) {
-        if (!loadingBlocks) {
-            changeSeed(seed);
-
-            loadingBlocks = true;
-            if (!_.isEmpty(details.backupResults) &&
-                !('error' in details.backupResults)) {  // saved IR proxy error
-                layoutResults(details.backupResults);
-                details.backupResults = [];
-            } else {
-                if (!details.page.offline) {
-                    $.ajax({
-                        url: PAGES_INFO.base_url + '/intentrank/get-seeds/?callback=?',
-                        data: {
-                            'store': details.store.id,
-                            'campaign': details.page.id,
-                            'seeds': details.product['product-id']
-                        },
-                        dataType: 'jsonp',
-                        success: function(results) {
-                            layoutResults(results);
-                        },
-                        error: function() {
-                            console.log('loading backup results');
-                            layoutResults(details.backupResults);
-                            loadingBlocks = false;
-                        }
-                    });
-                } else {
-                    layoutResults(details.content);
-                }
-            }
-        }
-    }
-
-    function loadMoreResults(belowFold, related) {
-        if (!loadingBlocks || related) {
-            if (!related) {
-                loadingBlocks = true;
-            }
-            if (!details.page.offline) {
-                $.ajax({
-                    url: PAGES_INFO.base_url + '/intentrank/get-results/?callback=?',
-                    data: {
-                        'store': details.store.id,
-                        'campaign': details.page.id,
-
-                        //TODO: Probably should be some calculated value
-                        'results': 10,
-
-                        // normally ignored, unless IR call fails and we'll resort to getseeds
-                        'seeds': details.featured.id
-                    },
-                    dataType: 'jsonp',
-                    success: function(results) {
-                        layoutResults(results, belowFold, related);
-                    },
-                    error: function() {
-                        console.log('loading backup results');
-                        layoutResults(details.backupResults, belowFold, related);
-                        if (!related) {
-                            loadingBlocks = false;
-                        }
-                    }
-                });
-            } else {
-                layoutResults(details.content, undefined, related);
-            }
-        }
-    }
-
-    function invalidateIRSession () {
-        $.ajax({
-            url: PAGES_INFO.base_url + '/intentrank/invalidate-session/?callback=?',
-            dataType: 'jsonp'
-        });
-    }
-
-    function pageScroll () {
+    function pageScroll() {
+        // calculates screen location and decide if more results
+        // should be displayed.
         var $w            = $(window),
-            noResults     = ($('.discovery-area .block').length === 0),
+            discoveryBlocks = $('.discovery-area .block'),
+            noResults     = (discoveryBlocks.length === 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             lowestBlock,
             lowestHeight,
@@ -604,11 +464,11 @@ var PAGES = (function ($, pageInfo, mediator) {
             divider_bottom = ($divider.length) ? $divider[0].getBoundingClientRect().bottom : 0;
 
         // user scrolled far enough not to be a "bounce"
-        if (divider_bottom < 150) {
+        if (divider_bottom < 150) {  // arbitrary
             mediator.fire('tracking.notABounce', ["scroll"]);
         }
 
-        $('.discovery-area .block').each(function() {
+        discoveryBlocks.each(function() {
             if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
                 lowestBlock = $(this);
             }
@@ -621,30 +481,28 @@ var PAGES = (function ($, pageInfo, mediator) {
         }
 
         if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
-            loadMoreResults();
+            loadMoreResults(layoutResults);
         }
     }
 
-    function attachListeners () {
+    function attachListeners() {
         var $discovery = $('.discovery-area');
 
         // use delegated events to reduce overhead
         $discovery.on('click', '.block.product:not(.unclickable), .block.combobox:not(.unclickable)', function (e) {
             showPreview(e.currentTarget);
+
+            // update clickstream
+            mediator.fire('IR.updateClickStream', [e.currentTarget, e]);
         });
 
         $discovery.on('click', '.block.image:not(.unclickable)', function (e) {
             showPreview(e.currentTarget);
         });
 
-        // update clickstream
-        $discovery.on('click', '.block.product:not(.unclickable), .block.combobox:not(.unclickable)', function (e) {
-            updateClickStream(e.currentTarget, e);
-        });
-
         // load related content; update contentstream
         $discovery.on('click', '.block:not(.youtube):not(.unclickable)', function(e) {
-            updateContentStream(e.currentTarget);
+            mediator.fire('IR.updateContentStream', [e.currentTarget]);
         });
 
         // hovers
@@ -667,21 +525,24 @@ var PAGES = (function ($, pageInfo, mediator) {
     /* --- END element bindings --- */
 
     function load(scripts) {
-        var item, script;
+        var i, item, script;
 
-        // TODO: Check if already loaded?
         // Use a dictionary, or just check all script tags?
-        for (var i=0; i < scripts.length; i++) {
+        for (i = 0; i < scripts.length; i++) {
             item = scripts[i];
-            $.getScript(item.src || item, item.onload || function() {});
+            if (_.contains(scriptsLoaded, item.src)) {
+                mediator.fire(
+                    'log',
+                    ['script ' + item.src + ' already loaded; skipping.']
+                );
+            } else {
+                $.getScript(item.src || item, item.onload || noop);
+                scriptsLoaded.push(item.src);
+            }
         }
     }
 
-    function init (readyFunc, layoutFunc) {
-        // ensure we actually determine if we're desktop or mobile
-        // regex from http://detectmobilebrowsers.com/
-        (function(a){(jQuery.browser=jQuery.browser||{}).mobile=/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))})(navigator.userAgent||navigator.vendor||window.opera);
-
+    function init(readyFunc, layoutFunc) {
         redirectToProperTheme();
 
         layoutResults = layoutFunc;
@@ -689,16 +550,18 @@ var PAGES = (function ($, pageInfo, mediator) {
         $(document).ready(readyFunc);
     }
 
+    // ensure we actually determine if we're desktop or mobile
+    // regex from http://detectmobilebrowsers.com/
+    (function(a){(jQuery.browser=jQuery.browser||{}).mobile=/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))})(navigator.userAgent||navigator.vendor||window.opera);
+
     // script actually starts here
-    details = pageInfo;
-    details.backupResults = details.backupResults || // slightly more customized
-                            details.randomResults || // than totally random
-                            {};
+    var requiredInfo = [
+        'backupResults', 'featured', 'page', 'product', 'store'
+    ];
+    for (i = 0; i < requiredInfo.length; i++) {
+        details[requiredInfo[i]] = details[requiredInfo[i]] || {};
+    }
     details.content = details.content || [];
-    details.featured = details.featured || {};
-    details.page = details.page || {};
-    details.product = details.page.product || {};
-    details.store = details.store || {};
 
     mediator.fire('buttonMaker.init', [details]);
 
@@ -712,12 +575,11 @@ var PAGES = (function ($, pageInfo, mediator) {
         'id': 'twitter-wjs'
     }, {
         'src'   : '//assets.pinterest.com/js/pinit.js',
-        'onload': function() { /* dummy */ }
+        'onload': noop
     }];
 
     return {
         'init': init,
-        'invalidateSession': invalidateIRSession,
         'addPreviewCallback': addPreviewCallback,
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
         'setBlocksAppendedCallback': setBlocksAppendedCallback,
@@ -725,6 +587,7 @@ var PAGES = (function ($, pageInfo, mediator) {
         'renderTemplate': renderTemplate,
         'renderTemplates': renderTemplates,
         'loadInitialResults': loadInitialResults,
+        'loadMoreResults': loadMoreResults,
         'layoutRelated': layoutRelated,
         'attachListeners': attachListeners,
         'hidePreview': hidePreview,
@@ -733,14 +596,377 @@ var PAGES = (function ($, pageInfo, mediator) {
         'SHUFFLE_RESULTS': SHUFFLE_RESULTS,
         'fisherYates': fisherYates,
         'addReadyCallback': addReadyCallback,
-        'changeCategory': changeCategory,
         'checkKeys': checkKeys,
         'generateID': generateID,
         'details': details,
+        'getLoadingBlocks': getLoadingBlocks,
         'setLoadingBlocks': setLoadingBlocks,
-        'getModifiedTemplateName': getModifiedTemplateName,
-        'changeSeed': changeSeed
+        'getModifiedTemplateName': getModifiedTemplateName
     };
-})(jQuery,
-   window.PAGES_INFO || window.TEST_PAGE_DATA || {},
-   (Willet && Willet.mediator) || {});
+}(jQuery,
+    window.PAGES_INFO || window.TEST_PAGE_DATA || {},
+    (Willet && Willet.mediator) || {}));
+
+
+// full (desktop) component
+PAGES.full = (function (me, mediator) {
+    "use strict";
+
+    me = {
+        'layoutFunc': function (jsonData, belowFold, related) {
+            // renders product divs onto the page.
+            // suppose results is (now) a legit json object:
+            // {products: [], videos: [(sizeof 1)]}
+            try {
+                if (jsonData.error) {
+                    mediator.fire(
+                        'error',  // usually "Campaign xxx has no product for id xxx"
+                        [jsonData.error + ' (' + (jsonData.url || '') + ')']
+                    );
+                    return;
+                }
+            } catch (err) {
+                /* neither an array nor object - even worse */
+                mediator.fire('error', ['malformed jsonData', jsonData]);
+                return;
+            }
+            var $block,
+                result,
+                results = (PAGES.SHUFFLE_RESULTS) ?
+                        (PAGES.fisherYates(jsonData, PAGES.MAX_RESULTS_PER_SCROLL) || []) :
+                        $(jsonData).slice(0, PAGES.MAX_RESULTS_PER_SCROLL),  // no shuffle
+                initialResults = Math.max(results.length, PAGES.MAX_RESULTS_PER_SCROLL),
+                i,
+                productDoms = [],
+                template,
+                templateEl,
+                player,
+                template_context,
+                templateType,
+                el,
+                videos,
+                revisedType;
+
+            // add products
+            for (i = 0; i < results.length; i++) {
+                try {
+                    result = results[i];
+                    template_context = result;
+                    templateType = PAGES.getModifiedTemplateName(result.template) || 'product';
+                    templateEl = $("[data-template-id='" + templateType + "']");
+                    template = templateEl.html();
+
+                    switch (templateType) {
+                    case 'product':
+                        // in case an image is lacking, don't bother with the product
+                        if (!template_context.image || template_context.image == "None") {
+                            continue;
+                        }
+
+                        // use the resized images
+                        template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
+                        break;
+                    case 'combobox':
+                        // in case an image is lacking, don't bother with the product
+                        if (!template_context.image || template_context.image == "None") {
+                            continue;
+                        }
+                        break;
+                    case 'image':
+                        if (!template) {
+                            // Legacy themes do not support these templates
+                            revisedType = 'instagram';
+                            templateEl = $("[data-template-id='" + revisedType + "']");
+                            template = templateEl.html();
+                        }
+                        break;
+                    default:
+                        break;
+                    }
+
+                    var rendered_block = PAGES.renderTemplate(template, {
+                        'data': template_context,
+                        'page': PAGES.details.page,
+                        'store': PAGES.details.store
+                    }, true);
+                    if (!rendered_block.length) {
+                        mediator.fire('error', ['warning: not drawing empty template block']);
+                        break;
+                    } else {
+                        el = $(rendered_block);
+                        el.data(template_context);  // populate the .product.block div with data
+
+                        productDoms.push(el[0]);
+                    }
+
+                } catch (err) {  // hide rendering error
+                    mediator.fire('log', ['oops @ item', err]);
+                }
+            }
+
+            // Remove potentially bad content
+            productDoms = _.filter(productDoms, function (elem) {
+                return !_.isEmpty(elem);
+            });
+
+            $block = $(productDoms);  // an array of DOM elements
+
+            // if it has a lifestyle image, add a wide class to it so it's styled properly
+            $block.each(function () {
+                var $elem = $(this),
+                    $images = $elem.find('img'),
+
+                    // Create a spinner image that can be used to indicate a block is loading.
+                    $spinner = $('<img/>', {
+                        'class': "image-loading-spinner",
+                        'style': "padding-top:100px; padding-bottom:100px; width:32px; height:32px; position:relative; left:50%;",
+                        'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
+                    });
+
+                $elem.toLoad = $images.length;
+
+                // If there's images to be loaded, place a spinner in the block and load the content
+                // in the background.
+                if (!related && $elem.toLoad > 0) {
+                    // If the block actually has images, render the loading block.
+                    $elem.find('div').hide();
+                    $elem.addClass('unclickable').append($spinner);
+                    $images.each(function () {
+                        $(this).load(function () {
+                            $elem.toLoad -= 1;
+                            if ($elem.toLoad === 0) {
+                                // This block is ready to go, render it on the page.
+                                $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
+                                $elem.find('div').show();
+                                // Trigger a window resize event because Masonry's resize logic is better (faster)
+                                // than it's reload logic.
+                                $(window).resize();
+                            }
+                        });
+                    });
+                }
+
+                if ($elem.find('.lifestyle').length > 0) {
+                    $elem.addClass('wide');
+                }
+
+                if ($elem.hasClass('instagram') && (Math.random() >= 0.5)) {
+                    $elem.addClass('wide');
+                }
+
+                if (!related) {
+                    $('.discovery-area').append($elem).masonry('appended', $elem, true);
+                }
+            });
+
+            // Render youtube blocks with player
+            videos = _.where(results, {'template': 'youtube'});  // (haystack, criteria)
+            _.each(videos, function (video) {
+                var video_id = video['original-id'] || video.id,
+                    video_state_change = window.pagesTracking ?
+                        _.partial(window.pagesTracking.videoStateChange, video_id) :
+                            function () {/* dummy */};
+
+                Willet.mediaAPI.getObject("video_gdata", video_id, function (video_data) {
+                    var containers,
+                        preferredThumbnailQuality = 'hqdefault',
+                        thumbClass = 'youtube-thumbnail',
+                        thumbURL = 'http://i.ytimg.com/vi/' + video_id +
+                            '/' + preferredThumbnailQuality + '.jpg',
+                        thumbObj,
+                        thumbPath = ['entry', 'media$group', 'media$thumbnail'],
+                        thumbChecker = PAGES.checkKeys(video_data, thumbPath),
+                        thumbnailArray = thumbChecker.media$thumbnail || [];
+
+                    thumbObj = _.findWhere(thumbnailArray, {
+                        'yt$name': preferredThumbnailQuality
+                    });
+                    if (thumbObj && thumbObj.url) {
+                        thumbURL = thumbObj.url;
+                    }  // else fallback to the default thumbURL
+
+                    containers = $(".youtube[data-label='" + video_id + "']");
+                    containers.each(function () {
+                        var container = $(this),
+                            uniqueThumbnailID = PAGES.generateID('thumb-' + video_id),
+                            thumbnail = $('<div />', {
+                                'css': {  // this is to trim the 4:3 black bars
+                                    'overflow': 'hidden',
+                                    'height': 250 + 'px',
+                                    'background-image': 'url("' + thumbURL + '")',
+                                    'background-position': 'center center'
+                                },
+                                'id': uniqueThumbnailID
+                            });
+
+                        thumbnail
+                            .hide()
+                            .addClass('wide ' + thumbClass)
+                            .click(function () {
+                                // when the thumbnail is clicked, replace itself with
+                                // the youtube video of the same size, then autoplay
+                                player = new YT.Player(uniqueThumbnailID, {
+                                    height: 250,
+                                    width: 450,
+                                    videoId: video_id,
+                                    playerVars: {
+                                        'autoplay': 1,
+                                        'controls': 0
+                                    },
+                                    events: {
+                                        'onReady': function (e) {
+                                        },
+                                        'onStateChange': video_state_change,
+                                        'onError': function (e) {
+                                        }
+                                    }
+                                });
+                            });
+
+                        if (container.find('.' + thumbClass).length === 0) {
+                            // add a thumbnail only if there isn't one already
+                            container.prepend(thumbnail);
+                            mediator.fire('log', ['loaded video thumbnail ' + video_id]);
+                        } else {
+                            mediator.fire('log', ['prevented thumbnail dupe']);
+                        }
+                        container.children(".title").html(video_data.entry.title.$t);
+                    });
+                });
+            });
+
+            // make sure images are loaded or else masonry wont work properly
+            $block.imagesLoaded(function ($images, $proper, $broken) {
+                $broken.parents('.block').remove();
+                $block.find('.block img[src=""]').parents('.block').remove();
+
+                // Don't continue to load results if we aren't getting more results
+                if (!related && initialResults > 0) {
+                    setTimeout(function () {
+                        PAGES.pageScroll();
+                    }, 100);
+                }
+
+                $block.find('.pinpoint-youtube-area').click(function() {
+                    $(this).html($(this).data('embed'));
+                });
+
+                for (var i in PAGES.blocksAppendedCallbacks) {
+                    PAGES.setBlocksAppendedCallback(i, $block);
+                }
+
+                if (related) {
+                    PAGES.layoutRelated(related, $block);
+                    return;
+                }
+
+                PAGES.setLoadingBlocks(false);
+
+                // hack. tell masonry to reposition blocks
+                $(window).resize();
+            });
+        },
+        'readyFunc': function () {
+            // Special Setup
+            PAGES.renderTemplates();
+
+            PAGES.attachListeners();
+
+            $('.discovery-area').masonry({
+                itemSelector: '.block',
+
+                columnWidth: function (containerWidth) {
+                    return containerWidth / 4;
+                },
+
+                isResizable: true,
+                isAnimated: true
+            });
+
+            $('.preview .mask, .preview .close').on('click', PAGES.hidePreview);
+
+            $(window).scroll(PAGES.pageScroll);
+            $(window).resize(PAGES.pageScroll);
+
+            // Prevent social buttons from causing other events
+            $('.social-buttons .button').on('click', function(e) {
+                e.stopPropagation();
+            });
+
+            // Take any necessary actions
+            PAGES.loadInitialResults();
+        }
+    };
+
+    return me;
+})(PAGES.full || {}, Willet.mediator);
+
+
+// mobile component
+PAGES.mobile = (function (me) {
+    "use strict";
+
+    var localData = {};
+
+    me = {
+        'layoutFunc': function (jsonData, belowFold, related) {
+            var renderToView = function (viewSelector, templateName, context, append) {
+                var template = $("[data-template-id='" + templateName + "']").html(),
+                    renderedBlock;
+
+                // template does not exist
+                if (template === undefined) {
+                    return;
+                }
+
+                renderedBlock = _.template(template, context);
+
+                if (append) {
+                    $(viewSelector).append(renderedBlock);
+                } else {
+                    $(viewSelector).html(renderedBlock);
+                }
+            };
+
+            _.each(jsonData, function (data, index, list) {
+
+                var objectId = data.id || data['original-id'],
+                    templateName = PAGES.getModifiedTemplateName(data.template);
+
+                // Old themes used 'instagram',
+                // need to verify template exists
+                if (templateName === 'image' &&
+                    !$("[data-template-id='" + templateName + "']").html()) {
+                    templateName = 'instagram';
+                }
+
+                // cache content's data for future rendering
+                localData[templateName + objectId] = data;
+
+                // render object if possible
+                renderToView(".content_list", templateName, {
+                    data: data
+                }, true);
+
+                // just rendered last element
+                if (index === (list.length - 1)) {
+                    PAGES.setLoadingBlocks(false);
+                }
+            });
+        },
+        'readyFunc': function () {
+
+            if (MBP) {
+                MBP.hideUrlBarOnLoad();
+                MBP.preventZoom();
+            }
+
+            $(window).scroll(PAGES.pageScroll);
+            $(window).resize(PAGES.pageScroll);
+
+            Willet.mediator.fire('IR.loadInitialResults');
+        }
+    };
+
+    return me;
+})();
