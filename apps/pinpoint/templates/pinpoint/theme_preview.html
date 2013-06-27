@@ -15,6 +15,9 @@
             margin: 0;
             padding: 0;
         }
+        h2 {
+            margin: 20px 0 0 0;
+        }
         #preview_frame {
             width: 100%;
             height: 100%;
@@ -33,6 +36,9 @@
         #overlay textarea {
             width: 280px;
         }
+        #themer {
+            padding-bottom: 30px;
+        }
     </style>
     <script type="text/javascript"
             src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
@@ -41,27 +47,38 @@
     <div id="overlay">
         <h1>Edit Theme</h1>
         <p>Here, you can edit styles for your theme.</p>
-        <form id="themer" action="">
+        <form id="themer" action="" method="POST">
+            {% csrf_token %}
             <h2>Featured product area</h2>
-            <textarea data-target=".cell" name="" id="" cols="30" rows="10"></textarea>
+            <textarea data-target=".cell" cols="30" rows="5"
+                placeholder="Enter styles here"></textarea>
 
             <h2>Shop-the-look area</h2>
-            <textarea data-target=".lifestyle.cell" name="" id="" cols="30" rows="10"></textarea>
+            <textarea data-target=".lifestyle.cell" cols="30" rows="5"
+                placeholder="Enter styles here"></textarea>
 
             <h2>Generic block</h2>
-            <textarea data-target=".block" name="" id="" cols="30" rows="10"></textarea>
+            <textarea data-target=".block" cols="30" rows="5"
+                placeholder="Enter styles here"></textarea>
 
             <h2>Product block</h2>
-            <textarea data-target=".product.block" name="" id="" cols="30" rows="10"></textarea>
+            <textarea data-target=".product.block" cols="30" rows="5"
+                placeholder="Enter styles here"></textarea>
 
             <h2>Featured product area</h2>
-            <textarea data-target=".featured.product" name="" id="" cols="30" rows="10"></textarea>
+            <textarea data-target=".featured.product" cols="30" rows="5"
+                placeholder="Enter styles here"></textarea>
 
             <h2>Preview area</h2>
-            <textarea data-target=".preview" name="" id="" cols="30" rows="10"></textarea>
+            <textarea data-target=".preview" cols="30" rows="5"
+                placeholder="Enter styles here"></textarea>
 
             <h2>Instagram preview area</h2>
-            <textarea data-target=".preview.container .content .instagram" name="" id="" cols="30" rows="10"></textarea>
+            <textarea data-target=".preview.container .content .instagram" cols="30" rows="5"
+                placeholder="Enter styles here"></textarea>
+
+            <input id="submit" class="button submit focus"
+                   type="submit" value="Save theme" />
         </form>
     </div>
     <iframe id="preview_frame" src="/pinpoint/admin/120/theme/1/preview"
@@ -87,22 +104,6 @@
                 pageQuery.mask.close();  // this call is non-blocking.
             };
 
-            var getClassStyle = function (doc, className) {
-                doc = doc || document;
-                // retrieve existing style text for the given className.
-                var classes = doc.styleSheets[0].rules || doc.styleSheets[0].cssRules;
-                var rules = [];
-                for(var x=0;x<classes.length;x++) {
-                    if(classes[x].selectorText === className) {  // TODO: multi-selector rules
-                        rules.push({
-                            'selector': classes[x].selectorText,
-                            'style': classes[x].cssText || classes[x].style.cssText
-                        })
-                    }
-                }
-                return rules;
-            };
-
             var injectScript = function (url) {
                 if (!page) return;
                 var script = document.createElement('script');
@@ -112,6 +113,7 @@
             };
 
             var compileSelectorStyles = function (selector, styleMap) {
+                // generate a string for the selector {prop:style} map.
                 var styleName, ssBuffer = selector + '{';
                 for (styleName in styleMap) {
                     if (styleMap.hasOwnProperty(styleName)) {
@@ -124,6 +126,7 @@
 
             var applyStyles = function (computedCSS) {
                 // adds the css into the target page.
+                if (!page) return;
                 var injectLocation = pageQuery('#style_inject_target');
                 if (!injectLocation.length) {
                     // make one up
@@ -135,32 +138,32 @@
             };
 
             pageFrame.load(function (){
+                // create convenience variables
                 page = pageFrame.contents();
                 pageWindow = $(pageFrame[0].contentWindow);
                 pageQuery = $(pageWindow)[0].$;
 
-                $('#themer textarea').mouseenter(function (that) {
-                    highlight($.trim($(that.target).data('target')));
-                }).mouseleave(unhighlight);
-
-                $('textarea').keyup(function (ev) {
-                    $theElement = $(ev.target);
-                    var combinedStyles = '';
-                    $('textarea').map(function (idx, obj) {
-                        combinedStyles += $(obj).data('target') +
-                                ' {' + $(obj).val() + '}';
+                $('#themer textarea')
+                    .mouseenter(function (that) {
+                        highlight($.trim($(that.target).data('target')));
+                    })
+                    .mouseleave(unhighlight)
+                    .keyup(function (ev) {
+                        // export newly entered css to the bottom of the page.
+                        // it does not validate, because
+                        // http://stackoverflow.com/questions/4803518
+                        $theElement = $(ev.target);
+                        var combinedStyles = '';
+                        $('textarea').map(function (idx, obj) {
+                            combinedStyles += $(obj).data('target') +
+                                    ' {' + $(obj).val() + '}';
+                        });
+                        applyStyles(combinedStyles);
                     });
-                    applyStyles(combinedStyles);
-                });
 
-                // debug
-                console.log(page);
-                window.page = page;
-                window.pageWindow = pageWindow;
-                window.highlight = highlight;
-                window.unhighlight = unhighlight;
-                window.injectScript = injectScript;
-                window.applyStyles = applyStyles;
+                $('#themer #submit').click(function (e) {
+                    e.preventDefault();
+                });
             });
         });
     </script>
