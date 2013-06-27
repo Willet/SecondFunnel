@@ -34,6 +34,7 @@ PAGES.intentRank = (function (me, details, mediator) {
                 'campaign': details.page.id,
                 'product_id': id
             },
+            timeout: 5000,  // 5000 ~ 10000
             dataType: 'jsonp',
             success: function () {
                 if (exceededThreshold) {
@@ -71,6 +72,7 @@ PAGES.intentRank = (function (me, details, mediator) {
                         'seeds': details.product['product-id']
                     },
                     dataType: 'jsonp',
+                    timeout: 5000,  // 5000 ~ 10000
                     success: function(results) {
                         callback(results);
                         PAGES.setLoadingBlocks(false);
@@ -108,6 +110,7 @@ PAGES.intentRank = (function (me, details, mediator) {
                     'seeds': details.featured.id
                 },
                 dataType: 'jsonp',
+                timeout: 5000,  // 5000 ~ 10000
                 success: function(results) {
                     callback(results, belowFold, related);
                     PAGES.setLoadingBlocks(false);

@@ -23,7 +23,7 @@ class BaseNamedAdmin(BaseAdmin):
         'slug'
     ] + BaseAdmin.list_display
 
-    search_fields = ['name', 'original_url',]
+    search_fields = ['name']
 
     prepopulated_fields = {"slug": ("name",)}
 
@@ -83,6 +83,8 @@ class ProductAdmin(BaseNamedAdmin):
     list_editable = ['available',]
 
     filter_horizontal = ('lifestyleImages',)
+
+    search_fields = BaseNamedAdmin.search_fields + ['original_url']
 
     inlines = [
         ProductMediaInline,

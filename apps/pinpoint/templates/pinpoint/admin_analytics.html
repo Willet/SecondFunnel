@@ -302,25 +302,7 @@
 {% endblock %}
 
 {% block top_section %}
-
-    <div class="tab_bar">
-        <ul>
-            {# TODO: This should be part of the base template, probably #}
-            {% with a_store=campaign.store|default:store %}
-            {% with features=a_store.features_list %}
-                {% if 'pages' in features %}
-                    <li><a href="{% url store-admin a_store.id %}">Pages</a></li>
-                {% endif %}
-                {% if 'asset-manager' in features %}
-                    <li><a href="{% url asset-manager a_store.id %}">Asset Manager</a></li>
-                {% endif %}
-                {% if 'analytics' in features %}
-                    <li class="selected"><a href="{% url analytics-store-admin a_store.id %}">Analytics</a></li>
-                {% endif %}
-            {% endwith features%}
-            {% endwith a_store %}
-        </ul>
-    </div>
+    {% include 'pinpoint/admin_tabs.html' with selected='analytics' %}
 {% endblock top_section %}
 
 {% block content %}
