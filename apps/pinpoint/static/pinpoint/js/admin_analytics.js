@@ -2,24 +2,17 @@ Willet.analytics = (function ($) {
     "use strict";
     var init, settings, setUpListeners, injectAnalyticsData, loadAnalytics;
 
-    loadAnalytics = function (o) {
+    loadAnalytics = function (obj) {
         var request = {
             "range": $(".range option:selected").val()
         };
 
-        // set request values based on what's passed it
-        if (o !== undefined) {
-            request.campaign_id = o.campaign_id || settings.campaign_id;
-            request.store_id = o.store_id || settings.store_id;
-
-            settings.campaign_id = request.campaign_id;
-            settings.store_id = request.store_id;
-
-        // or based on default values if nothing is passed in
-        } else {
-            request.campaign_id = settings.campaign_id;
-            request.store_id = settings.store_id;
-        }
+        obj = obj || {};
+        // request (function scope) vs settings (module scope)
+        request.campaign_id = obj.campaign_id || settings.campaign_id;
+        request.store_id = obj.store_id || settings.store_id;
+        settings.campaign_id = request.campaign_id;
+        settings.store_id = request.store_id;
 
         // pass only one of the values down the wire
         if (request.campaign_id) {
@@ -60,15 +53,13 @@ Willet.analytics = (function ($) {
             },
 
             merge_totals = function (t1, t2) {
-                var res = $.extend(true, {}, t1), type, key;
+                var res = $.extend(true, {}, t1),
+                    type,
+                    key;
 
                 for (type in t2) {
                     for (key in t2[type]) {
-                        if (res[type][key] !== undefined) {
-                            res[type][key] += t2[type][key];
-                        } else {
-                            res[type][key] = t2[type][key];
-                        }
+                        res[type][key] = (res[type][key] || 0) + t2[type][key];
                     }
                 }
 
@@ -295,10 +286,8 @@ Willet.analytics = (function ($) {
 
         // remove undefined items from the sorted lists
         _.each(sortables, function (list, key) {
-            _.each(list, function (pair, index) {
-                if (pair === undefined) {
-                    sortables[key].splice(index, 1);
-                }
+            sortables[key] = _.reject(list, function (thing) {
+                return thing === undefined;
             });
         });
 
@@ -316,9 +305,7 @@ Willet.analytics = (function ($) {
                 $("#" + val).html("");
             });
 
-        var pids = _.map(sortables.engaged_products, function (pair) {
-            return pair[0];
-        });
+        var pids = _.pluck(sortables.engaged_products, 0);
 
         api.getObjects("product", pids, function (current, total) {
             $(".progressbar").progressbar("value", Math.round(current / total * 100));

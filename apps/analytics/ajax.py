@@ -7,6 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from apps.assets.models import Store
 from apps.analytics.models import Category, CategoryHasMetric
+from apps.pinpoint.decorators import belongs_to_store
 from apps.pinpoint.models import Campaign, IntentRankCampaign
 from apps.utils.ajax import ajax_success, ajax_error
 
@@ -15,7 +16,7 @@ def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
-
+@belongs_to_store
 @login_required
 def analytics_pinpoint(request):
     """Aggregates analytics data found in the DB, and returns
@@ -53,7 +54,7 @@ def analytics_pinpoint(request):
 
     # only one must be present
     if (campaign_id and store_id) or not object_id:
-        return ajax_error({'error': 'campaign_id xor store_id must be present'})
+        return ajax_error({'error': 'campaign_id or store_id must be present'})
 
     # try get a store associated with this request,
     # either directly or via campaign
@@ -75,10 +76,6 @@ def analytics_pinpoint(request):
     else:
         return ajax_error({'error': 'cannot find store and/or campaign '
                                     'with the given id(s).'})
-
-    # check if user is authorized to access this data
-    if not request.user in store.staff.all():
-        return ajax_error({'error': 'this user cannot access requested data'})
 
     date_range = request.GET.get('range')
     end_date = datetime.now()
