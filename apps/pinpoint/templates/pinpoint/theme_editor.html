@@ -95,6 +95,22 @@
             return results.join(';\n');
         };
 
+        var getClassStyle = function (doc, className) {
+            doc = doc || document;
+            // retrieve existing style text for the given className.
+            var classes = doc.styleSheets[0].rules || doc.styleSheets[0].cssRules;
+            var rules = [];
+            for(var x=0;x<classes.length;x++) {
+                if(classes[x].selectorText === className) {  // TODO: multi-selector rules
+                    rules.push({
+                        'selector': classes[x].selectorText,
+                        'style': classes[x].cssText || classes[x].style.cssText
+                    })
+                }
+            }
+            return rules;
+        };
+
         $(document).ready(function () {
             var form = $('#theme_parts_form');
             $('.preview-tab-trigger').click(function () {
