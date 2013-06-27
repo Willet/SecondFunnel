@@ -61,6 +61,7 @@ def upload_image(request):
 @require_POST
 @login_required
 def ajax_upload_image(request):
+    media = None
     try:
         media = upload_image(request)
         media_id = media.id

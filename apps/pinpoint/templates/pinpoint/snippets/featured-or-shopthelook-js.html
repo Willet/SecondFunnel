@@ -332,6 +332,13 @@ var application = (function(store_id, urls){
                     $("#id_generic_media_list").val($('#product_images img.new_image').map(
                         function(){return $(this).attr('src') + "\\" + $(this).data('mid');}).toArray().join("|"));
                 } else {
+                    var messages = { 'minSizeError': "'s dimensions are too small.  Minimum file width is {{ MIN_MEDIA_WIDTH }}px.",
+                                     'emptyError': " does not exist.  Are you sure you entered correctly?" };
+                    
+                    if (response.error && messages[response.error]) {
+                        alert(fileName + messages[response.error]);
+                    }
+
                     gif = $productImages.find('.loading_gif');
                     li = gif.closest('li');
                     li.addClass('broken_image');
