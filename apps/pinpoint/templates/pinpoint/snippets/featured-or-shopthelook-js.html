@@ -343,7 +343,6 @@ var application = (function(store_id, urls){
                     li = gif.closest('li');
                     li.addClass('broken_image');
                     gif.remove();
-                    if ( response.error
                     li.html('<div class="rounded"><ul class="errorlist"><li>{% trans "Error uploading image." %}' +
                             '</li><br /><li>{% trans "Click this box to dismiss." %}</li></ul></div>')
 
