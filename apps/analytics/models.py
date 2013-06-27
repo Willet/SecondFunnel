@@ -31,7 +31,9 @@ class AnalyticsBase(models.Model):
 
 
 class Category(AnalyticsBase):
-    metrics = models.ManyToManyField("Metric", through="CategoryHasMetric", blank=True, null=True)
+    """Types of events, e.g. Sharing, Engagement, Awareness."""
+    metrics = models.ManyToManyField("Metric", through="CategoryHasMetric",
+                                     blank=True, null=True)
     order = models.PositiveIntegerField(default=0)
     default = models.BooleanField(default=False)
 
@@ -50,6 +52,7 @@ class Category(AnalyticsBase):
 
 
 class Metric(AnalyticsBase):
+    """Stores the number of data points available for category metric."""
     data = models.ManyToManyField(
         "KVStore", related_name="data", blank=True, null=True)
 
@@ -74,6 +77,11 @@ class CategoryHasMetric(models.Model):
 
 
 class KVStore(models.Model):
+    """TODO: document this model.
+
+    AFAIK KVStore objects are aggregated and deleted every
+    some time by celery.
+    """
     content_type = models.ForeignKey(ContentType,
         related_name='analytics_data')
 

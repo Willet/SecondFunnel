@@ -1,15 +1,13 @@
-import json
-import random
-
+"""Ajax (read-only) interface for analytics data."""
 from collections import defaultdict
 from datetime import timedelta, datetime
-from functools import partial
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 
 from apps.assets.models import Store
-from apps.analytics.models import Category, Metric, KVStore, CategoryHasMetric
+from apps.analytics.models import Category, CategoryHasMetric
+from apps.pinpoint.decorators import belongs_to_store
 from apps.pinpoint.models import Campaign, IntentRankCampaign
 from apps.utils.ajax import ajax_success, ajax_error
 
@@ -18,14 +16,21 @@ def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
-
+@belongs_to_store
 @login_required
 def analytics_pinpoint(request):
+    """Aggregates analytics data found in the DB, and returns
+    aggregate values.
+
+    @param request: django request handler
+    """
     def aggregate_by(metric_slug, bucket, key):
+        """Generates a dictionary that contains data tallies."""
         bucket['totals'][key] = defaultdict(int)
 
         for datum in bucket['data']:
             if metric_slug == "awareness-bounce_rate":
+                # TODO: why is this prop special?
                 bucket['totals'][key][datum[key]] = datum['value']
             else:
                 bucket['totals'][key][datum[key]] += datum['value']
@@ -42,8 +47,6 @@ def analytics_pinpoint(request):
         else:
             bucket['totals'][key]['all'] = 0
 
-        return bucket
-
     # one of these is required:
     campaign_id = request.GET.get('campaign_id', False)
     store_id = request.GET.get('store_id', False)
@@ -51,7 +54,7 @@ def analytics_pinpoint(request):
 
     # only one must be present
     if (campaign_id and store_id) or not object_id:
-        return ajax_error()
+        return ajax_error({'error': 'campaign_id or store_id must be present'})
 
     # try get a store associated with this request,
     # either directly or via campaign
@@ -60,21 +63,25 @@ def analytics_pinpoint(request):
         campaign = store.campaign_set.all().order_by("-created")[0]
 
     elif campaign_id:
-        campaign = IntentRankCampaign.objects.get(id=campaign_id)
+        try:
+            campaign = IntentRankCampaign.objects.get(id=campaign_id)
 
-        # Since it's a M2M rel'n, even though we never associate
-        # categories with other stores, we need to look through all of
-        # the related campaigns and pick the *only* result
-        store = campaign.campaigns.all()[0].store
-
+            # Since it's a M2M rel'n, even though we never associate
+            # categories with other stores, we need to look through all of
+            # the related campaigns and pick the *only* result
+            store = campaign.campaigns.all()[0].store
+        except IntentRankCampaign.DoesNotExist, err:
+            return ajax_error(
+                {'error': 'IntentRankCampaign %s not found' % campaign_id})
     else:
-        return ajax_error()
+        return ajax_error({'error': 'cannot find store and/or campaign '
+                                    'with the given id(s).'})
 
     date_range = request.GET.get('range')
     end_date = datetime.now()
     end_date = end_date.replace(tzinfo=campaign.created.tzinfo)
 
-    if date_range == "total":
+    if date_range == "total":  # since the beginning of collection
         start_date = campaign.created
 
     elif date_range == "month":
@@ -94,16 +101,13 @@ def analytics_pinpoint(request):
     # account for potential timezone differences
     start_date = start_date - timedelta(days=2)
 
-    # check if user is authorized to access this data
-    if not request.user in store.staff.all():
-        return ajax_error()
-
     # what to filter kv for
     object_type = ContentType.objects.get_for_model(Campaign)
 
     # iterate through analytics structures and get the data
     results = {}
     for category in Category.objects.filter(enabled=True):
+        # categories: e.g. Awareness, Engagement, Sharing. In DB.
         results[category.slug] = {}
 
         for metric in category.metrics.filter(enabled=True):
@@ -145,10 +149,8 @@ def analytics_pinpoint(request):
 
             # this aggregates and exposes daily data across all products
             bucket = results[category.slug][metric.slug]
-
-            aggregator = partial(aggregate_by, metric.slug)
-            bucket = aggregator(bucket, 'date')
-            bucket = aggregator(bucket, 'target_id')
-            bucket = aggregator(bucket, 'meta')
+            aggregate_by(metric.slug, bucket, 'date')  # mutable
+            aggregate_by(metric.slug, bucket, 'target_id')  # mutable
+            aggregate_by(metric.slug, bucket, 'meta')  # mutable
 
     return ajax_success(results)

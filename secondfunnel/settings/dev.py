@@ -50,10 +50,11 @@ STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 GOOGLE_ANALYTICS_PROFILE = '67271131'
 GOOGLE_ANALYTICS_PROPERTY = 'UA-23764505-15'
 
-GOOGLE_API_PRIVATE_KEY = 'google-service-account-prod.p12'
+GOOGLE_API_PRIVATE_KEY = 'google-service-account-prod.p12'  # (a file)
 GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 
 BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+CELERY_ALWAYS_EAGER = True  # http://stackoverflow.com/a/12705610
 
 # Social Auth
 # Nick's test instagram client; good for localhost:8000
