@@ -423,9 +423,10 @@ var PAGES = (function ($, details, mediator) {
         mediator.fire('IR.getInitialResults', [layoutResults]);
     }
 
-    function loadMoreResults(belowFold, related) {
+    function loadMoreResults(callback, belowFold, related) {
+        callback = callback || layoutResults;
         if (!loadingBlocks || related) {
-            mediator.fire('IR.getMoreResults', [layoutResults, belowFold, related]);
+            mediator.fire('IR.getMoreResults', [callback, belowFold, related]);
         }
     }
 
