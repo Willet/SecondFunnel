@@ -631,6 +631,11 @@ PAGES.full = (function (me, mediator) {
                 mediator.fire('error', ['malformed jsonData', jsonData]);
                 return;
             }
+            if (!jsonData.length) {
+                mediator.fire('error', ['IR returned zero results!']);
+                return;
+            }
+
             var $block,
                 result,
                 results = (PAGES.SHUFFLE_RESULTS) ?
@@ -861,10 +866,9 @@ PAGES.full = (function (me, mediator) {
                     return;
                 }
 
-                PAGES.setLoadingBlocks(false);
-
                 // hack. tell masonry to reposition blocks
                 $(window).resize();
+                PAGES.setLoadingBlocks(false);
             });
         },
         'readyFunc': function () {
