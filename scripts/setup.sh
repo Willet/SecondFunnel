@@ -8,7 +8,7 @@ HOME=~
 if [ ${OS} = "Darwin" ]; then
     # We'll use 'brew' for Mac users
     ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"    
-    brew install python2.7 git
+    brew install python2.7 git libjpeg
     brew install mysql pip
     AWS_OS="macosx"
 elif [ ${OS} = "Linux" ]; then
@@ -16,7 +16,7 @@ elif [ ${OS} = "Linux" ]; then
         echo "ERROR: This script must be run as root or with sudo."
         exit 1
     fi
-    apt-get install git-core python2.7
+    apt-get install git-core python2.7 libjpeg-dev
     apt-get install python-pip python-dev build-essential libmysqlclient-dev libxslt1.1 libxslt1-dev python-pyopenssl
     AWS_OS="linux"
 else
@@ -91,7 +91,7 @@ cp .AWS-ElasticBeanstalk-CLI/AWSDevTools/Linux/AWSDevTools-RepositorySetup.sh .
 sh AWSDevTools-RepositorySetup.sh
 rm AWSDevTools-RepositorySetup.sh
 if [ ! -d "$HOME/.ssh" ]; then
-    # User needs an ssh key                                                                                                                                                       
+    # User needs an ssh key
     echo "Enter your email address: "
     read emailaddr
     ssh-keygen -t rsa -C "$emailaddr"

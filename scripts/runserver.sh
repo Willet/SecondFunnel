@@ -27,7 +27,7 @@ elif [ $RUNNING != "0" ]; then
         sudo rabbitmqctl stop > /dev/null
         killall memcached
         pkill -f "runserver"
-        echo "RabbitMQ, Memcached, and Django server successfully stopped."
+        echo "RabbitMQ, Memcached, and Django server stopped."
     else
         usage
     fi
@@ -35,9 +35,9 @@ elif [ ${1} = "start" ]; then
     rm errorlog.txt serverlog.txt > /dev/null 2>&1
     echo "Starting RabbitMQ...this make take a few moments."
     sudo rabbitmq-server -detached 2> /dev/null
-    memcached -p 8000 start 2> errorlog.txt 2>&1 &
+    memcached -vv > errorlog.txt 2>&1 &
     python manage.py runserver > serverlog.txt 2>&1 &
-    echo "RabbitMQ, Memcached, and Django server successfully started."
+    echo "RabbitMQ, Memcached, and Django server started."
 else
     usage
 fi
