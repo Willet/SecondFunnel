@@ -21,13 +21,10 @@ if [[ ${#} -gt 1 || ${#} -lt 1 ]]; then
     usage
 elif [ $RUNNING != "0" ]; then
     if [ ${1} = "restart" ]; then
-        pkill -f "runserver"
-        python manage.py runserver > errorlog.txt 2>&1 &
-        echo "Django server restarted."
+        ./runserver stop && ./runserver start
     elif [ ${1} = "stop" ]; then
         echo "Shutting down RabbitMQ...this make take a few moments."
         sudo rabbitmqctl stop > /dev/null
-        # ps auxww | grep 'celery worker' | awk '{print $2}' | xargs kill > /dev/null 2>&1
         killall memcached
         pkill -f "runserver"
         echo "RabbitMQ, Memcached, and Django server successfully stopped."
@@ -38,9 +35,8 @@ elif [ ${1} = "start" ]; then
     rm errorlog.txt serverlog.txt > /dev/null 2>&1
     echo "Starting RabbitMQ...this make take a few moments."
     sudo rabbitmq-server -detached 2> /dev/null
-    memcached -d -p 8000 start
+    memcached -p 8000 start 2> errorlog.txt 2>&1 &
     python manage.py runserver > serverlog.txt 2>&1 &
-    # python manage.py celery worker --loglevel=info 2> errorlog.txt 1> /dev/null &
     echo "RabbitMQ, Memcached, and Django server successfully started."
 else
     usage
