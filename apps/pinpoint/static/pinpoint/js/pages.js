@@ -742,6 +742,8 @@ PAGES.full = (function (me, mediator) {
                                 // than it's reload logic.
                                 $(window).resize();
                             }
+                        }).error(function() {
+                            $(this).parents().eq(1).remove();
                         });
                     });
                 }
