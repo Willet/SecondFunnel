@@ -132,7 +132,7 @@ def extract_blockwise_styles(theme_str, block_name,
                      re.escape(string_after) + r' \(' + re.escape(block_name) +
                      '\) \*\/)', re.M | re.I | re.S)
     found_styles = rej.findall(theme_str)
-    if found_styles:
+    if found_styles and found_styles[0].strip():
         return found_styles[0].strip()
     else:  # found_styles == None
-        return ''
+        return '%s {\n    \n}\n' % block_name # blank style
