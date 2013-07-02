@@ -81,7 +81,7 @@
                    type="submit" value="Save theme" />
         </form>
     </div>
-    <iframe id="preview_frame" src="/pinpoint/admin/120/theme/1/preview"
+    <iframe id="preview_frame" src="/pinpoint/admin/{{ store_id }}/theme/{{ theme_id }}/preview"
             frameborder="0"></iframe>
     <script type="text/javascript">
         $(document).ready(function () {
@@ -131,7 +131,7 @@
                 if (!injectLocation.length) {
                     // make one up
                     pageQuery('body').append(pageQuery('<' +
-                        'style id="#style_inject_target"><' + '/style>'));
+                        'style id="style_inject_target"><' + '/style>'));
                     injectLocation = pageQuery('#style_inject_target');
                 }
                 injectLocation.html(computedCSS);  // override previous
@@ -164,6 +164,7 @@
                 $('#themer #submit').click(function (e) {
                     e.preventDefault();
                 });
+
             });
         });
     </script>
