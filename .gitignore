@@ -12,6 +12,5 @@ bin/*
 /static
 .elasticbeanstalk/
 doc/
-errorlog.txt
-serverlog.txt
+log/
 runserver
