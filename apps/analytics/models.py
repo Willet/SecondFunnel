@@ -8,9 +8,9 @@ from django.contrib.contenttypes import generic
 
 class AnalyticsRecency(models.Model):
     """
-    @ivar content_type
-    @ivar object_id
-    @ivar parent
+    @ivar content_type: 
+    @ivar object_id: 
+    @ivar parent: 
     @ivar last_fetched: When the analytics data was last fetched.
     """
     content_type = models.ForeignKey(ContentType)
@@ -108,10 +108,10 @@ class KVStore(models.Model):
     """KVStore(Key-Value Store) is a data-pairing created by celery to record metrics
     AFAIK KVStore objects are aggregated and deleted every some time by celery.
     
-    @ivar content_type
+    @ivar content_type: 
     @ivar object_id: Id of a Metric object. 
     @ivar parent: Foreign key to a Metric object.
-    @ivar target_type
+    @ivar target_type: 
     @ivar target_id: Id of a Category object.
     @ivar target: Foreign key to a Category object.
     @ivar key: The name corresponding to what type of analytic's data this is.
