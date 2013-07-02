@@ -52,20 +52,20 @@ The SecondFunnel project uses Epydocs for documenting code.  For procedural and 
 
 
 The SecondFunnel project has a few primary components:
-* [**IntentRank**](####IntentRank):  The backbone of the SecondFunnel project; provides an API for requesting and serving content. 
+* [**IntentRank**](.#IntentRank):  The backbone of the SecondFunnel project; provides an API for requesting and serving content. 
 * [**Pages**](.#Pages): The front-end javascript; manages how content is arranged on the pinpoint pages, services API queries to IntentRank and handles interactions between the user and the pinpoint pages.
 * [**Analytics**](.#Analytics): An analytics framework for tracking how users interact with the pinpoint pages.
 
 
-####IntentRank
+#### <a id="IntentRank"></a>IntentRank
 [Read more here.](https://github.com/Willet/IntentRank)
 
 
-####Pages
+#### <a id="Pages"></a> Pages
 Pages is the front-end javascript of the SecondFunnel project that manages how content is displayed on the Pinpoint pages.  In addition, it manages how users are able to interact with those pages; by clicking, scrolling, social media, etc.  It services API calls to IntentRank to fetch content based on a myriad of factors dependent on how the user is currently interacting with the page.  It makes use of the popular [Masonry Library](https://github.com/desandro/masonry) to render content in a cascading infinite scroll grid.  As users interact with the page, it also records analytic data.
 
 
-####Analytics
+#### <a id="Analytics"></a> Analytics
 Analytics is our framework for tracking how users interact with the pinpoint pages.  This provides information for both the store owner and us about how users are using our pages so that we can better tailor our pages to increase traffic and promote purchases.  Similarily, it provides the store owner with insight into how effective the pinpoint pages are for their business.
 
 
