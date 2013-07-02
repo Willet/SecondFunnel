@@ -26,7 +26,7 @@ from apps.pinpoint.ajax import upload_image
 
 from apps.pinpoint.models import Campaign, BlockType, StoreTheme
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
-from apps.pinpoint.utils import render_campaign, extract_blockwise_styles
+from apps.pinpoint.utils import render_campaign
 import apps.pinpoint.wizards as wizards
 from apps.pinpoint.wizards import Wizard
 from apps.utils.ajax import ajax_error, ajax_success
@@ -496,13 +496,19 @@ def live_theme(request, store_id, theme_id):
     field_styles = [{
                         'selector': selector,
                         'hint': hint,
-                        'styles': extract_blockwise_styles(response_body, selector)
+                        'styles': theme.extract_blockwise_styles(
+                            response_body, selector)
                     } for selector, hint in themable_fields]
     template_vars.update({'themable_fields': field_styles})
 
     if request.method == 'GET':
         pass
     elif request.method == 'POST':
+        blockwise_style_map = {
+            x[0]: request.POST.get(x[0], '') for x in themable_fields
+        }
+        theme.map_blockwise_styles(blockwise_style_map=blockwise_style_map)
+        # theme.save()
         template_vars.update({'theme_saved': True})
 
     return render_to_response(

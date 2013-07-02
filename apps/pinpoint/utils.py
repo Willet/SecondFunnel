@@ -112,27 +112,3 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
     rendered_page = unicode(rendered_page, 'utf-8')
 
     return rendered_page
-
-
-def extract_blockwise_styles(theme_str, block_name,
-                             string_before="do not edit after this line",
-                             string_after="do not edit before this line"):
-    """Return a string with the contents surrounding a theme struct
-    similar to this one:
-
-    /* do not edit after this line (.youtube) */
-    p { background: red; }
-    /* do not edit before this line (.youtube) */
-
-    In which case, "p { background: red; }" is returned
-        if block_name == '.youtube'.
-    """
-    rej = re.compile(r'\/\* ' + re.escape(string_before) +
-                     r' \(' + re.escape(block_name) + '\) \*\/(.*?)(?=\/\* ' +
-                     re.escape(string_after) + r' \(' + re.escape(block_name) +
-                     '\) \*\/)', re.M | re.I | re.S)
-    found_styles = rej.findall(theme_str)
-    if found_styles and found_styles[0].strip():
-        return found_styles[0].strip()
-    else:  # found_styles == None
-        return '%s {\n    \n}\n' % block_name # blank style

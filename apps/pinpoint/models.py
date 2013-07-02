@@ -284,6 +284,15 @@ class StoreTheme(BaseModelNamed):
         verbose_name='Image product preview'
     )
 
+    # coincidentally, all except .page
+    themable_fields = ['shop_the_look', 'featured_product', 'product',
+                       'combobox', 'youtube', 'instagram', 'product_preview',
+                       'combobox_preview', 'instagram_preview',
+                       'instagram_product_preview']
+
+    DEFAULT_STRING_BEFORE = "do not edit after this line"
+    DEFAULT_STRING_AFTER = "do not edit before this line"
+
     def __init__(self, *args, **kwargs):
         super(StoreTheme, self).__init__(*args, **kwargs)
         # Required is a bit of a misnomer...
@@ -331,6 +340,54 @@ class StoreTheme(BaseModelNamed):
 
     def __unicode__(self):
         return u"Theme: %s" % self.name
+
+    def extract_blockwise_styles(self, theme_str, block_name,
+                                 string_before=DEFAULT_STRING_BEFORE,
+                                 string_after=DEFAULT_STRING_AFTER):
+        """Return a string with the contents surrounding a theme struct
+        similar to this one:
+
+        /* do not edit after this line (.youtube) */
+        p { background: red; }
+        /* do not edit before this line (.youtube) */
+
+        In which case, "p { background: red; }" is returned
+            if block_name == '.youtube'.
+        """
+        rej = re.compile(r'\/\* ' + re.escape(string_before) +
+                         r' \(' + re.escape(block_name) + '\) \*\/(.*?)(?=\/\* ' +
+                         re.escape(string_after) + r' \(' + re.escape(block_name) +
+                         '\) \*\/)', re.M | re.I | re.S)
+        found_styles = rej.findall(theme_str)
+        if found_styles and found_styles[0].strip():
+            return found_styles[0].strip()
+        else:  # found_styles == None
+            return '%s {\n    \n}\n' % block_name # blank style
+
+
+    def map_blockwise_styles(self, blockwise_style_map,
+                             string_before=DEFAULT_STRING_BEFORE,
+                             string_after=DEFAULT_STRING_AFTER):
+        """Return a StoreTheme object with all styles updated according to
+        blockwise_style_map, which is a dict: {"block_selector": "rules"}.
+
+        /* do not edit after this line (.youtube) */
+        /* do not edit before this line (.youtube) */
+
+        In which case, the theme will be updated with p { background: red; }
+            if blockwise_style_map contains ".youtube": "p { background: red; }".
+        """
+        for field in self.themable_fields:
+            for selector, styles in blockwise_style_map.iteritems():
+                rej = re.compile(
+                    r'\/\* ' + re.escape(string_before) +
+                    r' \(' + re.escape(selector) + '\) \*\/(.*?)(?=\/\* ' +
+                    re.escape(string_after) + r' \(' + re.escape(selector) +
+                    '\) \*\/)', re.M | re.I | re.S)
+                setattr(self,
+                        field,
+                        rej.sub('/* %s */\n%s' % (string_before, styles),
+                                getattr(self, field, '')))
 
 
 class StoreThemeMedia(MediaBase):
