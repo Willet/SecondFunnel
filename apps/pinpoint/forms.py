@@ -188,8 +188,19 @@ class ThemeForm(ModelForm):
         exclude = ['slug', 'created', 'last_modified']
 
     def clean(self):
-        cleaned_data = super(ThemeForm, self).clean()
-        return cleaned_data
+        c_data = super(ThemeForm, self).clean()
+
+        # Must have at least *one* of the four fields
+        associations = [c_data.get(k) for k in self.THEME_ATTR.keys()]
+
+        if not any(associations):
+            raise forms.ValidationError(
+                "You must assign the theme to one of "
+                "'Store Theme', 'Store Mobile Theme' "
+                "'Campaign Theme', 'Campaign Mobile Theme'"
+            )
+
+        return c_data
 
     def save(self, *args, **kwargs):
         model = super(ThemeForm, self).save(*args, **kwargs)
