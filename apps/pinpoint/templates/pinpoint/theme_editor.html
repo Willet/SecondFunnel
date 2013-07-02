@@ -12,6 +12,12 @@
 
 {% block extra_head %}
     <style type="text/css">
+
+        input[type="text"], textarea {
+            margin-top: -8px;
+            margin-bottom: 8px;
+        }
+
         .button {
             float: right;
             position: relative;
@@ -27,25 +33,28 @@
             line-height: 60px;
         }
 
-        .field {
+        .field, form label {
             display: inline-block;
             width: 150px;
             text-align: right;
             font-size:  16px;
             vertical-align: top;
-            margin-top: 5px;
             margin-right: 5px;
         }
 
-        .row {
+        .row, form li {
             margin-bottom: 10px;
         }
 
-        .row input, .row textarea {
+        .row input, .row textarea, form li input, form li textarea {
             width: 650px;
         }
 
         .row textarea {
+        }
+
+        form li {
+            list-style: none;
         }
     </style>
 {% endblock %}
@@ -67,18 +76,7 @@
 {% block content %}
     <form method="POST" action="{% url edit-theme store_id theme_id %}">
         {% csrf_token %}
-        {{ formset.management_form }}
-        {% for form in formset %}
-            {% for field in form %}
-                {% if field.errors %}
-                <div class='row error'>{{ field.errors }}</div>
-                {% endif %}
-                <div class='row'>
-                    <span class='field'>{{ field.label }}:</span>
-                    {{ field }}
-                </div>
-            {% endfor %}
-        {% endfor %}
+        {{ formset.as_ul }}
         <div class="actions">
             <input class="button submit focus" type="submit" value="{% trans "Save" %}" />
         </div>
