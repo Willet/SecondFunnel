@@ -52,9 +52,9 @@ The SecondFunnel project uses Epydocs for documenting code.  For procedural and 
 
 
 The SecondFunnel project has a few primary components:
-* [**IntentRank**](.#IntentRank):  The backbone of the SecondFunnel project; provides an API for requesting and serving content. 
-* [**Pages**](.#Pages): The front-end javascript; manages how content is arranged on the pinpoint pages, services API queries to IntentRank and handles interactions between the user and the pinpoint pages.
-* [**Analytics**](.#Analytics): An analytics framework for tracking how users interact with the pinpoint pages.
+* [**IntentRank**](.#intentRank):  The backbone of the SecondFunnel project; provides an API for requesting and serving content. 
+* [**Pages**](.#pages): The front-end javascript; manages how content is arranged on the pinpoint pages, services API queries to IntentRank and handles interactions between the user and the pinpoint pages.
+* [**Analytics**](.#analytics): An analytics framework for tracking how users interact with the pinpoint pages.
 
 
 #### <a id="IntentRank"></a>IntentRank
