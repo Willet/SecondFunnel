@@ -428,9 +428,9 @@ def edit_theme(request, store_id, theme_id=None):
 
     if request.method == 'GET' and theme:
         # Only have to do something if the theme already exists
-        template_vars['formset'] = ThemeForm(instance=theme)
+        template_vars['formset'] = ThemeForm(instance=theme, store_id=store_id)
     elif request.method == 'POST':
-        form = ThemeForm(request.POST, instance=theme)
+        form = ThemeForm(request.POST, instance=theme, store_id=store_id)
         if form.is_valid():
             form.save()
             messages.success(

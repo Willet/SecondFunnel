@@ -1,8 +1,9 @@
 from django import forms
 from django.forms import ModelForm
 
-from apps.assets.models import ProductMedia, GenericImage
-from apps.pinpoint.models import StoreTheme
+from apps.assets.models import ProductMedia, GenericImage, Store
+from apps.pinpoint.models import StoreTheme, Campaign
+from apps.utils import safe_getattr
 
 
 class FeaturedProductWizardForm(forms.Form):
@@ -123,6 +124,42 @@ class ShopTheLookWizardForm(FeaturedProductWizardForm):
         return cleaned_data
 
 class ThemeForm(ModelForm):
+    # TODO: How to filter on self?
+    # e.g. we only want to choose campaigns, store based on current store.
+    store_theme = forms.ModelChoiceField(queryset=Store.objects.none())
+    store_mobile_theme = forms.ModelChoiceField(queryset=Store.objects.none())
+
+    campaign_theme = forms.ModelChoiceField(queryset=Campaign.objects.none())
+    campaign_mobile_theme = forms.ModelChoiceField(queryset=Campaign.objects.none())
+
+    def __init__(self, *args, **kwargs):
+        store_id = kwargs.pop('store_id', None)
+
+        super(ThemeForm, self).__init__(*args, **kwargs)
+
+        self.fields['store_theme'].queryset = Store.objects.filter(pk=store_id)
+        self.fields['store_mobile_theme'].queryset = Store.objects.filter(
+            pk=store_id
+        )
+        self.fields['campaign_theme'].queryset = Campaign.objects.filter(
+            store_id=store_id)
+        self.fields['campaign_mobile_theme'].queryset = Campaign.objects\
+            .filter(store_id=store_id)
+
+        if self.instance:
+            self.fields['store_theme'].initial = safe_getattr(
+                self.instance, 'store')
+            self.fields['store_mobile_theme'].initial = safe_getattr(
+                self.instance, 'store_mobile')
+            self.fields['campaign_theme'].initial = safe_getattr(
+                self.instance, 'theme')
+            self.fields['campaign_mobile_theme'].initial = safe_getattr(
+                self.instance, 'mobile')
+
     class Meta:
         model = StoreTheme
         exclude = ['slug', 'created', 'last_modified']
+
+    def clean(self):
+        cleaned_data = super(ThemeForm, self).clean()
+        return cleaned_data
