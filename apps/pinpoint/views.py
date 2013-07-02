@@ -26,7 +26,7 @@ from apps.pinpoint.ajax import upload_image
 
 from apps.pinpoint.models import Campaign, BlockType, StoreTheme
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
-from apps.pinpoint.utils import render_campaign
+from apps.pinpoint.utils import render_campaign, extract_blockwise_styles
 import apps.pinpoint.wizards as wizards
 from apps.pinpoint.wizards import Wizard
 from apps.utils.ajax import ajax_error, ajax_success
@@ -462,15 +462,11 @@ def edit_theme(request, store_id, theme_id=None):
 
 @belongs_to_store
 @login_required
-def live_theme(request, store_id, theme_id=None):
-    """
-    """
-    store = get_object_or_404(Store, pk=store_id)
+def live_theme(request, store_id, theme_id):
+    """Render live theme editor, and, if applicable, save the theme."""
 
-    try:
-        theme = StoreTheme.objects.get(pk=theme_id)
-    except StoreTheme.DoesNotExist:
-        theme = None
+    store = get_object_or_404(Store, pk=store_id)
+    theme = get_object_or_404(StoreTheme, pk=theme_id)
 
     template_vars = {
         'store': store,
@@ -479,12 +475,41 @@ def live_theme(request, store_id, theme_id=None):
         'preview_enabled': True,
     }
 
+    try:
+        campaign = Campaign.objects.filter(store=store).order_by('-last_modified')[0]
+    except IndexError:  # store has no campaigns
+        return ajax_error({
+            'error': 'Theme preview requires at least one campaign in your account.'})
+    response_body = render_campaign(campaign, request, get_seeds, 'full')
+
+    # fields we have substitution tables for
+    themable_fields = [(".cell", "Featured product area"),
+                       (".lifestyle.cell", "Shop-the-look area"),
+                       (".block", "Generic block"),
+                       (".product.block", "Product block"),
+                       (".block.combobox", "Combobox"),
+                       (".featured.product", "Featured product area"),
+                       (".preview", "Preview area"),
+                       (".preview.container .content .instagram",
+                        "Instagram preview area")]
+
+    field_styles = [{
+                        'selector': selector,
+                        'hint': hint,
+                        'styles': extract_blockwise_styles(response_body, selector)
+                    } for selector, hint in themable_fields]
+    template_vars.update({'themable_fields': field_styles})
+
+    if request.method == 'GET':
+        pass
+    elif request.method == 'POST':
+        template_vars.update({'theme_saved': True})
+
     return render_to_response(
         'pinpoint/theme_preview.html',
         template_vars,
         context_instance=RequestContext(request)
     )
-
 
 @has_store_feature('theme-manager')
 @belongs_to_store
@@ -519,7 +544,9 @@ def preview_theme(request, store_id, theme_id=None):
 
         campaign.theme = theme
 
-        page = HttpResponse(render_campaign(campaign, request, get_seeds, 'full'))
+        response_body = render_campaign(campaign, request, get_seeds, 'full')
+        page = HttpResponse(response_body)
+
         if request.GET.get('dummy_theme_id'):  # delete only if made to mock
             theme.delete()  # remove temporary theme
         return page

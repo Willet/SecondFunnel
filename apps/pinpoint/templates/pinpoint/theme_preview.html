@@ -46,38 +46,31 @@
 <body>
     <div id="overlay">
         <h1>Edit Theme</h1>
-        <p>Here, you can edit styles for your theme.</p>
-        <form id="themer" action="" method="POST">
+        {% if theme_saved %}
+            <p class="ui-state-highlight ui-corner-all">
+                <span class="ui-icon ui-icon-info"
+                      style="float: left; margin: .15em;"></span>
+                Your theme has been saved.</p>
+        {% else %}
+            <p>Here, you can edit styles for your theme.</p>
+        {% endif %}
+
+        <form id="themer" action="{% url live-theme store_id theme_id %}" method="POST">
+            <input class="button submit focus"
+                   type="submit" value="Save theme" />
+
             {% csrf_token %}
-            <h2>Featured product area</h2>
-            <textarea data-target=".cell" cols="30" rows="5"
-                placeholder="Enter styles here"></textarea>
+            <input type="hidden" id="combined_styles" name="combined_styles"
+                   value="" />
 
-            <h2>Shop-the-look area</h2>
-            <textarea data-target=".lifestyle.cell" cols="30" rows="5"
-                placeholder="Enter styles here"></textarea>
-
-            <h2>Generic block</h2>
-            <textarea data-target=".block" cols="30" rows="5"
-                placeholder="Enter styles here"></textarea>
-
-            <h2>Product block</h2>
-            <textarea data-target=".product.block" cols="30" rows="5"
-                placeholder="Enter styles here"></textarea>
-
-            <h2>Featured product area</h2>
-            <textarea data-target=".featured.product" cols="30" rows="5"
-                placeholder="Enter styles here"></textarea>
-
-            <h2>Preview area</h2>
-            <textarea data-target=".preview" cols="30" rows="5"
-                placeholder="Enter styles here"></textarea>
-
-            <h2>Instagram preview area</h2>
-            <textarea data-target=".preview.container .content .instagram" cols="30" rows="5"
-                placeholder="Enter styles here"></textarea>
-
-            <input id="submit" class="button submit focus"
+            {% for field_data in themable_fields %}
+                <h2>{{ field_data.hint }}</h2>
+                <textarea placeholder='try "border: 1px solid red;"'
+                          name="{{ field_data.selector }}"
+                    data-target="{{ field_data.selector }}"
+                    cols="30" rows="5">{{ field_data.styles }}</textarea>
+            {% endfor %}
+            <input class="button submit focus"
                    type="submit" value="Save theme" />
         </form>
     </div>
@@ -89,13 +82,13 @@
 
             var highlight = function (selector) {
                 if (!page) return;
-                unhighlight();
+                unhighlight();  // need to manually cancel the current highlight
                 setTimeout(function () {
                     pageQuery(selector).expose({
                         color: '#555',
                         loadSpeed: 200,
                         closeSpeed: 200
-                });
+                    });
                 }, 300);
             };
 
@@ -124,6 +117,17 @@
                 return ssBuffer;
             };
 
+            var getCombinedStyles = function () {
+                // returns a string containing all added styles.
+                // does NOT necessarily validate.
+                var combinedStyles = '';
+                $('textarea').map(function (idx, obj) {
+                    combinedStyles += $(obj).data('target') +
+                            ' {' + $(obj).val() + '}';
+                });
+                return combinedStyles;
+            };
+
             var applyStyles = function (computedCSS) {
                 // adds the css into the target page.
                 if (!page) return;
@@ -143,28 +147,29 @@
                 pageWindow = $(pageFrame[0].contentWindow);
                 pageQuery = $(pageWindow)[0].$;
 
+                $('#themer #combined_styles').val(getCombinedStyles());
+
                 $('#themer textarea')
                     .mouseenter(function (that) {
                         highlight($.trim($(that.target).data('target')));
                     })
                     .mouseleave(unhighlight)
+                    .focus(function (that) {
+                        highlight($.trim($(that.target).data('target')));
+                    })
+                    .blur(unhighlight)
                     .keyup(function (ev) {
                         // export newly entered css to the bottom of the page.
                         // it does not validate, because
                         // http://stackoverflow.com/questions/4803518
                         $theElement = $(ev.target);
-                        var combinedStyles = '';
-                        $('textarea').map(function (idx, obj) {
-                            combinedStyles += $(obj).data('target') +
-                                    ' {' + $(obj).val() + '}';
-                        });
+                        var combinedStyles = getCombinedStyles();
+                        $('#themer #combined_styles').val(combinedStyles);
+
+                        // for debug or reference only
+                        window.combinedStyles = combinedStyles;
                         applyStyles(combinedStyles);
                     });
-
-                $('#themer #submit').click(function (e) {
-                    e.preventDefault();
-                });
-
             });
         });
     </script>
