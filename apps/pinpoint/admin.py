@@ -37,7 +37,7 @@ admin.site.register(IntentRankCampaign, IntentRankCampaignAdmin)
 
 class CampaignAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + ['live', 'store']
-    list_filter = BaseNamedAdmin.list_filter + ['live', 'store']
+    list_filter = BaseNamedAdmin.list_filter + ['live']
 
 admin.site.register(Campaign, CampaignAdmin)
 

@@ -21,7 +21,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
     # TODO: Content blocks don't make as much sense now; when to clean up?
     # TODO: If we keep content blocks, should this be a method?
     # Assume only one content block
-    content_block = campaign.content_blocks.all()[0]    
+    content_block = campaign.content_blocks.all()[0]
 
     product = content_block.data.product
     product.json = json.dumps(product.data(raw=True))
