@@ -124,13 +124,41 @@ class ShopTheLookWizardForm(FeaturedProductWizardForm):
         return cleaned_data
 
 class ThemeForm(ModelForm):
-    # TODO: How to filter on self?
-    # e.g. we only want to choose campaigns, store based on current store.
-    store_theme = forms.ModelChoiceField(queryset=Store.objects.none())
-    store_mobile_theme = forms.ModelChoiceField(queryset=Store.objects.none())
+    # TODO: Can we migrate these fields to the theme?
+    # Then we wouldn't have to make these elaborate extra fields...
+    store_theme = forms.ModelChoiceField(
+        required=False,
+        queryset=Store.objects.none()
+    )
 
-    campaign_theme = forms.ModelChoiceField(queryset=Campaign.objects.none())
-    campaign_mobile_theme = forms.ModelChoiceField(queryset=Campaign.objects.none())
+    store_mobile_theme = forms.ModelChoiceField(
+        required=False,
+        queryset=Store.objects.none()
+    )
+
+    campaign_theme = forms.ModelChoiceField(
+        required=False,
+        queryset=Store.objects.none()
+    )
+
+    campaign_mobile_theme = forms.ModelChoiceField(
+        required=False,
+        queryset=Store.objects.none()
+    )
+
+    FORM_ATTR = {
+        'store_theme': 'theme',
+        'store_mobile_theme': 'mobile',
+        'campaign_theme': 'theme',
+        'campaign_mobile_theme': 'mobile'
+    }
+
+    THEME_ATTR = {
+        'store_theme': 'store',
+        'store_mobile_theme': 'store_mobile',
+        'campaign_theme': 'theme',
+        'campaign_mobile_theme': 'mobile'
+    }
 
     def __init__(self, *args, **kwargs):
         store_id = kwargs.pop('store_id', None)
@@ -147,14 +175,13 @@ class ThemeForm(ModelForm):
             .filter(store_id=store_id)
 
         if self.instance:
-            self.fields['store_theme'].initial = safe_getattr(
-                self.instance, 'store')
-            self.fields['store_mobile_theme'].initial = safe_getattr(
-                self.instance, 'store_mobile')
-            self.fields['campaign_theme'].initial = safe_getattr(
-                self.instance, 'theme')
-            self.fields['campaign_mobile_theme'].initial = safe_getattr(
-                self.instance, 'mobile')
+            for key, value in self.THEME_ATTR.iteritems():
+                try:
+                    self.fields[key].initial = getattr(
+                        self.instance, value
+                    ).get()
+                except:
+                    self.fields[key].initial = None
 
     class Meta:
         model = StoreTheme
@@ -163,3 +190,19 @@ class ThemeForm(ModelForm):
     def clean(self):
         cleaned_data = super(ThemeForm, self).clean()
         return cleaned_data
+
+    def save(self, *args, **kwargs):
+        model = super(ThemeForm, self).save(*args, **kwargs)
+
+        for key in self.changed_data:
+            obj = self.cleaned_data[key]
+
+            if self.FORM_ATTR.get(key) and obj:
+                setattr(obj, self.FORM_ATTR[key], model)
+                obj.save()
+            elif self.THEME_ATTR.get(key):
+                setattr(model, self.THEME_ATTR[key], [])
+
+        model.save()
+
+        return model
