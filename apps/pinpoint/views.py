@@ -371,7 +371,7 @@ def theme_manager(request, store_id):
     """
     store = get_object_or_404(Store, pk=store_id)
 
-    themes = list(StoreTheme.objects.filter(
+    themes = set(StoreTheme.objects.filter(
         Q(store__id=store_id)
         | Q(store_mobile__id=store_id)
         | Q(theme__isnull=False)
