@@ -284,7 +284,8 @@ class StoreTheme(BaseModelNamed):
         verbose_name='Image product preview'
     )
 
-    themable_fields = ['page', 'shop_the_look', 'featured_product', 'product',
+    # not necessarily "all lower case attributes in this class"
+    themable_attribs = ['page', 'shop_the_look', 'featured_product', 'product',
                        'combobox', 'youtube', 'instagram', 'product_preview',
                        'combobox_preview', 'instagram_preview',
                        'instagram_product_preview']
@@ -380,7 +381,7 @@ class StoreTheme(BaseModelNamed):
         In which case, the theme will be updated with p { background: red; }
             if blockwise_style_map contains ".youtube": "p { background: red; }".
         """
-        for field in self.themable_fields:
+        for field in self.themable_attribs:
             # field == 'shop_the_look', 'featured_product', ...
             for selector, styles in style_map.iteritems():
                 #  selector = '.block'; styles == '.block { ... }'
@@ -389,10 +390,9 @@ class StoreTheme(BaseModelNamed):
                            r'(?=\/\* ' + re.escape(string_after) + r' \(' + re.escape(selector) + r'\) \*\/)'
                 sub_pattern = '/* %s (%s) */\n%s\n' % (
                     string_before, selector, styles)
-                old_thing = getattr(self, field, '')
-                new_thing = re.sub(
-                    find_str, sub_pattern, old_thing, 0, re.M | re.I | re.S)
-                setattr(self, field, new_thing)
+                setattr(self, field,
+                        re.sub(find_str, sub_pattern, getattr(self, field, ''),
+                               0, re.M | re.I | re.S))
 
 
 class StoreThemeMedia(MediaBase):

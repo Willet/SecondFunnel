@@ -462,7 +462,7 @@ def edit_theme(request, store_id, theme_id=None):
 
 @belongs_to_store
 @login_required
-def live_theme(request, store_id, theme_id):
+def style_theme(request, store_id, theme_id):
     """Render live theme editor, and, if applicable, save the theme."""
 
     store = get_object_or_404(Store, pk=store_id)
