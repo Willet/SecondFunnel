@@ -1,5 +1,7 @@
 from django import forms
+from django.db.models.query import QuerySet
 from django.forms import ModelForm
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 from apps.assets.models import ProductMedia, GenericImage, Store
 from apps.pinpoint.models import StoreTheme, Campaign
@@ -126,24 +128,24 @@ class ShopTheLookWizardForm(FeaturedProductWizardForm):
 class ThemeForm(ModelForm):
     # TODO: Can we migrate these fields to the theme?
     # Then we wouldn't have to make these elaborate extra fields...
-    store_theme = forms.ModelChoiceField(
+    store_theme = forms.ModelMultipleChoiceField(
         required=False,
         queryset=Store.objects.none()
     )
 
-    store_mobile_theme = forms.ModelChoiceField(
+    store_mobile_theme = forms.ModelMultipleChoiceField(
         required=False,
         queryset=Store.objects.none()
     )
 
-    campaign_theme = forms.ModelChoiceField(
+    campaign_theme = forms.ModelMultipleChoiceField(
         required=False,
-        queryset=Store.objects.none()
+        queryset=Campaign.objects.none()
     )
 
-    campaign_mobile_theme = forms.ModelChoiceField(
+    campaign_mobile_theme = forms.ModelMultipleChoiceField(
         required=False,
-        queryset=Store.objects.none()
+        queryset=Campaign.objects.none()
     )
 
     FORM_ATTR = {
@@ -177,11 +179,11 @@ class ThemeForm(ModelForm):
         if self.instance:
             for key, value in self.THEME_ATTR.iteritems():
                 try:
-                    self.fields[key].initial = getattr(
+                    self.fields[key].initial = list(getattr(
                         self.instance, value
-                    ).get()
-                except:
-                    self.fields[key].initial = None
+                    ).all())
+                except ObjectDoesNotExist as o:
+                    self.fields[key].initial = []
 
     class Meta:
         model = StoreTheme
@@ -205,15 +207,55 @@ class ThemeForm(ModelForm):
     def save(self, *args, **kwargs):
         model = super(ThemeForm, self).save(*args, **kwargs)
 
+        changed_objs = {}
         for key in self.changed_data:
-            obj = self.cleaned_data[key]
+            qs = self.cleaned_data[key]
+            initial = self.fields[key].initial
 
-            if self.FORM_ATTR.get(key) and obj:
-                setattr(obj, self.FORM_ATTR[key], model)
-                obj.save()
-            elif self.THEME_ATTR.get(key):
-                setattr(model, self.THEME_ATTR[key], [])
+            # If it hasn't changed, continue
+            if qs == initial:
+                continue
 
-        model.save()
+            # Remove any previous associations
+            for elem in (initial or []):
+                change_id = elem.__class__.__name__ + str(elem.pk)
+                elem = changed_objs.get(change_id, elem)
+                setattr(elem, self.FORM_ATTR[key], None)
+                changed_objs[change_id] = elem
+
+            # Add new associations
+            for elem in qs:
+                change_id = elem.__class__.__name__ + str(elem.pk)
+                elem = changed_objs.get(change_id, elem)
+                setattr(elem, self.FORM_ATTR[key], model)
+                changed_objs[change_id] = elem
+
+            # ... but if there are none, set association from the 'other side'
+            if not qs:
+                change_id = model.__class__.__name__ + str(model.pk)
+                elem = changed_objs.get(change_id, model)
+                setattr(elem, self.THEME_ATTR[key], [])
+                changed_objs[change_id] = elem
+
+            # It was some value(s) and has changed
+            # It had some value(s) and now has none
+
+        #     if initial:
+        #         setattr(initial, self.FORM_ATTR[key], [])
+        #         changed_objs.append(obj)
+        #
+        #     # If it was `None` OR
+        #     # If it was a different value
+        #     if obj:
+        #         setattr(obj, self.FORM_ATTR[key], model)
+        #         changed_objs.append(obj)
+        #     # If it is now `None`
+        #     else:
+        #         setattr(model, self.THEME_ATTR[key], [])
+        #         changed_objs.append(model)
+        #
+
+        for obj in changed_objs.values():
+            obj.save()
 
         return model
