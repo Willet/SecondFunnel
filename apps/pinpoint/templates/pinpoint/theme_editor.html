@@ -115,6 +115,7 @@
             var form = $('#theme_parts_form');
             $('.preview-tab-trigger').click(function () {
                 // can't do direct GET/POST
+
                 $.ajax({
                     'url': '{% url preview-theme store_id theme_id %}',
                     'type': 'POST',
@@ -131,7 +132,7 @@
             {% if preview_enabled %}
                 $('.tabs').tabs();
             {% else %}
-                $('.tabs').tabs({disabled: [0]});
+                $('.tabs').tabs({disabled: [1]});
             {% endif %}
         });
     </script>

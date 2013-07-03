@@ -478,8 +478,10 @@ def style_theme(request, store_id, theme_id):
     try:
         campaign = Campaign.objects.filter(store=store).order_by('-last_modified')[0]
     except IndexError:  # store has no campaigns
-        return ajax_error({
-            'error': 'Theme preview requires at least one campaign in your account.'})
+        messages.error(request, 'Cannot open the theme editor. '
+            'Theme preview requires at least one campaign in your account.')
+        return redirect('theme-manager', store_id=store_id)
+
     # fields we have substitution tables (and names) for
     themable_fields = [(".cell", "Featured product area"),
                        (".lifestyle.cell", "Shop-the-look area"),
@@ -499,6 +501,7 @@ def style_theme(request, store_id, theme_id):
         theme.save()
         template_vars.update({'theme_saved': True})
 
+    # response_body is used to scan for styling regions declared by the theme.
     response_body = render_campaign(campaign, request, get_seeds, 'full')
     field_styles = [{
                         'selector': selector,

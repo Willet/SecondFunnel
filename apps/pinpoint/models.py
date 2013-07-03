@@ -355,10 +355,17 @@ class StoreTheme(BaseModelNamed):
         In which case, "p { background: red; }" is returned
             if block_name == '.youtube'.
         """
-        rej = re.compile(r'\/\* ' + re.escape(string_before) +
-                         r' \(' + re.escape(block_name) + '\) \*\/(.*?)(?=\/\* ' +
-                         re.escape(string_after) + r' \(' + re.escape(block_name) +
-                         '\) \*\/)', re.M | re.I | re.S)
+        rej = re.compile(r'''# /* do not... (selector) */
+                            \/\*\s+{0}\s+\({1}\)\s+\*\/
+                            # styles (captured, non-greedy)
+                            (.*?)
+                            # provided that it is followed by /* do not... (same selector) */
+                            (?=\/\*\s+{2}\s+\({3}\)\s+\*\/)
+                            '''.format(re.escape(string_before),
+                                       re.escape(block_name),
+                                       re.escape(string_after),
+                                       re.escape(block_name)),
+                         re.M | re.I | re.S | re.X)
         found_styles = rej.findall(theme_str)
         if found_styles and found_styles[0].strip():
             return found_styles[0].strip()
@@ -385,14 +392,21 @@ class StoreTheme(BaseModelNamed):
             # field == 'shop_the_look', 'featured_product', ...
             for selector, styles in style_map.iteritems():
                 #  selector = '.block'; styles == '.block { ... }'
-                find_str = r'\/\* ' + re.escape(string_before) + \
-                           r' \(' + re.escape(selector) + r'\) \*\/(.*?)' + \
-                           r'(?=\/\* ' + re.escape(string_after) + r' \(' + re.escape(selector) + r'\) \*\/)'
+                find_str = r'''# /* do not... (selector) */
+                               \/\*\s+{0}\s+\({1}\)\s+\*\/
+                               # styles (captured, non-greedy)
+                               (.*?)
+                               # provided that it is followed by /* do not... (same selector) */
+                               (?=\/\*\s+{2}\s+\({3}\)\s+\*\/)
+                               '''.format(re.escape(string_before),
+                                          re.escape(selector),
+                                          re.escape(string_after),
+                                          re.escape(selector))
                 sub_pattern = '/* %s (%s) */\n%s\n' % (
                     string_before, selector, styles)
                 setattr(self, field,
                         re.sub(find_str, sub_pattern, getattr(self, field, ''),
-                               0, re.M | re.I | re.S))
+                               0, re.M | re.I | re.S | re.X))
 
 
 class StoreThemeMedia(MediaBase):
