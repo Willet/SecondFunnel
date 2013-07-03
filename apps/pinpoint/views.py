@@ -488,7 +488,6 @@ def style_theme(request, store_id, theme_id):
                        (".block", "Generic block"),
                        (".product.block", "Product block"),
                        (".block.combobox", "Combobox"),
-                       (".featured.product", "Featured product area"),
                        (".preview", "Preview area"),
                        (".preview.container .content .instagram",
                         "Instagram preview area")]
