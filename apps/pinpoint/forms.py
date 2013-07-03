@@ -1,12 +1,9 @@
 from django import forms
-from django.db.models.query import QuerySet
 from django.forms import ModelForm
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import ObjectDoesNotExist
 
 from apps.assets.models import ProductMedia, GenericImage, Store
 from apps.pinpoint.models import StoreTheme, Campaign
-from apps.utils import safe_getattr
-
 
 class FeaturedProductWizardForm(forms.Form):
     """
@@ -236,24 +233,6 @@ class ThemeForm(ModelForm):
                 elem = changed_objs.get(change_id, model)
                 setattr(elem, self.THEME_ATTR[key], [])
                 changed_objs[change_id] = elem
-
-            # It was some value(s) and has changed
-            # It had some value(s) and now has none
-
-        #     if initial:
-        #         setattr(initial, self.FORM_ATTR[key], [])
-        #         changed_objs.append(obj)
-        #
-        #     # If it was `None` OR
-        #     # If it was a different value
-        #     if obj:
-        #         setattr(obj, self.FORM_ATTR[key], model)
-        #         changed_objs.append(obj)
-        #     # If it is now `None`
-        #     else:
-        #         setattr(model, self.THEME_ATTR[key], [])
-        #         changed_objs.append(model)
-        #
 
         for obj in changed_objs.values():
             obj.save()
