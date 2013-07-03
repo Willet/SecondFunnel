@@ -480,9 +480,7 @@ def live_theme(request, store_id, theme_id):
     except IndexError:  # store has no campaigns
         return ajax_error({
             'error': 'Theme preview requires at least one campaign in your account.'})
-    response_body = render_campaign(campaign, request, get_seeds, 'full')
-
-    # fields we have substitution tables for
+    # fields we have substitution tables (and names) for
     themable_fields = [(".cell", "Featured product area"),
                        (".lifestyle.cell", "Shop-the-look area"),
                        (".block", "Generic block"),
@@ -493,23 +491,24 @@ def live_theme(request, store_id, theme_id):
                        (".preview.container .content .instagram",
                         "Instagram preview area")]
 
-    field_styles = [{
-                        'selector': selector,
-                        'hint': hint,
-                        'styles': theme.extract_blockwise_styles(
-                            response_body, selector)
-                    } for selector, hint in themable_fields]
-    template_vars.update({'themable_fields': field_styles})
-
     if request.method == 'GET':
         pass
     elif request.method == 'POST':
-        blockwise_style_map = {
+        style_map = {
             x[0]: request.POST.get(x[0], '') for x in themable_fields
         }
-        theme.map_blockwise_styles(blockwise_style_map=blockwise_style_map)
-        # theme.save()
+        theme.set_styles(style_map=style_map)
+        theme.save()
         template_vars.update({'theme_saved': True})
+
+    response_body = render_campaign(campaign, request, get_seeds, 'full')
+    field_styles = [{
+                        'selector': selector,
+                        'hint': hint,
+                        'styles': theme.get_styles(
+                            response_body, selector)
+                    } for selector, hint in themable_fields]
+    template_vars.update({'themable_fields': field_styles})
 
     return render_to_response(
         'pinpoint/theme_preview.html',

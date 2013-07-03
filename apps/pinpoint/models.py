@@ -284,8 +284,7 @@ class StoreTheme(BaseModelNamed):
         verbose_name='Image product preview'
     )
 
-    # coincidentally, all except .page
-    themable_fields = ['shop_the_look', 'featured_product', 'product',
+    themable_fields = ['page', 'shop_the_look', 'featured_product', 'product',
                        'combobox', 'youtube', 'instagram', 'product_preview',
                        'combobox_preview', 'instagram_preview',
                        'instagram_product_preview']
@@ -341,9 +340,9 @@ class StoreTheme(BaseModelNamed):
     def __unicode__(self):
         return u"Theme: %s" % self.name
 
-    def extract_blockwise_styles(self, theme_str, block_name,
-                                 string_before=DEFAULT_STRING_BEFORE,
-                                 string_after=DEFAULT_STRING_AFTER):
+    def get_styles(self, theme_str, block_name,
+                   string_before=DEFAULT_STRING_BEFORE,
+                   string_after=DEFAULT_STRING_AFTER):
         """Return a string with the contents surrounding a theme struct
         similar to this one:
 
@@ -365,11 +364,11 @@ class StoreTheme(BaseModelNamed):
             return '%s {\n    \n}\n' % block_name # blank style
 
 
-    def map_blockwise_styles(self, blockwise_style_map,
-                             string_before=DEFAULT_STRING_BEFORE,
-                             string_after=DEFAULT_STRING_AFTER):
+    def set_styles(self, style_map,
+                   string_before=DEFAULT_STRING_BEFORE,
+                   string_after=DEFAULT_STRING_AFTER):
         """Return a StoreTheme object with all styles updated according to
-        blockwise_style_map, which is a dict: {"block_selector": "rules"}.
+        style_map, which is a dict: {"block_selector": "rules"}.
 
         /* do not edit after this line (.youtube) */
         /* do not edit before this line (.youtube) */
@@ -378,16 +377,18 @@ class StoreTheme(BaseModelNamed):
             if blockwise_style_map contains ".youtube": "p { background: red; }".
         """
         for field in self.themable_fields:
-            for selector, styles in blockwise_style_map.iteritems():
-                rej = re.compile(
-                    r'\/\* ' + re.escape(string_before) +
-                    r' \(' + re.escape(selector) + '\) \*\/(.*?)(?=\/\* ' +
-                    re.escape(string_after) + r' \(' + re.escape(selector) +
-                    '\) \*\/)', re.M | re.I | re.S)
-                setattr(self,
-                        field,
-                        rej.sub('/* %s */\n%s' % (string_before, styles),
-                                getattr(self, field, '')))
+            # field == 'shop_the_look', 'featured_product', ...
+            for selector, styles in style_map.iteritems():
+                #  selector = '.block'; styles == '.block { ... }'
+                find_str = r'\/\* ' + re.escape(string_before) + \
+                           r' \(' + re.escape(selector) + r'\) \*\/(.*?)' + \
+                           r'(?=\/\* ' + re.escape(string_after) + r' \(' + re.escape(selector) + r'\) \*\/)'
+                sub_pattern = '/* %s (%s) */\n%s\n' % (
+                    string_before, selector, styles)
+                old_thing = getattr(self, field, '')
+                new_thing = re.sub(
+                    find_str, sub_pattern, old_thing, 0, re.M | re.I | re.S)
+                setattr(self, field, new_thing)
 
 
 class StoreThemeMedia(MediaBase):
