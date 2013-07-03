@@ -67,9 +67,19 @@
 
             {% for field_data in themable_fields %}
                 <h2>{{ field_data.hint }}</h2>
-                <textarea name="{{ field_data.selector }}"
-                    data-target="{{ field_data.selector }}"
-                    cols="30" rows="5">{{ field_data.styles }}</textarea>
+                {% if field_data.styles %}
+                    {# this theme supports this selector #}
+                    <textarea name="{{ field_data.selector }}"
+                        data-target="{{ field_data.selector }}"
+                        cols="30" rows="5">{{ field_data.styles }}</textarea>
+                {% else %}
+                    {# this theme does not support this selector #}
+                    <textarea
+                        disabled="disabled"
+                        readonly="readonly"
+                        placeholder="Not supported"
+                        cols="30" rows="5"></textarea>
+                {% endif %}
             {% endfor %}
             <input class="button submit focus"
                    type="submit" value="Save theme" />

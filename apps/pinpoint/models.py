@@ -342,7 +342,8 @@ class StoreTheme(BaseModelNamed):
 
     def get_styles(self, theme_str, block_name,
                    string_before=DEFAULT_STRING_BEFORE,
-                   string_after=DEFAULT_STRING_AFTER):
+                   string_after=DEFAULT_STRING_AFTER,
+                   return_filler=False):
         """Return a string with the contents surrounding a theme struct
         similar to this one:
 
@@ -361,7 +362,10 @@ class StoreTheme(BaseModelNamed):
         if found_styles and found_styles[0].strip():
             return found_styles[0].strip()
         else:  # found_styles == None
-            return '%s {\n    \n}\n' % block_name # blank style
+            if return_filler:
+                return '%s {\n    \n}\n' % block_name # blank style
+            else:
+                return ''
 
 
     def set_styles(self, style_map,
