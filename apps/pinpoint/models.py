@@ -285,7 +285,7 @@ class StoreTheme(BaseModelNamed):
     )
 
     # not necessarily "all lower case attributes in this class"
-    themable_attribs = ['page', 'shop_the_look', 'featured_product', 'product',
+    THEMABLE_ATTRIBS = ['page', 'shop_the_look', 'featured_product', 'product',
                        'combobox', 'youtube', 'instagram', 'product_preview',
                        'combobox_preview', 'instagram_preview',
                        'instagram_product_preview']
@@ -381,7 +381,7 @@ class StoreTheme(BaseModelNamed):
         In which case, the theme will be updated with p { background: red; }
             if blockwise_style_map contains ".youtube": "p { background: red; }".
         """
-        for field in self.themable_attribs:
+        for field in self.THEMABLE_ATTRIBS:
             # field == 'shop_the_look', 'featured_product', ...
             for selector, styles in style_map.iteritems():
                 #  selector = '.block'; styles == '.block { ... }'

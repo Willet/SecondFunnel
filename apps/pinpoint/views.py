@@ -491,9 +491,7 @@ def style_theme(request, store_id, theme_id):
                        (".preview.container .content .instagram",
                         "Instagram preview area")]
 
-    if request.method == 'GET':
-        pass
-    elif request.method == 'POST':
+    if request.method == 'POST':
         style_map = {
             x[0]: request.POST.get(x[0], '') for x in themable_fields
         }
