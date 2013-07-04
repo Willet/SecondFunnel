@@ -502,12 +502,14 @@ def style_theme(request, store_id, theme_id):
 
     # response_body is used to scan for styling regions declared by the theme.
     response_body = render_campaign(campaign, request, get_seeds, 'full')
-    field_styles = [{
-                        'selector': selector,
-                        'hint': hint,
-                        'styles': theme.get_styles(
-                            response_body, selector)
-                    } for selector, hint in themable_fields]
+    field_styles = []
+    for selector, hint in themable_fields:
+        field_style = theme.get_styles(response_body, selector)
+        field_styles.append({
+            'selector': selector,
+            'hint': hint,
+            'styles': field_style
+        })
     template_vars.update({'themable_fields': field_styles})
 
     return render_to_response(

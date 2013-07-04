@@ -91,10 +91,20 @@
             frameborder="0"></iframe>
     <script type="text/javascript">
         $(document).ready(function () {
-            var page, pageFrame = $('#preview_frame'), pageWindow, pageQuery;
+            "use strict";
+            var highlight,
+                unhighlight,
+                getCombinedStyles,
+                applyStyles,
+                page,
+                pageFrame = $('#preview_frame'),
+                pageWindow,
+                pageQuery;
 
-            var highlight = function (selector) {
-                if (!page) return;
+            highlight = function (selector) {
+                if (!page) {
+                    return;
+                }
                 unhighlight();  // need to manually cancel the current highlight
                 setTimeout(function () {
                     pageQuery(selector).expose({
@@ -105,32 +115,14 @@
                 }, 200);
             };
 
-            var unhighlight = function () {
-                if (!page) return;
+            unhighlight = function () {
+                if (!page) {
+                    return;
+                }
                 pageQuery.mask.close();  // this call is non-blocking.
             };
 
-            var injectScript = function (url) {
-                if (!page) return;
-                var script = document.createElement('script');
-                script.type = 'text/javascript';
-                script.src = url;
-                page.find('head').append(script);
-            };
-
-            var compileSelectorStyles = function (selector, styleMap) {
-                // generate a string for the selector {prop:style} map.
-                var styleName, ssBuffer = selector + '{';
-                for (styleName in styleMap) {
-                    if (styleMap.hasOwnProperty(styleName)) {
-                        ssBuffer = ssBuffer + styleName + ':' +
-                                styleMap[styleName] + ';';
-                    }
-                }
-                return ssBuffer;
-            };
-
-            var getCombinedStyles = function () {
+            getCombinedStyles = function () {
                 // returns a string containing all added styles.
                 // does NOT necessarily validate.
                 var combinedStyles = '';
@@ -140,9 +132,11 @@
                 return combinedStyles;
             };
 
-            var applyStyles = function (computedCSS) {
+            applyStyles = function (computedCSS) {
                 // adds the css into the target page.
-                if (!page) return;
+                if (!page) {
+                    return;
+                }
                 var injectLocation = pageQuery('#style_inject_target');
                 if (!injectLocation.length) {
                     // make one up
@@ -174,7 +168,6 @@
                         // export newly entered css to the bottom of the page.
                         // it does not validate, because
                         // http://stackoverflow.com/questions/4803518
-                        $theElement = $(ev.target);
                         var combinedStyles = getCombinedStyles();
                         $('#themer #combined_styles').val(combinedStyles);
 

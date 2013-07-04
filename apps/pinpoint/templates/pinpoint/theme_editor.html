@@ -80,42 +80,10 @@
 {% block extra_js_includes %}
     <script src="{% static "js/jquery-ui.js" %}"></script>
     <script>
-        var extractStyles = function (htmlStr) {
-            // returns combined non-inline CSS styles in html source code.
-            var src = htmlStr,
-                regex = /(?:<style[^>]*>)([^\<]*)(?=\<\/style>)/i,
-                regexMatches,
-                results = [];
-            while (src.length) {
-                regexMatches = src.match(regex);
-                if (!regexMatches) break;
-                results.push(regexMatches[1]);
-                src = src.substr(regexMatches.index + regexMatches[0].length);
-            } while (regexMatches);
-            return results.join(';\n');
-        };
-
-        var getClassStyle = function (doc, className) {
-            doc = doc || document;
-            // retrieve existing style text for the given className.
-            var classes = doc.styleSheets[0].rules || doc.styleSheets[0].cssRules;
-            var rules = [];
-            for(var x=0;x<classes.length;x++) {
-                if(classes[x].selectorText === className) {  // TODO: multi-selector rules
-                    rules.push({
-                        'selector': classes[x].selectorText,
-                        'style': classes[x].cssText || classes[x].style.cssText
-                    })
-                }
-            }
-            return rules;
-        };
-
         $(document).ready(function () {
             var form = $('#theme_parts_form');
             $('.preview-tab-trigger').click(function () {
                 // can't do direct GET/POST
-
                 $.ajax({
                     'url': '{% url preview-theme store_id theme_id %}',
                     'type': 'POST',
