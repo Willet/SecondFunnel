@@ -493,9 +493,9 @@ def style_theme(request, store_id, theme_id):
                         "Instagram preview area")]
 
     if request.method == 'POST':
-        style_map = {
-            x[0]: request.POST.get(x[0], '') for x in themable_fields
-        }
+        style_map = {}
+        for x in themable_fields:
+            style_map[x[0]] = request.POST.get(x[0], '')
         theme.set_styles(style_map=style_map)
         theme.save()
         template_vars.update({'theme_saved': True})
