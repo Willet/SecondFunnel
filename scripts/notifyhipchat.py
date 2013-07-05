@@ -11,14 +11,6 @@ def hipchat_broadcast(by='HipChat', message='Hello, World!', room_id=115122):
                            "message": message, "message_format": "text"})
 
 
-where = ''
-try:
-    import os
-    where = os.getenv('PARAM1')
-    if where:
-        where = ' on %s' % where
-except KeyError:
-    where = ' on PRODUCTION'
-    pass
-
-hipchat_broadcast(by="Hubert", message="(goodnews) New version%s!" % where)
+import os
+where = os.getenv('PARAM1')
+hipchat_broadcast(by="Hubert", message="(goodnews) New version on %s!" % (where if where else "PRODUCTION"))
