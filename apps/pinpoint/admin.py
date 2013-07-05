@@ -45,5 +45,7 @@ class FeaturedProductBlockAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + ['product', 'get_image']
     list_filter = BaseNamedAdmin.list_filter + ['product']
 
+    search_fields = BaseNamedAdmin.search_fields + ['product__name']
+
 admin.site.register(FeaturedProductBlock, FeaturedProductBlockAdmin)
 admin.site.register(ShopTheLookBlock, FeaturedProductBlockAdmin)
