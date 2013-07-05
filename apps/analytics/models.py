@@ -64,10 +64,13 @@ class Metric(AnalyticsBase):
 
 
 class CategoryHasMetric(models.Model):
+    """Class for supporting Many-to-Many relationships between
+    Category and Metric.
+    """
     category = models.ForeignKey(Category)
     metric = models.ForeignKey(Metric)
 
-    order = models.PositiveIntegerField(default=0)
+    order = models.PositiveIntegerField(default=0)  # what is it?
     display = models.BooleanField(default=True)
 
     is_meta = models.BooleanField(default=False)
