@@ -344,6 +344,7 @@ def fetch_awareness_data(*args):
     # message could be larger than 64kb. As a quick way of circumventing the limitation,
     # use "shared memory" approach to message passing
     message = SharedStorage(data=pickle.dumps(fetched_rows))
+    logger.info("dumped {0} rows into shared storage".format(len(fetched_rows)))
     message.save()
 
     # pass ID of the message to the processing task
