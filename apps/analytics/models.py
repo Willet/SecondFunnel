@@ -85,7 +85,9 @@ class Metric(AnalyticsBase):
 
 
 class CategoryHasMetric(models.Model):
-    """
+    """Class for supporting Many-to-Many relationships between
+    Category and Metric.
+
     @ivar category: The associated category model.
     @ivar metric: The associated metric model.
     @ivar order: The order in which this model is returned when satisfying queries.
@@ -95,7 +97,7 @@ class CategoryHasMetric(models.Model):
     category = models.ForeignKey(Category)
     metric = models.ForeignKey(Metric)
 
-    order = models.PositiveIntegerField(default=0)
+    order = models.PositiveIntegerField(default=0)  # what is it?
     display = models.BooleanField(default=True)
 
     is_meta = models.BooleanField(default=False)
