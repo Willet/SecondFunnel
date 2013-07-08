@@ -481,12 +481,12 @@ class Campaign(BaseModelNamed):
     @ivar live: Whether or not the current page is live.
     """
     store = models.ForeignKey(Store)
-    theme = models.OneToOneField(StoreTheme,
+    theme = models.ForeignKey(StoreTheme,
         related_name='theme',
         blank=True,
         null=True,
         verbose_name='Campaign Theme')
-    mobile = models.OneToOneField(StoreTheme,
+    mobile = models.ForeignKey(StoreTheme,
         related_name='mobile',
         blank=True,
         null=True,
@@ -533,7 +533,7 @@ class Campaign(BaseModelNamed):
         type: a string; either 'full' or 'mobile'
         """
         priorities = {
-            'full'  : [
+            'full': [
                 self.theme,
                 self.store.theme,
                 None

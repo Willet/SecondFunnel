@@ -373,7 +373,7 @@ def theme_manager(request, store_id):
     """
     store = get_object_or_404(Store, pk=store_id)
 
-    themes = list(StoreTheme.objects.filter(
+    themes = set(StoreTheme.objects.filter(
         Q(store__id=store_id)
         | Q(store_mobile__id=store_id)
         | Q(theme__isnull=False)
@@ -438,9 +438,9 @@ def edit_theme(request, store_id, theme_id=None):
 
     if request.method == 'GET' and theme:
         # Only have to do something if the theme already exists
-        template_vars['formset'] = ThemeForm(instance=theme)
+        template_vars['formset'] = ThemeForm(instance=theme, store_id=store_id)
     elif request.method == 'POST':
-        form = ThemeForm(request.POST, instance=theme)
+        form = ThemeForm(request.POST, instance=theme, store_id=store_id)
         if form.is_valid():
             form.save()
             messages.success(
