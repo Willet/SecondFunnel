@@ -16,7 +16,6 @@ def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
-@belongs_to_store
 @login_required
 def analytics_pinpoint(request):
     """Aggregates analytics data found in the DB, and returns
