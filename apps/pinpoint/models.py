@@ -241,25 +241,25 @@ class StoreTheme(BaseModelNamed):
     # Main block templates
     shop_the_look = models.TextField(
         default=DEFAULT_SHOP_THE_LOOK,
-        verbose_name='"Shop the look"'
+        verbose_name='"Shop the look"',
     )
     featured_product = models.TextField(
         default=DEFAULT_FEATURED_PRODUCT,
-        verbose_name='"Featured product"'
+        verbose_name='"Featured product"',
     )
 
     # Discovery block templates
     product = models.TextField(
         default=DEFAULT_PRODUCT,
-        verbose_name='Product'
+        verbose_name='Product',
     )
     combobox = models.TextField(
         default=DEFAULT_COMBOBOX,
-        verbose_name='Combobox'
+        verbose_name='Combobox',
     )
     youtube = models.TextField(
         default=DEFAULT_YOUTUBE,
-        verbose_name='Youtube'
+        verbose_name='Youtube',
     )
     instagram = models.TextField(
         default=DEFAULT_INSTAGRAM,
@@ -283,6 +283,15 @@ class StoreTheme(BaseModelNamed):
         default=DEFAULT_INSTAGRAM_PRODUCT_PREVIEW,
         verbose_name='Image product preview'
     )
+
+    # not necessarily "all lower case attributes in this class"
+    THEMABLE_ATTRIBS = ['page', 'shop_the_look', 'featured_product', 'product',
+                       'combobox', 'youtube', 'instagram', 'product_preview',
+                       'combobox_preview', 'instagram_preview',
+                       'instagram_product_preview']
+
+    DEFAULT_STRING_BEFORE = "do not edit after this line"
+    DEFAULT_STRING_AFTER = "do not edit before this line"
 
     def __init__(self, *args, **kwargs):
         super(StoreTheme, self).__init__(*args, **kwargs)
@@ -331,6 +340,73 @@ class StoreTheme(BaseModelNamed):
 
     def __unicode__(self):
         return u"Theme: %s" % self.name
+
+    def get_styles(self, theme_str, block_name,
+                   string_before=DEFAULT_STRING_BEFORE,
+                   string_after=DEFAULT_STRING_AFTER,
+                   return_filler=False):
+        """Return a string with the contents surrounding a theme struct
+        similar to this one:
+
+        /* do not edit after this line (.youtube) */
+        p { background: red; }
+        /* do not edit before this line (.youtube) */
+
+        In which case, "p { background: red; }" is returned
+            if block_name == '.youtube'.
+        """
+        rej = re.compile(r'''# /* do not... (selector) */
+                            \/\*\s+{0}\s+\({1}\)\s+\*\/
+                            # styles (captured, non-greedy)
+                            (.*?)
+                            # provided that it is followed by /* do not... (same selector) */
+                            (?=\/\*\s+{2}\s+\({3}\)\s+\*\/)
+                            '''.format(re.escape(string_before),
+                                       re.escape(block_name),
+                                       re.escape(string_after),
+                                       re.escape(block_name)),
+                         re.M | re.I | re.S | re.X)
+        found_styles = rej.findall(theme_str)
+        if found_styles and found_styles[0].strip():
+            return found_styles[0].strip()
+        else:  # found_styles == None
+            if return_filler:
+                return '%s {\n    \n}\n' % block_name # blank style
+            else:
+                return ''
+
+
+    def set_styles(self, style_map,
+                   string_before=DEFAULT_STRING_BEFORE,
+                   string_after=DEFAULT_STRING_AFTER):
+        """Return a StoreTheme object with all styles updated according to
+        style_map, which is a dict: {"block_selector": "rules"}.
+
+        /* do not edit after this line (.youtube) */
+        /* do not edit before this line (.youtube) */
+
+        In which case, the theme will be updated with p { background: red; }
+            if blockwise_style_map contains ".youtube": "p { background: red; }".
+        """
+        for field in self.THEMABLE_ATTRIBS:
+            # field == 'shop_the_look', 'featured_product', ...
+            for selector, styles in style_map.iteritems():
+                #  selector = '.block'; styles == '.block { ... }'
+                find_str = r'''# /* do not... (selector) */
+                               \/\*\s+{0}\s+\({1}\)\s+\*\/
+                               # styles (captured, non-greedy)
+                               (.*?)
+                               # provided that it is followed by /* do not... (same selector) */
+                               (?=\/\*\s+{2}\s+\({3}\)\s+\*\/)
+                               '''.format(re.escape(string_before),
+                                          re.escape(selector),
+                                          re.escape(string_after),
+                                          re.escape(selector))
+                sub_pattern = '/* %s (%s) */\n%s\n' % (
+                    string_before, selector, styles)
+                setattr(self, field,
+                        re.sub(find_str, sub_pattern, getattr(self, field, ''),
+                               0, re.M | re.I | re.S | re.X))
 
 
 class StoreThemeMedia(MediaBase):
@@ -405,12 +481,12 @@ class Campaign(BaseModelNamed):
     @ivar live: Whether or not the current page is live.
     """
     store = models.ForeignKey(Store)
-    theme = models.OneToOneField(StoreTheme,
+    theme = models.ForeignKey(StoreTheme,
         related_name='theme',
         blank=True,
         null=True,
         verbose_name='Campaign Theme')
-    mobile = models.OneToOneField(StoreTheme,
+    mobile = models.ForeignKey(StoreTheme,
         related_name='mobile',
         blank=True,
         null=True,
@@ -457,7 +533,7 @@ class Campaign(BaseModelNamed):
         type: a string; either 'full' or 'mobile'
         """
         priorities = {
-            'full'  : [
+            'full': [
                 self.theme,
                 self.store.theme,
                 None

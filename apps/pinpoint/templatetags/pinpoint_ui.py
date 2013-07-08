@@ -1,3 +1,5 @@
+import re
+
 from django import template
 from django.conf import settings
 from django.db.models import Q
@@ -100,9 +102,18 @@ def include_escaped(parser, token):
     """Renders a template with the contents excaped."""
     return IncludeEscNode(parser, token)
 
+
 @register.filter(name='size')
 def size(value, arg):
     if not value:
         return value
 
     return value.replace("master.jpg", "{0}.jpg".format(arg))
+
+
+@register.simple_tag
+def extract_style(some_string):
+    """Returns the sum of non-inline CSS included in the HTML string."""
+    styles = re.findall('<style[^>]*>([^<]*)</style>', some_string,
+                        re.MULTILINE)
+    return ';\n'.join(styles)
