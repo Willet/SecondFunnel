@@ -15,6 +15,12 @@
     <link rel="stylesheet" href="{% static "css/smoothness/jquery-ui.css" %}"
           xmlns="http://www.w3.org/1999/html">
     <style type="text/css">
+
+        input[type="text"], textarea {
+            margin-top: -8px;
+            margin-bottom: 8px;
+        }
+
         .button {
             float: right;
             position: relative;
@@ -34,22 +40,26 @@
             height: 65px;
         }
 
-        .field {
+        .field, form label {
             display: inline-block;
             width: 150px;
             text-align: right;
             font-size:  16px;
             vertical-align: top;
-            margin-top: 5px;
             margin-right: 5px;
         }
 
-        .row {
+        .row, form li {
             margin-bottom: 10px;
         }
 
+<<<<<<< HEAD
+        .row input, .row textarea, form li input, form li textarea {
+            width: 650px;
+=======
         .row input, .row textarea {
             width: 640px;
+>>>>>>> de8de47fc5deb9d982d4d35bd0dd2982a48ad4b6
         }
 
         .row textarea {
@@ -66,6 +76,10 @@
             -o-transform-origin: 0 0;
             -webkit-transform: scale(0.75);
             -webkit-transform-origin: 0 0;
+        }
+
+        form li {
+            list-style: none;
         }
     </style>
     <!--[if IE 8]>
