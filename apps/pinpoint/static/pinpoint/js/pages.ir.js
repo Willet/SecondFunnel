@@ -38,7 +38,7 @@ PAGES.intentRank = (function (me, details, mediator) {
             dataType: 'jsonp',
             success: function () {
                 if (exceededThreshold) {
-                    PAGES.loadMoreResults(true);
+                    PAGES.loadMoreResults(null, true);
                 }
             }
         });
@@ -46,7 +46,7 @@ PAGES.intentRank = (function (me, details, mediator) {
 
     me.updateContentStream = function (product) {
         /* @return: none */
-        PAGES.loadMoreResults(false, product);
+        PAGES.loadMoreResults(null, false, product);
     };
 
     me.getInitialResults = function (callback, seed) {
