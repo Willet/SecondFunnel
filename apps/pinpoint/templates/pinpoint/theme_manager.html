@@ -235,7 +235,7 @@
             <th>{% trans "Name" %}</th>
             <th>{% trans "Date Modified" %}</th>
             <th>{% trans "Properties" %}</th>
-            <th></th>
+            <th>{% trans "Edit" %}</th>
         </tr>
         </thead>
         <tbody>
@@ -244,9 +244,12 @@
                 <td><div>{{ theme.obj.name }}</div></td>
                 <td><div data-timestamp='{{ theme.obj.last_modified|date:"U" }}'>{% blocktrans with day=theme.obj.last_modified|naturalday %}{{ day }}{% endblocktrans %}</div></td>
                 <td><div>{% for tag in theme.tags%}{{ tag }}{% if not forloop.last %}, {% endif %}{% endfor %}</div></td>
-                <td><div>
-                    <a href='{% url edit-theme store_id theme.obj.id %}'>Edit</a>
-                </div></td>
+                <td>
+                    <div>
+                        <a href='{% url edit-theme store_id theme.obj.id %}'>{% trans "Code" %}</a> |
+                        <a href='{% url style-theme store_id theme.obj.id %}'>{% trans "Styles" %}</a>
+                    </div>
+                </td>
             </tr>
         {% endfor %}
         </tbody>
