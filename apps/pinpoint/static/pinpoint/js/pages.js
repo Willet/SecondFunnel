@@ -725,7 +725,7 @@ PAGES.full = (function (me, mediator) {
                     // Create a spinner image that can be used to indicate a block is loading.
                     $spinner = $('<img/>', {
                         'class': "image-loading-spinner",
-                        'style': "padding-top:100px; padding-bottom:100px; width:32px; height:32px; position:relative; left:50%;",
+                        'style': "padding-top:100px; padding-bottom:100px; width:32px !important; height:32px; position:relative; left:50%;",
                         'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
                     });
 
@@ -751,6 +751,16 @@ PAGES.full = (function (me, mediator) {
                         });
                     });
                 }
+
+                $images.error(function(){
+                    var instance = $(this), 
+                        isAdded = setInterval(function(){
+                            if ($.contains(document.documentElement, instance[0])) {
+                                instance.parent().parent().remove();
+                                clearInterval(isAdded);
+                            }
+                        }, 500);
+                });
 
                 if ($elem.find('.lifestyle').length > 0) {
                     $elem.addClass('wide');
