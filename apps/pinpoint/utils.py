@@ -89,7 +89,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
             elif field_type == "theme":
                 result = getattr(theme, value)
             else:
-                result = None
+                continue
 
             # TODO: Do we need to render, or can we just convert to string?
             # answer: we only need to convert it to a string.
