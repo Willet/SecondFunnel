@@ -31,8 +31,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
         content_block.data, 'get_ls_image', noop)(url=True) or ''
     campaign.featured_image = getattr(
         content_block.data, 'get_image', noop)(url=True) or ''
-    campaign.description = safe(
-        content_block.data.description or product.description)
+    campaign.description = (content_block.data.description or product.description).encode('unicode_escape')
     campaign.template = slugify(
         content_block.block_type.name)
 
@@ -103,7 +102,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
         for tuppie in list(itertools.product(['', ' '], repeat=2)):
             # even replacing all four combinations is faster than a regex
             field_marker = '{{%s%s%s}}' % (tuppie[0], field, tuppie[1])
-            field_markup = ''.join(sub_values).decode("string_escape")
+            field_markup = ''.join(sub_values).decode("unicode_escape")
             page_str = page_str.replace(field_marker, field_markup)
 
     # Page content
