@@ -643,6 +643,7 @@ PAGES.full = (function (me, mediator) {
                         $(jsonData).slice(0, PAGES.MAX_RESULTS_PER_SCROLL),  // no shuffle
                 initialResults = Math.max(results.length, PAGES.MAX_RESULTS_PER_SCROLL),
                 i,
+                j,
                 productDoms = [],
                 template,
                 templateEl,
@@ -702,7 +703,11 @@ PAGES.full = (function (me, mediator) {
                         el = $(rendered_block);
                         el.data(template_context);  // populate the .product.block div with data
 
-                        productDoms.push(el[0]);
+                        var templateElsLength = el.length;
+                        for (j=0; j<templateElsLength; j++) {
+                            // didn't have a better name for a loop
+                            productDoms.push(el[j]);
+                        }
                     }
 
                 } catch (err) {  // hide rendering error
