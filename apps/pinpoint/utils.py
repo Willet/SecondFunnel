@@ -1,9 +1,9 @@
 """
 Various utilities to assist and share among components of the PinPoint app
 """
-import itertools
 import json
 import re
+from collections import defaultdict
 from datetime import datetime
 
 from django.conf import settings
@@ -18,6 +18,17 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
     Related products are populated statically only if a request object
     is provided.
     """
+
+    def repl(match):
+        """Returns a replaced tag content for a tag, or
+        the original tag if we have no data for that tag.
+        """
+        match_str = match.group(1)  # just the field: e.g. 'desktop_content'
+
+        if sub_values.has_key(match_str):
+            return ''.join(sub_values[match_str])
+        else:
+            return match.group(0)  # leave unchanged
 
     # TODO: Content blocks don't make as much sense now; when to clean up?
     # TODO: If we keep content blocks, should this be a method?
@@ -71,6 +82,9 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
     page_str = theme.page
 
     # Replace necessary tags
+    sub_values = defaultdict(list)
+    regex = re.compile("\{\{\s*(\w+)\s*\}\}")
+
     # REQUIRED is a bit of a misnomer...
     for field, details in theme.REQUIRED_FIELDS.iteritems():
         # field: e.g. 'desktop_content'
@@ -80,7 +94,6 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
         field_type = details.get('type')
         values = details.get('values')
 
-        sub_values = []
         for value in values:  # list of file names or templates
 
             if field_type == "template":
@@ -97,13 +110,9 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
             else:
                 result = result.encode('unicode-escape')
 
-            sub_values.append(result)
+            sub_values[field].append(result.decode("unicode_escape"))
 
-        for tuppie in list(itertools.product(['', ' '], repeat=2)):
-            # even replacing all four combinations is faster than a regex
-            field_marker = '{{%s%s%s}}' % (tuppie[0], field, tuppie[1])
-            field_markup = ''.join(sub_values).decode("unicode_escape")
-            page_str = page_str.replace(field_marker, field_markup)
+    page_str = regex.sub(repl, page_str)
 
     # Page content
     page = Template(page_str)
