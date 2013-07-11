@@ -449,7 +449,7 @@ def get_related_content_product(request, id=None):
 
         results.append(item)
 
-    return HttpResponse(json.dumps(results), mimetype='application/json')
+    return HttpResponse(json.dumps(results), content_type='application/json')
 
 def get_related_content_store(request, id=None):
     if not id:
@@ -502,4 +502,4 @@ def get_related_content_store(request, id=None):
             )
         })
 
-    return HttpResponse(json.dumps(results), mimetype='application/json')
+    return HttpResponse(json.dumps(results), content_type='application/json')
