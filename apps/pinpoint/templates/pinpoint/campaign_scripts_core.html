@@ -74,27 +74,12 @@
 <script src="{% static "pinpoint/js/button_maker.js" %}"></script>
 <script src="{% static "pinpoint/js/pages.js" %}"></script>
 <script src="{% static "pinpoint/js/pages.ir.js" %}"></script>
-
-
-{% if device_mode == 'desktop' or device_mode == 'full' %}
-    <script src="{% static "js/jquery.viewport.js" %}"></script>
-    <script src="{% static "js/jquery.masonry.min.js" %}"></script>
-    <script src="{% static "js/jquery.imagesloaded.min.js" %}"></script>
-{% elif device_mode == 'mobile' %}
-    <script src="{% static "js/jquery.mobile-1.2.1.min.js" %}"></script>
-    <script src="{% static "js/mbp.js" %}"></script>
-    <script src="{% static "js/swipe.js" %}"></script>
-{% else %}
-    <script>console.log('warning: device_mode unrecognized or missing');</script>
-    <!-- include everything just in case -->
-    <script src="{% static "js/jquery.viewport.js" %}"></script>
-    <script src="{% static "js/jquery.masonry.min.js" %}"></script>
-    <script src="{% static "js/jquery.imagesloaded.min.js" %}"></script>
-    <script src="{% static "js/jquery.mobile-1.2.1.min.js" %}"></script>
-    <script src="{% static "js/mbp.js" %}"></script>
-    <script src="{% static "js/swipe.js" %}"></script>
-{% endif %}
-
+<script src="{% static "js/jquery.viewport.js" %}"></script>
+<script src="{% static "js/jquery.masonry.min.js" %}"></script>
+<script src="{% static "js/jquery.imagesloaded.min.js" %}"></script>
+<script src="{% static "js/jquery.mobile-1.2.1.min.js" %}"></script>
+<script src="{% static "js/mbp.js" %}"></script>
+<script src="{% static "js/swipe.js" %}"></script>
 
 <script type="text/javascript">
     var _gaq = _gaq || [];
@@ -121,14 +106,10 @@
         ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
     })();
-</script>
 
-{% if device_mode == 'mobile' %}
-    <script type="text/javascript">
+    if (Willet.browser.mobile) {
         PAGES.init(PAGES.mobile.readyFunc, PAGES.mobile.layoutFunc);
-    </script>
-{% else %}
-    <script type="text/javascript">
+    } else {
         $(function() {
             $.Mason.prototype._placeBrick = function( brick ) {
                 var $brick = $(brick),
@@ -242,20 +223,19 @@
                 }
             }
         });
-    </script>
 
-    <script type="text/javascript">
         // Load Youtube IFrame Player API code asynchronously
         var tag = document.createElement('script');
         tag.src = "//www.youtube.com/iframe_api";
 
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    }
 
-        function onYouTubeIframeAPIReady() {
+    function onYouTubeIframeAPIReady() {
+        if (!Willet.browser.mobile) {
             PAGES.init(PAGES.full.readyFunc, PAGES.full.layoutFunc);
         }
-    </script>
-{% endif %}
-
+    }
+</script>
 {% endcompress %}

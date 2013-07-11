@@ -66,6 +66,43 @@ var PAGES = (function ($, details, mediator) {
         return name;
     }
 
+    function getByAttrib(key, value, x, scope) {
+        // attribute selector - shorthand for $('[{x=data}-{key}="value"]').
+        // x and scope are optional.
+        if (x === undefined) {
+            x = 'data';
+        }
+        if (x !== '') {
+            x = x + '-';
+        }
+        scope = scope || document;  // the whole page. window doesn't work.
+        return $('[' + x + key + '="' +
+            value.replace(/([ #;&,.+*~\':"!^$[\]()=>|\/@])/g,'\\$1') +
+            '"]', scope);
+    }
+
+    function getTemplate(templateId) {
+        // returns the required template.
+        // right now, it only resolves mobile templates for mobile devices.
+        // in the event that a mobile template is not found, the full template
+        // will be served in place.
+        var i,
+            templateEls = getByAttrib('template-id', templateId);
+        if (templateEls.length > 1) {
+            for (i = 0; i < templateEls.length; i++) {
+                if (templateEls.eq(i).data('media') === 'mobile') {
+                    templateEls = templateEls.eq(i);
+                    return templateEls;
+                }
+            }
+        }
+
+        // if nothing specified, pick the first one.
+        // it can be an empty jquery object. (for e.g. 'image' template)
+        templateEls = templateEls.eq(0);
+        return templateEls;
+    }
+
     function size(url, desiredSize) {
         // NOTE: We do not check if the new image exists because we implicitly
         // trust that our service will contain the required image.
