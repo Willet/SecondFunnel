@@ -446,10 +446,7 @@ var PAGES = (function ($, details, mediator) {
 
         // Inserts content after the clicked product block (Animated)
         relatedContent.insertAfter($target);
-        $discovery.masonry('reload');
-        relatedContent.show();
-        /* // Inserts content after the clicked product block (Non-Animated)
-           $.when($discovery.masonry('reload')).then(function(){ relatedContent.show();}); */
+        $discovery.masonry( 'reloadItems' ).masonry();
     }
 
     function pageScroll() {
@@ -776,7 +773,7 @@ PAGES.full = (function (me, mediator) {
                 }
 
                 if (!related) {
-                    $('.discovery-area').append($elem).masonry('appended', $elem, true);
+                    $('.discovery-area').append($elem).masonry('appended', $elem);
                 }
             });
 
@@ -881,8 +878,8 @@ PAGES.full = (function (me, mediator) {
                     return;
                 }
 
-                // hack. tell masonry to reposition blocks
-                $(window).resize();
+                // Tell masonry to reposition blocks
+                $('.discovery-area').masonry();
                 PAGES.setLoadingBlocks(false);
             });
         },
@@ -894,12 +891,9 @@ PAGES.full = (function (me, mediator) {
 
             $('.discovery-area').masonry({
                 itemSelector: '.block',
-
-                columnWidth: function (containerWidth) {
-                    return containerWidth / 4;
-                },
-
+                columnWidth: $('.discovery-area').width() / 4,
                 isResizable: true,
+                isSmartNodes: true,
                 isAnimated: true
             });
 
