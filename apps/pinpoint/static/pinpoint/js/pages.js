@@ -67,7 +67,7 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function getByAttrib(key, value, x, scope) {
-        // attribute selector - shorthand for $('[{x=data}-{key}="value"]').
+        // attribute selector - shorthand for $('[{x=data}-?{key}="value"]').
         // x and scope are optional.
         if (x === undefined) {
             x = 'data';
@@ -181,7 +181,7 @@ var PAGES = (function ($, details, mediator) {
                         // cached
                         return domTemplateCache[templateId];
                     } else {
-                        var $el = $('[data-template-id="' + templateId + '"]');
+                        var $el = getTemplate(templateId);
                         if ($el.length) {
                             // cache
                             domTemplateCache[templateId] = $el.html();
@@ -244,7 +244,7 @@ var PAGES = (function ($, details, mediator) {
             }
 
             // if the required template is on the page, use it
-            srcElement = $("[data-template-id='" + src + "']");
+            srcElement = getTemplate(src);
             if (srcElement.length) {
                 // populate context with all available variables
                 $.extend(context, originalContext, {
@@ -266,7 +266,7 @@ var PAGES = (function ($, details, mediator) {
         var i,
             data = $(me).data(),
             templateName = getModifiedTemplateName(data.template),
-            $previewContainer = $('[data-template-id="preview-container"]'),
+            $previewContainer = getTemplate("preview-container"),
             $previewMask = $previewContainer.find('.mask'),
             $target = $previewContainer.find('.target.template'),
             templateId,
@@ -282,12 +282,12 @@ var PAGES = (function ($, details, mediator) {
 
         templateId = templateName + '-preview';
 
-        template = $('[data-template-id="' + templateId + '"]').html();
+        template = getTemplate(templateId).html();
 
         if (!template && (templateId.indexOf('image') === 0)) {
             // legacy themes don't have 'image-' templates
             templateId = 'instagram' + templateId.slice(5);
-            template = $('[data-template-id="' + templateId + '"]').html();
+            template = getTemplate(templateId).html();
         }
 
         if (_.isEmpty(template) || _.isEmpty($target)) {
@@ -554,7 +554,7 @@ var PAGES = (function ($, details, mediator) {
             item = scripts[i];
             if (_.contains(scriptsLoaded, item.src)) {
                 mediator.fire(
-                    'log',
+                    'error',
                     ['script ' + item.src + ' already loaded; skipping.']
                 );
             } else {
@@ -617,7 +617,8 @@ var PAGES = (function ($, details, mediator) {
         'details': details,
         'getLoadingBlocks': getLoadingBlocks,
         'setLoadingBlocks': setLoadingBlocks,
-        'getModifiedTemplateName': getModifiedTemplateName
+        'getModifiedTemplateName': getModifiedTemplateName,
+        'getTemplate': getTemplate
     };
 }(jQuery,
     window.PAGES_INFO || window.TEST_PAGE_DATA || {},
@@ -675,7 +676,7 @@ PAGES.full = (function (me, mediator) {
                     result = results[i];
                     template_context = result;
                     templateType = PAGES.getModifiedTemplateName(result.template) || 'product';
-                    templateEl = $("[data-template-id='" + templateType + "']");
+                    templateEl = PAGES.getTemplate(templateType);
                     template = templateEl.html();
 
                     switch (templateType) {
@@ -698,7 +699,7 @@ PAGES.full = (function (me, mediator) {
                         if (!template) {
                             // Legacy themes do not support these templates
                             revisedType = 'instagram';
-                            templateEl = $("[data-template-id='" + revisedType + "']");
+                            templateEl = PAGES.getTemplate(revisedType);
                             template = templateEl.html();
                         }
                         break;
@@ -920,8 +921,7 @@ PAGES.full = (function (me, mediator) {
 
             $('.preview .mask, .preview .close').on('click', PAGES.hidePreview);
 
-            $(window).scroll(PAGES.pageScroll);
-            $(window).resize(PAGES.pageScroll);
+            $(window).scroll(PAGES.pageScroll).resize(PAGES.pageScroll);
 
             // Prevent social buttons from causing other events
             $('.social-buttons .button').on('click', function(e) {
@@ -938,7 +938,7 @@ PAGES.full = (function (me, mediator) {
 
 
 // mobile component
-PAGES.mobile = (function (me) {
+PAGES.mobile = (function (me, mediator) {
     "use strict";
 
     var localData = {};
@@ -946,7 +946,7 @@ PAGES.mobile = (function (me) {
     me = {
         'layoutFunc': function (jsonData, belowFold, related) {
             var renderToView = function (viewSelector, templateName, context, append) {
-                var template = $("[data-template-id='" + templateName + "']").html(),
+                var template = PAGES.getTemplate(templateName).html(),
                     renderedBlock;
 
                 // template does not exist
@@ -971,7 +971,7 @@ PAGES.mobile = (function (me) {
                 // Old themes used 'instagram',
                 // need to verify template exists
                 if (templateName === 'image' &&
-                    !$("[data-template-id='" + templateName + "']").html()) {
+                    !PAGES.getTemplate(templateName).html()) {
                     templateName = 'instagram';
                 }
 
@@ -996,12 +996,11 @@ PAGES.mobile = (function (me) {
                 MBP.preventZoom();
             }
 
-            $(window).scroll(PAGES.pageScroll);
-            $(window).resize(PAGES.pageScroll);
+            $(window).scroll(PAGES.pageScroll).resize(PAGES.pageScroll);
 
             Willet.mediator.fire('IR.loadInitialResults');
         }
     };
 
     return me;
-})();
+})(PAGES.mobile || {}, Willet.mediator);
