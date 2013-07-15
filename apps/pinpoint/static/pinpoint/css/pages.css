@@ -124,10 +124,9 @@ body {
 }
 
 .preview .content {
-    overflow: hidden;
+    display: block;
+    margin: auto; 
     width: 800px;
-    margin-left: auto;
-    margin-right: auto;
     position: relative;
 
     background: #fff;
@@ -138,6 +137,13 @@ body {
     -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
     -o-box-shadow: 10px 10px 10px 0px #CECECE;
     box-shadow: 10px 10px 10px 0px #CECECE;
+}
+
+.preview .content:after {
+    /* clearfix to allow preview to size to content */
+    content: "";
+    display: table;
+    clear: both;
 }
 
 .preview .close {
