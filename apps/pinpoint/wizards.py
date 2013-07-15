@@ -101,7 +101,7 @@ class Wizard(object):
 
         return form, None
 
-    def _create_form_with_initial_data(self):
+    def _create_form_with_intial_data(self):
         return None
 
     def _post(self):
@@ -261,10 +261,10 @@ class FeaturedProductWizard(Wizard):
         block.save()
 
         campaign = Campaign(
-            store = self.store,
-            name = form.cleaned_data['name'],
-            description = form.cleaned_data.get('page_description', ''),
-            live = not self.preview
+            store=self.store,
+            name=form.cleaned_data['name'],
+            description=form.cleaned_data.get('page_description', ''),
+            live=not self.preview
         )
         campaign.save()
 
@@ -279,8 +279,8 @@ class FeaturedProductWizard(Wizard):
             ProductMedia.objects.filter(pk=product_media_id).exists()
 
         featured_product_data = FeaturedProductBlock(
-            product = product,
-            description = form.cleaned_data['description']
+            product=product,
+            description=form.cleaned_data['description']
         )
 
         # existing product media was selected
@@ -294,9 +294,9 @@ class FeaturedProductWizard(Wizard):
 
         featured_product_data.save()
         block_content = BlockContent(
-            block_type = self.block_type,
-            content_type = ContentType.objects.get_for_model(FeaturedProductBlock),
-            object_id = featured_product_data.id
+            block_type=self.block_type,
+            content_type=ContentType.objects.get_for_model(FeaturedProductBlock),
+            object_id=featured_product_data.id
         )
         return block_content
 
@@ -362,8 +362,8 @@ class ShopTheLookWizard(FeaturedProductWizard):
         ls_generic_media_id = form.cleaned_data.get("ls_generic_media_id")
 
         product_data = ShopTheLookBlock(
-            product = product,
-            description = form.cleaned_data['description']
+            product=product,
+            description=form.cleaned_data['description']
         )
 
         has_product_media = product_media_id and\
@@ -388,9 +388,9 @@ class ShopTheLookWizard(FeaturedProductWizard):
 
         product_data.save()  # will raise exception if images are missing
         block_content = BlockContent(
-            block_type = self.block_type,
-            content_type = ContentType.objects.get_for_model(ShopTheLookBlock),
-            object_id = product_data.id
+            block_type=self.block_type,
+            content_type=ContentType.objects.get_for_model(ShopTheLookBlock),
+            object_id=product_data.id
         )
         return block_content
 

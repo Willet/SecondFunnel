@@ -128,11 +128,11 @@ class ExternalContentAdmin(BaseAdmin):
     list_filter = BaseNamedAdmin.list_filter + ['store', 'categories']
 
     filter_horizontal = ('tagged_products',)
-
-    search_fields = BaseNamedAdmin.search_fields + ['original_url']
     
     class Media:
         js = ( "js/youtube_admin_look.js", )
+
+    search_fields = BaseNamedAdmin.search_fields + ['original_url']
 
     readonly_fields = ('preview', )
 

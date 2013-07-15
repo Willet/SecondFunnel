@@ -68,7 +68,7 @@ class ProductResource(ModelResource):
 
     class Meta:
         """Django's way of defining a model's metadata."""
-        queryset = Product.objects.filter(available=True)
+        queryset = Product.objects.all()
         resource_name = 'product'
 
         filtering = {

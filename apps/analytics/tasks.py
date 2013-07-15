@@ -14,7 +14,8 @@ from datetime import date, datetime
 from functools import partial
 from urlparse import urlparse
 
-from celery import task, subtask, chain
+# http://docs.celeryproject.org/en/latest/django/first-steps-with-django.html#defining-and-calling-tasks
+from celery import task, chain
 from celery.utils.log import get_task_logger
 from oauth2client.client import SignedJwtAssertionCredentials
 
@@ -55,21 +56,12 @@ def get_ga_generator(query):
     """
     ga = GoogleAnalyticsBackend()
 
-    return ga.results_iterator(
-        # start date
-        date(2013, 1, 1),
-
-        # end date
-        datetime.now().date(),
-
-        # what metrics to get
-        query['metrics'],
-
-        # which data columns to get
-        dimensions=query['dimensions'],
-
-        # what to sort by
-        sort=query['sort']
+    return ga.results_iterator(start_date=date(2013, 1, 1),  # start date
+                               end_date=datetime.now().date(),  # end date
+                               metrics=query['metrics'],  # what metrics to get
+                               dimensions=query['dimensions'],  # which data columns to get
+                               sort=query['sort'],  # what to sort by
+                               start_index='1'
     )
 
 
@@ -121,6 +113,8 @@ def target_getter(label):
 
 
 def save_data_pair(store_type, campaign_type, category, row, column):
+    logger.info("Saving data pair for store({0}), campaign({1})".format(
+        row['store_id'], row['campaign_id']))
     data1, data2 = KVStore(
         content_type=store_type,
         object_id=row['store_id']
@@ -205,8 +199,9 @@ def create_parent_data(data):
     """
 
     # TODO: There must be a faster way to do this,
-    # it will likely be incredibly slow getting the IR id one by one and
+    # it is incredibly slow getting the IR id one by one and
     # getting the related campaign
+    logger.info("Creating parent data #{0}".format(len(data)))
 
     missing_data = []
     for row in data:
@@ -266,7 +261,14 @@ class Categories:
 
 @task()
 def redo_analytics():
-    """Erases cached analytics and recency data, starts update process"""
+    """Erases cached analytics and recency data, starts update process.
+
+    To use:   (http://stackoverflow.com/a/12900126)
+
+    (venv)$ python manage.py shell
+    > from apps.analytics.tasks import redo_analytics
+    > redo_analytics.apply()
+    """
     logger.info("Redoing analytics")
 
     KVStore.objects.all().delete()
@@ -275,14 +277,15 @@ def redo_analytics():
     logger.info("Removed old analytics data")
 
     task_chain = chain(fetch_awareness_data.s(), process_awareness_data.s(),
-                     fetch_event_data.s(), process_event_data.s(),
-                     aggregate_saved_metrics.s())
+                       fetch_event_data.s(), process_event_data.s(),
+                       aggregate_saved_metrics.s())
 
-    task_chain.delay()
+    task_chain.delay()  # === .run()
 
 
 @task()
 def fetch_awareness_data(*args):
+    """obtains data from google analytics via the GA API."""
     logger.info("Updating awareness analytics data")
 
     query = {
@@ -306,11 +309,16 @@ def fetch_awareness_data(*args):
             getter = row_getter(query, row)
 
             location = u""
-            if getter('city') != "(not set)":
-                location = getter('city').encode('utf-8', 'ignore')
+            try:
+                if getter('city') != "(not set)":
+                    location = getter('city').encode('utf-8', 'ignore')
 
-            if getter('region') != "(not set)" and getter('region') not in location:
-                location = "{0}, {1}".format(location, getter('region').encode('utf-8', 'ignore'))
+                if getter('region') != "(not set)" and getter('region') not in location:
+                    location = "{0}, {1}".format(
+                        location, getter('region').encode('utf-8', 'ignore'))
+            except UnicodeDecodeError:  # happens with region names
+                pass  # (location = location)
+
 
             row_data = {
                 'date': getter('date'),
@@ -337,9 +345,11 @@ def fetch_awareness_data(*args):
     # message could be larger than 64kb. As a quick way of circumventing the limitation,
     # use "shared memory" approach to message passing
     message = SharedStorage(data=pickle.dumps(fetched_rows))
+    logger.info("dumped {0} rows into shared storage".format(len(fetched_rows)))
     message.save()
 
     # pass ID of the message to the processing task
+    logger.info("message id: {0}".format(message.id))
     return message.id
 
 
@@ -451,15 +461,20 @@ def fetch_event_data(*args):
     # message could be larger than 64kb. As a quick way of circumventing the limitation,
     # use "shared memory" approach to message passing
     message = SharedStorage(data=pickle.dumps(analytics_categories))
+    logger.info("dumped {0} categories into shared storage".format(
+        len(analytics_categories.keys())))
     message.save()
 
     # pass ID of the message to the processing task
+    logger.info("message id: {0}".format(message.id))
     return message.id
 
 
 @task()
 def process_awareness_data(message_id):
     """Processes fetched awareness data, row by row"""
+    logger.info("Processing awareness analytics data #{0}".format(message_id))
+
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
 
@@ -494,6 +509,7 @@ def process_awareness_data(message_id):
         }
     ]
 
+    logger.info("Creating missing data")
     missing_data = create_parent_data(data)
     data.extend(missing_data)
 
@@ -521,6 +537,8 @@ def process_awareness_data(message_id):
 def process_event_data(message_id):
     """Processes fetched event data, row by row, saves key/value
     analytics pairs for associated store and campaign"""
+    logger.info("Processing event data #{0}".format(message_id))
+
     store_type = ContentType.objects.get_for_model(Store)
     campaign_type = ContentType.objects.get_for_model(Campaign)
 
@@ -761,3 +779,8 @@ def aggregate_saved_metrics(*args):
 
     for category in to_process:
         process_category(category)
+
+
+def debug_stub(val=None):
+    # allows you to sandwich a function in between two functions in a chain.
+    return val

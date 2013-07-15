@@ -493,6 +493,8 @@
         );
     };
 
+    {% include 'pinpoint/snippets/file_upload_errors.html' %}
+
     function attachListeners( $content ) {
 
         // Render images and indicate if an image is broken
@@ -691,17 +693,13 @@
                     var messages = { 'minSizeError': "'s dimensions are too small.  Minimum file width is {{ MIN_MEDIA_WIDTH }}px.",
                                      'emptyError': " does not exist.  Are you sure you entered correctly?" }
                     filesBeingUploaded--;
-                    
-                    if (response.success == false) {
-                        if (response.error && messages[response.error]) {
-                            alert(fileName + messages[response.error]);
-                        }
-                    } else if (filesBeingUploaded == 0) {
+                    if (response.success && filesBeingUploaded == 0) {
                         location.reload();
                     }
                 },
                 onError: function(id, fileName, reason) {
                     console.log(reason);
+                    fileUploadErrorHandler.signalError(reason, fileName);
                     if ( filesBeingUploaded == 1 ) {
                         // This has to be 1, as the order in which things are called is different.
                         $('.qq-upload-button').parents('.service').find('.icon').addClass('file');
@@ -841,6 +839,34 @@
             });
         }
     }
+
+    // Load Youtube IFrame Player API code asynchronously
+    var tag = document.createElement('script');
+    tag.src = "//www.youtube.com/iframe_api";
+
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    /* Youtube */
+    $('.video_box').click(function() {
+        var $me = $(this),
+            id = $me.data('videoId');
+
+        player = new YT.Player($me.attr('id'), {
+            height: 240,
+            width: 426,
+            videoId: id,
+            playerVars: {
+                'autoplay': 1,
+                'controls': 1
+            },
+            events: {
+                'onReady': function (e) {},
+                'onStateChange': function(e) {},
+                'onError': function (e) {}
+            }
+        });
+    });
 {% endblock %}
 
 {% block top_section %}
