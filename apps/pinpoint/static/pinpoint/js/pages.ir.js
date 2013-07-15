@@ -16,46 +16,6 @@ PAGES.intentRank = (function (me, details, mediator) {
         PAGES.loadResults(false, product);
     };
 
-    me.getInitialResults = function (callback, seed) {
-        // callback function will receive a list of results as first param.
-        if (PAGES.getLoadingBlocks()) {
-            return;
-        }
-
-        PAGES.setLoadingBlocks(true);
-        if (!_.isEmpty(details.backupResults) &&
-                !('error' in details.backupResults)) {  // saved IR proxy error
-            callback(details.backupResults);
-            PAGES.setLoadingBlocks(false);
-
-            details.backupResults = [];
-        } else {
-            if (!details.page.offline) {
-                $.ajax({
-                    url: details.base_url + '/intentrank/get-seeds/?callback=?',
-                    data: {
-                        'store': details.store.id,
-                        'campaign': details.page.id,
-                        'seeds': details.product['product-id']
-                    },
-                    dataType: 'jsonp',
-                    timeout: 5000,  // 5000 ~ 10000
-                    success: function(results) {
-                        callback(results);
-                        PAGES.setLoadingBlocks(false);
-                    },
-                    error: function () {
-                        callback(details.backupResults);
-                        PAGES.setLoadingBlocks(false);
-                    }
-                });
-            } else {
-                callback(details.content);
-                PAGES.setLoadingBlocks(false);
-            }
-        }
-    };
-
     me.getResults = function (callback, belowFold, related) {
         // callback function will receive a list of results as first param.
         if (PAGES.getLoadingBlocks()) {

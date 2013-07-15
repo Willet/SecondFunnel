@@ -2,7 +2,6 @@ from django.conf.urls import patterns, url
 
 # TODO: Replace with TastyPie
 urlpatterns = patterns('apps.intentrank.views',
-   url(r'^get-seeds/$', 'get_seeds', name='get-seeds'),
    url(r'^get-results/$', 'get_results', name='get-results'),
 
    # TEMPORARY: These methods should be removed as soon as Neal's
