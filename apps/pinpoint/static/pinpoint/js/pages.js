@@ -67,8 +67,12 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function getByAttrib(key, value, x, scope) {
-        // attribute selector - shorthand for $('[{x=data}-?{key}="value"]').
-        // x and scope are optional.
+        // attribute selector - shorthand for either
+        // $('[data-key="value"]')
+        // or
+        // $('[key="value"]').
+        // x and scope are optional. x defaults to 'data'.
+
         if (x === undefined) {
             x = 'data';
         }
@@ -81,26 +85,40 @@ var PAGES = (function ($, details, mediator) {
             '"]', scope);
     }
 
+    function groupByAttrib($elements, key, data) {
+        // given a list of element selector results, group them by
+        // one of their common properties (denoted by key).
+        // all properties are grouped by their STRING representation,
+        // for safety and the 'undefined' special case.
+        // data is optional. if it is true, data() is used in place of prop().
+        var accessor = data ? 'data' : 'prop';
+        return _.groupBy(
+            _.map($elements, function (elem) {
+                return $(elem);
+            }),
+            function (elem) {
+                return elem[accessor](key);
+            }
+        );
+    }
+
     function getTemplate(templateId) {
         // returns the required template.
         // right now, it only resolves mobile templates for mobile devices.
         // in the event that a mobile template is not found, the full template
         // will be served in place.
         var i,
-            templateEls = getByAttrib('template-id', templateId);
-        if (templateEls.length > 1) {
-            for (i = 0; i < templateEls.length; i++) {
-                if (templateEls.eq(i).data('media') === 'mobile') {
-                    templateEls = templateEls.eq(i);
-                    return templateEls;
-                }
-            }
-        }
+            templateEls = getByAttrib('template-id', templateId),
+            templatesByType = groupByAttrib(templateEls, 'media', true);
 
-        // if nothing specified, pick the first one.
-        // it can be an empty jquery object. (for e.g. 'image' template)
-        templateEls = templateEls.eq(0);
-        return templateEls;
+        if (Willet.browser.mobile && templatesByType.mobile) {
+            // return "the first jquery-wrapped item in the list of this key"
+            return templatesByType.mobile[0].eq(0);
+        } else {
+            // if nothing specified, pick the first one.
+            // it can be an empty jquery object. (for e.g. 'image' template)
+            return templateEls.eq(0);
+        }
     }
 
     function size(url, desiredSize) {
@@ -499,7 +517,7 @@ var PAGES = (function ($, details, mediator) {
         if (!lowestBlock) {
             lowestHeight = 0;
         } else {
-            lowestHeight = lowestBlock.offset().top + lowestBlock.height()
+            lowestHeight = lowestBlock.offset().top + lowestBlock.height();
         }
 
         if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
@@ -620,7 +638,7 @@ var PAGES = (function ($, details, mediator) {
         'getModifiedTemplateName': getModifiedTemplateName,
         'getTemplate': getTemplate
     };
-}(jQuery,
+}(window.jQuery,
     window.PAGES_INFO || window.TEST_PAGE_DATA || {},
     (Willet && Willet.mediator) || {}));
 
