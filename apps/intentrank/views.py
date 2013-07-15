@@ -7,6 +7,7 @@ from django.core.cache import cache
 from django.conf import settings
 from django.http import HttpResponse
 from django.template import Context, loader, TemplateDoesNotExist
+import httplib2
 
 from apps.assets.models import Product, Store
 
@@ -20,6 +21,31 @@ FAIL400 = 400
 SUCCESS_STATUSES = xrange(SUCCESS, 300)
 DEFAULT_RESULTS  = 12
 MAX_BLOCKS_BEFORE_VIDEO = 50
+
+
+def send_request(request, url, method='GET', headers=None):
+    """
+    Sends a given request to intentrank with the given headers.
+
+    @param request: The request to the django intentrank api.
+    @param url: The url to the intentrank service.
+    @param method:
+    @param headers: The headers for the request to the intentrank service.
+
+    @return: A tuple with a response code and the content that was returned.
+    """
+    if not headers:
+        headers = {}
+
+    h = httplib2.Http()
+    response, content = h.request(
+        url,
+        method=method,
+        headers=headers,
+    )
+
+    return response, content
+
 
 def get_product_json_data(product, products_with_images_only=True):
     """Enforce common product json structures across both
@@ -186,23 +212,51 @@ def get_json_data(request, products, campaign_id, seeds=None):
         
 
 def get_seeds(request, **kwargs):
-    """Gets initial results for a page
-
-    At present, returns nothing so that existing code continues to work.
+    """Gets initial results (products, photos, etc.) to be saved with a page
 
     kwargs['raw'] also toggles between returning a dictionary
     or an entire HttpResponse.
-
-    Later, it should get results from IRv2.
     """
-    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
+    num_results = kwargs.get('results', request.GET.get('results',  DEFAULT_RESULTS))
 
-    results = []
+    store = kwargs.get('store', request.GET.get('store', '-1'))
+    campaign = kwargs.get('campaign', request.GET.get('campaign', '-1'))
+    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
+    base_url = kwargs.get('base_url', request.GET.get('base_url',
+                                                      settings.INTENTRANK_BASE_URL))
+
+    # TODO: How do we specify number of results?
+    url = '{0}/store/{1}/page/{2}/getresults'.format(base_url, store, campaign)
+
+    # Fetch results
+    try:
+        response, content = send_request(request, url)
+        status = response.status
+    except httplib2.HttpLib2Error:
+        # Don't care what went wrong; do something!
+        content = "{}"
+        status = 400
+
+    # Since we are sending the request, and we'll get JSONP back
+    # we know what the callback will be named
+    prefix = 'fn('
+    suffix = ');'
+    if content.startswith(prefix) and content.endswith(suffix):
+        content = content[len(prefix):-len(suffix)]
+
+    # Check results
+    try:
+        results = json.loads(content)
+    except ValueError:
+        results = {"error": content}
+
+    if 'error' in results:
+        results.update({'url': url})
 
     if kwargs.get('raw', False):
         return results
     else:
-        return ajax_jsonp(results, callback, status=204)
+        return ajax_jsonp(results, callback, status=status)
 
 
 def get_results(request, store_id, campaign, content_id=None, **kwargs):

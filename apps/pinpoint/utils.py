@@ -35,22 +35,23 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
     campaign.template = slugify(
         content_block.block_type.name)
 
+    if settings.DEBUG:
+        base_url = settings.WEBSITE_BASE_URL + '/intentrank'
+    else:
+        base_url = settings.WEBSITE_BASE_URL
+
     if get_seeds_func and request:
         # "borrow" IR for results
         related_results = get_seeds_func(
-            request, store=campaign.store.slug,
+            request,
+            store=campaign.store.slug,
             campaign=campaign.default_intentrank_id or campaign.id,
-            seeds=product.id,
+            base_url=base_url,
             results=100,
             raw=True
         )
     else:
         related_results = []
-
-    if settings.DEBUG:
-        base_url = settings.WEBSITE_BASE_URL + '/intentrank'
-    else:
-        base_url = settings.WEBSITE_BASE_URL
 
     attributes = {
         "campaign": campaign,
