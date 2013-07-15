@@ -13,7 +13,7 @@ PAGES.intentRank = (function (me, details, mediator) {
 
     me.updateContentStream = function (product) {
         /* @return: none */
-        PAGES.loadMoreResults(false, product);
+        PAGES.loadResults(false, product);
     };
 
     me.getInitialResults = function (callback, seed) {
@@ -56,7 +56,7 @@ PAGES.intentRank = (function (me, details, mediator) {
         }
     };
 
-    me.getMoreResults = function (callback, belowFold, related) {
+    me.getResults = function (callback, belowFold, related) {
         // callback function will receive a list of results as first param.
         if (PAGES.getLoadingBlocks()) {
             return;
@@ -130,7 +130,7 @@ PAGES.intentRank = (function (me, details, mediator) {
         mediator.on('IR.init', me.init);
         mediator.on('IR.updateContentStream', me.updateContentStream);
         mediator.on('IR.getInitialResults', me.getInitialResults);
-        mediator.on('IR.getMoreResults', me.getMoreResults);
+        mediator.on('IR.getResults', me.getResults);
         mediator.on('IR.changeSeed', me.changeSeed);
         mediator.on('IR.changeCategory', me.changeCategory);
     } else {

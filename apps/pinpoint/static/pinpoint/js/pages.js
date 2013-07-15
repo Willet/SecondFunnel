@@ -423,9 +423,9 @@ var PAGES = (function ($, details, mediator) {
         mediator.fire('IR.getInitialResults', [layoutResults]);
     }
 
-    function loadMoreResults(belowFold, related) {
+    function loadResults(belowFold, related) {
         if (!loadingBlocks || related) {
-            mediator.fire('IR.getMoreResults', [layoutResults, belowFold, related]);
+            mediator.fire('IR.getResults', [layoutResults, belowFold, related]);
         }
     }
 
@@ -481,7 +481,7 @@ var PAGES = (function ($, details, mediator) {
         }
 
         if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
-            loadMoreResults(layoutResults);
+            loadResults(layoutResults);
         }
     }
 
@@ -584,7 +584,7 @@ var PAGES = (function ($, details, mediator) {
         'renderTemplate': renderTemplate,
         'renderTemplates': renderTemplates,
         'loadInitialResults': loadInitialResults,
-        'loadMoreResults': loadMoreResults,
+        'loadResults': loadResults,
         'layoutRelated': layoutRelated,
         'attachListeners': attachListeners,
         'hidePreview': hidePreview,
