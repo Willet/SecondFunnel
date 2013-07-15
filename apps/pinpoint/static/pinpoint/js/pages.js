@@ -115,7 +115,7 @@ var PAGES = (function ($, details, mediator) {
             // return "the first jquery-wrapped item in the list of this key"
             return templatesByType.mobile[0].eq(0);
         } else {
-            // if nothing specified, pick the first one.
+            // if nothing specified or no mobile theme, pick the first one.
             // it can be an empty jquery object. (for e.g. 'image' template)
             return templateEls.eq(0);
         }
@@ -962,25 +962,24 @@ PAGES.mobile = (function (me, mediator) {
     var localData = {};
 
     me = {
+        'renderToView': function (viewSelector, templateName, context, append) {
+            var template = PAGES.getTemplate(templateName).html(),
+                renderedBlock;
+
+            // template does not exist
+            if (template === undefined) {
+                return;
+            }
+
+            renderedBlock = _.template(template, context);
+
+            if (append) {
+                $(viewSelector).append(renderedBlock);
+            } else {
+                $(viewSelector).html(renderedBlock);
+            }
+        },
         'layoutFunc': function (jsonData, belowFold, related) {
-            var renderToView = function (viewSelector, templateName, context, append) {
-                var template = PAGES.getTemplate(templateName).html(),
-                    renderedBlock;
-
-                // template does not exist
-                if (template === undefined) {
-                    return;
-                }
-
-                renderedBlock = _.template(template, context);
-
-                if (append) {
-                    $(viewSelector).append(renderedBlock);
-                } else {
-                    $(viewSelector).html(renderedBlock);
-                }
-            };
-
             _.each(jsonData, function (data, index, list) {
 
                 var objectId = data.id || data['original-id'],
@@ -997,7 +996,7 @@ PAGES.mobile = (function (me, mediator) {
                 localData[templateName + objectId] = data;
 
                 // render object if possible
-                renderToView(".content_list", templateName, {
+                me.renderToView(".content_list", templateName, {
                     data: data
                 }, true);
 
@@ -1019,6 +1018,8 @@ PAGES.mobile = (function (me, mediator) {
             Willet.mediator.fire('IR.loadInitialResults');
         }
     };
+
+    me.local_data = me.localData = localData;  // old themes compatability
 
     return me;
 })(PAGES.mobile || {}, Willet.mediator);
