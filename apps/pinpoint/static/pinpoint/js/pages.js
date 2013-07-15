@@ -7,6 +7,7 @@ var PAGES = (function ($, details, mediator) {
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || true,
         scripts,
+        styleSheets = [],
         scriptsLoaded = [],
         spaceBelowFoldToStartLoading = 500,
         loadingBlocks = false,
@@ -276,6 +277,24 @@ var PAGES = (function ($, details, mediator) {
                 target.html('Error: missing template #' + src);
             }
         });
+    }
+
+    function showComment(domId) {
+        // removes the comment tags within a dom element. (done by fb)
+        // contents cannot contain a comment tag.
+        var target = $('#' + domId),
+            markup = target.html();
+        target.html(markup.substring(markup.indexOf('<' + '!--') + 4,
+                                     markup.lastIndexOf('--' + '>')));
+    }
+
+    function hideComment(domId) {
+        // comments out tags within a dom element. (done by fb)
+        // this is used to remove, not hide, structure from the page.
+        // contents cannot contain a comment tag.
+        var target = $('#' + domId),
+            markup = target.html();
+        target.html('<' + '!-- ' + markup + ' --' + '>');
     }
     /* --- END Utilities --- */
 
@@ -582,9 +601,18 @@ var PAGES = (function ($, details, mediator) {
         }
     }
 
+    function loadCSS(stylesheets) {
+        var i;
+        for (i=0; i<stylesheets.length; i++) {
+            $('head').append($('<link rel="stylesheet" type="text/css" />')
+                     .attr('href', stylesheets));
+        }
+    }
+
     function init(readyFunc, layoutFunc) {
         layoutResults = layoutFunc;
         load(scripts);
+        loadCSS(styleSheets);
         $(document).ready(readyFunc);
     }
 
