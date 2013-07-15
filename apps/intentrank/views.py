@@ -362,49 +362,6 @@ def get_results(request, **kwargs):
         return ajax_jsonp(cached_results, callback, status=200)
 
 
-
-def update_clickstream(request):
-    """
-    Tells intentrank what producs have been clicked on.
-
-    @param request: The request.
-
-    @return: A json HttpResonse that is empty or contains an error.  Displays nothing on success.
-    """
-    store   = request.GET.get('store', '-1')
-    page    = request.GET.get('campaign', '-1')
-    product_id = request.GET.get('product_id')
-    callback = request.GET.get('callback', 'fn')
-
-    results, status = process_intentrank_request(
-        request, store, page, 'updateclickstream', {
-            'productid': product_id
-    })
-
-    if status in SUCCESS_STATUSES:
-        # We don't care what we get back
-        result = []
-    else:
-        result = results
-
-    return ajax_jsonp(result, callback, status=status)
-
-
-
-def invalidate_session(request):
-    """
-    Invalidates an intentrank session.
-
-    @param request: The request.
-
-    @return: An empty json HttpResonse.
-    """
-    #intentrank/invalidate-session
-    url = '{0}/intentrank/invalidate-session'.format(INTENTRANK_BASE_URL)
-    send_intentrank_request(request, url)
-    return HttpResponse("[]", mimetype='application/json')
-
-
 # WARNING: As soon as Neal's service is up and running,
 # REMOVE THESE TWO METHODS BELOW
 def get_related_content_product(request, id=None):

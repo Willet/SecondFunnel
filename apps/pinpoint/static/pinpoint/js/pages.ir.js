@@ -11,39 +11,6 @@ PAGES.intentRank = (function (me, details, mediator) {
         // load data (if any)
     };
 
-    me.updateClickStream = function (t, event) {
-        /* Loads more content if user clicks has exceeded threshold.
-           On each click, loads related content below
-           a block that the user has clicked. */
-        var $target = $(event.currentTarget),
-            data      = $target.data(),
-            id        = data['product-id'] || data.id,
-            exceededThreshold;
-
-        if (details.page.offline) {
-            return;
-        }
-
-        userClicks += 1;
-        exceededThreshold = ((userClicks % clickThreshold) === 0);
-
-        $.ajax({
-            url: details.base_url + '/intentrank/update-clickstream/?callback=?',
-            data: {
-                'store': details.store.id,
-                'campaign': details.page.id,
-                'product_id': id
-            },
-            timeout: 5000,  // 5000 ~ 10000
-            dataType: 'jsonp',
-            success: function () {
-                if (exceededThreshold) {
-                    PAGES.loadMoreResults(true);
-                }
-            }
-        });
-    };
-
     me.updateContentStream = function (product) {
         /* @return: none */
         PAGES.loadMoreResults(false, product);
@@ -161,11 +128,9 @@ PAGES.intentRank = (function (me, details, mediator) {
     // register (most) PAGES.intentRank events.
     if (mediator) {
         mediator.on('IR.init', me.init);
-        mediator.on('IR.updateClickStream', me.updateClickStream);
         mediator.on('IR.updateContentStream', me.updateContentStream);
         mediator.on('IR.getInitialResults', me.getInitialResults);
         mediator.on('IR.getMoreResults', me.getMoreResults);
-        mediator.on('IR.invalidateIRSession', me.invalidateIRSession);
         mediator.on('IR.changeSeed', me.changeSeed);
         mediator.on('IR.changeCategory', me.changeCategory);
     } else {

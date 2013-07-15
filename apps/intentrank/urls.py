@@ -4,10 +4,6 @@ from django.conf.urls import patterns, url
 urlpatterns = patterns('apps.intentrank.views',
    url(r'^get-seeds/$', 'get_seeds', name='get-seeds'),
    url(r'^get-results/$', 'get_results', name='get-results'),
-   url(r'^update-clickstream/$', 'update_clickstream',
-       name='update-clickstream'),
-   url(r'^invalidate-session/$', 'invalidate_session',
-       name='invalidate_session'),
 
    # TEMPORARY: These methods should be removed as soon as Neal's
    # service is fully operational

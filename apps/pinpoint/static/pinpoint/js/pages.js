@@ -491,9 +491,6 @@ var PAGES = (function ($, details, mediator) {
         // use delegated events to reduce overhead
         $discovery.on('click', '.block.product:not(.unclickable), .block.combobox:not(.unclickable)', function (e) {
             showPreview(e.currentTarget);
-
-            // update clickstream
-            mediator.fire('IR.updateClickStream', [e.currentTarget, e]);
         });
 
         $discovery.on('click', '.block.image:not(.unclickable)', function (e) {
