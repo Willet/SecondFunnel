@@ -5,7 +5,9 @@ PAGES.intentRank = (function (me, details, mediator) {
     "use strict";
 
     var userClicks = 0,
-        clickThreshold = 3;
+        clickThreshold = 3,
+        campaignResultsUrl = "<%=url%>/store/<%=store%>/page/<%=campaign%>/getresults",
+        contentResultsUrl = "<%=url%>/store/<%=store%>/page/<%=campaign%>/product/<%=id%>/getresults";
 
     me.init = function () {
         // load data (if any)
@@ -17,6 +19,15 @@ PAGES.intentRank = (function (me, details, mediator) {
     };
 
     me.getResults = function (callback, belowFold, related) {
+        var relatedData = $(related).data() || {},
+            urlParams = {
+                'url': details.base_url,
+                'store': details.store.id,
+                'campaign': details.page.id,
+                'id': relatedData['original-id']
+            },
+            url;
+
         // callback function will receive a list of results as first param.
         if (PAGES.getLoadingBlocks()) {
             return;
@@ -34,9 +45,16 @@ PAGES.intentRank = (function (me, details, mediator) {
             } else {
         */
 
+        // Not sure what this element will be called
+        if (relatedData['original-id']) {
+            url = _.template(contentResultsUrl, urlParams);
+        } else {
+            url = _.template(campaignResultsUrl, urlParams);
+        }
+
         if (!details.page.offline) {
             $.ajax({
-                url: details.base_url + '/intentrank/get-results/?callback=?',
+                url: url,
                 data: {
                     'store': details.store.id,
                     'campaign': details.page.id,

@@ -47,6 +47,11 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
     else:
         related_results = []
 
+    if settings.DEBUG:
+        base_url = settings.WEBSITE_BASE_URL + '/intentrank'
+    else:
+        base_url = settings.WEBSITE_BASE_URL
+
     attributes = {
         "campaign": campaign,
         "columns": range(4),
@@ -54,7 +59,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
         "product": product,
         "backup_results": json.dumps(related_results),
         "pub_date": datetime.now(),
-        "base_url": settings.WEBSITE_BASE_URL,
+        "base_url": base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
         "device_mode": mode,
     }
