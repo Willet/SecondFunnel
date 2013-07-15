@@ -63,6 +63,17 @@ PAGES.intentRank = (function (me, details, mediator) {
         }
 
         PAGES.setLoadingBlocks(true);
+
+        /* TODO: If there are pre-loaded results, start with those?
+            if (!_.isEmpty(details.backupResults) &&
+                !('error' in details.backupResults)) {  // saved IR proxy error
+                callback(details.backupResults);
+                PAGES.setLoadingBlocks(false);
+
+                details.backupResults = [];
+            } else {
+        */
+
         if (!details.page.offline) {
             $.ajax({
                 url: details.base_url + '/intentrank/get-results/?callback=?',
@@ -74,6 +85,7 @@ PAGES.intentRank = (function (me, details, mediator) {
                     'results': 10,
 
                     // normally ignored, unless IR call fails and we'll resort to getseeds
+                    // Previously, `details.product['product-id']` was used... why?
                     'seeds': details.featured.id
                 },
                 dataType: 'jsonp',
@@ -129,7 +141,7 @@ PAGES.intentRank = (function (me, details, mediator) {
     if (mediator) {
         mediator.on('IR.init', me.init);
         mediator.on('IR.updateContentStream', me.updateContentStream);
-        mediator.on('IR.getInitialResults', me.getInitialResults);
+        mediator.on('IR.getInitialResults', me.getResults);
         mediator.on('IR.getResults', me.getResults);
         mediator.on('IR.changeSeed', me.changeSeed);
         mediator.on('IR.changeCategory', me.changeCategory);
