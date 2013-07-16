@@ -544,6 +544,26 @@ var PAGES = (function ($, details, mediator) {
         }
     }
 
+    function windowResize() {
+        // if the browser changes size, switch to mobile templates,
+        // even if the device is not mobile, and vice versa.
+        // this cannot "un-render" js templates previously rendered with
+        // a different-size template.
+        var oldState = Willet.browser.mobile;
+        Willet.browser.mobile =  ($(window).width() < 1024);
+
+        if (Willet.browser.mobile !== oldState) {  // if it changed
+            if (Willet.browser.mobile) {
+                // style tag has no disabled attrib, but the DOM has it
+                $('style.mobile-only').prop('disabled', '');
+                $('style.desktop-only').prop('disabled', 'disabled');
+            } else {
+                $('style.mobile-only').prop('disabled', 'disabled');
+                $('style.desktop-only').prop('disabled', '');
+            }
+        }
+    }
+
     function attachListeners() {
         var $discovery = $('.discovery-area');
 
@@ -579,6 +599,8 @@ var PAGES = (function ($, details, mediator) {
             mouseenter: lifestyleHoverOn,
             mouseleave: lifestyleHoverOff
         }, '.block.combobox:not(.unclickable) .lifestyle');
+
+        $(window).resize(windowResize);
     }
 
     /* --- END element bindings --- */
