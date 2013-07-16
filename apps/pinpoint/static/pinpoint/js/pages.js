@@ -302,9 +302,9 @@ var PAGES = (function ($, details, mediator) {
         var i,
             data = $(me).data(),
             templateName = getModifiedTemplateName(data.template),
-            $previewContainer = getTemplate("preview-container"),
+            $previewContainer = getTemplate("preview-container"),  // built-in
             $previewMask = $previewContainer.find('.mask'),
-            $target = $previewContainer.find('.target.template'),
+            $target = $previewContainer.find('.template.target'),
             templateId,
             template,
             renderedTemplate;
@@ -326,8 +326,8 @@ var PAGES = (function ($, details, mediator) {
             template = getTemplate(templateId).html();
         }
 
-        if (_.isEmpty(template) || _.isEmpty($target)) {
-            mediator.fire('log', ['oops @ no preview template']);
+        if (!template || _.isEmpty($target)) {
+            mediator.fire('log', ['oops, no preview template ' + templateName, templateId]);
             return;
         }
 
@@ -361,8 +361,13 @@ var PAGES = (function ($, details, mediator) {
             {"sType": "popup", "url": data.url}
         ]);
 
-        $previewContainer.fadeIn(100);
-        $previewMask.fadeIn(100);
+        $previewContainer.css('display', 'table').fadeIn(100);
+        if ($previewMask.length) {
+            $previewMask.fadeIn(100);
+        }
+
+        // late binding for all close buttons
+        $('.preview .mask, .preview .close').on('click', PAGES.hidePreview);
     }
 
     function addPreviewCallback(f) {
@@ -933,8 +938,6 @@ var PAGES = (function ($, details, mediator) {
             isAnimated: true
         });
 
-        $('.preview .mask, .preview .close').on('click', PAGES.hidePreview);
-
         $(window).scroll(PAGES.pageScroll).resize(PAGES.pageScroll);
 
         // Prevent social buttons from causing other events
@@ -1032,6 +1035,8 @@ PAGES.mobile = (function (me, mediator) {
             }
 
             renderedBlock = _.template(template, context);
+            renderedBlock = $(renderedBlock);
+            renderedBlock.data(context);
 
             if (append) {
                 $(viewSelector).append(renderedBlock);
