@@ -54,8 +54,7 @@ Willet.mediator = (function (me) {
                 me.hooks[event] = [[cb, []]];
             } else {
                 if (console && console.warn) {
-                    console.warn(event + ' was triggered, ' +
-                        'but nothing was associated with it.');
+                    console.warn('you called ' + event + ', which did nothing.');
                 }
                 return me; // no functions registered with this event.
             }
@@ -149,7 +148,7 @@ Willet.mediator = (function (me) {
         delete me.hooks[event];
         return me;
     };
-    me.unregister = me.on;
+    me.unlisten = me.unregister = me.on;
 
     // replace all previous hooks with this single one.
     // params is optional.

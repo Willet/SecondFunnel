@@ -11,7 +11,6 @@ class StaticLog(models.Model):
     LOG_TYPES = (
         ('BU', 'Static Website Bucket'),
         ('CD', 'Static Campaign Desktop Page'),
-        ('CM', 'Static Campaign Mobile Page'),
         ('PE', 'Pending'),
     )
 

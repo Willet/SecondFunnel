@@ -146,10 +146,6 @@ def generate_static_campaign(campaign_id):
         # s3_file_name, log_key, page_content
         ("index.html", "CD", render_campaign(
             campaign, get_seeds_func=get_seeds, request=dummy_request
-        )),
-        ("mobile.html", "CM", render_campaign(
-            campaign, get_seeds_func=get_seeds, request=dummy_request,
-            mode="mobile"
         ))
     ]
 

@@ -10,19 +10,15 @@ var PAGES = (function ($, details, mediator) {
         scriptsLoaded = [],
         spaceBelowFoldToStartLoading = 500,
         loadingBlocks = false,
-        blocksAppendedCallbacks = [],
         globalIdCounters = {},
-        previewCallbacks = [],
-        readyCallbacks = [],
         hoverTimer,
         sizableRegex = /images\.secondfunnel\.com/,
         imageSizes = [
             "icon", "thumb", "small", "compact", "medium", "large",
             "grande", "1024x1024", "master"
-        ],
-        layoutResults;
+        ];
 
-    function getLoadingBlocks(bool) {
+    function getLoadingBlocks() {
         return loadingBlocks;
     }
 
@@ -31,7 +27,7 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function getModifiedTemplateName(name) {
-        // returns the template name suitabl
+        // returns the template name suitable
         var i,
             type,
             templateNames = [
@@ -64,6 +60,61 @@ var PAGES = (function ($, details, mediator) {
         }
 
         return name;
+    }
+
+    function getByAttrib(key, value, x, scope) {
+        // attribute selector - shorthand for either
+        // $('[data-key="value"]')
+        // or
+        // $('[key="value"]').
+        // x and scope are optional. x defaults to 'data'.
+
+        if (x === undefined) {
+            x = 'data';
+        }
+        if (x !== '') {
+            x = x + '-';
+        }
+        scope = scope || document;  // the whole page. window doesn't work.
+        return $('[' + x + key + '="' +
+            value.replace(/([ #;&,.+*~\':"!^$[\]()=>|\/@])/g,'\\$1') +
+            '"]', scope);
+    }
+
+    function groupByAttrib($elements, key, data) {
+        // given a list of element selector results, group them by
+        // one of their common properties (denoted by key).
+        // all properties are grouped by their STRING representation,
+        // for safety and the 'undefined' special case.
+        // data is optional. if it is true, data() is used in place of prop().
+        var accessor = data ? 'data' : 'prop';
+        return _.groupBy(
+            _.map($elements, function (elem) {
+                return $(elem);
+            }),
+            function (elem) {
+                return elem[accessor](key);
+            }
+        );
+    }
+
+    function getTemplate(templateId) {
+        // returns the required template.
+        // right now, it only resolves mobile templates for mobile devices.
+        // in the event that a mobile template is not found, the full template
+        // will be served in place.
+        var i,
+            templateEls = getByAttrib('template-id', templateId),
+            templatesByType = groupByAttrib(templateEls, 'media', true);
+
+        if (Willet.browser.mobile && templatesByType.mobile) {
+            // return "the first jquery-wrapped item in the list of this key"
+            return templatesByType.mobile[0].eq(0);
+        } else {
+            // if nothing specified or no mobile theme, pick the first one.
+            // it can be an empty jquery object. (for e.g. 'image' template)
+            return templateEls.eq(0);
+        }
     }
 
     function size(url, desiredSize) {
@@ -144,7 +195,7 @@ var PAGES = (function ($, details, mediator) {
                         // cached
                         return domTemplateCache[templateId];
                     } else {
-                        var $el = $('[data-template-id="' + templateId + '"]');
+                        var $el = getTemplate(templateId);
                         if ($el.length) {
                             // cache
                             domTemplateCache[templateId] = $el.html();
@@ -207,7 +258,7 @@ var PAGES = (function ($, details, mediator) {
             }
 
             // if the required template is on the page, use it
-            srcElement = $("[data-template-id='" + src + "']");
+            srcElement = getTemplate(src);
             if (srcElement.length) {
                 // populate context with all available variables
                 $.extend(context, originalContext, {
@@ -222,16 +273,33 @@ var PAGES = (function ($, details, mediator) {
             }
         });
     }
+
+    function showComment(domId) {
+        // removes the comment tags within a dom element. (done by fb)
+        // contents cannot contain a comment tag.
+        var target = $('#' + domId),
+            markup = target.html();
+        target.html(markup.substring(markup.indexOf('<' + '!--') + 4,
+                                     markup.lastIndexOf('--' + '>')));
+    }
+
+    function hideComment(domId) {
+        // comments out tags within a dom element. (done by fb)
+        // this is used to remove, not hide, structure from the page.
+        // contents cannot contain a comment tag.
+        var target = $('#' + domId),
+            markup = target.html();
+        target.html('<' + '!-- ' + markup + ' --' + '>');
+    }
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
     function showPreview(me) {
-        var i,
-            data = $(me).data(),
+        var data = $(me).data(),
             templateName = getModifiedTemplateName(data.template),
-            $previewContainer = $('[data-template-id="preview-container"]'),
+            $previewContainer = getTemplate("preview-container"),  // built-in
             $previewMask = $previewContainer.find('.mask'),
-            $target = $previewContainer.find('.target.template'),
+            $target = $previewContainer.find('.template.target'),
             templateId,
             template,
             renderedTemplate;
@@ -245,16 +313,16 @@ var PAGES = (function ($, details, mediator) {
 
         templateId = templateName + '-preview';
 
-        template = $('[data-template-id="' + templateId + '"]').html();
+        template = getTemplate(templateId).html();
 
         if (!template && (templateId.indexOf('image') === 0)) {
             // legacy themes don't have 'image-' templates
             templateId = 'instagram' + templateId.slice(5);
-            template = $('[data-template-id="' + templateId + '"]').html();
+            template = getTemplate(templateId).html();
         }
 
-        if (_.isEmpty(template) || _.isEmpty($target)) {
-            mediator.fire('log', ['oops @ no preview template']);
+        if (!template || _.isEmpty($target)) {
+            mediator.fire('log', ['oops, no preview template ' + templateName, templateId]);
             return;
         }
 
@@ -277,40 +345,32 @@ var PAGES = (function ($, details, mediator) {
             window.twttr.widgets.load();
         }
 
-        for (i in previewCallbacks) {
-            if (previewCallbacks.hasOwnProperty(i)) {
-                previewCallbacks[i]();
-            }
-        }
-
+        mediator.fire('PAGES.previewOpened');
         mediator.fire('tracking.clearTimeout');
         mediator.fire('tracking.setSocialShareVars', [
             {"sType": "popup", "url": data.url}
         ]);
 
-        $previewContainer.fadeIn(100);
-        $previewMask.fadeIn(100);
-    }
-
-    function addPreviewCallback(f) {
-        previewCallbacks.push(f);
-    }
-
-    function addOnBlocksAppendedCallback(f) {
-        blocksAppendedCallbacks.push(f);
-    }
-
-    function setBlocksAppendedCallback(i, $block) {
-        if (blocksAppendedCallbacks.hasOwnProperty(i)) {
-            blocksAppendedCallbacks[i]($block);
+        $previewContainer.css('display', 'table').fadeIn(100);
+        if ($previewMask.length) {
+            $previewMask.fadeIn(100);
         }
+
+        // late binding for all close buttons
+        $('.preview .mask, .preview .close').on('click', PAGES.hidePreview);
     }
 
-    function addReadyCallback(f) {
-        readyCallbacks.push(f);
+    function addPreviewCallback(func) {
+        // used by some themes. func accepts no arguments.
+        mediator.on('PAGES.previewOpened', func);
     }
 
-    function hidePreview () {
+    function addOnBlocksAppendedCallback(func) {
+        // used by some themes. func accepts no arguments.
+        mediator.on('PAGES.blocksAppended', func);
+    }
+
+    function hidePreview() {
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.container');
 
@@ -414,6 +474,282 @@ var PAGES = (function ($, details, mediator) {
         }
     }
 
+    function layoutResults(jsonData, belowFold, related) {
+        // renders product divs onto the page.
+        // suppose results is (now) a legit json object:
+        // {products: [], videos: [(sizeof 1)]}
+        try {
+            if (jsonData.error) {
+                mediator.fire(
+                    'error',  // usually "Campaign xxx has no product for id xxx"
+                    [jsonData.error + ' (' + (jsonData.url || '') + ')']
+                );
+                return;
+            }
+        } catch (err) {
+            /* neither an array nor object - even worse */
+            mediator.fire('error', ['malformed jsonData', jsonData]);
+            return;
+        }
+        if (!jsonData.length) {
+            mediator.fire('error', ['IR returned zero results!']);
+            return;
+        }
+
+        var $block,
+            result,
+            results = (PAGES.SHUFFLE_RESULTS) ?
+                    (PAGES.fisherYates(jsonData, PAGES.MAX_RESULTS_PER_SCROLL) || []) :
+                    $(jsonData).slice(0, PAGES.MAX_RESULTS_PER_SCROLL),  // no shuffle
+            initialResults = Math.max(results.length, PAGES.MAX_RESULTS_PER_SCROLL),
+            i,
+            j,
+            productDoms = [],
+            template,
+            templateEl,
+            player,
+            template_context,
+            templateType,
+            el,
+            videos,
+            revisedType;
+
+        // add products
+        for (i = 0; i < results.length; i++) {
+            try {
+                result = results[i];
+                template_context = result;
+                templateType = PAGES.getModifiedTemplateName(result.template) || 'product';
+                templateEl = PAGES.getTemplate(templateType);
+                template = templateEl.html();
+
+                // in case an image is wrong, don't bother with the product
+                if (template_context.image === "None") {
+                    continue;
+                }
+
+                switch (templateType) {
+                case 'product':
+                    // in case an image is lacking, don't bother with the product
+                    if (!template_context.image) {
+                        continue;
+                    }
+
+                    // use the resized images
+                    template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
+                    break;
+                case 'combobox':
+                    // in case an image is lacking, don't bother with the product
+                    if (!template_context.image) {
+                        continue;
+                    }
+                    break;
+                case 'image':
+                    if (!template) {
+                        // Legacy themes do not support these templates
+                        revisedType = 'instagram';
+                        templateEl = PAGES.getTemplate(revisedType);
+                        template = templateEl.html();
+                    }
+                    break;
+                default:
+                    break;
+                }
+
+                var renderedBlock = PAGES.renderTemplate(template, {
+                    'data': template_context,
+                    'page': PAGES.details.page,
+                    'store': PAGES.details.store
+                }, true);
+                if (!renderedBlock.length) {
+                    mediator.fire('error', ['warning: not drawing empty template block']);
+                    break;
+                } else {
+                    el = $(renderedBlock);
+                    el.data(template_context);  // populate the .product.block div with data
+
+                    var templateElsLength = el.length;
+                    for (j=0; j<templateElsLength; j++) {
+                        // didn't have a better name for a loop
+                        productDoms.push(el[j]);
+                    }
+                }
+
+            } catch (err) {  // hide rendering error
+                mediator.fire('log', ['oops @ item', err]);
+            }
+        }
+
+        // Remove potentially bad content
+        productDoms = _.filter(productDoms, function (elem) {
+            return !_.isEmpty(elem);
+        });
+
+        $block = $(productDoms);  // an array of DOM elements
+
+        // if it has a lifestyle image, add a wide class to it so it's styled properly
+        $block.each(function () {
+            var $elem = $(this),
+                $images = $elem.find('img'),
+
+                // Create a spinner image that can be used to indicate a block is loading.
+                $spinner = $('<img/>', {
+                    'class': "image-loading-spinner",
+                    'style': "padding-top:100px; padding-bottom:100px; width:32px !important; height:32px; position:relative; left:50%;",
+                    'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
+                });
+
+            $elem.toLoad = $images.length;
+
+            // If there's images to be loaded, place a spinner in the block and load the content
+            // in the background.
+            if (!related && $elem.toLoad > 0) {
+                // If the block actually has images, render the loading block.
+                $elem.find('div').hide();
+                $elem.addClass('unclickable').append($spinner);
+                $images.each(function () {
+                    $(this).load(function () {
+                        $elem.toLoad -= 1;
+                        if ($elem.toLoad === 0) {
+                            // This block is ready to go, render it on the page.
+                            $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
+                            $elem.find('div').show();
+                            // Trigger a window resize event because Masonry's resize logic is better (faster)
+                            // than it's reload logic.
+                            $(window).resize();
+                        }
+                    });
+                });
+            }
+
+            $images.error(function(){
+                var instance = $(this),
+                    isAdded = setInterval(function(){
+                        if ($.contains(document.documentElement, instance[0])) {
+                            instance.parent().parent().remove();
+                            clearInterval(isAdded);
+                        }
+                    }, 500);
+            });
+
+            if ($elem.find('.lifestyle').length > 0) {
+                $elem.addClass('wide');
+            }
+
+            if ($elem.hasClass('instagram') && (Math.random() >= 0.5)) {
+                $elem.addClass('wide');
+            }
+
+            if (!related) {
+                $('.discovery-area').append($elem).masonry('appended', $elem, true);
+            }
+        });
+
+        // Render youtube blocks with player
+        videos = _.where(results, {'template': 'youtube'});  // (haystack, criteria)
+        _.each(videos, function (video) {
+            var video_id = video['original-id'] || video.id,
+                video_state_change = window.pagesTracking ?
+                    _.partial(window.pagesTracking.videoStateChange, video_id) :
+                        function () {/* dummy */};
+
+            Willet.mediaAPI.getObject("video_gdata", video_id, function (video_data) {
+                var containers,
+                    preferredThumbnailQuality = 'hqdefault',
+                    thumbClass = 'youtube-thumbnail',
+                    thumbURL = 'http://i.ytimg.com/vi/' + video_id +
+                        '/' + preferredThumbnailQuality + '.jpg',
+                    thumbObj,
+                    thumbPath = ['entry', 'media$group', 'media$thumbnail'],
+                    thumbChecker = checkKeys(video_data, thumbPath),
+                    thumbnailArray = thumbChecker.media$thumbnail || [];
+
+                thumbObj = _.findWhere(thumbnailArray, {
+                    'yt$name': preferredThumbnailQuality
+                });
+                if (thumbObj && thumbObj.url) {
+                    thumbURL = thumbObj.url;
+                }  // else fallback to the default thumbURL
+
+                containers = $(".youtube[data-label='" + video_id + "']");
+                containers.each(function () {
+                    var container = $(this),
+                        uniqueThumbnailID = PAGES.generateID('thumb-' + video_id),
+                        thumbnail = $('<div />', {
+                            'css': {  // this is to trim the 4:3 black bars
+                                'overflow': 'hidden',
+                                'height': 250 + 'px',
+                                'background-image': 'url("' + thumbURL + '")',
+                                'background-position': 'center center'
+                            },
+                            'id': uniqueThumbnailID
+                        });
+
+                    thumbnail
+                        .hide()
+                        .addClass('wide ' + thumbClass)
+                        .click(function () {
+                            // when the thumbnail is clicked, replace itself with
+                            // the youtube video of the same size, then autoplay
+                            player = new YT.Player(uniqueThumbnailID, {
+                                height: 250,
+                                width: 450,
+                                videoId: video_id,
+                                playerVars: {
+                                    'autoplay': 1,
+                                    'controls': 0
+                                },
+                                events: {
+                                    'onReady': function (e) {
+                                    },
+                                    'onStateChange': video_state_change,
+                                    'onError': function (e) {
+                                    }
+                                }
+                            });
+                        });
+
+                    if (container.find('.' + thumbClass).length === 0) {
+                        // add a thumbnail only if there isn't one already
+                        container.prepend(thumbnail);
+                        mediator.fire('log', ['loaded video thumbnail ' + video_id]);
+                    } else {
+                        mediator.fire('log', ['prevented thumbnail dupe']);
+                    }
+                    container.children(".title").html(video_data.entry.title.$t);
+                });
+            });
+        });
+
+        // make sure images are loaded or else masonry wont work properly
+        $block.imagesLoaded(function ($images, $proper, $broken) {
+            $broken.parents('.block').remove();
+            $block.find('.block img[src=""]').parents('.block').remove();
+
+            // Don't continue to load results if we aren't getting more results
+            if (!related && initialResults > 0) {
+                setTimeout(function () {
+                    PAGES.pageScroll();
+                }, 100);
+            }
+
+            $block.find('.pinpoint-youtube-area').click(function() {
+                $(this).html($(this).data('embed'));
+            });
+
+            mediator.fire('PAGES.blocksAppended', [$block]);
+
+            if (related) {
+                PAGES.layoutRelated(related, $block);
+                return;
+            }
+
+            // hack. tell masonry to reposition blocks
+            $(window).resize();
+            PAGES.setLoadingBlocks(false);
+        });
+    }
+
     function layoutRelated(product, relatedContent) {
         /* Load related content into the masonry instance.
            @return: none */
@@ -462,7 +798,7 @@ var PAGES = (function ($, details, mediator) {
         if (!lowestBlock) {
             lowestHeight = 0;
         } else {
-            lowestHeight = lowestBlock.offset().top + lowestBlock.height()
+            lowestHeight = lowestBlock.offset().top + lowestBlock.height();
         }
 
         if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
@@ -470,41 +806,65 @@ var PAGES = (function ($, details, mediator) {
         }
     }
 
+    function windowResize() {
+        // if the browser changes size, switch to mobile templates,
+        // even if the device is not mobile, and vice versa.
+        // this cannot "un-render" js templates previously rendered with
+        // a different-size template.
+        var oldState = Willet.browser.mobile;
+        Willet.browser.mobile =  ($(window).width() < 1024);
+
+        if (Willet.browser.mobile !== oldState) {  // if it changed
+            if (Willet.browser.mobile) {
+                // style tag has no disabled attrib, but the DOM has it
+                $('style.mobile-only').prop('disabled', '');
+                $('style.desktop-only').prop('disabled', 'disabled');
+            } else {
+                $('style.mobile-only').prop('disabled', 'disabled');
+                $('style.desktop-only').prop('disabled', '');
+            }
+        }
+    }
+
     function attachListeners() {
         var $discovery = $('.discovery-area');
+        if ($discovery.length) {
+            // use delegated events to reduce overhead
+            $discovery.on('click', '.block.product:not(.unclickable), ' +
+                                   '.block.combobox:not(.unclickable)', function (e) {
+                showPreview(e.currentTarget);
 
-        // use delegated events to reduce overhead
-        $discovery.on('click', '.block.product:not(.unclickable), .block.combobox:not(.unclickable)', function (e) {
-            showPreview(e.currentTarget);
+                // update clickstream
+                mediator.fire('IR.updateClickStream', [e.currentTarget, e]);
+            });
 
-            // update clickstream
-            mediator.fire('IR.updateClickStream', [e.currentTarget, e]);
-        });
+            $discovery.on('click', '.block.image:not(.unclickable)', function (e) {
+                showPreview(e.currentTarget);
+            });
 
-        $discovery.on('click', '.block.image:not(.unclickable)', function (e) {
-            showPreview(e.currentTarget);
-        });
+            // load related content; update contentstream
+            $discovery.on('click', '.block:not(.youtube):not(.unclickable)', function(e) {
+                mediator.fire('IR.updateContentStream', [e.currentTarget]);
+            });
 
-        // load related content; update contentstream
-        $discovery.on('click', '.block:not(.youtube):not(.unclickable)', function(e) {
-            mediator.fire('IR.updateContentStream', [e.currentTarget]);
-        });
+            // hovers
+            $discovery.on({
+                'mouseenter': productHoverOn,
+                'mouseleave': productHoverOff
+            }, '.block.product:not(.unclickable), .block.combobox:not(.unclickable) .product');
 
-        // hovers
-        $discovery.on({
-            mouseenter: productHoverOn,
-            mouseleave: productHoverOff
-        }, '.block.product:not(.unclickable), .block.combobox:not(.unclickable) .product');
+            $discovery.on({
+                'mouseenter': youtubeHoverOn,
+                'mouseleave': youtubeHoverOff
+            }, '.block.youtube');
 
-        $discovery.on({
-            mouseenter: youtubeHoverOn,
-            mouseleave: youtubeHoverOff
-        }, '.block.youtube');
+            $discovery.on({
+                'mouseenter': lifestyleHoverOn,
+                'mouseleave': lifestyleHoverOff
+            }, '.block.combobox:not(.unclickable) .lifestyle');
+        }
 
-        $discovery.on({
-            mouseenter: lifestyleHoverOn,
-            mouseleave: lifestyleHoverOff
-        }, '.block.combobox:not(.unclickable) .lifestyle');
+        $(window).resize(windowResize);
     }
 
     /* --- END element bindings --- */
@@ -517,7 +877,7 @@ var PAGES = (function ($, details, mediator) {
             item = scripts[i];
             if (_.contains(scriptsLoaded, item.src)) {
                 mediator.fire(
-                    'log',
+                    'error',
                     ['script ' + item.src + ' already loaded; skipping.']
                 );
             } else {
@@ -527,10 +887,65 @@ var PAGES = (function ($, details, mediator) {
         }
     }
 
+    function ready() {
+        if (window.MBP) {
+            // @mobile
+            window.MBP.hideUrlBarOnLoad();
+            window.MBP.preventZoom();
+        }
+
+        // Special Setup
+        // no effect on mobile
+        renderTemplates();
+        attachListeners();
+
+        $('.discovery-area').masonry({
+            itemSelector: '.block',
+
+            columnWidth: function (containerWidth) {
+                return containerWidth / 4;
+            },
+
+            isResizable: true,
+            isAnimated: true
+        });
+
+        $(window).scroll(PAGES.pageScroll).resize(PAGES.pageScroll);
+
+        // Prevent social buttons from causing other events
+        $('.social-buttons .button').on('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Take any necessary actions
+        mediator.fire('PAGES.ready', []);
+        PAGES.loadInitialResults();
+    }
+
     function init(readyFunc, layoutFunc) {
-        layoutResults = layoutFunc;
+        // both functions are optional.
+
+        var pubDate;
+        if (details && details.page && details.page.pubDate) {
+            pubDate = details.page.pubDate;
+        }
+        mediator.fire('log', [  // feature, not a bug
+            '____ ____ ____ ____ _  _ ___     ____ _  _ ' +
+            '_  _ _  _ ____ _    \n[__  |___ |    |  | |' +
+            '\\ | |  \\    |___ |  | |\\ | |\\ | |___ | ' +
+            '   \n___] |___ |___ |__| | \\| |__/    |   ' +
+            ' |__| | \\| | \\| |___ |___ \n' +
+            '           Published ' + pubDate]);
+
+
+        if (readyFunc) {  // override
+            ready = readyFunc;
+        }
+        if (layoutFunc) {  // override
+            layoutResults = layoutFunc;
+        }
         load(scripts);
-        $(document).ready(readyFunc);
+        $(document).ready(ready);
     }
 
     // script actually starts here
@@ -561,12 +976,11 @@ var PAGES = (function ($, details, mediator) {
         'init': init,
         'addPreviewCallback': addPreviewCallback,
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
-        'setBlocksAppendedCallback': setBlocksAppendedCallback,
-        'blocksAppendedCallbacks': blocksAppendedCallbacks,
         'renderTemplate': renderTemplate,
         'renderTemplates': renderTemplates,
         'loadInitialResults': loadInitialResults,
         'loadMoreResults': loadMoreResults,
+        'layoutResults': layoutResults,
         'layoutRelated': layoutRelated,
         'attachListeners': attachListeners,
         'hidePreview': hidePreview,
@@ -574,358 +988,45 @@ var PAGES = (function ($, details, mediator) {
         'MAX_RESULTS_PER_SCROLL': MAX_RESULTS_PER_SCROLL,
         'SHUFFLE_RESULTS': SHUFFLE_RESULTS,
         'fisherYates': fisherYates,
-        'addReadyCallback': addReadyCallback,
-        'checkKeys': checkKeys,
         'generateID': generateID,
         'details': details,
         'getLoadingBlocks': getLoadingBlocks,
         'setLoadingBlocks': setLoadingBlocks,
-        'getModifiedTemplateName': getModifiedTemplateName
+        'getModifiedTemplateName': getModifiedTemplateName,
+        'getTemplate': getTemplate
     };
-}(jQuery,
+}(window.jQuery,
     window.PAGES_INFO || window.TEST_PAGE_DATA || {},
     (Willet && Willet.mediator) || {}));
 
 
-// full (desktop) component
-PAGES.full = (function (me, mediator) {
-    "use strict";
-
-    me = {
-        'layoutFunc': function (jsonData, belowFold, related) {
-            // renders product divs onto the page.
-            // suppose results is (now) a legit json object:
-            // {products: [], videos: [(sizeof 1)]}
-            try {
-                if (jsonData.error) {
-                    mediator.fire(
-                        'error',  // usually "Campaign xxx has no product for id xxx"
-                        [jsonData.error + ' (' + (jsonData.url || '') + ')']
-                    );
-                    return;
-                }
-            } catch (err) {
-                /* neither an array nor object - even worse */
-                mediator.fire('error', ['malformed jsonData', jsonData]);
-                return;
-            }
-            if (!jsonData.length) {
-                mediator.fire('error', ['IR returned zero results!']);
-                return;
-            }
-
-            var $block,
-                result,
-                results = (PAGES.SHUFFLE_RESULTS) ?
-                        (PAGES.fisherYates(jsonData, PAGES.MAX_RESULTS_PER_SCROLL) || []) :
-                        $(jsonData).slice(0, PAGES.MAX_RESULTS_PER_SCROLL),  // no shuffle
-                initialResults = Math.max(results.length, PAGES.MAX_RESULTS_PER_SCROLL),
-                i,
-                j,
-                productDoms = [],
-                template,
-                templateEl,
-                player,
-                template_context,
-                templateType,
-                el,
-                videos,
-                revisedType;
-
-            // add products
-            for (i = 0; i < results.length; i++) {
-                try {
-                    result = results[i];
-                    template_context = result;
-                    templateType = PAGES.getModifiedTemplateName(result.template) || 'product';
-                    templateEl = $("[data-template-id='" + templateType + "']");
-                    template = templateEl.html();
-
-                    switch (templateType) {
-                    case 'product':
-                        // in case an image is lacking, don't bother with the product
-                        if (!template_context.image || template_context.image == "None") {
-                            continue;
-                        }
-
-                        // use the resized images
-                        template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
-                        break;
-                    case 'combobox':
-                        // in case an image is lacking, don't bother with the product
-                        if (!template_context.image || template_context.image == "None") {
-                            continue;
-                        }
-                        break;
-                    case 'image':
-                        if (!template) {
-                            // Legacy themes do not support these templates
-                            revisedType = 'instagram';
-                            templateEl = $("[data-template-id='" + revisedType + "']");
-                            template = templateEl.html();
-                        }
-                        break;
-                    default:
-                        break;
-                    }
-
-                    var rendered_block = PAGES.renderTemplate(template, {
-                        'data': template_context,
-                        'page': PAGES.details.page,
-                        'store': PAGES.details.store
-                    }, true);
-                    if (!rendered_block.length) {
-                        mediator.fire('error', ['warning: not drawing empty template block']);
-                        break;
-                    } else {
-                        el = $(rendered_block);
-                        el.data(template_context);  // populate the .product.block div with data
-
-                        var templateElsLength = el.length;
-                        for (j=0; j<templateElsLength; j++) {
-                            // didn't have a better name for a loop
-                            productDoms.push(el[j]);
-                        }
-                    }
-
-                } catch (err) {  // hide rendering error
-                    mediator.fire('log', ['oops @ item', err]);
-                }
-            }
-
-            // Remove potentially bad content
-            productDoms = _.filter(productDoms, function (elem) {
-                return !_.isEmpty(elem);
-            });
-
-            $block = $(productDoms);  // an array of DOM elements
-
-            // if it has a lifestyle image, add a wide class to it so it's styled properly
-            $block.each(function () {
-                var $elem = $(this),
-                    $images = $elem.find('img'),
-
-                    // Create a spinner image that can be used to indicate a block is loading.
-                    $spinner = $('<img/>', {
-                        'class': "image-loading-spinner",
-                        'style': "padding-top:100px; padding-bottom:100px; width:32px !important; height:32px; position:relative; left:50%;",
-                        'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
-                    });
-
-                $elem.toLoad = $images.length;
-
-                // If there's images to be loaded, place a spinner in the block and load the content
-                // in the background.
-                if (!related && $elem.toLoad > 0) {
-                    // If the block actually has images, render the loading block.
-                    $elem.find('div').hide();
-                    $elem.addClass('unclickable').append($spinner);
-                    $images.each(function () {
-                        $(this).load(function () {
-                            $elem.toLoad -= 1;
-                            if ($elem.toLoad === 0) {
-                                // This block is ready to go, render it on the page.
-                                $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
-                                $elem.find('div').show();
-                                // Trigger a window resize event because Masonry's resize logic is better (faster)
-                                // than it's reload logic.
-                                $(window).resize();
-                            }
-                        });
-                    });
-                }
-
-                $images.error(function(){
-                    var instance = $(this), 
-                        isAdded = setInterval(function(){
-                            if ($.contains(document.documentElement, instance[0])) {
-                                instance.parent().parent().remove();
-                                clearInterval(isAdded);
-                            }
-                        }, 500);
-                });
-
-                if ($elem.find('.lifestyle').length > 0) {
-                    $elem.addClass('wide');
-                }
-
-                if ($elem.hasClass('instagram') && (Math.random() >= 0.5)) {
-                    $elem.addClass('wide');
-                }
-
-                if (!related) {
-                    $('.discovery-area').append($elem).masonry('appended', $elem, true);
-                }
-            });
-
-            // Render youtube blocks with player
-            videos = _.where(results, {'template': 'youtube'});  // (haystack, criteria)
-            _.each(videos, function (video) {
-                var video_id = video['original-id'] || video.id,
-                    video_state_change = window.pagesTracking ?
-                        _.partial(window.pagesTracking.videoStateChange, video_id) :
-                            function () {/* dummy */};
-
-                Willet.mediaAPI.getObject("video_gdata", video_id, function (video_data) {
-                    var containers,
-                        preferredThumbnailQuality = 'hqdefault',
-                        thumbClass = 'youtube-thumbnail',
-                        thumbURL = 'http://i.ytimg.com/vi/' + video_id +
-                            '/' + preferredThumbnailQuality + '.jpg',
-                        thumbObj,
-                        thumbPath = ['entry', 'media$group', 'media$thumbnail'],
-                        thumbChecker = PAGES.checkKeys(video_data, thumbPath),
-                        thumbnailArray = thumbChecker.media$thumbnail || [];
-
-                    thumbObj = _.findWhere(thumbnailArray, {
-                        'yt$name': preferredThumbnailQuality
-                    });
-                    if (thumbObj && thumbObj.url) {
-                        thumbURL = thumbObj.url;
-                    }  // else fallback to the default thumbURL
-
-                    containers = $(".youtube[data-label='" + video_id + "']");
-                    containers.each(function () {
-                        var container = $(this),
-                            uniqueThumbnailID = PAGES.generateID('thumb-' + video_id),
-                            thumbnail = $('<div />', {
-                                'css': {  // this is to trim the 4:3 black bars
-                                    'overflow': 'hidden',
-                                    'height': 250 + 'px',
-                                    'background-image': 'url("' + thumbURL + '")',
-                                    'background-position': 'center center'
-                                },
-                                'id': uniqueThumbnailID
-                            });
-
-                        thumbnail
-                            .hide()
-                            .addClass('wide ' + thumbClass)
-                            .click(function () {
-                                // when the thumbnail is clicked, replace itself with
-                                // the youtube video of the same size, then autoplay
-                                player = new YT.Player(uniqueThumbnailID, {
-                                    height: 250,
-                                    width: 450,
-                                    videoId: video_id,
-                                    playerVars: {
-                                        'autoplay': 1,
-                                        'controls': 0
-                                    },
-                                    events: {
-                                        'onReady': function (e) {
-                                        },
-                                        'onStateChange': video_state_change,
-                                        'onError': function (e) {
-                                        }
-                                    }
-                                });
-                            });
-
-                        if (container.find('.' + thumbClass).length === 0) {
-                            // add a thumbnail only if there isn't one already
-                            container.prepend(thumbnail);
-                            mediator.fire('log', ['loaded video thumbnail ' + video_id]);
-                        } else {
-                            mediator.fire('log', ['prevented thumbnail dupe']);
-                        }
-                        container.children(".title").html(video_data.entry.title.$t);
-                    });
-                });
-            });
-
-            // make sure images are loaded or else masonry wont work properly
-            $block.imagesLoaded(function ($images, $proper, $broken) {
-                $broken.parents('.block').remove();
-                $block.find('.block img[src=""]').parents('.block').remove();
-
-                // Don't continue to load results if we aren't getting more results
-                if (!related && initialResults > 0) {
-                    setTimeout(function () {
-                        PAGES.pageScroll();
-                    }, 100);
-                }
-
-                $block.find('.pinpoint-youtube-area').click(function() {
-                    $(this).html($(this).data('embed'));
-                });
-
-                for (var i in PAGES.blocksAppendedCallbacks) {
-                    PAGES.setBlocksAppendedCallback(i, $block);
-                }
-
-                if (related) {
-                    PAGES.layoutRelated(related, $block);
-                    return;
-                }
-
-                // hack. tell masonry to reposition blocks
-                $(window).resize();
-                PAGES.setLoadingBlocks(false);
-            });
-        },
-        'readyFunc': function () {
-            // Special Setup
-            PAGES.renderTemplates();
-
-            PAGES.attachListeners();
-
-            $('.discovery-area').masonry({
-                itemSelector: '.block',
-
-                columnWidth: function (containerWidth) {
-                    return containerWidth / 4;
-                },
-
-                isResizable: true,
-                isAnimated: true
-            });
-
-            $('.preview .mask, .preview .close').on('click', PAGES.hidePreview);
-
-            $(window).scroll(PAGES.pageScroll);
-            $(window).resize(PAGES.pageScroll);
-
-            // Prevent social buttons from causing other events
-            $('.social-buttons .button').on('click', function(e) {
-                e.stopPropagation();
-            });
-
-            // Take any necessary actions
-            PAGES.loadInitialResults();
-        }
-    };
-
-    return me;
-})(PAGES.full || {}, Willet.mediator);
-
-
 // mobile component
-PAGES.mobile = (function (me) {
+PAGES.mobile = (function (me, mediator) {
     "use strict";
 
     var localData = {};
 
     me = {
+        'renderToView': function (viewSelector, templateName, context, append) {
+            var template = PAGES.getTemplate(templateName).html(),
+                renderedBlock;
+
+            // template does not exist
+            if (template === undefined || template === '') {
+                return;
+            }
+
+            renderedBlock = _.template(template, context);
+            renderedBlock = $(renderedBlock);
+            renderedBlock.data(context);
+
+            if (append) {
+                $(viewSelector).append(renderedBlock);
+            } else {
+                $(viewSelector).html(renderedBlock);
+            }
+        },
         'layoutFunc': function (jsonData, belowFold, related) {
-            var renderToView = function (viewSelector, templateName, context, append) {
-                var template = $("[data-template-id='" + templateName + "']").html(),
-                    renderedBlock;
-
-                // template does not exist
-                if (template === undefined) {
-                    return;
-                }
-
-                renderedBlock = _.template(template, context);
-
-                if (append) {
-                    $(viewSelector).append(renderedBlock);
-                } else {
-                    $(viewSelector).html(renderedBlock);
-                }
-            };
-
             _.each(jsonData, function (data, index, list) {
 
                 var objectId = data.id || data['original-id'],
@@ -934,7 +1035,7 @@ PAGES.mobile = (function (me) {
                 // Old themes used 'instagram',
                 // need to verify template exists
                 if (templateName === 'image' &&
-                    !$("[data-template-id='" + templateName + "']").html()) {
+                    !PAGES.getTemplate(templateName).html()) {
                     templateName = 'instagram';
                 }
 
@@ -942,7 +1043,8 @@ PAGES.mobile = (function (me) {
                 localData[templateName + objectId] = data;
 
                 // render object if possible
-                renderToView(".content_list", templateName, {
+                // .content_list is here for backward compatibility only
+                me.renderToView(".content_list, .discovery-area", templateName, {
                     data: data
                 }, true);
 
@@ -951,20 +1053,10 @@ PAGES.mobile = (function (me) {
                     PAGES.setLoadingBlocks(false);
                 }
             });
-        },
-        'readyFunc': function () {
-
-            if (MBP) {
-                MBP.hideUrlBarOnLoad();
-                MBP.preventZoom();
-            }
-
-            $(window).scroll(PAGES.pageScroll);
-            $(window).resize(PAGES.pageScroll);
-
-            Willet.mediator.fire('IR.loadInitialResults');
         }
     };
 
+    me.local_data = me.localData = localData;  // old themes compatability
+
     return me;
-})();
+}(PAGES.mobile || {}, Willet.mediator));
