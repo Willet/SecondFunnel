@@ -188,7 +188,6 @@ MIDDLEWARE_CLASSES = (
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'maintenancemode.middleware.MaintenanceModeMiddleware',
-    'minidetector.Middleware',
     )
 
 CACHE_MIDDLEWARE_SECONDS = 604800 # Set the cache to atleast a week; will only affect production/test/demo
