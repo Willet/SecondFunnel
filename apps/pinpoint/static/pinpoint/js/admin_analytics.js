@@ -142,7 +142,7 @@ Willet.analytics = (function ($) {
                             return;
                         }
 
-                        api.getObject(api_type, pair[0], function (data) {
+                        Willet.mediaAPI.getObject(api_type, pair[0], function (data) {
                             var box_t = _.template($(template).html()),
                                 caption_t = _.template($("#count_with_percentage").html());
 
@@ -307,7 +307,7 @@ Willet.analytics = (function ($) {
 
         var pids = _.pluck(sortables.engaged_products, 0);
 
-        api.getObjects("product", pids, function (current, total) {
+        Willet.mediaAPI.getObjects("product", pids, function (current, total) {
             $(".progressbar").progressbar("value", Math.round(current / total * 100));
         }, function () {
             // hide progress bar and show data
