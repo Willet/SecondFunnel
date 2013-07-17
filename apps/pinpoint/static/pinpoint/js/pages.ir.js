@@ -5,100 +5,56 @@ PAGES.intentRank = (function (me, details, mediator) {
     "use strict";
 
     var userClicks = 0,
-        clickThreshold = 3;
+        clickThreshold = 3,
+        campaignResultsUrl = "<%=url%>/store/<%=store%>/page/<%=campaign%>/getresults",
+        contentResultsUrl = "<%=url%>/store/<%=store%>/page/<%=campaign%>/product/<%=id%>/getresults";
 
     me.init = function () {
         // load data (if any)
     };
 
-    me.updateClickStream = function (t, event) {
-        /* Loads more content if user clicks has exceeded threshold.
-           On each click, loads related content below
-           a block that the user has clicked. */
-        var $target = $(event.currentTarget),
-            data      = $target.data(),
-            id        = data['product-id'] || data.id,
-            exceededThreshold;
-
-        if (details.page.offline) {
-            return;
-        }
-
-        userClicks += 1;
-        exceededThreshold = ((userClicks % clickThreshold) === 0);
-
-        $.ajax({
-            url: details.base_url + '/intentrank/update-clickstream/?callback=?',
-            data: {
-                'store': details.store.id,
-                'campaign': details.page.id,
-                'product_id': id
-            },
-            timeout: 5000,  // 5000 ~ 10000
-            dataType: 'jsonp',
-            success: function () {
-                if (exceededThreshold) {
-                    PAGES.loadMoreResults(true);
-                }
-            }
-        });
-    };
-
     me.updateContentStream = function (product) {
         /* @return: none */
-        PAGES.loadMoreResults(false, product);
+        PAGES.loadResults(false, product);
     };
 
-    me.getInitialResults = function (callback, seed) {
+    me.getResults = function (callback, belowFold, related) {
+        var relatedData = $(related).data() || {},
+            urlParams = {
+                'url': details.base_url,
+                'store': details.store.id,
+                'campaign': details.page.id,
+                'id': relatedData['original-id']
+            },
+            url;
+
         // callback function will receive a list of results as first param.
         if (PAGES.getLoadingBlocks()) {
             return;
         }
 
         PAGES.setLoadingBlocks(true);
-        if (!_.isEmpty(details.backupResults) &&
+
+        /* TODO: If there are pre-loaded results, start with those?
+            if (!_.isEmpty(details.backupResults) &&
                 !('error' in details.backupResults)) {  // saved IR proxy error
-            callback(details.backupResults);
-            PAGES.setLoadingBlocks(false);
-
-            details.backupResults = [];
-        } else {
-            if (!details.page.offline) {
-                $.ajax({
-                    url: details.base_url + '/intentrank/get-seeds/?callback=?',
-                    data: {
-                        'store': details.store.id,
-                        'campaign': details.page.id,
-                        'seeds': details.product['product-id']
-                    },
-                    dataType: 'jsonp',
-                    timeout: 5000,  // 5000 ~ 10000
-                    success: function(results) {
-                        callback(results);
-                        PAGES.setLoadingBlocks(false);
-                    },
-                    error: function () {
-                        callback(details.backupResults);
-                        PAGES.setLoadingBlocks(false);
-                    }
-                });
-            } else {
-                callback(details.content);
+                callback(details.backupResults);
                 PAGES.setLoadingBlocks(false);
-            }
-        }
-    };
 
-    me.getMoreResults = function (callback, belowFold, related) {
-        // callback function will receive a list of results as first param.
-        if (PAGES.getLoadingBlocks()) {
-            return;
+                details.backupResults = [];
+            } else {
+        */
+
+        // Not sure what this element will be called
+        if (relatedData['original-id']) {
+            url = _.template(contentResultsUrl, urlParams);
+        } else {
+            url = _.template(campaignResultsUrl, urlParams);
         }
 
-        PAGES.setLoadingBlocks(true);
         if (!details.page.offline) {
             $.ajax({
-                url: details.base_url + '/intentrank/get-results/?callback=?',
+                url: url,
                 data: {
                     'store': details.store.id,
                     'campaign': details.page.id,
@@ -107,6 +63,7 @@ PAGES.intentRank = (function (me, details, mediator) {
                     'results': 10,
 
                     // normally ignored, unless IR call fails and we'll resort to getseeds
+                    // Previously, `details.product['product-id']` was used... why?
                     'seeds': details.featured.id
                 },
                 dataType: 'jsonp',
@@ -161,11 +118,9 @@ PAGES.intentRank = (function (me, details, mediator) {
     // register (most) PAGES.intentRank events.
     if (mediator) {
         mediator.on('IR.init', me.init);
-        mediator.on('IR.updateClickStream', me.updateClickStream);
         mediator.on('IR.updateContentStream', me.updateContentStream);
-        mediator.on('IR.getInitialResults', me.getInitialResults);
-        mediator.on('IR.getMoreResults', me.getMoreResults);
-        mediator.on('IR.invalidateIRSession', me.invalidateIRSession);
+        mediator.on('IR.getInitialResults', me.getResults);
+        mediator.on('IR.getResults', me.getResults);
         mediator.on('IR.changeSeed', me.changeSeed);
         mediator.on('IR.changeCategory', me.changeCategory);
     } else {

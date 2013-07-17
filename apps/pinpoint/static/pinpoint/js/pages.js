@@ -423,9 +423,9 @@ var PAGES = (function ($, details, mediator) {
         mediator.fire('IR.getInitialResults', [layoutResults]);
     }
 
-    function loadMoreResults(belowFold, related) {
+    function loadResults(belowFold, related) {
         if (!loadingBlocks || related) {
-            mediator.fire('IR.getMoreResults', [layoutResults, belowFold, related]);
+            mediator.fire('IR.getResults', [layoutResults, belowFold, related]);
         }
     }
 
@@ -481,7 +481,7 @@ var PAGES = (function ($, details, mediator) {
         }
 
         if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
-            loadMoreResults(layoutResults);
+            loadResults(layoutResults);
         }
     }
 
@@ -491,9 +491,6 @@ var PAGES = (function ($, details, mediator) {
         // use delegated events to reduce overhead
         $discovery.on('click', '.block.product:not(.unclickable), .block.combobox:not(.unclickable)', function (e) {
             showPreview(e.currentTarget);
-
-            // update clickstream
-            mediator.fire('IR.updateClickStream', [e.currentTarget, e]);
         });
 
         $discovery.on('click', '.block.image:not(.unclickable)', function (e) {
@@ -587,7 +584,7 @@ var PAGES = (function ($, details, mediator) {
         'renderTemplate': renderTemplate,
         'renderTemplates': renderTemplates,
         'loadInitialResults': loadInitialResults,
-        'loadMoreResults': loadMoreResults,
+        'loadResults': loadResults,
         'layoutRelated': layoutRelated,
         'attachListeners': attachListeners,
         'hidePreview': hidePreview,
