@@ -7,7 +7,8 @@ from django.contrib.contenttypes import generic
 
 
 class AnalyticsRecency(models.Model):
-    """
+    """The AnalyticsRecency model is not known to do anything.
+
     @ivar content_type: 
     @ivar object_id: 
     @ivar parent: 

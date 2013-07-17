@@ -14,11 +14,10 @@ import pickle, sys
 
 from datetime import date, datetime
 
-from functools import partial
 from urlparse import urlparse
 
 # http://docs.celeryproject.org/en/latest/django/first-steps-with-django.html#defining-and-calling-tasks
-from celery import task, chain
+from celery import task, chain, group
 from celery.utils.log import get_task_logger
 
 from django.contrib.contenttypes.models import ContentType
@@ -92,9 +91,9 @@ def target_getter(label):
     generic_image_type = ContentType.objects.get_for_model(GenericImage)
     youtube_type = ContentType.objects.get_for_model(YoutubeVideo)
 
-    t = Product.objects.filter(original_url=label)[:1]
-    if len(t) != 0:
-        return t[0].id, product_type
+    target = Product.objects.filter(original_url=label)[:1]
+    if len(target) != 0:
+        return target[0].id, product_type
 
     # filter out S3's signature GET stuff & hostname
     try:
@@ -103,25 +102,24 @@ def target_getter(label):
     except AttributeError:
         pass
 
-    t = GenericImage.objects.filter(hosted__startswith=label)[:1]
-    if len(t) != 0:
-        return t[0].id, generic_image_type
+    target = GenericImage.objects.filter(hosted__startswith=label)[:1]
+    if len(target) != 0:
+        return target[0].id, generic_image_type
 
-    t = YoutubeVideo.objects.filter(video_id=label)[:1]
-    if len(t) != 0:
-        return t[0].id, youtube_type
+    target = YoutubeVideo.objects.filter(video_id=label)[:1]
+    if len(target) != 0:
+        return target[0].id, youtube_type
 
     return None, None
 
 
 def save_data_pair(store_type, campaign_type, category, row, column):
-    data1, data2 = KVStore(
-        content_type=store_type,
-        object_id=row['store_id']
-    ), KVStore(
-        content_type=campaign_type,
-        object_id=row['campaign_id']
-    )
+    """Saves the same information for both the campaign and its store,
+    presumably for read performance.
+    """
+    data1 = KVStore(content_type=store_type, object_id=row['store_id'])
+    data2 = KVStore(content_type=campaign_type, object_id=row['campaign_id'])
+
     data1.key = data2.key = column['key']
     data1.value = data2.value = row[column['value']]
     data1.timestamp = data2.timestamp = row['date']
@@ -151,28 +149,33 @@ def save_data_pair(store_type, campaign_type, category, row, column):
 
 
 def get_message_by_id(message_id):
+    """Retrieve a "SharedStorage" thing from the database.
+
+    @return: (the message text, the message object)
+
+    SharedStorages are used to bypass message size limits of SQS.
+    """
     try:
         message = SharedStorage.objects.get(id=message_id)
-
     except SharedStorage.DoesNotExist:
         logger.error("Missing message with id={0}. Aborting.".format(
             message_id))
-        return None, None
+        return (None, None)
 
     try:
         # str() prevents KeyError on unpickling
         data = pickle.loads(str(message.data))
-
     # could potentially throw a whole lot of different exceptions
     except:
         logger.error("Could not process message with id={0}: {1}".format(
             message_id, sys.exc_info()[0]))
-        return None, None
+        return (None, None)
 
-    return data, message
+    return (data, message)
 
 
 def update_recency(object_type, object_id):
+    """Creates one of those AnalyticsRecency things in the database."""
     recency, recency_created = AnalyticsRecency.objects.get_or_create(
         content_type=object_type,
         object_id=object_id
@@ -275,9 +278,21 @@ def redo_analytics():
 
     logger.info("Removed old analytics data")
 
-    task_chain = chain(fetch_awareness_data.s(), process_awareness_data.s(),
-                       fetch_event_data.s(), process_event_data.s(),
-                       aggregate_saved_metrics.s())
+    restart_analytics.delay()  # === .run()
+
+
+@task()
+def restart_analytics():
+    """Starts update process.
+
+    To delete the database beforehand, use redo_analytics.
+    """
+    logger.info("Restarting analytics")
+    task_chain = chain(fetch_awareness_data.subtask(),
+                       process_awareness_data.subtask(),
+                       fetch_event_data.subtask(),
+                       process_event_data.subtask(),
+                       aggregate_saved_metrics.subtask())
 
     task_chain.delay()  # === .run()
 
@@ -482,7 +497,6 @@ def process_awareness_data(message_id):
     updated_campaigns = []
 
     categories = Categories()
-    saver = partial(save_data_pair, store_type, campaign_type, categories.get("awareness"))
 
     columns_to_save = [
         {
@@ -508,7 +522,9 @@ def process_awareness_data(message_id):
     for row in data:
         row = preprocess_row(row, logger)
 
-        map(lambda column: saver(row, column), columns_to_save)
+        for column in columns_to_save:
+            save_data_pair(store_type, campaign_type,
+                           categories.get("awareness"), row, column)
 
         if row['store_id'] not in updated_stores:
             updated_stores.append(row['store_id'])
@@ -517,11 +533,11 @@ def process_awareness_data(message_id):
             updated_campaigns.append(row['campaign_id'])
 
     # Update analytics recency data for all affected stores and campaigns
-    recency_updater = partial(update_recency, store_type)
-    map(lambda object_id: recency_updater(object_id), updated_stores)
+    for store_id in updated_stores:
+        update_recency(store_type, store_id)
 
-    recency_updater = partial(update_recency, campaign_type)
-    map(lambda object_id: recency_updater(object_id), updated_campaigns)
+    for campaign_id in updated_campaigns:
+        update_recency(campaign_type, campaign_id)
 
     return None
 
@@ -546,8 +562,6 @@ def process_event_data(message_id):
 
     # handle sharing data
     for category_slug in data.keys():
-        saver = partial(save_data_pair, store_type, campaign_type, categories.get(category_slug))
-
         missing_data = create_parent_data(data[category_slug])
         data[category_slug].extend(missing_data)
 
@@ -571,7 +585,8 @@ def process_event_data(message_id):
                 column['meta'] = 'action_scope'
 
             # save main event
-            saver(row, column)
+            save_data_pair(store_type, campaign_type,
+                           categories.get(category_slug), row, column)
 
             # save event's source network information
             column = {
@@ -580,7 +595,8 @@ def process_event_data(message_id):
                 'value': 'count',
                 'meta': 'socialNetwork'
             }
-            saver(row, column)
+            save_data_pair(store_type, campaign_type,
+                           categories.get(category_slug), row, column)
 
             if row['store_id'] not in updated_stores:
                 updated_stores.append(row['store_id'])
@@ -589,11 +605,11 @@ def process_event_data(message_id):
                 updated_campaigns.append(row['campaign_id'])
 
     # Update analytics recency data for all affected stores and campaigns
-    recency_updater = partial(update_recency, store_type)
-    map(lambda object_id: recency_updater(object_id), updated_stores)
+    for store_id in updated_stores:
+        update_recency(store_type, store_id)
 
-    recency_updater = partial(update_recency, campaign_type)
-    map(lambda object_id: recency_updater(object_id), updated_campaigns)
+    for campaign_id in updated_campaigns:
+        update_recency(campaign_type, campaign_id)
 
     return None
 

@@ -152,94 +152,105 @@ Willet.analytics = (function ($) {
 
         notBouncedVisitors = totals.visitors - totals.visitors * bounceRate / 100;
 
-        var insertAnalytics = function (o) {
-            var params = o.params,
-                pair = o.pair,
-                allData = o.data,
-
-                actions = {
-                    "common": function (api_type, template, params, pair, data_selector) {
-                        if (pair === undefined) {
-                            return;
-                        }
-
-                        Willet.mediaAPI.getObject(api_type, pair[0], function (data) {
-                            var box_t = _.template($(template).html()),
-                                caption_t = _.template($("#count_with_percentage").html());
-
-                            $(params.selector).append(box_t({
-                                data: data_selector(data),
-                                name: data.name,
-                                caption: caption_t({
-                                    verb: params.verb,
-                                    count: pair[1],
-                                    total: params.total
-                                })
-                            }));
-                        });
-                    },
-
-                    "content": function (params, pair) {
-                        actions.common("generic_image", "#top_list_item", params, pair, function (data) {
-                            var image = data.hosted || data.remote;
-                            if (image.indexOf("?Sig") !== -1) {
-                                // remove amazon parameters
-                                return image.slice(0, image.indexOf("?Sig"));
-                            } else {
-                                return image;
-                            }
-                        });
-                    },
-
-                    "product": function (params, pair) {
-                        actions.common("product", "#top_list_item", params, pair, function (data) {
-                            return (data.media.hosted || data.media.remote).replace("master.jpg", "thumb.jpg");
-                        });
-                    },
-
-                    "video": function (params, pair) {
-                        actions.common("video", "#video_item", params, pair, function (data) {
-                            return data.video_id;
-                        });
-                    },
-
-                    "barChart": function (params, pair, allData) {
-                        var chart = new Willet.charting.BarChart({
-                            selector: params.selector,
-                            data: allData,
-
-                            total: params.total,
-
-                            width: params.width,
-                            rowHeight: params.rowHeight
-                        });
-                    },
-
-                    "columnChart": function (params, pair, allData) {
-                        // sort by date
-                        allData.sort(function (a, b) {
-                            return new Date(a[0]) - new Date(b[0]);
-                        });
-
-                        var chart = new Willet.charting.ColumnChart({
-                            selector: params.selector,
-                            data: allData,
-
-                            minWidth: params.minWidth,
-                            height: params.height,
-                            colWidth: params.colWidth
-                        });
-                    },
-
-                    "singleValue": function (params, pair, allData) {
-                        var t = _.template($("#single_value_t").html());
-                        $(params.selector).html(t({
-                            value: allData
-                        }));
+        var getAnalyticsHandler = function (type) {
+            var actions = {
+                "common": function (apiType, template, params, pair, data_selector) {
+                    if (pair === undefined) {
+                        return;
                     }
-                };
 
-            actions[params.type](params, pair, allData);
+                    Willet.mediaAPI.getObject(apiType, pair[0], function (data) {
+                        var boxTemplate = _.template($(template).html()),
+                            captionTemplate = _.template($("#count_with_percentage").html());
+
+                        $(params.selector).append(boxTemplate({
+                            data: data_selector(data),
+                            name: data.name,
+                            caption: captionTemplate({
+                                verb: params.verb,
+                                count: pair[1],
+                                total: params.total
+                            })
+                        }));
+                    });
+                },
+
+                "content": function (params, pair) {
+                    actions.common("generic_image", "#top_list_item", params, pair, function (data) {
+                        var image = data.hosted || data.remote;
+                        if (image.indexOf("?Sig") !== -1) {
+                            // remove amazon parameters
+                            return image.slice(0, image.indexOf("?Sig"));
+                        } else {
+                            return image;
+                        }
+                    });
+                },
+
+                "product": function (params, pair) {
+                    actions.common("product", "#top_list_item", params, pair, function (data) {
+                        return (data.media.hosted || data.media.remote).replace("master.jpg", "thumb.jpg");
+                    });
+                },
+
+                "video": function (params, pair) {
+                    actions.common("video", "#video_item", params, pair, function (data) {
+                        return data.video_id;
+                    });
+                },
+
+                "barChart": function (params, pair, allData) {
+                    var chart = new Willet.charting.BarChart({
+                        selector: params.selector,
+                        data: allData,
+
+                        total: params.total,
+
+                        width: params.width,
+                        rowHeight: params.rowHeight
+                    });
+                },
+
+                "columnChart": function (params, pair, allData) {
+                    // sort by date
+                    allData.sort(function (a, b) {
+                        return new Date(a[0]) - new Date(b[0]);
+                    });
+
+                    var chart = new Willet.charting.ColumnChart({
+                        selector: params.selector,
+                        data: allData,
+
+                        minWidth: params.minWidth,
+                        height: params.height,
+                        colWidth: params.colWidth
+                    });
+                },
+
+                "singleValue": function (params, pair, allData) {
+                    var t = _.template($("#single_value_t").html());
+                    $(params.selector).html(t({
+                        value: allData
+                    }));
+                }
+            };
+            return actions[type];
+        };
+
+        var insertAnalytics = function (options) {
+            // insert a piece of information on the page.
+            // options includes "type"; allowed typesa are defined in
+            // the actions variable.
+            var params = options.params,
+                pair = options.pair,
+                allData = options.data,
+                actions;
+
+            if (!params.type) {
+                Willet.mediator.fire('error', ['a data type must be specified']);
+            } else {
+                getAnalyticsHandler(params.type)(params, pair, allData);
+            }
         };
 
         topLists = {
@@ -324,7 +335,7 @@ Willet.analytics = (function ($) {
             $(".progressbar").slideUp();
             $(".error").slideUp();
 
-            var toInjectLists = [
+            var itemsToPopulate = [
                 {
                     params: {
                         type: "product",
@@ -384,9 +395,7 @@ Willet.analytics = (function ($) {
                         width: 620
                     },
                     data: sortables.visitor_source
-                },
-
-                {
+                }, {
                     params: {
                         type: "barChart",
                         selector: "#visitor_locations",
@@ -395,9 +404,7 @@ Willet.analytics = (function ($) {
                         width: 620
                     },
                     data: sortables.visitor_locations.slice(0, 10)
-                },
-
-                {
+                }, {
                     params: {
                         type: "barChart",
                         selector: "#interaction_sources",
@@ -406,9 +413,7 @@ Willet.analytics = (function ($) {
                         width: 220
                     },
                     data: sortables.interaction_source
-                },
-
-                {
+                }, {
                     params: {
                         type: "barChart",
                         selector: "#sources_of_shares",
@@ -417,9 +422,7 @@ Willet.analytics = (function ($) {
                         width: 300
                     },
                     data: sortables.sharing_sources_of
-                },
-
-                {
+                }, {
                     params: {
                         type: "columnChart",
                         selector: "#visitors_over_time",
@@ -428,25 +431,19 @@ Willet.analytics = (function ($) {
                         height: 200
                     },
                     data: sortables.visitor_dates
-                },
-
-                {
+                }, {
                     params: {
                         type: "singleValue",
                         selector: "#total_visitors"
                     },
                     data: totals.visitors
-                },
-
-                {
+                }, {
                     params: {
                         type: "singleValue",
                         selector: "#total_pageviews"
                     },
                     data: totals.pageviews
-                },
-
-                {
+                }, {
                     params: {
                         type: "singleValue",
                         selector: "#bounce_rate"
@@ -455,7 +452,8 @@ Willet.analytics = (function ($) {
                 }
             ];
 
-            _.each(toInjectLists, function (inject) {
+            // populate the page with actions required]
+            _.each(itemsToPopulate, function (inject) {
                 if (typeof inject.data === 'object' && inject.data.length == 0 || inject.data === undefined) {
                     $("[data-metric='" + inject.params.selector.slice(1) + "']").show();
                 } else {
@@ -463,7 +461,8 @@ Willet.analytics = (function ($) {
                 }
 
                 // if we're injecting a chart or a single value
-                if (inject.params.type.indexOf("Chart") != -1 || inject.params.type === "singleValue") {
+                if (inject.params.type.indexOf("Chart") !== -1 ||
+                        inject.params.type === "singleValue") {
                     insertAnalytics({
                         params: inject.params,
                         data: inject.data
