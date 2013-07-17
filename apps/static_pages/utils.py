@@ -30,16 +30,18 @@ def bucket_exists_or_pending(store):
     return len(log_records) > 1
 
 
-def get_bucket_name(slug):
+def get_bucket_name(bucket_name):
     """
     Generates a bucket name based on current environment.
     """
+
     if settings.ENVIRONMENT in ["test", "dev"]:
-        return "{0}-{1}.secondfunnel.com".format(
-            settings.ENVIRONMENT, slug)
+        str_format = '{0}-{1}.secondfunnel.com'
+        return str_format.format(settings.ENVIRONMENT, bucket_name)
 
     elif settings.ENVIRONMENT == "production":
-        return "{0}.secondfunnel.com".format(slug)
+        str_format = '{0}.secondfunnel.com'
+        return str_format.format(bucket_name)
 
     else:
         raise Exception("Unknown ENVIRONMENT name: {0}".format(
