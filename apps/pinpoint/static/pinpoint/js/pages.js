@@ -968,5 +968,7 @@ PAGES.mobile = (function (me) {
         }
     };
 
+    window.local_data = me.local_data = me.localData = localData;  // old themes compatability
+
     return me;
 })();
