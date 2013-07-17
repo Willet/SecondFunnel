@@ -115,7 +115,6 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
 
     # Page content
     page = Template(page_str)
-    page = Template(page_str)
 
     # Render response
     # TODO: Doesn't make sense but is required; why?
