@@ -62,25 +62,15 @@ def get_ga_generator(query):
                                metrics=query['metrics'],  # what metrics to get
                                dimensions=query['dimensions'],  # which data columns to get
                                sort=query['sort'],  # what to sort by
-                               start_index='1'
-    )
+                               start_index='1')
 
 
-def row_getter(query, row):
-    """
-    Get a data column from provided row
-    """
-
-    def get(key):
-        """
-        Column is looked up by an index from dimensions settings
-        """
-        try:
-            return row[query['dimensions'].index(key)]
-        except ValueError:
-            return row[query['metrics'].index(key) + len(query['dimensions'])]
-
-    return get
+def get_column_value(query, row, key):
+    """Get a data column from provided row"""
+    try:
+        return row[query['dimensions'].index(key)]
+    except ValueError:
+        return row[query['metrics'].index(key) + len(query['dimensions'])]
 
 
 def target_getter(label):
@@ -320,34 +310,31 @@ def fetch_awareness_data(*args):
             continue
 
         for row in rows:
-            getter = row_getter(query, row)
-
             location = u""
             try:
-                if getter('city') != "(not set)":
-                    location = getter('city').encode('utf-8', 'ignore')
+                if get_column_value(query, row, 'city') != "(not set)":
+                    location = get_column_value(query, row, 'city').encode('utf-8', 'ignore')
 
-                if getter('region') != "(not set)" and getter('region') not in location:
+                if get_column_value(query, row, 'region') != "(not set)" and \
+                   get_column_value(query, row, 'region') not in location:
                     location = "{0}, {1}".format(
-                        location, getter('region').encode('utf-8', 'ignore'))
+                        location, get_column_value(query, row, 'region').encode('utf-8', 'ignore'))
             except UnicodeDecodeError:  # happens with region names
                 pass  # (location = location)
 
 
             row_data = {
-                'date': getter('date'),
-                'store_id': getter('customVarValue1'),
-                'campaign_id': getter('customVarValue2'),
-                'visitors': getter('visitors'),
-                'pageviews': getter('pageviews'),
-                'socialNetwork': getter('socialNetwork'),
+                'date': get_column_value(query, row, 'date'),
+                'store_id': get_column_value(query, row, 'customVarValue1'),
+                'campaign_id': get_column_value(query, row, 'customVarValue2'),
+                'visitors': get_column_value(query, row, 'visitors'),
+                'pageviews': get_column_value(query, row, 'pageviews'),
+                'socialNetwork': get_column_value(query, row, 'socialNetwork'),
                 'location': location
             }
 
-            all_present = all(
-                # get a list of booleans for each row value
-                [row_data[key] is not None for key in row_data]
-            )
+            # get a list of booleans for each row value
+            all_present = all([row_data[key] is not None for key in row_data])
 
             if not all_present:
                 logger.warning(
@@ -399,15 +386,13 @@ def fetch_event_data(*args):
             continue
 
         for row in rows:
-            getter = row_getter(query, row)
-
-            category = getter('eventCategory')
-            action = getter('eventAction')
+            category = get_column_value(query, row, 'eventCategory')
+            action = get_column_value(query, row, 'eventAction')
 
             row_data = {
-                'label':            getter('eventLabel'),
-                'date':             getter('date'),
-                'socialNetwork':    getter('socialNetwork'),
+                'label':            get_column_value(query, row, 'eventLabel'),
+                'date':             get_column_value(query, row, 'date'),
+                'socialNetwork':    get_column_value(query, row, 'socialNetwork'),
 
                 'store_id':         get_by_key(category, "storeid"),
                 'campaign_id':      get_by_key(category, "campaignid"),
@@ -488,10 +473,8 @@ def process_awareness_data(message_id):
 
     data, message = get_message_by_id(message_id)
     if not data:
+        logger.error("Message {0} not found!".format(message_id))
         return
-
-    # we can safely delete the passed message at this point
-    message.delete()
 
     updated_stores = []
     updated_campaigns = []
@@ -539,6 +522,9 @@ def process_awareness_data(message_id):
     for campaign_id in updated_campaigns:
         update_recency(campaign_type, campaign_id)
 
+    # we can safely delete the passed message at this point
+    message.delete()
+
     return None
 
 @task()
@@ -550,10 +536,8 @@ def process_event_data(message_id):
 
     data, message = get_message_by_id(message_id)
     if not data:
+        logger.error("Message {0} not found!".format(message_id))
         return
-
-    # we can safely delete the passed message at this point
-    message.delete()
 
     updated_stores = []
     updated_campaigns = []
@@ -611,12 +595,16 @@ def process_event_data(message_id):
     for campaign_id in updated_campaigns:
         update_recency(campaign_type, campaign_id)
 
+    # we can safely delete the passed message at this point
+    message.delete()
+
     return None
 
 @task()
 def aggregate_saved_metrics(*args):
     """Calculates "meta" metrics, which are combined out of "raw" saved data"""
-    # remove all the existing meta metric data
+
+    # Existing data affects results. remove all the existing meta metric data
     KVStore.objects.filter(meta="meta_metric").delete()
 
     def process_category(obj):
@@ -685,17 +673,6 @@ def aggregate_saved_metrics(*args):
     # to further narrow down the  category data
 
     # process_category function then does daily sums of said data
-
-    def averager():
-        values = []
-
-        def avg(value):
-            values.append(value)
-            return sum(values) / float(len(values))
-
-        return avg
-
-    avg = averager()
 
     to_process = [
         # Bounces
