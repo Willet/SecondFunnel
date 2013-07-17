@@ -1,13 +1,15 @@
 Willet.analytics = (function ($) {
     "use strict";
-    var init, settings, setUpListeners, injectAnalyticsData, loadAnalytics;
+    var settings, loadAnalytics, clearOutCharts,
+        injectAnalyticsData, setUpListeners, init;
 
     loadAnalytics = function (obj) {
+        // accepts an... object?
+        obj = obj || {};
+
         var request = {
             "range": $(".range option:selected").val()
         };
-
-        obj = obj || {};
         // request (function scope) vs settings (module scope)
         request.campaign_id = obj.campaign_id || settings.campaign_id;
         request.store_id = obj.store_id || settings.store_id;
@@ -33,6 +35,30 @@ Willet.analytics = (function ($) {
         });
     };
 
+    clearOutCharts = function () {
+        // clear out charts
+        // TODO: use d3 transitions
+        _.each(["#share_destinations",
+            "#interaction_types",
+            "#interaction_sources",
+            "#visitors_over_time",
+            "#sources_of_shares",
+            "#visitor_sources",
+            "#visitor_locations"],
+            function (elemId) {
+                d3.select(elemId + " svg").remove();
+            });
+
+        // clean out top lists
+        _.each(["#top_engaging_products",
+            "#top_shared_products",
+            "#top_videos",
+            "#top_engaged_content"],
+            function (elemId) {
+                $(elemId).html("");
+            });
+    };
+
     injectAnalyticsData = function (data) {
         if (data.error) {
             $(".ajax.error").slideDown();
@@ -52,16 +78,16 @@ Willet.analytics = (function ($) {
                 'visitor_dates': []
             },
 
-            merge_totals = function (t1, t2) {
-                var res = $.extend(true, {}, t1),
-                    type,
-                    key;
+            mergeTotals = function (t1, t2) {
+                var res = $.extend(true, {}, t1);
 
-                for (type in t2) {
-                    for (key in t2[type]) {
-                        res[type][key] = (res[type][key] || 0) + t2[type][key];
-                    }
-                }
+                // for (type in t2) {
+                _.each(t2, function (typeVal, type) {
+                    // for (key in t2[type]) {
+                    _.each(typeVal, function (keyVal, key) {
+                        res[type][key] = (res[type][key] || 0) + keyVal;
+                    });
+                });
 
                 return res;
             },
@@ -79,12 +105,9 @@ Willet.analytics = (function ($) {
             },
 
             bounce_rate = (1 - totals.notbounces / totals.visitors) * 100,
-
             not_bounced_visitors,
-
-            cat_slug, metric_slug,
-
-            merged = {}, to_merge = {
+            merged = {},
+            to_merge = {
                 "sharing": [
                     data.sharing['share-clicked'].totals,
                     data.sharing['share-liked'].totals
@@ -113,15 +136,13 @@ Willet.analytics = (function ($) {
                 ]
             },
 
-            top_lists,
-
-            postprocess_sections;
+            top_lists;
 
         _.each(to_merge, function (list, key) {
-            var result, reduce_start = merge_totals(list[0], list[1]);
+            var reduce_start = mergeTotals(list[0], list[1]);
 
             merged[key] = _.reduce(list.slice(2), function (memo, item) {
-                return merge_totals(memo, item);
+                return mergeTotals(memo, item);
             }, reduce_start);
         });
 
@@ -161,7 +182,12 @@ Willet.analytics = (function ($) {
                     "content": function (params, pair) {
                         actions.common("generic_image", "#top_list_item", params, pair, function (data) {
                             var image = data.hosted || data.remote;
-                            return image.slice(0, image.indexOf("?Sig"));
+                            if (image.indexOf("?Sig") !== -1) {
+                                // remove amazon parameters
+                                return image.slice(0, image.indexOf("?Sig"));
+                            } else {
+                                return image;
+                            }
                         });
                     },
 
@@ -178,7 +204,7 @@ Willet.analytics = (function ($) {
                     },
 
                     "bar_chart": function (params, pair, all_data) {
-                        var chart = new BarChart({
+                        var chart = new Willet.charting.BarChart({
                             selector: params.selector,
                             data: all_data,
 
@@ -195,7 +221,7 @@ Willet.analytics = (function ($) {
                             return new Date(a[0]) - new Date(b[0]);
                         });
 
-                        var chart = new ColumnChart({
+                        var chart = new Willet.charting.ColumnChart({
                             selector: params.selector,
                             data: all_data,
 
@@ -211,13 +237,6 @@ Willet.analytics = (function ($) {
                             value: all_data
                         }));
                     }
-                },
-
-                adjust_width = function (section_selector) {
-                    var $s = $(section_selector);
-
-                    // 20px accounts for margins
-                    $s.css("width", $s.children().length * ($s.children().width() + 20) + "px");
                 };
 
             actions[params.type](params, pair, all_data);
@@ -248,14 +267,16 @@ Willet.analytics = (function ($) {
         };
 
         // insert totals for metrics into the sidebar
-        for (cat_slug in data) {
-            for (metric_slug in data[cat_slug]) {
+        // for (cat_slug in data) {
+        _.each(data, function (category, cat_slug) {
+            // for (metric_slug in data[cat_slug]) {
+            _.each(category, function (metric, metric_slug) {
                 // display totals in the sidebar on in the content section
                 $(".metric_overview[data-metric='" + metric_slug + "']").html(
                     data[cat_slug][metric_slug].totals.date.all.toFixed(0)
                 );
-            }
-        }
+            });
+        });
 
         // These metrics aren't calculated by the backend atm, hence the ugly implementation
         $(".per-visitor").remove();
@@ -291,19 +312,7 @@ Willet.analytics = (function ($) {
             });
         });
 
-        // clear out charts
-        // TODO: use d3 transitions
-        $(["share_destinations", "interaction_types", "interaction_sources",
-            "visitors_over_time", "sources_of_shares", "visitor_sources",
-            "visitor_locations"]).each(function (i, val) {
-                d3.select("#" + val + " svg").remove();
-            });
-
-        // clean out top lists
-        $(["top_engaging_products", "top_shared_products",
-            "top_videos", "top_engaged_content"]).each(function (i, val) {
-                $("#" + val).html("");
-            });
+        clearOutCharts();
 
         var pids = _.pluck(sortables.engaged_products, 0);
 
