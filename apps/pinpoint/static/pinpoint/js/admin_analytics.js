@@ -96,7 +96,7 @@ Willet.analytics = (function ($) {
                 interactions: {
                     all: data.engagement['total-interactions'].totals.date.all,
                     product: data.engagement['product-interactions'].totals.date.all,
-                    content: data.engagement['content-interactions'].totals.date.all,
+                    content: data.engagement['content-interactions'].totals.date.all
                 },
                 shares: data.sharing['total-shares'].totals.date.all,
                 visitors: data.awareness['awareness-visitors'].totals.date.all,
@@ -104,10 +104,10 @@ Willet.analytics = (function ($) {
                 notbounces: data.engagement['total-no-bounces'].totals.date.all
             },
 
-            bounce_rate = (1 - totals.notbounces / totals.visitors) * 100,
-            not_bounced_visitors,
+            bounceRate = (1 - totals.notbounces / totals.visitors) * 100,
+            notBouncedVisitors,
             merged = {},
-            to_merge = {
+            toMerge = {
                 "sharing": [
                     data.sharing['share-clicked'].totals,
                     data.sharing['share-liked'].totals
@@ -136,9 +136,9 @@ Willet.analytics = (function ($) {
                 ]
             },
 
-            top_lists;
+            topLists;
 
-        _.each(to_merge, function (list, key) {
+        _.each(toMerge, function (list, key) {
             var reduce_start = mergeTotals(list[0], list[1]);
 
             merged[key] = _.reduce(list.slice(2), function (memo, item) {
@@ -146,16 +146,16 @@ Willet.analytics = (function ($) {
             }, reduce_start);
         });
 
-        if (isNaN(bounce_rate)) {
-            bounce_rate = 0;
+        if (isNaN(bounceRate)) {
+            bounceRate = 0;
         }
 
-        not_bounced_visitors = totals.visitors - totals.visitors * bounce_rate / 100;
+        notBouncedVisitors = totals.visitors - totals.visitors * bounceRate / 100;
 
         var insertAnalytics = function (o) {
             var params = o.params,
                 pair = o.pair,
-                all_data = o.data,
+                allData = o.data,
 
                 actions = {
                     "common": function (api_type, template, params, pair, data_selector) {
@@ -203,46 +203,46 @@ Willet.analytics = (function ($) {
                         });
                     },
 
-                    "bar_chart": function (params, pair, all_data) {
+                    "barChart": function (params, pair, allData) {
                         var chart = new Willet.charting.BarChart({
                             selector: params.selector,
-                            data: all_data,
+                            data: allData,
 
                             total: params.total,
 
                             width: params.width,
-                            row_height: params.row_height
+                            rowHeight: params.rowHeight
                         });
                     },
 
-                    "column_chart": function (params, pair, all_data) {
+                    "columnChart": function (params, pair, allData) {
                         // sort by date
-                        all_data.sort(function (a, b) {
+                        allData.sort(function (a, b) {
                             return new Date(a[0]) - new Date(b[0]);
                         });
 
                         var chart = new Willet.charting.ColumnChart({
                             selector: params.selector,
-                            data: all_data,
+                            data: allData,
 
-                            min_width: params.min_width,
+                            minWidth: params.minWidth,
                             height: params.height,
-                            col_width: params.col_width
+                            colWidth: params.colWidth
                         });
                     },
 
-                    "single_value": function (params, pair, all_data) {
+                    "singleValue": function (params, pair, allData) {
                         var t = _.template($("#single_value_t").html());
                         $(params.selector).html(t({
-                            value: all_data
+                            value: allData
                         }));
                     }
                 };
 
-            actions[params.type](params, pair, all_data);
+            actions[params.type](params, pair, allData);
         };
 
-        top_lists = {
+        topLists = {
             'engaged_products': merged.product_interactions.target_id,
             'engaged_content': merged.content_interactions.target_id,
             'engaged_videos': data.engagement['content-video'].totals.target_id,
@@ -282,16 +282,16 @@ Willet.analytics = (function ($) {
         $(".per-visitor").remove();
 
         $(".section_overview_block:nth-child(2) .section_overview_metrics ul").append(
-            "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / not_bounced_visitors || 0).toFixed(2) + "</span> Interactions per engaged visitor</li>");
+            "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / notBouncedVisitors || 0).toFixed(2) + "</span> Interactions per engaged visitor</li>");
 
         $(".section_overview_block:nth-child(3) .section_overview_metrics ul").append(
-            "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + (totals.shares / not_bounced_visitors || 0).toFixed(2) + "</span> Shares per visit</li>");
+            "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + (totals.shares / notBouncedVisitors || 0).toFixed(2) + "</span> Shares per visit</li>");
 
         $(".section_overview_block:nth-child(1) .section_overview_metrics ul").append(
-            "<li class='per-visitor'><span class='metric_overview' data-metric='bounce-rate'>" + bounce_rate.toFixed(2) + "%</span> Bounce Rate</li>");
+            "<li class='per-visitor'><span class='metric_overview' data-metric='bounce-rate'>" + bounceRate.toFixed(2) + "%</span> Bounce Rate</li>");
 
         // construct lists of sorted (desc) (pid, count) pairs
-        _.each(top_lists, function (list, key) {
+        _.each(topLists, function (list, key) {
             sortables[key] = _.map(list, function (count, pid) {
                 if (pid !== "all" && pid !== "null" && pid !== "meta_metric") {
                     return [pid, count];
@@ -324,7 +324,7 @@ Willet.analytics = (function ($) {
             $(".progressbar").slideUp();
             $(".error").slideUp();
 
-            var to_inject_lists = [
+            var toInjectLists = [
                 {
                     params: {
                         type: "product",
@@ -333,9 +333,7 @@ Willet.analytics = (function ($) {
                         total: totals.interactions.product
                     },
                     data: sortables.engaged_products.slice(0, 4)
-                },
-
-                {
+                }, {
                     params: {
                         type: "content",
                         selector: "#top_engaged_content",
@@ -343,9 +341,7 @@ Willet.analytics = (function ($) {
                         total: totals.interactions.content
                     },
                     data: sortables.engaged_content.slice(0, 4)
-                },
-
-                {
+                }, {
                     params: {
                         type: "product",
                         selector: "#top_shared_products",
@@ -353,9 +349,7 @@ Willet.analytics = (function ($) {
                         total: totals.shares
                     },
                     data: sortables.sharing_products.slice(0, 4)
-                },
-
-                {
+                }, {
                     params: {
                         type: "video",
                         selector: "#top_videos",
@@ -363,36 +357,30 @@ Willet.analytics = (function ($) {
                         total: data.engagement['content-video'].totals.date.all
                     },
                     data: sortables.engaged_videos.slice(0, 3)
-                },
-
-                {
+                }, {
                     params: {
-                        type: "bar_chart",
+                        type: "barChart",
                         selector: "#share_destinations",
                         total: totals.shares,
-                        row_height: 20,
+                        rowHeight: 20,
                         width: 300
                     },
                     data: sortables.sharing_source
-                },
-
-                {
+                }, {
                     params: {
-                        type: "bar_chart",
+                        type: "barChart",
                         selector: "#interaction_types",
                         total: totals.interactions.all,
-                        row_height: 20,
+                        rowHeight: 20,
                         width: 220
                     },
                     data: sortables.interaction_types
-                },
-
-                {
+                }, {
                     params: {
-                        type: "bar_chart",
+                        type: "barChart",
                         selector: "#visitor_sources",
                         total: totals.visitors,
-                        row_height: 20,
+                        rowHeight: 20,
                         width: 620
                     },
                     data: sortables.visitor_source
@@ -400,10 +388,10 @@ Willet.analytics = (function ($) {
 
                 {
                     params: {
-                        type: "bar_chart",
+                        type: "barChart",
                         selector: "#visitor_locations",
                         total: totals.visitors,
-                        row_height: 20,
+                        rowHeight: 20,
                         width: 620
                     },
                     data: sortables.visitor_locations.slice(0, 10)
@@ -411,10 +399,10 @@ Willet.analytics = (function ($) {
 
                 {
                     params: {
-                        type: "bar_chart",
+                        type: "barChart",
                         selector: "#interaction_sources",
                         total: totals.interactions.all,
-                        row_height: 20,
+                        rowHeight: 20,
                         width: 220
                     },
                     data: sortables.interaction_source
@@ -422,10 +410,10 @@ Willet.analytics = (function ($) {
 
                 {
                     params: {
-                        type: "bar_chart",
+                        type: "barChart",
                         selector: "#sources_of_shares",
                         total: totals.shares,
-                        row_height: 20,
+                        rowHeight: 20,
                         width: 300
                     },
                     data: sortables.sharing_sources_of
@@ -433,10 +421,10 @@ Willet.analytics = (function ($) {
 
                 {
                     params: {
-                        type: "column_chart",
+                        type: "columnChart",
                         selector: "#visitors_over_time",
-                        min_width: 540,
-                        col_width: 20,
+                        minWidth: 540,
+                        colWidth: 20,
                         height: 200
                     },
                     data: sortables.visitor_dates
@@ -444,7 +432,7 @@ Willet.analytics = (function ($) {
 
                 {
                     params: {
-                        type: "single_value",
+                        type: "singleValue",
                         selector: "#total_visitors"
                     },
                     data: totals.visitors
@@ -452,7 +440,7 @@ Willet.analytics = (function ($) {
 
                 {
                     params: {
-                        type: "single_value",
+                        type: "singleValue",
                         selector: "#total_pageviews"
                     },
                     data: totals.pageviews
@@ -460,14 +448,14 @@ Willet.analytics = (function ($) {
 
                 {
                     params: {
-                        type: "single_value",
+                        type: "singleValue",
                         selector: "#bounce_rate"
                     },
-                    data: bounce_rate.toFixed(2) + "%"
+                    data: bounceRate.toFixed(2) + "%"
                 }
             ];
 
-            _.each(to_inject_lists, function (inject) {
+            _.each(toInjectLists, function (inject) {
                 if (typeof inject.data === 'object' && inject.data.length == 0 || inject.data === undefined) {
                     $("[data-metric='" + inject.params.selector.slice(1) + "']").show();
                 } else {
@@ -475,7 +463,7 @@ Willet.analytics = (function ($) {
                 }
 
                 // if we're injecting a chart or a single value
-                if (inject.params.type.indexOf("_chart") != -1 || inject.params.type === "single_value") {
+                if (inject.params.type.indexOf("Chart") != -1 || inject.params.type === "singleValue") {
                     insertAnalytics({
                         params: inject.params,
                         data: inject.data
