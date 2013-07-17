@@ -12,7 +12,7 @@ http://docs.celeryproject.org/en/latest/django/first-steps-with-django.html
 from copy import deepcopy
 import pickle, sys
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, tzinfo
 
 from urlparse import urlparse
 
@@ -22,6 +22,7 @@ from celery.utils.log import get_task_logger
 
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+import django.db.transaction as transaction
 
 from apps.analytics.storage_backends import GoogleAnalyticsBackend
 from apps.analytics.models import (AnalyticsRecency, Category, Metric, KVStore,
@@ -31,6 +32,20 @@ from apps.pinpoint.models import Campaign, IntentRankCampaign
 
 
 logger = get_task_logger(__name__)
+
+
+class GMT(tzinfo):
+    """There isn't a built-in tzinfo?
+
+    http://agiliq.com/blog/2009/02/understanding-datetime-tzinfo-timedelta-amp-timezo/
+    """
+    def utcoffset(self,dt):
+        return timedelta(hours=0)
+    def tzname(self,dt):
+        return "GMT"
+    def dst(self, dt):
+        return timedelta(0)
+
 
 # Helper functions used by the tasks below
 def get_by_key(string, key):
@@ -177,7 +192,8 @@ def update_recency(object_type, object_id):
 
 def preprocess_row(row, logger):
     try:
-        row['date'] = datetime.strptime(row['date'], "%Y%m%d")
+        row['date'] = datetime.strptime(row['date'], "%Y%m%d")\
+                              .replace(tzinfo=GMT())
 
     except (IndexError, ValueError):
         logger.warning("Date is unrecognized: %s", row['date'])
@@ -190,16 +206,27 @@ def create_parent_data(data):
     For all subcategories, need to create additional rows for 'parent'
     category
     """
-
-    # TODO: There must be a faster way to do this,
-    # it will likely be incredibly slow getting the IR id one by one and
-    # getting the related campaign
+    def get_ir_campaign_by_pk(list_of_ir_campaigns, pk):
+        """you have a list of ir campaigns already in memory.
+        this can be fancier with list comprehension and whatnot, but that's
+        what got us last time.
+        """
+        for ir_campaign in list_of_ir_campaigns:
+            if ir_campaign.pk == pk:
+                return ir_campaign
+        return None
 
     missing_data = []
+    logger.info('Going to fetch {0} IntentRankCampaigns.'.format(len(data)))
+    campaign_ids = [row.get('campaign_id') for row in data]
+    ir_campaigns = IntentRankCampaign.objects\
+        .filter(pk__in=campaign_ids)\
+        .prefetch_related('campaigns')  # do a single fetch
+
     for row in data:
         category_id = row.get('campaign_id')
         try:
-            ir = IntentRankCampaign.objects.get(pk=category_id)
+            ir = get_ir_campaign_by_pk(ir_campaigns, category_id)
 
             # Since it's a M2M rel'n, even though we never associate
             # categories with other stores, we need to look through all of
@@ -466,6 +493,7 @@ def fetch_event_data(*args):
 
 
 @task()
+@transaction.commit_manually
 def process_awareness_data(message_id):
     """Processes fetched awareness data, row by row"""
     store_type = ContentType.objects.get_for_model(Store)
@@ -499,6 +527,7 @@ def process_awareness_data(message_id):
         }
     ]
 
+    logger.info('#{0}: Creating missing data'.format(message_id))
     missing_data = create_parent_data(data)
     data.extend(missing_data)
 
@@ -525,9 +554,12 @@ def process_awareness_data(message_id):
     # we can safely delete the passed message at this point
     message.delete()
 
+    transaction.commit()  # bam
+
     return None
 
 @task()
+@transaction.commit_manually
 def process_event_data(message_id):
     """Processes fetched event data, row by row, saves key/value
     analytics pairs for associated store and campaign"""
@@ -546,6 +578,7 @@ def process_event_data(message_id):
 
     # handle sharing data
     for category_slug in data.keys():
+        logger.info('#{0}: Creating missing data'.format(data[category_slug]))
         missing_data = create_parent_data(data[category_slug])
         data[category_slug].extend(missing_data)
 
@@ -598,9 +631,12 @@ def process_event_data(message_id):
     # we can safely delete the passed message at this point
     message.delete()
 
+    transaction.commit()  # bam
+
     return None
 
 @task()
+@transaction.commit_manually
 def aggregate_saved_metrics(*args):
     """Calculates "meta" metrics, which are combined out of "raw" saved data"""
 
@@ -762,3 +798,5 @@ def aggregate_saved_metrics(*args):
 
     for category in to_process:
         process_category(category)
+
+    transaction.commit()  # bam

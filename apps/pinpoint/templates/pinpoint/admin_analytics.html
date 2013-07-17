@@ -76,7 +76,11 @@
     </script>
 
     <script type="text/template" id="count_with_percentage">
-        <span class="metric_perc"><%= ((count / total) * 100 || 0).toFixed(0) %>%</span><br><span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
+        <% if (total > 0 && count > 0 && total > count) { %>
+            <span class="metric_perc"><%= ((count / total) * 100 || 0).toFixed(0) %>%</span><br><span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
+        <% } else { %>
+            <span class="metric_perc">&nbsp;</span><br><span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
+        <% } %>
     </script>
 
     <script type="text/template" id="single_value_t">
