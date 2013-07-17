@@ -7,14 +7,10 @@ var PAGES = (function ($, details, mediator) {
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || true,
         scripts,
-        styleSheets = [],
         scriptsLoaded = [],
         spaceBelowFoldToStartLoading = 500,
         loadingBlocks = false,
-        blocksAppendedCallbacks = [],
         globalIdCounters = {},
-        previewCallbacks = [],
-        readyCallbacks = [],
         hoverTimer,
         sizableRegex = /images\.secondfunnel\.com/,
         imageSizes = [
@@ -22,7 +18,7 @@ var PAGES = (function ($, details, mediator) {
             "grande", "1024x1024", "master"
         ];
 
-    function getLoadingBlocks(bool) {
+    function getLoadingBlocks() {
         return loadingBlocks;
     }
 
@@ -31,7 +27,7 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function getModifiedTemplateName(name) {
-        // returns the template name suitabl
+        // returns the template name suitable
         var i,
             type,
             templateNames = [
@@ -299,8 +295,7 @@ var PAGES = (function ($, details, mediator) {
 
     /* --- START element bindings --- */
     function showPreview(me) {
-        var i,
-            data = $(me).data(),
+        var data = $(me).data(),
             templateName = getModifiedTemplateName(data.template),
             $previewContainer = getTemplate("preview-container"),  // built-in
             $previewMask = $previewContainer.find('.mask'),
@@ -350,12 +345,7 @@ var PAGES = (function ($, details, mediator) {
             window.twttr.widgets.load();
         }
 
-        for (i in previewCallbacks) {
-            if (previewCallbacks.hasOwnProperty(i)) {
-                previewCallbacks[i]();
-            }
-        }
-
+        mediator.fire('PAGES.previewOpened');
         mediator.fire('tracking.clearTimeout');
         mediator.fire('tracking.setSocialShareVars', [
             {"sType": "popup", "url": data.url}
@@ -370,25 +360,17 @@ var PAGES = (function ($, details, mediator) {
         $('.preview .mask, .preview .close').on('click', PAGES.hidePreview);
     }
 
-    function addPreviewCallback(f) {
-        previewCallbacks.push(f);
+    function addPreviewCallback(func) {
+        // used by some themes. func accepts no arguments.
+        mediator.on('PAGES.previewOpened', func);
     }
 
-    function addOnBlocksAppendedCallback(f) {
-        blocksAppendedCallbacks.push(f);
+    function addOnBlocksAppendedCallback(func) {
+        // used by some themes. func accepts no arguments.
+        mediator.on('PAGES.blocksAppended', func);
     }
 
-    function setBlocksAppendedCallback(i, $block) {
-        if (blocksAppendedCallbacks.hasOwnProperty(i)) {
-            blocksAppendedCallbacks[i]($block);
-        }
-    }
-
-    function addReadyCallback(f) {
-        readyCallbacks.push(f);
-    }
-
-    function hidePreview () {
+    function hidePreview() {
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.container');
 
@@ -679,7 +661,7 @@ var PAGES = (function ($, details, mediator) {
                         '/' + preferredThumbnailQuality + '.jpg',
                     thumbObj,
                     thumbPath = ['entry', 'media$group', 'media$thumbnail'],
-                    thumbChecker = PAGES.checkKeys(video_data, thumbPath),
+                    thumbChecker = checkKeys(video_data, thumbPath),
                     thumbnailArray = thumbChecker.media$thumbnail || [];
 
                 thumbObj = _.findWhere(thumbnailArray, {
@@ -755,9 +737,7 @@ var PAGES = (function ($, details, mediator) {
                 $(this).html($(this).data('embed'));
             });
 
-            for (var i in PAGES.blocksAppendedCallbacks) {
-                PAGES.setBlocksAppendedCallback(i, $block);
-            }
+            mediator.fire('PAGES.blocksAppended', [$block]);
 
             if (related) {
                 PAGES.layoutRelated(related, $block);
@@ -869,18 +849,18 @@ var PAGES = (function ($, details, mediator) {
 
             // hovers
             $discovery.on({
-                mouseenter: productHoverOn,
-                mouseleave: productHoverOff
+                'mouseenter': productHoverOn,
+                'mouseleave': productHoverOff
             }, '.block.product:not(.unclickable), .block.combobox:not(.unclickable) .product');
 
             $discovery.on({
-                mouseenter: youtubeHoverOn,
-                mouseleave: youtubeHoverOff
+                'mouseenter': youtubeHoverOn,
+                'mouseleave': youtubeHoverOff
             }, '.block.youtube');
 
             $discovery.on({
-                mouseenter: lifestyleHoverOn,
-                mouseleave: lifestyleHoverOff
+                'mouseenter': lifestyleHoverOn,
+                'mouseleave': lifestyleHoverOff
             }, '.block.combobox:not(.unclickable) .lifestyle');
         }
 
@@ -907,25 +887,17 @@ var PAGES = (function ($, details, mediator) {
         }
     }
 
-    function loadCSS(stylesheets) {
-        var i;
-        for (i=0; i<stylesheets.length; i++) {
-            $('head').append($('<link rel="stylesheet" type="text/css" />')
-                              .attr('href', stylesheets));
-        }
-    }
-
     function ready() {
-        if (MBP) {
+        if (window.MBP) {
             // @mobile
-            MBP.hideUrlBarOnLoad();
-            MBP.preventZoom();
+            window.MBP.hideUrlBarOnLoad();
+            window.MBP.preventZoom();
         }
 
         // Special Setup
         // no effect on mobile
-        PAGES.renderTemplates();
-        PAGES.attachListeners();
+        renderTemplates();
+        attachListeners();
 
         $('.discovery-area').masonry({
             itemSelector: '.block',
@@ -946,11 +918,26 @@ var PAGES = (function ($, details, mediator) {
         });
 
         // Take any necessary actions
+        mediator.fire('PAGES.ready', []);
         PAGES.loadInitialResults();
     }
 
     function init(readyFunc, layoutFunc) {
         // both functions are optional.
+
+        var pubDate;
+        if (details && details.page && details.page.pubDate) {
+            pubDate = details.page.pubDate;
+        }
+        mediator.fire('log', [  // feature, not a bug
+            '____ ____ ____ ____ _  _ ___     ____ _  _ ' +
+            '_  _ _  _ ____ _    \n[__  |___ |    |  | |' +
+            '\\ | |  \\    |___ |  | |\\ | |\\ | |___ | ' +
+            '   \n___] |___ |___ |__| | \\| |__/    |   ' +
+            ' |__| | \\| | \\| |___ |___ \n' +
+            '           Published ' + pubDate]);
+
+
         if (readyFunc) {  // override
             ready = readyFunc;
         }
@@ -958,7 +945,6 @@ var PAGES = (function ($, details, mediator) {
             layoutResults = layoutFunc;
         }
         load(scripts);
-        loadCSS(styleSheets);
         $(document).ready(ready);
     }
 
@@ -990,8 +976,6 @@ var PAGES = (function ($, details, mediator) {
         'init': init,
         'addPreviewCallback': addPreviewCallback,
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
-        'setBlocksAppendedCallback': setBlocksAppendedCallback,
-        'blocksAppendedCallbacks': blocksAppendedCallbacks,
         'renderTemplate': renderTemplate,
         'renderTemplates': renderTemplates,
         'loadInitialResults': loadInitialResults,
@@ -1004,8 +988,6 @@ var PAGES = (function ($, details, mediator) {
         'MAX_RESULTS_PER_SCROLL': MAX_RESULTS_PER_SCROLL,
         'SHUFFLE_RESULTS': SHUFFLE_RESULTS,
         'fisherYates': fisherYates,
-        'addReadyCallback': addReadyCallback,
-        'checkKeys': checkKeys,
         'generateID': generateID,
         'details': details,
         'getLoadingBlocks': getLoadingBlocks,
@@ -1077,4 +1059,4 @@ PAGES.mobile = (function (me, mediator) {
     me.local_data = me.localData = localData;  // old themes compatability
 
     return me;
-})(PAGES.mobile || {}, Willet.mediator);
+}(PAGES.mobile || {}, Willet.mediator));
