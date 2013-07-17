@@ -232,14 +232,14 @@ def get_seeds(request, **kwargs):
     try:
         response, content = send_request(request, url)
         status = response.status
-    except httplib2.HttpLib2Error:
+    except httplib2.HttpLib2Error as e:
         # Don't care what went wrong; do something!
-        content = "{}"
+        content = "{'error': '{0}'}".format(str(e))
         status = 400
 
     # Since we are sending the request, and we'll get JSONP back
     # we know what the callback will be named
-    prefix = 'fn('
+    prefix = '{0}('.format(callback)
     suffix = ');'
     if content.startswith(prefix) and content.endswith(suffix):
         content = content[len(prefix):-len(suffix)]
