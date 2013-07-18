@@ -83,13 +83,6 @@ PAGES.intentRank = (function (me, details, mediator) {
         }
     };
 
-    me.invalidateIRSession = function () {
-        $.ajax({
-            url: details.base_url + '/intentrank/invalidate-session/?callback=?',
-            dataType: 'jsonp'
-        });
-    };
-
     me.changeSeed = function (seed) {
         // If you're calling this function, you probably know what
         // you're doing...
