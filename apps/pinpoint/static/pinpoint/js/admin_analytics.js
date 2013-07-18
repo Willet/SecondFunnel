@@ -77,6 +77,7 @@ Willet.analytics = (function ($) {
     };
 
     injectAnalyticsData = function (data) {
+        // fill the UI with newly received analytics data.
         if (data.error) {
             $(".ajax.error").slideDown();
             $(".progressbar").slideUp();
@@ -309,17 +310,62 @@ Willet.analytics = (function ($) {
             });
         });
 
+        // calculate per-visitor metrics.
         // These metrics aren't calculated by the backend atm, hence the ugly implementation
-        $(".per-visitor").remove();
+        (function () {
+            $(".per-visitor").remove();
 
-        $(".section_overview_block:nth-child(2) .section_overview_metrics ul").append(
-            "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / notBouncedVisitors || 0).toFixed(2) + "</span> Interactions per engaged visitor</li>");
+            var bounceRate = bounceRate,  // import scope
+                interactionsPerEngagedVisitor =
+                    (totals.interactions.all / notBouncedVisitors || 0).toFixed(2),
+                sharesPerVisit =
+                    (totals.shares / notBouncedVisitors || 0).toFixed(2);
 
-        $(".section_overview_block:nth-child(3) .section_overview_metrics ul").append(
-            "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + (totals.shares / notBouncedVisitors || 0).toFixed(2) + "</span> Shares per visit</li>");
+            if (bounceRate < 0 || bounceRate > 100 ||
+                    bounceRate === Infinity || isNaN(bounceRate)) {
+                bounceRate = '';  // can't guess how wrong it actually is
+            } else {
+                bounceRate = bounceRate.toFixed(2);
+            }
 
-        $(".section_overview_block:nth-child(1) .section_overview_metrics ul").append(
-            "<li class='per-visitor'><span class='metric_overview' data-metric='bounce-rate'>" + bounceRate.toFixed(2) + "%</span> Bounce Rate</li>");
+            if (interactionsPerEngagedVisitor < 0 ||
+                    interactionsPerEngagedVisitor === Infinity ||
+                    isNaN(interactionsPerEngagedVisitor)) {
+                interactionsPerEngagedVisitor = '';
+            }
+
+            if (sharesPerVisit < 0 || sharesPerVisit === Infinity ||
+                    isNaN(sharesPerVisit)) {
+                bounceRate = '';
+            }
+
+            if (interactionsPerEngagedVisitor) {
+                $(".section_overview_block:nth-child(2) " +
+                    ".section_overview_metrics ul").append(
+                    "<li class='per-visitor'><span class='metric_overview' " +
+                        "data-metric='interactions-per-visitor'>" +
+                         interactionsPerEngagedVisitor +
+                        "</span> Interactions per engaged visitor</li>");
+            }
+
+            if (sharesPerVisit) {
+                $(".section_overview_block:nth-child(3) " +
+                    ".section_overview_metrics ul").append(
+                    "<li class='per-visitor'><span class='metric_overview' " +
+                        "data-metric='shares-per-visitor'>" +
+                        sharesPerVisit +
+                        "</span> Shares per visit</li>");
+            }
+
+            if (bounceRate) {
+                $(".section_overview_block:nth-child(1) " +
+                    ".section_overview_metrics ul").append(
+                    "<li class='per-visitor'><span class='metric_overview' " +
+                        "data-metric='bounce-rate'>" + bounceRate +
+                        "%</span> Bounce Rate</li>"
+                );
+            }
+        }());
 
         // construct lists of sorted (desc) (pid, count) pairs
         _.each(topLists, function (list, key) {
@@ -537,6 +583,13 @@ Willet.analytics = (function ($) {
             loadAnalytics({
                 'campaign_id': $(this).find("option:selected").attr("value")
             });
+        });
+
+        $(document).ajaxError(function () {
+            // it's mostly for handling timeouts.
+            $('.error')
+                .html("Could not talk to server. Please try again.")
+                .slideDown();
         });
     };
 

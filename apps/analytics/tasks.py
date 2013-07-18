@@ -319,16 +319,21 @@ def restart_analytics():
     To delete the database beforehand, use redo_analytics.
     """
     logger.info("Restarting analytics")
+
     # chord: parallel processing
+    # disabled because it might not work
     task_chain = chain(group(fetch_awareness_data.subtask(),
                              fetch_event_data.subtask()),
                        group(process_awareness_data.subtask(),
                              process_event_data.subtask()),
                        aggregate_saved_metrics.subtask())
 
-    # chain: debugging
-    # DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
-    task_chain = chain(aggregate_saved_metrics.subtask())
+    # chain
+    task_chain = chain(fetch_awareness_data.subtask(),
+                       fetch_event_data.subtask(),
+                       process_awareness_data.subtask(),
+                       process_event_data.subtask(),
+                       aggregate_saved_metrics.subtask())
 
     task_chain.delay()  # === .run()
 
@@ -548,7 +553,7 @@ def process_awareness_data(message_id):
     i = 0
     for row in data:
         i = i + 1  # informative counter
-        if i % 50 == 0:
+        if i % 100 == 0:
             transaction.commit()  # avoid exceeding the transaction size
             logger.info('#{0}: processing row {1}/{2}'.format(
                 message_id, i, len_data))
@@ -573,7 +578,7 @@ def process_awareness_data(message_id):
     # we can safely delete the passed message at this point
     message.delete()
 
-    transaction.commit()  # bam
+    transaction.commit()  # consolidate
 
     return None
 
@@ -609,7 +614,7 @@ def process_event_data(message_id):
 
         for row in data[category_slug]:
             i = i + 1  # informative counter
-            if i % 50 == 0:
+            if i % 100 == 0:
                 transaction.commit()  # avoid exceeding the transaction size
                 logger.info('#{0}: processing row {1}/{2}'.format(
                     message_id, i, len_data))
@@ -666,7 +671,7 @@ def process_event_data(message_id):
     message.delete()
     logger.info('#{0}: Deleted message'.format(message_id))
 
-    transaction.commit()  # bam
+    transaction.commit()  # consolidate
     logger.info('#{0}: Transaction successful!'.format(message_id))
 
     return None
@@ -840,4 +845,4 @@ def aggregate_saved_metrics(*args):
     for category in to_process:
         process_category(category)
 
-    transaction.commit()  # bam
+    transaction.commit()  # consolidate

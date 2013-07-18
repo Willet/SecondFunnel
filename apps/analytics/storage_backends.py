@@ -117,7 +117,5 @@ class GoogleAnalyticsBackend:
                                   int(results.get('totalResults')))
                 if start_index == int(results.get('totalResults')):
                     return  # break loop
-                if start_index > 9000:
-                    return  # DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
             else:
                 return
