@@ -113,10 +113,11 @@ class GoogleAnalyticsBackend:
             yield results
 
             if results.get('itemsPerPage') and results.get('totalResults'):
-                # start_index = results.get('nextLink')
                 start_index = min(int(start_index) + int(results.get('itemsPerPage')),
                                   int(results.get('totalResults')))
                 if start_index == int(results.get('totalResults')):
                     return  # break loop
+                if start_index > 9000:
+                    return  # DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
             else:
                 return

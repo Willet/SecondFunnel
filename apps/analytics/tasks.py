@@ -179,7 +179,12 @@ def update_recency(object_type, object_id):
 
 
 def correct_date(row, logger):
-    """Normalise date format to e.g. 20130718."""
+    """Convert a string date e.g. 20130718 to a datetime object.
+
+    # we do this here and not in fetching because celery can't
+    # serialize certain things (e.g. datetime objects)
+
+    """
     try:
         # <datetime>
         # convert string to a date, format the date, add a time zone
@@ -254,6 +259,8 @@ class Categories:
         - instance: model instance
         - metric: function, takes metric slug and returns metric instance
                   if metric does not exist, throws an exception
+
+    TODO: we have a categories cache and not a metrics cache?
     """
 
     def __init__(self):
@@ -314,8 +321,8 @@ def restart_analytics():
                        aggregate_saved_metrics.subtask())
 
     # chain: debugging
-    task_chain = chain(process_awareness_data.subtask(args=(305,)),
-                       fetch_event_data.subtask(),
+    # DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
+    task_chain = chain(fetch_event_data.subtask(),
                        process_event_data.subtask(),
                        aggregate_saved_metrics.subtask())
 
@@ -503,7 +510,7 @@ def fetch_event_data(*args):
 
 
 @task()
-# @transaction.commit_manually
+@transaction.commit_manually
 def process_awareness_data(message_id):
     """Processes fetched awareness data, row by row"""
     store_type = ContentType.objects.get_for_model(Store)
@@ -538,6 +545,7 @@ def process_awareness_data(message_id):
     for row in data:
         i = i + 1  # informative counter
         if i % 50 == 0:
+            transaction.commit()  # avoid exceeding the transaction size
             logger.info('#{0}: processing row {1}/{2}'.format(
                 message_id, i, len_data))
 
@@ -546,16 +554,15 @@ def process_awareness_data(message_id):
             save_data_pair(store_type, campaign_type,
                            categories.get("awareness"), row, column)
 
-        # avoid counting, worry about uniqueness later
-        updated_stores.append(row['store_id'])
-        updated_campaigns.append(row['campaign_id'])
+        if not row['store_id'] in updated_stores:
+            updated_stores.append(row['store_id'])
+        if not row['campaign_id'] in updated_campaigns:
+            updated_campaigns.append(row['campaign_id'])
 
     # Update analytics recency data for all affected stores and campaigns
-    updated_stores = list(set(updated_stores))  # unique
     for store_id in updated_stores:
         update_recency(store_type, store_id)
 
-    updated_campaigns = list(set(updated_campaigns))  # unique
     for campaign_id in updated_campaigns:
         update_recency(campaign_type, campaign_id)
 
@@ -567,7 +574,7 @@ def process_awareness_data(message_id):
     return None
 
 @task()
-@transaction.commit_manually
+# @transaction.commit_manually
 def process_event_data(message_id):
     """Processes fetched event data, row by row, saves key/value
     analytics pairs for associated store and campaign"""
@@ -582,15 +589,27 @@ def process_event_data(message_id):
     updated_stores = []
     updated_campaigns = []
 
+    logger.info('#{0}: Creating category cache'.format(message_id))
     categories = Categories()
 
     # handle sharing data
-    for category_slug in data.keys():
-        logger.info('#{0}: Creating missing data'.format(data[category_slug]))
+    category_names = data.keys()
+    i = 0
+    len_data = sum([len(data[slug]) for slug in category_names])
+    logger.info('#{0}: Going to process {1} rows.'.format(message_id, len_data))
+
+    for category_slug in category_names:
+        logger.info('#{0}: Creating missing data'.format(message_id))
         missing_data = create_parent_data(data[category_slug])
         data[category_slug].extend(missing_data)
 
         for row in data[category_slug]:
+            i = i + 1  # informative counter
+            if i % 50 == 0:
+                transaction.commit()  # avoid exceeding the transaction size
+                logger.info('#{0}: processing row {1}/{2}'.format(
+                    message_id, i, len_data))
+
             # with each pass, we're saving a pair of KVStore objects
             # one for the specific campaign, and one for the store
             # to which the campaign belongs
@@ -623,28 +642,31 @@ def process_event_data(message_id):
             save_data_pair(store_type, campaign_type,
                            categories.get(category_slug), row, column)
 
-            # avoid counting, worry about uniqueness later
-            updated_stores.append(row['store_id'])
-            updated_campaigns.append(row['campaign_id'])
+            if not row['store_id'] in updated_stores:
+                updated_stores.append(row['store_id'])
+            if not row['campaign_id'] in updated_campaigns:
+                updated_campaigns.append(row['campaign_id'])
 
     # Update analytics recency data for all affected stores and campaigns
-    updated_stores = list(set(updated_stores))  # unique
+    logger.info('#{0}: Updating store recency'.format(message_id))
     for store_id in updated_stores:
         update_recency(store_type, store_id)
 
-    updated_campaigns = list(set(updated_campaigns))  # unique
+    logger.info('#{0}: Updating campaign recency'.format(message_id))
     for campaign_id in updated_campaigns:
         update_recency(campaign_type, campaign_id)
 
     # we can safely delete the passed message at this point
     message.delete()
+    logger.info('#{0}: Deleted message'.format(message_id))
 
     transaction.commit()  # bam
+    logger.info('#{0}: Transaction successful!'.format(message_id))
 
     return None
 
 @task()
-@transaction.commit_manually
+# @transaction.commit_manually
 def aggregate_saved_metrics(*args):
     """Calculates "meta" metrics, which are combined out of "raw" saved data"""
 

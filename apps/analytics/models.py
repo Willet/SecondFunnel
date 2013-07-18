@@ -76,7 +76,7 @@ class Metric(AnalyticsBase):
     @ivar data: Different types of interaction objects.
     """
     data = models.ManyToManyField(
-        "KVStore", related_name="data", blank=True, null=True)
+        "KVStore", related_name="metric", blank=True, null=True)
 
     def __unicode__(self):
         return self.name
@@ -98,7 +98,7 @@ class CategoryHasMetric(models.Model):
     category = models.ForeignKey(Category)
     metric = models.ForeignKey(Metric)
 
-    order = models.PositiveIntegerField(default=0)  # what is it?
+    order = models.PositiveIntegerField(default=0)
     display = models.BooleanField(default=True)
 
     is_meta = models.BooleanField(default=False)
@@ -109,7 +109,7 @@ class CategoryHasMetric(models.Model):
 
 class KVStore(models.Model):
     """KVStore(Key-Value Store) is a data-pairing created by celery to record metrics
-    AFAIK KVStore objects are aggregated and deleted every some time by celery.
+    KVStore objects are deleted by the redo_analytics task.
     
     @ivar content_type: 
     @ivar object_id: Id of a Metric object. 
