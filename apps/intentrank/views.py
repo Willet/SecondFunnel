@@ -228,7 +228,8 @@ def get_seeds(request, **kwargs):
     ))
 
     # TODO: How do we specify number of results?
-    url = '{0}/store/{1}/page/{2}/getresults'.format(base_url, store, campaign)
+    url = '{0}/store/{1}/campaign/{2}/getresults'.format(base_url, store,
+                                                      campaign)
 
     # Fetch results
     try:
