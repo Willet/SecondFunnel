@@ -38,10 +38,11 @@ Willet.cache = (function () {
     };
 }());
 
-Willet.mediaAPI = (function () {
+Willet.mediaAPI = (function (options) {
     "use strict";
     var uris = {
-            'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%object_id%&format=json",
+            'product': "/api/assets/v1/product/%object_id%?store=%store_id%&format=json",
+            'products_media': "/api/assets/v1/product_media/?store=%store_id%&product=%object_id%&format=json",
             'video': "/api/assets/v1/youtube_video/%object_id%/?format=json",
             'generic_image': "/api/assets/v1/generic_image/%object_id%/?format=json",
             'video_gdata': "https://gdata.youtube.com/feeds/api/videos/%object_id%?v=2&alt=json-in-script&callback=?"
@@ -85,9 +86,13 @@ Willet.mediaAPI = (function () {
         },
 
         fetchObject = function (object_type, object_id, callback) {
-            var dataType = (object_type === "video_gdata") ? "jsonp" : "json";
+            var dataType = (object_type === "video_gdata") ? "jsonp" : "json",
+                objectURL = uris[object_type] || '';
+
             $.ajax({
-                url: uris[object_type].replace("%object_id%", object_id),
+                url: objectURL
+                    .replace("%object_id%", object_id)
+                    .replace("%store_id%", options.store_id),
                 dataType: dataType,
                 success: function (data) {
                     Willet.cache.set(object_type + "_" + object_id, data);
@@ -118,7 +123,7 @@ Willet.mediaAPI = (function () {
         "getObject": getObject,
         "getObjects": getObjects
     };
-}());
+}(window.analyticsSettings || {}));
 
 Willet.debug = (function (me, mediator) {
     // willet debugger. This is/was mostly code by Nicholas Terwoord.

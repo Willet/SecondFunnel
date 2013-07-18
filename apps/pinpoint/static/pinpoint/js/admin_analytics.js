@@ -107,6 +107,7 @@ Willet.analytics = (function ($) {
             bounceRate = (1 - totals.notbounces / totals.visitors) * 100,
             notBouncedVisitors,
             merged = {},
+            pids,
             toMerge = {
                 "sharing": [
                     data.sharing['share-clicked'].totals,
@@ -304,6 +305,7 @@ Willet.analytics = (function ($) {
         // construct lists of sorted (desc) (pid, count) pairs
         _.each(topLists, function (list, key) {
             sortables[key] = _.map(list, function (count, pid) {
+                // meta metric would be what shows on the left hand side
                 if (pid !== "all" && pid !== "null" && pid !== "meta_metric") {
                     return [pid, count];
                 }
@@ -325,7 +327,7 @@ Willet.analytics = (function ($) {
 
         clearOutCharts();
 
-        var pids = _.pluck(sortables.engaged_products, 0);
+        pids = _.pluck(sortables.engaged_products, 0);
 
         Willet.mediaAPI.getObjects("product", pids, function (current, total) {
             $(".progressbar").progressbar("value", Math.round(current / total * 100));

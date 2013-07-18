@@ -289,12 +289,18 @@ class Categories:
 @task()
 def redo_analytics():
     """Erases cached analytics and recency data, starts update process.
+    To re-analyze existing data points in the database, consider using
+    aggregate_saved_metrics instead.
 
-    To use:   (http://stackoverflow.com/a/12900126)
+    To use either: (http://stackoverflow.com/a/12900126)
 
     (venv)$ python manage.py shell
     > from apps.analytics.tasks import redo_analytics
     > redo_analytics.apply()
+    or
+    > from apps.analytics.tasks import aggregate_saved_metrics
+    > aggregate_saved_metrics.apply()
+
     """
     logger.info("Redoing analytics")
 
@@ -322,9 +328,7 @@ def restart_analytics():
 
     # chain: debugging
     # DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
-    task_chain = chain(fetch_event_data.subtask(),
-                       process_event_data.subtask(),
-                       aggregate_saved_metrics.subtask())
+    task_chain = chain(aggregate_saved_metrics.subtask())
 
     task_chain.delay()  # === .run()
 
@@ -574,7 +578,7 @@ def process_awareness_data(message_id):
     return None
 
 @task()
-# @transaction.commit_manually
+@transaction.commit_manually
 def process_event_data(message_id):
     """Processes fetched event data, row by row, saves key/value
     analytics pairs for associated store and campaign"""
@@ -647,6 +651,8 @@ def process_event_data(message_id):
             if not row['campaign_id'] in updated_campaigns:
                 updated_campaigns.append(row['campaign_id'])
 
+        transaction.commit()  # save for each category
+
     # Update analytics recency data for all affected stores and campaigns
     logger.info('#{0}: Updating store recency'.format(message_id))
     for store_id in updated_stores:
@@ -666,7 +672,7 @@ def process_event_data(message_id):
     return None
 
 @task()
-# @transaction.commit_manually
+@transaction.commit_manually
 def aggregate_saved_metrics(*args):
     """Calculates "meta" metrics, which are combined out of "raw" saved data"""
 
@@ -682,6 +688,7 @@ def aggregate_saved_metrics(*args):
         category_data = KVStore.objects.filter(obj['q_filter'])
 
         for metric_obj in obj['metrics']:  # => [{slug, key, q_filter}]
+            logger.info('processing metric "{0}"'.format(metric_obj['slug']))
             try:
                 metric = Metric.objects.get(slug=metric_obj['slug'])
 
@@ -695,6 +702,9 @@ def aggregate_saved_metrics(*args):
                 continue
 
             data = category_data.filter(metric_obj['q_filter'])
+
+            logger.info('{0}: {1} rows of data to aggregate'.format(
+                metric_obj['slug'], len(data)))
 
             for datum in data:
                 # meta-kv already present, increment
@@ -714,9 +724,7 @@ def aggregate_saved_metrics(*args):
                         kv.value += datum.value
 
                     kv.save()
-
-                # need to create the meta-kv
-                except KVStore.DoesNotExist:
+                except KVStore.DoesNotExist:  # need to create the meta-kv
                     kv = KVStore(
                         content_type=datum.content_type,
                         object_id=datum.object_id,
@@ -728,6 +736,8 @@ def aggregate_saved_metrics(*args):
                     kv.save()
 
                 metric.data.add(kv)
+            transaction.commit()  # save for each datum
+        return None
 
     # this list defines how the data for "meta-metrics" is to be calculated
     # list is a series of categories to process

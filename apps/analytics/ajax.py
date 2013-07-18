@@ -4,6 +4,7 @@ from datetime import timedelta, datetime
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+from pytz import utc
 
 from apps.assets.models import Store
 from apps.analytics.models import Category, CategoryHasMetric
@@ -24,7 +25,7 @@ def get_start_date(end_date, date_range, campaign):
     2 days are subtracted regardless for time zone differences.
     """
     if date_range == "total":  # since the beginning of collection
-        start_date = 0
+        start_date = datetime(1, 1, 1, 0, 0, 0, 0, utc)  # arbitrary early time
     elif date_range == "month":
         start_date = end_date - timedelta(weeks=4, days=2)
     elif date_range == "two_weeks":

@@ -17,6 +17,14 @@
 {% endblock %}
 
 {% block extra_js_includes %}
+    <script type="text/javascript">
+        // supply analytics variables. must come before utils.js
+        var analyticsSettings = {
+            "ajaxURL": "{% url ajax-analytics-pinpoint %}",
+            "store_id": "{{ store.id }}",
+            "campaign_id": "{{ campaign.id }}"
+        };
+    </script>
     <script src="{% static "js/jquery-ui.js" %}"></script>
     <script src="{% static "js/d3.v3.min.js" %}"></script>
     <script src="{% static "js/jquery.tipsy.js" %}"></script>
@@ -27,13 +35,6 @@
     <script src="{% static "pinpoint/js/admin_analytics.js" %}"></script>
 
     <script>
-        // supply analytics variables
-        var analyticsSettings = {
-            "ajaxURL": "{% url ajax-analytics-pinpoint %}",
-            "store_id": "{{ store.id }}",
-            "campaign_id": "{{ campaign.id }}"
-        };
-
         function wrap (str, len) {
             if (str.length > len) {
                 return str.slice(0, len - 1) + "&hellip;";
@@ -142,7 +143,7 @@
 
     <div class="grid_8 section_content">
         <div class="progressbar"><div class="progress-label">Loading...</div></div>
-        <div class="ajax error ui-state-error ">
+        <div class="hidden ajax error ui-state-error">
             An error occurred while retrieving your data.
         </div>
         <div class="section_metrics" style="display: none;">
@@ -208,7 +209,7 @@
                             </div>
                         </div>
 
-                        <div class="grid_4 data_metric round shadow">
+                        <div class="grid_5 data_metric round shadow">
                             <div class="metric_title">Share Destinations</div>
                             <div id="share_destinations"></div>
 
@@ -217,7 +218,7 @@
                             </div>
                         </div>
 
-                        <div class="grid_4 data_metric round shadow">
+                        <div class="grid_5 data_metric round shadow">
                             <div class="metric_title">Sources of Shares</div>
                             <div id="sources_of_shares"></div>
 
@@ -226,7 +227,7 @@
                             </div>
                         </div>
                     {% elif category.name == "Awareness" %}
-                        <div class="grid_2 data_metric round shadow">
+                        <div class="grid_3 data_metric round shadow">
                             <div class="metric_title">Visitors</div>
                             <div class="metric_content" id="total_visitors"></div>
 
@@ -253,7 +254,7 @@
                             </div>
                         </div>
 
-                        <div class="grid_7 data_metric round shadow">
+                        <div class="grid_8 data_metric round shadow">
                             <div class="metric_title">Visitors over Time</div>
 
                             <div id="visitors_over_time"></div>

@@ -5,14 +5,18 @@
     width: 310px;
 }
 
+.hidden {
+    display: none !important; /* hidden is an important word */
+}
+
 .round {
     -webkit-border-radius: 5px 5px 5px 5px;
     border-radius: 5px 5px 5px 5px;
 }
 
 .shadow {
-    -webkit-box-shadow:  0px 3px 3px 0px rgba(0, 0, 0, 0.5);
-    box-shadow:  0px 3px 3px 0px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow:  0px 2px 2px 0px rgba(0, 0, 0, 0.3);
+    box-shadow:  0px 2px 2px 0px rgba(0, 0, 0, 0.3);
 }
 
 .container_12 .inner_content {
@@ -115,7 +119,7 @@
 .data_metric {
     margin-bottom: 20px;
     overflow: auto;
-    background-color: #e7eaef;
+    background-color: #f0efec;
     padding: 10px 10px 10px 10px;
     color: #2d2d2d;
 }
@@ -132,7 +136,7 @@ table.metric_content {
 .metric_content {
     list-style: none;
     margin-top: 10px;
-    overflow: scroll;
+    overflow: auto;
 }
 
 .metric_content li figure {
