@@ -173,7 +173,7 @@ Willet.analytics = (function ($) {
 
         var getAnalyticsHandler = function (type) {
             var actions = {
-                "common": function (apiType, template, params, pair, data_selector) {
+                "common": function (apiType, template, params, pair, image_selector) {
                     if (pair === undefined) {
                         return;
                     }
@@ -181,17 +181,19 @@ Willet.analytics = (function ($) {
                     changeProgressBar(0, 1);
                     Willet.mediaAPI.getObject(apiType, pair[0], function (data) {
                         var boxTemplate = _.template($(template).html()),
-                            captionTemplate = _.template($("#count_with_percentage").html());
-
-                        $(params.selector).append(boxTemplate({
-                            data: data_selector(data),
-                            name: data.name,
-                            caption: captionTemplate({
+                            captionTemplate = _.template($("#count_with_percentage").html()),
+                            propBag = {
+                                image: image_selector(data),
+                                name: data.name,
                                 verb: params.verb,
                                 count: pair[1],
                                 total: params.total
-                            })
-                        }));
+                            },
+                            caption = captionTemplate(propBag);
+
+                        $.extend(propBag, {caption: caption});
+
+                        $(params.selector).append(boxTemplate(propBag));
                         changeProgressBar(1, 1);
                     });
                 },
@@ -209,7 +211,7 @@ Willet.analytics = (function ($) {
                 },
 
                 "product": function (params, pair) {
-                    actions.common("product", "#top_list_item", params, pair, function (data) {
+                    actions.common("product", "#top_product_list_item", params, pair, function (data) {
                         return (data.media.hosted || data.media.remote).replace("master.jpg", "thumb.jpg");
                     });
                 },

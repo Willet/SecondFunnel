@@ -708,8 +708,8 @@ def aggregate_saved_metrics(*args):
 
             data = category_data.filter(metric_obj['q_filter'])
 
-            logger.info('{0}: {1} rows of data to aggregate'.format(
-                metric_obj['slug'], len(data)))
+            logger.info('{0} "{1}" objects to aggregate'.format(
+                len(data), metric_obj['slug']))
 
             for datum in data:
                 # meta-kv already present, increment

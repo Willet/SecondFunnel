@@ -9,6 +9,10 @@
     display: none !important; /* hidden is an important word */
 }
 
+.bolder {
+    font-weight: bolder;
+}
+
 .round {
     -webkit-border-radius: 5px 5px 5px 5px;
     border-radius: 5px 5px 5px 5px;

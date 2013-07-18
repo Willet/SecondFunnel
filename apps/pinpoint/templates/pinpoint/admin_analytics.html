@@ -36,6 +36,7 @@
 
     <script>
         function wrap (str, len) {
+            // should be "truncate"
             if (str.length > len) {
                 return str.slice(0, len - 1) + "&hellip;";
             } else {
@@ -62,8 +63,25 @@
 {% block content %}
     <script type="text/template" id="top_list_item">
         <tr>
-            <td><img src="<%= data %>"></td>
-            <td><span class="caption_left"><%= caption %></span><span class="caption_right"><%= wrap(name, 30) %></span></td>
+            <td><img src="<%= image %>"></td>
+            <td><span class="caption_left"><%= caption %></span>
+                <span class="caption_right"><%= wrap(name, 30) %></span>
+            </td>
+        </tr>
+    </script>
+    <script type="text/template" id="top_product_list_item">
+        <tr>
+            <td><img src="<%= image %>"></td>
+            <td>
+                <% if (total > 0 && count > 0 && total > count) { %>
+                    <span class="caption_left"><%= caption %></span>
+                    <span class="caption_right"><%= wrap(name, 30) %></span>
+                <% } else { %>
+                    <span class="caption_left bolder"><%= wrap(name, 30) %></span>
+                    <br>
+                    <span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
+                <% } %>
+            </td>
         </tr>
     </script>
 
@@ -168,7 +186,7 @@
                                     <table class="metric_content" id="top_engaged_content"></table>
 
                                     <div class="no_data" data-metric="top_engaged_content">
-                                        <p>No engaged content.</p>
+                                        <p>No results.</p>
                                     </div>
                                 </div>
 
@@ -176,7 +194,7 @@
                                     <table class="metric_content" id="top_videos"></table>
 
                                     <div class="no_data" data-metric="top_videos">
-                                        <p>No played videos.</p>
+                                        <p>No results.</p>
                                     </div>
                                 </div>
                             </div>
@@ -205,7 +223,7 @@
                             <div class="metric_content" id="top_shared_products"></div>
 
                             <div class="no_data" data-metric="top_shared_products">
-                                <p>No shared products yet.</p>
+                                <p>Could not be determined.</p>
                             </div>
                         </div>
 
@@ -214,7 +232,7 @@
                             <div id="share_destinations"></div>
 
                             <div class="no_data" data-metric="share_destinations">
-                                <p>No shared products yet.</p>
+                                <p>Could not be determined.</p>
                             </div>
                         </div>
 
@@ -223,7 +241,7 @@
                             <div id="sources_of_shares"></div>
 
                             <div class="no_data" data-metric="sources_of_shares">
-                                <p>No shared products yet.</p>
+                                <p>Could not be determined.</p>
                             </div>
                         </div>
                     {% elif category.name == "Awareness" %}
