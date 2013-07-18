@@ -330,8 +330,8 @@ def restart_analytics():
 
     # chain
     task_chain = chain(fetch_awareness_data.subtask(),
-                       fetch_event_data.subtask(),
                        process_awareness_data.subtask(),
+                       fetch_event_data.subtask(),
                        process_event_data.subtask(),
                        aggregate_saved_metrics.subtask())
 
@@ -553,7 +553,7 @@ def process_awareness_data(message_id):
     i = 0
     for row in data:
         i = i + 1  # informative counter
-        if i % 100 == 0:
+        if i % 50 == 0:
             transaction.commit()  # avoid exceeding the transaction size
             logger.info('#{0}: processing row {1}/{2}'.format(
                 message_id, i, len_data))
@@ -614,7 +614,7 @@ def process_event_data(message_id):
 
         for row in data[category_slug]:
             i = i + 1  # informative counter
-            if i % 100 == 0:
+            if i % 50 == 0:
                 transaction.commit()  # avoid exceeding the transaction size
                 logger.info('#{0}: processing row {1}/{2}'.format(
                     message_id, i, len_data))
