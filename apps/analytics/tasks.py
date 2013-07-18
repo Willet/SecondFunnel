@@ -23,6 +23,7 @@ from celery.utils.log import get_task_logger
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 import django.db.transaction as transaction
+from pytz import utc
 
 from apps.analytics.storage_backends import GoogleAnalyticsBackend
 from apps.analytics.models import (AnalyticsRecency, Category, Metric, KVStore,
@@ -32,19 +33,6 @@ from apps.pinpoint.models import Campaign, IntentRankCampaign
 
 
 logger = get_task_logger(__name__)
-
-
-class GMT(tzinfo):
-    """There isn't a built-in tzinfo?
-
-    http://agiliq.com/blog/2009/02/understanding-datetime-tzinfo-timedelta-amp-timezo/
-    """
-    def utcoffset(self,dt):
-        return timedelta(hours=0)
-    def tzname(self,dt):
-        return "GMT"
-    def dst(self, dt):
-        return timedelta(0)
 
 
 # Helper functions used by the tasks below
@@ -190,10 +178,13 @@ def update_recency(object_type, object_id):
         recency.save()
 
 
-def preprocess_row(row, logger):
+def correct_date(row, logger):
+    """Normalise date format to e.g. 20130718."""
     try:
+        # <datetime>
+        # convert string to a date, format the date, add a time zone
         row['date'] = datetime.strptime(row['date'], "%Y%m%d")\
-                              .replace(tzinfo=GMT())
+                              .replace(tzinfo=utc)
 
     except (IndexError, ValueError):
         logger.warning("Date is unrecognized: %s", row['date'])
@@ -217,15 +208,23 @@ def create_parent_data(data):
         return None
 
     missing_data = []
-    logger.info('Going to fetch {0} IntentRankCampaigns.'.format(len(data)))
-    campaign_ids = [row.get('campaign_id') for row in data]
+    campaign_ids = list(set([row.get('campaign_id') for row in data]))  # unique
+    logger.info('Going to fetch {0} IntentRankCampaigns.'.format(
+        len(campaign_ids)))
+
+    # do a single fetch. we won't hit the memory limit any time soon;
+    # worry about the SQLite "number of variables" limit for devs
     ir_campaigns = IntentRankCampaign.objects\
-        .filter(pk__in=campaign_ids)\
-        .prefetch_related('campaigns')  # do a single fetch
+        .prefetch_related('campaigns')\
+        .filter(pk__in=campaign_ids)
+
+    logger.info('Fetched {0} IntentRankCampaigns.'.format(
+        len(ir_campaigns)))
 
     for row in data:
         category_id = row.get('campaign_id')
         try:
+            # get it from memory
             ir = get_ir_campaign_by_pk(ir_campaigns, category_id)
 
             # Since it's a M2M rel'n, even though we never associate
@@ -242,6 +241,8 @@ def create_parent_data(data):
         new_row = deepcopy(row)
         new_row['campaign_id'] = parent_category
         missing_data.append(new_row)
+
+    logger.info('{0} rows of missing data generated'.format(len(missing_data)))
 
     return missing_data
 
@@ -305,8 +306,15 @@ def restart_analytics():
     To delete the database beforehand, use redo_analytics.
     """
     logger.info("Restarting analytics")
-    task_chain = chain(fetch_awareness_data.subtask(),
-                       process_awareness_data.subtask(),
+    # chord: parallel processing
+    task_chain = chain(group(fetch_awareness_data.subtask(),
+                             fetch_event_data.subtask()),
+                       group(process_awareness_data.subtask(),
+                             process_event_data.subtask()),
+                       aggregate_saved_metrics.subtask())
+
+    # chain: debugging
+    task_chain = chain(process_awareness_data.subtask(args=(305,)),
                        fetch_event_data.subtask(),
                        process_event_data.subtask(),
                        aggregate_saved_metrics.subtask())
@@ -373,8 +381,8 @@ def fetch_awareness_data(*args):
     # message could be larger than 64kb. As a quick way of circumventing the limitation,
     # use "shared memory" approach to message passing
     message = SharedStorage(data=pickle.dumps(fetched_rows))
-    logger.info("dumped {0} rows into shared storage".format(len(fetched_rows)))
     message.save()
+    logger.info("dumped {0} rows into shared storage".format(len(fetched_rows)))
 
     # pass ID of the message to the processing task
     return message.id
@@ -487,13 +495,15 @@ def fetch_event_data(*args):
     # use "shared memory" approach to message passing
     message = SharedStorage(data=pickle.dumps(analytics_categories))
     message.save()
+    logger.info("dumped {0} categories into shared storage".format(
+        len(analytics_categories)))
 
     # pass ID of the message to the processing task
     return message.id
 
 
 @task()
-@transaction.commit_manually
+# @transaction.commit_manually
 def process_awareness_data(message_id):
     """Processes fetched awareness data, row by row"""
     store_type = ContentType.objects.get_for_model(Store)
@@ -504,50 +514,48 @@ def process_awareness_data(message_id):
         logger.error("Message {0} not found!".format(message_id))
         return
 
-    updated_stores = []
-    updated_campaigns = []
+    updated_stores = []  # recency data will be populated for those updated
+    updated_campaigns = []  # (which are usually all stores and campaigns)
 
     categories = Categories()
 
-    columns_to_save = [
-        {
-            'key': 'awareness-visitors',
-            'value': 'visitors',
-            'meta': 'socialNetwork'
-        },
-        {
-            'key': 'awareness-pageviews',
-            'value': 'pageviews',
-            'meta': 'socialNetwork'
-        },
-        {
-            'key': 'awareness-location',
-            'value': 'visitors',
-            'meta': 'location'
-        }
-    ]
+    columns_to_save = [{'key': 'awareness-visitors',
+                        'value': 'visitors',
+                        'meta': 'socialNetwork'},
+                       {'key': 'awareness-pageviews',
+                        'value': 'pageviews',
+                        'meta': 'socialNetwork'},
+                       {'key': 'awareness-location',
+                        'value': 'visitors',
+                        'meta': 'location'}]
 
     logger.info('#{0}: Creating missing data'.format(message_id))
     missing_data = create_parent_data(data)
     data.extend(missing_data)
 
+    len_data = len(data)
+    i = 0
     for row in data:
-        row = preprocess_row(row, logger)
+        i = i + 1  # informative counter
+        if i % 50 == 0:
+            logger.info('#{0}: processing row {1}/{2}'.format(
+                message_id, i, len_data))
 
+        row = correct_date(row, logger)
         for column in columns_to_save:
             save_data_pair(store_type, campaign_type,
                            categories.get("awareness"), row, column)
 
-        if row['store_id'] not in updated_stores:
-            updated_stores.append(row['store_id'])
-
-        if row['campaign_id'] not in updated_campaigns:
-            updated_campaigns.append(row['campaign_id'])
+        # avoid counting, worry about uniqueness later
+        updated_stores.append(row['store_id'])
+        updated_campaigns.append(row['campaign_id'])
 
     # Update analytics recency data for all affected stores and campaigns
+    updated_stores = list(set(updated_stores))  # unique
     for store_id in updated_stores:
         update_recency(store_type, store_id)
 
+    updated_campaigns = list(set(updated_campaigns))  # unique
     for campaign_id in updated_campaigns:
         update_recency(campaign_type, campaign_id)
 
@@ -589,7 +597,7 @@ def process_event_data(message_id):
 
             # we do this here and not in fetching because celery can't
             # serialize certain things (e.g. datetime objects)
-            row = preprocess_row(row, logger)
+            row = correct_date(row, logger)
 
             column = {
                 'key': '{0}-{1}'.format(
@@ -615,16 +623,16 @@ def process_event_data(message_id):
             save_data_pair(store_type, campaign_type,
                            categories.get(category_slug), row, column)
 
-            if row['store_id'] not in updated_stores:
-                updated_stores.append(row['store_id'])
-
-            if row['campaign_id'] not in updated_campaigns:
-                updated_campaigns.append(row['campaign_id'])
+            # avoid counting, worry about uniqueness later
+            updated_stores.append(row['store_id'])
+            updated_campaigns.append(row['campaign_id'])
 
     # Update analytics recency data for all affected stores and campaigns
+    updated_stores = list(set(updated_stores))  # unique
     for store_id in updated_stores:
         update_recency(store_type, store_id)
 
+    updated_campaigns = list(set(updated_campaigns))  # unique
     for campaign_id in updated_campaigns:
         update_recency(campaign_type, campaign_id)
 
@@ -640,7 +648,8 @@ def process_event_data(message_id):
 def aggregate_saved_metrics(*args):
     """Calculates "meta" metrics, which are combined out of "raw" saved data"""
 
-    # Existing data affects results. remove all the existing meta metric data
+    # This function generates meta metrics.
+    # Remove all the existing meta metric data
     KVStore.objects.filter(meta="meta_metric").delete()
 
     def process_category(obj):
@@ -650,7 +659,7 @@ def aggregate_saved_metrics(*args):
         """
         category_data = KVStore.objects.filter(obj['q_filter'])
 
-        for metric_obj in obj['metrics']:
+        for metric_obj in obj['metrics']:  # => [{slug, key, q_filter}]
             try:
                 metric = Metric.objects.get(slug=metric_obj['slug'])
 
