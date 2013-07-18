@@ -199,9 +199,16 @@ table.metric_content {
     clear: both;
 }
 
+.progressbar {
+    margin-bottom: 20px;
+    overflow: hidden;
+    width: 640px;
+    margin-left: 10px;
+}
+
 .progress-label {
     float: left;
-    margin-left: 50%;
+    margin-left: 45%;
     margin-top: 5px;
     font-weight: bold;
     text-shadow: 1px 1px 0 #fff;

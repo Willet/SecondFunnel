@@ -49,6 +49,8 @@ Willet.mediaAPI = (function (options) {
         },
 
         getObject = function (object_type, object_id, callback) {
+            // @param callback: a function that gets called
+            //                  when everything completes
             var object;
 
             if (object_id === undefined || object_type === undefined) {
@@ -66,6 +68,10 @@ Willet.mediaAPI = (function (options) {
         },
 
         getObjects = function (object_type, object_ids, step, callback) {
+            // @param step: a function that gets called every time an object
+            //              arrives
+            // @param callback: a function that gets called
+            //                  when everything completes
             var result = [];
 
             if (object_ids.length === 0) {
@@ -98,6 +104,7 @@ Willet.mediaAPI = (function (options) {
                     Willet.cache.set(object_type + "_" + object_id, data);
 
                     if (object_type === "product") {
+                        // get the product's media (e.g. images, and err... others)
                         $.ajax({
                             url: uris.products_media.replace("%object_id%", object_id),
                             dataType: "json",

@@ -45,7 +45,12 @@ Willet.charting = (function () {
                 return i * options.rowHeight;
             })
             .attr("width", function (d) {
-                var len = (d[1] / options.total) * (width - label_width);
+                var len;
+                if (d[1] >= 0 && options.total > 0) {
+                    len = (d[1] / options.total) * (width - label_width);
+                } else {
+                    len = 5;
+                }
                 if (len < 5) {
                     len = 5;
                 }

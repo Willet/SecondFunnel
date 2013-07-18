@@ -1,7 +1,22 @@
 Willet.analytics = (function ($) {
     "use strict";
-    var settings, loadAnalytics, clearOutCharts,
+    var settings, changeProgressBar, loadAnalytics, clearOutCharts,
         injectAnalyticsData, setUpListeners, init;
+
+    changeProgressBar = function (current, total) {
+        var prog = Math.round(current / total * 100),
+            bar = $(".progressbar");
+        Willet.mediator.fire('log', ['changing progress bar value to ' + prog]);
+        if (prog > 0 && prog < 100) {
+            bar.progressbar("option", {
+                "value": prog
+            }).slideDown();
+        } else if (prog <= 0 || isNaN(prog)) {
+            bar.progressbar("option", "value", false).slideDown();
+        } else {
+            bar.clearQueue().slideUp();
+        }
+    };
 
     loadAnalytics = function (obj) {
         // accepts an... object?
@@ -25,12 +40,14 @@ Willet.analytics = (function ($) {
             delete request.campaign_id;
         }
 
+        changeProgressBar(0, 0);
         $.ajax({
             url: settings.ajaxURL,
             dataType: "json",
             data: request,
             success: function (data) {
                 injectAnalyticsData(data);
+                changeProgressBar(1, 1);
             }
         });
     };
@@ -160,6 +177,7 @@ Willet.analytics = (function ($) {
                         return;
                     }
 
+                    changeProgressBar(0, 1);
                     Willet.mediaAPI.getObject(apiType, pair[0], function (data) {
                         var boxTemplate = _.template($(template).html()),
                             captionTemplate = _.template($("#count_with_percentage").html());
@@ -173,6 +191,7 @@ Willet.analytics = (function ($) {
                                 total: params.total
                             })
                         }));
+                        changeProgressBar(1, 1);
                     });
                 },
 
@@ -329,9 +348,10 @@ Willet.analytics = (function ($) {
 
         pids = _.pluck(sortables.engaged_products, 0);
 
-        Willet.mediaAPI.getObjects("product", pids, function (current, total) {
-            $(".progressbar").progressbar("value", Math.round(current / total * 100));
-        }, function () {
+        // We use like 4 of the products. If we need any more, change this number.
+        pids = pids.slice(0, 10);
+
+        Willet.mediaAPI.getObjects("product", pids, changeProgressBar, function () {
             // hide progress bar and show data
             $(".section_metrics").slideDown();
             $(".progressbar").slideUp();
@@ -489,7 +509,9 @@ Willet.analytics = (function ($) {
         $(".progressbar").progressbar({
             value: false,
             change: function () {
-                $(".progress-label").text($(".progressbar").progressbar("value") + "%");
+                if ($(".progressbar").progressbar("value") !== 'false') {
+                    $(".progress-label").text($(".progressbar").progressbar("value") + "%");
+                }
             },
             complete: function () {
                 $(".progress-label").text("Loaded.");
