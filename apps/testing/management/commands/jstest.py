@@ -50,6 +50,8 @@ class Command(BaseCommand):
         make_option('-b', '--browsers', dest='browsers', default=[], help='Name of browsers to use for testing (default: headless webdriver).',
                     action="callback", callback=vararg_callback),
         make_option('-d', '--commandline', action="store_false", dest='commandline', default=True, help='Output to command line or to browser (default: True).'),
+        make_option('-r', '--remote', action="store_true", dest='remote', default=False, help='Specify whether connecting to a remote server or not (default: False).'),
+        make_option('-m', '--runner-mode', dest='mode', default="QUIET", help='Specify the runner mode to use; QUIET or DEBUG (default: QUIET)'),
     )
 
     def handle(self, *args, **options):

@@ -1,3 +1,6 @@
+// Test case: GreeterTest
+// Test name: testGreet
+// GreeterTest.testGreet
 GreeterTest = TestCase("GreeterTest");
 
 GreeterTest.prototype.testGreet = function() {

@@ -14,3 +14,8 @@ bin/*
 doc/
 log/
 runserver
+apps/testing/phantomjs
+apps/testing/jstestdriver/JasmineAdapter.js
+apps/testing/jstestdriver/JsTestDriver.jar
+apps/testing/jasmine
+apps/testing/jstestdriver/settings.py

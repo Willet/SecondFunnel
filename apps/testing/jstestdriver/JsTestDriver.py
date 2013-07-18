@@ -1,6 +1,7 @@
 import subprocess, os, re
-from secondfunnel.settings.common import fromProjectRoot
 
+from secondfunnel.settings.common import fromProjectRoot
+from apps.testing.jstestdriver.settings import GENERIC_BROWSER_LIST, ADDITIONAL_BROWSER_LIST, CONFIGS
 
 def getPath(path):
     """
@@ -43,57 +44,46 @@ def getExePath( exe ):
 
 
 
-def capture( command, browsers ):
+def startServer( browsers ):
     """
     Captures the browsers to be used for the JsTestDriver.
 
-    @param command: The initial base command used for this.
     @param browsers: The browser(s) to use if any.
     @return: None
     """
-    processes, commands, browserpaths = [], [], []
-    command += " --port 9876 --captureConsole"
-    
+    applications = []
+    browser_list = GENERIC_BROWSER_LIST + ADDITIONAL_BROWSER_LIST
 
+    # Find the path to the specified browsers.
+    # TODO: Internet Explorer Support
+    command = "java -jar {0} --port 9876".format(getPath("jstestdriver/JsTestDriver.jar"))
+    
+    for browser in browsers:
+        script = [ b for b in browser_list if b == browser or re.match(r'' + browser + '($|/)', b) ] 
+        app = browser if os.path.exists(browser) else None
+
+        if not app and len(script) > 0:
+            app = script[0]
+
+        applications.append(app)
+    
+    if len(applications) > 0:
+        script, scripts = getPath("scripts/browsers.sh"), []
+        command += " --browser \""
+        for application in applications:
+            new_script = "/tmp/browsers-{0}.sh".format(re.escape(application))
+            os.system("cp {0} {1}".format(script, new_script))
+            scripts.append("{0};%s;{1}".format(new_script, re.escape(application)))
+        command += ",".join(scripts) + "\""
+
+    server = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    
     if len(browsers) == 0:
-        commands += [ command,
-                      "phantomjs {0} > /dev/null 2>&1".format(getPath("phantomjs/phantomjs-jstd.js")) ]
-    else:
-        # Find the path to the specified browsers.
-        # Ignore IE for now, that's a different problem.
-        # TODO: Internet Explorer Support
-        browser_list = ( "google chrome", "chrome", "firefox", "safari" )
-        command += " --browser "
-        for browser in browsers:
-            path = None
-            if browser.lower() not in browser_list:
-                raise Exception("ERROR: Unknown browser, {0}, specified.".format(browser))
-            else:
-                if browser == "chrome":
-                    # Since chrome is shorthand for Google Chrome
-                    browser = "google chrome"
+        phantom = subprocess.Popen("phantomjs {0}".format(getPath("phantomjs/phantomjs-jstd.js")), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-                if browser.lower() == "safari":
-                    # We have to do a workaround for safari to work
-                    path = lambda: getPath("scripts/safari.sh")
-                else:
-                    path = lambda: getExePath(browser)
-                
-                # Check if we were passed a path, in which case we don't have to search!
-                if os.path.exists(browser):
-                    browserpaths.append(browser)
-                else:
-                    browserpaths.append(path())
+    return None
 
-        command += ",".join(browserpaths)
-        commands += [ command ]
-        browserpaths = [ path if path.find("safari.sh") == -1 else getExePath("Safari") for path in browserpaths ]
 
-    for c in commands:
-        processes.append(subprocess.Popen(c, shell=True, close_fds=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT))
-        
-    return processes, browserpaths
-    
 def call_JsTestDriver(conf, tests, browsers, commandline, *args, **kwargs):
     """
     Calls the JsTestDriver with the specified arguments and options.
@@ -106,19 +96,11 @@ def call_JsTestDriver(conf, tests, browsers, commandline, *args, **kwargs):
     @param kwargs: Dictionary of remaining parameters.
     @return: None
     """
-    CONFIGS = {
-        # Relative paths to the config files
-        "sample": "sample/sample.conf",
-        "dev": "jstestdriver/dev.conf"
-    }
-
-    basecommand = "java -jar {0}".format(getPath("jstestdriver/JsTestDriver-1.3.5.jar"))
-    command = basecommand
+    command = "java -jar {0}".format(getPath("jstestdriver/JsTestDriver.jar"))
     basepath = os.path.abspath(
                    os.path.join(
                        fromProjectRoot('manage.py'), os.pardir))
-    command += " --runnerMode QUIET --basePath {0} --tests {1}".format(basepath, tests)
-    
+
     if conf in CONFIGS:
         command += " --config {0}".format(getPath(CONFIGS[conf]))
     else:
@@ -129,26 +111,26 @@ def call_JsTestDriver(conf, tests, browsers, commandline, *args, **kwargs):
         else:
             raise Exception("ERROR: Specified config file, {0}, doesn't exist.".format(conf))
 
+    command += " --runnerMode {0} --basePath {1} --tests {2}".format(kwargs['mode'], basepath, tests)
+
     if not commandline:
         command += " --testOutput apps/testing/jstest"
 
     # Make the calls
-    print "Starting testing server...",
-    processes, browsers = capture(basecommand, browsers)
+    print "Starting server....",
+    if not kwargs['remote']:
+        startServer(browsers)
+
     print "STARTED"
-    print "Beginning Testing...."
+    print "Starting testing..."
     
-    # This is really sloppy....
+    # Bit hacky for the time being...
     import time
-    time.sleep(10)
+    time.sleep(5)
     os.system(command)
-
-    # Terminate running processes
-    for process in processes:
-        process.kill()
-
-    # Stop the started browsers.
-    for browser in (browsers if len(browsers) > 0 else ["phantomjs"]):
-        os.system("killall - {0}".format(re.split(r"[/\\]", browser)[-1]))
+    
+    if len(browsers) == 0:
+        os.system("killall - phantomjs")
+    os.system("{0}".format(getPath("scripts/shutdown.sh")))
 
     # TODO: DETERMINE WAY TO DISPLAY XML RESULTS IN BROWSER W/ DJANGO
