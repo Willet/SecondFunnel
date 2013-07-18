@@ -222,8 +222,10 @@ def get_seeds(request, **kwargs):
     store = kwargs.get('store', request.GET.get('store', '-1'))
     campaign = kwargs.get('campaign', request.GET.get('campaign', '-1'))
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
-    base_url = kwargs.get('base_url', request.GET.get('base_url',
-                                                      settings.INTENTRANK_BASE_URL))
+    base_url = kwargs.get('base_url', request.GET.get(
+        'base_url',
+        settings.INTENTRANK_BASE_URL + '/intentrank'
+    ))
 
     # TODO: How do we specify number of results?
     url = '{0}/store/{1}/page/{2}/getresults'.format(base_url, store, campaign)
