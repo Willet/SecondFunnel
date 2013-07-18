@@ -906,25 +906,26 @@ PAGES.mobile = (function (me) {
     var localData = {};
 
     me = {
+        'renderToView': function (viewSelector, templateName, context, append) {
+            // @deprecated
+
+            var template = $("[data-template-id='" + templateName + "']").html(),
+                renderedBlock;
+
+            // template does not exist
+            if (template === undefined) {
+                return;
+            }
+
+            renderedBlock = _.template(template, context);
+
+            if (append) {
+                $(viewSelector).append(renderedBlock);
+            } else {
+                $(viewSelector).html(renderedBlock);
+            }
+        },
         'layoutFunc': function (jsonData, belowFold, related) {
-            var renderToView = function (viewSelector, templateName, context, append) {
-                var template = $("[data-template-id='" + templateName + "']").html(),
-                    renderedBlock;
-
-                // template does not exist
-                if (template === undefined) {
-                    return;
-                }
-
-                renderedBlock = _.template(template, context);
-
-                if (append) {
-                    $(viewSelector).append(renderedBlock);
-                } else {
-                    $(viewSelector).html(renderedBlock);
-                }
-            };
-
             _.each(jsonData, function (data, index, list) {
 
                 var objectId = data.id || data['original-id'],
@@ -941,7 +942,7 @@ PAGES.mobile = (function (me) {
                 localData[templateName + objectId] = data;
 
                 // render object if possible
-                renderToView(".content_list", templateName, {
+                PAGES.mobile.renderToView(".content_list", templateName, {
                     data: data
                 }, true);
 
@@ -965,6 +966,8 @@ PAGES.mobile = (function (me) {
         }
     };
 
+    // @deprecated
+    window.render_to_view = me.renderToView;  // old themes compatability
     window.local_data = me.local_data = me.localData = localData;  // old themes compatability
 
     return me;
