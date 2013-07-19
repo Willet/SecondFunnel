@@ -119,7 +119,10 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
             else:
                 result = result.encode('unicode-escape')
 
-            sub_values[field].append(result.decode("unicode_escape"))
+            try:
+                sub_values[field].append(result.decode("unicode_escape"))
+            except UnicodeDecodeError:  # who knows
+                sub_values[field].append(result)
 
     page_str = regex.sub(repl, page_str)
 
