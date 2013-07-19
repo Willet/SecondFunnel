@@ -6,8 +6,8 @@ PAGES.intentRank = (function (me, details, mediator) {
 
     var userClicks = 0,
         clickThreshold = 3,
-        campaignResultsUrl = "<%=url%>/store/<%=store%>/page/<%=campaign%>/getresults",
-        contentResultsUrl = "<%=url%>/store/<%=store%>/page/<%=campaign%>/product/<%=id%>/getresults";
+        campaignResultsUrl = "<%=url%>/store/<%=store%>/campaign/<%=campaign%>/getresults",
+        contentResultsUrl = "<%=url%>/store/<%=store%>/campaign/<%=campaign%>/content/<%=id%>/getresults";
 
     me.init = function () {
         // load data (if any)
@@ -81,13 +81,6 @@ PAGES.intentRank = (function (me, details, mediator) {
             callback(details.content, undefined, related);
             PAGES.setLoadingBlocks(false);
         }
-    };
-
-    me.invalidateIRSession = function () {
-        $.ajax({
-            url: details.base_url + '/intentrank/invalidate-session/?callback=?',
-            dataType: 'jsonp'
-        });
     };
 
     me.changeSeed = function (seed) {

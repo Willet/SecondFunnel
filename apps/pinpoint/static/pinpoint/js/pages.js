@@ -797,7 +797,6 @@ PAGES.full = (function (me, mediator) {
                             });
 
                         thumbnail
-                            .hide()
                             .addClass('wide ' + thumbClass)
                             .click(function () {
                                 // when the thumbnail is clicked, replace itself with
