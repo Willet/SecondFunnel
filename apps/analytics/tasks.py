@@ -683,6 +683,7 @@ def aggregate_saved_metrics(*args):
 
     # This function generates meta metrics.
     # Remove all the existing meta metric data
+    logger.info('Deleting all previous aggregate metrics...')
     KVStore.objects.filter(meta="meta_metric").delete()
 
     def adder(adder_obj, datum, metric_obj, content_type, object_id, key,
@@ -708,6 +709,7 @@ def aggregate_saved_metrics(*args):
                 adder_obj[temp_key] += datum.value
             except KeyError:
                 adder_obj[temp_key] = datum.value
+        return adder_obj[temp_key]  # intermediate value
 
     def process_category(obj):
         """
@@ -739,16 +741,18 @@ def aggregate_saved_metrics(*args):
             i = 0
             len_data = len(data)
             for datum in data:
-                i = i + 1  # informative counter
-                if i % 50 == 0:
-                    logger.info('{0}: aggregating row {1}/{2}'.format(
-                        metric_obj['slug'], i, len_data))
-
                 # add all values before calling db
-                adder(adder_cache, datum=datum, metric_obj=metric_obj,
-                      content_type=datum.content_type,
-                      object_id=datum.object_id, key=metric_obj['key'],
-                      timestamp=datum.timestamp, meta="meta_metric")
+                ival = adder(adder_cache, datum=datum, metric_obj=metric_obj,
+                             content_type=datum.content_type,
+                             object_id=datum.object_id, key=metric_obj['key'],
+                             timestamp=datum.timestamp, meta="meta_metric")
+
+                i = i + 1  # informative counter
+                if i % 1000 == 0:  # 1000 because it's fast
+                    logger.info('{0}: aggregating row {1}/{2}, '
+                                'currently = {3}'.format(
+                                 metric_obj['slug'], i, len_data, ival))
+
 
             # adder cache is now full of already-aggregated keys and values
             # key format: (content_type, object_id, key, timestamp, meta)
@@ -773,8 +777,9 @@ def aggregate_saved_metrics(*args):
 
                 try:
                     kv.value += adder_cache[aggregated_metric]
-                except (KeyError, ValueError):
-                    # neither should happen, but we really don't want
+                except (TypeError, KeyError, ValueError):
+                    # TypeError: unsupported operand type(s) for +=
+                    # The last two shouldn't happen, but we really don't want
                     # SQS to redo this task because of an exception.
                     kv.value = adder_cache[aggregated_metric]
                 kv.save()
@@ -886,3 +891,4 @@ def aggregate_saved_metrics(*args):
         process_category(category)
 
     transaction.commit()  # consolidate
+    logger.info('Analytics tasks complete!')
