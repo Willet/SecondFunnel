@@ -685,6 +685,30 @@ def aggregate_saved_metrics(*args):
     # Remove all the existing meta metric data
     KVStore.objects.filter(meta="meta_metric").delete()
 
+    def adder(adder_obj, datum, metric_obj, content_type, object_id, key,
+              timestamp, meta):
+        """attempts to cache all meta KVStore writes until the end.
+
+        Function signature is the same as KVStore lookups.
+
+        @param adder_objd: mutable dict or defaultdict(list)
+        @param object_id: either a store_id or a campaign_id
+        @param content_type: whether the object_id was of a store or a campaign
+        """
+
+        # did you know that any hashable value can be a dict key?
+        temp_key = (content_type, object_id, key, timestamp, meta)
+
+        if 'aggregator' in metric_obj:
+            # allows for custom aggregation: average, etc
+            custom_aggregation_func = metric_obj['aggregator']
+            adder_obj[temp_key] = custom_aggregation_func(datum.value)
+        else:
+            try:
+                adder_obj[temp_key] += datum.value
+            except KeyError:
+                adder_obj[temp_key] = datum.value
+
     def process_category(obj):
         """
         Adds a new KV, using it as a per-day summation for KV data
@@ -711,34 +735,50 @@ def aggregate_saved_metrics(*args):
             logger.info('{0} "{1}" objects to aggregate'.format(
                 len(data), metric_obj['slug']))
 
+            adder_cache = {}  # reset per key
+            i = 0
+            len_data = len(data)
             for datum in data:
-                # meta-kv already present, increment
+                i = i + 1  # informative counter
+                if i % 50 == 0:
+                    logger.info('{0}: aggregating row {1}/{2}'.format(
+                        metric_obj['slug'], i, len_data))
+
+                # add all values before calling db
+                adder(adder_cache, datum=datum, metric_obj=metric_obj,
+                      content_type=datum.content_type,
+                      object_id=datum.object_id, key=metric_obj['key'],
+                      timestamp=datum.timestamp, meta="meta_metric")
+
+            # adder cache is now full of already-aggregated keys and values
+            # key format: (content_type, object_id, key, timestamp, meta)
+            i = 0
+            len_data = len(adder_cache)  # it's a dict
+            for aggregated_metric in adder_cache:
+                i = i + 1  # informative counter
+                if i % 50 == 0:
+                    transaction.commit()  # avoid exceeding the transaction size
+                    logger.info('{0}: committing row {1}/{2}'.format(
+                        metric_obj['slug'], i, len_data))
+                kwargs = {'content_type': aggregated_metric[0],
+                          'object_id': aggregated_metric[1],
+                          'key': aggregated_metric[2],
+                          'timestamp': aggregated_metric[3],  # per-day
+                          'meta': aggregated_metric[4]}
                 try:
-                    kv = KVStore.objects.get(
-                        content_type=datum.content_type,
-                        object_id=datum.object_id,
-                        key=metric_obj['key'],
-                        timestamp=datum.timestamp,
-                        meta="meta_metric"
-                    )
-
-                    # allows for custom aggregation: average, etc
-                    if 'aggregator' in metric_obj:
-                        kv.value = metric_obj['aggregator'](datum.value)
-                    else:
-                        kv.value += datum.value
-
-                    kv.save()
+                    # meta-kv already present, increment
+                    kv = KVStore.objects.get(**kwargs)
                 except KVStore.DoesNotExist:  # need to create the meta-kv
-                    kv = KVStore(
-                        content_type=datum.content_type,
-                        object_id=datum.object_id,
-                        key=metric_obj['key'],
-                        value=datum.value,
-                        timestamp=datum.timestamp,
-                        meta="meta_metric"
-                    )
-                    kv.save()
+                    kv = KVStore(**kwargs)
+
+                try:
+                    kv.value += adder_cache[aggregated_metric]
+                except (KeyError, ValueError):
+                    # neither should happen, but we really don't want
+                    # SQS to redo this task because of an exception.
+                    kv.value = adder_cache[aggregated_metric]
+                kv.save()
+
 
                 metric.data.add(kv)
             transaction.commit()  # save for each datum
