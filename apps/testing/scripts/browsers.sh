@@ -7,9 +7,20 @@ getApp () {
     for i in `seq 0 ${#KEYS[@]}`; do
         if [[ ${KEYS[$i]} = $KEY ]]; then
             APP=${VALUES[$i]}
-            break
+            return 0
         fi
     done
+    APP=$BROWSER
+    return 1
+}
+
+createTempFirefoxProfile () {
+    RAND="$RANDOM.JSTESTDRIVER"
+    cp "$PROFILEDIR/profiles.ini" /tmp/profiles.ini
+    $FIREFOX -CreateProfile $RAND
+    ARGS="--args -p $RAND"
+    echo "rm -rf \"$PROFILEDIR\"/Profiles/*.$RAND" >> /tmp/jstestdriver.cleanup
+    echo "mv /tmp/profiles.ini \"$PROFILEDIR/profiles.ini\"" >> /tmp/jstestdriver.cleanup
 }
 
 # Process IDs for this script's parent and itself respectively
@@ -17,7 +28,8 @@ echo $PPID >> /tmp/jstestdriver.pid
 echo $$ >> /tmp/jstestdriver.pid
 
 # This script's name so it can be deleted.
-echo $0 >> /tmp/jstestdriver.scripts
+echo "killall $0" >> /tmp/jstestdriver.cleanup
+echo "rm $0" >> /tmp/jstestdriver.cleanup
 
 # Iterate over the browsers specified
 for BROWSER in ${@:2}; do
@@ -25,31 +37,39 @@ for BROWSER in ${@:2}; do
     if [[ `uname` = "Darwin" ]]; then
 	    KEYS=("chrome" "firefox" "safari")
 	    VALUES=("Google Chrome" "Firefox" "Safari")
-	    getApp
+	    ARGS=""
+        getApp
         
-	    # Delete saved application states
-        if [[ $APP = "Safari" ]]; then
-            trap "{ killall Safari; rm -rf ~/Library/Saved\ Application\ State/com.apple.Safari.savedState/; exit 0; }" EXIT
-	    elif [[ $APP = "Google Chrome" ]]; then
-            trap "{ killall Google\ Chrome; rm -rf ~/Library/Saved\ Application\ State/com.google.Chrome.savedState/; exit 0; }" EXIT
-	    fi
-        
-        # Run the programs.
-        # Firefox is strange in which it won't terminate when it's parent terminates, so we have to continue execution
-        # for it.
+        # Start the selected browser
         if [[ $APP = "Firefox" ]]; then
-            open -a "$APP" "$CAPTURE_URL"
-        else
-            open -a "$APP" -W "$CAPTURE_URL"
+            PROFILEDIR=~/Library/Application\ Support/$APP
+            FIREFOX="/Applications/$APP.app/Contents/MacOS/firefox"
+            createTempFirefoxProfile
+        elif [[ $APP = "Google Chrome" ]]; then
+            RAND="/tmp/$RANDOM.GOOGLE.CHROME.PROFILE.JSTESTDRIVER"
+            ARGS="--args --user-data-dir=\"$RAND\" --no-first-run --no-default-browser-check"
+            # TODO: FIGURE OUT WHY I CAN'T REMOVE THE CHROME PROFILE DIRECTORY
+            echo "rm -rf $RAND" >> /tmp/jstestdriver.cleanup
         fi
-        pid=`ps -ax | grep "/Applications/$APP.app/Contents/MacOS/*" | grep -v grep | awk '{print $1}'`
+        eval "open -na \"$APP\" \"$CAPTURE_URL\" -g $ARGS"
+        # Only want to affect the last running process
+        pid=`ps -ax | grep "/Applications/$APP.app/Contents/MacOS/*" | grep -v grep | awk '{print $1}' | tail -n 1`
         echo $pid >> /tmp/jstestdriver.pid
     else
         KEYS=("chrome" "firefox")
         VALUES=("google-chrome" "firefox")
         getApp
+        if [[ $APP = "Firefox" ]]; then
+            PROFILEDIR=~/.mozilla/firefox
+            FIREFOX="firefox"
+            createTempFirefoxProfile
+        elif [[ $APP = "Google Chrome" ]]; then
+            RAND="/tmp/$RANDOM.GOOGLE.CHROME.PROFILE.JSTESTDRIVER"
+            ARGS="--args --user-data-dir=\"$RAND\" --no-first-run --no-default-browser-check"
+            echo "rm -rf $RAND" >> /tmp/jstestdriver.cleanup
+        fi
         # Start application and capture process ID
-        "$APP" "$CAPTURE_URL"
+        "$APP" "$CAPTURE_URL" $ARGS
         echo $! >> /tmp/jstestdriver.pid
     fi
 done

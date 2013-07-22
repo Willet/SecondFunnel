@@ -1,0 +1,38 @@
+{% extends "testing/testing_base.html" %}
+
+{% block result-types %}
+    <ul>
+        {% for type, results in data.items %}
+            <li>
+                <input type="checkbox" name="{{ type }}" value="" checked>{{ type }}</input>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
+
+{% block results %}
+    <div class="results">
+        {% for type, results in data.items %}
+            <div style="padding-bottom:10px;"></div>
+            <h2>{{ results.total }} Tests Finished With {{ type }}</h2>
+            <!-- <span class="run"><a class="test-spec" href="#"  data-type-id="{% for suite in results.suites %}{{ suite }},{% endfor %}">Run all</a></span> -->
+            <div id="{{ type }}" class="spec">
+                {% for suite, cases in results.suites.items %}
+                    <div class="suite">    
+                        <h3><b>Test Suite</b>: {{ suite }}</h3>
+                        {% for case in cases %}
+                            <div class="case">
+                                <span style="padding-left: 0.5em;"><b>Test Name</b>: {{ case.name }}</span>
+                                <!-- <span class="run"><a class="test-spec" href="#"  data-type-id="{{ suite }}.{{ case.name }}">Run</a></span> -->
+                                {% if case.msg|length > 0 %}
+                                    <br/><span style="padding-left: 2em;"><b>Message</b>: {{ case.msg }}</span>
+                                {% endif %}
+                             </div>
+                         {% endfor %}
+                     </div>
+                 {% endfor %}
+             </div>
+         {% endfor %}
+     </div>
+ {% endblock %}

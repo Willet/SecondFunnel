@@ -5,8 +5,8 @@ server: http://localhost:9876
 load:
     # Order matters!
     #Setup files
-    - apps/testing/jasmine/lib/jasmine-1.3.1/jasmine.js
-    - apps/testing/jstestdriver/JasmineAdapter.js
+    - apps/testing/resources/jasmine/lib/jasmine-1.3.1/jasmine.js
+    - apps/testing/resources/JasmineAdapter.js
 
     # Our Source JS Files
     - secondfunnel/static/js/underscore.js
@@ -27,6 +27,9 @@ load:
 test:
     # Order matters!
     - apps/testing/tests/base.js
+    - apps/testing/tests/pinpoint/*
+    - apps/testing/tests/admin/*
+    - apps/testing/tests/secondfunnel/*
 
 # Files to never load
 # exclude:

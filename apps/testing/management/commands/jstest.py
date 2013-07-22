@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from apps.testing.jstestdriver.JsTestDriver import call_JsTestDriver
+from apps.testing.jstestdriver import call_JsTestDriver
  
 from optparse import OptionParser, make_option
 
@@ -45,7 +45,7 @@ class Command(BaseCommand):
     help = 'Run JavaScript tests against the JsTestDriver/Jasmine setup.'
     
     option_list = BaseCommand.option_list + (
-        make_option('-c', '--config', nargs=1, dest='conf', default='sample', help='Specify the config file to use (default: dev).'),
+        make_option('-c', '--config', nargs=1, dest='config', default='desktop', help='Specify the config file to use (default: dev).'),
         make_option('-t', '--tests', dest='tests', default="all", help='Specify specific tests specified by regex to run or "all" to run all (default: all).'),
         make_option('-b', '--browsers', dest='browsers', default=[], help='Name of browsers to use for testing (default: headless webdriver).',
                     action="callback", callback=vararg_callback),
@@ -64,10 +64,7 @@ class Command(BaseCommand):
 
         @return: None
         """
-        # TODO: CAN THIS AND DJANGO BE RUNNING AT SAME TIME?
         try:
             call_JsTestDriver(**options)
         except Exception, e:
-            # Unknown JsTestDriver option, it will signal error.
-            print e
             exit(2)

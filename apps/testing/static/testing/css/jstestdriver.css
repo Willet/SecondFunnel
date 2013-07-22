@@ -1,0 +1,140 @@
+/* A comment! */
+html, body {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#title-bar {
+    position: absolute;
+    top: 0;
+    padding-top: 5px;
+    margin-top: -20px !important;
+    width: 100%;
+    height: 4em;
+    background-color: #F9A7B0; /* Flamingo! */
+}
+
+#title-bar h1 {
+    padding-left: 10px;
+    display: inline-block;
+    float:left;
+    font-size: 2em;
+}
+
+#title-bar .show {
+    display: inline-block;
+    position: relative;
+    top: 2.5em;
+    right: 2em;
+    float: right;
+}
+
+#title-bar .show span,
+#title-bar .show li {
+    padding-left:5px;
+}
+
+#title-bar .show ul {
+    display: inline-block;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#title-bar .show ul li {
+    display: inline-block;
+}
+
+.results {
+    position: absolute;
+    top: 4em;
+    width: 100%;
+}
+
+.results h2 {
+    display: inline-block;
+    cursor: pointer;
+}
+
+.results h2:hover {
+    color: grey;
+}
+
+.results h2,
+.results .spec h3 {
+    padding: 0;
+    margin: 0;
+    margin-left: 10px;
+}
+
+.results .spec,
+.results .spec .suite
+.results .spec .suite .case {
+    width: 99%;
+}
+
+.results .spec {
+    background-color: #FFD3DB;
+    margin: 0 auto;
+    margin-bottom: 20px;
+    border: 1px solid #000000;
+}
+
+.results .spec .suite {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding-bottom: 10px;
+    height: 100%;
+}
+
+.results .spec .suite .case {
+    margin-left: 10px;
+    background-color: #F9A7B0;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border: 1px solid red;
+}
+
+.results .run {
+    float: right;
+    position: relative;
+    bottom: 0;
+    margin-right: 10px;
+}
+
+.results .run a {
+    text-decoration: none;
+    color: blue;
+}<!-- DJANGO Template for displaying the results from the JSTestDriver/Jasmine tests. -->
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+  <head>
+      <title>Results</title>
+      <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
+      <script src="{% static "testing/js/jstestdriver.js" %}"></script>
+      <link rel="stylesheet" href="{% static "testing/css/jstestdriver.css" %}" />
+</head>
+
+  <body>
+      <div id="title-bar">
+          <h1>JsTestDriver Test Results</h1>
+          <div class="show">
+              <span><b>Show:</b> </span>
+              {% block result-types %}
+              {% endblock %}
+          </div>
+          <div style="float:right; position: relative; top: 2.5em; right: 2.5em;">
+              <b><a class="test-spec" href="#" style="text-decoration: none;" data-type-id="all">Run all Tests</a></b>
+          </div>
+          <div style="clear:both;"></div>
+      </div>
+      {# The results of the tests go here #}
+      {% block results %}
+      {% endblock %}
+      {{ data }}
+  </body>
+
+</html>

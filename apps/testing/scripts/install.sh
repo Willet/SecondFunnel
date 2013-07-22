@@ -17,35 +17,27 @@ JASMINEADAPTER="https://raw.github.com/ibolmo/jasmine-jstd-adapter/master/src/Ja
 JSTESTDRIVER="https://js-test-driver.googlecode.com/files/JsTestDriver-1.3.5.jar"
 PHANTOMJSTD="https://raw.github.com/larrymyers/js-test-driver-phantomjs/master/phantomjs-jstd.js"
 
-mkdir -p phantomjs jstestdriver
+mkdir -p resources tests/results
 
-if [ ! -e "jasmine" ]; then
+if [ ! -e "resources/jasmine" ]; then
     $DOWNLOADER $JASMINE -o jasmine-standalone.zip
-    unzip jasmine-standalone.zip -d jasmine/
+    unzip jasmine-standalone.zip -d resources/jasmine/
     rm jasmine-standalone.zip
 fi
 
-if [ ! -e "jstestdriver/JasmineAdapter.js" ]; then
+if [ ! -e "resources/JasmineAdapter.js" ]; then
     $DOWNLOADER $JASMINEADAPTER -o JasmineAdapter.js
-    mv JasmineAdapter.js jstestdriver/JasmineAdapter.js
+    mv JasmineAdapter.js resources/JasmineAdapter.js
 fi
 
-if [ ! -e "jstestdriver/JsTestDriver.jar" ]; then
+if [ ! -e "resources/JsTestDriver.jar" ]; then
     $DOWNLOADER $JSTESTDRIVER -o JsTestDriver.jar
-    mv JsTestDriver.jar jstestdriver/JsTestDriver.jar
+    mv JsTestDriver.jar resources/JsTestDriver.jar
 fi
 
-if [ ! -e "phantomjs/phantomjs-jstd.js" ]; then
-    mdkir -p phantomjs
+if [ ! -e "resources/phantomjs-jstd.js" ]; then
     $DOWNLOADER $PHANTOMJSTD -o phantomjs-jstd.js
-    mv phantomjs-jstd.js phantomjs/phantomjs-jstd.js
-fi
-
-if [ ! -e "jstestdriver/settings.py" ]; then
-    echo -e "GENERIC_BROWSER_LIST = [ \"chrome\", \"firefox\", \"safari\", \"ie\" ]\n\n" >> jstestdriver/settings.py
-    echo -e "ADDITIONAL_BROWSER_LIST = [ \n]\n\n" >> jstestdriver/settings.py
-    echo -e "CONFIG = {\n\t\"desktop\": \"tests/dev.desktop.yaml\",\n\t\"mobile\": \"tests/dev.mobile.yaml\"" >> jstestdriver/settings.py
-    echo -e "\n\t\"sample\": \"sample/sample.yaml\"\n}\n" >> jstestdriver.settings.py
+    mv phantomjs-jstd.js resources/phantomjs-jstd.js
 fi
 
 
