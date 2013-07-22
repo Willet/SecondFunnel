@@ -26,8 +26,8 @@
         }
 
         .shadow {
-            -webkit-box-shadow:  0px 3px 3px 0px rgba(0, 0, 0, 0.5);
-            box-shadow:  0px 3px 3px 0px rgba(0, 0, 0, 0.5);
+            -webkit-box-shadow:  0px 2px 2px 0px rgba(0, 0, 0, 0.5);
+            box-shadow:  0px 2px 2px 0px rgba(0, 0, 0, 0.5);
         }
 
         .container_12 .inner_content {
@@ -130,7 +130,7 @@
         .data_metric {
             margin-bottom: 20px;
             overflow: auto;
-            background-color: #e7eaef;
+            background-color: #f1f2f3;
             padding: 10px 10px 10px 10px;
             color: #2d2d2d;
         }
@@ -147,7 +147,7 @@
         .metric_content {
             list-style: none;
             margin-top: 10px;
-            overflow: scroll;
+            overflow: auto;
         }
 
         .metric_content li figure {
@@ -706,7 +706,9 @@
                         "content": function (params, pair) {
                             actions.common("generic_image", "#top_list_item", params, pair, function (data) {
                                 var image = data.hosted || data.remote;
-                                return image.slice(0, image.indexOf("?Sig"));
+                                if (image.indexOf("?Sig") !== -1) {
+                                    return image.slice(0, image.indexOf("?Sig"));
+                                }
                             });
                         },
 
@@ -1103,7 +1105,13 @@
     </script>
 
     <script type="text/template" id="count_with_percentage">
-        <span class="metric_perc"><%= ((count / total) * 100 || 0).toFixed(0) %>%</span><br><span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
+        <% if (total > 0) { %>
+            <span class="metric_perc"><%= ((count / total) * 100 || 0).toFixed(0) %>%</span>
+            <br><span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
+        <% } else { %>
+            <span class="metric_perc">&nbsp;</span>
+            <br><span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
+        <% } %>
     </script>
 
     <script type="text/template" id="single_value_t">
@@ -1228,7 +1236,7 @@
                             </div>
                         </div>
 
-                        <div class="grid_4 data_metric round shadow">
+                        <div class="grid_5 data_metric round shadow">
                             <div class="metric_title">Share Destinations</div>
                             <div id="share_destinations"></div>
 
@@ -1237,7 +1245,7 @@
                             </div>
                         </div>
 
-                        <div class="grid_4 data_metric round shadow">
+                        <div class="grid_5 data_metric round shadow">
                             <div class="metric_title">Sources of Shares</div>
                             <div id="sources_of_shares"></div>
 
@@ -1273,7 +1281,7 @@
                             </div>
                         </div>
 
-                        <div class="grid_7 data_metric round shadow">
+                        <div class="grid_8 data_metric round shadow">
                             <div class="metric_title">Visitors over Time</div>
 
                             <div id="visitors_over_time"></div>

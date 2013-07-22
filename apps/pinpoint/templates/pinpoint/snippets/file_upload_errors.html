@@ -1,0 +1,44 @@
+{# template script for creating jquery ui buttons #}
+var fileUploadErrorHandler = (function($) {
+    // Handles reporting error messages to users on file uploads.
+    var messages = {
+        'minSizeError': "<b>ERROR</b>: Dimensions of the file <b>%s</b> are too small.  Minimum image width is 480px.",
+        'emptyError': "<b>ERROR</b>: File with name <b>%s</b> could not be found."
+    };
+
+    function createUiButton(text, type) {
+        var buttonTypes = { 'error' : { 'icon': "ui-icon-alert", 'background': "#bf3e2a" }
+                          },
+            selectedButton = buttonTypes[type] || buttonTypes["error"];
+        
+        $('<div id="error_processing_file"><p>' + text + '</p></div>').dialog({
+            title: "ERROR",
+            modal: true,
+            resizable: false,
+            buttons: [ { text: "Ok", click: function() { $(this).dialog("destroy"); } } ],
+            open: function(event, ui) {
+                var $icon = $('<span style="float:left; margin:3px 5px 0px 0;" class="ui-icon" />').addClass(selectedButton.icon);
+                $(this).parent().find('.ui-dialog-titlebar:first-child').prepend($icon);
+            },
+            close: function(event, ui) {
+                $(this).dialog("destroy");
+            }
+        }); 
+    }
+
+    function sigErr(error, fileName, type) {
+        var message = messages[error];
+        if (message) {
+            var text = message.replace("%s", fileName);
+            createUiButton(text, type);
+        }
+    }
+
+    $('body').on('click', '.ui-widget-overlay', function() {
+        $('#error_processing_file').dialog('close');
+    });
+
+    return {
+        "signalError": sigErr
+    }
+})(jQuery);

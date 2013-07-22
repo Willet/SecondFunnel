@@ -5,6 +5,7 @@ from apps.assets.models import ProductMedia, GenericImage
 from apps.pinpoint.models import StoreTheme
 
 
+
 class FeaturedProductWizardForm(forms.Form):
     """
     Defines the form for configuring a featured product block.
