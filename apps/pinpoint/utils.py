@@ -3,6 +3,7 @@ Various utilities to assist and share among components of the PinPoint app
 """
 import json
 import re
+from collections import defaultdict
 from datetime import datetime
 
 from django.conf import settings
@@ -18,6 +19,17 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
     is provided.
     """
 
+    def repl(match):
+        """Returns a replaced tag content for a tag, or
+        the original tag if we have no data for that tag.
+        """
+        match_str = match.group(1)  # just the field: e.g. 'desktop_content'
+
+        if sub_values.has_key(match_str):
+            return ''.join(sub_values[match_str])
+        else:
+            return match.group(0)  # leave unchanged
+
     # TODO: Content blocks don't make as much sense now; when to clean up?
     # TODO: If we keep content blocks, should this be a method?
     # Assume only one content block
@@ -30,8 +42,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
         content_block.data, 'get_ls_image', noop)(url=True) or ''
     campaign.featured_image = getattr(
         content_block.data, 'get_image', noop)(url=True) or ''
-    campaign.description = safe(
-        content_block.data.description or product.description)
+    campaign.description = (content_block.data.description or product.description).encode('unicode_escape')
     campaign.template = slugify(
         content_block.block_type.name)
 
@@ -40,8 +51,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
 
         # "borrow" IR for results
         related_results = get_seeds_func(
-            request,
-            store=campaign.store.slug,
+            request, store=campaign.store.slug,
             campaign=campaign.default_intentrank_id or campaign.id,
             base_url=settings.WEBSITE_BASE_URL + '/intentrank',
             results=100,
@@ -81,34 +91,40 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
     page_str = theme.page
 
     # Replace necessary tags
+    sub_values = defaultdict(list)
+    regex = re.compile("\{\{\s*(\w+)\s*\}\}")
+
     # REQUIRED is a bit of a misnomer...
     for field, details in theme.REQUIRED_FIELDS.iteritems():
+        # field: e.g. 'desktop_content'
+        # details: e.g. {'values': ['pinpoint/campaign_scripts_core.html',
+        #                           'pinpoint/default_templates.html'],
+        #                'type': 'template'}
         field_type = details.get('type')
         values = details.get('values')
 
-        sub_values = []
-        for value in values:
+        for value in values:  # list of file names or templates
 
             if field_type == "template":
                 result = loader.get_template(value)
-
             elif field_type == "theme":
                 result = getattr(theme, value)
-
             else:
-                result = None
+                continue
 
             # TODO: Do we need to render, or can we just convert to string?
+            # answer: we only need to convert it to a string.
             if isinstance(result, Template):
                 result = result.render(context)
-
             else:
                 result = result.encode('unicode-escape')
 
-            sub_values.append(result)
+            try:
+                sub_values[field].append(result.decode("unicode_escape"))
+            except UnicodeDecodeError:  # who knows
+                sub_values[field].append(result)
 
-        regex = r'\{\{\s*' + field + '\s*\}\}'
-        page_str = re.sub(regex, ''.join(sub_values), page_str)
+    page_str = regex.sub(repl, page_str)
 
     # Page content
     page = Template(page_str)
