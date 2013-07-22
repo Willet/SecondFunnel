@@ -6,6 +6,7 @@ html, body {
     height: 100%;
 }
 
+
 #title-bar {
     position: absolute;
     top: 0;
@@ -13,7 +14,6 @@ html, body {
     margin-top: -20px !important;
     width: 100%;
     height: 4em;
-    background-color: #F9A7B0; /* Flamingo! */
 }
 
 #title-bar h1 {
@@ -97,44 +97,33 @@ html, body {
     border: 1px solid red;
 }
 
-.results .run {
-    float: right;
-    position: relative;
-    bottom: 0;
-    margin-right: 10px;
-}
 
-.results .run a {
+a {
     text-decoration: none;
     color: blue;
-}<!-- DJANGO Template for displaying the results from the JSTestDriver/Jasmine tests. -->
-{% load staticfiles %}
-<!DOCTYPE html>
-<html>
-  <head>
-      <title>Results</title>
-      <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
-      <script src="{% static "testing/js/jstestdriver.js" %}"></script>
-      <link rel="stylesheet" href="{% static "testing/css/jstestdriver.css" %}" />
-</head>
+}
 
-  <body>
-      <div id="title-bar">
-          <h1>JsTestDriver Test Results</h1>
-          <div class="show">
-              <span><b>Show:</b> </span>
-              {% block result-types %}
-              {% endblock %}
-          </div>
-          <div style="float:right; position: relative; top: 2.5em; right: 2.5em;">
-              <b><a class="test-spec" href="#" style="text-decoration: none;" data-type-id="all">Run all Tests</a></b>
-          </div>
-          <div style="clear:both;"></div>
-      </div>
-      {# The results of the tests go here #}
-      {% block results %}
-      {% endblock %}
-      {{ data }}
-  </body>
+a:hover {
+    color: grey;
+}
 
-</html>
+.fail {
+    background-color: #F9A7B0; /* Flamingo! */
+}
+
+.success {
+    background-color: #00CC00 !important;
+}
+
+div#Passed {
+    background-color: #66FF66 !important;
+}
+
+div#Passed .suite {
+    background-color: #009933 !important;
+}
+
+div#Passed .suite .case {
+    background-color: #00CC00 !important;
+    border-color: #000 !important;
+}

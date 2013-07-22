@@ -24,8 +24,6 @@ def startServer( browsers ):
     """
     applications = []
     browser_list = GENERIC_BROWSER_LIST + ADDITIONAL_BROWSER_LIST
-
-    # Find the path to the specified browsers.
     command = "java -jar {0} --port 9876".format(getPath("resources/JsTestDriver.jar"))
     
     for browser in browsers:
@@ -38,8 +36,10 @@ def startServer( browsers ):
             app = browser
 
         applications.append(app)
-    
+
     if len(applications) > 0:
+        # Determine if we were given an application of a full path
+        # If given the full path to a browser, use the browser as it.
         script, scripts = getPath("scripts/browsers.sh"), []
         command += " --browser \""
         for application in applications:
@@ -76,10 +76,10 @@ def call_JsTestDriver(config, tests, browsers, commandline, *args, **kwargs):
                    os.path.join(
                        fromProjectRoot('manage.py'), os.pardir))
 
+    # Find the configuration file we're using.
     if config in CONFIGS:
         command += " --config {0}".format(getPath(CONFIGS[config]))
     else:
-        # Try to find the config file
         config = getPath(config)
         if os.path.exists(config):
             command += " --config {0}".format(config)
@@ -88,16 +88,16 @@ def call_JsTestDriver(config, tests, browsers, commandline, *args, **kwargs):
 
     command += " --runnerMode {0} --basePath {1} --tests {2}".format(kwargs['mode'], basepath, tests)
 
+    # If we're generating XML, clean up
     if not commandline:
         os.system('rm apps/testing/tests/results/*')
         command += " --testOutput apps/testing/tests/results"
 
-    # Make the calls
-    print "Starting server....",
+    # Start the server and run the tests
+    print "Starting server...."
     if not kwargs['remote']:
         startServer(browsers)
 
-    # Bit hacky for the time being...
     import time
     time.sleep(5)
     os.system(command)
