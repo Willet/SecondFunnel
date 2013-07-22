@@ -536,7 +536,7 @@ var PAGES = (function ($, details, mediator) {
                     }
 
                     // use the resized images
-                    template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
+                    template_context.image = template_context.image.replace("master.jpg", "medium.jpg");
                     break;
                 case 'combobox':
                     // in case an image is lacking, don't bother with the product
@@ -864,7 +864,7 @@ var PAGES = (function ($, details, mediator) {
             }, '.block.combobox:not(.unclickable) .lifestyle');
         }
 
-        $(window).resize(windowResize);
+        $(window).resize(_.throttle(windowResize, 200));
     }
 
     /* --- END element bindings --- */
