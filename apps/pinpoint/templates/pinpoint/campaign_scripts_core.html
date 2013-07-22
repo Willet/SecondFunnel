@@ -44,7 +44,7 @@
 
     // can't use user agents - desktop CSS gets triggered on high ppi devices,
     // messing up everything
-    (Willet.browser=Willet.browser||{}).mobile=(window.innerWidth < 1024);
+    (Willet.browser=Willet.browser||{}).mobile=(document.width < 1024);
 </script>
 <script src="{% static "js/underscore.js" %}"></script>
 <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
@@ -54,9 +54,11 @@
         $(document).bind("mobileinit", function () {
             $.mobile.autoInitializePage = false;
         });
+        $.getScript('{% static "js/jquery.mobile-1.2.1.min.js" %}');
+    } else {
+        $.mobile = {};
     }
 </script>
-<script src="{% static "js/jquery.mobile-1.2.1.min.js" %}"></script>
 <script src="{% static "js/jquery.tools.js" %}"></script>
 <script src="{% static "pinpoint/js/mediator.js" %}"></script>
 <script src="{% static "pinpoint/js/utils.js" %}"></script>
@@ -102,7 +104,7 @@
             $.mobile.initializePage();
             PAGES.init();
             $.mobile.hidePageLoadingMsg();
-        })
+        });
     } else {
         $(function() {
             $.Mason.prototype._placeBrick = function( brick ) {

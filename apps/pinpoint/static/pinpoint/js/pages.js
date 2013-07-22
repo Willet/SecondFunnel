@@ -766,6 +766,10 @@ var PAGES = (function ($, details, mediator) {
 
         // Inserts content after the clicked product block (Animated)
         relatedContent.insertAfter($target);
+        if (!$discovery.hasClass('masonry')) {
+            // initialise if it has not been
+            $discovery.masonry();
+        }
         $discovery.masonry('reload');
         relatedContent.show();
         /* // Inserts content after the clicked product block (Non-Animated)
@@ -865,6 +869,12 @@ var PAGES = (function ($, details, mediator) {
         }
 
         $(window).resize(_.throttle(windowResize, 200));
+
+        mediator.on('PAGES.ready', function () {
+            if ($.mobile && $.mobile.hidePageLoadingMsg) {
+                $.mobile.hidePageLoadingMsg();
+            }
+        });
     }
 
     /* --- END element bindings --- */
@@ -973,7 +983,7 @@ var PAGES = (function ($, details, mediator) {
     }];
 
     return {
-        'init': init,
+        'init': _.once(init),
         'addPreviewCallback': addPreviewCallback,
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
         'renderTemplate': renderTemplate,
