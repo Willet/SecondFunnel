@@ -788,7 +788,7 @@ PAGES.full = (function (me, mediator) {
                     // ... and from unrendered results
                     new_containers = $block.filter(".youtube[data-label='" + video_id + "']")
 
-                    containers.add(new_containers);
+                    containers = containers.add(new_containers);
 
                     containers.each(function () {
                         var container = $(this),
