@@ -765,7 +765,7 @@ PAGES.full = (function (me, mediator) {
                             function () {/* dummy */};
 
                 Willet.mediaAPI.getObject("video_gdata", video_id, function (video_data) {
-                    var containers,
+                    var containers, new_containers,
                         preferredThumbnailQuality = 'hqdefault',
                         thumbClass = 'youtube-thumbnail',
                         thumbURL = 'http://i.ytimg.com/vi/' + video_id +
@@ -782,7 +782,14 @@ PAGES.full = (function (me, mediator) {
                         thumbURL = thumbObj.url;
                     }  // else fallback to the default thumbURL
 
+                    // get results from the page...
                     containers = $(".youtube[data-label='" + video_id + "']");
+
+                    // ... and from unrendered results
+                    new_containers = $block.filter(".youtube[data-label='" + video_id + "']")
+
+                    containers.add(new_containers);
+
                     containers.each(function () {
                         var container = $(this),
                             uniqueThumbnailID = PAGES.generateID('thumb-' + video_id),
