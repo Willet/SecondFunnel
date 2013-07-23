@@ -101,9 +101,9 @@
 
     if (Willet.browser.mobile) {
         $(function () {
-            $.mobile.initializePage();
+            $.mobile && $.mobile.initializePage();
             PAGES.init();
-            $.mobile.hidePageLoadingMsg();
+            $.mobile && $.mobile.hidePageLoadingMsg();
         });
     } else {
         $(function() {

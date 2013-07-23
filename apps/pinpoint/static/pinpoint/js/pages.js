@@ -38,7 +38,8 @@ var PAGES = (function ($, details, mediator) {
             ],
             imageTypes = [
                 // templates of these names will all use the "image" template.
-                'styld-by', 'tumblr', 'pinterest', 'facebook', 'instagram'
+                'styld.by', 'styld-by',
+                'tumblr', 'pinterest', 'facebook', 'instagram'
             ];
 
         if (_.contains(templateNames, name)) {
@@ -380,6 +381,22 @@ var PAGES = (function ($, details, mediator) {
         $mask.fadeOut(100);
     }
 
+    function reloadMasonry(options) {
+        // masonry needs to reload every time an infinite scroll event
+        // is performed: https://github.com/desandro/masonry/issues/211
+        options = options || {
+            itemSelector: '.block',
+
+            columnWidth: function (containerWidth) {
+                return containerWidth / 4;
+            },
+
+            isResizable: true,
+            isAnimated: true
+        };
+        $('.content_list, .discovery-area').masonry(options).masonry('reload');
+    }
+
     function commonHoverOn(t, enableSocialButtons, enableTracking) {
         if (enableTracking) {
             mediator.fire('tracking.setSocialShareVars', [{
@@ -576,7 +593,7 @@ var PAGES = (function ($, details, mediator) {
                 }
 
             } catch (err) {  // hide rendering error
-                mediator.fire('log', ['oops @ item', err]);
+                mediator.fire('error', ['oops @ item', err]);
             }
         }
 
@@ -723,7 +740,12 @@ var PAGES = (function ($, details, mediator) {
 
         // make sure images are loaded or else masonry wont work properly
         $block.imagesLoaded(function ($images, $proper, $broken) {
-            $broken.parents('.block').remove();
+            if ($broken) {
+                // possible that if all images are proper,
+                // this is undefined; i.e.
+                // Uncaught TypeError: Cannot call method 'parents' of undefined
+                $broken.parents('.block').remove();
+            }
             $block.find('.block img[src=""]').parents('.block').remove();
 
             // Don't continue to load results if we aren't getting more results
@@ -766,11 +788,8 @@ var PAGES = (function ($, details, mediator) {
 
         // Inserts content after the clicked product block (Animated)
         relatedContent.insertAfter($target);
-        if (!$discovery.hasClass('masonry')) {
-            // initialise if it has not been
-            $discovery.masonry();
-        }
-        $discovery.masonry('reload');
+        reloadMasonry();
+
         relatedContent.show();
         /* // Inserts content after the clicked product block (Non-Animated)
            $.when($discovery.masonry('reload')).then(function(){ relatedContent.show();}); */
@@ -827,6 +846,22 @@ var PAGES = (function ($, details, mediator) {
                 $('style.mobile-only').prop('disabled', 'disabled');
                 $('style.desktop-only').prop('disabled', '');
             }
+        }
+
+        var $discovery = $('.discovery-area'),
+            discoveryWidth = $discovery.width(),
+            discoveryHeight = $discovery.height(),
+            oldDiscoveryWidth = $discovery.data('width'),
+            oldDiscoveryHeight = $discovery.data('height');
+        if (discoveryWidth !== oldDiscoveryWidth ||
+                discoveryHeight !== oldDiscoveryHeight) {
+            // size of discovery area changed - update masonry
+            reloadMasonry();
+            // and update the old widths/heights
+            $discovery.data({
+                'width': discoveryWidth,
+                'height': discoveryHeight
+            });
         }
     }
 
@@ -988,6 +1023,7 @@ var PAGES = (function ($, details, mediator) {
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
         'renderTemplate': renderTemplate,
         'renderTemplates': renderTemplates,
+        'reloadMasonry': reloadMasonry,
         'loadInitialResults': loadInitialResults,
         'loadMoreResults': loadMoreResults,
         'layoutResults': layoutResults,
