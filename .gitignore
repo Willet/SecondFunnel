@@ -15,7 +15,6 @@ doc/
 log/
 runserver
 
-
 # Testing directories
 apps/testing/resources
 apps/testing/tests/results

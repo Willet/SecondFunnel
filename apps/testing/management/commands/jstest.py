@@ -41,7 +41,8 @@ class Command(BaseCommand):
     @ivar option_list: Options accepted by this command.
     @ivar jstestdriver_option_list: List of options accepted by the JsTestDriver
     """
-    args = '[ [ -c|--config /path/to/configfile ] [ -t|--tests "regular expression to match tests" ] [ -b|--browsers browser1 ... browsern ] [ -d|--commandline ] ]'
+    args = "[ [ -c|--config /path/to/configfile ] [ -t|--tests testSuite.testName | testSuite | .testName ] [ -b|--browsers browser1 ... browsern ] [ -d|--commandline ] \
+            [ -l | --log ] ]"
     help = 'Run JavaScript tests against the JsTestDriver/Jasmine setup.'
     
     option_list = BaseCommand.option_list + (
@@ -52,6 +53,7 @@ class Command(BaseCommand):
         make_option('-d', '--commandline', action="store_false", dest='commandline', default=True, help='Output to command line or to browser (default: True).'),
         make_option('-r', '--remote', action="store_true", dest='remote', default=False, help='Specify whether connecting to a remote server or not (default: False).'),
         make_option('-m', '--runner-mode', dest='mode', default="QUIET", help='Specify the runner mode to use; QUIET or DEBUG (default: QUIET)'),
+        make_option('-l', '--log', dest='log', default=False, help="Capture responses/results in the console."),
     )
 
     def handle(self, *args, **options):

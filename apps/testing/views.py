@@ -32,9 +32,9 @@ def fire_test( request ):
 
         if 'browsers' in request.GET:
             browsers = urllib.unquote(request.GET['browsers']).split()
-            call_command('jstest', commandline=False, tests=tests, config=config, browsers=browsers)
+            call_command('jstest', commandline=False, tests=tests, config=config, browsers=browsers, log=True)
         else:
-            call_command('jstest', commandline=False, tests=tests, config=config)
+            call_command('jstest', commandline=False, tests=tests, config=config, log=True)
 
     except BaseException as e:
         return ajax_error({'error': str(e)})
@@ -75,7 +75,7 @@ def test_results( request ):
             data['Error']['total'] += int(root.attrib['errors'])
             data['Passed']['total'] += int(root.attrib['tests']) - int(root.attrib['errors']) - int(root.attrib['failures'])
             
-            for case in root[:]:
+            for case in root.iter('testcase'):
                 type, msg, children = 'Passed', "", case[:]
                 
                 for child in children:

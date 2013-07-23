@@ -7,10 +7,8 @@ ADDITIONAL_BROWSER_LIST = [
 CONFIGS = {
     "desktop": "tests/dev.desktop.yaml",
     "mobile": "tests/dev.mobile.yaml",
-    "sample": "sample/sample.yaml"
 }
 
 CONFIG_DIRS = [
     "tests/",
-    "sample/",
 ]

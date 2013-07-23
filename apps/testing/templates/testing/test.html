@@ -28,6 +28,35 @@
       <script src="{% static "js/jquery-ui.js" %}"></script>
       <script type="text/javascript">
           (function($) {
+              var testServer = (function() {
+                  var uri = "update/?";
+                  
+                  function run ( kwargs ) {
+                      for (var query in kwargs) {
+                          uri += query + "=" + encodeURIComponent(kwargs[query]);
+                          delete kwargs[query];
+
+                          if (!$.isEmptyObject(kwargs)) {
+                              uri += "&";
+                          }
+                      }
+                      
+                      $.get(uri, function(data, textStatus, jqXHR) {
+                          if (data['success']) {
+                             // window.location.reload();
+                          } else {
+                              alert("Something went wrong!");
+                              console.log(data['error']);
+                          }
+                      });
+                  }
+                  
+                  return {
+                      'run': run
+                  };                  
+              });
+
+              var server = testServer();
               $(document).ready(function(){
                   $('body').on('click', '.ui-widget-overlay', function(){
                       $('.ui-dialog.ui-widget .popup').dialog('destroy');
@@ -62,29 +91,19 @@
                           width: 700,
                           buttons: [ 
                               { text: "OK", click: function() {
-                                    var config = encodeURIComponent($(this).find('select').val() + ".yaml"),
-                                        browsers = $(this).find('input').val();
-                                    spec = encodeURIComponent(spec);
-                                               
+                                    var params = {};
+                                    params["config"] = $(this).find('select').val() + ".yaml";
+                                    params["tests"] = spec;
+                                              
                                     $('body').empty();
                                     $('body').append($($("#loading").html()));
                                     
-                                    var url = "update/?tests=" + spec + "&config=" + config;
+                                    var browsers = $(this).find('input').val();
                                     if (/\w+/g.test(browsers)) {
-                                        url += "&browsers=" + encodeURIComponent(browsers);
+                                        params["browsers"] = browsers;
                                     }
-
-                                    $.get(url,
-                                        function( data ) {
-                                            if (data['success']) {
-                                                window.location.reload(true);
-                                            } else {
-                                                alert("Something went wrong!");
-                                                console.log(data['error']);
-                                            }
-                                        }
-                                    );
-                                 }
+                                    server.run(params);
+                                } 
                              }
                           ],
                           title: "Select configuration",

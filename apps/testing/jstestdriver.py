@@ -86,7 +86,7 @@ def call_JsTestDriver(config, tests, browsers, commandline, *args, **kwargs):
         else:
             raise Exception("ERROR: Specified config file, {0}, doesn't exist.".format(config))
 
-    command += " --runnerMode {0} --basePath {1} --tests {2}".format(kwargs['mode'], basepath, tests)
+    command += " --runnerMode {0} --basePath {1} --tests {2} {3}".format(kwargs['mode'], basepath, tests, "--captureConsole" if kwargs['log'] else "")
 
     # If we're generating XML, clean up
     if not commandline:
