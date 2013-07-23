@@ -48,17 +48,6 @@
 </script>
 <script src="{% static "js/underscore.js" %}"></script>
 <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
-<script type="text/javascript">
-    // only forget jquery mobile if not needed
-    if (Willet.browser.mobile) {
-        $(document).bind("mobileinit", function () {
-            $.mobile.autoInitializePage = false;
-        });
-        $.getScript('{% static "js/jquery.mobile-1.2.1.min.js" %}');
-    } else {
-        $.mobile = {};
-    }
-</script>
 <script src="{% static "js/jquery.tools.js" %}"></script>
 <script src="{% static "pinpoint/js/mediator.js" %}"></script>
 <script src="{% static "pinpoint/js/utils.js" %}"></script>
@@ -101,9 +90,7 @@
 
     if (Willet.browser.mobile) {
         $(function () {
-            $.mobile && $.mobile.initializePage();
             PAGES.init();
-            $.mobile && $.mobile.hidePageLoadingMsg();
         });
     } else {
         $(function() {

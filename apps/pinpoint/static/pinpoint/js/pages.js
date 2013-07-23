@@ -2,7 +2,6 @@
 var PAGES = (function ($, details, mediator) {
     "use strict";
     var i = 0,  // counter
-        noop = function () {},
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || true,
@@ -97,6 +96,21 @@ var PAGES = (function ($, details, mediator) {
                 return elem[accessor](key);
             }
         );
+    }
+
+    function setDataAttribs($elements, kvMap) {
+        // http://api.jquery.com/data/#data-html5
+        // bypass jquery's data cache and set a map of data- attributes.
+        var mutatedMap = {};
+        if (window.JSON) {
+            _.map(kvMap, function (val, key) {
+                mutatedMap['data-' + key] = JSON.stringify(val);
+            });
+            $elements.attr(mutatedMap);
+        } else {
+            // no JSON fallback - pretend data() works
+            $elements.data(mutatedMap);
+        }
     }
 
     function getTemplate(templateId) {
@@ -301,6 +315,7 @@ var PAGES = (function ($, details, mediator) {
             $previewContainer = getTemplate("preview-container"),  // built-in
             $previewMask = $previewContainer.find('.mask'),
             $target = $previewContainer.find('.template.target'),
+            fbButtons,
             templateId,
             template,
             renderedTemplate;
@@ -337,15 +352,6 @@ var PAGES = (function ($, details, mediator) {
 
         $target.html(renderedTemplate);
 
-        // Parse Facebook, Twitter buttons
-        if (window.FB) {
-            window.FB.XFBML.parse($previewContainer.find('.social-buttons .button.facebook')[0]);
-        }
-
-        if (window.twttr) {
-            window.twttr.widgets.load();
-        }
-
         mediator.fire('PAGES.previewOpened');
         mediator.fire('tracking.clearTimeout');
         mediator.fire('tracking.setSocialShareVars', [
@@ -355,6 +361,25 @@ var PAGES = (function ($, details, mediator) {
         $previewContainer.css('display', 'table').fadeIn(100);
         if ($previewMask.length) {
             $previewMask.fadeIn(100);
+        }
+
+        // Parse Facebook, Twitter buttons
+        if (window.FB) {
+            // desktop check (if it does not exist, script will init
+            // ALL buttons on the page at once)
+            fbButtons = $previewContainer.find('.social-buttons .button.facebook');
+            if (fbButtons.length) {
+                window.FB.XFBML.parse(fbButtons[0]);
+            }
+            // mobile check
+            fbButtons = $previewContainer.find('.fb-like');
+            if (fbButtons.length) {
+                window.FB.XFBML.parse(fbButtons[0]);
+            }
+        }
+
+        if (window.twttr) {
+            window.twttr.widgets.load();
         }
 
         // late binding for all close buttons
@@ -444,7 +469,11 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function productHoverOn() {
-        commonHoverOn(this, true, true);
+        if (Willet.browser.mobile) {
+            commonHoverOn(this, false, true);
+        } else {
+            commonHoverOn(this, true, true);
+        }
     }
 
     function productHoverOff() {
@@ -462,7 +491,7 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function youtubeHoverOff() {
-        commonHoverOff(this, noop, false);
+        commonHoverOff(this, $.noop, false);
     }
 
     function lifestyleHoverOn() {
@@ -766,8 +795,8 @@ var PAGES = (function ($, details, mediator) {
                 return;
             }
 
-            // hack. tell masonry to reposition blocks
-            $(window).resize();
+            // tell masonry to reposition blocks
+            PAGES.reloadMasonry();
             PAGES.setLoadingBlocks(false);
         });
     }
@@ -903,7 +932,7 @@ var PAGES = (function ($, details, mediator) {
             }, '.block.combobox:not(.unclickable) .lifestyle');
         }
 
-        $(window).resize(_.throttle(windowResize, 200));
+        $(window).resize(_.throttle(windowResize, 1000));
 
         mediator.on('PAGES.ready', function () {
             if ($.mobile && $.mobile.hidePageLoadingMsg) {
@@ -926,7 +955,7 @@ var PAGES = (function ($, details, mediator) {
                     ['script ' + item.src + ' already loaded; skipping.']
                 );
             } else {
-                $.getScript(item.src || item, item.onload || noop);
+                $.getScript(item.src || item, item.onload || $.noop);
                 scriptsLoaded.push(item.src);
             }
         }
@@ -955,10 +984,10 @@ var PAGES = (function ($, details, mediator) {
             isAnimated: true
         });
 
-        $(window).scroll(PAGES.pageScroll).resize(PAGES.pageScroll);
+        $(window).scroll(pageScroll).resize(pageScroll);
 
         // Prevent social buttons from causing other events
-        $('.social-buttons .button').on('click', function(e) {
+        $('.social-buttons .button').on('click', function (e) {
             e.stopPropagation();
         });
 
@@ -1014,7 +1043,7 @@ var PAGES = (function ($, details, mediator) {
         'id': 'twitter-wjs'
     }, {
         'src'   : '//assets.pinterest.com/js/pinit.js',
-        'onload': noop
+        'onload': $.noop
     }];
 
     return {
@@ -1039,7 +1068,8 @@ var PAGES = (function ($, details, mediator) {
         'getLoadingBlocks': getLoadingBlocks,
         'setLoadingBlocks': setLoadingBlocks,
         'getModifiedTemplateName': getModifiedTemplateName,
-        'getTemplate': getTemplate
+        'getTemplate': getTemplate,
+        'setDataAttribs': setDataAttribs
     };
 }(window.jQuery,
     window.PAGES_INFO || window.TEST_PAGE_DATA || {},
