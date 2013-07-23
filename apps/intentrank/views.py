@@ -11,7 +11,7 @@ from django.template import Context, loader, TemplateDoesNotExist
 import httplib2
 from mock import MagicMock
 
-from apps.assets.models import Product, Store
+from apps.assets.models import Product, Store, PinpointIrCampaignProducts
 
 from apps.intentrank.utils import (random_products, VideoCookie,
     video_probability_function, ajax_jsonp)
@@ -96,42 +96,16 @@ def process_intentrank_request(request, store, page, function_name,
     @return: A tuple with QuerySet of products and a response status.
     """
 
-    url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
-        settings.INTENTRANK_BASE_URL, store, page, function_name)
-    params   = urlencode(param_dict)
-    url = '{0}?{1}'.format(url, params)
-
-    if settings.DEBUG:
-        # Use a mock instead of avoiding the call
-        # Mock is onlt used in development, not in production
-        results = {'products': random_products(store, param_dict, id_only=True)}
-
-        response = MagicMock(status=SUCCESS)
-    else:  # live
-        http = httplib2.Http
-
-        try:
-            response, content = send_intentrank_request(request, url, http=http)
-        except httplib2.HttpLib2Error:
-            # something fundamentally went wrong, and we have nothing to show
-            response = MagicMock(status=FAIL400)
-            content = "{}"
-
-        try:
-            results = json.loads(content)
-        except ValueError:
-            results = {"error": content}
-
-    if 'error' in results:
-        results.update({'url': url})
-        return results, response.status
+    # Just return random results from `pinpoint_ir_campaign_products`
+    product_ids = PinpointIrCampaignProducts.objects.filter(campaign_id=page)\
+        .values_list('product', flat=True)
 
     # if too few products are returned, check the difference
     # between results (ids) and products (objects).
     products = Product.objects.filter(
-        pk__in=results.get('products'), available=True).exclude(media=None)
+        pk__in=product_ids, available=True).exclude(media=None)
 
-    return products, response.status
+    return products, SUCCESS
 
 
 def get_product_json_data(product, products_with_images_only=True):
@@ -439,23 +413,11 @@ def update_clickstream(request):
 
     @return: A json HttpResonse that is empty or contains an error.  Displays nothing on success.
     """
-    store   = request.GET.get('store', '-1')
-    page    = request.GET.get('campaign', '-1')
-    product_id = request.GET.get('product_id')
+
     callback = request.GET.get('callback', 'fn')
 
-    results, status = process_intentrank_request(
-        request, store, page, 'updateclickstream', {
-            'productid': product_id
-    })
-
-    if status in SUCCESS_STATUSES:
-        # We don't care what we get back
-        result = []
-    else:
-        result = results
-
-    return ajax_jsonp(result, callback, status=status)
+    # Proxy is *mostly* deprecated; always succeed
+    return ajax_jsonp([], callback, status=SUCCESS)
 
 
 
