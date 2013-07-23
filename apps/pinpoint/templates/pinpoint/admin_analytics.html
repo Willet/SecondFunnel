@@ -35,8 +35,7 @@
     <script src="{% static "pinpoint/js/admin_analytics.js" %}"></script>
 
     <script>
-        function wrap (str, len) {
-            // should be "truncate"
+        function truncate(str, len) {
             if (str.length > len) {
                 return str.slice(0, len - 1) + "&hellip;";
             } else {
@@ -65,7 +64,7 @@
         <tr>
             <td><img src="<%= image %>"></td>
             <td><span class="caption_left"><%= caption %></span>
-                <span class="caption_right"><%= wrap(name, 30) %></span>
+                <span class="caption_right"><%= truncate(name, 30) %></span>
             </td>
         </tr>
     </script>
@@ -75,9 +74,9 @@
             <td>
                 <% if (total > 0 && count > 0 && total > count) { %>
                     <span class="caption_left"><%= caption %></span>
-                    <span class="caption_right"><%= wrap(name, 30) %></span>
+                    <span class="caption_right"><%= truncate(name, 30) %></span>
                 <% } else { %>
-                    <span class="caption_left bolder"><%= wrap(name, 30) %></span>
+                    <span class="caption_left bolder"><%= truncate(name, 30) %></span>
                     <br>
                     <span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
                 <% } %>

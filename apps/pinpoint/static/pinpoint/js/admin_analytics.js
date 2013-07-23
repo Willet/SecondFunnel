@@ -4,7 +4,7 @@ Willet.analytics = (function ($) {
         injectAnalyticsData, setUpListeners, init;
 
     changeProgressBar = function (current, total) {
-        var prog = Math.round(current / total * 100),
+        var prog = Math.round(current * 100 / total),
             bar = $(".progressbar");
         Willet.mediator.fire('log', ['changing progress bar value to ' + prog]);
         if (prog > 0 && prog < 100) {
@@ -122,7 +122,7 @@ Willet.analytics = (function ($) {
                 notbounces: data.engagement['total-no-bounces'].totals.date.all
             },
 
-            bounceRate = (1 - totals.notbounces / totals.visitors) * 100,
+            bounceRate = (100 - (totals.notbounces * 100) / totals.visitors),
             notBouncedVisitors,
             merged = {},
             pids,

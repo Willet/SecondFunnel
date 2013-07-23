@@ -203,17 +203,13 @@ def create_parent_data(data):
     category
     """
     def get_ir_campaign_by_pk(list_of_ir_campaigns, pk):
-        """you have a list of ir campaigns already in memory.
-        this can be fancier with list comprehension and whatnot, but that's
-        what got us last time.
-        """
-        for ir_campaign in list_of_ir_campaigns:
-            if ir_campaign.pk == pk:
-                return ir_campaign
-        return None
+        """you have a list of ir campaigns already in memory."""
+        # request: ./SecondFunnel/pull/246#pullrequestreviewcomment-5328020
+        # source: //stackoverflow.com/a/2364277
+        return next((x for x in list_of_ir_campaigns if x.pk == pk), None)
 
     missing_data = []
-    campaign_ids = list(set([row.get('campaign_id') for row in data]))  # unique
+    campaign_ids = set([row.get('campaign_id') for row in data])  # unique set
     logger.info('Going to fetch {0} IntentRankCampaigns.'.format(
         len(campaign_ids)))
 
@@ -555,7 +551,7 @@ def process_awareness_data(message_id):
         i = i + 1  # informative counter
         if i % 50 == 0:
             transaction.commit()  # avoid exceeding the transaction size
-            logger.info('#{0}: processing row {1}/{2}'.format(
+            logger.info('process_awareness_data #{0}: processing row {1}/{2}'.format(
                 message_id, i, len_data))
 
         row = correct_date(row, logger)
@@ -616,7 +612,7 @@ def process_event_data(message_id):
             i = i + 1  # informative counter
             if i % 50 == 0:
                 transaction.commit()  # avoid exceeding the transaction size
-                logger.info('#{0}: processing row {1}/{2}'.format(
+                logger.info('process_event_data #{0}: processing row {1}/{2}'.format(
                     message_id, i, len_data))
 
             # with each pass, we're saving a pair of KVStore objects
@@ -764,16 +760,14 @@ def aggregate_saved_metrics(*args):
                     transaction.commit()  # avoid exceeding the transaction size
                     logger.info('{0}: committing row {1}/{2}'.format(
                         metric_obj['slug'], i, len_data))
-                kwargs = {'content_type': aggregated_metric[0],
-                          'object_id': aggregated_metric[1],
-                          'key': aggregated_metric[2],
-                          'timestamp': aggregated_metric[3],  # per-day
-                          'meta': aggregated_metric[4]}
-                try:
-                    # meta-kv already present, increment
-                    kv = KVStore.objects.get(**kwargs)
-                except KVStore.DoesNotExist:  # need to create the meta-kv
-                    kv = KVStore(**kwargs)
+
+                kv, created = KVStore.objects.get_or_create(
+                    content_type=aggregated_metric[0],
+                    object_id=aggregated_metric[1],
+                    key=aggregated_metric[2],
+                    timestamp=aggregated_metric[3],  # per-day
+                    meta=aggregated_metric[4],
+                    defaults={'value': 0})
 
                 try:
                     kv.value += adder_cache[aggregated_metric]

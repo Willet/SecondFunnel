@@ -22,7 +22,8 @@ def get_start_date(end_date, date_range, campaign):
     """returns the end date minus the time requested, or 0
     if you wanted everything.
 
-    2 days are subtracted regardless for time zone differences.
+    2 days are subtracted regardless for time zone differences[,
+        so the user will always see enough results]
     """
     if date_range == "total":  # since the beginning of collection
         start_date = datetime(1, 1, 1, 0, 0, 0, 0, utc)  # arbitrary early time
