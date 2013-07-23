@@ -98,21 +98,6 @@ var PAGES = (function ($, details, mediator) {
         );
     }
 
-    function setDataAttribs($elements, kvMap) {
-        // http://api.jquery.com/data/#data-html5
-        // bypass jquery's data cache and set a map of data- attributes.
-        var mutatedMap = {};
-        if (window.JSON) {
-            _.map(kvMap, function (val, key) {
-                mutatedMap['data-' + key] = JSON.stringify(val);
-            });
-            $elements.attr(mutatedMap);
-        } else {
-            // no JSON fallback - pretend data() works
-            $elements.data(mutatedMap);
-        }
-    }
-
     function getTemplate(templateId) {
         // returns the required template.
         // right now, it only resolves mobile templates for mobile devices.
@@ -470,6 +455,7 @@ var PAGES = (function ($, details, mediator) {
 
     function productHoverOn() {
         if (Willet.browser.mobile) {
+            // no social buttons on top of products on mobile
             commonHoverOn(this, false, true);
         } else {
             commonHoverOn(this, true, true);
@@ -1068,8 +1054,7 @@ var PAGES = (function ($, details, mediator) {
         'getLoadingBlocks': getLoadingBlocks,
         'setLoadingBlocks': setLoadingBlocks,
         'getModifiedTemplateName': getModifiedTemplateName,
-        'getTemplate': getTemplate,
-        'setDataAttribs': setDataAttribs
+        'getTemplate': getTemplate
     };
 }(window.jQuery,
     window.PAGES_INFO || window.TEST_PAGE_DATA || {},
