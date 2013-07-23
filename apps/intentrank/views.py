@@ -1,6 +1,7 @@
 import json
 import random
 
+from urllib import urlencode
 from random import randrange
 
 from django.core.cache import cache
@@ -8,6 +9,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.template import Context, loader, TemplateDoesNotExist
 import httplib2
+from mock import MagicMock
 
 from apps.assets.models import Product, Store
 
@@ -21,6 +23,38 @@ FAIL400 = 400
 SUCCESS_STATUSES = xrange(SUCCESS, 300)
 DEFAULT_RESULTS  = 12
 MAX_BLOCKS_BEFORE_VIDEO = 50
+
+
+def send_intentrank_request(request, url, method='GET', headers=None,
+                            http=httplib2.Http):
+    """
+    Sends a given request to intentrank with the given headers.
+
+    @param request: The request to the django intentrank api.
+    @param url: The url to the intentrank service.
+    @param method:
+    @param headers: The headers for the request to the intentrank service.
+
+    @return: A tuple with a response code and the content that was returned.
+    """
+    if not headers:
+        headers = {}
+
+    cookie = request.session.get('ir-cookie')
+    if cookie:
+        headers['Cookie'] = cookie
+
+    h = http()
+    response, content = h.request(
+        url,
+        method=method,
+        headers=headers,
+    )
+
+    if response.get('set-cookie'):
+        request.session['ir-cookie'] = response['set-cookie']
+
+    return response, content
 
 
 def send_request(request, url, method='GET', headers=None):
@@ -45,6 +79,59 @@ def send_request(request, url, method='GET', headers=None):
     )
 
     return response, content
+
+
+def process_intentrank_request(request, store, page, function_name,
+                               param_dict):
+    """does NOT initiate a real IntentRank request if debug is set to True.
+
+    Returns the exact number of products requested only when debug is True.
+
+    @param request: The request to the django intentrank api.
+    @param store: The store this request is for.
+    @param page: The page this request is for.
+    @param function_name: The intentrank api function to call.
+    @param param_dict: The query parameters to send to intentrank.
+
+    @return: A tuple with QuerySet of products and a response status.
+    """
+
+    url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
+        settings.INTENTRANK_BASE_URL, store, page, function_name)
+    params   = urlencode(param_dict)
+    url = '{0}?{1}'.format(url, params)
+
+    if settings.DEBUG:
+        # Use a mock instead of avoiding the call
+        # Mock is onlt used in development, not in production
+        results = {'products': random_products(store, param_dict, id_only=True)}
+
+        response = MagicMock(status=SUCCESS)
+    else:  # live
+        http = httplib2.Http
+
+        try:
+            response, content = send_intentrank_request(request, url, http=http)
+        except httplib2.HttpLib2Error:
+            # something fundamentally went wrong, and we have nothing to show
+            response = MagicMock(status=FAIL400)
+            content = "{}"
+
+        try:
+            results = json.loads(content)
+        except ValueError:
+            results = {"error": content}
+
+    if 'error' in results:
+        results.update({'url': url})
+        return results, response.status
+
+    # if too few products are returned, check the difference
+    # between results (ids) and products (objects).
+    products = Product.objects.filter(
+        pk__in=results.get('products'), available=True).exclude(media=None)
+
+    return products, response.status
 
 
 def get_product_json_data(product, products_with_images_only=True):
@@ -262,7 +349,96 @@ def get_seeds(request, **kwargs):
         return ajax_jsonp(results, callback, status=status)
 
 
-def get_results(request, store_id, campaign, content_id=None, **kwargs):
+def get_results(request, **kwargs):
+    """kwargs overrides request values when provided.
+
+    kwargs['raw'] also toggles between returning a dictionary
+    or an entire HttpResponse.
+    """
+    store = kwargs.get('store', request.GET.get('store', '-1'))
+    page = kwargs.get('campaign', request.GET.get('campaign', '-1'))
+    seeds   = kwargs.get('seeds', request.GET.get('seeds', '-1'))
+    num_results = kwargs.get('results', request.GET.get('results',
+                                                        DEFAULT_RESULTS))
+    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
+
+    cache_version = random.randrange(50)
+    cache_key = 'getresults-json-{0}-{1}-{2}'.format(
+        store, page, seeds)
+    cached_results = cache.get(cache_key, version=cache_version)
+
+    if not cached_results or settings.DEBUG:
+
+        results, status = process_intentrank_request(
+            request, store, page, 'getresults', {
+                'results': num_results
+            }
+        )
+
+        if status in SUCCESS_STATUSES:
+            cached_results = get_json_data(request, results, page,
+                                   seeds=filter(None, seeds.split(',')))
+
+        # workaround for a weird bug on intentrank's side
+        elif status == 400:
+            return get_seeds(request)
+
+        else:
+            cached_results = results
+
+        cache.set(cache_key, cached_results, 60*5, version=cache_version)
+
+    if kwargs.get('raw', False):
+        return cached_results
+    else:
+        return ajax_jsonp(cached_results, callback, status=200)
+
+
+
+def update_clickstream(request):
+    """
+    Tells intentrank what producs have been clicked on.
+
+    @param request: The request.
+
+    @return: A json HttpResonse that is empty or contains an error.  Displays nothing on success.
+    """
+    store   = request.GET.get('store', '-1')
+    page    = request.GET.get('campaign', '-1')
+    product_id = request.GET.get('product_id')
+    callback = request.GET.get('callback', 'fn')
+
+    results, status = process_intentrank_request(
+        request, store, page, 'updateclickstream', {
+            'productid': product_id
+    })
+
+    if status in SUCCESS_STATUSES:
+        # We don't care what we get back
+        result = []
+    else:
+        result = results
+
+    return ajax_jsonp(result, callback, status=status)
+
+
+
+def invalidate_session(request):
+    """
+    Invalidates an intentrank session.
+
+    @param request: The request.
+
+    @return: An empty json HttpResonse.
+    """
+    #intentrank/invalidate-session
+    url = '{0}/intentrank/invalidate-session'.format(
+        settings.INTENTRANK_BASE_URL)
+    send_intentrank_request(request, url)
+    return HttpResponse("[]", mimetype='application/json')
+
+
+def get_results_dev(request, store_id, campaign, content_id=None, **kwargs):
     """Returns random results for a campaign
 
     kwargs['raw'] also toggles between returning a dictionary
