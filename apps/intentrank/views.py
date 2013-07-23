@@ -97,8 +97,13 @@ def process_intentrank_request(request, store, page, function_name,
     """
 
     # Just return random results from `pinpoint_ir_campaign_products`
+
     product_ids = PinpointIrCampaignProducts.objects.filter(campaign_id=page)\
         .values_list('product', flat=True)
+
+    if param_dict.get('results'):
+        product_ids = random.sample(product_ids, int(param_dict.get(
+            'results')))
 
     # if too few products are returned, check the difference
     # between results (ids) and products (objects).
