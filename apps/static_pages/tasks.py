@@ -10,7 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 
 from apps.assets.models import Store
-from apps.intentrank.views import get_seeds
+from apps.intentrank.views import get_seeds_ir
 from apps.pinpoint.models import Campaign
 from apps.pinpoint.utils import render_campaign
 from apps.static_pages.models import StaticLog
@@ -153,10 +153,10 @@ def generate_static_campaign(campaign_id):
     rendered_content = [
         # s3_file_name, log_key, page_content
         ("index.html", "CD", render_campaign(
-            campaign, get_seeds_func=get_seeds, request=dummy_request
+            campaign, get_seeds_func=get_seeds_ir, request=dummy_request
         )),
         ("mobile.html", "CM", render_campaign(
-            campaign, get_seeds_func=get_seeds, request=dummy_request,
+            campaign, get_seeds_func=get_seeds_ir, request=dummy_request,
             mode="mobile"
         ))
     ]

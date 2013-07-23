@@ -298,7 +298,7 @@ def get_json_data(request, products, campaign_id, seeds=None):
     return results
         
 
-def get_seeds(request, **kwargs):
+def get_seeds_ir(request, **kwargs):
     """Gets initial results (products, photos, etc.) to be saved with a page
 
     kwargs['raw'] also toggles between returning a dictionary
@@ -347,6 +347,42 @@ def get_seeds(request, **kwargs):
         return results
     else:
         return ajax_jsonp(results, callback, status=status)
+
+
+def get_seeds(request, **kwargs):
+    """kwargs overrides request values when provided.
+
+    kwargs['raw'] also toggles between returning a dictionary
+    or an entire HttpResponse.
+
+    returns a list of (json) dicts representing e.g. products.
+    """
+    store   = kwargs.get('store', request.GET.get('store', '-1'))
+    page    = kwargs.get('campaign', request.GET.get('campaign', '-1'))
+    seeds   = kwargs.get('seeds', request.GET.get('seeds', '-1'))
+    num_results = kwargs.get('results', request.GET.get('results',
+                                                        DEFAULT_RESULTS))
+    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
+
+    request.session['pinpoint-video-cookie'] = VideoCookie()
+
+    results, status = process_intentrank_request(
+        request, store, page, 'getseeds', {
+            'seeds': seeds,
+            'results': num_results
+        }
+    )
+
+    if status in SUCCESS_STATUSES:
+        result = get_json_data(request, results, page,
+                               seeds=filter(None, str(seeds).split(',')))
+    else:
+        result = results
+
+    if kwargs.get('raw', False):
+        return result
+    else:
+        return ajax_jsonp(result, callback, status=status)
 
 
 def get_results(request, **kwargs):
