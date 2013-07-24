@@ -593,6 +593,9 @@ Willet.analytics = (function ($) {
                 .html("Could not talk to server. Please try again.")
                 .slideDown();
         });
+
+        // select the right campaign
+        $('#campaign_list option:contains("' + settings.campaign_name + '")').prop('selected', true);
     };
 
     init = function (newSettings) {

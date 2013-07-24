@@ -108,7 +108,9 @@ class CategoryHasMetric(models.Model):
 
 
 class KVStore(models.Model):
-    """KVStore(Key-Value Store) is a data-pairing created by celery to record metrics
+    """KVStore(Key-Value Store) is a data-pairing created by tasks to
+    persist metrics
+
     KVStore objects are deleted by the redo_analytics task.
     
     @ivar content_type: 

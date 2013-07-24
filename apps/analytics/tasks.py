@@ -682,7 +682,7 @@ def aggregate_saved_metrics(*args):
     logger.info('Deleting all previous aggregate metrics...')
     KVStore.objects.filter(meta="meta_metric").delete()
 
-    def adder(adder_obj, datum, metric_obj, content_type, object_id, key,
+    def adder(adder_obj, value, metric_obj, content_type, object_id, key,
               timestamp, meta):
         """attempts to cache all meta KVStore writes until the end.
 
@@ -699,12 +699,12 @@ def aggregate_saved_metrics(*args):
         if 'aggregator' in metric_obj:
             # allows for custom aggregation: average, etc
             custom_aggregation_func = metric_obj['aggregator']
-            adder_obj[temp_key] = custom_aggregation_func(datum.value)
+            adder_obj[temp_key] = custom_aggregation_func(value)
         else:
             try:
-                adder_obj[temp_key] += datum.value
+                adder_obj[temp_key] += value
             except KeyError:
-                adder_obj[temp_key] = datum.value
+                adder_obj[temp_key] = value
         return adder_obj[temp_key]  # intermediate value
 
     def process_category(obj):
@@ -728,27 +728,16 @@ def aggregate_saved_metrics(*args):
                 )
                 continue
 
-            data = category_data.filter(metric_obj['q_filter'])
-
-            logger.info('{0} "{1}" objects to aggregate'.format(
-                len(data), metric_obj['slug']))
+            data = category_data.filter(metric_obj['q_filter']).values_list(
+                'object_id', 'content_type', 'timestamp', 'value')
 
             adder_cache = {}  # reset per key
-            i = 0
-            len_data = len(data)
             for datum in data:
                 # add all values before calling db
-                ival = adder(adder_cache, datum=datum, metric_obj=metric_obj,
-                             content_type=datum.content_type,
-                             object_id=datum.object_id, key=metric_obj['key'],
-                             timestamp=datum.timestamp, meta="meta_metric")
-
-                i = i + 1  # informative counter
-                if i % 1000 == 0:  # 1000 because it's fast
-                    logger.info('{0}: aggregating row {1}/{2}, '
-                                'currently = {3}'.format(
-                                 metric_obj['slug'], i, len_data, ival))
-
+                adder(adder_cache, value=datum[3], metric_obj=metric_obj,
+                      content_type=datum[1],
+                      object_id=datum[0], key=metric_obj['key'],
+                      timestamp=datum[2], meta="meta_metric")
 
             # adder cache is now full of already-aggregated keys and values
             # key format: (content_type, object_id, key, timestamp, meta)
@@ -762,7 +751,8 @@ def aggregate_saved_metrics(*args):
                         metric_obj['slug'], i, len_data))
 
                 kv, created = KVStore.objects.get_or_create(
-                    content_type=aggregated_metric[0],
+                    content_type=ContentType.objects.filter(
+                        pk=aggregated_metric[0]).get(),
                     object_id=aggregated_metric[1],
                     key=aggregated_metric[2],
                     timestamp=aggregated_metric[3],  # per-day
