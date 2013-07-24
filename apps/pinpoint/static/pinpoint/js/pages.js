@@ -2,7 +2,6 @@
 var PAGES = (function ($, details, mediator) {
     "use strict";
     var i = 0,  // counter
-        noop = function () {},
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || true,
@@ -403,7 +402,7 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function youtubeHoverOff() {
-        commonHoverOff(this, noop, false);
+        commonHoverOff(this, $.noop, false);
     }
 
     function comboboxHoverOn() {
@@ -425,7 +424,7 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function lifestyleHoverOff() {
-        commonHoverOff(this, noop, false);
+        commonHoverOff(this, $.noop, false);
     }
 
     function loadInitialResults(seed) {
@@ -549,7 +548,7 @@ var PAGES = (function ($, details, mediator) {
                     ['script ' + item.src + ' already loaded; skipping.']
                 );
             } else {
-                $.getScript(item.src || item, item.onload || noop);
+                $.getScript(item.src || item, item.onload || $.noop);
                 scriptsLoaded.push(item.src);
             }
         }
@@ -588,7 +587,7 @@ var PAGES = (function ($, details, mediator) {
         'id': 'twitter-wjs'
     }, {
         'src'   : '//assets.pinterest.com/js/pinit.js',
-        'onload': noop
+        'onload': $.noop
     }];
 
     return {
