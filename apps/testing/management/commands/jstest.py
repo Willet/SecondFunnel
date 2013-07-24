@@ -73,7 +73,7 @@ class Command(BaseCommand):
         make_option('-r', '--remote', action="store_true", dest='remote', default=False, help='Specify whether connecting to a remote server or not (default: False).'),
         make_option('-m', '--runner-mode', dest='mode', default="QUIET", help='Specify the runner mode to use; QUIET or DEBUG (default: QUIET)'),
         make_option('-l', '--log', dest='log', default=False, help="Capture responses/results in the console."),
-        make_option('-q', '--quiet', nargs=0, help="Only print results, no names", action='callback', callback=quieter), 
+        make_option('-q', '--quiet', dest='quiet', help="Only print results, no names", action='callback', callback=quieter), 
     )
 
 

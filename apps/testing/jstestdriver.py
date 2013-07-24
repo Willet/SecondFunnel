@@ -112,10 +112,10 @@ def call_JsTestDriver(config, tests, browsers, *args, **kwargs):
         raise RuntimeError(err)
 
     verbosity = int(kwargs['verbosity'])
-    if verbosity > 0:
-        data, output = parse_results(), ""
-        for type, results in data.iteritems():
-            print "%s (%d tests): \n"%(type, results['total'])
+    data, output = parse_results(), ""
+    for type, results in data.iteritems():
+        print "%s (%d tests): "%(type, results['total'])
+        if verbosity > 0:
             for suite, cases in results['suites'].iteritems():
                 print "%sSuite: %s:"%(" " * 2, suite)
                 for case in cases:
