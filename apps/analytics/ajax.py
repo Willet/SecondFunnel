@@ -108,8 +108,7 @@ def analytics_pinpoint(request):
 
     # iterate through analytics structures and get the data
     results = {}
-    enabled_categories = Category.objects.prefetch_related('metrics')\
-                                         .filter(enabled=True)
+    enabled_categories = Category.objects.filter(enabled=True)
 
     for category in enabled_categories:
         # categories: e.g. Awareness, Engagement, Sharing. In DB.
@@ -120,20 +119,22 @@ def analytics_pinpoint(request):
                 category=category, metric=metric)
 
             # get the KVs associated with this object
-            data = metric.data.filter(
-                content_type=object_type, object_id=campaign.id,
-                timestamp__lte=end_date, timestamp__gte=start_date
-            ).order_by('-timestamp')
+            data = metric.data.filter(content_type=object_type,
+                                      object_id=campaign.id,
+                                      timestamp__lte=end_date,
+                                      timestamp__gte=start_date)\
+                .order_by('-timestamp')\
+                .values_list('id', 'timestamp', 'value', 'target_id', 'meta')
 
             # this exposes daily data for each product in the right format
             formatted_data = []
-            for datum in data.all():
+            for datum in data:
                 formatted_data.append({
-                        "id": datum.id,
-                        "date": datum.timestamp.date().isoformat(),
-                        "value": int(datum.value),
-                        "target_id": datum.target_id,
-                        "meta": datum.meta
+                        "id": datum[0],
+                        "date": datum[1].date().isoformat(),
+                        "value": int(datum[2]),
+                        "target_id": datum[3],
+                        "meta": datum[4]
                     })
 
             # initialize an empty metric object full of nothing
