@@ -595,7 +595,9 @@ Willet.analytics = (function ($) {
         });
 
         // select the right campaign
-        $('#campaign_list option:contains("' + settings.campaign_name + '")').prop('selected', true);
+        $('#campaign_list')
+            .find('option[value="' + settings.campaign_id + '"]')
+            .prop('selected', true);
     };
 
     init = function (newSettings) {
