@@ -404,11 +404,11 @@ var PAGES = (function ($, details, mediator) {
         commonHoverOff(this, noop, false);
     }
 
-    function lifestyleHoverOn() {
-        commonHoverOn(this, false, true);
+    function comboboxHoverOn() {
+        commonHoverOn(this, true, true);
     }
 
-    function lifestyleHoverOff() {
+    function comboboxHoverOff() {
         commonHoverOff(this, function (t) {
             mediator.fire('tracking.registerEvent', [{
                 "type": "content",
@@ -416,6 +416,14 @@ var PAGES = (function ($, details, mediator) {
                 "label": $(t).data("label")
             }]);
         }, true);
+    }
+
+    function lifestyleHoverOn() {
+        commonHoverOn(this, true, false);
+    }
+
+    function lifestyleHoverOff() {
+        commonHoverOff(this, noop, false);
     }
 
     function loadInitialResults(seed) {
@@ -514,9 +522,15 @@ var PAGES = (function ($, details, mediator) {
         }, '.block.youtube');
 
         $discovery.on({
+            mouseenter: comboboxHoverOn,
+            mouseleave: comboboxHoverOff
+        }, '.block.combobox:not(.unclickable) .lifestyle');
+
+        // Is this safe enough?
+        $discovery.on({
             mouseenter: lifestyleHoverOn,
             mouseleave: lifestyleHoverOff
-        }, '.block.combobox:not(.unclickable) .lifestyle');
+        }, '.block.image:not(.unclickable)');
     }
 
     /* --- END element bindings --- */
