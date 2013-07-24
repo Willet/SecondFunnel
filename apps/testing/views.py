@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.core.management import call_command
 
 from apps.utils.ajax import ajax_error, ajax_success
+from apps.testing.utils import parse_results
 from settings import CONFIG_DIRS
 
 try:
@@ -12,54 +13,11 @@ except ImportError:
     from ordereddict import OrderedDict
 import xml.etree.ElementTree as ET
 import os
-import itertools
 import json
 import urllib
 
 
-
-def fire_test( request ):
-    """
-    Calls Django to run the JavaScript tests using the JsTestDriver, and returns
-    an appropriate ajax status.
-
-    @param request: The request being made
-    @return: ajax
-    """
-    try:
-        tests = urllib.unquote(request.GET['tests'])
-        config = urllib.unquote(request.GET['config'])
-
-        if 'browsers' in request.GET:
-            browsers = urllib.unquote(request.GET['browsers']).split()
-            call_command('jstest', commandline=False, tests=tests, config=config, browsers=browsers, log=True)
-        else:
-            call_command('jstest', commandline=False, tests=tests, config=config, log=True)
-
-    except BaseException as e:
-        return ajax_error({'error': str(e)})
-
-    return ajax_success({'params': request.GET})
-
-
-def extension( filename ):
-    """
-    Return the extension of a file.
-
-    @param filename: Name of the file.
-    @return: String
-    """
-    return filename.split(".")[-1]
-
-
-def test_results( request ):
-    """
-    Displays the results of the tests by reading the XML files and
-    parsing them.  Result types are "Passed, Skipped, Error".
-
-    @param request: The HTTP request
-    @return: HTTPResponse
-    """
+def parse_results():
     data = OrderedDict(zip(['Passed', 'Failed'], 
                            [{'total': 0, 'suites': {}}.copy() for i in range(0, 3)]))
 
@@ -89,6 +47,52 @@ def test_results( request ):
 
                 data[type]['suites'][suitename].append({'name': case.attrib['name'], 'msg': msg})
 
+    return data
+
+
+def extension( filename ):
+    """
+    Return the extension of a file.
+
+    @param filename: Name of the file.
+    @return: String
+    """
+    return filename.split(".")[-1]
+
+
+def fire_test( request ):
+    """
+    Calls Django to run the JavaScript tests using the JsTestDriver, and returns
+    an appropriate ajax status.
+
+    @param request: The request being made
+    @return: ajax
+    """
+    try:
+        tests = urllib.unquote(request.GET['tests'])
+        config = urllib.unquote(request.GET['config'])
+
+        if 'browsers' in request.GET:
+            browsers = urllib.unquote(request.GET['browsers']).split()
+            call_command('jstest', tests=tests, config=config, browsers=browsers, log=True)
+        else:
+            call_command('jstest', tests=tests, config=config, log=True)
+
+    except BaseException as e:
+        return ajax_error({'error': str(e)})
+
+    return ajax_success({'params': request.GET})
+
+
+def test_results( request ):
+    """
+    Displays the results of the tests by reading the XML files and
+    parsing them.  Result types are "Passed, Skipped, Error".
+
+    @param request: The HTTP request
+    @return: HTTPResponse
+    """
+    data = parse_results()
     configs = []
     for dir in CONFIG_DIRS:
         for (dirpath, dirname, filenames) in os.walk(os.path.join('apps/testing', dir), True):

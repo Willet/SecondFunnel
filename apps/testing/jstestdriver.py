@@ -1,7 +1,11 @@
-import subprocess, os, re
+import subprocess
+import os
+import re
+import shutil
 
 from secondfunnel.settings.common import fromProjectRoot
 from apps.testing.settings import GENERIC_BROWSER_LIST, ADDITIONAL_BROWSER_LIST, CONFIGS
+from apps.testing.utils import parse_results
 
 
 def getPath(path):
@@ -59,14 +63,13 @@ def startServer( browsers ):
     return None
 
 
-def call_JsTestDriver(config, tests, browsers, commandline, *args, **kwargs):
+def call_JsTestDriver(config, tests, browsers, *args, **kwargs):
     """
     Calls the JsTestDriver with the specified arguments and options.
 
     @param config: The configuration file to use
     @param tests: List of individual tests to run if any.
     @param browsers: The path to the browsers to use (if any).
-    @param commandline: Whether or not to output to command-line or not.
     @param args: Tuple of parameters.
     @param kwargs: Dictionary of remaining parameters.
     @return: None
@@ -84,24 +87,42 @@ def call_JsTestDriver(config, tests, browsers, commandline, *args, **kwargs):
         if os.path.exists(config):
             command += " --config {0}".format(config)
         else:
-            raise Exception("ERROR: Specified config file, {0}, doesn't exist.".format(config))
+            raise IOError("Specified file does not exist", config)
 
     command += " --runnerMode {0} --basePath {1} --tests {2} {3}".format(kwargs['mode'], basepath, tests, "--captureConsole" if kwargs['log'] else "")
+    shutil.rmtree(getPath("tests/results"), ignore_errors=True)
+    os.mkdir(getPath("tests/results"))
+    command += " --testOutput apps/testing/tests/results > /dev/null"
 
-    # If we're generating XML, clean up
-    if not commandline:
-        os.system('rm apps/testing/tests/results/*')
-        command += " --testOutput apps/testing/tests/results"
-
-    # Start the server and run the tests
-    print "Starting server...."
     if not kwargs['remote']:
         startServer(browsers)
 
     import time
     time.sleep(5)
-    os.system(command)
     
+    testRunner = subprocess.Popen(command, shell=True, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
+    (out, err) = testRunner.communicate()
+
     if len(browsers) == 0:
-        os.system("killall - phantomjs")
-    os.system("{0}".format(getPath("scripts/shutdown.sh")))
+        subprocess.Popen("killall - phantomjs", shell=True)
+    
+    subprocess.Popen("{0}".format(getPath("scripts/shutdown.sh")), shell=True)
+
+    if err:
+        raise RuntimeError(err)
+
+    verbosity = int(kwargs['verbosity'])
+    if verbosity > 0:
+        data, output = parse_results(), ""
+        for type, results in data.iteritems():
+            print "%s (%d tests): \n"%(type, results['total'])
+            for suite, cases in results['suites'].iteritems():
+                print "%sSuite: %s:"%(" " * 2, suite)
+                for case in cases:
+                    print "%sTest: %s"%(" " * 6, case['name'])
+                    if len(case['msg']) > 0:
+                        print "%sMessage: %s"%(" " * 10, case['msg'])
+                print
+
+    return None
+

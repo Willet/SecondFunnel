@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.testing.jstestdriver import call_JsTestDriver
+from apps.testing.utils import install
  
 from optparse import OptionParser, make_option
 
@@ -8,6 +9,14 @@ from optparse import OptionParser, make_option
 # Since we're using Python 2.6 instead of 2.7+
 # http://docs.python.org/2/library/optparse.html#callback-example-6-variable-arguments
 def vararg_callback(option, opt_str, value, parser):
+    """
+    Callback to allow variable arguments on the commandline.
+
+    @param option: The corresponding option object
+    @param opt_str: The string as seen on the command line
+    @param value: A single argument or tuple of arguments parsed from the commandline
+    @param parser: The OptionParser object
+    """
     assert value is None
     value = []
     
@@ -31,6 +40,19 @@ def vararg_callback(option, opt_str, value, parser):
     setattr(parser.values, option.dest, value)
 
 
+def quieter(option, opt_str, value, parser):
+    """
+    Callback to make output less verbose.
+    
+    @param option: The corresponding option object
+    @param opt_str: The string as seen on the command line
+    @param value: A single argument or tuple of arguments parsed from the commandline
+    @param parser: The OptionParser object
+    """
+    verbosity = int(getattr(parser.values, 'verbosity'))
+    setattr(parser.values, 'verbosity', verbosity - 1)
+
+
 class Command(BaseCommand):
     """
     Command class for the JavaScript tester; acts as an interface to simplify calling the associated
@@ -41,8 +63,6 @@ class Command(BaseCommand):
     @ivar option_list: Options accepted by this command.
     @ivar jstestdriver_option_list: List of options accepted by the JsTestDriver
     """
-    args = "[ [ -c|--config /path/to/configfile ] [ -t|--tests testSuite.testName | testSuite | .testName ] [ -b|--browsers browser1 ... browsern ] [ -d|--commandline ] \
-            [ -l | --log ] ]"
     help = 'Run JavaScript tests against the JsTestDriver/Jasmine setup.'
     
     option_list = BaseCommand.option_list + (
@@ -50,11 +70,12 @@ class Command(BaseCommand):
         make_option('-t', '--tests', dest='tests', default="all", help='Specify specific tests specified by regex to run or "all" to run all (default: all).'),
         make_option('-b', '--browsers', dest='browsers', default=[], help='Name of browsers to use for testing (default: headless webdriver).',
                     action="callback", callback=vararg_callback),
-        make_option('-d', '--commandline', action="store_false", dest='commandline', default=True, help='Output to command line or to browser (default: True).'),
         make_option('-r', '--remote', action="store_true", dest='remote', default=False, help='Specify whether connecting to a remote server or not (default: False).'),
         make_option('-m', '--runner-mode', dest='mode', default="QUIET", help='Specify the runner mode to use; QUIET or DEBUG (default: QUIET)'),
         make_option('-l', '--log', dest='log', default=False, help="Capture responses/results in the console."),
+        make_option('-q', '--quiet', nargs=0, help="Only print results, no names", action='callback', callback=quieter), 
     )
+
 
     def handle(self, *args, **options):
         """
@@ -67,6 +88,12 @@ class Command(BaseCommand):
         @return: None
         """
         try:
-            call_JsTestDriver(**options)
-        except Exception as e:
-            raise Exception("Unrecognized command")
+            if len(args) > 0:
+                self.print_help("./manage.py jstest", "")
+                exit(1)
+            else:
+                call_JsTestDriver(**options)
+        except IOError, (msg, filename):
+            raise Exception("IOError, %s: %s"%(msg, filename))
+        except RuntimeError, err:
+            raise Exception(err)

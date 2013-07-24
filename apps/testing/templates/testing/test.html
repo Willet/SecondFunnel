@@ -1,6 +1,6 @@
-<!-- DJANGO Template for displaying the results from the JSTestDriver/Jasmine tests. -->
 {% load staticfiles %}
 <!DOCTYPE html>
+<!-- DJANGO Template for displaying the results from the JSTestDriver/Jasmine tests. -->
 <html>
   <head>
       <title>Results</title>
@@ -28,35 +28,17 @@
       <script src="{% static "js/jquery-ui.js" %}"></script>
       <script type="text/javascript">
           (function($) {
-              var testServer = (function() {
-                  var uri = "update/?";
-                  
-                  function run ( kwargs ) {
-                      for (var query in kwargs) {
-                          uri += query + "=" + encodeURIComponent(kwargs[query]);
-                          delete kwargs[query];
-
-                          if (!$.isEmptyObject(kwargs)) {
-                              uri += "&";
-                          }
+              function run ( kwargs ) {
+                  $.get("update/?" + $.param(kwargs), function(data){
+                      if (data['success'] == true) {
+                          window.location.reload();
+                      } else {
+                          alert("Something went wrong!");
+                          console.log(data['error']);
                       }
-                      
-                      $.get(uri, function(data){
-                          if (data['success'] == true) {
-                              window.location.reload();
-                          } else {
-                              alert("Something went wrong!");
-                              console.log(data['error']);
-                          }
-                      });
-                  }
-                  
-                  return {
-                      'run': run
-                  };                  
-              });
-
-              var server = testServer();
+                  });
+              }
+     
               $(document).ready(function(){
                   $('body').on('click', '.ui-widget-overlay', function(){
                       $('.ui-dialog.ui-widget .popup').dialog('destroy');
@@ -95,14 +77,13 @@
                                     params["config"] = $(this).find('select').val() + ".yaml";
                                     params["tests"] = spec;
                                               
-                                    $('body').empty();
-                                    $('body').append($($("#loading").html()));
+                                    $('body').replaceWith($($("#loading").html()));
                                     
                                     var browsers = $(this).find('input').val();
                                     if (/\w+/g.test(browsers)) {
                                         params["browsers"] = browsers;
                                     }
-                                    server.run(params);
+                                    run(params);
                                 } 
                              }
                           ],
@@ -125,7 +106,7 @@
               {% block result-types %}
                   <ul>
                       {% for type, results in data.items %}
-                          <li><input type="checkbox" name="{{ type }}" value="" checked>{{ type }}</input></li>
+                          <li><input type="checkbox" name="{{ type }}" value="" checked>{{ type }}</li>
                       {% endfor %}
                   </ul>
               {% endblock %}
