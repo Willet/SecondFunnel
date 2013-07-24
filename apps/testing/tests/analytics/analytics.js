@@ -1,3 +1,3 @@
-/* Tests related to admin tasks go here.
+/* Tests related to analytics go here.
  *
  */
