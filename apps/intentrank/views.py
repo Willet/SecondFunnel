@@ -11,7 +11,7 @@ from django.template import Context, loader, TemplateDoesNotExist
 import httplib2
 from mock import MagicMock
 
-from apps.assets.models import Product, Store, PinpointIrCampaignProducts
+from apps.assets.models import Product, Store
 
 from apps.intentrank.utils import (random_products, VideoCookie,
     video_probability_function, ajax_jsonp)
@@ -97,6 +97,7 @@ def process_intentrank_request(request, store, page, function_name,
     """
 
     # Just return random results from `pinpoint_ir_campaign_products`
+    from apps.assets.models import PinpointIrCampaignProducts
 
     product_ids = PinpointIrCampaignProducts.objects.filter(campaign_id=page)\
         .values_list('product', flat=True)
