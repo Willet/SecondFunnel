@@ -22,19 +22,19 @@ def get_start_date(end_date, date_range, campaign):
     """returns the end date minus the time requested, or 0
     if you wanted everything.
 
-    2 days are subtracted regardless for time zone differences[,
+    1 day is subtracted regardless for time zone differences[,
         so the user will always see enough results]
     """
     if date_range == "total":  # since the beginning of collection
         start_date = datetime(1, 1, 1, 0, 0, 0, 0, utc)  # arbitrary early time
     elif date_range == "month":
-        start_date = end_date - timedelta(weeks=4, days=2)
+        start_date = end_date - timedelta(weeks=4, days=1)
     elif date_range == "two_weeks":
-        start_date = end_date - timedelta(weeks=2, days=2)
+        start_date = end_date - timedelta(weeks=2, days=1)
     elif date_range == "week":
-        start_date = end_date - timedelta(weeks=1, days=2)
+        start_date = end_date - timedelta(weeks=1, days=1)
     else:
-        start_date = end_date - timedelta(days=3)
+        start_date = end_date - timedelta(days=2)
 
     # this will always be campaign.created. bug?
     # start_date  = min(start_date, campaign.created)
