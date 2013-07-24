@@ -232,6 +232,8 @@ var PAGES = (function ($, details, mediator) {
                     'data': $.extend({}, srcElement.data(), target.data())
                 });
 
+                context.data.show_count = true;
+
                 target.html(renderTemplate(srcElement.html(), context));
             } else {
                 target.html('Error: missing template #' + src);
@@ -694,6 +696,10 @@ PAGES.full = (function (me, mediator) {
                     default:
                         break;
                     }
+
+                    // Since we never show the count in the feed,
+                    // just add this to the template data.
+                    template_context.show_count = false;
 
                     var rendered_block = PAGES.renderTemplate(template, {
                         'data': template_context,
