@@ -17,159 +17,25 @@
 {% endblock %}
 
 {% block extra_js_includes %}
-    <script src="{% static "js/jquery-ui.js" %}"></script>
-    <script src="{% static "js/d3.v3.min.js" %}"></script>
-    <script src="{% static "js/jquery.tipsy.js" %}"></script>
-    <script src="{% static "js/underscore.js" %}"></script>
-    <script src="{% static "pinpoint/js/admin_analytics.js" %}"></script>
-
-    <script>
-        // supply analytics variables
+    <script type="text/javascript">
+        // supply analytics variables. must come before utils.js
         var analyticsSettings = {
             "ajaxURL": "{% url ajax-analytics-pinpoint %}",
             "store_id": "{{ store.id }}",
             "campaign_id": "{{ campaign.id }}"
         };
+    </script>
+    <script src="{% static "js/jquery-ui.js" %}"></script>
+    <script src="{% static "js/d3.v3.min.js" %}"></script>
+    <script src="{% static "js/jquery.tipsy.js" %}"></script>
+    <script src="{% static "js/underscore.js" %}"></script>
+    <script src="{% static "pinpoint/js/mediator.js" %}"></script>
+    <script src="{% static "pinpoint/js/utils.js" %}"></script>
+    <script src="{% static "pinpoint/js/charting.js" %}"></script>
+    <script src="{% static "pinpoint/js/admin_analytics.js" %}"></script>
 
-        var BarChart = function (o) {
-            var present_total = 0;
-
-            // inject "Other" bar if necessary
-            for (var i = o.data.length - 1; i >= 0; i--) {
-                if (o.data[i] === undefined) {
-                    o.data.splice(i, 1);
-                } else {
-                    present_total += o.data[i][1];
-                }
-            };
-
-            if (present_total < o.total) {
-                o.data.push(["Other", o.total - present_total]);
-            }
-
-            var max_length = d3.max(o.data, function(val, i) {
-                var label = val[0] + ": " + val[1];
-                return label.length;
-            });
-
-            var w = o.width,
-                h = o.row_height * o.data.length,
-                label_width = max_length * 7;
-
-            var x = d3.scale.linear()
-                .domain([0, 100]);
-
-            var chart = d3.select(o.selector).append("svg")
-                .attr("class", "chart")
-                .attr("width", w)
-                .attr("height", h);
-
-            chart.selectAll("rect")
-                .data(o.data)
-                .enter().append("rect")
-                    .attr("class", o.selector)
-                    .attr("x", label_width)
-                    .attr("y", function (d, i) { return i * o.row_height; })
-                    .attr("width", function (d) {
-                        var len = (d[1] / o.total) * (w - label_width);
-                        if (len < 5) {
-                            len = 5;
-                        }
-                        return len;
-                    })
-                    .attr("height", o.row_height)
-                    .on("mouseover", function() {d3.select(this).transition().style("fill", "black")})
-                    .on("mouseout", function() {d3.select(this).transition().style("fill", "steelblue")});
-
-            chart.selectAll("text")
-                .data(o.data)
-                .enter().append("text")
-                    .attr("x", 0)
-                    .attr("y", function (d, i) { return i * o.row_height + 15; })
-                    .text(function (d) { return d[0] + ": " + d[1]; });
-
-            $("rect[class='" + o.selector + "']").tipsy({
-                gravity: 'w',
-                html: true,
-                title: function() {
-                    var d = this.__data__;
-                    return (d[1] / o.total * 100).toFixed(0) + "%";
-                }
-              });
-        };
-
-        var ColumnChart = function (o) {
-            var max_domain = d3.max(o.data, function(val, i) {
-                    return val[1]
-                }),
-                date_parser = d3.time.format("%Y-%m-%d"),
-                date_formatter = d3.time.format("%B %e");
-
-            var w = o.col_width,
-                h = o.height,
-                calculated_width = w * o.data.length - 1,
-                chart_width = (calculated_width < o.min_width) ? o.min_width : calculated_width;
-
-            var x = d3.scale.linear()
-                .domain([0, 1])
-                .range([0, w]);
-
-            var y = d3.scale.linear()
-                .domain([0, max_domain])
-                .rangeRound([5, h - 17]);
-
-            var chart = d3.select(o.selector).append("svg")
-                .attr("class", "chart")
-                .attr("width", chart_width)
-                .attr("height", h);
-
-            chart.selectAll("rect")
-                .data(o.data)
-                .enter().append("rect")
-                    .attr("class", o.selector)
-                    .attr("x", function(d, i) { return x(i) - .5; })
-                    .attr("y", function(d) { return h - y(d[1]) - .5; })
-                    .attr("width", w)
-                    .attr("height", function(d) { return y(d[1]); })
-                    .on("mouseover", function() {d3.select(this).transition().style("fill", "black")})
-                    .on("mouseout", function() {d3.select(this).transition().style("fill", "steelblue")});
-
-            chart.selectAll("text")
-                .data(o.data)
-                .enter().append("text")
-                    .attr("x", function(d, i) { return x(i) + 1; })
-                    .attr("y", function(d) { return h - y(d[1]) - 2; })
-                    .text(function (d) { return d[1]});
-
-
-            chart.append("line")
-                .attr("x1", 0)
-                .attr("x2", chart_width)
-                .attr("y1", h - .5)
-                .attr("y2", h - .5)
-                .style("stroke", "#000");
-
-            chart.selectAll("line")
-                .data(y.ticks(5))
-                .enter().append("line")
-                    .attr("y1", y)
-                    .attr("y2", y)
-                    .attr("x1", 0)
-                    .attr("x2", chart_width)
-                    .style("stroke", "#333")
-                    .style("stroke-width", 0.1);
-
-            $("rect[class='" + o.selector + "']").tipsy({
-                gravity: 'w',
-                html: true,
-                title: function() {
-                    var d = this.__data__;
-                    return date_formatter(new Date(d[0]));
-                }
-              });
-        };
-
-        function wrap (str, len) {
+    <script>
+        function truncate(str, len) {
             if (str.length > len) {
                 return str.slice(0, len - 1) + "&hellip;";
             } else {
@@ -184,118 +50,6 @@
             return word;
         }
 
-        var api = (function () {
-            var uris = {
-                'product': "/api/assets/v1/product/%object_id%/?store={{ store.id }}&format=json",
-                'products_media': "/api/assets/v1/product_media/?store={{ store.id }}&product=%object_id%&format=json",
-                'video': "/api/assets/v1/youtube_video/%object_id%/?format=json",
-                'generic_image': "/api/assets/v1/generic_image/%object_id%/?format=json",
-                'video_gdata': "https://gdata.youtube.com/feeds/api/videos/%object_id%?v=2&alt=json-in-script&callback=?"
-            }, getObject, getObjects, fetchObject;
-
-            getObject = function (object_type, object_id, callback) {
-                var object = cache.get(object_type + "_" + object_id);
-
-                if (object === null) {
-                    fetchObject(object_type, object_id, callback);
-                } else {
-                    callback(object);
-                }
-            };
-
-            getObjects = function (object_type, object_ids, step, callback) {
-                var result = [];
-
-                if (object_ids.length == 0) {
-                    callback(result);
-                }
-
-                _.each(object_ids, function (object_id) {
-                    getObject(object_type, object_id, function (object) {
-                        result.push(object);
-
-                        step(result.length, object_ids.length);
-
-                        if (result.length == object_ids.length) {
-                            callback(result);
-                        }
-                    });
-                });
-            };
-
-            fetchObject = function (object_type, object_id, callback) {
-                var dataType = (object_type == "video_gdata") ? "jsonp" : "json";
-                $.ajax({
-                    url: uris[object_type].replace("%object_id%", object_id),
-                    dataType: dataType,
-                    success: function (data) {
-                        cache.set(object_type + "_" + object_id, data);
-
-                        if (object_type == "product") {
-                            $.ajax({
-                                url: uris.products_media.replace("%object_id%", object_id),
-                                dataType: "json",
-                                success: function (data) {
-                                    var prod = cache.get(object_type + "_" + object_id);
-
-                                    if (data.meta.total_count > 0) {
-                                        prod.media = data.objects[0];
-                                        cache.set(object_type + "_" + object_id, prod);
-                                    }
-
-                                    callback(prod);
-                                }
-                            });
-                        } else {
-                            callback(data);
-                        }
-                    }
-                });
-            };
-
-            return {
-                "getObject": getObject,
-                "getObjects": getObjects
-            };
-        }());
-
-        var cache = (function () {
-            var get, set, hasLocalStorage, localData = {};
-
-            hasLocalStorage = function () {
-                try {
-                    return 'localStorage' in window && window['localStorage'] !== null;
-                } catch (e) {
-                    return false;
-                }
-            };
-
-            get = function (key) {
-                if (hasLocalStorage()) {
-                    return JSON.parse(localStorage.getItem(key));
-                }
-
-                if (key in localData) {
-                    return localData[key];
-                }
-
-                return null;
-            };
-
-            set = function (key, value) {
-                if (hasLocalStorage()) {
-                    localStorage.setItem(key, JSON.stringify(value));
-                } else {
-                    localData[key] = value;
-                }
-            };
-
-            return {
-                "get": get,
-                "set": set
-            };
-        }());
-
         // start (explicitly-required) module
         Willet.analytics.init(analyticsSettings);
     </script>
@@ -308,13 +62,30 @@
 {% block content %}
     <script type="text/template" id="top_list_item">
         <tr>
-            <td><img src="<%= data %>"></td>
-            <td><span class="caption_left"><%= caption %></span><span class="caption_right"><%= wrap(name, 30) %></span></td>
+            <td><img src="<%= image %>"></td>
+            <td><span class="caption_left"><%= caption %></span>
+                <span class="caption_right"><%= truncate(name, 30) %></span>
+            </td>
+        </tr>
+    </script>
+    <script type="text/template" id="top_product_list_item">
+        <tr>
+            <td><img src="<%= image %>"></td>
+            <td>
+                <% if (total > 0 && count > 0 && total > count) { %>
+                    <span class="caption_left"><%= caption %></span>
+                    <span class="caption_right"><%= truncate(name, 30) %></span>
+                <% } else { %>
+                    <span class="caption_left bolder"><%= truncate(name, 30) %></span>
+                    <br>
+                    <span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
+                <% } %>
+            </td>
         </tr>
     </script>
 
     <script type="text/template" id="video_item">
-        <% api.getObject("video_gdata", data, function (video_data) { %>
+        <% Willet.mediaAPI.getObject("video_gdata", data, function (video_data) { %>
         <tr>
             <td><a href="http://www.youtube.com/watch?v=<%= data %>" title="<%= video_data.entry.title.$t %>" target="_blank"><img class="youtube_thumb" src="<%= video_data.entry['media$group']['media$thumbnail'][0].url %>"></a></td>
             <td><%= caption %></td>
@@ -323,7 +94,11 @@
     </script>
 
     <script type="text/template" id="count_with_percentage">
-        <span class="metric_perc"><%= ((count / total) * 100 || 0).toFixed(0) %>%</span><br><span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
+        <% if (total > 0 && count > 0 && total > count) { %>
+            <span class="metric_perc"><%= ((count / total) * 100 || 0).toFixed(0) %>%</span><br><span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
+        <% } else { %>
+            <span class="metric_perc">&nbsp;</span><br><span class="metric_count"><%= count %> <%= pluralize(verb, count) %></span>
+        <% } %>
     </script>
 
     <script type="text/template" id="single_value_t">
@@ -385,7 +160,7 @@
 
     <div class="grid_8 section_content">
         <div class="progressbar"><div class="progress-label">Loading...</div></div>
-        <div class="ajax error ui-state-error ">
+        <div class="hidden ajax error ui-state-error">
             An error occurred while retrieving your data.
         </div>
         <div class="section_metrics" style="display: none;">
@@ -410,7 +185,7 @@
                                     <table class="metric_content" id="top_engaged_content"></table>
 
                                     <div class="no_data" data-metric="top_engaged_content">
-                                        <p>No engaged content.</p>
+                                        <p>No results.</p>
                                     </div>
                                 </div>
 
@@ -418,7 +193,7 @@
                                     <table class="metric_content" id="top_videos"></table>
 
                                     <div class="no_data" data-metric="top_videos">
-                                        <p>No played videos.</p>
+                                        <p>No results.</p>
                                     </div>
                                 </div>
                             </div>
@@ -447,29 +222,29 @@
                             <div class="metric_content" id="top_shared_products"></div>
 
                             <div class="no_data" data-metric="top_shared_products">
-                                <p>No shared products yet.</p>
+                                <p>Could not be determined.</p>
                             </div>
                         </div>
 
-                        <div class="grid_4 data_metric round shadow">
+                        <div class="grid_5 data_metric round shadow">
                             <div class="metric_title">Share Destinations</div>
                             <div id="share_destinations"></div>
 
                             <div class="no_data" data-metric="share_destinations">
-                                <p>No shared products yet.</p>
+                                <p>Could not be determined.</p>
                             </div>
                         </div>
 
-                        <div class="grid_4 data_metric round shadow">
+                        <div class="grid_5 data_metric round shadow">
                             <div class="metric_title">Sources of Shares</div>
                             <div id="sources_of_shares"></div>
 
                             <div class="no_data" data-metric="sources_of_shares">
-                                <p>No shared products yet.</p>
+                                <p>Could not be determined.</p>
                             </div>
                         </div>
                     {% elif category.name == "Awareness" %}
-                        <div class="grid_2 data_metric round shadow">
+                        <div class="grid_3 data_metric round shadow">
                             <div class="metric_title">Visitors</div>
                             <div class="metric_content" id="total_visitors"></div>
 
@@ -496,7 +271,7 @@
                             </div>
                         </div>
 
-                        <div class="grid_7 data_metric round shadow">
+                        <div class="grid_8 data_metric round shadow">
                             <div class="metric_title">Visitors over Time</div>
 
                             <div id="visitors_over_time"></div>

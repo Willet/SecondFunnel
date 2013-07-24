@@ -4,19 +4,44 @@ from datetime import timedelta, datetime
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+from pytz import utc
 
 from apps.assets.models import Store
 from apps.analytics.models import Category, CategoryHasMetric
-from apps.pinpoint.decorators import belongs_to_store
 from apps.pinpoint.models import Campaign, IntentRankCampaign
 from apps.utils.ajax import ajax_success, ajax_error
 
 
 def daterange(start_date, end_date):
-    for n in range(int((end_date - start_date).days)):
+    """Generates a range of datetime objects, each differing by a day."""
+    for n in xrange(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
-# @belongs_to_store (does not supply store_id in this manner)
+
+def get_start_date(end_date, date_range, campaign):
+    """returns the end date minus the time requested, or 0
+    if you wanted everything.
+
+    1 day is subtracted regardless for time zone differences[,
+        so the user will always see enough results]
+    """
+    if date_range == "total":  # since the beginning of collection
+        start_date = datetime(1, 1, 1, 0, 0, 0, 0, utc)  # arbitrary early time
+    elif date_range == "month":
+        start_date = end_date - timedelta(weeks=4, days=1)
+    elif date_range == "two_weeks":
+        start_date = end_date - timedelta(weeks=2, days=1)
+    elif date_range == "week":
+        start_date = end_date - timedelta(weeks=1, days=1)
+    else:
+        start_date = end_date - timedelta(days=2)
+
+    # this will always be campaign.created. bug?
+    # start_date  = min(start_date, campaign.created)
+    start_date  = max(start_date, campaign.created)
+    return start_date
+
+
 @login_required
 def analytics_pinpoint(request):
     """Aggregates analytics data found in the DB, and returns
@@ -75,32 +100,18 @@ def analytics_pinpoint(request):
     end_date = datetime.now()
     end_date = end_date.replace(tzinfo=campaign.created.tzinfo)
 
-    if date_range == "total":  # since the beginning of collection
-        start_date = campaign.created
-
-    elif date_range == "month":
-        start_date = end_date - timedelta(weeks=4)
-
-    elif date_range == "two_weeks":
-        start_date = end_date - timedelta(weeks=2)
-
-    elif date_range == "week":
-        start_date = end_date - timedelta(weeks=1)
-
-    else:
-        start_date = end_date - timedelta(days=1)
-
-    start_date  = min(start_date, campaign.created)
-
-    # account for potential timezone differences
-    start_date = start_date - timedelta(days=2)
+    start_date = get_start_date(end_date, date_range=date_range,
+                                campaign=campaign) or campaign.created
 
     # what to filter kv for
     object_type = ContentType.objects.get_for_model(Campaign)
 
     # iterate through analytics structures and get the data
     results = {}
-    for category in Category.objects.filter(enabled=True):
+    enabled_categories = Category.objects.prefetch_related('metrics')\
+                                         .filter(enabled=True)
+
+    for category in enabled_categories:
         # categories: e.g. Awareness, Engagement, Sharing. In DB.
         results[category.slug] = {}
 
@@ -114,12 +125,6 @@ def analytics_pinpoint(request):
                 timestamp__lte=end_date, timestamp__gte=start_date
             ).order_by('-timestamp')
 
-            # ensure we have something set here, even if user didn't do this
-            # TODO: this statement seems to have no effect
-            if len(data) > 0:
-                start_date = start_date or data[0].timestamp
-                end_date = end_date or data[::-1][0].timestamp
-
             # this exposes daily data for each product in the right format
             formatted_data = []
             for datum in data.all():
@@ -131,13 +136,13 @@ def analytics_pinpoint(request):
                         "meta": datum.meta
                     })
 
+            # initialize an empty metric object full of nothing
             results[category.slug][metric.slug] = {
                 'name': metric.name,
                 'order': category_has_metric.order,
                 'display': category_has_metric.display,
                 'totals': {'date': {}, 'target_id': {}, 'meta': {}},
 
-                # this exposes daily data for each product
                 'data': formatted_data
             }
 

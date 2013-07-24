@@ -527,27 +527,22 @@ class Campaign(BaseModelNamed):
             self.default_intentrank = ir_campaign
             self.intentrank.add(ir_campaign)
 
-    def get_theme(self, type):
+    def get_theme(self, theme_type='auto'):
         """Returns the best match for the given theme type.
 
         type: a string; either 'full' or 'mobile'
         """
         priorities = {
-            'full': [
+            'auto': [
                 self.theme,
                 self.store.theme,
-                None
-            ],
-            'mobile': [
-                self.mobile,
+                self.mobile,  # if for some reason it still exists, use it
                 self.store.mobile,
-                self.theme,
-                self.store.theme,
                 None
             ]
         }
 
-        themes = priorities.get(type)
+        themes = priorities.get(theme_type)
         if not themes:
             return None
 

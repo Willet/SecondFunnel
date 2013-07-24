@@ -40,7 +40,7 @@
         , "height": "{{ product.height }}"
     {% endif %}
     {% if product.autoplay %}
-        {# this is supposed to be an integer }
+        {# this is supposed to be an integer #}
         , "autoplay": {{ product.autoplay }}
     {% endif %}
 }
