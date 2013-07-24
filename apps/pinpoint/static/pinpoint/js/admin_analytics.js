@@ -1,13 +1,30 @@
 Willet.analytics = (function ($) {
     "use strict";
-    var init, settings, setUpListeners, injectAnalyticsData, loadAnalytics;
+    var settings, changeProgressBar, loadAnalytics, clearOutCharts,
+        injectAnalyticsData, setUpListeners, init;
+
+    changeProgressBar = function (current, total) {
+        var prog = Math.round(current * 100 / total),
+            bar = $(".progressbar");
+        Willet.mediator.fire('log', ['changing progress bar value to ' + prog]);
+        if (prog > 0 && prog < 100) {
+            bar.progressbar("option", {
+                "value": prog
+            }).slideDown();
+        } else if (prog <= 0 || isNaN(prog)) {
+            bar.progressbar("option", "value", false).slideDown();
+        } else {
+            bar.clearQueue().slideUp();
+        }
+    };
 
     loadAnalytics = function (obj) {
+        // accepts an... object?
+        obj = obj || {};
+
         var request = {
             "range": $(".range option:selected").val()
         };
-
-        obj = obj || {};
         // request (function scope) vs settings (module scope)
         request.campaign_id = obj.campaign_id || settings.campaign_id;
         request.store_id = obj.store_id || settings.store_id;
@@ -23,17 +40,44 @@ Willet.analytics = (function ($) {
             delete request.campaign_id;
         }
 
+        changeProgressBar(0, 0);
         $.ajax({
             url: settings.ajaxURL,
             dataType: "json",
             data: request,
             success: function (data) {
                 injectAnalyticsData(data);
+                changeProgressBar(1, 1);
             }
         });
     };
 
+    clearOutCharts = function () {
+        // clear out charts
+        // TODO: use d3 transitions
+        _.each(["#share_destinations",
+            "#interaction_types",
+            "#interaction_sources",
+            "#visitors_over_time",
+            "#sources_of_shares",
+            "#visitor_sources",
+            "#visitor_locations"],
+            function (elemId) {
+                d3.select(elemId + " svg").remove();
+            });
+
+        // clean out top lists
+        _.each(["#top_engaging_products",
+            "#top_shared_products",
+            "#top_videos",
+            "#top_engaged_content"],
+            function (elemId) {
+                $(elemId).html("");
+            });
+    };
+
     injectAnalyticsData = function (data) {
+        // fill the UI with newly received analytics data.
         if (data.error) {
             $(".ajax.error").slideDown();
             $(".progressbar").slideUp();
@@ -52,16 +96,16 @@ Willet.analytics = (function ($) {
                 'visitor_dates': []
             },
 
-            merge_totals = function (t1, t2) {
-                var res = $.extend(true, {}, t1),
-                    type,
-                    key;
+            mergeTotals = function (t1, t2) {
+                var res = $.extend(true, {}, t1);
 
-                for (type in t2) {
-                    for (key in t2[type]) {
-                        res[type][key] = (res[type][key] || 0) + t2[type][key];
-                    }
-                }
+                // for (type in t2) {
+                _.each(t2, function (typeVal, type) {
+                    // for (key in t2[type]) {
+                    _.each(typeVal, function (keyVal, key) {
+                        res[type][key] = (res[type][key] || 0) + keyVal;
+                    });
+                });
 
                 return res;
             },
@@ -70,7 +114,7 @@ Willet.analytics = (function ($) {
                 interactions: {
                     all: data.engagement['total-interactions'].totals.date.all,
                     product: data.engagement['product-interactions'].totals.date.all,
-                    content: data.engagement['content-interactions'].totals.date.all,
+                    content: data.engagement['content-interactions'].totals.date.all
                 },
                 shares: data.sharing['total-shares'].totals.date.all,
                 visitors: data.awareness['awareness-visitors'].totals.date.all,
@@ -78,13 +122,11 @@ Willet.analytics = (function ($) {
                 notbounces: data.engagement['total-no-bounces'].totals.date.all
             },
 
-            bounce_rate = (1 - totals.notbounces / totals.visitors) * 100,
-
-            not_bounced_visitors,
-
-            cat_slug, metric_slug,
-
-            merged = {}, to_merge = {
+            bounceRate = (100 - (totals.notbounces * 100) / totals.visitors),
+            notBouncedVisitors,
+            merged = {},
+            pids,
+            toMerge = {
                 "sharing": [
                     data.sharing['share-clicked'].totals,
                     data.sharing['share-liked'].totals
@@ -113,117 +155,128 @@ Willet.analytics = (function ($) {
                 ]
             },
 
-            top_lists,
+            topLists;
 
-            postprocess_sections;
-
-        _.each(to_merge, function (list, key) {
-            var result, reduce_start = merge_totals(list[0], list[1]);
+        _.each(toMerge, function (list, key) {
+            var reduce_start = mergeTotals(list[0], list[1]);
 
             merged[key] = _.reduce(list.slice(2), function (memo, item) {
-                return merge_totals(memo, item);
+                return mergeTotals(memo, item);
             }, reduce_start);
         });
 
-        if (isNaN(bounce_rate)) {
-            bounce_rate = 0;
+        if (isNaN(bounceRate)) {
+            bounceRate = 0;
         }
 
-        not_bounced_visitors = totals.visitors - totals.visitors * bounce_rate / 100;
+        notBouncedVisitors = totals.visitors - totals.visitors * bounceRate / 100;
 
-        var insertAnalytics = function (o) {
-            var params = o.params,
-                pair = o.pair,
-                all_data = o.data,
-
-                actions = {
-                    "common": function (api_type, template, params, pair, data_selector) {
-                        if (pair === undefined) {
-                            return;
-                        }
-
-                        api.getObject(api_type, pair[0], function (data) {
-                            var box_t = _.template($(template).html()),
-                                caption_t = _.template($("#count_with_percentage").html());
-
-                            $(params.selector).append(box_t({
-                                data: data_selector(data),
-                                name: data.name,
-                                caption: caption_t({
-                                    verb: params.verb,
-                                    count: pair[1],
-                                    total: params.total
-                                })
-                            }));
-                        });
-                    },
-
-                    "content": function (params, pair) {
-                        actions.common("generic_image", "#top_list_item", params, pair, function (data) {
-                            var image = data.hosted || data.remote;
-                            return image.slice(0, image.indexOf("?Sig"));
-                        });
-                    },
-
-                    "product": function (params, pair) {
-                        actions.common("product", "#top_list_item", params, pair, function (data) {
-                            return (data.media.hosted || data.media.remote).replace("master.jpg", "thumb.jpg");
-                        });
-                    },
-
-                    "video": function (params, pair) {
-                        actions.common("video", "#video_item", params, pair, function (data) {
-                            return data.video_id;
-                        });
-                    },
-
-                    "bar_chart": function (params, pair, all_data) {
-                        var chart = new BarChart({
-                            selector: params.selector,
-                            data: all_data,
-
-                            total: params.total,
-
-                            width: params.width,
-                            row_height: params.row_height
-                        });
-                    },
-
-                    "column_chart": function (params, pair, all_data) {
-                        // sort by date
-                        all_data.sort(function (a, b) {
-                            return new Date(a[0]) - new Date(b[0]);
-                        });
-
-                        var chart = new ColumnChart({
-                            selector: params.selector,
-                            data: all_data,
-
-                            min_width: params.min_width,
-                            height: params.height,
-                            col_width: params.col_width
-                        });
-                    },
-
-                    "single_value": function (params, pair, all_data) {
-                        var t = _.template($("#single_value_t").html());
-                        $(params.selector).html(t({
-                            value: all_data
-                        }));
+        var getAnalyticsHandler = function (type) {
+            var actions = {
+                "common": function (apiType, template, params, pair, image_selector) {
+                    if (pair === undefined) {
+                        return;
                     }
+
+                    changeProgressBar(0, 1);
+                    Willet.mediaAPI.getObject(apiType, pair[0], function (data) {
+                        var boxTemplate = _.template($(template).html()),
+                            captionTemplate = _.template($("#count_with_percentage").html()),
+                            propBag = {
+                                image: image_selector(data),
+                                name: data.name,
+                                verb: params.verb,
+                                count: pair[1],
+                                total: params.total
+                            },
+                            caption = captionTemplate(propBag);
+
+                        $.extend(propBag, {caption: caption});
+
+                        $(params.selector).append(boxTemplate(propBag));
+                        changeProgressBar(1, 1);
+                    });
                 },
 
-                adjust_width = function (section_selector) {
-                    var $s = $(section_selector);
+                "content": function (params, pair) {
+                    actions.common("generic_image", "#top_list_item", params, pair, function (data) {
+                        var image = data.hosted || data.remote;
+                        if (image.indexOf("?Sig") !== -1) {
+                            // remove amazon parameters
+                            return image.slice(0, image.indexOf("?Sig"));
+                        } else {
+                            return image;
+                        }
+                    });
+                },
 
-                    // 20px accounts for margins
-                    $s.css("width", $s.children().length * ($s.children().width() + 20) + "px");
-                };
+                "product": function (params, pair) {
+                    actions.common("product", "#top_product_list_item", params, pair, function (data) {
+                        return (data.media.hosted || data.media.remote).replace("master.jpg", "thumb.jpg");
+                    });
+                },
 
-            actions[params.type](params, pair, all_data);
+                "video": function (params, pair) {
+                    actions.common("video", "#video_item", params, pair, function (data) {
+                        return data.video_id;
+                    });
+                },
+
+                "barChart": function (params, pair, allData) {
+                    var chart = new Willet.charting.BarChart({
+                        selector: params.selector,
+                        data: allData,
+
+                        total: params.total,
+
+                        width: params.width,
+                        rowHeight: params.rowHeight
+                    });
+                },
+
+                "columnChart": function (params, pair, allData) {
+                    // sort by date
+                    allData.sort(function (a, b) {
+                        return new Date(a[0]) - new Date(b[0]);
+                    });
+
+                    var chart = new Willet.charting.ColumnChart({
+                        selector: params.selector,
+                        data: allData,
+
+                        minWidth: params.minWidth,
+                        height: params.height,
+                        colWidth: params.colWidth
+                    });
+                },
+
+                "singleValue": function (params, pair, allData) {
+                    var t = _.template($("#single_value_t").html());
+                    $(params.selector).html(t({
+                        value: allData
+                    }));
+                }
+            };
+            return actions[type];
         };
 
-        top_lists = {
+        var insertAnalytics = function (options) {
+            // insert a piece of information on the page.
+            // options includes "type"; allowed typesa are defined in
+            // the actions variable.
+            var params = options.params,
+                pair = options.pair,
+                allData = options.data,
+                actions;
+
+            if (!params.type) {
+                Willet.mediator.fire('error', ['a data type must be specified']);
+            } else {
+                getAnalyticsHandler(params.type)(params, pair, allData);
+            }
+        };
+
+        topLists = {
             'engaged_products': merged.product_interactions.target_id,
             'engaged_content': merged.content_interactions.target_id,
             'engaged_videos': data.engagement['content-video'].totals.target_id,
@@ -248,30 +301,78 @@ Willet.analytics = (function ($) {
         };
 
         // insert totals for metrics into the sidebar
-        for (cat_slug in data) {
-            for (metric_slug in data[cat_slug]) {
+        // for (cat_slug in data) {
+        _.each(data, function (category, cat_slug) {
+            // for (metric_slug in data[cat_slug]) {
+            _.each(category, function (metric, metric_slug) {
                 // display totals in the sidebar on in the content section
                 $(".metric_overview[data-metric='" + metric_slug + "']").html(
                     data[cat_slug][metric_slug].totals.date.all.toFixed(0)
                 );
-            }
-        }
+            });
+        });
 
+        // calculate per-visitor metrics.
         // These metrics aren't calculated by the backend atm, hence the ugly implementation
-        $(".per-visitor").remove();
+        (function () {
+            $(".per-visitor").remove();
 
-        $(".section_overview_block:nth-child(2) .section_overview_metrics ul").append(
-            "<li class='per-visitor'><span class='metric_overview' data-metric='interactions-per-visitor'>" + (totals.interactions.all / not_bounced_visitors || 0).toFixed(2) + "</span> Interactions per engaged visitor</li>");
+            var bounceRate = bounceRate,  // import scope
+                interactionsPerEngagedVisitor =
+                    (totals.interactions.all / notBouncedVisitors || 0).toFixed(2),
+                sharesPerVisit =
+                    (totals.shares / notBouncedVisitors || 0).toFixed(2);
 
-        $(".section_overview_block:nth-child(3) .section_overview_metrics ul").append(
-            "<li class='per-visitor'><span class='metric_overview' data-metric='shares-per-visitor'>" + (totals.shares / not_bounced_visitors || 0).toFixed(2) + "</span> Shares per visit</li>");
+            if (bounceRate < 0 || bounceRate > 100 ||
+                    bounceRate === Infinity || isNaN(bounceRate)) {
+                bounceRate = '';  // can't guess how wrong it actually is
+            } else {
+                bounceRate = bounceRate.toFixed(2);
+            }
 
-        $(".section_overview_block:nth-child(1) .section_overview_metrics ul").append(
-            "<li class='per-visitor'><span class='metric_overview' data-metric='bounce-rate'>" + bounce_rate.toFixed(2) + "%</span> Bounce Rate</li>");
+            if (interactionsPerEngagedVisitor < 0 ||
+                    interactionsPerEngagedVisitor === Infinity ||
+                    isNaN(interactionsPerEngagedVisitor)) {
+                interactionsPerEngagedVisitor = '';
+            }
+
+            if (sharesPerVisit < 0 || sharesPerVisit === Infinity ||
+                    isNaN(sharesPerVisit)) {
+                bounceRate = '';
+            }
+
+            if (interactionsPerEngagedVisitor) {
+                $(".section_overview_block:nth-child(2) " +
+                    ".section_overview_metrics ul").append(
+                    "<li class='per-visitor'><span class='metric_overview' " +
+                        "data-metric='interactions-per-visitor'>" +
+                         interactionsPerEngagedVisitor +
+                        "</span> Interactions per engaged visitor</li>");
+            }
+
+            if (sharesPerVisit) {
+                $(".section_overview_block:nth-child(3) " +
+                    ".section_overview_metrics ul").append(
+                    "<li class='per-visitor'><span class='metric_overview' " +
+                        "data-metric='shares-per-visitor'>" +
+                        sharesPerVisit +
+                        "</span> Shares per visit</li>");
+            }
+
+            if (bounceRate) {
+                $(".section_overview_block:nth-child(1) " +
+                    ".section_overview_metrics ul").append(
+                    "<li class='per-visitor'><span class='metric_overview' " +
+                        "data-metric='bounce-rate'>" + bounceRate +
+                        "%</span> Bounce Rate</li>"
+                );
+            }
+        }());
 
         // construct lists of sorted (desc) (pid, count) pairs
-        _.each(top_lists, function (list, key) {
+        _.each(topLists, function (list, key) {
             sortables[key] = _.map(list, function (count, pid) {
+                // meta metric would be what shows on the left hand side
                 if (pid !== "all" && pid !== "null" && pid !== "meta_metric") {
                     return [pid, count];
                 }
@@ -291,31 +392,20 @@ Willet.analytics = (function ($) {
             });
         });
 
-        // clear out charts
-        // TODO: use d3 transitions
-        $(["share_destinations", "interaction_types", "interaction_sources",
-            "visitors_over_time", "sources_of_shares", "visitor_sources",
-            "visitor_locations"]).each(function (i, val) {
-                d3.select("#" + val + " svg").remove();
-            });
+        clearOutCharts();
 
-        // clean out top lists
-        $(["top_engaging_products", "top_shared_products",
-            "top_videos", "top_engaged_content"]).each(function (i, val) {
-                $("#" + val).html("");
-            });
+        pids = _.pluck(sortables.engaged_products, 0);
 
-        var pids = _.pluck(sortables.engaged_products, 0);
+        // We use like 4 of the products. If we need any more, change this number.
+        pids = pids.slice(0, 10);
 
-        api.getObjects("product", pids, function (current, total) {
-            $(".progressbar").progressbar("value", Math.round(current / total * 100));
-        }, function () {
+        Willet.mediaAPI.getObjects("product", pids, changeProgressBar, function () {
             // hide progress bar and show data
             $(".section_metrics").slideDown();
             $(".progressbar").slideUp();
             $(".error").slideUp();
 
-            var to_inject_lists = [
+            var itemsToPopulate = [
                 {
                     params: {
                         type: "product",
@@ -324,9 +414,7 @@ Willet.analytics = (function ($) {
                         total: totals.interactions.product
                     },
                     data: sortables.engaged_products.slice(0, 4)
-                },
-
-                {
+                }, {
                     params: {
                         type: "content",
                         selector: "#top_engaged_content",
@@ -334,9 +422,7 @@ Willet.analytics = (function ($) {
                         total: totals.interactions.content
                     },
                     data: sortables.engaged_content.slice(0, 4)
-                },
-
-                {
+                }, {
                     params: {
                         type: "product",
                         selector: "#top_shared_products",
@@ -344,9 +430,7 @@ Willet.analytics = (function ($) {
                         total: totals.shares
                     },
                     data: sortables.sharing_products.slice(0, 4)
-                },
-
-                {
+                }, {
                     params: {
                         type: "video",
                         selector: "#top_videos",
@@ -354,111 +438,92 @@ Willet.analytics = (function ($) {
                         total: data.engagement['content-video'].totals.date.all
                     },
                     data: sortables.engaged_videos.slice(0, 3)
-                },
-
-                {
+                }, {
                     params: {
-                        type: "bar_chart",
+                        type: "barChart",
                         selector: "#share_destinations",
                         total: totals.shares,
-                        row_height: 20,
+                        rowHeight: 20,
                         width: 300
                     },
                     data: sortables.sharing_source
-                },
-
-                {
+                }, {
                     params: {
-                        type: "bar_chart",
+                        type: "barChart",
                         selector: "#interaction_types",
                         total: totals.interactions.all,
-                        row_height: 20,
+                        rowHeight: 20,
                         width: 220
                     },
                     data: sortables.interaction_types
-                },
-
-                {
+                }, {
                     params: {
-                        type: "bar_chart",
+                        type: "barChart",
                         selector: "#visitor_sources",
                         total: totals.visitors,
-                        row_height: 20,
+                        rowHeight: 20,
                         width: 620
                     },
                     data: sortables.visitor_source
-                },
-
-                {
+                }, {
                     params: {
-                        type: "bar_chart",
+                        type: "barChart",
                         selector: "#visitor_locations",
                         total: totals.visitors,
-                        row_height: 20,
+                        rowHeight: 20,
                         width: 620
                     },
                     data: sortables.visitor_locations.slice(0, 10)
-                },
-
-                {
+                }, {
                     params: {
-                        type: "bar_chart",
+                        type: "barChart",
                         selector: "#interaction_sources",
                         total: totals.interactions.all,
-                        row_height: 20,
+                        rowHeight: 20,
                         width: 220
                     },
                     data: sortables.interaction_source
-                },
-
-                {
+                }, {
                     params: {
-                        type: "bar_chart",
+                        type: "barChart",
                         selector: "#sources_of_shares",
                         total: totals.shares,
-                        row_height: 20,
+                        rowHeight: 20,
                         width: 300
                     },
                     data: sortables.sharing_sources_of
-                },
-
-                {
+                }, {
                     params: {
-                        type: "column_chart",
+                        type: "columnChart",
                         selector: "#visitors_over_time",
-                        min_width: 540,
-                        col_width: 20,
+                        minWidth: 540,
+                        colWidth: 20,
                         height: 200
                     },
                     data: sortables.visitor_dates
-                },
-
-                {
+                }, {
                     params: {
-                        type: "single_value",
+                        type: "singleValue",
                         selector: "#total_visitors"
                     },
                     data: totals.visitors
-                },
-
-                {
+                }, {
                     params: {
-                        type: "single_value",
+                        type: "singleValue",
                         selector: "#total_pageviews"
                     },
                     data: totals.pageviews
-                },
-
-                {
+                }, {
                     params: {
-                        type: "single_value",
+                        type: "singleValue",
                         selector: "#bounce_rate"
                     },
-                    data: bounce_rate.toFixed(2) + "%"
+                    data: bounceRate.toFixed(2) + "%"
                 }
             ];
 
-            _.each(to_inject_lists, function (inject) {
+            // populate the page with actions required]
+            _.each(itemsToPopulate, function (inject) {
                 if (typeof inject.data === 'object' && inject.data.length == 0 || inject.data === undefined) {
                     $("[data-metric='" + inject.params.selector.slice(1) + "']").show();
                 } else {
@@ -466,7 +531,8 @@ Willet.analytics = (function ($) {
                 }
 
                 // if we're injecting a chart or a single value
-                if (inject.params.type.indexOf("_chart") != -1 || inject.params.type === "single_value") {
+                if (inject.params.type.indexOf("Chart") !== -1 ||
+                        inject.params.type === "singleValue") {
                     insertAnalytics({
                         params: inject.params,
                         data: inject.data
@@ -491,7 +557,9 @@ Willet.analytics = (function ($) {
         $(".progressbar").progressbar({
             value: false,
             change: function () {
-                $(".progress-label").text($(".progressbar").progressbar("value") + "%");
+                if ($(".progressbar").progressbar("value") !== 'false') {
+                    $(".progress-label").text($(".progressbar").progressbar("value") + "%");
+                }
             },
             complete: function () {
                 $(".progress-label").text("Loaded.");
@@ -517,6 +585,13 @@ Willet.analytics = (function ($) {
             loadAnalytics({
                 'campaign_id': $(this).find("option:selected").attr("value")
             });
+        });
+
+        $(document).ajaxError(function () {
+            // it's mostly for handling timeouts.
+            $('.error')
+                .html("Could not talk to server. Please try again.")
+                .slideDown();
         });
     };
 
