@@ -1,34 +1,38 @@
 /* Tests related to the pinpoint app go here. */
 var jsonData,
-// Our NSA WatchDog
-    nsa; 
+    // Our NSA WatchDog
+    // Convention: Use watch for functions whose values you want and intercept to fake calls
+    nsa = jasmine.createSpyObj("nsa", ['watch', 'intercept']),
+    intercept = function() { nsa.intercept(); };
 
 // Basic Functionality tests
 describe('The Basics', function() {
+    beforeEach(function(){
+        nsa = jasmine.createSpyObj("nsa", ['watch', 'intercept']);
+    });
+        
     // IntentRank
     it('intentrank_more_results', function() {
-        var callback = jasmine.createSpy();
-        PAGES.intentRank.getMoreResults(callback);
+        PAGES.intentRank.getMoreResults(nsa.watch);
 
         waitsFor(function() {
-            return callback.callCount > 0;
+            return nsa.watch.callCount > 0;
         }, "call to /intentrank/get-results to respond", 5000);
 
         runs(function() {
-            expect(callback).toHaveBeenCalled();
+            expect(nsa.watch).toHaveBeenCalled();
         });
     });
 
     it('intentrank_valid_json', function() {
-        var jsonInspector = jasmine.createSpy("jsonInspector");
-        PAGES.intentRank.getMoreResults(jsonInspector);
+        PAGES.intentRank.getMoreResults(nsa.watch);
 
         waitsFor(function() {
-            return jsonInspector.callCount > 0;
+            return nsa.watch.callCount > 0;
         }, "call to /intentrank/get-results to respond", 5000);
 
         runs(function() {
-            jsonData = jsonInspector.mostRecentCall.args[0];
+            jsonData = nsa.watch.mostRecentCall.args[0];
             expect(jsonData).toEqual(jasmine.any(Array));
         });
     });
@@ -42,48 +46,40 @@ describe('The Basics', function() {
 
     // Mediator tests
     it('mediator_on_off', function() {
-        var nsa = jasmine.createSpyObj('nsa', ['survelliance']);
-        
-        Willet.mediator = Willet.mediator.on('openEmail', nsa.survelliance);
+        Willet.mediator = Willet.mediator.on('openEmail', intercept);
         Willet.mediator.fire('openEmail');
+        expect(nsa.intercept.callCount).toEqual(1);
 
-        expect(nsa.survelliance.callCount).toEqual(1);
-
-        Willet.survelliance = (function () {
+        Willet.autoFactory = (function () {
             function autoOpenEmail () {
                 return;
             }
-            
+
             return {
                 'autoOpenEmail': autoOpenEmail
             };
         })();
 
-        spyOn(Willet.survelliance, 'autoOpenEmail').andCallFake(function() {
-            return "Opened email!";
-        });
-
+        spyOn(Willet.autoFactory, 'autoOpenEmail').andCallFake(intercept);
         Willet.mediator.fire('openEmail');
-        expect(nsa.survelliance.callCount).toEqual(2);
-        expect(Willet.survelliance.autoOpenEmail()).toEqual("Opened email!");
+        expect(nsa.intercept.callCount).toEqual(3);
 
-        delete Willet.survelliance;
+        delete Willet.autoFactory;
         Willet.mediator.off('openEmail');
         Willet.mediator.fire('openEmail');
 
-        expect(nsa.survelliance.callCount).toEqual(2);
+        expect(nsa.intercept.callCount).toEqual(3);
     });
 
     it('mediator_callback', function() {
-        var callback = jasmine.createSpy('callback');
-        Willet.mediator.on('fake', callback);
+        Willet.mediator.on('fake', nsa.intercept);
         expect(typeof Willet.mediator.callback("fake")).toEqual("function");
         
         Willet.mediator.callback("fake")();
-        expect(callback.callCount).toEqual(1);
+        expect(nsa.intercept.callCount).toEqual(1);
         
         Willet.mediator.getResult('fake');
-        expect(callback.callCount).toEqual(2);
+        expect(nsa.intercept.callCount).toEqual(2);
 
         Willet.mediator.off("fake");
     });
@@ -98,9 +94,8 @@ describe('The Basics', function() {
 describe("Sample", function() {
       
     beforeEach(function(){
-        nsa = jasmine.createSpyObj("nsa", ['listen', 'watch', 'intercept']);
-        var intercept = function() { nsa.intercept(); };
-
+        nsa = jasmine.createSpyObj("nsa", ['watch', 'intercept']);
+        
         spyOn(pagesTracking, 'notABounce').andCallFake(intercept);
         spyOn(PAGES.intentRank, 'updateClickStream').andCallFake(intercept);
         spyOn(PAGES.intentRank, 'updateContentStream').andCallFake(intercept);
@@ -138,19 +133,22 @@ describe("Sample", function() {
 // Advanced tests
 describe("Advanced", function(){
     beforeEach(function() {
+        nsa = jasmine.createSpyObj("nsa", ['watch', 'intercept']);
         jsonData = [];
     });
 
     function addToList ( arr ) {
-        setTimeout(function(){
-            $.extend(jsonData, arr);
-        }, 1);
+        $.merge(jsonData, arr);
     }
 
-    it("no_dupes", function(){
+    it("multiple_results", function(){
         for ( var i = 0; i < 10; i++ ) {
             Willet.mediator.fire('IR.getMoreResults', [addToList]);
             PAGES.setLoadingBlocks(false);
+            
+            if (jsonData.length > 9) {
+                break;
+            }
         }
         
         waitsFor(function(){
@@ -158,22 +156,6 @@ describe("Advanced", function(){
         }, 'PAGES.loadMoreResults', 5000);
 
         runs(function(){
-            var dupes = false;
-            for ( var i = 0; i < jsonData.length; ++i ) {
-                var elem = jsonData[i];
-                for ( var j = i + 1; j < jsonData.length; ++j ) {
-                    var compare = jsonData[j];
-                    for (var key in elem) {
-                        if (compare[key] && compare[key] == elem[key]) {
-                            dupes = true;
-                            break;
-                        }
-                    }
-                    if (dupes) break;
-                }
-                if (dupes) break;
-            }
-            expect(dupes).toBe(false);
             expect(jsonData.length).toBeGreaterThan(9);
         });
     });

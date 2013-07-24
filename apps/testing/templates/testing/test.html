@@ -41,9 +41,9 @@
                           }
                       }
                       
-                      $.get(uri, function(data, textStatus, jqXHR) {
-                          if (data['success']) {
-                             // window.location.reload();
+                      $.get(uri, function(data){
+                          if (data['success'] == true) {
+                              window.location.reload();
                           } else {
                               alert("Something went wrong!");
                               console.log(data['error']);

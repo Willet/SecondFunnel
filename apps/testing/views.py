@@ -60,7 +60,7 @@ def test_results( request ):
     @param request: The HTTP request
     @return: HTTPResponse
     """
-    data = OrderedDict(zip(['Passed', 'Failed', 'Error'], 
+    data = OrderedDict(zip(['Passed', 'Failed'], 
                            [{'total': 0, 'suites': {}}.copy() for i in range(0, 3)]))
 
     for (dirpath, dirname, filenames) in os.walk('apps/testing/tests/results'):
@@ -71,9 +71,8 @@ def test_results( request ):
             tree = ET.parse(os.path.join(dirpath, fname))
             root, suite = tree.getroot(), {}
             suitename = root.attrib['name']
-            data['Failed']['total'] += int(root.attrib['failures'])
-            data['Error']['total'] += int(root.attrib['errors'])
-            data['Passed']['total'] += int(root.attrib['tests']) - int(root.attrib['errors']) - int(root.attrib['failures'])
+            data['Failed']['total'] += int(root.attrib['failures']) + int(root.attrib['errors'])
+            data['Passed']['total'] += int(root.attrib['tests']) - data['Failed']['total']
             
             for case in root.iter('testcase'):
                 type, msg, children = 'Passed', "", case[:]
@@ -82,7 +81,7 @@ def test_results( request ):
                     if child.tag == 'failure':
                         type = "Failed"
                     else:
-                        type = "Error"
+                        type = child.tag
                     msg = json.loads(child.attrib['message'])[0]['message']
 
                 if suitename not in data[type]['suites']:

@@ -68,5 +68,5 @@ class Command(BaseCommand):
         """
         try:
             call_JsTestDriver(**options)
-        except Exception, e:
-            exit(2)
+        except Exception as e:
+            raise Exception("Unrecognized command")

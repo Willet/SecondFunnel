@@ -106,8 +106,8 @@ Willet.mediator = (function (me) {
             module;
         for (module in Willet) {
             if (Willet.hasOwnProperty(module)) {
-                if (module[funcName]) {
-                    module[funcName].apply(this, params);
+                if (Willet[module][funcName]) {
+                    Willet[module][funcName].apply(this, params);
                 }
             }
         }
