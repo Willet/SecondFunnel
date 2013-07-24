@@ -2,7 +2,6 @@
 var PAGES = (function ($, details, mediator) {
     "use strict";
     var i = 0,  // counter
-        noop = function () {},
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || true,
@@ -232,6 +231,8 @@ var PAGES = (function ($, details, mediator) {
                     'data': $.extend({}, srcElement.data(), target.data())
                 });
 
+                context.data.show_count = true;
+
                 target.html(renderTemplate(srcElement.html(), context));
             } else {
                 target.html('Error: missing template #' + src);
@@ -401,14 +402,14 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function youtubeHoverOff() {
-        commonHoverOff(this, noop, false);
+        commonHoverOff(this, $.noop, false);
     }
 
-    function lifestyleHoverOn() {
-        commonHoverOn(this, false, true);
+    function comboboxHoverOn() {
+        commonHoverOn(this, true, true);
     }
 
-    function lifestyleHoverOff() {
+    function comboboxHoverOff() {
         commonHoverOff(this, function (t) {
             mediator.fire('tracking.registerEvent', [{
                 "type": "content",
@@ -416,6 +417,14 @@ var PAGES = (function ($, details, mediator) {
                 "label": $(t).data("label")
             }]);
         }, true);
+    }
+
+    function lifestyleHoverOn() {
+        commonHoverOn(this, true, false);
+    }
+
+    function lifestyleHoverOff() {
+        commonHoverOff(this, $.noop, false);
     }
 
     function loadInitialResults(seed) {
@@ -514,9 +523,15 @@ var PAGES = (function ($, details, mediator) {
         }, '.block.youtube');
 
         $discovery.on({
+            mouseenter: comboboxHoverOn,
+            mouseleave: comboboxHoverOff
+        }, '.block.combobox:not(.unclickable) .lifestyle');
+
+        // Is this safe enough?
+        $discovery.on({
             mouseenter: lifestyleHoverOn,
             mouseleave: lifestyleHoverOff
-        }, '.block.combobox:not(.unclickable) .lifestyle');
+        }, '.block.image:not(.unclickable)');
     }
 
     /* --- END element bindings --- */
@@ -533,7 +548,7 @@ var PAGES = (function ($, details, mediator) {
                     ['script ' + item.src + ' already loaded; skipping.']
                 );
             } else {
-                $.getScript(item.src || item, item.onload || noop);
+                $.getScript(item.src || item, item.onload || $.noop);
                 scriptsLoaded.push(item.src);
             }
         }
@@ -572,7 +587,7 @@ var PAGES = (function ($, details, mediator) {
         'id': 'twitter-wjs'
     }, {
         'src'   : '//assets.pinterest.com/js/pinit.js',
-        'onload': noop
+        'onload': $.noop
     }];
 
     return {
@@ -680,6 +695,10 @@ PAGES.full = (function (me, mediator) {
                     default:
                         break;
                     }
+
+                    // Since we never show the count in the feed,
+                    // just add this to the template data.
+                    template_context.show_count = false;
 
                     var rendered_block = PAGES.renderTemplate(template, {
                         'data': template_context,

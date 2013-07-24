@@ -184,6 +184,13 @@ body {
     max-width: 240px;
 }
 
+.block.image div.social{
+    position: absolute;
+    bottom: 10px;
+    height: 66px;
+    left: 10px;
+}
+
 /* width : (block_width / 2) - (play_button_width / 2)
  * height : (block_height / 2) - (play_button_height / 2)
  * Once we have sass, this can be automatic
