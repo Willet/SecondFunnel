@@ -38,7 +38,7 @@ def fire_test( request ):
     except BaseException as e:
         return ajax_error({'error': str(e)})
 
-    return ajax_success({'params': request.GET})
+    return ajax_success({})
 
 
 def test_results( request ):

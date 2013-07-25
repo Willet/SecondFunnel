@@ -67,7 +67,11 @@ def capture_browser(url, browser, server):
             break
 
     if not application:
-        application = browser
+        # Assume we were given a path and validate it
+        if os.path.exists(browser):
+            application = browser
+        else:
+            raise Exception("Unrecognized browser: %s"%(browser))
 
     # Firefox and Chrome require special additional instructions
     if "firefox" in browser.lower():
@@ -90,6 +94,7 @@ def capture_browser(url, browser, server):
     # Safari can't be opened normally
     cmd = ("open -na {0} {1} -g {2}" if "safari" in browser.lower() else "\"{0}\" {1} {2} &").format(application, url, args)
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
     pid = wait_for_pid(application)
     TASKS.append("kill -TERM {0}".format(pid))
 
