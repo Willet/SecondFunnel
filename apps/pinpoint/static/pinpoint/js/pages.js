@@ -1,10 +1,13 @@
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
-var PAGES = (function ($, details, mediator) {
+var PAGES = (function ($, details, Willet) {
     "use strict";
     var i = 0,  // counter
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
-        SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || true,
+        SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || false,
+        mediator = Willet.mediator,
+        browser = Willet.browser,
+        mediaAPI = Willet.mediaAPI,
         scripts,
         scriptsLoaded = [],
         spaceBelowFoldToStartLoading = 500,
@@ -107,7 +110,7 @@ var PAGES = (function ($, details, mediator) {
             templateEls = getByAttrib('template-id', templateId),
             templatesByType = groupByAttrib(templateEls, 'media', true);
 
-        if (Willet.browser.mobile && templatesByType.mobile) {
+        if (browser.mobile && templatesByType.mobile) {
             // return "the first jquery-wrapped item in the list of this key"
             return templatesByType.mobile[0].eq(0);
         } else {
@@ -454,7 +457,7 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function productHoverOn() {
-        if (Willet.browser.mobile) {
+        if (browser.mobile) {
             // no social buttons on top of products on mobile
             commonHoverOn(this, false, true);
         } else {
@@ -511,7 +514,7 @@ var PAGES = (function ($, details, mediator) {
         // suppose results is (now) a legit json object:
         // {products: [], videos: [(sizeof 1)]}
         try {
-            if (jsonData.error) {
+            if (jsonData.error) {  // IR may send {'error': '<html ... 404 ..'}
                 mediator.fire(
                     'error',  // usually "Campaign xxx has no product for id xxx"
                     [jsonData.error + ' (' + (jsonData.url || '') + ')']
@@ -683,9 +686,9 @@ var PAGES = (function ($, details, mediator) {
             var video_id = video['original-id'] || video.id,
                 video_state_change = window.pagesTracking ?
                     _.partial(window.pagesTracking.videoStateChange, video_id) :
-                        function () {/* dummy */};
+                        $.noop;
 
-            Willet.mediaAPI.getObject("video_gdata", video_id, function (video_data) {
+            mediaAPI.getObject("video_gdata", video_id, function (video_data) {
                 var containers,
                     preferredThumbnailQuality = 'hqdefault',
                     thumbClass = 'youtube-thumbnail',
@@ -790,8 +793,7 @@ var PAGES = (function ($, details, mediator) {
     function layoutRelated(product, relatedContent) {
         /* Load related content into the masonry instance.
            @return: none */
-        var $discovery = $('.discovery-area'),
-            $product = $(product),
+        var $product = $(product),
             initialBottom = $product.position().top + $product.height(),
             $target = $product.next();
 
@@ -814,7 +816,7 @@ var PAGES = (function ($, details, mediator) {
         // calculates screen location and decide if more results
         // should be displayed.
         var $w            = $(window),
-            discoveryBlocks = $('.discovery-area .block'),
+            discoveryBlocks = $('.block', '.discovery-area'),
             noResults     = (discoveryBlocks.length === 0),
             pageBottomPos = $w.innerHeight() + $w.scrollTop(),
             lowestBlock,
@@ -849,11 +851,11 @@ var PAGES = (function ($, details, mediator) {
         // even if the device is not mobile, and vice versa.
         // this cannot "un-render" js templates previously rendered with
         // a different-size template.
-        var oldState = Willet.browser.mobile;
-        Willet.browser.mobile =  ($(window).width() < 1024);
+        var oldState = browser.mobile;
+        browser.mobile = ($(window).width() < 1024);
 
-        if (Willet.browser.mobile !== oldState) {  // if it changed
-            if (Willet.browser.mobile) {
+        if (browser.mobile !== oldState) {  // if it changed
+            if (browser.mobile) {
                 // style tag has no disabled attrib, but the DOM has it
                 $('style.mobile-only').prop('disabled', '');
                 $('style.desktop-only').prop('disabled', 'disabled');
@@ -1056,16 +1058,15 @@ var PAGES = (function ($, details, mediator) {
         'getModifiedTemplateName': getModifiedTemplateName,
         'getTemplate': getTemplate
     };
-}(window.jQuery,
-    window.PAGES_INFO || window.TEST_PAGE_DATA || {},
-    (Willet && Willet.mediator) || {}));
+}(window.jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA || {}, Willet));
 
 
 // mobile component
-PAGES.mobile = (function (me, mediator) {
+PAGES.mobile = (function (me, Willet) {
     "use strict";
 
-    var localData = {};
+    var localData = {},
+        mediator = Willet.mediator;
 
     me = {
         'renderToView': function (viewSelector, templateName, context, append) {
@@ -1120,4 +1121,4 @@ PAGES.mobile = (function (me, mediator) {
     me.local_data = me.localData = localData;  // old themes compatability
 
     return me;
-}(PAGES.mobile || {}, Willet.mediator));
+}(PAGES.mobile || {}, Willet));
