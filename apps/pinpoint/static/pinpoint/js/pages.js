@@ -2,7 +2,6 @@
 var PAGES = (function ($, details, mediator) {
     "use strict";
     var i = 0,  // counter
-        noop = function () {},
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || true,
@@ -38,7 +37,8 @@ var PAGES = (function ($, details, mediator) {
             ],
             imageTypes = [
                 // templates of these names will all use the "image" template.
-                'styld-by', 'tumblr', 'pinterest', 'facebook', 'instagram'
+                'styld.by', 'styld-by',
+                'tumblr', 'pinterest', 'facebook', 'instagram'
             ];
 
         if (_.contains(templateNames, name)) {
@@ -300,6 +300,7 @@ var PAGES = (function ($, details, mediator) {
             $previewContainer = getTemplate("preview-container"),  // built-in
             $previewMask = $previewContainer.find('.mask'),
             $target = $previewContainer.find('.template.target'),
+            fbButtons,
             templateId,
             template,
             renderedTemplate;
@@ -336,15 +337,6 @@ var PAGES = (function ($, details, mediator) {
 
         $target.html(renderedTemplate);
 
-        // Parse Facebook, Twitter buttons
-        if (window.FB) {
-            window.FB.XFBML.parse($previewContainer.find('.social-buttons .button.facebook')[0]);
-        }
-
-        if (window.twttr) {
-            window.twttr.widgets.load();
-        }
-
         mediator.fire('PAGES.previewOpened');
         mediator.fire('tracking.clearTimeout');
         mediator.fire('tracking.setSocialShareVars', [
@@ -354,6 +346,25 @@ var PAGES = (function ($, details, mediator) {
         $previewContainer.css('display', 'table').fadeIn(100);
         if ($previewMask.length) {
             $previewMask.fadeIn(100);
+        }
+
+        // Parse Facebook, Twitter buttons
+        if (window.FB) {
+            // desktop check (if it does not exist, script will init
+            // ALL buttons on the page at once)
+            fbButtons = $previewContainer.find('.social-buttons .button.facebook');
+            if (fbButtons.length) {
+                window.FB.XFBML.parse(fbButtons[0]);
+            }
+            // mobile check
+            fbButtons = $previewContainer.find('.fb-like');
+            if (fbButtons.length) {
+                window.FB.XFBML.parse(fbButtons[0]);
+            }
+        }
+
+        if (window.twttr) {
+            window.twttr.widgets.load();
         }
 
         // late binding for all close buttons
@@ -427,7 +438,12 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function productHoverOn() {
-        commonHoverOn(this, true, true);
+        if (Willet.browser.mobile) {
+            // no social buttons on top of products on mobile
+            commonHoverOn(this, false, true);
+        } else {
+            commonHoverOn(this, true, true);
+        }
     }
 
     function productHoverOff() {
@@ -445,7 +461,7 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function youtubeHoverOff() {
-        commonHoverOff(this, noop, false);
+        commonHoverOff(this, $.noop, false);
     }
 
     function lifestyleHoverOn() {
@@ -536,7 +552,7 @@ var PAGES = (function ($, details, mediator) {
                     }
 
                     // use the resized images
-                    template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
+                    template_context.image = template_context.image.replace("master.jpg", "medium.jpg");
                     break;
                 case 'combobox':
                     // in case an image is lacking, don't bother with the product
@@ -576,7 +592,7 @@ var PAGES = (function ($, details, mediator) {
                 }
 
             } catch (err) {  // hide rendering error
-                mediator.fire('log', ['oops @ item', err]);
+                mediator.fire('error', ['oops @ item', err]);
             }
         }
 
@@ -723,7 +739,12 @@ var PAGES = (function ($, details, mediator) {
 
         // make sure images are loaded or else masonry wont work properly
         $block.imagesLoaded(function ($images, $proper, $broken) {
-            $broken.parents('.block').remove();
+            if ($broken) {
+                // possible that if all images are proper,
+                // this is undefined; i.e.
+                // Uncaught TypeError: Cannot call method 'parents' of undefined
+                $broken.parents('.block').remove();
+            }
             $block.find('.block img[src=""]').parents('.block').remove();
 
             // Don't continue to load results if we aren't getting more results
@@ -744,8 +765,7 @@ var PAGES = (function ($, details, mediator) {
                 return;
             }
 
-            // hack. tell masonry to reposition blocks
-            $(window).resize();
+            // tell masonry to reposition blocks
             PAGES.setLoadingBlocks(false);
         });
     }
@@ -822,6 +842,22 @@ var PAGES = (function ($, details, mediator) {
                 $('style.desktop-only').prop('disabled', '');
             }
         }
+
+        var $discovery = $('.discovery-area'),
+            discoveryWidth = $discovery.width(),
+            discoveryHeight = $discovery.height(),
+            oldDiscoveryWidth = $discovery.data('width'),
+            oldDiscoveryHeight = $discovery.data('height');
+        if (discoveryWidth !== oldDiscoveryWidth ||
+                discoveryHeight !== oldDiscoveryHeight) {
+            // size of discovery area changed - update masonry
+            $discovery.masonry();
+            // and update the old widths/heights
+            $discovery.data({
+                'width': discoveryWidth,
+                'height': discoveryHeight
+            });
+        }
     }
 
     function attachListeners() {
@@ -862,7 +898,13 @@ var PAGES = (function ($, details, mediator) {
             }, '.block.combobox:not(.unclickable) .lifestyle');
         }
 
-        $(window).resize(windowResize);
+        $(window).resize(_.throttle(windowResize, 1000));
+
+        mediator.on('PAGES.ready', function () {
+            if ($.mobile && $.mobile.hidePageLoadingMsg) {
+                $.mobile.hidePageLoadingMsg();
+            }
+        });
     }
 
     /* --- END element bindings --- */
@@ -879,7 +921,7 @@ var PAGES = (function ($, details, mediator) {
                     ['script ' + item.src + ' already loaded; skipping.']
                 );
             } else {
-                $.getScript(item.src || item, item.onload || noop);
+                $.getScript(item.src || item, item.onload || $.noop);
                 scriptsLoaded.push(item.src);
             }
         }
@@ -901,14 +943,13 @@ var PAGES = (function ($, details, mediator) {
             itemSelector: '.block',
             columnWidth: $('.discovery-area').width() / 4,
             isResizable: true,
-            isResizable: true,
             isAnimated: true
-        });
+        }).masonry('bindResize');
 
-        $(window).scroll(PAGES.pageScroll).resize(PAGES.pageScroll);
+        $(window).scroll(pageScroll).resize(pageScroll);
 
         // Prevent social buttons from causing other events
-        $('.social-buttons .button').on('click', function(e) {
+        $('.social-buttons .button').on('click', function (e) {
             e.stopPropagation();
         });
 
@@ -964,11 +1005,11 @@ var PAGES = (function ($, details, mediator) {
         'id': 'twitter-wjs'
     }, {
         'src'   : '//assets.pinterest.com/js/pinit.js',
-        'onload': noop
+        'onload': $.noop
     }];
 
     return {
-        'init': init,
+        'init': _.once(init),
         'addPreviewCallback': addPreviewCallback,
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
         'renderTemplate': renderTemplate,
