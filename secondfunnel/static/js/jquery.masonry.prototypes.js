@@ -1,4 +1,3 @@
-// TODO: REWRITE TO BE COMPATIBLE WITH V3.0+ OF MASONRY
 (function ($, window) {
 
     //==BEGIN HELPER FUNCTIONS==//
@@ -12,7 +11,7 @@
 
         // emit layoutComplete when done
         this._itemsOn( items, 'layout', function onItemsLayout() {
-                this.emitEvent( 'layoutComplete', [ this, items ] );
+            this.emitEvent( 'layoutComplete', [ this, items ] );
         });
 
         // BEGIN WILLET
@@ -37,6 +36,7 @@
                 // remove item from collection
                 var index = this.items.indexOf(item);
                 this.items.splice(index, 1);
+                len -= 1;
                 continue;
             }
             // END WILLET
@@ -105,7 +105,7 @@
         };
 
         // apply setHeight to necessary columns
-        var setHeight = y + item.size.outerHeight,
+        var setHeight = position.y + item.size.outerHeight,
             setSpan = this.cols + 1 - colGroup.length;
         for (i = 0; i < setSpan; i++) {
             this.colYs[shortColIndex + i] = setHeight;
@@ -129,6 +129,12 @@
         var colSpan = Math.ceil(item.size.outerWidth / this.columnWidth );
         return Math.min( colSpan, this.cols );
     };
+
+    Masonry.prototype.reload = function() {
+        this.reloadItems();
+        this.layout();
+    };
+
     // End Willet
 
 })(jQuery, window);

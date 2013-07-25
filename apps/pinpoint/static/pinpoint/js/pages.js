@@ -766,7 +766,7 @@ var PAGES = (function ($, details, mediator) {
             }
 
             // tell masonry to reposition blocks
-            $('.discovery-area').masonry();
+            $('.discovery-area').masonry('reload');
             PAGES.setLoadingBlocks(false);
         });
     }
@@ -787,7 +787,7 @@ var PAGES = (function ($, details, mediator) {
 
         // Inserts content after the clicked product block (Animated)
         relatedContent.insertAfter($target);
-        $discovery.masonry('reloadItems').masonry();
+        $discovery.masonry('reload');
         relatedContent.show();
     }
 
@@ -850,9 +850,9 @@ var PAGES = (function ($, details, mediator) {
             oldDiscoveryWidth = $discovery.data('width'),
             oldDiscoveryHeight = $discovery.data('height');
         if (discoveryWidth !== oldDiscoveryWidth ||
-                discoveryHeight !== oldDiscoveryHeight) {
+            discoveryHeight !== oldDiscoveryHeight) {
             // size of discovery area changed - update masonry
-            $discovery.masonry();
+            $discovery.masonry('reload');
             // and update the old widths/heights
             $discovery.data({
                 'width': discoveryWidth,
