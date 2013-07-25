@@ -11,14 +11,11 @@ var PAGES = (function ($, details, Willet) {
         scripts,
         scriptsLoaded = [],
         spaceBelowFoldToStartLoading = 500,
+        templatesOnPage = {},  // dict of dicts
         loadingBlocks = false,
         globalIdCounters = {},
         hoverTimer,
-        sizableRegex = /images\.secondfunnel\.com/,
-        imageSizes = [
-            "icon", "thumb", "small", "compact", "medium", "large",
-            "grande", "1024x1024", "master"
-        ];
+        sizableRegex = /images\.secondfunnel\.com/;
 
     function getLoadingBlocks() {
         return loadingBlocks;
@@ -106,18 +103,61 @@ var PAGES = (function ($, details, Willet) {
         // right now, it only resolves mobile templates for mobile devices.
         // in the event that a mobile template is not found, the full template
         // will be served in place.
-        var i,
-            templateEls = getByAttrib('template-id', templateId),
-            templatesByType = groupByAttrib(templateEls, 'media', true);
+        var i, templateEls;
+        templateEls = templatesOnPage[templateId];
 
-        if (browser.mobile && templatesByType.mobile) {
+        if (browser.mobile && templateEls.mobile) {
             // return "the first jquery-wrapped item in the list of this key"
-            return templatesByType.mobile[0].eq(0);
+            return templateEls.mobile[0].eq(0);
         } else {
             // if nothing specified or no mobile theme, pick the first one.
             // it can be an empty jquery object. (for e.g. 'image' template)
-            return templateEls.eq(0);
+            try {
+                return templateEls.desktop[0].eq(0);
+            } catch (err) { }
+            try {
+                return templateEls['undefined'][0].eq(0);  // type undeclared
+            } catch (err) { }
         }
+
+        if (templateId !== 'preview') {
+            // 'preview' is an exception (circular target-src reference)
+            mediator.fire('error', ['oops, no template ' + templateId]);
+        }
+        // no such template - return an object that has .html()
+        return $('<div>Template ' + templateId + ' missing</div>');
+    }
+
+    function loadTemplates() {
+        // saves all javascript templates on the page to a dict of dicts.
+        // {
+        //     product: {
+        //         desktop: $(theElement),
+        //         mobile: $(theElement),
+        //     },
+        //     combobox: {
+        //         desktop: $(theElement),
+        //         mobile: $(theElement),
+        //     },
+        //     ...
+        // }
+        // The idea is to call this function only once per page load.
+        // Calling it more than once (perhaps to refresh themes?)
+        //   will eliminate the performance improvements that it introduces.
+        var templateIndicator = 'template-id',  // what makes a template a template
+            templateEls = $('[data-' + templateIndicator + ']'),
+            groupedTemplateEls;
+
+        groupedTemplateEls = _.groupBy(templateEls, function (el) {
+            return $(el).data('template-id');
+        });
+
+        _.each(groupedTemplateEls, function (value, key, list) {
+            list[key] = groupByAttrib($(value), 'media', true);
+        });
+
+        templatesOnPage = groupedTemplateEls;  // export
+        return groupedTemplateEls;
     }
 
     function size(url, desiredSize) {
@@ -125,7 +165,12 @@ var PAGES = (function ($, details, Willet) {
         // trust that our service will contain the required image.
         // ... Also, because it could be expensive to check for the required
         // image before use
-        var newUrl, filename;
+        var newUrl,
+            filename,
+            imageSizes = [
+                "icon", "thumb", "small", "compact", "medium", "large",
+                "grande", "1024x1024", "master"
+            ];
 
         if (!sizableRegex.test(url) || !_.contains(imageSizes, desiredSize)) {
             return url;
@@ -275,24 +320,6 @@ var PAGES = (function ($, details, Willet) {
                 target.html('Error: missing template #' + src);
             }
         });
-    }
-
-    function showComment(domId) {
-        // removes the comment tags within a dom element. (done by fb)
-        // contents cannot contain a comment tag.
-        var target = $('#' + domId),
-            markup = target.html();
-        target.html(markup.substring(markup.indexOf('<' + '!--') + 4,
-                                     markup.lastIndexOf('--' + '>')));
-    }
-
-    function hideComment(domId) {
-        // comments out tags within a dom element. (done by fb)
-        // this is used to remove, not hide, structure from the page.
-        // contents cannot contain a comment tag.
-        var target = $('#' + domId),
-            markup = target.html();
-        target.html('<' + '!-- ' + markup + ' --' + '>');
     }
     /* --- END Utilities --- */
 
@@ -957,7 +984,7 @@ var PAGES = (function ($, details, Willet) {
         }
 
         // Special Setup
-        // no effect on mobile
+        loadTemplates(); // populate list of templates in templatesOnPage
         renderTemplates();
         attachListeners();
 
