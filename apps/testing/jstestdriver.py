@@ -86,7 +86,6 @@ def capture_browser(url, browser, server):
     elif "chrome" in browser.lower():
         tempProfile = "/tmp/%d.GOOGLE.CHROME.PROFILE.JSTESTDRIVER"%(random.randint(0, sys.maxint))
         args = '--user-data-dir=\"{0}\" --no-first-run --no-default-browser-check'.format(tempProfile)
-        TASKS.append("rm -r {0}".format(tempProfile))
 
     # Safari can't be opened normally
     cmd = ("open -na {0} {1} -g {2}" if "safari" in browser.lower() else "\"{0}\" {1} {2} &").format(application, url, args)
@@ -112,8 +111,16 @@ def stop_server():
     @return: None
     """
     for task in TASKS[::-1]:
-        t = subprocess.Popen(task, shell=True)#, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        t = subprocess.Popen(task, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         t.wait()
+
+    for (path, dirs, files) in os.walk('/tmp/'):
+        for dir in dirs:
+            if 'JSTESTDRIVER' in dir:
+                for (dirpath, dirnames, filenames) in os.walk(os.path.join(path, dir), topdown=False):
+                    for filename in filenames:
+                        os.remove(os.path.join(dirpath, filename))
+                    shutil.rmtree(dirpath)
 
     return
 
@@ -126,12 +133,12 @@ def start_server( browsers ):
     @return: None
     """
     pid = None
-    command = "java -jar {0} --port 9876 --runnerMode INFO".format(getPath("resources/JsTestDriver.jar"))
+    command = "nohup java -jar {0} --port 9876 --runnerMode INFO".format(getPath("resources/JsTestDriver.jar"))
 
     # Start the server
     server = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     pid = wait_for_pid("/usr/bin/java -jar .*/resources/JsTestDriver.jar")
-    TASKS.append("kill -TERM {0}".format(pid))
+    TASKS.append("kill {0}".format(pid))
 
     # Wait for the server to finish booting up
     while True:
@@ -142,9 +149,9 @@ def start_server( browsers ):
 
     # If no browser(s) are specified, headless
     if len(browsers) == 0:
-        phantom = subprocess.Popen("phantomjs {0}".format(getPath("resources/phantomjs-jstd.js")), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        phantom = subprocess.Popen("nohup phantomjs {0}".format(getPath("resources/phantomjs-jstd.js")), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         pid = wait_for_pid("phantomjs")
-        TASKS.append("kill -TERM {0}".format(pid))
+        TASKS.append("kill {0}".format(pid))
 
         # Wait for the capture to finish
         while True:

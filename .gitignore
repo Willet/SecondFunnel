@@ -14,6 +14,7 @@ bin/*
 doc/
 log/
 runserver
+libpeerconnection.log
 
 # Testing directories
 apps/testing/resources
