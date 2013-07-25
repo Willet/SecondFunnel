@@ -406,7 +406,7 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function comboboxHoverOn() {
-        commonHoverOn(this, true, true);
+        commonHoverOn(this, false, true);
     }
 
     function comboboxHoverOff() {
