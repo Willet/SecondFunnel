@@ -1,3 +1,6 @@
+from apps.testing.settings import RESOURCES as resources
+from secondfunnel.settings.common import fromProjectRoot
+
 try:
     from collections import OrderedDict
 except ImportError:
@@ -9,13 +12,6 @@ import sys
 import subprocess
 import re
 
-
-RESOURCES = {
-    'resources/jasmine': "https://github.com/downloads/pivotal/jasmine/jasmine-standalone-1.3.1.zip",
-    'resources/JasmineAdapter.js': "https://raw.github.com/ibolmo/jasmine-jstd-adapter/master/src/JasmineAdapter.js",
-    'resources/JsTestDriver.jar': "https://js-test-driver.googlecode.com/files/JsTestDriver-1.3.5.jar",
-    'resources/phantomjs-jstd.js': "https://raw.github.com/larrymyers/js-test-driver-phantomjs/master/phantomjs-jstd.js"
-}
 
 
 def parse_results():
@@ -61,6 +57,17 @@ def extension( filename ):
     return filename.split(".")[-1]
 
 
+def getPath(path):
+    """
+    Returns the full path to the specified file or directory.
+
+    @return: string
+    """
+    return fromProjectRoot(
+        os.path.join("apps/testing", path)
+    )
+
+
 def install():
     platform, downloader = sys.platform.lower(), None
 
@@ -77,7 +84,7 @@ def install():
     if not os.path.exists("resources"):
         os.mkdir("resources")
 
-    for resource, src in RESOURCES.iteritems():
+    for resource, src in resources.iteritems():
         if not os.path.exists(resource):
             if extension(src) == "zip":
                 filename = re.split(r'[\\/]', src)[-1]
@@ -105,3 +112,5 @@ def install():
 
     # Explicit return
     return None
+
+

@@ -2,63 +2,163 @@ import subprocess
 import os
 import re
 import shutil
+import sys
+import random
 
 from secondfunnel.settings.common import fromProjectRoot
-from apps.testing.settings import GENERIC_BROWSER_LIST, ADDITIONAL_BROWSER_LIST, CONFIGS
-from apps.testing.utils import parse_results
+from apps.testing.settings import BROWSERS_MAC, BROWSERS_LINUX, CONFIGS
+from apps.testing.utils import parse_results, getPath
 
 
-def getPath(path):
+TASKS = []
+
+
+def wait_for_pid(application):
     """
-    Returns the full path to the specified file or directory.
+    Waits until it can get the pid of the specified application.
 
-    @return: string
+    @param application: Name of the application to get the pid of
+    @return: int
     """
-    return fromProjectRoot(
-        os.path.join("apps/testing", path)
-    )
+    pid = None
+    cmd = "ps -ax | grep \"{0}\" | grep -v grep | grep -v open | awk '{{print $1}}' | tail -n 1".format(application)
+    while not pid or len(pid) == 0:
+        pid = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        pid, err = pid.communicate()
+
+        if err:
+            raise Exception(err)
+    
+    return int(pid)
 
 
-def startServer( browsers ):
+def capture_browser(url, browser, server):
+    """
+    """
+    platform = sys.platform.lower()
+    browsers = (BROWSERS_MAC if platform == "darwin" else BROWSERS_LINUX)
+    
+    for b in browsers:
+        if browser in b.lower():
+            browser = b
+            break
+
+    profileDir = ("~/Library/Application Support/Firefox" if platform == "darwin" else "~/.mozilla/firefox")
+    application, args = None, ""
+    paths = os.environ["PATH"].split(":")
+
+    # Additional step for MAC OS since Application DIR is not on the path.
+    if platform == "darwin":
+        for (dirpath, dirnames, filenames) in os.walk("/Applications", followlinks=True):
+            if '.app' in dirpath:
+                paths.append(os.path.join(dirpath, "Contents/MacOS/"))
+                del dirnames[:]
+
+    for path in paths:
+        symbolic_links = re.split(r'[\\/]', path)
+
+        for i in range(0, len(symbolic_links)):
+            app = os.path.join(os.path.join(os.sep, *symbolic_links[:i + 1]), browser)
+            if os.path.isfile(app) and os.access(app, os.X_OK):
+                application = app
+                break
+
+        if application:
+            break
+
+    if not application:
+        application = browser
+
+    # Firefox and Chrome require special additional instructions
+    if "firefox" in browser.lower():
+        tempProfile = "%d.JSTESTDRIVER"%(random.randint(0, sys.maxint))
+        profilepath = os.path.join(os.path.expanduser(profileDir), "profiles.ini")
+        with open(profilepath, 'r') as profile:
+            if not os.path.exists("/tmp/profiles.ini"):
+                with open("/tmp/profiles.ini", 'w') as cpy:
+                    cpy.write("".join(profile.readlines()))
+                    
+            TASKS.append('rm -r "{0}"/Profiles/*.{1}'.format(os.path.expanduser(profileDir), tempProfile))
+            TASKS.append('mv /tmp/profiles.ini \"{0}\"'.format(profilepath))
+        args = "-p {0}".format(tempProfile)
+        p = subprocess.Popen("{0} -CreateProfile {1}".format(application, tempProfile), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p.wait()
+    elif "chrome" in browser.lower():
+        tempProfile = "/tmp/%d.GOOGLE.CHROME.PROFILE.JSTESTDRIVER"%(random.randint(0, sys.maxint))
+        args = '--user-data-dir=\"{0}\" --no-first-run --no-default-browser-check'.format(tempProfile)
+        TASKS.append("rm -r {0}".format(tempProfile))
+
+    # Safari can't be opened normally
+    cmd = ("open -na {0} {1} -g {2}" if "safari" in browser.lower() else "\"{0}\" {1} {2} &").format(application, url, args)
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    pid = wait_for_pid(application)
+    TASKS.append("kill -TERM {0}".format(pid))
+
+    # Wait until the browser is captured
+    while True:
+        line = server.stdout.readline()
+        if 'Browser Captured' in line:
+            break
+
+    server.stdout.flush()
+
+    return
+
+
+def stop_server():
+    """
+    Shutdowns the server by running all the remaining tasks in the shell.
+
+    @return: None
+    """
+    for task in TASKS[::-1]:
+        t = subprocess.Popen(task, shell=True)#, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        t.wait()
+
+    return
+
+
+def start_server( browsers ):
     """
     Captures the browsers to be used for the JsTestDriver.
 
     @param browsers: The browser(s) to use if any.
     @return: None
     """
-    applications = []
-    browser_list = GENERIC_BROWSER_LIST + ADDITIONAL_BROWSER_LIST
-    command = "java -jar {0} --port 9876".format(getPath("resources/JsTestDriver.jar"))
-    
-    for browser in browsers:
-        script = [ b for b in browser_list if b == browser or re.match(r'' + browser + '($|/)', b) ] 
-        app = browser if os.path.exists(browser) else None
+    pid = None
+    command = "java -jar {0} --port 9876 --runnerMode INFO".format(getPath("resources/JsTestDriver.jar"))
 
-        if not app and len(script) > 0:
-            app = script[0]
-        else:
-            app = browser
-
-        applications.append(app)
-
-    if len(applications) > 0:
-        # Determine if we were given an application of a full path
-        # If given the full path to a browser, use the browser as it.
-        script, scripts = getPath("scripts/browsers.sh"), []
-        command += " --browser \""
-        for application in applications:
-            if os.path.exists(application):
-                scripts.append("{0};%s".format(re.escape(application)))
-            else:
-                new_script = "/tmp/browsers-{0}.sh".format(re.escape(application))
-                os.system("cp {0} {1}".format(script, new_script))
-                scripts.append("{0};%s;{1}".format(new_script, re.escape(application)))
-        command += ",".join(scripts) + "\""
-
+    # Start the server
     server = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    
+    pid = wait_for_pid("/usr/bin/java -jar .*/resources/JsTestDriver.jar")
+    TASKS.append("kill -TERM {0}".format(pid))
+
+    # Wait for the server to finish booting up
+    while True:
+        line = server.stdout.readline()
+        if "Finished action run" in line:
+            server.stdout.flush()
+            break
+
+    # If no browser(s) are specified, headless
     if len(browsers) == 0:
         phantom = subprocess.Popen("phantomjs {0}".format(getPath("resources/phantomjs-jstd.js")), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        pid = wait_for_pid("phantomjs")
+        TASKS.append("kill -TERM {0}".format(pid))
+
+        # Wait for the capture to finish
+        while True:
+            line = phantom.stdout.readline()
+            if "success" in line:
+                break
+
+    else:
+        for browser in browsers:
+            try:
+                capture_browser("http://localhost:9876/capture", browser, server)
+            except Exception as e:
+                stop_server()
+                raise Exception(e)
 
     return None
 
@@ -79,7 +179,6 @@ def call_JsTestDriver(config, tests, browsers, *args, **kwargs):
                    os.path.join(
                        fromProjectRoot('manage.py'), os.pardir))
 
-    # Find the configuration file we're using.
     if config in CONFIGS:
         command += " --config {0}".format(getPath(CONFIGS[config]))
     else:
@@ -89,27 +188,19 @@ def call_JsTestDriver(config, tests, browsers, *args, **kwargs):
         else:
             raise IOError("Specified file does not exist", config)
 
-    command += " --runnerMode {0} --basePath {1} --tests {2} {3}".format(kwargs['mode'], basepath, tests, "--captureConsole" if kwargs['log'] else "")
+    command += " --basePath {0} --tests {1} {2} --testOutput apps/testing/tests/results > /dev/null".format(basepath, tests, "--captureConsole" if kwargs['log'] else "")
     shutil.rmtree(getPath("tests/results"), ignore_errors=True)
     os.mkdir(getPath("tests/results"))
-    command += " --testOutput apps/testing/tests/results > /dev/null"
 
     if not kwargs['remote']:
-        startServer(browsers)
+        start_server(browsers)
 
-    import time
-    time.sleep(5)
-    
     testRunner = subprocess.Popen(command, shell=True, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
     (out, err) = testRunner.communicate()
+    stop_server()
 
-    if len(browsers) == 0:
-        subprocess.Popen("killall - phantomjs", shell=True)
-    
-    subprocess.Popen("{0}".format(getPath("scripts/shutdown.sh")), shell=True)
-
-    if err:
-        raise RuntimeError(err)
+    if 'error' in out:
+        raise RuntimeError(out)
 
     verbosity = int(kwargs['verbosity'])
     data, output = parse_results(), ""
@@ -125,4 +216,3 @@ def call_JsTestDriver(config, tests, browsers, *args, **kwargs):
                 print
 
     return None
-
