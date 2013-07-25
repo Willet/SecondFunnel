@@ -630,7 +630,9 @@ var PAGES = (function ($, details, mediator) {
                             // This block is ready to go, render it on the page.
                             $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
                             $elem.find('div').show();
-                            $('.discovery-area').masonry();
+                            // Trigger a window resize event because Masonry's resize logic is better
+                            // than it's reload logic
+                            $(window).resize();
                         }
                     });
                 });
@@ -764,6 +766,7 @@ var PAGES = (function ($, details, mediator) {
             }
 
             // tell masonry to reposition blocks
+            $('.discovery-area').masonry();
             PAGES.setLoadingBlocks(false);
         });
     }
