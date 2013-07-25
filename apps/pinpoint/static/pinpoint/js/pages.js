@@ -234,6 +234,23 @@ var PAGES = (function ($, details, mediator) {
         return _.template(replaced, context);
     }
 
+    function isScrolledIntoView($elem, completely) {
+        // mod of http://stackoverflow.com/a/488073/1558430
+        // only checks for up-down scrolling.
+        // completely: whether this is false when the elem is partially visible
+        var $wnd = $(window),
+            docViewTop = $wnd.scrollTop(),
+            docViewBottom = docViewTop + $wnd.height(),
+            elemTop = $elem.offset().top,
+            elemBottom = elemTop + $elem.height();
+
+        if (completely) {
+            return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+        } else {
+            return ((elemTop <= docViewBottom) && (elemBottom >= docViewTop));
+        }
+    }
+
     function renderTemplates(data) {
         // finds templates currently on the page, and drops them onto their
         // targets (elements with classes 'template' and 'target').
@@ -842,6 +859,19 @@ var PAGES = (function ($, details, mediator) {
         if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
             loadMoreResults(layoutResults);
         }
+
+        $('.block', '.discovery-area').each(function (idx, obj) {
+            // broadcast which blocks are visible
+            var $block = $(obj),
+                blockWasInView = $block.data('in-view') || false,
+                blockIsInView = isScrolledIntoView($block, false);
+            $block.data('in-view', blockIsInView);  // tell the block
+            if (blockWasInView !== blockIsInView) {
+                // tell everyone else (that it changed)
+                mediator.fire('PAGES.elementVisibilityChanged', [
+                    $block, blockIsInView]);
+            }
+        });
     }
 
     function windowResize() {
