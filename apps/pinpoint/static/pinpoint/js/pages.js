@@ -1,21 +1,22 @@
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
-var PAGES = (function ($, details, mediator) {
+var PAGES = (function ($, details, Willet) {
     "use strict";
     var i = 0,  // counter
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
-        SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || true,
+        SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || false,
+        mediator = Willet.mediator,
+        browser = Willet.browser || {'mobile': false},
+        mediaAPI = Willet.mediaAPI,
         scripts,
         scriptsLoaded = [],
         spaceBelowFoldToStartLoading = 500,
+        templatesOnPage = {},  // dict of dicts
         loadingBlocks = false,
         globalIdCounters = {},
         hoverTimer,
         sizableRegex = /images\.secondfunnel\.com/,
-        imageSizes = [
-            "icon", "thumb", "small", "compact", "medium", "large",
-            "grande", "1024x1024", "master"
-        ];
+        $wnd = $(window);
 
     function getLoadingBlocks() {
         return loadingBlocks;
@@ -103,18 +104,62 @@ var PAGES = (function ($, details, mediator) {
         // right now, it only resolves mobile templates for mobile devices.
         // in the event that a mobile template is not found, the full template
         // will be served in place.
-        var i,
-            templateEls = getByAttrib('template-id', templateId),
-            templatesByType = groupByAttrib(templateEls, 'media', true);
+        var templateEls = templatesOnPage[templateId];
 
-        if (Willet.browser.mobile && templatesByType.mobile) {
+        if (browser.mobile && templateEls && templateEls.mobile) {
             // return "the first jquery-wrapped item in the list of this key"
-            return templatesByType.mobile[0].eq(0);
+            return templateEls.mobile[0].eq(0);
         } else {
             // if nothing specified or no mobile theme, pick the first one.
             // it can be an empty jquery object. (for e.g. 'image' template)
-            return templateEls.eq(0);
+            try {
+                return templateEls.desktop[0].eq(0);
+            } catch (err) { }
+            try {
+                return templateEls['undefined'][0].eq(0);  // type undeclared
+            } catch (err) { }
         }
+
+        if (templateId !== 'preview') {
+            // 'preview' is an exception (circular target-src reference)
+            mediator.fire('error', ['oops, no template ' + templateId]);
+        }
+        // no such template - return an object that has .html()
+        return $('');
+    }
+
+    function loadTemplates() {
+        // saves all javascript templates on the page to a dict of dicts.
+        // {
+        //     product: {
+        //         desktop: $(theElement),
+        //         mobile: $(theElement),
+        //     },
+        //     combobox: {
+        //         desktop: $(theElement),
+        //         mobile: $(theElement),
+        //     },
+        //     ...
+        // }
+        // The idea is to call this function only once per page load.
+        // Calling it more than once (perhaps to refresh themes?)
+        //   will eliminate the performance improvements that it introduces.
+        var templateIndicator = 'template-id',  // what makes a template a template
+            templateEls = $('[data-' + templateIndicator + ']'),
+            groupedTemplateEls;
+
+        groupedTemplateEls = _.groupBy(templateEls, function (el) {
+            return $(el).data('template-id');
+        });
+
+        _.each(groupedTemplateEls, function (value, key, list) {
+            // for 'image', then for everyone else
+            list[getModifiedTemplateName(key)] = list[key] =
+                groupByAttrib($(value), 'media', true);
+        });
+
+        templatesOnPage = groupedTemplateEls;  // export
+        return groupedTemplateEls;
     }
 
     function size(url, desiredSize) {
@@ -122,7 +167,12 @@ var PAGES = (function ($, details, mediator) {
         // trust that our service will contain the required image.
         // ... Also, because it could be expensive to check for the required
         // image before use
-        var newUrl, filename;
+        var newUrl,
+            filename,
+            imageSizes = [
+                "icon", "thumb", "small", "compact", "medium", "large",
+                "grande", "1024x1024", "master"
+            ];
 
         if (!sizableRegex.test(url) || !_.contains(imageSizes, desiredSize)) {
             return url;
@@ -168,18 +218,47 @@ var PAGES = (function ($, details, mediator) {
         return baseStr + globalIdCounters[baseStr];
     }
 
-    function fisherYates(myArray, nb_picks) {
-        // get #nb_picks random permutations of an array.
-        // http://stackoverflow.com/a/2380070
-        var i;
-        for (i = myArray.length - 1; i > 1; i--) {
-            var r = Math.floor(Math.random() * i);
-            var t = myArray[i];
-            myArray[i] = myArray[r];
-            myArray[r] = t;
+    function loadYoutubeVideo(videoID, thumbnailID, onStateChange) {
+        // @return: None
+        var player = new YT.Player(thumbnailID, {
+            height: 250,
+            width: 450,
+            videoId: videoID,
+            playerVars: {
+                'autoplay': 1,
+                'controls': 0
+            },
+            events: {
+                'onReady': $.noop,
+                'onStateChange': onStateChange,
+                'onError': $.noop
+            }
+        });
+    }
+
+    function getYoutubeThumbnail(videoID, videoData) {
+        // videoData is optional.
+        // @return: string
+        var preferredThumbnailQuality = 'hqdefault',
+            thumbURL = 'http://i.ytimg.com/vi/' + videoID +
+                '/' + preferredThumbnailQuality + '.jpg',
+            thumbObj,
+            thumbPath = ['entry', 'media$group', 'media$thumbnail'],
+            thumbChecker,
+            thumbnailArray;
+
+        if (videoData) {
+            thumbChecker = checkKeys(videoData, thumbPath);
+            thumbnailArray = thumbChecker.media$thumbnail || [];
+            thumbObj = _.findWhere(thumbnailArray, {
+                'yt$name': preferredThumbnailQuality
+            });
+            if (thumbObj && thumbObj.url) {
+                thumbURL = thumbObj.url;
+            }  // else fallback to the default thumbURL
         }
 
-        return myArray.slice(0, nb_picks);
+        return thumbURL;
     }
 
     function renderTemplate(str, context, isBlock) {
@@ -273,24 +352,6 @@ var PAGES = (function ($, details, mediator) {
             }
         });
     }
-
-    function showComment(domId) {
-        // removes the comment tags within a dom element. (done by fb)
-        // contents cannot contain a comment tag.
-        var target = $('#' + domId),
-            markup = target.html();
-        target.html(markup.substring(markup.indexOf('<' + '!--') + 4,
-                                     markup.lastIndexOf('--' + '>')));
-    }
-
-    function hideComment(domId) {
-        // comments out tags within a dom element. (done by fb)
-        // this is used to remove, not hide, structure from the page.
-        // contents cannot contain a comment tag.
-        var target = $('#' + domId),
-            markup = target.html();
-        target.html('<' + '!-- ' + markup + ' --' + '>');
-    }
     /* --- END Utilities --- */
 
     /* --- START element bindings --- */
@@ -350,15 +411,10 @@ var PAGES = (function ($, details, mediator) {
 
         // Parse Facebook, Twitter buttons
         if (window.FB) {
-            // desktop check (if it does not exist, script will init
-            // ALL buttons on the page at once)
-            fbButtons = $previewContainer.find('.social-buttons .button.facebook');
+            fbButtons = $previewContainer.find('.social-buttons .button.facebook, .fb-like');
             if (fbButtons.length) {
-                window.FB.XFBML.parse(fbButtons[0]);
-            }
-            // mobile check
-            fbButtons = $previewContainer.find('.fb-like');
-            if (fbButtons.length) {
+                // if it does not exist, script will init
+                // ALL buttons on the page at once
                 window.FB.XFBML.parse(fbButtons[0]);
             }
         }
@@ -368,7 +424,7 @@ var PAGES = (function ($, details, mediator) {
         }
 
         // late binding for all close buttons
-        $('.preview .mask, .preview .close').on('click', PAGES.hidePreview);
+        $('.preview .mask, .preview .close').on('click', hidePreview);
     }
 
     function addPreviewCallback(func) {
@@ -402,9 +458,9 @@ var PAGES = (function ($, details, mediator) {
             },
 
             isResizable: true,
-            isAnimated: true
+            isAnimated: !browser.mobile  // disable animation on mobile
         };
-        $('.content_list, .discovery-area').masonry(options).masonry('reload');
+        $('.discovery-area').masonry(options).masonry('reload');
     }
 
     function commonHoverOn(t, enableSocialButtons, enableTracking) {
@@ -454,7 +510,7 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function productHoverOn() {
-        if (Willet.browser.mobile) {
+        if (browser.mobile) {
             // no social buttons on top of products on mobile
             commonHoverOn(this, false, true);
         } else {
@@ -510,6 +566,10 @@ var PAGES = (function ($, details, mediator) {
         // renders product divs onto the page.
         // suppose results is (now) a legit json object:
         // {products: [], videos: [(sizeof 1)]}
+        var $block, el, j, initialResults, productDoms = [], results,
+            revisedType, template, templateEl, templateType, videos;
+
+        // check for rogue json data.
         try {
             if (jsonData.error) {
                 mediator.fire(
@@ -528,52 +588,39 @@ var PAGES = (function ($, details, mediator) {
             return;
         }
 
-        var $block,
-            result,
-            results = (PAGES.SHUFFLE_RESULTS) ?
-                    (PAGES.fisherYates(jsonData, PAGES.MAX_RESULTS_PER_SCROLL) || []) :
-                    $(jsonData).slice(0, PAGES.MAX_RESULTS_PER_SCROLL),  // no shuffle
-            initialResults = Math.max(results.length, PAGES.MAX_RESULTS_PER_SCROLL),
-            i,
-            j,
-            productDoms = [],
-            template,
-            templateEl,
-            player,
-            template_context,
-            templateType,
-            el,
-            videos,
-            revisedType;
+        if (SHUFFLE_RESULTS) {  // first we shuffle it (if needed)
+            results = _.shuffle(jsonData);
+        }
+        // then we limit it
+        results = $(results || jsonData).slice(0, MAX_RESULTS_PER_SCROLL);
+        initialResults = Math.max(results.length, MAX_RESULTS_PER_SCROLL);
 
         // add products
-        for (i = 0; i < results.length; i++) {
+        _.each(results, function (result) {  // [template context]
             try {
-                result = results[i];
-                template_context = result;
                 templateType = PAGES.getModifiedTemplateName(result.template) || 'product';
                 templateEl = PAGES.getTemplate(templateType);
                 template = templateEl.html();
 
                 // in case an image is wrong, don't bother with the product
-                if (template_context.image === "None") {
-                    continue;
+                if (result.image === "None") {
+                    return;
                 }
 
                 switch (templateType) {
                 case 'product':
                     // in case an image is lacking, don't bother with the product
-                    if (!template_context.image) {
-                        continue;
+                    if (!result.image) {
+                        return;
                     }
 
                     // use the resized images
-                    template_context.image = template_context.image.replace("master.jpg", "medium.jpg");
+                    result.image = result.image.replace("master.jpg", "medium.jpg");
                     break;
                 case 'combobox':
                     // in case an image is lacking, don't bother with the product
-                    if (!template_context.image) {
-                        continue;
+                    if (!result.image) {
+                        return;
                     }
                     break;
                 case 'image':
@@ -589,16 +636,16 @@ var PAGES = (function ($, details, mediator) {
                 }
 
                 var renderedBlock = PAGES.renderTemplate(template, {
-                    'data': template_context,
+                    'data': result,
                     'page': PAGES.details.page,
                     'store': PAGES.details.store
                 }, true);
                 if (!renderedBlock.length) {
-                    mediator.fire('error', ['warning: not drawing empty template block']);
-                    break;
+                    mediator.fire('error', ['skipping empty template block']);
+                    return;
                 } else {
                     el = $(renderedBlock);
-                    el.data(template_context);  // populate the .product.block div with data
+                    el.data(result);  // populate the .product.block div with data
 
                     var templateElsLength = el.length;
                     for (j=0; j<templateElsLength; j++) {
@@ -610,7 +657,7 @@ var PAGES = (function ($, details, mediator) {
             } catch (err) {  // hide rendering error
                 mediator.fire('error', ['oops @ item', err]);
             }
-        }
+        });
 
         // Remove potentially bad content
         productDoms = _.filter(productDoms, function (elem) {
@@ -648,7 +695,7 @@ var PAGES = (function ($, details, mediator) {
                             $elem.find('div').show();
                             // Trigger a window resize event because Masonry's resize logic is better (faster)
                             // than it's reload logic.
-                            $(window).resize();
+                            $wnd.resize();
                         }
                     });
                 });
@@ -682,31 +729,17 @@ var PAGES = (function ($, details, mediator) {
         _.each(videos, function (video) {
             var video_id = video['original-id'] || video.id,
                 video_state_change = window.pagesTracking ?
-                    _.partial(window.pagesTracking.videoStateChange, video_id) :
-                        function () {/* dummy */};
+                        _.partial(window.pagesTracking.videoStateChange, video_id) :
+                        $.noop;
 
-            Willet.mediaAPI.getObject("video_gdata", video_id, function (video_data) {
-                var containers,
-                    preferredThumbnailQuality = 'hqdefault',
+            mediaAPI.getObject("video_gdata", video_id, function (video_data) {
+                var containers = $(".youtube[data-label='" + video_id + "']"),
                     thumbClass = 'youtube-thumbnail',
-                    thumbURL = 'http://i.ytimg.com/vi/' + video_id +
-                        '/' + preferredThumbnailQuality + '.jpg',
-                    thumbObj,
-                    thumbPath = ['entry', 'media$group', 'media$thumbnail'],
-                    thumbChecker = checkKeys(video_data, thumbPath),
-                    thumbnailArray = thumbChecker.media$thumbnail || [];
+                    thumbURL = getYoutubeThumbnail(video_id, video_data);
 
-                thumbObj = _.findWhere(thumbnailArray, {
-                    'yt$name': preferredThumbnailQuality
-                });
-                if (thumbObj && thumbObj.url) {
-                    thumbURL = thumbObj.url;
-                }  // else fallback to the default thumbURL
-
-                containers = $(".youtube[data-label='" + video_id + "']");
                 containers.each(function () {
                     var container = $(this),
-                        uniqueThumbnailID = PAGES.generateID('thumb-' + video_id),
+                        uniqueThumbnailID = generateID('thumb-' + video_id),
                         thumbnail = $('<div />', {
                             'css': {  // this is to trim the 4:3 black bars
                                 'overflow': 'hidden',
@@ -717,28 +750,13 @@ var PAGES = (function ($, details, mediator) {
                             'id': uniqueThumbnailID
                         });
 
+                    // when the thumbnail is clicked, replace itself with
+                    // the youtube video of the same size, then autoplay
                     thumbnail
-                        .hide()
                         .addClass('wide ' + thumbClass)
                         .click(function () {
-                            // when the thumbnail is clicked, replace itself with
-                            // the youtube video of the same size, then autoplay
-                            player = new YT.Player(uniqueThumbnailID, {
-                                height: 250,
-                                width: 450,
-                                videoId: video_id,
-                                playerVars: {
-                                    'autoplay': 1,
-                                    'controls': 0
-                                },
-                                events: {
-                                    'onReady': function (e) {
-                                    },
-                                    'onStateChange': video_state_change,
-                                    'onError': function (e) {
-                                    }
-                                }
-                            });
+                            loadYoutubeVideo(video_id, uniqueThumbnailID,
+                                             video_state_change);
                         });
 
                     if (container.find('.' + thumbClass).length === 0) {
@@ -753,8 +771,8 @@ var PAGES = (function ($, details, mediator) {
             });
         });
 
-        // make sure images are loaded or else masonry wont work properly
         $block.imagesLoaded(function ($images, $proper, $broken) {
+            // make sure images are loaded or else masonry wont work properly
             if ($broken) {
                 // possible that if all images are proper,
                 // this is undefined; i.e.
@@ -790,8 +808,7 @@ var PAGES = (function ($, details, mediator) {
     function layoutRelated(product, relatedContent) {
         /* Load related content into the masonry instance.
            @return: none */
-        var $discovery = $('.discovery-area'),
-            $product = $(product),
+        var $product = $(product),
             initialBottom = $product.position().top + $product.height(),
             $target = $product.next();
 
@@ -813,10 +830,9 @@ var PAGES = (function ($, details, mediator) {
     function pageScroll() {
         // calculates screen location and decide if more results
         // should be displayed.
-        var $w            = $(window),
-            discoveryBlocks = $('.discovery-area .block'),
+        var discoveryBlocks = $('.block', '.discovery-area'),
             noResults     = (discoveryBlocks.length === 0),
-            pageBottomPos = $w.innerHeight() + $w.scrollTop(),
+            pageBottomPos = $wnd.innerHeight() + $wnd.scrollTop(),
             lowestBlock,
             lowestHeight,
             $divider = $(".divider"),
@@ -849,11 +865,11 @@ var PAGES = (function ($, details, mediator) {
         // even if the device is not mobile, and vice versa.
         // this cannot "un-render" js templates previously rendered with
         // a different-size template.
-        var oldState = Willet.browser.mobile;
-        Willet.browser.mobile =  ($(window).width() < 1024);
+        var oldState = browser.mobile;
+        browser.mobile = ($wnd.width() < 1024);
 
-        if (Willet.browser.mobile !== oldState) {  // if it changed
-            if (Willet.browser.mobile) {
+        if (browser.mobile !== oldState) {  // if it changed
+            if (browser.mobile) {
                 // style tag has no disabled attrib, but the DOM has it
                 $('style.mobile-only').prop('disabled', '');
                 $('style.desktop-only').prop('disabled', 'disabled');
@@ -885,21 +901,22 @@ var PAGES = (function ($, details, mediator) {
         if ($discovery.length) {
             // use delegated events to reduce overhead
             $discovery.on('click', '.block.product:not(.unclickable), ' +
-                                   '.block.combobox:not(.unclickable)', function (e) {
-                showPreview(e.currentTarget);
+                                   '.block.combobox:not(.unclickable)',
+                function (e) {
+                    showPreview(e.currentTarget);
+                    mediator.fire('IR.updateClickStream', [e.currentTarget, e]);
+                });
 
-                // update clickstream
-                mediator.fire('IR.updateClickStream', [e.currentTarget, e]);
-            });
-
-            $discovery.on('click', '.block.image:not(.unclickable)', function (e) {
-                showPreview(e.currentTarget);
-            });
+            $discovery.on('click', '.block.image:not(.unclickable)',
+                function (e) {
+                    showPreview(e.currentTarget);
+                });
 
             // load related content; update contentstream
-            $discovery.on('click', '.block:not(.youtube):not(.unclickable)', function(e) {
-                mediator.fire('IR.updateContentStream', [e.currentTarget]);
-            });
+            $discovery.on('click', '.block:not(.youtube):not(.unclickable)',
+                function (e) {
+                    mediator.fire('IR.updateContentStream', [e.currentTarget]);
+                });
 
             // hovers
             $discovery.on({
@@ -918,68 +935,45 @@ var PAGES = (function ($, details, mediator) {
             }, '.block.combobox:not(.unclickable) .lifestyle');
         }
 
-        $(window).resize(_.throttle(windowResize, 1000));
-
-        mediator.on('PAGES.ready', function () {
-            if ($.mobile && $.mobile.hidePageLoadingMsg) {
-                $.mobile.hidePageLoadingMsg();
-            }
+        // Prevent social buttons from causing other events
+        $('.social-buttons').find('.button').on('click', function (e) {
+            e.stopPropagation();
         });
-    }
 
-    /* --- END element bindings --- */
+        $wnd.resize(_.throttle(windowResize, 1000))
+            .resize(_.throttle(pageScroll, 300))
+            .scroll(pageScroll);
 
-    function load(scripts) {
-        var i, item, script;
-
-        // Use a dictionary, or just check all script tags?
-        for (i = 0; i < scripts.length; i++) {
-            item = scripts[i];
-            if (_.contains(scriptsLoaded, item.src)) {
-                mediator.fire(
-                    'error',
-                    ['script ' + item.src + ' already loaded; skipping.']
-                );
-            } else {
-                $.getScript(item.src || item, item.onload || $.noop);
-                scriptsLoaded.push(item.src);
-            }
-        }
-    }
-
-    function ready() {
         if (window.MBP) {
             // @mobile
             window.MBP.hideUrlBarOnLoad();
             window.MBP.preventZoom();
         }
 
+    }
+    /* --- END element bindings --- */
+
+    function load(scripts) {
+        // loads a list of scripts by url.
+        _.each(scripts, function (script) {
+            if (!_.contains(scriptsLoaded, script.src)) {
+                $.getScript(script.src || script, script.onload || $.noop);
+            } else {
+                mediator.fire('error', [script.src + ' already loaded; skipping.']);
+            }
+        });
+    }
+
+    function ready() {
         // Special Setup
-        // no effect on mobile
+        loadTemplates(); // populate list of templates in templatesOnPage
         renderTemplates();
         attachListeners();
-
-        $('.discovery-area').masonry({
-            itemSelector: '.block',
-
-            columnWidth: function (containerWidth) {
-                return containerWidth / 4;
-            },
-
-            isResizable: true,
-            isAnimated: true
-        });
-
-        $(window).scroll(pageScroll).resize(pageScroll);
-
-        // Prevent social buttons from causing other events
-        $('.social-buttons .button').on('click', function (e) {
-            e.stopPropagation();
-        });
+        reloadMasonry();
 
         // Take any necessary actions
         mediator.fire('PAGES.ready', []);
-        PAGES.loadInitialResults();
+        loadInitialResults();
     }
 
     function init(readyFunc, layoutFunc) {
@@ -1032,6 +1026,10 @@ var PAGES = (function ($, details, mediator) {
         'onload': $.noop
     }];
 
+    // not sure why we exposed hidePreview... here are deprecation hooks.
+    mediator.on('PAGES.showPreview', showPreview);
+    mediator.on('PAGES.hidePreview', hidePreview);
+
     return {
         'init': _.once(init),
         'addPreviewCallback': addPreviewCallback,
@@ -1044,28 +1042,22 @@ var PAGES = (function ($, details, mediator) {
         'layoutResults': layoutResults,
         'layoutRelated': layoutRelated,
         'attachListeners': attachListeners,
-        'hidePreview': hidePreview,
         'pageScroll': pageScroll,
-        'MAX_RESULTS_PER_SCROLL': MAX_RESULTS_PER_SCROLL,
-        'SHUFFLE_RESULTS': SHUFFLE_RESULTS,
-        'fisherYates': fisherYates,
-        'generateID': generateID,
         'details': details,
         'getLoadingBlocks': getLoadingBlocks,
         'setLoadingBlocks': setLoadingBlocks,
         'getModifiedTemplateName': getModifiedTemplateName,
         'getTemplate': getTemplate
     };
-}(window.jQuery,
-    window.PAGES_INFO || window.TEST_PAGE_DATA || {},
-    (Willet && Willet.mediator) || {}));
+}(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA, Willet));
 
 
 // mobile component
-PAGES.mobile = (function (me, mediator) {
+PAGES.mobile = (function (me, Willet) {
     "use strict";
 
-    var localData = {};
+    var localData = {},
+        mediator = Willet.mediator;
 
     me = {
         'renderToView': function (viewSelector, templateName, context, append) {
@@ -1096,7 +1088,7 @@ PAGES.mobile = (function (me, mediator) {
                 // Old themes used 'instagram',
                 // need to verify template exists
                 if (templateName === 'image' &&
-                    !PAGES.getTemplate(templateName).html()) {
+                        !PAGES.getTemplate(templateName).html()) {
                     templateName = 'instagram';
                 }
 
@@ -1120,4 +1112,4 @@ PAGES.mobile = (function (me, mediator) {
     me.local_data = me.localData = localData;  // old themes compatability
 
     return me;
-}(PAGES.mobile || {}, Willet.mediator));
+}(PAGES.mobile || {}, Willet));

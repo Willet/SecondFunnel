@@ -3,7 +3,7 @@ var Willet = Willet || {};
 Willet.buttonMaker = (function (me) {
     "use strict";
     if (!$) {
-        Willet.console.error('Cannot load buttonMaker');
+        Willet.mediator.fire('error', ['Cannot load buttonMaker']);
         return;
     }
 
@@ -44,7 +44,7 @@ Willet.buttonMaker = (function (me) {
                     }]);
                 });
         } else {
-            (console.error || console.log)('FB button is blocked.');
+            Willet.mediator.fire('error', ['FB button is blocked.']);
         }
     };
 
