@@ -6,7 +6,7 @@ var PAGES = (function ($, details, Willet) {
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || false,
         mediator = Willet.mediator,
-        browser = Willet.browser,
+        browser = Willet.browser || {'mobile': false},
         mediaAPI = Willet.mediaAPI,
         scripts,
         scriptsLoaded = [],
@@ -103,10 +103,9 @@ var PAGES = (function ($, details, Willet) {
         // right now, it only resolves mobile templates for mobile devices.
         // in the event that a mobile template is not found, the full template
         // will be served in place.
-        var i, templateEls;
-        templateEls = templatesOnPage[templateId];
+        var templateEls = templatesOnPage[templateId];
 
-        if (browser.mobile && templateEls.mobile) {
+        if (browser.mobile && templateEls && templateEls.mobile) {
             // return "the first jquery-wrapped item in the list of this key"
             return templateEls.mobile[0].eq(0);
         } else {
@@ -125,7 +124,7 @@ var PAGES = (function ($, details, Willet) {
             mediator.fire('error', ['oops, no template ' + templateId]);
         }
         // no such template - return an object that has .html()
-        return $('<div>Template ' + templateId + ' missing</div>');
+        return $('');
     }
 
     function loadTemplates() {
@@ -153,7 +152,9 @@ var PAGES = (function ($, details, Willet) {
         });
 
         _.each(groupedTemplateEls, function (value, key, list) {
-            list[key] = groupByAttrib($(value), 'media', true);
+            // for 'image', then for everyone else
+            list[getModifiedTemplateName(key)] = list[key] =
+                groupByAttrib($(value), 'media', true);
         });
 
         templatesOnPage = groupedTemplateEls;  // export
@@ -380,15 +381,10 @@ var PAGES = (function ($, details, Willet) {
 
         // Parse Facebook, Twitter buttons
         if (window.FB) {
-            // desktop check (if it does not exist, script will init
-            // ALL buttons on the page at once)
-            fbButtons = $previewContainer.find('.social-buttons .button.facebook');
+            fbButtons = $previewContainer.find('.social-buttons .button.facebook, .fb-like');
             if (fbButtons.length) {
-                window.FB.XFBML.parse(fbButtons[0]);
-            }
-            // mobile check
-            fbButtons = $previewContainer.find('.fb-like');
-            if (fbButtons.length) {
+                // if it does not exist, script will init
+                // ALL buttons on the page at once
                 window.FB.XFBML.parse(fbButtons[0]);
             }
         }
@@ -432,9 +428,9 @@ var PAGES = (function ($, details, Willet) {
             },
 
             isResizable: true,
-            isAnimated: true
+            isAnimated: !browser.mobile  // disable animation on mobile
         };
-        $('.content_list, .discovery-area').masonry(options).masonry('reload');
+        $('.discovery-area').masonry(options).masonry('reload');
     }
 
     function commonHoverOn(t, enableSocialButtons, enableTracking) {
@@ -541,7 +537,7 @@ var PAGES = (function ($, details, Willet) {
         // suppose results is (now) a legit json object:
         // {products: [], videos: [(sizeof 1)]}
         try {
-            if (jsonData.error) {  // IR may send {'error': '<html ... 404 ..'}
+            if (jsonData.error) {
                 mediator.fire(
                     'error',  // usually "Campaign xxx has no product for id xxx"
                     [jsonData.error + ' (' + (jsonData.url || '') + ')']
@@ -947,7 +943,13 @@ var PAGES = (function ($, details, Willet) {
             }, '.block.combobox:not(.unclickable) .lifestyle');
         }
 
+        // Prevent social buttons from causing other events
+        $('.social-buttons').find('.button').on('click', function (e) {
+            e.stopPropagation();
+        });
+
         $(window).resize(_.throttle(windowResize, 1000));
+        $(window).scroll(pageScroll).resize(pageScroll);
 
         mediator.on('PAGES.ready', function () {
             if ($.mobile && $.mobile.hidePageLoadingMsg) {
@@ -987,28 +989,11 @@ var PAGES = (function ($, details, Willet) {
         loadTemplates(); // populate list of templates in templatesOnPage
         renderTemplates();
         attachListeners();
-
-        $('.discovery-area').masonry({
-            itemSelector: '.block',
-
-            columnWidth: function (containerWidth) {
-                return containerWidth / 4;
-            },
-
-            isResizable: true,
-            isAnimated: true
-        });
-
-        $(window).scroll(pageScroll).resize(pageScroll);
-
-        // Prevent social buttons from causing other events
-        $('.social-buttons .button').on('click', function (e) {
-            e.stopPropagation();
-        });
+        reloadMasonry();
 
         // Take any necessary actions
         mediator.fire('PAGES.ready', []);
-        PAGES.loadInitialResults();
+        loadInitialResults();
     }
 
     function init(readyFunc, layoutFunc) {
