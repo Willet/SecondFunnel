@@ -3,37 +3,6 @@
 
     //==BEGIN HELPER FUNCTIONS==//
     //==END HELPER FUNCTIONS==//
-
-    // BEGIN WILLET
-    // Copy of base class _create method
-    Masonry.prototype.__create__ = Masonry.prototype._create;
-    Masonry.prototype._create = function() {
-        this.__create__ = Masonry.prototype.__create__;
-        this.__create__();
-
-        this.getSize();
-        this._getMeasurement( 'columnWidth', 'outerWidth' );
-        this._getMeasurement( 'gutter', 'outerWidth' );
-        this.measureColumns();
-        var i = this.cols;
-        this.offsetYs = [];
-
-        while (i--) { 
-            this.offsetYs.push( 0 );
-        }
-
-        if ( this.options.isSmartNodes ) {
-            var instance = this;
-            $(window).on('scroll resize mousewheel', function(){
-                setTimeout(function(){
-                    //instance._infiniteScrollCleanup();
-                }, 1);
-            });
-        }
-    }
-    // END WILLET
-
-
     Masonry.prototype._layoutItems = function( items, isInstant ) {
         if ( !items || !items.length ) {
             // no items, emit event with empty array
@@ -127,26 +96,12 @@
                 break;
             }
         }
-
-        // Determine if we're offseted.
-        var x = this.columnWidth * shortColIndex,
-            colSpan = this._getColSpan( item ),
-            col = 0;
-
-        while (col * this.columnWidth < x) ++col;
-
-        var y = Math.min.apply(Math, this.offsetYs.slice(col, col + colSpan));
-        if (minimumY == -Infinity || y == Infinity) {
-            y = minimumY;
-        } else {
-            y = minimumY + y;
-        }
-
         // END WILLET
+
         // position the brick
         var position = {
-            'x': x,
-            'y': y
+            'x': this.columnWidth * shortColIndex,
+            'y': minimumY
         };
 
         // apply setHeight to necessary columns
@@ -174,61 +129,6 @@
         var colSpan = Math.ceil(item.size.outerWidth / this.columnWidth );
         return Math.min( colSpan, this.cols );
     };
-
-    Masonry.prototype._infiniteScrollCleanup = function () {
-        /* Cleans up unused DOM nodes in the Infinite Scroll
-           Begin by cleaning up the DOM nodes that are no longer visible.
-           Afterwards add back DOM nodes that have travelled into the line
-           of sight. */
-        var upper_threshold = $(window).scrollTop() - $(window).height(),
-            lower_threshold = $(window).scrollTop() + 2 * $(window).height(),
-            indices = [],
-            _isVisible = function( obj ) { 
-                return !(obj.size.height + obj.position.y < upper_threshold || obj.position.y > lower_threshold);
-            },
-            instance = this;
-        
-        // Off-screen DOM nodes
-        this.offscreen = this.offscreen || [];
-        
-        for ( var i = 0; i < this.items.length; ++i ) {
-            // item.position.x/y are saved with the LayoutItem, which saves us that
-            // work.
-            var item = this.items[i];
-            // Get size, just in case
-            item.getSize();
-
-            if (!_isVisible(item)) {
-                // It is out of the screen, knock it out!
-                // Add to our list of elements
-                // Remove from the Masonry instance
-                var index = this.items.indexOf(item),
-                    copy = item.element.cloneNode(true),
-                    col = item._getColumn(),
-                    colSpan = this._getColSpan( item );
-                
-                if (!(item.position.y > lower_threshold)) {
-                    // Only need/want to adjust for items above our view
-                    for ( var j = col; j < colSpan + col; ++j ) {
-                        this.offsetYs[j] = Math.max(this.offsetYs[j], item.position.y + item.size.height);
-                    }
-                }
-                this.element.removeChild(item.element);
-                item.element = copy;
-                indices.push(item);
-                this.offscreen.push(item);       
-            }
-        }
-
-        for (var i = 0; i < indices.length; ++i) {
-            var item = indices[i],
-                index = this.items.indexOf(item);
-            console.log(index);
-            this.items.splice(index, 1);
-        }
-
-    };
-    // END WILLET
-
+    // End Willet
 
 })(jQuery, window);

@@ -630,9 +630,7 @@ var PAGES = (function ($, details, mediator) {
                             // This block is ready to go, render it on the page.
                             $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
                             $elem.find('div').show();
-                            // Trigger a window resize event because Masonry's resize logic is better (faster)
-                            // than it's reload logic.
-                            $(window).resize();
+                            $('.discovery-area').masonry();
                         }
                     });
                 });
@@ -786,7 +784,7 @@ var PAGES = (function ($, details, mediator) {
 
         // Inserts content after the clicked product block (Animated)
         relatedContent.insertAfter($target);
-        $discovery.masonry();
+        $discovery.masonry('reloadItems').masonry();
         relatedContent.show();
     }
 
@@ -942,9 +940,10 @@ var PAGES = (function ($, details, mediator) {
         $('.discovery-area').masonry({
             itemSelector: '.block',
             columnWidth: $('.discovery-area').width() / 4,
-            isResizable: true,
+            isResizeBound: true,
             isAnimated: true
-        }).masonry('bindResize');
+        });
+        $('.discovery-area').masonry('bindResize');
 
         $(window).scroll(pageScroll).resize(pageScroll);
 
