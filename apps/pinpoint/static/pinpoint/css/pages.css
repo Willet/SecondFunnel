@@ -125,10 +125,9 @@ body {
 }
 
 .preview .content {
-    overflow: hidden;
+    display: block;
+    margin: auto; 
     width: 800px;
-    margin-left: auto;
-    margin-right: auto;
     position: relative;
 
     background: #fff;
@@ -139,6 +138,13 @@ body {
     -webkit-box-shadow: 10px 10px 10px 0px #CECECE;
     -o-box-shadow: 10px 10px 10px 0px #CECECE;
     box-shadow: 10px 10px 10px 0px #CECECE;
+}
+
+.preview .content:after {
+    /* clearfix to allow preview to size to content */
+    content: "";
+    display: table;
+    clear: both;
 }
 
 .preview .close {
@@ -177,6 +183,13 @@ body {
 
 .block.product img.lifestyle {
     max-width: 240px;
+}
+
+.block.image div.social{
+    position: absolute;
+    bottom: 10px;
+    height: 66px;
+    left: 10px;
 }
 
 /* width : (block_width / 2) - (play_button_width / 2)

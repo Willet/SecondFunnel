@@ -1,6 +1,7 @@
 """
 Static pages celery tasks
 """
+from urlparse import urlparse
 
 from celery import task, group
 from celery.utils.log import get_task_logger
@@ -9,7 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 
 from apps.assets.models import Store
-from apps.intentrank.views import get_seeds
+from apps.intentrank.views import get_seeds_ir
 from apps.pinpoint.models import Campaign
 from apps.pinpoint.utils import render_campaign
 from apps.static_pages.models import StaticLog
@@ -74,8 +75,15 @@ def create_bucket_for_store(store_id):
 
         save_static_log(Store, store.id, "PE")
 
-        _, change_status, change_id = create_bucket_website_alias(
-            get_bucket_name(store.slug))
+        store_url = ''
+        if store.public_base_url:
+            url = urlparse(store.public_base_url).hostname
+            if url:
+                store_url = url
+
+        dns_name = get_bucket_name(store.slug)
+        bucket_name =  store_url or dns_name
+        _, change_status, change_id = create_bucket_website_alias(dns_name, bucket_name)
 
         if change_status == "PENDING":
             confirm_change_success.subtask((change_id, store_id)).delay()
@@ -145,7 +153,7 @@ def generate_static_campaign(campaign_id):
     rendered_content = [
         # s3_file_name, log_key, page_content
         ("index.html", "CD", render_campaign(
-            campaign, get_seeds_func=get_seeds, request=dummy_request
+            campaign, get_seeds_func=get_seeds_ir, request=dummy_request
         ))
     ]
 
@@ -163,7 +171,15 @@ def generate_static_campaign(campaign_id):
 
             s3_path = "{0}/{1}".format(
                 campaign.slug or campaign.id, s3_file_name)
-            bucket_name = get_bucket_name(campaign.store.slug)
+
+            store_url = ''
+            if campaign.store.public_base_url:
+                url = urlparse(campaign.store.public_base_url).hostname
+                if url:
+                    store_url = url
+
+            dns_name = get_bucket_name(campaign.store.slug)
+            bucket_name =  store_url or dns_name
 
             bytes_written = upload_to_bucket(
                 bucket_name, s3_path, page_content, public=True)

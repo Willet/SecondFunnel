@@ -145,7 +145,7 @@ def get_or_create_website_bucket(bucket_name, conn=None):
     return bucket, new_bucket
 
 
-def create_bucket_website_alias(desired_name):
+def create_bucket_website_alias(dns_name, bucket_name=None):
     """
     Creates Route53 Alias record, mapping example.secondfunnel.com to
     an S3 website bucket at example.secondfunnel.com.{s3-regional-endpoint}
@@ -155,17 +155,20 @@ def create_bucket_website_alias(desired_name):
     """
 
     # validate our input
-    if not re.match("^[a-zA-Z0-9\-]+.secondfunnel.com", desired_name):
+    if not re.match("^[a-zA-Z0-9\-]+.secondfunnel.com", dns_name):
         raise ValueError("secondfunnel.com must be present in the name")
+
+    if not bucket_name:
+        bucket_name = dns_name
 
     zone_id = get_hosted_zone_id('secondfunnel.com.')
 
-    bucket, _ = get_or_create_website_bucket(desired_name)
+    bucket, _ = get_or_create_website_bucket(bucket_name)
     bucket_zone_id, bucket_endpoint = get_bucket_zone_id(bucket)
 
     all_changes = ResourceRecordSets(get_connection('route53'), zone_id)
 
-    change = all_changes.add_change("CREATE", desired_name, "A")
+    change = all_changes.add_change("CREATE", dns_name, "A")
     change.set_alias(
         alias_hosted_zone_id=bucket_zone_id,
         alias_dns_name=bucket_endpoint)

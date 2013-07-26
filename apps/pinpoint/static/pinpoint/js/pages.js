@@ -464,17 +464,17 @@ var PAGES = (function ($, details, Willet) {
         $mask.fadeOut(100);
     }
 
-    function reloadMasonry( options ) {
+    function reloadMasonry(options) {
         // Convenince method for triggering reload of Masonry
-        $('.content_list, .discovery-area').each(function(){
+        $('.content_list, .discovery-area').each(function () {
             options = options || {
                 itemSelector: '.block',
                 columnWidth: $(this).width() / 4,
                 isResizeBound: true,
-                visibleStyle: { 
-                    opacity: 1 
+                visibleStyle: {
+                    opacity: 1
                 },
-                isAnimated: !browser.mobile,
+                isAnimated: !browser.mobile
             };
 
             $(this).masonry(options).masonry('reload');
@@ -554,11 +554,11 @@ var PAGES = (function ($, details, Willet) {
         commonHoverOff(this, $.noop, false);
     }
 
-    function lifestyleHoverOn() {
+    function comboboxHoverOn() {
         commonHoverOn(this, false, true);
     }
 
-    function lifestyleHoverOff() {
+    function comboboxHoverOff() {
         commonHoverOff(this, function (t) {
             mediator.fire('tracking.registerEvent', [{
                 "type": "content",
@@ -567,6 +567,21 @@ var PAGES = (function ($, details, Willet) {
             }]);
         }, true);
     }
+    
+    function lifestyleHoverOn() {
+        commonHoverOn(this, true, false);
+    }
+
+    function lifestyleHoverOff() {
+        commonHoverOff(this, $.noop, false);
+    }
+
+    function loadResults(belowFold, related, callback) {
+        callback = callback || layoutResults;
+        if (!loadingBlocks || related) {
+            mediator.fire('IR.getResults', [callback, belowFold, related]);
+        }
+    }
 
     function loadInitialResults(seed) {
         mediator.fire('IR.changeSeed', [seed]);
@@ -574,10 +589,8 @@ var PAGES = (function ($, details, Willet) {
     }
 
     function loadMoreResults(callback, belowFold, related) {
-        callback = callback || layoutResults;
-        if (!loadingBlocks || related) {
-            mediator.fire('IR.getMoreResults', [callback, belowFold, related]);
-        }
+        // @deprecated
+        return loadResults(belowFold, related, callback);
     }
 
     function layoutResults(jsonData, belowFold, related) {
@@ -751,9 +764,14 @@ var PAGES = (function ($, details, Willet) {
                         $.noop;
 
             mediaAPI.getObject("video_gdata", video_id, function (video_data) {
+                // get results from the page...
+                // ... and from unrendered results
                 var containers = $(".youtube[data-label='" + video_id + "']"),
+                    new_containers = $block.filter(".youtube[data-label='" + video_id + "']"),
                     thumbClass = 'youtube-thumbnail',
                     thumbURL = getYoutubeThumbnail(video_id, video_data);
+
+                containers = containers.add(new_containers);
 
                 containers.each(function () {
                     var container = $(this),
@@ -871,7 +889,7 @@ var PAGES = (function ($, details, Willet) {
         }
 
         if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
-            loadMoreResults(layoutResults);
+            loadResults(layoutResults);
         }
 
         $('.block', '.discovery-area').each(function (idx, obj) {
@@ -953,9 +971,15 @@ var PAGES = (function ($, details, Willet) {
             }, '.block.youtube');
 
             $discovery.on({
+                'mouseenter': comboboxHoverOn,
+                'mouseleave': comboboxHoverOff
+            }, '.block.combobox:not(.unclickable) .lifestyle');
+
+            // Is this safe enough?
+            $discovery.on({
                 'mouseenter': lifestyleHoverOn,
                 'mouseleave': lifestyleHoverOff
-            }, '.block.combobox:not(.unclickable) .lifestyle');
+            }, '.block.image:not(.unclickable)');
         }
 
         // Prevent social buttons from causing other events

@@ -1,4 +1,3 @@
-import httplib2
 import json
 import random
 
@@ -7,9 +6,9 @@ from random import randrange
 
 from django.core.cache import cache
 from django.conf import settings
-from django.db.models import Count
 from django.http import HttpResponse
 from django.template import Context, loader, TemplateDoesNotExist
+import httplib2
 from mock import MagicMock
 
 from apps.assets.models import Product, Store
@@ -17,12 +16,7 @@ from apps.assets.models import Product, Store
 from apps.intentrank.utils import (random_products, VideoCookie,
     video_probability_function, ajax_jsonp)
 
-# All requests are get requests at the moment
-# URL to IntentRank looks something like this:
-# /intentrank/intentrank/store/<STORE SLUG>/page/<PAGE ID>/<FUNCTION>
-
-# getseeds?seeds=1,2,3,4&results=2
-from apps.pinpoint.models import Campaign, IntentRankCampaign
+from apps.pinpoint.models import IntentRankCampaign
 
 SUCCESS = 200
 FAIL400 = 400
@@ -63,7 +57,30 @@ def send_intentrank_request(request, url, method='GET', headers=None,
     return response, content
 
 
-# TODO: Is there a Guice for Python to inject dependency in live, dev?
+def send_request(request, url, method='GET', headers=None):
+    """
+    Sends a given request to intentrank with the given headers.
+
+    @param request: The request to the django intentrank api.
+    @param url: The url to the intentrank service.
+    @param method:
+    @param headers: The headers for the request to the intentrank service.
+
+    @return: A tuple with a response code and the content that was returned.
+    """
+    if not headers:
+        headers = {}
+
+    h = httplib2.Http()
+    response, content = h.request(
+        url,
+        method=method,
+        headers=headers,
+    )
+
+    return response, content
+
+
 def process_intentrank_request(request, store, page, function_name,
                                param_dict):
     """does NOT initiate a real IntentRank request if debug is set to True.
@@ -79,42 +96,22 @@ def process_intentrank_request(request, store, page, function_name,
     @return: A tuple with QuerySet of products and a response status.
     """
 
-    url = '{0}/intentrank/store/{1}/page/{2}/{3}'.format(
-        settings.INTENTRANK_BASE_URL, store, page, function_name)
-    params   = urlencode(param_dict)
-    url = '{0}?{1}'.format(url, params)
+    # Just return random results from `pinpoint_ir_campaign_products`
+    from apps.assets.models import PinpointIrCampaignProducts
 
-    if settings.DEBUG:
-        # Use a mock instead of avoiding the call
-        # Mock is onlt used in development, not in production
-        results = {'products': random_products(store, param_dict, id_only=True)}
+    product_ids = PinpointIrCampaignProducts.objects.filter(campaign_id=page)\
+        .values_list('product', flat=True)
 
-        response = MagicMock(status=SUCCESS)
-    else:  # live
-        http = httplib2.Http
-
-        try:
-            response, content = send_intentrank_request(request, url, http=http)
-        except httplib2.HttpLib2Error:
-            # something fundamentally went wrong, and we have nothing to show
-            response = MagicMock(status=FAIL400)
-            content = "{}"
-
-        try:
-            results = json.loads(content)
-        except ValueError:
-            results = {"error": content}
-
-    if 'error' in results:
-        results.update({'url': url})
-        return results, response.status
+    if param_dict.get('results'):
+        product_ids = random.sample(product_ids, int(param_dict.get(
+            'results')))
 
     # if too few products are returned, check the difference
     # between results (ids) and products (objects).
     products = Product.objects.filter(
-        pk__in=results.get('products'), available=True).exclude(media=None)
+        pk__in=product_ids, available=True).exclude(media=None)
 
-    return products, response.status
+    return products, SUCCESS
 
 
 def get_product_json_data(product, products_with_images_only=True):
@@ -281,6 +278,57 @@ def get_json_data(request, products, campaign_id, seeds=None):
     return results
         
 
+def get_seeds_ir(request, **kwargs):
+    """Gets initial results (products, photos, etc.) to be saved with a page
+
+    kwargs['raw'] also toggles between returning a dictionary
+    or an entire HttpResponse.
+    """
+    num_results = kwargs.get('results', request.GET.get('results',  DEFAULT_RESULTS))
+
+    store = kwargs.get('store', request.GET.get('store', '-1'))
+    campaign = kwargs.get('campaign', request.GET.get('campaign', '-1'))
+    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
+    base_url = kwargs.get('base_url', request.GET.get(
+        'base_url',
+        settings.INTENTRANK_BASE_URL + '/intentrank'
+    ))
+
+    # TODO: How do we specify number of results?
+    url = '{0}/store/{1}/campaign/{2}/getresults'.format(base_url, store,
+                                                      campaign)
+
+    # Fetch results
+    try:
+        response, content = send_request(request, url)
+        status = response.status
+    except httplib2.HttpLib2Error as e:
+        # Don't care what went wrong; do something!
+        content = "{'error': '{0}'}".format(str(e))
+        status = 400
+
+    # Since we are sending the request, and we'll get JSONP back
+    # we know what the callback will be named
+    prefix = '{0}('.format(callback)
+    suffix = ');'
+    if content.startswith(prefix) and content.endswith(suffix):
+        content = content[len(prefix):-len(suffix)]
+
+    # Check results
+    try:
+        results = json.loads(content)
+    except ValueError:
+        results = {"error": content}
+
+    if 'error' in results:
+        results.update({'url': url})
+
+    if kwargs.get('raw', False):
+        return results
+    else:
+        return ajax_jsonp(results, callback, status=status)
+
+
 def get_seeds(request, **kwargs):
     """kwargs overrides request values when provided.
 
@@ -371,23 +419,11 @@ def update_clickstream(request):
 
     @return: A json HttpResonse that is empty or contains an error.  Displays nothing on success.
     """
-    store   = request.GET.get('store', '-1')
-    page    = request.GET.get('campaign', '-1')
-    product_id = request.GET.get('product_id')
+
     callback = request.GET.get('callback', 'fn')
 
-    results, status = process_intentrank_request(
-        request, store, page, 'updateclickstream', {
-            'productid': product_id
-    })
-
-    if status in SUCCESS_STATUSES:
-        # We don't care what we get back
-        result = []
-    else:
-        result = results
-
-    return ajax_jsonp(result, callback, status=status)
+    # Proxy is *mostly* deprecated; always succeed
+    return ajax_jsonp([], callback, status=SUCCESS)
 
 
 
@@ -400,9 +436,30 @@ def invalidate_session(request):
     @return: An empty json HttpResonse.
     """
     #intentrank/invalidate-session
-    url = '{0}/intentrank/invalidate-session'.format(INTENTRANK_BASE_URL)
+    url = '{0}/intentrank/invalidate-session'.format(
+        settings.INTENTRANK_BASE_URL)
     send_intentrank_request(request, url)
     return HttpResponse("[]", mimetype='application/json')
+
+
+def get_results_dev(request, store_id, campaign, content_id=None, **kwargs):
+    """Returns random results for a campaign
+
+    kwargs['raw'] also toggles between returning a dictionary
+    or an entire HttpResponse.
+    """
+    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
+
+    products = random_products(store_id, {'results': DEFAULT_RESULTS},
+                               id_only=True)
+    filtered_products = Product.objects.filter(
+        pk__in=products, available=True).exclude(media=None)
+    results = get_json_data(request, filtered_products, campaign)
+
+    if kwargs.get('raw', False):
+        return results
+    else:
+        return ajax_jsonp(results, callback, status=200)
 
 
 # WARNING: As soon as Neal's service is up and running,
