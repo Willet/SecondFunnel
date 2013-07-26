@@ -863,14 +863,9 @@ var PAGES = (function ($, details, mediator) {
         $('.block', '.discovery-area').each(function (idx, obj) {
             // broadcast which blocks are visible
             var $block = $(obj),
-                blockWasInView = $block.data('in-view') || false,
+                blockWasInView = $block.hasClass('in-view') || false,
                 blockIsInView = isScrolledIntoView($block, false);
-            $block.data('in-view', blockIsInView);  // tell the block
-            if (blockWasInView !== blockIsInView) {
-                // tell everyone else (that it changed)
-                mediator.fire('PAGES.elementVisibilityChanged', [
-                    $block, blockIsInView]);
-            }
+            $block.toggleClass('in-view', blockIsInView);  // tell the block
         });
     }
 
