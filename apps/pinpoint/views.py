@@ -21,7 +21,7 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnIn
 
 from apps.analytics.models import Category
 from apps.assets.models import ExternalContent, ExternalContentType, Store
-from apps.intentrank.views import get_seeds
+from apps.intentrank.views import get_seeds_ir
 from apps.pinpoint.ajax import upload_image
 
 from apps.pinpoint.models import Campaign, BlockType, StoreTheme
@@ -601,7 +601,7 @@ def campaign(request, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
 
     rendered_content = render_campaign(campaign_instance,
-        request=request, get_seeds_func=get_seeds)
+        request=request, get_seeds_func=get_seeds_ir)
 
     return HttpResponse(rendered_content)
 

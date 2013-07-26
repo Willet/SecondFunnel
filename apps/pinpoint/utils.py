@@ -47,16 +47,25 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
         content_block.block_type.name)
 
     if get_seeds_func and request:
+        #
+
         # "borrow" IR for results
         related_results = get_seeds_func(
             request, store=campaign.store.slug,
             campaign=campaign.default_intentrank_id or campaign.id,
-            seeds=product.id,
+            base_url=settings.WEBSITE_BASE_URL + '/intentrank',
             results=100,
             raw=True
         )
     else:
         related_results = []
+
+    if settings.DEBUG:
+        base_url = settings.WEBSITE_BASE_URL
+    else:
+        base_url = settings.INTENTRANK_BASE_URL
+
+    base_url += '/intentrank'
 
     attributes = {
         "campaign": campaign,
@@ -65,7 +74,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
         "product": product,
         "backup_results": json.dumps(related_results),
         "pub_date": datetime.now(),
-        "base_url": settings.WEBSITE_BASE_URL,
+        "base_url": base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
     }
     if request:
@@ -109,7 +118,10 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
             else:
                 result = result.encode('unicode-escape')
 
-            sub_values[field].append(result.decode("unicode_escape"))
+            try:
+                sub_values[field].append(result.decode("unicode_escape"))
+            except UnicodeDecodeError:  # who knows
+                sub_values[field].append(result)
 
     page_str = regex.sub(repl, page_str)
 
