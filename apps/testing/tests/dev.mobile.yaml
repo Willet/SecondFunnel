@@ -1,0 +1,59 @@
+# Specifies default location of the server
+server: http://localhost:9876
+
+# List of files to load into the browser (JS Files)
+load:
+    # Order matters!
+    # Setup files
+    - apps/testing/resources/jasmine/lib/jasmine-1.3.1/jasmine.js
+    - apps/testing/resources/JasmineAdapter.js
+
+    # Our Source JS Files
+    - secondfunnel/static/js/underscore.js
+    - secondfunnel/static/js/jquery-1.8.1.min.js
+    - secondfunnel/static/js/jquery.mobile-1.2.1.min.js
+    - secondfunnel/static/js/jquery.tools.js
+    - apps/testing/tests/secondfunnel/setup.js
+    - apps/pinpoint/static/pinpoint/js/mediator.js
+    - apps/pinpoint/static/pinpoint/js/utils.js
+    - apps/pinpoint/static/pinpoint/js/tracking.js
+    - apps/pinpoint/static/pinpoint/js/button_maker.js
+    - apps/pinpoint/static/pinpoint/js/pages.js
+    - apps/pinpoint/static/pinpoint/js/pages.ir.js
+    - secondfunnel/static/js/jquery.viewport.js
+    - secondfunnel/static/js/jquery.masonry.min.js
+    - secondfunnel/static/js/jquery.imagesloaded.min.js
+    - secondfunnel/static/js/mbp.js
+    - secondfunnel/static/js/swipe.js
+    - apps/testing/tests/secondfunnel/mobile.js
+
+# The tests to run
+test:
+    # Order matters!
+    - apps/testing/tests/pinpoint/*
+    - apps/testing/tests/analytics/*
+
+# Files to never load
+# exclude:
+
+
+# Static files to serve
+serve:
+    - apps/analytics/static/analytics/css/*.css
+    - apps/pinpoint/static/pinpoint/css/*.css
+    - apps/pinpoint/static/pinpoint/images/*.png
+    - apps/website/static/website/css/*.css
+    - secondfunnel/static/css/*.css
+    - secondfunnel/static/loading.gif
+    - secondfunnel/static/images/*
+
+# Specified proxy
+# proxy:
+
+
+# Plugins to load
+# plugin:
+    
+
+# Time to load files
+timeout: 60
