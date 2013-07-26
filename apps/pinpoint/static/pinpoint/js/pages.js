@@ -313,6 +313,23 @@ var PAGES = (function ($, details, Willet) {
         return _.template(replaced, context);
     }
 
+    function isScrolledIntoView($elem, completely) {
+        // mod of http://stackoverflow.com/a/488073/1558430
+        // only checks for up-down scrolling.
+        // completely: whether this is false when the elem is partially visible
+        var $wnd = $(window),
+            docViewTop = $wnd.scrollTop(),
+            docViewBottom = docViewTop + $wnd.height(),
+            elemTop = $elem.offset().top,
+            elemBottom = elemTop + $elem.height();
+
+        if (completely) {
+            return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+        } else {
+            return ((elemTop <= docViewBottom) && (elemBottom >= docViewTop));
+        }
+    }
+
     function renderTemplates(data) {
         // finds templates currently on the page, and drops them onto their
         // targets (elements with classes 'template' and 'target').
@@ -447,20 +464,21 @@ var PAGES = (function ($, details, Willet) {
         $mask.fadeOut(100);
     }
 
-    function reloadMasonry(options) {
-        // masonry needs to reload every time an infinite scroll event
-        // is performed: https://github.com/desandro/masonry/issues/211
-        options = options || {
-            itemSelector: '.block',
+    function reloadMasonry( options ) {
+        // Convenince method for triggering reload of Masonry
+        $('.content_list, .discovery-area').each(function(){
+            options = options || {
+                itemSelector: '.block',
+                columnWidth: $(this).width() / 4,
+                isResizeBound: true,
+                visibleStyle: { 
+                    opacity: 1 
+                },
+                isAnimated: !browser.mobile,
+            };
 
-            columnWidth: function (containerWidth) {
-                return containerWidth / 4;
-            },
-
-            isResizable: true,
-            isAnimated: !browser.mobile  // disable animation on mobile
-        };
-        $('.discovery-area').masonry(options).masonry('reload');
+            $(this).masonry(options).masonry('reload');
+        });
     }
 
     function commonHoverOn(t, enableSocialButtons, enableTracking) {
@@ -800,7 +818,7 @@ var PAGES = (function ($, details, Willet) {
             }
 
             // tell masonry to reposition blocks
-            PAGES.reloadMasonry();
+            reloadMasonry();
             PAGES.setLoadingBlocks(false);
         });
     }
@@ -821,10 +839,7 @@ var PAGES = (function ($, details, Willet) {
         // Inserts content after the clicked product block (Animated)
         relatedContent.insertAfter($target);
         reloadMasonry();
-
         relatedContent.show();
-        /* // Inserts content after the clicked product block (Non-Animated)
-           $.when($discovery.masonry('reload')).then(function(){ relatedContent.show();}); */
     }
 
     function pageScroll() {
@@ -858,6 +873,14 @@ var PAGES = (function ($, details, Willet) {
         if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
             loadMoreResults(layoutResults);
         }
+
+        $('.block', '.discovery-area').each(function (idx, obj) {
+            // broadcast which blocks are visible
+            var $block = $(obj),
+                blockWasInView = $block.hasClass('in-view') || false,
+                blockIsInView = isScrolledIntoView($block, false);
+            $block.toggleClass('in-view', blockIsInView);  // tell the block
+        });
     }
 
     function windowResize() {
@@ -969,7 +992,10 @@ var PAGES = (function ($, details, Willet) {
         loadTemplates(); // populate list of templates in templatesOnPage
         renderTemplates();
         attachListeners();
+
+        // Initialize Masonry
         reloadMasonry();
+        $('.content_list, .discovery-area').masonry('bindResize');
 
         // Take any necessary actions
         mediator.fire('PAGES.ready', []);
