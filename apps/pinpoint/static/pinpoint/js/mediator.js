@@ -54,7 +54,7 @@ Willet.mediator = (function (me) {
                 me.hooks[event] = [[cb, []]];
             } else {
                 if (console && console.warn) {
-                    console.warn('you called ' + event + ', which did nothing.');
+                    console.warn('Calling ' + event + ' has no effect.');
                 }
                 return me; // no functions registered with this event.
             }
