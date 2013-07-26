@@ -19,7 +19,6 @@
         var queue = [],
             dupes, instagramImg;
 
-
         for ( var i = 0, len = items.length; i < len; i++ ) {
             var item = items[i],
                 $item = $(item.element);
@@ -30,13 +29,15 @@
                 var elemImg = $elem.find(':not(.social-buttons) img').prop('src');
                 return (elemImg == instagramImg);
             });
-            
+
             if (dupes.length != 0) {
-                item.remove();
                 // remove item from collection
                 var index = this.items.indexOf(item);
                 this.items.splice(index, 1);
                 len -= 1;
+
+                // remove item from DOM
+                item.element.parentNode.removeChild( item.element );
                 continue;
             }
             // END WILLET
@@ -95,6 +96,16 @@
             } else {
                 break;
             }
+        }
+
+        this.recent = this.recent || [];
+
+        if (item.element.className.indexOf('instagram') > -1) {
+            while(this.recent.length > 5) {
+                this.recent.shift();
+            }
+
+            this.recent.push($(item.element));
         }
         // END WILLET
 
