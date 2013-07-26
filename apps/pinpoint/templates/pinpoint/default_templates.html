@@ -16,17 +16,20 @@
 <script type="text/template" data-template-id="social_buttons">
     <% var product = data || page.product; %>
     <% var has_featured_img = !data.title && (data.template != 'youtube'); %>
-    <% var is_preview = data.is_preview; %>
-    <% var show_count = is_preview || has_featured_img; %>
+    <% var show_count = data.show_count || data.is_preview ; %>
     <% var image = (has_featured_img) ? (page['stl-image'] || page['featured-image']) : (data.image || data.url);%>
-    <% var url = encodeURIComponent(product.url || image) %>
+    <% var fburl = (product.url || image); %>
+    <% if (fburl.indexOf("facebook") > -1) { %>
+        <% fburl = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(fburl)[1]; %>
+    <% } %>
+    <% var url = encodeURIComponent(product.url || image); %>
     <div class='social-buttons'>
         <% if (!show_count) { %>
         <div class="loading-container">
             <% } %>
             <div class='button facebook<% if (!show_count) { %> no-count <% }
             %>'>
-                <fb:like href="<%= url %>"
+                <fb:like href="<%= fburl %>"
                          width="48"
                          layout="button_count"
                          show_faces="false"></fb:like>

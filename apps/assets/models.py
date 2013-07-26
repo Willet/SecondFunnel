@@ -466,5 +466,13 @@ class ExternalContentType(BaseModelNamed):
     def __unicode__(self):
         return unicode(self.name) or u''
 
+class PinpointIrCampaignProducts(models.Model):
+    campaign = models.ForeignKey(get_model('pinpoint', 'Campaign'),)
+    product = models.ForeignKey(Product)
+    class Meta:
+        db_table = u'pinpoint_ir_campaign_products'
+        managed = False
+
+
 # signals
 post_save.connect(media_saved, sender=GenericImage)
