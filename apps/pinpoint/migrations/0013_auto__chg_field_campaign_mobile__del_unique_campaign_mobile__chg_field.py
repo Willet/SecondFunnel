@@ -16,21 +16,31 @@ class Migration(SchemaMigration):
 
 
         # Changing field 'Campaign.mobile'
-        db.alter_column('pinpoint_campaign', 'mobile_id', self.gf('django.db.models.fields.related.ForeignKey')(null=True, to=orm['pinpoint.StoreTheme']))
+        # MySQL / South bug; dodged a bullet this time, won't be this lucky next time.
+        # http://stackoverflow.com/a/8277945/1558430
+        # db.alter_column('pinpoint_campaign', 'mobile_id', self.gf('django.db.models.fields.related.ForeignKey')(null=True, to=orm['pinpoint.StoreTheme']))
 
         # Changing field 'Campaign.theme'
-        db.alter_column('pinpoint_campaign', 'theme_id', self.gf('django.db.models.fields.related.ForeignKey')(null=True, to=orm['pinpoint.StoreTheme']))
+        # MySQL / South bug; dodged a bullet this time, won't be this lucky next time.
+        # http://stackoverflow.com/a/8277945/1558430
+        # db.alter_column('pinpoint_campaign', 'theme_id', self.gf('django.db.models.fields.related.ForeignKey')(null=True, to=orm['pinpoint.StoreTheme']))
 
     def backwards(self, orm):
 
         # Changing field 'Campaign.mobile'
-        db.alter_column('pinpoint_campaign', 'mobile_id', self.gf('django.db.models.fields.related.OneToOneField')(unique=True, null=True, to=orm['pinpoint.StoreTheme']))
+        # MySQL / South bug; dodged a bullet this time, won't be this lucky next time.
+        # http://stackoverflow.com/a/8277945/1558430
+        # db.alter_column('pinpoint_campaign', 'mobile_id', self.gf('django.db.models.fields.related.OneToOneField')(unique=True, null=True, to=orm['pinpoint.StoreTheme']))
+
         # Adding unique constraint on 'Campaign', fields ['mobile']
         db.create_unique('pinpoint_campaign', ['mobile_id'])
 
 
         # Changing field 'Campaign.theme'
-        db.alter_column('pinpoint_campaign', 'theme_id', self.gf('django.db.models.fields.related.OneToOneField')(unique=True, null=True, to=orm['pinpoint.StoreTheme']))
+        # MySQL / South bug; dodged a bullet this time, won't be this lucky next time.
+        # http://stackoverflow.com/a/8277945/1558430
+        # db.alter_column('pinpoint_campaign', 'theme_id', self.gf('django.db.models.fields.related.OneToOneField')(unique=True, null=True, to=orm['pinpoint.StoreTheme']))
+
         # Adding unique constraint on 'Campaign', fields ['theme']
         db.create_unique('pinpoint_campaign', ['theme_id'])
 

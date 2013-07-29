@@ -12,24 +12,34 @@ class Migration(SchemaMigration):
         db.delete_unique('assets_store', ['theme_id'])
 
         # Changing field 'Store.theme'
-        db.alter_column('assets_store', 'theme_id', self.gf('django.db.models.fields.related.ForeignKey')(null=True, to=orm['pinpoint.StoreTheme']))
+        # MySQL / South bug; dodged a bullet this time, won't be this lucky next time.
+        # http://stackoverflow.com/a/8277945/1558430
+        # db.alter_column('assets_store', 'theme_id', self.gf('django.db.models.fields.related.ForeignKey')(null=True, to=orm['pinpoint.StoreTheme']))
 
         # Removing unique constraint on 'Store', fields ['mobile']
         db.delete_unique('assets_store', ['mobile_id'])
 
         # Changing field 'Store.mobile'
-        db.alter_column('assets_store', 'mobile_id', self.gf('django.db.models.fields.related.ForeignKey')(null=True, to=orm['pinpoint.StoreTheme']))
+        # MySQL / South bug; dodged a bullet this time, won't be this lucky next time.
+        # http://stackoverflow.com/a/8277945/1558430
+        # db.alter_column('assets_store', 'mobile_id', self.gf('django.db.models.fields.related.ForeignKey')(null=True, to=orm['pinpoint.StoreTheme']))
 
     def backwards(self, orm):
 
         # Changing field 'Store.mobile'
-        db.alter_column('assets_store', 'mobile_id', self.gf('django.db.models.fields.related.OneToOneField')(unique=True, null=True, to=orm['pinpoint.StoreTheme']))
+        # MySQL / South bug; dodged a bullet this time, won't be this lucky next time.
+        # http://stackoverflow.com/a/8277945/1558430
+        # db.alter_column('assets_store', 'mobile_id', self.gf('django.db.models.fields.related.OneToOneField')(unique=True, null=True, to=orm['pinpoint.StoreTheme']))
+
         # Adding unique constraint on 'Store', fields ['mobile']
         db.create_unique('assets_store', ['mobile_id'])
 
 
         # Changing field 'Store.theme'
-        db.alter_column('assets_store', 'theme_id', self.gf('django.db.models.fields.related.OneToOneField')(unique=True, null=True, to=orm['pinpoint.StoreTheme']))
+        # MySQL / South bug; dodged a bullet this time, won't be this lucky next time.
+        # http://stackoverflow.com/a/8277945/1558430
+        # db.alter_column('assets_store', 'theme_id', self.gf('django.db.models.fields.related.OneToOneField')(unique=True, null=True, to=orm['pinpoint.StoreTheme']))
+
         # Adding unique constraint on 'Store', fields ['theme']
         db.create_unique('assets_store', ['theme_id'])
 
