@@ -13,7 +13,6 @@ bin/*
 .elasticbeanstalk/
 doc/
 log/
-runserver
 libpeerconnection.log
 
 # Testing directories

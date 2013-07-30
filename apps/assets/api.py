@@ -5,7 +5,7 @@ from tastypie.constants import ALL_WITH_RELATIONS
 from tastypie.models import ApiKey
 from tastypie.resources import ModelResource, ALL
 from tastypie.authentication import Authentication, ApiKeyAuthentication, MultiAuthentication
-from tastypie.authorization import Authorization
+from tastypie.authorization import Authorization, DjangoAuthorization
 from django.db.models import Q
 
 from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
@@ -27,6 +27,34 @@ class UserPartOfStore(Authorization):
                 return False
         except (KeyError, ValueError, Store.DoesNotExist):
             return False
+
+
+class WriteAuthentication(UserAuthentication):
+    def is_authenticated(self, request, **kwargs):
+        if request.method == 'GET':
+            return True
+
+        return super(UserAuthentication, self).is_authenticated(request, **kwargs)
+
+
+class WriteAuthorization(UserPartOfStore, DjangoAuthorization):
+    """ Read-only resource.  When user is authorized, then they have access to
+    PUT/POST/DELETE"""
+    def is_authorized(self, request, object=None):
+        if request.method == 'GET':
+            return True
+
+        try:
+            if request.user.is_superuser:
+                return True
+            else:
+                for base in (UserPartOfStore, DjangoAuthorization):
+                    if super(base, self).is_authorized(request, object):
+                        return True
+        except ValueError:
+            pass
+
+        return False
 
 
 class BlockContentResource(ModelResource):
@@ -163,6 +191,8 @@ class CampaignResource(ModelResource):
 
     class Meta:
         queryset = Campaign.objects.all()
+        authentication = WriteAuthentication()
+        authorization = WriteAuthorization()
         resource_name = 'campaign'
 
         filtering = {

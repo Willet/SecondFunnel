@@ -27,7 +27,7 @@ from apps.pinpoint.ajax import upload_image
 from apps.pinpoint.models import Campaign, BlockType, StoreTheme
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
 from apps.pinpoint.utils import render_campaign
-import apps.pinpoint.wizards as wizards
+from apps.pinpoint.wizards import wizard_handler
 from apps.pinpoint.wizards import Wizard
 from apps.utils.ajax import ajax_error, ajax_success
 
@@ -153,8 +153,8 @@ def edit_campaign(request, store_id, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
     block_type = campaign_instance.content_blocks.all()[0].block_type
 
-    return getattr(wizards, block_type.handler)(
-        request, store, block_type, campaign=campaign_instance)
+    return wizard_handler(request, block_type.handler, store, block_type, campaign=campaign_instance)
+
 
 @login_required
 def delete_campaign(request, store_id, campaign_id):
@@ -184,7 +184,7 @@ def block_type_router(request, store_id, block_type_id):
     store = get_object_or_404(Store, pk=store_id)
     block_type = get_object_or_404(BlockType, pk=block_type_id)
 
-    return getattr(wizards, block_type.handler)(request, store, block_type)
+    return wizard_handler(request, block_type.handler, store, block_type)
 
 
 @login_required
