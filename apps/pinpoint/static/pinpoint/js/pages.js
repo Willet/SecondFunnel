@@ -576,24 +576,24 @@ var PAGES = (function ($, details, Willet) {
         commonHoverOff(this, $.noop, false);
     }
 
-    function loadResults(belowFold, related, callback) {
+    function loadResults(belowFold, callback) {
         callback = callback || layoutResults;
-        if (!loadingBlocks || related) {
-            mediator.fire('IR.getResults', [callback, belowFold, related]);
+        if (!loadingBlocks) {
+            mediator.fire('IR.getResults', [callback, [belowFold]]);
         }
     }
 
     function loadInitialResults(seed) {
         mediator.fire('IR.changeSeed', [seed]);
-        mediator.fire('IR.getInitialResults', [layoutResults]);
+        mediator.fire('IR.getInitialResults', [layoutResults, []]);
     }
 
-    function loadMoreResults(callback, belowFold, related) {
+    function loadMoreResults(callback, belowFold) {
         // @deprecated
-        return loadResults(belowFold, related, callback);
+        return loadResults(belowFold, callback);
     }
-
-    function layoutResults(jsonData, belowFold, related) {
+                          
+    function layoutResults(jsonData, belowFold, callback) {
         // renders product divs onto the page.
         // suppose results is (now) a legit json object:
         // {products: [], videos: [(sizeof 1)]}
@@ -705,7 +705,7 @@ var PAGES = (function ($, details, Willet) {
                 // Create a spinner image that can be used to indicate a block is loading.
                 $spinner = $('<img/>', {
                     'class': "image-loading-spinner",
-                    'style': "padding-top:100px; padding-bottom:100px; width:32px !important; height:32px; position:relative; left:50%;",
+                    'style': "padding-top:100px; padding-bottom:100px; width:32px !important; height:32px; margin-left: auto; margin-right: auto; display:block;",
                     'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
                 });
 
@@ -713,7 +713,7 @@ var PAGES = (function ($, details, Willet) {
 
             // If there's images to be loaded, place a spinner in the block and load the content
             // in the background.
-            if (!related && $elem.toLoad > 0) {
+            if ($elem.toLoad > 0) {
                 // If the block actually has images, render the loading block.
                 $elem.find('div').hide();
                 $elem.addClass('unclickable').append($spinner);
@@ -750,9 +750,7 @@ var PAGES = (function ($, details, Willet) {
                 $elem.addClass('wide');
             }
 
-            if (!related) {
-                $('.discovery-area').append($elem).masonry('appended', $elem, true);
-            }
+            $('.discovery-area').append($elem).masonry('appended', $elem, true);
         });
 
         // Render youtube blocks with player
@@ -818,7 +816,7 @@ var PAGES = (function ($, details, Willet) {
             $block.find('.block img[src=""]').parents('.block').remove();
 
             // Don't continue to load results if we aren't getting more results
-            if (!related && initialResults > 0) {
+            if (initialResults > 0) {
                 setTimeout(function () {
                     PAGES.pageScroll();
                 }, 100);
@@ -830,14 +828,14 @@ var PAGES = (function ($, details, Willet) {
 
             mediator.fire('PAGES.blocksAppended', [$block]);
 
-            if (related) {
-                PAGES.layoutRelated(related, $block);
-                return;
-            }
-
             // tell masonry to reposition blocks
             reloadMasonry();
             PAGES.setLoadingBlocks(false);
+
+            // Call back with the rendered content
+            if (callback) {
+                callback($block);
+            }
         });
     }
 
@@ -889,7 +887,7 @@ var PAGES = (function ($, details, Willet) {
         }
 
         if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
-            loadResults(layoutResults);
+            loadResults(true, layoutResults);
         }
 
         $('.block', '.discovery-area').each(function (idx, obj) {
@@ -956,7 +954,10 @@ var PAGES = (function ($, details, Willet) {
             // load related content; update contentstream
             $discovery.on('click', '.block:not(.youtube):not(.unclickable)',
                 function (e) {
-                    mediator.fire('IR.updateContentStream', [e.currentTarget]);
+                    var callback = function($block) {
+                        layoutRelated(e.currentTarget, $block);
+                    };
+                    mediator.fire('IR.getResults', [layoutResults, [false, callback], e.currentTarget]);
                 });
 
             // hovers
@@ -1129,7 +1130,7 @@ PAGES.mobile = (function (me, Willet) {
                 $(viewSelector).html(renderedBlock);
             }
         },
-        'layoutFunc': function (jsonData, belowFold, related) {
+        'layoutFunc': function (jsonData, belowFold, callback) {
             _.each(jsonData, function (data, index, list) {
 
                 var objectId = data.id || data['original-id'],

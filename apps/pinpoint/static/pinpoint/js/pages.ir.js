@@ -13,12 +13,7 @@ PAGES.intentRank = (function (me, details, mediator) {
         // load data (if any)
     };
 
-    me.updateContentStream = function (product) {
-        /* @return: none */
-        PAGES.loadResults(false, product);
-    };
-
-    me.getResults = function (callback, belowFold, related) {
+    me.getResults = function (callback, args, related) {
         var relatedData = $(related).data() || {},
             urlParams = {
                 'url': details.base_url,
@@ -69,16 +64,16 @@ PAGES.intentRank = (function (me, details, mediator) {
                 dataType: 'jsonp',
                 timeout: 5000,  // 5000 ~ 10000
                 success: function(results) {
-                    callback(results, belowFold, related);
+                    callback.apply(this, [results].concat(args));
                     PAGES.setLoadingBlocks(false);
                 },
                 error: function () {
-                    callback(details.backupResults, belowFold, related);
+                    callback.apply(this, [details.backupResults].concat(args))
                     PAGES.setLoadingBlocks(false);
                 }
             });
         } else {
-            callback(details.content, undefined, related);
+            callback.apply(this, [details.content].concat(args));
             PAGES.setLoadingBlocks(false);
         }
     };
@@ -111,7 +106,6 @@ PAGES.intentRank = (function (me, details, mediator) {
     // register (most) PAGES.intentRank events.
     if (mediator) {
         mediator.on('IR.init', me.init);
-        mediator.on('IR.updateContentStream', me.updateContentStream);
         mediator.on('IR.getInitialResults', me.getResults);
         mediator.on('IR.getResults', me.getResults);
         mediator.on('IR.changeSeed', me.changeSeed);
