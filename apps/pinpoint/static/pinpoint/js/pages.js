@@ -362,6 +362,8 @@ var PAGES = (function ($, details, Willet) {
                     'data': $.extend({}, srcElement.data(), target.data())
                 });
 
+                context.data.show_count = true;
+
                 target.html(renderTemplate(srcElement.html(), context));
             } else {
                 target.html('Error: missing template #' + src);
@@ -581,6 +583,14 @@ var PAGES = (function ($, details, Willet) {
         if (!loadingBlocks || related) {
             mediator.fire('IR.getResults', [callback, belowFold, related]);
         }
+    }
+
+    function lifestyleHoverOn() {
+        commonHoverOn(this, true, false);
+    }
+
+    function lifestyleHoverOff() {
+        commonHoverOff(this, $.noop, false);
     }
 
     function loadInitialResults(seed) {
@@ -1010,6 +1020,16 @@ var PAGES = (function ($, details, Willet) {
             window.MBP.preventZoom();
         }
 
+        $discovery.on({
+            mouseenter: comboboxHoverOn,
+            mouseleave: comboboxHoverOff
+        }, '.block.combobox:not(.unclickable) .lifestyle');
+
+        // Is this safe enough?
+        $discovery.on({
+            mouseenter: lifestyleHoverOn,
+            mouseleave: lifestyleHoverOff
+        }, '.block.image:not(.unclickable)');
     }
     /* --- END element bindings --- */
 
@@ -1142,6 +1162,7 @@ PAGES.mobile = (function (me, Willet) {
                 $(viewSelector).html(renderedBlock);
             }
         },
+
         'layoutFunc': function (jsonData, belowFold, related) {
             _.each(jsonData, function (data, index, list) {
 
@@ -1172,7 +1193,9 @@ PAGES.mobile = (function (me, Willet) {
         }
     };
 
-    me.local_data = me.localData = localData;  // old themes compatability
+    // @deprecated
+    window.render_to_view = me.renderToView;  // old themes compatability
+    window.local_data = me.local_data = me.localData = localData;  // old themes compatability
 
     return me;
 }(PAGES.mobile || {}, Willet));
