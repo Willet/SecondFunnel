@@ -13,7 +13,7 @@ PAGES.intentRank = (function (me, details, mediator) {
         // load data (if any)
     };
 
-    me.getResults = function (callback, args, related) {
+    me.getResults = function (callback, belowFold, related) {
         var relatedData = $(related).data() || {},
             urlParams = {
                 'url': details.base_url,
@@ -64,16 +64,16 @@ PAGES.intentRank = (function (me, details, mediator) {
                 dataType: 'jsonp',
                 timeout: 5000,  // 5000 ~ 10000
                 success: function(results) {
-                    callback.apply(this, [results].concat(args));
+                    callback(results, belowFold);
                     PAGES.setLoadingBlocks(false);
                 },
                 error: function () {
-                    callback.apply(this, [details.backupResults].concat(args))
+                    callback(details.backupResults, belowFold);
                     PAGES.setLoadingBlocks(false);
                 }
             });
         } else {
-            callback.apply(this, [details.content].concat(args));
+            callback(details.content, belowFold);
             PAGES.setLoadingBlocks(false);
         }
     };

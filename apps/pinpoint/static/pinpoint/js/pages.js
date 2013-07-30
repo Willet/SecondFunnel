@@ -579,13 +579,13 @@ var PAGES = (function ($, details, Willet) {
     function loadResults(belowFold, callback) {
         callback = callback || layoutResults;
         if (!loadingBlocks) {
-            mediator.fire('IR.getResults', [callback, [belowFold]]);
+            mediator.fire('IR.getResults', [callback, belowFold]);
         }
     }
 
     function loadInitialResults(seed) {
         mediator.fire('IR.changeSeed', [seed]);
-        mediator.fire('IR.getInitialResults', [layoutResults, []]);
+        mediator.fire('IR.getInitialResults', [layoutResults]);
     }
 
     function loadMoreResults(callback, belowFold) {
@@ -967,10 +967,10 @@ var PAGES = (function ($, details, Willet) {
             // load related content; update contentstream
             $discovery.on('click', '.block:not(.youtube):not(.unclickable)',
                 function (e) {
-                    var callback = function($block) {
-                        layoutRelated(e.currentTarget, $block);
+                    var callback = function(jsonData, belowFold) {
+                        layoutResults(jsonData, false, _.partial(layoutRelated, e.currentTarget));
                     };
-                    mediator.fire('IR.getResults', [layoutResults, [false, callback], e.currentTarget]);
+                    mediator.fire('IR.getResults', [callback, false, e.currentTarget]);
                 });
 
             // hovers
