@@ -24,7 +24,7 @@ PAGES.intentRank = (function (me, details, mediator) {
                 'url': details.base_url,
                 'store': details.store.id,
                 'campaign': details.page.id,
-                'id': relatedData['db-id']
+                'id': relatedData['content-id']
             },
             url;
 
@@ -46,7 +46,7 @@ PAGES.intentRank = (function (me, details, mediator) {
         */
 
         // Not sure what this element will be called
-        if (relatedData['db-id']) {
+        if (relatedData['content-id']) {
             url = _.template(contentResultsUrl, urlParams);
         } else {
             url = _.template(campaignResultsUrl, urlParams);
