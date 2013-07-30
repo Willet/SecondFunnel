@@ -1,17 +1,14 @@
 (function ($, window) {
-
-    //==BEGIN HELPER FUNCTIONS==//
-    //==END HELPER FUNCTIONS==//
-    Masonry.prototype._layoutItems = function( items, isInstant ) {
-        if ( !items || !items.length ) {
+    Masonry.prototype._layoutItems = function (items, isInstant) {
+        if (!items || !items.length) {
             // no items, emit event with empty array
-            this.emitEvent( 'layoutComplete', [ this, items ] );
+            this.emitEvent('layoutComplete', [ this, items ]);
             return;
         }
 
         // emit layoutComplete when done
-        this._itemsOn( items, 'layout', function onItemsLayout() {
-            this.emitEvent( 'layoutComplete', [ this, items ] );
+        this._itemsOn(items, 'layout', function onItemsLayout() {
+            this.emitEvent('layoutComplete', [ this, items ]);
         });
 
         // BEGIN WILLET
@@ -19,49 +16,49 @@
         var queue = [],
             dupes, instagramImg;
 
-        for ( var i = 0, len = items.length; i < len; i++ ) {
+        for (var i = 0, len = items.length; i < len; i++) {
             var item = items[i],
                 $item = $(item.element);
             // Check to see if we've recently included this instagram image, if we
             // have, we'll want to skip it here.
             instagramImg = $item.find(':not(.social-buttons) img').prop('src');
-            dupes = _.filter(this.recent, function($elem) {
+            dupes = _.filter(this.recent, function ($elem) {
                 var elemImg = $elem.find(':not(.social-buttons) img').prop('src');
-                return (elemImg == instagramImg);
+                return (elemImg === instagramImg);
             });
 
-            if (dupes.length != 0) {
+            if (instagramImg && dupes.length !== 0) {
                 // remove item from collection
                 var index = this.items.indexOf(item);
                 this.items.splice(index, 1);
                 len -= 1;
 
                 // remove item from DOM
-                item.element.parentNode.removeChild( item.element );
+                item.element.parentNode.removeChild(item.element);
                 continue;
             }
             // END WILLET
             // get x/y object from method
-            var position = this._getItemLayoutPosition( item );
+            var position = this._getItemLayoutPosition(item);
             // enqueue
             position.item = item;
             position.isInstant = isInstant;
-            queue.push( position );
+            queue.push(position);
         }
 
-        this._processLayoutQueue( queue );
+        this._processLayoutQueue(queue);
     };
 
     Masonry.prototype._getItemLayoutPosition = function (item) {
         item.getSize();
         // how many columns does this brick span
-        var colSpan = Math.ceil(item.size.outerWidth / this.columnWidth );
+        var colSpan = Math.ceil(item.size.outerWidth / this.columnWidth);
         colSpan = Math.min(colSpan, this.cols);
         var colGroup = this._getColGroup(colSpan);
         // get the minimum Y value from the columns
         var minimumY = Math.min.apply(Math, colGroup),
             shortColIndex = colGroup.indexOf(minimumY);
-        
+
         // BEGIN WILLET
         /*
          *   We need to ensure that the short column is NOT an odd numbered
@@ -73,7 +70,7 @@
         for (var k = 0; k < dupeGroupY.length; k++) {
             minYObjs.push({
                 'column': k,
-                    'value': dupeGroupY[k]
+                'value': dupeGroupY[k]
             });
         }
 
@@ -101,7 +98,7 @@
         this.recent = this.recent || [];
 
         if (item.element.className.indexOf('instagram') > -1) {
-            while(this.recent.length > 5) {
+            while (this.recent.length > 5) {
                 this.recent.shift();
             }
 
@@ -125,23 +122,23 @@
     };
 
     // BEGIN WILLET
-    Outlayer.Item.prototype._getColumn = function() {
-        var colSpan = this.layout._getColSpan( this ),
+    Outlayer.Item.prototype._getColumn = function () {
+        var colSpan = this.layout._getColSpan(this),
             col = 0;
 
-        while ( col * this.layout.columnWidth < this.position.x ) {
+        while (col * this.layout.columnWidth < this.position.x) {
             ++col;
         }
         return col;
     };
 
-    Masonry.prototype._getColSpan = function( item ) {
+    Masonry.prototype._getColSpan = function (item) {
         item.getSize();
-        var colSpan = Math.ceil(item.size.outerWidth / this.columnWidth );
-        return Math.min( colSpan, this.cols );
+        var colSpan = Math.ceil(item.size.outerWidth / this.columnWidth);
+        return Math.min(colSpan, this.cols);
     };
 
-    Masonry.prototype.reload = function() {
+    Masonry.prototype.reload = function () {
         this.reloadItems();
         this.layout();
     };

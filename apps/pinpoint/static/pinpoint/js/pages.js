@@ -317,8 +317,7 @@ var PAGES = (function ($, details, Willet) {
         // mod of http://stackoverflow.com/a/488073/1558430
         // only checks for up-down scrolling.
         // completely: whether this is false when the elem is partially visible
-        var $wnd = $(window),
-            docViewTop = $wnd.scrollTop(),
+        var docViewTop = $wnd.scrollTop(),
             docViewBottom = docViewTop + $wnd.height(),
             elemTop = $elem.offset().top,
             elemBottom = elemTop + $elem.height();
@@ -474,7 +473,8 @@ var PAGES = (function ($, details, Willet) {
                 visibleStyle: {
                     opacity: 1
                 },
-                isAnimated: !browser.mobile
+                isAnimated: !browser.mobile,
+                transitionDuration: (browser.mobile) ? 0 : '0.4s'
             };
 
             $(this).masonry(options).masonry('reload');
@@ -547,7 +547,7 @@ var PAGES = (function ($, details, Willet) {
     }
 
     function youtubeHoverOn() {
-        commonHoverOn(this, true, false);
+        commonHoverOn(this, !browser.mobile, false);
     }
 
     function youtubeHoverOff() {
@@ -555,7 +555,7 @@ var PAGES = (function ($, details, Willet) {
     }
 
     function comboboxHoverOn() {
-        commonHoverOn(this, false, true);
+        commonHoverOn(this, !browser.mobile, true);
     }
 
     function comboboxHoverOff() {
@@ -569,7 +569,7 @@ var PAGES = (function ($, details, Willet) {
     }
     
     function lifestyleHoverOn() {
-        commonHoverOn(this, true, false);
+        commonHoverOn(this, !browser.mobile, false);
     }
 
     function lifestyleHoverOff() {
@@ -715,7 +715,7 @@ var PAGES = (function ($, details, Willet) {
             // in the background.
             if (!related && $elem.toLoad > 0) {
                 // If the block actually has images, render the loading block.
-                $elem.find('div').hide();
+                $elem.find('div').addClass('hidden');
                 $elem.addClass('unclickable').append($spinner);
                 $images.each(function () {
                     $(this).load(function () {
@@ -723,7 +723,7 @@ var PAGES = (function ($, details, Willet) {
                         if ($elem.toLoad === 0) {
                             // This block is ready to go, render it on the page.
                             $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
-                            $elem.find('div').show();
+                            $elem.find('div').removeClass('hidden');
                             // Trigger a window resize event because Masonry's resize logic is better (faster)
                             // than it's reload logic.
                             $wnd.resize();
@@ -809,7 +809,7 @@ var PAGES = (function ($, details, Willet) {
 
         $block.imagesLoaded(function ($images, $proper, $broken) {
             // make sure images are loaded or else masonry wont work properly
-            if ($broken) {
+            if ($broken && $broken.length) {
                 // possible that if all images are proper,
                 // this is undefined; i.e.
                 // Uncaught TypeError: Cannot call method 'parents' of undefined
@@ -817,7 +817,7 @@ var PAGES = (function ($, details, Willet) {
             }
             $block.find('.block img[src=""]').parents('.block').remove();
 
-            // Don't continue to load results if we aren't getting more results
+            // get more results if we haven't filled the screen yet
             if (!related && initialResults > 0) {
                 setTimeout(function () {
                     PAGES.pageScroll();
@@ -898,6 +898,19 @@ var PAGES = (function ($, details, Willet) {
                 blockWasInView = $block.hasClass('in-view') || false,
                 blockIsInView = isScrolledIntoView($block, false);
             $block.toggleClass('in-view', blockIsInView);  // tell the block
+
+            if (blockWasInView !== blockIsInView && $block.hasClass('wide')) {
+                // visibility changed
+                if (blockIsInView) {
+                    $block.find('.tap_indicator')
+                        .removeClass('fadeIn')
+                        .addClass('animated fadeOut');
+                } else {
+                    $block.find('.tap_indicator')
+                        .removeClass('fadeOut')
+                        .addClass('animated fadeIn');
+                }
+            }
         });
     }
 
