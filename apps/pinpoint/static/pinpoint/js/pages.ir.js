@@ -13,11 +13,6 @@ PAGES.intentRank = (function (me, details, mediator) {
         // load data (if any)
     };
 
-    me.updateContentStream = function (product) {
-        /* @return: none */
-        PAGES.loadResults(false, product);
-    };
-
     me.getResults = function (callback, belowFold, related) {
         var relatedData = $(related).data() || {},
             urlParams = {
@@ -62,16 +57,16 @@ PAGES.intentRank = (function (me, details, mediator) {
                 dataType: 'jsonp',
                 timeout: 5000,  // 5000 ~ 10000
                 success: function(results) {
-                    callback(results, belowFold, related);
+                    callback(results, belowFold);
                     PAGES.setLoadingBlocks(false);
                 },
                 error: function () {
-                    callback(details.backupResults, belowFold, related);
+                    callback(details.backupResults, belowFold);
                     PAGES.setLoadingBlocks(false);
                 }
             });
         } else {
-            callback(details.content, undefined, related);
+            callback(details.content, belowFold);
             PAGES.setLoadingBlocks(false);
         }
     };
@@ -104,7 +99,6 @@ PAGES.intentRank = (function (me, details, mediator) {
     // register (most) PAGES.intentRank events.
     if (mediator) {
         mediator.on('IR.init', me.init);
-        mediator.on('IR.updateContentStream', me.updateContentStream);
         mediator.on('IR.getInitialResults', me.getResults);
         mediator.on('IR.getResults', me.getResults);
         mediator.on('IR.changeSeed', me.changeSeed);
