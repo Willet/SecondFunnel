@@ -7,7 +7,7 @@ from apps.assets.models import Store
 
 def belongs_to_store(view_func):
     """
-    Decorator for views accessible by store staff memders.
+    Decorator for views accessible by store staff members.
     Checks that currently logged in user belongs to a list of staff members.
     """
 
@@ -38,7 +38,7 @@ def belongs_to_store(view_func):
     return wrapper
 
 def has_store_feature(*features):
-    """Decorator for views that are only accessible if features enabled"""
+    """Decorator for views that are only accessible if the feature is enabled"""
     def decorator(view_func):
         @wraps(view_func)
         def inner(request, *args, **kwargs):

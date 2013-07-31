@@ -8,8 +8,11 @@ import logging
 
 from apiclient.discovery import build
 from oauth2client.client import SignedJwtAssertionCredentials
+from celery.utils.log import get_task_logger
 
 from django.conf import settings
+
+logger = get_task_logger(__name__)
 
 
 def join_params(params, join_with=","):
@@ -36,7 +39,9 @@ class GoogleAnalyticsBackend:
 
         self.service = build('analytics', 'v3', http=http)
 
-    def create_query(self, start_date, end_date, metrics, dimensions=None, sort=None, filters=None, start_index="1", max_results='10000'):
+    def create_query(self, start_date, end_date, metrics, dimensions=None,
+                     sort=None, filters=None, start_index="1",
+                     max_results='10000'):
         if filters is not None:
             filters = ["{0}{1}".format(f[0], f[1]) for f in filters]
 
@@ -71,7 +76,9 @@ class GoogleAnalyticsBackend:
                 'There was a Google Analytics Core API error : %s', error)
             return None
 
-    def results_iterator(self, start_date, end_date, metrics, dimensions=None, sort=None, filters=None, max_results='10000', start_index="1"):
+    def results_iterator(self, start_date, end_date, metrics, dimensions=None,
+                         sort=None, filters=None, max_results='10000',
+                         start_index="1"):
         """
         Creates a generator over google analytics results data
         which is likely spanning multiple pages
@@ -105,7 +112,10 @@ class GoogleAnalyticsBackend:
             results = self.get_results(next_query)
             yield results
 
-            if not results.get('nextLink'):
-                return
+            if results.get('itemsPerPage') and results.get('totalResults'):
+                start_index = min(int(start_index) + int(results.get('itemsPerPage')),
+                                  int(results.get('totalResults')))
+                if start_index == int(results.get('totalResults')):
+                    return  # break loop
             else:
-                start_index = results.get('nextLink')
+                return

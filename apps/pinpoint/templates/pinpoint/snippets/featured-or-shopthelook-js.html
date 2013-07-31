@@ -1,5 +1,6 @@
 {% load i18n %}
 <script>
+{% include 'pinpoint/snippets/file_upload_errors.html' %}
 var application = (function(store_id, urls){
     var $pageChanged = $('#id_page_changed'),
         createUploader,
@@ -332,6 +333,10 @@ var application = (function(store_id, urls){
                     $("#id_generic_media_list").val($('#product_images img.new_image').map(
                         function(){return $(this).attr('src') + "\\" + $(this).data('mid');}).toArray().join("|"));
                 } else {
+                    if (response.error) {
+                        fileUploadErrorHandler.signalError(response.error, fileName);    
+                    }
+
                     gif = $productImages.find('.loading_gif');
                     li = gif.closest('li');
                     li.addClass('broken_image');

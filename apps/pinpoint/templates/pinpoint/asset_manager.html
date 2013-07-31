@@ -493,6 +493,8 @@
         );
     };
 
+    {% include 'pinpoint/snippets/file_upload_errors.html' %}
+
     function attachListeners( $content ) {
 
         // Render images and indicate if an image is broken
@@ -688,20 +690,14 @@
                 onComplete: function(id, fileName, response) {
                     // This method triggers whether the upload was successful or not, so only trigger
                     // reload here if successful.
-                    var messages = { 'minSizeError': "'s dimensions are too small.  Minimum file width is {{ MIN_MEDIA_WIDTH }}px.",
-                                     'emptyError': " does not exist.  Are you sure you entered correctly?" }
                     filesBeingUploaded--;
-                    
-                    if (response.success == false) {
-                        if (response.error && messages[response.error]) {
-                            alert(fileName + messages[response.error]);
-                        }
-                    } else if (filesBeingUploaded == 0) {
+                    if (response.success && filesBeingUploaded == 0) {
                         location.reload();
                     }
                 },
                 onError: function(id, fileName, reason) {
                     console.log(reason);
+                    fileUploadErrorHandler.signalError(reason, fileName);
                     if ( filesBeingUploaded == 1 ) {
                         // This has to be 1, as the order in which things are called is different.
                         $('.qq-upload-button').parents('.service').find('.icon').addClass('file');

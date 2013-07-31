@@ -12,7 +12,7 @@ from django.template.defaultfilters import slugify, safe
 
 from apps.utils import noop
 
-def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
+def render_campaign(campaign, request=None, get_seeds_func=None):
     """Generates the HTML page for a standard pinpoint product page.
 
     Related products are populated statically only if a request object
@@ -76,14 +76,13 @@ def render_campaign(campaign, request=None, get_seeds_func=None, mode='full'):
         "pub_date": datetime.now(),
         "base_url": base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
-        "device_mode": mode,
     }
     if request:
         context = RequestContext(request, attributes)
     else:
         context = Context(attributes)
 
-    theme = campaign.get_theme(mode)
+    theme = campaign.get_theme()
 
     if not theme:
         raise ValueError('Neither campaign nor its store has a theme defined')

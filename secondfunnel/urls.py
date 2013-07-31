@@ -77,7 +77,11 @@ urlpatterns = patterns('',
 )
 
 if settings.DEBUG:
-    # used for local development
-    urlpatterns += static('/static/', document_root=settings.STATIC_ROOT)
+    # Used for local development; removes the need to run collectstatic in the
+    # dev environment.
+    urlpatterns += patterns('django.contrib.staticfiles.views',
+        url(r'^static/(?P<path>.*)$', 'serve'),
+    ) + patterns('', url(r'^testing/', include('apps.testing.urls')))
+
 
 handler500 = 'apps.pinpoint.views.app_exception_handler'

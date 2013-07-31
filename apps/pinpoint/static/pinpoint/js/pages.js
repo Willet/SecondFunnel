@@ -1,27 +1,24 @@
 // http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
-var PAGES = (function ($, details, mediator) {
+var PAGES = (function ($, details, Willet) {
     "use strict";
     var i = 0,  // counter
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
-        SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || true,
+        SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || false,
+        mediator = Willet.mediator,
+        browser = Willet.browser || {'mobile': false},
+        mediaAPI = Willet.mediaAPI,
         scripts,
         scriptsLoaded = [],
         spaceBelowFoldToStartLoading = 500,
+        templatesOnPage = {},  // dict of dicts
         loadingBlocks = false,
-        blocksAppendedCallbacks = [],
         globalIdCounters = {},
-        previewCallbacks = [],
-        readyCallbacks = [],
         hoverTimer,
         sizableRegex = /images\.secondfunnel\.com/,
-        imageSizes = [
-            "icon", "thumb", "small", "compact", "medium", "large",
-            "grande", "1024x1024", "master"
-        ],
-        layoutResults;
+        $wnd = $(window);
 
-    function getLoadingBlocks(bool) {
+    function getLoadingBlocks() {
         return loadingBlocks;
     }
 
@@ -30,7 +27,7 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function getModifiedTemplateName(name) {
-        // returns the template name suitabl
+        // returns the template name suitable
         var i,
             type,
             templateNames = [
@@ -41,7 +38,8 @@ var PAGES = (function ($, details, mediator) {
             ],
             imageTypes = [
                 // templates of these names will all use the "image" template.
-                'styld-by', 'tumblr', 'pinterest', 'facebook', 'instagram'
+                'styld.by', 'styld-by',
+                'tumblr', 'pinterest', 'facebook', 'instagram'
             ];
 
         if (_.contains(templateNames, name)) {
@@ -65,20 +63,103 @@ var PAGES = (function ($, details, mediator) {
         return name;
     }
 
-    function redirectToProperTheme() {
-        var isOnMobilePage = (window.location.pathname.indexOf('mobile.html') > 0),
-            url = window.location.protocol + '//' + window.location.hostname + window.location.pathname,
-            query = window.location.href.split('?')[1] || "";
+    function getByAttrib(key, value, x, scope) {
+        // attribute selector - shorthand for either
+        // $('[data-key="value"]')
+        // or
+        // $('[key="value"]').
+        // x and scope are optional. x defaults to 'data'.
 
-        if ($.browser.mobile && !isOnMobilePage) {
-            // on desktop page, going to mobile page
-            url += 'mobile.html' + (query ? '?' + query : "");
-            window.location.replace(url);
-        } else if (!$.browser.mobile && isOnMobilePage && window.location.hash.indexOf("disableRedirect") === -1) {
-            // on mobile page, going to desktop page
-            url = url.replace('mobile.html', '') + (query ? '?' + query : "");
-            window.location.replace(url);
+        if (x === undefined) {
+            x = 'data';
         }
+        if (x !== '') {
+            x = x + '-';
+        }
+        scope = scope || document;  // the whole page. window doesn't work.
+        return $('[' + x + key + '="' +
+            value.replace(/([ #;&,.+*~\':"!^$[\]()=>|\/@])/g,'\\$1') +
+            '"]', scope);
+    }
+
+    function groupByAttrib($elements, key, data) {
+        // given a list of element selector results, group them by
+        // one of their common properties (denoted by key).
+        // all properties are grouped by their STRING representation,
+        // for safety and the 'undefined' special case.
+        // data is optional. if it is true, data() is used in place of prop().
+        var accessor = data ? 'data' : 'prop';
+        return _.groupBy(
+            _.map($elements, function (elem) {
+                return $(elem);
+            }),
+            function (elem) {
+                return elem[accessor](key);
+            }
+        );
+    }
+
+    function getTemplate(templateId) {
+        // returns the required template.
+        // right now, it only resolves mobile templates for mobile devices.
+        // in the event that a mobile template is not found, the full template
+        // will be served in place.
+        var templateEls = templatesOnPage[templateId];
+
+        if (browser.mobile && templateEls && templateEls.mobile) {
+            // return "the first jquery-wrapped item in the list of this key"
+            return templateEls.mobile[0].eq(0);
+        } else {
+            // if nothing specified or no mobile theme, pick the first one.
+            // it can be an empty jquery object. (for e.g. 'image' template)
+            try {
+                return templateEls.desktop[0].eq(0);
+            } catch (err) { }
+            try {
+                return templateEls['undefined'][0].eq(0);  // type undeclared
+            } catch (err) { }
+        }
+
+        if (templateId !== 'preview') {
+            // 'preview' is an exception (circular target-src reference)
+            mediator.fire('error', ['oops, no template ' + templateId]);
+        }
+        // no such template - return an object that has .html()
+        return $('');
+    }
+
+    function loadTemplates() {
+        // saves all javascript templates on the page to a dict of dicts.
+        // {
+        //     product: {
+        //         desktop: $(theElement),
+        //         mobile: $(theElement),
+        //     },
+        //     combobox: {
+        //         desktop: $(theElement),
+        //         mobile: $(theElement),
+        //     },
+        //     ...
+        // }
+        // The idea is to call this function only once per page load.
+        // Calling it more than once (perhaps to refresh themes?)
+        //   will eliminate the performance improvements that it introduces.
+        var templateIndicator = 'template-id',  // what makes a template a template
+            templateEls = $('[data-' + templateIndicator + ']'),
+            groupedTemplateEls;
+
+        groupedTemplateEls = _.groupBy(templateEls, function (el) {
+            return $(el).data('template-id');
+        });
+
+        _.each(groupedTemplateEls, function (value, key, list) {
+            // for 'image', then for everyone else
+            list[getModifiedTemplateName(key)] = list[key] =
+                groupByAttrib($(value), 'media', true);
+        });
+
+        templatesOnPage = groupedTemplateEls;  // export
+        return groupedTemplateEls;
     }
 
     function size(url, desiredSize) {
@@ -86,7 +167,12 @@ var PAGES = (function ($, details, mediator) {
         // trust that our service will contain the required image.
         // ... Also, because it could be expensive to check for the required
         // image before use
-        var newUrl, filename;
+        var newUrl,
+            filename,
+            imageSizes = [
+                "icon", "thumb", "small", "compact", "medium", "large",
+                "grande", "1024x1024", "master"
+            ];
 
         if (!sizableRegex.test(url) || !_.contains(imageSizes, desiredSize)) {
             return url;
@@ -132,18 +218,47 @@ var PAGES = (function ($, details, mediator) {
         return baseStr + globalIdCounters[baseStr];
     }
 
-    function fisherYates(myArray, nb_picks) {
-        // get #nb_picks random permutations of an array.
-        // http://stackoverflow.com/a/2380070
-        var i;
-        for (i = myArray.length - 1; i > 1; i--) {
-            var r = Math.floor(Math.random() * i);
-            var t = myArray[i];
-            myArray[i] = myArray[r];
-            myArray[r] = t;
+    function loadYoutubeVideo(videoID, thumbnailID, onStateChange) {
+        // @return: None
+        var player = new YT.Player(thumbnailID, {
+            height: 250,
+            width: 450,
+            videoId: videoID,
+            playerVars: {
+                'autoplay': 1,
+                'controls': 0
+            },
+            events: {
+                'onReady': $.noop,
+                'onStateChange': onStateChange,
+                'onError': $.noop
+            }
+        });
+    }
+
+    function getYoutubeThumbnail(videoID, videoData) {
+        // videoData is optional.
+        // @return: string
+        var preferredThumbnailQuality = 'hqdefault',
+            thumbURL = 'http://i.ytimg.com/vi/' + videoID +
+                '/' + preferredThumbnailQuality + '.jpg',
+            thumbObj,
+            thumbPath = ['entry', 'media$group', 'media$thumbnail'],
+            thumbChecker,
+            thumbnailArray;
+
+        if (videoData) {
+            thumbChecker = checkKeys(videoData, thumbPath);
+            thumbnailArray = thumbChecker.media$thumbnail || [];
+            thumbObj = _.findWhere(thumbnailArray, {
+                'yt$name': preferredThumbnailQuality
+            });
+            if (thumbObj && thumbObj.url) {
+                thumbURL = thumbObj.url;
+            }  // else fallback to the default thumbURL
         }
 
-        return myArray.slice(0, nb_picks);
+        return thumbURL;
     }
 
     function renderTemplate(str, context, isBlock) {
@@ -159,7 +274,7 @@ var PAGES = (function ($, details, mediator) {
                         // cached
                         return domTemplateCache[templateId];
                     } else {
-                        var $el = $('[data-template-id="' + templateId + '"]');
+                        var $el = getTemplate(templateId);
                         if ($el.length) {
                             // cache
                             domTemplateCache[templateId] = $el.html();
@@ -198,6 +313,22 @@ var PAGES = (function ($, details, mediator) {
         return _.template(replaced, context);
     }
 
+    function isScrolledIntoView($elem, completely) {
+        // mod of http://stackoverflow.com/a/488073/1558430
+        // only checks for up-down scrolling.
+        // completely: whether this is false when the elem is partially visible
+        var docViewTop = $wnd.scrollTop(),
+            docViewBottom = docViewTop + $wnd.height(),
+            elemTop = $elem.offset().top,
+            elemBottom = elemTop + $elem.height();
+
+        if (completely) {
+            return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+        } else {
+            return ((elemTop <= docViewBottom) && (elemBottom >= docViewTop));
+        }
+    }
+
     function renderTemplates(data) {
         // finds templates currently on the page, and drops them onto their
         // targets (elements with classes 'template' and 'target').
@@ -222,7 +353,7 @@ var PAGES = (function ($, details, mediator) {
             }
 
             // if the required template is on the page, use it
-            srcElement = $("[data-template-id='" + src + "']");
+            srcElement = getTemplate(src);
             if (srcElement.length) {
                 // populate context with all available variables
                 $.extend(context, originalContext, {
@@ -243,12 +374,12 @@ var PAGES = (function ($, details, mediator) {
 
     /* --- START element bindings --- */
     function showPreview(me) {
-        var i,
-            data = $(me).data(),
+        var data = $(me).data(),
             templateName = getModifiedTemplateName(data.template),
-            $previewContainer = $('[data-template-id="preview-container"]'),
+            $previewContainer = getTemplate("preview-container"),  // built-in
             $previewMask = $previewContainer.find('.mask'),
-            $target = $previewContainer.find('.target.template'),
+            $target = $previewContainer.find('.template.target'),
+            fbButtons,
             templateId,
             template,
             renderedTemplate;
@@ -262,16 +393,16 @@ var PAGES = (function ($, details, mediator) {
 
         templateId = templateName + '-preview';
 
-        template = $('[data-template-id="' + templateId + '"]').html();
+        template = getTemplate(templateId).html();
 
         if (!template && (templateId.indexOf('image') === 0)) {
             // legacy themes don't have 'image-' templates
             templateId = 'instagram' + templateId.slice(5);
-            template = $('[data-template-id="' + templateId + '"]').html();
+            template = getTemplate(templateId).html();
         }
 
-        if (_.isEmpty(template) || _.isEmpty($target)) {
-            mediator.fire('log', ['oops @ no preview template']);
+        if (!template || _.isEmpty($target)) {
+            mediator.fire('log', ['oops, no preview template ' + templateName, templateId]);
             return;
         }
 
@@ -285,49 +416,46 @@ var PAGES = (function ($, details, mediator) {
 
         $target.html(renderedTemplate);
 
+        mediator.fire('PAGES.previewOpened');
+        mediator.fire('tracking.clearTimeout');
+        mediator.fire('tracking.setSocialShareVars', [
+            {"sType": "popup", "url": data.url}
+        ]);
+
+        $previewContainer.css('display', 'table').fadeIn(100);
+        if ($previewMask.length) {
+            $previewMask.fadeIn(100);
+        }
+
         // Parse Facebook, Twitter buttons
         if (window.FB) {
-            window.FB.XFBML.parse($previewContainer.find('.social-buttons .button.facebook')[0]);
+            fbButtons = $previewContainer.find('.social-buttons .button.facebook, .fb-like');
+            if (fbButtons.length) {
+                // if it does not exist, script will init
+                // ALL buttons on the page at once
+                window.FB.XFBML.parse(fbButtons[0]);
+            }
         }
 
         if (window.twttr) {
             window.twttr.widgets.load();
         }
 
-        for (i in previewCallbacks) {
-            if (previewCallbacks.hasOwnProperty(i)) {
-                previewCallbacks[i]();
-            }
-        }
-
-        mediator.fire('tracking.clearTimeout');
-        mediator.fire('tracking.setSocialShareVars', [
-            {"sType": "popup", "url": data.url}
-        ]);
-
-        $previewContainer.fadeIn(100);
-        $previewMask.fadeIn(100);
+        // late binding for all close buttons
+        $('.preview .mask, .preview .close').on('click', hidePreview);
     }
 
-    function addPreviewCallback(f) {
-        previewCallbacks.push(f);
+    function addPreviewCallback(func) {
+        // used by some themes. func accepts no arguments.
+        mediator.on('PAGES.previewOpened', func);
     }
 
-    function addOnBlocksAppendedCallback(f) {
-        blocksAppendedCallbacks.push(f);
+    function addOnBlocksAppendedCallback(func) {
+        // used by some themes. func accepts no arguments.
+        mediator.on('PAGES.blocksAppended', func);
     }
 
-    function setBlocksAppendedCallback(i, $block) {
-        if (blocksAppendedCallbacks.hasOwnProperty(i)) {
-            blocksAppendedCallbacks[i]($block);
-        }
-    }
-
-    function addReadyCallback(f) {
-        readyCallbacks.push(f);
-    }
-
-    function hidePreview () {
+    function hidePreview() {
         var $mask    = $('.preview .mask'),
             $preview = $('.preview.container');
 
@@ -335,6 +463,24 @@ var PAGES = (function ($, details, mediator) {
 
         $preview.fadeOut(100);
         $mask.fadeOut(100);
+    }
+
+    function reloadMasonry(options) {
+        // Convenince method for triggering reload of Masonry
+        $('.content_list, .discovery-area').each(function () {
+            options = options || {
+                itemSelector: '.block',
+                columnWidth: $(this).width() / 4,
+                isResizeBound: true,
+                visibleStyle: {
+                    opacity: 1
+                },
+                isAnimated: !browser.mobile,
+                transitionDuration: (browser.mobile) ? 0 : '0.4s'
+            };
+
+            $(this).masonry(options).masonry('reload');
+        });
     }
 
     function commonHoverOn(t, enableSocialButtons, enableTracking) {
@@ -384,7 +530,12 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function productHoverOn() {
-        commonHoverOn(this, true, true);
+        if (browser.mobile) {
+            // no social buttons on top of products on mobile
+            commonHoverOn(this, false, true);
+        } else {
+            commonHoverOn(this, true, true);
+        }
     }
 
     function productHoverOff() {
@@ -398,7 +549,7 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function youtubeHoverOn() {
-        commonHoverOn(this, true, false);
+        commonHoverOn(this, !browser.mobile, false);
     }
 
     function youtubeHoverOff() {
@@ -406,7 +557,7 @@ var PAGES = (function ($, details, mediator) {
     }
 
     function comboboxHoverOn() {
-        commonHoverOn(this, false, true);
+        commonHoverOn(this, !browser.mobile, true);
     }
 
     function comboboxHoverOff() {
@@ -417,6 +568,21 @@ var PAGES = (function ($, details, mediator) {
                 "label": $(t).data("label")
             }]);
         }, true);
+    }
+    
+    function lifestyleHoverOn() {
+        commonHoverOn(this, !browser.mobile, false);
+    }
+
+    function lifestyleHoverOff() {
+        commonHoverOff(this, $.noop, false);
+    }
+
+    function loadResults(belowFold, callback) {
+        callback = callback || layoutResults;
+        if (!loadingBlocks) {
+            mediator.fire('IR.getResults', [callback, belowFold]);
+        }
     }
 
     function lifestyleHoverOn() {
@@ -432,17 +598,261 @@ var PAGES = (function ($, details, mediator) {
         mediator.fire('IR.getInitialResults', [layoutResults]);
     }
 
-    function loadResults(belowFold, related) {
-        if (!loadingBlocks || related) {
-            mediator.fire('IR.getResults', [layoutResults, belowFold, related]);
+    function loadMoreResults(callback, belowFold) {
+        // @deprecated
+        return loadResults(belowFold, callback);
+    }
+                          
+    function layoutResults(jsonData, belowFold, callback) {
+        // renders product divs onto the page.
+        // suppose results is (now) a legit json object:
+        // {products: [], videos: [(sizeof 1)]}
+        var $block, el, j, initialResults, productDoms = [], results,
+            revisedType, template, templateEl, templateType, videos;
+
+        // check for rogue json data.
+        try {
+            if (jsonData.error) {
+                mediator.fire(
+                    'error',  // usually "Campaign xxx has no product for id xxx"
+                    [jsonData.error + ' (' + (jsonData.url || '') + ')']
+                );
+                return;
+            }
+        } catch (err) {
+            /* neither an array nor object - even worse */
+            mediator.fire('error', ['malformed jsonData', jsonData]);
+            return;
         }
+        if (!jsonData.length) {
+            mediator.fire('error', ['IR returned zero results!']);
+            return;
+        }
+
+        if (SHUFFLE_RESULTS) {  // first we shuffle it (if needed)
+            results = _.shuffle(jsonData);
+        }
+        // then we limit it
+        results = $(results || jsonData).slice(0, MAX_RESULTS_PER_SCROLL);
+        initialResults = Math.max(results.length, MAX_RESULTS_PER_SCROLL);
+
+        // add products
+        _.each(results, function (result) {  // [template context]
+            try {
+                templateType = PAGES.getModifiedTemplateName(result.template) || 'product';
+                templateEl = PAGES.getTemplate(templateType);
+                template = templateEl.html();
+
+                // in case an image is wrong, don't bother with the product
+                if (result.image === "None") {
+                    return;
+                }
+
+                switch (templateType) {
+                case 'product':
+                    // in case an image is lacking, don't bother with the product
+                    if (!result.image) {
+                        return;
+                    }
+
+                    // use the resized images
+                    result.image = result.image.replace("master.jpg", "medium.jpg");
+                    break;
+                case 'combobox':
+                    // in case an image is lacking, don't bother with the product
+                    if (!result.image) {
+                        return;
+                    }
+                    break;
+                case 'image':
+                    if (!template) {
+                        // Legacy themes do not support these templates
+                        revisedType = 'instagram';
+                        templateEl = PAGES.getTemplate(revisedType);
+                        template = templateEl.html();
+                    }
+                    break;
+                default:
+                    break;
+                }
+
+                var renderedBlock = PAGES.renderTemplate(template, {
+                    'data': result,
+                    'page': PAGES.details.page,
+                    'store': PAGES.details.store
+                }, true);
+                if (!renderedBlock.length) {
+                    mediator.fire('error', ['skipping empty template block']);
+                    return;
+                } else {
+                    el = $(renderedBlock);
+                    el.data(result);  // populate the .product.block div with data
+
+                    var templateElsLength = el.length;
+                    for (j=0; j<templateElsLength; j++) {
+                        // didn't have a better name for a loop
+                        productDoms.push(el[j]);
+                    }
+                }
+
+            } catch (err) {  // hide rendering error
+                mediator.fire('error', ['oops @ item', err]);
+            }
+        });
+
+        // Remove potentially bad content
+        productDoms = _.filter(productDoms, function (elem) {
+            return !_.isEmpty(elem);
+        });
+
+        $block = $(productDoms);  // an array of DOM elements
+
+        // if it has a lifestyle image, add a wide class to it so it's styled properly
+        $block.each(function () {
+            var $elem = $(this),
+                $images = $elem.find('img'),
+
+                // Create a spinner image that can be used to indicate a block is loading.
+                $spinner = $('<img/>', {
+                    'class': "image-loading-spinner",
+                    'style': "padding-top:100px; padding-bottom:100px; width:32px !important; height:32px; margin-left: auto; margin-right: auto; display:block;",
+                    'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
+                });
+
+            $elem.toLoad = $images.length;
+
+            // If there's images to be loaded, place a spinner in the block and load the content
+            // in the background.
+            if ($elem.toLoad > 0) {
+                // If the block actually has images, render the loading block.
+                $elem.find('div').addClass('hidden');
+                $elem.addClass('unclickable').append($spinner);
+                $images.each(function () {
+                    $(this).load(function () {
+                        $elem.toLoad -= 1;
+                        if ($elem.toLoad === 0) {
+                            // This block is ready to go, render it on the page.
+                            $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
+                            $elem.find('div').removeClass('hidden');
+                            // Trigger a window resize event because Masonry's resize logic is better (faster)
+                            // than it's reload logic.
+                            $wnd.resize();
+                        }
+                    });
+                });
+            }
+
+            $images.error(function(){
+                var instance = $(this),
+                    isAdded = setInterval(function(){
+                        if ($.contains(document.documentElement, instance[0])) {
+                            instance.parent().parent().remove();
+                            clearInterval(isAdded);
+                        }
+                    }, 500);
+            });
+
+            if ($elem.find('.lifestyle').length > 0) {
+                $elem.addClass('wide');
+            }
+
+            if ($elem.hasClass('instagram') && (Math.random() >= 0.5)) {
+                $elem.addClass('wide');
+            }
+
+            $('.discovery-area').append($elem).masonry('appended', $elem, true);
+        });
+
+        // Render youtube blocks with player
+        videos = _.where(results, {'template': 'youtube'});  // (haystack, criteria)
+        _.each(videos, function (video) {
+            var video_id = video['original-id'] || video.id,
+                video_state_change = window.pagesTracking ?
+                        _.partial(window.pagesTracking.videoStateChange, video_id) :
+                        $.noop;
+
+            mediaAPI.getObject("video_gdata", video_id, function (video_data) {
+                // get results from the page...
+                // ... and from unrendered results
+                var containers = $(".youtube[data-label='" + video_id + "']"),
+                    new_containers = $block.filter(".youtube[data-label='" + video_id + "']"),
+                    thumbClass = 'youtube-thumbnail',
+                    thumbURL = getYoutubeThumbnail(video_id, video_data);
+
+                containers = containers.add(new_containers);
+
+                containers.each(function () {
+                    var container = $(this),
+                        uniqueThumbnailID = generateID('thumb-' + video_id),
+                        thumbnail = $('<div />', {
+                            'css': {  // this is to trim the 4:3 black bars
+                                'overflow': 'hidden',
+                                'height': 250 + 'px',
+                                'background-image': 'url("' + thumbURL + '")',
+                                'background-position': 'center center'
+                            },
+                            'id': uniqueThumbnailID
+                        });
+
+                    // when the thumbnail is clicked, replace itself with
+                    // the youtube video of the same size, then autoplay
+                    thumbnail
+                        .addClass('wide ' + thumbClass)
+                        .click(function () {
+                            loadYoutubeVideo(video_id, uniqueThumbnailID,
+                                             video_state_change);
+                        });
+
+                    if (container.find('.' + thumbClass).length === 0) {
+                        // add a thumbnail only if there isn't one already
+                        container.prepend(thumbnail);
+                        mediator.fire('log', ['loaded video thumbnail ' + video_id]);
+                    } else {
+                        mediator.fire('log', ['prevented thumbnail dupe']);
+                    }
+                    container.children(".title").html(video_data.entry.title.$t);
+                });
+            });
+        });
+
+        $block.imagesLoaded(function ($images, $proper, $broken) {
+            // make sure images are loaded or else masonry wont work properly
+            if ($broken && $broken.length) {
+                // possible that if all images are proper,
+                // this is undefined; i.e.
+                // Uncaught TypeError: Cannot call method 'parents' of undefined
+                $broken.parents('.block').remove();
+            }
+            $block.find('.block img[src=""]').parents('.block').remove();
+
+            // Don't continue to load results if we aren't getting more results
+            if (initialResults > 0) {
+                setTimeout(function () {
+                    PAGES.pageScroll();
+                }, 100);
+            }
+
+            $block.find('.pinpoint-youtube-area').click(function() {
+                $(this).html($(this).data('embed'));
+            });
+
+            mediator.fire('PAGES.blocksAppended', [$block]);
+
+            // tell masonry to reposition blocks
+            reloadMasonry();
+            PAGES.setLoadingBlocks(false);
+
+            // Call back with the rendered content
+            if (callback) {
+                callback($block);
+            }
+        });
     }
 
     function layoutRelated(product, relatedContent) {
         /* Load related content into the masonry instance.
            @return: none */
-        var $discovery = $('.discovery-area'),
-            $product = $(product),
+        var $product = $(product),
             initialBottom = $product.position().top + $product.height(),
             $target = $product.next();
 
@@ -454,19 +864,16 @@ var PAGES = (function ($, details, mediator) {
 
         // Inserts content after the clicked product block (Animated)
         relatedContent.insertAfter($target);
-        $discovery.masonry('reload');
+        reloadMasonry();
         relatedContent.show();
-        /* // Inserts content after the clicked product block (Non-Animated)
-           $.when($discovery.masonry('reload')).then(function(){ relatedContent.show();}); */
     }
 
     function pageScroll() {
         // calculates screen location and decide if more results
         // should be displayed.
-        var $w            = $(window),
-            discoveryBlocks = $('.discovery-area .block'),
+        var discoveryBlocks = $('.block', '.discovery-area'),
             noResults     = (discoveryBlocks.length === 0),
-            pageBottomPos = $w.innerHeight() + $w.scrollTop(),
+            pageBottomPos = $wnd.innerHeight() + $wnd.scrollTop(),
             lowestBlock,
             lowestHeight,
             $divider = $(".divider"),
@@ -486,41 +893,133 @@ var PAGES = (function ($, details, mediator) {
         if (!lowestBlock) {
             lowestHeight = 0;
         } else {
-            lowestHeight = lowestBlock.offset().top + lowestBlock.height()
+            lowestHeight = lowestBlock.offset().top + lowestBlock.height();
         }
 
         if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
-            loadResults(layoutResults);
+            loadResults(true, layoutResults);
+        }
+
+        $('.block', '.discovery-area').each(function (idx, obj) {
+            // broadcast which blocks are visible
+            var $block = $(obj),
+                blockWasInView = $block.hasClass('in-view') || false,
+                blockIsInView = isScrolledIntoView($block, false);
+            $block.toggleClass('in-view', blockIsInView);  // tell the block
+
+            if (blockWasInView !== blockIsInView && $block.hasClass('wide')) {
+                // visibility changed
+                if (blockIsInView) {
+                    $block.find('.tap_indicator')
+                        .removeClass('fadeIn')
+                        .addClass('animated fadeOut');
+                } else {
+                    $block.find('.tap_indicator')
+                        .removeClass('fadeOut')
+                        .addClass('animated fadeIn');
+                }
+            }
+        });
+    }
+
+    function windowResize() {
+        // if the browser changes size, switch to mobile templates,
+        // even if the device is not mobile, and vice versa.
+        // this cannot "un-render" js templates previously rendered with
+        // a different-size template.
+        var oldState = browser.mobile;
+        browser.mobile = ($wnd.width() < 1024);
+
+        if (browser.mobile !== oldState) {  // if it changed
+            if (browser.mobile) {
+                // style tag has no disabled attrib, but the DOM has it
+                $('style.mobile-only').prop('disabled', '');
+                $('style.desktop-only').prop('disabled', 'disabled');
+            } else {
+                $('style.mobile-only').prop('disabled', 'disabled');
+                $('style.desktop-only').prop('disabled', '');
+            }
+        }
+
+        var $discovery = $('.discovery-area'),
+            discoveryWidth = $discovery.width(),
+            discoveryHeight = $discovery.height(),
+            oldDiscoveryWidth = $discovery.data('width'),
+            oldDiscoveryHeight = $discovery.data('height');
+        if (discoveryWidth !== oldDiscoveryWidth ||
+                discoveryHeight !== oldDiscoveryHeight) {
+            // size of discovery area changed - update masonry
+            reloadMasonry();
+            // and update the old widths/heights
+            $discovery.data({
+                'width': discoveryWidth,
+                'height': discoveryHeight
+            });
         }
     }
 
     function attachListeners() {
         var $discovery = $('.discovery-area');
+        if ($discovery.length) {
+            // use delegated events to reduce overhead
+            $discovery.on('click', '.block.product:not(.unclickable), ' +
+                                   '.block.combobox:not(.unclickable)',
+                function (e) {
+                    showPreview(e.currentTarget);
+                    mediator.fire('IR.updateClickStream', [e.currentTarget, e]);
+                });
 
-        // use delegated events to reduce overhead
-        $discovery.on('click', '.block.product:not(.unclickable), .block.combobox:not(.unclickable)', function (e) {
-            showPreview(e.currentTarget);
+            $discovery.on('click', '.block.image:not(.unclickable)',
+                function (e) {
+                    showPreview(e.currentTarget);
+                });
+
+            // load related content; update contentstream
+            $discovery.on('click', '.block:not(.youtube):not(.unclickable)',
+                function (e) {
+                    var callback = function(jsonData, belowFold) {
+                        layoutResults(jsonData, false, _.partial(layoutRelated, e.currentTarget));
+                    };
+                    mediator.fire('IR.getResults', [callback, false, e.currentTarget]);
+                });
+
+            // hovers
+            $discovery.on({
+                'mouseenter': productHoverOn,
+                'mouseleave': productHoverOff
+            }, '.block.product:not(.unclickable), .block.combobox:not(.unclickable) .product');
+
+            $discovery.on({
+                'mouseenter': youtubeHoverOn,
+                'mouseleave': youtubeHoverOff
+            }, '.block.youtube');
+
+            $discovery.on({
+                'mouseenter': comboboxHoverOn,
+                'mouseleave': comboboxHoverOff
+            }, '.block.combobox:not(.unclickable) .lifestyle');
+
+            // Is this safe enough?
+            $discovery.on({
+                'mouseenter': lifestyleHoverOn,
+                'mouseleave': lifestyleHoverOff
+            }, '.block.image:not(.unclickable)');
+        }
+
+        // Prevent social buttons from causing other events
+        $('.social-buttons').find('.button').on('click', function (e) {
+            e.stopPropagation();
         });
 
-        $discovery.on('click', '.block.image:not(.unclickable)', function (e) {
-            showPreview(e.currentTarget);
-        });
+        $wnd.resize(_.throttle(windowResize, 1000))
+            .resize(_.throttle(pageScroll, 300))
+            .scroll(pageScroll);
 
-        // load related content; update contentstream
-        $discovery.on('click', '.block:not(.youtube):not(.unclickable)', function(e) {
-            mediator.fire('IR.updateContentStream', [e.currentTarget]);
-        });
-
-        // hovers
-        $discovery.on({
-            mouseenter: productHoverOn,
-            mouseleave: productHoverOff
-        }, '.block.product:not(.unclickable), .block.combobox:not(.unclickable) .product');
-
-        $discovery.on({
-            mouseenter: youtubeHoverOn,
-            mouseleave: youtubeHoverOff
-        }, '.block.youtube');
+        if (window.MBP) {
+            // @mobile
+            window.MBP.hideUrlBarOnLoad();
+            window.MBP.preventZoom();
+        }
 
         $discovery.on({
             mouseenter: comboboxHoverOn,
@@ -533,38 +1032,59 @@ var PAGES = (function ($, details, mediator) {
             mouseleave: lifestyleHoverOff
         }, '.block.image:not(.unclickable)');
     }
-
     /* --- END element bindings --- */
 
     function load(scripts) {
-        var i, item, script;
-
-        // Use a dictionary, or just check all script tags?
-        for (i = 0; i < scripts.length; i++) {
-            item = scripts[i];
-            if (_.contains(scriptsLoaded, item.src)) {
-                mediator.fire(
-                    'log',
-                    ['script ' + item.src + ' already loaded; skipping.']
-                );
+        // loads a list of scripts by url.
+        _.each(scripts, function (script) {
+            if (!_.contains(scriptsLoaded, script.src)) {
+                $.getScript(script.src || script, script.onload || $.noop);
             } else {
-                $.getScript(item.src || item, item.onload || $.noop);
-                scriptsLoaded.push(item.src);
+                mediator.fire('error', [script.src + ' already loaded; skipping.']);
             }
-        }
+        });
+    }
+
+    function ready() {
+        // Special Setup
+        loadTemplates(); // populate list of templates in templatesOnPage
+        renderTemplates();
+        attachListeners();
+
+        // Initialize Masonry
+        reloadMasonry();
+        $('.content_list, .discovery-area').masonry('bindResize');
+
+        // Take any necessary actions
+        mediator.fire('PAGES.ready', []);
+        loadInitialResults();
     }
 
     function init(readyFunc, layoutFunc) {
-        redirectToProperTheme();
+        // both functions are optional.
 
-        layoutResults = layoutFunc;
+        var pubDate;
+        if (details && details.page && details.page.pubDate) {
+            pubDate = details.page.pubDate;
+        }
+        mediator.fire('log', [  // feature, not a bug
+            '____ ____ ____ ____ _  _ ___     ____ _  _ ' +
+            '_  _ _  _ ____ _    \n[__  |___ |    |  | |' +
+            '\\ | |  \\    |___ |  | |\\ | |\\ | |___ | ' +
+            '   \n___] |___ |___ |__| | \\| |__/    |   ' +
+            ' |__| | \\| | \\| |___ |___ \n' +
+            '           Published ' + pubDate]);
+
+
+        if (readyFunc) {  // override
+            ready = readyFunc;
+        }
+        if (layoutFunc) {  // override
+            layoutResults = layoutFunc;
+        }
         load(scripts);
-        $(document).ready(readyFunc);
+        $(document).ready(ready);
     }
-
-    // ensure we actually determine if we're desktop or mobile
-    // regex from http://detectmobilebrowsers.com/
-    (function(a){(jQuery.browser=jQuery.browser||{}).mobile=/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))})(navigator.userAgent||navigator.vendor||window.opera);
 
     // script actually starts here
     var requiredInfo = [
@@ -590,359 +1110,52 @@ var PAGES = (function ($, details, mediator) {
         'onload': $.noop
     }];
 
+    // not sure why we exposed hidePreview... here are deprecation hooks.
+    mediator.on('PAGES.showPreview', showPreview);
+    mediator.on('PAGES.hidePreview', hidePreview);
+
     return {
-        'init': init,
+        'init': _.once(init),
         'addPreviewCallback': addPreviewCallback,
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
-        'setBlocksAppendedCallback': setBlocksAppendedCallback,
-        'blocksAppendedCallbacks': blocksAppendedCallbacks,
         'renderTemplate': renderTemplate,
         'renderTemplates': renderTemplates,
+        'reloadMasonry': reloadMasonry,
         'loadInitialResults': loadInitialResults,
         'loadResults': loadResults,
+        'layoutResults': layoutResults,
         'layoutRelated': layoutRelated,
         'attachListeners': attachListeners,
-        'hidePreview': hidePreview,
         'pageScroll': pageScroll,
-        'MAX_RESULTS_PER_SCROLL': MAX_RESULTS_PER_SCROLL,
-        'SHUFFLE_RESULTS': SHUFFLE_RESULTS,
-        'fisherYates': fisherYates,
-        'addReadyCallback': addReadyCallback,
-        'checkKeys': checkKeys,
-        'generateID': generateID,
         'details': details,
         'getLoadingBlocks': getLoadingBlocks,
         'setLoadingBlocks': setLoadingBlocks,
-        'getModifiedTemplateName': getModifiedTemplateName
+        'getModifiedTemplateName': getModifiedTemplateName,
+        'getTemplate': getTemplate
     };
-}(jQuery,
-    window.PAGES_INFO || window.TEST_PAGE_DATA || {},
-    (Willet && Willet.mediator) || {}));
-
-
-// full (desktop) component
-PAGES.full = (function (me, mediator) {
-    "use strict";
-
-    me = {
-        'layoutFunc': function (jsonData, belowFold, related) {
-            // renders product divs onto the page.
-            // suppose results is (now) a legit json object:
-            // {products: [], videos: [(sizeof 1)]}
-            try {
-                if (jsonData.error) {
-                    mediator.fire(
-                        'error',  // usually "Campaign xxx has no product for id xxx"
-                        [jsonData.error + ' (' + (jsonData.url || '') + ')']
-                    );
-                    return;
-                }
-            } catch (err) {
-                /* neither an array nor object - even worse */
-                mediator.fire('error', ['malformed jsonData', jsonData]);
-                return;
-            }
-            var $block,
-                result,
-                results = (PAGES.SHUFFLE_RESULTS) ?
-                        (PAGES.fisherYates(jsonData, PAGES.MAX_RESULTS_PER_SCROLL) || []) :
-                        $(jsonData).slice(0, PAGES.MAX_RESULTS_PER_SCROLL),  // no shuffle
-                initialResults = Math.max(results.length, PAGES.MAX_RESULTS_PER_SCROLL),
-                i,
-                productDoms = [],
-                template,
-                templateEl,
-                player,
-                template_context,
-                templateType,
-                el,
-                videos,
-                revisedType;
-
-            // add products
-            for (i = 0; i < results.length; i++) {
-                try {
-                    result = results[i];
-                    template_context = result;
-                    templateType = PAGES.getModifiedTemplateName(result.template) || 'product';
-                    templateEl = $("[data-template-id='" + templateType + "']");
-                    template = templateEl.html();
-
-                    switch (templateType) {
-                    case 'product':
-                        // in case an image is lacking, don't bother with the product
-                        if (!template_context.image || template_context.image == "None") {
-                            continue;
-                        }
-
-                        // use the resized images
-                        template_context.image = template_context.image.replace("master.jpg", "compact.jpg");
-                        break;
-                    case 'combobox':
-                        // in case an image is lacking, don't bother with the product
-                        if (!template_context.image || template_context.image == "None") {
-                            continue;
-                        }
-                        break;
-                    case 'image':
-                        if (!template) {
-                            // Legacy themes do not support these templates
-                            revisedType = 'instagram';
-                            templateEl = $("[data-template-id='" + revisedType + "']");
-                            template = templateEl.html();
-                        }
-                        break;
-                    default:
-                        break;
-                    }
-
-                    // Since we never show the count in the feed,
-                    // just add this to the template data.
-                    template_context.show_count = false;
-
-                    var rendered_block = PAGES.renderTemplate(template, {
-                        'data': template_context,
-                        'page': PAGES.details.page,
-                        'store': PAGES.details.store
-                    }, true);
-                    if (!rendered_block.length) {
-                        mediator.fire('error', ['warning: not drawing empty template block']);
-                        break;
-                    } else {
-                        el = $(rendered_block);
-                        el.data(template_context);  // populate the .product.block div with data
-
-                        productDoms.push(el[0]);
-                    }
-
-                } catch (err) {  // hide rendering error
-                    mediator.fire('log', ['oops @ item', err]);
-                }
-            }
-
-            // Remove potentially bad content
-            productDoms = _.filter(productDoms, function (elem) {
-                return !_.isEmpty(elem);
-            });
-
-            $block = $(productDoms);  // an array of DOM elements
-
-            // if it has a lifestyle image, add a wide class to it so it's styled properly
-            $block.each(function () {
-                var $elem = $(this),
-                    $images = $elem.find('img'),
-
-                    // Create a spinner image that can be used to indicate a block is loading.
-                    $spinner = $('<img/>', {
-                        'class': "image-loading-spinner",
-                        'style': "padding-top:100px; padding-bottom:100px; width:32px; height:32px; position:relative; left:50%;",
-                        'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
-                    });
-
-                $elem.toLoad = $images.length;
-
-                // If there's images to be loaded, place a spinner in the block and load the content
-                // in the background.
-                if (!related && $elem.toLoad > 0) {
-                    // If the block actually has images, render the loading block.
-                    $elem.find('div').hide();
-                    $elem.addClass('unclickable').append($spinner);
-                    $images.each(function () {
-                        $(this).load(function () {
-                            $elem.toLoad -= 1;
-                            if ($elem.toLoad === 0) {
-                                // This block is ready to go, render it on the page.
-                                $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
-                                $elem.find('div').show();
-                                // Trigger a window resize event because Masonry's resize logic is better (faster)
-                                // than it's reload logic.
-                                $(window).resize();
-                            }
-                        });
-                    });
-                }
-
-                if ($elem.find('.lifestyle').length > 0) {
-                    $elem.addClass('wide');
-                }
-
-                if ($elem.hasClass('instagram') && (Math.random() >= 0.5)) {
-                    $elem.addClass('wide');
-                }
-
-                if (!related) {
-                    $('.discovery-area').append($elem).masonry('appended', $elem, true);
-                }
-            });
-
-            // Render youtube blocks with player
-            videos = _.where(results, {'template': 'youtube'});  // (haystack, criteria)
-            _.each(videos, function (video) {
-                var video_id = video['original-id'] || video.id,
-                    video_state_change = window.pagesTracking ?
-                        _.partial(window.pagesTracking.videoStateChange, video_id) :
-                            function () {/* dummy */};
-
-                Willet.mediaAPI.getObject("video_gdata", video_id, function (video_data) {
-                    var containers, new_containers,
-                        preferredThumbnailQuality = 'hqdefault',
-                        thumbClass = 'youtube-thumbnail',
-                        thumbURL = 'http://i.ytimg.com/vi/' + video_id +
-                            '/' + preferredThumbnailQuality + '.jpg',
-                        thumbObj,
-                        thumbPath = ['entry', 'media$group', 'media$thumbnail'],
-                        thumbChecker = PAGES.checkKeys(video_data, thumbPath),
-                        thumbnailArray = thumbChecker.media$thumbnail || [];
-
-                    thumbObj = _.findWhere(thumbnailArray, {
-                        'yt$name': preferredThumbnailQuality
-                    });
-                    if (thumbObj && thumbObj.url) {
-                        thumbURL = thumbObj.url;
-                    }  // else fallback to the default thumbURL
-
-                    // get results from the page...
-                    containers = $(".youtube[data-label='" + video_id + "']");
-
-                    // ... and from unrendered results
-                    new_containers = $block.filter(".youtube[data-label='" + video_id + "']")
-
-                    containers = containers.add(new_containers);
-
-                    containers.each(function () {
-                        var container = $(this),
-                            uniqueThumbnailID = PAGES.generateID('thumb-' + video_id),
-                            thumbnail = $('<div />', {
-                                'css': {  // this is to trim the 4:3 black bars
-                                    'overflow': 'hidden',
-                                    'height': 250 + 'px',
-                                    'background-image': 'url("' + thumbURL + '")',
-                                    'background-position': 'center center'
-                                },
-                                'id': uniqueThumbnailID
-                            });
-
-                        thumbnail
-                            .addClass('wide ' + thumbClass)
-                            .click(function () {
-                                // when the thumbnail is clicked, replace itself with
-                                // the youtube video of the same size, then autoplay
-                                player = new YT.Player(uniqueThumbnailID, {
-                                    height: 250,
-                                    width: 450,
-                                    videoId: video_id,
-                                    playerVars: {
-                                        'autoplay': 1,
-                                        'controls': 0
-                                    },
-                                    events: {
-                                        'onReady': function (e) {
-                                        },
-                                        'onStateChange': video_state_change,
-                                        'onError': function (e) {
-                                        }
-                                    }
-                                });
-                            });
-
-                        if (container.find('.' + thumbClass).length === 0) {
-                            // add a thumbnail only if there isn't one already
-                            container.prepend(thumbnail);
-                            mediator.fire('log', ['loaded video thumbnail ' + video_id]);
-                        } else {
-                            mediator.fire('log', ['prevented thumbnail dupe']);
-                        }
-                        container.children(".title").html(video_data.entry.title.$t);
-                    });
-                });
-            });
-
-            // make sure images are loaded or else masonry wont work properly
-            $block.imagesLoaded(function ($images, $proper, $broken) {
-                $broken.parents('.block').remove();
-                $block.find('.block img[src=""]').parents('.block').remove();
-
-                // Don't continue to load results if we aren't getting more results
-                if (!related && initialResults > 0) {
-                    setTimeout(function () {
-                        PAGES.pageScroll();
-                    }, 100);
-                }
-
-                $block.find('.pinpoint-youtube-area').click(function() {
-                    $(this).html($(this).data('embed'));
-                });
-
-                for (var i in PAGES.blocksAppendedCallbacks) {
-                    PAGES.setBlocksAppendedCallback(i, $block);
-                }
-
-                if (related) {
-                    PAGES.layoutRelated(related, $block);
-                    return;
-                }
-
-                PAGES.setLoadingBlocks(false);
-
-                // hack. tell masonry to reposition blocks
-                $(window).resize();
-            });
-        },
-        'readyFunc': function () {
-            // Special Setup
-            PAGES.renderTemplates();
-
-            PAGES.attachListeners();
-
-            $('.discovery-area').masonry({
-                itemSelector: '.block',
-
-                columnWidth: function (containerWidth) {
-                    return containerWidth / 4;
-                },
-
-                isResizable: true,
-                isAnimated: true
-            });
-
-            $('.preview .mask, .preview .close').on('click', PAGES.hidePreview);
-
-            $(window).scroll(PAGES.pageScroll);
-            $(window).resize(PAGES.pageScroll);
-
-            // Prevent social buttons from causing other events
-            $('.social-buttons .button').on('click', function(e) {
-                e.stopPropagation();
-            });
-
-            // Take any necessary actions
-            PAGES.loadInitialResults();
-        }
-    };
-
-    return me;
-})(PAGES.full || {}, Willet.mediator);
+}(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA, Willet));
 
 
 // mobile component
-PAGES.mobile = (function (me) {
+PAGES.mobile = (function (me, Willet) {
     "use strict";
 
-    var localData = {};
+    var localData = {},
+        mediator = Willet.mediator;
 
     me = {
         'renderToView': function (viewSelector, templateName, context, append) {
-            // @deprecated
-
-            var template = $("[data-template-id='" + templateName + "']").html(),
+            var template = PAGES.getTemplate(templateName).html(),
                 renderedBlock;
 
             // template does not exist
-            if (template === undefined) {
+            if (template === undefined || template === '') {
                 return;
             }
 
             renderedBlock = _.template(template, context);
+            renderedBlock = $(renderedBlock);
+            renderedBlock.data(context);
 
             if (append) {
                 $(viewSelector).append(renderedBlock);
@@ -950,7 +1163,7 @@ PAGES.mobile = (function (me) {
                 $(viewSelector).html(renderedBlock);
             }
         },
-        'layoutFunc': function (jsonData, belowFold, related) {
+        'layoutFunc': function (jsonData, belowFold, callback) {
             _.each(jsonData, function (data, index, list) {
 
                 var objectId = data.id || data['original-id'],
@@ -959,7 +1172,7 @@ PAGES.mobile = (function (me) {
                 // Old themes used 'instagram',
                 // need to verify template exists
                 if (templateName === 'image' &&
-                    !$("[data-template-id='" + templateName + "']").html()) {
+                        !PAGES.getTemplate(templateName).html()) {
                     templateName = 'instagram';
                 }
 
@@ -967,7 +1180,8 @@ PAGES.mobile = (function (me) {
                 localData[templateName + objectId] = data;
 
                 // render object if possible
-                PAGES.mobile.renderToView(".content_list", templateName, {
+                // .content_list is here for backward compatibility only
+                me.renderToView(".content_list, .discovery-area", templateName, {
                     data: data
                 }, true);
 
@@ -976,18 +1190,6 @@ PAGES.mobile = (function (me) {
                     PAGES.setLoadingBlocks(false);
                 }
             });
-        },
-        'readyFunc': function () {
-
-            if (MBP) {
-                MBP.hideUrlBarOnLoad();
-                MBP.preventZoom();
-            }
-
-            $(window).scroll(PAGES.pageScroll);
-            $(window).resize(PAGES.pageScroll);
-
-            Willet.mediator.fire('IR.loadInitialResults');
         }
     };
 
@@ -996,4 +1198,4 @@ PAGES.mobile = (function (me) {
     window.local_data = me.local_data = me.localData = localData;  // old themes compatability
 
     return me;
-})();
+}(PAGES.mobile || {}, Willet));
