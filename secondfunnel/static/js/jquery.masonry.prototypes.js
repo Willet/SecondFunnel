@@ -21,9 +21,9 @@
                 $item = $(item.element);
             // Check to see if we've recently included this instagram image, if we
             // have, we'll want to skip it here.
-            instagramImg = $item.find(':not(.social-buttons) img').prop('src');
+            instagramImg = $item.find('.instagram :not(.social-buttons) img').prop('src');
             dupes = _.filter(this.recent, function ($elem) {
-                var elemImg = $elem.find(':not(.social-buttons) img').prop('src');
+                var elemImg = $elem.find('.instagram :not(.social-buttons) img').prop('src');
                 return (elemImg === instagramImg);
             });
 
