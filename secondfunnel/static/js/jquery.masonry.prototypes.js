@@ -88,7 +88,7 @@
             shortColIndex = obj.column;
             minimumY = obj.value;
 
-            if (item.element.className.indexOf('youtube') > -1 && (shortCol % 2 !== 0)) {
+            if (item.element.className.indexOf('youtube') > -1 && (shortColIndex % 2 !== 0)) {
                 continue;
             } else {
                 break;
