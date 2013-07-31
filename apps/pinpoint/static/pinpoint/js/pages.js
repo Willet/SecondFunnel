@@ -362,6 +362,8 @@ var PAGES = (function ($, details, Willet) {
                     'data': $.extend({}, srcElement.data(), target.data())
                 });
 
+                context.data.show_count = true;
+
                 target.html(renderTemplate(srcElement.html(), context));
             } else {
                 target.html('Error: missing template #' + src);
@@ -581,6 +583,14 @@ var PAGES = (function ($, details, Willet) {
         if (!loadingBlocks) {
             mediator.fire('IR.getResults', [callback, belowFold]);
         }
+    }
+
+    function lifestyleHoverOn() {
+        commonHoverOn(this, true, false);
+    }
+
+    function lifestyleHoverOff() {
+        commonHoverOff(this, $.noop, false);
     }
 
     function loadInitialResults(seed) {
@@ -1011,6 +1021,16 @@ var PAGES = (function ($, details, Willet) {
             window.MBP.preventZoom();
         }
 
+        $discovery.on({
+            mouseenter: comboboxHoverOn,
+            mouseleave: comboboxHoverOff
+        }, '.block.combobox:not(.unclickable) .lifestyle');
+
+        // Is this safe enough?
+        $discovery.on({
+            mouseenter: lifestyleHoverOn,
+            mouseleave: lifestyleHoverOff
+        }, '.block.image:not(.unclickable)');
     }
     /* --- END element bindings --- */
 
@@ -1102,7 +1122,7 @@ var PAGES = (function ($, details, Willet) {
         'renderTemplates': renderTemplates,
         'reloadMasonry': reloadMasonry,
         'loadInitialResults': loadInitialResults,
-        'loadMoreResults': loadMoreResults,
+        'loadResults': loadResults,
         'layoutResults': layoutResults,
         'layoutRelated': layoutRelated,
         'attachListeners': attachListeners,
@@ -1173,7 +1193,9 @@ PAGES.mobile = (function (me, Willet) {
         }
     };
 
-    me.local_data = me.localData = localData;  // old themes compatability
+    // @deprecated
+    window.render_to_view = me.renderToView;  // old themes compatability
+    window.local_data = me.local_data = me.localData = localData;  // old themes compatability
 
     return me;
 }(PAGES.mobile || {}, Willet));
