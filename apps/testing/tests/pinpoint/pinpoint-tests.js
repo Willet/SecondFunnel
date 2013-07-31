@@ -13,7 +13,7 @@ describe('The Basics', function() {
         
     // IntentRank
     it('intentrank_more_results', function() {
-        PAGES.intentRank.getMoreResults(nsa.watch);
+        PAGES.intentRank.getResults(nsa.watch);
 
         waitsFor(function() {
             return nsa.watch.callCount > 0;
@@ -25,7 +25,7 @@ describe('The Basics', function() {
     });
 
     it('intentrank_valid_json', function() {
-        PAGES.intentRank.getMoreResults(nsa.watch);
+        PAGES.intentRank.getResults(nsa.watch);
 
         waitsFor(function() {
             return nsa.watch.callCount > 0;
@@ -39,7 +39,7 @@ describe('The Basics', function() {
 
     it('intentrank_loading', function() {
         PAGES.setLoadingBlocks(true);
-        expect(PAGES.intentRank.getMoreResults()).toEqual(undefined);
+        expect(PAGES.intentRank.getResults()).toEqual(undefined);
         PAGES.setLoadingBlocks(false);
     });
 
@@ -104,12 +104,12 @@ describe("Sample", function() {
     it('session1', function(){
         // User is not a bounce
         pagesTracking.notABounce();
-        PAGES.loadMoreResults(nsa.watch, true);
+        PAGES.loadResults(nsa.watch, true);
         
         // Load more results below the fold
         waitsFor(function(){
             return nsa.watch.callCount > 0;
-        }, 'PAGES.loadMoreResults', 5000);
+        }, 'PAGES.loadResults', 5000);
 
         runs(function(){
             jsonData = nsa.watch.mostRecentCall.args[0];
@@ -119,7 +119,7 @@ describe("Sample", function() {
         });
         
         // User clicked one of the discovery blocks
-        expect(PAGES.loadMoreResults(nsa.listen, false, true)).toEqual(undefined);
+        expect(PAGES.loadResults(nsa.listen, false, true)).toEqual(undefined);
         PAGES.intentRank.updateClickStream();
 
         // Finally ensure everything took place
@@ -143,7 +143,7 @@ describe("Advanced", function(){
 
     it("multiple_results", function(){
         for ( var i = 0; i < 10; i++ ) {
-            Willet.mediator.fire('IR.getMoreResults', [addToList]);
+            Willet.mediator.fire('IR.getResults', [addToList]);
             PAGES.setLoadingBlocks(false);
             
             if (jsonData.length > 9) {
@@ -153,7 +153,7 @@ describe("Advanced", function(){
         
         waitsFor(function(){
             return jsonData.length > 9;
-        }, 'PAGES.loadMoreResults', 5000);
+        }, 'PAGES.loadResults', 5000);
 
         runs(function(){
             expect(jsonData.length).toBeGreaterThan(9);

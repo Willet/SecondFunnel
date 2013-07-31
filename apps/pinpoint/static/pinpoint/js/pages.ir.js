@@ -24,7 +24,7 @@ PAGES.intentRank = (function (me, details, mediator) {
                 'url': details.base_url,
                 'store': details.store.id,
                 'campaign': details.page.id,
-                'id': relatedData['db-id']
+                'id': relatedData['content-id']
             },
             url;
 
@@ -46,7 +46,8 @@ PAGES.intentRank = (function (me, details, mediator) {
         */
 
         // Not sure what this element will be called
-        if (relatedData['db-id']) {
+
+        if (relatedData['content-id']) {
             url = _.template(contentResultsUrl, urlParams);
         } else {
             url = _.template(campaignResultsUrl, urlParams);
@@ -55,16 +56,8 @@ PAGES.intentRank = (function (me, details, mediator) {
         if (!details.page.offline) {
             $.ajax({
                 url: url,
-                data: {
-                    'store': details.store.id,
-                    'campaign': details.page.id,
-
-                    // TODO: Probably should be some calculated value
-                    'results': 10,
-
-                    // normally ignored, unless IR call fails and we'll resort to getseeds
-                    // Previously, `details.product['product-id']` was used... why?
-                    'seeds': details.featured.id
+                data: {// TODO: Probably should be some calculated value
+                    'results': 10
                 },
                 dataType: 'jsonp',
                 timeout: 5000,  // 5000 ~ 10000
