@@ -1,4 +1,8 @@
 from django.conf.urls import patterns, url
+from django.contrib.auth.decorators import login_required
+
+from apps.pinpoint.wizards import DeleteCampaign
+
 
 urlpatterns = patterns('apps.pinpoint.views',
     url(r'^login/redirect/$', 'login_redirect', name='login-redirect'),
@@ -43,7 +47,7 @@ urlpatterns = patterns('apps.pinpoint.views',
         'edit_campaign', name='edit-campaign-admin'),
 
     url(r'^admin/(?P<store_id>\d+)/delete_campaign/(?P<campaign_id>\d+)/$',
-        'delete_campaign', name='delete-campaign-admin'),
+        login_required(DeleteCampaign.as_view()), name='delete-campaign-admin'),
 
     url(r'^admin/(?P<store_id>\d+)/new_campaign/(?P<block_type_id>\d+)/$',
         'block_type_router', name='block-type-wizard'),

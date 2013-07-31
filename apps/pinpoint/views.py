@@ -27,8 +27,7 @@ from apps.pinpoint.ajax import upload_image
 from apps.pinpoint.models import Campaign, BlockType, StoreTheme
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
 from apps.pinpoint.utils import render_campaign
-from apps.pinpoint.wizards import wizard_handler
-from apps.pinpoint.wizards import Wizard
+from apps.pinpoint.wizards import wizard_handler, DeleteCampaign
 from apps.utils.ajax import ajax_error, ajax_success
 
 import apps.utils.base62 as base62

@@ -1,13 +1,14 @@
-import apps.pinpoint.forms as Forms
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.utils import simplejson as json
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import get_object_or_404
 
+import apps.pinpoint.forms as forms
 from apps.assets.models import Product, ProductMedia, GenericImage
 from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
                                   FeaturedProductBlock, ShopTheLookBlock)
@@ -15,6 +16,71 @@ from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
 # TODO: Consider replacing with ModelForm?
 # TODO: This is still a mess
 from apps.utils.ajax import ajax_error
+
+
+from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
+from django.forms.models import ModelForm
+
+
+class CampaignForm(ModelForm):
+    """
+    Editing of a campaign.
+    """
+    class Meta:
+        model = Campaign
+
+    # TODO: To much logic is implemented by the blocks, this logic should be held by
+    #       the campaign.
+
+
+
+
+class CampaignWizard(FormView):
+    model = Campaign
+
+
+class CreateCampaign(CampaignWizard, CreateView):
+    pass
+
+
+class UpdateCampaign(CampaignWizard, UpdateView):
+    pass
+
+
+class DeleteCampaign(DeleteView):
+    #Need store_id and campaign_id
+    template_name = 'pinpoint/snippets/campaign_confirm_delete.html'
+    success_url = reverse_lazy('store-admin')
+    model = Campaign
+
+    def get(self, *args, **kwargs):
+        """
+        We override here because we don't specify a confirmation page.
+        However, we can use a confirmation page if we want to.
+        """
+        return self.delete(args, kwargs)
+
+    def delete(self, *args, **kwargs):
+        """
+        We override the delete function because we don't actually delete campaigns, just mark
+        them as no longer live.
+        """
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.live = False
+        self.object.save()
+
+        messages.success(self.request, "Your page was deleted.")
+
+        return HttpResponseRedirect(success_url)
+
+    def get_object(self):
+        # Add our attributes here
+        self.campaign_id = self.kwargs.get('campaign_id')
+        self.success_url = reverse('store-admin', kwargs={'store_id': self.kwargs.get('store_id')})
+
+        obj = get_object_or_404(Campaign, pk=self.campaign_id)
+        return obj
 
 
 class Wizard(object):
@@ -412,12 +478,12 @@ def wizard_handler(request, handler, store, block_type, campaign=None):
 
     handler == "featured_product", "shop_the_look", etc.
     """
-    module = globals()
+    wizard = None
     handler = "".join([text.title() for text in handler.split("_")])
     
     try:
-        wizard = module[handler]
-        wizard_form = Forms.__dict__[handler + "Form"]
+        wizard = globals()[handler]
+        wizard_form = getattr(forms, handler + "Form")
         wizard = wizard(**{
             'preview': request.is_ajax(),
             'request': request,
@@ -426,8 +492,8 @@ def wizard_handler(request, handler, store, block_type, campaign=None):
             'campaign': campaign,
             'form': wizard_form
         })
-
-        return wizard.process()
     
     except AttributeError:
         raise Exception("Wizard not found.")
+
+    return wizard.process()

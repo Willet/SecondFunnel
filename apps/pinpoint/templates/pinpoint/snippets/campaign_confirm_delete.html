@@ -1,0 +1,47 @@
+{% extends "pinpoint/admin_base.html" %}
+{% load staticfiles %}
+{% block extra_head %}
+    <style type="text/css">
+        /* Button styles */
+        input {
+            height: 50px;
+            width: 150px;
+            font-size: 14px;
+        }
+
+        /* Layout */
+        form {
+            width: 100%;
+            vertical-align: middle;
+        }
+
+        .wrap {
+            width: 600px;
+            margin-top: 150px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align:center;
+        }
+
+        span {
+            display: block;
+            font-size: 20px;
+        }
+    </style>
+{% endblock %}
+
+
+{% block title %}Delete Campaign{% endblock %}
+
+{% block page_title %}Delete Campaign{% endblock %}
+
+{% block content %}
+    <form action="/pinpoint/admin/{{ store_id }}/delete_campaign/{{ campaign_id }}/" method="POST">
+        {% csrf_token %}
+        <div class="wrap">
+            <span>Are you sure you want to delete this campaign?</span>
+            <input class="button submit focus" type="submit" value="Confirm">
+            <input class="button" type="button" value="&times; Cancel" onclick='javascript:window.location.href="/pinpoint/admin/{{ store_id }}/"'>
+        </div>
+    </form>
+{% endblock %}

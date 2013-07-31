@@ -73,7 +73,7 @@
         for (var k = 0; k < dupeGroupY.length; k++) {
             minYObjs.push({
                 'column': k,
-                    'value': dupeGroupY[k]
+                'value': dupeGroupY[k]
             });
         }
 
