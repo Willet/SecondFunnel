@@ -598,11 +598,6 @@ var PAGES = (function ($, details, Willet) {
         mediator.fire('IR.getInitialResults', [layoutResults]);
     }
 
-    function loadMoreResults(callback, belowFold, related) {
-        // @deprecated
-        return loadResults(belowFold, related, callback);
-    }
-
     function layoutResults(jsonData, belowFold, related) {
         // renders product divs onto the page.
         // suppose results is (now) a legit json object:
@@ -1121,7 +1116,7 @@ var PAGES = (function ($, details, Willet) {
         'renderTemplates': renderTemplates,
         'reloadMasonry': reloadMasonry,
         'loadInitialResults': loadInitialResults,
-        'loadMoreResults': loadMoreResults,
+        'loadResults': loadResults,
         'layoutResults': layoutResults,
         'layoutRelated': layoutRelated,
         'attachListeners': attachListeners,
