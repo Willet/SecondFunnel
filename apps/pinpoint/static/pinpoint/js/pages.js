@@ -393,12 +393,12 @@ var PAGES = (function ($, details, Willet) {
 
         templateId = templateName + '-preview';
 
-        template = getTemplate(templateId).html();
+        template = $.trim(getTemplate(templateId).html());
 
         if (!template && (templateId.indexOf('image') === 0)) {
             // legacy themes don't have 'image-' templates
             templateId = 'instagram' + templateId.slice(5);
-            template = getTemplate(templateId).html();
+            template = $.trim(getTemplate(templateId).html());
         }
 
         if (!template || _.isEmpty($target)) {
