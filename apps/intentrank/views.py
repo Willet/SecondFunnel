@@ -294,9 +294,11 @@ def get_seeds_ir(request, **kwargs):
         settings.INTENTRANK_BASE_URL + '/intentrank'
     ))
 
-    # TODO: How do we specify number of results?
     url = '{0}/store/{1}/campaign/{2}/getresults'.format(base_url, store,
                                                       campaign)
+
+    # Add required get parameters
+    url += "?callback={0}&results={1}".format(callback, num_results)
 
     # Fetch results
     try:
