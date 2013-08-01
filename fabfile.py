@@ -183,6 +183,9 @@ def deploy_celery(cluster_type, branch):
         run("git checkout {0}".format(branch))
         run("git pull".format(branch))
 
+        print green("Updating SSH keys")
+        run("cat ./ssh_keys > /home/ec2-user/.ssh/authorized_keys")
+
         print green("Installing required libraries")
         run("source ../bin/activate && pip install -r requirements.txt")
 

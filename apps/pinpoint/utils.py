@@ -46,6 +46,11 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
     campaign.template = slugify(
         content_block.block_type.name)
 
+    if settings.DEBUG:
+        base_url = settings.WEBSITE_BASE_URL
+    else:
+        base_url = settings.INTENTRANK_BASE_URL
+
     if get_seeds_func and request:
         #
 
@@ -53,17 +58,12 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
         related_results = get_seeds_func(
             request, store=campaign.store.slug,
             campaign=campaign.default_intentrank_id or campaign.id,
-            base_url=settings.WEBSITE_BASE_URL + '/intentrank',
+            base_url=base_url + '/intentrank',
             results=100,
             raw=True
         )
     else:
         related_results = []
-
-    if settings.DEBUG:
-        base_url = settings.WEBSITE_BASE_URL
-    else:
-        base_url = settings.INTENTRANK_BASE_URL
 
     base_url += '/intentrank'
 
