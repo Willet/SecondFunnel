@@ -108,6 +108,9 @@ def size(value, arg):
     if not value:
         return value
 
+    if value.endswith('.gif'):
+        return value
+
     return value.replace("master.jpg", "{0}.jpg".format(arg))
 
 
