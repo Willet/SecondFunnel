@@ -42,6 +42,9 @@ urlpatterns = patterns('apps.pinpoint.views',
     url(r'^admin/(?P<store_id>\d+)/edit_campaign/(?P<campaign_id>\d+)/$',
         'edit_campaign', name='edit-campaign-admin'),
 
+    url(r'^admin/(?P<store_id>\d+)/edit_campaign/(?P<campaign_id>\d+)/upload/$', 'upload_productmedia',
+        name='upload-productmedia'),
+
     url(r'^admin/(?P<store_id>\d+)/delete_campaign/(?P<campaign_id>\d+)/$',
         'delete_campaign', name='delete-campaign-admin'),
 
@@ -54,7 +57,11 @@ urlpatterns = patterns('apps.pinpoint.views',
     url(r'^(?P<campaign_id>\d+)/(?:(?P<mode>\w+).html)?$', 'campaign', name='campaign'),
 )
 
+
 # @deprecated (AJAX)
+# TODO: Can we get rid of GenericImage uploading completely?
+# Uses the GenericImage to upload a file, since we have a ExternalContent/ProductMedia, we will
+# favor those.
 urlpatterns += patterns('apps.pinpoint.ajax',
     url(r'^ajax/upload_image/$',
         'ajax_upload_image', name='ajax-upload-image'),

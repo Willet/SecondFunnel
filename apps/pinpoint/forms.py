@@ -1,8 +1,10 @@
+import re
+
 from django import forms
 from django.forms import ModelForm
 from django.core.exceptions import ObjectDoesNotExist
 
-from apps.assets.models import ProductMedia, GenericImage, Store
+from apps.assets.models import ProductMedia, Product, GenericImage, Store
 from apps.pinpoint.models import StoreTheme, Campaign
 
 class FeaturedProductWizardForm(forms.Form):
@@ -16,12 +18,10 @@ class FeaturedProductWizardForm(forms.Form):
     @ivar description: The description to override the default
         product's description.
     @ivar product_media_id: Hidden from the user. Keeps track of
-        the image id if the user picked an existing product image.
-    @ivar generic_media_id: Hidden from the user. Keeps track of
-        the iamge id if the user uploaded a new image.
-    @ivar generic_media_list: Hidden from the user. Keeps track of
-        all uploaded images so they persist when the form returns
-        errors.
+        the image id of the selected product media.
+    @ivar product_media_list: List of product_media urls and ids
+        that were uploaded.  Used to turn GenericImages into ProductMedia
+        when creating a campaign.
     @ivar campaign_id: Hidden from the user. Keeps track of the id
         of the page being edited.
     """
@@ -50,12 +50,7 @@ class FeaturedProductWizardForm(forms.Form):
         widget=forms.HiddenInput(),
     )
 
-    generic_media_id = forms.CharField(
-        required=False,
-        widget=forms.HiddenInput(),
-    )
-
-    generic_media_list = forms.CharField(
+    product_media_list = forms.CharField(
         required=False,
         widget=forms.HiddenInput(),
     )
@@ -67,16 +62,41 @@ class FeaturedProductWizardForm(forms.Form):
 
     def clean(self):
         """Ensure that either custom or existing image is selected"""
-
         cleaned_data = super(FeaturedProductWizardForm, self).clean()
 
-        generic_media_id = cleaned_data.get("generic_media_id")
+        product_instance = Product.objects.get(pk=cleaned_data.get("product_id"))
         product_media_id = cleaned_data.get("product_media_id")
+        media_list = re.findall(r"(?:(.+?)\\(\d+?)(?:\||$))", cleaned_data.get("product_media_list"))
 
-        generic_media_exists = generic_media_id and GenericImage.objects.filter(pk=generic_media_id).exists()
-        product_media_exists = product_media_id and ProductMedia.objects.filter(pk=product_media_id).exists()
+        # Turn any GenericImages into ProductMedia at this point
+        # TODO: Is there a better way?
+        for media in media_list:
+            url, id = media[0], media[1]
 
-        if not generic_media_exists and not product_media_exists:
+            if not GenericImage.objects.filter(pk=id).exists():
+                continue
+
+            image = GenericImage.objects.get(pk=id)
+
+            p = ProductMedia(
+                product = product_instance
+            )
+            p.remote = image.remote
+            p.hosted = image.hosted
+            p.save()
+            image.delete()
+
+            if id == product_media_id:
+                product_media_id = p.id
+                cleaned_data["product_media_id"] = product_media_id
+
+        cleaned_data["product_media_list"] = media_list
+        # Either the selected product is a GenericImage or it's a ProductMedia
+        # We convert GenericImages to ProductMedia later on, so it is fine
+        if product_media_id:
+            product_media_id = ProductMedia.objects.filter(pk=product_media_id).exists()
+
+        if not product_media_id:
             raise forms.ValidationError("This field is required.")
 
         return cleaned_data
@@ -87,40 +107,27 @@ class ShopTheLookWizardForm(FeaturedProductWizardForm):
     Defines the form for configuring a shop the look block.
 
     @ivar ls_product_media_id: Hidden from the user. Keeps track of
-        the image id if the user picked an existing product image
-        as a lifestyle image.
-    @ivar ls_generic_media_id: Hidden from the user. Keeps track of
-        the iamge id if the user uploaded a new image as a lifestyle
-        image.
+        the image id of the selected ls image.
     """
-
     ls_product_media_id = forms.CharField(
         required=False,
         widget=forms.HiddenInput(),
     )
 
-    ls_generic_media_id = forms.CharField(
-        required=False,
-        widget=forms.HiddenInput(),
-    )
-
     def clean(self):
-        """Ensure that either custom or existing image is selected"""
-
+        """Ensure that a look image was selected."""
         cleaned_data = super(ShopTheLookWizardForm, self).clean()
 
-        ls_generic_media_id = cleaned_data.get("ls_generic_media_id")
         ls_product_media_id = cleaned_data.get("ls_product_media_id")
 
-        ls_generic_media_exists = ls_generic_media_id and GenericImage\
-            .objects.filter(pk=ls_generic_media_id).exists()
-        ls_product_media_exists = ls_product_media_id and ProductMedia.objects\
-            .filter(pk=ls_product_media_id).exists()
+        if ls_product_media_id:
+            ls_product_media_id = ProductMedia.objects.filter(pk=ls_product_media_id).exists()
 
-        if not (ls_generic_media_exists or ls_product_media_exists):
+        if not ls_product_media_id:
             raise forms.ValidationError("You must choose a 'look' image")
 
         return cleaned_data
+
 
 class ThemeForm(ModelForm):
     # TODO: Can we migrate these fields to the theme?

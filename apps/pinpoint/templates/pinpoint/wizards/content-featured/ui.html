@@ -4,11 +4,11 @@
 {% load i18n %}
 
 {% block title %}
-    {% if campaign %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}{% trans "Page" %}
+    {% if campaign %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}{% trans " Page" %}
 {% endblock %}
 
 {% block page_title %}
-    {% if campaign %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}{% trans "Page" %}
+    {% if campaign %}{% trans "Edit" %}{% else %}{% trans "New" %}{% endif %}{% trans " Page" %}
 {% endblock %}
 
 {% block extra_head %}
@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{% static "css/fileuploader.css" %}">
     <link rel="stylesheet" href="{% static "css/jquery.loadmask.css" %}">
     <link rel="stylesheet" href="{% static "css/jquery.htmlarea.css" %}">
+    <link rel="stylesheet" href="{% static "css/smoothness/jquery-ui.css" %}">
     <style type="text/css">
         .product_select {
 
@@ -46,12 +47,13 @@
         }
 
         .product-images > li {
+            position: relative;
             padding-right: 8px;
             padding-bottom: 8px;
             width: 200px;
             height: 200px;
             display: inline-block;
-
+            
             vertical-align:top;
             text-align: center;
             line-height: 200px;
@@ -212,6 +214,21 @@
             display: inline;
         }
 
+        .ui-icon-circle-close {
+            position: absolute;
+            right: 5px;
+            top: 19px;
+            z-index: 99;
+            min-height: 15px;
+            min-width: 15px;
+            cursor: pointer;
+        }
+
+        .ui-state-default, .ui-state-active {
+            border: 0px !important;
+            background-color: transparent !important;
+        }
+
         /* "it is not a terrible inconvenience" */
         div.jHtmlArea .ToolBar ul { border: solid 1px #ccc; margin: 1px; padding: 1px; float: left; background: #fff url('{% static "images/jHtmlArea_Toolbar_Group_BG.png" %}') repeat-x;}
         div.jHtmlArea .ToolBar ul li { list-style-type: none; float: left; border: none; padding: 1px; margin: 1px; }
@@ -237,12 +254,13 @@
         }
 
         window.store = '{{ store.id }}';
+        window.campaign_id = '{{ campaign.id }}'
 
         window.url_list = {
             'store-admin'       : '{% url store-admin store.id %}',
             'new-campaign-admin': '{% url new-campaign-admin store.id %}',
             'loading-gif'       : '{% static "loading.gif" %}',
-            'ajax-image-upload' : '{% url ajax-upload-image %}'
+            'ajax-image-upload' : '{% if campaign.id %}{% url upload-productmedia store.id campaign.id %}{% else %}{% url ajax-upload-image %}{% endif %}'
         };
 
         $('#create_campaign').validation({% render_ajax_fields form %}, {
@@ -253,9 +271,8 @@
     {% include "pinpoint/snippets/featured-or-shopthelook-js.html" %}
 {% endblock %}
 
-{% block document_ready %}
-
-{% endblock %}
+{% block document_ready %}{% endblock %}
+{% block cancel_changes %}{% endblock %}
 
 {% block top_section %}
     <div class="grid_3 prefix_9">
@@ -300,7 +317,7 @@
                 {% endif %}
                 <span class="helptext">{% trans "Please either select an existing product image or upload a custom one." %}</span>
                 <div id="image-selector" class="image-selector">
-                    <div class="existing_images_list">
+                    <div class="images_list">
                         <ul id="product_images" class="product-images">
                             <li>
                             <div id="fine-uploader" class='fine-uploader'></div>

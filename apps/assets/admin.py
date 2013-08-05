@@ -3,7 +3,7 @@ from django.utils.safestring import mark_safe
 
 from apps.assets.models import Product, ProductMedia, Store, GenericMedia, \
     GenericImage, ExternalContentType, ExternalContent, StoreFeature
-
+from apps.assets.forms import ProductAdminForm
 
 class BaseAdmin(admin.ModelAdmin):
     list_display = [
@@ -91,6 +91,8 @@ class ProductAdmin(BaseNamedAdmin):
     ]
 
     readonly_fields = ('lifestyle_preview', )
+
+    form = ProductAdminForm
 
     def lifestyle_preview(self, obj):
         try:

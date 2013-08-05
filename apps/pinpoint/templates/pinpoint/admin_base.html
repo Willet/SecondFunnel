@@ -95,17 +95,6 @@
         {% compress js %}
         <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
         <script src="{% static "js/jquery.cookie.js" %}"></script>
-        <script>
-            {% if store.id %}
-            $("#cancel_to_admin").click(function(){
-                var cancel = confirm("{% trans "Are you sure you want to cancel your changes?" %}");
-                if (cancel) {
-                    window.location.href = "{% url store-admin store.id %}";
-                }
-            });
-            {% endif %}
-        </script>
-
         <script type="text/javascript">
             $(function() {
                 $(document).ajaxSend(function(event, xhr, settings) {
@@ -134,6 +123,7 @@
         {% endcompress %}
 
         {% block extra_js_includes %}{% endblock %}
+        {% block cancel_changes %}
         <script type="text/javascript">
             $(function() {
                 {% if store.id %}
@@ -148,5 +138,6 @@
                 {% block document_ready %}{% endblock %}
             });
         </script>
+        {% endblock %}
     </body>
 </html>

@@ -20,15 +20,14 @@ from django.views.decorators.vary import vary_on_headers
 from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnInteger
 
 from apps.analytics.models import Category
-from apps.assets.models import ExternalContent, ExternalContentType, Store
+from apps.assets.models import ExternalContent, ExternalContentType, Store, ProductMedia
 from apps.intentrank.views import get_seeds_ir
 from apps.pinpoint.ajax import upload_image
 
 from apps.pinpoint.models import Campaign, BlockType, StoreTheme
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
 from apps.pinpoint.utils import render_campaign
-import apps.pinpoint.wizards as wizards
-from apps.pinpoint.wizards import Wizard
+from apps.pinpoint.wizards import wizard_handler
 from apps.utils.ajax import ajax_error, ajax_success
 
 import apps.utils.base62 as base62
@@ -153,8 +152,37 @@ def edit_campaign(request, store_id, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
     block_type = campaign_instance.content_blocks.all()[0].block_type
 
-    return getattr(wizards, block_type.handler)(
-        request, store, block_type, campaign=campaign_instance)
+    return wizard_handler(request, block_type.handler, store, block_type, campaign=campaign_instance)
+
+
+@login_required
+@require_POST
+def upload_productmedia(request, store_id, campaign_id):
+    store = get_object_or_404(Store, pk=store_id)
+    media = ''
+    try:
+        product = Campaign.objects.get(pk=campaign_id)
+
+        if len(product.content_blocks.all()) > 0:
+            product = product.content_blocks.all()[0]
+        elif len(product.discovery_blocks.all()) > 0:
+            product = product.discovery_blocks.all()[0]
+        else:
+            raise Exception("No content blocks for this campaign.")
+
+        media = upload_image(request, ProductMedia(product=product.data.product, custom=True))
+        media.save()
+
+    except Exception, e:
+        if isinstance(media, HttpResponse):
+            return media
+        return ajax_error({'error': str(e)})
+
+    return ajax_success({
+        'media_id': media.id,
+        'url': media.get_url()
+    })
+
 
 @login_required
 def delete_campaign(request, store_id, campaign_id):
@@ -184,7 +212,7 @@ def block_type_router(request, store_id, block_type_id):
     store = get_object_or_404(Store, pk=store_id)
     block_type = get_object_or_404(BlockType, pk=block_type_id)
 
-    return getattr(wizards, block_type.handler)(request, store, block_type)
+    return wizard_handler(request, block_type.handler, store, block_type)
 
 
 @login_required

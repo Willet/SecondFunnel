@@ -4,6 +4,10 @@ from django.contrib.sites.models import get_current_site
 from django.core.mail import EmailMessage, get_connection
 from django.template import loader
 from django.utils.http import int_to_base36
+from django.forms import ModelForm
+
+from apps.assets.models import Product, ExternalContent
+
 
 class HTMLPasswordResetForm(PasswordResetForm):
     # duplicated from django.contrib.auth.forms.PasswordResetForm
@@ -66,3 +70,20 @@ class HTMLPasswordResetForm(PasswordResetForm):
         if content_subtype:
             msg.content_subtype = content_subtype
         return msg.send()
+
+
+class ProductAdminForm(ModelForm):
+    class Meta:
+        model = Product
+
+    def __init__(self, *args, **kwargs):
+        super(ProductAdminForm, self).__init__(*args, **kwargs)
+        self.fields['lifestyleImages'].queryset = self.fields['lifestyleImages'].queryset.filter(store_id = self.instance.store.id)
+
+        choices = []
+        for obj in self.fields['lifestyleImages'].queryset:
+            if obj.is_image():
+                choices.append((obj.id, obj.get_url()))
+
+        self.fields['lifestyleImages'].choices = choices
+

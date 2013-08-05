@@ -11,7 +11,9 @@ from django.db.models import Q
 from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
     YoutubeVideo, GenericImage, ExternalContent, ExternalContentType)
 
+from apps.assets.api_utils import urlencodeSerializer
 from apps.pinpoint.models import BlockContent, Campaign
+
 
 class UserAuthentication(Authentication):
     def is_authenticated(self, request, **kwargs):
@@ -27,6 +29,50 @@ class UserPartOfStore(Authorization):
                 return False
         except (KeyError, ValueError, Store.DoesNotExist):
             return False
+
+    def delete_detail(self, object_list, bundle):
+        """
+        Returns true if the object can be deleted, otherwise false.
+
+        @param object_list: List of objects to delete
+        @param bundle: The Tastypie bundle.
+
+        @return: boolean
+        """
+        filter = lambda o: isinstance(o, ProductMedia) and o.custom == False
+
+        if not isinstance(object_list, list):
+            object_list = [object_list]
+
+        object_list = [obj for obj in object_list if not(filter(obj))]
+
+        return len(object_list) > 0
+
+    def delete_list(self, object_list, bundle):
+        """
+        Returns a list of object that the user is allowed to delete.
+        Should return an empty list if none are allowed to be deleted.
+
+        @param object_list: A list of all the objects requested to delete
+        @param bundle: The Tastypie bundle.
+
+        @return: list
+        """
+        return [obj for obj in object_list if self.delete_detail(obj, bundle)]
+
+
+class WriteAuthentication(UserAuthentication):
+    def is_authenticated(self, request, **kwargs):
+        if request.method == 'GET':
+            return True
+        return super(WriteAuthentication, self).is_authenticated(request, **kwargs)
+
+
+class WriteAuthorization(UserPartOfStore):
+    def is_authorized(self, request, object=None):
+        if request.method == 'GET':
+            return True
+        return super(WriteAuthorization, self).is_authorized(request, **kwargs)
 
 
 class BlockContentResource(ModelResource):
@@ -140,8 +186,9 @@ class ProductMediaResource(ModelResource):
     product = fields.ForeignKey(ProductResource, 'product')
 
     class Meta:
-        queryset = ProductMedia.objects.all()
+        queryset = ProductMedia.objects.all().order_by('-id')
         resource_name = 'product_media'
+        serializer = urlencodeSerializer()
 
         filtering = {
             'product': ALL
