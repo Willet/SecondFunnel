@@ -1180,7 +1180,8 @@ var PAGES = (function ($, details, Willet) {
         'onload': $.noop
     }];
 
-    // not sure why we exposed hidePreview... here are deprecation hooks.
+    // used by gap's promo buttons, and by any element that wish to open their
+    // own "pages"
     mediator.on('PAGES.showPreview', showPreview);
     mediator.on('PAGES.hidePreview', hidePreview);
 
