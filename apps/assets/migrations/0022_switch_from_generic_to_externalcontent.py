@@ -22,7 +22,7 @@ class Migration(DataMigration):
         db.create_unique('assets_product_lifestyleImages', ['product_id', 'externalcontent_id'])
 
         if not orm.ExternalContentType.objects.filter(name__iexact='Uploads'):
-            new_type = ExternalContentType(name="Uploads", slug="upload-image")
+            new_type = orm.ExternalContentType(name="Uploads", slug="upload-image")
             new_type.save()
 
         external_type = orm.ExternalContentType.objects.get(name__iexact='Uploads')
