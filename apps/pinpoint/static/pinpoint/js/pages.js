@@ -324,8 +324,6 @@ var PAGES = (function ($, details, Willet) {
             outputBuffer = outputBuffer.substring(0, outputBuffer.length - 1);
         }
 
-        console.log(outputBuffer);
-
         viewportMeta.prop('content', outputBuffer);
         return {
             'element': viewportMeta,
@@ -999,9 +997,8 @@ var PAGES = (function ($, details, Willet) {
         // even if the device is not mobile, and vice versa.
         // this cannot "un-render" js templates previously rendered with
         // a different-size template.
-        var oldState = browser.mobile,
-            devicePixelRatio = window.devicePixelRatio || 1;
-        browser.mobile = ($wnd.width() / devicePixelRatio < 1024);
+        var oldState = browser.mobile;
+        browser.mobile = ($wnd.width() < 1024);
 
         if (browser.mobile !== oldState) {  // if it changed
             if (browser.mobile) {
