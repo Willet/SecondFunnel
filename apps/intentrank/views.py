@@ -545,21 +545,4 @@ def get_related_content_store(request, id=None):
 
         results.append(item)
 
-    # Get Youtube content associated with store
-    videos = store.videos.all()
-    for video in videos:
-        results.append({
-            'db-id': video.id,
-            'id': video.video_id,
-            'url': 'http://www.youtube.com/watch?v={0}'.format(video.video_id),
-            'provider': 'youtube',
-            'width': '450',
-            'height': '250',
-            'autoplay': 0,
-            'template': 'youtube',
-            'categories': list(
-                video.categories.all().values_list('id', flat=True)
-            )
-        })
-
     return HttpResponse(json.dumps(results), content_type='application/json')
