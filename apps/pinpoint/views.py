@@ -679,17 +679,16 @@ class CampaignViewMixin(object):
         @param response: A function to generate the response
         @return: HttpResponse
         """
-        if request.is_ajax():
+        self.preview = request.is_ajax()
+        if self.preview:
             # Don't want to save the object, rather use the passed data to formulate
-            # a response
-            # TODO: Is there a better way?
-            response = json.dumps({
+            # a response.
+            _, response = response(), {
                 "url": reverse('campaign', kwargs={'campaign_id': self.campaign.id}),
                 'campaign': self.campaign.id
-            })
+            }
             return ajax_success(response)
 
-        self.request = request
         return response()
 
     def form_valid(self, form):
@@ -699,7 +698,8 @@ class CampaignViewMixin(object):
         @return: HttpResponse
         """
         self.object = form.save(**self.context_data)
-        messages.success(self.request, "Your page was saved successfully")
+        if not self.preview:
+            messages.success(self.request, "Your page was saved successfully")
 
         return HttpResponseRedirect(self.get_success_url())
 
