@@ -1,5 +1,8 @@
 from django.conf.urls import patterns, url
 
+from apps.pinpoint.wizards import CampaignCreateView, CampaignUpdateView
+
+
 urlpatterns = patterns('apps.pinpoint.views',
     url(r'^login/redirect/$', 'login_redirect', name='login-redirect'),
 
@@ -40,7 +43,7 @@ urlpatterns = patterns('apps.pinpoint.views',
         'new_campaign', name='new-campaign-admin'),
 
     url(r'^admin/(?P<store_id>\d+)/edit_campaign/(?P<campaign_id>\d+)/$',
-        'edit_campaign', name='edit-campaign-admin'),
+        CampaignUpdateView.as_view(), name='edit-campaign-admin'),
 
     url(r'^admin/(?P<store_id>\d+)/edit_campaign/(?P<campaign_id>\d+)/upload/$', 'upload_productmedia',
         name='upload-productmedia'),
@@ -49,7 +52,7 @@ urlpatterns = patterns('apps.pinpoint.views',
         'delete_campaign', name='delete-campaign-admin'),
 
     url(r'^admin/(?P<store_id>\d+)/new_campaign/(?P<block_type_id>\d+)/$',
-        'block_type_router', name='block-type-wizard'),
+        CampaignCreateView.as_view(), name='block-type-wizard'),
 
     # As suggested in the docs, but how will this affect reverse / url?
     # https://docs.djangoproject.com/en/dev/topics/http/urls/#notes-on-capturing-text-in-urls

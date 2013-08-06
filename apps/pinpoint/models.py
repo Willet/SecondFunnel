@@ -623,10 +623,10 @@ class ShopTheLookBlock(BaseModelNamed):
 
     def get_ls_image(self, url=False):
         """Get a lifestyle image associated with this block"""
-        if url and self.image:
-            return self.image.get_url()
+        if url and self.ls_image:
+            return self.ls_image.get_url()
 
-        return self.image
+        return self.ls_image
 
     def save(self, *args, **kwargs):
         """Overridden save method to do multi-field validation."""

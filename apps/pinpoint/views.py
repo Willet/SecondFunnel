@@ -27,7 +27,6 @@ from apps.pinpoint.ajax import upload_image
 from apps.pinpoint.models import Campaign, BlockType, StoreTheme
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
 from apps.pinpoint.utils import render_campaign
-from apps.pinpoint.wizards import wizard_handler
 from apps.utils.ajax import ajax_error, ajax_success
 
 import apps.utils.base62 as base62
@@ -135,27 +134,6 @@ def new_campaign(request, store_id):
 
 
 @login_required
-def edit_campaign(request, store_id, campaign_id):
-    """
-    Allows a user to edit a pre-existing pinpoint page.
-
-    This function calls the appropriate handler in apps.pinpoint.wizards using the
-    handler attribute of the block type of the given page.
-
-    @param request: The request for this page.
-    @param store_id: The id of the store the page was created for.
-    @param campaign_id: The page to edit.
-
-    @return: An HttpResponse with a form to change the pinpoint page.
-    """
-    store = get_object_or_404(Store, pk=store_id)
-    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
-    block_type = campaign_instance.content_blocks.all()[0].block_type
-
-    return wizard_handler(request, block_type.handler, store, block_type, campaign=campaign_instance)
-
-
-@login_required
 @require_POST
 def upload_productmedia(request, store_id, campaign_id):
     store = get_object_or_404(Store, pk=store_id)
@@ -193,26 +171,6 @@ def delete_campaign(request, store_id, campaign_id):
     messages.success(request, "Your page was deleted.")
 
     return redirect('store-admin', store_id=store_id)
-
-
-@login_required
-def block_type_router(request, store_id, block_type_id):
-    """
-    Allows a user to configure the main content block of the page they are creating.
-
-    This function calls the appropriate handler in apps.pinpoint.wizards using the
-    handler attribute of the given block type.
-
-    @param request: The request for this page.
-    @param store_id: The id of the store this page is being created for.
-    @param block_type_id: The id of the block type for this page.
-
-    @return: An HttpRespose with a form to configure the content block.
-    """
-    store = get_object_or_404(Store, pk=store_id)
-    block_type = get_object_or_404(BlockType, pk=block_type_id)
-
-    return wizard_handler(request, block_type.handler, store, block_type)
 
 
 @login_required
