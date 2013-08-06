@@ -684,8 +684,8 @@ class CampaignViewMixin(object):
             # Don't want to save the object, rather use the passed data to formulate
             # a response.
             _, response = response(), {
-                "url": reverse('campaign', kwargs={'campaign_id': self.campaign.id}),
-                'campaign': self.campaign.id
+                "url": reverse('campaign', kwargs={'campaign_id': self.object.id}),
+                'campaign': self.object.id
             }
             return ajax_success(response)
 
