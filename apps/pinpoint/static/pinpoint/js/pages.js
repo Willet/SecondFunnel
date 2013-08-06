@@ -939,6 +939,9 @@ var PAGES = (function ($, details, Willet) {
                 $('style.mobile-only').prop('disabled', 'disabled');
                 $('style.desktop-only').prop('disabled', '');
             }
+            $('html')
+                .toggleClass('mobile', browser.mobile)
+                .toggleClass('desktop', !browser.mobile);
         }
 
         var $discovery = $('.discovery-area'),
