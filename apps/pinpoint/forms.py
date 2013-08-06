@@ -149,6 +149,8 @@ class CampaignForm(ModelForm):
         model = None
         if kwargs.get('campaign'):
             model = kwargs.get('campaign')
+        elif self.cleaned_data.get('campaign_id'):
+            model = Campaign.objects.get(pk=self.cleaned_data.get('campaign_id'))
         else:
             model = Campaign(
                 store = kwargs.get('store'),
