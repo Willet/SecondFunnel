@@ -6,7 +6,10 @@ var PAGES = (function ($, details, Willet) {
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || false,
         mediator = Willet.mediator,
-        browser = Willet.browser || {'mobile': false},
+        browser = Willet.browser || {
+            'mobile': false,
+            'touch': false
+        },
         mediaAPI = Willet.mediaAPI,
         scripts,
         scriptsLoaded = [],
@@ -988,14 +991,16 @@ var PAGES = (function ($, details, Willet) {
 
             if (blockWasInView !== blockIsInView && $block.hasClass('wide')) {
                 // visibility changed
-                if (blockIsInView) {
-                    $block.find('.tap_indicator')
-                        .removeClass('fadeIn')
-                        .addClass('animated fadeOut');
-                } else {
-                    $block.find('.tap_indicator')
-                        .removeClass('fadeOut')
-                        .addClass('animated fadeIn');
+                if (browser.touch) {
+                    if (blockIsInView) {
+                        $block.find('.tap_indicator')
+                            .removeClass('fadeIn')
+                            .addClass('animated fadeOut');
+                    } else {
+                        $block.find('.tap_indicator')
+                            .removeClass('fadeOut')
+                            .addClass('animated fadeIn');
+                    }
                 }
             }
         });
@@ -1129,6 +1134,11 @@ var PAGES = (function ($, details, Willet) {
 
     function ready() {
         // Special Setup
+
+        // stackoverflow.com/questions/2915833/how-to-check-browser-for-touchstart-support-using-js-jquery
+        browser.touch = ('ontouchstart' in document.documentElement);
+        $('html').toggleClass('touch-enabled', browser.touch);
+
         loadTemplates(); // populate list of templates in templatesOnPage
         renderTemplates();
         attachListeners();
