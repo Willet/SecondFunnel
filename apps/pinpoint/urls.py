@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, url
 
-from apps.pinpoint.wizards import CampaignCreateView, CampaignUpdateView
+from apps.pinpoint.views import CampaignCreateView, CampaignUpdateView
 
 
 urlpatterns = patterns('apps.pinpoint.views',
