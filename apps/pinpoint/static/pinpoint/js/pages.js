@@ -6,7 +6,10 @@ var PAGES = (function ($, details, Willet) {
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || false,
         mediator = Willet.mediator,
-        browser = Willet.browser || {'mobile': false},
+        browser = Willet.browser || {
+            'mobile': false,
+            'touch': false
+        },
         mediaAPI = Willet.mediaAPI,
         scripts,
         scriptsLoaded = [],
@@ -317,6 +320,14 @@ var PAGES = (function ($, details, Willet) {
                 outputBuffer += viewportProps[i][0] + '=' +
                                 viewportProps[i][1] + ',';
             }
+            delete newOpts[viewportProps[i][0]];  // remove the used key
+        }
+
+        for (i in newOpts) {
+            // rules in options that wasn't in the original content
+            if (_.has(newOpts, i)) {
+                outputBuffer += i + '=' + newOpts[i] + ',';
+            }
         }
 
         if (outputBuffer.substr(-1) === ',') {
@@ -541,6 +552,7 @@ var PAGES = (function ($, details, Willet) {
             options = options || {
                 itemSelector: '.block',
                 columnWidth: $(this).width() / 4,
+                hiddenStyle: { opacity: 0, transform: 'scale(1)' },
                 isResizeBound: true,
                 visibleStyle: {
                     opacity: 1
@@ -979,14 +991,16 @@ var PAGES = (function ($, details, Willet) {
 
             if (blockWasInView !== blockIsInView && $block.hasClass('wide')) {
                 // visibility changed
-                if (blockIsInView) {
-                    $block.find('.tap_indicator')
-                        .removeClass('fadeIn')
-                        .addClass('animated fadeOut');
-                } else {
-                    $block.find('.tap_indicator')
-                        .removeClass('fadeOut')
-                        .addClass('animated fadeIn');
+                if (browser.touch) {
+                    if (blockIsInView) {
+                        $block.find('.tap_indicator')
+                            .removeClass('fadeIn')
+                            .addClass('animated fadeOut');
+                    } else {
+                        $block.find('.tap_indicator')
+                            .removeClass('fadeOut')
+                            .addClass('animated fadeIn');
+                    }
                 }
             }
         });
@@ -1009,6 +1023,9 @@ var PAGES = (function ($, details, Willet) {
                 $('style.mobile-only').prop('disabled', 'disabled');
                 $('style.desktop-only').prop('disabled', '');
             }
+            $('html')
+                .toggleClass('mobile', browser.mobile)
+                .toggleClass('desktop', !browser.mobile);
         }
 
         var $discovery = $('.discovery-area'),
@@ -1117,6 +1134,11 @@ var PAGES = (function ($, details, Willet) {
 
     function ready() {
         // Special Setup
+
+        // stackoverflow.com/questions/2915833/how-to-check-browser-for-touchstart-support-using-js-jquery
+        browser.touch = ('ontouchstart' in document.documentElement);
+        $('html').toggleClass('touch-enabled', browser.touch);
+
         loadTemplates(); // populate list of templates in templatesOnPage
         renderTemplates();
         attachListeners();
