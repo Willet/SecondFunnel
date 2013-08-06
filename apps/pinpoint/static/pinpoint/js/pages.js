@@ -317,6 +317,14 @@ var PAGES = (function ($, details, Willet) {
                 outputBuffer += viewportProps[i][0] + '=' +
                                 viewportProps[i][1] + ',';
             }
+            delete newOpts[viewportProps[i][0]];  // remove the used key
+        }
+
+        for (i in newOpts) {
+            // rules in options that wasn't in the original content
+            if (_.has(newOpts, i)) {
+                outputBuffer += i + '=' + newOpts[i] + ',';
+            }
         }
 
         if (outputBuffer.substr(-1) === ',') {
@@ -541,6 +549,7 @@ var PAGES = (function ($, details, Willet) {
             options = options || {
                 itemSelector: '.block',
                 columnWidth: $(this).width() / 4,
+                hiddenStyle: { opacity: 0, transform: 'scale(1)' },
                 isResizeBound: true,
                 visibleStyle: {
                     opacity: 1
