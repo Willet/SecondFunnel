@@ -270,6 +270,7 @@ class ExternalContentResource(ModelResource):
             UserAuthentication())
         authorization= Authorization()
         resource_name = 'external_content'
+        excludes = ['created']
 
         filtering = {
             'id': ('exact',),
