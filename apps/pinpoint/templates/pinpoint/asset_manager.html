@@ -654,10 +654,8 @@
                 var oid = $(this).parents(".approval_block").data("oid"),
                     pid = products[ui.tagLabel];
 
-                if ( tag_associations[oid] && tag_associations[oid][pid] ) {
-                    tag_associations[oid].splice(tag_associations[oid].indexOf(pid), 1);
-                    post_tags(oid);
-                }
+                tag_associations[oid].splice(tag_associations[oid].indexOf(pid), 1);
+                post_tags(oid);
                 return true;
             }
         });
