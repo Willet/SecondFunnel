@@ -225,11 +225,11 @@ var PAGES = (function ($, details, Willet) {
         // @return: None
         var player = new YT.Player(thumbnailID, {
             height: 250,
-            width: 450,
+            width: $('.block.youtube').width(),
             videoId: videoID,
             playerVars: {
                 'autoplay': 1,
-                'controls': 0
+                'controls': (browser.mobile ? 1 : 0)
             },
             events: {
                 'onReady': $.noop,
