@@ -44,7 +44,10 @@
 
     // can't use user agents - desktop CSS gets triggered on high ppi devices,
     // messing up everything
-    (Willet.browser=Willet.browser||{}).mobile=(document.width < 1024);
+    Willet.browser = Willet.browser || {
+        mobile: (document.width < 1024),
+        touch: ('ontouchstart' in document.documentElement)
+    };
 </script>
 <script src="{% static "js/underscore.js" %}"></script>
 <script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
