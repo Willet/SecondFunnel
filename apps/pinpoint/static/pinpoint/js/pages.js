@@ -220,20 +220,35 @@ var PAGES = (function ($, details, Willet) {
 
     function loadYoutubeVideo(videoID, thumbnailID, onStateChange) {
         // @return: None
-        var player = new YT.Player(thumbnailID, {
-            height: 250,
-            width: $('.block.youtube').width(),
-            videoId: videoID,
-            playerVars: {
-                'autoplay': 1,
-                'controls': (browser.mobile ? 1 : 0)
-            },
-            events: {
-                'onReady': $.noop,
-                'onStateChange': onStateChange,
-                'onError': $.noop
-            }
-        });
+        var forceOpenInNewWindow = false;
+
+        try {
+            forceOpenInNewWindow = (
+                $('#' + thumbnailID).parent().data('popout') === 'popout'
+            );
+        } catch (eitherThumbnailOrItsParentNotFoundErr) {
+            // stays false
+        }
+
+        if (typeof YT === 'undefined' || forceOpenInNewWindow) {
+            // http://stackoverflow.com/questions/12429969/ios-6-embed-youtube
+            window.open('http://youtube.com/watch?v=' + videoID);
+        } else { // default
+            var player = new YT.Player(thumbnailID, {
+                height: 250,
+                width: $('.block.youtube').width(),
+                videoId: videoID,
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': (browser.mobile || browser.touch) ? 1 : 0
+                },
+                events: {
+                    'onReady': $.noop,
+                    'onStateChange': onStateChange,
+                    'onError': $.noop
+                }
+            });
+        }
     }
 
     function getYoutubeThumbnail(videoID, videoData) {
