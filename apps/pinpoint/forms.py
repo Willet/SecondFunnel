@@ -16,8 +16,10 @@ class CampaignForm(ModelForm):
         whether the page has changed when the form returns errors.
     @ivar product_media_id: Hidden from the user.  Keeps track of the image
         id of the image to use for the featured block.
-    @ivar product_media_list: Hidden from teh user.  Keepst track of all
+    @ivar product_media_list: Hidden from the user.  Keeps track of all
         upload images so they persist when the form returns errors.
+    @ivar generic_image_list: Hidden from the user.  Keeps track of all
+        generic images that have been uploaded (only used in creating campaigns).
     @ivar campaign_id: Hidden from the user.  Keeps track of the id of
         the page being edited.
     """
@@ -36,6 +38,11 @@ class CampaignForm(ModelForm):
     )
 
     product_media_list = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+
+    generic_image_list = forms.CharField(
         required=False,
         widget=forms.HiddenInput(),
     )
@@ -65,12 +72,27 @@ class CampaignForm(ModelForm):
         """
         cleaned_data = super(CampaignForm, self).clean()
 
-        product_instance = Product.objects.get(pk=cleaned_data.get("product_id"))
         product_media_id = cleaned_data.get("product_media_id")
-        media_list = re.findall(r"(?:(.+?)\\(\d+?)(?:\||$))", cleaned_data.get("product_media_list"))
+        generic = True
+        generic_image_list = re.findall(r"(?:(.+?)\\(\d+?)(?:\||$))", cleaned_data.get("generic_image_list"))
 
+        # Check for generic
+        for k, v in dict(generic_image_list).items():
+            if product_media_id == k:
+                generic = GenericImage.objects.filter(pk=product_media_id).exists()
+                break
+
+        if not generic or not(product_media_id and ProductMedia.objects.filter(pk=product_media_id).exists()):
+            raise forms.ValidationError("This field is required.")
+
+        return cleaned_data
+
+    def convert_generic_to_product(self):
         # Turn any GenericImages into ProductMedia at this point
         # TODO: Is there a better way?
+        product_instance = Product.objects.get(pk=self.cleaned_data.get("product_id"))
+        media_list = re.findall(r"(?:(.+?)\\(\d+?)(?:\||$))", self.cleaned_data.get("generic_image_list"))
+
         for media in media_list:
             url, id = media[0], media[1]
 
@@ -80,24 +102,20 @@ class CampaignForm(ModelForm):
             image = GenericImage.objects.get(pk=id)
 
             p = ProductMedia(
-                product = product_instance
+                product = product_instance,
+                custom = True
             )
             p.remote = image.remote
             p.hosted = image.hosted
             p.save()
             image.delete()
 
-            if id == product_media_id:
-                product_media_id = p.id
-                cleaned_data["product_media_id"] = product_media_id
+            if id == self.cleaned_data["product_media_id"]:
+                self.cleaned_data["product_media_id"] = id
+            elif id == self.cleaned_data.get("ls_product_media_id", None):
+                self.cleaned_data["ls_product_media_id"] = id
 
-        cleaned_data["product_media_list"] = media_list
-
-        if not product_media_id or not ProductMedia.objects.filter(pk=product_media_id).exists():
-            raise forms.ValidationError("This field is required.")
-
-        return cleaned_data
-
+        return None
 
     def get_or_create_block(self, model, product, block_type, product_block = None):
         """Create a ProductBlock for the Campaign instance using
@@ -113,13 +131,17 @@ class CampaignForm(ModelForm):
             pass
 
         product_media_id = self.cleaned_data.get("product_media_id")
+        content_blocks = model.content_blocks.all()
         block_content = None
 
-        if len(model.content_blocks.all()) == 0:
+        if len(content_blocks) == 0 or content_blocks[0].data == None:
+            if len(content_blocks) > 0:
+                model.content_blocks.all()[0].delete()
+
             data = product_block(
                 product = product,
-                description = self.cleaned_data.get("description", "")
             )
+            data.description = self.cleaned_data["description"]
             data.image = ProductMedia.objects.get(pk=product_media_id)
             # Get any additional items for the product block
             self.add_additional(data)
@@ -130,9 +152,9 @@ class CampaignForm(ModelForm):
                 object_id = data.id
             )
         else:
-            block_content = model.content_blocks.all()[0]
+            block_content = content_blocks[0]
             block_content.data.product = product
-            block_content.data.description = self.cleaned_data.get("description", "")
+            block_content.data.description = self.cleaned_data["description"]
             block_content.data.image = ProductMedia.objects.get(pk=product_media_id)
             self.add_additional(block_content.data)
             block_content.data.save()
@@ -147,9 +169,9 @@ class CampaignForm(ModelForm):
         @return: Campaign
         """
         model = None
-        if kwargs.get('campaign'):
-            model = kwargs.get('campaign')
-        elif self.cleaned_data.get('campaign_id'):
+        self.convert_generic_to_product()
+
+        if self.cleaned_data.get('campaign_id'):
             model = Campaign.objects.get(pk=self.cleaned_data.get('campaign_id'))
         else:
             model = Campaign(
@@ -162,7 +184,7 @@ class CampaignForm(ModelForm):
         block.save()
 
         model.name = self.cleaned_data.get('name')
-        model.description = self.cleaned_data.get('description', '')
+        model.description = self.cleaned_data.get("page_description", "")
 
         if not block in model.content_blocks.all():
             model.content_blocks.clear()
@@ -226,10 +248,17 @@ class ShopTheLookWizardForm(CampaignForm):
         @return: dict
         """
         cleaned_data = super(ShopTheLookWizardForm, self).clean()
-
         ls_product_media_id = cleaned_data.get("ls_product_media_id")
+        generic = True
+        generic_image_list = re.findall(r"(?:(.+?)\\(\d+?)(?:\||$))", cleaned_data.get("generic_image_list"))
 
-        if not ls_product_media_id or not ProductMedia.objects.filter(pk=ls_product_media_id).exists():
+        # Check for generic
+        for k, v in dict(generic_image_list).items():
+            if ls_product_media_id == k:
+                generic = GenericImage.objects.filter(pk=product_media_id).exists()
+                break
+
+        if not generic or not (ls_product_media_id and ProductMedia.objects.filter(pk=ls_product_media_id).exists()):
             raise forms.ValidationError("You must choose a 'look' image")
 
         return cleaned_data

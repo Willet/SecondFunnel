@@ -47,7 +47,6 @@ var application = (function(store_id, urls){
             }),
             contentType: "application/json",
             success: function(response) {
-                console.log(response);
                 return true;                    
             },
             error: function(jqXHR, status, error) {
@@ -161,6 +160,20 @@ var application = (function(store_id, urls){
             }
         });
 
+        // display uploaded media first
+        if (campaign_id.length == 0) {
+            var new_media = /(?:(.+?)\\(\d+?)(?:\||$))/g.findAll($("#id_product_media_list").val());
+            $.each(new_media, function(i, match) {
+                var url = match[0],
+                    id = match[1];
+                console.log(match);
+                li = $("<li><img class='gen_img' data-mid='" + id + "' src='" + url + "'></li>");
+                li.prepend($("<span class='ui-state-default'><span class='ui-icon ui-icon-circle-close'></span></span>"));
+                console.log(li);
+                $(".product-images").append(li);
+            });
+        }
+
         // display product media
         for (i in product.media) {
             li = $("<li><img class='prod_img' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
@@ -259,6 +272,7 @@ var application = (function(store_id, urls){
                     var url = 'http://' + window.location.host + response.url;
                     window.open(url, '_blank');
                     $campaign_id.val(response.campaign);
+                    getAutoCompleteConfig();
                 } else {
                     $form[0].submit();
                 }
@@ -278,13 +292,15 @@ var application = (function(store_id, urls){
             $media_list.val($media_list.val().replace(url + "\\" + id, ""));
             uris.push(media_api_url + id + "/");
         });
+        $('#product_images img:hidden').remove();
         batchDelete(uris);
     };
 
     onRefresh = function () {
         // We'll assume a refresh triggers a save
-        var $form = $('#create_campaign');
-        var new_media = /(?:(.+?)\\(\d+?)(?:\||$))/g.findAll($("#id_product_media_list").val());
+        // TODO: Should we assume this?  Or clear the entire page?
+        var $form = $('#create_campaign'),
+            new_media = /(?:(.+?)\\(\d+?)(?:\||$))/g.findAll($("#id_product_media_list").val());
             
         if (new_media.length > 0) {
             new_media = $.map(new_media, function(match) {
@@ -398,6 +414,9 @@ var application = (function(store_id, urls){
                     });
                     
                     $("#id_product_media_list").val($("#id_product_media_list").val() + decodedUrl + "\\" + response.media_id + "|");
+                    if (campaign_id.length == 0) {
+                        $("#id_generic_image_list").val($("#id_product_media_list").val());
+                    }
                 } else {
                     if (response.error) {
                         fileUploadErrorHandler.signalError(response.error, fileName);    
@@ -485,7 +504,8 @@ var application = (function(store_id, urls){
             product_description       : $("#id_description").val(),
             product_image_id          : $("#id_product_media_id").val(),
             ls_image_id               : $("#id_ls_product_media_id").val(),
-            product_media_list        : $("#product_media_list").val()
+            product_media_list        : $("#id_product_media_list").val(),
+            generic_image_list        : $("#id_generic_image_list").val()
         });
 
         $(".qq-upload-button").addClass('button');

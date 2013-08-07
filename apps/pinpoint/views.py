@@ -1,11 +1,11 @@
 from urllib import urlencode
-from django.db.models import Q
-from apps.pinpoint.forms import ThemeForm
-
+from functools import partial
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+
+from django.db.models import Q
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login
@@ -29,6 +29,7 @@ from apps.analytics.models import Category
 from apps.assets.models import ExternalContent, ExternalContentType, Store, ProductMedia, Product
 from apps.intentrank.views import get_seeds_ir
 from apps.pinpoint.ajax import upload_image
+from apps.pinpoint.forms import ThemeForm
 
 from apps.pinpoint.models import Campaign, BlockType, StoreTheme
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
@@ -145,16 +146,19 @@ def upload_productmedia(request, store_id, campaign_id):
     store = get_object_or_404(Store, pk=store_id)
     media = ''
     try:
-        product = Campaign.objects.get(pk=campaign_id)
+        campaign = Campaign.objects.get(pk=campaign_id)
+        product = None
 
-        if len(product.content_blocks.all()) > 0:
-            product = product.content_blocks.all()[0]
-        elif len(product.discovery_blocks.all()) > 0:
-            product = product.discovery_blocks.all()[0]
+        for block in campaign.content_blocks.all():
+            if not block.data == None:
+                product = block.data.product
+                break
+
+        if product == None:
+            media = upload_image(request)
         else:
-            raise Exception("No content blocks for this campaign.")
+            media = upload_image(request, ProductMedia(product=product, custom=True))
 
-        media = upload_image(request, ProductMedia(product=product.data.product, custom=True))
         media.save()
 
     except Exception, e:
@@ -644,7 +648,7 @@ class CampaignViewMixin(object):
 
         @return: dict
         """
-        if not self.campaign:
+        if not self.campaign or self.campaign.content_blocks.all()[0].data == None:
             return {}
 
         campaign = self.campaign
@@ -683,10 +687,14 @@ class CampaignViewMixin(object):
         if self.preview:
             # Don't want to save the object, rather use the passed data to formulate
             # a response.
-            _, response = response(), {
-                "url": reverse('campaign', kwargs={'campaign_id': self.object.id}),
-                'campaign': self.object.id
-            }
+            try:
+                _, response = response(), {
+                    "url": reverse('campaign', kwargs={'campaign_id': self.object.id}),
+                    'campaign': self.object.id
+                }
+            except AttributeError as e:
+                return ajax_error({'error': str(e)})
+
             return ajax_success(response)
 
         return response()
@@ -702,6 +710,19 @@ class CampaignViewMixin(object):
             messages.success(self.request, "Your page was saved successfully")
 
         return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form):
+        """If the form is invalid and this is a preview, raise an AttributeError, so that
+        the form can display the validation errors.  Otherwise, render the form with the
+        validation errors.
+
+        @param form: ModelForm
+        @return: HttpResponse
+        """
+        if self.preview:
+            raise AttributeError("Preview requested.")
+
+        return self.render_to_response(self.get_context_data(form=form))
 
 
 class CampaignCreateView(CampaignViewMixin, CreateView):
@@ -729,7 +750,7 @@ class CampaignCreateView(CampaignViewMixin, CreateView):
         @param kwargs: Dictionary of key-value argument pairs.
         @return: HttpResponse
         """
-        response = lambda: super(CampaignCreateView, self).post(request, *args, **kwargs)
+        response = partial(super(CampaignCreateView, self).post, request=request, *args, **kwargs)
 
         return self.preview_or_response(request, response)
 
@@ -767,6 +788,6 @@ class CampaignUpdateView(CampaignViewMixin, UpdateView):
         @param kwargs: Dictionary of key-value argument pairs.
         @return: HttpResponse
         """
-        response = lambda: super(CampaignUpdateView, self).post(request, *args, **kwargs)
+        response = partial(super(CampaignUpdateView, self).post, request=request, *args, **kwargs)
 
         return self.preview_or_response(request, response)
