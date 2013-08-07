@@ -13,6 +13,7 @@ from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
 
 from apps.pinpoint.models import BlockContent, Campaign
 
+
 class UserAuthentication(Authentication):
     def is_authenticated(self, request, **kwargs):
         return request.user.is_authenticated()
@@ -223,6 +224,7 @@ class ExternalContentResource(ModelResource):
             UserAuthentication())
         authorization= Authorization()
         resource_name = 'external_content'
+        excludes = ['created']
 
         filtering = {
             'id': ('exact',),
