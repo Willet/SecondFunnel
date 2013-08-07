@@ -634,7 +634,7 @@ var PAGES = (function ($, details, Willet) {
     }
 
     function youtubeHoverOn() {
-        commonHoverOn(this, !browser.mobile, false);
+        commonHoverOn(this, !(browser.mobile || browser.touch), false);
     }
 
     function youtubeHoverOff() {
