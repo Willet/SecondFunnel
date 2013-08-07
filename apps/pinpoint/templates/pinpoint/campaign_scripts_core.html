@@ -89,23 +89,17 @@
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
     })();
 
-
-    if (Willet.browser.mobile) {
-        $(function () {
+    function onYouTubeIframeAPIReady() {
+        if (!Willet.browser.mobile) {
             PAGES.init();
-        });
-    } else {
-        function onYouTubeIframeAPIReady() {
-            if (!Willet.browser.mobile) {
-                PAGES.init();
-            }
         }
-        // Load Youtube IFrame Player API code asynchronously
-        var tag = document.createElement('script');
-        tag.src = "//www.youtube.com/iframe_api";
-
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     }
+
+    // Load Youtube IFrame Player API code asynchronously
+    var tag = document.createElement('script');
+    tag.src = "//www.youtube.com/iframe_api";
+
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 </script>
 {% endcompress %}
