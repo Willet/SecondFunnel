@@ -1027,7 +1027,7 @@ var PAGES = (function ($, details, Willet) {
         // this cannot "un-render" js templates previously rendered with
         // a different-size template.
         var oldState = browser.mobile;
-        browser.mobile = ($wnd.width() < 1024);
+        browser.mobile = ($wnd.width() < 500);
 
         if (browser.mobile !== oldState) {  // if it changed
             if (browser.mobile) {
