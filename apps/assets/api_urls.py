@@ -1,4 +1,4 @@
-from django.conf.urls import *
+from django.conf.urls import patterns, include
 
 from tastypie.api import Api
 
@@ -21,3 +21,5 @@ v1_api.register(ExternalContentTypeResource())
 urlpatterns = patterns('',
     (r'', include(v1_api.urls)),
 )
+
+
