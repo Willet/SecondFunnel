@@ -287,7 +287,7 @@ var PAGES = (function ($, details, Willet) {
         // this function changes the viewport content even if no option
         // is given.
         // www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html
-        if ((!window.devicePixelRatio) || (window.devicePixelRatio <= 1)) {
+        if ((!window.devicePixelRatio) || (window.devicePixelRatio < 1)) {
             mediator.fire('error', ['Missing / out-of-range devicePixelRatio']);
             return;
         }
