@@ -36,12 +36,44 @@ class FilteredModelResource(ModelResource):
     """A subclass of a ModelResource to attempt to make API filtering easier by
     reducing the amount of redundant code."""
     class Meta:
-        custom_filters = []
+        custom_filtering = {
+            """
+            A mapping that takes tuple a tuple.  Any strings in a tuple together are considered
+            ANDs, tuples seperated by commas are considered ORs.
+            """
+        }
 
-        cust
+    def evaluate_queryset(self, query_string, qset):
+        """Evaluates the passed query set to determine what query it represents (series of ANDs and
+        ORs) using the passed query string as the value to create the Q object.
 
-    # Attempt 2
-    # TODO: Is there a better way to do this?
+        @param query_string: The value to pass to the Q object.
+        @param qset: A tuple of arguments to construct the necessary Q objects.
+        @return: Q
+        """
+        query_object = None
+
+        for qs in qset:
+            # Iterate over the querystrings
+            if isinstance(qs, tuple):
+                # Assume a tuple is an OR
+                qs = self.evaluate_queryset(query_string, qs)
+                query_object = query_object | qs if query_object else qs
+            else:
+                # Assume a string is an AND (default)
+                query = query_string
+
+                if qs.endswith('in'):
+                    query = query.split(',')
+                elif qs.endswith('range'):
+                    # TODO: This is wrong
+                    query = query.split('-')
+
+                qs = Q(**{qs:query})
+                query_object  = query_object & qs if query_object else qs
+
+        return query_object
+
     def build_filters(self, filters=None):
         """Builds a list of filters using the custom filters and the ModelResource
         filters as defined by the Meta.filtering.
@@ -50,25 +82,23 @@ class FilteredModelResource(ModelResource):
         @return: dict
         """
         filters = filters or {}
-        custom_filters = self.Meta.custom_filters
+        custom_filters = self.Meta.custom_filtering
         non_custom_filters = {}
 
         # Exclusionary check to prevent type errors in case custom filters are more
         # advanced.
-        for _filter in filters:
-            if not _filter in custom_filters:
+        for _filter in filters.copy():
+            if not _filter in custom_filters.keys():
                 non_custom_filters[_filter] = filters[_filter]
 
         orm_filters = super(FilteredModelResource, self).build_filters(non_custom_filters)
 
         queries = filters.dict()
         for _filter in filters:
-            # Look for functions defined as [filter_name]_filter
-            try:
-                get_filter = getattr(self, "%s_filter"%_filter)
-                orm_filters.update(get_filter(**queries))
-            except AttributeError:
+            if not _filter in custom_filters.keys():
                 continue
+            qs = self.evaluate_queryset(filters[_filter], custom_filters[_filter])
+            orm_filters.update({_filter: qs})
 
         return orm_filters
 
@@ -80,10 +110,10 @@ class FilteredModelResource(ModelResource):
         @param applicable_filters: A dict of filters to be applied.
         @return: object or list of objects
         """
-        custom_filters = self.Meta.custom_filters
+        custom_filters = self.Meta.custom_filtering
         custom = []
 
-        for _filter in custom_filters:
+        for _filter in custom_filters.keys():
             if _filter in applicable_filters:
                 custom.append(applicable_filters.pop(_filter))
 
@@ -163,22 +193,18 @@ class ProductResource(FilteredModelResource):
         serializer = PrettyJSONSerializer()
         custom_filters = ['name_or_url', 'available']
 
+        custom_filtering = {
+            'name_or_url': (('name__icontains',), ('original_url__startswith',)),
+        }
+
         filtering = {
             'store': ALL,
             'id': ('exact',),
             'name': ('exact', 'contains',),
-            'name_or_url': ('exact'),
             'available': ('exact'),
         }
         authentication = UserAuthentication()
         authorization = UserPartOfStore()
-
-
-    def name_or_url_filter(self, name_or_url, **kwargs):
-        return (
-            Q(name__icontains=name_or_url) |
-            Q(original_url__startswith=name_or_url)
-        )
 
     def build_filters(self, filters=None):
         """build_filters (transitions) resource lookup to an ORM lookup.
@@ -290,11 +316,14 @@ class ExternalContentResource(FilteredModelResource):
         serializer = PrettyJSONSerializer()
         excludes = ['created']
         ordering = ['last_modified', 'created']
-        custom_filters = ['type', 'store', 'tags', 'text', 'original_url']
 
         custom_filtering = {
-            'type': ('content_type__name__iexact'),
-
+            'type_name': ('content_type__name__iexact', ),
+            'store_name': ('store__name__iexact', ),
+            'text': ('store__name__iexact', ),
+            'tags_name': ('tagged_products__name__in', ),
+            'tags_id': ('tagged_products__id__in', ),
+            'original_url': ('original_url__contains', ),
         }
 
         filtering = {
@@ -304,47 +333,13 @@ class ExternalContentResource(FilteredModelResource):
             'active': ('exact',),
             'approved': ('exact',),
             'type': ('exact',),
-            'tags': ('exact',),
-            'text': ('exact',),
-            'original_url': ('exact', 'contains'),
-            'date': ('exact',),
         }
 
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<store>(?!\d+/$)[\w\d_.:\-\s]+)/$"% self._meta.resource_name,
+            url(r"^(?P<resource_name>%s)/(?P<store_name>(?!\d+/$)[\w\d_.:\-\s]+)/$"% self._meta.resource_name,
                 self.wrap_view('dispatch_list'), name="api_dispatch_list"),
         ]
-
-    def type_filter(self, type, **kwargs):
-        # so wrong
-        try:
-            int(type)
-        except ValueError:
-            return {'type': Q(content_type__name__iexact=type)}
-        return {}
-
-    def store_filter(self, store, **kwargs):
-        try:
-            int(store)
-        except ValueError:
-            return {'store': Q(store__name__iexact=store)}
-        return {}
-
-    def text_filter(self, text, **kwargs):
-        return {'text': Q(text_content__contains=text)}
-
-    def original_url_filter(self, original_url, **kwargs):
-        return {'original_url': Q(original_url__contains=original_url)}
-
-    def tags_filter(self, tags, **kwargs):
-        tags = tags.split(",")
-        try:
-            int(tags[0])
-            return {'tags': Q(tagged_products__id__in=tags)}
-        except ValueError:
-            pass
-        return {'tags': Q(tagged_products__name__in=tags)}
 
 
 # Apparently, create_api_key only creates on user creation
