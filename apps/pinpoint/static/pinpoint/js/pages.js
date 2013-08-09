@@ -497,7 +497,7 @@ var PAGES = (function ($, details, Willet) {
         }
 
         if (enableSocialButtons) {
-            var $buttons = $(t).find('.social-buttons') || $(t).parent().find('.social-buttons');
+            var $buttons = $(t).find('.social-buttons').length > 0 || $(t).parent().find('.social-buttons').length > 0;
             $buttons.fadeIn('fast');
 
             if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
