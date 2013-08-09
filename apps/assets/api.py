@@ -6,7 +6,7 @@ from tastypie.constants import ALL_WITH_RELATIONS
 from tastypie.models import ApiKey
 from tastypie.resources import ModelResource, ALL
 from tastypie.authentication import Authentication, ApiKeyAuthentication, MultiAuthentication
-from tastypie.authorization import Authorization
+from tastypie.authorization import Authorization, ReadOnlyAuthorization
 from django.db.models import Q
 
 from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
@@ -32,22 +32,26 @@ class UserPartOfStore(Authorization):
             return False
 
 
-class WriteAuthentication(UserAuthentication):
-    def is_authenticated(self, request, **kwargs):
-        if request.method == 'GET':
-            return True
-
-        return super(WriteAuthentication, self).is_authenticated(request, **kwargs)
-
-
-class WriteAuthorization(UserPartOfStore):
+class WriteAuthorization(ReadOnlyAuthorization, UserPartOfStore):
     """ Read-only resource.  When user is authorized, then they have access to
     PUT/POST/DELETE"""
     def is_authorized(self, request, object=None):
-        if request.method == 'GET':
-            return True
-
         return super(WriteAuthorization, self).is_authorized(request, object)
+
+    def create_detail(self, object_list, bundle):
+        return self.is_authorized(bundle.request, object_list)
+
+    def update_list(self, object_list, bundle):
+        return object_list if self.is_authorized(bundle.request, object_list) else []
+
+    def update_detail(self, object_list, bundle):
+        return self.is_authorized(bundle.request, object_list)
+
+    def delete_list(self, object_list, bundle):
+        return object_list if self.is_authorized(bundle.request, object_list) else []
+
+    def delete_detail(self, object_list, bundle):
+        return self.is_authorized(bundle.request, object_list)
 
 
 class BlockContentResource(ModelResource):
@@ -188,7 +192,10 @@ class CampaignResource(ModelResource):
 
     class Meta:
         queryset = Campaign.objects.all()
-        authentication = WriteAuthentication()
+        authentication = MultiAuthentication(
+            ApiKeyAuthentication(),
+            UserAuthentication()
+        )
         authorization = WriteAuthorization()
         resource_name = 'campaign'
         serializer = PrettyJSONSerializer()
