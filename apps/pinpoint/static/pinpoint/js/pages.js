@@ -498,12 +498,14 @@ var PAGES = (function ($, details, Willet) {
 
         if (enableSocialButtons) {
             var $buttons,
-                $socialbuttons = $(t).find('.social-buttons'),
-                $parentsocialbuttons = $(t).parent().find('.social-buttons');
+                $socialbuttons = $(t).find('.social-buttons');
 
             if ($socialbuttons.length > 0) {
                 $buttons = $socialbuttons;
-            } else if ($parentsocialbuttons.length > 0) {
+            }
+
+            var $parentsocialbuttons = $(t).parent().find('.social-buttons');
+            if ($parentsocialbuttons.length > 0 && !$buttons) {
                 $buttons = $parentsocialbuttons;
             }
 
