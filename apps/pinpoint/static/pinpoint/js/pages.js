@@ -832,6 +832,12 @@ var PAGES = (function ($, details, Willet) {
                             // This block is ready to go, render it on the page.
                             $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
                             $elem.find('div').removeClass('hidden');
+
+                            if (this.width < this.height) {
+                                mediator.fire('log', ['not wide enough to be wide']);
+                                $elem.removeClass('wide');
+                            }
+
                             // Trigger a window resize event because Masonry's resize logic is better (faster)
                             // than it's reload logic.
                             $wnd.resize();
