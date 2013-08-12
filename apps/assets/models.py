@@ -5,6 +5,7 @@ from django.db.models import get_model
 from django.template.defaultfilters import striptags
 from django.utils.html import escape
 from django.db.models.signals import post_save
+from django.utils import timezone
 
 from social_auth.db.django_models import UserSocialAuth
 
@@ -18,13 +19,19 @@ class BaseModel(models.Model):
     @ivar created: The date this database object was created.
     @ivar last_modified: The date this database object was last modified.
     """
-    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    last_modified = models.DateTimeField(auto_now=True, blank=True, null=True)
+    created = models.DateTimeField(blank=True, null=True)
+    last_modified = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         """This is needed to allow other models to inherit from this one."""
         abstract = True
 
+    def save(self, *args, **kwargs):
+        # http://stackoverflow.com/questions/1737017/
+        if not self.id:
+            self.created = timezone.now()
+        self.last_modified = timezone.now()
+        return super(BaseModel, self).save(*args, **kwargs)
 
 class BaseModelNamed(BaseModel):
     """
