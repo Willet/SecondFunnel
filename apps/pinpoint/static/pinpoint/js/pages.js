@@ -497,12 +497,26 @@ var PAGES = (function ($, details, Willet) {
         }
 
         if (enableSocialButtons) {
-            var $buttons = $(t).find('.social-buttons') || $(t).parent().find('.social-buttons');
-            $buttons.fadeIn('fast');
+            var $buttons,
+                $socialbuttons = $(t).find('.social-buttons'),
+                $parentsocialbuttons;
 
-            if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
-                window.FB.XFBML.parse($buttons.find('.button.facebook')[0]);
-                $buttons.addClass('loaded');
+            if ($socialbuttons.length > 0) {
+                $buttons = $socialbuttons;
+            }
+
+            $parentsocialbuttons = $buttons? undefined : $(t).parent().find('.social-buttons');
+            if ($parentsocialbuttons && $parentsocialbuttons.length > 0) {
+                $buttons = $parentsocialbuttons;
+            }
+
+            if ($buttons) {
+                $buttons.fadeIn('fast');
+
+                if (!$buttons.hasClass('loaded') && window.FB) {
+                    window.FB.XFBML.parse($buttons.find('.button.facebook')[0]);
+                    $buttons.addClass('loaded');
+                }
             }
         }
     }
