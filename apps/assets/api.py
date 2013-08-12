@@ -70,7 +70,11 @@ class FilteredModelResource(ModelResource):
                     start, end = query[:len(query)/2], query[len(query)/2:]
                     query = ("-".join(start), "-".join(end))
 
-                qs = Q(**{qs:query})
+                if qs.startswith('~'):
+                    qs = ~Q(**{qs[1:]:query})
+                else:
+                    qs = Q(**{qs:query})
+
                 query_object  = query_object & qs if query_object else qs
 
         return query_object
