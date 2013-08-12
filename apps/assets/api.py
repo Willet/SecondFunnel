@@ -66,8 +66,9 @@ class FilteredModelResource(ModelResource):
                 if qs.endswith('in'):
                     query = query.split(',')
                 elif qs.endswith('range'):
-                    # TODO: This is wrong
                     query = query.split('-')
+                    start, end = query[:len(query)/2], query[len(query)/2:]
+                    query = ("-".join(start), "-".join(end))
 
                 qs = Q(**{qs:query})
                 query_object  = query_object & qs if query_object else qs
@@ -83,20 +84,17 @@ class FilteredModelResource(ModelResource):
         """
         filters = filters or {}
         custom_filters = self.Meta.custom_filtering
-        non_custom_filters = {}
+        non_custom_filters, custom = {}, {}
 
-        # Exclusionary check to prevent type errors in case custom filters are more
-        # advanced.
-        for _filter in filters.copy():
-            if not _filter in custom_filters.keys():
+        for _filter in filters:
+            if not _filter in custom_filters:
                 non_custom_filters[_filter] = filters[_filter]
+            else:
+                custom[_filter] = filters[_filter]
 
         orm_filters = super(FilteredModelResource, self).build_filters(non_custom_filters)
 
-        queries = filters.dict()
-        for _filter in filters:
-            if not _filter in custom_filters.keys():
-                continue
+        for _filter in custom:
             qs = self.evaluate_queryset(filters[_filter], custom_filters[_filter])
             orm_filters.update({_filter: qs})
 
@@ -113,8 +111,9 @@ class FilteredModelResource(ModelResource):
         custom_filters = self.Meta.custom_filtering
         custom = []
 
-        for _filter in custom_filters.keys():
-            if _filter in applicable_filters:
+        for _filter in applicable_filters.keys():
+            if isinstance(applicable_filters[_filter], Q) or \
+                    _filter in custom_filters:
                 custom.append(applicable_filters.pop(_filter))
 
         semi_filtered = super(FilteredModelResource, self).apply_filters(request, applicable_filters)
@@ -191,12 +190,9 @@ class ProductResource(FilteredModelResource):
         queryset = Product.objects.all()
         resource_name = 'product'
         serializer = PrettyJSONSerializer()
-        custom_filters = ['name_or_url', 'available']
-
         custom_filtering = {
             'name_or_url': (('name__icontains',), ('original_url__startswith',)),
         }
-
         filtering = {
             'store': ALL,
             'id': ('exact',),
@@ -214,9 +210,12 @@ class ProductResource(FilteredModelResource):
         orm_filters = super(ProductResource, self).build_filters(filters)
 
         availability = filters.get('available', True)
-        if availability:
-            qset = (Q(available=availability))
-            orm_filters.update({'available': qset})
+        if hasattr(availability, "lower") and availability.lower() == 'false':
+            availability = False
+        else:
+            availability = True
+        qset = (Q(available=availability))
+        orm_filters.update({'available': qset})
 
         return orm_filters
 
@@ -314,18 +313,17 @@ class ExternalContentResource(FilteredModelResource):
         authorization= Authorization()
         resource_name = 'external_content'
         serializer = PrettyJSONSerializer()
-        excludes = ['created']
         ordering = ['last_modified', 'created']
-
         custom_filtering = {
             'type_name': ('content_type__name__iexact', ),
             'store_name': ('store__name__iexact', ),
-            'text': ('store__name__iexact', ),
+            'text': ('text_content__contains', ),
             'tags_name': ('tagged_products__name__in', ),
             'tags_id': ('tagged_products__id__in', ),
             'original_url': ('original_url__contains', ),
+            'date': (('last_modified__range', ), ('created__range', )),
+            # TODO: Size, how to get?
         }
-
         filtering = {
             'id': ('exact',),
             'original_id': ('exact',),
@@ -335,7 +333,30 @@ class ExternalContentResource(FilteredModelResource):
             'type': ('exact',),
         }
 
+    def build_filters(self, filters=None):
+        """build_filters (transitions) resource lookup to an ORM lookup.
+
+        Also an extended defined function from ModelResource in tastypie.
+        """
+        orm_filters = super(ExternalContentResource, self).build_filters(filters)
+
+        for _filter in ('active', 'approved'):
+            status = filters.get(_filter, True)
+            if hasattr(status, 'lower') and status.lower() == 'false':
+                status = False
+            else:
+                status = True
+            qs = (Q(**{_filter: status}))
+            orm_filters.update({_filter: qs})
+
+        return orm_filters
+
     def prepend_urls(self):
+        """Normalize urls.  External content can be accessed by specifying the store in the
+        lookup url; will return external content for that store.
+
+        @return: list
+        """
         return [
             url(r"^(?P<resource_name>%s)/(?P<store_name>(?!\d+/$)[\w\d_.:\-\s]+)/$"% self._meta.resource_name,
                 self.wrap_view('dispatch_list'), name="api_dispatch_list"),
