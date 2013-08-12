@@ -318,6 +318,7 @@ class ExternalContentResource(FilteredModelResource):
         resource_name = 'external_content'
         serializer = PrettyJSONSerializer()
         ordering = ['last_modified', 'created']
+        excludes = ['last_modified', 'created']
         custom_filtering = {
             'type_name': ('content_type__name__iexact', ),
             'store_name': ('store__name__iexact', ),
