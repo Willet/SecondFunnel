@@ -1,6 +1,7 @@
-from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
+from django.core.urlresolvers import reverse
+from django.conf.urls import url
 from tastypie import fields
 from tastypie.constants import ALL_WITH_RELATIONS
 from tastypie.models import ApiKey
@@ -121,7 +122,6 @@ class FilteredModelResource(ModelResource):
                 custom.append(applicable_filters.pop(_filter))
 
         semi_filtered = super(FilteredModelResource, self).apply_filters(request, applicable_filters)
-
         for _filter in custom:
             semi_filtered = semi_filtered.filter(_filter)
 
@@ -249,26 +249,6 @@ class ProductMediaResource(ModelResource):
         authorization = UserPartOfStore()
 
 
-class CampaignResource(ModelResource):
-    """Returns "a campaign".
-
-    Campaign definitions are saved in apps/pinpoint/models.py.
-    """
-    store = fields.ForeignKey(StoreResource, 'store', full=True)
-    content_blocks = fields.ToManyField(BlockContentResource, 'content_blocks',
-                                        full=True)
-    discovery_blocks = fields.ToManyField(BlockContentResource,
-                                          'discovery_blocks', full=True)
-
-    class Meta:
-        queryset = Campaign.objects.all()
-        resource_name = 'campaign'
-
-        filtering = {
-            'store': ALL,
-        }
-
-
 class StoreThemeResource(FilteredModelResource):
     """Returns a "store theme".
 
@@ -281,14 +261,14 @@ class StoreThemeResource(FilteredModelResource):
         authentication = UserAuthentication()
         authorization = UserPartOfStore()
         custom_filtering = {
+            'store': ('store__id__exact',),
             'store_name': ('store__name__iexact',),
-            'campaigns_name': ('campaigns__name__in',),
-            'campaigns_id': ('campaigns__id__in',),
+            'name': ('name__icontains',),
         }
 
         filtering = {
-            'store': ALL,
-            'campaigns': ALL,
+            'store': ALL_WITH_RELATIONS,
+            'name': ('exact',),
         }
 
 
@@ -307,13 +287,68 @@ class StoreThemeResource(FilteredModelResource):
                         'api_dispatch_detail', 
                         kwargs={
                             'resource_name': key[:-1], 
-                            'api_name': 'v1', 'pk': obj.id
+                            'api_name': 'v1', 
+                            'pk': obj.id
                         }
                      )
                 }
                 bundle.data[key].append(d)
 
         return super(StoreThemeResource, self).dehydrate(bundle)
+
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<store_name>(?!\d+/$)[\w\d_.:\-\s]+)/$"% self._meta.resource_name,
+                self.wrap_view('dispatch_list'), name="api_dispatch_list"),
+        ]
+
+
+class CampaignResource(ModelResource):
+    """Returns "a campaign".
+
+    Campaign definitions are saved in apps/pinpoint/models.py.
+    """
+    store = fields.ForeignKey(StoreResource, 'store', full=True)
+    content_blocks = fields.ToManyField(BlockContentResource, 'content_blocks',
+                                        full=True)
+    discovery_blocks = fields.ToManyField(BlockContentResource,
+                                          'discovery_blocks', full=True)
+    theme = fields.ForeignKey(StoreThemeResource, 'store_theme', blank=True, null=True)
+    mobile_theme = fields.ForeignKey(StoreThemeResource, 'mobile_store_theme', blank=True, null=True)
+
+    class Meta:
+        queryset = Campaign.objects.all()
+        resource_name = 'campaign'
+        serializer = PrettyJSONSerializer()
+
+        filtering = {
+            'store': ALL,
+        }
+
+    def dehydrate(self, bundle):
+        id = bundle.data['store'].data['id']
+        store = Store.objects.get(pk=id)
+
+        for key, theme in zip(['theme', 'mobile_theme'], 
+                              [store.theme_id, store.mobile_id]):
+            if not bundle.data[key]:
+                if theme:
+                    theme = StoreTheme.objects.get(pk=theme)
+                    d = {
+                        'id': theme.id,
+                        'name': theme.name,
+                        'resource_uri': reverse(
+                            'api_dispatch_detail',
+                            kwargs = {
+                                'pk': theme.id,
+                                'resource_name': "store_theme",
+                                'api_name': 'v1'
+                            }
+                        )
+                    }
+                    bundle.data[key] = d
+
+        return super(CampaignResource, self).dehydrate(bundle)
 
 
 class YoutubeVideoResource(ModelResource):
