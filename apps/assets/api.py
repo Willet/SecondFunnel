@@ -280,19 +280,18 @@ class StoreThemeResource(FilteredModelResource):
         for key, objs in zip(['stores', 'campaigns'], [stores, campaigns]):
             bundle.data[key] = []
             for obj in objs:
-                d = {
-                    'id': obj.id, 
+                bundle.data[key].append({
+                    'id': obj.id,
                     'name': obj.name,
                     'resource_uri': reverse(
-                        'api_dispatch_detail', 
+                        'api_dispatch_detail',
                         kwargs={
-                            'resource_name': key[:-1], 
-                            'api_name': 'v1', 
+                            'resource_name': key[:-1],
+                            'api_name': 'v1',
                             'pk': obj.id
                         }
-                     )
-                }
-                bundle.data[key].append(d)
+                    )
+                })
 
         return super(StoreThemeResource, self).dehydrate(bundle)
 
@@ -334,19 +333,18 @@ class CampaignResource(ModelResource):
             if not bundle.data[key]:
                 if theme:
                     theme = StoreTheme.objects.get(pk=theme)
-                    d = {
+                    bundle.data[key] = {
                         'id': theme.id,
                         'name': theme.name,
                         'resource_uri': reverse(
                             'api_dispatch_detail',
-                            kwargs = {
+                            kwargs={
                                 'pk': theme.id,
                                 'resource_name': "store_theme",
                                 'api_name': 'v1'
                             }
                         )
-                    }
-                    bundle.data[key] = d
+                    }                        
 
         return super(CampaignResource, self).dehydrate(bundle)
 
