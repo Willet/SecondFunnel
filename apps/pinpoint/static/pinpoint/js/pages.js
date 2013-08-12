@@ -5,6 +5,7 @@ var PAGES = (function ($, details, Willet) {
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || false,
+        DESKTOP_WIDTH = 0,  // >= which defines this theme's desktop mode
         mediator = Willet.mediator,
         browser = Willet.browser || {
             'mobile': false,
@@ -831,6 +832,12 @@ var PAGES = (function ($, details, Willet) {
                             // This block is ready to go, render it on the page.
                             $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
                             $elem.find('div').removeClass('hidden');
+
+                            if (this.width < this.height) {
+                                mediator.fire('log', ['not wide enough to be wide']);
+                                $elem.removeClass('wide');
+                            }
+
                             // Trigger a window resize event because Masonry's resize logic is better (faster)
                             // than it's reload logic.
                             $wnd.resize();
@@ -843,7 +850,7 @@ var PAGES = (function ($, details, Willet) {
                 var instance = $(this),
                     isAdded = setInterval(function(){
                         if ($.contains(document.documentElement, instance[0])) {
-                            instance.parent().parent().remove();
+                            instance.closest('.block').remove();
                             clearInterval(isAdded);
                         }
                     }, 500);
@@ -1002,11 +1009,11 @@ var PAGES = (function ($, details, Willet) {
             var $block = $(obj),
                 blockWasInView = $block.hasClass('in-view') || false,
                 blockIsInView = isScrolledIntoView($block, false);
-            $block.toggleClass('in-view', blockIsInView);  // tell the block
 
-            if (blockWasInView !== blockIsInView && $block.hasClass('wide')) {
-                // visibility changed
-                if (browser.touch) {
+            if (blockWasInView !== blockIsInView) {  // visibility changed
+                $block.toggleClass('in-view', blockIsInView);  // tell the block
+
+                if ($block.hasClass('wide') && browser.touch) {
                     if (blockIsInView) {
                         $block.find('.tap_indicator')
                             .removeClass('fadeIn')
@@ -1022,12 +1029,18 @@ var PAGES = (function ($, details, Willet) {
     }
 
     function windowResize() {
-        // if the browser changes size, switch to mobile templates,
-        // even if the device is not mobile, and vice versa.
+        // if the browser changes size, switch to appropriate template,
+        // DESKTOP_WIDTH needs to match the theme's CSS desktop media queries.
         // this cannot "un-render" js templates previously rendered with
         // a different-size template.
         var oldState = browser.mobile;
-        browser.mobile = ($wnd.width() < 700);
+        if (details.DESKTOP_WIDTH && details.DESKTOP_WIDTH > 480) {
+            // i.e. if the requested DESKTOP_WIDTH makes sense, use it
+            DESKTOP_WIDTH = details.DESKTOP_WIDTH;
+        } else {  // default desktop width is 1024px
+            DESKTOP_WIDTH = 1024;
+        }
+        browser.mobile = ($wnd.width() < DESKTOP_WIDTH);
 
         if (browser.mobile !== oldState) {  // if it changed
             if (browser.mobile) {
