@@ -844,7 +844,7 @@ var PAGES = (function ($, details, Willet) {
                 var instance = $(this),
                     isAdded = setInterval(function(){
                         if ($.contains(document.documentElement, instance[0])) {
-                            instance.parent().parent().remove();
+                            instance.closest('.block').remove();
                             clearInterval(isAdded);
                         }
                     }, 500);
