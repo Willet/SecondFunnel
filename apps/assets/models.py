@@ -33,6 +33,7 @@ class BaseModel(models.Model):
         self.last_modified = timezone.now()
         return super(BaseModel, self).save(*args, **kwargs)
 
+
 class BaseModelNamed(BaseModel):
     """
     The base model to inherit from when a models needs a name.
