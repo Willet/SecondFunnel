@@ -1,4 +1,6 @@
 from django.conf.urls import patterns, url
+from django.contrib.auth.decorators import login_required
+
 
 urlpatterns = patterns('apps.pinpoint.views',
     url(r'^login/redirect/$', 'login_redirect', name='login-redirect'),

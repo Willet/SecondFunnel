@@ -1,16 +1,18 @@
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
+from django.conf.urls import url
 from tastypie import fields
 from tastypie.constants import ALL_WITH_RELATIONS
 from tastypie.models import ApiKey
 from tastypie.resources import ModelResource, ALL
 from tastypie.authentication import Authentication, ApiKeyAuthentication, MultiAuthentication
-from tastypie.authorization import Authorization
+from tastypie.authorization import Authorization, ReadOnlyAuthorization
 from django.db.models import Q
 
 from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
     YoutubeVideo, GenericImage, ExternalContent, ExternalContentType)
 
+from apps.assets.api_utils import PrettyJSONSerializer
 from apps.pinpoint.models import BlockContent, Campaign
 
 
@@ -30,11 +32,34 @@ class UserPartOfStore(Authorization):
             return False
 
 
+class WriteAuthorization(ReadOnlyAuthorization, UserPartOfStore):
+    """ Read-only resource.  When user is authorized, then they have access to
+    PUT/POST/DELETE"""
+    def is_authorized(self, request, object=None):
+        return super(WriteAuthorization, self).is_authorized(request, object)
+
+    def create_detail(self, object_list, bundle):
+        return self.is_authorized(bundle.request, object_list)
+
+    def update_list(self, object_list, bundle):
+        return object_list if self.is_authorized(bundle.request, object_list) else []
+
+    def update_detail(self, object_list, bundle):
+        return self.is_authorized(bundle.request, object_list)
+
+    def delete_list(self, object_list, bundle):
+        return object_list if self.is_authorized(bundle.request, object_list) else []
+
+    def delete_detail(self, object_list, bundle):
+        return self.is_authorized(bundle.request, object_list)
+
+
 class BlockContentResource(ModelResource):
     """Returns a campaign's content blocks."""
     class Meta:
         queryset = BlockContent.objects.all()
         resource_name = 'block_content'
+        serializer = PrettyJSONSerializer()
 
     def dehydrate(self, bundle):
         """convert BlockContent.data to something meaningful."""
@@ -57,6 +82,7 @@ class StoreResource(ModelResource):
         resource_name = 'store'
         authentication = UserAuthentication()
         authorization = UserPartOfStore()
+        serializer = PrettyJSONSerializer()
         filtering = {
             'id': ('exact',),
             'name': ('icontains',),
@@ -71,6 +97,7 @@ class ProductResource(ModelResource):
         """Django's way of defining a model's metadata."""
         queryset = Product.objects.all()
         resource_name = 'product'
+        serializer = PrettyJSONSerializer()
 
         filtering = {
             'store': ALL,
@@ -143,6 +170,7 @@ class ProductMediaResource(ModelResource):
     class Meta:
         queryset = ProductMedia.objects.all()
         resource_name = 'product_media'
+        serializer = PrettyJSONSerializer()
 
         filtering = {
             'product': ALL
@@ -164,11 +192,77 @@ class CampaignResource(ModelResource):
 
     class Meta:
         queryset = Campaign.objects.all()
+        authentication = MultiAuthentication(
+            ApiKeyAuthentication(),
+            UserAuthentication()
+        )
+        authorization = WriteAuthorization()
         resource_name = 'campaign'
+        serializer = PrettyJSONSerializer()
 
         filtering = {
             'store': ALL,
+            'live': ('exact',)
         }
+
+    def prepend_urls(self):
+        """Normalize urls.  Campaign resources can be accessed by specifying the name of the campaign in the
+        lookup url; will return that campaign resource.  Can also lookup campaigns related to a specified
+        store."""
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<name>[\w\d_.:\-\s]+)/$"%self._meta.resource_name, 
+                self.wrap_view('get_campaign_by_name'), name="api_get_campaign_by_name"),
+            url(r"^(?P<resource_name>%s)/store/(?P<store>[\w\d_.:\-\s]+)/$"%self._meta.resource_name,
+                self.wrap_view('dispatch_list'), name="api_dispatch_list"),
+        ]
+
+    def get_campaign_by_name(self, request, **kwargs):
+        """ Attempts to find the Campaign associated with the given name.  If no campaign
+        is found, assumes that it represents the detail_uri_name (usually pk) and delegate
+        to that dispatch method.  Returns a HttpResponse.
+
+        @param request: The request object.
+        @return: HttpResponse
+        """
+        try:
+            campaign = Campaign.objects.get(name__iexact=kwargs['name'])
+        except Campaign.DoesNotExist:
+            kwargs[self._meta.detail_uri_name] = kwargs.pop('name')
+
+        return super(CampaignResource, self).dispatch_detail(request, **kwargs)
+
+    def build_filters(self, filters=None):
+        """Builds the custom filters for filtering the CampaignResource.
+
+        @param filters: A QueryDict of applicable filters.
+        @return: QueryDict
+        """
+        filters = filters or {}
+
+        orm_filters = super(CampaignResource, self).build_filters(filters)
+
+        if 'store__exact' in orm_filters:
+            name = orm_filters.pop('store__exact')
+            orm_filters.update({'store': Q(store__name__iexact=name)})
+
+        return orm_filters
+
+    def apply_filters(self, request, applicable_filters):
+        """Applies the non-custom and custom filters for filtering the CampaignResource.
+        Delegates non-custom filters to the base apply_filters class.
+
+        @param request: The request object.
+        @param applicable_filters: A QueryDict of filters to be applied.
+        @return: list
+        """
+        custom = None
+
+        if 'store' in applicable_filters:
+            custom = applicable_filters.pop('store')
+
+        semi_filtered = super(CampaignResource, self).apply_filters(request, applicable_filters)
+
+        return semi_filtered.filter(custom) if custom else semi_filtered
 
 
 class YoutubeVideoResource(ModelResource):
@@ -178,6 +272,7 @@ class YoutubeVideoResource(ModelResource):
         queryset = YoutubeVideo.objects.all()
         authentication = UserAuthentication()
         resource_name = 'youtube_video'
+        serializer = PrettyJSONSerializer()
 
         filtering = {
             'id': ('exact',)
@@ -191,6 +286,7 @@ class GenericImageResource(ModelResource):
         queryset = GenericImage.objects.all()
         authentication = UserAuthentication()
         resource_name = 'generic_image'
+        serializer = PrettyJSONSerializer()
 
         filtering = {
             'id': ('exact',)
@@ -205,6 +301,7 @@ class ExternalContentTypeResource(ModelResource):
         authentication = UserAuthentication()
         authorization= Authorization()
         resource_name = 'external_content_type'
+        serializer = PrettyJSONSerializer()
 
 
 class ExternalContentResource(ModelResource):
@@ -224,7 +321,7 @@ class ExternalContentResource(ModelResource):
             UserAuthentication())
         authorization= Authorization()
         resource_name = 'external_content'
-        excludes = ['created']
+        serializer = PrettyJSONSerializer()
 
         filtering = {
             'id': ('exact',),

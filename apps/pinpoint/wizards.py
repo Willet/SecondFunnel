@@ -2,15 +2,16 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.utils import simplejson as json
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import get_object_or_404
 
+import apps.pinpoint.forms as forms
 from apps.assets.models import Product, ProductMedia, GenericImage
 from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
                                   FeaturedProductBlock, ShopTheLookBlock)
-from apps.pinpoint.forms import FeaturedProductWizardForm, ShopTheLookWizardForm
 
 # TODO: Consider replacing with ModelForm?
 # TODO: This is still a mess
@@ -395,48 +396,39 @@ class ShopTheLookWizard(FeaturedProductWizard):
         return block_content
 
 
-def featured_product_wizard(request, store, block_type, campaign=None):
+def wizard_handler(request, handler, store, block_type, campaign=None):
     """
-    Displays the wizard for customizing a featured product block.
+    A generic wizard handler that passes the request to the appropriate Wizard
+    and Wizard forms based on the handler type that was specified by the calling
+    function.
 
-    @param request: The request for the wizard.
+    @param request: The request for the wizard
+    @param handler: The appropriate Wizard to call.
     @param store: The store the page is being created for.
     @param block_type: The featured product block type object.
     @param campaign: Either None if the page is being created or
         the page being edited.
 
-    @return: An HttpResponse that renders a wizard for customizing
-    a featured product block.
+    @return: An HttpResponse that renders a wizard for customizing a block.
+
+    handler == "featured_product", "shop_the_look", etc.
     """
-    wizard = FeaturedProductWizard(**{
-        'preview': request.is_ajax(),
-        'request': request,
-        'store': store,
-        'block_type': block_type,
-        'campaign': campaign,
-        'form': FeaturedProductWizardForm
-    })
+    wizard = None
+    handler = "".join([text.title() for text in handler.split("_")])
+    
+    try:
+        wizard = globals()[handler]
+        wizard_form = getattr(forms, handler + "Form")
+        wizard = wizard(**{
+            'preview': request.is_ajax(),
+            'request': request,
+            'store': store,
+            'block_type': block_type,
+            'campaign': campaign,
+            'form': wizard_form
+        })
+    
+    except AttributeError:
+        raise Exception("Wizard not found.")
 
-    return wizard.process()
-
-
-def shop_the_look_wizard(request, store, block_type, campaign=None):
-    """
-    Displays the wizard for customizing a shop the look block.
-
-    @param request: The request for the wizard.
-    @param store: The store the page is being created for.
-    @param block_type: The shop the look block type object.
-    @param campaign: Either None if the page is being created or
-        the page being edited.
-
-    @return: An HttpResponse that renders a wizard for customizing
-    a shop the look block.
-    """
-    wizard = ShopTheLookWizard(preview=request.is_ajax(),
-                               request=request,
-                               store=store,
-                               block_type=block_type,
-                               campaign=campaign,
-                               form=ShopTheLookWizardForm)
     return wizard.process()
