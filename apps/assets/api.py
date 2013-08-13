@@ -206,23 +206,55 @@ class CampaignResource(ModelResource):
         }
 
     def prepend_urls(self):
+        """Normalize urls.  Campaign resources can be accessed by specifying the name of the campaign in the
+        lookup url; will return that campaign resource.  Can also lookup campaigns related to a specified
+        store."""
         return [
-            url(r"^(?P<resource_name>%s)/(?P<name>(?!\d+/$)[\w\d_.:\-\s]+)/$" % self._meta.resource_name, 
-                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            url(r"^(?P<resource_name>%s)/(?P<name>[\w\d_.:\-\s]+)/$"%self._meta.resource_name, 
+                self.wrap_view('get_campaign_by_name'), name="api_get_campaign_by_name"),
+            url(r"^(?P<resource_name>%s)/store/(?P<store>[\w\d_.:\-\s]+)/$"%self._meta.resource_name,
+                self.wrap_view('dispatch_list'), name="api_dispatch_list"),
         ]
 
+    def get_campaign_by_name(self, request, **kwargs):
+        """ Attempts to find the Campaign associated with the given name.  If no campaign
+        is found, assumes that it represents the detail_uri_name (usually pk) and delegate
+        to that dispatch method.  Returns a HttpResponse.
+
+        @param request: The request object.
+        @return: HttpResponse
+        """
+        try:
+            campaign = Campaign.objects.get(name__iexact=kwargs['name'])
+        except Campaign.DoesNotExist:
+            kwargs[self._meta.detail_uri_name] = kwargs.pop('name')
+
+        return super(CampaignResource, self).dispatch_detail(request, **kwargs)
+
     def build_filters(self, filters=None):
+        """Builds the custom filters for filtering the CampaignResource.
+
+        @param filters: A QueryDict of applicable filters.
+        @return: QueryDict
+        """
         filters = filters or {}
 
         orm_filters = super(CampaignResource, self).build_filters(filters)
 
         if 'store__exact' in orm_filters:
             name = orm_filters.pop('store__exact')
-            orm_filters.update({'store': Q(store__name=name)})
+            orm_filters.update({'store': Q(store__name__iexact=name)})
 
         return orm_filters
 
     def apply_filters(self, request, applicable_filters):
+        """Applies the non-custom and custom filters for filtering the CampaignResource.
+        Delegates non-custom filters to the base apply_filters class.
+
+        @param request: The request object.
+        @param applicable_filters: A QueryDict of filters to be applied.
+        @return: list
+        """
         custom = None
 
         if 'store' in applicable_filters:
@@ -290,7 +322,6 @@ class ExternalContentResource(ModelResource):
         authorization= Authorization()
         resource_name = 'external_content'
         serializer = PrettyJSONSerializer()
-        excludes = ['created']
 
         filtering = {
             'id': ('exact',),

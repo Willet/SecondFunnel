@@ -21,5 +21,3 @@ v1_api.register(ExternalContentTypeResource())
 urlpatterns = patterns('',
     (r'', include(v1_api.urls)),
 )
-
-
