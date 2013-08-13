@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.conf.urls import url
 from tastypie import fields
+from tastypie.http import HttpMultipleChoices
 from tastypie.constants import ALL_WITH_RELATIONS
 from tastypie.models import ApiKey
 from tastypie.resources import ModelResource, ALL
@@ -36,11 +37,19 @@ class FilteredModelResource(ModelResource):
     """A subclass of a ModelResource to attempt to make API filtering easier by
     reducing the amount of redundant code."""
     class Meta:
+        """
+        A mapping that takes tuple a tuple.  Any strings in a tuple together are considered
+        ANDs, tuples seperated by commas are considered ORs.  The value passed to the generated
+        Q object is the value of request.GET[key].
+        Example:
+            - {'text': ('text__contains', )} will create the Q object 
+                  (AND ('text__contains' VALUE_OF_text))
+            - {'text': ('text__startswith', 'text__endswith',)} will create the Q object:
+                  (AND ('text__startswith' VALUE_OF_text) ('text__endswith' VALUE_OF_text))
+            - {'text': (('text__startswith',), ('text__endswith',))} will create the Q object:
+                  (OR (AND ('text__startswith' VALUE_OF_text)) (AND ('text__endswith' VALUE_OF_text)))
+        """
         custom_filtering = {
-            """
-            A mapping that takes tuple a tuple.  Any strings in a tuple together are considered
-            ANDs, tuples seperated by commas are considered ORs.
-            """
         }
 
     def evaluate_queryset(self, query_string, qset):
@@ -51,14 +60,14 @@ class FilteredModelResource(ModelResource):
         @param qset: A tuple of arguments to construct the necessary Q objects.
         @return: Q
         """
-        query_object = None
+        query_object = Q()
 
         for qs in qset:
             # Iterate over the querystrings
             if isinstance(qs, tuple):
                 # Assume a tuple is an OR
                 qs = self.evaluate_queryset(query_string, qs)
-                query_object = query_object | qs if query_object else qs
+                query_object = query_object | qs
             else:
                 # Assume a string is an AND (default)
                 query = query_string
@@ -75,7 +84,7 @@ class FilteredModelResource(ModelResource):
                 else:
                     qs = Q(**{qs:query})
 
-                query_object  = query_object & qs if query_object else qs
+                query_object  = query_object & qs
 
         return query_object
 
@@ -90,11 +99,11 @@ class FilteredModelResource(ModelResource):
         custom_filters = self.Meta.custom_filtering
         non_custom_filters, custom = {}, {}
 
-        for _filter in filters:
-            if not _filter in custom_filters:
-                non_custom_filters[_filter] = filters[_filter]
+        for key, value in filters.iteritems():
+            if not key in custom_filters:
+                non_custom_filters[key] = value
             else:
-                custom[_filter] = filters[_filter]
+                custom[key] = value
 
         orm_filters = super(FilteredModelResource, self).build_filters(non_custom_filters)
 
@@ -138,13 +147,17 @@ class WriteAuthorization(ReadOnlyAuthorization, UserPartOfStore):
         return self.is_authorized(bundle.request, object_list)
 
     def update_list(self, object_list, bundle):
-        return object_list if self.is_authorized(bundle.request, object_list) else []
+        if not self.is_authorized(bundle.request, object_list):
+            return []
+        return object_list
 
     def update_detail(self, object_list, bundle):
         return self.is_authorized(bundle.request, object_list)
 
     def delete_list(self, object_list, bundle):
-        return object_list if self.is_authorized(bundle.request, object_list) else []
+        if not self.is_authorized(bundle.request, object_list):
+            return []
+        return object_list
 
     def delete_detail(self, object_list, bundle):
         return self.is_authorized(bundle.request, object_list)
@@ -318,7 +331,6 @@ class ExternalContentResource(FilteredModelResource):
         resource_name = 'external_content'
         serializer = PrettyJSONSerializer()
         ordering = ['last_modified', 'created']
-        excludes = ['last_modified', 'created']
         custom_filtering = {
             'type_name': ('content_type__name__iexact', ),
             'store_name': ('store__name__iexact', ),
@@ -363,9 +375,26 @@ class ExternalContentResource(FilteredModelResource):
         @return: list
         """
         return [
-            url(r"^(?P<resource_name>%s)/(?P<store_name>(?!\d+/$)[\w\d_.:\-\s]+)/$"% self._meta.resource_name,
-                self.wrap_view('dispatch_list'), name="api_dispatch_list"),
+            url(r"^(?P<resource_name>%s)/(?P<store_name>[\w\d_.:\-\s]+)/$"%self._meta.resource_name, 
+                self.wrap_view('get_store_content'), name="get_store_content"),
         ]
+
+    def get_store_content(self, request, **kwargs):
+        """
+        Attempts to find the store with the associated name.  If the store is not found,
+        delegates to looking up ExternalContent with the query paramater as the detail_uri_name.
+        Returns a HttpResponse corresponding to the API call.
+
+        @param request: The request object.
+        @return: HttpResponse
+        """
+        try:
+            store = Store.objects.get(name__iexact=kwargs['store_name'])
+        except Store.DoesNotExist:
+            kwargs[self._meta.detail_uri_name] = kwargs.pop('store_name')
+            return super(ExternalContentResource, self).dispatch_list(request, **kwargs)
+
+        return super(ExternalContentResource, self).dispatch_list(request, **kwargs)
 
 
 # Apparently, create_api_key only creates on user creation
