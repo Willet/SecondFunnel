@@ -11,7 +11,6 @@ from django.db.models import Q
 from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
     YoutubeVideo, GenericImage, ExternalContent, ExternalContentType)
 
-from apps.assets.api_utils import urlencodeSerializer
 from apps.pinpoint.models import BlockContent, Campaign
 
 
@@ -39,12 +38,10 @@ class UserPartOfStore(Authorization):
 
         @return: boolean
         """
-        filter = lambda o: isinstance(o, ProductMedia) and o.custom == False
-
         if not isinstance(object_list, list):
             object_list = [object_list]
 
-        object_list = [obj for obj in object_list if not(filter(obj))]
+        object_list = filter(lambda o: not (isinstance(o, ProductMedia) and o.custom == False), object_list)
 
         return len(object_list) > 0
 
@@ -58,21 +55,7 @@ class UserPartOfStore(Authorization):
 
         @return: list
         """
-        return [obj for obj in object_list if self.delete_detail(obj, bundle)]
-
-
-class WriteAuthentication(UserAuthentication):
-    def is_authenticated(self, request, **kwargs):
-        if request.method == 'GET':
-            return True
-        return super(WriteAuthentication, self).is_authenticated(request, **kwargs)
-
-
-class WriteAuthorization(UserPartOfStore):
-    def is_authorized(self, request, object=None):
-        if request.method == 'GET':
-            return True
-        return super(WriteAuthorization, self).is_authorized(request, **kwargs)
+        return filter(lambda o: self.delete_detail(obj, bundle), object_list)
 
 
 class BlockContentResource(ModelResource):
@@ -188,7 +171,6 @@ class ProductMediaResource(ModelResource):
     class Meta:
         queryset = ProductMedia.objects.all().order_by('-id')
         resource_name = 'product_media'
-        serializer = urlencodeSerializer()
 
         filtering = {
             'product': ALL
