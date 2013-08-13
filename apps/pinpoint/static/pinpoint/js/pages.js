@@ -30,6 +30,10 @@ var PAGES = (function ($, details, Willet) {
         loadingBlocks = bool;
     }
 
+    function endsWith(str, suffix) {
+        return str.indexOf(suffix, str.length - suffix.length) !== -1;
+    }
+
     function getModifiedTemplateName(name) {
         // returns the template name suitable
         var i,
@@ -178,7 +182,13 @@ var PAGES = (function ($, details, Willet) {
                 "grande", "1024x1024", "master"
             ];
 
-        if (!sizableRegex.test(url) || !_.contains(imageSizes, desiredSize)) {
+        // Don't resize:
+        //      - images that haven't come from us
+        //      - sizes we don't have
+        //      - .gifs!
+        if (!sizableRegex.test(url)
+            || !_.contains(imageSizes, desiredSize)
+            || endsWith(url, '.gif')) {
             return url;
         }
 
