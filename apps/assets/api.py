@@ -29,6 +29,34 @@ class UserPartOfStore(Authorization):
         except (KeyError, ValueError, Store.DoesNotExist):
             return False
 
+    def delete_detail(self, object_list, bundle):
+        """
+        Returns true if the object can be deleted, otherwise false.
+
+        @param object_list: List of objects to delete
+        @param bundle: The Tastypie bundle.
+
+        @return: boolean
+        """
+        if not isinstance(object_list, list):
+            object_list = [object_list]
+
+        object_list = filter(lambda o: not (isinstance(o, ProductMedia) and o.custom == False), object_list)
+
+        return len(object_list) > 0
+
+    def delete_list(self, object_list, bundle):
+        """
+        Returns a list of object that the user is allowed to delete.
+        Should return an empty list if none are allowed to be deleted.
+
+        @param object_list: A list of all the objects requested to delete
+        @param bundle: The Tastypie bundle.
+
+        @return: list
+        """
+        return filter(lambda o: self.delete_detail(obj, bundle), object_list)
+
 
 class BlockContentResource(ModelResource):
     """Returns a campaign's content blocks."""
@@ -141,7 +169,7 @@ class ProductMediaResource(ModelResource):
     product = fields.ForeignKey(ProductResource, 'product')
 
     class Meta:
-        queryset = ProductMedia.objects.all()
+        queryset = ProductMedia.objects.all().order_by('-id')
         resource_name = 'product_media'
 
         filtering = {

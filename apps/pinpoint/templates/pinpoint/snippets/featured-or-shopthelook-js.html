@@ -1,6 +1,21 @@
 {% load i18n %}
 <script>
 {% include 'pinpoint/snippets/file_upload_errors.html' %}
+
+// Identical to Python's findAll
+RegExp.prototype.findAll = function(string) {
+    var groups = [],
+        match = null;
+    while (match = this.exec(string)) {
+        var matches = [];
+        for (var i = 1; i < match.length; ++i)
+            matches.push(match[i]);
+        groups.push(matches);
+    }
+    return groups;
+};
+
+
 var application = (function(store_id, urls){
     var $pageChanged = $('#id_page_changed'),
         createUploader,
@@ -11,13 +26,35 @@ var application = (function(store_id, urls){
         getAutoCompleteConfig,
         onPageChanged,
         onImageSelect,
-        onExistingImageSelect,
-        onNewImageSelect,
         onPreview,
         onCancel,
         onBack,
         onProductApiResults,
-        products = {};
+        products = {},
+        media_api_url = "/api/assets/v1/" + ((campaign_id.length > 0)? "product_media": "generic_image") + "/";
+
+    batchDelete = function (uris) {
+        // Consumes uris pointing to valid resources and deletes them
+        $.ajax({
+            async: false,
+            headers: {"X-HTTP-Method-Override": "PATCH"}, 
+            type: "PATCH",
+            url: media_api_url,
+            data: JSON.stringify({
+                "format": "json",
+                "objects": [],
+                "deleted_objects": uris
+            }),
+            contentType: "application/json",
+            success: function(response) {
+                return true;                    
+            },
+            error: function(jqXHR, status, error) {
+                console.log(error);
+            }
+        });
+        return false;
+    };
 
     setProductFields = function (product, data) {
         // set product's proper name
@@ -27,11 +64,8 @@ var application = (function(store_id, urls){
             $("#id_name").val(data.page_name);
         } else {
             // resetting previous values
-            $("#id_product_media_id").val("");
-            $("#id_generic_media_id").val("");
-            $("#id_ls_product_media_id").val("");
-            $("#id_ls_generic_media_id").val("");
-            $("#id_generic_media_list").val("");
+            $("#id_product_media_id, #id_ls_product_media_id").val("");
+            $("#id_product_media_list, id_ls_product_media_list").val("");
 
             //TODO: Why here?
             onPageChanged();
@@ -75,7 +109,7 @@ var application = (function(store_id, urls){
                     'name'       : result.name,
                     'description': result.description,
                     'media'      : []
-                }
+                };
 
                 // fetch product media
                 $.getJSON("/api/assets/v1/product_media/", {
@@ -83,7 +117,7 @@ var application = (function(store_id, urls){
                     "product": result.id,
                     "store": store_id
                 }, function(media_data) {
-                    if (media_data.meta.total_count == 0) {
+                    if (media_data.meta.total_count === 0) {
                         return onProductApiResults(data, products[data.id]);
                     }
 
@@ -93,7 +127,8 @@ var application = (function(store_id, urls){
 
                         products[result.id]['media'].push({
                             'id': media.id,
-                            'url': media.hosted || media.remote
+                            'url': media.hosted || media.remote,
+                            'custom': media.custom
                         });
                     }
 
@@ -110,10 +145,9 @@ var application = (function(store_id, urls){
     onProductApiResults = function (data, product) {
         var i,
             li,
-            uploadedImages,
-            genericImages;
+            uploadedImages;
 
-        // clear existing image list
+        // clear image list
         $('.product-images').each(function(index, elem) {
             var $images = $(elem).find('li');
 
@@ -124,46 +158,36 @@ var application = (function(store_id, urls){
             }
         });
 
+        // display uploaded media first
+        if (campaign_id.length == 0) {
+            var new_media = /(?:(.+?)\\(\d+?)(?:\||$))/g.findAll($("#id_product_media_list").val());
+            $.each(new_media, function(i, match) {
+                var url = match[0],
+                    id = match[1];
+                console.log(match);
+                li = $("<li><img class='gen_img' data-mid='" + id + "' src='" + url + "'></li>");
+                li.prepend($("<span class='ui-state-default'><span class='ui-icon ui-icon-circle-close'></span></span>"));
+                console.log(li);
+                $(".product-images").append(li);
+            });
+        }
+
         // display product media
         for (i in product.media) {
-            li = $("<li><img class='prod_img existing_image' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
+            li = $("<li><img class='prod_img' data-mid='" + product.media[i].id + "' src='" + product.media[i].url + "'></li>");
+
+            if (product.media[i].custom) {
+                li.prepend($("<span class='ui-state-default'><span class='ui-icon ui-icon-circle-close'></span></span>"));
+            }
             $(".product-images").append(li);
         }
 
-        if (data.product_generic_image_list) {
-            genericImages = data.product_generic_image_list.split("|");
-
-            uploadedImages = $.map(genericImages, function(str) {
-                var s = str.split("\\");
-                return {
-                    url: s[0],
-                    id : s[1]
-                };
-            });
-
-            $.map(uploadedImages.reverse(), function(img) {
-                var image = $("<li><img class='prod_img new_image' data-mid='" + img.id + "' src='" + img.url + "'></li>");
-                $(".fine-uploader").closest('li').after(image);
-            });
-        }
-
-        // Select the right images
-        if (data.ls_generic_image_id) {
-            $("#look_images").find("[data-mid='" + data.ls_generic_image_id  + "']").addClass("selected");
-        } else {
-            $("#look_images").find("[data-mid='" + data.ls_image_id  + "']").addClass("selected");
-        }
-
-        if (data.product_generic_image_id) {
-            $("#product_images").find("[data-mid='" + data.product_generic_image_id  + "']").addClass("selected");
-        } else {
-            $("#product_images").find("[data-mid='" + data.product_image_id  + "']").addClass("selected");
-        }
-
+        $("#look_images").find("[data-mid='" + data.ls_image_id  + "']").addClass("selected");
+        $("#product_images").find("[data-mid='" + data.product_image_id  + "']").addClass("selected");
         $('.image-selector').has('.selected').siblings(".errorlist").children("li").hide();
 
         // Update other product fields
-        setProductFields(product, data)
+        setProductFields(product, data);
 
         $(".product_meta").unmask();
     };
@@ -202,20 +226,15 @@ var application = (function(store_id, urls){
         };
     };
 
-    onImageSelect = function ($elem, existing) {
-        var $image = $elem,
+    onImageSelect = function () {
+        var $elem = $(this),
+            $image = $elem,
             $field  = $elem.parents('.field'),
             fields,
             mid = $image.data('mid'),
             image_fields = {
-                'featured': {
-                    'custom': $('#id_generic_media_id'),
-                    'existing': $('#id_product_media_id')
-                },
-                'look': {
-                    'custom': $('#id_ls_generic_media_id'),
-                    'existing': $('#id_ls_product_media_id')
-                }
+                'featured': $('#id_product_media_id'),
+                'look': $('#id_ls_product_media_id')
             };
 
         if ($field.hasClass('featured')) {
@@ -232,27 +251,14 @@ var application = (function(store_id, urls){
 
         // ...and add to selected element
         $image.addClass('selected');
-
-        if (existing) {
-            fields.existing.val(mid);
-            fields.custom.val('');
-        } else {
-            fields.existing.val('');
-            fields.custom.val(mid);
-        }
-    };
-
-    onExistingImageSelect = function () {
-        onImageSelect($(this), true);
-    };
-
-    onNewImageSelect = function () {
-        onImageSelect($(this), false);
+        fields.val(mid);
     };
 
     onPreview = function () {
         var $form = $('#create_campaign'),
             $campaign_id = $('#id_campaign_id');
+        // Since we're saving, ensure to delete images
+        onDeleteImages();
 
         $.ajax({
             async: false,
@@ -264,21 +270,73 @@ var application = (function(store_id, urls){
                     var url = 'http://' + window.location.host + response.url;
                     window.open(url, '_blank');
                     $campaign_id.val(response.campaign);
+                    getAutoCompleteConfig();
                 } else {
                     $form[0].submit();
                 }
             }
-        })
+        });
+    };
+
+    onDeleteImages = function () {
+        // Before we submit the form, we need to ensure that any deleted
+        // images (ones we've hidden), are actually deleted through a batch request.
+        var uris = [],
+            $media_list = $("#id_product_media_list");
+
+        $('#product_images img:hidden').each(function(){
+            var id = $(this).attr('data-mid'),
+                url = $(this).attr('src');
+            $media_list.val($media_list.val().replace(url + "\\" + id, ""));
+            uris.push(media_api_url + id + "/");
+        });
+        $('#product_images img:hidden').remove();
+        batchDelete(uris);
+    };
+
+    onRefresh = function () {
+        // We'll assume a refresh triggers a save
+        // TODO: Should we assume this?  Or clear the entire page?
+        var $form = $('#create_campaign'),
+            new_media = /(?:(.+?)\\(\d+?)(?:\||$))/g.findAll($("#id_product_media_list").val());
+            
+        if (new_media.length > 0) {
+            new_media = $.map(new_media, function(match) {
+                return media_api_url + match[1] + "/";
+            });
+            batchDelete(new_media);
+        }
+    };
+
+    onFormSubmit = function(e) {
+        // Before we save the page, ensure we delete all
+        // the images we specified.
+        e.preventDefault();
+        $(window).unbind('beforeunload', onRefresh);
+
+        var $form = $('#create_campaign');
+        onDeleteImages();
+        $form[0].submit();
     };
 
     onCancel = function(){
         var cancel;
 
         if ($pageChanged.val()) {
-            var cancel = confirm("{% trans "Are you sure you want to cancel your changes?" %}");
+            cancel = confirm("{% trans "Are you sure you want to cancel your changes?" %}");
         }
 
         if (cancel || !$pageChanged.val()) {
+            // Delete all the images uploaded in the session
+            // Assume the user doesn't want them? (They are cancelling their changes after all!)
+            var new_media = /(?:(.+?)\\(\d+?)(?:\||$))/g.findAll($("#id_product_media_list").val());
+            
+            if (new_media.length > 0) {
+                new_media = $.map(new_media, function(match) {
+                     return media_api_url + match[1] + "/";
+                });
+                batchDelete(new_media);
+            }
             window.location.href = urls['store-admin'];
         }
     };
@@ -293,6 +351,27 @@ var application = (function(store_id, urls){
         if (cancel || $pageChanged.val()) {
             window.location.href = urls['new-campaign-admin'];
         }
+    };
+
+    onImageDelete = function() {
+        var id = $(this).parent().next().attr('data-mid'),
+            $products = $('img[data-mid="' + id + '"]'),
+            $field  = $(this).parents('.field');
+            
+        $products.each(function(){
+            var $image = $(this);
+            
+            if ($image.hasClass('selected')) {
+                $image.removeClass('selected');
+
+                if ($field.hasClass('featured')) {
+                    $('#id_product_media_id').val("");
+                } else {
+                    $('#id_ls_product_media_id').val("");
+                }
+            }
+            $image.parent().hide();
+        });
     };
 
     createUploader = function($elem) {
@@ -321,17 +400,21 @@ var application = (function(store_id, urls){
                     gif.hide();
                     gif.removeClass('loading_gif');
                     gif.addClass('prod_img');
-                    gif.addClass('new_image');
                     gif.attr('src', decodedUrl);
+                    gif.attr('data-mid', response.media_id);
                     gif.data('mid', response.media_id);
+                    gif.parent().prepend($("<span class='ui-state-default'><span class='ui-icon ui-icon-circle-close'></span></span>"));
                     gif.load(function() {
                         gif.fadeIn(500);
                         if ($productImages.length == 1) {
                             gif.click();
                         }
                     });
-                    $("#id_generic_media_list").val($('#product_images img.new_image').map(
-                        function(){return $(this).attr('src') + "\\" + $(this).data('mid');}).toArray().join("|"));
+                    
+                    $("#id_product_media_list").val($("#id_product_media_list").val() + decodedUrl + "\\" + response.media_id + "|");
+                    if (campaign_id.length == 0) {
+                        $("#id_generic_image_list").val($("#id_product_media_list").val());
+                    }
                 } else {
                     if (response.error) {
                         fileUploadErrorHandler.signalError(response.error, fileName);    
@@ -376,13 +459,23 @@ var application = (function(store_id, urls){
         $('.button.preview').on('click', onPreview);
         $('#cancel_to_admin').unbind('click').on('click', onCancel);
         $('.button.back:not(.disabled)').on('click', onBack);
+        $('#create_campaign').on('submit', onFormSubmit);
 
-        $('.product-images').on('click', 'img.existing_image', onExistingImageSelect);
-        $('.product-images').on('click', 'img.new_image', onNewImageSelect);
+        $('.product-images').on('click', 'img', onImageSelect);
+        $('body').on('mouseenter', '.ui-state-default', function(){
+            $(this).addClass('ui-state-active');
+        }).on('mouseleave', '.ui-state-default', function(){
+            $(this).removeClass('ui-state-active');
+        });
+
+        // Hide an element when it's *deleted*
+        $('body').on('click', '.ui-icon-circle-close', onImageDelete);
+
+        // Bind refresh listener
+        $(window).bind('beforeunload', onRefresh);
 
         // Trigger page changed events
-        $('.product-images').on('click', 'img.existing_image', onPageChanged);
-        $('.product-images').on('click', 'img.new_image', onPageChanged);
+        $('.product-images').on('click', 'img', onPageChanged);
         $('#id_name, #id_description').change(onPageChanged);
         $('#id_name, #id_description').keyup(onPageChanged);
     };
@@ -398,7 +491,7 @@ var application = (function(store_id, urls){
         $(document).ready(ready);
 
         //create uploaders
-        $('.fine-uploader').each(function(index, elem){
+        $('.fine-uploader').each(function(index, elem) {
             createUploader($(elem));
         });
 
@@ -408,10 +501,9 @@ var application = (function(store_id, urls){
             page_name                 : $("#id_name").val(),
             product_description       : $("#id_description").val(),
             product_image_id          : $("#id_product_media_id").val(),
-            product_generic_image_id  : $("#id_generic_media_id").val(),
             ls_image_id               : $("#id_ls_product_media_id").val(),
-            ls_generic_image_id       : $("#id_ls_generic_media_id").val(),
-            product_generic_image_list: $("#id_generic_media_list").val()
+            product_media_list        : $("#id_product_media_list").val(),
+            generic_image_list        : $("#id_generic_image_list").val()
         });
 
         $(".qq-upload-button").addClass('button');

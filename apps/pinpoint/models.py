@@ -558,15 +558,10 @@ class FeaturedProductBlock(BaseModelNamed):
     Data model for Featured Content blocks, to be used with BlockContent
 
     @ivar product: The product to feature.
-    @ivar existing_image: A scraped image to use to feature the
-        product. Either this or custom_image must exist.
-    @ivar custom_image: A custom image to use to feature the product.
-        Either this or existing_image must exist.
+    @ivar image: The image to use with the block.
     """
-
     product = models.ForeignKey(Product)
-    existing_image = models.ForeignKey(ProductMedia, blank=True, null=True)
-    custom_image = models.OneToOneField(GenericImage, blank=True, null=True)
+    image = models.ForeignKey(ProductMedia, blank=True, null=True)
 
     def __unicode__(self):
         return u"Featured Content Data for %s" % self.product
@@ -577,14 +572,10 @@ class FeaturedProductBlock(BaseModelNamed):
         
         @return: A Generic Image object.
         """
+        if url and self.image:
+            return self.image.get_url()
         
-        image = self.custom_image or self.existing_image or None
-        
-        if url and image:
-            return image.get_url()
-        
-        return image
-    
+        return self.image
     
     def save(self, *args, **kwargs):
         """Overridden save method to do multi-field validation."""
@@ -596,68 +587,46 @@ class FeaturedProductBlock(BaseModelNamed):
 
         docs.djangoproject.com/en/1.4/ref/models/instances/#validating-objects
         """
-        if not (self.existing_image or self.custom_image):
+        if not self.image:
             # TODO: "collect all the errors and return them all at once"
             #       (and display on the form, if model is being modified
             #        on a form)
             raise ValidationError('Block needs at least one product image.')
 
 
+# TODO: Inherit from FeaturedProductBlock
 class ShopTheLookBlock(BaseModelNamed):
     """
     Data model for Shop the Look blocks, to be used with BlockContent.
 
-    @attention: This should inherit from FeaturedProductBlock.
-
     @ivar product: The product to feature.
-    @ivar existing_image: A scraped image to use to feature the
-        product. Either this or custom_image must exist.
-    @ivar custom_image: A custom image to use to feature the product.
-        Either this or existing_image must exist.
-
-    @ivar existing_ls_image: A scraped image to use to show the product
-        in action. Either this or custom_image must exist.
-    @ivar custom_ls_image: A custom image to use to show the product in
-        action. Either this or existing_image must exist.
+    @ivar image: The image to use with the block.
+    @ivar ls_image: An image to use to show the product in action.
     """
-
     product = models.ForeignKey(Product)
-
-    # existing_image is populated if the campaign was created using
-    # an image already in the database
-    existing_image = models.ForeignKey(ProductMedia, blank=True, null=True)
-
-    # custom_image is populated if the campaign was created using
-    # an image already in the database
-    custom_image   = models.OneToOneField(GenericImage, blank=True, null=True)
-
-    existing_ls_image = models.ForeignKey(
-        ProductMedia, blank=True, null=True, related_name='ls_image_set')
-    custom_ls_image = models.OneToOneField(
-        GenericImage, blank=True, null=True, related_name='ls_image')
+    image = models.ForeignKey(ProductMedia, blank=True, null=True)
+    ls_image = models.ForeignKey(ProductMedia, blank=True, null=True, related_name='ls_image')
 
     def __unicode__(self):
         return u"Featured Content Data for %s" % self.product
 
     def get_image(self, url=False):
-        """Get an image associated with this block"""
-
-        image = self.custom_image or self.existing_image or None
-
-        if url and image:
-            return image.get_url()
-
-        return image
+        """
+        Get an image associated with this block. Prefer custom image over existing image.
+        
+        @return: A Generic Image object.
+        """
+        if url and self.image:
+            return self.image.get_url()
+        
+        return self.image
 
     def get_ls_image(self, url=False):
         """Get a lifestyle image associated with this block"""
+        if url and self.ls_image:
+            return self.ls_image.get_url()
 
-        image = self.custom_ls_image or self.existing_ls_image or None
-
-        if url and image:
-            return image.get_url()
-
-        return image
+        return self.ls_image
 
     def save(self, *args, **kwargs):
         """Overridden save method to do multi-field validation."""
@@ -669,10 +638,8 @@ class ShopTheLookBlock(BaseModelNamed):
 
         docs.djangoproject.com/en/1.4/ref/models/instances/#validating-objects
         """
-        if not (self.existing_image or self.custom_image):
-            # TODO: "collect all the errors and return them all at once"
-            #       (and display on the form, if model is being modified
-            #        on a form)
+        if not self.image:
             raise ValidationError('Block needs at least one product image.')
-        if not (self.existing_ls_image or self.custom_ls_image):
+
+        if not self.ls_image:
             raise ValidationError('Block needs at least one STL image.')

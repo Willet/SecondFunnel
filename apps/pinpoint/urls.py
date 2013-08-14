@@ -1,5 +1,8 @@
 from django.conf.urls import patterns, url
 
+from apps.pinpoint.views import CampaignCreateView, CampaignUpdateView
+
+
 urlpatterns = patterns('apps.pinpoint.views',
     url(r'^login/redirect/$', 'login_redirect', name='login-redirect'),
 
@@ -40,13 +43,16 @@ urlpatterns = patterns('apps.pinpoint.views',
         'new_campaign', name='new-campaign-admin'),
 
     url(r'^admin/(?P<store_id>\d+)/edit_campaign/(?P<campaign_id>\d+)/$',
-        'edit_campaign', name='edit-campaign-admin'),
+        CampaignUpdateView.as_view(), name='edit-campaign-admin'),
+
+    url(r'^admin/(?P<store_id>\d+)/edit_campaign/(?P<campaign_id>\d+)/upload/$', 'upload_productmedia',
+        name='upload-productmedia'),
 
     url(r'^admin/(?P<store_id>\d+)/delete_campaign/(?P<campaign_id>\d+)/$',
         'delete_campaign', name='delete-campaign-admin'),
 
     url(r'^admin/(?P<store_id>\d+)/new_campaign/(?P<block_type_id>\d+)/$',
-        'block_type_router', name='block-type-wizard'),
+        CampaignCreateView.as_view(), name='block-type-wizard'),
 
     # As suggested in the docs, but how will this affect reverse / url?
     # https://docs.djangoproject.com/en/dev/topics/http/urls/#notes-on-capturing-text-in-urls
@@ -54,7 +60,11 @@ urlpatterns = patterns('apps.pinpoint.views',
     url(r'^(?P<campaign_id>\d+)/(?:(?P<mode>\w+).html)?$', 'campaign', name='campaign'),
 )
 
+
 # @deprecated (AJAX)
+# TODO: Can we get rid of GenericImage uploading completely?
+# Uses the GenericImage to upload a file, since we have a ExternalContent/ProductMedia, we will
+# favor those.
 urlpatterns += patterns('apps.pinpoint.ajax',
     url(r'^ajax/upload_image/$',
         'ajax_upload_image', name='ajax-upload-image'),

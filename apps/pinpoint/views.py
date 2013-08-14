@@ -1,34 +1,39 @@
 from urllib import urlencode
-from django.db.models import Q
-from apps.pinpoint.forms import ThemeForm
-
+from functools import partial
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+
+from django.db.models import Q
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, get_object_or_404, redirect, render
 from django.template import RequestContext, Context, loader
-from django.http import HttpResponse, HttpResponseServerError, HttpResponseNotAllowed
+from django.http import HttpResponse, HttpResponseServerError, HttpResponseNotAllowed, HttpResponseRedirect
 from django.views.decorators.http import require_POST
 from fancy_cache import cache_page
 from social_auth.db.django_models import UserSocialAuth
 from django.views.decorators.vary import vary_on_headers
 from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnInteger
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.utils import simplejson as json
+from django.core.exceptions import ValidationError
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
+import apps.pinpoint.forms as forms
 from apps.analytics.models import Category
-from apps.assets.models import ExternalContent, ExternalContentType, Store
+from apps.assets.models import ExternalContent, ExternalContentType, Store, ProductMedia, Product
 from apps.intentrank.views import get_seeds_ir
 from apps.pinpoint.ajax import upload_image
+from apps.pinpoint.forms import ThemeForm
 
 from apps.pinpoint.models import Campaign, BlockType, StoreTheme
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
 from apps.pinpoint.utils import render_campaign
-import apps.pinpoint.wizards as wizards
-from apps.pinpoint.wizards import Wizard
 from apps.utils.ajax import ajax_error, ajax_success
 
 import apps.utils.base62 as base62
@@ -136,25 +141,36 @@ def new_campaign(request, store_id):
 
 
 @login_required
-def edit_campaign(request, store_id, campaign_id):
-    """
-    Allows a user to edit a pre-existing pinpoint page.
-
-    This function calls the appropriate handler in apps.pinpoint.wizards using the
-    handler attribute of the block type of the given page.
-
-    @param request: The request for this page.
-    @param store_id: The id of the store the page was created for.
-    @param campaign_id: The page to edit.
-
-    @return: An HttpResponse with a form to change the pinpoint page.
-    """
+@require_POST
+def upload_productmedia(request, store_id, campaign_id):
     store = get_object_or_404(Store, pk=store_id)
-    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
-    block_type = campaign_instance.content_blocks.all()[0].block_type
+    media = ''
+    try:
+        campaign = Campaign.objects.get(pk=campaign_id)
+        product = None
 
-    return getattr(wizards, block_type.handler)(
-        request, store, block_type, campaign=campaign_instance)
+        for block in campaign.content_blocks.all():
+            if not block.data == None:
+                product = block.data.product
+                break
+
+        if product == None:
+            media = upload_image(request)
+        else:
+            media = upload_image(request, ProductMedia(product=product, custom=True))
+
+        media.save()
+
+    except Exception, e:
+        if isinstance(media, HttpResponse):
+            return media
+        return ajax_error({'error': str(e)})
+
+    return ajax_success({
+        'media_id': media.id,
+        'url': media.get_url()
+    })
+
 
 @login_required
 def delete_campaign(request, store_id, campaign_id):
@@ -165,26 +181,6 @@ def delete_campaign(request, store_id, campaign_id):
     messages.success(request, "Your page was deleted.")
 
     return redirect('store-admin', store_id=store_id)
-
-
-@login_required
-def block_type_router(request, store_id, block_type_id):
-    """
-    Allows a user to configure the main content block of the page they are creating.
-
-    This function calls the appropriate handler in apps.pinpoint.wizards using the
-    handler attribute of the given block type.
-
-    @param request: The request for this page.
-    @param store_id: The id of the store this page is being created for.
-    @param block_type_id: The id of the block type for this page.
-
-    @return: An HttpRespose with a form to configure the content block.
-    """
-    store = get_object_or_404(Store, pk=store_id)
-    block_type = get_object_or_404(BlockType, pk=block_type_id)
-
-    return getattr(wizards, block_type.handler)(request, store, block_type)
 
 
 @login_required
@@ -616,3 +612,182 @@ def app_exception_handler(request):
     return HttpResponseServerError(loader.get_template('500.html').render(
         Context({'exception': exception,
                  'traceback': '\n'.join(stack)})))
+
+
+class CampaignViewMixin(object):
+    """Generic Campaign Mixin.  Allows us to use the Campaign ModelForm to edit Campaigns
+    for the various ProductBlock types.
+    """
+    def __dispatch__(self, *args, **kwargs):
+        """Sets the variables to be used by the instance.  Since this is a Class-based view, this
+        has to be done under dispatch, rather than __init__.
+
+        @return: None
+        """
+        self.store = get_object_or_404(Store, pk=kwargs.get('store_id'))
+        self.campaign = (None if not kwargs.get('campaign_id', None) else \
+                                       get_object_or_404(Campaign, pk=kwargs.get('campaign_id')))
+        self.block_type = (get_object_or_404(BlockType, pk=kwargs.get('block_type_id')) if kwargs.get('block_type_id', None) else \
+                               self.campaign.content_blocks.all()[0].block_type)
+
+        self.context_data = {
+            'store': self.store,
+            'block_type': self.block_type,
+            'block_types': BlockType.objects.all(),
+            'products': self.store.product_set.all(),
+            'campaign': self.campaign
+        }
+
+        handler = "".join([text.title() for text in self.block_type.handler.split("_")])
+        self.form_class = getattr(forms, handler + "Form")
+        self.template_name = 'pinpoint/wizards/%s/ui.html' % self.block_type.slug
+        self.success_url = reverse('store-admin', kwargs={'store_id': self.store.id})
+
+    def get_initial(self):
+        """Returns the initial data to render the form with.
+
+        @return: dict
+        """
+        if not self.campaign or self.campaign.content_blocks.all()[0].data == None:
+            return {}
+
+        campaign = self.campaign
+        all_content_blocks = campaign.content_blocks.all()
+
+        product_id = all_content_blocks[0].data.product.id
+        product_desc = all_content_blocks[0].data.description
+
+        initial_data = {
+            "name": campaign.name,
+            "product_id": product_id,
+            "page_description": campaign.description,
+            "description": product_desc,
+            "campaign_id": self.campaign.id
+        }
+
+        initial_data["product_media_id"] = all_content_blocks[0].data.get_image().id
+        initial_data["product_media_list"] = ""
+
+        # TODO: Is there a better way?
+        if self.block_type.name == 'Shop The Look':
+            initial_data["ls_product_media_id"] = all_content_blocks[0].data.get_ls_image().id
+        
+        return initial_data
+
+    def preview_or_response(self, request, response):
+        """Returns a json response for generating a preview if the request is an ajax request, otherwise
+        it processes the form and either creates a model if validation succeeded or returns the form
+        with errors.
+
+        @param request: The request object.
+        @param response: A function to generate the response
+        @return: HttpResponse
+        """
+        self.preview = request.is_ajax()
+        if self.preview:
+            # Don't want to save the object, rather use the passed data to formulate
+            # a response.
+            try:
+                _, response = response(), {
+                    "url": reverse('campaign', kwargs={'campaign_id': self.object.id}),
+                    'campaign': self.object.id
+                }
+            except AttributeError as e:
+                return ajax_error({'error': str(e)})
+
+            return ajax_success(response)
+
+        return response()
+
+    def form_valid(self, form):
+        """If the form is valid, saves the form and redirects successfully.
+
+        @param form: ModelForm
+        @return: HttpResponse
+        """
+        self.object = form.save(**self.context_data)
+        if not self.preview:
+            messages.success(self.request, "Your page was saved successfully")
+
+        return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form):
+        """If the form is invalid and this is a preview, raise an AttributeError, so that
+        the form can display the validation errors.  Otherwise, render the form with the
+        validation errors.
+
+        @param form: ModelForm
+        @return: HttpResponse
+        """
+        if self.preview:
+            raise AttributeError("Preview requested.")
+
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class CampaignCreateView(CampaignViewMixin, CreateView):
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        """Decorated dispatch to force login_required."""
+        self.__dispatch__(*args, **kwargs)
+        return super(CampaignCreateView, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        """Adds key, value pairs to the context dictionary for rendering a response.
+
+        @param kwargs: Dictionary
+        @return: Dictionary
+        """
+        kwargs.update(self.context_data)
+        return super(CampaignCreateView, self).get_context_data(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        """Posts the data to the form, if validation succeeds, new models are created and saved
+        to the database, otherwise the form is returned with validation errors.
+
+        @param request: The request object.
+        @param args: List of arguments.
+        @param kwargs: Dictionary of key-value argument pairs.
+        @return: HttpResponse
+        """
+        response = partial(super(CampaignCreateView, self).post, request=request, *args, **kwargs)
+
+        return self.preview_or_response(request, response)
+
+
+class CampaignUpdateView(CampaignViewMixin, UpdateView):
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        """Decorated dispatch to force login_required."""
+        self.__dispatch__(*args, **kwargs)
+        return super(CampaignUpdateView, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        """Adds key, value pairs to the context dictionary for rendering a response.
+
+        @param kwargs: Dictionary
+        @return: Dictionary
+        """
+        kwargs.update(self.context_data)
+        return super(CampaignUpdateView, self).get_context_data(**kwargs)
+
+    def get_object(self, queryset=None):
+        """Returns the object associated with the campaign.
+
+        @param queryset: A set of objects to perform a query on.
+        @return: Campaign
+        """
+        return self.campaign
+
+    def post(self, request, *args, **kwargs):
+        """Posts the data to the form, if validation succeeds, new models are created and saved
+        to the database, otherwise the form is returned with validation errors.
+
+        @param request: The request object.
+        @param args: List of arguments.
+        @param kwargs: Dictionary of key-value argument pairs.
+        @return: HttpResponse
+        """
+        response = partial(super(CampaignUpdateView, self).post, request=request, *args, **kwargs)
+
+        return self.preview_or_response(request, response)

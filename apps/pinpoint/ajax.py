@@ -6,11 +6,11 @@ from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.http import HttpResponse
 
-from apps.assets.models import GenericImage
+from apps.assets.models import GenericImage, ProductMedia
 from apps.utils.ajax import ajax_success, ajax_error
 
 
-def upload_image(request):
+def upload_image(request, media=None):
     """
     Uploads an image given by the request.
 
@@ -18,10 +18,12 @@ def upload_image(request):
 
     @return: An HttpResponse object containing json.
     """
+    if not media:
+        media = GenericImage()
+
     # in IE this gets sent as a file
     if 'qqfile' in request.FILES:
         try:
-            media = GenericImage()
             imgField = ImageField().clean(request.FILES['qqfile'], media)
             if valid_dimensions(imgField):
                 media.hosted.save(imgField.name, imgField)
@@ -47,7 +49,6 @@ def upload_image(request):
 
         # read the file content, if it is not read when the request is multi part then the client get an error
         fileContent = uploaded(fileSize)
-        media = GenericImage()
         imgField = ImageField().clean(ContentFile(fileContent, name=fileName), media)
         
         if valid_dimensions(imgField):

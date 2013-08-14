@@ -240,7 +240,7 @@ class Product(BaseModelNamed):
     last_scraped = models.DateTimeField(blank=True, null=True)
     rescrape = models.BooleanField(default=False)
 
-    lifestyleImages = models.ManyToManyField(GenericImage, blank=True, null=True,
+    lifestyleImages = models.ManyToManyField("ExternalContent", blank=True, null=True,
                                        related_name='associated_products')
 
     default_image = models.ForeignKey("ProductMedia", blank=True, null=True,
@@ -386,8 +386,11 @@ class ProductMedia(ImageBase):
     Images that relate to a product.
 
     @ivar product: The product this image is for.
+    @ivar custom: A boolean indicating whether this image is a user-uploaded
+        image (a custom image) or a scraped image.
     """
     product = models.ForeignKey(Product, related_name="media")
+    custom = models.BooleanField(default=False)
 
 
 class YoutubeVideo(BaseModel):
@@ -440,6 +443,21 @@ class ExternalContent(BaseModel):
 
     def __unicode__(self):
         return u''
+
+    def get_url(self):
+        """
+        Returns the url of the source.
+        """
+        if self.image_url:
+            return self.image_url
+
+        return self.original_url
+
+    def is_image(self):
+        """
+        Boolean whether or not this is an image or not.
+        """
+        return bool(self.image_url)
 
     def to_json(self):
         """A bit like data(), but not returning an html data string"""
