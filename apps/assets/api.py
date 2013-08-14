@@ -386,7 +386,7 @@ class ExternalContentResource(FilteredModelResource):
         @return: list
         """
         return [
-            url(r"^(?P<resource_name>%s)/(?P<store_name>[\w\d_.:\-\s]+)/$"%self._meta.resource_name, 
+            url(r"^(?P<resource_name>%s)/store/(?P<store>[\w\d_.:\-\s]+)/$"%self._meta.resource_name, 
                 self.wrap_view('get_store_content'), name="get_store_content"),
         ]
 
@@ -400,10 +400,10 @@ class ExternalContentResource(FilteredModelResource):
         @return: HttpResponse
         """
         try:
-            store = Store.objects.get(name__iexact=kwargs['store_name'])
+            store = Store.objects.get(name__iexact=kwargs['store'])
+            kwargs['store'] = store.id
         except Store.DoesNotExist:
-            kwargs[self._meta.detail_uri_name] = kwargs.pop('store_name')
-            return super(ExternalContentResource, self).dispatch_list(request, **kwargs)
+            pass
 
         return super(ExternalContentResource, self).dispatch_list(request, **kwargs)
 
