@@ -306,9 +306,24 @@ class StoreThemeResource(FilteredModelResource):
 
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<store_name>(?!\d+/$)[\w\d_.:\-\s]+)/$"% self._meta.resource_name,
-                self.wrap_view('dispatch_list'), name="api_dispatch_list"),
+            url(r"^(?P<resource_name>%s)/store/(?P<store>[\w\d_.:\-\s]+)/$"% self._meta.resource_name,
+                self.wrap_view('dispatch_store_themes'), name="api_dispatch_store_themes"),
         ]
+
+    def dispatch_store_themes(self, request, **kwargs):
+        """Attempts to find the related store and return all the themes associated with that store.
+        Returns a HttpResponse corresponding to the API call.
+
+        @param request: The request object.
+        @return: HttpResponse
+        """
+        try:
+            store = Store.objects.get(name__iexact=kwargs['store'])
+            kwargs['store'] = store.id
+        except Store.DoesNotExist:
+            pass
+
+        return super(StoreThemeResource, self).dispatch_list(request, **kwargs)
 
 
 class CampaignResource(ModelResource):
