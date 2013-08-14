@@ -64,10 +64,8 @@ var application = (function(store_id, urls){
             $("#id_name").val(data.page_name);
         } else {
             // resetting previous values
-            $("#id_product_media_id").val("");
-            $("#id_ls_product_media_id").val("");
-            $("#id_product_media_list").val("");
-            $("#id_ls_product_media_list").val("");
+            $("#id_product_media_id, #id_ls_product_media_id").val("");
+            $("#id_product_media_list, id_ls_product_media_list").val("");
 
             //TODO: Why here?
             onPageChanged();
