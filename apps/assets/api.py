@@ -52,6 +52,16 @@ class FilteredModelResource(ModelResource):
         custom_filtering = {
         }
 
+    def dehydrate(self, bundle):
+        """Add username to the bundle data, so that API calls with username passed as a GET
+        param can succeed.
+
+        @param bundle: An object representing values needed to build the resource.
+        @return: bundle"""
+        if bundle.obj.username:
+            bundle.data['username'] = bundle.obj.username
+        return super(FilteredModelResource, self).dehydrate(bundle)
+
     def evaluate_queryset(self, query_string, qset):
         """Evaluates the passed query set to determine what query it represents (series of ANDs and
         ORs) using the passed query string as the value to create the Q object.
@@ -331,6 +341,7 @@ class ExternalContentResource(FilteredModelResource):
         resource_name = 'external_content'
         serializer = PrettyJSONSerializer()
         ordering = ['last_modified', 'created']
+        excludes = ['username']
         custom_filtering = {
             'type_name': ('content_type__name__iexact', ),
             'store_name': ('store__name__iexact', ),
