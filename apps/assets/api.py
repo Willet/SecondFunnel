@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
+from django.core.urlresolvers import reverse
+from django.conf.urls import url
 from tastypie import fields
 from tastypie.constants import ALL_WITH_RELATIONS
 from tastypie.models import ApiKey
@@ -11,7 +13,8 @@ from django.db.models import Q
 from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
     YoutubeVideo, GenericImage, ExternalContent, ExternalContentType)
 
-from apps.pinpoint.models import BlockContent, Campaign
+from apps.pinpoint.models import BlockContent, Campaign, StoreTheme
+from apps.assets.api_utils import PrettyJSONSerializer
 
 
 class UserAuthentication(Authentication):
@@ -28,6 +31,111 @@ class UserPartOfStore(Authorization):
                 return False
         except (KeyError, ValueError, Store.DoesNotExist):
             return False
+
+
+class FilteredModelResource(ModelResource):
+    """A subclass of a ModelResource to attempt to make API filtering easier by
+    reducing the amount of redundant code."""
+    class Meta:
+        custom_filtering = {
+            """
+            A mapping that takes tuple a tuple.  Any strings in a tuple together are considered
+            ANDs, tuples seperated by commas are considered ORs.
+            """
+        }
+
+    def dehydrate(self, bundle):
+        """Add username to the bundle data, so that API calls with username passed as a GET
+        param can succeed.
+
+        @param bundle: An object representing values needed to build the resource.
+        @return: bundle"""
+        if hasattr(bundle.obj, 'username'):
+            bundle.data['username'] = bundle.obj.username
+        return super(FilteredModelResource, self).dehydrate(bundle)
+
+    def evaluate_queryset(self, query_string, qset):
+        """Evaluates the passed query set to determine what query it represents (series of ANDs and
+        ORs) using the passed query string as the value to create the Q object.
+
+        @param query_string: The value to pass to the Q object.
+        @param qset: A tuple of arguments to construct the necessary Q objects.
+        @return: Q
+        """
+        query_object = None
+
+        for qs in qset:
+            # Iterate over the querystrings
+            if isinstance(qs, tuple):
+                # Assume a tuple is an OR
+                qs = self.evaluate_queryset(query_string, qs)
+                query_object = query_object | qs if query_object else qs
+            else:
+                # Assume a string is an AND (default)
+                query = query_string
+
+                if qs.endswith('in'):
+                    query = query.split(',')
+                elif qs.endswith('range'):
+                    query = query.split('-')
+                    start, end = query[:len(query)/2], query[len(query)/2:]
+                    query = ("-".join(start), "-".join(end))
+
+                if qs.startswith('~'):
+                    qs = ~Q(**{qs[1:]:query})
+                else:
+                    qs = Q(**{qs:query})
+
+                query_object  = query_object & qs if query_object else qs
+
+        return query_object
+
+    def build_filters(self, filters=None):
+        """Builds a list of filters using the custom filters and the ModelResource
+        filters as defined by the Meta.filtering.
+
+        @param filters: QueryDict of filters to use.
+        @return: dict
+        """
+        filters = filters or {}
+        custom_filters = self.Meta.custom_filtering
+        non_custom_filters, custom = {}, {}
+
+        for _filter in filters:
+            if not _filter in custom_filters:
+                non_custom_filters[_filter] = filters[_filter]
+            else:
+                custom[_filter] = filters[_filter]
+
+        orm_filters = super(FilteredModelResource, self).build_filters(non_custom_filters)
+
+        for _filter in custom:
+            qs = self.evaluate_queryset(filters[_filter], custom_filters[_filter])
+            orm_filters.update({_filter: qs})
+
+        return orm_filters
+
+    def apply_filters(self, request, applicable_filters):
+        """Apply the filters by seperating the custom ones from the non-custom ones; custom
+        ones are applied seperately (expected to be Q objects).
+
+        @param request: The user request object
+        @param applicable_filters: A dict of filters to be applied.
+        @return: object or list of objects
+        """
+        custom_filters = self.Meta.custom_filtering
+        custom = []
+
+        for _filter in applicable_filters.keys():
+            if isinstance(applicable_filters[_filter], Q) or \
+                    _filter in custom_filters:
+                custom.append(applicable_filters.pop(_filter))
+
+        semi_filtered = super(FilteredModelResource, self).apply_filters(request, applicable_filters)
+        for _filter in custom:
+            semi_filtered = semi_filtered.filter(_filter)
+
+        return semi_filtered
 
 
 class BlockContentResource(ModelResource):
@@ -151,6 +259,73 @@ class ProductMediaResource(ModelResource):
         authorization = UserPartOfStore()
 
 
+class StoreThemeResource(FilteredModelResource):
+    """Returns a "store theme".
+
+    Store theme definitions are saved in apps/pinpoint/models.py.
+    """
+    class Meta:
+        queryset = StoreTheme.objects.all()
+        resource_name = 'store_theme'
+        serializer = PrettyJSONSerializer()
+        authentication = MultiAuthentication(
+            ApiKeyAuthentication(),
+            UserAuthentication())
+        authorization = UserPartOfStore()
+        custom_filtering = {
+            'store': ('store__id__exact',),
+            'store_name': ('store__name__iexact',),
+            'name': ('name__icontains',),
+        }
+
+        filtering = {
+            'store': ALL_WITH_RELATIONS,
+            'name': ('exact',),
+        }
+
+    def dehydrate(self, bundle):
+        stores = Store.objects.filter(Q(theme=bundle.obj) | Q(mobile=bundle.obj))
+        campaigns = Campaign.objects.filter(Q(theme=bundle.obj) | Q(mobile=bundle.obj) | 
+                                            Q(store__in=stores))
+
+        for key, objs in zip(['stores', 'campaigns'], [stores, campaigns]):
+            if not key in bundle.data:
+                bundle.data[key] = []
+            for obj in objs:
+                bundle.data[key].append({
+                    'id': obj.id,
+                    'name': obj.name,
+                    'resource_uri': reverse('api_dispatch_detail', kwargs={
+                        'resource_name': key[:-1], 
+                        'api_name': 'v1', 
+                        'pk': obj.id
+                    })
+                })
+
+        return super(StoreThemeResource, self).dehydrate(bundle)
+
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/store/(?P<store>[\w\d_.:\-\s]+)/$"% self._meta.resource_name,
+                self.wrap_view('dispatch_store_themes'), name="api_dispatch_store_themes"),
+        ]
+
+    def dispatch_store_themes(self, request, **kwargs):
+        """Attempts to find the related store and return all the themes associated with that store.
+        Returns a HttpResponse corresponding to the API call.
+
+        @param request: The request object.
+        @return: HttpResponse
+        """
+        try:
+            store = Store.objects.get(name__iexact=kwargs['store'])
+            kwargs['store'] = store.id
+        except Store.DoesNotExist:
+            pass
+
+        return super(StoreThemeResource, self).dispatch_list(request, **kwargs)
+
+
 class CampaignResource(ModelResource):
     """Returns "a campaign".
 
@@ -161,14 +336,37 @@ class CampaignResource(ModelResource):
                                         full=True)
     discovery_blocks = fields.ToManyField(BlockContentResource,
                                           'discovery_blocks', full=True)
+    theme = fields.ForeignKey(StoreThemeResource, 'store_theme', blank=True, null=True)
+    mobile_theme = fields.ForeignKey(StoreThemeResource, 'mobile_store_theme', blank=True, null=True)
 
     class Meta:
         queryset = Campaign.objects.all()
         resource_name = 'campaign'
+        serializer = PrettyJSONSerializer()
 
         filtering = {
             'store': ALL,
         }
+
+    def dehydrate(self, bundle):
+        id = bundle.data['store'].data['id']
+        store = Store.objects.get(pk=id)
+
+        for key, theme in zip(['theme', 'mobile_theme'], 
+                              [store.theme_id, store.mobile_id]):
+            if not bundle.data[key] and theme:
+                theme = StoreTheme.objects.get(pk=theme)
+                bundle.data[key] = {
+                    'id': theme.id,
+                    'name': theme.name,
+                    'resource_uri': reverse('api_dispatch_detail', kwargs={
+                        'pk': theme.id, 
+                        'resource_name': "store_theme", 
+                        'api_name': 'v1'
+                    })
+                }
+
+        return super(CampaignResource, self).dehydrate(bundle)
 
 
 class YoutubeVideoResource(ModelResource):
@@ -224,7 +422,7 @@ class ExternalContentResource(ModelResource):
             UserAuthentication())
         authorization= Authorization()
         resource_name = 'external_content'
-        excludes = ['created']
+        excludes = ['username']
 
         filtering = {
             'id': ('exact',),
