@@ -44,6 +44,16 @@ class FilteredModelResource(ModelResource):
             """
         }
 
+    def dehydrate(self, bundle):
+        """Add username to the bundle data, so that API calls with username passed as a GET
+        param can succeed.
+
+        @param bundle: An object representing values needed to build the resource.
+        @return: bundle"""
+        if hasattr(bundle.obj, 'username'):
+            bundle.data['username'] = bundle.obj.username
+        return super(FilteredModelResource, self).dehydrate(bundle)
+
     def evaluate_queryset(self, query_string, qset):
         """Evaluates the passed query set to determine what query it represents (series of ANDs and
         ORs) using the passed query string as the value to create the Q object.
@@ -258,7 +268,9 @@ class StoreThemeResource(FilteredModelResource):
         queryset = StoreTheme.objects.all()
         resource_name = 'store_theme'
         serializer = PrettyJSONSerializer()
-        authentication = UserAuthentication()
+        authentication = MultiAuthentication(
+            ApiKeyAuthentication(),
+            UserAuthentication())
         authorization = UserPartOfStore()
         custom_filtering = {
             'store': ('store__id__exact',),
@@ -271,26 +283,23 @@ class StoreThemeResource(FilteredModelResource):
             'name': ('exact',),
         }
 
-
     def dehydrate(self, bundle):
         stores = Store.objects.filter(Q(theme=bundle.obj) | Q(mobile=bundle.obj))
         campaigns = Campaign.objects.filter(Q(theme=bundle.obj) | Q(mobile=bundle.obj) | 
                                             Q(store__in=stores))
 
         for key, objs in zip(['stores', 'campaigns'], [stores, campaigns]):
-            bundle.data[key] = []
+            if not key in bundle.data:
+                bundle.data[key] = []
             for obj in objs:
                 bundle.data[key].append({
                     'id': obj.id,
                     'name': obj.name,
-                    'resource_uri': reverse(
-                        'api_dispatch_detail',
-                        kwargs={
-                            'resource_name': key[:-1],
-                            'api_name': 'v1',
-                            'pk': obj.id
-                        }
-                    )
+                    'resource_uri': reverse('api_dispatch_detail', kwargs={
+                        'resource_name': key[:-1], 
+                        'api_name': 'v1', 
+                        'pk': obj.id
+                    })
                 })
 
         return super(StoreThemeResource, self).dehydrate(bundle)
@@ -330,21 +339,17 @@ class CampaignResource(ModelResource):
 
         for key, theme in zip(['theme', 'mobile_theme'], 
                               [store.theme_id, store.mobile_id]):
-            if not bundle.data[key]:
-                if theme:
-                    theme = StoreTheme.objects.get(pk=theme)
-                    bundle.data[key] = {
-                        'id': theme.id,
-                        'name': theme.name,
-                        'resource_uri': reverse(
-                            'api_dispatch_detail',
-                            kwargs={
-                                'pk': theme.id,
-                                'resource_name': "store_theme",
-                                'api_name': 'v1'
-                            }
-                        )
-                    }                        
+            if not bundle.data[key] and theme:
+                theme = StoreTheme.objects.get(pk=theme)
+                bundle.data[key] = {
+                    'id': theme.id,
+                    'name': theme.name,
+                    'resource_uri': reverse('api_dispatch_detail', kwargs={
+                        'pk': theme.id, 
+                        'resource_name': "store_theme", 
+                        'api_name': 'v1'
+                    })
+                }
 
         return super(CampaignResource, self).dehydrate(bundle)
 
@@ -402,7 +407,7 @@ class ExternalContentResource(ModelResource):
             UserAuthentication())
         authorization= Authorization()
         resource_name = 'external_content'
-        excludes = ['created']
+        excludes = ['username']
 
         filtering = {
             'id': ('exact',),
