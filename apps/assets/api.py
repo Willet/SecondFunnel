@@ -58,7 +58,7 @@ class FilteredModelResource(ModelResource):
 
         @param bundle: An object representing values needed to build the resource.
         @return: bundle"""
-        if bundle.obj.username:
+        if hasattr(bundle.obj, 'username'):
             bundle.data['username'] = bundle.obj.username
         return super(FilteredModelResource, self).dehydrate(bundle)
 
