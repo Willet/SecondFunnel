@@ -177,9 +177,13 @@ var PAGES = (function ($, details, Willet) {
         // image before use
         var newUrl,
             filename,
+            extension = url.split('.').pop(),
             imageSizes = [
                 "icon", "thumb", "small", "compact", "medium", "large",
                 "grande", "1024x1024", "master"
+            ],
+            allowedExtensions = [
+                "png", "jpg", "jpeg"
             ];
 
         // Don't resize:
@@ -188,13 +192,13 @@ var PAGES = (function ($, details, Willet) {
         //      - .gifs!
         if (!sizableRegex.test(url)
             || !_.contains(imageSizes, desiredSize)
-            || endsWith(url, '.gif')) {
+            || !_.contains(allowedExtensions, extension)) {
             return url;
         }
 
         // Replace filename with new size
         filename = url.substring(url.lastIndexOf('/') + 1);
-        newUrl = url.replace(filename, desiredSize + '.jpg');
+        newUrl = url.replace(filename, desiredSize + '.' + extension);
 
         return newUrl;
     }
