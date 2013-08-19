@@ -279,8 +279,20 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
 
 var PreviewWindow = Backbone.Marionette.ItemView.extend({
+    tagName: "div",
+    className: "previewContainer",
     template: "#preview_container_template",
-    model: Tile
+    model: Tile,
+    events: {
+        'click .close': function () {
+            this.$el.fadeOut().remove();
+        }
+    },
+
+    onRender: function () {
+        this.$el.css({display: "table"});
+        $('body').append(this.$el.fadeIn(100));
+    }
 });
 
 $(function () {
