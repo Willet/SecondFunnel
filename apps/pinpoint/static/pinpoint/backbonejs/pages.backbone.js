@@ -1,9 +1,12 @@
 $(function () {
+    "use strict";
     window.SecondFunnel = {
         collections: {},
         models: {},
         views: {}
     };
+
+    var MyApp = new Backbone.Marionette.Application();
 
     var Tile = Backbone.Model.extend({
         // Pinpoint Tiles (Blocks)
@@ -17,14 +20,14 @@ $(function () {
         },
 
         getType: function () {
-            return this.data['type'];
+            return this.data.type;
         }
     });
 
 
     var TileCollection = Backbone.Collection.extend({
         // TODO: Extend this for additional usefulness 
-        model: Tile,
+        model: Tile
     });
     var Tiles = new TileCollection;
 
@@ -99,7 +102,7 @@ $(function () {
 
     var DiscoveryArea = Backbone.View.extend({
         // DOM Controller for the Discovery Area (Main portion of the Landing Pages)
-        el: $(PAGES_INFO.discoveryTarget),
+        el: MyApp.getRegion('mainRegion'),
 
         intentrank: {
             url: "http://intentrank-test.elasticbeanstalk.com/intentrank",
@@ -254,7 +257,14 @@ $(function () {
 
     });
 
-    var App = new DiscoveryArea({
-        collection: Tiles
+    MyApp.addRegions({
+        'mainRegion': PAGES_INFO.discoveryTarget
     });
+
+    MyApp.addInitializer(function (options) {
+        var discoveryArea = new DiscoveryArea(options);
+        MyApp.mainRegion.show(discoveryArea);
+    });
+
+    MyApp.start({'collection': Tiles});
 });
