@@ -55,9 +55,9 @@ $(function () {
             this.$el = $elem;
         },
 
-        append: function ($fragment) {
+        append: function ($fragment, callback) {
             this.$el.append($fragment).masonry('appended', $fragment);
-            return this;
+            return this.imagesLoaded($fragment, callback);
         },
 
         reload: function ($fragment) {
@@ -65,10 +65,24 @@ $(function () {
             return this;
         },
 
-        insert: function ($target, $fragment) {
+        insert: function ($target, $fragment, callback) {
             $fragment.insertAfter($target);
-            this.reload();
-            return this;
+            return this.imagesLoaded($fragment, callback);
+        },
+
+        imagesLoaded: function($fragment, callback) {
+            // Compiles a list of the broken image srcs and returns them
+            // How we handle this is up to the Discovery module
+            var self = this,
+                broken = [];
+            imagesLoaded($fragment).on('always', function( imgLoad ) {
+                if (imgLoad.hasAnyBroken) {
+                    broken = _.filter(imgLoad.images, function(img) { return !img.isLoaded; });
+                }
+                callback(broken);
+                $(imgLoad.elements).show();
+                self.reload();
+            });
         }
     });
 
@@ -139,15 +153,16 @@ $(function () {
 
     var TileView = Backbone.Marionette.ItemView.extend({
         // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
-        template: "#product",
+        template: "product",
         tagName: "div",
         className: "tile ",
         
-        initialize: function (data) {
-            var template = SecondFunnel.templates[data.template];
-            _.extend(this, data);
-            this.template = template || this.template;
+        initialize: function (options) {
+            var data = options.model,
+                template = SecondFunnel.templates[data.template];
+            this.template = template || SecondFunnel.templates[this.template];
 
+            console.log(SecondFunnel.templates);
             if (!template) {
                 console.log("No template found for " + data.template + ". Falling back to #product.");
             }
@@ -175,9 +190,9 @@ $(function () {
             // Black box Masonry (this will make migrating easier in the future)
             this.layoutEngine = new LayoutEngine(this.$el, options.masonry);
 
-            _.each($('script[type="text/template"]'), function(){
+            $('script[type="text/template"]').each(function(){
                 var id = $(this).attr('id');
-                SecondFunnel.templates[id] = $(this).html();
+                SecondFunnel.templates[id] = _.template($(this).html(), undefined, { variable: 'data' });
             });
             this.collection = options.collection;
             // Load additional results and add them to our collection
@@ -191,15 +206,32 @@ $(function () {
             return this;
         },
 
-        createTiles: function(data) {
-            var self = this;
-            // TODO: Find a way to move this logic.
-            this.collection = this.collection || new TileCollection;
+        createTiles: function(data, $tile) {
+            var self = this,
+                start = this.collection.length,
+                $fragment = $();
+
             _.each(data, function(tileData) {
+                // Create the new tiles using the data
                 var tile = new Tile(tileData),
                     view = new TileView({model: tile});
                 self.collection.add(new Tile(tileData));
+                view.render();
+                $fragment = $fragment.add(view.$el);
             });
+
+            var remove = _.partial(this.removeBroken, start);
+            if ($tile) {
+                this.layoutEngine.insert($fragment, $tile, remove);
+            } else {
+                this.layoutEngine.append($fragment, remove);
+            }
+            this.toggleLoading();
+        },
+
+        removeBroken: function(index, broken) {
+            // Removes the broken images alongside their model and views
+            console.log(broken);
         }
     });
 
