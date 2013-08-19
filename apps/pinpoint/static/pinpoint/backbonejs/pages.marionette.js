@@ -18,16 +18,16 @@ var Tile = Backbone.Model.extend({
         'height': 300,
         'autoplay': 0
     },
-    
+
     initialize: function (data) {
         _.extend(this, data);
     },
-    
+
     getType: function () {
         // Get the content type of this tile
         return this.data['content-type'];
     },
-    
+
     getId: function () {
         // Get the ID of this tile (for DB queries)
         return this.data['tile-id'];
@@ -48,49 +48,53 @@ var LayoutEngine = Backbone.Model.extend({
         columnWidth: PAGES_INFO.columnWidth(),
         transitionDuration: PAGES_INFO.masonryAnimationDuration + 's'
     },
-    
+
     initialize: function ($elem, options) {
         _.extend(this, {'options': options });
         $elem.masonry(this.options).masonry('bindResize');
         this.$el = $elem;
     },
-    
+
     append: function ($fragment, callback) {
         $fragment.hide().appendTo(this.$el);
         this.$el.masonry('appended', $fragment).masonry();
         return this.imagesLoaded($fragment, callback);
     },
-    
+
     reload: function ($fragment) {
         this.$el.masonry('reloadItems').masonry();
         return this;
     },
-    
+
     insert: function ($target, $fragment, callback) {
         $fragment.hide().insertAfter($target);
         return this.imagesLoaded($fragment, callback);
     },
-    
-    imagesLoaded: function($fragment, callback) {
+
+    imagesLoaded: function ($fragment, callback) {
         // Compiles a list of the broken image srcs and returns them
         // How we handle this is up to the Discovery module
         var self = this,
             broken = [];
-        imagesLoaded($fragment).on('always', function( imgLoad ) {
+        imagesLoaded($fragment).on('always', function (imgLoad) {
             if (imgLoad.hasAnyBroken) {
-                broken = _.filter(imgLoad.images, function (img) { return !img.isLoaded; });
-                broken = _.map(broken, function () { return this.img; });
+                broken = _.filter(imgLoad.images, function (img) {
+                    return !img.isLoaded;
+                });
+                broken = _.map(broken, function () {
+                    return this.img;
+                });
             }
             callback(broken);
             $(imgLoad.elements).show();
             self.reload();
         });
     },
-    
+
     isLoading: function () {
         return this.loading;
     },
-    
+
     toggleLoading: function () {
         this.loading = !this.loading;
         return this;
@@ -102,20 +106,21 @@ var IntentRank = Backbone.Model.extend({
     loading: false,
     base: "http://intentrank-test.elasticbeanstalk.com/intentrank",
     templates: {
-            'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
+        'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
         'content': "<%=url%></store/<%=store.name%>/campaign/<%=campaign%>/<%=id%>/getresults"
     },
     store: PAGES_INFO.store,
     campaign: PAGES_INFO.campaign,
-    
+
     getResults: function (callback, options) {
         if (!this.isLoading()) {
             var self = this,
-                uri = _.template(this.templates[options.type], _.extend({}, options, this, {
-                    'url': this.base
-                }));
+                uri = _.template(this.templates[options.type],
+                    _.extend({}, options, this, {
+                        'url': this.base
+                    }));
             this.toggleLoading();
-            
+
             $.ajax({
                 url: uri,
                 data: {
@@ -124,27 +129,27 @@ var IntentRank = Backbone.Model.extend({
                 contentType: "json",
                 dataType: 'jsonp',
                 timeout: 5000,
-                success: function(results) {
+                success: function (results) {
                     self.toggleLoading();
                     return callback(results);
                 },
-                error: function(jxqhr, textStatus, error) {
+                error: function (jxqhr, textStatus, error) {
                     self.toggleLoading();
                     return callback([]);
                 }
             });
         }
     },
-    
+
     toggleLoading: function () {
         this.loading = !this.loading;
         return this;
     },
-    
+
     isLoading: function () {
         return this.loading;
     }
-    
+
 });
 
 var TileCollection = Backbone.Collection.extend({
@@ -152,12 +157,12 @@ var TileCollection = Backbone.Collection.extend({
     model: Tile,
     loading: false,
     totalItems: null,
-    
+
     initialize: function (arrayOfData) {
         // Our TileCollection starts by rendering several Tiles using the
         // data it is passed.
         for (var data in arrayOfData) {
-                // Generate Tile
+            // Generate Tile
         }
     }
 });
@@ -170,12 +175,12 @@ var TileView = Backbone.Marionette.ItemView.extend({
         var data = options.model,
             template = SecondFunnel.templates[data.template];
         this.template = template || SecondFunnel.templates[this.template];
-        
+
         console.log(SecondFunnel.templates);
         if (!template) {
             console.log("No template found for " + data.template + ". Falling back to #product.");
         }
-        
+
         // If the tile model is removed, remove the DOM element
         this.listenTo(this.model, 'destroy', this.remove);
     }
@@ -189,66 +194,69 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     intentRank: null,
     collection: null,
     layoutEngine: null,
-    
+
     appendHtml: function (collectionView, itemView) {
         collectionView.$(":last").append(itemView.el);
     },
-    
+
     initialize: function (options) {
         // Initialize IntentRank; use as a seperate module to make changes easier.
         SecondFunnel.intentRank = new IntentRank;
         // Black box Masonry (this will make migrating easier in the future)
-        SecondFunnel.layoutEngine = new LayoutEngine(this.$el, options.masonry);
-        
-        $('script[type="text/template"]').each(function(){
+        SecondFunnel.layoutEngine = new LayoutEngine(this.$el,
+            options.masonry);
+
+        $('script[type="text/template"]').each(function () {
             var id = $(this).attr('id');
-            SecondFunnel.templates[id] = _.template($(this).html(), undefined, { variable: 'data' });
-            });
+            SecondFunnel.templates[id] = _.template($(this).html(), undefined,
+                { variable: 'data' });
+        });
         this.collection = options.collection || new TileCollection;
         // Load additional results and add them to our collection
         this.getTiles();
     },
-    
-    getTiles: function(options) {
+
+    getTiles: function (options) {
         options = options || {};
         options.type = options.type || 'campaign';
-        SecondFunnel.intentRank.getResults(_.partial(this.createTiles, this), options);
+        SecondFunnel.intentRank.getResults(_.partial(this.createTiles, this),
+            options);
         return this;
     },
-    
-    createTiles: function(self, data, $tile) {
+
+    createTiles: function (self, data, $tile) {
         var start = self.collection.length,
             $fragment = $();
-        
-        _.each(data, function(tileData) {
+
+        _.each(data, function (tileData) {
             // Create the new tiles using the data
             var tile = new Tile(tileData),
-                    view = new TileView({model: tile});
+                view = new TileView({model: tile});
             self.collection.add(new Tile(tileData));
             view.render();
             $fragment = $fragment.add(view.$el);
         });
-        
+
         var remove = _.partial(self.removeBroken, start);
         if ($tile) {
             SecondFunnel.layoutEngine.insert($fragment, $tile, remove);
         } else {
             SecondFunnel.layoutEngine.append($fragment, remove);
-            }
+        }
         return this;
     },
-    
-    removeBroken: function(index, broken) {
+
+    removeBroken: function (index, broken) {
         // Removes the broken images alongside their model and views
         console.log(broken);
         return this;
     },
-    
+
     toggleLoading: function () {
         SecondFunnel.layoutEngine.toggleLoading();
         return this;
     },
-    
+
     isLoading: function () {
         return SecondFunnel.layoutEngine.isLoading();
     }
@@ -262,7 +270,7 @@ $(function () {
         // to be displayed immediately (and first) on the landing page.
         SecondFunnel.discovery = new Discovery({});
     });
-    
+
     // Start the SecondFunnel app
     SecondFunnel.start(PAGES_INFO);
 });
