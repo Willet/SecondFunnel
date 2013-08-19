@@ -107,9 +107,9 @@ var IntentRank = Backbone.Model.extend({
     getResults: function (callback, options) {
         var self = this,
             uri = _.template(this.templates[options.type],
-                             _.extend({}, options, this, {
-                                 'url': this.base
-                             }));
+                _.extend({}, options, this, {
+                    'url': this.base
+                }));
 
         $.ajax({
             url: uri,
@@ -235,7 +235,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             options = options || {};
             options.type = options.type || 'campaign';
             SecondFunnel.intentRank.getResults(_.partial(this.createTiles, this),
-                                               options);
+                options);
         }
         return this;
     },
@@ -250,7 +250,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             // TODO: refactor into youtube subview
             if (tileData.template === 'youtube') {
                 tileData.thumbnail = 'http://i.ytimg.com/vi/' + tileData['original-id'] +
-                                 '/hqdefault.jpg';
+                    '/hqdefault.jpg';
             }
 
             var tile = new Tile(tileData),
@@ -309,7 +309,7 @@ var PreviewWindow = Backbone.Marionette.ItemView.extend({
         this.$el.css({display: "table"});
 
         $('body').append(this.$el.fadeIn(100));
-        var content = new PreviewContent(this.model);
+        var content = new PreviewContent({model: new Tile(this.model.attributes)});
         content.render();
 
         this.$el
@@ -322,6 +322,30 @@ var PreviewContent = Backbone.Marionette.ItemView.extend({
     template: "#tile_preview_template",
     model: Tile
 });
+
+
+function syntaxHighlight(json) {
+    // something about internets http://stackoverflow.com/a/7220510/1558430
+    if (typeof json != 'string') {
+        json = JSON.stringify(json, undefined, 2);
+    }
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        var cls = 'number';
+        if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+                cls = 'key';
+            } else {
+                cls = 'string';
+            }
+        } else if (/true|false/.test(match)) {
+            cls = 'boolean';
+        } else if (/null/.test(match)) {
+            cls = 'null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+    });
+}
 
 $(function () {
     // Add SecondFunnel component(s)

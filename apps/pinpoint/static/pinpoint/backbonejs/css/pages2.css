@@ -27,6 +27,15 @@ header {
 header .container {
     /* null set */
 }
+
+/* http://jsfiddle.net/KJQ9K/ */
+pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+pre .string { color: green; }
+pre .number { color: darkorange; }
+pre .boolean { color: blue; }
+pre .null { color: magenta; }
+pre .key { color: red; }
+
 img.loading {
     background: transparent url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif') center center no-repeat;
     background-size 32px 32px:
