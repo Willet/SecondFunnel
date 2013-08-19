@@ -1,0 +1,231 @@
+@charset "UTF-8";
+
+/* Styles we believe every theme should have,
+ * Override. Do not modify.
+ *
+ * Bootstrap 3 defines device sizes like so:
+ *   Phones (<768px)
+ *   Tablets (>768px)
+ *   Desktops (>992px)
+ *   Desktops (>1200px)
+ * Our media queries MUST match these values, composed from mobile to desktop,
+ * for a consistent style experience.
+ */
+
+@-webkit-viewport   { width: device-width; }
+@-moz-viewport      { width: device-width; }
+@-ms-viewport       { width: device-width; }
+@-o-viewport        { width: device-width; }
+@viewport           { width: device-width; }
+
+html, body {
+    font-family: "helvetica neue", helvetica, arial, sans-serif;
+}
+header {
+    padding: 0 0 10px 0;
+}
+header .container {
+    /* null set */
+}
+img.loading {
+    background: transparent url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif') center center no-repeat;
+    background-size 32px 32px:
+    min-width: 32px;
+    min-height: 32px;
+}
+.jumbotron {
+    background-size: cover;
+    height: 410px;  /* adjusts image size */
+    max-height: 25%;  /* adjusts image size */
+    max-width: 100%;
+}
+#discovery-area {
+    max-width: 100%;
+    margin: auto;
+}
+
+
+
+
+
+.tile {
+    background: #fff;
+    margin: 0 7.5px 15px;
+    padding: 15px;
+    border-radius: 3px;
+    box-shadow: 0 1px 3px 0 #999;
+    vertical-align: top;
+
+    width: 240px;
+    max-width: 93%; /* empirical (padding and all) */
+
+    font-family: proxima-nova-soft, sans-serif, Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    color: #b5b5b5;
+
+    float: left;
+
+    cursor: pointer;
+    cursor: -webkit-zoom-in;
+    cursor: -moz-zoom-in;
+    cursor: zoom-in;
+}
+.tile.wide {
+    width: 495px; /* 480px + 3 margins */
+}
+.tile img {
+    max-width: 100%;
+}
+
+.tile.wide.youtube div.thumbnail {
+    height: 250px;
+    background-size: cover;
+    background-position: center center;
+}
+
+.tile.wide.youtube div.thumbnail:before {
+    /* standard youtube thumbnail
+       @override
+    */
+    background-image: url('//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/youtube-play-button.png');
+    content: "";
+    width: 450px;
+    height: 255px;
+    position: absolute;
+    background-repeat: no-repeat;
+    left: 15px;
+    top: 15px;
+    background-position: 81px 14px;
+}
+
+
+
+
+@media (max-width: 480px) { /* phone */
+    #discovery-area {
+        width: 255px;
+    }
+}
+@media (min-width: 480px) and (max-width: 510px) {
+    #discovery-area {
+        width: 255px;
+    }
+}
+@media (min-width: 510px) and (max-width: 768px) { /* tablet */
+    .navbar-nav {
+        margin-right: 0;
+        margin-left: 0;
+    }
+    #discovery-area {
+        width: 510px;
+    }
+}
+@media (min-width: 768px) and (max-width: 992px) { /* desktop */
+    .container {
+        max-width:768px;
+    }
+    #discovery-area {
+        width: 765px;
+    }
+}
+@media (min-width: 992px) and (max-width: 1024px) { /* bigger desktops */
+    .container {
+        max-width:1000px;
+    }
+    #discovery-area {
+        width: 765px;
+    }
+}
+@media (min-width: 1024px) { /* formal desktops */
+    .container {
+        max-width:1024px;
+    }
+    #discovery-area {
+        width: 1020px;
+    }
+}
+
+.previewContainer {
+    overflow: hidden;
+    position: fixed;
+    display: table;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    top: 0;
+    left: 0;
+}
+
+.previewContainer .mask {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.7);
+    cursor: -webkit-zoom-out;
+    cursor: -moz-zoom-out;
+    cursor: zoom-out;
+    display: block;
+}
+
+.previewContainer .content {
+    /* let the preview scroll, but only if it needs to */
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.previewContainer .content .scrollable {
+    /* if the theme has one of those defined, it has unrestricted height */
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+/* mobile-grade preview container styles */
+@media screen and (max-width: 768px) {
+    .previewContainer .tablecell {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+    .previewContainer .content {
+        display: block;
+        position: relative;
+        z-index: 1002;
+
+        margin: 0;
+        padding: 20px;
+
+        width: 100%;
+        height: 100%;
+
+        background: #fff;
+        border: 0;
+        box-shadow: none;
+    }
+}
+
+/* desktop-grade preview container styles */
+@media screen and (min-width: 768px) {
+    .previewContainer .tablecell {
+        display: table-cell;
+        vertical-align: middle;
+        position: static;
+    }
+    .previewContainer .content {
+        display: block;
+        position: relative;
+        z-index: 1002;
+
+        margin: auto;
+        padding: 20px;
+
+        width: 768px;
+        min-height: 240px;
+        max-height: 600px;
+
+        background: #fff;
+        border: 1px solid #CECECE;
+        box-shadow: 0px 10px 30px 0px #CECECE;
+    }
+}

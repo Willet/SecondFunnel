@@ -1,0 +1,50 @@
+@charset "UTF-8";
+
+/* overrides for this theme */
+
+@media screen and (max-width: 768px) {
+    header .container { /* actually the mobile nav bar */
+        background: #f0f0f0;
+    }
+}
+
+body {
+    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/fall_2012_US_BeBright.gif') top center no-repeat;
+}
+
+.navbar {
+    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/universalBar_bkg.png') repeat-x;
+    border-radius: 0;
+    box-shadow: 0px 0px 21px #999;
+}
+
+.dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {
+    background-color: #acacac;
+    background-image: none;
+}
+
+.jumbotron {
+    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Gap_Shorts_Desktop.png');
+    background-position: top center;
+    background-repeat: no-repeat;
+    width: 1024px;
+    height: 400px;  /* adjusts image size */
+    border-bottom: 1px silver solid;
+    margin: 10px auto 40px auto;
+}
+
+.tile {
+    border: 0;
+    box-shadow: none;
+}
+
+.tile.product {
+    font-size: 10px;
+    text-align: center;
+}
+
+.preview img {
+    /* limit how big preview images can be */
+    max-width: 697px;
+    max-height: 444px;
+}

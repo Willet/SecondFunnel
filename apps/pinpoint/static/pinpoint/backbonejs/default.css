@@ -7,12 +7,6 @@ html, body {
     background: url('greyzz/greyzz_@2X.png') repeat;
 }
 
-body .wrapper {
-    width: 70%;
-    height: 100%;
-    margin: 0 auto;
-}
-
 .featured {
     width: 100%;
     height: 390px;

@@ -1,16 +1,107 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <script>
+            // PAGES_INFO configures the page.
+            // unused
+            var PAGES_INFO = {
+                /* (commented properties not implemented)
+                // 'storeName': 'generic',
+                'storeName': 'gap',
+                'discoveryTarget': '#discovery-area',
+                'discoveryItemSelector': '.tile',
+                'columnWidth': function ($element) {
+                    // width + margins. if you change this, you better know what you're doing
+                    return 240 + 15;
+                },
+                'imageTileWide': 0.25,
+                'masonryAnimationDuration': 0.4,
+                'masonryMobileAnimationDuration': 0,
+                'socialButtons': ['facebook', 'twitter', 'pinterest'],  // strings representing the buttons you want loaded.  [] means no buttons.
+                'previewAnimationDuration': 0.1,
+                'previewMobileAnimationDuration': 0,
+                'IRResourceUrl': 'http://intentrank-test.elasticbeanstalk.com/intentrank/store/gap/campaign/96/getresults',
+                // 'IRResourceUrl': 'http://intentrank-test.elasticbeanstalk.com/intentrank/store/newegg/campaign/62/getresults',
+                'IRResultsCount': 10,
+                'IRTimeout': 1000,
+                'initialResults': [],  // stuff that loads when page loads, even if IR is available
+                'backupResults': [],  // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout
+                'tracking': function () { return true; },  // tracking is enabled if this function returns true
+                'konami': undefined, */
+                'base_url': "http://www.secondfunnel.com",
+                'store': {
+                    'id': "38",
+                    'name': "gap"
+                },
+                'campaign': 96
+            };
+        </script>
         <title>BackboneJS Gap Landing Page</title>
         <!-- CSS -->
         <link rel="stylesheet" type="text/css" href="default.css" />
+        <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+        <link rel="stylesheet" type="text/css" href="css/pages2.css" />
+        <link rel="stylesheet" type="text/css" href="css/styles.css" />
         <!-- End CSS -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" ><!-- required by bootstrap -->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"><!-- required by bootstrap, IE -->
     </head>
 
     <body>
-        <div class="wrapper">
-            <div class="featured"></div>
-            <div class="discovery-area" id="discovery-area"></div>
+        <header>
+            <nav class="navbar navbar-static-top" role="navigation">
+                <!-- collapsible -->
+                <!-- div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">Brand Name</a>
+                </div>
+
+                <div class="collapse navbar-collapse navbar-ex1-collapse" -->
+
+                <!-- non-collapsible -->
+                <div class="container">
+                    <ul class="nav navbar-nav"><!-- RHS: .navbar-right -->
+                        <li><a class="navbar-brand" href="#">Brand Name</a></li>
+                        <li class="active"><a href="#">Home</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">More brands <b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#">Action</a></li>
+                                <li><a href="#">Another action</a></li>
+                                <li><a href="#">Something else here</a></li>
+                                <li><a href="#">Separated link</a></li>
+                                <li><a href="#">One more separated link</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Stay connected <b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#">Action</a></li>
+                                <li><a href="#">Another action</a></li>
+                                <li><a href="#">Something else here</a></li>
+                                <li><a href="#">Separated link</a></li>
+                                <li><a href="#">One more separated link</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href="#">Social buttons</a></li>
+                    </ul>
+                </div><!-- /.navbar-collapse -->
+            </nav>
+        </header>
+        <div class="container"><!-- .container is bootstrap magic, and has a viewport-dependent width. -->
+            <div class="jumbotron jumbotron"><!-- hero unit -->
+                <!-- configure hero images by overriding its background -->
+            </div>
+            <div id="discovery-area" class="discovery-area">
+                <!-- paste pre-rendered tiles here (TODO... event handling for them) -->
+            </div>
             <div class="loading"></div>
         </div>
         <!-- Templates -->
@@ -32,22 +123,13 @@
         </script>
         <!-- End Templates -->
         <!-- Javascript Files -->
-        <script type="text/javascript">
-            window.PAGES_INFO = {
-                'base_url': "http://www.secondfunnel.com",
-                'store': {
-                    'id': "38",
-                    'name': "gap",
-                },
-                'campaign': 96
-            };
-        </script>
         <script type="text/javascript" src="jquery.min.js"></script>
         <script type="text/javascript" src="json2.js"></script>
         <script type="text/javascript" src="underscore.js"></script>
         <script type="text/javascript" src="backbone.js"></script>
         <script type="text/javascript" src="imagesloaded.pkgd.min.js"></script>
         <script type="text/javascript" src="jquery.masonry.pkgd.min.js"></script>
+        <script type="text/javascript" src="js/bootstrap.min.js"></script>
         <script type="text/javascript" src="pages.backbone.js"></script>
         <!-- End Javascript -->
     </body>
