@@ -291,7 +291,7 @@ var PreviewWindow = Backbone.Marionette.ItemView.extend({
     template: "#preview_container_template",
     model: Tile,
     events: {
-        'click .close': function () {
+        'click .close, .mask': function () {
             this.$el.fadeOut().remove();
         }
     }
