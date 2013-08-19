@@ -56,8 +56,8 @@ var LayoutEngine = Backbone.Model.extend({
     },
     
     append: function ($fragment, callback) {
-        console.log(this.$el);
-        this.$el.append($fragment).masonry('appended', $fragment);
+        $fragment.hide().appendTo(this.$el);
+        this.$el.masonry('appended', $fragment).masonry();
         return this.imagesLoaded($fragment, callback);
     },
     
@@ -67,7 +67,7 @@ var LayoutEngine = Backbone.Model.extend({
     },
     
     insert: function ($target, $fragment, callback) {
-        $fragment.insertAfter($target);
+        $fragment.hide().insertAfter($target);
         return this.imagesLoaded($fragment, callback);
     },
     
@@ -165,9 +165,7 @@ var TileCollection = Backbone.Collection.extend({
 var TileView = Backbone.Marionette.ItemView.extend({
     // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
     template: "product",
-    tagName: "div",
-    className: "tile ",
-    
+
     initialize: function (options) {
         var data = options.model,
             template = SecondFunnel.templates[data.template];
@@ -177,7 +175,6 @@ var TileView = Backbone.Marionette.ItemView.extend({
         if (!template) {
             console.log("No template found for " + data.template + ". Falling back to #product.");
         }
-        this.className += data['content-type'];
         
         // If the tile model is removed, remove the DOM element
         this.listenTo(this.model, 'destroy', this.remove);
@@ -187,7 +184,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
 var Discovery = Backbone.Marionette.CompositeView.extend({
     // Manages the HTML/View of ALL the tiles on the page (our discovery area)
     // tagName: "div"
-    id: PAGES_INFO.discoveryTarget,
+    el: $(PAGES_INFO.discoveryTarget),
     itemView: TileView,
     intentRank: null,
     collection: null,
@@ -208,7 +205,6 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             SecondFunnel.templates[id] = _.template($(this).html(), undefined, { variable: 'data' });
             });
         this.collection = options.collection || new TileCollection;
-        this.$el = $(this.id);
         // Load additional results and add them to our collection
         this.getTiles();
     },
