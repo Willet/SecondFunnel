@@ -246,9 +246,17 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
         _.each(data, function (tileData) {
             // Create the new tiles using the data
+
+            // TODO: refactor into youtube subview
+            if (tileData.template === 'youtube') {
+                tileData.thumbnail = 'http://i.ytimg.com/vi/' + tileData['original-id'] +
+                                 '/hqdefault.jpg';
+            }
+
             var tile = new Tile(tileData),
                 view = new TileView({model: tile});
             self.collection.add(new Tile(tileData));
+
             view.render();
             $fragment = $fragment.add(view.$el);
         });

@@ -111,10 +111,16 @@
             </div>
         </script>
         <script type="text/template" id="youtube_template">
-            <div class="wide tile" type="youtube">
-              <iframe type="text/html" width="<%= data['width'] %>px" height="<%= data['height'] %>px"
-                        src="http://www.youtube.com/embed/<%= data['original-id'] %>?autoplay=<%= data['autoplay'] %>"
-                        frameborder="0" />
+            <div class="wide youtube tile" type="youtube">
+                <!-- iframe type="text/html" width="<%= data['width'] %>px" height="<%= data['height'] %>px"
+                          src="http://www.youtube.com/embed/<%= data['original-id'] %>?autoplay=<%= data['autoplay'] %>"
+                          frameborder="0" / -->
+                <div class="img-responsive thumbnail"
+                     style="background-image: url('<%= data.thumbnail || data.image %>');">
+                    &nbsp;
+                    <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
+                </div>
+                <%= data.caption || data.name %>
             </div>
         </script>
         <script type="text/template" id="preview_container_template">

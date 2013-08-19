@@ -145,6 +145,12 @@ img.loading {
     background-position: center center;
 }
 
+.tile.wide.youtube div.thumbnail {
+    height: 250px;
+    background-size: cover;
+    background-position: center center;
+}
+
 .tile.wide.youtube div.thumbnail:before {
     /* standard youtube thumbnail
        @override
@@ -159,18 +165,6 @@ img.loading {
     top: 15px;
     background-position: 81px 14px;
 }
-
-
-
-.loading {
-    background: url('https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif');
-    background-repeat: no-repeat;
-    margin-left: 50%;
-    min-width: 20px;
-    min-height: 20px;
-    padding-bottom: 20px;
-}
-
 
 
 @media (max-width: 480px) { /* phone */
