@@ -3,7 +3,6 @@ var SecondFunnel = new Backbone.Marionette.Application();
 // Custom event trigger/listener
 SecondFunnel.vent = _.extend({}, Backbone.Events);
 SecondFunnel.templates = {};
-// Add layout
 
 var Tile = Backbone.Model.extend({
     defaults: {
@@ -36,7 +35,6 @@ var Tile = Backbone.Model.extend({
 
 var LayoutEngine = Backbone.Model.extend({
     // Our layoutEngine, acts as a BlackBox for whatever we're using
-    loading: false,
     options: {
         itemSelector: PAGES_INFO.discoveryItemSelector,
         isResizeBound: true,
@@ -62,7 +60,8 @@ var LayoutEngine = Backbone.Model.extend({
     },
 
     reload: function ($fragment) {
-        this.$el.masonry('reloadItems').masonry();
+        this.$el.masonry('reloadItems');
+        this.$el.masonry();
         return this;
     },
 
@@ -75,35 +74,28 @@ var LayoutEngine = Backbone.Model.extend({
         // Compiles a list of the broken image srcs and returns them
         // How we handle this is up to the Discovery module
         var self = this,
+            good = [],
             broken = [];
         imagesLoaded($fragment).on('always', function (imgLoad) {
-            if (imgLoad.hasAnyBroken) {
-                broken = _.filter(imgLoad.images, function (img) {
-                    return !img.isLoaded;
-                });
-                broken = _.map(broken, function () {
-                    return this.img;
-                });
+            _.each(imgLoad.images, function (img) {
+                if (!img.isLoaded) {
+                    img.img.remove();
+                    broken.push(img.img);
+                } else {
+                    good.push(img.img);
+                }
+            });
+            if (callback) {
+                callback(good, broken);
             }
-            callback(broken);
             $(imgLoad.elements).show();
             self.reload();
         });
-    },
-
-    isLoading: function () {
-        return this.loading;
-    },
-
-    toggleLoading: function () {
-        this.loading = !this.loading;
-        return this;
     }
 });
 
 var IntentRank = Backbone.Model.extend({
     // intentRank module
-    loading: false,
     base: "http://intentrank-test.elasticbeanstalk.com/intentrank",
     templates: {
         'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
@@ -113,43 +105,28 @@ var IntentRank = Backbone.Model.extend({
     campaign: PAGES_INFO.campaign,
 
     getResults: function (callback, options) {
-        if (!this.isLoading()) {
-            var self = this,
-                uri = _.template(this.templates[options.type],
-                    _.extend({}, options, this, {
-                        'url': this.base
-                    }));
-            this.toggleLoading();
+        var self = this,
+            uri = _.template(this.templates[options.type],
+                             _.extend({}, options, this, {
+                                 'url': this.base
+                             }));
 
-            $.ajax({
-                url: uri,
-                data: {
-                    'results': 10, // TODO: Should be calculated somehow
-                },
-                contentType: "json",
-                dataType: 'jsonp',
-                timeout: 5000,
-                success: function (results) {
-                    self.toggleLoading();
-                    return callback(results);
-                },
-                error: function (jxqhr, textStatus, error) {
-                    self.toggleLoading();
-                    return callback([]);
-                }
-            });
-        }
-    },
-
-    toggleLoading: function () {
-        this.loading = !this.loading;
-        return this;
-    },
-
-    isLoading: function () {
-        return this.loading;
+        $.ajax({
+            url: uri,
+            data: {
+                'results': 10, // TODO: Should be calculated somehow
+            },
+            contentType: "json",
+            dataType: 'jsonp',
+            timeout: 5000,
+            success: function (results) {
+                return callback(results);
+            },
+            error: function (jxqhr, textStatus, error) {
+                return callback([]);
+            }
+        });
     }
-
 });
 
 var TileCollection = Backbone.Collection.extend({
@@ -169,6 +146,7 @@ var TileCollection = Backbone.Collection.extend({
         // data it is passed.
         for (var data in arrayOfData) {
             // Generate Tile
+            this.add(new Tile(data));
         }
     }
 });
@@ -177,19 +155,6 @@ var TileView = Backbone.Marionette.ItemView.extend({
     // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
     template: "product",
 
-    initialize: function (options) {
-        var data = options.model,
-            template = SecondFunnel.templates[data.template];
-        this.template = template || SecondFunnel.templates[this.template];
-
-        console.log(SecondFunnel.templates);
-        if (!template) {
-            console.log("No template found for " + data.template + ". Falling back to #product.");
-        }
-
-        // If the tile model is removed, remove the DOM element
-        this.listenTo(this.model, 'destroy', this.remove);
-    },
     events: {
         'click': function (ev) {
             "use strict";
@@ -197,6 +162,22 @@ var TileView = Backbone.Marionette.ItemView.extend({
                 preview = new PreviewWindow({model: tile});
             preview.render();
         }
+    },
+
+    initialize: function (options) {
+        var data = options.model,
+            template = SecondFunnel.templates[data.template];
+        // Silently fall back to default template
+        this.template = template || SecondFunnel.templates[this.template];
+
+        // If the tile model is removed, remove the DOM element
+        this.listenTo(this.model, 'destroy', this.remove);
+    },
+
+    onRender: function () {
+        // Listen for the image being removed from the DOM, if it is, remove
+        // the View/Model to free memory
+        this.$("img").on('remove', this.model.destroy);
     }
 });
 
@@ -208,6 +189,11 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     intentRank: null,
     collection: null,
     layoutEngine: null,
+    loading: false,
+
+    triggers: {
+        "scroll window": "pageScroll"
+    },
 
     appendHtml: function (collectionView, itemView) {
         collectionView.$(":last").append(itemView.el);
@@ -231,18 +217,26 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         });
         this.collection = options.collection || new TileCollection;
         // Load additional results and add them to our collection
-        this.getTiles();
+        this.attachListeners().getTiles();
     },
 
-    triggers: {
-        "scroll window": "pageScroll"
+    attachListeners: function () {
+        // Attach our listeners that can't be handled through events
+        _.bindAll(this, 'pageScroll');
+        $(window).scroll(this.pageScroll);
+        _.bindAll(this, 'toggleLoading');
+
+        return this;
     },
 
     getTiles: function (options) {
-        options = options || {};
-        options.type = options.type || 'campaign';
-        SecondFunnel.intentRank.getResults(_.partial(this.createTiles, this),
-            options);
+        if (!this.loading) {
+            this.toggleLoading();
+            options = options || {};
+            options.type = options.type || 'campaign';
+            SecondFunnel.intentRank.getResults(_.partial(this.createTiles, this),
+                                               options);
+        }
         return this;
     },
 
@@ -259,28 +253,27 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             $fragment = $fragment.add(view.$el);
         });
 
-        var removeNewBrokenTiles = _.partial(self.removeBroken, start);
+        // TODO: Need elegant way to delete broken images w/o memory leak
         if ($tile) {
-            SecondFunnel.layoutEngine.insert($fragment, $tile, removeNewBrokenTiles);
+            SecondFunnel.layoutEngine.insert($fragment, $tile, self.toggleLoading);
         } else {
-            SecondFunnel.layoutEngine.append($fragment, removeNewBrokenTiles);
+            SecondFunnel.layoutEngine.append($fragment, self.toggleLoading);
         }
+        return self;
+    },
+
+    toggleLoading: function (self) {
+        this.loading = !this.loading;
         return this;
     },
 
-    removeBroken: function (index, broken) {
-        // Removes the broken images alongside their model and views
-        console.log(broken);
-        return this;
-    },
+    pageScroll: function () {
+        var pageBottomPos = $(window).innerHeight() + $(window).scrollTop(),
+            documentBottomPos = $(document).height();
 
-    toggleLoading: function () {
-        SecondFunnel.layoutEngine.toggleLoading();
-        return this;
-    },
-
-    isLoading: function () {
-        return SecondFunnel.layoutEngine.isLoading();
+        if (pageBottomPos >= documentBottomPos - 150 && !this.loading) {
+            this.getTiles();
+        }
     }
 });
 
