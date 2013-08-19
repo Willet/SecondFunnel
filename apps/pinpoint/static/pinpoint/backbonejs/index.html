@@ -134,6 +134,16 @@
                 </div>
             </div>
         </script>
+        <script type="text/template" id="tile_preview_template">
+            <h2><span class="label label-info"><%= template %>_preview_template</span> is missing.</h2>
+            <p>You can define one in <code>index.html</code>.</p>
+            <ul>
+                <% for (i in this) { if (this.hasOwnProperty(i)) { %>
+                    <li><b><%= i %></b>: <%= this[i] %></li>
+                <% }} %>
+            </ul>
+        </script>
+
         <!-- End Templates -->
         <!-- Javascript Files -->
         <script type="text/javascript">

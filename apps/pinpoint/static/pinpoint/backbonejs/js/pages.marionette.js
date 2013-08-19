@@ -110,11 +110,10 @@ var IntentRank = Backbone.Model.extend({
     campaign: PAGES_INFO.campaign,
 
     getResults: function (options, callback) {
-        console.log(arguments);
         var uri = _.template(this.templates[options.type],
-                             _.extend({}, options, this, {
-                                 'url': this.base
-                             })),
+                _.extend({}, options, this, {
+                    'url': this.base
+                })),
             args = Array.prototype.slice.apply(arguments);
         args = args.length > 2? args.slice(2) : [];
 
@@ -267,7 +266,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             // TODO: refactor into youtube subview
             if (tileData.template === 'youtube') {
                 tileData.thumbnail = 'http://i.ytimg.com/vi/' + tileData['original-id'] +
-                                 '/hqdefault.jpg';
+                    '/hqdefault.jpg';
             }
 
             var tile = new Tile(tileData),
@@ -324,11 +323,54 @@ var PreviewWindow = Backbone.Marionette.ItemView.extend({
         }
     },
 
+    modelEvents: {
+        'change': 'fieldsChanged'
+    },
+
+    fieldsChanged: function() {
+        this.render();
+    },
+
     onRender: function () {
         this.$el.css({display: "table"});
+
         $('body').append(this.$el.fadeIn(100));
+        var content = new PreviewContent({model: new Tile(this.model)});
+        content.render();
+
+        this.$(".template.target")
+            .replaceWith(content.$el);
     }
 });
+
+var PreviewContent = Backbone.Marionette.ItemView.extend({
+    template: "#tile_preview_template",
+    model: Tile
+});
+
+
+function syntaxHighlight(json) {
+    // something about internets http://stackoverflow.com/a/7220510/1558430
+    if (typeof json != 'string') {
+        json = JSON.stringify(json, undefined, 2);
+    }
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        var cls = 'number';
+        if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+                cls = 'key';
+            } else {
+                cls = 'string';
+            }
+        } else if (/true|false/.test(match)) {
+            cls = 'boolean';
+        } else if (/null/.test(match)) {
+            cls = 'null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+    });
+}
 
 $(function () {
     // Add SecondFunnel component(s)
