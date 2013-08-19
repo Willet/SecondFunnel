@@ -101,7 +101,7 @@
             <div class="loading"></div>
         </div>
         <!-- Templates -->
-        <script type="text/template" id="product">
+        <script type="text/template" id="product_template">
             <div class="tile" type="<%= data['content-type'] %>">
                 <img src="<%= data['image'] %>" alt="<%= data['caption'] %>" />
                 <span class="type"><%= data['content-type'] %></span>
@@ -110,7 +110,7 @@
                 </div>
             </div>
         </script>
-        <script type="text/template" id="youtube">
+        <script type="text/template" id="youtube_template">
             <div class="tile" type="youtube">
               <iframe type="text/html" width="<%= data['width'] %>px" height="<%= data['height'] %>px"
                         src="http://www.youtube.com/embed/<%= data['original-id'] %>?autoplay=<%= data['autoplay'] %>"

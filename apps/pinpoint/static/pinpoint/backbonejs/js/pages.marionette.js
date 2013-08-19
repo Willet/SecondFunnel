@@ -208,6 +208,10 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
         $('script[type="text/template"]').each(function () {
             var id = $(this).attr('id');
+
+            if (id.indexOf('_template') > -1) {
+                id = id.replace('_template', '');  // remove id safety suffix
+            }
             SecondFunnel.templates[id] = _.template($(this).html(), undefined,
                 { variable: 'data' });
         });
