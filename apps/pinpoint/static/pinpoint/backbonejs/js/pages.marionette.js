@@ -154,7 +154,13 @@ var IntentRank = Backbone.Model.extend({
 
 var TileCollection = Backbone.Collection.extend({
     // Our TileCollection manages ALL the tiles on the page.
-    model: Tile,
+    model: function (attrs) {
+        var SubClass = 'Tile';
+        if (window[SubClass]) {
+            return new window[SubClass](attrs);
+        }
+        return new Tile(attrs);  // base class
+    },
     loading: false,
     totalItems: null,
 
@@ -183,6 +189,14 @@ var TileView = Backbone.Marionette.ItemView.extend({
 
         // If the tile model is removed, remove the DOM element
         this.listenTo(this.model, 'destroy', this.remove);
+    },
+    events: {
+        'click': function (ev) {
+            "use strict";
+            var tile = this.model,
+                preview = new PreviewWindow({model: tile});
+            preview.render();
+        }
     }
 });
 
@@ -220,6 +234,10 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         this.getTiles();
     },
 
+    triggers: {
+        "scroll window": "pageScroll"
+    },
+
     getTiles: function (options) {
         options = options || {};
         options.type = options.type || 'campaign';
@@ -241,11 +259,11 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             $fragment = $fragment.add(view.$el);
         });
 
-        var remove = _.partial(self.removeBroken, start);
+        var removeNewBrokenTiles = _.partial(self.removeBroken, start);
         if ($tile) {
-            SecondFunnel.layoutEngine.insert($fragment, $tile, remove);
+            SecondFunnel.layoutEngine.insert($fragment, $tile, removeNewBrokenTiles);
         } else {
-            SecondFunnel.layoutEngine.append($fragment, remove);
+            SecondFunnel.layoutEngine.append($fragment, removeNewBrokenTiles);
         }
         return this;
     },
@@ -267,12 +285,21 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 });
 
 
+var PreviewWindow = Backbone.Marionette.ItemView.extend({
+    template: "#preview_container_template",
+    model: Tile
+});
+
 $(function () {
     // Add SecondFunnel component(s)
     SecondFunnel.addInitializer(function (options) {
         // Add our initiliazer, this allows us to pass a series of tiles
         // to be displayed immediately (and first) on the landing page.
         SecondFunnel.discovery = new Discovery({});
+        SecondFunnel.discovery.on("pageScroll", function(args) {
+            "use strict";
+            args.view.getTiles();
+        });
     });
 
     // Start the SecondFunnel app
