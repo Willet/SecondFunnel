@@ -297,10 +297,30 @@ var PreviewWindow = Backbone.Marionette.ItemView.extend({
         }
     },
 
+    modelEvents: {
+        'change': 'fieldsChanged'
+    },
+
+    fieldsChanged: function() {
+        this.render();
+    },
+
     onRender: function () {
         this.$el.css({display: "table"});
+
         $('body').append(this.$el.fadeIn(100));
+        var content = new PreviewContent(this.model);
+        content.render();
+
+        this.$el
+            .find(".template.target")
+            .replaceWith(content.$el);
     }
+});
+
+var PreviewContent = Backbone.Marionette.ItemView.extend({
+    template: "#tile_preview_template",
+    model: Tile
 });
 
 $(function () {
