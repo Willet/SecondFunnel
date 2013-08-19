@@ -1,4 +1,4 @@
-$(function(){
+$(function () {
     window.SecondFunnel = {
         collections: {},
         models: {},
@@ -16,7 +16,7 @@ $(function(){
             'autoplay': 0
         },
 
-        getType: function() {
+        getType: function () {
             return this.data['type'];
         }
     });
@@ -46,25 +46,26 @@ $(function(){
             'mouseleave': "onHover"
         },
 
-        initialize: function(options) {
+        initialize: function (options) {
             // Find all templates used in this page
             var instance = this;
             // Add the passed items to this namespace
             _.extend(this, options);
-            $('script[type="text/template"]').each(function(){
+            $('script[type="text/template"]').each(function () {
                 var html = $(this).html(),
                     id = $(this).attr('id');
                 // Use the id of the template as the hash value
-                instance.templates[id] = _.template(html, undefined, { variable: 'data' });
+                instance.templates[id] = _.template(html, undefined,
+                    { variable: 'data' });
             });
-            _.each(this.default_templates, function(val, key) {
+            _.each(this.default_templates, function (val, key) {
                 instance.templates[key] = instance.templates[val];
             });
             // Add listeners
             this.listenTo(this.model, 'destroy', this.remove);
         },
 
-        create: function(data) {
+        create: function (data) {
             var template = this.templates[data['template']];
             this.model.data = _.extend({}, this.model.data, data);
 
@@ -80,16 +81,16 @@ $(function(){
             return this;
         },
 
-        onHover: function(e) {
+        onHover: function (e) {
             console.log(e.type + " on tile " + this.cid + " of type " + this.model.getType());
             return this;
         },
 
-        getId: function() {
+        getId: function () {
             return this.model.data['tile-id'];
         },
 
-        onTileClick: function() {
+        onTileClick: function () {
             this.discovery.updateContentStream(this);
             return this;
         }
@@ -98,7 +99,7 @@ $(function(){
 
     var DiscoveryArea = Backbone.View.extend({
         // DOM Controller for the Discovery Area (Main portion of the Landing Pages)
-        el: $("#discovery-area"),
+        el: $(PAGES_INFO.discoveryTarget),
 
         intentrank: {
             url: "http://intentrank-test.elasticbeanstalk.com/intentrank",
@@ -111,34 +112,34 @@ $(function(){
 
         masonry: {
             options: {
-                itemSelector: ".tile",
+                itemSelector: PAGES_INFO.discoveryItemSelector,
                 isResizeBound: true,
                 visibleStyle: {
                     'opacity': 1,
                     'webkit-transform': 'none'
                 },
                 isAnimated: true,
-                transitionDuration: "0.4s"
+                columnWidth: PAGES_INFO.columnWidth(),
+                transitionDuration: PAGES_INFO.masonryAnimationDuration + 's'
             }
         },
 
-        initialize: function(options) {
+        initialize: function (options) {
             // Instantiate Listeners and Masonry
             _.extend(this, options, window.PAGES_INFO);
-            this.$el.masonry(_.extend(this.masonry.options, {
-                'columnWidth': 2
-            }));
+            this.$el.masonry(this.masonry.options);
             this.$el.masonry('bindResize');
 
             // Fetch initial results
             this.attachListeners().getResults('campaign');
         },
 
-        getResults: function(intentRankType, $tile, id) {
+        getResults: function (intentRankType, $tile, id) {
             // Start by rendering the intentrank url
-            var instance = this, 
+            var instance = this,
                 intentrank = _.extend({'id': id}, this.intentrank, this),
-                path = _.template(this.intentrank['templates'][intentRankType], intentrank);
+                path = _.template(this.intentrank['templates'][intentRankType],
+                    intentrank);
             this.toggleLoading();
 
             $.ajax({
@@ -150,11 +151,11 @@ $(function(){
                 dataType: 'jsonp',
                 crossDomain: true,
                 timeout: 5000,
-                success: function(results) {
+                success: function (results) {
                     // If succesful in fetching, add the tiles
                     instance.addTiles(results, $tile);
                 },
-                error: function(jxqhr, textStatus, error) {
+                error: function (jxqhr, textStatus, error) {
                     console.log("Error: " + error);
                     console.log("Status: " + textStatus);
                     instance.toggleLoading();
@@ -162,7 +163,7 @@ $(function(){
             });
         },
 
-        addTiles: function(data, $tile) {
+        addTiles: function (data, $tile) {
             var $fragment = $(),
                 instance = this;
 
@@ -171,26 +172,28 @@ $(function(){
                 var el = this.add(data[i]);
                 // If el is not defined, the block could not be generated,
                 // continue.
-                if ( el ) $fragment = $fragment.add(el);
+                if (el) {
+                    $fragment = $fragment.add(el);
+                }
             }
 
             // Add our fragments and let masonry know to lay them on
             if ($tile) {
                 $fragment.insertAfter($tile);
-            } else { 
+            } else {
                 $fragment.appendTo(this.$el);
             }
             this.$el.masonry('reloadItems');
             return this.imagesLoading($fragment);
         },
 
-        imagesLoading: function($images) {
+        imagesLoading: function ($images) {
             var instance = this;
-            imagesLoaded($images).on('always', function( imgLoad ){
+            imagesLoaded($images).on('always', function (imgLoad) {
                 if (imgLoad.hasAnyBroken) {
                     // If there are any broken images, remove them
                     // before continuing
-                    _.each(imgLoad.images, function(image) {
+                    _.each(imgLoad.images, function (image) {
                         if (!image.isLoaded) {
                             var cid = $(image.img).parent('.tile').attr('cid'),
                                 model = instance.collection._byId[cid];
@@ -205,13 +208,13 @@ $(function(){
             return this;
         },
 
-        attachListeners: function(){
+        attachListeners: function () {
             _.bindAll(this, 'pageScroll');
             $(window).scroll(this.pageScroll);
             return this;
         },
 
-        add: function(data) {
+        add: function (data) {
             // Create the view and return the added
             // elements.
             var view = new TileView({model: new Tile, discovery: this });
@@ -223,22 +226,22 @@ $(function(){
             }
             // View rendered, return fragement
             this.collection.add(view.model);
-            return view.el; 
+            return view.el;
         },
 
-        updateContentStream: function(view) {
+        updateContentStream: function (view) {
             if (!this.loading) {
                 this.getResults('content', view.$el, view.getId());
             }
             return this;
         },
 
-        toggleLoading: function() {
+        toggleLoading: function () {
             this.loading = !this.loading;
             return this;
         },
 
-        pageScroll: function() {
+        pageScroll: function () {
             var offsetY = $(window).scrollTop() + $(window).height(),
                 documentOffsetY = $(document).height();
 
