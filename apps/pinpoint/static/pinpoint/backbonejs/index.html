@@ -35,20 +35,28 @@
         <script type="text/javascript">
             window.PAGES_INFO = {
                 'base_url': "http://www.secondfunnel.com",
+                'discoveryTarget': "#discoveryArea",
                 'store': {
                     'id': "38",
                     'name': "gap",
                 },
-                'campaign': 96
+                'campaign': 96,
+                'columnWidth': function($element) {
+                    return 240 + 15;
+                },
+                'imageTileWide': 0.25,
+                'masonryAnimationDuration': 0.4,
+                'masonryMobileAnimationDuration': 0,
             };
         </script>
         <script type="text/javascript" src="jquery.min.js"></script>
         <script type="text/javascript" src="json2.js"></script>
         <script type="text/javascript" src="underscore.js"></script>
         <script type="text/javascript" src="backbone.js"></script>
+        <script type="text/javascript" src="backbone.marionette.js"></script>
         <script type="text/javascript" src="imagesloaded.pkgd.min.js"></script>
         <script type="text/javascript" src="jquery.masonry.pkgd.min.js"></script>
-        <script type="text/javascript" src="pages.backbone.js"></script>
+        <script type="text/javascript" src="pages.marionette.js"></script>
         <!-- End Javascript -->
     </body>
 </html>
