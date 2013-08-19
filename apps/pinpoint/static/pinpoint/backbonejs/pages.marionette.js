@@ -37,6 +37,7 @@ $(function () {
 
     var LayoutEngine = Backbone.Model.extend({
         // Our layoutEngine, acts as a BlackBox for whatever we're using
+        loading: false,
         options: {
             itemSelector: PAGES_INFO.discoveryItemSelector,
             isResizeBound: true,
@@ -50,8 +51,8 @@ $(function () {
         },
 
         initialize: function ($elem, options) {
-            _.extend(this, options);
-            $elem.masonry(options || this.options).masonry('bindResize');
+            _.extend(this, {'options': options });
+            $elem.masonry(this.options).masonry('bindResize');
             this.$el = $elem;
         },
 
@@ -77,12 +78,22 @@ $(function () {
                 broken = [];
             imagesLoaded($fragment).on('always', function( imgLoad ) {
                 if (imgLoad.hasAnyBroken) {
-                    broken = _.filter(imgLoad.images, function(img) { return !img.isLoaded; });
+                    broken = _.filter(imgLoad.images, function (img) { return !img.isLoaded; });
+                    broken = _.map(broken, function () { return this.img; });
                 }
                 callback(broken);
                 $(imgLoad.elements).show();
                 self.reload();
             });
+        },
+
+        isLoading: function () {
+            return this.loading;
+        },
+
+        toggleLoading: function () {
+            this.loading = !this.loading;
+            return this;
         }
     });
 
@@ -179,6 +190,8 @@ $(function () {
         //id: SecondFunnel.getRegion('mainRegion').substring(1),
         itemView: TileView,
         intentRank: null,
+        collection: null,
+        layoutEngine: null,
 
         appendHtml: function (collectionView, itemView) {
             collectionView.$(":last").append(itemView.el);
@@ -186,7 +199,7 @@ $(function () {
 
         initialize: function (options) {
             // Initialize IntentRank; use as a seperate module to make changes easier.
-            this.intentRank = new IntentRank();
+            this.intentRank = new IntentRank;
             // Black box Masonry (this will make migrating easier in the future)
             this.layoutEngine = new LayoutEngine(this.$el, options.masonry);
 
@@ -194,7 +207,7 @@ $(function () {
                 var id = $(this).attr('id');
                 SecondFunnel.templates[id] = _.template($(this).html(), undefined, { variable: 'data' });
             });
-            this.collection = options.collection;
+            this.collection = options.collection || new TileCollection;
             // Load additional results and add them to our collection
             this.getTiles();
         },
@@ -202,13 +215,12 @@ $(function () {
         getTiles: function(options) {
             options = options || {};
             options.type = options.type || 'campaign';
-            this.intentRank.getResults(this.createTiles, options);
+            this.intentRank.getResults(_.partial(this.createTiles, this), options);
             return this;
         },
 
-        createTiles: function(data, $tile) {
-            var self = this,
-                start = this.collection.length,
+        createTiles: function(self, data, $tile) {
+            var start = self.collection.length,
                 $fragment = $();
 
             _.each(data, function(tileData) {
@@ -220,18 +232,28 @@ $(function () {
                 $fragment = $fragment.add(view.$el);
             });
 
-            var remove = _.partial(this.removeBroken, start);
+            var remove = _.partial(self.removeBroken, start);
             if ($tile) {
-                this.layoutEngine.insert($fragment, $tile, remove);
+                self.layoutEngine.insert($fragment, $tile, remove);
             } else {
-                this.layoutEngine.append($fragment, remove);
+                self.layoutEngine.append($fragment, remove);
             }
-            this.toggleLoading();
+            return this;
         },
 
         removeBroken: function(index, broken) {
             // Removes the broken images alongside their model and views
             console.log(broken);
+            return this;
+        },
+
+        toggleLoading: function () {
+            self.layoutEngine.toggleLoading();
+            return this;
+        },
+
+        isLoading: function () {
+            return self.layoutEngine.isLoading();
         }
     });
 
