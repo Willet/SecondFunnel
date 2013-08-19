@@ -24,12 +24,17 @@ var Tile = Backbone.Model.extend({
 
     getType: function () {
         // Get the content type of this tile
-        return this.data['content-type'];
+        return this['content-type'];
+    },
+
+    isProduct: function () {
+        // TODO: This should be something else
+        return this.getType() != 'youtube';
     },
 
     getId: function () {
         // Get the ID of this tile (for DB queries)
-        return this.data['tile-id'];
+        return this['tile-id'];
     }
 });
 
@@ -99,31 +104,35 @@ var IntentRank = Backbone.Model.extend({
     base: "http://intentrank-test.elasticbeanstalk.com/intentrank",
     templates: {
         'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
-        'content': "<%=url%></store/<%=store.name%>/campaign/<%=campaign%>/<%=id%>/getresults"
+        'content': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/content/<%=id%>/getresults"
     },
     store: PAGES_INFO.store,
     campaign: PAGES_INFO.campaign,
 
-    getResults: function (callback, options) {
-        var self = this,
-            uri = _.template(this.templates[options.type],
+    getResults: function (options, callback) {
+        console.log(arguments);
+        var uri = _.template(this.templates[options.type],
                              _.extend({}, options, this, {
                                  'url': this.base
-                             }));
+                             })),
+            args = Array.prototype.slice.apply(arguments);
+        args = args.length > 2? args.slice(2) : [];
 
         $.ajax({
             url: uri,
             data: {
-                'results': 10, // TODO: Should be calculated somehow
+                'results': 10 // TODO: Should be calculated somehow
             },
             contentType: "json",
             dataType: 'jsonp',
             timeout: 5000,
             success: function (results) {
-                return callback(results);
+                args.unshift(results);
+                return callback.apply(callback, args);
             },
             error: function (jxqhr, textStatus, error) {
-                return callback([]);
+                args.unshift([]);
+                return callback.apply(callback, args);
             }
         });
     }
@@ -156,12 +165,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
     template: "product",
 
     events: {
-        'click': function (ev) {
-            "use strict";
-            var tile = this.model,
-                preview = new PreviewWindow({model: tile});
-            preview.render();
-        }
+        'click': "onClick"
     },
 
     initialize: function (options) {
@@ -174,7 +178,15 @@ var TileView = Backbone.Marionette.ItemView.extend({
         this.listenTo(this.model, 'destroy', this.remove);
     },
 
-    onRender: function () {
+    onClick: function (ev) {
+        "use strict";
+        var tile = this.model,
+            preview = new PreviewWindow({model: tile});
+        preview.render();
+        SecondFunnel.vent.trigger("tileClicked", tile, this.$el);
+    },
+
+    onRender: function (ev) {
         // Listen for the image being removed from the DOM, if it is, remove
         // the View/Model to free memory
         this.$("img").on('remove', this.model.destroy);
@@ -224,7 +236,12 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         // Attach our listeners that can't be handled through events
         _.bindAll(this, 'pageScroll');
         $(window).scroll(this.pageScroll);
-        _.bindAll(this, 'toggleLoading');
+
+        // TODO: Find a better way than this...
+        _.bindAll(this, 'toggleLoading', 'layoutResults', 'updateContentStream');
+
+        // Vent Listeners
+        SecondFunnel.vent.on("tileClicked", this.updateContentStream);
 
         return this;
     },
@@ -234,14 +251,14 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             this.toggleLoading();
             options = options || {};
             options.type = options.type || 'campaign';
-            SecondFunnel.intentRank.getResults(_.partial(this.createTiles, this),
-                                               options);
+            SecondFunnel.intentRank.getResults(options, this.layoutResults);
         }
         return this;
     },
 
-    createTiles: function (self, data, $tile) {
-        var start = self.collection.length,
+    layoutResults: function (data, $tile) {
+        var self = this,
+            start = self.collection.length,
             $fragment = $();
 
         _.each(data, function (tileData) {
@@ -255,7 +272,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
             var tile = new Tile(tileData),
                 view = new TileView({model: tile});
-            self.collection.add(new Tile(tileData));
+            self.collection.add(tile);
 
             view.render();
             $fragment = $fragment.add(view.$el);
@@ -263,11 +280,21 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
         // TODO: Need elegant way to delete broken images w/o memory leak
         if ($tile) {
-            SecondFunnel.layoutEngine.insert($fragment, $tile, self.toggleLoading);
+            SecondFunnel.layoutEngine.insert($fragment, $tile, this.toggleLoading);
         } else {
-            SecondFunnel.layoutEngine.append($fragment, self.toggleLoading);
+            SecondFunnel.layoutEngine.append($fragment, this.toggleLoading);
         }
-        return self;
+        return this;
+    },
+
+    updateContentStream: function (tile, $tile) {
+        var options = {
+            'type': "content",
+            'id': tile.getId()
+        };
+        SecondFunnel.intentRank.getResults(options, this.layoutResults, 
+            $tile);
+        return this;
     },
 
     toggleLoading: function (self) {
