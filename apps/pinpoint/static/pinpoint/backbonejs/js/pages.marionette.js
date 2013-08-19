@@ -196,6 +196,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
             var tile = this.model,
                 preview = new PreviewWindow({model: tile});
             preview.render();
+            $('body').append(preview.$el.fadeIn(100));
         }
     }
 });
@@ -286,8 +287,14 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
 
 var PreviewWindow = Backbone.Marionette.ItemView.extend({
+    el: $('<div />', {'class': 'previewContainer', css: {display: 'table'}}),
     template: "#preview_container_template",
-    model: Tile
+    model: Tile,
+    events: {
+        'click .close': function () {
+            this.$el.fadeOut().remove();
+        }
+    }
 });
 
 $(function () {
