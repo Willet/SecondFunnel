@@ -94,7 +94,7 @@ img.loading {
 .tile img {
     min-width: 200px;
     max-width: 450px;
-    min-height: 200px;
+    min-height: 50px;
     max-height: 400px;
 }
 
@@ -234,6 +234,10 @@ img.loading {
     z-index: 10;
     top: 0;
     left: 0;
+}
+
+.previewContainer img {
+    max-width: 100%;
 }
 
 .previewContainer .mask {

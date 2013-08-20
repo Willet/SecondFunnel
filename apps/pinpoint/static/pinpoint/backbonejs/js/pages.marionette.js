@@ -456,7 +456,7 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
     'template': "#preview_container_template",
     'events': {
         'click .close, .mask': function () {
-            this.$el.fadeOut().remove();
+            this.$el.fadeOut(PAGES_INFO.previewAnimationDuration).remove();
         }
     },
     'regions': {
@@ -469,7 +469,7 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
     },
     'onRender': function () {
         this.$el.css({display: "table"});
-        $('body').append(this.$el.fadeIn(100));
+        $('body').append(this.$el.fadeIn(PAGES_INFO.previewAnimationDuration));
     }
 });
 
