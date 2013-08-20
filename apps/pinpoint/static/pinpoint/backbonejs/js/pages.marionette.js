@@ -34,21 +34,27 @@ Backbone.Marionette.TemplateCache._exists = function (templateId) {
 
 // Accept an arbitrary number of template selectors instead of just one.
 // function will return in a short-circuit manner once a template is found.
-Backbone.Marionette.View.getTemplate = function () {
+Backbone.Marionette.View.prototype.getTemplate = function () {
     "use strict";
     var i, templateIDs = Backbone.Marionette.getOption(this, "templates"),
         templateExists;
 
-    console.log(templateIDs);
-    for (i = 0; i < templateIDs.length; i++) {
-        templateExists = Backbone.Marionette.TemplateCache._exists(templateIDs[i]);
+    if (templateIDs) {
+        for (i = 0; i < templateIDs.length; i++) {
+            templateIDs[i] = _.template(templateIDs[i], {
+                'data': Backbone.Marionette.getOption(this, "model").attributes
+            });
+            templateExists = Backbone.Marionette.TemplateCache._exists(templateIDs[i]);
 
-        if (templateExists) {
-            return Backbone.Marionette.$(templateIDs[i]).html();
+            if (templateExists) {
+                // replace this thing's desired template ID to the
+                // highest-order template found
+                this.options.template = templateIDs[i];
+                break;
+            }
         }
     }
 
-    // fallback: template instead of templates
     return Marionette.getOption(this, "template");
 };
 
@@ -423,7 +429,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 var PreviewContent = Backbone.Marionette.ItemView.extend({
     'template': '#tile_preview_template',
     'templates': [
-        '#' + this.template + '_preview_template',  // but what's 'this'?
+        '#<%= data.template %>_preview_template',  // but what's 'this'?
         '#tile_preview_template' // fallback
     ]
 });
