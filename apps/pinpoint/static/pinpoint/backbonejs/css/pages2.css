@@ -37,7 +37,7 @@ pre .null { color: magenta; }
 pre .key { color: red; }
 
 img.loading {
-    background: transparent url('http://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif') center center no-repeat;
+    background: transparent url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif') center center no-repeat;
     background-size 32px 32px:
     min-width: 32px;
     min-height: 32px;
@@ -81,7 +81,7 @@ img.loading {
 }
 
 .tile.spinner:before {
-    content: url('https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif');
+    content: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif');
     display: block;
     position: absolute;
     top: 48%;
@@ -169,7 +169,7 @@ img.loading {
     /* standard youtube thumbnail
        @override
     */
-    background-image: url('http://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/youtube-play-button.png');
+    background-image: url('//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/youtube-play-button.png');
     content: "";
     width: 450px;
     height: 255px;
