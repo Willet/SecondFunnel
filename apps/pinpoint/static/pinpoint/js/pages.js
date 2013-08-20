@@ -23,6 +23,9 @@ var PAGES = (function ($, details, Willet) {
         $wnd = $(window),
         me = {};
 
+    // IE 8 really sucks
+    Date.now = Date.now || function() { return +new Date; };
+
     function getLoadingBlocks() {
         return loadingBlocks;
     }
