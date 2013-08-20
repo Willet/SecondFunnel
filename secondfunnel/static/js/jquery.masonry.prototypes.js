@@ -57,7 +57,7 @@
         var colGroup = this._getColGroup(colSpan);
         // get the minimum Y value from the columns
         var minimumY = Math.min.apply(Math, colGroup),
-            shortColIndex = colGroup.indexOf(minimumY);
+            shortColIndex = $.inArray(minimumY, colGroup);
 
         // BEGIN WILLET
         /*
