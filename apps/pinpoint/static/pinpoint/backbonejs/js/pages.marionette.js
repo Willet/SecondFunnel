@@ -180,8 +180,9 @@ var TileView = Backbone.Marionette.ItemView.extend({
     onClick: function (ev) {
         "use strict";
         var tile = this.model,
-            preview = new PreviewWindow({model: tile});
+            preview = new PreviewWindow(tile);
         preview.render();
+        preview.content.show(new PreviewContent(tile));
         SecondFunnel.vent.trigger("tileClicked", tile, this.$el);
     },
 
@@ -312,42 +313,36 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 });
 
 
-var PreviewWindow = Backbone.Marionette.ItemView.extend({
-    tagName: "div",
-    className: "previewContainer",
-    template: "#preview_container_template",
-    model: Tile,
-    events: {
+var PreviewContent = Backbone.Marionette.ItemView.extend({
+    template: function () {
+        return SecondFunnel.templates['tile_preview'];
+    }
+});
+
+
+var PreviewWindow = Backbone.Marionette.Layout.extend({
+    'tagName': "div",
+    'className': "previewContainer",
+    'template': "#preview_container_template",// SecondFunnel.templates['preview_container'],
+    'events': {
         'click .close, .mask': function () {
             this.$el.fadeOut().remove();
         }
     },
-
-    modelEvents: {
-        'change': 'fieldsChanged'
+    'regions': {
+        'content': '.template.target'
     },
-
-    fieldsChanged: function() {
-        this.render();
+    'onBeforeRender': function () {
     },
-
-    onRender: function () {
+    'templateHelpers': function () {
+        // return {data: $.extend({}, this.options, {template: this.template})};
+    },
+    'onRender': function () {
         this.$el.css({display: "table"});
 
         $('body').append(this.$el.fadeIn(100));
-        var content = new PreviewContent({model: new Tile(this.model)});
-        content.render();
-
-        this.$(".template.target")
-            .replaceWith(content.$el);
     }
 });
-
-var PreviewContent = Backbone.Marionette.ItemView.extend({
-    template: "#tile_preview_template",
-    model: Tile
-});
-
 
 function syntaxHighlight(json) {
     // something about internets http://stackoverflow.com/a/7220510/1558430
