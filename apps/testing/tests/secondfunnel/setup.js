@@ -17,15 +17,15 @@ window.PAGES_INFO = {
         'description': "",
         'offline': false,
         'product': "",
-        'categories': [],
+        'categories': []
     },        
     'store': {
         'id': "nativeshoes",
-        'name': "Native Shoes",
+        'name': "Native Shoes"
     },
     'product': {
         'name': "Jimmy - Jiffy Black",
-        'product-id': "5383",
+        'product-id': "5383"
     },
     'content': [],
     'featured': {
