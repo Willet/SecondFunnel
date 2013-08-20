@@ -113,11 +113,11 @@
                  src="http://www.youtube.com/embed/<%= obj['original-id'] %>?autoplay=<%= autoplay %>"
                  frameborder="0" / -->
             <div class="img-responsive thumbnail"
-                 style="background-image: url('<%= thumbnail || image %>');">
+                 style="background-image: url('<%= obj.thumbnail || obj.image %>');">
               &nbsp;
               <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
             </div>
-            <%= caption || name %>
+            <%= obj.caption || obj.name %>
         </script>
         <script type="text/template" id="preview_container_template">
             <div class="mask"></div>

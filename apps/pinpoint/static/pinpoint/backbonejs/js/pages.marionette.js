@@ -31,27 +31,25 @@ Backbone.Marionette.TemplateCache._exists = function (templateId) {
     return false;
 };
 
+
 // Accept an arbitrary number of template selectors instead of just one.
 // function will return in a short-circuit manner once a template is found.
-Backbone.Marionette.TemplateCache.get = function (templateIDs) {
+Backbone.Marionette.View.getTemplate = function () {
     "use strict";
-    var i, cachedTemplate, templateExists = false;
-
-    if (typeof templateIDs !== 'object' || !templateIDs.slice) {
-        // whatever it is, if it is not an array, wrap it in one
-        templateIDs = [templateIDs];
-    }
+    var i, templateIDs = Backbone.Marionette.getOption(this, "templates"),
+        templateExists;
 
     console.log(templateIDs);
     for (i = 0; i < templateIDs.length; i++) {
         templateExists = Backbone.Marionette.TemplateCache._exists(templateIDs[i]);
 
         if (templateExists) {
-            cachedTemplate = this.templateCaches[templateIDs[i]];
-            return cachedTemplate.load();
+            return Backbone.Marionette.$(templateIDs[i]).html();
         }
     }
-    throw ("Could not find templates: " + JSON.stringify(templateIDs));
+
+    // fallback: template instead of templates
+    return Marionette.getOption(this, "template");
 };
 
 
@@ -423,12 +421,11 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
 
 var PreviewContent = Backbone.Marionette.ItemView.extend({
-    template: function(serializedModel) {
-        return Backbone.Marionette.TemplateCache.get([
-            '#' + serializedModel.template + '_preview_template',  //
-            '#tile_preview_template' // fallback
-        ]);
-    }
+    'template': '#tile_preview_template',
+    'templates': [
+        '#' + this.template + '_preview_template',  // but what's 'this'?
+        '#tile_preview_template' // fallback
+    ]
 });
 
 
