@@ -101,22 +101,22 @@
             <div class="loading"></div>
         </div>
         <!-- Templates -->
-        <script type="text/template" id="product_template">
-            <div class="tile <%= data['content-type'] %>">
-                <img src="<%= data['image'] %>" alt="<%= data['caption'] %>" />
-                <span class="type"><%= data['content-type'] %></span>
+        <script type="text/template" id="product_tile_template">
+            <div class="tile <%= obj['content-type'] %>">
+                <img src="<%= image %>" alt="<%= caption %>" />
+                <span class="type"><%= obj['content-type'] %></span>
                 <div class="caption">
-                    <span><%= data['caption'] %></span>
+                    <span><%= caption %></span>
                 </div>
             </div>
         </script>
-        <script type="text/template" id="youtube_template">
-            <div class="wide youtube tile <%= data['content-type'] %>">
-                <!-- iframe type="text/html" width="<%= data['width'] %>px" height="<%= data['height'] %>px"
-                          src="http://www.youtube.com/embed/<%= data['original-id'] %>?autoplay=<%= data['autoplay'] %>"
+        <script type="text/template" id="youtube_tile_template">
+            <div class="wide youtube tile <%= obj['content-type'] %>">
+                <!-- iframe type="text/html" width="<%= width %>px" height="<%= height %>px"
+                          src="http://www.youtube.com/embed/<%= original_id %>?autoplay=<%= autoplay %>"
                           frameborder="0" / -->
                 <div class="img-responsive thumbnail"
-                     style="background-image: url('<%= data.thumbnail || data.image %>');">
+                     style="background-image: url('<%= thumbnail || image %>');">
                     &nbsp;
                     <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
                 </div>
@@ -135,11 +135,11 @@
             </div>
         </script>
         <script type="text/template" id="tile_preview_template">
-            <h2><span class="label label-info"><%= data.template %>_preview_template</span> is missing.</h2>
+            <h2><span class="label label-info"><%= template %>_preview_template</span> is missing.</h2>
             <p>You can define one in <code>index.html</code>.</p>
             <ul>
-                <% for (i in data) { %>
-                    <li><b><%= i %></b>: <%= data[i] %></li>
+                <% for (i in obj) { %>
+                    <li><b><%= i %></b>: <%= obj[i] %></li>
                 <% } %>
             </ul>
         </script>
@@ -154,6 +154,7 @@
             window.PAGES_INFO = {
                 'base_url': "http://www.secondfunnel.com",
                 'discoveryTarget': "#discovery-area",
+                'discoveryItemSelector': ".tile",
                 'store': {
                     'id': "38",
                     'name': "gap"

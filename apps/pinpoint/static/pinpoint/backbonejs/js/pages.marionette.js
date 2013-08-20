@@ -16,7 +16,6 @@ var SecondFunnel = new Backbone.Marionette.Application();
 window.SecondFunnel = SecondFunnel;
 // Custom event trigger/listener
 SecondFunnel.vent = _.extend({}, Backbone.Events);
-SecondFunnel.templates = {};
 
 var Tile = Backbone.Model.extend({
     defaults: {
@@ -179,27 +178,33 @@ var TileCollection = Backbone.Collection.extend({
 
 var TileView = Backbone.Marionette.ItemView.extend({
     // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
-    template: "product",
+    tagName: "div", // TODO: Should this be a setting?
+    template: "#product_tile_template",
+    className: PAGES_INFO.discoveryItemSelector.substring(1) + " ",
 
     events: {
-        'click': "onClick"
+        'click': "onClick",
+        'mouseenter': "onHover",
+        "mouseleave": "onHover"
     },
 
     initialize: function (options) {
-        var data = options.model,
-            template = SecondFunnel.templates[data.template];
-        // Silently fall back to default template
-        this.template = template || SecondFunnel.templates[this.template];
+        var data = options.model.attributes,
+            template = "#" + data.template + "_tile_template";
 
+        // TODO: Find a better way than this
+        try {
+            // Attempt to fetch template from cache
+            Backbone.Marionette.TemplateCache.get(template)();
+            this.template = template;
+        } catch (err) {
+            // Silently fall back to default template
+        }
+
+        this.className += (data['content-type'] || '').toLowerCase();
         _.bindAll(this, 'close'); 
         // If the tile model is removed, remove the DOM element
         this.listenTo(this.model, 'destroy', this.close);
-    },
-
-    render: function () {
-        // Override to force the ItemView not to wrap
-        this.setElement(this.template(this.model.attributes));
-        this.onRender();
     },
 
     close: function () {
@@ -211,12 +216,17 @@ var TileView = Backbone.Marionette.ItemView.extend({
         this.views = [];
     },
 
+    onHover: function (ev) {
+        // Trigger tile hover event with event and tile
+        SecondFunnel.vent.trigger("tileHover", ev, this);
+    },
+
     onClick: function (ev) {
         "use strict";
         var tile = this.model,
-            preview = new PreviewWindow(tile);
+            preview = new PreviewWindow({'model': tile});
         preview.render();
-        preview.content.show(new PreviewContent(tile));
+        preview.content.show(new PreviewContent({'model': tile}));
         SecondFunnel.vent.trigger("tileClicked", this);
     },
 
@@ -252,15 +262,6 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         SecondFunnel.layoutEngine = new LayoutEngine(this.$el,
             options.masonry);
 
-        $('script[type="text/template"]').each(function () {
-            var id = $(this).attr('id');
-
-            if (id.indexOf('_template') > -1) {
-                id = id.replace('_template', '');  // remove id safety suffix
-            }
-            SecondFunnel.templates[id] = _.template($(this).html(), undefined,
-                { variable: 'data' });
-        });
         this.collection = options.collection || new TileCollection;
         // Load additional results and add them to our collection
         this.attachListeners().getTiles();
@@ -312,7 +313,6 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             $fragment = $fragment.add(view.$el);
         });
 
-        // TODO: Need elegant way to delete broken images w/o memory leak
         if ($tile) {
             SecondFunnel.layoutEngine.insert($fragment, $tile, this.toggleLoading);
         } else {
@@ -349,15 +349,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
 
 var PreviewContent = Backbone.Marionette.ItemView.extend({
-    template: function () {
-        return SecondFunnel.templates['tile_preview'];
-    },
-
-    render: function () {
-        // Override render to force Marionette not to wrap
-        this.template = this.template();
-        this.$el.html(this.template(this.attributes));
-    }
+    template: '#tile_preview_template'
 });
 
 
