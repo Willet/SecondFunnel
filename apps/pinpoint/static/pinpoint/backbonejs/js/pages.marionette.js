@@ -9,6 +9,26 @@ $(function() {
     };
 });
 
+// Marionette TemplateCache extension to allow checking cache for template
+Backbone.Marionette.TemplateCache._exists = function(templateId) {
+    // Checks if the Template exists in the cache, if not found
+    // updates the cache with the template (if it exists), otherwise fail
+    // returns true if exists otherwise false.
+    var cached = this.templateCaches[templateId],
+        template = Backbone.Marionette.$(templateId).html();
+
+    if (cached || template) {
+        if (!cached) {
+            // template exists but was not cached
+            var cachedTemplate = new Backbone.Marionette.TemplateCache(templateId);
+            this.templateCaches[templateId] = cachedTemplate;
+        }
+        return true;
+    }
+    // template does not exist
+    return false;
+};
+
 
 // TODO: Seperate this into modules/seperate files
 // Declaration of the SecondFunnel JS application
@@ -192,15 +212,9 @@ var TileView = Backbone.Marionette.ItemView.extend({
         var data = options.model.attributes,
             template = "#" + data.template + "_tile_template";
 
-        // TODO: Find a better way than this
-        try {
-            // Attempt to fetch template from cache
-            Backbone.Marionette.TemplateCache.get(template)();
+        if (Backbone.Marionette.TemplateCache._exists(template)) {
             this.template = template;
-        } catch (err) {
-            // Silently fall back to default template
         }
-
         this.className += (data['content-type'] || '').toLowerCase();
         _.bindAll(this, 'close'); 
         // If the tile model is removed, remove the DOM element
@@ -313,10 +327,12 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             $fragment = $fragment.add(view.$el);
         });
 
-        if ($tile) {
-            SecondFunnel.layoutEngine.insert($fragment, $tile, this.toggleLoading);
-        } else {
-            SecondFunnel.layoutEngine.append($fragment, this.toggleLoading);
+        if ($fragment.length > 0) {
+            if ($tile) {
+                SecondFunnel.layoutEngine.insert($fragment, $tile, this.toggleLoading);
+            } else {
+                SecondFunnel.layoutEngine.append($fragment, this.toggleLoading);
+            }
         }
         return this;
     },
