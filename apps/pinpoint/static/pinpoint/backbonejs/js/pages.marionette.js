@@ -1,5 +1,19 @@
+// JQuery Special event to listen to delete
+$(function() {
+    // stackoverflow.com/questions/2200494
+    var ev = new $.Event('remove'),
+        orig = $.fn.remove;
+    $.fn.remove = function () {
+        $(this).trigger(ev);
+        return orig.apply(this, arguments);
+    };
+});
+
+
+// TODO: Seperate this into modules/seperate files
 // Declaration of the SecondFunnel JS application
 var SecondFunnel = new Backbone.Marionette.Application();
+window.SecondFunnel = SecondFunnel;
 // Custom event trigger/listener
 SecondFunnel.vent = _.extend({}, Backbone.Events);
 SecondFunnel.templates = {};
@@ -19,7 +33,9 @@ var Tile = Backbone.Model.extend({
     },
 
     initialize: function (data) {
-        _.extend(this, data);
+        for (var key in data) {
+            this.set(key, data[key]);
+        }
     },
 
     getType: function () {
@@ -79,23 +95,25 @@ var LayoutEngine = Backbone.Model.extend({
         // Compiles a list of the broken image srcs and returns them
         // How we handle this is up to the Discovery module
         var self = this,
-            good = [],
-            broken = [];
-        imagesLoaded($fragment).on('always', function (imgLoad) {
-            _.each(imgLoad.images, function (img) {
-                if (!img.isLoaded) {
-                    img.img.remove();
-                    broken.push(img.img);
-                } else {
-                    good.push(img.img);
-                }
-            });
-            if (callback) {
-                callback(good, broken);
-            }
-            $(imgLoad.elements).show();
+            imgLoad = imagesLoaded($fragment);
+        // Remove broken images as they appear
+        imgLoad.on('progress', this.removeBroken);
+        imgLoad.on('always', function () {
+            // When all images are loaded, show the non-broken ones and reload
+            $(this.elements).show().delay(100);
             self.reload();
+            // Callback with the successfully loaded images
+            callback(this.elements);
         });
+    },
+
+    removeBroken: function ( instance, image ) {
+        // Assume either instance or image is an instance of an LoadingImage object
+        // Remove if broken
+        image = image || instance;
+        if ( !image.isLoaded ) {
+            $(image.img).remove();
+        }
     }
 });
 
@@ -173,8 +191,24 @@ var TileView = Backbone.Marionette.ItemView.extend({
         // Silently fall back to default template
         this.template = template || SecondFunnel.templates[this.template];
 
+        _.bindAll(this, 'close'); 
         // If the tile model is removed, remove the DOM element
-        this.listenTo(this.model, 'destroy', this.remove);
+        this.listenTo(this.model, 'destroy', this.close);
+    },
+
+    render: function () {
+        // Override to force the ItemView not to wrap
+        this.setElement(this.template(this.model.attributes));
+        this.onRender();
+    },
+
+    close: function () {
+        // As it stands, since we aren't using a REST API, we don't store
+        // the models anywhere so we don't need to destroy them.
+        // Remove view and unbind listeners
+        this.remove();
+        this.unbind();
+        this.views = [];
     },
 
     onClick: function (ev) {
@@ -182,13 +216,13 @@ var TileView = Backbone.Marionette.ItemView.extend({
         var tile = this.model,
             preview = new PreviewWindow({model: tile});
         preview.render();
-        SecondFunnel.vent.trigger("tileClicked", tile, this.$el);
+        SecondFunnel.vent.trigger("tileClicked", this);
     },
 
     onRender: function (ev) {
         // Listen for the image being removed from the DOM, if it is, remove
         // the View/Model to free memory
-        this.$("img").on('remove', this.model.destroy);
+        this.$("img").on('remove', this.close);
     }
 });
 
@@ -286,13 +320,14 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         return this;
     },
 
-    updateContentStream: function (tile, $tile) {
-        var options = {
+    updateContentStream: function (tile) {
+        var $tile = tile.$el;
+        tile = tile.model;
+
+        SecondFunnel.intentRank.getResults({
             'type': "content",
             'id': tile.getId()
-        };
-        SecondFunnel.intentRank.getResults(options, this.layoutResults, 
-            $tile);
+        }, this.layoutResults, $tile);
         return this;
     },
 
@@ -335,7 +370,7 @@ var PreviewWindow = Backbone.Marionette.ItemView.extend({
         this.$el.css({display: "table"});
 
         $('body').append(this.$el.fadeIn(100));
-        var content = new PreviewContent({model: new Tile(this.model)});
+        var content = new PreviewContent({model: new Tile(this.model.attributes)});
         content.render();
 
         this.$(".template.target")
@@ -344,8 +379,9 @@ var PreviewWindow = Backbone.Marionette.ItemView.extend({
 });
 
 var PreviewContent = Backbone.Marionette.ItemView.extend({
-    template: "#tile_preview_template",
-    model: Tile
+    template: function () {
+        return SecondFunnel.templates["tile_preview"];
+    }
 });
 
 

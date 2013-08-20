@@ -102,7 +102,7 @@
         </div>
         <!-- Templates -->
         <script type="text/template" id="product_template">
-            <div class="tile" type="<%= data['content-type'] %>">
+            <div class="tile <%= data['content-type'] %>">
                 <img src="<%= data['image'] %>" alt="<%= data['caption'] %>" />
                 <span class="type"><%= data['content-type'] %></span>
                 <div class="caption">
@@ -111,7 +111,7 @@
             </div>
         </script>
         <script type="text/template" id="youtube_template">
-            <div class="wide youtube tile" type="youtube">
+            <div class="wide youtube tile <%= data['content-type'] %>">
                 <!-- iframe type="text/html" width="<%= data['width'] %>px" height="<%= data['height'] %>px"
                           src="http://www.youtube.com/embed/<%= data['original-id'] %>?autoplay=<%= data['autoplay'] %>"
                           frameborder="0" / -->
@@ -135,12 +135,12 @@
             </div>
         </script>
         <script type="text/template" id="tile_preview_template">
-            <h2><span class="label label-info"><%= template %>_preview_template</span> is missing.</h2>
+            <h2><span class="label label-info"><%= data.template %>_preview_template</span> is missing.</h2>
             <p>You can define one in <code>index.html</code>.</p>
             <ul>
-                <% for (i in this) { if (this.hasOwnProperty(i)) { %>
-                    <li><b><%= i %></b>: <%= this[i] %></li>
-                <% }} %>
+                <% for (i in data) { %>
+                    <li><b><%= i %></b>: <%= data[i] %></li>
+                <% } %>
             </ul>
         </script>
 
