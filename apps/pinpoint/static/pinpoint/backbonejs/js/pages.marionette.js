@@ -31,6 +31,23 @@ Backbone.Marionette.TemplateCache._exists = function (templateId) {
     return false;
 };
 
+// Accept an arbitrary number of template selectors instead of just one.
+// function will return in a short-circuit manner once a template is found.
+Backbone.Marionette.TemplateCache.get = function () {
+    "use strict";
+    var i, cachedTemplate, templateExists = false;
+    console.log(arguments);
+    for (i = 0; i < arguments.length; i++) {
+        templateExists = Backbone.Marionette.TemplateCache._exists(arguments[i]);
+
+        if (templateExists) {
+            cachedTemplate = this.templateCaches[arguments[i]];
+            return cachedTemplate.load();
+        }
+    }
+    throw ("Could not find templates: " + JSON.stringify(arguments));
+};
+
 
 // TODO: Seperate this into modules/seperate files
 // Declaration of the SecondFunnel JS application
@@ -370,7 +387,12 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
 
 var PreviewContent = Backbone.Marionette.ItemView.extend({
-    template: '#tile_preview_template'
+    template: function(serializedModel) {
+        return Backbone.Marionette.TemplateCache.get(
+            '#' + serializedModel.template + '_preview_template',  //
+            '#tile_preview_template'  // fallback
+        );
+    }
 });
 
 
