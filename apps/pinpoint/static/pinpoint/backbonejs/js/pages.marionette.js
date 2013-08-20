@@ -78,17 +78,16 @@ var Tile = Backbone.Model.extend({
 
     getType: function () {
         // Get the content type of this tile
-        return this['content-type'];
+        return this.attributes['content-type'];
     },
 
     isProduct: function () {
-        // TODO: This should be something else
-        return this.getType() != 'youtube';
+        return this.getType() == 'product';
     },
 
     getId: function () {
         // Get the ID of this tile (for DB queries)
-        return this['tile-id'];
+        return this.attributes['tile-id'];
     }
 });
 
@@ -113,7 +112,8 @@ var LayoutEngine = Backbone.Model.extend({
     },
 
     append: function ($fragment, callback) {
-        $fragment.hide().appendTo(this.$el);
+        $fragment.children('img').eq(0).addClass('loading');
+        $fragment.appendTo(this.$el);
         this.$el.masonry('appended', $fragment).masonry();
         return this.imagesLoaded($fragment, callback);
     },
@@ -143,15 +143,19 @@ var LayoutEngine = Backbone.Model.extend({
             // Callback with the successfully loaded images
             callback(this.elements);
         });
+        return this;
     },
 
     removeBroken: function (instance, image) {
         // Assume either instance or image is an instance of an LoadingImage object
         // Remove if broken
         image = image || instance;
-        if (!image.isLoaded) {
-            $(image.img).remove();
+        var $img = $(image.img);
+        $img.removeClass('loading');
+        if ( !image.isLoaded ) {
+            $img.remove();
         }
+        return this;
     }
 });
 
@@ -219,23 +223,34 @@ var TileView = Backbone.Marionette.ItemView.extend({
     // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
     tagName: "div", // TODO: Should this be a setting?
     template: "#product_tile_template",
-    className: PAGES_INFO.discoveryItemSelector.substring(1) + " ",
+    className: PAGES_INFO.discoveryItemSelector.substring(1),
 
     events: {
-        'click': "onClick",
+        'click :not(.youtube)': "onClick",
         'mouseenter': "onHover",
         "mouseleave": "onHover"
     },
 
     initialize: function (options) {
         var data = options.model.attributes,
-            template = "#" + data.template + "_tile_template";
+            template = "#" + data.template + "_tile_template",
+            self = this;
 
         if (Backbone.Marionette.TemplateCache._exists(template)) {
             this.template = template;
         }
-        this.className += (data['content-type'] || '').toLowerCase();
-        _.bindAll(this, 'close');
+
+        _.each(data['content-type'].toLowerCase().split(), function (cName) {
+            self.className += " " + cName;
+        });
+        this.$el.attr('class', this.className);
+
+        // TODO: Is there a better way?
+        if (this.$el.hasClass('youtube')) {
+            this.$el.addClass('wide');
+        }
+
+        _.bindAll(this, 'close'); 
         // If the tile model is removed, remove the DOM element
         this.listenTo(this.model, 'destroy', this.close);
     },
@@ -260,6 +275,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
             preview = new PreviewWindow({'model': tile});
         preview.render();
         preview.content.show(new PreviewContent({'model': tile}));
+
         SecondFunnel.vent.trigger("tileClicked", this);
     },
 
@@ -269,6 +285,27 @@ var TileView = Backbone.Marionette.ItemView.extend({
         this.$("img").on('remove', this.close);
     }
 });
+
+
+var YoutubeTileView = TileView.extend({
+    // Subview of the TileView for Youtube Tiles
+    initialize: function (options) {
+        var data = options.model.attributes;
+        _.extend({}, data, {
+            'thumbnail': 'http://i.ytimg.com/vi/' + data['original-id'] +
+                '/hqdefault.jpg'
+        });
+    },
+
+    onClick: function (ev) {
+        
+    },
+
+    onRender: function (ev) {
+        // Don't do anything on Render...
+    }
+});
+
 
 var Discovery = Backbone.Marionette.CompositeView.extend({
     // Manages the HTML/View of ALL the tiles on the page (our discovery area)
@@ -332,13 +369,6 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
         _.each(data, function (tileData) {
             // Create the new tiles using the data
-
-            // TODO: refactor into youtube subview
-            if (tileData.template === 'youtube') {
-                tileData.thumbnail = 'http://i.ytimg.com/vi/' + tileData['original-id'] +
-                    '/hqdefault.jpg';
-            }
-
             var tile = new Tile(tileData),
                 view = new TileView({model: tile});
             self.collection.add(tile);
@@ -399,7 +429,7 @@ var PreviewContent = Backbone.Marionette.ItemView.extend({
 var PreviewWindow = Backbone.Marionette.Layout.extend({
     'tagName': "div",
     'className': "previewContainer",
-    'template': "#preview_container_template",// SecondFunnel.templates['preview_container'],
+    'template': "#preview_container_template",
     'events': {
         'click .close, .mask': function () {
             this.$el.fadeOut().remove();

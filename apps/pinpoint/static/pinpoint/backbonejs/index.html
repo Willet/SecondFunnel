@@ -102,26 +102,22 @@
         </div>
         <!-- Templates -->
         <script type="text/template" id="product_tile_template">
-            <div class="tile <%= obj['content-type'] %>">
-                <img src="<%= image %>" alt="<%= caption %>" />
-                <span class="type"><%= obj['content-type'] %></span>
-                <div class="caption">
-                    <span><%= caption %></span>
-                </div>
+            <img src="<%= image %>" alt="<%= caption %>" />
+            <span class="type"><%= obj['content-type'] %></span>
+            <div class="caption">
+                <span><%= caption %></span>
             </div>
         </script>
         <script type="text/template" id="youtube_tile_template">
-            <div class="wide youtube tile <%= obj['content-type'] %>">
-                <!-- iframe type="text/html" width="<%= width %>px" height="<%= height %>px"
-                          src="http://www.youtube.com/embed/<%= obj['original-id'] %>?autoplay=<%= autoplay %>"
-                          frameborder="0" / -->
-                <div class="img-responsive thumbnail"
-                     style="background-image: url('<%= thumbnail || image %>');">
-                    &nbsp;
-                    <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
-                </div>
-                <%= caption || name %>
+            <!-- iframe type="text/html" width="<%= width %>px" height="<%= height %>px"
+                 src="http://www.youtube.com/embed/<%= obj['original-id'] %>?autoplay=<%= autoplay %>"
+                 frameborder="0" / -->
+            <div class="img-responsive thumbnail"
+                 style="background-image: url('<%= thumbnail || image %>');">
+              &nbsp;
+              <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
             </div>
+            <%= caption || name %>
         </script>
         <script type="text/template" id="preview_container_template">
             <div class="mask"></div>
