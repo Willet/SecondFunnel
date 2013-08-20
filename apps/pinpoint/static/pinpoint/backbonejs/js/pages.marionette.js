@@ -275,10 +275,12 @@ var TileView = Backbone.Marionette.ItemView.extend({
         // Renders a YouTube video in the tile
         var thumbId = 'thumb' + this.cid,
             $thumb = this.$('div.thumbnail');
+        $thumb.wrap('<div class="video-container" />');
         $thumb.attr('id', thumbId);
+
         var player = new YT.Player(thumbId, {
-            width: $thumb.outerWidth(true),
-            height: $thumb.outerHeight(true),
+            width: $thumb.width(),
+            height: $thumb.height(),
             videoId: this.model.attributes['original-id'] || this.model.id,
             playerVars: {
                 'autoplay': 1,
