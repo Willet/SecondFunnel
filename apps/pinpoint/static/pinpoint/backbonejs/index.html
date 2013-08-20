@@ -109,9 +109,6 @@
             </div>
         </script>
         <script type="text/template" id="youtube_tile_template">
-            <!-- iframe type="text/html" width="<%= width %>px" height="<%= height %>px"
-                 src="http://www.youtube.com/embed/<%= obj['original-id'] %>?autoplay=<%= autoplay %>"
-                 frameborder="0" / -->
             <div class="img-responsive thumbnail"
                  style="background-image: url('<%= thumbnail || image %>');">
               &nbsp;
@@ -164,6 +161,7 @@
                 'masonryMobileAnimationDuration': 0
             };
         </script>
+        <script type="text/javascript" src="http:/www.youtube.com/iframe_api"></script>
         <script type="text/javascript" src="js/jquery.min.js"></script>
         <script type="text/javascript" src="js/json2.js"></script>
         <script type="text/javascript" src="js/underscore.js"></script>

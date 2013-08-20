@@ -143,9 +143,14 @@ img.loading {
 
 .tile.wide {
     width: 495px; /* 480px + 3 margins */
+    min-height: 250px;
 }
 .tile img {
     max-width: 100%;
+}
+
+.tile.wide.youtube {
+    cursor: pointer;
 }
 
 .tile.wide.youtube div.thumbnail {

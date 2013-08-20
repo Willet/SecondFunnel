@@ -16,21 +16,26 @@ Backbone.Marionette.TemplateCache._exists = function (templateId) {
     // Checks if the Template exists in the cache, if not found
     // updates the cache with the template (if it exists), otherwise fail
     // returns true if exists otherwise false.
-    var cached = this.templateCaches[templateId],
-        template = Backbone.Marionette.$(templateId).html();
+    var cached = this.templateCaches[templateId];
 
-    if (cached || template) {
-        if (!cached) {
-            // template exists but was not cached
-            var cachedTemplate = new Backbone.Marionette.TemplateCache(templateId);
-            this.templateCaches[templateId] = cachedTemplate;
-        }
+    if (cached) {
         return true;
     }
-    // template does not exist
-    return false;
-};
 
+    // template exists but was not cached
+    var cachedTemplate = new Backbone.Marionette.TemplateCache(templateId);
+    try {
+        cachedTemplate.load();
+        // Only cache on success
+        this.templateCaches[templateId] = cachedTemplate;
+    } catch (err) {
+        if (!(err.name && err.name == "NoTemplateError")) {
+            throw(err);
+        }
+    }
+    // Template does not exist
+    return !!this.templateCaches[templateId];
+};
 
 // TODO: Seperate this into modules/seperate files
 // Declaration of the SecondFunnel JS application
@@ -61,7 +66,7 @@ var Tile = Backbone.Model.extend({
 
     getType: function () {
         // Get the content type of this tile
-        return this.attributes['content-type'];
+        return this.attributes['content-type'].toLowerCase();
     },
 
     isProduct: function () {
@@ -209,7 +214,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
     className: PAGES_INFO.discoveryItemSelector.substring(1),
 
     events: {
-        'click :not(.youtube)': "onClick",
+        'click': "onClick",
         'mouseenter': "onHover",
         "mouseleave": "onHover"
     },
@@ -226,16 +231,44 @@ var TileView = Backbone.Marionette.ItemView.extend({
         _.each(data['content-type'].toLowerCase().split(), function (cName) {
             self.className += " " + cName;
         });
-        this.$el.attr('class', this.className);
-
-        // TODO: Is there a better way?
-        if (this.$el.hasClass('youtube')) {
+        this.$el.attr({
+            'class': this.className,
+            'id': this.cid
+        });
+        
+        if (this.model.getType() == 'youtube') {
+            _.extend(this.model.attributes, {
+                'thumbnail': 'http://i.ytimg.com/vi/' + data['original-id'] +
+                    '/hqdefault.jpg'
+            });
             this.$el.addClass('wide');
         }
 
         _.bindAll(this, 'close'); 
         // If the tile model is removed, remove the DOM element
         this.listenTo(this.model, 'destroy', this.close);
+    },
+
+    renderVideo: function () {
+        // Renders a YouTube video in the tile
+        var thumbId = 'thumb' + this.cid,
+            $thumb = this.$('div.thumbnail');
+        $thumb.attr('id', thumbId);
+        var player = new YT.Player(thumbId, {
+            width: $thumb.outerWidth(true),
+            height: $thumb.outerHeight(true),
+            videoId: this.model.attributes['original-id'] || this.model.id,
+            playerVars: {
+                'autoplay': 1,
+                'controls': 0
+            },
+            events: {
+                'onReady': $.noop,
+                'onStateChanges': this.onVideoEnd,
+                'onError': $.noop
+            }
+        });
+        
     },
 
     close: function () {
@@ -254,11 +287,14 @@ var TileView = Backbone.Marionette.ItemView.extend({
 
     onClick: function (ev) {
         "use strict";
-        var tile = this.model,
-            preview = new PreviewWindow({'model': tile});
-        preview.render();
-        preview.content.show(new PreviewContent({'model': tile}));
-
+        if (this.model.getType() == 'youtube') {
+            this.renderVideo();
+        } else {
+            var tile = this.model,
+                preview = new PreviewWindow({'model': tile});
+            preview.render();
+            preview.content.show(new PreviewContent({'model': tile}));
+        }
         SecondFunnel.vent.trigger("tileClicked", this);
     },
 
@@ -266,29 +302,12 @@ var TileView = Backbone.Marionette.ItemView.extend({
         // Listen for the image being removed from the DOM, if it is, remove
         // the View/Model to free memory
         this.$("img").on('remove', this.close);
-    }
-});
-
-
-var YoutubeTileView = TileView.extend({
-    // Subview of the TileView for Youtube Tiles
-    initialize: function (options) {
-        var data = options.model.attributes;
-        _.extend({}, data, {
-            'thumbnail': 'http://i.ytimg.com/vi/' + data['original-id'] +
-                '/hqdefault.jpg'
-        });
     },
 
-    onClick: function (ev) {
-        
-    },
-
-    onRender: function (ev) {
-        // Don't do anything on Render...
+    onVideoEnd: function (ev) {
+        SecondFunnel.vent.trigger("videoEnded", ev, this);
     }
 });
-
 
 var Discovery = Backbone.Marionette.CompositeView.extend({
     // Manages the HTML/View of ALL the tiles on the page (our discovery area)
@@ -354,6 +373,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             // Create the new tiles using the data
             var tile = new Tile(tileData),
                 view = new TileView({model: tile});
+
             self.collection.add(tile);
 
             view.render();
