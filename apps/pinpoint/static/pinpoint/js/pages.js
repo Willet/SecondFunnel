@@ -20,7 +20,8 @@ var PAGES = (function ($, details, Willet) {
         globalIdCounters = {},
         hoverTimer,
         sizableRegex = /images\.secondfunnel\.com/,
-        $wnd = $(window);
+        $wnd = $(window),
+        me = {};
 
     function getLoadingBlocks() {
         return loadingBlocks;
@@ -691,7 +692,7 @@ var PAGES = (function ($, details, Willet) {
     }
 
     function loadResults(belowFold, callback) {
-        callback = callback || layoutResults;
+        callback = callback || me.layoutResults;
         if (!loadingBlocks) {
             mediator.fire('IR.getResults', [callback, belowFold]);
         }
@@ -707,7 +708,7 @@ var PAGES = (function ($, details, Willet) {
 
     function loadInitialResults(seed) {
         mediator.fire('IR.changeSeed', [seed]);
-        mediator.fire('IR.getInitialResults', [layoutResults]);
+        mediator.fire('IR.getInitialResults', [me.layoutResults]);
     }
 
     function loadMoreResults(callback, belowFold) {
@@ -715,7 +716,7 @@ var PAGES = (function ($, details, Willet) {
         return loadResults(belowFold, callback);
     }
                           
-    function layoutResults(jsonData, belowFold, callback) {
+    me.layoutResults = function (jsonData, belowFold, callback) {
         // renders product divs onto the page.
         // suppose results is (now) a legit json object:
         // {products: [], videos: [(sizeof 1)]}
@@ -1015,7 +1016,7 @@ var PAGES = (function ($, details, Willet) {
         }
 
         if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
-            loadResults(true, layoutResults);
+            loadResults(true, me.layoutResults);
         }
 
         $('.block', '.discovery-area').each(function (idx, obj) {
@@ -1107,7 +1108,7 @@ var PAGES = (function ($, details, Willet) {
             $discovery.on('click', '.block:not(.youtube):not(.unclickable)',
                 function (e) {
                     var callback = function(jsonData, belowFold) {
-                        layoutResults(jsonData, false, _.partial(layoutRelated, e.currentTarget));
+                        me.layoutResults(jsonData, false, _.partial(layoutRelated, e.currentTarget));
                     };
                     mediator.fire('IR.getResults', [callback, false, e.currentTarget]);
                 });
@@ -1214,7 +1215,7 @@ var PAGES = (function ($, details, Willet) {
             ready = readyFunc;
         }
         if (layoutFunc) {  // override
-            layoutResults = layoutFunc;
+            me.layoutResults = layoutFunc;
         }
         load(scripts);
         $(document).ready(ready);
@@ -1251,7 +1252,7 @@ var PAGES = (function ($, details, Willet) {
 
     mediator.on('PAGES.changeViewportSettings', changeViewportSettings);
 
-    return {
+    me = {
         'init': _.once(init),
         'addPreviewCallback': addPreviewCallback,
         'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
@@ -1260,7 +1261,7 @@ var PAGES = (function ($, details, Willet) {
         'reloadMasonry': reloadMasonry,
         'loadInitialResults': loadInitialResults,
         'loadResults': loadResults,
-        'layoutResults': layoutResults,
+        'layoutResults': me.layoutResults,
         'layoutRelated': layoutRelated,
         'attachListeners': attachListeners,
         'pageScroll': pageScroll,
@@ -1270,6 +1271,8 @@ var PAGES = (function ($, details, Willet) {
         'getModifiedTemplateName': getModifiedTemplateName,
         'getTemplate': getTemplate
     };
+
+    return me;
 }(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA, Willet));
 
 
