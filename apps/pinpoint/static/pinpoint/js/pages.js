@@ -5,8 +5,12 @@ var PAGES = (function ($, details, Willet) {
         domTemplateCache = {},
         MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
         SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || false,
+        DESKTOP_WIDTH = 0,  // >= which defines this theme's desktop mode
         mediator = Willet.mediator,
-        browser = Willet.browser || {'mobile': false},
+        browser = Willet.browser || {
+            'mobile': false,
+            'touch': false
+        },
         mediaAPI = Willet.mediaAPI,
         scripts,
         scriptsLoaded = [],
@@ -24,6 +28,10 @@ var PAGES = (function ($, details, Willet) {
 
     function setLoadingBlocks(bool) {
         loadingBlocks = bool;
+    }
+
+    function endsWith(str, suffix) {
+        return str.indexOf(suffix, str.length - suffix.length) !== -1;
     }
 
     function getModifiedTemplateName(name) {
@@ -169,18 +177,28 @@ var PAGES = (function ($, details, Willet) {
         // image before use
         var newUrl,
             filename,
+            extension = url.split('.').pop(),
             imageSizes = [
                 "icon", "thumb", "small", "compact", "medium", "large",
                 "grande", "1024x1024", "master"
+            ],
+            allowedExtensions = [
+                "png", "jpg", "jpeg"
             ];
 
-        if (!sizableRegex.test(url) || !_.contains(imageSizes, desiredSize)) {
+        // Don't resize:
+        //      - images that haven't come from us
+        //      - sizes we don't have
+        //      - .gifs!
+        if (!sizableRegex.test(url)
+            || !_.contains(imageSizes, desiredSize)
+            || !_.contains(allowedExtensions, extension)) {
             return url;
         }
 
         // Replace filename with new size
         filename = url.substring(url.lastIndexOf('/') + 1);
-        newUrl = url.replace(filename, desiredSize + '.jpg');
+        newUrl = url.replace(filename, desiredSize + '.' + extension);
 
         return newUrl;
     }
@@ -220,20 +238,35 @@ var PAGES = (function ($, details, Willet) {
 
     function loadYoutubeVideo(videoID, thumbnailID, onStateChange) {
         // @return: None
-        var player = new YT.Player(thumbnailID, {
-            height: 250,
-            width: 450,
-            videoId: videoID,
-            playerVars: {
-                'autoplay': 1,
-                'controls': 0
-            },
-            events: {
-                'onReady': $.noop,
-                'onStateChange': onStateChange,
-                'onError': $.noop
-            }
-        });
+        var forceOpenInNewWindow = false;
+
+        try {
+            forceOpenInNewWindow = (
+                $('#' + thumbnailID).parent().data('popout') === 'popout'
+            );
+        } catch (eitherThumbnailOrItsParentNotFoundErr) {
+            // stays false
+        }
+
+        if (typeof YT === 'undefined' || forceOpenInNewWindow) {
+            // http://stackoverflow.com/questions/12429969/ios-6-embed-youtube
+            window.open('http://youtube.com/watch?v=' + videoID);
+        } else { // default
+            var player = new YT.Player(thumbnailID, {
+                height: 250,
+                width: $('.block.youtube').width(),
+                videoId: videoID,
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': (browser.mobile || browser.touch) ? 1 : 0
+                },
+                events: {
+                    'onReady': $.noop,
+                    'onStateChange': onStateChange,
+                    'onError': $.noop
+                }
+            });
+        }
     }
 
     function getYoutubeThumbnail(videoID, videoData) {
@@ -259,6 +292,84 @@ var PAGES = (function ($, details, Willet) {
         }
 
         return thumbURL;
+    }
+
+    function changeViewportSettings(newOpts) {
+        // browser needs to support window.devicePixelRatio
+        // (a WebKit property), and it needs to be greater than 1
+        // (where 1 just means "it's a normal screen")
+        //
+        // this function changes the viewport content even if no option
+        // is given.
+        // www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html
+        if ((!window.devicePixelRatio) || (window.devicePixelRatio < 1)) {
+            mediator.fire('error', ['Missing / out-of-range devicePixelRatio']);
+            return;
+        }
+
+        var viewportMeta = $('meta[name="viewport"]', 'head'),
+            viewportProps,
+            optVal = '',
+            outputBuffer = '',
+            i;
+
+        newOpts = $.extend({}, newOpts);  // just turning it into an object
+
+        if (!viewportMeta.length && window.devicePixelRatio) {
+            // if no viewport is found of it, it will be made.
+            // (assuming the device supports it)
+            viewportMeta = $('<meta />', {
+                'name': 'viewport'
+            });
+            $('head').append(viewportMeta);
+        }
+
+        // deconstruct the content of the viewport meta tag.
+        // all WebKit browsers have Array.prototype.map
+        viewportProps = (viewportMeta.prop('content') || '')
+            // ';' is technically not allowed as a separator, but people use it
+            .split(/[,;]/)
+            .map($.trim)
+            .map(function (kv) {
+                // split them further by parameter groups
+                kv = kv || '=';
+                return kv.toLowerCase().split('=').map($.trim);
+            });
+
+        for (i = 0; i < viewportProps.length; i++) {
+            // replace each value by ones specified.
+            // values can be empty strings.
+            optVal = newOpts[viewportProps[i][0]];
+            if (optVal) {  // specified value
+                viewportProps[i][1] = optVal;
+                outputBuffer += viewportProps[i][0] + '=' +
+                                viewportProps[i][1] + ',';
+            } else if (optVal === '') {
+                // drop key
+            } else {
+                outputBuffer += viewportProps[i][0] + '=' +
+                                viewportProps[i][1] + ',';
+            }
+            delete newOpts[viewportProps[i][0]];  // remove the used key
+        }
+
+        for (i in newOpts) {
+            // rules in options that wasn't in the original content
+            if (_.has(newOpts, i)) {
+                outputBuffer += i + '=' + newOpts[i] + ',';
+            }
+        }
+
+        if (outputBuffer.substr(-1) === ',') {
+            // remove trailing comma (if present)
+            outputBuffer = outputBuffer.substring(0, outputBuffer.length - 1);
+        }
+
+        viewportMeta.prop('content', outputBuffer);
+        return {
+            'element': viewportMeta,
+            'rules': _.object(viewportProps)
+        };
     }
 
     function renderTemplate(str, context, isBlock) {
@@ -471,6 +582,7 @@ var PAGES = (function ($, details, Willet) {
             options = options || {
                 itemSelector: '.block',
                 columnWidth: $(this).width() / 4,
+                hiddenStyle: { opacity: 0, transform: 'scale(1)' },
                 isResizeBound: true,
                 visibleStyle: {
                     opacity: 1
@@ -563,7 +675,7 @@ var PAGES = (function ($, details, Willet) {
     }
 
     function youtubeHoverOn() {
-        commonHoverOn(this, !browser.mobile, false);
+        commonHoverOn(this, !(browser.mobile || browser.touch), false);
     }
 
     function youtubeHoverOff() {
@@ -748,6 +860,12 @@ var PAGES = (function ($, details, Willet) {
                             // This block is ready to go, render it on the page.
                             $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
                             $elem.find('div').removeClass('hidden');
+
+                            if (this.width < this.height) {
+                                mediator.fire('log', ['not wide enough to be wide']);
+                                $elem.removeClass('wide');
+                            }
+
                             // Trigger a window resize event because Masonry's resize logic is better (faster)
                             // than it's reload logic.
                             $wnd.resize();
@@ -760,7 +878,7 @@ var PAGES = (function ($, details, Willet) {
                 var instance = $(this),
                     isAdded = setInterval(function(){
                         if ($.contains(document.documentElement, instance[0])) {
-                            instance.parent().parent().remove();
+                            instance.closest('.block').remove();
                             clearInterval(isAdded);
                         }
                     }, 500);
@@ -919,30 +1037,38 @@ var PAGES = (function ($, details, Willet) {
             var $block = $(obj),
                 blockWasInView = $block.hasClass('in-view') || false,
                 blockIsInView = isScrolledIntoView($block, false);
-            $block.toggleClass('in-view', blockIsInView);  // tell the block
 
-            if (blockWasInView !== blockIsInView && $block.hasClass('wide')) {
-                // visibility changed
-                if (blockIsInView) {
-                    $block.find('.tap_indicator')
-                        .removeClass('fadeIn')
-                        .addClass('animated fadeOut');
-                } else {
-                    $block.find('.tap_indicator')
-                        .removeClass('fadeOut')
-                        .addClass('animated fadeIn');
+            if (blockWasInView !== blockIsInView) {  // visibility changed
+                $block.toggleClass('in-view', blockIsInView);  // tell the block
+
+                if ($block.hasClass('wide') && browser.touch) {
+                    if (blockIsInView) {
+                        $block.find('.tap_indicator')
+                            .removeClass('fadeIn')
+                            .addClass('animated fadeOut');
+                    } else {
+                        $block.find('.tap_indicator')
+                            .removeClass('fadeOut')
+                            .addClass('animated fadeIn');
+                    }
                 }
             }
         });
     }
 
     function windowResize() {
-        // if the browser changes size, switch to mobile templates,
-        // even if the device is not mobile, and vice versa.
+        // if the browser changes size, switch to appropriate template,
+        // DESKTOP_WIDTH needs to match the theme's CSS desktop media queries.
         // this cannot "un-render" js templates previously rendered with
         // a different-size template.
         var oldState = browser.mobile;
-        browser.mobile = ($wnd.width() < 1024);
+        if (details.DESKTOP_WIDTH && details.DESKTOP_WIDTH > 480) {
+            // i.e. if the requested DESKTOP_WIDTH makes sense, use it
+            DESKTOP_WIDTH = details.DESKTOP_WIDTH;
+        } else {  // default desktop width is 1024px
+            DESKTOP_WIDTH = 1024;
+        }
+        browser.mobile = ($wnd.width() < DESKTOP_WIDTH);
 
         if (browser.mobile !== oldState) {  // if it changed
             if (browser.mobile) {
@@ -953,6 +1079,9 @@ var PAGES = (function ($, details, Willet) {
                 $('style.mobile-only').prop('disabled', 'disabled');
                 $('style.desktop-only').prop('disabled', '');
             }
+            $('html')
+                .toggleClass('mobile', browser.mobile)
+                .toggleClass('desktop', !browser.mobile);
         }
 
         var $discovery = $('.discovery-area'),
@@ -1061,6 +1190,11 @@ var PAGES = (function ($, details, Willet) {
 
     function ready() {
         // Special Setup
+
+        // stackoverflow.com/questions/2915833/how-to-check-browser-for-touchstart-support-using-js-jquery
+        browser.touch = ('ontouchstart' in document.documentElement);
+        $('html').toggleClass('touch-enabled', browser.touch);
+
         loadTemplates(); // populate list of templates in templatesOnPage
         renderTemplates();
         attachListeners();
@@ -1124,9 +1258,12 @@ var PAGES = (function ($, details, Willet) {
         'onload': $.noop
     }];
 
-    // not sure why we exposed hidePreview... here are deprecation hooks.
+    // used by gap's promo buttons, and by any element that wish to open their
+    // own "pages"
     mediator.on('PAGES.showPreview', showPreview);
     mediator.on('PAGES.hidePreview', hidePreview);
+
+    mediator.on('PAGES.changeViewportSettings', changeViewportSettings);
 
     return {
         'init': _.once(init),

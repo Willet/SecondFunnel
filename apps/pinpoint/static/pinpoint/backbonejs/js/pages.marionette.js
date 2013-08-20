@@ -1,16 +1,18 @@
 // JQuery Special event to listen to delete
-$(function() {
+$(function () {
     // stackoverflow.com/questions/2200494
+    // does not work with jQuery UI
+    // does not work when affected by html(), replace(), replaceWith(), ...
     var ev = new $.Event('remove'),
         orig = $.fn.remove;
-    $.fn.remove = function () {
+    $.fn.remove = $.fn.remove || function () {
         $(this).trigger(ev);
         return orig.apply(this, arguments);
     };
 });
 
 // Marionette TemplateCache extension to allow checking cache for template
-Backbone.Marionette.TemplateCache._exists = function(templateId) {
+Backbone.Marionette.TemplateCache._exists = function (templateId) {
     // Checks if the Template exists in the cache, if not found
     // updates the cache with the template (if it exists), otherwise fail
     // returns true if exists otherwise false.
@@ -127,7 +129,7 @@ var LayoutEngine = Backbone.Model.extend({
         return this;
     },
 
-    removeBroken: function ( instance, image ) {
+    removeBroken: function (instance, image) {
         // Assume either instance or image is an instance of an LoadingImage object
         // Remove if broken
         image = image || instance;
@@ -156,7 +158,7 @@ var IntentRank = Backbone.Model.extend({
                     'url': this.base
                 })),
             args = Array.prototype.slice.apply(arguments);
-        args = args.length > 2? args.slice(2) : [];
+        args = args.length > 2 ? args.slice(2) : [];
 
         $.ajax({
             url: uri,
@@ -324,7 +326,8 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         $(window).scroll(this.pageScroll);
 
         // TODO: Find a better way than this...
-        _.bindAll(this, 'toggleLoading', 'layoutResults', 'updateContentStream');
+        _.bindAll(this, 'toggleLoading', 'layoutResults',
+            'updateContentStream');
 
         // Vent Listeners
         SecondFunnel.vent.on("tileClicked", this.updateContentStream);
@@ -359,9 +362,11 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
         if ($fragment.length > 0) {
             if ($tile) {
-                SecondFunnel.layoutEngine.insert($fragment, $tile, this.toggleLoading);
+                SecondFunnel.layoutEngine.insert($fragment, $tile,
+                    this.toggleLoading);
             } else {
-                SecondFunnel.layoutEngine.append($fragment, this.toggleLoading);
+                SecondFunnel.layoutEngine.append($fragment,
+                    this.toggleLoading);
             }
         }
         return this;
@@ -427,22 +432,24 @@ function syntaxHighlight(json) {
     if (typeof json != 'string') {
         json = JSON.stringify(json, undefined, 2);
     }
-    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-        var cls = 'number';
-        if (/^"/.test(match)) {
-            if (/:$/.test(match)) {
-                cls = 'key';
-            } else {
-                cls = 'string';
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g,
+        '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+        function (match) {
+            var cls = 'number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'key';
+                } else {
+                    cls = 'string';
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'boolean';
+            } else if (/null/.test(match)) {
+                cls = 'null';
             }
-        } else if (/true|false/.test(match)) {
-            cls = 'boolean';
-        } else if (/null/.test(match)) {
-            cls = 'null';
-        }
-        return '<span class="' + cls + '">' + match + '</span>';
-    });
+            return '<span class="' + cls + '">' + match + '</span>';
+        });
 }
 
 $(function () {
@@ -451,7 +458,7 @@ $(function () {
         // Add our initiliazer, this allows us to pass a series of tiles
         // to be displayed immediately (and first) on the landing page.
         SecondFunnel.discovery = new Discovery({});
-        SecondFunnel.discovery.on("pageScroll", function(args) {
+        SecondFunnel.discovery.on("pageScroll", function (args) {
             "use strict";
             args.view.getTiles();
         });

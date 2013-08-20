@@ -57,7 +57,7 @@ var pagesTracking = (function ($, window, document) {
                 "network=" + o.network || "",
                 "actionType=" + o.type,
                 "actionSubtype=" + o.subtype || "",
-                "actionScope=" + pagesTracking.socialShareType,
+                "actionScope=" + pagesTracking.socialShareType
             ];
 
             notABounce(o.type);
