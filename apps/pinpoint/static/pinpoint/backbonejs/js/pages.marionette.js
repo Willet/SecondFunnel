@@ -77,12 +77,7 @@ var Tile = Backbone.Model.extend({
         // come specifying a type or caption
         'caption': "I don't even",
         'tile-id': 0,
-        'content-type': "product",
-        // Default YT settings, some videos dont' come
-        // specifying dimensions and/or autoplay settings.
-        'width': 480,
-        'height': 300,
-        'autoplay': 0
+        'content-type': "product"
     },
 
     initialize: function (data) {
@@ -262,7 +257,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
             'class': this.className,
             'id': this.cid
         });
-        
+
         if (this.model.getType() == 'youtube') {
             _.extend(this.model.attributes, {
                 'thumbnail': 'http://i.ytimg.com/vi/' + data['original-id'] +
@@ -351,7 +346,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     },
 
     appendHtml: function (collectionView, itemView) {
-        collectionView.$(":last").append(itemView.el);
+        // Pass
     },
 
     initialize: function (options) {
