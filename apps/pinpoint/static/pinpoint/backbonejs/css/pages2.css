@@ -206,6 +206,13 @@ div.loading {
     height: 100%;
 }
 
+.social-buttons {
+    width: 210px;
+}
+.wide .social-buttons {
+    width: 470px;
+    max-width: 88%; /* empirical */
+}
 .social-buttons button, .social-buttons .button {
     display: inline-block;
 }
