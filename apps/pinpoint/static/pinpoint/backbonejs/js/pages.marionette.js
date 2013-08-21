@@ -375,14 +375,6 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     layoutEngine: null,
     loading: false,
 
-    triggers: {
-        "scroll window": "pageScroll"
-    },
-
-    appendHtml: function (collectionView, itemView) {
-        // Pass
-    },
-
     initialize: function (options) {
         // Initialize IntentRank; use as a seperate module to make changes easier.
         SecondFunnel.intentRank = new IntentRank;
@@ -538,10 +530,6 @@ $(function () {
         // Add our initiliazer, this allows us to pass a series of tiles
         // to be displayed immediately (and first) on the landing page.
         SecondFunnel.discovery = new Discovery({});
-        SecondFunnel.discovery.on("pageScroll", function (args) {
-            "use strict";
-            args.view.getTiles();
-        });
     });
 
     // Start the SecondFunnel app
