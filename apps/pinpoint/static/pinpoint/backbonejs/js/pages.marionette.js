@@ -336,17 +336,6 @@ var TileView = Backbone.Marionette.Layout.extend({
         if (this.socialButtons) {
             var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn': 'fadeOut';
             this.socialButtons.$el[inOrOut](200);
-
-            var facebookButton = this.socialButtons.$el.find('.facebook');
-            if (window.FB.XFBML && facebookButton && facebookButton.length >= 1) {
-                if (!facebookButton.attr('id')) {
-                    // generate a unique id for this facebook button
-                    // so fb can parse it.
-                    var fbId = this.socialButtons.currentView.cid + '-fb';
-                    facebookButton.attr('id', fbId);
-                    window.FB.XFBML.parse(fbId);
-                }
-            }
         }
     },
 
@@ -367,7 +356,7 @@ var TileView = Backbone.Marionette.Layout.extend({
         // Listen for the image being removed from the DOM, if it is, remove
         // the View/Model to free memory
         this.$("img").on('remove', this.close);
-        this.socialButtons.show(new SocialButtons());
+        this.socialButtons.show(new SocialButtons({model: this.model}));
     },
 
     onVideoEnd: function (ev) {
@@ -376,6 +365,9 @@ var TileView = Backbone.Marionette.Layout.extend({
 });
 
 var SocialButtons = Backbone.Marionette.ItemView.extend({
+    // accepts a parent View. the parent View must have product information
+    // in its attributes.
+
     // override the template by passing it in: new SocialButtons({ template: ... })
     // template can be a selector or a function(json) ->  <_.template>
     'template': '#social_buttons_template',
@@ -433,7 +425,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
 
         // pinterest does its own stuff - just include pinit.js.
         // however, if it is to be disabled, the div needs to go.
-        // see 'render' of this object.
+        // see 'render' of SocialButtons.
     }),
     'ui': {
         'facebook': "div.facebook",
@@ -442,19 +434,41 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
     },
     'events': {
         'click .facebook': function (/* this */) {
-            alert('wtf');
+            console.log('click .facebook');
         },
         'hover': function (/* this */) {
             if (!this.$el.hasClass('loaded')) {
                 // TODO: load something... but hasn't everything been loaded?
+                var derp;
             }
+        }
+    },
+
+    'templateHelpers': {  // (or func() --> {kv})
+        //github.com/marionettejs/backbone.marionette/blob/master/docs/marionette.view.md#viewtemplatehelpers
+        'fburl': function (/* this: model.toJSON */) {
+            // generate the button's share link for fb.
+            // TODO: show_count
+
+            var data = this,
+                page = PAGES_INFO.page,
+                product = data || page.product,
+                hasFeaturedImg = !data.title && (data.template !== 'youtube'),
+                image = (page && hasFeaturedImg) ? (page['stl-image'] || page['featured-image']) : (data.image || data.url),
+                fburl = (product.url || image);
+
+            if (fburl.indexOf("facebook") > -1) {
+                fburl = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(fburl)[1];
+            }
+            return fburl;
         }
     },
     // 'triggers': { "click .facebook": "event1 event2" },
     // 'onBeforeRender': $.noop,
     'onRender': function () {
-        this.$el.parent().hide();
         var self = this;
+
+        this.$el.parent().hide();
 
         // remove disabled default buttons
         this.$el.find('.button').each(function (i, o) {
@@ -463,9 +477,21 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             if (btnSets.length >= self.buttonTypes.length) {
                 // magic. if a default is removed rom the list of
                 // required buttons, the default button is removed
-                $(o).remove();
+                // console.log($(o).getClasses().toString() + ' removed');
+                // $(o).remove();
             }
         });
+
+        var facebookButton = this.$el.find('.facebook.button');
+        if (window.FB.XFBML && facebookButton && facebookButton.length >= 1) {
+            if (!facebookButton.attr('id')) {
+                // generate a unique id for this facebook button
+                // so fb can parse it.
+                var fbId = this.cid + '-fb';
+                facebookButton.attr('id', fbId);
+                window.FB.XFBML.parse(facebookButton[0]);
+            }
+        }
     },
     // 'onDomRefresh': $.noop,
     // 'onBeforeClose': function () { return true; },
@@ -607,7 +633,7 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
     },
     'onRender': function () {
         this.$el.css({display: "table"});
-        this.socialButtons.show(new SocialButtons());
+        this.socialButtons.show(new SocialButtons({model: this.model}));
         $('body').append(this.$el.fadeIn(PAGES_INFO.previewAnimationDuration));
     }
 });

@@ -67,3 +67,7 @@ body {
     text-align: center;
     margin: 0 auto;
 }
+
+.social-buttons .facebook {
+    height: 15px;
+}
