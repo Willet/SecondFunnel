@@ -9,6 +9,12 @@ $(function () {
         $(this).trigger(ev);
         return orig.apply(this, arguments);
     };
+
+    $.fn.getClasses = $.fn.getClasses || function () {
+        // random helper. get an element's list of classes.
+        // example output: ['facebook', 'button']
+        return _.compact($(this).attr('class').split(' ').map($.trim));
+    };
 });
 
 
@@ -93,7 +99,11 @@ var Tile = Backbone.Model.extend({
     },
 
     isProduct: function () {
-        return this.getType() == 'product';
+        return this.getType() === 'product';
+    },
+
+    is: function (type) {
+        return this.getType().toLowerCase() === type.toLowerCase();
     },
 
     getId: function () {
@@ -369,14 +379,19 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
     // override the template by passing it in: new SocialButtons({ template: ... })
     // template can be a selector or a function(json) ->  <_.template>
     'template': '#social_buttons_template',
-    'buttonsTypes': ['facebook', 'twitter', 'pinterest'],  // required to support
+    'showCondition': function () {
+        // @override to false under any condition you don't want buttons to show
+        return true;
+    },
+    "buttonTypes": PAGES_INFO.socialButtons ||
+                    ['facebook', 'twitter', 'pinterest'],  // @override via constructor
     // 'model': undefined,  // auto-serialization of constructor(obj)
     // 'collection': undefined,  // auto-serialization of constructor([obj])
     // 'tagName': "div",
     // 'className': 'social-buttons',  // default: empty div
     // getTemplate: function (/* this */) { return '#<template>'; },
     'initialize': _.once(function (noop) {
-        if (window.FB) {
+        if (window.FB && _.contains(this.buttonTypes, "facebook")) {
             window.FB.init({
                 cookie: true,
                 status: true,
@@ -384,37 +399,41 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             });
         }
 
-        window.twttr.widgets.load();
-        window.twttr.ready(function (twttr) {
-            twttr.events.bind('tweet', function(event) {
-                // TODO: actual tracking
-                /*pagesTracking.registerEvent({
-                    "network": "Twitter",
-                    "type": "share",
-                    "subtype": "shared"
-                });*/
+        if (_.contains(this.buttonTypes, "twitter")) {
+            window.twttr.widgets.load();
+            window.twttr.ready(function (twttr) {
+                twttr.events.bind('tweet', function(event) {
+                    // TODO: actual tracking
+                    /*pagesTracking.registerEvent({
+                        "network": "Twitter",
+                        "type": "share",
+                        "subtype": "shared"
+                    });*/
+                });
+
+                twttr.events.bind('click', function(event) {
+                    var sType;
+                    if (event.region === "tweet") {
+                        sType = "clicked";
+                    } else if (event.region === "tweetcount") {
+                        sType = "leftFor";
+                    } else {
+                        sType = event.region;
+                    }
+
+                    // TODO: actual tracking
+                    /*pagesTracking.registerEvent({
+                        "network": "Twitter",
+                        "type": "share",
+                        "subtype": sType
+                    });*/
+                });
             });
+        }
 
-            twttr.events.bind('click', function(event) {
-                var sType;
-                if (event.region === "tweet") {
-                    sType = "clicked";
-                } else if (event.region === "tweetcount") {
-                    sType = "leftFor";
-                } else {
-                    sType = event.region;
-                }
-
-                // TODO: actual tracking
-                /*pagesTracking.registerEvent({
-                    "network": "Twitter",
-                    "type": "share",
-                    "subtype": sType
-                });*/
-            });
-        });
-
-        // pinterest does its own stuff - just include pinit.js
+        // pinterest does its own stuff - just include pinit.js.
+        // however, if it is to be disabled, the div needs to go.
+        // see 'render' of this object.
     }),
     'ui': {
         'facebook': "div.facebook",
@@ -435,6 +454,18 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
     // 'onBeforeRender': $.noop,
     'onRender': function () {
         this.$el.parent().hide();
+        var self = this;
+
+        // remove disabled default buttons
+        this.$el.find('.button').each(function (i, o) {
+            var classes = $(o).getClasses(),
+                btnSets = _.difference(self.buttonTypes, classes);
+            if (btnSets.length >= self.buttonTypes.length) {
+                // magic. if a default is removed rom the list of
+                // required buttons, the default button is removed
+                $(o).remove();
+            }
+        });
     },
     // 'onDomRefresh': $.noop,
     // 'onBeforeClose': function () { return true; },
@@ -580,31 +611,6 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
         $('body').append(this.$el.fadeIn(PAGES_INFO.previewAnimationDuration));
     }
 });
-
-function syntaxHighlight(json) {
-    // something about internets http://stackoverflow.com/a/7220510/1558430
-    if (typeof json != 'string') {
-        json = JSON.stringify(json, undefined, 2);
-    }
-    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g,
-        '&gt;');
-    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
-        function (match) {
-            var cls = 'number';
-            if (/^"/.test(match)) {
-                if (/:$/.test(match)) {
-                    cls = 'key';
-                } else {
-                    cls = 'string';
-                }
-            } else if (/true|false/.test(match)) {
-                cls = 'boolean';
-            } else if (/null/.test(match)) {
-                cls = 'null';
-            }
-            return '<span class="' + cls + '">' + match + '</span>';
-        });
-}
 
 $(function () {
     // Add SecondFunnel component(s)
