@@ -40,7 +40,6 @@ Backbone.Marionette.TemplateCache._exists = function (templateId) {
             throw(err);
         }
     }
-    // Template does not exist
     return !!this.templateCaches[templateId];
 };
 
@@ -49,25 +48,26 @@ Backbone.Marionette.TemplateCache._exists = function (templateId) {
 Backbone.Marionette.View.prototype.getTemplate = function () {
     "use strict";
     var i, templateIDs = Backbone.Marionette.getOption(this, "templates"),
-        templateExists;
+        template = Backbone.Marionette.getOption(this, "template"),
+        temp, templateExists;
 
     if (templateIDs) {
         for (i = 0; i < templateIDs.length; i++) {
-            templateIDs[i] = _.template(templateIDs[i], {
+            temp = _.template(templateIDs[i], {
                 'data': Backbone.Marionette.getOption(this, "model").attributes
             });
-            templateExists = Backbone.Marionette.TemplateCache._exists(templateIDs[i]);
+            templateExists = Backbone.Marionette.TemplateCache._exists(temp);
 
             if (templateExists) {
                 // replace this thing's desired template ID to the
                 // highest-order template found
-                this.options.template = templateIDs[i];
+                template = temp;
                 break;
             }
         }
     }
 
-    return Marionette.getOption(this, "template");
+    return template;
 };
 
 
@@ -513,12 +513,13 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         return this;
     },
 
-    getTiles: function (options) {
+    getTiles: function (options, $tile) {
         if (!this.loading) {
             this.toggleLoading();
             options = options || {};
             options.type = options.type || 'campaign';
-            SecondFunnel.intentRank.getResults(options, this.layoutResults);
+            SecondFunnel.intentRank.getResults(options, 
+                this.layoutResults, $tile);
         }
         return this;
     },
@@ -547,19 +548,18 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
                 SecondFunnel.layoutEngine.call('append', $fragment,
                     this.toggleLoading);
             }
+        } else {
+            // Empty results, just toggle loading.
+            this.toggleLoading();
         }
         return this;
     },
 
     updateContentStream: function (tile) {
-        var $tile = tile.$el;
-        tile = tile.model;
-
-        SecondFunnel.intentRank.getResults({
+        return this.getTiles({
             'type': "content",
-            'id': tile.getId()
-        }, this.layoutResults, $tile);
-        return this;
+            'id': tile.model.getId()
+        }, tile.$el);
     },
 
     toggleLoading: function (self) {
