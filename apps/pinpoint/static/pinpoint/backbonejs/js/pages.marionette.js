@@ -349,7 +349,8 @@ var TileView = Backbone.Marionette.Layout.extend({
     onHover: function (ev) {
         // Trigger tile hover event with event and tile
         SecondFunnel.vent.trigger("tileHover", ev, this);
-        if (this.socialButtons) {
+        if (this.socialButtons && this.socialButtons.$el &&
+            this.socialButtons.$el.children().length) {
             var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn' : 'fadeOut';
             this.socialButtons.$el[inOrOut](200);
 
@@ -369,7 +370,7 @@ var TileView = Backbone.Marionette.Layout.extend({
         }
         SecondFunnel.vent.trigger("tileClicked", this);
     },
-    
+
     'onBeforeRender': function () {
         if (Math.random() < 0.333) {
             this.$el.addClass('wide');
@@ -380,7 +381,9 @@ var TileView = Backbone.Marionette.Layout.extend({
         // Listen for the image being removed from the DOM, if it is, remove
         // the View/Model to free memory
         this.$("img").on('remove', this.close);
-        this.socialButtons.show(new SocialButtons({model: this.model}));
+        if (SocialButtons.prototype.buttonTypes.length) {
+            this.socialButtons.show(new SocialButtons({model: this.model}));
+        }
     },
 
     onVideoEnd: function (ev) {
