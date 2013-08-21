@@ -242,7 +242,7 @@ var TileCollection = Backbone.Collection.extend({
     }
 });
 
-var TileView = Backbone.Marionette.ItemView.extend({
+var TileView = Backbone.Marionette.Layout.extend({
     // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
     tagName: "div", // TODO: Should this be a setting?
     template: "#product_tile_template",
@@ -252,6 +252,10 @@ var TileView = Backbone.Marionette.ItemView.extend({
         'click': "onClick",
         'mouseenter': "onHover",
         "mouseleave": "onHover"
+    },
+
+    'regions': {
+        'socialButtons': '.social-buttons'
     },
 
     initialize: function (options) {
@@ -271,7 +275,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
             'id': this.cid
         });
 
-        if (this.model.getType() == 'youtube') {
+        if (this.model.getType() === 'youtube') {
             _.extend(this.model.attributes, {
                 'thumbnail': 'http://i.ytimg.com/vi/' + data['original-id'] +
                     '/hqdefault.jpg'
@@ -279,7 +283,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
             this.$el.addClass('wide');
         }
 
-        _.bindAll(this, 'close'); 
+        _.bindAll(this, 'close');
         // If the tile model is removed, remove the DOM element
         this.listenTo(this.model, 'destroy', this.close);
     },
@@ -304,7 +308,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
                 'onError': $.noop
             }
         });
-        
+
     },
 
     close: function () {
@@ -319,11 +323,26 @@ var TileView = Backbone.Marionette.ItemView.extend({
     onHover: function (ev) {
         // Trigger tile hover event with event and tile
         SecondFunnel.vent.trigger("tileHover", ev, this);
+        if (this.socialButtons) {
+            var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn': 'fadeOut';
+            this.socialButtons.$el[inOrOut](200);
+
+            var facebookButton = this.socialButtons.$el.find('.facebook');
+            if (window.FB.XFBML && facebookButton && facebookButton.length >= 1) {
+                if (!facebookButton.attr('id')) {
+                    // generate a unique id for this facebook button
+                    // so fb can parse it.
+                    var fbId = this.socialButtons.currentView.cid + '-fb';
+                    facebookButton.attr('id', fbId);
+                    window.FB.XFBML.parse(fbId);
+                }
+            }
+        }
     },
 
     onClick: function (ev) {
         "use strict";
-        if (this.model.getType() == 'youtube') {
+        if (this.model.getType() === 'youtube') {
             this.renderVideo();
         } else {
             var tile = this.model,
@@ -334,15 +353,93 @@ var TileView = Backbone.Marionette.ItemView.extend({
         SecondFunnel.vent.trigger("tileClicked", this);
     },
 
-    onRender: function (ev) {
+    'onRender': function () {
         // Listen for the image being removed from the DOM, if it is, remove
         // the View/Model to free memory
-        this.$('img').on('remove', this.close);
+        this.$("img").on('remove', this.close);
+        this.socialButtons.show(new SocialButtons());
     },
 
     onVideoEnd: function (ev) {
         SecondFunnel.vent.trigger("videoEnded", ev, this);
     }
+});
+
+var SocialButtons = Backbone.Marionette.ItemView.extend({
+    // override the template by passing it in: new SocialButtons({ template: ... })
+    // template can be a selector or a function(json) ->  <_.template>
+    'template': '#social_buttons_template',
+    'buttonsTypes': ['facebook', 'twitter', 'pinterest'],  // required to support
+    // 'model': undefined,  // auto-serialization of constructor(obj)
+    // 'collection': undefined,  // auto-serialization of constructor([obj])
+    // 'tagName': "div",
+    // 'className': 'social-buttons',  // default: empty div
+    // getTemplate: function (/* this */) { return '#<template>'; },
+    'initialize': _.once(function (noop) {
+        if (window.FB) {
+            window.FB.init({
+                cookie: true,
+                status: true,
+                xfbml: true
+            });
+        }
+
+        window.twttr.widgets.load();
+        window.twttr.ready(function (twttr) {
+            twttr.events.bind('tweet', function(event) {
+                // TODO: actual tracking
+                /*pagesTracking.registerEvent({
+                    "network": "Twitter",
+                    "type": "share",
+                    "subtype": "shared"
+                });*/
+            });
+
+            twttr.events.bind('click', function(event) {
+                var sType;
+                if (event.region === "tweet") {
+                    sType = "clicked";
+                } else if (event.region === "tweetcount") {
+                    sType = "leftFor";
+                } else {
+                    sType = event.region;
+                }
+
+                // TODO: actual tracking
+                /*pagesTracking.registerEvent({
+                    "network": "Twitter",
+                    "type": "share",
+                    "subtype": sType
+                });*/
+            });
+        });
+
+        // pinterest does its own stuff - just include pinit.js
+    }),
+    'ui': {
+        'facebook': "div.facebook",
+        'twitter': "div.twitter",
+        'pinterest': "div.pinterest"
+    },
+    'events': {
+        'click .facebook': function (/* this */) {
+            alert('wtf');
+        },
+        'hover': function (/* this */) {
+            if (!this.hasClass('loaded')) {
+                // TODO: load something... but hasn't everything been loaded?
+            }
+        }
+    },
+    // 'triggers': { "click .facebook": "event1 event2" },
+    // 'onBeforeRender': $.noop,
+    'onRender': function () {
+        this.$el.parent().hide();
+    },
+    // 'onDomRefresh': $.noop,
+    // 'onBeforeClose': function () { return true; },
+    // 'onClose': $.noop,
+    'commas': false
 });
 
 var Discovery = Backbone.Marionette.CompositeView.extend({
@@ -355,13 +452,8 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     layoutEngine: null,
     loading: false,
 
-    triggers: {
-        "scroll window": "pageScroll"
-    },
-
-    appendHtml: function (collectionView, itemView) {
-        // Pass
-    },
+    // prevent default appendHtml behaviour (append in batch)
+    'appendHtml': $.noop,
 
     initialize: function (options) {
         // Initialize IntentRank; use as a seperate module to make changes easier.
@@ -448,7 +540,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         var pageBottomPos = $(window).innerHeight() + $(window).scrollTop(),
             documentBottomPos = $(document).height();
 
-        if (pageBottomPos >= documentBottomPos - 150 && !this.loading) {
+        if (pageBottomPos >= documentBottomPos - 500 && !this.loading) {
             this.getTiles();
         }
     }
@@ -474,7 +566,8 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
         }
     },
     'regions': {
-        'content': '.template.target'
+        'content': '.template.target',
+        'socialButtons': '.social-buttons'
     },
     'onBeforeRender': function () {
     },
@@ -483,6 +576,7 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
     },
     'onRender': function () {
         this.$el.css({display: "table"});
+        this.socialButtons.show(new SocialButtons());
         $('body').append(this.$el.fadeIn(PAGES_INFO.previewAnimationDuration));
     }
 });
@@ -518,10 +612,6 @@ $(function () {
         // Add our initiliazer, this allows us to pass a series of tiles
         // to be displayed immediately (and first) on the landing page.
         SecondFunnel.discovery = new Discovery({});
-        SecondFunnel.discovery.on("pageScroll", function (args) {
-            "use strict";
-            args.view.getTiles();
-        });
     });
 
     // Start the SecondFunnel app

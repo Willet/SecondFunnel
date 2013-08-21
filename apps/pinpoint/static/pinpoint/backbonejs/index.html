@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <script>
             // PAGES_INFO configures the page.
@@ -98,6 +98,8 @@
             </div>
             <div class="loading"></div>
         </div>
+
+
         <!-- Templates -->
         <script type="text/template" id="product_tile_template">
             <img src="<%= image %>" alt="<%= caption %>" />
@@ -105,6 +107,7 @@
             <div class="caption">
                 <span><%= caption %></span>
             </div>
+            <div class="social-buttons"></div>
         </script>
         <script type="text/template" id="youtube_tile_template">
             <div class="img-responsive thumbnail"
@@ -113,6 +116,7 @@
               <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
             </div>
             <%= obj.caption || obj.name %>
+            <div class="social-buttons"></div>
         </script>
         <script type="text/template" id="preview_container_template">
             <div class="mask"></div>
@@ -121,6 +125,7 @@
                     <span class="close">&#x00D7;</span>
                     <div class="scrollable">
                         <div class="template target"></div>
+                        <div class="social-buttons"></div>
                     </div>
                 </div>
             </div>
@@ -137,6 +142,23 @@
         <script type="text/template" id="product_preview_template">
             <img src="<%= obj.image %>" alt=""/>
             <%= obj.price =>
+        </script>
+
+        <script type="text/template" id="social_buttons_template">
+            <div class='button facebook'>
+                <fb:like href="(fburl)" width="48" layout="button_count"
+                         show_faces="false"></fb:like>
+            </div>
+            <div class='button twitter'>
+                <a href="https://twitter.com/share?url=(url)" target="_blank">
+                    <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
+                </a>
+            </div>
+            <div class='button pinterest'>
+                <a href="http://pinterest.com/pin/create/button/?url=(url)&media=(image)" target="_blank">
+                    <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/>
+                </a>
+            </div>
         </script>
 
         <!-- End Templates -->
@@ -161,7 +183,11 @@
                 'masonryMobileAnimationDuration': 0
             };
         </script>
-        <script type="text/javascript" src="http://www.youtube.com/iframe_api"></script>
+        <script type="text/javascript" src="//www.youtube.com/iframe_api"></script>
+        <script type="text/javascript" src="//assets.pinterest.com/js/pinit.js"></script>
+        <script type="text/javascript" src="//connect.facebook.net/en_US/all.js#xfbml=0"></script>
+        <script type="text/javascript" src="//platform.twitter.com/widgets.js"></script>
+        <script type="text/javascript" src="js/respond.min.js"></script><!-- "as early after the css as possible" -->
         <script type="text/javascript" src="js/jquery.min.js"></script>
         <script type="text/javascript" src="js/json2.js"></script>
         <script type="text/javascript" src="js/underscore.js"></script>

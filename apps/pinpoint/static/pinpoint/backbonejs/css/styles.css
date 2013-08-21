@@ -49,3 +49,11 @@ body {
     max-height: 444px;
 }
 
+.social-buttons {
+    display: none;
+    position: absolute;
+    bottom: 20px;
+    width: 210px;
+    text-align: center;
+    margin: 0 auto;
+}
