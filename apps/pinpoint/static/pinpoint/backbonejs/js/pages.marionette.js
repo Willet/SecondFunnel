@@ -162,7 +162,7 @@ var LayoutEngine = Backbone.Model.extend({
         image = image || instance;
         var $img = $(image.img);
         $img.removeClass('loading');
-        if ( !image.isLoaded ) {
+        if (!image.isLoaded) {
             $img.remove();
         }
         return this;
@@ -266,7 +266,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
             this.$el.addClass('wide');
         }
 
-        _.bindAll(this, 'close'); 
+        _.bindAll(this, 'close');
         // If the tile model is removed, remove the DOM element
         this.listenTo(this.model, 'destroy', this.close);
     },
@@ -292,7 +292,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
                 'onError': $.noop
             }
         });
-        
+
     },
 
     close: function () {
@@ -333,9 +333,36 @@ var TileView = Backbone.Marionette.ItemView.extend({
     }
 });
 
-var SocialButtonsView = Backbone.Marionette.CompositeView.extend({
+var SocialButtons = Backbone.Marionette.ItemView.extend({
+    // override the template by passing it in: new SocialButtons({ template: ... })
+    // template can be a selector or a function(json) ->  <_.template>
     'template': '#social_buttons_template',
-
+    'buttonsTypes': ['facebook', 'twitter', 'pinterest'],  // required to support
+    // 'model': undefined,  // auto-serialization of constructor(obj)
+    // 'collection': undefined,  // auto-serialization of constructor([obj])
+    'tagName': "div",
+    // getTemplate: function (/* this */) { return '#<template>'; },
+    'ui': {
+        'facebook': "div.facebook",
+        'twitter': "div.twitter",
+        'pinterest': "div.pinterest"
+    },
+    'events': {
+        'click .facebook': function (/* this */) {
+            alert('wtf');
+        }
+    },
+    // 'triggers': { "click .facebook": "event1 event2" },
+    // 'onBeforeRender': $.noop,
+    'onRender': function () {
+        if (this.model.get('selected')) {
+            this.ui.checkbox.addClass('checked');
+        }
+    },
+    // 'onDomRefresh': $.noop,
+    // 'onBeforeClose': function () { return true; },
+    // 'onClose': $.noop,
+    'commas': false
 });
 
 var Discovery = Backbone.Marionette.CompositeView.extend({
