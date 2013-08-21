@@ -103,7 +103,6 @@ img.loading {
 .tile:hover .caption {
     cursor: -webkit-zoom-in;
     cursor: -moz-zoom-in;
-    visibility: visible;
 }
 
 .tile .caption {
@@ -120,7 +119,6 @@ img.loading {
     text-align: center;
     vertical-align: middle;
     display: table;
-    visibility: hidden;
 }
 
 .tile .caption span {

@@ -5,11 +5,12 @@ $(function () {
     // does not work when affected by html(), replace(), replaceWith(), ...
     var ev = new $.Event('remove'),
         orig = $.fn.remove;
-    $.fn.remove = $.fn.remove || function () {
+    $.fn.remove = function () { 
         $(this).trigger(ev);
         return orig.apply(this, arguments);
     };
 });
+
 
 // Marionette TemplateCache extension to allow checking cache for template
 Backbone.Marionette.TemplateCache._exists = function (templateId) {
@@ -103,6 +104,7 @@ var Tile = Backbone.Model.extend({
 
 var LayoutEngine = Backbone.Model.extend({
     // Our layoutEngine, acts as a BlackBox for whatever we're using
+    selector: PAGES_INFO.discoveryItemSelector,
     options: {
         itemSelector: PAGES_INFO.discoveryItemSelector,
         isResizeBound: true,
@@ -121,11 +123,25 @@ var LayoutEngine = Backbone.Model.extend({
         this.$el = $elem;
     },
 
+    call: function (callback, $fragment) {
+        if (!(typeof callback === 'string' && callback in this)) {
+            var msg = !(typeof callback === 'string')? "Unsupported type " + (typeof callback) +
+                    " passed to Layout Engine." :
+                    "LayoutEngine has no property " + callback + ".";
+            SecondFunnel.vent.trigger('log', msg);
+            return undefined;
+        }
+        var args = Array.prototype.slice.apply(arguments);
+        args = args.slice(2);
+        args.unshift(this[callback], $fragment);
+
+        return this.imagesLoaded.apply(this, args);
+    },
+
     append: function ($fragment, callback) {
-        $fragment.children('img').eq(0).addClass('loading');
-        $fragment.appendTo(this.$el);
-        this.$el.masonry('appended', $fragment).masonry();
-        return this.imagesLoaded($fragment, callback);
+        //$fragment.appendTo(this.$el).hide();
+        this.reload();
+        return callback? callback($fragment) : this;
     },
 
     reload: function ($fragment) {
@@ -135,36 +151,33 @@ var LayoutEngine = Backbone.Model.extend({
     },
 
     insert: function ($target, $fragment, callback) {
-        $fragment.hide().insertAfter($target);
-        return this.imagesLoaded($fragment, callback);
+        $fragment.insertAfter($target);
+        this.reload();
+        return callback? callback($fragment) : this;
     },
 
-    imagesLoaded: function ($fragment, callback) {
-        // Compiles a list of the broken image srcs and returns them
-        // How we handle this is up to the Discovery module
+    imagesLoaded: function (callback, $fragment) {
+        // Calls the broken handler to remove broken images as they appear;
+        // when all images are loaded, calls the appropriate layout function
         var self = this,
-            imgLoad = imagesLoaded($fragment);
+            args = Array.prototype.slice.apply(arguments),
+            imgLoad = imagesLoaded($fragment.children(':not(iframe) > img'));
         // Remove broken images as they appear
-        imgLoad.on('progress', this.removeBroken);
-        imgLoad.on('always', function () {
-            // When all images are loaded, show the non-broken ones and reload
-            $(this.elements).show().delay(100);
-            self.reload();
-            // Callback with the successfully loaded images
-            callback(this.elements);
-        });
-        return this;
-    },
+        imgLoad.on('progress', function (instance, image) {
+            var $img = $(image.img),
+                $elem = $img.parents(self.selector);
 
-    removeBroken: function (instance, image) {
-        // Assume either instance or image is an instance of an LoadingImage object
-        // Remove if broken
-        image = image || instance;
-        var $img = $(image.img);
-        $img.removeClass('loading');
-        if ( !image.isLoaded ) {
-            $img.remove();
-        }
+            if ( !image.isLoaded ) {
+                $img.remove();
+            } else {
+                // Append to container and called appended
+                self.$el.append($elem).masonry('appended', $elem);
+            }
+        }).on('always', function () {
+            // When all images are loaded, show the non-broken ones and reload
+            args = args.slice(1);
+            callback.apply(self, args);
+        });
         return this;
     }
 });
@@ -275,8 +288,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
         // Renders a YouTube video in the tile
         var thumbId = 'thumb' + this.cid,
             $thumb = this.$('div.thumbnail');
-        $thumb.wrap('<div class="video-container" />');
-        $thumb.attr('id', thumbId);
+        $thumb.attr('id', thumbId).wrap('<div class="video-container" />');
 
         var player = new YT.Player(thumbId, {
             width: $thumb.width(),
@@ -299,7 +311,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
         // As it stands, since we aren't using a REST API, we don't store
         // the models anywhere so we don't need to destroy them.
         // Remove view and unbind listeners
-        this.remove();
+        this.$el.remove();
         this.unbind();
         this.views = [];
     },
@@ -325,7 +337,7 @@ var TileView = Backbone.Marionette.ItemView.extend({
     onRender: function (ev) {
         // Listen for the image being removed from the DOM, if it is, remove
         // the View/Model to free memory
-        this.$("img").on('remove', this.close);
+        this.$('img').on('remove', this.close);
     },
 
     onVideoEnd: function (ev) {
@@ -406,10 +418,10 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
         if ($fragment.length > 0) {
             if ($tile) {
-                SecondFunnel.layoutEngine.insert($fragment, $tile,
+                SecondFunnel.layoutEngine.call('insert', $fragment, $tile,
                     this.toggleLoading);
             } else {
-                SecondFunnel.layoutEngine.append($fragment,
+                SecondFunnel.layoutEngine.call('append', $fragment,
                     this.toggleLoading);
             }
         }
