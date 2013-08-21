@@ -333,6 +333,11 @@ var TileView = Backbone.Marionette.ItemView.extend({
     }
 });
 
+var SocialButtonsView = Backbone.Marionette.CompositeView.extend({
+    'template': '#social_buttons_template',
+
+});
+
 var Discovery = Backbone.Marionette.CompositeView.extend({
     // Manages the HTML/View of ALL the tiles on the page (our discovery area)
     // tagName: "div"
