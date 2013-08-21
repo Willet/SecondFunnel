@@ -441,7 +441,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         var pageBottomPos = $(window).innerHeight() + $(window).scrollTop(),
             documentBottomPos = $(document).height();
 
-        if (pageBottomPos >= documentBottomPos - 150 && !this.loading) {
+        if (pageBottomPos >= documentBottomPos - 500 && !this.loading) {
             this.getTiles();
         }
     }
