@@ -24,13 +24,23 @@ body {
 }
 
 .jumbotron {
-    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Gap_Shorts_Desktop.png');
     background-position: top center;
     background-repeat: no-repeat;
     width: 1024px;
     height: 400px;  /* adjusts image size */
     border-bottom: 1px silver solid;
     margin: 10px auto 40px auto;
+}
+
+.visible-xs.jumbotron, .visible-sm.jumbotron { /* mobile hero */
+    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Gap_Shorts_Mobile.png');
+}
+
+.visible-xs.jumbotron { height: 331px; }
+.visible-sm.jumbotron { height: 423px; }
+
+.visible-md.jumbotron, .visible-lg.jumbotron { /* mobile hero */
+    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Gap_Shorts_Desktop.png');
 }
 
 .tile {
