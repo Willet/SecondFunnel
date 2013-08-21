@@ -369,6 +369,12 @@ var TileView = Backbone.Marionette.Layout.extend({
         }
         SecondFunnel.vent.trigger("tileClicked", this);
     },
+    
+    'onBeforeRender': function () {
+        if (Math.random() < 0.333) {
+            this.$el.addClass('wide');
+        }
+    },
 
     'onRender': function () {
         // Listen for the image being removed from the DOM, if it is, remove
@@ -503,13 +509,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         helpers.fburl = function (/* this: model.toJSON */) {
             // generate the button's share link for fb.
             // TODO: show_count
-            var page = PAGES_INFO.page,
-                product = data || page.product,
-                hasFeaturedImg = !data.title && (data.template !== 'youtube'),
-                image = (page && hasFeaturedImg)
-                    ? (page['stl-image'] || page['featured-image'])
-                    : (data.image || data.url),
-                fburl = (product.url || image);
+            var fburl = (product.url || image);
 
             if (fburl.indexOf("facebook") > -1) {
                 fburl = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(fburl)[1];
