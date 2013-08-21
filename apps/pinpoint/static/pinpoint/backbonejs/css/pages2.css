@@ -42,20 +42,32 @@ img.loading {
     min-width: 32px;
     min-height: 32px;
 }
+
+a, a:hover, a:focus {
+    color: inherit;
+}
+
+.nav>li>a:hover, .nav>li>a:focus {
+    background-color: transparent;
+}
+
 .jumbotron {
     background-size: cover;
     height: 410px;  /* adjusts image size */
     max-height: 25%;  /* adjusts image size */
     max-width: 100%;
 }
+
+.container {
+    /* @override bootstrap 3 */
+    padding-right: 0;
+    padding-left: 0;
+}
+
 #discovery-area {
     max-width: 100%;
     margin: auto;
 }
-
-
-
-
 
 .tile {
     background: #fff;
