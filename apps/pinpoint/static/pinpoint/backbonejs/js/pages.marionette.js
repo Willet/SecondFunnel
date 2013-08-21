@@ -383,6 +383,9 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     layoutEngine: null,
     loading: false,
 
+    // prevent default appendHtml behaviour (append in batch)
+    'appendHtml': $.noop,
+
     initialize: function (options) {
         // Initialize IntentRank; use as a seperate module to make changes easier.
         SecondFunnel.intentRank = new IntentRank;
