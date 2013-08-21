@@ -181,15 +181,16 @@ a, a:hover, a:focus {
     /* standard youtube thumbnail
        @override
     */
-    background-image: url('//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/youtube-play-button.png');
+    background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/youtube-play-button-small.png');
     content: "";
-    width: 450px;
-    height: 255px;
+    width: 71px;
+    height: 51px;
     position: absolute;
     background-repeat: no-repeat;
-    left: 15px;
-    top: 15px;
-    background-position: 81px 14px;
+    left: 50%;
+    top: 50%;
+    background-position: 0 0;
+    margin: -35.5px 0 0 -35.5px;
 }
 
 .tile.wide.youtube div.video-container {
@@ -216,6 +217,12 @@ a, a:hover, a:focus {
     #discovery-area {
         width: 255px;
     }
+    .tile.wide.youtube div.thumbnail {
+        height: 141px;
+    }
+    .tile.wide.youtube div.thumbnail:before {
+        margin-top: -59.5px;
+    }
 }
 @media (min-width: 480px) and (max-width: 510px) {
     #discovery-area {
@@ -229,6 +236,10 @@ a, a:hover, a:focus {
     }
     #discovery-area {
         width: 510px;
+    }
+    .tile.wide {
+        /* visual width compensation */
+        margin-left: 20px;
     }
 }
 @media (min-width: 768px) and (max-width: 992px) { /* desktop */
