@@ -5,7 +5,7 @@ $(function () {
     // does not work when affected by html(), replace(), replaceWith(), ...
     var ev = new $.Event('remove'),
         orig = $.fn.remove;
-    $.fn.remove = function () { 
+    $.fn.remove = function () {
         $(this).trigger(ev);
         return orig.apply(this, arguments);
     };
@@ -93,22 +93,13 @@ var Tile = Backbone.Model.extend({
         }
     },
 
-    getType: function () {
-        // Get the content type of this tile
-        return this.attributes['content-type'].toLowerCase();
-    },
-
-    isProduct: function () {
-        return this.getType() === 'product';
+    get: function (opt) {
+        return this.attributes[opt] ||
+            Backbone.Marionette.getOption(this, opt);
     },
 
     is: function (type) {
-        return this.getType().toLowerCase() === type.toLowerCase();
-    },
-
-    getId: function () {
-        // Get the ID of this tile (for DB queries)
-        return this.attributes['tile-id'];
+        return this.get('content-type').toLowerCase() === type.toLowerCase();
     }
 });
 
@@ -135,9 +126,10 @@ var LayoutEngine = Backbone.Model.extend({
 
     call: function (callback, $fragment) {
         if (!(typeof callback === 'string' && callback in this)) {
-            var msg = !(typeof callback === 'string')? "Unsupported type " + (typeof callback) +
-                    " passed to Layout Engine." :
-                    "LayoutEngine has no property " + callback + ".";
+            var msg = !(typeof callback === 'string')
+                ? "Unsupported type " + (typeof callback) +
+                          " passed to Layout Engine." :
+                      "LayoutEngine has no property " + callback + ".";
             SecondFunnel.vent.trigger('log', msg);
             return undefined;
         }
@@ -151,7 +143,7 @@ var LayoutEngine = Backbone.Model.extend({
     append: function ($fragment, callback) {
         //$fragment.appendTo(this.$el).hide();
         this.reload();
-        return callback? callback($fragment) : this;
+        return callback ? callback($fragment) : this;
     },
 
     reload: function ($fragment) {
@@ -161,9 +153,17 @@ var LayoutEngine = Backbone.Model.extend({
     },
 
     insert: function ($target, $fragment, callback) {
+        var initialBottom = $target.position().top + $target.height();
+
+        // Find a target that is low enough on the screen to insert after
+        while ($target.position().top <= initialBottom &&
+            $target.next().length > 0) {
+            $target = $target.next();
+        }
+
         $fragment.insertAfter($target);
         this.reload();
-        return callback? callback($fragment) : this;
+        return callback ? callback($fragment) : this;
     },
 
     imagesLoaded: function (callback, $fragment) {
@@ -173,21 +173,21 @@ var LayoutEngine = Backbone.Model.extend({
             args = Array.prototype.slice.apply(arguments),
             imgLoad = imagesLoaded($fragment.children(':not(iframe) > img'));
         // Remove broken images as they appear
-        imgLoad.on('progress', function (instance, image) {
+        imgLoad.on('progress',function (instance, image) {
             var $img = $(image.img),
                 $elem = $img.parents(self.selector);
 
-            if ( !image.isLoaded ) {
+            if (!image.isLoaded) {
                 $img.remove();
             } else {
                 // Append to container and called appended
                 self.$el.append($elem).masonry('appended', $elem);
             }
         }).on('always', function () {
-            // When all images are loaded, show the non-broken ones and reload
-            args = args.slice(1);
-            callback.apply(self, args);
-        });
+                // When all images are loaded, show the non-broken ones and reload
+                args = args.slice(1);
+                callback.apply(self, args);
+            });
         return this;
     }
 });
@@ -199,8 +199,15 @@ var IntentRank = Backbone.Model.extend({
         'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
         'content': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/content/<%=id%>/getresults"
     },
-    store: PAGES_INFO.store,
-    campaign: PAGES_INFO.campaign,
+
+    initialize: function (attributes, options) {
+        // Any additional init declarations go here
+        var page = options.page;
+
+        this.store = options.store;
+        this.campaign = options.campaign;
+        this.categories = page ? page.categories || {} : {};
+    },
 
     getResults: function (options, callback) {
         var uri = _.template(this.templates[options.type],
@@ -227,6 +234,15 @@ var IntentRank = Backbone.Model.extend({
                 return callback.apply(callback, args);
             }
         });
+    },
+
+    changeCategory: function (category) {
+        // Change the category, provided it's valid.
+        if (_.findWhere(this.categories, {'id': '' + category})) {
+            this.campaign = category;
+            SecondFunnel.vent.trigger('changeCampaign', category);
+        }
+        return this;
     }
 });
 
@@ -285,7 +301,7 @@ var TileView = Backbone.Marionette.Layout.extend({
             'id': this.cid
         });
 
-        if (this.model.getType() === 'youtube') {
+        if (this.model.get('content-type') === 'youtube') {
             _.extend(this.model.attributes, {
                 'thumbnail': 'http://i.ytimg.com/vi/' + data['original-id'] +
                     '/hqdefault.jpg'
@@ -334,7 +350,7 @@ var TileView = Backbone.Marionette.Layout.extend({
         // Trigger tile hover event with event and tile
         SecondFunnel.vent.trigger("tileHover", ev, this);
         if (this.socialButtons) {
-            var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn': 'fadeOut';
+            var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn' : 'fadeOut';
             this.socialButtons.$el[inOrOut](200);
 
             this.socialButtons.currentView.loadFB();
@@ -343,7 +359,7 @@ var TileView = Backbone.Marionette.Layout.extend({
 
     onClick: function (ev) {
         "use strict";
-        if (this.model.getType() === 'youtube') {
+        if (this.model.get('content-type') === 'youtube') {
             this.renderVideo();
         } else {
             var tile = this.model,
@@ -378,7 +394,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         return true;
     },
     "buttonTypes": PAGES_INFO.socialButtons ||
-                    ['facebook', 'twitter', 'pinterest'],  // @override via constructor
+        ['facebook', 'twitter', 'pinterest'],  // @override via constructor
     // 'model': undefined,  // auto-serialization of constructor(obj)
     // 'collection': undefined,  // auto-serialization of constructor([obj])
     // 'tagName': "div",
@@ -396,16 +412,16 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         if (_.contains(this.buttonTypes, "twitter")) {
             window.twttr.widgets.load();
             window.twttr.ready(function (twttr) {
-                twttr.events.bind('tweet', function(event) {
+                twttr.events.bind('tweet', function (event) {
                     // TODO: actual tracking
                     /*pagesTracking.registerEvent({
-                        "network": "Twitter",
-                        "type": "share",
-                        "subtype": "shared"
-                    });*/
+                     "network": "Twitter",
+                     "type": "share",
+                     "subtype": "shared"
+                     });*/
                 });
 
-                twttr.events.bind('click', function(event) {
+                twttr.events.bind('click', function (event) {
                     var sType;
                     if (event.region === "tweet") {
                         sType = "clicked";
@@ -417,10 +433,10 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
 
                     // TODO: actual tracking
                     /*pagesTracking.registerEvent({
-                        "network": "Twitter",
-                        "type": "share",
-                        "subtype": sType
-                    });*/
+                     "network": "Twitter",
+                     "type": "share",
+                     "subtype": sType
+                     });*/
                 });
             });
         }
@@ -477,14 +493,23 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             page = PAGES_INFO.page,
             product = data || page.product,
             hasFeaturedImg = !data.title && (data.template !== 'youtube'),
-            image = (page && hasFeaturedImg) ? (page['stl-image'] || page['featured-image']) : (data.image || data.url),
-            fburl = (product.url || image);
+            image = (page && hasFeaturedImg)
+                ? (page['stl-image'] || page['featured-image'])
+                : (data.image || data.url);
 
         helpers.url = function () {
             return encodeURIComponent(product.url || image);
         };
         helpers.fburl = function (/* this: model.toJSON */) {
             // generate the button's share link for fb.
+            // TODO: show_count
+            var page = PAGES_INFO.page,
+                product = data || page.product,
+                hasFeaturedImg = !data.title && (data.template !== 'youtube'),
+                image = (page && hasFeaturedImg)
+                    ? (page['stl-image'] || page['featured-image'])
+                    : (data.image || data.url),
+                fburl = (product.url || image);
 
             if (fburl.indexOf("facebook") > -1) {
                 fburl = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(fburl)[1];
@@ -511,26 +536,9 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
                 // magic. if a default is removed rom the list of
                 // required buttons, the default button is removed
                 // console.log($(o).getClasses().toString() + ' removed');
-                // $(o).remove();
+                $(o).remove();
             }
         });
-
-        /*var facebookButton = this.$el.find('.facebook.button');
-        if (window.FB.XFBML && facebookButton && facebookButton.length >= 1) {
-            if (!facebookButton.attr('id')) {
-                // generate a unique id for this facebook button
-                // so fb can parse it.
-                var fbId = this.cid + '-fb';
-                facebookButton.attr('id', fbId);
-
-                // this makes 1 iframe request to fb per button regardless
-                // so stretch out its loading by a second and make the
-                // the page look less owned by the lag
-                setTimeout(function () {
-                    window.FB.XFBML.parse(facebookButton[0]);
-                }, Math.random() * 1000);
-            }
-        }*/
     },
     // 'onDomRefresh': $.noop,
     // 'onBeforeClose': function () { return true; },
@@ -553,7 +561,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
     initialize: function (options) {
         // Initialize IntentRank; use as a seperate module to make changes easier.
-        SecondFunnel.intentRank = new IntentRank;
+        SecondFunnel.intentRank = new IntentRank({}, PAGES_INFO);
         // Black box Masonry (this will make migrating easier in the future)
         SecondFunnel.layoutEngine = new LayoutEngine(this.$el,
             options.masonry);
@@ -583,7 +591,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             this.toggleLoading();
             options = options || {};
             options.type = options.type || 'campaign';
-            SecondFunnel.intentRank.getResults(options, 
+            SecondFunnel.intentRank.getResults(options,
                 this.layoutResults, $tile);
         }
         return this;
@@ -623,7 +631,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     updateContentStream: function (tile) {
         return this.getTiles({
             'type': "content",
-            'id': tile.model.getId()
+            'id': tile.model.get('tile-id')
         }, tile.$el);
     },
 
