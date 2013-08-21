@@ -93,22 +93,13 @@ var Tile = Backbone.Model.extend({
         }
     },
 
-    getType: function () {
-        // Get the content type of this tile
-        return this.attributes['content-type'].toLowerCase();
-    },
-
-    isProduct: function () {
-        return this.getType() === 'product';
+    get: function (opt) {
+        return this.attributes[opt] ||
+            Backbone.Marionette.getOption(this, opt);
     },
 
     is: function (type) {
-        return this.getType().toLowerCase() === type.toLowerCase();
-    },
-
-    getId: function () {
-        // Get the ID of this tile (for DB queries)
-        return this.attributes['tile-id'];
+        return this.get('content-type').toLowerCase() === type.toLowerCase();
     }
 });
 
@@ -161,6 +152,14 @@ var LayoutEngine = Backbone.Model.extend({
     },
 
     insert: function ($target, $fragment, callback) {
+        var initialBottom = $target.position().top + $target.height();
+
+        // Find a target that is low enough on the screen to insert after
+        while ($target.position().top <= initialBottom && 
+                   $target.next().length > 0) {
+            $target = $target.next();
+        }
+
         $fragment.insertAfter($target);
         this.reload();
         return callback? callback($fragment) : this;
@@ -199,8 +198,15 @@ var IntentRank = Backbone.Model.extend({
         'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
         'content': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/content/<%=id%>/getresults"
     },
-    store: PAGES_INFO.store,
-    campaign: PAGES_INFO.campaign,
+
+    initialize: function (attributes, options) {
+        // Any additional init declarations go here
+        var page = options.page;
+
+        this.store = options.store;
+        this.campaign = options.campaign;
+        this.categories = page? page.categories || {} : {};
+    },
 
     getResults: function (options, callback) {
         var uri = _.template(this.templates[options.type],
@@ -227,6 +233,15 @@ var IntentRank = Backbone.Model.extend({
                 return callback.apply(callback, args);
             }
         });
+    },
+
+    changeCategory: function (category) {
+        // Change the category, provided it's valid.
+        if (_.findWhere(this.categories, {'id': '' + category})) {
+            this.campaign = category;
+            SecondFunnel.vent.trigger('changeCampaign', category);
+        }
+        return this;
     }
 });
 
@@ -285,7 +300,7 @@ var TileView = Backbone.Marionette.Layout.extend({
             'id': this.cid
         });
 
-        if (this.model.getType() === 'youtube') {
+        if (this.model.get('content-type') === 'youtube') {
             _.extend(this.model.attributes, {
                 'thumbnail': 'http://i.ytimg.com/vi/' + data['original-id'] +
                     '/hqdefault.jpg'
@@ -341,7 +356,7 @@ var TileView = Backbone.Marionette.Layout.extend({
 
     onClick: function (ev) {
         "use strict";
-        if (this.model.getType() === 'youtube') {
+        if (this.model.get('content-type') === 'youtube') {
             this.renderVideo();
         } else {
             var tile = this.model,
@@ -449,7 +464,6 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         'fburl': function (/* this: model.toJSON */) {
             // generate the button's share link for fb.
             // TODO: show_count
-
             var data = this,
                 page = PAGES_INFO.page,
                 product = data || page.product,
@@ -514,7 +528,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
     initialize: function (options) {
         // Initialize IntentRank; use as a seperate module to make changes easier.
-        SecondFunnel.intentRank = new IntentRank;
+        SecondFunnel.intentRank = new IntentRank({}, PAGES_INFO);
         // Black box Masonry (this will make migrating easier in the future)
         SecondFunnel.layoutEngine = new LayoutEngine(this.$el,
             options.masonry);
@@ -584,7 +598,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     updateContentStream: function (tile) {
         return this.getTiles({
             'type': "content",
-            'id': tile.model.getId()
+            'id': tile.model.get('tile-id')
         }, tile.$el);
     },
 
