@@ -489,7 +489,13 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
                 // so fb can parse it.
                 var fbId = this.cid + '-fb';
                 facebookButton.attr('id', fbId);
-                window.FB.XFBML.parse(facebookButton[0]);
+
+                // this makes 1 iframe request to fb per button regardless
+                // so stretch out its loading by a second and make the
+                // the page look less owned by the lag
+                setTimeout(function () {
+                    window.FB.XFBML.parse(facebookButton[0]);
+                }, Math.random() * 1000);
             }
         }
     },
