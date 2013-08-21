@@ -426,7 +426,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             alert('wtf');
         },
         'hover': function (/* this */) {
-            if (!this.hasClass('loaded')) {
+            if (!this.$el.hasClass('loaded')) {
                 // TODO: load something... but hasn't everything been loaded?
             }
         }

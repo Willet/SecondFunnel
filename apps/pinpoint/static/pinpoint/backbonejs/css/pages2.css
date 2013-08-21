@@ -36,12 +36,6 @@ pre .boolean { color: blue; }
 pre .null { color: magenta; }
 pre .key { color: red; }
 
-img.loading {
-    background: transparent url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif') center center no-repeat;
-    background-size 32px 32px:
-    min-width: 32px;
-    min-height: 32px;
-}
 
 a, a:hover, a:focus {
     color: inherit;
@@ -69,6 +63,15 @@ a, a:hover, a:focus {
     margin: auto;
 }
 
+div.loading {
+    background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif');
+    background-repeat: no-repeat;
+    width: 32px;
+    height: 32px;
+    margin: 0 auto;
+    margin-bottom: 10px;
+}
+
 .tile {
     background: #fff;
     margin: 0 7.5px 15px;
@@ -92,7 +95,7 @@ a, a:hover, a:focus {
     cursor: zoom-in;
 }
 
-.tile.spinner:before {
+.tile.loading:before {
     content: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif');
     display: block;
     position: absolute;
