@@ -314,6 +314,17 @@ var TileView = Backbone.Marionette.Layout.extend({
         if (this.socialButtons) {
             var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn': 'fadeOut';
             this.socialButtons.$el[inOrOut](200);
+
+            var facebookButton = this.socialButtons.$el.find('.facebook');
+            if (window.FB.XFBML && facebookButton && facebookButton.length >= 1) {
+                if (!facebookButton.attr('id')) {
+                    // generate a unique id for this facebook button
+                    // so fb can parse it.
+                    var fbId = this.socialButtons.currentView.cid + '-fb';
+                    facebookButton.attr('id', fbId);
+                    window.FB.XFBML.parse(fbId);
+                }
+            }
         }
     },
 
@@ -352,6 +363,47 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
     // 'tagName': "div",
     // 'className': 'social-buttons',  // default: empty div
     // getTemplate: function (/* this */) { return '#<template>'; },
+    'initialize': _.once(function (noop) {
+        if (window.FB) {
+            window.FB.init({
+                cookie: true,
+                status: true,
+                xfbml: true
+            });
+        }
+
+        window.twttr.widgets.load();
+        window.twttr.ready(function (twttr) {
+            twttr.events.bind('tweet', function(event) {
+                // TODO: actual tracking
+                /*pagesTracking.registerEvent({
+                    "network": "Twitter",
+                    "type": "share",
+                    "subtype": "shared"
+                });*/
+            });
+
+            twttr.events.bind('click', function(event) {
+                var sType;
+                if (event.region === "tweet") {
+                    sType = "clicked";
+                } else if (event.region === "tweetcount") {
+                    sType = "leftFor";
+                } else {
+                    sType = event.region;
+                }
+
+                // TODO: actual tracking
+                /*pagesTracking.registerEvent({
+                    "network": "Twitter",
+                    "type": "share",
+                    "subtype": sType
+                });*/
+            });
+        });
+
+        // pinterest does its own stuff - just include pinit.js
+    }),
     'ui': {
         'facebook': "div.facebook",
         'twitter': "div.twitter",
@@ -360,6 +412,11 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
     'events': {
         'click .facebook': function (/* this */) {
             alert('wtf');
+        },
+        'hover': function (/* this */) {
+            if (!this.hasClass('loaded')) {
+                // TODO: load something... but hasn't everything been loaded?
+            }
         }
     },
     // 'triggers': { "click .facebook": "event1 event2" },
