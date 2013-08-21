@@ -336,6 +336,8 @@ var TileView = Backbone.Marionette.Layout.extend({
         if (this.socialButtons) {
             var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn': 'fadeOut';
             this.socialButtons.$el[inOrOut](200);
+
+            this.socialButtons.currentView.loadFB();
         }
     },
 
@@ -433,6 +435,9 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         'pinterest': "div.pinterest"
     },
     'events': {
+        'click': function (ev) {
+            ev.stopPropagation(); // you did not click below the button
+        },
         'click .facebook': function (/* this */) {
             console.log('click .facebook');
         },
@@ -444,24 +449,52 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         }
     },
 
-    'templateHelpers': {  // (or func() --> {kv})
-        //github.com/marionettejs/backbone.marionette/blob/master/docs/marionette.view.md#viewtemplatehelpers
-        'fburl': function (/* this: model.toJSON */) {
-            // generate the button's share link for fb.
-            // TODO: show_count
+    'loadFB': function () {
+        var facebookButton = this.$el.find('.facebook.button');
+        if (window.FB.XFBML && facebookButton && facebookButton.length >= 1) {
+            if (!facebookButton.attr('id')) {
+                // generate a unique id for this facebook button
+                // so fb can parse it.
+                var fbId = this.cid + '-fb';
+                facebookButton.attr('id', fbId);
 
-            var data = this,
-                page = PAGES_INFO.page,
-                product = data || page.product,
-                hasFeaturedImg = !data.title && (data.template !== 'youtube'),
-                image = (page && hasFeaturedImg) ? (page['stl-image'] || page['featured-image']) : (data.image || data.url),
-                fburl = (product.url || image);
+                // this makes 1 iframe request to fb per button regardless
+                // so stretch out its loading by a second and make the
+                // the page look less owned by the lag
+                window.FB.XFBML.parse(facebookButton[0], function () {
+                    // facebookButton.find('.placeholder').remove();
+                });
+            }
+        }
+    },
+
+    'templateHelpers': function (/* this */) {  // or {k: v}
+        //github.com/marionettejs/backbone.marionette/blob/master/docs/marionette.view.md#viewtemplatehelpers
+        // TODO: show_count
+
+        var helpers = {},
+            data = this.model.attributes,
+            page = PAGES_INFO.page,
+            product = data || page.product,
+            hasFeaturedImg = !data.title && (data.template !== 'youtube'),
+            image = (page && hasFeaturedImg) ? (page['stl-image'] || page['featured-image']) : (data.image || data.url),
+            fburl = (product.url || image);
+
+        helpers.url = function () {
+            return encodeURIComponent(product.url || image);
+        };
+        helpers.fburl = function (/* this: model.toJSON */) {
+            // generate the button's share link for fb.
 
             if (fburl.indexOf("facebook") > -1) {
                 fburl = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(fburl)[1];
             }
             return fburl;
-        }
+        };
+        helpers.image = function () {
+            return image;
+        };
+        return helpers;
     },
     // 'triggers': { "click .facebook": "event1 event2" },
     // 'onBeforeRender': $.noop,
@@ -482,7 +515,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             }
         });
 
-        var facebookButton = this.$el.find('.facebook.button');
+        /*var facebookButton = this.$el.find('.facebook.button');
         if (window.FB.XFBML && facebookButton && facebookButton.length >= 1) {
             if (!facebookButton.attr('id')) {
                 // generate a unique id for this facebook button
@@ -497,7 +530,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
                     window.FB.XFBML.parse(facebookButton[0]);
                 }, Math.random() * 1000);
             }
-        }
+        }*/
     },
     // 'onDomRefresh': $.noop,
     // 'onBeforeClose': function () { return true; },

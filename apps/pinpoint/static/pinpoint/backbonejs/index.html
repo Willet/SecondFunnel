@@ -152,16 +152,17 @@
 
         <script type="text/template" id="social_buttons_template">
             <div class='button facebook'>
+                <img src="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/fb-like-0.png" alt="Like" class="placeholder" />
                 <fb:like href="<%= fburl() %>" width="48" layout="button_count"
                          show_faces="false"></fb:like>
             </div>
             <div class='button twitter'>
-                <a href="https://twitter.com/share?url=(url)" target="_blank">
+                <a href="https://twitter.com/share?url=<%= url() %>" target="_blank">
                     <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
                 </a>
             </div>
             <div class='button pinterest'>
-                <a href="http://pinterest.com/pin/create/button/?url=(url)&media=(image)" target="_blank">
+                <a href="http://pinterest.com/pin/create/button/?url=<%= url() %>&media=<%= image() %>" target="_blank">
                     <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/>
                 </a>
             </div>
