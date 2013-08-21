@@ -78,6 +78,7 @@ window.SecondFunnel = SecondFunnel;
 // Custom event trigger/listener
 SecondFunnel.vent = _.extend({}, Backbone.Events);
 
+
 var Tile = Backbone.Model.extend({
     defaults: {
         // Default product tile settings, some tiles don't
@@ -103,7 +104,7 @@ var Tile = Backbone.Model.extend({
     }
 });
 
-var LayoutEngine = Backbone.Model.extend({
+var LayoutEngine = Backbone.Marionette.View.extend({
     // Our layoutEngine, acts as a BlackBox for whatever we're using
     selector: PAGES_INFO.discoveryItemSelector,
     options: {
@@ -133,15 +134,14 @@ var LayoutEngine = Backbone.Model.extend({
             SecondFunnel.vent.trigger('log', msg);
             return undefined;
         }
-        var args = Array.prototype.slice.apply(arguments);
-        args = args.slice(2);
-        args.unshift(this[callback], $fragment);
+        var args = _.toArray(arguments);
+        args[0] = this[callback];
 
         return this.imagesLoaded.apply(this, args);
     },
 
     append: function ($fragment, callback) {
-        //$fragment.appendTo(this.$el).hide();
+        $fragment.appendTo(this.$el);
         this.reload();
         return callback ? callback($fragment) : this;
     },
@@ -166,14 +166,19 @@ var LayoutEngine = Backbone.Model.extend({
         return callback ? callback($fragment) : this;
     },
 
+    clear: function () {
+        // Resets the LayoutEngine's instance so that it is empty
+        this.$el.masonry('destroy').masonry(this.options);
+    },
+
     imagesLoaded: function (callback, $fragment) {
         // Calls the broken handler to remove broken images as they appear;
         // when all images are loaded, calls the appropriate layout function
         var self = this,
-            args = Array.prototype.slice.apply(arguments),
+            args = _.toArray(arguments),
             imgLoad = imagesLoaded($fragment.children(':not(iframe) > img'));
         // Remove broken images as they appear
-        imgLoad.on('progress',function (instance, image) {
+        imgLoad.on('progress', function (instance, image) {
             var $img = $(image.img),
                 $elem = $img.parents(self.selector);
 
@@ -184,10 +189,18 @@ var LayoutEngine = Backbone.Model.extend({
                 self.$el.append($elem).masonry('appended', $elem);
             }
         }).on('always', function () {
-                // When all images are loaded, show the non-broken ones and reload
-                args = args.slice(1);
-                callback.apply(self, args);
+            // When all images are loaded, show the non-broken ones and reload
+            var $remaining = $fragment.filter(function(){
+                return !$.contains(document.documentElement, $(this)[0]);
             });
+            if ($remaining && $remaining.length > 0) {
+                self.$el.append($remaining).masonry('appended', $remaining);
+            }
+
+            args = args.slice(1);
+            callback.apply(self, args);
+        });
+
         return this;
     }
 });
@@ -214,7 +227,7 @@ var IntentRank = Backbone.Model.extend({
                 _.extend({}, options, this, {
                     'url': this.base
                 })),
-            args = Array.prototype.slice.apply(arguments);
+            args = _.toArray(arguments);
         args = args.length > 2 ? args.slice(2) : [];
 
         $.ajax({
@@ -301,7 +314,7 @@ var TileView = Backbone.Marionette.Layout.extend({
             'id': this.cid
         });
 
-        if (this.model.get('content-type') === 'youtube') {
+        if (this.model.is('youtube')) {
             _.extend(this.model.attributes, {
                 'thumbnail': 'http://i.ytimg.com/vi/' + data['original-id'] +
                     '/hqdefault.jpg'
@@ -360,7 +373,7 @@ var TileView = Backbone.Marionette.Layout.extend({
 
     onClick: function (ev) {
         "use strict";
-        if (this.model.get('content-type') === 'youtube') {
+        if (this.model.is('youtube')) {
             this.renderVideo();
         } else {
             var tile = this.model,
@@ -562,16 +575,25 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     // prevent default appendHtml behaviour (append in batch)
     'appendHtml': $.noop,
 
-    initialize: function (options) {
+    initialize: function (attributes, options) {
+        var self = this;
         // Initialize IntentRank; use as a seperate module to make changes easier.
-        SecondFunnel.intentRank = new IntentRank({}, PAGES_INFO);
+        SecondFunnel.intentRank = new IntentRank({}, options);
         // Black box Masonry (this will make migrating easier in the future)
         SecondFunnel.layoutEngine = new LayoutEngine(this.$el,
             options.masonry);
+        this.collection = new TileCollection;
+        this.attachListeners();
 
-        this.collection = options.collection || new TileCollection;
-        // Load additional results and add them to our collection
-        this.attachListeners().getTiles();
+        // If the collection has initial values, lay them out
+        if (options.tiles && options.tiles.length > 0) {
+            this.layoutResults(options.tiles, undefined, function() {
+                self.getTiles();
+            });
+        } else {
+            // Load additional results and add them to our collection
+            this.getTiles();
+        }
     },
 
     attachListeners: function () {
@@ -600,10 +622,11 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         return this;
     },
 
-    layoutResults: function (data, $tile) {
+    layoutResults: function (data, $tile, callback) {
         var self = this,
             start = self.collection.length,
             $fragment = $();
+        callback = callback || this.toggleLoading;
 
         _.each(data, function (tileData) {
             // Create the new tiles using the data
@@ -619,13 +642,13 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         if ($fragment.length > 0) {
             if ($tile) {
                 SecondFunnel.layoutEngine.call('insert', $fragment, $tile,
-                    this.toggleLoading);
+                    callback);
             } else {
                 SecondFunnel.layoutEngine.call('append', $fragment,
-                    this.toggleLoading);
+                    callback);
             }
         } else {
-            // Empty results, just toggle loading.
+            // Toggle loading if empty.
             this.toggleLoading();
         }
         return this;
@@ -638,7 +661,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         }, tile.$el);
     },
 
-    toggleLoading: function (self) {
+    toggleLoading: function (bool) {
         this.loading = !this.loading;
         return this;
     },
@@ -693,7 +716,7 @@ $(function () {
     SecondFunnel.addInitializer(function (options) {
         // Add our initiliazer, this allows us to pass a series of tiles
         // to be displayed immediately (and first) on the landing page.
-        SecondFunnel.discovery = new Discovery({});
+        SecondFunnel.discovery = new Discovery({}, options);
     });
 
     // Start the SecondFunnel app
