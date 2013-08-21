@@ -103,7 +103,8 @@ a, a:hover, a:focus {
     z-index: 99;
 }
 
-.tile img {
+.tile img.focus {
+    /* the "focus" image (i.e. main image) must be at least some pixels wide. */
     min-width: 200px;
     max-width: 450px;
     min-height: 50px;
@@ -211,6 +212,10 @@ a, a:hover, a:focus {
     margin: 0;
     width: 100%;
     height: 100%;
+}
+
+.social-buttons button, .social-buttons .button {
+    display: inline-block;
 }
 
 @media (max-width: 480px) { /* phone */
