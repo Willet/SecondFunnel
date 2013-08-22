@@ -213,6 +213,16 @@ div.loading {
     display: inline-block;
 }
 
+.social-buttons .facebook.no-count {
+    width: 50px;
+    overflow: hidden;
+    height: 21px;
+    bottom: -7px; /* create illusion that it is still 14px */
+}
+.social-buttons .facebook.no-count .placeholder {
+    max-width: none;
+}
+
 @media (max-width: 480px) { /* phone */
     #discovery-area {
         width: 255px;

@@ -26,7 +26,8 @@ $(function () {
 
 // TODO: move it somewhere appropriate
 function getModifiedTemplateName(name) {
-    return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i, 'image');
+    return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i,
+        'image');
 }
 
 
@@ -69,7 +70,8 @@ Backbone.Marionette.View.prototype.getTemplate = function () {
         }
 
         for (i = 0; i < templateIDs.length; i++) {
-            data = $.extend({}, Backbone.Marionette.getOption(this, "model").attributes);
+            data = $.extend({},
+                Backbone.Marionette.getOption(this, "model").attributes);
             data.template = getModifiedTemplateName(data.template);
 
             temp = _.template(templateIDs[i], {
@@ -101,11 +103,21 @@ SecondFunnel.vent = _.extend({}, Backbone.Events);
 // make new module full of transient utilities
 SecondFunnel.module("observables",
     function (observables/*, (but wait, there's more) */) {
+        var testUA = function (regex) {
+            return regex.test(window.navigator.userAgent);
+        };
+
         observables.mobile = function () {
             return ($(window).width() < 768);  // 768 is set in stone now
         };
         observables.touch = function () {
             return ('ontouchstart' in document.documentElement);
+        };
+
+        observables.isAniPad = function () {
+            // use of this function is highly discouraged, but you know it
+            // will be used anyway
+            return testUA(/ipad/i);
         };
     }
 );
@@ -203,11 +215,11 @@ var Tile = Backbone.Model.extend({
     },
 
     'createView': function () {
-        switch(this.type) {
-            case "image":
-                return new TileView({model: this});
-            case "video":
-                return new VideoTileView({model: this});
+        switch (this.type) {
+        case "image":
+            return new TileView({model: this});
+        case "video":
+            return new VideoTileView({model: this});
         }
         return new TileView({model: this});
     }
@@ -240,9 +252,9 @@ SecondFunnel.module("layoutEngine",
         layoutEngine.call = function (callback, $fragment) {
             if (!(typeof callback === 'string' && callback in layoutEngine)) {
                 var msg = !(typeof callback === 'string')
-                        ? "Unsupported type " + (typeof callback) +
-                        " passed to Layout Engine." :
-                        "LayoutEngine has no property " + callback + ".";
+                    ? "Unsupported type " + (typeof callback) +
+                              " passed to Layout Engine." :
+                          "LayoutEngine has no property " + callback + ".";
                 SecondFunnel.vent.trigger('log', msg);
                 return layoutEngine;
             }
@@ -296,17 +308,18 @@ SecondFunnel.module("layoutEngine",
                     self.$el.append($elem).masonry('appended', $elem);
                 }
             }).on('always', function () {
-                // When all images are loaded, show the non-broken ones and reload
-                var $remaining = $fragment.filter(function () {
-                    return !$.contains(document.documentElement, $(this)[0]);
+                    // When all images are loaded, show the non-broken ones and reload
+                    var $remaining = $fragment.filter(function () {
+                        return !$.contains(document.documentElement,
+                            $(this)[0]);
+                    });
+                    if ($remaining.length > 0) {
+                        self.$el.append($remaining).masonry('appended',
+                            $remaining);
+                    }
+                    args = args.slice(1);
+                    callback.apply(self, args);
                 });
-                if ($remaining.length > 0) {
-                    self.$el.append($remaining).masonry('appended',
-                        $remaining);
-                }
-                args = args.slice(1);
-                callback.apply(self, args);
-            });
             return layoutEngine;
         };
     }
@@ -430,7 +443,7 @@ var TileView = Backbone.Marionette.Layout.extend({
         // Listen for the image being removed from the DOM, if it is, remove
         // the View/Model to free memory
         this.$("img").on('remove', this.close);
-        if (SocialButtons.prototype.buttonTypes.length) {
+        if (SocialButtons.prototype.buttonTypes.length && !(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
             this.socialButtons.show(new SocialButtons({model: this.model}));
         }
         this.tapIndicator.show(new TapIndicator());
@@ -476,12 +489,12 @@ var VideoTileView = TileView.extend({
             'events': {
                 'onReady': $.noop,
                 'onStateChange': function (newState) {
-                    switch (newState.data) {
-                        case YT.PlayerState.ENDED:
-                            self.onPlaybackEnd();
-                            break;
-                        default:
-                            break;
+                    switch (newState) {
+                    case YT.PlayerState.ENDED:
+                        self.onPlaybackEnd();
+                        break;
+                    default:
+                        break;
                     }
                 },
                 'onError': $.noop
@@ -511,7 +524,8 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         // @override to false under any condition you don't want buttons to show
         return true;
     },
-    'showCount': (PAGES_INFO.showCount !== undefined) ? PAGES_INFO.showCount : true,
+    'showCount': (PAGES_INFO.showCount !== undefined) ? PAGES_INFO.showCount
+        : true,
     'buttonTypes': PAGES_INFO.socialButtons ||
         ['facebook', 'twitter', 'pinterest'],  // @override via constructor
     // 'model': undefined,  // auto-serialization of constructor(obj)
@@ -748,11 +762,11 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     'updateContentStream': function (tile) {
         // Loads in related content below the specified tile
         var id = tile.model.get('tile-id');
-        return id === null? this :
-            this.getTiles({
-                'type': "content",
-                'id': tile.model.get('tile-id')
-            }, tile);
+        return id === null ? this :
+               this.getTiles({
+                   'type': "content",
+                   'id': tile.model.get('tile-id')
+               }, tile);
     },
 
     'toggleLoading': function (bool) {
@@ -820,7 +834,9 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
     },
     'onRender': function () {
         this.$el.css({display: "table"});
-        this.socialButtons.show(new SocialButtons({model: this.model}));
+        if (!(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
+            this.socialButtons.show(new SocialButtons({model: this.model}));
+        }
         $('body').append(this.$el.fadeIn(PAGES_INFO.previewAnimationDuration));
     }
 });
@@ -830,7 +846,8 @@ var TapIndicator = Backbone.Marionette.ItemView.extend({
     'template': "#tap_indicator_template",
     'className': 'tap_indicator animated fadeIn',
     'onBeforeRender': function () {
-        $('html').toggleClass('touch-enabled', SecondFunnel.observables.touch());
+        $('html').toggleClass('touch-enabled',
+            SecondFunnel.observables.touch());
     }
 });
 
