@@ -728,14 +728,14 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         callback = callback || this.toggleLoading;
 
         // Check for empty results
-        if (data.length == 0 && tile) {
+        if (data.length === 0 && tile) {
             data = tile.model.get('related-products');
             // Prevent loading the same content again
             tile.model.set('related-products', []);
         }
 
         // Finally check if we still don't have anything
-        if (data.length == 0) {
+        if (data.length === 0) {
             return this.toggleLoading();
         }
 
@@ -854,14 +854,13 @@ var TapIndicator = Backbone.Marionette.ItemView.extend({
     }
 });
 
-$(function () {
-    // Add SecondFunnel component(s)
-    SecondFunnel.addInitializer(function (options) {
-        // Add our initiliazer, this allows us to pass a series of tiles
-        // to be displayed immediately (and first) on the landing page.
-        SecondFunnel.discovery = new Discovery({}, options);
-    });
 
-    // Start the SecondFunnel app
-    SecondFunnel.start(PAGES_INFO);
+// Add SecondFunnel component(s)
+SecondFunnel.addInitializer(function (options) {
+    // Add our initiliazer, this allows us to pass a series of tiles
+    // to be displayed immediately (and first) on the landing page.
+    SecondFunnel.discovery = new Discovery({}, options);
 });
+
+// Start the SecondFunnel app
+SecondFunnel.start(PAGES_INFO);
