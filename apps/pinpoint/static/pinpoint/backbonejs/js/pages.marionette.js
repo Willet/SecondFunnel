@@ -140,6 +140,8 @@ SecondFunnel.module("intentRank",
                 'campaign': options.campaign,
                 'categories': page.catories || {},
                 'backupResults': options.backupResults ||[],
+                'IRResultsCount': options.IRResultsCount || 10,
+                'IRTimeout': options.IRTimeout || 5000,
                 'content': options.content || [],
                 'getResults': online?
                     intentRank.getResultsOnline :
@@ -163,11 +165,11 @@ SecondFunnel.module("intentRank",
             $.ajax({
                 url: uri,
                 data: {
-                    'results': 10 // TODO: Should be calculated somehow
+                    'results': intentRank.IRResultsCount
                 },
                 contentType: "json",
                 dataType: 'jsonp',
-                timeout: 5000,
+                timeout: intentRank.IRTimeout,
                 success: function (results) {
                     args.unshift(results);
                     return callback.apply(callback, args);
@@ -702,8 +704,8 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         this.attachListeners();
 
         // If the collection has initial values, lay them out
-        if (options.tiles && options.tiles.length > 0) {
-            this.layoutResults(options.tiles, undefined, function () {
+        if (options.initialResults && options.initialResults.length > 0) {
+            this.layoutResults(options.initialResults, undefined, function () {
                 self.getTiles();
             });
         } else {
@@ -794,9 +796,10 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
     'pageScroll': function () {
         var pageBottomPos = $(window).innerHeight() + $(window).scrollTop(),
-            documentBottomPos = $(document).height();
+            documentBottomPos = $(document).height(),
+            viewportHeights = window.innerHeight * (PAGES_INFO.prefetchHeight || 1);
 
-        if (pageBottomPos >= documentBottomPos - 500 && !this.loading) {
+        if (pageBottomPos >= documentBottomPos - viewportHeights && !this.loading) {
             this.getTiles();
         }
     }

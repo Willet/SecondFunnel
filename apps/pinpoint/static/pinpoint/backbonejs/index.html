@@ -11,10 +11,6 @@
                 'masonryMobileAnimationDuration': 0,
                 'socialButtons': ['facebook', 'twitter', 'pinterest'],  // strings representing the buttons you want loaded.  [] means no buttons.
                 'IRResourceUrl': 'http://intentrank-test.elasticbeanstalk.com/intentrank/store/gap/campaign/96/getresults',
-                'IRResultsCount': 10,
-                'IRTimeout': 1000,
-                'initialResults': [],  // stuff that loads when page loads, even if IR is available
-                'backupResults': [],  // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout
                 'tracking': function () { return true; },  // tracking is enabled if this function returns true
                 'konami': undefined,
                 'base_url': "http://www.secondfunnel.com",
@@ -280,7 +276,7 @@
                 'previewMobileAnimationDuration': 0,
                 'masonryAnimationDuration': 0.4,
                 'masonryMobileAnimationDuration': 0,
-                'tiles': [
+                'initialResults': [  // stuff that loads when page loads, even if IR is available
                     { 
                         'caption': "None",
                         'content-id': 562949953426705,
@@ -291,6 +287,19 @@
                         'template': "instagram",
                         'tile-id': 562949953426705
                     }
+                ],
+                'IRResultsCount': 10,
+                'IRTimeout': 5000,
+
+                // number of viewports worth of results to keep below the page.
+                // 0 is not an acceptable value, but 0.0001 is. default is 1,
+                // i.e. there will always be one page worth of results
+                // underneath, no matter how fast you scroll.
+                'prefetchHeight': 1,
+
+                'backupResults': [
+                    // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
+                    // it really should contain at least 10 products.
                 ],
                 'showCount': false
             };
