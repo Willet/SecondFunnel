@@ -503,7 +503,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
                 // so stretch out its loading by a second and make the
                 // the page look less owned by the lag
                 window.FB.XFBML.parse(facebookButton[0], function () {
-                    // facebookButton.find('.placeholder').remove();
+                    facebookButton.find('.placeholder').remove();
                 });
             }
         }
