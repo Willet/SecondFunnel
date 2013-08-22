@@ -37,7 +37,7 @@ Backbone.Marionette.TemplateCache._exists = function (templateId) {
         this.templateCaches[templateId] = cachedTemplate;
     } catch (err) {
         if (!(err.name && err.name == "NoTemplateError")) {
-            throw(err);
+            throw (err);
         }
     }
     return !!this.templateCaches[templateId];
@@ -52,6 +52,11 @@ Backbone.Marionette.View.prototype.getTemplate = function () {
         temp, templateExists;
 
     if (templateIDs) {
+        if (typeof templateIDs === 'function') {
+            // if given as a function, call it, and expect [<string> selectors]
+            templateIDs = templateIDs(this);
+        }
+
         for (i = 0; i < templateIDs.length; i++) {
             temp = _.template(templateIDs[i], {
                 'options': PAGES_INFO,
@@ -78,6 +83,17 @@ var SecondFunnel = new Backbone.Marionette.Application();
 window.SecondFunnel = SecondFunnel;
 // Custom event trigger/listener
 SecondFunnel.vent = _.extend({}, Backbone.Events);
+
+// make new module full of transient utilities
+SecondFunnel.module("observables",
+    function (observables/*, (but wait, there's more) */) {
+        observables.mobile = function () {
+            return ($(window).width() < 768);  // 768 is set in stone now
+        };
+        observables.touch = function () {
+            return ('ontouchstart' in document.documentElement);
+        };
+    });
 
 
 var Tile = Backbone.Model.extend({
@@ -180,7 +196,7 @@ var LayoutEngine = Backbone.Marionette.View.extend({
             args = _.toArray(arguments),
             imgLoad = imagesLoaded($fragment.children(':not(iframe) > img'));
         // Remove broken images as they appear
-        imgLoad.on('progress', function (instance, image) {
+        imgLoad.on('progress',function (instance, image) {
             var $img = $(image.img),
                 $elem = $img.parents(self.selector);
 
@@ -191,17 +207,18 @@ var LayoutEngine = Backbone.Marionette.View.extend({
                 self.$el.append($elem).masonry('appended', $elem);
             }
         }).on('always', function () {
-            // When all images are loaded, show the non-broken ones and reload
-            var $remaining = $fragment.filter(function(){
-                return !$.contains(document.documentElement, $(this)[0]);
-            });
-            if ($remaining && $remaining.length > 0) {
-                self.$el.append($remaining).masonry('appended', $remaining);
-            }
+                // When all images are loaded, show the non-broken ones and reload
+                var $remaining = $fragment.filter(function () {
+                    return !$.contains(document.documentElement, $(this)[0]);
+                });
+                if ($remaining && $remaining.length > 0) {
+                    self.$el.append($remaining).masonry('appended',
+                        $remaining);
+                }
 
-            args = args.slice(1);
-            callback.apply(self, args);
-        });
+                args = args.slice(1);
+                callback.apply(self, args);
+            });
 
         return this;
     }
@@ -590,7 +607,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
         // If the collection has initial values, lay them out
         if (options.tiles && options.tiles.length > 0) {
-            this.layoutResults(options.tiles, undefined, function() {
+            this.layoutResults(options.tiles, undefined, function () {
                 self.getTiles();
             });
         } else {
@@ -682,11 +699,26 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
 var PreviewContent = Backbone.Marionette.ItemView.extend({
     'template': '#tile_preview_template',
-    'templates': [
-        '#<%= options.store.name %>_<%= data.template %>_preview_template',
-        '#<%= data.template %>_preview_template',
-        '#tile_preview_template' // fallback
-    ]
+    'templates': function (currentView) {
+        var defaultTemplateRules = [
+            '#<%= options.store.name %>_<%= data.template %>_mobile_preview_template',
+            '#<%= options.store.name %>_<%= data.template %>_preview_template',
+            '#<%= data.template %>_mobile_preview_template',
+            '#<%= data.template %>_preview_template',
+            '#tile_mobile_preview_template', // fallback
+            '#tile_preview_template' // fallback
+        ];
+
+        if (!SecondFunnel.observables.mobile()) {
+            // remove mobile templates if it isn't mobile, since they take
+            // higher precedence by default
+            defaultTemplateRules = _.reject(defaultTemplateRules,
+                function (t) {
+                    return t.indexOf('mobile') >= 0;
+                });
+        }
+        return defaultTemplateRules;
+    }
 });
 
 
