@@ -132,14 +132,30 @@ SecondFunnel.module("intentRank",
 
         intentRank.initialize = function (options) {
             // Any additional init declarations go here
-            var page = options.page;
+            var page = options.page || {},
+                online = !page.offline;
 
-            intentRank.store = options.store;
-            intentRank.campaign = options.campaign;
-            intentRank.categories = page ? page.categories || {} : {};
+            _.extend(intentRank, {
+                'store': options.store,
+                'campaign': options.campaign,
+                'categories': page.catories || {},
+                'backupResults': options.backupResults ||[],
+                'IRResultsCount': options.IRResultsCount || 10,
+                'IRTimeout': options.IRTimeout || 5000,
+                'content': options.content || [],
+                'getResults': online?
+                    intentRank.getResultsOnline :
+                    intentRank.getResultsOffline
+            });
         };
 
-        intentRank.getResults = function (options, callback) {
+        intentRank.getResultsOffline = function (options, callback) {
+            var args = _.toArray(arguments).slice(2);
+            args.unshift(intentRank.content);
+            return callback.apply(callback, args);
+        };
+
+        intentRank.getResultsOnline = function (options, callback) {
             var uri = _.template(intentRank.templates[options.type],
                     _.extend({}, options, intentRank, {
                         'url': intentRank.base
@@ -149,17 +165,17 @@ SecondFunnel.module("intentRank",
             $.ajax({
                 url: uri,
                 data: {
-                    'results': PAGES_INFO.IRResultsCount || 10
+                    'results': intentRank.IRResultsCount
                 },
                 contentType: "json",
                 dataType: 'jsonp',
-                timeout: PAGES_INFO.IRTimeout || 5000,
+                timeout: intentRank.IRTimeout,
                 success: function (results) {
                     args.unshift(results);
                     return callback.apply(callback, args);
                 },
                 error: function (jxqhr, textStatus, error) {
-                    args.unshift(PAGES_INFO.backupResults);
+                    args.unshift(intentRank.backupResults);
                     return callback.apply(callback, args);
                 }
             });
@@ -182,11 +198,12 @@ var Tile = Backbone.Model.extend({
         // come specifying a type or caption
         'caption': "I don't even",
         'tile-id': null,
-        'content-type': "product"
+        'content-type': "product",
+        'related-products': []
     },
 
-    'initialize': function (attributes, options) {
-        var video_types = ["youtube"],
+    'initialize': function(attributes, options) {
+        var video_types = ["youtube", "video"],
             type = this.get('content-type').toLowerCase();
 
         this.type = 'image';
@@ -451,9 +468,8 @@ var VideoTileView = TileView.extend({
 
         // Determine which click handler to use; determined by the
         // content type.
-        var handler = this.model.get('content-type');
-        handler = handler[0].toUpperCase() + handler.substring(1);
-        this.onClick = this['on' + handler];
+        var handler = _.capitalize(this.model.get('content-type'));
+        this.onClick = this['on' + handler] || this['onVideo'];
     },
 
     'onYoutube': function () {
@@ -474,7 +490,7 @@ var VideoTileView = TileView.extend({
             },
             'events': {
                 'onReady': $.noop,
-                'onStateChanges': function (newState) {
+                'onStateChange': function (newState) {
                     switch (newState) {
                     case YT.PlayerState.ENDED:
                         self.onPlaybackEnd();
@@ -494,7 +510,6 @@ var VideoTileView = TileView.extend({
     },
 
     'onPlaybackEnd': function (ev) {
-        console.log("Video ended");
         SecondFunnel.vent.trigger("videoEnded", ev, this);
     }
 });
@@ -686,17 +701,13 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     },
 
     'attachListeners': function () {
-        // Attach our listeners that can't be handled through events
-        _.bindAll(this, 'pageScroll');
-        $(window).scroll(this.pageScroll);
-
         // TODO: Find a better way than this...
-        _.bindAll(this, 'toggleLoading', 'layoutResults',
-            'updateContentStream');
+        _.bindAll(this, 'pageScroll', 'toggleLoading', 
+            'layoutResults', 'updateContentStream');
+        $(window).scroll(this.pageScroll);
 
         // Vent Listeners
         SecondFunnel.vent.on("tileClicked", this.updateContentStream);
-
         return this;
     },
 
@@ -713,15 +724,22 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
     'layoutResults': function (data, tile, callback) {
         var self = this,
-            start = self.collection.length,
             $fragment = $();
         callback = callback || this.toggleLoading;
 
         // Check for empty results
-        data = data.length == 0 && tile ?
-               tile.model.get('related-products') :
-               data;
+        if (data.length == 0 && tile) {
+            data = tile.model.get('related-products');
+            // Prevent loading the same content again
+            tile.model.set('related-products', []);
+        }
 
+        // Finally check if we still don't have anything
+        if (data.length == 0) {
+            return this.toggleLoading();
+        }
+
+        // If we have data to use.
         _.each(data, function (tileData) {
             // Create the new tiles using the data
             var tile = new Tile(tileData),
@@ -729,22 +747,16 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
                 view = tile.createView();
 
             self.collection.add(tile);
-
             view.render();
             $fragment = $fragment.add(view.$el);
         });
 
-        if ($fragment.length > 0) {
-            if (tile) {
-                SecondFunnel.layoutEngine.call('insert', $fragment, tile.$el,
-                    callback);
-            } else {
-                SecondFunnel.layoutEngine.call('append', $fragment,
-                    callback);
-            }
+        if (tile) {
+            SecondFunnel.layoutEngine.call('insert', $fragment, tile.$el,
+                callback);
         } else {
-            // Toggle loading if empty.
-            this.toggleLoading();
+            SecondFunnel.layoutEngine.call('append', $fragment,
+                callback);
         }
         return this;
     },
