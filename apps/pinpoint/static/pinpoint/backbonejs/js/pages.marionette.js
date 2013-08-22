@@ -24,6 +24,11 @@ $(function () {
     });
 });
 
+// TODO: move it somewhere appropriate
+function getModifiedTemplateName(name) {
+    return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i, 'image');
+}
+
 
 // Marionette TemplateCache extension to allow checking cache for template
 Backbone.Marionette.TemplateCache._exists = function (templateId) {
@@ -55,7 +60,7 @@ Backbone.Marionette.TemplateCache._exists = function (templateId) {
 Backbone.Marionette.View.prototype.getTemplate = function () {
     var i, templateIDs = Backbone.Marionette.getOption(this, "templates"),
         template = Backbone.Marionette.getOption(this, "template"),
-        temp, templateExists;
+        temp, templateExists, data;
 
     if (templateIDs) {
         if (typeof templateIDs === 'function') {
@@ -64,9 +69,12 @@ Backbone.Marionette.View.prototype.getTemplate = function () {
         }
 
         for (i = 0; i < templateIDs.length; i++) {
+            data = $.extend({}, Backbone.Marionette.getOption(this, "model").attributes);
+            data.template = getModifiedTemplateName(data.template);
+
             temp = _.template(templateIDs[i], {
                 'options': PAGES_INFO,
-                'data': Backbone.Marionette.getOption(this, "model").attributes
+                'data': data
             });
             templateExists = Backbone.Marionette.TemplateCache._exists(temp);
 

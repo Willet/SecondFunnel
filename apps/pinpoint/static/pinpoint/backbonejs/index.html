@@ -173,7 +173,8 @@
             <img src="<%= obj.image %>" alt=""/>
             <%= obj.price %>
         </script>
-        <script type="text/template" id="instagram_preview_template">
+        <script type="text/template" id="image_preview_template">
+            <h1>Image preview (original type: <%= obj.template %>)</h1>
             <% if (obj['related-products']) { %>
                 <img src="<%= obj.image %>" alt=""/>
                 <% console.log(obj['related-products']); %>
