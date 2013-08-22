@@ -154,17 +154,15 @@ var LayoutEngine = Backbone.Marionette.View.extend({
         return this;
     },
 
-    'insert': function ($target, $fragment, callback) {
+    'insert': function ($fragment, $target, callback) {
         var initialBottom = $target.position().top + $target.height();
-
         // Find a target that is low enough on the screen to insert after
         while ($target.position().top <= initialBottom &&
-            $target.next().length > 0) {
+               $target.next().length > 0) {
             $target = $target.next();
         }
-
         $fragment.insertAfter($target);
-        this.reload();
+        this.$el.masonry();
         return callback ? callback($fragment) : this;
     },
 
@@ -229,8 +227,7 @@ var IntentRank = Backbone.Model.extend({
                 _.extend({}, options, this, {
                     'url': this.base
                 })),
-            args = _.toArray(arguments);
-        args = args.length > 2 ? args.slice(2) : [];
+            args = _.toArray(arguments).slice(2);
 
         $.ajax({
             url: uri,
@@ -646,11 +643,16 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         return this;
     },
 
-    'layoutResults': function (data, $tile, callback) {
+    'layoutResults': function (data, tile, callback) {
         var self = this,
             start = self.collection.length,
             $fragment = $();
         callback = callback || this.toggleLoading;
+
+        // Check for empty results
+        data = data.length == 0 && tile ? 
+            tile.model.get('related-products') : 
+            data;
 
         _.each(data, function (tileData) {
             // Create the new tiles using the data
@@ -667,8 +669,8 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         });
 
         if ($fragment.length > 0) {
-            if ($tile) {
-                SecondFunnel.layoutEngine.call('insert', $fragment, $tile,
+            if (tile) {
+                SecondFunnel.layoutEngine.call('insert', $fragment, tile.$el,
                     callback);
             } else {
                 SecondFunnel.layoutEngine.call('append', $fragment,
@@ -682,10 +684,11 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     },
 
     'updateContentStream': function (tile) {
+        // Loads in related content below the specified tile
         return this.getTiles({
             'type': "content",
             'id': tile.model.get('tile-id')
-        }, tile.$el);
+        }, tile);
     },
 
     'toggleLoading': function (bool) {
