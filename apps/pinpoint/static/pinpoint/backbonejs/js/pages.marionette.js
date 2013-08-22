@@ -15,6 +15,13 @@ $(function () {
         // example output: ['facebook', 'button']
         return _.compact($(this).attr('class').split(' ').map($.trim));
     };
+
+    // underscore's fancy pants capitalize()
+    _.mixin({
+        'capitalize': function (string) {
+            return string.charAt(0).toUpperCase() + string.substring(1).toLowerCase();
+        }
+    });
 });
 
 
@@ -543,9 +550,8 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
                 ? (page['stl-image'] || page['featured-image'])
                 : (data.image || data.url);
 
-        helpers.url = function () {
-            return encodeURIComponent(product.url || image);
-        };
+        helpers.buttons = Backbone.Marionette.getOption(this, 'buttonTypes');
+        helpers.url = encodeURIComponent(product.url || image);
         helpers.fburl = function (/* this: model.toJSON */) {
             // generate the button's share link for fb.
             // TODO: show_count
@@ -556,29 +562,14 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             }
             return fburl;
         };
-        helpers.image = function () {
-            return image;
-        };
+        helpers.image = image;
         return helpers;
     },
     // 'triggers': { "click .facebook": "event1 event2" },
     // 'onBeforeRender': $.noop,
     'onRender': function () {
         var self = this;
-
         this.$el.parent().hide();
-
-        // remove disabled default buttons
-        this.$el.find('.button').each(function (i, o) {
-            var classes = $(o).getClasses(),
-                btnSets = _.difference(self.buttonTypes, classes);
-            if (btnSets.length >= self.buttonTypes.length) {
-                // magic. if a default is removed rom the list of
-                // required buttons, the default button is removed
-                // console.log($(o).getClasses().toString() + ' removed');
-                $(o).remove();
-            }
-        });
     },
     // 'onDomRefresh': $.noop,
     // 'onBeforeClose': function () { return true; },
@@ -686,7 +677,11 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     },
 
     toggleLoading: function (bool) {
-        this.loading = !this.loading;
+        if (bool !== undefined) {
+            this.loading = bool;
+        } else {
+            this.loading = !this.loading;
+        }
         return this;
     },
 
