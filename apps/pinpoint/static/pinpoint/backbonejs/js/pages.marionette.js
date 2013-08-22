@@ -207,20 +207,29 @@ var Tile = Backbone.Model.extend({
 SecondFunnel.module("layoutEngine",
     function (layoutEngine) {
         layoutEngine.options = {
-            isResizeBound: true,
-            visibleStyle: {
+            'isInitLayout': true,
+            'isResizeBound': true,
+            'visibleStyle': {
                 'opacity': 1,
                 '-webkit-transform': 'none'
             },
-            isAnimated: true
+            'hiddenStyle': {
+                'opacity': 0,
+                '-webkit-transform': 'scale(1)'
+            }
         };
 
         layoutEngine.initialize = function ($elem, options) {
+            var mobile = SecondFunnel.observables.mobile();
+
             layoutEngine.selector = options.discoveryItemSelector;
             _.extend(layoutEngine.options, {
                 'itemSelector': options.discoveryItemSelector,
                 'columnWidth': options.columnWidth(),
-                'transitionDuration': options.masonryAnimationDuration + 's'
+                'isAnimated': !mobile,
+                'transitionDuration': (mobile ?
+                    options.masonryMobileAnimationDuration :
+                    options.masonryAnimationDuration) + 's'
             }, options.masonry);
 
             $elem.masonry(layoutEngine.options).masonry('bindResize');
@@ -455,15 +464,20 @@ var VideoTileView = TileView.extend({
         var thumbId = 'thumb' + this.cid,
             $thumb = this.$('div.thumbnail'),
             self = this;
-        $thumb.attr('id', thumbId).wrap('<div class="video-container" />');
+        
+        if (typeof YT === 'undefined') {
+            window.open(this.model.get('original-url'));
+            return;
+        }
 
+        $thumb.attr('id', thumbId).wrap('<div class="video-container" />');
         var player = new YT.Player(thumbId, {
             'width': $thumb.width(),
             'height': $thumb.height(),
             'videoId': this.model.attributes['original-id'] || this.model.id,
             'playerVars': {
                 'autoplay': 1,
-                'controls': 0
+                'controls': SecondFunnel.observables.mobile()
             },
             'events': {
                 'onReady': $.noop,
