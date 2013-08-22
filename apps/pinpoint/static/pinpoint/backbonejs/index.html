@@ -146,30 +146,6 @@
                 <%= PAGES_INFO.tapIndicatorText || 'tap to see more' %>
             </div>
         </script>
-        <script type="text/template" id="product_preview_template">
-            <img src="<%= obj.image %>" alt=""/>
-            <%= obj.price %>
-        </script>
-        <script type="text/template" id="instagram_preview_template">
-            <% if (obj['related-products']) { %>
-                <img src="<%= obj.image %>" alt=""/>
-                <% console.log(obj['related-products']); %>
-            <% } else { %>
-                <img src="<%= obj.image %>" alt=""/>
-            <% } %>
-        </script>
-        <script type="text/template" id="gap_instagram_preview_template">
-            <!-- any (store.name)_(type)_... templates will be used in place
-                 of default templates if they exist. -->
-            <h1>GAP TEMPLATE WOOOOOOT!!</h1>
-            <% if (obj['related-products']) { %>
-                <img src="<%= obj.image %>" alt=""/>
-                <% console.log(obj['related-products']); %>
-            <% } else { %>
-                <img src="<%= obj.image %>" alt=""/>
-            <% } %>
-        </script>
-
         <script type="text/template" id="social_buttons_template">
             <div class='button facebook'>
                 <img src="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/fb-like-0.png" alt="Like" class="placeholder" />
@@ -187,6 +163,84 @@
                 </a>
             </div>
         </script>
+        <script type="text/template" id="product_preview_template">
+            <img src="<%= obj.image %>" alt=""/>
+            <%= obj.price %>
+        </script>
+        <script type="text/template" id="instagram_preview_template">
+            <% if (obj['related-products']) { %>
+                <img src="<%= obj.image %>" alt=""/>
+                <% console.log(obj['related-products']); %>
+            <% } else { %>
+                <img src="<%= obj.image %>" alt=""/>
+            <% } %>
+        </script>
+        <script type="text/template" id="product_preview_template">
+            <img src="<%= obj.image %>" alt=""/>
+            <%= obj.price %>
+        </script>
+
+        <!-- store-specific templates -->
+        <script type="text/template" id="gap_product_preview_template">
+            <!-- any (store.name)_(type)_... templates will be used in place
+                 of default templates if they exist. -->
+            <div class='content-wrapper'>
+                <div class='image-div'>
+                    <div class='table'>
+                        <div class='image'><img src='<%= obj.image %>'/></div>
+                    </div>
+                </div>
+                <div class='info'>
+                    <div class='title text'><%= obj.title %></div>
+                    <div class='price text'><%= obj.price %></div>
+                    <div class='description'>
+                        <div class='desc-title'>Overview</div>
+                        <ul>
+                            <% var sentences = _.compact(obj.description.split('.')); %>
+                            <% _.each(sentences, function(sentence) { %>
+                                <li><%= sentence.trim() %></li>
+                            <% }); %>
+                        </ul>
+                    </div>
+                    <div>
+                        <a class='tumblr' href='//www.tumblr.com/share/photo?source=<%= encodeURIComponent(obj.image) %>&caption=<%= encodeURIComponent(obj.title) %>&click_thru=<%= encodeURIComponent(obj.url) %>' target='_blank'>
+                            <img src='http://platform.tumblr.com/v1/share_1.png'/>
+                        </a>
+                        <div class="social-buttons"></div>
+                        <div class='spacer'></div>
+                    </div>
+                    <div class='gap-buttons'>
+                        <a class='button find-store' href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>
+                            Find in Store
+                        </a>
+                        <a class='button in-store' href='<%= obj.url %>' target='_blank'>
+                            Shop on Gap.com
+                        </a>
+                    </div>
+                    <% if(obj.images.length >1) { %>
+                    <div class='selector'>
+                        <div class='images'>
+                            <% _.each(obj.images, function(image) { %>
+                            <img src='<%= image %>' />
+                            <% }); %>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </script>
+        <script type="text/template" id="gap_instagram_preview_template">
+            <!-- any (store.name)_(type)_... templates will be used in place
+                 of default templates if they exist. -->
+            <h1>GAP TEMPLATE WOOOOOOT!!</h1>
+            <% if (obj['related-products']) { %>
+                <img src="<%= obj.image %>" alt=""/>
+                <% console.log(obj['related-products']); %>
+            <% } else { %>
+                <img src="<%= obj.image %>" alt=""/>
+            <% } %>
+        </script>
+
 
         <!-- End Templates -->
         <!-- Javascript Files -->

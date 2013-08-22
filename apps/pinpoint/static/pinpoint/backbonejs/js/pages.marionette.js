@@ -46,7 +46,6 @@ Backbone.Marionette.TemplateCache._exists = function (templateId) {
 // Accept an arbitrary number of template selectors instead of just one.
 // function will return in a short-circuit manner once a template is found.
 Backbone.Marionette.View.prototype.getTemplate = function () {
-    "use strict";
     var i, templateIDs = Backbone.Marionette.getOption(this, "templates"),
         template = Backbone.Marionette.getOption(this, "template"),
         temp, templateExists;
@@ -386,7 +385,6 @@ var TileView = Backbone.Marionette.Layout.extend({
     },
 
     onClick: function (ev) {
-        "use strict";
         if (this.model.is('youtube')) {
             this.renderVideo();
         } else {
@@ -399,8 +397,18 @@ var TileView = Backbone.Marionette.Layout.extend({
     },
 
     'onBeforeRender': function () {
-        if (Math.random() < 0.333) {
-            this.$el.addClass('wide');
+        var maxImageSize;
+        try {
+            maxImageSize = _.findWhere(this.model.images[0].sizes,
+                                       {'name': 'master'})[0].width;
+
+            if (Math.random() > 0.333 && maxImageSize >= 512) {
+                this.$el.addClass('wide');
+            }  // else: leave it as 1-col
+        } catch (imageServiceNotReady) {
+            if (Math.random() < 0.333) {
+                this.$el.addClass('wide');
+            }
         }
     },
 
