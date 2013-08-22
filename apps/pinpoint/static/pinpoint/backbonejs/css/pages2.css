@@ -208,7 +208,9 @@ div.loading {
 
 .social-buttons {
     width: 100%;
+    display: none; /* all themes have buttons hidden by default */
 }
+
 .social-buttons button, .social-buttons .button {
     display: inline-block;
 }
