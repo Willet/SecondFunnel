@@ -101,11 +101,21 @@ SecondFunnel.vent = _.extend({}, Backbone.Events);
 // make new module full of transient utilities
 SecondFunnel.module("observables",
     function (observables/*, (but wait, there's more) */) {
+        var testUA = function (regex) {
+            return regex.test(window.navigator.userAgent);
+        };
+
         observables.mobile = function () {
             return ($(window).width() < 768);  // 768 is set in stone now
         };
         observables.touch = function () {
             return ('ontouchstart' in document.documentElement);
+        };
+
+        observables.isAniPad = function () {
+            // use of this function is highly discouraged, but you know it
+            // will be used anyway
+            return testUA(/ipad/i);
         };
     }
 );
@@ -415,7 +425,8 @@ var TileView = Backbone.Marionette.Layout.extend({
         // Listen for the image being removed from the DOM, if it is, remove
         // the View/Model to free memory
         this.$("img").on('remove', this.close);
-        if (SocialButtons.prototype.buttonTypes.length) {
+        if (SocialButtons.prototype.buttonTypes.length &&
+            !(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
             this.socialButtons.show(new SocialButtons({model: this.model}));
         }
         this.tapIndicator.show(new TapIndicator());
@@ -810,7 +821,9 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
     },
     'onRender': function () {
         this.$el.css({display: "table"});
-        this.socialButtons.show(new SocialButtons({model: this.model}));
+        if (!(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
+            this.socialButtons.show(new SocialButtons({model: this.model}));
+        }
         $('body').append(this.$el.fadeIn(PAGES_INFO.previewAnimationDuration));
     }
 });
