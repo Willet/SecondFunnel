@@ -6,12 +6,6 @@
             // unused
             var PAGES_INFO = {
                 // (commented properties not implemented)
-                'discoveryTarget': '#discovery-area',
-                'discoveryItemSelector': '.tile',
-                'columnWidth': function ($element) {
-                    // width + margins. if you change this, you better know what you're doing
-                    return 240 + 15;
-                },
                 'imageTileWide': 0.25,
                 'masonryAnimationDuration': 0.4,
                 'masonryMobileAnimationDuration': 0,
@@ -148,6 +142,23 @@
         <script type="text/template" id="product_preview_template">
             <img src="<%= obj.image %>" alt=""/>
             <%= obj.price %>
+        </script>
+        <script type="text/template" id="instagram_preview_template">
+            <% if (obj['related-products']) { %>
+                <img src="<%= obj.image %>" alt=""/>
+                <% console.log(obj['related-products']); %>
+            <% } else { %>
+                <img src="<%= obj.image %>" alt=""/>
+            <% } %>
+        </script>
+        <script type="text/template" id="gap_instagram_preview_template">
+            <h1>GAP TEMPLATE WOOOOOOT!!</h1>
+            <% if (obj['related-products']) { %>
+                <img src="<%= obj.image %>" alt=""/>
+                <% console.log(obj['related-products']); %>
+            <% } else { %>
+                <img src="<%= obj.image %>" alt=""/>
+            <% } %>
         </script>
 
         <script type="text/template" id="social_buttons_template">
