@@ -80,7 +80,7 @@ SecondFunnel.vent = _.extend({}, Backbone.Events);
 
 
 var Tile = Backbone.Model.extend({
-    defaults: {
+    'defaults': {
         // Default product tile settings, some tiles don't
         // come specifying a type or caption
         'caption': "I don't even",
@@ -88,26 +88,26 @@ var Tile = Backbone.Model.extend({
         'content-type': "product"
     },
 
-    initialize: function (data) {
+    'initialize': function (data) {
         for (var key in data) {
             this.set(key, data[key]);
         }
     },
 
-    get: function (opt) {
+    'get': function (opt) {
         return this.attributes[opt] ||
             Backbone.Marionette.getOption(this, opt);
     },
 
-    is: function (type) {
+    'is': function (type) {
         return this.get('content-type').toLowerCase() === type.toLowerCase();
     }
 });
 
 var LayoutEngine = Backbone.Marionette.View.extend({
     // Our layoutEngine, acts as a BlackBox for whatever we're using
-    selector: PAGES_INFO.discoveryItemSelector,
-    options: {
+    'selector': PAGES_INFO.discoveryItemSelector,
+    'options': {
         itemSelector: PAGES_INFO.discoveryItemSelector,
         isResizeBound: true,
         visibleStyle: {
@@ -119,13 +119,13 @@ var LayoutEngine = Backbone.Marionette.View.extend({
         transitionDuration: PAGES_INFO.masonryAnimationDuration + 's'
     },
 
-    initialize: function ($elem, options) {
+    'initialize': function ($elem, options) {
         _.extend(this, {'options': options });
         $elem.masonry(this.options).masonry('bindResize');
         this.$el = $elem;
     },
 
-    call: function (callback, $fragment) {
+    'call': function (callback, $fragment) {
         if (!(typeof callback === 'string' && callback in this)) {
             var msg = !(typeof callback === 'string')
                 ? "Unsupported type " + (typeof callback) +
@@ -140,19 +140,19 @@ var LayoutEngine = Backbone.Marionette.View.extend({
         return this.imagesLoaded.apply(this, args);
     },
 
-    append: function ($fragment, callback) {
+    'append': function ($fragment, callback) {
         $fragment.appendTo(this.$el);
         this.reload();
         return callback ? callback($fragment) : this;
     },
 
-    reload: function ($fragment) {
+    'reload': function ($fragment) {
         this.$el.masonry('reloadItems');
         this.$el.masonry();
         return this;
     },
 
-    insert: function ($target, $fragment, callback) {
+    'insert': function ($target, $fragment, callback) {
         var initialBottom = $target.position().top + $target.height();
 
         // Find a target that is low enough on the screen to insert after
@@ -166,12 +166,12 @@ var LayoutEngine = Backbone.Marionette.View.extend({
         return callback ? callback($fragment) : this;
     },
 
-    clear: function () {
+    'clear': function () {
         // Resets the LayoutEngine's instance so that it is empty
         this.$el.masonry('destroy').masonry(this.options);
     },
 
-    imagesLoaded: function (callback, $fragment) {
+    'imagesLoaded': function (callback, $fragment) {
         // Calls the broken handler to remove broken images as they appear;
         // when all images are loaded, calls the appropriate layout function
         var self = this,
@@ -207,13 +207,13 @@ var LayoutEngine = Backbone.Marionette.View.extend({
 
 var IntentRank = Backbone.Model.extend({
     // intentRank module
-    base: "http://intentrank-test.elasticbeanstalk.com/intentrank",
-    templates: {
+    'base': "http://intentrank-test.elasticbeanstalk.com/intentrank",
+    'templates': {
         'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
         'content': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/content/<%=id%>/getresults"
     },
 
-    initialize: function (attributes, options) {
+    'initialize': function (attributes, options) {
         // Any additional init declarations go here
         var page = options.page;
 
@@ -222,7 +222,7 @@ var IntentRank = Backbone.Model.extend({
         this.categories = page ? page.categories || {} : {};
     },
 
-    getResults: function (options, callback) {
+    'getResults': function (options, callback) {
         var uri = _.template(this.templates[options.type],
                 _.extend({}, options, this, {
                     'url': this.base
@@ -249,7 +249,7 @@ var IntentRank = Backbone.Model.extend({
         });
     },
 
-    changeCategory: function (category) {
+    'changeCategory': function (category) {
         // Change the category, provided it's valid.
         if (_.findWhere(this.categories, {'id': '' + category})) {
             this.campaign = category;
@@ -261,17 +261,17 @@ var IntentRank = Backbone.Model.extend({
 
 var TileCollection = Backbone.Collection.extend({
     // Our TileCollection manages ALL the tiles on the page.
-    model: function (attrs) {
+    'model': function (attrs) {
         var SubClass = 'Tile';
         if (window[SubClass]) {
             return new window[SubClass](attrs);
         }
         return new Tile(attrs);  // base class
     },
-    loading: false,
-    totalItems: null,
+    'loading': false,
+    'totalItems': null,
 
-    initialize: function (arrayOfData) {
+    'initialize': function (arrayOfData) {
         // Our TileCollection starts by rendering several Tiles using the
         // data it is passed.
         for (var data in arrayOfData) {
@@ -283,11 +283,11 @@ var TileCollection = Backbone.Collection.extend({
 
 var TileView = Backbone.Marionette.Layout.extend({
     // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
-    tagName: "div", // TODO: Should this be a setting?
-    template: "#product_tile_template",
-    className: PAGES_INFO.discoveryItemSelector.substring(1),
+    'tagName': "div", // TODO: Should this be a setting?
+    'template': "#product_tile_template",
+    'className': PAGES_INFO.discoveryItemSelector.substring(1),
 
-    events: {
+    'events': {
         'click': "onClick",
         'mouseenter': "onHover",
         "mouseleave": "onHover"
@@ -297,7 +297,9 @@ var TileView = Backbone.Marionette.Layout.extend({
         'socialButtons': '.social-buttons'
     },
 
-    initialize: function (options) {
+    'initialize': function (options) {
+        // Creates the TileView using the options.  Subclasses should not override this
+        // method, rather provide an 'onInitialize' function
         var data = options.model.attributes,
             template = "#" + data.template + "_tile_template",
             self = this;
@@ -314,43 +316,16 @@ var TileView = Backbone.Marionette.Layout.extend({
             'id': this.cid
         });
 
-        if (this.model.is('youtube')) {
-            _.extend(this.model.attributes, {
-                'thumbnail': 'http://i.ytimg.com/vi/' + data['original-id'] +
-                    '/hqdefault.jpg'
-            });
-            this.$el.addClass('wide');
-        }
-
         _.bindAll(this, 'close');
         // If the tile model is removed, remove the DOM element
         this.listenTo(this.model, 'destroy', this.close);
+        // Call onInitialize if it exists
+        if (this.onInitialize) {
+            this.onInitialize(options);
+        }
     },
 
-    renderVideo: function () {
-        // Renders a YouTube video in the tile
-        var thumbId = 'thumb' + this.cid,
-            $thumb = this.$('div.thumbnail');
-        $thumb.attr('id', thumbId).wrap('<div class="video-container" />');
-
-        var player = new YT.Player(thumbId, {
-            width: $thumb.width(),
-            height: $thumb.height(),
-            videoId: this.model.attributes['original-id'] || this.model.id,
-            playerVars: {
-                'autoplay': 1,
-                'controls': 0
-            },
-            events: {
-                'onReady': $.noop,
-                'onStateChanges': this.onVideoEnd,
-                'onError': $.noop
-            }
-        });
-
-    },
-
-    close: function () {
+    'close': function () {
         // As it stands, since we aren't using a REST API, we don't store
         // the models anywhere so we don't need to destroy them.
         // Remove view and unbind listeners
@@ -359,11 +334,11 @@ var TileView = Backbone.Marionette.Layout.extend({
         this.views = [];
     },
 
-    onHover: function (ev) {
+    'onHover': function (ev) {
         // Trigger tile hover event with event and tile
         SecondFunnel.vent.trigger("tileHover", ev, this);
         if (this.socialButtons && this.socialButtons.$el &&
-            this.socialButtons.$el.children().length) {
+                this.socialButtons.$el.children().length) {
             var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn' : 'fadeOut';
             this.socialButtons.$el[inOrOut](200);
 
@@ -371,16 +346,12 @@ var TileView = Backbone.Marionette.Layout.extend({
         }
     },
 
-    onClick: function (ev) {
+    'onClick': function (ev) {
         "use strict";
-        if (this.model.is('youtube')) {
-            this.renderVideo();
-        } else {
-            var tile = this.model,
-                preview = new PreviewWindow({'model': tile});
-            preview.render();
-            preview.content.show(new PreviewContent({'model': tile}));
-        }
+        var tile = this.model,
+            preview = new PreviewWindow({'model': tile});
+        preview.render();
+        preview.content.show(new PreviewContent({'model': tile}));
         SecondFunnel.vent.trigger("tileClicked", this);
     },
 
@@ -397,9 +368,59 @@ var TileView = Backbone.Marionette.Layout.extend({
         if (SocialButtons.prototype.buttonTypes.length) {
             this.socialButtons.show(new SocialButtons({model: this.model}));
         }
+    }
+});
+
+var VideoTileView = TileView.extend({
+    // VideoTile extends from TileView, allows playing of Video files; for
+    // now, we only support YT
+    'onInitialize': function (options) {
+        // Add here additional things to do when loading a VideoTile
+        this.$el.addClass('wide');
+
+        if (this.model.is('youtube')) {
+            _.extend(this.model.attributes, {
+                'thumbnail': 'http://i.ytimg.com/vi/' + this.model.get('original-id') +
+                    '/hqdefault.jpg'
+            });
+        }
+
+        // Determine which click handler to use; determined by the
+        // content type.
+        var handler = this.model.get('content-type');
+        handler[0].toUpperCase();
+        this.onClick = this['on' + handler];
     },
 
-    onVideoEnd: function (ev) {
+    'onYoutube': function () {
+        // Renders a YouTube video in the tile
+        "use strict";
+        var thumbId = 'thumb' + this.cid,
+            $thumb = this.$('div.thumbnail');
+        $thumb.attr('id', thumbId).wrap('<div class="video-container" />');
+
+        var player = new YT.Player(thumbId, {
+            'width': $thumb.width(),
+            'height': $thumb.height(),
+            'videoId': this.model.attributes['original-id'] || this.model.id,
+            'playerVars': {
+                'autoplay': 1,
+                'controls': 0
+            },
+            'events': {
+                'onReady': $.noop,
+                'onStateChanges': this.onPlaybackEnd,
+                'onError': $.noop
+            }
+        });
+    },
+
+    'onVideo': function () {
+        // TODO: Possible support for native video files?
+        // Pass for now
+    },
+
+    'onPlaybackEnd': function (ev) {
         SecondFunnel.vent.trigger("videoEnded", ev, this);
     }
 });
@@ -415,7 +436,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         // @override to false under any condition you don't want buttons to show
         return true;
     },
-    "buttonTypes": PAGES_INFO.socialButtons ||
+    'buttonTypes': PAGES_INFO.socialButtons ||
         ['facebook', 'twitter', 'pinterest'],  // @override via constructor
     // 'model': undefined,  // auto-serialization of constructor(obj)
     // 'collection': undefined,  // auto-serialization of constructor([obj])
@@ -426,7 +447,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         if (window.FB && _.contains(this.buttonTypes, "facebook")) {
             window.FB.init({
                 cookie: true,
-                status: true,
+                status: false, // No AppID
                 xfbml: true
             });
         }
@@ -565,17 +586,17 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
 var Discovery = Backbone.Marionette.CompositeView.extend({
     // Manages the HTML/View of ALL the tiles on the page (our discovery area)
     // tagName: "div"
-    el: $(PAGES_INFO.discoveryTarget),
-    itemView: TileView,
-    intentRank: null,
-    collection: null,
-    layoutEngine: null,
-    loading: false,
+    'el': $(PAGES_INFO.discoveryTarget),
+    'itemView': TileView,
+    'intentRank': null,
+    'collection': null,
+    'layoutEngine': null,
+    'loading': false,
 
     // prevent default appendHtml behaviour (append in batch)
     'appendHtml': $.noop,
 
-    initialize: function (attributes, options) {
+    'initialize': function (attributes, options) {
         var self = this;
         // Initialize IntentRank; use as a seperate module to make changes easier.
         SecondFunnel.intentRank = new IntentRank({}, options);
@@ -596,7 +617,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         }
     },
 
-    attachListeners: function () {
+    'attachListeners': function () {
         // Attach our listeners that can't be handled through events
         _.bindAll(this, 'pageScroll');
         $(window).scroll(this.pageScroll);
@@ -611,7 +632,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         return this;
     },
 
-    getTiles: function (options, $tile) {
+    'getTiles': function (options, $tile) {
         if (!this.loading) {
             this.toggleLoading();
             options = options || {};
@@ -622,7 +643,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         return this;
     },
 
-    layoutResults: function (data, $tile, callback) {
+    'layoutResults': function (data, $tile, callback) {
         var self = this,
             start = self.collection.length,
             $fragment = $();
@@ -631,7 +652,10 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         _.each(data, function (tileData) {
             // Create the new tiles using the data
             var tile = new Tile(tileData),
-                view = new TileView({model: tile});
+                img = tile.get('image'),
+                view = img && img !== null ? 
+                    new TileView({model: tile}) : 
+                    new VideoTileView({model: tile});
 
             self.collection.add(tile);
 
@@ -654,19 +678,19 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         return this;
     },
 
-    updateContentStream: function (tile) {
+    'updateContentStream': function (tile) {
         return this.getTiles({
             'type': "content",
             'id': tile.model.get('tile-id')
         }, tile.$el);
     },
 
-    toggleLoading: function (bool) {
+    'toggleLoading': function (bool) {
         this.loading = !this.loading;
         return this;
     },
 
-    pageScroll: function () {
+    'pageScroll': function () {
         var pageBottomPos = $(window).innerHeight() + $(window).scrollTop(),
             documentBottomPos = $(document).height();
 
