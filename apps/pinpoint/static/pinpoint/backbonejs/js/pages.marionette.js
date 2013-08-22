@@ -54,6 +54,7 @@ Backbone.Marionette.View.prototype.getTemplate = function () {
     if (templateIDs) {
         for (i = 0; i < templateIDs.length; i++) {
             temp = _.template(templateIDs[i], {
+                'options': PAGES_INFO,
                 'data': Backbone.Marionette.getOption(this, "model").attributes
             });
             templateExists = Backbone.Marionette.TemplateCache._exists(temp);
@@ -115,6 +116,7 @@ var LayoutEngine = Backbone.Marionette.View.extend({
             'webkit-transform': 'none'
         },
         isAnimated: true,
+        // TODO: columnWidth not obeyed (if first block is wide, only two columns render)
         columnWidth: PAGES_INFO.columnWidth(),
         transitionDuration: PAGES_INFO.masonryAnimationDuration + 's'
     },
@@ -431,6 +433,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
 
     // override the template by passing it in: new SocialButtons({ template: ... })
     // template can be a selector or a function(json) ->  <_.template>
+    'tagName': 'span',
     'template': '#social_buttons_template',
     'showCondition': function () {
         // @override to false under any condition you don't want buttons to show
@@ -521,7 +524,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
                 // so stretch out its loading by a second and make the
                 // the page look less owned by the lag
                 window.FB.XFBML.parse(facebookButton[0], function () {
-                    // facebookButton.find('.placeholder').remove();
+                    facebookButton.find('.placeholder').remove();
                 });
             }
         }
@@ -704,7 +707,8 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 var PreviewContent = Backbone.Marionette.ItemView.extend({
     'template': '#tile_preview_template',
     'templates': [
-        '#<%= data.template %>_preview_template',  // but what's 'this'?
+        '#<%= options.store.name %>_<%= data.template %>_preview_template',
+        '#<%= data.template %>_preview_template',
         '#tile_preview_template' // fallback
     ]
 });
