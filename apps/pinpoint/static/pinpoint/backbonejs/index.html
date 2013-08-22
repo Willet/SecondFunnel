@@ -102,6 +102,7 @@
 
         <!-- Templates -->
         <script type="text/template" id="product_tile_template">
+            <div class="tap-indicator-target"></div>
             <img src="<%= image %>" alt="<%= caption %>" />
             <span class="type"><%= obj['content-type'] %></span>
             <div class="caption">
@@ -139,6 +140,12 @@
                 <% } %>
             </ul>
         </script>
+        <script type="text/template" id="tap_indicator_template">
+            +
+            <div>
+                <%= PAGES_INFO.tapIndicatorText || 'tap to see more' %>
+            </div>
+        </script>
         <script type="text/template" id="product_preview_template">
             <img src="<%= obj.image %>" alt=""/>
             <%= obj.price %>
@@ -152,6 +159,8 @@
             <% } %>
         </script>
         <script type="text/template" id="gap_instagram_preview_template">
+            <!-- any (store.name)_(type)_... templates will be used in place
+                 of default templates if they exist. -->
             <h1>GAP TEMPLATE WOOOOOOT!!</h1>
             <% if (obj['related-products']) { %>
                 <img src="<%= obj.image %>" alt=""/>

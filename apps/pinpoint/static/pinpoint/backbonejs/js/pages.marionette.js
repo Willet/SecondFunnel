@@ -37,7 +37,7 @@ Backbone.Marionette.TemplateCache._exists = function (templateId) {
         this.templateCaches[templateId] = cachedTemplate;
     } catch (err) {
         if (!(err.name && err.name == "NoTemplateError")) {
-            throw(err);
+            throw (err);
         }
     }
     return !!this.templateCaches[templateId];
@@ -52,6 +52,11 @@ Backbone.Marionette.View.prototype.getTemplate = function () {
         temp, templateExists;
 
     if (templateIDs) {
+        if (typeof templateIDs === 'function') {
+            // if given as a function, call it, and expect [<string> selectors]
+            templateIDs = templateIDs(this);
+        }
+
         for (i = 0; i < templateIDs.length; i++) {
             temp = _.template(templateIDs[i], {
                 'options': PAGES_INFO,
@@ -79,6 +84,17 @@ window.SecondFunnel = SecondFunnel;
 // Custom event trigger/listener
 SecondFunnel.vent = _.extend({}, Backbone.Events);
 
+// make new module full of transient utilities
+SecondFunnel.module("observables",
+    function (observables/*, (but wait, there's more) */) {
+        observables.mobile = function () {
+            return ($(window).width() < 768);  // 768 is set in stone now
+        };
+        observables.touch = function () {
+            return ('ontouchstart' in document.documentElement);
+        };
+    });
+
 
 var Tile = Backbone.Model.extend({
     'defaults': {
@@ -87,17 +103,6 @@ var Tile = Backbone.Model.extend({
         'caption': "I don't even",
         'tile-id': 0,
         'content-type': "product"
-    },
-
-    'initialize': function (data) {
-        for (var key in data) {
-            this.set(key, data[key]);
-        }
-    },
-
-    'get': function (opt) {
-        return this.attributes[opt] ||
-            Backbone.Marionette.getOption(this, opt);
     },
 
     'is': function (type) {
@@ -178,7 +183,7 @@ var LayoutEngine = Backbone.Marionette.View.extend({
             args = _.toArray(arguments),
             imgLoad = imagesLoaded($fragment.children(':not(iframe) > img'));
         // Remove broken images as they appear
-        imgLoad.on('progress', function (instance, image) {
+        imgLoad.on('progress',function (instance, image) {
             var $img = $(image.img),
                 $elem = $img.parents(self.selector);
 
@@ -189,17 +194,18 @@ var LayoutEngine = Backbone.Marionette.View.extend({
                 self.$el.append($elem).masonry('appended', $elem);
             }
         }).on('always', function () {
-            // When all images are loaded, show the non-broken ones and reload
-            var $remaining = $fragment.filter(function(){
-                return !$.contains(document.documentElement, $(this)[0]);
-            });
-            if ($remaining && $remaining.length > 0) {
-                self.$el.append($remaining).masonry('appended', $remaining);
-            }
+                // When all images are loaded, show the non-broken ones and reload
+                var $remaining = $fragment.filter(function () {
+                    return !$.contains(document.documentElement, $(this)[0]);
+                });
+                if ($remaining && $remaining.length > 0) {
+                    self.$el.append($remaining).masonry('appended',
+                        $remaining);
+                }
 
-            args = args.slice(1);
-            callback.apply(self, args);
-        });
+                args = args.slice(1);
+                callback.apply(self, args);
+            });
 
         return this;
     }
@@ -293,7 +299,8 @@ var TileView = Backbone.Marionette.Layout.extend({
     },
 
     'regions': {
-        'socialButtons': '.social-buttons'
+        'socialButtons': '.social-buttons',
+        'tapIndicator': '.tap-indicator-target'
     },
 
     'initialize': function (options) {
@@ -367,6 +374,7 @@ var TileView = Backbone.Marionette.Layout.extend({
         if (SocialButtons.prototype.buttonTypes.length) {
             this.socialButtons.show(new SocialButtons({model: this.model}));
         }
+        this.tapIndicator.show(new TapIndicator());
     }
 });
 
@@ -608,7 +616,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
         // If the collection has initial values, lay them out
         if (options.tiles && options.tiles.length > 0) {
-            this.layoutResults(options.tiles, undefined, function() {
+            this.layoutResults(options.tiles, undefined, function () {
                 self.getTiles();
             });
         } else {
@@ -709,11 +717,26 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
 var PreviewContent = Backbone.Marionette.ItemView.extend({
     'template': '#tile_preview_template',
-    'templates': [
-        '#<%= options.store.name %>_<%= data.template %>_preview_template',
-        '#<%= data.template %>_preview_template',
-        '#tile_preview_template' // fallback
-    ]
+    'templates': function (currentView) {
+        var defaultTemplateRules = [
+            '#<%= options.store.name %>_<%= data.template %>_mobile_preview_template',
+            '#<%= options.store.name %>_<%= data.template %>_preview_template',
+            '#<%= data.template %>_mobile_preview_template',
+            '#<%= data.template %>_preview_template',
+            '#tile_mobile_preview_template', // fallback
+            '#tile_preview_template' // fallback
+        ];
+
+        if (!SecondFunnel.observables.mobile()) {
+            // remove mobile templates if it isn't mobile, since they take
+            // higher precedence by default
+            defaultTemplateRules = _.reject(defaultTemplateRules,
+                function (t) {
+                    return t.indexOf('mobile') >= 0;
+                });
+        }
+        return defaultTemplateRules;
+    }
 });
 
 
@@ -739,6 +762,15 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
         this.$el.css({display: "table"});
         this.socialButtons.show(new SocialButtons({model: this.model}));
         $('body').append(this.$el.fadeIn(PAGES_INFO.previewAnimationDuration));
+    }
+});
+
+
+var TapIndicator = Backbone.Marionette.ItemView.extend({
+    'template': "#tap_indicator_template",
+    'className': 'tap_indicator animated fadeIn',
+    'onBeforeRender': function () {
+        $('html').toggleClass('touch-enabled', SecondFunnel.observables.touch());
     }
 });
 
