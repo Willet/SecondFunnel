@@ -303,7 +303,6 @@ div.loading {
 
 .previewContainer .content .scrollable {
     /* if the theme has one of those defined, it has unrestricted height */
-    overflow-x: hidden;
     max-width: 100%;
 }
 
