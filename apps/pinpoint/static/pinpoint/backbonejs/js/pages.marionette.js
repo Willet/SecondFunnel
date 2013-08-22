@@ -773,7 +773,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     'pageScroll': function () {
         var pageBottomPos = $(window).innerHeight() + $(window).scrollTop(),
             documentBottomPos = $(document).height(),
-            viewportHeights = window.innerHeight * (SecondFunnel.option('prefetchHeight', 1));
+            viewportHeights = $(window).innerHeight() * (SecondFunnel.option('prefetchHeight', 1));
 
         if (pageBottomPos >= documentBottomPos - viewportHeights && !this.loading) {
             this.getTiles();

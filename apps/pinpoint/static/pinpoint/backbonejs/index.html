@@ -191,7 +191,7 @@
                         <ul>
                             <% var sentences = _.compact(obj.description.split('.')); %>
                             <% _.each(sentences, function(sentence) { %>
-                                <li><%= sentence.trim() %></li>
+                                <li><%= $.trim(sentence) %></li>
                             <% }); %>
                         </ul>
                     </div>
