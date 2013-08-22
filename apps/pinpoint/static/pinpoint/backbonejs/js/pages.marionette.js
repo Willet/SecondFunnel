@@ -99,8 +99,62 @@ SecondFunnel.module("observables",
         observables.touch = function () {
             return ('ontouchstart' in document.documentElement);
         };
-    });
+    }
+);
 
+SecondFunnel.module("intentRank",
+    function (intentRank/*, (but wait, there's more) */) {
+        intentRank.base = "http://intentrank-test.elasticbeanstalk.com/intentrank";
+        intentRank.templates = {
+            'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
+            'content': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/content/<%=id%>/getresults"
+        };
+
+        intentRank.initialize = function (options) {
+            // Any additional init declarations go here
+            var page = options.page;
+
+            this.store = options.store;
+            this.campaign = options.campaign;
+            this.categories = page ? page.categories || {} : {};
+        };
+
+        intentRank.getResults = function (options, callback) {
+            var uri = _.template(this.templates[options.type],
+                    _.extend({}, options, this, {
+                        'url': this.base
+                    })),
+                args = _.toArray(arguments).slice(2);
+
+            $.ajax({
+                url: uri,
+                data: {
+                    'results': 10 // TODO: Should be calculated somehow
+                },
+                contentType: "json",
+                dataType: 'jsonp',
+                timeout: 5000,
+                success: function (results) {
+                    args.unshift(results);
+                    return callback.apply(callback, args);
+                },
+                error: function (jxqhr, textStatus, error) {
+                    args.unshift([]);
+                    return callback.apply(callback, args);
+                }
+            });
+        };
+
+        intentRank.changeCategory = function (category) {
+            // Change the category, provided it's valid.
+            if (_.findWhere(this.categories, {'id': '' + category})) {
+                this.campaign = category;
+                SecondFunnel.vent.trigger('changeCampaign', category);
+            }
+            return this;
+        };
+    }
+);
 
 var Tile = Backbone.Model.extend({
     'defaults': {
@@ -213,59 +267,6 @@ var LayoutEngine = Backbone.Marionette.View.extend({
                 callback.apply(self, args);
             });
 
-        return this;
-    }
-});
-
-var IntentRank = Backbone.Model.extend({
-    // intentRank module
-    'base': "http://intentrank-test.elasticbeanstalk.com/intentrank",
-    'templates': {
-        'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
-        'content': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/content/<%=id%>/getresults"
-    },
-
-    'initialize': function (attributes, options) {
-        // Any additional init declarations go here
-        var page = options.page;
-
-        this.store = options.store;
-        this.campaign = options.campaign;
-        this.categories = page ? page.categories || {} : {};
-    },
-
-    'getResults': function (options, callback) {
-        var uri = _.template(this.templates[options.type],
-                _.extend({}, options, this, {
-                    'url': this.base
-                })),
-            args = _.toArray(arguments).slice(2);
-
-        $.ajax({
-            url: uri,
-            data: {
-                'results': 10 // TODO: Should be calculated somehow
-            },
-            contentType: "json",
-            dataType: 'jsonp',
-            timeout: 5000,
-            success: function (results) {
-                args.unshift(results);
-                return callback.apply(callback, args);
-            },
-            error: function (jxqhr, textStatus, error) {
-                args.unshift([]);
-                return callback.apply(callback, args);
-            }
-        });
-    },
-
-    'changeCategory': function (category) {
-        // Change the category, provided it's valid.
-        if (_.findWhere(this.categories, {'id': '' + category})) {
-            this.campaign = category;
-            SecondFunnel.vent.trigger('changeCampaign', category);
-        }
         return this;
     }
 });
@@ -607,7 +608,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     'initialize': function (attributes, options) {
         var self = this;
         // Initialize IntentRank; use as a seperate module to make changes easier.
-        SecondFunnel.intentRank = new IntentRank({}, options);
+        SecondFunnel.intentRank.initialize(options);
         // Black box Masonry (this will make migrating easier in the future)
         SecondFunnel.layoutEngine = new LayoutEngine(this.$el,
             options.masonry);
