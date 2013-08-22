@@ -105,12 +105,6 @@ var Tile = Backbone.Model.extend({
         'content-type': "product"
     },
 
-    initialize: function (data) {
-        for (var key in data) {
-            this.set(key, data[key]);
-        }
-    },
-
     get: function (opt) {
         return this.attributes[opt] ||
             Backbone.Marionette.getOption(this, opt);
@@ -313,7 +307,8 @@ var TileView = Backbone.Marionette.Layout.extend({
     },
 
     'regions': {
-        'socialButtons': '.social-buttons'
+        'socialButtons': '.social-buttons',
+        'tapIndicator': '.tap-indicator-target'
     },
 
     initialize: function (options) {
@@ -416,6 +411,7 @@ var TileView = Backbone.Marionette.Layout.extend({
         if (SocialButtons.prototype.buttonTypes.length) {
             this.socialButtons.show(new SocialButtons({model: this.model}));
         }
+        this.tapIndicator.show(new TapIndicator());
     },
 
     onVideoEnd: function (ev) {
@@ -744,6 +740,15 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
         this.$el.css({display: "table"});
         this.socialButtons.show(new SocialButtons({model: this.model}));
         $('body').append(this.$el.fadeIn(PAGES_INFO.previewAnimationDuration));
+    }
+});
+
+
+var TapIndicator = Backbone.Marionette.ItemView.extend({
+    'template': "#tap_indicator_template",
+    'className': 'tap_indicator animated fadeIn',
+    'onBeforeRender': function () {
+        $('html').toggleClass('touch-enabled', SecondFunnel.observables.touch());
     }
 });
 
