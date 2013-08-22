@@ -169,115 +169,133 @@ var Tile = Backbone.Model.extend({
         // Default product tile settings, some tiles don't
         // come specifying a type or caption
         'caption': "I don't even",
-        'tile-id': 0,
+        'tile-id': null,
         'content-type': "product"
+    },
+
+    'initialize': function(attributes, options) {
+        var video_types = ["youtube"],
+            type = this.get('content-type').toLowerCase();
+
+        this.type = 'image';
+        if (_.contains(video_types, type)) {
+            this.type = 'video';
+        }
     },
 
     'is': function (type) {
         return this.get('content-type').toLowerCase() === type.toLowerCase();
+    },
+
+    'createView': function () {
+        switch(this.type) {
+            case "image":
+                return new TileView({model: this});
+            case "video":
+                return new VideoTileView({model: this});
+        }
+        return new TileView({model: this});
     }
 });
 
-var LayoutEngine = Backbone.Marionette.View.extend({
-    // Our layoutEngine, acts as a BlackBox for whatever we're using
-    'selector': PAGES_INFO.discoveryItemSelector,
-    'options': {
-        itemSelector: PAGES_INFO.discoveryItemSelector,
-        isResizeBound: true,
-        visibleStyle: {
-            'opacity': 1,
-            'webkit-transform': 'none'
-        },
-        isAnimated: true,
-        // TODO: columnWidth not obeyed (if first block is wide, only two columns render)
-        columnWidth: PAGES_INFO.columnWidth(),
-        transitionDuration: PAGES_INFO.masonryAnimationDuration + 's'
-    },
 
-    'initialize': function ($elem, options) {
-        _.extend(this, {'options': options });
-        $elem.masonry(this.options).masonry('bindResize');
-        this.$el = $elem;
-    },
+SecondFunnel.module("layoutEngine",
+    function (layoutEngine) {
+        layoutEngine.options = {
+            isResizeBound: true,
+            visibleStyle: {
+                'opacity': 1,
+                '-webkit-transform': 'none'
+            },
+            isAnimated: true
+        };
 
-    'call': function (callback, $fragment) {
-        if (!(typeof callback === 'string' && callback in this)) {
-            var msg = !(typeof callback === 'string')
-                ? "Unsupported type " + (typeof callback) +
-                          " passed to Layout Engine." :
-                      "LayoutEngine has no property " + callback + ".";
-            SecondFunnel.vent.trigger('log', msg);
-            return undefined;
-        }
-        var args = _.toArray(arguments);
-        args[0] = this[callback];
+        layoutEngine.initialize = function ($elem, options) {
+            layoutEngine.selector = options.discoveryItemSelector;
+            _.extend(layoutEngine.options, {
+                'itemSelector': options.discoveryItemSelector,
+                'columnWidth': options.columnWidth(),
+                'transitionDuration': options.masonryAnimationDuration + 's'
+            }, options.masonry);
 
-        return this.imagesLoaded.apply(this, args);
-    },
+            $elem.masonry(layoutEngine.options).masonry('bindResize');
+            layoutEngine.$el = $elem;
+        };
 
-    'append': function ($fragment, callback) {
-        $fragment.appendTo(this.$el);
-        this.reload();
-        return callback ? callback($fragment) : this;
-    },
-
-    'reload': function ($fragment) {
-        this.$el.masonry('reloadItems');
-        this.$el.masonry();
-        return this;
-    },
-
-    'insert': function ($fragment, $target, callback) {
-        var initialBottom = $target.position().top + $target.height();
-        // Find a target that is low enough on the screen to insert after
-        while ($target.position().top <= initialBottom &&
-            $target.next().length > 0) {
-            $target = $target.next();
-        }
-        $fragment.insertAfter($target);
-        this.$el.masonry();
-        return callback ? callback($fragment) : this;
-    },
-
-    'clear': function () {
-        // Resets the LayoutEngine's instance so that it is empty
-        this.$el.masonry('destroy').masonry(this.options);
-    },
-
-    'imagesLoaded': function (callback, $fragment) {
-        // Calls the broken handler to remove broken images as they appear;
-        // when all images are loaded, calls the appropriate layout function
-        var self = this,
-            args = _.toArray(arguments),
-            imgLoad = imagesLoaded($fragment.children(':not(iframe) > img'));
-        // Remove broken images as they appear
-        imgLoad.on('progress',function (instance, image) {
-            var $img = $(image.img),
-                $elem = $img.parents(self.selector);
-
-            if (!image.isLoaded) {
-                $img.remove();
-            } else {
-                // Append to container and called appended
-                self.$el.append($elem).masonry('appended', $elem);
+        layoutEngine.call = function (callback, $fragment) {
+            if (!(typeof callback === 'string' && callback in layoutEngine)) {
+                var msg = !(typeof callback === 'string')
+                        ? "Unsupported type " + (typeof callback) +
+                        " passed to Layout Engine." :
+                        "LayoutEngine has no property " + callback + ".";
+                SecondFunnel.vent.trigger('log', msg);
+                return layoutEngine;
             }
-        }).on('always', function () {
+            var args = _.toArray(arguments);
+            args[0] = layoutEngine[callback];
+            return layoutEngine.imagesLoaded.apply(layoutEngine, args);
+        };
+
+        layoutEngine.append = function ($fragment, callback) {
+            return callback ? callback($fragment) : layoutEngine;
+        };
+
+        layoutEngine.reload = function ($fragment) {
+            layoutEngine.$el.masonry('reloadItems');
+            layoutEngine.$el.masonry();
+            return layoutEngine;
+        };
+
+        layoutEngine.insert = function ($fragment, $target, callback) {
+            var initialBottom = $target.position().top + $target.height();
+            // Find a target that is low enough on the screen to insert after
+            while ($target.position().top <= initialBottom &&
+                $target.next().length > 0) {
+                $target = $target.next();
+            }
+            $fragment.insertAfter($target);
+            layoutEngine.reload();
+            return callback ? callback($fragment) : layoutEngine;
+        };
+
+        layoutEngine.clear = function () {
+            // Resets the LayoutEngine's instance so that it is empty
+            layoutEngine.$el.masonry('destroy').masonry(layoutEngine.options);
+        };
+
+        layoutEngine.imagesLoaded = function (callback, $fragment) {
+            // Calls the broken handler to remove broken images as they appear;
+            // when all images are loaded, calls the appropriate layout function
+            var self = layoutEngine,
+                args = _.toArray(arguments),
+                imgLoad = imagesLoaded($fragment.children('img'));
+            // Remove broken images as they appear
+            imgLoad.on('progress',function (instance, image) {
+                var $img = $(image.img),
+                    $elem = $img.parents(self.selector);
+
+                if (!image.isLoaded) {
+                    $img.remove();
+                } else {
+                    // Append to container and called appended
+                    self.$el.append($elem).masonry('appended', $elem);
+                }
+            }).on('always', function () {
                 // When all images are loaded, show the non-broken ones and reload
                 var $remaining = $fragment.filter(function () {
                     return !$.contains(document.documentElement, $(this)[0]);
                 });
-                if ($remaining && $remaining.length > 0) {
+                if ($remaining.length > 0) {
                     self.$el.append($remaining).masonry('appended',
                         $remaining);
                 }
-
                 args = args.slice(1);
                 callback.apply(self, args);
             });
-
-        return this;
+            return layoutEngine;
+        };
     }
-});
+);
 
 var TileCollection = Backbone.Collection.extend({
     // Our TileCollection manages ALL the tiles on the page.
@@ -421,7 +439,7 @@ var VideoTileView = TileView.extend({
         // Determine which click handler to use; determined by the
         // content type.
         var handler = this.model.get('content-type');
-        handler[0].toUpperCase();
+        handler = handler[0].toUpperCase() + handler.substring(1);
         this.onClick = this['on' + handler];
     },
 
@@ -429,7 +447,8 @@ var VideoTileView = TileView.extend({
         // Renders a YouTube video in the tile
         "use strict";
         var thumbId = 'thumb' + this.cid,
-            $thumb = this.$('div.thumbnail');
+            $thumb = this.$('div.thumbnail'),
+            self = this;
         $thumb.attr('id', thumbId).wrap('<div class="video-container" />');
 
         var player = new YT.Player(thumbId, {
@@ -442,7 +461,15 @@ var VideoTileView = TileView.extend({
             },
             'events': {
                 'onReady': $.noop,
-                'onStateChanges': this.onPlaybackEnd,
+                'onStateChanges': function (newState) {
+                    switch (newState) {
+                        case YT.PlayerState.ENDED:
+                            self.onPlaybackEnd();
+                            break;
+                        default:
+                            break;
+                    }
+                },
                 'onError': $.noop
             }
         });
@@ -454,6 +481,7 @@ var VideoTileView = TileView.extend({
     },
 
     'onPlaybackEnd': function (ev) {
+        console.log("Video ended");
         SecondFunnel.vent.trigger("videoEnded", ev, this);
     }
 });
@@ -616,9 +644,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     // tagName: "div"
     'el': $(PAGES_INFO.discoveryTarget),
     'itemView': TileView,
-    'intentRank': null,
     'collection': null,
-    'layoutEngine': null,
     'loading': false,
 
     // prevent default appendHtml behaviour (append in batch)
@@ -629,9 +655,9 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         // Initialize IntentRank; use as a seperate module to make changes easier.
         SecondFunnel.intentRank.initialize(options);
         // Black box Masonry (this will make migrating easier in the future)
-        SecondFunnel.layoutEngine = new LayoutEngine(this.$el,
-            options.masonry);
-        this.collection = new TileCollection;
+        SecondFunnel.layoutEngine.initialize(this.$el,
+            options);
+        this.collection = new TileCollection();
         this.attachListeners();
 
         // If the collection has initial values, lay them out
@@ -686,9 +712,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             // Create the new tiles using the data
             var tile = new Tile(tileData),
                 img = tile.get('image'),
-                view = img && img !== null ?
-                       new TileView({model: tile}) :
-                       new VideoTileView({model: tile});
+                view = tile.createView(); 
 
             self.collection.add(tile);
 
@@ -713,14 +737,16 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
     'updateContentStream': function (tile) {
         // Loads in related content below the specified tile
-        return this.getTiles({
-            'type': "content",
-            'id': tile.model.get('tile-id')
-        }, tile);
+        var id = tile.model.get('tile-id');
+        return id === null? this :
+            this.getTiles({
+                'type': "content",
+                'id': tile.model.get('tile-id')
+            }, tile);
     },
 
     'toggleLoading': function (bool) {
-        if (bool === true || bool === false) {
+        if (typeof bool === 'boolean') {
             this.loading = bool;
         } else {
             this.loading = !this.loading;
