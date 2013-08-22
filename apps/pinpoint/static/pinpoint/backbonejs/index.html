@@ -155,11 +155,21 @@
                 </div>
             <% } %>
             <% if (_.contains(buttons, 'twitter')) { %>
-                <div class='button twitter'>
-                    <a href="https://twitter.com/share?url=<%= url %>" target="_blank">
-                        <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
-                    </a>
-                </div>
+                <% if (showCount) { %>
+                    <div class='button twitter' style='height: 13px; width: 77px;'>
+                        <a href="https://twitter.com/share?url=<%= url %>"
+                           class="twitter-share-button"
+                           data-lang="en" data-height= "15">
+                            Tweet
+                        </a>
+                    </div>
+                <% } else { %>
+                    <div class='button twitter'>
+                        <a href="https://twitter.com/share?url=<%= url %>" target="_blank">
+                            <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
+                        </a>
+                    </div>
+                <% } %>
             <% } %>
             <% if (_.contains(buttons, 'pinterest')) { %>
                 <div class='button pinterest'>
@@ -281,7 +291,8 @@
                         'template': "instagram",
                         'tile-id': 562949953426705
                     }
-                ]
+                ],
+                'showCount': true
             };
         </script>
         <script type="text/javascript" src="//www.youtube.com/iframe_api"></script>

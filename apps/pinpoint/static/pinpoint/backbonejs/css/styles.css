@@ -69,12 +69,14 @@ body {
 }
 
 .social-buttons .facebook {
-    height: 15px;
+    height: 14px;
     width: 76px;
+    position: relative;
 }
 
 .social-buttons .placeholder {
     position: absolute;
+    left: 0;
 }
 
 .tile.youtube.wide .social-buttons {

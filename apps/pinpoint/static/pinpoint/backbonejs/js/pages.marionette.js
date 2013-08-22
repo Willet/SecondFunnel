@@ -363,6 +363,7 @@ var TileView = Backbone.Marionette.Layout.extend({
             var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn' : 'fadeOut';
             this.socialButtons.$el[inOrOut](200);
 
+            this.socialButtons.currentView.loadTwitter();
             this.socialButtons.currentView.loadFB();
         }
     },
@@ -469,6 +470,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         // @override to false under any condition you don't want buttons to show
         return true;
     },
+    'showCount': (PAGES_INFO.showCount !== undefined) ? PAGES_INFO.showCount : true,
     'buttonTypes': PAGES_INFO.socialButtons ||
         ['facebook', 'twitter', 'pinterest'],  // @override via constructor
     // 'model': undefined,  // auto-serialization of constructor(obj)
@@ -560,6 +562,14 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         }
     },
 
+    'loadTwitter': function () {
+        try {
+            window.twttr.widgets.load();
+        } catch (err) {
+            // do other things
+        }
+    },
+
     'templateHelpers': function (/* this */) {  // or {k: v}
         //github.com/marionettejs/backbone.marionette/blob/master/docs/marionette.view.md#viewtemplatehelpers
         // TODO: show_count
@@ -574,6 +584,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
                 : (data.image || data.url);
 
         helpers.buttons = Backbone.Marionette.getOption(this, 'buttonTypes');
+        helpers.showCount = Backbone.Marionette.getOption(this, 'showCount');
         helpers.url = encodeURIComponent(product.url || image);
         helpers.fburl = function (/* this: model.toJSON */) {
             // generate the button's share link for fb.
