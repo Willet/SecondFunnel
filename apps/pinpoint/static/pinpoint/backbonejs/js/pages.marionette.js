@@ -1,35 +1,18 @@
-// JQuery Special event to listen to delete
-$(function () {
-    // stackoverflow.com/questions/2200494
-    // does not work with jQuery UI
-    // does not work when affected by html(), replace(), replaceWith(), ...
-    var ev = new $.Event('remove'),
-        orig = $.fn.remove;
-    $.fn.remove = function () {
-        $(this).trigger(ev);
-        return orig.apply(this, arguments);
-    };
+// Declaration of the SecondFunnel JS application
+var SecondFunnel = new Backbone.Marionette.Application();
+SecondFunnel.vent = _.extend({}, Backbone.Events);  // Custom event trigger/listener
 
-    $.fn.getClasses = $.fn.getClasses || function () {
-        // random helper. get an element's list of classes.
-        // example output: ['facebook', 'button']
-        return _.compact($(this).attr('class').split(' ').map($.trim));
-    };
-
-    // underscore's fancy pants capitalize()
-    _.mixin({
-        'capitalize': function (string) {
-            return string.charAt(0).toUpperCase() + string.substring(1).toLowerCase();
-        }
-    });
-});
-
-// TODO: move it somewhere appropriate
-function getModifiedTemplateName(name) {
-    return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i,
-        'image');
-}
-
+// keep reference to options. this needs to be done before classes are declared.
+SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
+SecondFunnel.option = function (name, defaultValue) {
+    // convenience method for accessing PAGES_INFO or TEST_*
+    var opt = Backbone.Marionette.getOption(SecondFunnel, name);
+    if (opt === undefined) {
+        return defaultValue;  // ...and defaultValue defaults to undefined
+    } else {
+        return opt;
+    }
+};
 
 // Marionette TemplateCache extension to allow checking cache for template
 Backbone.Marionette.TemplateCache._exists = function (templateId) {
@@ -72,10 +55,10 @@ Backbone.Marionette.View.prototype.getTemplate = function () {
         for (i = 0; i < templateIDs.length; i++) {
             data = $.extend({},
                 Backbone.Marionette.getOption(this, "model").attributes);
-            data.template = getModifiedTemplateName(data.template);
+            data.template = SecondFunnel.getModifiedTemplateName(data.template);
 
             temp = _.template(templateIDs[i], {
-                'options': PAGES_INFO,
+                'options': SecondFunnel.options,
                 'data': data
             });
             templateExists = Backbone.Marionette.TemplateCache._exists(temp);
@@ -91,14 +74,6 @@ Backbone.Marionette.View.prototype.getTemplate = function () {
 
     return template;
 };
-
-
-// TODO: Seperate this into modules/seperate files
-// Declaration of the SecondFunnel JS application
-var SecondFunnel = new Backbone.Marionette.Application();
-window.SecondFunnel = SecondFunnel;
-// Custom event trigger/listener
-SecondFunnel.vent = _.extend({}, Backbone.Events);
 
 // make new module full of transient utilities
 SecondFunnel.module("observables",
@@ -196,7 +171,7 @@ var Tile = Backbone.Model.extend({
     'defaults': {
         // Default product tile settings, some tiles don't
         // come specifying a type or caption
-        'caption': "I don't even",
+        'caption': "Shop product",
         'tile-id': null,
         'content-type': "product",
         'related-products': []
@@ -213,6 +188,7 @@ var Tile = Backbone.Model.extend({
     },
 
     'is': function (type) {
+        // check if a tile is of (type). the type is _not_ the tile's template.
         return this.get('content-type').toLowerCase() === type.toLowerCase();
     },
 
@@ -353,7 +329,7 @@ var TileView = Backbone.Marionette.Layout.extend({
     // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
     'tagName': "div", // TODO: Should this be a setting?
     'template': "#product_tile_template",
-    'className': PAGES_INFO.discoveryItemSelector.substring(1),
+    'className': SecondFunnel.option('discoveryItemSelector', '').substring(1),
 
     'events': {
         'click': "onClick",
@@ -452,6 +428,7 @@ var TileView = Backbone.Marionette.Layout.extend({
     }
 });
 
+// TODO: Seperate this into modules/seperate files
 var VideoTileView = TileView.extend({
     // VideoTile extends from TileView, allows playing of Video files; for
     // now, we only support YT
@@ -526,10 +503,8 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         // @override to false under any condition you don't want buttons to show
         return true;
     },
-    'showCount': (PAGES_INFO.showCount !== undefined) ? PAGES_INFO.showCount
-        : true,
-    'buttonTypes': PAGES_INFO.socialButtons ||
-        ['facebook', 'twitter', 'pinterest'],  // @override via constructor
+    'showCount': SecondFunnel.option('showCount', true),
+    'buttonTypes': SecondFunnel.option('socialButtons', ['facebook', 'twitter', 'pinterest']),  // @override via constructor
     // 'model': undefined,  // auto-serialization of constructor(obj)
     // 'collection': undefined,  // auto-serialization of constructor([obj])
     // 'tagName': "div",
@@ -544,7 +519,8 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             });
         }
 
-        if (_.contains(this.buttonTypes, "twitter")) {
+        if (window.twttr && window.twttr.widgets &&
+            _.contains(this.buttonTypes, "twitter")) {
             window.twttr.widgets.load();
             window.twttr.ready(function (twttr) {
                 twttr.events.bind('tweet', function (event) {
@@ -633,7 +609,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
 
         var helpers = {},
             data = this.model.attributes,
-            page = PAGES_INFO.page,
+            page = SecondFunnel.option('page'),
             product = data || page.product,
             hasFeaturedImg = !data.title && (data.template !== 'youtube'),
             image = (page && hasFeaturedImg)
@@ -671,7 +647,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
 var Discovery = Backbone.Marionette.CompositeView.extend({
     // Manages the HTML/View of ALL the tiles on the page (our discovery area)
     // tagName: "div"
-    'el': $(PAGES_INFO.discoveryTarget),
+    'el': $(SecondFunnel.option('discoveryTarget')),
     'itemView': TileView,
     'collection': null,
     'loading': false,
@@ -783,7 +759,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     'pageScroll': function () {
         var pageBottomPos = $(window).innerHeight() + $(window).scrollTop(),
             documentBottomPos = $(document).height(),
-            viewportHeights = window.innerHeight * (PAGES_INFO.prefetchHeight || 1);
+            viewportHeights = window.innerHeight * (SecondFunnel.option('prefetchHeight', 1));
 
         if (pageBottomPos >= documentBottomPos - viewportHeights && !this.loading) {
             this.getTiles();
@@ -823,7 +799,7 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
     'template': "#preview_container_template",
     'events': {
         'click .close, .mask': function () {
-            this.$el.fadeOut(PAGES_INFO.previewAnimationDuration).remove();
+            this.$el.fadeOut(SecondFunnel.option('previewAnimationDuration')).remove();
         }
     },
     'regions': {
@@ -840,7 +816,7 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
         if (!(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
             this.socialButtons.show(new SocialButtons({model: this.model}));
         }
-        $('body').append(this.$el.fadeIn(PAGES_INFO.previewAnimationDuration));
+        $('body').append(this.$el.fadeIn(SecondFunnel.option('previewAnimationDuration')));
     }
 });
 
@@ -855,7 +831,42 @@ var TapIndicator = Backbone.Marionette.ItemView.extend({
 });
 
 
+SecondFunnel.addInitializer(function (options) {
+    // JQuery Special event to listen to delete
+    // stackoverflow.com/questions/2200494
+    // does not work with jQuery UI
+    // does not work when affected by html(), replace(), replaceWith(), ...
+    var ev = new $.Event('remove'),
+        orig = $.fn.remove;
+    $.fn.remove = function () {
+        $(this).trigger(ev);
+        return orig.apply(this, arguments);
+    };
+
+    $.fn.getClasses = $.fn.getClasses || function () {
+        // random helper. get an element's list of classes.
+        // example output: ['facebook', 'button']
+        return _.compact($(this).attr('class').split(' ').map($.trim));
+    };
+
+    // underscore's fancy pants capitalize()
+    _.mixin({
+        'capitalize': function (string) {
+            return string.charAt(0).toUpperCase() + string.substring(1).toLowerCase();
+        }
+    });
+});
+
 // Add SecondFunnel component(s)
+SecondFunnel.addInitializer(function (options) {
+    window.SecondFunnel = SecondFunnel;
+
+    SecondFunnel.getModifiedTemplateName = function (name) {
+        return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i,
+            'image');
+    };
+});
+
 SecondFunnel.addInitializer(function (options) {
     // Add our initiliazer, this allows us to pass a series of tiles
     // to be displayed immediately (and first) on the landing page.
@@ -863,4 +874,4 @@ SecondFunnel.addInitializer(function (options) {
 });
 
 // Start the SecondFunnel app
-SecondFunnel.start(PAGES_INFO);
+SecondFunnel.start(SecondFunnel.options);

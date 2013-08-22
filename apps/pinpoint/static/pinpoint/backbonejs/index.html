@@ -1,26 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <script>
-            // PAGES_INFO configures the page.
-            // unused
-            var PAGES_INFO = {
-                // (commented properties not implemented)
-                'imageTileWide': 0.25,
-                'masonryAnimationDuration': 0.4,
-                'masonryMobileAnimationDuration': 0,
-                'socialButtons': ['facebook', 'twitter', 'pinterest'],  // strings representing the buttons you want loaded.  [] means no buttons.
-                'IRResourceUrl': 'http://intentrank-test.elasticbeanstalk.com/intentrank/store/gap/campaign/96/getresults',
-                'tracking': function () { return true; },  // tracking is enabled if this function returns true
-                'konami': undefined,
-                'base_url': "http://www.secondfunnel.com",
-                'store': {
-                    'id': "38",
-                    'name': "gap"
-                },
-                'campaign': 96
-            };
-        </script>
         <title>BackboneJS Gap Landing Page</title>
         <!-- CSS -->
         <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
@@ -139,7 +119,7 @@
         <script type="text/template" id="tap_indicator_template">
             +
             <div>
-                <%= PAGES_INFO.tapIndicatorText || 'tap to see more' %>
+                <%= SecondFunnel.option('tapIndicatorText', 'tap to see more') %>
             </div>
         </script>
         <script type="text/template" id="social_buttons_template">
@@ -258,7 +238,7 @@
         <!-- End Templates -->
         <!-- Javascript Files -->
         <script type="text/javascript">
-            window.PAGES_INFO = {
+            window.TEST_PAGE_DATA = {
                 'base_url': "http://www.secondfunnel.com",
                 'discoveryTarget': "#discovery-area",
                 'discoveryItemSelector': ".tile",
