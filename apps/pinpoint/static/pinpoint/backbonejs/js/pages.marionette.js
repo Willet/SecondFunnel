@@ -197,7 +197,7 @@ SecondFunnel.module("layoutEngine",
             isResizeBound: true,
             visibleStyle: {
                 'opacity': 1,
-                'webkit-transform': 'none'
+                '-webkit-transform': 'none'
             },
             isAnimated: true
         };
@@ -229,8 +229,6 @@ SecondFunnel.module("layoutEngine",
         };
 
         layoutEngine.append = function ($fragment, callback) {
-            $fragment.appendTo(layoutEngine.$el);
-            layoutEngine.reload();
             return callback ? callback($fragment) : layoutEngine;
         };
 
@@ -262,7 +260,7 @@ SecondFunnel.module("layoutEngine",
             // when all images are loaded, calls the appropriate layout function
             var self = layoutEngine,
                 args = _.toArray(arguments),
-                imgLoad = imagesLoaded($fragment.children(':not(iframe) > img'));
+                imgLoad = imagesLoaded($fragment.children('img'));
             // Remove broken images as they appear
             imgLoad.on('progress',function (instance, image) {
                 var $img = $(image.img),
@@ -279,7 +277,7 @@ SecondFunnel.module("layoutEngine",
                 var $remaining = $fragment.filter(function () {
                     return !$.contains(document.documentElement, $(this)[0]);
                 });
-                if ($remaining && $remaining.length > 0) {
+                if ($remaining.length > 0) {
                     self.$el.append($remaining).masonry('appended',
                         $remaining);
                 }
