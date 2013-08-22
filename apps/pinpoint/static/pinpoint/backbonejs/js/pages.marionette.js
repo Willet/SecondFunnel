@@ -169,7 +169,7 @@ var Tile = Backbone.Model.extend({
         // Default product tile settings, some tiles don't
         // come specifying a type or caption
         'caption': "I don't even",
-        'tile-id': 0,
+        'tile-id': null,
         'content-type': "product"
     },
 
@@ -254,7 +254,7 @@ SecondFunnel.module("layoutEngine",
                 $target = $target.next();
             }
             $fragment.insertAfter($target);
-            layoutEngine.$el.masonry();
+            layoutEngine.reload();
             return callback ? callback($fragment) : layoutEngine;
         };
 
@@ -726,10 +726,12 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
     'updateContentStream': function (tile) {
         // Loads in related content below the specified tile
-        return this.getTiles({
-            'type': "content",
-            'id': tile.model.get('tile-id')
-        }, tile);
+        var id = tile.model.get('tile-id');
+        return id === null? this :
+            this.getTiles({
+                'type': "content",
+                'id': tile.model.get('tile-id')
+            }, tile);
     },
 
     'toggleLoading': function (bool) {
