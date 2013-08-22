@@ -43,7 +43,7 @@ Backbone.Marionette.TemplateCache._exists = function (templateId) {
         // Only cache on success
         this.templateCaches[templateId] = cachedTemplate;
     } catch (err) {
-        if (!(err.name && err.name == "NoTemplateError")) {
+        if (!(err.name && err.name === "NoTemplateError")) {
             throw (err);
         }
     }
@@ -114,15 +114,15 @@ SecondFunnel.module("intentRank",
             // Any additional init declarations go here
             var page = options.page;
 
-            this.store = options.store;
-            this.campaign = options.campaign;
-            this.categories = page ? page.categories || {} : {};
+            intentRank.store = options.store;
+            intentRank.campaign = options.campaign;
+            intentRank.categories = page ? page.categories || {} : {};
         };
 
         intentRank.getResults = function (options, callback) {
-            var uri = _.template(this.templates[options.type],
-                    _.extend({}, options, this, {
-                        'url': this.base
+            var uri = _.template(intentRank.templates[options.type],
+                    _.extend({}, options, intentRank, {
+                        'url': intentRank.base
                     })),
                 args = _.toArray(arguments).slice(2);
 
@@ -147,11 +147,11 @@ SecondFunnel.module("intentRank",
 
         intentRank.changeCategory = function (category) {
             // Change the category, provided it's valid.
-            if (_.findWhere(this.categories, {'id': '' + category})) {
-                this.campaign = category;
+            if (_.findWhere(intentRank.categories, {'id': '' + category})) {
+                intentRank.campaign = category;
                 SecondFunnel.vent.trigger('changeCampaign', category);
             }
-            return this;
+            return intentRank;
         };
     }
 );
@@ -244,7 +244,7 @@ SecondFunnel.module("layoutEngine",
             var initialBottom = $target.position().top + $target.height();
             // Find a target that is low enough on the screen to insert after
             while ($target.position().top <= initialBottom &&
-                   $target.next().length > 0) {
+                $target.next().length > 0) {
                 $target = $target.next();
             }
             $fragment.insertAfter($target);
@@ -371,7 +371,7 @@ var TileView = Backbone.Marionette.Layout.extend({
         // Trigger tile hover event with event and tile
         SecondFunnel.vent.trigger("tileHover", ev, this);
         if (this.socialButtons && this.socialButtons.$el &&
-                this.socialButtons.$el.children().length) {
+            this.socialButtons.$el.children().length) {
             var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn' : 'fadeOut';
             this.socialButtons.$el[inOrOut](200);
 
@@ -392,7 +392,7 @@ var TileView = Backbone.Marionette.Layout.extend({
         var maxImageSize;
         try {
             maxImageSize = _.findWhere(this.model.images[0].sizes,
-                                       {'name': 'master'})[0].width;
+                {'name': 'master'})[0].width;
 
             if (Math.random() > 0.333 && maxImageSize >= 512) {
                 this.$el.addClass('wide');
@@ -687,9 +687,9 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         callback = callback || this.toggleLoading;
 
         // Check for empty results
-        data = data.length == 0 && tile ? 
-            tile.model.get('related-products') : 
-            data;
+        data = data.length == 0 && tile ?
+               tile.model.get('related-products') :
+               data;
 
         _.each(data, function (tileData) {
             // Create the new tiles using the data
@@ -727,7 +727,11 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     },
 
     'toggleLoading': function (bool) {
-        this.loading = !this.loading;
+        if (typeof bool === 'boolean') {
+            this.loading = bool;
+        } else {
+            this.loading = !this.loading;
+        }
         return this;
     },
 
