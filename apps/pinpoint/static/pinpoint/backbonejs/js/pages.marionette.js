@@ -26,7 +26,8 @@ $(function () {
 
 // TODO: move it somewhere appropriate
 function getModifiedTemplateName(name) {
-    return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i, 'image');
+    return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i,
+        'image');
 }
 
 
@@ -69,7 +70,8 @@ Backbone.Marionette.View.prototype.getTemplate = function () {
         }
 
         for (i = 0; i < templateIDs.length; i++) {
-            data = $.extend({}, Backbone.Marionette.getOption(this, "model").attributes);
+            data = $.extend({},
+                Backbone.Marionette.getOption(this, "model").attributes);
             data.template = getModifiedTemplateName(data.template);
 
             temp = _.template(templateIDs[i], {
@@ -183,7 +185,7 @@ var Tile = Backbone.Model.extend({
         'content-type': "product"
     },
 
-    'initialize': function(attributes, options) {
+    'initialize': function (attributes, options) {
         var video_types = ["youtube"],
             type = this.get('content-type').toLowerCase();
 
@@ -198,11 +200,11 @@ var Tile = Backbone.Model.extend({
     },
 
     'createView': function () {
-        switch(this.type) {
-            case "image":
-                return new TileView({model: this});
-            case "video":
-                return new VideoTileView({model: this});
+        switch (this.type) {
+        case "image":
+            return new TileView({model: this});
+        case "video":
+            return new VideoTileView({model: this});
         }
         return new TileView({model: this});
     }
@@ -235,9 +237,9 @@ SecondFunnel.module("layoutEngine",
         layoutEngine.call = function (callback, $fragment) {
             if (!(typeof callback === 'string' && callback in layoutEngine)) {
                 var msg = !(typeof callback === 'string')
-                        ? "Unsupported type " + (typeof callback) +
-                        " passed to Layout Engine." :
-                        "LayoutEngine has no property " + callback + ".";
+                    ? "Unsupported type " + (typeof callback) +
+                              " passed to Layout Engine." :
+                          "LayoutEngine has no property " + callback + ".";
                 SecondFunnel.vent.trigger('log', msg);
                 return layoutEngine;
             }
@@ -291,17 +293,18 @@ SecondFunnel.module("layoutEngine",
                     self.$el.append($elem).masonry('appended', $elem);
                 }
             }).on('always', function () {
-                // When all images are loaded, show the non-broken ones and reload
-                var $remaining = $fragment.filter(function () {
-                    return !$.contains(document.documentElement, $(this)[0]);
+                    // When all images are loaded, show the non-broken ones and reload
+                    var $remaining = $fragment.filter(function () {
+                        return !$.contains(document.documentElement,
+                            $(this)[0]);
+                    });
+                    if ($remaining.length > 0) {
+                        self.$el.append($remaining).masonry('appended',
+                            $remaining);
+                    }
+                    args = args.slice(1);
+                    callback.apply(self, args);
                 });
-                if ($remaining.length > 0) {
-                    self.$el.append($remaining).masonry('appended',
-                        $remaining);
-                }
-                args = args.slice(1);
-                callback.apply(self, args);
-            });
             return layoutEngine;
         };
     }
@@ -425,8 +428,7 @@ var TileView = Backbone.Marionette.Layout.extend({
         // Listen for the image being removed from the DOM, if it is, remove
         // the View/Model to free memory
         this.$("img").on('remove', this.close);
-        if (SocialButtons.prototype.buttonTypes.length &&
-            !(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
+        if (SocialButtons.prototype.buttonTypes.length && !(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
             this.socialButtons.show(new SocialButtons({model: this.model}));
         }
         this.tapIndicator.show(new TapIndicator());
@@ -474,11 +476,11 @@ var VideoTileView = TileView.extend({
                 'onReady': $.noop,
                 'onStateChanges': function (newState) {
                     switch (newState) {
-                        case YT.PlayerState.ENDED:
-                            self.onPlaybackEnd();
-                            break;
-                        default:
-                            break;
+                    case YT.PlayerState.ENDED:
+                        self.onPlaybackEnd();
+                        break;
+                    default:
+                        break;
                     }
                 },
                 'onError': $.noop
@@ -509,7 +511,8 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         // @override to false under any condition you don't want buttons to show
         return true;
     },
-    'showCount': (PAGES_INFO.showCount !== undefined) ? PAGES_INFO.showCount : true,
+    'showCount': (PAGES_INFO.showCount !== undefined) ? PAGES_INFO.showCount
+        : true,
     'buttonTypes': PAGES_INFO.socialButtons ||
         ['facebook', 'twitter', 'pinterest'],  // @override via constructor
     // 'model': undefined,  // auto-serialization of constructor(obj)
@@ -723,7 +726,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             // Create the new tiles using the data
             var tile = new Tile(tileData),
                 img = tile.get('image'),
-                view = tile.createView(); 
+                view = tile.createView();
 
             self.collection.add(tile);
 
@@ -749,11 +752,11 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     'updateContentStream': function (tile) {
         // Loads in related content below the specified tile
         var id = tile.model.get('tile-id');
-        return id === null? this :
-            this.getTiles({
-                'type': "content",
-                'id': tile.model.get('tile-id')
-            }, tile);
+        return id === null ? this :
+               this.getTiles({
+                   'type': "content",
+                   'id': tile.model.get('tile-id')
+               }, tile);
     },
 
     'toggleLoading': function (bool) {
@@ -833,7 +836,8 @@ var TapIndicator = Backbone.Marionette.ItemView.extend({
     'template': "#tap_indicator_template",
     'className': 'tap_indicator animated fadeIn',
     'onBeforeRender': function () {
-        $('html').toggleClass('touch-enabled', SecondFunnel.observables.touch());
+        $('html').toggleClass('touch-enabled',
+            SecondFunnel.observables.touch());
     }
 });
 

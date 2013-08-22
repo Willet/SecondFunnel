@@ -148,7 +148,7 @@
         </script>
         <script type="text/template" id="social_buttons_template">
             <% if (_.contains(buttons, 'facebook')) { %>
-                <div class='button facebook'>
+                <div class='button facebook <% if (!showCount) { %> no-count <% } %>'>
                     <img src="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/fb-like-0.png" alt="Like" class="placeholder" />
                     <fb:like href="<%= fburl() %>" width="48" layout="button_count"
                              show_faces="false"></fb:like>
@@ -292,7 +292,7 @@
                         'tile-id': 562949953426705
                     }
                 ],
-                'showCount': true
+                'showCount': false
             };
         </script>
         <script type="text/javascript" src="//www.youtube.com/iframe_api"></script>
