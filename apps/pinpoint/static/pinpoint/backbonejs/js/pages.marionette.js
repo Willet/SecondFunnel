@@ -577,6 +577,8 @@ SecondFunnel.module("layoutEngine",
                 var $img = $(image.img),
                     $elem = $img.parents(self.selector);
 
+                // TODO: This is the first point we know the dimensions of the image (until
+                // image service returns dimensions).  What qualifies as too small?
                 if (!image.isLoaded) {
                     $img.remove();
                 } else {
@@ -722,6 +724,7 @@ var TileView = Backbone.Marionette.Layout.extend({
         if (this.onInitialize) {
             this.onInitialize(options);
         }
+        this.render();
     },
 
     'close': function () {
@@ -740,9 +743,7 @@ var TileView = Backbone.Marionette.Layout.extend({
             this.socialButtons.$el.children().length) {
             var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn' : 'fadeOut';
             this.socialButtons.$el[inOrOut](200);
-
-            this.socialButtons.currentView.loadTwitter();
-            this.socialButtons.currentView.loadFB();
+            this.socialButtons.currentView.load();
         }
     },
 
@@ -860,27 +861,25 @@ var VideoTileView = TileView.extend({
     }
 });
 
-var SocialButtons = Backbone.Marionette.ItemView.extend({
-    // accepts a parent View. the parent View must have product information
-    // in its attributes.
+var SocialButtons = Backbone.Marionette.View.extend({
+    // Acts as a manager for the social buttons; allows us to create arbitrary
+    // social buttons.
 
     // override the template by passing it in: new SocialButtons({ template: ... })
     // template can be a selector or a function(json) ->  <_.template>
     'tagName': 'span',
-    'template': '#social_buttons_template',
+    'showCount': SecondFunnel.option('showCount', true),
+    'buttonTypes': SecondFunnel.option('socialButtons',
+        ['facebook', 'twitter', 'pinterest']), // @override via constructor
+
     'showCondition': function () {
         // @override to false under any condition you don't want buttons to show
         return true;
     },
-    'showCount': SecondFunnel.option('showCount', true),
-    'buttonTypes': SecondFunnel.option('socialButtons',
-        ['facebook', 'twitter', 'pinterest']),  // @override via constructor
-    // 'model': undefined,  // auto-serialization of constructor(obj)
-    // 'collection': undefined,  // auto-serialization of constructor([obj])
-    // 'tagName': "div",
-    // 'className': 'social-buttons',  // default: empty div
-    // getTemplate: function (/* this */) { return '#<template>'; },
-    'initialize': _.once(function (noop) {
+
+    'initSocial': _.once(function () {
+        // Only initialize the social aspects once; this load the FB script
+        // and twitter handlers.
         if (window.FB && _.contains(this.buttonTypes, "facebook")) {
             window.FB.init({
                 cookie: true,
@@ -924,18 +923,67 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         // pinterest does its own stuff - just include pinit.js.
         // however, if it is to be disabled, the div needs to go.
         // see 'render' of SocialButtons.
+        return this;
     }),
-    'ui': {
-        'facebook': "div.facebook",
-        'twitter': "div.twitter",
-        'pinterest': "div.pinterest"
+
+    'initialize': function(options) {
+        // Initializes the SocialButton CompositeView by determining what
+        // social buttons to show and loading the initial config if necessary.
+        var self = this;
+        // Only load the social once
+        this.initSocial();
+        this.views = [];
+
+        _.each(self.buttonTypes, function (type) {
+            var count = options.showCount,
+                button = null;
+            type = _.capitalize(type);
+            // TODO: What if no template exists?
+            switch (type) {
+            case "Facebook":
+                button = FacebookSocialButton;
+                break;
+            case "Twitter":
+                button = TwitterSocialButton;
+                break;
+            default:
+                button = SocialButtonView;
+                break;
+            }
+            self.views.push(new button({
+                'model': options.model,
+                'template': "#" + type.toLowerCase() + "_social_button_template", 
+                'showCount': self.showCount 
+            }));
+        });
     },
+
+    'load': function () {
+        // Initialize each Social Button; lazy loading to improve
+        // page load times.
+        _.each(this.views, function (view) {
+            view.load();
+        });
+        return this;
+    },
+
+    'render': function () {
+        // Render each child view and append to master.
+       var self = this;
+        _.each(self.views, function (view) {
+            view.render();
+            self.$el.append(view.$el);
+        });
+        return this;
+    }
+});
+
+var SocialButtonView = Backbone.Marionette.ItemView.extend({
+    // Base object for Social buttons, when adding a new Social button, extend
+    // from this class and modify as necessary.
     'events': {
         'click': function (ev) {
             ev.stopPropagation(); // you did not click below the button
-        },
-        'click .facebook': function (/* this */) {
-            console.log('click .facebook');
         },
         'hover': function (/* this */) {
             if (!this.$el.hasClass('loaded')) {
@@ -945,8 +993,62 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         }
     },
 
-    'loadFB': function () {
-        var facebookButton = this.$el.find('.facebook.button');
+    'initialize': function (options) {
+        // Assign attributes to the object
+        _.extend(this, options);
+    },
+
+    'load': function () {
+        // @override: subclasses should override this method
+        return this;
+    },
+
+    'templateHelpers': function (/* this */) {  // or {k: v}
+        //github.com/marionettejs/backbone.marionette/blob/master/docs/marionette.view.md#viewtemplatehelpers
+        // TODO: show_count
+
+        // Template Helpers; add additional data to the data we're serializing to
+        // render our template.
+        var helpers = {},
+            data = this.model.attributes,
+            page = SecondFunnel.option('page', {}),
+        // TODO: this will err on product.url if page.product is undefined
+            product = data || page.product,
+            image = page['stl-image'] || page['featured-image'] || data.image || data.url;
+
+        helpers.url = encodeURIComponent(product.url || image);
+        helpers.product = {
+            'url': product.url
+        };
+        helpers.showCount = this.showCount;
+        helpers.image = image;
+
+        // Call the after template handler to allow subclasses to modify this
+        // data
+        return this.onTemplateHelpers ? 
+            this.onTemplateHelpers(helpers): 
+            helpers;
+    },
+
+    // 'triggers': { "click .facebook": "event1 event2" },
+    // 'onBeforeRender': $.noop,
+    'onRender': function () {
+        // Hide this element when it's rendered.
+        this.$el.parent().hide();
+        this.$el = this.$el.children();
+        this.setElement(this.$el);
+    },
+    // 'onDomRefresh': $.noop,
+    // 'onBeforeClose': function () { return true; },
+    // 'onClose': $.noop,
+    'commas': false
+});
+
+var FacebookSocialButton = SocialButtonView.extend({
+    // Subclass of the SocialButtonView for FaceBook Social Buttons.
+    'load': function () {
+        // Onload, render the button and remove the placeholder
+        var facebookButton = this.$el;
         if (window.FB.XFBML && facebookButton && facebookButton.length >= 1) {
             if (!facebookButton.attr('id')) {
                 // generate a unique id for this facebook button
@@ -962,53 +1064,41 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
                 });
             }
         }
+        return this;
     },
 
-    'loadTwitter': function () {
+    'onRender': function () {
+        // On load we want to add the class 'no-count' if
+        // showCount is false.
+        this.$el = this.$el.children();
+        this.setElement(this.$el);
+        if (!this.showCount) {
+            this.$el.addClass('no-count');
+        }
+    },
+
+    'onTemplateHelpers': function (helpers) {
+        // Additional attributes to add to our template data. 
+        var url = (helpers.product.url || helpers.image);
+        if (url && url.indexOf("facebook") > -1) {
+            url = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(url)[1];
+        }
+        helpers.url = url;
+        return helpers;
+    }
+});
+
+var TwitterSocialButton = SocialButtonView.extend({
+    // Subclass of the SocialButtonView for Twitter Social Buttons.
+    'load': function () {
+        // Load the widget when called.
         try {
             window.twttr.widgets.load();
         } catch (err) {
             // do other things
         }
-    },
-
-    'templateHelpers': function (/* this */) {  // or {k: v}
-        //github.com/marionettejs/backbone.marionette/blob/master/docs/marionette.view.md#viewtemplatehelpers
-        // TODO: show_count
-
-        var self = this,
-            helpers = {},
-            data = this.model.attributes,
-            page = SecondFunnel.option('page', {}),
-        // TODO: this will err on product.url if page.product is undefined
-            product = data || page.product,
-            image = page['stl-image'] || page['featured-image'] || data.image || data.url;
-
-        helpers.buttons = Backbone.Marionette.getOption(this, 'buttonTypes');
-        helpers.showCount = Backbone.Marionette.getOption(this, 'showCount');
-        helpers.url = encodeURIComponent(product.url || image);
-        helpers.fburl = function (/* this: model.toJSON */) {
-            // generate the button's share link for fb.
-            var fburl = (product.url || image || this.image);
-
-            if (fburl && fburl.indexOf("facebook") > -1) {
-                fburl = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(fburl)[1];
-            }
-            return fburl;
-        };
-        helpers.image = image;
-        return helpers;
-    },
-    // 'triggers': { "click .facebook": "event1 event2" },
-    // 'onBeforeRender': $.noop,
-    'onRender': function () {
-        var self = this;
-        this.$el.parent().hide();
-    },
-    // 'onDomRefresh': $.noop,
-    // 'onBeforeClose': function () { return true; },
-    // 'onClose': $.noop,
-    'commas': false
+        return this;
+    }
 });
 
 var Discovery = Backbone.Marionette.CompositeView.extend({
@@ -1092,7 +1182,6 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
                 view = tile.createView();
 
             self.collection.add(tile);
-            view.render();
             $fragment = $fragment.add(view.$el);
         });
 
@@ -1104,6 +1193,20 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
                 callback);
         }
         return this;
+    },
+
+    'filter': function (content, selector) {
+        // Filter the content in the LayoutEngine based on the selector
+        // passed.
+        var filters = this.filters || [];
+        filters = selector ? filters.concat(selector) : filters;
+
+        _.each(filters, function (filter) {
+            if (typeof filter === 'function') {
+                content = _.filter(content, filter);
+            }
+        });
+        return content;
     },
 
     'updateContentStream': function (ev, tile) {
@@ -1225,7 +1328,7 @@ var PreviewContent = Backbone.Marionette.ItemView.extend({
     'onRender': function () {
         // ItemViews don't have regions - have to do it manually
         if (!(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
-            var buttons = new SocialButtons({model: this.model}).render().$el;
+            var buttons = new SocialButtons({model: this.model}).render().load().$el;
             this.$('.social-buttons').append(buttons);
         }
     }
