@@ -199,11 +199,7 @@ SecondFunnel.module("intentRank",
 SecondFunnel.module("tracker",
     function (tracker) {
         // TODO: when done, split into its own file
-        var _gaq = window._gaq || {
-                'push': function () {
-                    console.log('GA got pwned :(');
-                }
-            },
+        var _gaq = window._gaq || [],
             isBounce = true,  // this flag set to false once user scrolls down
             videosPlayed = [],
             parseUri = function (str) {
@@ -269,75 +265,7 @@ SecondFunnel.module("tracker",
                 }
 
                 _gaq.push(['_setCustomVar', slotId, name, value, scope]);
-            },
-
-            setTrackingDomHooks = function () {
-                // reset tracking scope: hover into featured product area
-                $(".featured").hover(function () {
-                    tracker.clearTimeout();
-                    tracker.setSocialShareVars();
-                }, function () {
-                });
-
-                $(".header a").click(function () {
-                    tracker.registerEvent({
-                        "type": "clickthrough",
-                        "subtype": "header",
-                        "label": $(this).attr("href")
-                    });
-                });
-
-                // buy now event
-                $(document).on("click", "a.buy", function (e) {
-                    tracker.registerEvent({
-                        "type": "clickthrough",
-                        "subtype": "buy",
-                        "label": $(this).attr("href")
-                    });
-                });
-
-                // popup open event: product click
-                $(document).on("click",
-                    ".discovery-area > .block.product, .discovery-area > .block.combobox .product",
-                    function (e) {
-                        tracker.registerEvent({
-                            "type": "inpage",
-                            "subtype": "openpopup",
-                            "label": $(this).data("label")
-                        });
-                    });
-
-                // lifestyle image click
-                $(document).on("click",
-                    ".discovery-area > .block.combobox .lifestyle, .discovery-area > .block.image",
-                    function (e) {
-                        tracker.registerEvent({
-                            "type": "content",
-                            "subtype": "openpopup",
-                            "label": $(this).data("label")
-                        });
-                    });
-
-                // featured pinterest click event
-                // pinterest doesn't have an API for us to use
-                $(".pinterest").click(function () {
-                    tracker.registerEvent({
-                        "network": "Pinterest",
-                        "type": "share",
-                        "subtype": "clicked"
-                    });
-                });
-
-                // social hover and popup pinterest click events
-                $(document).on("click", ".pinterest", function (e) {
-                    tracker.registerEvent({
-                        "network": "Pinterest",
-                        "type": "share",
-                        "subtype": "clicked"
-                    });
-                });
             };
-
 
         tracker.registerEvent = function (o) {
             var actionData = [
@@ -446,11 +374,10 @@ SecondFunnel.module("tracker",
             // arguments = args[1~n] when calling .trigger()
             tracker.setSocialShareVars();
 
-            $(function () {
-                setTrackingDomHooks();
-            });
+            // setTrackingDomHooks() on $.ready
         };
 
+        // Backbone format: { '(event) (selectors)': function(ev), ...  }
         tracker.defaultEventMap = {
             'click .tile': function () {
                 // this = window because that's what $el is
@@ -481,24 +408,22 @@ SecondFunnel.module("tracker",
             },
 
             // popup open event: product click
-            "click .discovery-area > .block.product, .discovery-area > .block.combobox .product":
-                function (e) {
-                    tracker.registerEvent({
-                        "type": "inpage",
-                        "subtype": "openpopup",
-                        "label": $(this).data("label")
-                    });
-                },
+            "click .discovery-area > .block.product, .discovery-area > .block.combobox .product": function (e) {
+                tracker.registerEvent({
+                    "type": "inpage",
+                    "subtype": "openpopup",
+                    "label": $(this).data("label")
+                });
+            },
 
             // lifestyle image click
-            "click .discovery-area > .block.combobox .lifestyle, .discovery-area > .block.image":
-                function (e) {
-                    tracker.registerEvent({
-                        "type": "content",
-                        "subtype": "openpopup",
-                        "label": $(this).data("label")
-                    });
-                },
+            "click .discovery-area > .block.combobox .lifestyle, .discovery-area > .block.image": function (e) {
+                tracker.registerEvent({
+                    "type": "content",
+                    "subtype": "openpopup",
+                    "label": $(this).data("label")
+                });
+            },
 
             "click .pinterest": function (e) {
                 // social hover and popup pinterest click events
@@ -512,7 +437,9 @@ SecondFunnel.module("tracker",
 
         parseUri.options = {
             strictMode: false,
-            key: ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
+            key: [
+                "source", "protocol", "authority", "userInfo", "user", "password",
+                "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
             q: {
                 name: "queryKey",
                 parser: /(?:^|&)([^&=]*)=?([^&]*)/g
@@ -1011,7 +938,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             product = data || page.product,
             hasFeaturedImg = !data.title && (data.template !== 'youtube'),
             image = (page && hasFeaturedImg) ?
-                    (page['stl-image'] || page['featured-image']):
+                    (page['stl-image'] || page['featured-image']) :
                     (data.image || data.url);
 
         helpers.buttons = Backbone.Marionette.getOption(this, 'buttonTypes');
@@ -1302,9 +1229,17 @@ var EventManager = Backbone.View.extend({
     // Top-level event binding wrapper. all events bubble up to this level.
     // the theme can declare as many event handlers as they like by creating
     // their own new EventManager({ event: handler, event: ... })s.
-    'el': $(window),
+    'el': $(window).add($(document)),
     'initialize': function (bindings) {
-        this.$el.on(bindings || {});
+        var self = this;
+        _.each(bindings, function (func, key, l) {
+            var event = key.substr(0, key.indexOf(' ')),
+                selectors = key.substr(key.indexOf(' ') + 1);
+            self.$el.on(event, selectors, func);
+            if (SecondFunnel.option('debug', false)) {
+                console.log('regEvent ' + key);
+            }
+        });
     }
 });
 

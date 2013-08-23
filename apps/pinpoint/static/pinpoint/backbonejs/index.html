@@ -245,6 +245,7 @@
         <!-- Javascript Files -->
         <script type="text/javascript">
             window.TEST_PAGE_DATA = {
+                'debug': true,
                 'base_url': "http://www.secondfunnel.com",
                 'discoveryTarget': "#discovery-area",
                 'discoveryItemSelector': ".tile",
@@ -294,6 +295,7 @@
                 ],
                 'IRResultsCount': 10,
                 'IRTimeout': 5000,
+                'gaAccountNumber': undefined,  // but required
 
                 // number of viewports worth of results to keep below the page.
                 // 0 is not an acceptable value, but 0.0001 is. default is 1,
@@ -307,6 +309,23 @@
                 ],
                 'showCount': false
             };
+
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', window.TEST_PAGE_DATA.gaAccountNumber]);
+
+            _gaq.push(['_setCustomVar',
+                1,                               // slot id
+                'StoreID',                       // name
+                window.TEST_PAGE_DATA.store.id,  // value
+                3                                // scope: page-level
+            ]);
+
+            _gaq.push(['_setCustomVar', 2, 'CampaignID',
+                window.TEST_PAGE_DATA.campaign,  // <int>
+                3
+            ]);
+
+            _gaq.push(['_trackPageview']);
         </script>
         <!-- Social -->
         <div id="fb-root"></div>
@@ -315,6 +334,7 @@
         <script type="text/javascript" src="//assets.pinterest.com/js/pinit.js"></script>
         <script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
         <script type="text/javascript" src="//platform.twitter.com/widgets.js"></script>
+        <script type="text/javascript" src="//google-analytics.com/ga.js"></script>
         <script type="text/javascript" src="js/respond.min.js"></script><!-- "as early after the css as possible" -->
         <script type="text/javascript" src="js/jquery.min.js"></script>
         <script type="text/javascript" src="js/json2.js"></script>
