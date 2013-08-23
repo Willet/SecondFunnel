@@ -943,6 +943,7 @@ var SocialButtons = Backbone.Marionette.View.extend({
         _.each(this.views, function (view) {
             view.load();
         });
+        return this;
     },
 
     'render': function () {
@@ -955,7 +956,6 @@ var SocialButtons = Backbone.Marionette.View.extend({
         return this;
     }
 });
-
 
 var SocialButtonView = Backbone.Marionette.ItemView.extend({
     // Base object for Social buttons, when adding a new Social button, extend
@@ -973,12 +973,13 @@ var SocialButtonView = Backbone.Marionette.ItemView.extend({
     },
 
     'initialize': function (options) {
-        // Assign template to the passed template.
-        this.template = options.template;
+        // Assign attributes to the object
+        _.extend(this, options);
     },
 
     'load': function () {
         // @override: subclasses should override this method
+        return this;
     },
 
     'templateHelpers': function (/* this */) {  // or {k: v}
@@ -1306,7 +1307,7 @@ var PreviewContent = Backbone.Marionette.ItemView.extend({
     'onRender': function () {
         // ItemViews don't have regions - have to do it manually
         if (!(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
-            var buttons = new SocialButtons({model: this.model}).render().$el;
+            var buttons = new SocialButtons({model: this.model}).render().load().$el;
             this.$('.social-buttons').append(buttons);
         }
     }
