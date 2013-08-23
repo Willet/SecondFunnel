@@ -127,38 +127,42 @@
                 <%= SecondFunnel.option('tapIndicatorText', 'tap to see more') %>
             </div>
         </script>
-        <script type="text/template" id="social_buttons_template">
-            <% if (_.contains(buttons, 'facebook')) { %>
-                <div class='button facebook <% if (!showCount) { %> no-count <% } %>'>
-                    <img src="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/fb-like-0.png" alt="Like" class="placeholder" />
-                    <fb:like href="<%= fburl() %>" width="48" layout="button_count"
-                             show_faces="false"></fb:like>
+        <script type="text/template" id="facebook_social_button_template">
+            <div class='button facebook'>
+                <img src="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/fb-like-0.png" alt="Like" class="placeholder" />
+                <fb:like href="<%= url %>" width="48" layout="button_count"
+                         show_faces="false"></fb:like>
+            </div>
+        </script>
+        <script type="text/template" id="twitter_social_button_template">
+            <% if (showCount) { %>
+                <div class='button twitter' style='height: 13px; width: 77px;'>
+                    <a href="https://twitter.com/share?url=<%= url %>"
+                       class="twitter-share-button"
+                       data-lang="en" data-height= "15">
+                      Tweet
+                    </a>
                 </div>
-            <% } %>
-            <% if (_.contains(buttons, 'twitter')) { %>
-                <% if (showCount) { %>
-                    <div class='button twitter' style='height: 13px; width: 77px;'>
-                        <a href="https://twitter.com/share?url=<%= url %>"
-                           class="twitter-share-button"
-                           data-lang="en" data-height= "15">
-                            Tweet
-                        </a>
-                    </div>
-                <% } else { %>
-                    <div class='button twitter'>
-                        <a href="https://twitter.com/share?url=<%= url %>" target="_blank">
-                            <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
-                        </a>
-                    </div>
-                <% } %>
-            <% } %>
-            <% if (_.contains(buttons, 'pinterest')) { %>
-                <div class='button pinterest'>
-                    <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>" target="_blank">
-                        <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/>
+            <% } else { %>
+                <div class='button twitter'>
+                    <a href="https://twitter.com/share?url=<%= url %>" target="_blank">
+                        <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
                     </a>
                 </div>
             <% } %>
+        </script>
+        <script type="text/template" id="pinterest_social_button_template">
+            <div class='button pinterest'>
+                <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>" target="_blank">
+                    <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/>
+                </a>
+            </div>
+        </script>
+        <script type="text/template" id="tumblr_social_button_template">
+            <a href="http://www.tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= url %>" target='_blank'>
+                <img src="http://platform.tumblr.com/v1/share_1.png"/>
+            </a>
+        </script>
         </script>
         <script type="text/template" id="product_preview_template">
             <img src="<%= obj.image %>" alt=""/>
@@ -266,7 +270,12 @@
                     return 240 + 15;
                 },
                 'events': undefined,  // page event bindings (optional)
-                'socialButtons': undefined,  // optional
+                'socialButtons': [
+                    "facebook",
+                    "twitter",
+                    "pinterest",
+                    "tumblr"
+                 ],// optional
                 'imageTileWide': 0.25,
                 'previewAnimationDuration': 0.1,
                 'previewMobileAnimationDuration': 0,
