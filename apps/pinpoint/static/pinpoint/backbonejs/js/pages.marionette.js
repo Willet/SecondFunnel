@@ -937,22 +937,20 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         //github.com/marionettejs/backbone.marionette/blob/master/docs/marionette.view.md#viewtemplatehelpers
         // TODO: show_count
 
-        var helpers = {},
+        var self = this,
+            helpers = {},
             data = this.model.attributes,
-            page = SecondFunnel.option('page'),
+            page = SecondFunnel.option('page', {}),
+            // TODO: this will err on product.url if page.product is undefined
             product = data || page.product,
-            hasFeaturedImg = !data.title && (data.template !== 'youtube'),
-            image = (page && hasFeaturedImg) ?
-                    (page['stl-image'] || page['featured-image']) :
-                    (data.image || data.url);
+            image = page['stl-image'] || page['featured-image'] || data.image || data.url;
 
         helpers.buttons = Backbone.Marionette.getOption(this, 'buttonTypes');
         helpers.showCount = Backbone.Marionette.getOption(this, 'showCount');
         helpers.url = encodeURIComponent(product.url || image);
         helpers.fburl = function (/* this: model.toJSON */) {
             // generate the button's share link for fb.
-            // TODO: show_count
-            var fburl = (product.url || image);
+            var fburl = (product.url || image || this.image);
 
             if (fburl && fburl.indexOf("facebook") > -1) {
                 fburl = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(fburl)[1];
@@ -1166,6 +1164,7 @@ var PreviewContent = Backbone.Marionette.ItemView.extend({
     'template': '#tile_preview_template',
     'templates': function (currentView) {
         var defaultTemplateRules = [
+            // supported contexts: options, data
             '#<%= options.store.name %>_<%= data.template %>_mobile_preview_template',
             '#<%= options.store.name %>_<%= data.template %>_preview_template',
             '#<%= data.template %>_mobile_preview_template',
