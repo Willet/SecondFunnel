@@ -615,11 +615,29 @@ var Tile = Backbone.Model.extend({
     },
 
     'createView': function () {
+        var targetClassName, TargetClass;
+
         switch (this.type) {
         case "video":
-            return new VideoTileView({model: this});
+            TargetClass = VideoTileView;
+            break;
+        default:
+            targetClassName = _.capitalize(this.type) + 'TileView';
+            if (window[targetClassName] !== undefined) {
+                TargetClass = window[targetClassName];
+                break;
+            }
+            if (SecondFunnel.classRegistry &&
+                SecondFunnel.classRegistry[targetClassName] !== undefined) {
+                // if designers want to define a new tile view, they must
+                // let SecondFunnel know about its existence.
+                TargetClass = SecondFunnel.classRegistry[targetClassName];
+                break;
+            }
+            TargetClass = TileView;
         }
-        return new TileView({model: this});
+        // undeclared / class not found in scope
+        return new TargetClass({model: this});
     }
 });
 
@@ -941,7 +959,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             helpers = {},
             data = this.model.attributes,
             page = SecondFunnel.option('page', {}),
-            // TODO: this will err on product.url if page.product is undefined
+        // TODO: this will err on product.url if page.product is undefined
             product = data || page.product,
             image = page['stl-image'] || page['featured-image'] || data.image || data.url;
 
@@ -1182,6 +1200,13 @@ var PreviewContent = Backbone.Marionette.ItemView.extend({
                 });
         }
         return defaultTemplateRules;
+    },
+    'onRender': function () {
+        // ItemViews don't have regions - have to do it manually
+        if (!(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
+            var buttons = new SocialButtons({model: this.model}).render().$el;
+            this.$('.social-buttons').append(buttons);
+        }
     }
 });
 

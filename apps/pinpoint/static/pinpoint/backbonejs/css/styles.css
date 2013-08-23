@@ -53,18 +53,22 @@ body {
     text-align: center;
 }
 
+.tile .social-buttons {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    text-align: center;
+    margin: 0 auto;
+}
+
 .preview img {
     /* limit how big preview images can be */
     max-width: 697px;
     max-height: 444px;
 }
 
-.social-buttons {
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    text-align: center;
-    margin: 0 auto;
+.preview span.close {
+    padding: 0 0 12px 20px;
 }
 
 .social-buttons .facebook {

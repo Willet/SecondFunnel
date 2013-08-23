@@ -206,7 +206,7 @@ div.loading {
     height: 100%;
 }
 
-.social-buttons {
+.tile .social-buttons {
     width: 100%;
     display: none; /* all themes have buttons hidden by default */
 }
@@ -318,6 +318,10 @@ div.loading {
 .previewContainer .content .scrollable {
     /* if the theme has one of those defined, it has unrestricted height */
     max-width: 100%;
+}
+
+.previewContainer .content .social-buttons {
+    display: block;  /* these, however, show by default */
 }
 
 /* mobile-grade preview container styles */

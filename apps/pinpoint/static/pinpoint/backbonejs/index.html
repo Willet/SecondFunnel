@@ -108,7 +108,6 @@
                     <span class="close">&#x00D7;</span>
                     <div class="scrollable">
                         <div class="template target"></div>
-                        <div class="social-buttons"></div>
                     </div>
                 </div>
             </div>
@@ -164,19 +163,16 @@
         <script type="text/template" id="product_preview_template">
             <img src="<%= obj.image %>" alt=""/>
             <%= obj.price %>
+            <div class="social-buttons"></div>
         </script>
         <script type="text/template" id="image_preview_template">
-            <h1>Image preview (original type: <%= obj.template %>)</h1>
-            <% if (obj['related-products']) { %>
-                <img src="<%= obj.image %>" alt=""/>
-                <% console.log(obj['related-products']); %>
-            <% } else { %>
-                <img src="<%= obj.image %>" alt=""/>
-            <% } %>
-        </script>
-        <script type="text/template" id="product_preview_template">
+            <h4>
+                <span class="label label-info"><%= obj.template %></span>
+                <%= obj.caption || obj.title || obj.name %>
+                <!-- in that order (it may still have none of those) -->
+            </h4>
             <img src="<%= obj.image %>" alt=""/>
-            <%= obj.price %>
+            <div class="social-buttons"></div>
         </script>
 
         <!-- store-specific templates -->
@@ -232,12 +228,7 @@
             <!-- any (store.name)_(type)_... templates will be used in place
                  of default templates if they exist. -->
             <h1>GAP TEMPLATE WOOOOOOT!!</h1>
-            <% if (obj['related-products']) { %>
-                <img src="<%= obj.image %>" alt=""/>
-                <% console.log(obj['related-products']); %>
-            <% } else { %>
-                <img src="<%= obj.image %>" alt=""/>
-            <% } %>
+            <img src="<%= obj.image %>" alt=""/>
         </script>
 
 
