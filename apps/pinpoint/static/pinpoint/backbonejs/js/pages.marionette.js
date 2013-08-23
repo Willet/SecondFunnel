@@ -886,6 +886,3 @@ SecondFunnel.addInitializer(function (options) {
     // to be displayed immediately (and first) on the landing page.
     SecondFunnel.discovery = new Discovery({}, options);
 });
-
-// Start the SecondFunnel app
-SecondFunnel.start(SecondFunnel.options);
