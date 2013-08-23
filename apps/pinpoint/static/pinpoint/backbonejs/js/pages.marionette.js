@@ -43,6 +43,11 @@ SecondFunnel.option = function (name, defaultValue) {
     }
     return defaultValue;  // ...and defaultValue defaults to undefined
 };
+try {
+    SecondFunnel.options.debug = (window.location.hash + window.location.search).indexOf('debug=1') > 0;
+} catch (e) {
+    // this is an optional operation. never let this stop the script.
+}
 
 // Marionette TemplateCache extension to allow checking cache for template
 Backbone.Marionette.TemplateCache._exists = function (templateId) {
@@ -381,7 +386,7 @@ SecondFunnel.module("tracker",
         tracker.defaultEventMap = {
             'click .tile': function () {
                 // this = window because that's what $el is
-                console.log('aaaah');
+                console.log('ouch');
             },
 
             // reset tracking scope: hover into featured product area
@@ -1287,7 +1292,7 @@ SecondFunnel.addInitializer(function (options) {
 });
 
 SecondFunnel.addInitializer(function (options) {
-    // Add our initiliazer, this allows us to pass a series of tiles
+    // Add our initializer, this allows us to pass a series of tiles
     // to be displayed immediately (and first) on the landing page.
     SecondFunnel.discovery = new Discovery(options);
     SecondFunnel.tracker.init();

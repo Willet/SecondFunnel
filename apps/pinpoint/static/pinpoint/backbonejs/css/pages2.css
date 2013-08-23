@@ -300,6 +300,8 @@ div.loading {
     left: 0;
     width: 100%;
     height: 100%;
+    /* IE 8 still doesn't support rgba. Here's a semi-transparent png. */
+    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/white-transparent.png');
     background: rgba(255,255,255,0.7);
     cursor: -webkit-zoom-out;
     cursor: -moz-zoom-out;
