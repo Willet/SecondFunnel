@@ -113,7 +113,8 @@ SecondFunnel.module("intentRank",
             _.extend(intentRank, {
                 'store': options.store,
                 'campaign': options.campaign,
-                'categories': page.catories || {},
+                // @deprecated: options.categories will be page.categories
+                'categories': page.categories || options.categories || {},
                 'backupResults': options.backupResults ||[],
                 'IRResultsCount': options.IRResultsCount || 10,
                 'IRTimeout': options.IRTimeout || 5000,
@@ -157,52 +158,13 @@ SecondFunnel.module("intentRank",
         };
 
         intentRank.changeCategory = function (category) {
-            // Change the category, provided it's valid.
-            if (_.findWhere(intentRank.categories, {'id': '' + category})) {
-                intentRank.campaign = category;
-                SecondFunnel.vent.trigger('changeCampaign', category);
-            }
+            // Change the category; category has been validated
+            // by the CategoryView, so a check isn't necessary
+            intentRank.campaign = category;
             return intentRank;
         };
     }
 );
-
-var Tile = Backbone.Model.extend({
-    'defaults': {
-        // Default product tile settings, some tiles don't
-        // come specifying a type or caption
-        'caption': "Shop product",
-        'tile-id': null,
-        'content-type': "product",
-        'related-products': []
-    },
-
-    'initialize': function(attributes, options) {
-        var video_types = ["youtube", "video"],
-            type = this.get('content-type').toLowerCase();
-
-        this.type = 'image';
-        if (_.contains(video_types, type)) {
-            this.type = 'video';
-        }
-    },
-
-    'is': function (type) {
-        // check if a tile is of (type). the type is _not_ the tile's template.
-        return this.get('content-type').toLowerCase() === type.toLowerCase();
-    },
-
-    'createView': function () {
-        switch (this.type) {
-        case "image":
-            return new TileView({model: this});
-        case "video":
-            return new VideoTileView({model: this});
-        }
-        return new TileView({model: this});
-    }
-});
-
 
 SecondFunnel.module("layoutEngine",
     function (layoutEngine) {
@@ -274,7 +236,11 @@ SecondFunnel.module("layoutEngine",
 
         layoutEngine.clear = function () {
             // Resets the LayoutEngine's instance so that it is empty
-            layoutEngine.$el.masonry('destroy').masonry(layoutEngine.options);
+            layoutEngine.$el
+                .masonry('destroy')
+                .html("")
+                .css('position', 'relative')
+                .masonry(layoutEngine.options);
         };
 
         layoutEngine.imagesLoaded = function (callback, $fragment) {
@@ -311,6 +277,43 @@ SecondFunnel.module("layoutEngine",
         };
     }
 );
+
+
+var Tile = Backbone.Model.extend({
+    'defaults': {
+        // Default product tile settings, some tiles don't
+        // come specifying a type or caption
+        'caption': "Shop product",
+        'tile-id': null,
+        'content-type': "product",
+        'related-products': []
+    },
+
+    'initialize': function(attributes, options) {
+        var video_types = ["youtube", "video"],
+            type = this.get('content-type').toLowerCase();
+
+        this.type = 'image';
+        if (_.contains(video_types, type)) {
+            this.type = 'video';
+        }
+    },
+
+    'is': function (type) {
+        // check if a tile is of (type). the type is _not_ the tile's template.
+        return this.get('content-type').toLowerCase() === type.toLowerCase();
+    },
+
+    'createView': function () {
+        switch (this.type) {
+        case "image":
+            return new TileView({model: this});
+        case "video":
+            return new VideoTileView({model: this});
+        }
+        return new TileView({model: this});
+    }
+});
 
 var TileCollection = Backbone.Collection.extend({
     // Our TileCollection manages ALL the tiles on the page.
@@ -407,7 +410,7 @@ var TileView = Backbone.Marionette.Layout.extend({
             preview = new PreviewWindow({'model': tile});
         preview.render();
         preview.content.show(new PreviewContent({'model': tile}));
-        SecondFunnel.vent.trigger("tileClicked", this);
+        SecondFunnel.vent.trigger("tileClicked", ev, this);
     },
 
     'onBeforeRender': function () {
@@ -669,7 +672,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     // prevent default appendHtml behaviour (append in batch)
     'appendHtml': $.noop,
 
-    'initialize': function (attributes, options) {
+    'initialize': function (options) {
         var self = this;
         // Initialize IntentRank; use as a seperate module to make changes easier.
         SecondFunnel.intentRank.initialize(options);
@@ -677,6 +680,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         SecondFunnel.layoutEngine.initialize(this.$el,
             options);
         this.collection = new TileCollection();
+        this.categories = new CategorySelector(options.categories || []);
         this.attachListeners();
 
         // If the collection has initial values, lay them out
@@ -692,12 +696,13 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
     'attachListeners': function () {
         // TODO: Find a better way than this...
-        _.bindAll(this, 'pageScroll', 'toggleLoading', 
+        _.bindAll(this, 'pageScroll', 'toggleLoading', 'categoryChanged', 
             'layoutResults', 'updateContentStream');
         $(window).scroll(this.pageScroll);
 
         // Vent Listeners
         SecondFunnel.vent.on("tileClicked", this.updateContentStream);
+        SecondFunnel.vent.on('changeCampaign', this.categoryChanged);
         return this;
     },
 
@@ -751,7 +756,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         return this;
     },
 
-    'updateContentStream': function (tile) {
+    'updateContentStream': function (ev, tile) {
         // Loads in related content below the specified tile
         var id = tile.model.get('tile-id');
         return id === null ? this :
@@ -759,6 +764,14 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
                    'type': "content",
                    'id': tile.model.get('tile-id')
                }, tile);
+    },
+
+    'categoryChanged': function (ev, category) {
+        // @deprecated: A View will be created for Categories, this is just
+        // a temporary function that simulates the behaviour.
+        SecondFunnel.intentRank.changeCategory(category.model.get('id'));
+        SecondFunnel.layoutEngine.clear();
+        return this.getTiles();
     },
 
     'toggleLoading': function (bool) {
@@ -778,6 +791,51 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         if (pageBottomPos >= documentBottomPos - viewportHeights && !this.loading) {
             this.getTiles();
         }
+    }
+});
+
+
+var Category = Backbone.Model.extend({
+    // Base empty category, no functionality needed here
+});
+
+var CategoryView = Backbone.Marionette.ItemView.extend({
+    'events': {
+        'click': function (ev) {
+            ev.preventDefault();
+            SecondFunnel.vent.trigger('changeCampaign', ev, this);
+        }
+    },
+
+    'initialize': function (options) {
+        // Initializes the category view, expects some el to use
+        this.el = options.el;
+        this.$el = $(this.el);
+        delete options.$el;
+        this.model = new Category(options);
+    }
+});
+
+var CategorySelector = Backbone.Marionette.CompositeView.extend({
+    // This ItemView does not create an element, rather is passed
+    // the element that it will use for category selection
+    itemView: CategoryView,
+
+    'initialize': function (categories) {
+        // Initialize a category view for each object with a
+        // data-category option.
+        var views = [];
+        $('[data-category]').each(function () {
+            var id = $(this).attr('data-category');
+            if (_.findWhere(categories, {'id': Number(id)})) {
+                // Make sure category is a valid one.
+                views.push(new CategoryView({
+                    'id': id,
+                    'el': this
+                }));
+            }
+        });
+        this.views = views;
     }
 });
 
@@ -884,7 +942,7 @@ SecondFunnel.addInitializer(function (options) {
 SecondFunnel.addInitializer(function (options) {
     // Add our initiliazer, this allows us to pass a series of tiles
     // to be displayed immediately (and first) on the landing page.
-    SecondFunnel.discovery = new Discovery({}, options);
+    SecondFunnel.discovery = new Discovery(options);
 });
 
 // Start the SecondFunnel app

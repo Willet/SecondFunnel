@@ -52,6 +52,12 @@
                                 <li><a href="#">One more separated link</a></li>
                             </ul>
                         </li>
+                        <li class="dropdown">
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Categories <b class="caret"></b></a>
+                          <ul class="dropdown-menu">
+                            <li><a href="#" data-category="96">Back to Blue</a></li>
+                            <li><a href="#" data-category="99">Samsung SSD</a></li>
+                          </ul>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
                         <li><a href="#">Social buttons</a></li>
@@ -247,6 +253,20 @@
                     'name': "gap"
                 },
                 'campaign': 96,
+                'categories': [
+                    { 
+                        'id': 96
+                    },
+                    {
+                        'id': 97
+                    },
+                    {
+                        'id': 98
+                    },
+                    {
+                        'id': 99
+                    }
+                ],
                 'columnWidth': function($element) {
                     return 240 + 15;
                 },
