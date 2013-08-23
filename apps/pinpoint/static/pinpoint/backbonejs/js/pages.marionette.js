@@ -13,11 +13,28 @@ SecondFunnel.vent = _.extend({}, Backbone.Events);  // Custom event trigger/list
 SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 SecondFunnel.option = function (name, defaultValue) {
     // convenience method for accessing PAGES_INFO or TEST_*
-    var opt = Backbone.Marionette.getOption(SecondFunnel, name);
-    if (opt === undefined) {
-        return defaultValue;  // ...and defaultValue defaults to undefined
+    var opt = Backbone.Marionette.getOption(SecondFunnel, name),
+        keyNest = _.compact(name.split(/[:.]/)),
+        keyName,
+        cursor = SecondFunnel.options,
+        i,
+        depth;
+
+    if (opt !== undefined && (keyNest.length === 1 && !_.isEmpty(opt))) {
+        // getOption() returns a blank object when it thinks it is accessing
+        // a nested option so we have to patch that up
+        return opt;
     }
-    return opt;
+    // marionette sucks, so we'll do extra traversing to get stuff out of
+    // our nested objects ourselves
+    for (i = 0, depth = keyNest.length; i < depth; i++) {
+        keyName = keyNest[i];
+        cursor = cursor[keyName];
+    }
+    if (cursor !== undefined) {
+        return cursor;
+    }
+    return defaultValue;  // ...and defaultValue defaults to undefined
 };
 
 // Marionette TemplateCache extension to allow checking cache for template
@@ -227,8 +244,8 @@ SecondFunnel.module("tracker",
 
             trackEvent = function (o) {
                 var category = "appname=pinpoint|" +
-                    "storeid=" + window.PAGES_INFO.store.id + "|" +
-                    "campaignid=" + window.PAGES_INFO.page.id + "|" +
+                    "storeid=" + SecondFunnel.option('store:id') + "|" +
+                    "campaignid=" + SecondFunnel.option('page:id') + "|" +
                     "referrer=" + referrerName() + "|" +
                     "domain=" + parseUri(window.location.href).host;
 
@@ -382,23 +399,20 @@ SecondFunnel.module("tracker",
             });
         };
 
-        tracker.notABounce = function (how) {
+        tracker.notABounce = _.once(function (how) {
             // visitor already marked as "non-bounce"
-            if (!isBounce) {
-                return;
-            }
-
-            isBounce = false;
-
+            // this function becomes nothing after it's first run, even
+            // after re-initialisation.
             tracker.registerEvent({
                 "type": "visit",
                 "subtype": "noBounce",
                 "label": how
             });
-        };
+        });
 
         tracker.videoStateChange = function (videoId, event) {
             if (videosPlayed.indexOf(videoId) !== -1) {
+                // not that video
                 return;
             }
 
@@ -429,6 +443,11 @@ SecondFunnel.module("tracker",
             });
         };
 
+        tracker.poop = function () {
+            // this = SecondFunnel.vent
+            // arguments = args[1~n] when calling .trigger()
+        };
+
         parseUri.options = {
             strictMode: false,
             key: ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
@@ -449,6 +468,7 @@ SecondFunnel.module("tracker",
         // add mediator triggers if the module exists.
         SecondFunnel.vent.on({
             'tracking:init': tracker.init,
+            'tracking:poop': tracker.poop,
             'tracking:registerEvent': tracker.registerEvent,
             'tracking:setSocialShareVars': tracker.setSocialShareVars,
             'tracking:clearTimeout': tracker.clearTimeout,
@@ -776,6 +796,10 @@ var VideoTileView = TileView.extend({
             'events': {
                 'onReady': $.noop,
                 'onStateChange': function (newState) {
+                    SecondFunnel.tracker.videoStateChange(
+                        self.model.attributes['original-id'] || self.model.id,
+                        newState
+                    );
                     switch (newState) {
                     case window.YT.PlayerState.ENDED:
                         self.onPlaybackEnd();
