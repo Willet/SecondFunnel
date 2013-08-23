@@ -524,6 +524,21 @@ SecondFunnel.module("layoutEngine",
             return callback ? callback($fragment) : layoutEngine;
         };
 
+        layoutEngine.stamp = function (element) {
+            layoutEngine.$el.masonry('stamp', element);
+            return layoutEngine;
+        };
+
+        layoutEngine.unstamp = function (element) {
+            layoutEngine.$el.masonry('unstamp', element);
+            return layoutEngine;
+        };
+
+        layoutEngine.layout = function () {
+            layoutEngine.$el.masonry('layout');
+            return layoutEngine;
+        };
+
         layoutEngine.reload = function ($fragment) {
             layoutEngine.$el.masonry('reloadItems');
             layoutEngine.$el.masonry();
@@ -734,9 +749,15 @@ var TileView = Backbone.Marionette.Layout.extend({
     'onClick': function (ev) {
         "use strict";
         var tile = this.model,
-            preview = new PreviewWindow({'model': tile});
+            preview = new PreviewWindow({
+                'model': tile, 'caller': ev.currentTarget
+            });
+
         preview.render();
-        preview.content.show(new PreviewContent({'model': tile}));
+        preview.content.show(new PreviewContent({
+            'model': tile, 'caller': ev.currentTarget
+        }));
+
         SecondFunnel.vent.trigger("tileClicked", ev, this);
     },
 
