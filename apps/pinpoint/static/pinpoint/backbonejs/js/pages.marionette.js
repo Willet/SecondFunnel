@@ -1,3 +1,10 @@
+if (!window.console) {  // shut up JSLint / good practice
+    var console = window.console = {
+        log: $.noop,
+        error: $.noop
+    };
+}
+
 // Declaration of the SecondFunnel JS application
 var SecondFunnel = new Backbone.Marionette.Application();
 SecondFunnel.vent = _.extend({}, Backbone.Events);  // Custom event trigger/listener
@@ -9,9 +16,8 @@ SecondFunnel.option = function (name, defaultValue) {
     var opt = Backbone.Marionette.getOption(SecondFunnel, name);
     if (opt === undefined) {
         return defaultValue;  // ...and defaultValue defaults to undefined
-    } else {
-        return opt;
     }
+    return opt;
 };
 
 // Marionette TemplateCache extension to allow checking cache for template
@@ -19,21 +25,22 @@ Backbone.Marionette.TemplateCache._exists = function (templateId) {
     // Checks if the Template exists in the cache, if not found
     // updates the cache with the template (if it exists), otherwise fail
     // returns true if exists otherwise false.
-    var cached = this.templateCaches[templateId];
+    var cached = this.templateCaches[templateId],
+        cachedTemplate;
 
     if (cached) {
         return true;
     }
 
     // template exists but was not cached
-    var cachedTemplate = new Backbone.Marionette.TemplateCache(templateId);
+    cachedTemplate = new Backbone.Marionette.TemplateCache(templateId);
     try {
         cachedTemplate.load();
         // Only cache on success
         this.templateCaches[templateId] = cachedTemplate;
     } catch (err) {
         if (!(err.name && err.name === "NoTemplateError")) {
-            throw (err);
+            throw err;
         }
     }
     return !!this.templateCaches[templateId];
@@ -76,29 +83,28 @@ Backbone.Marionette.View.prototype.getTemplate = function () {
 };
 
 // make new module full of transient utilities
-SecondFunnel.module("observables",
-    function (observables/*, (but wait, there's more) */) {
-        var testUA = function (regex) {
-            return regex.test(window.navigator.userAgent);
-        };
+SecondFunnel.module("observables", function (observables) {
+    var testUA = function (regex) {
+        return regex.test(window.navigator.userAgent);
+    };
 
-        observables.mobile = function () {
-            return ($(window).width() < 768);  // 768 is set in stone now
-        };
-        observables.touch = function () {
-            return ('ontouchstart' in document.documentElement);
-        };
+    observables.mobile = function () {
+        return ($(window).width() < 768);  // 768 is set in stone now
+    };
+    observables.touch = function () {
+        return ('ontouchstart' in document.documentElement);
+    };
 
-        observables.isAniPad = function () {
-            // use of this function is highly discouraged, but you know it
-            // will be used anyway
-            return testUA(/ipad/i);
-        };
-    }
-);
+    observables.isAniPad = function () {
+        // use of this function is highly discouraged, but you know it
+        // will be used anyway
+        return testUA(/ipad/i);
+    };
+});
+
 
 SecondFunnel.module("intentRank",
-    function (intentRank/*, (but wait, there's more) */) {
+    function (intentRank) {
         intentRank.base = "http://intentrank-test.elasticbeanstalk.com/intentrank";
         intentRank.templates = {
             'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
@@ -149,7 +155,7 @@ SecondFunnel.module("intentRank",
                     args.unshift(results);
                     return callback.apply(callback, args);
                 },
-                error: function (jxqhr, textStatus, error) {
+                error: function () {
                     args.unshift(intentRank.backupResults);
                     return callback.apply(callback, args);
                 }
@@ -170,7 +176,12 @@ SecondFunnel.module("intentRank",
 SecondFunnel.module("tracker",
     function (tracker) {
         // TODO: when done, split into its own file
-        var isBounce = true,  // this flag set to false once user scrolls down
+        var _gaq = window._gaq || {
+                'push': function () {
+                    console.log('GA got pwned :(');
+                }
+            },
+            isBounce = true,  // this flag set to false once user scrolls down
             videosPlayed = [],
             parseUri = function (str) {
                 // parseUri 1.2.2
@@ -215,18 +226,17 @@ SecondFunnel.module("tracker",
             },
 
             trackEvent = function (o) {
-                var category = "appname=pinpoint|"
-                    + "storeid=" + window.PAGES_INFO.store.id + "|"
-                    + "campaignid=" + window.PAGES_INFO.page.id + "|"
-                    + "referrer=" + referrerName() + "|"
-                    + "domain=" + parseUri(window.location.href).host;
+                var category = "appname=pinpoint|" +
+                    "storeid=" + window.PAGES_INFO.store.id + "|" +
+                    "campaignid=" + window.PAGES_INFO.page.id + "|" +
+                    "referrer=" + referrerName() + "|" +
+                    "domain=" + parseUri(window.location.href).host;
 
                 _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
             },
 
             setCustomVar = function (o) {
-                var conf = o || {},
-                    slotId = o.slotId,
+                var slotId = o.slotId,
                     name = o.name,
                     value = o.value,
                     scope = o.scope || 3; // 3 = page-level
@@ -314,7 +324,7 @@ SecondFunnel.module("tracker",
                 "actionScope=" + tracker.socialShareType
             ];
 
-            notABounce(o.type);
+            tracker.notABounce(o.type);
 
             trackEvent({
                 "action": actionData.join("|"),
@@ -333,7 +343,7 @@ SecondFunnel.module("tracker",
         };
 
         tracker.clearTimeout = function () {
-            if (typeof tracker._pptimeout == "number") {
+            if (typeof tracker._pptimeout === "number") {
                 window.clearTimeout(tracker._pptimeout);
 
                 // TODO remove this? not valid in strict mode
@@ -342,7 +352,10 @@ SecondFunnel.module("tracker",
         };
 
         tracker.registerTwitterListeners = function () {
-            twttr.ready(function (twttr) {
+            if (!window.twttr) {
+                return;
+            }
+            window.twttr.ready(function (twttr) {
                 twttr.events.bind('tweet', function (event) {
                     tracker.registerEvent({
                         "network": "Twitter",
@@ -353,9 +366,9 @@ SecondFunnel.module("tracker",
 
                 twttr.events.bind('click', function (event) {
                     var sType;
-                    if (event.region == "tweet") {
+                    if (event.region === "tweet") {
                         sType = "clicked";
-                    } else if (event.region == "tweetcount") {
+                    } else if (event.region === "tweetcount") {
                         sType = "leftFor";
                     } else {
                         sType = event.region;
@@ -384,18 +397,18 @@ SecondFunnel.module("tracker",
             });
         };
 
-        tracker.videoStateChange = function (video_id, event) {
-            if (videosPlayed.indexOf(video_id) !== -1) {
+        tracker.videoStateChange = function (videoId, event) {
+            if (videosPlayed.indexOf(videoId) !== -1) {
                 return;
             }
 
-            if (event.data === YT.PlayerState.PLAYING) {
-                videosPlayed.push(video_id);
+            if (event.data === window.YT.PlayerState.PLAYING) {
+                videosPlayed.push(videoId);
 
                 tracker.registerEvent({
                     "type": "content",
                     "subtype": "video",
-                    "label": video_id
+                    "label": videoId
                 });
             }
         };
@@ -459,11 +472,11 @@ var Tile = Backbone.Model.extend({
     },
 
     'initialize': function (attributes, options) {
-        var video_types = ["youtube", "video"],
+        var videoTypes = ["youtube", "video"],
             type = this.get('content-type').toLowerCase();
 
         this.type = 'image';
-        if (_.contains(video_types, type)) {
+        if (_.contains(videoTypes, type)) {
             this.type = 'video';
         }
     },
@@ -519,10 +532,10 @@ SecondFunnel.module("layoutEngine",
 
         layoutEngine.call = function (callback, $fragment) {
             if (!(typeof callback === 'string' && callback in layoutEngine)) {
-                var msg = !(typeof callback === 'string')
-                    ? "Unsupported type " + (typeof callback) +
-                              " passed to Layout Engine." :
-                          "LayoutEngine has no property " + callback + ".";
+                var msg = !(typeof callback === 'string') ?
+                            "Unsupported type " + (typeof callback) +
+                            " passed to Layout Engine." :
+                            "LayoutEngine has no property " + callback + ".";
                 SecondFunnel.vent.trigger('log', msg);
                 return layoutEngine;
             }
@@ -590,8 +603,7 @@ SecondFunnel.module("layoutEngine",
                 });
             return layoutEngine;
         };
-    }
-);
+    });
 
 var TileCollection = Backbone.Collection.extend({
     // Our TileCollection manages ALL the tiles on the page.
@@ -608,9 +620,10 @@ var TileCollection = Backbone.Collection.extend({
     'initialize': function (arrayOfData) {
         // Our TileCollection starts by rendering several Tiles using the
         // data it is passed.
-        for (var data in arrayOfData) {
-            // Generate Tile
-            this.add(new Tile(data));
+        for (var data in arrayOfData) {  // Generate Tile
+            if (arrayOfData.hasOwnProperty(data)) {
+                this.add(new Tile(data));
+            }
         }
     }
 });
@@ -736,7 +749,7 @@ var VideoTileView = TileView.extend({
         // Determine which click handler to use; determined by the
         // content type.
         var handler = _.capitalize(this.model.get('content-type'));
-        this.onClick = this['on' + handler] || this['onVideo'];
+        this.onClick = this['on' + handler] || this.onVideo;
     },
 
     'onYoutube': function () {
@@ -752,7 +765,7 @@ var VideoTileView = TileView.extend({
         }
 
         $thumb.attr('id', thumbId).wrap('<div class="video-container" />');
-        var player = new YT.Player(thumbId, {
+        var player = new window.YT.Player(thumbId, {
             'width': $thumb.width(),
             'height': $thumb.height(),
             'videoId': this.model.attributes['original-id'] || this.model.id,
@@ -764,7 +777,7 @@ var VideoTileView = TileView.extend({
                 'onReady': $.noop,
                 'onStateChange': function (newState) {
                     switch (newState) {
-                    case YT.PlayerState.ENDED:
+                    case window.YT.PlayerState.ENDED:
                         self.onPlaybackEnd();
                         break;
                     default:
@@ -907,9 +920,9 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             page = SecondFunnel.option('page'),
             product = data || page.product,
             hasFeaturedImg = !data.title && (data.template !== 'youtube'),
-            image = (page && hasFeaturedImg)
-                ? (page['stl-image'] || page['featured-image'])
-                : (data.image || data.url);
+            image = (page && hasFeaturedImg) ?
+                    (page['stl-image'] || page['featured-image']):
+                    (data.image || data.url);
 
         helpers.buttons = Backbone.Marionette.getOption(this, 'buttonTypes');
         helpers.showCount = Backbone.Marionette.getOption(this, 'showCount');
