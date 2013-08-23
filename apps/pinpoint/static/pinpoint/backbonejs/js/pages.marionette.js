@@ -114,13 +114,13 @@ SecondFunnel.module("intentRank",
                 'store': options.store,
                 'campaign': options.campaign,
                 'categories': page.catories || {},
-                'backupResults': options.backupResults ||[],
+                'backupResults': options.backupResults || [],
                 'IRResultsCount': options.IRResultsCount || 10,
                 'IRTimeout': options.IRTimeout || 5000,
                 'content': options.content || [],
-                'getResults': online?
-                    intentRank.getResultsOnline :
-                    intentRank.getResultsOffline
+                'getResults': online ?
+                              intentRank.getResultsOnline :
+                              intentRank.getResultsOffline
             });
         };
 
@@ -164,8 +164,289 @@ SecondFunnel.module("intentRank",
             }
             return intentRank;
         };
-    }
-);
+    });
+
+
+SecondFunnel.module("tracker",
+    function (tracker) {
+        // TODO: when done, split into its own file
+        var isBounce = true,  // this flag set to false once user scrolls down
+            videosPlayed = [],
+            parseUri = function (str) {
+                // parseUri 1.2.2
+                // (c) Steven Levithan <stevenlevithan.com>
+                // MIT License
+                var o = parseUri.options,
+                    m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+                    uri = {},
+                    i = 14;
+
+                while (i--) {
+                    uri[o.key[i]] = m[i] || "";
+                }
+
+                uri[o.q.name] = {};
+                uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+                    if ($1) {
+                        uri[o.q.name][$1] = $2;
+                    }
+                });
+
+                return uri;
+            },
+
+            referrerName = function () {
+                var host;
+
+                if (document.referrer === "") {
+                    return "noref";
+                }
+
+                host = parseUri(document.referrer).host;
+                // want top level domain name (i.e. tumblr.com, not site.tumblr.com)
+                host = host.split(".").slice(host.split(".").length - 2,
+                    host.split(".").length).join(".");
+
+                if (host === "") {
+                    return "noref";
+                }
+
+                return host;
+            },
+
+            trackEvent = function (o) {
+                var category = "appname=pinpoint|"
+                    + "storeid=" + window.PAGES_INFO.store.id + "|"
+                    + "campaignid=" + window.PAGES_INFO.page.id + "|"
+                    + "referrer=" + referrerName() + "|"
+                    + "domain=" + parseUri(window.location.href).host;
+
+                _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+            },
+
+            setCustomVar = function (o) {
+                var conf = o || {},
+                    slotId = o.slotId,
+                    name = o.name,
+                    value = o.value,
+                    scope = o.scope || 3; // 3 = page-level
+
+                if (!(slotId && name && value)) {
+                    return;
+                }
+
+                _gaq.push(['_setCustomVar', slotId, name, value, scope]);
+            },
+
+            setTrackingDomHooks = function () {
+                // reset tracking scope: hover into featured product area
+                $(".featured").hover(function () {
+                    tracker.clearTimeout();
+                    tracker.setSocialShareVars();
+                }, function () {
+                });
+
+                $(".header a").click(function () {
+                    tracker.registerEvent({
+                        "type": "clickthrough",
+                        "subtype": "header",
+                        "label": $(this).attr("href")
+                    });
+                });
+
+                // buy now event
+                $(document).on("click", "a.buy", function (e) {
+                    tracker.registerEvent({
+                        "type": "clickthrough",
+                        "subtype": "buy",
+                        "label": $(this).attr("href")
+                    });
+                });
+
+                // popup open event: product click
+                $(document).on("click",
+                    ".discovery-area > .block.product, .discovery-area > .block.combobox .product",
+                    function (e) {
+                        tracker.registerEvent({
+                            "type": "inpage",
+                            "subtype": "openpopup",
+                            "label": $(this).data("label")
+                        });
+                    });
+
+                // lifestyle image click
+                $(document).on("click",
+                    ".discovery-area > .block.combobox .lifestyle, .discovery-area > .block.image",
+                    function (e) {
+                        tracker.registerEvent({
+                            "type": "content",
+                            "subtype": "openpopup",
+                            "label": $(this).data("label")
+                        });
+                    });
+
+                // featured pinterest click event
+                // pinterest doesn't have an API for us to use
+                $(".pinterest").click(function () {
+                    tracker.registerEvent({
+                        "network": "Pinterest",
+                        "type": "share",
+                        "subtype": "clicked"
+                    });
+                });
+
+                // social hover and popup pinterest click events
+                $(document).on("click", ".pinterest", function (e) {
+                    tracker.registerEvent({
+                        "network": "Pinterest",
+                        "type": "share",
+                        "subtype": "clicked"
+                    });
+                });
+            };
+
+
+        tracker.registerEvent = function (o) {
+            var actionData = [
+                "network=" + o.network || "",
+                "actionType=" + o.type,
+                "actionSubtype=" + o.subtype || "",
+                "actionScope=" + tracker.socialShareType
+            ];
+
+            notABounce(o.type);
+
+            trackEvent({
+                "action": actionData.join("|"),
+                "label": o.label || tracker.socialShareUrl
+            });
+        };
+
+        tracker.setSocialShareVars = function (o) {
+            if (o && o.url && o.sType) {
+                tracker.socialShareUrl = o.url;
+                tracker.socialShareType = o.sType;
+            } else {
+                tracker.socialShareUrl = $("#featured_img").data("url");
+                tracker.socialShareType = "featured";
+            }
+        };
+
+        tracker.clearTimeout = function () {
+            if (typeof tracker._pptimeout == "number") {
+                window.clearTimeout(tracker._pptimeout);
+
+                // TODO remove this? not valid in strict mode
+                delete tracker._pptimeout;
+            }
+        };
+
+        tracker.registerTwitterListeners = function () {
+            twttr.ready(function (twttr) {
+                twttr.events.bind('tweet', function (event) {
+                    tracker.registerEvent({
+                        "network": "Twitter",
+                        "type": "share",
+                        "subtype": "shared"
+                    });
+                });
+
+                twttr.events.bind('click', function (event) {
+                    var sType;
+                    if (event.region == "tweet") {
+                        sType = "clicked";
+                    } else if (event.region == "tweetcount") {
+                        sType = "leftFor";
+                    } else {
+                        sType = event.region;
+                    }
+                    tracker.registerEvent({
+                        "network": "Twitter",
+                        "type": "share",
+                        "subtype": sType
+                    });
+                });
+            });
+        };
+
+        tracker.notABounce = function (how) {
+            // visitor already marked as "non-bounce"
+            if (!isBounce) {
+                return;
+            }
+
+            isBounce = false;
+
+            tracker.registerEvent({
+                "type": "visit",
+                "subtype": "noBounce",
+                "label": how
+            });
+        };
+
+        tracker.videoStateChange = function (video_id, event) {
+            if (videosPlayed.indexOf(video_id) !== -1) {
+                return;
+            }
+
+            if (event.data === YT.PlayerState.PLAYING) {
+                videosPlayed.push(video_id);
+
+                tracker.registerEvent({
+                    "type": "content",
+                    "subtype": "video",
+                    "label": video_id
+                });
+            }
+        };
+
+        tracker.changeCampaign = function (campaignId) {
+            setCustomVar({
+                'slotId': 2,
+                'name': 'CampaignID',
+                'value': '' + campaignId
+            });
+        };
+
+        tracker.init = function () {
+            tracker.setSocialShareVars();
+
+            $(function () {
+                setTrackingDomHooks();
+            });
+        };
+
+        parseUri.options = {
+            strictMode: false,
+            key: ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
+            q: {
+                name: "queryKey",
+                parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+            },
+            parser: {
+                strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+                loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+            }
+        };
+
+        this.socialShareType = undefined;
+        this.socialShareUrl = undefined;
+        this._pptimeout = undefined;
+
+        // add mediator triggers if the module exists.
+        SecondFunnel.vent.on({
+            'tracking:init': tracker.init,
+            'tracking:registerEvent': tracker.registerEvent,
+            'tracking:setSocialShareVars': tracker.setSocialShareVars,
+            'tracking:clearTimeout': tracker.clearTimeout,
+            'tracking:registerTwitterListeners': tracker.registerTwitterListeners,
+            'tracking:notABounce': tracker.notABounce,
+            'tracking:videoStateChange': tracker.videoStateChange,
+            'tracking:changeCampaign': tracker.changeCampaign
+        });
+
+        // the app initializer init()s it
+    });
 
 var Tile = Backbone.Model.extend({
     'defaults': {
@@ -177,7 +458,7 @@ var Tile = Backbone.Model.extend({
         'related-products': []
     },
 
-    'initialize': function(attributes, options) {
+    'initialize': function (attributes, options) {
         var video_types = ["youtube", "video"],
             type = this.get('content-type').toLowerCase();
 
@@ -228,8 +509,8 @@ SecondFunnel.module("layoutEngine",
                 'columnWidth': options.columnWidth(),
                 'isAnimated': !mobile,
                 'transitionDuration': (mobile ?
-                    options.masonryMobileAnimationDuration :
-                    options.masonryAnimationDuration) + 's'
+                                       options.masonryMobileAnimationDuration :
+                                       options.masonryAnimationDuration) + 's'
             }, options.masonry);
 
             $elem.masonry(layoutEngine.options).masonry('bindResize');
@@ -464,7 +745,7 @@ var VideoTileView = TileView.extend({
         var thumbId = 'thumb' + this.cid,
             $thumb = this.$('div.thumbnail'),
             self = this;
-        
+
         if (typeof YT === 'undefined') {
             window.open(this.model.get('original-url'));
             return;
@@ -518,7 +799,8 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         return true;
     },
     'showCount': SecondFunnel.option('showCount', true),
-    'buttonTypes': SecondFunnel.option('socialButtons', ['facebook', 'twitter', 'pinterest']),  // @override via constructor
+    'buttonTypes': SecondFunnel.option('socialButtons',
+        ['facebook', 'twitter', 'pinterest']),  // @override via constructor
     // 'model': undefined,  // auto-serialization of constructor(obj)
     // 'collection': undefined,  // auto-serialization of constructor([obj])
     // 'tagName': "div",
@@ -539,11 +821,11 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             window.twttr.ready(function (twttr) {
                 twttr.events.bind('tweet', function (event) {
                     // TODO: actual tracking
-                    /*pagesTracking.registerEvent({
-                     "network": "Twitter",
-                     "type": "share",
-                     "subtype": "shared"
-                     });*/
+                    SecondFunnel.tracker.registerEvent({
+                        "network": "Twitter",
+                        "type": "share",
+                        "subtype": "shared"
+                    });
                 });
 
                 twttr.events.bind('click', function (event) {
@@ -556,12 +838,11 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
                         sType = event.region;
                     }
 
-                    // TODO: actual tracking
-                    /*pagesTracking.registerEvent({
-                     "network": "Twitter",
-                     "type": "share",
-                     "subtype": sType
-                     });*/
+                    SecondFunnel.tracker.registerEvent({
+                        "network": "Twitter",
+                        "type": "share",
+                        "subtype": sType
+                    });
                 });
             });
         }
@@ -692,7 +973,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
     'attachListeners': function () {
         // TODO: Find a better way than this...
-        _.bindAll(this, 'pageScroll', 'toggleLoading', 
+        _.bindAll(this, 'pageScroll', 'toggleLoading',
             'layoutResults', 'updateContentStream');
         $(window).scroll(this.pageScroll);
 
@@ -773,7 +1054,8 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     'pageScroll': function () {
         var pageBottomPos = $(window).innerHeight() + $(window).scrollTop(),
             documentBottomPos = $(document).height(),
-            viewportHeights = $(window).innerHeight() * (SecondFunnel.option('prefetchHeight', 1));
+            viewportHeights = $(window).innerHeight() * (SecondFunnel.option('prefetchHeight',
+                1));
 
         if (pageBottomPos >= documentBottomPos - viewportHeights && !this.loading) {
             this.getTiles();
@@ -884,5 +1166,6 @@ SecondFunnel.addInitializer(function (options) {
 SecondFunnel.addInitializer(function (options) {
     // Add our initiliazer, this allows us to pass a series of tiles
     // to be displayed immediately (and first) on the landing page.
+    SecondFunnel.tracker.init();
     SecondFunnel.discovery = new Discovery({}, options);
 });
