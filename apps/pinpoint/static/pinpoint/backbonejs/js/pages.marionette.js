@@ -1,3 +1,5 @@
+/*global setTimeout, imagesLoaded, Backbone, jQuery, $, _ */
+// JSLint/Emacs js2-mode directive to stop global 'undefined' warnings.
 if (!window.console) {  // shut up JSLint / good practice
     var console = window.console = {
         log: $.noop,
@@ -607,7 +609,7 @@ var Tile = Backbone.Model.extend({
             type = this.get('content-type').toLowerCase();
 
         this.type = 'image';
-        this.attributes.caption = (this.attributes.caption == "None" ?
+        this.attributes.caption = (this.attributes.caption === "None" ?
                                    " " :
                                    this.attributes.caption);
         if (_.contains(video_types, type)) {
@@ -776,14 +778,14 @@ var VideoTileView = TileView.extend({
         this.onClick = this['on' + handler] || this.onVideo;
     },
 
-    'onYoutube': function () {
+    'onYoutube': function (ev) {
         // Renders a YouTube video in the tile
         "use strict";
-        var thumbId = 'thumb' + this.cid,
+        var thumbId = 'thumb-' + this.cid,
             $thumb = this.$('div.thumbnail'),
             self = this;
 
-        if (typeof YT === 'undefined') {
+        if (typeof window.YT === 'undefined') {
             window.open(this.model.get('original-url'));
             return;
         }
@@ -1015,13 +1017,13 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
     'attachListeners': function () {
         // TODO: Find a better way than this...
-        _.bindAll(this, 'pageScroll', 'toggleLoading', 'categoryChanged',
-            'layoutResults', 'updateContentStream');
+        _.bindAll(this, 'pageScroll', 'toggleLoading',
+            'layoutResults');
         $(window).scroll(this.pageScroll);
 
         // Vent Listeners
-        SecondFunnel.vent.on("tileClicked", this.updateContentStream);
-        SecondFunnel.vent.on('changeCampaign', this.categoryChanged);
+        SecondFunnel.vent.on("tileClicked", this.updateContentStream, this);
+        SecondFunnel.vent.on('changeCampaign', this.categoryChanged, this);
         return this;
     },
 
@@ -1081,7 +1083,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         return id === null ? this :
                this.getTiles({
                    'type': "content",
-                   'id': tile.model.get('tile-id')
+                   'id': id
                }, tile);
     },
 
