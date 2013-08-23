@@ -14,7 +14,7 @@
         // BEGIN WILLET
         this.recent = this.recent || [];
         var queue = [],
-            dupes, displayImage;
+            dupes, tileId;
 
         for (var i = 0, len = items.length; i < len; i++) {
             var item = items[i],
@@ -22,15 +22,12 @@
 
             // Check to see if we've recently included this image, if we
             // have, we'll want to skip it here.
-            displayImage = $item.data('image');
+            tileId = $item.data('tile-id');
 
-            if (displayImage) {
-                // Strip off the size parameter of the image
-                displayImage = displayImage.substring(0, displayImage.lastIndexOf('/'));
-
+            if (tileId) {
                 dupes = _.filter(this.recent, function ($elem) {
-                    var elemImg = $elem.data('image');
-                    return (elemImg.indexOf(displayImage) >= 0);
+                    var elemId = $elem.data('tile-id');
+                    return elemId === tileId;
                 });
 
                 if (dupes.length !== 0) {
