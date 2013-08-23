@@ -304,6 +304,9 @@
                 'showCount': false
             };
         </script>
+        <!-- Social -->
+        <div id="fb-root"></div>
+        <!-- End Social -->
         <script type="text/javascript" src="//www.youtube.com/iframe_api"></script>
         <script type="text/javascript" src="//assets.pinterest.com/js/pinit.js"></script>
         <script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
@@ -319,9 +322,12 @@
         <script type="text/javascript" src="js/bootstrap.min.js"></script>
         <script type="text/javascript" src="js/pages.marionette.js"></script>
         <script type="text/javascript" src="js/css3-mediaqueries.js"></script><!-- IE8 -->
+        <script type="text/javascript">
+            if (window.SecondFunnel) {
+                // Start the SecondFunnel app
+                SecondFunnel.start(SecondFunnel.options);
+            }
+        </script>
         <!-- End Javascript -->
-        <!-- Social -->
-        <div id="fb-root"></div>
-        <!-- End Social -->
     </body>
 </html>

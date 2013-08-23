@@ -1,3 +1,10 @@
+if (!window.console) {  // shut up JSLint / good practice
+    var console = window.console = {
+        log: $.noop,
+        error: $.noop
+    };
+}
+
 // Declaration of the SecondFunnel JS application
 var SecondFunnel = new Backbone.Marionette.Application();
 SecondFunnel.vent = _.extend({}, Backbone.Events);  // Custom event trigger/listener
@@ -9,9 +16,8 @@ SecondFunnel.option = function (name, defaultValue) {
     var opt = Backbone.Marionette.getOption(SecondFunnel, name);
     if (opt === undefined) {
         return defaultValue;  // ...and defaultValue defaults to undefined
-    } else {
-        return opt;
     }
+    return opt;
 };
 
 // Marionette TemplateCache extension to allow checking cache for template
@@ -19,21 +25,22 @@ Backbone.Marionette.TemplateCache._exists = function (templateId) {
     // Checks if the Template exists in the cache, if not found
     // updates the cache with the template (if it exists), otherwise fail
     // returns true if exists otherwise false.
-    var cached = this.templateCaches[templateId];
+    var cached = this.templateCaches[templateId],
+        cachedTemplate;
 
     if (cached) {
         return true;
     }
 
     // template exists but was not cached
-    var cachedTemplate = new Backbone.Marionette.TemplateCache(templateId);
+    cachedTemplate = new Backbone.Marionette.TemplateCache(templateId);
     try {
         cachedTemplate.load();
         // Only cache on success
         this.templateCaches[templateId] = cachedTemplate;
     } catch (err) {
         if (!(err.name && err.name === "NoTemplateError")) {
-            throw (err);
+            throw err;
         }
     }
     return !!this.templateCaches[templateId];
@@ -76,29 +83,28 @@ Backbone.Marionette.View.prototype.getTemplate = function () {
 };
 
 // make new module full of transient utilities
-SecondFunnel.module("observables",
-    function (observables/*, (but wait, there's more) */) {
-        var testUA = function (regex) {
-            return regex.test(window.navigator.userAgent);
-        };
+SecondFunnel.module("observables", function (observables) {
+    var testUA = function (regex) {
+        return regex.test(window.navigator.userAgent);
+    };
 
-        observables.mobile = function () {
-            return ($(window).width() < 768);  // 768 is set in stone now
-        };
-        observables.touch = function () {
-            return ('ontouchstart' in document.documentElement);
-        };
+    observables.mobile = function () {
+        return ($(window).width() < 768);  // 768 is set in stone now
+    };
+    observables.touch = function () {
+        return ('ontouchstart' in document.documentElement);
+    };
 
-        observables.isAniPad = function () {
-            // use of this function is highly discouraged, but you know it
-            // will be used anyway
-            return testUA(/ipad/i);
-        };
-    }
-);
+    observables.isAniPad = function () {
+        // use of this function is highly discouraged, but you know it
+        // will be used anyway
+        return testUA(/ipad/i);
+    };
+});
+
 
 SecondFunnel.module("intentRank",
-    function (intentRank/*, (but wait, there's more) */) {
+    function (intentRank) {
         intentRank.base = "http://intentrank-test.elasticbeanstalk.com/intentrank";
         intentRank.templates = {
             'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
@@ -115,13 +121,13 @@ SecondFunnel.module("intentRank",
                 'campaign': options.campaign,
                 // @deprecated: options.categories will be page.categories
                 'categories': page.categories || options.categories || {},
-                'backupResults': options.backupResults ||[],
+                'backupResults': options.backupResults || [],
                 'IRResultsCount': options.IRResultsCount || 10,
                 'IRTimeout': options.IRTimeout || 5000,
                 'content': options.content || [],
-                'getResults': online?
-                    intentRank.getResultsOnline :
-                    intentRank.getResultsOffline
+                'getResults': online ?
+                              intentRank.getResultsOnline :
+                              intentRank.getResultsOffline
             });
         };
 
@@ -150,7 +156,7 @@ SecondFunnel.module("intentRank",
                     args.unshift(results);
                     return callback.apply(callback, args);
                 },
-                error: function (jxqhr, textStatus, error) {
+                error: function () {
                     args.unshift(intentRank.backupResults);
                     return callback.apply(callback, args);
                 }
@@ -163,8 +169,296 @@ SecondFunnel.module("intentRank",
             intentRank.campaign = category;
             return intentRank;
         };
-    }
-);
+    });
+
+
+SecondFunnel.module("tracker",
+    function (tracker) {
+        // TODO: when done, split into its own file
+        var _gaq = window._gaq || {
+                'push': function () {
+                    console.log('GA got pwned :(');
+                }
+            },
+            isBounce = true,  // this flag set to false once user scrolls down
+            videosPlayed = [],
+            parseUri = function (str) {
+                // parseUri 1.2.2
+                // (c) Steven Levithan <stevenlevithan.com>
+                // MIT License
+                var o = parseUri.options,
+                    m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+                    uri = {},
+                    i = 14;
+
+                while (i--) {
+                    uri[o.key[i]] = m[i] || "";
+                }
+
+                uri[o.q.name] = {};
+                uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+                    if ($1) {
+                        uri[o.q.name][$1] = $2;
+                    }
+                });
+
+                return uri;
+            },
+
+            referrerName = function () {
+                var host;
+
+                if (document.referrer === "") {
+                    return "noref";
+                }
+
+                host = parseUri(document.referrer).host;
+                // want top level domain name (i.e. tumblr.com, not site.tumblr.com)
+                host = host.split(".").slice(host.split(".").length - 2,
+                    host.split(".").length).join(".");
+
+                if (host === "") {
+                    return "noref";
+                }
+
+                return host;
+            },
+
+            trackEvent = function (o) {
+                var category = "appname=pinpoint|" +
+                    "storeid=" + window.PAGES_INFO.store.id + "|" +
+                    "campaignid=" + window.PAGES_INFO.page.id + "|" +
+                    "referrer=" + referrerName() + "|" +
+                    "domain=" + parseUri(window.location.href).host;
+
+                _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+            },
+
+            setCustomVar = function (o) {
+                var slotId = o.slotId,
+                    name = o.name,
+                    value = o.value,
+                    scope = o.scope || 3; // 3 = page-level
+
+                if (!(slotId && name && value)) {
+                    return;
+                }
+
+                _gaq.push(['_setCustomVar', slotId, name, value, scope]);
+            },
+
+            setTrackingDomHooks = function () {
+                // reset tracking scope: hover into featured product area
+                $(".featured").hover(function () {
+                    tracker.clearTimeout();
+                    tracker.setSocialShareVars();
+                }, function () {
+                });
+
+                $(".header a").click(function () {
+                    tracker.registerEvent({
+                        "type": "clickthrough",
+                        "subtype": "header",
+                        "label": $(this).attr("href")
+                    });
+                });
+
+                // buy now event
+                $(document).on("click", "a.buy", function (e) {
+                    tracker.registerEvent({
+                        "type": "clickthrough",
+                        "subtype": "buy",
+                        "label": $(this).attr("href")
+                    });
+                });
+
+                // popup open event: product click
+                $(document).on("click",
+                    ".discovery-area > .block.product, .discovery-area > .block.combobox .product",
+                    function (e) {
+                        tracker.registerEvent({
+                            "type": "inpage",
+                            "subtype": "openpopup",
+                            "label": $(this).data("label")
+                        });
+                    });
+
+                // lifestyle image click
+                $(document).on("click",
+                    ".discovery-area > .block.combobox .lifestyle, .discovery-area > .block.image",
+                    function (e) {
+                        tracker.registerEvent({
+                            "type": "content",
+                            "subtype": "openpopup",
+                            "label": $(this).data("label")
+                        });
+                    });
+
+                // featured pinterest click event
+                // pinterest doesn't have an API for us to use
+                $(".pinterest").click(function () {
+                    tracker.registerEvent({
+                        "network": "Pinterest",
+                        "type": "share",
+                        "subtype": "clicked"
+                    });
+                });
+
+                // social hover and popup pinterest click events
+                $(document).on("click", ".pinterest", function (e) {
+                    tracker.registerEvent({
+                        "network": "Pinterest",
+                        "type": "share",
+                        "subtype": "clicked"
+                    });
+                });
+            };
+
+
+        tracker.registerEvent = function (o) {
+            var actionData = [
+                "network=" + o.network || "",
+                "actionType=" + o.type,
+                "actionSubtype=" + o.subtype || "",
+                "actionScope=" + tracker.socialShareType
+            ];
+
+            tracker.notABounce(o.type);
+
+            trackEvent({
+                "action": actionData.join("|"),
+                "label": o.label || tracker.socialShareUrl
+            });
+        };
+
+        tracker.setSocialShareVars = function (o) {
+            if (o && o.url && o.sType) {
+                tracker.socialShareUrl = o.url;
+                tracker.socialShareType = o.sType;
+            } else {
+                tracker.socialShareUrl = $("#featured_img").data("url");
+                tracker.socialShareType = "featured";
+            }
+        };
+
+        tracker.clearTimeout = function () {
+            if (typeof tracker._pptimeout === "number") {
+                window.clearTimeout(tracker._pptimeout);
+
+                // TODO remove this? not valid in strict mode
+                delete tracker._pptimeout;
+            }
+        };
+
+        tracker.registerTwitterListeners = function () {
+            if (!window.twttr) {
+                return;
+            }
+            window.twttr.ready(function (twttr) {
+                twttr.events.bind('tweet', function (event) {
+                    tracker.registerEvent({
+                        "network": "Twitter",
+                        "type": "share",
+                        "subtype": "shared"
+                    });
+                });
+
+                twttr.events.bind('click', function (event) {
+                    var sType;
+                    if (event.region === "tweet") {
+                        sType = "clicked";
+                    } else if (event.region === "tweetcount") {
+                        sType = "leftFor";
+                    } else {
+                        sType = event.region;
+                    }
+                    tracker.registerEvent({
+                        "network": "Twitter",
+                        "type": "share",
+                        "subtype": sType
+                    });
+                });
+            });
+        };
+
+        tracker.notABounce = function (how) {
+            // visitor already marked as "non-bounce"
+            if (!isBounce) {
+                return;
+            }
+
+            isBounce = false;
+
+            tracker.registerEvent({
+                "type": "visit",
+                "subtype": "noBounce",
+                "label": how
+            });
+        };
+
+        tracker.videoStateChange = function (videoId, event) {
+            if (videosPlayed.indexOf(videoId) !== -1) {
+                return;
+            }
+
+            if (event.data === window.YT.PlayerState.PLAYING) {
+                videosPlayed.push(videoId);
+
+                tracker.registerEvent({
+                    "type": "content",
+                    "subtype": "video",
+                    "label": videoId
+                });
+            }
+        };
+
+        tracker.changeCampaign = function (campaignId) {
+            setCustomVar({
+                'slotId': 2,
+                'name': 'CampaignID',
+                'value': '' + campaignId
+            });
+        };
+
+        tracker.init = function () {
+            tracker.setSocialShareVars();
+
+            $(function () {
+                setTrackingDomHooks();
+            });
+        };
+
+        parseUri.options = {
+            strictMode: false,
+            key: ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
+            q: {
+                name: "queryKey",
+                parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+            },
+            parser: {
+                strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+                loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+            }
+        };
+
+        this.socialShareType = undefined;
+        this.socialShareUrl = undefined;
+        this._pptimeout = undefined;
+
+        // add mediator triggers if the module exists.
+        SecondFunnel.vent.on({
+            'tracking:init': tracker.init,
+            'tracking:registerEvent': tracker.registerEvent,
+            'tracking:setSocialShareVars': tracker.setSocialShareVars,
+            'tracking:clearTimeout': tracker.clearTimeout,
+            'tracking:registerTwitterListeners': tracker.registerTwitterListeners,
+            'tracking:notABounce': tracker.notABounce,
+            'tracking:videoStateChange': tracker.videoStateChange,
+            'tracking:changeCampaign': tracker.changeCampaign
+        });
+
+        // the app initializer init()s it
+    });
 
 SecondFunnel.module("layoutEngine",
     function (layoutEngine) {
@@ -190,8 +484,8 @@ SecondFunnel.module("layoutEngine",
                 'columnWidth': options.columnWidth(),
                 'isAnimated': !mobile,
                 'transitionDuration': (mobile ?
-                    options.masonryMobileAnimationDuration :
-                    options.masonryAnimationDuration) + 's'
+                                       options.masonryMobileAnimationDuration :
+                                       options.masonryAnimationDuration) + 's'
             }, options.masonry);
 
             $elem.masonry(layoutEngine.options).masonry('bindResize');
@@ -200,10 +494,10 @@ SecondFunnel.module("layoutEngine",
 
         layoutEngine.call = function (callback, $fragment) {
             if (!(typeof callback === 'string' && callback in layoutEngine)) {
-                var msg = !(typeof callback === 'string')
-                    ? "Unsupported type " + (typeof callback) +
-                              " passed to Layout Engine." :
-                          "LayoutEngine has no property " + callback + ".";
+                var msg = !(typeof callback === 'string') ?
+                            "Unsupported type " + (typeof callback) +
+                            " passed to Layout Engine." :
+                            "LayoutEngine has no property " + callback + ".";
                 SecondFunnel.vent.trigger('log', msg);
                 return layoutEngine;
             }
@@ -275,8 +569,7 @@ SecondFunnel.module("layoutEngine",
                 });
             return layoutEngine;
         };
-    }
-);
+    });
 
 
 var Tile = Backbone.Model.extend({
@@ -289,11 +582,14 @@ var Tile = Backbone.Model.extend({
         'related-products': []
     },
 
-    'initialize': function(attributes, options) {
+    'initialize': function (attributes, options) {
         var video_types = ["youtube", "video"],
             type = this.get('content-type').toLowerCase();
 
         this.type = 'image';
+        this.attributes.caption = (this.attributes.caption == "None" ?
+                                   " " :
+                                   this.attributes.caption);
         if (_.contains(video_types, type)) {
             this.type = 'video';
         }
@@ -306,8 +602,6 @@ var Tile = Backbone.Model.extend({
 
     'createView': function () {
         switch (this.type) {
-        case "image":
-            return new TileView({model: this});
         case "video":
             return new VideoTileView({model: this});
         }
@@ -330,9 +624,10 @@ var TileCollection = Backbone.Collection.extend({
     'initialize': function (arrayOfData) {
         // Our TileCollection starts by rendering several Tiles using the
         // data it is passed.
-        for (var data in arrayOfData) {
-            // Generate Tile
-            this.add(new Tile(data));
+        for (var data in arrayOfData) {  // Generate Tile
+            if (arrayOfData.hasOwnProperty(data)) {
+                this.add(new Tile(data));
+            }
         }
     }
 });
@@ -458,7 +753,7 @@ var VideoTileView = TileView.extend({
         // Determine which click handler to use; determined by the
         // content type.
         var handler = _.capitalize(this.model.get('content-type'));
-        this.onClick = this['on' + handler] || this['onVideo'];
+        this.onClick = this['on' + handler] || this.onVideo;
     },
 
     'onYoutube': function () {
@@ -467,14 +762,14 @@ var VideoTileView = TileView.extend({
         var thumbId = 'thumb' + this.cid,
             $thumb = this.$('div.thumbnail'),
             self = this;
-        
+
         if (typeof YT === 'undefined') {
             window.open(this.model.get('original-url'));
             return;
         }
 
         $thumb.attr('id', thumbId).wrap('<div class="video-container" />');
-        var player = new YT.Player(thumbId, {
+        var player = new window.YT.Player(thumbId, {
             'width': $thumb.width(),
             'height': $thumb.height(),
             'videoId': this.model.attributes['original-id'] || this.model.id,
@@ -486,7 +781,7 @@ var VideoTileView = TileView.extend({
                 'onReady': $.noop,
                 'onStateChange': function (newState) {
                     switch (newState) {
-                    case YT.PlayerState.ENDED:
+                    case window.YT.PlayerState.ENDED:
                         self.onPlaybackEnd();
                         break;
                     default:
@@ -521,7 +816,8 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
         return true;
     },
     'showCount': SecondFunnel.option('showCount', true),
-    'buttonTypes': SecondFunnel.option('socialButtons', ['facebook', 'twitter', 'pinterest']),  // @override via constructor
+    'buttonTypes': SecondFunnel.option('socialButtons',
+        ['facebook', 'twitter', 'pinterest']),  // @override via constructor
     // 'model': undefined,  // auto-serialization of constructor(obj)
     // 'collection': undefined,  // auto-serialization of constructor([obj])
     // 'tagName': "div",
@@ -542,11 +838,11 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             window.twttr.ready(function (twttr) {
                 twttr.events.bind('tweet', function (event) {
                     // TODO: actual tracking
-                    /*pagesTracking.registerEvent({
-                     "network": "Twitter",
-                     "type": "share",
-                     "subtype": "shared"
-                     });*/
+                    SecondFunnel.tracker.registerEvent({
+                        "network": "Twitter",
+                        "type": "share",
+                        "subtype": "shared"
+                    });
                 });
 
                 twttr.events.bind('click', function (event) {
@@ -559,12 +855,11 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
                         sType = event.region;
                     }
 
-                    // TODO: actual tracking
-                    /*pagesTracking.registerEvent({
-                     "network": "Twitter",
-                     "type": "share",
-                     "subtype": sType
-                     });*/
+                    SecondFunnel.tracker.registerEvent({
+                        "network": "Twitter",
+                        "type": "share",
+                        "subtype": sType
+                    });
                 });
             });
         }
@@ -629,9 +924,9 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             page = SecondFunnel.option('page'),
             product = data || page.product,
             hasFeaturedImg = !data.title && (data.template !== 'youtube'),
-            image = (page && hasFeaturedImg)
-                ? (page['stl-image'] || page['featured-image'])
-                : (data.image || data.url);
+            image = (page && hasFeaturedImg) ?
+                    (page['stl-image'] || page['featured-image']):
+                    (data.image || data.url);
 
         helpers.buttons = Backbone.Marionette.getOption(this, 'buttonTypes');
         helpers.showCount = Backbone.Marionette.getOption(this, 'showCount');
@@ -641,7 +936,7 @@ var SocialButtons = Backbone.Marionette.ItemView.extend({
             // TODO: show_count
             var fburl = (product.url || image);
 
-            if (fburl.indexOf("facebook") > -1) {
+            if (fburl && fburl.indexOf("facebook") > -1) {
                 fburl = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(fburl)[1];
             }
             return fburl;
@@ -696,7 +991,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
 
     'attachListeners': function () {
         // TODO: Find a better way than this...
-        _.bindAll(this, 'pageScroll', 'toggleLoading', 'categoryChanged', 
+        _.bindAll(this, 'pageScroll', 'toggleLoading', 'categoryChanged',
             'layoutResults', 'updateContentStream');
         $(window).scroll(this.pageScroll);
 
@@ -767,11 +1062,19 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     },
 
     'categoryChanged': function (ev, category) {
-        // @deprecated: A View will be created for Categories, this is just
-        // a temporary function that simulates the behaviour.
-        SecondFunnel.intentRank.changeCategory(category.model.get('id'));
-        SecondFunnel.layoutEngine.clear();
-        return this.getTiles();
+        // Changes the category (campaign) by refreshign IntentRank, clearing
+        // the Layout Engine and collecting new tiles.
+        var self = this;
+        if (this.loading) {
+            setTimeout(function () {
+                self.categoryChanged(ev, category);
+            }, 100);
+        } else {
+            SecondFunnel.intentRank.changeCategory(category.model.get('id'));
+            SecondFunnel.layoutEngine.clear();
+            return this.getTiles();
+        }
+        return this;
     },
 
     'toggleLoading': function (bool) {
@@ -786,7 +1089,8 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     'pageScroll': function () {
         var pageBottomPos = $(window).innerHeight() + $(window).scrollTop(),
             documentBottomPos = $(document).height(),
-            viewportHeights = $(window).innerHeight() * (SecondFunnel.option('prefetchHeight', 1));
+            viewportHeights = $(window).innerHeight() * (SecondFunnel.option('prefetchHeight',
+                1));
 
         if (pageBottomPos >= documentBottomPos - viewportHeights && !this.loading) {
             this.getTiles();
@@ -943,7 +1247,5 @@ SecondFunnel.addInitializer(function (options) {
     // Add our initiliazer, this allows us to pass a series of tiles
     // to be displayed immediately (and first) on the landing page.
     SecondFunnel.discovery = new Discovery(options);
+    SecondFunnel.tracker.init();
 });
-
-// Start the SecondFunnel app
-SecondFunnel.start(SecondFunnel.options);
