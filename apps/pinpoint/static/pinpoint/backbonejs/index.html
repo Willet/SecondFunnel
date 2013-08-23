@@ -252,6 +252,9 @@
                     'id': "38",
                     'name': "gap"
                 },
+                'page': {  // required
+                    'id': 9001  // required
+                },
                 'campaign': 96,
                 'categories': [
                     { 
@@ -270,6 +273,7 @@
                 'columnWidth': function($element) {
                     return 240 + 15;
                 },
+                'events': undefined,  // page event bindings (optional)
                 'socialButtons': undefined,  // optional
                 'imageTileWide': 0.25,
                 'previewAnimationDuration': 0.1,

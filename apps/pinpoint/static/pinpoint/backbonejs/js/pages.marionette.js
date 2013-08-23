@@ -27,12 +27,17 @@ SecondFunnel.option = function (name, defaultValue) {
     }
     // marionette sucks, so we'll do extra traversing to get stuff out of
     // our nested objects ourselves
-    for (i = 0, depth = keyNest.length; i < depth; i++) {
-        keyName = keyNest[i];
-        cursor = cursor[keyName];
-    }
-    if (cursor !== undefined) {
-        return cursor;
+    try {
+        for (i = 0, depth = keyNest.length; i < depth; i++) {
+            keyName = keyNest[i];
+            cursor = cursor[keyName];
+        }
+        if (cursor !== undefined) {
+            return cursor;
+        }
+    } catch (KeyError) {
+        // requested traversal path does not exist. do the next line
+        console.error('no such path');
     }
     return defaultValue;  // ...and defaultValue defaults to undefined
 };
@@ -401,7 +406,7 @@ SecondFunnel.module("tracker",
         tracker.notABounce = _.once(function (how) {
             // visitor already marked as "non-bounce"
             // this function becomes nothing after it's first run, even
-            // after re-initialisation.
+            // after re-initialisation, or if the function throws an exception.
             tracker.registerEvent({
                 "type": "visit",
                 "subtype": "noBounce",
@@ -435,6 +440,8 @@ SecondFunnel.module("tracker",
         };
 
         tracker.init = function () {
+            // this = SecondFunnel.vent
+            // arguments = args[1~n] when calling .trigger()
             tracker.setSocialShareVars();
 
             $(function () {
@@ -442,9 +449,63 @@ SecondFunnel.module("tracker",
             });
         };
 
-        tracker.poop = function () {
-            // this = SecondFunnel.vent
-            // arguments = args[1~n] when calling .trigger()
+        tracker.defaultEventMap = {
+            'click .tile': function () {
+                // this = window because that's what $el is
+                console.log('aaaah');
+            },
+
+            // reset tracking scope: hover into featured product area
+            "hover .featured": function () {
+                tracker.clearTimeout();
+                tracker.setSocialShareVars();
+            },
+
+            "click .header a": function () {
+                tracker.registerEvent({
+                    "type": "clickthrough",
+                    "subtype": "header",
+                    "label": $(this).attr("href")
+                });
+            },
+
+            // buy now event
+            "click a.buy": function (e) {
+                tracker.registerEvent({
+                    "type": "clickthrough",
+                    "subtype": "buy",
+                    "label": $(this).attr("href")
+                });
+            },
+
+            // popup open event: product click
+            "click .discovery-area > .block.product, .discovery-area > .block.combobox .product":
+                function (e) {
+                    tracker.registerEvent({
+                        "type": "inpage",
+                        "subtype": "openpopup",
+                        "label": $(this).data("label")
+                    });
+                },
+
+            // lifestyle image click
+            "click .discovery-area > .block.combobox .lifestyle, .discovery-area > .block.image":
+                function (e) {
+                    tracker.registerEvent({
+                        "type": "content",
+                        "subtype": "openpopup",
+                        "label": $(this).data("label")
+                    });
+                },
+
+            "click .pinterest": function (e) {
+                // social hover and popup pinterest click events
+                tracker.registerEvent({
+                    "network": "Pinterest",
+                    "type": "share",
+                    "subtype": "clicked"
+                });
+            }
         };
 
         parseUri.options = {
@@ -467,7 +528,6 @@ SecondFunnel.module("tracker",
         // add mediator triggers if the module exists.
         SecondFunnel.vent.on({
             'tracking:init': tracker.init,
-            'tracking:poop': tracker.poop,
             'tracking:registerEvent': tracker.registerEvent,
             'tracking:setSocialShareVars': tracker.setSocialShareVars,
             'tracking:clearTimeout': tracker.clearTimeout,
@@ -515,9 +575,9 @@ SecondFunnel.module("layoutEngine",
         layoutEngine.call = function (callback, $fragment) {
             if (!(typeof callback === 'string' && callback in layoutEngine)) {
                 var msg = !(typeof callback === 'string') ?
-                            "Unsupported type " + (typeof callback) +
-                            " passed to Layout Engine." :
-                            "LayoutEngine has no property " + callback + ".";
+                          "Unsupported type " + (typeof callback) +
+                              " passed to Layout Engine." :
+                          "LayoutEngine has no property " + callback + ".";
                 SecondFunnel.vent.trigger('log', msg);
                 return layoutEngine;
             }
@@ -1225,8 +1285,24 @@ var TapIndicator = Backbone.Marionette.ItemView.extend({
     'template': "#tap_indicator_template",
     'className': 'tap_indicator animated fadeIn',
     'onBeforeRender': function () {
-        $('html').toggleClass('touch-enabled',
-            SecondFunnel.observables.touch());
+        // http://jsperf.com/hasclass-vs-toggleclass
+        // toggleClass with a boolean is 55% slower than manual checks
+        if (SecondFunnel.observables.touch()) {
+            $('html').addClass('touch-enabled');
+        } else {
+            $('html').removeClass('touch-enabled');
+        }
+    }
+});
+
+
+var EventManager = Backbone.View.extend({
+    // Top-level event binding wrapper. all events bubble up to this level.
+    // the theme can declare as many event handlers as they like by creating
+    // their own new EventManager({ event: handler, event: ... })s.
+    'el': $(window),
+    'initialize': function (bindings) {
+        this.$el.on(bindings || {});
     }
 });
 
@@ -1265,6 +1341,12 @@ SecondFunnel.addInitializer(function (options) {
         return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i,
             'image');
     };
+});
+
+SecondFunnel.addInitializer(function (options) {
+    // delegated analytics bindings
+    var defaults = new EventManager(SecondFunnel.tracker.defaultEventMap),
+        customs = new EventManager(options.events);
 });
 
 SecondFunnel.addInitializer(function (options) {
