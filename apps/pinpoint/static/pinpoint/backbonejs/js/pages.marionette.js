@@ -1440,6 +1440,20 @@ SecondFunnel.addInitializer(function (options) {
 });
 
 SecondFunnel.addInitializer(function (options) {
+    if (SecondFunnel.option('debug', false)) {
+        $(document).ready(function () {
+            // don't use getScript, firebug needs to know its src path
+            // and getScript removes the tag so firebug doesn't know what to do
+            var tag = document.createElement('script');
+            tag.src = "https://getfirebug.com/firebug-lite.js";
+
+            var firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        });
+    }
+});
+
+SecondFunnel.addInitializer(function (options) {
     // Add our initializer, this allows us to pass a series of tiles
     // to be displayed immediately (and first) on the landing page.
     SecondFunnel.discovery = new Discovery(options);
