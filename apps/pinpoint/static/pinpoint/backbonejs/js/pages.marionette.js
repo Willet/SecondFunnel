@@ -6,6 +6,7 @@ if (!window.console) {  // shut up JSLint / good practice
         error: $.noop
     };
 }
+var SecondFunnel = (function (SecondFunnel) {
 
 // Declaration of the SecondFunnel JS application
 var SecondFunnel = new Backbone.Marionette.Application();
@@ -13,6 +14,7 @@ SecondFunnel.vent = _.extend({}, Backbone.Events);  // Custom event trigger/list
 
 // keep reference to options. this needs to be done before classes are declared.
 SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
+SecondFunnel.classRegistry = {};
 SecondFunnel.option = function (name, defaultValue) {
     // convenience method for accessing PAGES_INFO or TEST_*
     var opt = Backbone.Marionette.getOption(SecondFunnel, name),
@@ -31,7 +33,7 @@ SecondFunnel.option = function (name, defaultValue) {
     // our nested objects ourselves
     try {
         for (i = 0, depth = keyNest.length; i < depth; i++) {
-            keyName = keyNest[i];
+            keyName = keyNest[i];7
             cursor = cursor[keyName];
         }
         if (cursor !== undefined) {
@@ -427,9 +429,9 @@ SecondFunnel.module("tracker",
                 tracker.setSocialShareVars();
             },
 
-            "hover .tile": function () {
+            "hover .tile": function (ev) {
                 // this = window because that's what $el is
-                broadcast('tileHover');
+                broadcast('tileHover', ev.currentTarget);
                 tracker.registerEvent({
                     "type": "???",  // no known values for this new event
                     "subtype": "???",
@@ -437,8 +439,8 @@ SecondFunnel.module("tracker",
                 });
             },
 
-            "click .header a": function () {
-                broadcast('headerHover');
+            "click .header a": function (ev) {
+                broadcast('headerHover', ev.currentTarget);
                 tracker.registerEvent({
                     "type": "clickthrough",
                     "subtype": "header",
@@ -519,6 +521,7 @@ SecondFunnel.module("tracker",
         SecondFunnel.vent.on({
             'tracking:init': tracker.init,
             'tracking:registerEvent': tracker.registerEvent,
+            'tracking:trackEvent': tracker.trackEvent,
             'tracking:setSocialShareVars': tracker.setSocialShareVars,
             'tracking:clearTimeout': tracker.clearTimeout,
             'tracking:registerTwitterListeners': tracker.registerTwitterListeners,
@@ -563,16 +566,21 @@ SecondFunnel.module("layoutEngine",
         };
 
         layoutEngine.call = function (callback, $fragment) {
-            if (!(typeof callback === 'string' && callback in layoutEngine)) {
-                var msg = !(typeof callback === 'string') ?
-                          "Unsupported type " + (typeof callback) +
-                              " passed to Layout Engine." :
-                          "LayoutEngine has no property " + callback + ".";
-                SecondFunnel.vent.trigger('log', msg);
+            if (typeof callback !== 'string') {
+                SecondFunnel.vent.trigger('log', "Unsupported type " +
+                    (typeof callback) + " passed to LayoutEngine.");
                 return layoutEngine;
             }
+            if (!layoutEngine[callback]) {
+                SecondFunnel.vent.trigger('log', "LayoutEngine has no property " +
+                    callback + ".");
+                return layoutEngine;
+            }
+
+            // turn name of function into function itself
             var args = _.toArray(arguments);
-            args[0] = layoutEngine[callback];
+            args[0] = layoutEngine[callback];  // [callback, fragment, ...]
+
             return layoutEngine.imagesLoaded.apply(layoutEngine, args);
         };
 
@@ -645,18 +653,23 @@ SecondFunnel.module("layoutEngine",
                     self.$el.append($elem).masonry('appended', $elem);
                 }
             }).on('always', function () {
-                    // When all images are loaded, show the non-broken ones and reload
-                    var $remaining = $fragment.filter(function () {
-                        return !$.contains(document.documentElement,
-                            $(this)[0]);
-                    });
-                    if ($remaining.length > 0) {
-                        self.$el.append($remaining).masonry('appended',
-                            $remaining);
-                    }
-                    args = args.slice(1);
-                    callback.apply(self, args);
+                // When all images are loaded, show the non-broken ones and reload
+                var $remaining = $fragment.filter(function () {
+                    return !$.contains(document.documentElement,
+                        $(this)[0]);
                 });
+                if ($remaining.length > 0) {
+                    self.$el.append($remaining).masonry('appended',
+                        $remaining);
+                    SecondFunnel.vent.trigger('tracking:trackEvent', {
+                        'action': "network=|actionType=impression|actionSubtype=productImpression|actionScope=???",
+                        'label': 'productViewed',
+                        'value': ''
+                    });
+                }
+                args = args.slice(1);
+                callback.apply(self, args);
+            });
             return layoutEngine;
         };
     });
@@ -763,6 +776,7 @@ var FeaturedAreaView = Backbone.Marionette.ItemView.extend({
         }
     }
 });
+SecondFunnel.classRegistry.FeaturedAreaView = FeaturedAreaView;
 
 
 var TileView = Backbone.Marionette.Layout.extend({
@@ -1416,6 +1430,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         this.lastScrollTop = st;
     }
 });
+SecondFunnel.classRegistry.Discovery = Discovery;
 
 
 var Category = Backbone.Model.extend({
@@ -1547,13 +1562,16 @@ var EventManager = Backbone.View.extend({
             var event = key.substr(0, key.indexOf(' ')),
                 selectors = key.substr(key.indexOf(' ') + 1);
             self.$el.on(event, selectors, func);
-            if (SecondFunnel.option('debug', false)) {
+            if (SecondFunnel.option('debug', false) > 0) {
                 console.log('regEvent ' + key);
             }
         });
     }
 });
+SecondFunnel.classRegistry.EventManager = EventManager;
 
+return SecondFunnel;
+}(new Backbone.Marionette.Application()));
 
 var broadcast = function () {
     // alias for vent.trigger with a clear intent that the event triggered
@@ -1608,8 +1626,8 @@ SecondFunnel.addInitializer(function (options) {
 
 SecondFunnel.addInitializer(function (options) {
     // delegated analytics bindings
-    var defaults = new EventManager(SecondFunnel.tracker.defaultEventMap),
-        customs = new EventManager(options.events);
+    var defaults = new SecondFunnel.classRegistry.EventManager(SecondFunnel.tracker.defaultEventMap),
+        customs = new SecondFunnel.classRegistry.EventManager(options.events);
 });
 
 SecondFunnel.addInitializer(function (options) {
@@ -1628,7 +1646,7 @@ SecondFunnel.addInitializer(function (options) {
 
 SecondFunnel.addInitializer(function (options) {
     try {
-        var fa = new FeaturedAreaView;
+        var fa = new SecondFunnel.classRegistry.FeaturedAreaView;
         fa.render();
         broadcast('featureAreaRendered', fa);
     } catch (err) {
@@ -1642,7 +1660,7 @@ SecondFunnel.addInitializer(function (options) {
     // Add our initializer, this allows us to pass a series of tiles
     // to be displayed immediately (and first) on the landing page.
     broadcast('beforeInit');
-    SecondFunnel.discovery = new Discovery(options);
+    SecondFunnel.discovery = new SecondFunnel.classRegistry.Discovery(options);
     SecondFunnel.tracker.init();
     broadcast('finished');
 });
