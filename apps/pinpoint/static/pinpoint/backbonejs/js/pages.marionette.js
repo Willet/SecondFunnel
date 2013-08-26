@@ -9,6 +9,24 @@ if (!window.console) {  // shut up JSLint / good practice
 
 var broadcast, SecondFunnel;
 
+// batch getScript with caching
+$.getScripts = function (urls, callback, options) {
+    // callback receives as many ajax xhr objects as the number of urls.
+    // callback has access to variables loaded by scripts.
+    // like getScript, this function is incompatible with scripts relying on
+    // its own tag existing on the page (e.g. firebug, facebook jssdk)
+    var calls = _.map(urls, function (url) {
+        options = $.extend(options || {}, {
+            'dataType': 'script',
+            'crossDomain': true,
+            'cache': true,
+            'url': url
+        });
+        return $.ajax(options);
+    });
+    $.when.apply($, calls).done(callback);
+};
+
 broadcast = function () {
     // alias for vent.trigger with a clear intent that the event triggered
     // is NOT used by internal code (pages.js).
@@ -222,14 +240,14 @@ SecondFunnel = (function (SecondFunnel) {
                     args = _.toArray(arguments).slice(2);
 
                 $.ajax({
-                    url: uri,
-                    data: {
+                    'url': uri,
+                    'data': {
                         'results': intentRank.IRResultsCount
                     },
-                    contentType: "json",
-                    dataType: 'jsonp',
-                    timeout: intentRank.IRTimeout,
-                    success: function (results) {
+                    'contentType': "json",
+                    'dataType': 'jsonp',
+                    'timeout': intentRank.IRTimeout,
+                    'success': function (results) {
                         // Check for non-empty results.
                         results = results.length ?
                                   results :
@@ -238,7 +256,7 @@ SecondFunnel = (function (SecondFunnel) {
                         args.unshift(results);
                         return callback.apply(callback, args);
                     },
-                    error: function () {
+                    'error': function () {
                         SecondFunnel.vent.trigger('log', arguments[1]);
                         // On error, fall back to backup results
                         args.unshift(intentRank.backupResults);
@@ -488,7 +506,7 @@ SecondFunnel = (function (SecondFunnel) {
                 },
 
                 // buy now event
-                "click a.buy": function (e) {
+                "click a.buy": function () {
                     broadcast('buyClick');
                     tracker.registerEvent({
                         "type": "clickthrough",
@@ -518,7 +536,7 @@ SecondFunnel = (function (SecondFunnel) {
                     });
                 },
 
-                "click .pinterest": function (e) {
+                "click .pinterest": function () {
                     // social hover and popup pinterest click events
                     tracker.registerEvent({
                         "network": "Pinterest",
@@ -884,15 +902,16 @@ SecondFunnel = (function (SecondFunnel) {
         },
 
         'onClick': function (ev) {
-            "use strict";
             var tile = this.model,
                 preview = new PreviewWindow({
-                    'model': tile, 'caller': ev.currentTarget
+                    'model': tile,
+                    'caller': ev.currentTarget
                 });
 
             preview.render();
             preview.content.show(new PreviewContent({
-                'model': tile, 'caller': ev.currentTarget
+                'model': tile,
+                'caller': ev.currentTarget
             }));
 
             SecondFunnel.vent.trigger("tileClicked", ev, this);
@@ -948,7 +967,6 @@ SecondFunnel = (function (SecondFunnel) {
 
         'onYoutube': function (ev) {
             // Renders a YouTube video in the tile
-            "use strict";
             var thumbId = 'thumb-' + this.cid,
                 $thumb = this.$('div.thumbnail'),
                 self = this;
@@ -1008,7 +1026,16 @@ SecondFunnel = (function (SecondFunnel) {
         'buttonTypes': SecondFunnel.option('socialButtons',
             ['facebook', 'twitter', 'pinterest']), // @override via constructor
 
-        'initSocial': _.once(function () {
+        'loadSocial': _.once(function (callback) {
+            $.getScripts([  // well, load once, right?
+                "//www.youtube.com/iframe_api",
+                "//assets.pinterest.com/js/pinit.js",
+                // "//connect.facebook.net/en_US/all.js",
+                "//platform.twitter.com/widgets.js",
+                "//google-analytics.com/ga.js"
+            ], callback);
+        }),
+        'initSocial': function () {
             // Only initialize the social aspects once; this load the FB script
             // and twitter handlers.
             if (window.FB && _.contains(this.buttonTypes, "facebook")) {
@@ -1055,14 +1082,14 @@ SecondFunnel = (function (SecondFunnel) {
             // however, if it is to be disabled, the div needs to go.
             // see 'render' of SocialButtons.
             return this;
-        }),
+        },
 
         'initialize': function (options) {
             // Initializes the SocialButton CompositeView by determining what
             // social buttons to show and loading the initial config if necessary.
             var self = this;
             // Only load the social once
-            this.initSocial();
+            this.loadSocial(_.bind(this.initSocial, this));
             this.views = [];
 
             _.each(self.buttonTypes, function (type) {
@@ -1674,7 +1701,7 @@ SecondFunnel.addInitializer(function (options) {
 
 SecondFunnel.addInitializer(function (options) {
     try {
-        var fa = new SecondFunnel.classRegistry.FeaturedAreaView;
+        var fa = new SecondFunnel.classRegistry.FeaturedAreaView();
         fa.render();
         broadcast('featureAreaRendered', fa);
     } catch (err) {
