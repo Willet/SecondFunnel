@@ -159,6 +159,7 @@ SecondFunnel.module("intentRank",
                 online = !page.offline;
 
             _.extend(intentRank, {
+                'base': options.IRSource || this.base,
                 'store': options.store,
                 'campaign': options.campaign,
                 // @deprecated: options.categories will be page.categories
@@ -206,14 +207,17 @@ SecondFunnel.module("intentRank",
                     results = results.length ?
                         results :
                         // If no results, fetch from backup
-                        _.shuffle(intentRank.backupResults);
+                        _.first(_.shuffle(intentRank.backupResults),
+                            intentRank.IRResultsCount);
                     args.unshift(results);
                     return callback.apply(callback, args);
                 },
                 error: function () {
                     SecondFunnel.vent.trigger('log', arguments[1]);
                     // On error, fall back to backup results
-                    args.unshift(intentRank.backupResults);
+                    var results = _.shuffle(intentRank.backupResults); 
+                    results = _.first(results, intentRank.IRResultsCount);
+                    args.unshift(results);
                     return callback.apply(callback, args);
                 }
             });
@@ -649,6 +653,8 @@ SecondFunnel.module("layoutEngine",
                     $img.remove();
                 } else {
                     // Append to container and called appended
+                    // TODO: Once ImageService provides dominant colour, should replace all with
+                    //       the actual image on load.
                     self.$el.append($elem).masonry('appended', $elem);
                 }
             }).on('always', function () {
@@ -970,7 +976,7 @@ var SocialButtons = Backbone.Marionette.View.extend({
         ['facebook', 'twitter', 'pinterest']), // @override via constructor
 
     'initSocial': _.once(function () {
-        // Only initialize the social aspects once; this load the FB script
+        // Only initialize the social aspects once; this loads the FB script
         // and twitter handlers.
         if (window.FB && _.contains(this.buttonTypes, "facebook")) {
             window.FB.init({
@@ -1517,6 +1523,8 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
     'events': {
         'click .close, .mask': function () {
             this.$el.fadeOut(SecondFunnel.option('previewAnimationDuration')).remove();
+            this.unbind();
+            this.views = [];
         }
     },
     'regions': {
