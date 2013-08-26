@@ -49,6 +49,14 @@ a, a:hover, a:focus {
     padding-left: 0;
 }
 
+.featured.product {
+    /* featured "template" defaults */
+    height: 341px;
+}
+.featured.product img {
+    max-height: 100%;
+}
+
 #discovery-area {
     max-width: 100%;
     margin: auto;

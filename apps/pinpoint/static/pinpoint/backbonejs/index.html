@@ -66,14 +66,17 @@
             </nav>
         </header>
         <div class="container"><!-- .container is bootstrap magic, and has a viewport-dependent width. -->
-            <div class="visible-xs jumbotron"><!-- hero unit (mobile 1) -->
-                <!-- configure hero images by overriding its background -->
-            </div>
-            <div class="visible-sm jumbotron"><!-- hero unit (mobile 2) -->
-                <!-- configure hero images by overriding its background -->
-            </div>
-            <div class="visible-md visible-lg jumbotron"><!-- hero unit (desktop) -->
-                <!-- configure hero images by overriding its background -->
+            <!-- remove contents of hero-area if it is dynamically generated -->
+            <div id="hero-area">
+                <div class="visible-xs jumbotron"><!-- hero unit (mobile 1) -->
+                    <!-- configure hero images by overriding its background -->
+                </div>
+                <div class="visible-sm jumbotron"><!-- hero unit (mobile 2) -->
+                    <!-- configure hero images by overriding its background -->
+                </div>
+                <div class="visible-md visible-lg jumbotron"><!-- hero unit (desktop) -->
+                    <!-- configure hero images by overriding its background -->
+                </div>
             </div>
             <div id="discovery-area" class="discovery-area">
                 <!-- paste pre-rendered tiles here (TODO... event handling for them) -->
@@ -83,6 +86,21 @@
 
 
         <!-- Templates -->
+        <script type="text/template" id="featured_template">
+            <div class='featured product'>
+                <!-- Main Display Area -->
+                <img class='img-responsive pull-left' src='<%= obj.image %>' />
+                <div class='pull-right'><%= obj.title %></div>
+                    <div class='price'><%= obj.price %></div>
+                    <div>
+                        <a href='<%= obj.url %>' target='_blank'>BUY NOW</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class='spacer'></div>
+        </script>
+
         <script type="text/template" id="product_tile_template">
             <div class="tap-indicator-target"></div>
             <img src="<%= image %>" alt="<%= caption %>" />
@@ -281,8 +299,26 @@
                 'previewMobileAnimationDuration': 0,
                 'masonryAnimationDuration': 0.4,
                 'masonryMobileAnimationDuration': 0,
+                'featured': { // the featured product
+                    "tile-id": 19325,
+                    "content-id": 19325,
+                    "name": "1969 ankle-zip legging skimmer jeans",
+                    "title": "1969 ankle-zip legging skimmer jeans",
+                    "url": "http://www.gap.com/browse/product.do?pid=600011002",
+                    "price": "$69.95",
+                    "tags": {
+                        "": "",
+                        "campaign": "99"
+                    },
+                    "db-id": 19325,
+                    "template": "product",
+                    "images": ["http://images.secondfunnel.com/store/gap/product/19325/image/54681ad98adb419528b985b73b8f21e2/master.jpg", "http://images.secondfunnel.com/store/gap/product/19325/image/41d0864dd5f98c7f23a58a6c7ce47c09/master.jpg", "http://images.secondfunnel.com/store/gap/product/19325/image/a2b381e086cfdd2aa6ea748940fafc5d/master.jpg"],
+                    "image": "http://images.secondfunnel.com/store/gap/product/19325/image/54681ad98adb419528b985b73b8f21e2/master.jpg",
+                    "id": "19325",
+                    "description": "Fabrication: Premium stretch knit. Hardware: Button closure, zip fly. Features: Five-pocket styling. Zipper detailing at coin pocket and ankle backs.\nCut: Mid-rise with a shorter length. Fit: Skinny through the hip and thigh. Leg opening: Skinny. Inseams: regular: 28\", tall: 32\", petite: 26\""
+                },
                 'initialResults': [  // stuff that loads when page loads, even if IR is available
-                    { 
+                    {
                         'caption': "None",
                         'content-id': 562949953426705,
                         'content-type': "Instagram",

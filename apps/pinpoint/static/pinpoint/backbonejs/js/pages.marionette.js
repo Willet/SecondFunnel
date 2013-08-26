@@ -614,14 +614,14 @@ var Tile = Backbone.Model.extend({
     },
 
     'initialize': function (attributes, options) {
-        var video_types = ["youtube", "video"],
+        var videoTypes = ["youtube", "video"],
             type = this.get('content-type').toLowerCase();
 
         this.type = 'image';
         this.attributes.caption = (this.attributes.caption === "None" ?
                                    " " :
                                    this.attributes.caption);
-        if (_.contains(video_types, type)) {
+        if (_.contains(videoTypes, type)) {
             this.type = 'video';
         }
     },
@@ -680,6 +680,31 @@ var TileCollection = Backbone.Collection.extend({
         }
     }
 });
+
+
+var makeView = function (classType, params) {
+    // view factory to allow views that bind to arbitrary regions
+    // and use any template decided at runtime, e.g.
+    //   someTemplate = '#derp1'
+    //   a = makeView('Layout', {template: someTemplate})
+    //   a.render()
+    classType = classType || 'ItemView';
+    return Backbone.Marionette[classType].extend(params);
+};
+
+
+var FeaturedAreaView = Backbone.Marionette.ItemView.extend({
+    // $(...).html() defaults to the first item successfully selected
+    // so featured will be used only if stl is not found.
+    'model': new Tile(SecondFunnel.option('featured')),
+    'template': "#stl_template, #featured_template, #hero_template",
+    'onRender': function () {
+        if (this.$el.length) {  // if something rendered, it was successful
+            $('#hero-area').html(this.$el.html());
+        }
+    }
+});
+
 
 var TileView = Backbone.Marionette.Layout.extend({
     // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
@@ -1450,6 +1475,16 @@ SecondFunnel.addInitializer(function (options) {
             var firstScriptTag = document.getElementsByTagName('script')[0];
             firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         });
+    }
+});
+
+SecondFunnel.addInitializer(function (options) {
+    try {
+        (new FeaturedAreaView).render();
+    } catch (err) {
+        // marionette throws an error if no hero templates are found or needed.
+        // it is safe to ignore it.
+        console.log('Skipped templating hero area');
     }
 });
 
