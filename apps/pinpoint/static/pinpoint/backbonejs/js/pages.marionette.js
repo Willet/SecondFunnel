@@ -1733,8 +1733,8 @@ SecondFunnel.addInitializer(function (options) {
 SecondFunnel.addInitializer(function (options) {
     // Add our initializer, this allows us to pass a series of tiles
     // to be displayed immediately (and first) on the landing page.
-    broadcast('beforeInit');
+    broadcast('beforeInit', options, SecondFunnel);
     SecondFunnel.discovery = new SecondFunnel.classRegistry.Discovery(options);
     SecondFunnel.tracker.init();
-    broadcast('finished');
+    broadcast('finished', options, SecondFunnel);
 });
