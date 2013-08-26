@@ -44,7 +44,19 @@ SecondFunnel.option = function (name, defaultValue) {
     return defaultValue;  // ...and defaultValue defaults to undefined
 };
 try {
-    SecondFunnel.options.debug = (window.location.hash + window.location.search).indexOf('debug=1') > 0;
+    SecondFunnel.options.debug = 0;
+
+    if (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1') {
+        SecondFunnel.options.debug = 1;
+    }
+
+    (function (hash) {
+        var hashIdx = hash.indexOf('debug=');
+        if (hashIdx > -1) {
+            SecondFunnel.options.debug = hash[hashIdx + 6];
+        }
+    }(window.location.hash + window.location.search));
 } catch (e) {
     // this is an optional operation. never let this stop the script.
 }
@@ -158,15 +170,22 @@ SecondFunnel.module("intentRank",
                               intentRank.getResultsOnline :
                               intentRank.getResultsOffline
             });
+
+            broadcast('intentRankIntialized', intentRank);
         };
 
         intentRank.getResultsOffline = function (options, callback) {
+            broadcast('beforeintentRankgetResultsOffline', options, callback, intentRank);
             var args = _.toArray(arguments).slice(2);
             args.unshift(intentRank.content);
+
+            broadcast('intentRankgetResultsOffline', options, callback, intentRank);
             return callback.apply(callback, args);
         };
 
         intentRank.getResultsOnline = function (options, callback) {
+            broadcast('beforeintentRankgetResultsOnline', options, callback, intentRank);
+
             var uri = _.template(intentRank.templates[options.type],
                     _.extend({}, options, intentRank, {
                         'url': intentRank.base
@@ -190,11 +209,15 @@ SecondFunnel.module("intentRank",
                     return callback.apply(callback, args);
                 }
             });
+
+            broadcast('intentRankgetResultsOffline', options, callback, intentRank);
         };
 
         intentRank.changeCategory = function (category) {
             // Change the category; category has been validated
             // by the CategoryView, so a check isn't necessary
+            broadcast('intentRankChangeCategory', category, intentRank);
+
             intentRank.campaign = category;
             return intentRank;
         };
@@ -257,6 +280,7 @@ SecondFunnel.module("tracker",
                     "domain=" + parseUri(window.location.href).host;
 
                 _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+                broadcast('eventTracked', o, category);
             },
 
             setCustomVar = function (o) {
@@ -342,6 +366,8 @@ SecondFunnel.module("tracker",
             // visitor already marked as "non-bounce"
             // this function becomes nothing after it's first run, even
             // after re-initialisation, or if the function throws an exception.
+            broadcast('notABounce', how, tracker);
+
             tracker.registerEvent({
                 "type": "visit",
                 "subtype": "noBounce",
@@ -350,6 +376,8 @@ SecondFunnel.module("tracker",
         });
 
         tracker.videoStateChange = function (videoId, event) {
+            broadcast('videoStateChange', videoId, event, tracker);
+
             if (videosPlayed.indexOf(videoId) !== -1) {
                 // not that video
                 return;
@@ -384,18 +412,26 @@ SecondFunnel.module("tracker",
 
         // Backbone format: { '(event) (selectors)': function(ev), ...  }
         tracker.defaultEventMap = {
-            'click .tile': function () {
-                // this = window because that's what $el is
-                console.log('ouch');
-            },
-
             // reset tracking scope: hover into featured product area
             "hover .featured": function () {
+                // this = window because that's what $el is
+                broadcast('featuredHover');
                 tracker.clearTimeout();
                 tracker.setSocialShareVars();
             },
 
+            "hover .tile": function () {
+                // this = window because that's what $el is
+                broadcast('tileHover');
+                tracker.registerEvent({
+                    "type": "???",  // no known values for this new event
+                    "subtype": "???",
+                    "label": "???"
+                });
+            },
+
             "click .header a": function () {
+                broadcast('headerHover');
                 tracker.registerEvent({
                     "type": "clickthrough",
                     "subtype": "header",
@@ -403,8 +439,18 @@ SecondFunnel.module("tracker",
                 });
             },
 
+            "click .previewContainer .close": function () {
+                broadcast('popupClosed');
+                tracker.registerEvent({
+                    "type": "???",  // no known values for this new event
+                    "subtype": "???",
+                    "label": "???"
+                });
+            },
+
             // buy now event
             "click a.buy": function (e) {
+                broadcast('buyClick');
                 tracker.registerEvent({
                     "type": "clickthrough",
                     "subtype": "buy",
@@ -413,7 +459,9 @@ SecondFunnel.module("tracker",
             },
 
             // popup open event: product click
-            "click .discovery-area > .block.product, .discovery-area > .block.combobox .product": function (e) {
+            "click .tile.product, .tile.combobox .product": function (e) {
+                // TODO: data('label') === ?
+                broadcast('tileClick');
                 tracker.registerEvent({
                     "type": "inpage",
                     "subtype": "openpopup",
@@ -422,7 +470,8 @@ SecondFunnel.module("tracker",
             },
 
             // lifestyle image click
-            "click .discovery-area > .block.combobox .lifestyle, .discovery-area > .block.image": function (e) {
+            "click .tile.combobox .lifestyle, .tile.image, .tile>img": function (e) {
+                broadcast('lifestyleTileClick');
                 tracker.registerEvent({
                     "type": "content",
                     "subtype": "openpopup",
@@ -521,15 +570,18 @@ SecondFunnel.module("layoutEngine",
         };
 
         layoutEngine.append = function ($fragment, callback) {
+            broadcast('fragmentAppended', $fragment);
             return callback ? callback($fragment) : layoutEngine;
         };
 
         layoutEngine.stamp = function (element) {
+            broadcast('elementStamped', element);
             layoutEngine.$el.masonry('stamp', element);
             return layoutEngine;
         };
 
         layoutEngine.unstamp = function (element) {
+            broadcast('elementUnstamped', element);
             layoutEngine.$el.masonry('unstamp', element);
             return layoutEngine;
         };
@@ -1030,7 +1082,6 @@ var SocialButtonView = Backbone.Marionette.ItemView.extend({
 
     'templateHelpers': function (/* this */) {  // or {k: v}
         //github.com/marionettejs/backbone.marionette/blob/master/docs/marionette.view.md#viewtemplatehelpers
-        // TODO: show_count
 
         // Template Helpers; add additional data to the data we're serializing to
         // render our template.
@@ -1050,8 +1101,8 @@ var SocialButtonView = Backbone.Marionette.ItemView.extend({
 
         // Call the after template handler to allow subclasses to modify this
         // data
-        return this.onTemplateHelpers ? 
-            this.onTemplateHelpers(helpers): 
+        return this.onTemplateHelpers ?
+            this.onTemplateHelpers(helpers):
             helpers;
     },
 
@@ -1074,7 +1125,8 @@ var FacebookSocialButton = SocialButtonView.extend({
     'load': function () {
         // Onload, render the button and remove the placeholder
         var facebookButton = this.$el;
-        if (window.FB.XFBML && facebookButton && facebookButton.length >= 1) {
+        if (window.FB && window.FB.XFBML && facebookButton &&
+            facebookButton.length >= 1) {
             if (!facebookButton.attr('id')) {
                 // generate a unique id for this facebook button
                 // so fb can parse it.
@@ -1133,6 +1185,7 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
     'itemView': TileView,
     'collection': null,
     'loading': false,
+    'lastScrollTop': 0,
 
     // prevent default appendHtml behaviour (append in batch)
     'appendHtml': $.noop,
@@ -1278,6 +1331,15 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
         if (pageBottomPos >= documentBottomPos - viewportHeights && !this.loading) {
             this.getTiles();
         }
+
+        // detect scrolling detection. not used for anything yet.
+        var st = $(window).scrollTop();
+        if (st > this.lastScrollTop) {
+            broadcast('scrollDown', this);
+        } else {
+            broadcast('scrollUp', this);
+        }
+        this.lastScrollTop = st;
     }
 });
 
@@ -1422,6 +1484,21 @@ var EventManager = Backbone.View.extend({
 });
 
 
+var broadcast = function () {
+    // alias for vent.trigger with a clear intent that the event triggered
+    // is NOT used by internal code (pages.js).
+    // calling method: (eventName, other stuff)
+    var pArgs = Array.prototype.slice.call(arguments, 1);
+    if (SecondFunnel.option('debug') > 1) {
+        console.log('Broadcasting "' + arguments[0] + '" with args=%O', pArgs);
+    }
+    SecondFunnel.vent.trigger.apply(SecondFunnel, arguments);
+    if (window.Willet && Willet.mediator) {  // to each his own
+        Willet.mediator.fire(arguments[0], pArgs);
+    }
+};
+
+
 SecondFunnel.addInitializer(function (options) {
     // JQuery Special event to listen to delete
     // stackoverflow.com/questions/2200494
@@ -1465,7 +1542,7 @@ SecondFunnel.addInitializer(function (options) {
 });
 
 SecondFunnel.addInitializer(function (options) {
-    if (SecondFunnel.option('debug', false)) {
+    if (SecondFunnel.option('debug', false) > 5) {
         $(document).ready(function () {
             // don't use getScript, firebug needs to know its src path
             // and getScript removes the tag so firebug doesn't know what to do
@@ -1480,17 +1557,21 @@ SecondFunnel.addInitializer(function (options) {
 
 SecondFunnel.addInitializer(function (options) {
     try {
-        (new FeaturedAreaView).render();
+        var fa = new FeaturedAreaView;
+        fa.render();
+        broadcast('featureAreaRendered', fa);
     } catch (err) {
         // marionette throws an error if no hero templates are found or needed.
         // it is safe to ignore it.
-        console.log('Skipped templating hero area');
+        broadcast('featureAreaNotRendered');
     }
 });
 
 SecondFunnel.addInitializer(function (options) {
     // Add our initializer, this allows us to pass a series of tiles
     // to be displayed immediately (and first) on the landing page.
+    broadcast('beforeInit');
     SecondFunnel.discovery = new Discovery(options);
     SecondFunnel.tracker.init();
+    broadcast('finished');
 });

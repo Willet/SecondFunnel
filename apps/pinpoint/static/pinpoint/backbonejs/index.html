@@ -67,7 +67,7 @@
         </header>
         <div class="container"><!-- .container is bootstrap magic, and has a viewport-dependent width. -->
             <!-- remove contents of hero-area if it is dynamically generated -->
-            <div id="hero-area">
+            <div id="hero-area" class="featured">
                 <div class="visible-xs jumbotron"><!-- hero unit (mobile 1) -->
                     <!-- configure hero images by overriding its background -->
                 </div>
@@ -86,7 +86,7 @@
 
 
         <!-- Templates -->
-        <script type="text/template" id="featured_template">
+        <script type="text/template" id="disabled_featured_template">
             <div class='featured product'>
                 <!-- Main Display Area -->
                 <img class='img-responsive pull-left' src='<%= obj.image %>' />
