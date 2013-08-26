@@ -36,6 +36,28 @@ a, a:hover, a:focus {
     background-color: transparent;
 }
 
+.navbar-nav>li {
+    /* override bootstrap responsiveness */
+    float: left;
+}
+.navbar-nav {
+    /* override bootstrap responsiveness */
+    float: left;
+}
+.navbar-nav .open .dropdown-menu {
+    /* override bootstrap responsiveness */
+    position: absolute;
+    float: left;
+    margin: 2px 0 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border: 1px solid rgba(0,0,0,0.15);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.175);
+}
+.navbar-right {
+    /* override bootstrap responsiveness */
+    float: right!important;
+}
 .jumbotron {
     background-size: cover;
     height: 410px;  /* adjusts image size */
