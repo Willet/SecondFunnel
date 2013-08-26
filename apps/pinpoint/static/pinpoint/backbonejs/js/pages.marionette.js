@@ -9,10 +9,10 @@ if (!window.console) {  // shut up JSLint / good practice
 
 var broadcast, SecondFunnel;
 
-// batch getScript with caching
 $.getScripts = function (urls, callback, options) {
+    // batch getScript with caching
     // callback receives as many ajax xhr objects as the number of urls.
-    // callback has access to variables loaded by scripts.
+
     // like getScript, this function is incompatible with scripts relying on
     // its own tag existing on the page (e.g. firebug, facebook jssdk)
     var calls = _.map(urls, function (url) {
@@ -24,7 +24,9 @@ $.getScripts = function (urls, callback, options) {
         });
         return $.ajax(options);
     });
-    $.when.apply($, calls).done(callback);
+    $.when.apply($, calls).done(callback, function () {
+        broadcast('deferredScriptsLoaded', urls);
+    });
 };
 
 broadcast = function () {
@@ -32,6 +34,9 @@ broadcast = function () {
     // is NOT used by internal code (pages.js).
     // calling method: (eventName, other stuff)
     var pArgs = Array.prototype.slice.call(arguments, 1);
+    if (!window.SecondFunnel) {
+        return;  // SecondFunnel not initialized yet
+    }
     if (SecondFunnel.option('debug') > 1) {
         console.log('Broadcasting "' + arguments[0] + '" with args=%O', pArgs);
     }
@@ -105,8 +110,8 @@ SecondFunnel = (function (SecondFunnel) {
         // this is an optional operation. never let this stop the script.
     }
 
-// Marionette TemplateCache extension to allow checking cache for template
     Backbone.Marionette.TemplateCache._exists = function (templateId) {
+        // Marionette TemplateCache extension to allow checking cache for template
         // Checks if the Template exists in the cache, if not found
         // updates the cache with the template (if it exists), otherwise fail
         // returns true if exists otherwise false.
@@ -131,9 +136,9 @@ SecondFunnel = (function (SecondFunnel) {
         return !!this.templateCaches[templateId];
     };
 
-// Accept an arbitrary number of template selectors instead of just one.
-// function will return in a short-circuit manner once a template is found.
     Backbone.Marionette.View.prototype.getTemplate = function () {
+        // Accept an arbitrary number of template selectors instead of just one.
+        // function will return in a short-circuit manner once a template is found.
         var i, templateIDs = Backbone.Marionette.getOption(this, "templates"),
             template = Backbone.Marionette.getOption(this, "template"),
             temp, templateExists, data;
@@ -167,8 +172,9 @@ SecondFunnel = (function (SecondFunnel) {
         return template;
     };
 
-// make new module full of transient utilities
     SecondFunnel.module("observables", function (observables) {
+        // make new module full of transient utilities
+
         var testUA = function (regex) {
             return regex.test(window.navigator.userAgent);
         };
@@ -457,6 +463,8 @@ SecondFunnel = (function (SecondFunnel) {
                     'name': 'CampaignID',
                     'value': '' + campaignId
                 });
+
+                broadcast('trackerChangeCampaign', campaignId, tracker);
             };
 
             tracker.init = function () {
@@ -464,6 +472,7 @@ SecondFunnel = (function (SecondFunnel) {
                 // arguments = args[1~n] when calling .trigger()
                 tracker.setSocialShareVars();
 
+                broadcast('trackerInitialized', tracker);
                 // setTrackingDomHooks() on $.ready
             };
 
@@ -612,6 +621,7 @@ SecondFunnel = (function (SecondFunnel) {
 
                 $elem.masonry(layoutEngine.options).masonry('bindResize');
                 layoutEngine.$el = $elem;
+                broadcast('layoutEngineIntialized', layoutEngine);
             };
 
             layoutEngine.call = function (callback, $fragment) {
@@ -748,6 +758,7 @@ SecondFunnel = (function (SecondFunnel) {
             if (_.contains(videoTypes, type)) {
                 this.type = 'video';
             }
+            broadcast('tileModelIntialized', this);
         },
 
         'is': function (type) {
@@ -756,7 +767,7 @@ SecondFunnel = (function (SecondFunnel) {
         },
 
         'createView': function () {
-            var targetClassName, TargetClass;
+            var targetClassName, TargetClass, view;
 
             switch (this.type) {
             case "video":
@@ -778,7 +789,9 @@ SecondFunnel = (function (SecondFunnel) {
                 TargetClass = TileView;
             }
             // undeclared / class not found in scope
-            return new TargetClass({model: this});
+            view = new TargetClass({model: this});
+            broadcast('tileViewIntialized', view, this);
+            return view;
         }
     });
 
@@ -803,6 +816,7 @@ SecondFunnel = (function (SecondFunnel) {
                     this.add(new Tile(data));
                 }
             }
+            broadcast('tileCollectionIntialized', this);
         }
     });
 
@@ -1575,6 +1589,7 @@ SecondFunnel = (function (SecondFunnel) {
                 var buttons = new SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
             }
+            broadcast('previewRendered', this);
         }
     });
 
@@ -1695,6 +1710,7 @@ SecondFunnel.addInitializer(function (options) {
 
             firstScriptTag = document.getElementsByTagName('script')[0];
             firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            broadcast('firebugLoaded');
         });
     }
 });
