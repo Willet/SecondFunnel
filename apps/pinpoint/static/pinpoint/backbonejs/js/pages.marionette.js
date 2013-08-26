@@ -208,6 +208,7 @@ SecondFunnel = (function (SecondFunnel) {
                     online = !page.offline;
 
                 _.extend(intentRank, {
+                    'base': options.IRSource || this.base,
                     'store': options.store,
                     'campaign': options.campaign,
                     // @deprecated: options.categories will be page.categories
@@ -259,13 +260,16 @@ SecondFunnel = (function (SecondFunnel) {
                                   results :
                             // If no results, fetch from backup
                                   _.shuffle(intentRank.backupResults);
+                        results = _.first(results, intentRank.IRResultsCount);
                         args.unshift(results);
                         return callback.apply(callback, args);
                     },
                     'error': function () {
                         SecondFunnel.vent.trigger('log', arguments[1]);
                         // On error, fall back to backup results
-                        args.unshift(intentRank.backupResults);
+                        var results = _.shuffle(intentRank.backupResults);
+                        results = _.first(results, intentRank.IRResultsCount);
+                        args.unshift(results);
                         return callback.apply(callback, args);
                     }
                 });
@@ -1558,7 +1562,6 @@ SecondFunnel = (function (SecondFunnel) {
             this.views = views;
         }
     });
-
 
     PreviewContent = Backbone.Marionette.ItemView.extend({
         'template': '#tile_preview_template',
