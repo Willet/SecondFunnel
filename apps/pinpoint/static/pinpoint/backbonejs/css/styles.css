@@ -39,8 +39,15 @@ body {
 .visible-xs.jumbotron { height: 331px; }
 .visible-sm.jumbotron { height: 423px; }
 
-.visible-md.jumbotron, .visible-lg.jumbotron { /* mobile hero */
+.visible-md.jumbotron, .visible-lg.jumbotron { /* desktop hero */
     background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Gap_Shorts_Desktop.png');
+}
+
+.featured.product {
+    background-color: #fff;
+}
+.featured.product img {
+    max-height: 100%;
 }
 
 .tile {
