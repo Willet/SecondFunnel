@@ -182,10 +182,17 @@ SecondFunnel.module("intentRank",
                 dataType: 'jsonp',
                 timeout: intentRank.IRTimeout,
                 success: function (results) {
+                    // Check for non-empty results.
+                    results = results.length ? 
+                        results :
+                        // If no results, fetch from backup
+                        _.shuffle(intentRank.backupResults);
                     args.unshift(results);
                     return callback.apply(callback, args);
                 },
                 error: function () {
+                    SecondFunnel.vent.trigger('log', arguments[1]);
+                    // On error, fall back to backup results
                     args.unshift(intentRank.backupResults);
                     return callback.apply(callback, args);
                 }
@@ -872,11 +879,6 @@ var SocialButtons = Backbone.Marionette.View.extend({
     'buttonTypes': SecondFunnel.option('socialButtons',
         ['facebook', 'twitter', 'pinterest']), // @override via constructor
 
-    'showCondition': function () {
-        // @override to false under any condition you don't want buttons to show
-        return true;
-    },
-
     'initSocial': _.once(function () {
         // Only initialize the social aspects once; this load the FB script
         // and twitter handlers.
@@ -936,9 +938,14 @@ var SocialButtons = Backbone.Marionette.View.extend({
 
         _.each(self.buttonTypes, function (type) {
             var count = options.showCount,
-                button = null;
+                button = null,
+                template = "#" + type.toLowerCase() + "_social_button_template";
+            if (!Backbone.Marionette.TemplateCache._exists(template)) {
+                // TODO: What to do if social button template is missing?
+                SecondFunnel.vent.trigger('log', "No social button template found for " + type);
+                return false;
+            }
             type = _.capitalize(type);
-            // TODO: What if no template exists?
             switch (type) {
             case "Facebook":
                 button = FacebookSocialButton;
@@ -946,17 +953,26 @@ var SocialButtons = Backbone.Marionette.View.extend({
             case "Twitter":
                 button = TwitterSocialButton;
                 break;
+            case "Share":
+                button = ShareSocialButton;
+                break;
             default:
                 button = SocialButtonView;
                 break;
             }
             self.views.push(new button({
                 'model': options.model,
-                'template': "#" + type.toLowerCase() + "_social_button_template", 
+                'template': template, 
                 'showCount': self.showCount 
             }));
         });
     },
+
+    'showCondition': function () {
+        // @override to false under any condition you don't want buttons to show
+        return true;
+    },
+
 
     'load': function () {
         // Initialize each Social Button; lazy loading to improve
@@ -1101,6 +1117,64 @@ var TwitterSocialButton = SocialButtonView.extend({
     }
 });
 
+var ShareSocialButton = SocialButtonView.extend({
+    // Subclass of SocialButtonView for triggering a Share popup
+    'events': {
+        'click': function (ev) {
+            // Creates a new popup instead of the default action
+            ev.stopPropagation();
+            ev.preventDefault();
+            var popup = new SharePopup({
+                'url': this.options.url,
+                'model': this.options.model,
+                'showCount': this.options.showCount
+            });
+            popup.render();
+        }
+    },
+
+    'onTemplateHelpers': function (helpers) {
+        // Catch url for reference on click
+        this.options.url = helpers.url;
+        return helpers;
+    }
+});
+
+var SharePopup = Backbone.Marionette.ItemView.extend({
+    // Displays a popup that provides the viewer with a plethora of other
+    // social share options as defined by the designer/developer.
+    'tagName': "div",
+    'className': "shareContainer previewContainer",
+    'template': "#share_popup_template",
+    'buttons': SecondFunnel.option('shareSocialButtons', []),
+
+    'events': {
+        'click .close, .mask': function (ev) {
+            this.$el.fadeOut(100).remove();
+            this.unbind();
+            this.views = [];
+        }
+    },
+
+    'initialize': function (options) {
+        this.buttons = _.map(this.buttons, function (obj) {
+            obj.url = _.template(obj.url, options);
+            return obj;
+        });
+    },
+
+    'templateHelpers': function () {
+        return {
+            'buttons': this.buttons
+        };
+    },
+
+    'onRender': function () {
+        this.$el.css({'display': "table"});
+        $('body').append(this.$el.fadeIn(100));
+    }
+});
+
 var Discovery = Backbone.Marionette.CompositeView.extend({
     // Manages the HTML/View of ALL the tiles on the page (our discovery area)
     // tagName: "div"
@@ -1162,9 +1236,9 @@ var Discovery = Backbone.Marionette.CompositeView.extend({
             $fragment = $();
         callback = callback || this.toggleLoading;
 
-        // Check for empty results
-        if (data.length === 0 && tile) {
-            data = tile.model.get('related-products');
+        if (tile) {
+            // Add any related products to our data
+            data = tile.model.get('related-products').concat(data);
             // Prevent loading the same content again
             tile.model.set('related-products', []);
         }
@@ -1355,9 +1429,6 @@ var PreviewWindow = Backbone.Marionette.Layout.extend({
     },
     'onRender': function () {
         this.$el.css({display: "table"});
-        if (!(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
-            this.socialButtons.show(new SocialButtons({model: this.model}));
-        }
         $('body').append(this.$el.fadeIn(SecondFunnel.option('previewAnimationDuration')));
     }
 });

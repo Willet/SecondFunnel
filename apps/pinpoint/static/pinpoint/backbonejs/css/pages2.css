@@ -324,6 +324,27 @@ div.loading {
     display: block;  /* these, however, show by default */
 }
 
+.shareContainer .content h2 {
+    margin-top: 3px;
+    margin-bottom: 5px;
+}
+
+.shareContainer .content .share img {
+    width: 35px;
+    height: 35px;
+}
+
+.shareContainer .content a {
+    text-decoration: none;
+    display: table-cell;
+    padding: 5px;
+    font-size: 13px;
+}
+
+.shareContainer .content .share:hover img {
+    opacity: 0.5;
+}
+
 /* mobile-grade preview container styles */
 @media screen and (max-width: 768px) {
     .previewContainer .tablecell {
