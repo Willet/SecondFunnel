@@ -9,7 +9,6 @@ if (!window.console) {  // shut up JSLint / good practice
 var SecondFunnel = (function (SecondFunnel) {
 
 // Declaration of the SecondFunnel JS application
-var SecondFunnel = new Backbone.Marionette.Application();
 SecondFunnel.vent = _.extend({}, Backbone.Events);  // Custom event trigger/listener
 
 // keep reference to options. this needs to be done before classes are declared.
@@ -33,7 +32,7 @@ SecondFunnel.option = function (name, defaultValue) {
     // our nested objects ourselves
     try {
         for (i = 0, depth = keyNest.length; i < depth; i++) {
-            keyName = keyNest[i];7
+            keyName = keyNest[i];
             cursor = cursor[keyName];
         }
         if (cursor !== undefined) {
@@ -204,7 +203,7 @@ SecondFunnel.module("intentRank",
                 timeout: intentRank.IRTimeout,
                 success: function (results) {
                     // Check for non-empty results.
-                    results = results.length ? 
+                    results = results.length ?
                         results :
                         // If no results, fetch from backup
                         _.shuffle(intentRank.backupResults);
@@ -1053,8 +1052,8 @@ var SocialButtons = Backbone.Marionette.View.extend({
             }
             self.views.push(new button({
                 'model': options.model,
-                'template': template, 
-                'showCount': self.showCount 
+                'template': template,
+                'showCount': self.showCount
             }));
         });
     },
@@ -1185,7 +1184,7 @@ var FacebookSocialButton = SocialButtonView.extend({
     },
 
     'onTemplateHelpers': function (helpers) {
-        // Additional attributes to add to our template data. 
+        // Additional attributes to add to our template data.
         var url = (helpers.product.url || helpers.image);
         if (url && url.indexOf("facebook") > -1) {
             url = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(url)[1];
