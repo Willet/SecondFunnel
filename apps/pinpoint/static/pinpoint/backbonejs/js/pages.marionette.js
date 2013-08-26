@@ -40,7 +40,7 @@ broadcast = function () {
     if (SecondFunnel.option('debug') > 1) {
         console.log('Broadcasting "' + arguments[0] + '" with args=%O', pArgs);
     }
-    SecondFunnel.vent.trigger.apply(SecondFunnel, arguments);
+    SecondFunnel.vent.trigger.apply(SecondFunnel.vent, arguments);
     if (window.Willet && window.Willet.mediator) {  // to each his own
         Willet.mediator.fire(arguments[0], pArgs);
     }

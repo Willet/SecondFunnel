@@ -35,14 +35,18 @@ a, a:hover, a:focus {
 .nav>li>a:hover, .nav>li>a:focus {
     background-color: transparent;
 }
-
+.navbar-nav {
+    /* override bootstrap responsiveness */
+    margin: 0;
+    float: left;
+}
 .navbar-nav>li {
     /* override bootstrap responsiveness */
     float: left;
 }
-.navbar-nav {
-    /* override bootstrap responsiveness */
-    float: left;
+.navbar-nav>li>a {
+    padding-top: 15px;
+    padding-bottom: 15px;
 }
 .navbar-nav .open .dropdown-menu {
     /* override bootstrap responsiveness */
@@ -377,6 +381,9 @@ div.loading {
 
 /* mobile-grade preview container styles */
 @media screen and (max-width: 768px) {
+    .previewContainer {
+        padding-top: 57px;
+    }
     .previewContainer .tablecell {
         display: block;
         width: 100%;

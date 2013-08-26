@@ -430,6 +430,20 @@
             if (window.SecondFunnel) {
                 // Start the SecondFunnel app
                 SecondFunnel.start(SecondFunnel.options);
+
+                // Example: add UI events
+                new SecondFunnel.classRegistry.EventManager({
+                    'click .navbar-brand': function (ev) {
+                        console.log('bur... custom event triggered');
+                    }
+                });
+
+                // Example: receive event notifications
+                SecondFunnel.vent.on({
+                    'previewRendered': function () {
+                        console.log('bur... preview rendered');
+                    }
+                });
             }
         </script>
         <!-- End Javascript -->
