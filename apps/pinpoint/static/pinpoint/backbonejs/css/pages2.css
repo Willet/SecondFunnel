@@ -360,24 +360,46 @@ div.loading {
     display: block;  /* these, however, show by default */
 }
 
+.shareContainer .content {
+    margin: 0 auto;
+    font-size: 18px;
+    width: 100%;
+    border-radius: 15px;
+    -moz-border-radius: 15px;
+    -webkit-border-radius: 15px;
+    -ms-border-radius: 15px;
+    -o-border-radius: 15px;
+}
+
 .shareContainer .content h2 {
     margin-top: 3px;
     margin-bottom: 5px;
+    border-bottom: 2px solid #cccccc;
+    color: #2F2F2F;
 }
 
-.shareContainer .content .share img {
-    width: 35px;
-    height: 35px;
+.shareContainer img {
+    width: 30px;
+    height: 30px;
 }
 
-.shareContainer .content a {
+.shareContainer .content .share {
+    width: 100%;
+}
+
+.shareContainer .content .share a {
     text-decoration: none;
-    display: table-cell;
-    padding: 5px;
-    font-size: 13px;
+    display: inline-block;
+    margin: 1.5%;
+    min-width: 200px;
+    width: 29%;
 }
 
-.shareContainer .content .share:hover img {
+.shareContainer .content:last-child:after {
+    clear: both;
+}
+
+.shareContainer .content .share div:hover img {
     opacity: 0.5;
 }
 

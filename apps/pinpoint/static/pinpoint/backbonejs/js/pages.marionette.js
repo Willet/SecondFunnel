@@ -1511,7 +1511,7 @@ SecondFunnel = (function (SecondFunnel) {
         'filter': function (content, selector) {
             // Filter the content in the LayoutEngine based on the selector
             // passed.
-            var filters = this.filters || [];
+            var filters = this.options.filters || [];
             filters = selector ? filters.concat(selector) : filters;
 
             _.each(filters, function (filter) {

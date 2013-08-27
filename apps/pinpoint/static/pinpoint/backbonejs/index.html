@@ -202,14 +202,16 @@
                 <div class="content">
                     <span class="close">&#x00D7;</span>
                     <h2> Share This </h2>
-                    <% _.each(obj.buttons, function(item, key) { %>
-                        <a href="<%= item.url %>" target="_blank">
-                            <div class="share">
-                                <img src="<%= item.img %>" alt="<%= item.name %>" />
-                                <span><%= item.text %></span>
-                            </div>
-                        </a>
-                    <% }); %>
+                    <div class="share">
+                        <% _.each(obj.buttons, function(item, key) { %>
+                            <a href="<%= item.url %>" target="_blank">
+                                <div>
+                                    <img src="<%= item.img %>" alt="<%= item.name %>" />
+                                    <span><%= item.text %></span>
+                                </div>
+                            </a>
+                        <% }); %>
+                    </div>
                 </div>
             </div>
         </script>
@@ -398,21 +400,32 @@
                     "twitter",
                     "pinterest",
                     "tumblr",
-                    "reddit",
                     "share"
                  ], // optional
                 'shareSocialButtons': [
                     {
                         'name': "facebook",
-                        'url': "https://www.facebook.com/sharer/share.php?u=<%= url %>",
+                        'url': "https://www.facebook.com/sharer/sharer.php?u=<%= url %>",
                         'img': "//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/FB-f-Logo__blue_29.png",
-                        'text': "Share on Facebook"
+                        'text': "Facebook"
                     },
                     {
                         'name': "twitter",
                         'url': "https://www.twitter.com/share?url=<%= url %>",
                         'img': "//abs.twimg.com/a/1377219190/images/resources/twitter-bird-light-bgs.png",
-                        'text': "Share on Twitter"
+                        'text': "Twitter"
+                    },
+                    {
+                        'name': "reddit",
+                        'url': "http://www.reddit.com/submit?url=<%= url %>",
+                        'img': "//reddit.com/static/spreddit5.gif",
+                        'text': "Reddit"
+                    },
+                    {
+                        'name': "tumblr",
+                        'url': "http://www.tumblr.com/share/photo?source=<%= url %>",
+                        'img': "//platform.tumblr.com/v1/share_4.png",
+                        'text': "Tumblr"
                     }
                 ],
                 'imageTileWide': 0.25,
