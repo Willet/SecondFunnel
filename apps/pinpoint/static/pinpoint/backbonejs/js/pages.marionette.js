@@ -1,4 +1,4 @@
-/*global setTimeout, imagesLoaded, Backbone, jQuery, $, _ */
+/*global Image, setTimeout, imagesLoaded, Backbone, jQuery, $, _, Willet */
 // JSLint/Emacs js2-mode directive to stop global 'undefined' warnings.
 if (!window.console) {  // shut up JSLint / good practice
     var console = window.console = {
@@ -458,7 +458,6 @@ SecondFunnel = (function (SecondFunnel) {
 
             tracker.videoStateChange = function (videoId, event) {
                 broadcast('videoStateChange', videoId, event, tracker);
-                7
 
                 if (videosPlayed.indexOf(videoId) !== -1) {
                     // not that video
@@ -641,6 +640,8 @@ SecondFunnel = (function (SecondFunnel) {
                 $elem.masonry(layoutEngine.options).masonry('bindResize');
                 layoutEngine.$el = $elem;
                 broadcast('layoutEngineIntialized', layoutEngine);
+                // @temporary
+                layoutEngine.imagesLoaded = layoutEngine.imagesLoadedTransitional;
             };
 
             layoutEngine.call = function (callback, $fragment) {
@@ -713,15 +714,52 @@ SecondFunnel = (function (SecondFunnel) {
             };
 
             layoutEngine.imagesLoaded = function (callback, $fragment) {
+                // This function is based on the understanding that the ImageService will
+                // return dimensions and/or a dominant colour; elements in the $fragment have
+                // assigned widths and heights; (e.g. .css('width', '100px'))
+                var args = _.toArray(arguments).slice(1),
+                    errs = 0;
+                // We set the background image of the tile image as the dominant colour/loading;
+                // when the image is loaded, we replace the src.
+                $fragment.children('img').each(function () {
+                    // Create a dummy image to load the image
+                    var img = new Image(),
+                        self = this;
+                    img.src = $(this).attr('src');
+                    // Clear the src attribute so it doesn't load there
+                    $(this).attr('src', '');
+
+                    // Now apply handlers
+                    img.onload = function () {
+                        // Change the src attribute and remove the dummy image
+                        self.src = img.src;
+                        if (errs !== 0) {
+                            // If there were any errors, reload the layout.
+                            layoutEngine.reload();
+                        }
+                    };
+
+                    img.onerror = function () {
+                        // On error, remove the image
+                        $(self).remove();
+                        errs++;
+                    };
+                });
+                // Append by default
+                layoutEngine.$el.append($fragment).masonry('appended', $fragment);
+                return callback.apply(layoutEngine, args);
+            };
+
+            layoutEngine.imagesLoadedTransitional = function (callback, $fragment) {
+                // @deprecated: Use until ImageService is reading/returns dominant colour
                 // Calls the broken handler to remove broken images as they appear;
                 // when all images are loaded, calls the appropriate layout function
-                var self = layoutEngine,
-                    args = _.toArray(arguments),
+                var args = _.toArray(arguments),
                     imgLoad = imagesLoaded($fragment.children('img'));
                 // Remove broken images as they appear
-                imgLoad.on('progress',function (instance, image) {
+                imgLoad.on('progress', function (instance, image) {
                     var $img = $(image.img),
-                        $elem = $img.parents(self.selector);
+                        $elem = $img.parents(layoutEngine.selector);
 
                     // TODO: This is the first point we know the dimensions of the image (until
                     // image service returns dimensions).  What qualifies as too small?
@@ -729,18 +767,17 @@ SecondFunnel = (function (SecondFunnel) {
                         $img.remove();
                     } else {
                         // Append to container and called appended
-                        self.$el.append($elem).masonry('appended', $elem);
+                        layoutEngine.$el.append($elem).masonry('appended', $elem);
                     }
-                }).on(
-                    'always',
-                    function () {
+                }).on('always', 
+                      function () {
                         // When all images are loaded, show the non-broken ones and reload
                         var $remaining = $fragment.filter(function () {
                             return !$.contains(document.documentElement,
                                 $(this)[0]);
                         });
                         if ($remaining.length > 0) {
-                            self.$el.append($remaining).masonry('appended',
+                            layoutEngine.$el.append($remaining).masonry('appended',
                                 $remaining);
                             SecondFunnel.vent.trigger('tracking:trackEvent', {
                                 'action': "network=|actionType=impression|actionSubtype=productImpression|actionScope=???",
@@ -749,7 +786,7 @@ SecondFunnel = (function (SecondFunnel) {
                             });
                         }
                         args = args.slice(1);
-                        callback.apply(self, args);
+                        callback.apply(layoutEngine, args);
                     });
                 return layoutEngine;
             };
@@ -763,7 +800,10 @@ SecondFunnel = (function (SecondFunnel) {
             'caption': "Shop product",
             'tile-id': null,
             'content-type': "product",
-            'related-products': []
+            'related-products': [],
+            // Awaiting ImageService for a name
+            // TODO: What's the real name?
+            'dominant-color': "pink"
         },
 
         'initialize': function (attributes, options) {
@@ -951,9 +991,10 @@ SecondFunnel = (function (SecondFunnel) {
             var maxImageSize;
             try {
                 maxImageSize = _.findWhere(this.model.images[0].sizes,
-                    {'name': 'master'})[0].width;
+                    {'name': 'master'})[0];
+                this.model.set('size', maxImageSize);
 
-                if (Math.random() > 0.333 && maxImageSize >= 512) {
+                if (Math.random() > 0.333 && maxImageSize.width >= 512) {
                     this.$el.addClass('wide');
                 }  // else: leave it as 1-col
             } catch (imageServiceNotReady) {
@@ -967,6 +1008,14 @@ SecondFunnel = (function (SecondFunnel) {
             // Listen for the image being removed from the DOM, if it is, remove
             // the View/Model to free memory
             this.$("img").on('remove', this.close);
+            if (this.model.get('size')) {
+                // Check if ImageService is ready
+                this.$("img").css({
+                    'background-color': this.model.get('dominant-color'),
+                    'width': this.model.get('size').width,
+                    'height': this.model.get('size').height
+                });
+            }
             if (SocialButtons.prototype.buttonTypes.length && !(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
                 this.socialButtons.show(new SocialButtons({model: this.model}));
             }
@@ -1426,14 +1475,7 @@ SecondFunnel = (function (SecondFunnel) {
                 $fragment = $();
             callback = callback || this.toggleLoading;
 
-            if (tile) {
-                // Add any related products to our data
-                data = tile.model.get('related-products').concat(data);
-                // Prevent loading the same content again
-                tile.model.set('related-products', []);
-            }
-
-            // Finally check if we still don't have anything
+            // Check if we don't have anything
             if (data.length === 0) {
                 return this.toggleLoading();
             }

@@ -134,8 +134,8 @@ div.loading {
 .tile img.focus {
     /* the "focus" image (i.e. main image) must be at least some pixels wide. */
     min-width: 200px;
-    max-width: 450px;
-    min-height: 50px;
+    //max-width: 450px;
+    min-height: 75px;
     max-height: 400px;
 }
 
@@ -176,6 +176,7 @@ div.loading {
 }
 
 .tile .caption,
+.tile .caption span,
 .tile .type {
     display: none !important;
 }
