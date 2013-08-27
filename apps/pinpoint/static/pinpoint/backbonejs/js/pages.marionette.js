@@ -193,6 +193,13 @@ SecondFunnel = (function (SecondFunnel) {
         };
     });
 
+    SecondFunnel.module("utils", function (utils) {
+        utils.safeString = function (str, opts) {
+            // trims the string and checks if it's just 'None'.
+            // more checks to come later.
+            return $.trim(str).replace(/^None$/, '');
+        };
+    });
 
     SecondFunnel.module("intentRank",
         function (intentRank) {
@@ -292,8 +299,7 @@ SecondFunnel = (function (SecondFunnel) {
     SecondFunnel.module("tracker",
         function (tracker) {
             // TODO: when done, split into its own file
-            var _gaq = window._gaq || [],
-                isBounce = true,  // this flag set to false once user scrolls down
+            var isBounce = true,  // this flag set to false once user scrolls down
                 videosPlayed = [],
                 parseUri = function (str) {
                     // parseUri 1.2.2
@@ -345,7 +351,9 @@ SecondFunnel = (function (SecondFunnel) {
                         "referrer=" + referrerName() + "|" +
                         "domain=" + parseUri(window.location.href).host;
 
-                    _gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+                    if (window._gaq) {
+                        window._gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+                    }
                     broadcast('eventTracked', o, category);
                 },
 
@@ -359,7 +367,9 @@ SecondFunnel = (function (SecondFunnel) {
                         return;
                     }
 
-                    _gaq.push(['_setCustomVar', slotId, name, value, scope]);
+                    if (window._gaq) {
+                        window._gaq.push(['_setCustomVar', slotId, name, value, scope]);
+                    }
                 };
 
             tracker.registerEvent = function (o) {
@@ -560,17 +570,17 @@ SecondFunnel = (function (SecondFunnel) {
             };
 
             parseUri.options = {
-                strictMode: false,
-                key: [
+                'strictMode': false,
+                'key': [
                     "source", "protocol", "authority", "userInfo", "user", "password",
                     "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
-                q: {
-                    name: "queryKey",
-                    parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+                'q': {
+                    'name': "queryKey",
+                    'parser': /(?:^|&)([^&=]*)=?([^&]*)/g
                 },
-                parser: {
-                    strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-                    loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+                'parser': {
+                    'strict': /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+                    'loose': /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
                 }
             };
 
@@ -835,7 +845,6 @@ SecondFunnel = (function (SecondFunnel) {
         return Backbone.Marionette[classType].extend(params);
     };
 
-
     FeaturedAreaView = Backbone.Marionette.ItemView.extend({
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
@@ -847,8 +856,6 @@ SecondFunnel = (function (SecondFunnel) {
             }
         }
     });
-    SecondFunnel.classRegistry.FeaturedAreaView = FeaturedAreaView;
-
 
     TileView = Backbone.Marionette.Layout.extend({
         // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
@@ -1516,8 +1523,6 @@ SecondFunnel = (function (SecondFunnel) {
             this.lastScrollTop = st;
         }
     });
-    SecondFunnel.classRegistry.Discovery = Discovery;
-
 
     Category = Backbone.Model.extend({
         // Base empty category, no functionality needed here
@@ -1592,6 +1597,10 @@ SecondFunnel = (function (SecondFunnel) {
                 var buttons = new SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
             }
+            var width = Backbone.Marionette.getOption(this, 'width');
+            if (width) {
+                this.$('.content').css('width', width + 'px');
+            }
             broadcast('previewRendered', this);
         }
     });
@@ -1621,7 +1630,6 @@ SecondFunnel = (function (SecondFunnel) {
         }
     });
 
-
     TapIndicator = Backbone.Marionette.ItemView.extend({
         'template': "#tap_indicator_template",
         'className': 'tap_indicator animated fadeIn',
@@ -1635,7 +1643,6 @@ SecondFunnel = (function (SecondFunnel) {
             }
         }
     });
-
 
     EventManager = Backbone.View.extend({
         // Top-level event binding wrapper. all events bubble up to this level.
@@ -1654,7 +1661,13 @@ SecondFunnel = (function (SecondFunnel) {
             });
         }
     });
-    SecondFunnel.classRegistry.EventManager = EventManager;
+
+    // expose some classes (only if required)
+    SecondFunnel.classRegistry = {
+        Discovery: Discovery,
+        EventManager: EventManager,
+        FeaturedAreaView: FeaturedAreaView
+    };
 
     return SecondFunnel;
 }(new Backbone.Marionette.Application()));
