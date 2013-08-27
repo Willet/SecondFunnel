@@ -7,7 +7,7 @@ if (!window.console) {  // shut up JSLint / good practice
     };
 }
 
-var broadcast, SecondFunnel;
+var broadcast, SecondFunnel, debugOp;
 
 $.getScripts = function (urls, callback, options) {
     // batch getScript with caching
@@ -44,6 +44,11 @@ broadcast = function () {
     if (window.Willet && window.Willet.mediator) {  // to each his own
         Willet.mediator.fire(arguments[0], pArgs);
     }
+};
+
+
+debugOp = function () {
+    console.log('%O, %O', this, arguments);
 };
 
 

@@ -63,13 +63,13 @@ body {
     margin: 0 auto;
 }
 
-.preview img {
+.previewContainer img {
     /* limit how big preview images can be */
-    max-width: 697px;
-    max-height: 444px;
+    max-width: 100%;
+    max-height: 100%;
 }
 
-.preview span.close {
+.previewContainer span.close {
     padding: 0 0 12px 20px;
 }
 
@@ -119,8 +119,16 @@ body {
 }
 
 .previewContainer .image {
-    padding-top: 20px;
+    margin: 30px auto;
     text-align: center;
+}
+
+.previewContainer .main-image {
+    /* actually the largest product image */
+    float: left;
+    max-width: 150px;
+    margin: 0 20px 0 0;
+    max-height: 200px;
 }
 
 .previewContainer .price {
@@ -134,7 +142,7 @@ body {
 .previewContainer .selector {
     white-space: nowrap;
     text-align: left;
-    height: 75px;
+    height: 55px;
     overflow-x: auto;
     white-space: nowrap;
     text-align: left;
@@ -153,6 +161,7 @@ body {
 
 .previewContainer .gap-buttons {
     padding: 30px 0;
+    text-align: center;
 }
 
 .previewContainer .gap-buttons a,
