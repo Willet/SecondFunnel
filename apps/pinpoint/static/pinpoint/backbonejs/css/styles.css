@@ -105,3 +105,85 @@ body {
         margin-top: -66px;
     }
 }
+
+
+
+
+/* === */
+.previewContainer .title {
+    margin: 0;
+    font-family: proxima-nova-soft, sans-serif;
+    font-size: 18px;
+    color: black;
+    font-weight: bold;
+}
+
+.previewContainer .image {
+    padding-top: 20px;
+    text-align: center;
+}
+
+.previewContainer .price {
+    font-family: proxima-nova-soft, sans-serif;
+    font-size: 18px;
+    color: #acacac;
+    font-weight: lighter;
+    margin: 0 0 20px 0;
+}
+
+.previewContainer .selector {
+    white-space: nowrap;
+    text-align: left;
+    height: 75px;
+    overflow-x: auto;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.previewContainer .selector img {
+    margin: 0px 5px;
+    max-height: 50px;
+    height: auto;
+    width: auto;
+    border: 1px solid #CECECE;
+}
+.previewContainer .selector img.selected {
+    border: 1px solid black;
+}
+
+.previewContainer .gap-buttons {
+    padding: 30px 0;
+}
+
+.previewContainer .gap-buttons a,
+.previewContainer .gap-buttons a:visited,
+.previewContainer .gap-buttons a:hover {
+    text-decoration: none;
+    color: #000;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: HelveticaNeue,Helvetica,sans-serif;
+}
+
+.previewContainer .gap-buttons .button {
+    height: 51px;
+    display: inline-block;
+    -webkit-box-shadow: 0 0 3px #000;
+    -webkit-border-radius: 15px;
+    vertical-align: top;
+    margin-right: 5px;
+    line-height: 50px;
+    text-align: center;
+}
+
+.previewContainer .gap-buttons .button.find-store {
+    width: 130px;
+    background: url('https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/spriteFiS.png') top left no-repeat;
+    background-position: -100px -106px;
+
+}
+
+.previewContainer .gap-buttons .button.in-store {
+    width:  190px;
+    background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0.00,#EDEDED),color-stop(1.0,#CDCDCD));
+}
