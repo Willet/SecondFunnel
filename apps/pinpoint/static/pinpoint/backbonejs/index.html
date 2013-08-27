@@ -22,7 +22,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand brand-label" href="#">Brand Name</a>
+                    <a class="navbar-brand brand-label" href="#"></a>
                 </div>
 
                 <div class="collapse navbar-collapse navbar-ex1-collapse" -->
@@ -30,7 +30,7 @@
                 <!-- non-collapsible -->
                 <div class="container">
                     <ul class="nav navbar-nav"><!-- RHS: .navbar-right -->
-                        <li><a class="navbar-brand brand-label" href="#">Brand Name</a></li>
+                        <li><a class="navbar-brand brand-label" href="#"></a></li>
                         <!-- li class="active"><a href="#">Home</a></li -->
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">More brands <b class="caret"></b></a>
@@ -146,7 +146,6 @@
             </div>
         </script>
         <script type="text/template" id="facebook_social_button_template">
-            &nbsp;
             <div class='button facebook'>
                 <img src="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/fb-like-0.png" alt="Like" class="placeholder" />
                 <fb:like href="<%= url %>" width="48" layout="button_count"
@@ -154,7 +153,6 @@
             </div>
         </script>
         <script type="text/template" id="twitter_social_button_template">
-            &nbsp;
             <% if (showCount) { %>
                 <div class='button twitter' style='height: 13px; width: 77px;'>
                     <a href="https://twitter.com/share?url=<%= url %>"
@@ -172,28 +170,31 @@
             <% } %>
         </script>
         <script type="text/template" id="pinterest_social_button_template">
-            &nbsp;
             <div class='button pinterest'>
                 <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>"
                    target="_blank"><img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/></a>
             </div>
         </script>
         <script type="text/template" id="reddit_social_button_template">
-            &nbsp;
-            <a href="http://www.reddit.com/submit" 
-               onclick="window.location = 'http://www.reddit.com/submit?url=<%= url %>'; return false"
-              ><img src="http://www.reddit.com/static/spreddit7.gif"
-                   alt="submit to reddit" 
-                   border="0" /></a>
+            <div class="button reddit">
+                <a href="http://www.reddit.com/submit"
+                   onclick="window.location = 'http://www.reddit.com/submit?url=<%= url %>'; return false"
+                  ><img src="http://www.reddit.com/static/spreddit7.gif"
+                       alt="submit to reddit"
+                       border="0" /></a>
+            </div>
         </script>
         <script type="text/template" id="tumblr_social_button_template">
-            &nbsp;
-            <a href="http://www.tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= url %>"
-                 target='_blank'><img src="http://platform.tumblr.com/v1/share_1.png"/></a>
+            <div class="button tumblr">
+                <a href="http://www.tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= url %>"
+                     target='_blank'><img src="http://platform.tumblr.com/v1/share_1.png"/></a>
+            </div>
         </script>
         <script type="text/template" id="share_social_button_template">
-            &nbsp;
-            <a href=""><img src="" alt="Share this" border="0" /></a>
+            <div class="button share-this">
+                <a href=""><img src="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Sharethis-draft1.png"
+                                alt="Share this" border="0" /></a>
+            </div>
         </script>
         <script type="text/template" id="share_popup_template">
             <div class="mask"></div>
@@ -367,7 +368,8 @@
                 'discoveryItemSelector': ".tile",
                 'store': {
                     'id': "38",
-                    'name': "gap"
+                    'name': "gap",
+                    'displayName': ""  // leave blank to use "Gap"
                 },
                 'page': {  // required
                     'id': 9001  // required

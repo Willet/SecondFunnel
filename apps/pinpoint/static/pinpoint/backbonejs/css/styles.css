@@ -61,6 +61,7 @@ body {
     left: 0;
     text-align: center;
     margin: 0 auto;
+    line-height: 21px;
 }
 
 .previewContainer img {

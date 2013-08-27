@@ -1450,7 +1450,14 @@ SecondFunnel = (function (SecondFunnel) {
             // TODO: Find a better way than this...
             _.bindAll(this, 'pageScroll', 'toggleLoading',
                 'layoutResults');
-            $(window).scroll(this.pageScroll);
+            $(window)
+                .scroll(this.pageScroll)
+                .resize(function () {
+                    // did you know any DOM element without resize events
+                    // can still react to potential resizes by having its
+                    // own .bind('resize', function () {})?
+                    $('.resizable', document).resize();
+                });
 
             // Vent Listeners
             SecondFunnel.vent.on("tileClicked", this.updateContentStream,
@@ -1796,7 +1803,9 @@ SecondFunnel.addInitializer(function (options) {
     // to be displayed immediately (and first) on the landing page.
     broadcast('beforeInit', options, SecondFunnel);
 
-    $('.brand-label').text(options.store.displayName || _.capitalize(options.store.name));
+    $('.brand-label').text(options.store.displayName ||
+                           _.capitalize(options.store.name) ||
+                           'Brand Name');
 
     SecondFunnel.discovery = new SecondFunnel.classRegistry.Discovery(options);
     SecondFunnel.tracker.init();

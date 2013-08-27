@@ -246,6 +246,8 @@ div.loading {
 
 .social-buttons button, .social-buttons .button {
     display: inline-block;
+    margin-left: 1px;
+    margin-right: 1px;
 }
 
 .social-buttons .facebook.no-count {
