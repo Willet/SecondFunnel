@@ -1593,11 +1593,12 @@ SecondFunnel = (function (SecondFunnel) {
         },
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
+            var buttons, width;
             if (!(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
-                var buttons = new SocialButtons({model: this.model}).render().load().$el;
+                buttons = new SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
             }
-            var width = Backbone.Marionette.getOption(this, 'width');
+            width = Backbone.Marionette.getOption(this, 'width');
             if (width) {
                 this.$('.content').css('width', width + 'px');
             }

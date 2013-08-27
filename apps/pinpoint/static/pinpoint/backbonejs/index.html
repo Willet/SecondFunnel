@@ -232,15 +232,15 @@
         <script type="text/template" id="gap_product_preview_template">
             <!-- any (store.name)_(type)_... templates will be used in place
                  of default templates if they exist. -->
-            <div class='content-wrapper'>
-                <div class='image-div'>
+            <div class='content-wrapper row'>
+                <div class='image-div col-md-6'>
                     <div class='table'>
                         <div class='image'><img src='<%= obj.image %>'/></div>
                     </div>
                 </div>
-                <div class='info'>
-                    <div class='title text'><%= obj.title %></div>
-                    <div class='price text'><%= obj.price %></div>
+                <div class='info col-md-6'>
+                    <div class='title'><%= obj.title %></div>
+                    <div class='price'><%= obj.price %></div>
                     <div class='description'>
                         <div class='desc-title'>Overview</div>
                         <ul>
@@ -251,9 +251,6 @@
                         </ul>
                     </div>
                     <div>
-                        <a class='tumblr' href='//www.tumblr.com/share/photo?source=<%= encodeURIComponent(obj.image) %>&caption=<%= encodeURIComponent(obj.title) %>&click_thru=<%= encodeURIComponent(obj.url) %>' target='_blank'>
-                            <img src='http://platform.tumblr.com/v1/share_1.png'/>
-                        </a>
                         <div class="social-buttons"></div>
                         <div class='spacer'></div>
                     </div>
@@ -483,6 +480,22 @@
                 new SecondFunnel.classRegistry.EventManager({
                     'click .navbar-brand': function (ev) {
                         console.log('bur... custom event triggered');
+                    }
+                });
+
+                // Example: handle image carousel in previews
+                new SecondFunnel.classRegistry.EventManager({
+                    'click .previewContainer .selector img': function (ev) {
+                        var $ev = $(ev.currentTarget),
+                            new_url = $ev.attr('src'); //.replace("thumb.jpg", "large.jpg");
+
+                        $ev
+                            .parents('.previewContainer')
+                            .find('.selector img').removeClass('selected');
+                        $ev
+                            .addClass('selected')
+                            .parents('.previewContainer')
+                            .find('.image img').attr('src', new_url);
                     }
                 });
 
