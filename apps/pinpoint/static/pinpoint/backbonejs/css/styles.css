@@ -69,10 +69,6 @@ body {
     max-height: 100%;
 }
 
-.previewContainer span.close {
-    padding: 0 0 12px 20px;
-}
-
 .social-buttons .facebook {
     height: 14px;
     width: 76px;

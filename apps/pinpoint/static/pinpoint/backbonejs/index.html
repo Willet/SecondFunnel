@@ -22,7 +22,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="#">Brand Name</a>
+                    <a class="navbar-brand brand-label" href="#">Brand Name</a>
                 </div>
 
                 <div class="collapse navbar-collapse navbar-ex1-collapse" -->
@@ -30,7 +30,7 @@
                 <!-- non-collapsible -->
                 <div class="container">
                     <ul class="nav navbar-nav"><!-- RHS: .navbar-right -->
-                        <li><a class="navbar-brand" href="#">Brand Name</a></li>
+                        <li><a class="navbar-brand brand-label" href="#">Brand Name</a></li>
                         <!-- li class="active"><a href="#">Home</a></li -->
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">More brands <b class="caret"></b></a>
@@ -232,12 +232,12 @@
             <!-- any (store.name)_(type)_... templates will be used in place
                  of default templates if they exist. -->
             <div class='content-wrapper row'>
-                <div class='image-div col-md-6'>
+                <div class='image-div col-sm-6 col-md-6'>
                     <div class='table'>
                         <div class='image'><img src='<%= obj.image %>'/></div>
                     </div>
                 </div>
-                <div class='info col-md-6'>
+                <div class='info col-sm-6 col-md-6'>
                     <div class='title'><%= obj.title %></div>
                     <div class='price'><%= obj.price %></div>
                     <div class='description'>
@@ -245,7 +245,7 @@
                         <ul>
                             <% var sentences = _.compact(obj.description.split('.')); %>
                             <% _.each(sentences, function(sentence) { %>
-                                <li><%= $.trim(sentence) %></li>
+                                <li><%= SecondFunnel.utils.safeString(sentence) %></li>
                             <% }); %>
                         </ul>
                     </div>
@@ -304,7 +304,7 @@
             <% if (obj['related-products'].length) { %>
                 <div class="image-with-related-products">
                     <div class="row">
-                        <div class="image col-md-6">
+                        <div class="image col-sm-6 col-md-6">
                             <img src="<%= obj.image %>" alt="image" />
                         </div>
                         <div class="col-md-6">
@@ -317,7 +317,7 @@
                                 <ul>
                                     <% var sentences = _.compact(product.description.split('.')); %>
                                     <% _.each(sentences, function(sentence) { %>
-                                        <li><%= $.trim(sentence) %></li>
+                                        <li><%= SecondFunnel.utils.safeString(sentence) %></li>
                                     <% }); %>
                                 </ul>
                             </div>

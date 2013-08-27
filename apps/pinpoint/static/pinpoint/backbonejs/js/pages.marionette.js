@@ -202,7 +202,7 @@ SecondFunnel = (function (SecondFunnel) {
         utils.safeString = function (str, opts) {
             // trims the string and checks if it's just 'None'.
             // more checks to come later.
-            return $.trim(str).replace(/^None$/, '');
+            return $.trim(str).replace(/^(None|undefined|false|0)$/, '');
         };
     });
 
@@ -1753,6 +1753,9 @@ SecondFunnel.addInitializer(function (options) {
     // Add our initializer, this allows us to pass a series of tiles
     // to be displayed immediately (and first) on the landing page.
     broadcast('beforeInit', options, SecondFunnel);
+
+    $('.brand-label').text(options.store.displayName || _.capitalize(options.store.name));
+
     SecondFunnel.discovery = new SecondFunnel.classRegistry.Discovery(options);
     SecondFunnel.tracker.init();
     broadcast('finished', options, SecondFunnel);
