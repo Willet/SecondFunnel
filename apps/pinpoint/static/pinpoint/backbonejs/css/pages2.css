@@ -327,6 +327,7 @@ div.loading {
 
 .previewContainer img {
     max-width: 100%;
+    max-height: 100%;
 }
 
 .previewContainer .mask {
@@ -383,7 +384,7 @@ div.loading {
 /* mobile-grade preview container styles */
 @media screen and (max-width: 768px) {
     .previewContainer {
-        padding-top: 57px;
+        top: 50px;
     }
     .previewContainer .tablecell {
         display: block;
@@ -424,7 +425,7 @@ div.loading {
 
         width: 768px;
         min-height: 240px;
-        max-height: 600px;
+        max-height: 666px;
 
         background: #fff;
         border: 1px solid #CECECE;

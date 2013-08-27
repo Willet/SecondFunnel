@@ -303,13 +303,47 @@
             %>
             <% if (obj['related-products'].length) { %>
                 <div class="image-with-related-products">
-                    <img class="pull-left" src="<%= obj.image %>" alt="image" />
-                    <% _.each(obj['related-products'], function (product) { %>
-                        <img class="pull-right" src="<%= product.image %>" alt="related product" />
-                        <div class="info">
-                            <%= SecondFunnel.utils.safeString(product.description) %>
+                    <div class="row">
+                        <div class="image col-md-6">
+                            <img src="<%= obj.image %>" alt="image" />
                         </div>
-                    <% }) %>
+                        <div class="col-md-6">
+                            <% var product = obj['related-products'][0]; %>
+                            <img class="main-image" src="<%= product.image %>" alt="related product" />
+                            <div class='title'><%= product.title %></div>
+                            <div class='price'><%= product.price %></div>
+                            <div class='description'>
+                                <div class='desc-title'>Overview</div>
+                                <ul>
+                                    <% var sentences = _.compact(product.description.split('.')); %>
+                                    <% _.each(sentences, function(sentence) { %>
+                                        <li><%= $.trim(sentence) %></li>
+                                    <% }); %>
+                                </ul>
+                            </div>
+                            <div>
+                                <div class="social-buttons"></div>
+                                <div class='spacer'></div>
+                            </div>
+                            <div class='gap-buttons'>
+                                <a class='button find-store' href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>
+                                    Find in Store
+                                </a>
+                                <a class='button in-store' href='<%= product.url %>' target='_blank'>
+                                    Shop on Gap.com
+                                </a>
+                            </div>
+                            <% if (product.images.length > 1) { %>
+                                <div class='selector'>
+                                    <div class='images'>
+                                        <% _.each(product.images, function(image) { %>
+                                        <img src='<%= image %>' />
+                                        <% }); %>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
                 </div>
             <% } else { %>
                 <div class="image-without-related-products">
@@ -486,15 +520,17 @@
                 new SecondFunnel.classRegistry.EventManager({
                     'click .previewContainer .selector img': function (ev) {
                         var $ev = $(ev.currentTarget),
-                            new_url = $ev.attr('src'); //.replace("thumb.jpg", "large.jpg");
+                            new_url = $ev.attr('src');
 
                         $ev
                             .parents('.previewContainer')
-                            .find('.selector img').removeClass('selected');
+                            .find('.selector img')
+                            .removeClass('selected');
                         $ev
                             .addClass('selected')
                             .parents('.previewContainer')
-                            .find('.image img').attr('src', new_url);
+                            .find('.image img')
+                            .attr('src', new_url);
                     }
                 });
 
