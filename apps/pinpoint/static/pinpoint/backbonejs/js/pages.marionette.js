@@ -53,7 +53,7 @@ debugOp = function () {
 
 
 // Declaration of the SecondFunnel JS application
-SecondFunnel = (function (SecondFunnel) {
+SecondFunnel = (function (SecondFunnel, $window, $document) {
     "use strict";
 
     var Tile, TileCollection, FeaturedAreaView, TileView,
@@ -183,7 +183,7 @@ SecondFunnel = (function (SecondFunnel) {
         };
 
         observable.mobile = function () {
-            return ($(window).width() < 768);  // 768 is set in stone now
+            return ($window.width() < 768);  // 768 is set in stone now
         };
         observable.touch = function () {
             return ('ontouchstart' in document.documentElement);
@@ -227,7 +227,7 @@ SecondFunnel = (function (SecondFunnel) {
             return Backbone.Marionette[classType].extend(params);
         };
 
-        utils.pickImageSize = function (url, minWidth) {
+        utils.pickImageSize = function (url, minWidth, scalePolicy) {
             // returns a url that is either
             //   - the url, if it is not an image service url, or
             //   - an image url pointing to one that is at least as wide as
@@ -235,9 +235,13 @@ SecondFunnel = (function (SecondFunnel) {
             //   - an image url pointing to one that is at most as wide as
             //     the window width, or
             //   - if minWidth is ridiculously large, master.jpg.
+            // if scalePolicy is "max", then the image served is always smaller
+            //   than requested.
             var i,
-                maxLogicalSize = $(window).width(),
-                sizable = /images\.secondfunnel\.com.+(jpg|png)/.test(url),
+                prevKey = 'pico',
+                maxLogicalSize = Math.min($window.width(), $window.height()),
+                sizable = /images\.secondfunnel\.com.+\.(jpe?g|png)/.test(url),
+                nameRegex = /([^/]+)\.(jpe?g|png)/,
                 imageSizes = SecondFunnel.option('imageSizes', {
                     // see Scraper: ImageServiceIntegrationTest.java#L52
                     "pico": 16,
@@ -258,11 +262,20 @@ SecondFunnel = (function (SecondFunnel) {
 
             for (i in imageSizes) {
                 if (imageSizes.hasOwnProperty(i)) {
-                    if (imageSizes[i] >= minWidth ||
-                        imageSizes[i] >= maxLogicalSize) {
-                        return url.replace(/master/, i);
+                    if (!scalePolicy || scalePolicy === 'min') {
+                        if (imageSizes[i] >= minWidth) {
+                            return url.replace(nameRegex, i + '.$2');
+                        }
+                    } else if (scalePolicy === 'max') {
+                        if (imageSizes[i] >= minWidth) {
+                            return url.replace(nameRegex, prevKey + '.$2');
+                        }
+                    }
+                    if (imageSizes[i] >= maxLogicalSize) {
+                        return url.replace(nameRegex, prevKey + '.$2');
                     }
                 }
+                prevKey = i;
             }
             return url;
         };
@@ -1086,7 +1099,7 @@ SecondFunnel = (function (SecondFunnel) {
 
             // semi-stupid view-based resizer
             var tileImg = this.$('img.focus'),
-                columns = (this.$el.hasClass('wide') && $(window).width() > 480) ? 2 : 1,
+                columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
                 columnWidth = SecondFunnel.option('columnWidth', $.noop)() || 256;
             if (tileImg.length) {
                 tileImg.attr('src', SecondFunnel.utils.pickImageSize(tileImg.attr('src'),
@@ -1544,7 +1557,7 @@ SecondFunnel = (function (SecondFunnel) {
             // TODO: Find a better way than this...
             _.bindAll(this, 'pageScroll', 'toggleLoading',
                 'layoutResults');
-            $(window)
+            $window
                 .scroll(_.throttle(this.pageScroll, 500))
                 .resize(_.throttle(function () {
                     // did you know any DOM element without resize events
@@ -1663,9 +1676,9 @@ SecondFunnel = (function (SecondFunnel) {
         },
 
         'pageScroll': function () {
-            var pageBottomPos = $(window).innerHeight() + $(window).scrollTop(),
-                documentBottomPos = $(document).height(),
-                viewportHeights = $(window).innerHeight() * (SecondFunnel.option('prefetchHeight',
+            var pageBottomPos = $window.innerHeight() + $window.scrollTop(),
+                documentBottomPos = $document.height(),
+                viewportHeights = $window.innerHeight() * (SecondFunnel.option('prefetchHeight',
                     1));
 
             if (pageBottomPos >= documentBottomPos - viewportHeights && !this.loading) {
@@ -1673,7 +1686,7 @@ SecondFunnel = (function (SecondFunnel) {
             }
 
             // detect scrolling detection. not used for anything yet.
-            var st = $(window).scrollTop();
+            var st = $window.scrollTop();
             if (st > this.lastScrollTop) {
                 broadcast('scrollDown', this);
             } else {
@@ -1812,7 +1825,7 @@ SecondFunnel = (function (SecondFunnel) {
         // Top-level event binding wrapper. all events bubble up to this level.
         // the theme can declare as many event handlers as they like by creating
         // their own new EventManager({ event: handler, event: ... })s.
-        'el': $(window).add($(document)),
+        'el': $window.add($document),
         'initialize': function (bindings) {
             var self = this;
             _.each(bindings, function (func, key, l) {
@@ -1835,7 +1848,7 @@ SecondFunnel = (function (SecondFunnel) {
     };
 
     return SecondFunnel;
-}(new Backbone.Marionette.Application()));
+}(new Backbone.Marionette.Application(), $(window), $(document)));
 
 
 SecondFunnel.addInitializer(function (options) {

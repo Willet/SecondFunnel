@@ -120,7 +120,6 @@
             <div class="social-buttons"></div>
         </script>
         <script type="text/template" id="preview_container_template">
-            <div class="mask"></div>
             <div class="tablecell">
                 <div class="content">
                     <span class="close">&#x00D7;</span>
@@ -129,6 +128,7 @@
                     </div>
                 </div>
             </div>
+            <div class="mask"></div>
         </script>
         <script type="text/template" id="tile_preview_template">
             <h2><span class="label label-info"><%= obj.template %>_preview_template</span> is missing.</h2>
@@ -236,8 +236,8 @@
                  of default templates if they exist. -->
             <div class='content-wrapper row'>
                 <div class='image-div col-sm-6 col-md-6'>
-                    <div class='table'>
-                        <div class='image'><img src='<%= obj.image %>'/></div>
+                    <div class='image'>
+                        <img src='<%= sizeImage(obj.image, 400) %>'/>
                     </div>
                 </div>
                 <div class='info col-sm-6 col-md-6'>
@@ -268,7 +268,7 @@
                     <div class='selector'>
                         <div class='images'>
                             <% _.each(obj.images, function(image) { %>
-                            <img src='<%= image %>' />
+                            <img src='<%= sizeImage(image, 100) %>' />
                             <% }); %>
                         </div>
                     </div>
@@ -308,11 +308,11 @@
                 <div class="image-with-related-products">
                     <div class="row">
                         <div class="image col-sm-6 col-md-6">
-                            <img src="<%= obj.image %>" alt="image" />
+                            <img src="<%= sizeImage(obj.image, 400) %>" alt="image" />
                         </div>
                         <div class="col-sm-6 col-md-6">
                             <% var product = obj['related-products'][0]; %>
-                            <img class="main-image" src="<%= product.image %>" alt="related product" />
+                            <img class="main-image" src="<%= sizeImage(product.image, 150) %>" alt="related product" />
                             <div class='title'><%= product.title %></div>
                             <div class='price'><%= product.price %></div>
                             <div class='description'>
@@ -340,7 +340,7 @@
                                 <div class='selector'>
                                     <div class='images'>
                                         <% _.each(product.images, function(image) { %>
-                                        <img src='<%= image %>' />
+                                        <img src='<%= sizeImage(image, 100) %>' />
                                         <% }); %>
                                     </div>
                                 </div>
@@ -350,7 +350,7 @@
                 </div>
             <% } else { %>
                 <div class="image-without-related-products">
-                    <img src="<%= obj.image %>" alt="image" />
+                    <img src="<%= sizeImage(obj.image, 400) %>" alt="image" />
                     <div class="info">
                         <%= SecondFunnel.utils.safeString(obj.caption) %>
                         <span class="label label-info pull-right"><%= obj.template %></span>
@@ -432,6 +432,7 @@
                 'enableTracking': true, // optional; default: true
                 'eventMap': undefined,  // optional
                 'imageTileWide': 0.25,
+                'imageSizes': undefined,  // optional, overrides built-in size map
                 'previewAnimationDuration': 0.1,
                 'previewMobileAnimationDuration': 0,
                 'masonryAnimationDuration': 0.4,
@@ -526,6 +527,7 @@
             if (window.SecondFunnel) {
                 // Start the SecondFunnel app
                 SecondFunnel.start(SecondFunnel.options);
+                window.sizeImage = SecondFunnel.utils.pickImageSize;  // export for designers
 
                 // Example: add UI events
                 new SecondFunnel.classRegistry.EventManager({
@@ -548,7 +550,7 @@
                             .addClass('selected')
                             .parents('.previewContainer')
                             .find('.image img')
-                            .attr('src', new_url);
+                            .attr('src', sizeImage(new_url, 300));
                     }
                 });
 
