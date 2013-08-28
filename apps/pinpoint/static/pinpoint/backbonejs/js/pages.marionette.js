@@ -230,10 +230,13 @@ SecondFunnel = (function (SecondFunnel) {
         utils.pickImageSize = function (url, minWidth) {
             // returns a url that is either
             //   - the url, if it is not an image service url, or
-            //   - a image url pointing to one that is at least as wide as
+            //   - an image url pointing to one that is at least as wide as
             //     minWidth, or
+            //   - an image url pointing to one that is at most as wide as
+            //     the window width, or
             //   - if minWidth is ridiculously large, master.jpg.
             var i,
+                maxLogicalSize = $(window).width(),
                 sizable = /images\.secondfunnel\.com.+(jpg|png)/.test(url),
                 imageSizes = SecondFunnel.option('imageSizes', {
                     // see Scraper: ImageServiceIntegrationTest.java#L52
@@ -255,7 +258,8 @@ SecondFunnel = (function (SecondFunnel) {
 
             for (i in imageSizes) {
                 if (imageSizes.hasOwnProperty(i)) {
-                    if (imageSizes[i] >= minWidth) {
+                    if (imageSizes[i] >= minWidth ||
+                        imageSizes[i] >= maxLogicalSize) {
                         return url.replace(/master/, i);
                     }
                 }
