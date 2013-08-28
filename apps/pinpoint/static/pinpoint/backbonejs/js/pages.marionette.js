@@ -56,13 +56,11 @@ debugOp = function () {
 SecondFunnel = (function (SecondFunnel) {
     "use strict";
 
-    var Tile, TileCollection, makeView, FeaturedAreaView, TileView,
+    var Tile, TileCollection, FeaturedAreaView, TileView,
         VideoTileView, SocialButtons, SocialButtonView, FacebookSocialButton,
         TwitterSocialButton, ShareSocialButton, SharePopup, Discovery,
         Category, CategoryView, CategorySelector, PreviewContent, PreviewWindow,
-        TapIndicator, EventManager;
-
-    SecondFunnel.vent = _.extend({}, Backbone.Events);  // Custom event trigger/listener
+        TapIndicator, EventManager, ShadowTile;
 
     // keep reference to options. this needs to be done before classes are declared.
     SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
@@ -217,6 +215,52 @@ SecondFunnel = (function (SecondFunnel) {
             // trims the string and checks if it's just 'None'.
             // more checks to come later.
             return $.trim(str).replace(/^(None|undefined|false|0)$/, '');
+        };
+
+        utils.makeView = function (classType, params) {
+            // view factory to allow views that bind to arbitrary regions
+            // and use any template decided at runtime, e.g.
+            //   someTemplate = '#derp1'
+            //   a = makeView('Layout', {template: someTemplate})
+            //   a.render()
+            classType = classType || 'ItemView';
+            return Backbone.Marionette[classType].extend(params);
+        };
+
+        utils.pickImageSize = function (url, minWidth) {
+            // returns a url that is either
+            //   - the url, if it is not an image service url, or
+            //   - a image url pointing to one that is at least as wide as
+            //     minWidth, or
+            //   - if minWidth is ridiculously large, master.jpg.
+            var i,
+                sizable = /images\.secondfunnel\.com.+(jpg|png)/.test(url),
+                imageSizes = SecondFunnel.option('imageSizes', {
+                    // see Scraper: ImageServiceIntegrationTest.java#L52
+                    "pico": 16,
+                    "icon": 32,
+                    "thumb": 50,
+                    "small": 100,
+                    "compact": 160,
+                    "medium": 240,
+                    "large": 480,
+                    "grande": 600,
+                    "1024x1024": 1024,
+                    "master": 2048
+                });
+
+            if (!sizable) {
+                return url;
+            }
+
+            for (i in imageSizes) {
+                if (imageSizes.hasOwnProperty(i)) {
+                    if (imageSizes[i] >= minWidth) {
+                        return url.replace(/master/, i);
+                    }
+                }
+            }
+            return url;
         };
     });
 
@@ -829,9 +873,7 @@ SecondFunnel = (function (SecondFunnel) {
                 type = this.get('content-type').toLowerCase();
 
             this.type = 'image';
-            this.attributes.caption = (this.attributes.caption === "None" ?
-                                       " " :
-                                       this.attributes.caption);
+            this.set("caption", SecondFunnel.utils.safeString(this.get("caption")));
             if (_.contains(videoTypes, type)) {
                 this.type = 'video';
             }
@@ -841,6 +883,10 @@ SecondFunnel = (function (SecondFunnel) {
         'is': function (type) {
             // check if a tile is of (type). the type is _not_ the tile's template.
             return this.get('content-type').toLowerCase() === type.toLowerCase();
+        },
+
+        'sizedImage': function () {
+            return SecondFunnel.utils.pickImageSize(this.image);
         },
 
         'createView': function () {
@@ -896,17 +942,6 @@ SecondFunnel = (function (SecondFunnel) {
             broadcast('tileCollectionIntialized', this);
         }
     });
-
-
-    makeView = function (classType, params) {
-        // view factory to allow views that bind to arbitrary regions
-        // and use any template decided at runtime, e.g.
-        //   someTemplate = '#derp1'
-        //   a = makeView('Layout', {template: someTemplate})
-        //   a.render()
-        classType = classType || 'ItemView';
-        return Backbone.Marionette[classType].extend(params);
-    };
 
     FeaturedAreaView = Backbone.Marionette.ItemView.extend({
         // $(...).html() defaults to the first item successfully selected
@@ -1060,10 +1095,9 @@ SecondFunnel = (function (SecondFunnel) {
             this.$el.addClass('wide');
 
             if (this.model.is('youtube')) {
-                _.extend(this.model.attributes, {
-                    'thumbnail': 'http://i.ytimg.com/vi/' + this.model.get('original-id') +
-                        '/hqdefault.jpg'
-                });
+                this.model.set("thumbnail", 'http://i.ytimg.com/vi/' +
+                                            this.model.get('original-id') +
+                                            '/hqdefault.jpg');
             }
 
             // Determine which click handler to use; determined by the
@@ -1257,6 +1291,21 @@ SecondFunnel = (function (SecondFunnel) {
             return this;
         }
     });
+
+
+    ShadowTile = Tile.extend({
+        // based on a View, this object contains a get() and a set()
+        // that does NOT alter its original model.
+        'propBag': {},
+        'get': function (key) {
+            return this.propBag[key] || Tile.prototype.get.apply(this, arguments);
+        },
+        'set': function (key, val, options) {
+            this.propBag[key] = val;
+            return this;
+        }
+    });
+
 
     SocialButtonView = Backbone.Marionette.ItemView.extend({
         // Base object for Social buttons, when adding a new Social button, extend
@@ -1753,7 +1802,8 @@ SecondFunnel = (function (SecondFunnel) {
     SecondFunnel.classRegistry = {
         Discovery: Discovery,
         EventManager: EventManager,
-        FeaturedAreaView: FeaturedAreaView
+        FeaturedAreaView: FeaturedAreaView,
+        ShadowTile: ShadowTile
     };
 
     return SecondFunnel;

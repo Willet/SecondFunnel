@@ -103,10 +103,10 @@
 
         <script type="text/template" id="product_tile_template">
             <div class="tap-indicator-target"></div>
-            <img class="focus" src="<%= image %>" alt="<%= caption %>" />
+            <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
             <span class="type"><%= obj['content-type'] %></span>
             <div class="caption">
-                <span><%= caption %></span>
+                <span><%= obj.caption %></span>
             </div>
             <div class="social-buttons"></div>
         </script>

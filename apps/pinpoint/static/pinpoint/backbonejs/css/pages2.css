@@ -135,6 +135,8 @@ div.loading {
     /* the "focus" image (i.e. main image) must be at least some pixels wide. */
     min-width: 200px;
     min-height: 75px;
+    display: block;
+    margin: auto;
 }
 
 .tile:hover,
