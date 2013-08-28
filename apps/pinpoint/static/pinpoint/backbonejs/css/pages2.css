@@ -354,10 +354,6 @@ div.loading {
     z-index: 100;
 }
 
-.previewContainer .tablecell {
-    z-index: 1002;
-}
-
 .previewContainer .content {
     /* let the preview scroll, but only if it needs to */
     overflow-y: auto;
@@ -420,6 +416,9 @@ div.loading {
 @media screen and (max-width: 768px) {
     .previewContainer {
         top: 50px;
+    }
+    .previewContainer .mask {
+        display: none;
     }
     .previewContainer .tablecell {
         display: block;
