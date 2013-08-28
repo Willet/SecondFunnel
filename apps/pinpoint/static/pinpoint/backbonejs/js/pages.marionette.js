@@ -805,6 +805,7 @@ SecondFunnel = (function (SecondFunnel) {
 
                     img.onerror = function () {
                         // On error, remove the image
+                        broadcast('tileRemoved', self);
                         $(self).remove();
                         errs++;
                     };
@@ -875,8 +876,11 @@ SecondFunnel = (function (SecondFunnel) {
             var videoTypes = ["youtube", "video"],
                 type = this.get('content-type').toLowerCase();
 
-            this.type = 'image';
-            this.set("caption", SecondFunnel.utils.safeString(this.get("caption")));
+            this.type = 'image';  // TODO: what is this
+            this.set({
+                "type": "image",
+                "caption": SecondFunnel.utils.safeString(this.get("caption"))
+            });
             if (_.contains(videoTypes, type)) {
                 this.type = 'video';
             }
@@ -886,10 +890,6 @@ SecondFunnel = (function (SecondFunnel) {
         'is': function (type) {
             // check if a tile is of (type). the type is _not_ the tile's template.
             return this.get('content-type').toLowerCase() === type.toLowerCase();
-        },
-
-        'sizedImage': function () {
-            return SecondFunnel.utils.pickImageSize(this.image);
         },
 
         'createView': function () {
@@ -1073,7 +1073,18 @@ SecondFunnel = (function (SecondFunnel) {
                     'height': this.model.get('size').height
                 });
             }
-            if (SocialButtons.prototype.buttonTypes.length && !(SecondFunnel.observable.touch() || SecondFunnel.observable.mobile())) {
+
+            // semi-stupid view-based resizer
+            var tileImg = this.$('img.focus'),
+                isWide = this.$el.hasClass('wide')? 2 : 1,
+                columnWidth = SecondFunnel.option('columnWidth', $.noop)() || 256;
+            if (tileImg.length) {
+                tileImg.attr('src', SecondFunnel.utils.pickImageSize(tileImg.attr('src'),
+                                    isWide * columnWidth));
+            }
+
+            if (SocialButtons.prototype.buttonTypes.length &&
+                !(SecondFunnel.observable.touch() || SecondFunnel.observable.mobile())) {
                 this.socialButtons.show(new SocialButtons({model: this.model}));
             }
             this.tapIndicator.show(new TapIndicator());
@@ -1292,7 +1303,7 @@ SecondFunnel = (function (SecondFunnel) {
         // that does NOT alter its original model.
         'propBag': {},
         'get': function (key) {
-            return this.propBag[key] || Tile.prototype.get.apply(this, arguments);
+            return this.propBag[key] || Backbone.Model.prototype.get.apply(this, arguments);
         },
         'set': function (key, val, options) {
             this.propBag[key] = val;
