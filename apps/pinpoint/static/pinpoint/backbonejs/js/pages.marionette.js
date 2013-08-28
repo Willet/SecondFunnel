@@ -686,6 +686,7 @@ SecondFunnel = (function (SecondFunnel) {
 
             layoutEngine.append = function ($fragment, callback) {
                 broadcast('fragmentAppended', $fragment);
+                layoutEngine.$el.append($fragment).masonry('appended', $fragment);
                 return callback ? callback($fragment) : layoutEngine;
             };
 
@@ -738,7 +739,8 @@ SecondFunnel = (function (SecondFunnel) {
                 // return dimensions and/or a dominant colour; elements in the $fragment have
                 // assigned widths and heights; (e.g. .css('width', '100px'))
                 var args = _.toArray(arguments).slice(1),
-                    errs = 0;
+                    toLoad = $fragment.children('img').length,
+                    $badImages = $();
                 // We set the background image of the tile image as the dominant colour/loading;
                 // when the image is loaded, we replace the src.
                 $fragment.children('img').each(function () {
@@ -750,23 +752,26 @@ SecondFunnel = (function (SecondFunnel) {
                     $(this).attr('src', '');
 
                     // Now apply handlers
-                    img.onload = function () {
-                        // Change the src attribute and remove the dummy image
-                        self.src = img.src;
-                        if (errs !== 0) {
-                            // If there were any errors, reload the layout.
+                    var onImage = function () {
+                        // Function to check on each image load/error
+                        --toLoad;
+                        if ($badImages.length !== 0 && toLoad == 0) {
+                            // If broken images exist, remove them and
+                            // reload the layout.
+                            $badImages.remove();
                             layoutEngine.reload();
                         }
                     };
+                    img.onload = function () {
+                        self.src = img.src;
+                        onImage();
+                    };
 
                     img.onerror = function () {
-                        // On error, remove the image
-                        $(self).remove();
-                        errs++;
+                        $badImages = $badImages.add($(self).parents(layoutEngine.selector));
+                        onImage();
                     };
                 });
-                // Append by default
-                layoutEngine.$el.append($fragment).masonry('appended', $fragment);
                 return callback.apply(layoutEngine, args);
             };
 
@@ -774,39 +779,35 @@ SecondFunnel = (function (SecondFunnel) {
                 // @deprecated: Use until ImageService is reading/returns dominant colour
                 // Calls the broken handler to remove broken images as they appear;
                 // when all images are loaded, calls the appropriate layout function
-                var args = _.toArray(arguments),
-                    $remaining = $fragment.filter(function () {
-                        // Get any non-image (YT) blocks
-                        return $(this).children('img').length === 0;
-                    }),
+                var args = _.toArray(arguments).slice(2),
+                    $badImages = $(),
                     imgLoad = imagesLoaded($fragment.children('img'));
-                // Remove broken images as they appear
-                imgLoad.on('progress', function (instance, image) {
-                    var $img = $(image.img),
-                        $elem = $img.parents(layoutEngine.selector);
-                    // TODO: This is the first point we know the dimensions of the image (until
-                    // image service returns dimensions).  What qualifies as too small?
-                    if (!image.isLoaded) {
-                        $fragment = $fragment.filter(function () {
-                            return !$(this).is($elem);
+                imgLoad.on('always', function (imgLoad) {
+                    // When all images are loaded and/or error'd remove the broken ones, and load
+                    // the good ones.
+                    if (imgLoad.hasAnyBroken) {
+                        // Iterate through the images and collect the bad images.
+                        var $badImages = $();
+                        _.each(imgLoad.images, function (image) {
+                            if (!image.isLoaded) {
+                                var $img = $(image.img),
+                                    $elem = $img.parents(layoutEngine.selector);
+                                $fragment = $fragment.filter(function () {
+                                    return !$(this).is($elem);
+                                });
+                                $badImages = $badImages.add($elem);
+                            }
                         });
-                        $img.remove();
-                    } else {
-                        // Append to container and called appended
-                        layoutEngine.$el.append($elem).masonry('appended', $elem);
+                        // Batch removal of bad elements
+                        $badImages.remove();
                     }
-                }).on('always', function () {
-                    // When all images are loaded, show the non-broken ones and reload
-                    if ($remaining.length > 0) {
-                        layoutEngine.$el.append($remaining).masonry('appended',
-                                                                    $remaining);                        
-                    }
+                    // Trigger tracking event and call the callback
                     SecondFunnel.vent.trigger('tracking:trackEvent', {
                         'action': "network=|actionType=impression|actionSubtype=productImpression|actionScope=???",
                         'label': 'productViewed',
                         'value': ''
                     });
-                    args = args.slice(1);
+                    args.unshift($fragment);
                     callback.apply(layoutEngine, args);
                 });
                 return layoutEngine;
@@ -1010,7 +1011,8 @@ SecondFunnel = (function (SecondFunnel) {
         },
 
         'onBeforeRender': function () {
-            var maxImageSize;
+            var maxImageSize,
+                self = this;
             try {
                 maxImageSize = _.findWhere(this.model.images[0].sizes,
                     {'name': 'master'})[0];
@@ -1024,12 +1026,16 @@ SecondFunnel = (function (SecondFunnel) {
                     this.$el.addClass('wide');
                 }
             }
+            // Listen for the image being removed from the DOM, if it is, remove
+            // the View/Model to free memory
+            this.$el.on('remove', function (ev) {
+                if (ev.target === self.el) {
+                    self.close();
+                }
+            });
         },
 
         'onRender': function () {
-            // Listen for the image being removed from the DOM, if it is, remove
-            // the View/Model to free memory
-            this.$("img").on('remove', this.close);
             if (this.model.get('size')) {
                 // Check if ImageService is ready
                 this.$("img").css({
@@ -1038,10 +1044,14 @@ SecondFunnel = (function (SecondFunnel) {
                     'height': this.model.get('size').height
                 });
             }
-            if (SocialButtons.prototype.buttonTypes.length && !(SecondFunnel.observable.touch() || SecondFunnel.observable.mobile())) {
-                this.socialButtons.show(new SocialButtons({model: this.model}));
+            if (this.tapIndicator && this.socialButtons) {
+                // Need to do this check in case layout is closing due
+                // to broken images.
+                if (SocialButtons.prototype.buttonTypes.length && !(SecondFunnel.observable.touch() || SecondFunnel.observable.mobile())) {
+                    this.socialButtons.show(new SocialButtons({model: this.model}));
+                }
+                this.tapIndicator.show(new TapIndicator());
             }
-            this.tapIndicator.show(new TapIndicator());
         }
     });
 
@@ -1230,7 +1240,6 @@ SecondFunnel = (function (SecondFunnel) {
             // @override to false under any condition you don't want buttons to show
             return true;
         },
-
 
         'load': function () {
             // Initialize each Social Button; lazy loading to improve
