@@ -968,10 +968,8 @@ SecondFunnel = (function (SecondFunnel) {
         'tagName': "div", // TODO: Should this be a setting?
         'templates': function (currentView) {
             return [
-                "#<%= data['content-type'] %>_<%= data.template %>_tile_template",
-                "#<%= data.template %>_<%= data['content-type'] %>_tile_template",
                 "#<%= data.template %>_tile_template",
-                "#product_tile_template"
+                "#product_tile_template" // default
             ];
         },
         'template': "#product_tile_template",
@@ -1490,14 +1488,18 @@ SecondFunnel = (function (SecondFunnel) {
         },
 
         'initialize': function (options) {
+            var share = {};
             this.buttons = _.map(this.buttons, function (obj) {
                 obj.url = _.template(obj.url, options);
+                share[obj.name] = obj;
                 return obj;
             });
+            this.options.share = share;
         },
 
         'templateHelpers': function () {
             return {
+                'share': this.options.share,
                 'buttons': this.buttons
             };
         },
