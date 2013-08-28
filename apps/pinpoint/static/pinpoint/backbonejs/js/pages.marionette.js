@@ -966,6 +966,14 @@ SecondFunnel = (function (SecondFunnel) {
     TileView = Backbone.Marionette.Layout.extend({
         // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
         'tagName': "div", // TODO: Should this be a setting?
+        'templates': function (currentView) {
+            return [
+                "#<%= data['content-type'] %>_<%= data.template %>_tile_template",
+                "#<%= data.template %>_<%= data['content-type'] %>_tile_template",
+                "#<%= data.template %>_tile_template",
+                "#product_tile_template"
+            ];
+        },
         'template': "#product_tile_template",
         'className': SecondFunnel.option('discoveryItemSelector',
             '').substring(1),
@@ -985,12 +993,7 @@ SecondFunnel = (function (SecondFunnel) {
             // Creates the TileView using the options.  Subclasses should not override this
             // method, rather provide an 'onInitialize' function
             var data = options.model.attributes,
-                template = "#" + data.template + "_tile_template",
                 self = this;
-
-            if (Backbone.Marionette.TemplateCache._exists(template)) {
-                this.template = template;
-            }
 
             _.each(data['content-type'].toLowerCase().split(),
                 function (cName) {
