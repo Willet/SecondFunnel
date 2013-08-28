@@ -13,6 +13,37 @@ body {
     height: 53px;
 }
 
+.dropdown-menu .facebook,
+.dropdown-menu .twitter,
+.dropdown-menu .pinterest,
+.dropdown-menu .instagram,
+.dropdown-menu .tumblr {
+    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Social+Subscribe+-+Mobile.png') no-repeat top left;
+    background-size: 24px auto;
+    padding-left: 30px;
+}
+
+.dropdown-menu .facebook {
+    background-position: 4px 1px;
+}
+
+.dropdown-menu .twitter {
+    background-position: 4px -25px;
+}
+
+.dropdown-menu .pinterest {
+    background-position: 4px -54px;
+}
+
+.dropdown-menu .instagram {
+    background-position: 4px -82px;
+}
+
+.dropdown-menu .tumblr {
+    background-position: 4px -109px;
+}
+
+
 .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {
     background-color: #acacac;
     background-image: none;

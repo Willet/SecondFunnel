@@ -177,24 +177,38 @@ SecondFunnel = (function (SecondFunnel) {
         return template;
     };
 
-    SecondFunnel.module("observables", function (observables) {
+    SecondFunnel.module("observable", function (observable) {
         // make new module full of transient utilities
 
         var testUA = function (regex) {
             return regex.test(window.navigator.userAgent);
         };
 
-        observables.mobile = function () {
+        observable.mobile = function () {
             return ($(window).width() < 768);  // 768 is set in stone now
         };
-        observables.touch = function () {
+        observable.touch = function () {
             return ('ontouchstart' in document.documentElement);
         };
 
-        observables.isAniPad = function () {
+        observable.isAniPad = function () {
             // use of this function is highly discouraged, but you know it
             // will be used anyway
             return testUA(/ipad/i);
+        };
+
+        observable.onErrorResumeNext = function (func, context) {
+            // ms.system.reactive.linq.observable.onerrorresumenext(v=vs.103)
+            // the absolutely-no-errors-must-leave-this-function 'decorator'.
+            // context should be the caller's 'this'.
+            // arguments after context will be passed to func.
+            try {
+                var pArgs = Array.prototype.slice.call(arguments, 2);
+                return func.apply(context || window, pArgs);
+            } catch (err) {
+                console.error('Exception in %O: %O', func, err);
+            }
+            return null;  // have a return, just to shut up jslint
         };
     });
 
@@ -628,7 +642,7 @@ SecondFunnel = (function (SecondFunnel) {
             };
 
             layoutEngine.initialize = function ($elem, options) {
-                var mobile = SecondFunnel.observables.mobile();
+                var mobile = SecondFunnel.observable.mobile();
 
                 layoutEngine.selector = options.discoveryItemSelector;
                 _.extend(layoutEngine.options, {
@@ -1030,7 +1044,7 @@ SecondFunnel = (function (SecondFunnel) {
                     'height': this.model.get('size').height
                 });
             }
-            if (SocialButtons.prototype.buttonTypes.length && !(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
+            if (SocialButtons.prototype.buttonTypes.length && !(SecondFunnel.observable.touch() || SecondFunnel.observable.mobile())) {
                 this.socialButtons.show(new SocialButtons({model: this.model}));
             }
             this.tapIndicator.show(new TapIndicator());
@@ -1076,7 +1090,7 @@ SecondFunnel = (function (SecondFunnel) {
                 'videoId': this.model.attributes['original-id'] || this.model.id,
                 'playerVars': {
                     'autoplay': 1,
-                    'controls': SecondFunnel.observables.mobile()
+                    'controls': SecondFunnel.observable.mobile()
                 },
                 'events': {
                     'onReady': $.noop,
@@ -1465,13 +1479,13 @@ SecondFunnel = (function (SecondFunnel) {
             _.bindAll(this, 'pageScroll', 'toggleLoading',
                 'layoutResults');
             $(window)
-                .scroll(this.pageScroll)
-                .resize(function () {
+                .scroll(_.throttle(this.pageScroll, 500))
+                .resize(_.throttle(function () {
                     // did you know any DOM element without resize events
                     // can still react to potential resizes by having its
                     // own .bind('resize', function () {})?
                     $('.resizable', document).resize();
-                });
+                }, 500));
 
             // Vent Listeners
             SecondFunnel.vent.on("tileClicked", this.updateContentStream,
@@ -1649,7 +1663,7 @@ SecondFunnel = (function (SecondFunnel) {
                 '#tile_preview_template' // fallback
             ];
 
-            if (!SecondFunnel.observables.mobile()) {
+            if (!SecondFunnel.observable.mobile()) {
                 // remove mobile templates if it isn't mobile, since they take
                 // higher precedence by default
                 defaultTemplateRules = _.reject(defaultTemplateRules,
@@ -1662,7 +1676,7 @@ SecondFunnel = (function (SecondFunnel) {
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
             var buttons, width;
-            if (!(SecondFunnel.observables.touch() || SecondFunnel.observables.mobile())) {
+            if (!(SecondFunnel.observable.touch() || SecondFunnel.observable.mobile())) {
                 buttons = new SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
             }
@@ -1709,7 +1723,7 @@ SecondFunnel = (function (SecondFunnel) {
         'onBeforeRender': function () {
             // http://jsperf.com/hasclass-vs-toggleclass
             // toggleClass with a boolean is 55% slower than manual checks
-            if (SecondFunnel.observables.touch()) {
+            if (SecondFunnel.observable.touch()) {
                 $('html').addClass('touch-enabled');
             } else {
                 $('html').removeClass('touch-enabled');
@@ -1760,7 +1774,7 @@ SecondFunnel.addInitializer(function (options) {
 
     $.fn.scrollable = $.fn.scrollable || function (yesOrNo) {
         // make an element scrollable on mobile.
-        if (SecondFunnel.observables.touch()) { //if touch events exist...
+        if (SecondFunnel.observable.touch()) { //if touch events exist...
             var $el = $(this),  // warning: multiple selectors
                 $html = $('html'),
                 $body = $('body'),

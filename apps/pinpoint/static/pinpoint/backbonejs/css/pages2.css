@@ -349,6 +349,11 @@ div.loading {
     cursor: -moz-zoom-out;
     cursor: zoom-out;
     display: block;
+    z-index: 100;
+}
+
+.previewContainer .tablecell {
+    z-index: 1002;
 }
 
 .previewContainer .content {

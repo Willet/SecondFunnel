@@ -7,7 +7,7 @@
         <link rel="stylesheet" type="text/css" href="css/pages2.css" />
         <link rel="stylesheet" type="text/css" href="css/styles.css" />
         <!-- End CSS -->
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" ><!-- required by bootstrap -->
+        <meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1.5"><!-- required by bootstrap -->
         <meta http-equiv="X-UA-Compatible" content="IE=edge"><!-- required by bootstrap, IE -->
     </head>
 
@@ -45,11 +45,11 @@
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Stay connected <b class="caret"></b></a>
                             <ul class="dropdown-menu">
-                                <li><a href="#">Action</a></li>
-                                <li><a href="#">Another action</a></li>
-                                <li><a href="#">Something else here</a></li>
-                                <li><a href="#">Separated link</a></li>
-                                <li><a href="#">One more separated link</a></li>
+                                <li><a class="facebook" href="http://www.facebook.com/Gap">Facebook</a></li>
+                                <li><a class="twitter" href="http://www.twitter.com/gap">Twitter</a></li>
+                                <li><a class="pinterest" href="http://www.pinterest.com/Gap">Pinterest</a></li>
+                                <li><a class="instagram" href="http://www.instagram.com/gap">Instagram</a></li>
+                                <li><a class="tumblr" href="http://gap.tumblr.com/">Tumblr</a></li>
                             </ul>
                         </li>
                         <li class="dropdown">
@@ -374,7 +374,8 @@
                     'displayName': ""  // leave blank to use "Gap"
                 },
                 'page': {  // required
-                    'id': 9001  // required
+                    'id': 9001,  // required
+                    'offline': false  // optional (if true, loads .content immediately)
                 },
                 'campaign': 96,
                 'categories': [
