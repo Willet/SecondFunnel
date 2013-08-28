@@ -370,10 +370,12 @@ SecondFunnel = (function (SecondFunnel) {
                         "referrer=" + referrerName() + "|" +
                         "domain=" + parseUri(window.location.href).host;
 
-                    if (window._gaq) {
-                        window._gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+                    if (SecondFunnel.option('enableTracking', true)) {
+                        if (window._gaq) {
+                            window._gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+                        }
+                        broadcast('eventTracked', o, category);
                     }
-                    broadcast('eventTracked', o, category);
                 },
 
                 setCustomVar = function (o) {
@@ -386,7 +388,7 @@ SecondFunnel = (function (SecondFunnel) {
                         return;
                     }
 
-                    if (window._gaq) {
+                    if (window._gaq && SecondFunnel.option('enableTracking', true)) {
                         window._gaq.push(['_setCustomVar', slotId, name, value, scope]);
                     }
                 };
@@ -773,39 +775,40 @@ SecondFunnel = (function (SecondFunnel) {
                 // Calls the broken handler to remove broken images as they appear;
                 // when all images are loaded, calls the appropriate layout function
                 var args = _.toArray(arguments),
+                    $remaining = $fragment.filter(function () {
+                        // Get any non-image (YT) blocks
+                        return $(this).children('img').length === 0;
+                    }),
                     imgLoad = imagesLoaded($fragment.children('img'));
                 // Remove broken images as they appear
                 imgLoad.on('progress', function (instance, image) {
                     var $img = $(image.img),
                         $elem = $img.parents(layoutEngine.selector);
-
                     // TODO: This is the first point we know the dimensions of the image (until
                     // image service returns dimensions).  What qualifies as too small?
                     if (!image.isLoaded) {
+                        $fragment = $fragment.filter(function () {
+                            return !$(this).is($elem);
+                        });
                         $img.remove();
                     } else {
                         // Append to container and called appended
                         layoutEngine.$el.append($elem).masonry('appended', $elem);
                     }
-                }).on('always', 
-                      function () {
-                        // When all images are loaded, show the non-broken ones and reload
-                        var $remaining = $fragment.filter(function () {
-                            return !$.contains(document.documentElement,
-                                $(this)[0]);
-                        });
-                        if ($remaining.length > 0) {
-                            layoutEngine.$el.append($remaining).masonry('appended',
-                                $remaining);
-                            SecondFunnel.vent.trigger('tracking:trackEvent', {
-                                'action': "network=|actionType=impression|actionSubtype=productImpression|actionScope=???",
-                                'label': 'productViewed',
-                                'value': ''
-                            });
-                        }
-                        args = args.slice(1);
-                        callback.apply(layoutEngine, args);
+                }).on('always', function () {
+                    // When all images are loaded, show the non-broken ones and reload
+                    if ($remaining.length > 0) {
+                        layoutEngine.$el.append($remaining).masonry('appended',
+                                                                    $remaining);                        
+                    }
+                    SecondFunnel.vent.trigger('tracking:trackEvent', {
+                        'action': "network=|actionType=impression|actionSubtype=productImpression|actionScope=???",
+                        'label': 'productViewed',
+                        'value': ''
                     });
+                    args = args.slice(1);
+                    callback.apply(layoutEngine, args);
+                });
                 return layoutEngine;
             };
         });
@@ -976,15 +979,6 @@ SecondFunnel = (function (SecondFunnel) {
 
         'modelChanged': function (model, value) {
             this.render();
-        },
-
-        'close': function () {
-            // As it stands, since we aren't using a REST API, we don't store
-            // the models anywhere so we don't need to destroy them.
-            // Remove view and unbind listeners
-            this.$el.remove();
-            this.unbind();
-            this.views = [];
         },
 
         'onHover': function (ev) {
@@ -1516,6 +1510,7 @@ SecondFunnel = (function (SecondFunnel) {
             }
 
             // If we have data to use.
+            data = this.filter(data);
             _.each(data, function (tileData) {
                 // Create the new tiles using the data
                 var tile = new Tile(tileData),
@@ -1538,15 +1533,25 @@ SecondFunnel = (function (SecondFunnel) {
 
         'filter': function (content, selector) {
             // Filter the content in the LayoutEngine based on the selector
-            // passed.
+            // passed and the criteria/filters defined in the SecondFunnel options.
             var filters = this.options.filters || [];
-            filters = selector ? filters.concat(selector) : filters;
+            filters.push(selector);
+            filters = _.flatten(filters);
 
-            _.each(filters, function (filter) {
-                if (typeof filter === 'function') {
-                    content = _.filter(content, filter);
+            for (var i = 0; i < filters.length; ++i) {
+                var filter = filters[i];
+                if (content.length === 0) {
+                    break;
                 }
-            });
+                switch (typeof filter) {
+                case 'function':
+                    content = _.filter(content, filter);
+                    break;
+                case 'object':
+                    content = _.where(content, filter);
+                    break;
+                }
+            }
             return content;
         },
 
