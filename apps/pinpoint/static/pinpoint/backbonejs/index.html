@@ -59,7 +59,7 @@
                             <li><a href="#" data-category="99">Samsung SSD</a></li>
                           </ul>
                     </ul>
-                    <ul class="nav navbar-nav navbar-right">
+                    <ul class="nav navbar-nav navbar-right hidden-xxs">
                         <li><a href="#">Social buttons</a></li>
                     </ul>
                 </div><!-- /.navbar-collapse -->
@@ -308,7 +308,7 @@
                         <div class="image col-sm-6 col-md-6">
                             <img src="<%= obj.image %>" alt="image" />
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-sm-6 col-md-6">
                             <% var product = obj['related-products'][0]; %>
                             <img class="main-image" src="<%= product.image %>" alt="related product" />
                             <div class='title'><%= product.title %></div>
@@ -362,7 +362,7 @@
         <!-- Javascript Files -->
         <script type="text/javascript">
             window.TEST_PAGE_DATA = {
-                'debug': true,
+                'debug': 0,
                 'base_url': "http://www.secondfunnel.com",
                 'discoveryTarget': "#discovery-area",
                 'discoveryItemSelector': ".tile",
@@ -415,6 +415,7 @@
                         'text': "Share on Twitter"
                     }
                 ],
+                'eventMap': undefined,  // optional
                 'imageTileWide': 0.25,
                 'previewAnimationDuration': 0.1,
                 'previewMobileAnimationDuration': 0,

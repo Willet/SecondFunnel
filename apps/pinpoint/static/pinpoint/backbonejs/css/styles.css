@@ -103,7 +103,11 @@ body {
     }
 }
 
-
+@media screen and (max-width: 768px) {
+    .previewContainer .content {
+        margin-bottom: 50px;  /* bump scrollable area up */
+    }
+}
 
 
 /* === */

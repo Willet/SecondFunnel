@@ -573,6 +573,10 @@ SecondFunnel = (function (SecondFunnel) {
                 }
             };
 
+            // more events can be declared by the theme without EventManager instances
+            $.extend(true, tracker.defaultEventMap,
+                     SecondFunnel.option('eventMap', {}));
+
             parseUri.options = {
                 'strictMode': false,
                 'key': [
@@ -940,13 +944,23 @@ SecondFunnel = (function (SecondFunnel) {
                 'id': this.cid
             });
 
-            _.bindAll(this, 'close');
+            // do some kind of magic such that these methods are always called
+            // with its context being this object.
+            _.bindAll(this, 'close', 'modelChanged');
+
+            // If the tile model is changed, re-render the tile
+            this.listenTo(this.model, 'changed', this.modelChanged);
+
             // If the tile model is removed, remove the DOM element
             this.listenTo(this.model, 'destroy', this.close);
             // Call onInitialize if it exists
             if (this.onInitialize) {
                 this.onInitialize(options);
             }
+            this.render();
+        },
+
+        'modelChanged': function (model, value) {
             this.render();
         },
 
@@ -1656,6 +1670,9 @@ SecondFunnel = (function (SecondFunnel) {
             if (width) {
                 this.$('.content').css('width', width + 'px');
             }
+
+            // out of scope
+            $('.scrollable', '.previewContainer').scrollable(true);
             broadcast('previewRendered', this);
         }
     });
@@ -1667,6 +1684,7 @@ SecondFunnel = (function (SecondFunnel) {
         'template': "#preview_container_template",
         'events': {
             'click .close, .mask': function () {
+                this.$el.scrollable(false);
                 this.$el.fadeOut(SecondFunnel.option('previewAnimationDuration')).remove();
             }
         },
@@ -1738,6 +1756,56 @@ SecondFunnel.addInitializer(function (options) {
     $.fn.remove = function () {
         $(this).trigger(ev);
         return orig.apply(this, arguments);
+    };
+
+    $.fn.scrollable = $.fn.scrollable || function (yesOrNo) {
+        // make an element scrollable on mobile.
+        if (SecondFunnel.observables.touch()) { //if touch events exist...
+            var $el = $(this),  // warning: multiple selectors
+                $html = $('html'),
+                $body = $('body'),
+                scrollPosition;
+
+            if (yesOrNo) {  // lock
+                scrollPosition = [
+                    self.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft,
+                    self.pageYOffset || document.documentElement.scrollTop  || document.body.scrollTop
+                ];
+
+                $html.data({
+                    'scroll-position': scrollPosition,
+                    'previous-overflow': $html.css('overflow')
+                });
+
+                $html.css({
+                    'overflow': 'hidden',
+                    'height': '100%'
+                });
+
+                $body.data('previous-overflow', $body.css('overflow'));
+                $body.css({
+                    'overflow': 'hidden',
+                    'height': '100%'
+                });
+
+                $el
+                    .height(1.5 * $(window).height())
+                    .css('max-height', '100%');
+
+            } else {
+                scrollPosition = $html.data('scroll-position');
+
+                $html.css({
+                    'overflow': $html.data('previous-overflow'),
+                    'height': 'auto'
+                });
+                $body.css({
+                    'overflow': $body.data('previous-overflow'),
+                    'height': 'auto'
+                });
+            }
+            window.scrollTo(scrollPosition[0], scrollPosition[1]);
+        }
     };
 
     $.fn.getClasses = $.fn.getClasses || function () {
