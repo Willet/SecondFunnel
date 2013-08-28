@@ -778,7 +778,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 var initialBottom = $target.position().top + $target.height();
                 // Find a target that is low enough on the screen to insert after
                 while ($target.position().top <= initialBottom &&
-                    $target.next().length > 0) {
+                        $target.next().length > 0) {
                     $target = $target.next();
                 }
                 $fragment.insertAfter($target);
@@ -1114,6 +1114,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 }
                 this.tapIndicator.show(new TapIndicator());
             }
+
+            this.$el.scaleImages();
         }
     });
 
@@ -1775,6 +1777,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 this.$('.content').css('width', width + 'px');
             }
 
+            this.$el.scaleImages();
+
             // out of scope
             $('.scrollable', '.previewContainer').scrollable(true);
             broadcast('previewRendered', this);
@@ -1803,6 +1807,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         },
         'onRender': function () {
             this.$el.css({display: "table"});
+            this.$el.scaleImages();
             $('body').append(this.$el.fadeIn(SecondFunnel.option('previewAnimationDuration')));
         }
     });
@@ -1917,6 +1922,17 @@ SecondFunnel.addInitializer(function (options) {
         // random helper. get an element's list of classes.
         // example output: ['facebook', 'button']
         return _.compact($(this).attr('class').split(' ').map($.trim));
+    };
+
+    $.fn.scaleImages = $.fn.scaleImages || function () {
+        // looks for .auto-scale elements and replace them with an image.
+        $(this).find('img.auto-scale').each(function () {
+            var $el = $(this),
+                data = $el.data();
+            if (data.src && data.size) {
+                $el.attr('src', SecondFunnel.utils.pickImageSize(data.src, data.size));
+            }
+        });
     };
 
     // underscore's fancy pants capitalize()
