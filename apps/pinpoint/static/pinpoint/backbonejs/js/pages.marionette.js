@@ -37,7 +37,7 @@ broadcast = function () {
     if (!window.SecondFunnel) {
         return;  // SecondFunnel not initialized yet
     }
-    if (SecondFunnel.option('debug') > 1) {
+    if (SecondFunnel.option('debug') > 2) {
         console.log('Broadcasting "' + arguments[0] + '" with args=%O', pArgs);
     }
     SecondFunnel.vent.trigger.apply(SecondFunnel.vent, arguments);
@@ -937,6 +937,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 this.type = 'video';
             }
             broadcast('tileModelIntialized', this);
+        },
+
+        'sync': function () {
+            return false;
         },
 
         'is': function (type) {
@@ -1876,7 +1880,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 var event = key.substr(0, key.indexOf(' ')),
                     selectors = key.substr(key.indexOf(' ') + 1);
                 self.$el.on(event, selectors, func);
-                if (SecondFunnel.option('debug', false) > 0) {
+                if (SecondFunnel.option('debug', 0) > 0) {
                     console.log('regEvent ' + key);
                 }
             });
