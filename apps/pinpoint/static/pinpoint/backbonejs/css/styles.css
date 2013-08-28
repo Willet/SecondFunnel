@@ -155,6 +155,10 @@ body {
     font-weight: bold;
 }
 
+.previewContainer .desc-title {
+    font-weight: bold;
+}
+
 .previewContainer .image {
     margin: 20px auto;
     text-align: center;

@@ -640,6 +640,40 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     });
                 },
 
+                // can't do click with delegation: stopPropagation in effect
+                "hover .social-buttons .button": function (e) {
+                    var $button = $(e.currentTarget);
+                    broadcast('socialButtonHover', $button);
+                    tracker.registerEvent({
+                        "type": "inpage",
+                        "subtype": "hoverSocialButton",
+                        "label": $button.getClasses().join(':')
+                    });
+                },
+
+                // core metrics: 'Shop Now', 'Find in Store' or similar
+                "click .find-store, .in-store": function (e) {
+                    var $button = $(e.currentTarget),
+                        isFindStore = $button.hasClass('find-store'),
+                        isInStore = $button.hasClass('in-store');
+                    if (isFindStore) {
+                        broadcast('findStoreClick', $button);
+                        tracker.registerEvent({
+                            "type": "inpage",
+                            "subtype": "clickFindStore",
+                            "label": "???"  // TODO: decide on a label
+                        });
+                    }
+                    if (isInStore) {
+                        broadcast('inStoreClick', $button);
+                        tracker.registerEvent({
+                            "type": "inpage",
+                            "subtype": "clickInStore",
+                            "label": "???"  // TODO: decide on a label
+                        });
+                    }
+                },
+
                 "click .pinterest": function () {
                     // social hover and popup pinterest click events
                     tracker.registerEvent({
@@ -1344,6 +1378,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         // from this class and modify as necessary.
         'events': {
             'click': function (ev) {
+                SecondFunnel.vent.trigger('tracker:registerEvent', {
+                    "network": "oneOfThem",
+                    "type": "share",
+                    "subtype": "clicked"
+                });
                 ev.stopPropagation(); // you did not click below the button
             },
             'hover': function (/* this */) {
