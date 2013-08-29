@@ -242,7 +242,7 @@
                 </div>
                 <div class='info col-sm-6 col-md-6'>
                     <div class='title'><%= obj.title %></div>
-                    <div class='price'><%= obj.price %></div>
+                    <div class='red marker price'><%= obj.price %></div>
                     <div class='description'>
                         <div class='desc-title'>Overview</div>
                         <ul>
@@ -267,13 +267,7 @@
                         </a>
                     </div>
                     <% if(obj.images.length >1) { %>
-                    <div class='selector'>
-                        <div class='images'>
-                            <% _.each(obj.images, function(image) { %>
-                            <img src='<%= sizeImage(image, 100) %>' />
-                            <% }); %>
-                        </div>
-                    </div>
+                        <div class='gallery'></div>
                     <% } %>
                 </div>
             </div>
@@ -339,13 +333,7 @@
                                 </a>
                             </div>
                             <% if (product.images.length > 1) { %>
-                                <div class='selector'>
-                                    <div class='images'>
-                                        <% _.each(product.images, function(image) { %>
-                                        <img src='<%= sizeImage(image, 100) %>' />
-                                        <% }); %>
-                                    </div>
-                                </div>
+                                <div class='gallery'></div>
                             <% } %>
                         </div>
                     </div>
@@ -435,9 +423,9 @@
                 'eventMap': undefined,  // optional
                 'imageTileWide': 0.25,
                 'imageSizes': undefined,  // optional, overrides built-in size map
-                'previewAnimationDuration': 0.1,
+                'previewAnimationDuration': 100,  // in ms
                 'previewMobileAnimationDuration': 0,
-                'masonryAnimationDuration': 0.4,
+                'masonryAnimationDuration': 0.4,  // in seconds
                 'masonryMobileAnimationDuration': 0,
                 'featured': { // the featured product
                     "tile-id": 19325,
@@ -538,23 +526,44 @@
                     }
                 });
 
-                // Example: handle image carousel in previews
+                // Example: handle right hand side link clicks
                 new SecondFunnel.classRegistry.EventManager({
-                    'click .previewContainer .selector img': function (ev) {
-                        var $ev = $(ev.currentTarget),
-                            new_url = $ev.attr('src');
+                    'click .navbar-right a': function (ev) {
+                        var $ev = $(ev.currentTarget);
 
-                        $ev
-                            .parents('.previewContainer')
-                            .find('.selector img')
-                            .removeClass('selected');
-                        $ev
-                            .addClass('selected')
-                            .parents('.previewContainer')
-                            .find('.image img')
-                            .attr('src', sizeImage(new_url, 300));
+                        console.log('Click detected! ' + $ev.attr('href'));
                     }
                 });
+
+                // Example: adding custom behaviour to supported layouts
+                SecondFunnel.utils.addWidget(
+                    'gallery',  // name (must be unique)
+                    '.gallery',  // selector (scoped!)
+                    function (view, $el, option) {
+                        _.each(view.model.get('images'), function (image) {
+                            var $img = $('<img />')
+                                .attr({
+                                    'src': sizeImage(image, 100)
+                                })
+                                .click(function (ev) {
+                                    // show a larger image on the left when a thumbnail is clicked.
+                                    var $ev = $(ev.currentTarget),
+                                        new_url = $ev.attr('src');
+
+                                    $ev
+                                        .parents('.previewContainer')
+                                        .find('.gallery img')
+                                        .removeClass('selected');
+                                    $ev
+                                        .addClass('selected')
+                                        .parents('.previewContainer')
+                                        .find('.image img')
+                                        .attr('src', sizeImage(new_url, 300));
+                                });
+                            $el.append($img);
+                        });
+                    }
+                );
 
                 // Example: receive event notifications
                 SecondFunnel.vent.on({

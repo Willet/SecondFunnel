@@ -227,6 +227,41 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             return Backbone.Marionette[classType].extend(params);
         };
 
+        utils.addWidget = function (name, selector, functionality) {
+            // add a predefined UI component implemented as a region.
+            // name must be unique. if addWidget is called with an existing
+            // widget, the old one is overwritten.
+            SecondFunnel.options.regions = SecondFunnel.options.regions || {};
+            SecondFunnel.options.regionWidgets = SecondFunnel.options.regionWidgets || {};
+            SecondFunnel.options.regions[name] = selector;
+            SecondFunnel.options.regionWidgets[name] = functionality;
+        };
+
+        utils.runWidget = function (viewObject) {
+            // process widget regions.
+            // each widget function receives args (the view, the $element, option alias).
+            var self = viewObject;
+
+            // process itself (if it is a view)
+            _.each(SecondFunnel.options.regions, function (selector, name, list) {
+                var widgetFunc = SecondFunnel.options.regionWidgets[name];
+                self.$(selector).each(function (idx, el) {
+                    return widgetFunc(self, $(el), SecondFunnel.option);
+                });
+            });
+
+            // process children regions (if it is a layout)
+            _.each(self.regions, function (selector, name, list) {
+                var isWidget = _.contains(SecondFunnel.options.regions, name),
+                    widgetFunc = (SecondFunnel.options.regionWidgets || {})[name];
+                if (isWidget && widgetFunc) {
+                    self.$(selector).each(function (idx, el) {
+                        return widgetFunc(self, $(el), SecondFunnel.option);
+                    });
+                }
+            });
+        };
+
         utils.pickImageSize = function (url, minWidth, scalePolicy) {
             // returns a url that is either
             //   - the url, if it is not an image service url, or
@@ -747,8 +782,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     'columnWidth': options.columnWidth(),
                     'isAnimated': !mobile,
                     'transitionDuration': (mobile ?
-                                           options.masonryMobileAnimationDuration
-                        :
+                                           options.masonryMobileAnimationDuration :
                                            options.masonryAnimationDuration) + 's'
                 }, options.masonry);
 
@@ -1027,10 +1061,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             "mouseleave": "onHover"
         },
 
-        'regions': {
+        'regions': _.extend({}, {
             'socialButtons': '.social-buttons',
             'tapIndicator': '.tap-indicator-target'
-        },
+        }, SecondFunnel.options.regions || {}),
 
         'initialize': function (options) {
             // Creates the TileView using the options.  Subclasses should not override this
@@ -1822,6 +1856,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
             this.$el.scaleImages();
 
+            // process widgets
+            SecondFunnel.utils.runWidget(this);
+
             // out of scope
             $('.scrollable', '.previewContainer').scrollable(true);
             broadcast('previewRendered', this);
@@ -1839,11 +1876,12 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 this.$el.fadeOut(SecondFunnel.option('previewAnimationDuration')).remove();
             }
         },
-        'regions': {
+        'regions': _.extend({}, {
             'content': '.template.target',
             'socialButtons': '.social-buttons'
-        },
+        }, SecondFunnel.options.regions || {}),
         'onBeforeRender': function () {
+
         },
         'templateHelpers': function () {
             // return {data: $.extend({}, this.options, {template: this.template})};
@@ -1851,6 +1889,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'onRender': function () {
             this.$el.css({display: "table"});
             this.$el.scaleImages();
+
+            // process widgets
+            SecondFunnel.utils.runWidget(this);
+
             $('body').append(this.$el.fadeIn(SecondFunnel.option('previewAnimationDuration')));
         }
     });
