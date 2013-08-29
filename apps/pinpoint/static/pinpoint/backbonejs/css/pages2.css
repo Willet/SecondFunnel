@@ -394,18 +394,23 @@ div.loading {
 .shareContainer img {
     width: 30px;
     height: 30px;
+    background-repeat: no-repeat;
+    background-size: contain;
 }
 
 .shareContainer .content .share {
-    width: 100%;
+    width: 80%;
+    margin: 0 auto;
+}
+
+.shareContainer .content .share div.shareOption {
+    display: inline-block;
+    margin: 0.5%;
+    min-width:250px;
 }
 
 .shareContainer .content .share a {
     text-decoration: none;
-    display: inline-block;
-    margin: 1.5%;
-    min-width: 200px;
-    width: 29%;
 }
 
 .shareContainer .content:last-child:after {

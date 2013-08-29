@@ -58,7 +58,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
     var Tile, TileCollection, FeaturedAreaView, TileView,
         VideoTileView, SocialButtons, SocialButtonView, FacebookSocialButton,
-        TwitterSocialButton, ShareSocialButton, SharePopup, Discovery,
+        TwitterSocialButton, ShareSocialButton, SharePopup, ShareOption, Discovery,
         Category, CategoryView, CategorySelector, PreviewContent, PreviewWindow,
         TapIndicator, EventManager, ShadowTile;
 
@@ -354,6 +354,74 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 prevKey = i;
             }
             return url;
+        };
+    });
+
+    SecondFunnel.module("sharing", function (sharing) {
+        sharing.sources = {
+            // A mapping of the different sharing options and the related
+            // share url.
+            // TODO: Can we do better than this ?
+
+            // Main ones (e.g. Facebook, Twitter, Tumblr, etc.)
+            'facebook': {
+                'url': "//facebook.com/sharer/sharer.php?u=<%= url %>",
+                'image': ""
+            },
+            'twitter': {
+                'url': "//twitter.com/share?url=<%= url %>",
+                'image': "//abs.twimg.com/a/1377684308/images/resources/twitter-bird-white-on-blue.png"
+            },
+            'reddit': {
+                'url': "//reddit.com/submit?url=<%= url %>",
+                'image': ""
+            },
+            'tumblr': {
+                'url': "//tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= landing %>",
+                'image': ""
+            },
+            'pinterest': {
+                'url': "//pinterest.com/pin/create/button/?url=<%= url %>",
+                'image': ""
+            },
+
+            // Auxiliary ones
+            'email': {
+                'url': "mailto:user@example.com?subject=<%= subject %>&body=<%= caption %>&#10;<%= url %>",
+                'image': ""
+            },
+            'google+': {
+                'url': "//plus.google.com/share?url=<%= url %>",
+                'image': ""
+            },
+            'digg': {
+                'url': "//digg.com/submit?url=<%= url %>",
+                'image': ""
+            },
+            'blogger': {
+                'url': "//blogger.com/blog-this.g?t=<%= caption %>&u=<%= url %>&n=<%= title %>",
+                'image': ""
+            },
+            'stumbleupon': {
+                'url': "//stumbleupon.com/submit?url=<%= url %>",
+                'image': ""
+            }
+        };
+
+        sharing.get = function (type) {
+            if (!typeof type === 'string') {
+                return {};
+            }
+            type = type.toLowerCase();
+            type = this.sources[type] || {};
+
+            // TODO: Default image + images
+            if (!_.isEmpty(type)) {
+                type.image = type.image.length ?
+                    type.image :
+                    this.sources['twitter'].image;
+            }
+            return type;
         };
     });
 
@@ -1105,6 +1173,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'tagName': "div", // TODO: Should this be a setting?
         'templates': function (currentView) {
             return [
+                "#<%= data.template %>_<%= data['content-type'] %>_tile_template",
+                "#<%= data['content-type'] %>_<%= data.template %>_tile_template",
                 "#<%= data.template %>_tile_template",
                 "#product_tile_template" // default
             ];
@@ -1635,29 +1705,58 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             }
         },
 
-        'initialize': function (options) {
-            var share = {};
-            this.buttons = _.map(this.buttons, function (obj) {
-                obj.url = _.template(obj.url, options);
-                share[obj.name] = obj;
-                return obj;
-            });
-            this.options.share = share;
-        },
-
-        'templateHelpers': function () {
-            return {
-                'share': this.options.share,
-                'buttons': this.buttons
-            };
-        },
-
         'onRender': function () {
+            var self = this;
+
             this.$el.css({'display': "table"});
             $('body').append(this.$el.fadeIn(100));
 
+            _.each(this.buttons, function (button) {
+                var share = new ShareOption(_.extend({
+                    'type': button
+                }, self.options));
+                share.render();
+
+                if (!share.isClosed) {
+                    self.$('.share').append(share.$el);
+                }
+            });
+
             // process widgets
             SecondFunnel.utils.runWidgets(this);
+        }
+    });
+
+    ShareOption = Backbone.Marionette.ItemView.extend({
+        'tagName': "div",
+        'className': "shareOption",
+        'templates': [
+            '#<%= data.type %>_share_popup_option_template'
+        ],
+        'template': "#share_popup_option_template",
+
+        'templateHelpers': function () {
+            var helpers = SecondFunnel.sharing.get(this.options.type);
+            if (helpers.url) {
+                helpers.url = _.template(helpers.url,
+                    _.extend({
+                        'landing': encodeURIComponent(window.location),
+                        'title': document.title
+                    }, this.options, this.model.attributes));
+            }
+            this.options.image = helpers.image || "";
+            helpers.text = "Share this on " + _.capitalize(this.options.type) + "!";
+            return helpers;
+        },
+
+        'onRender': function () {
+            this.$el.addClass(this.options.type + "_share");
+            var $img = this.$('img');
+            if ($img.css('background-image') === "none" ||
+                !$img.css('background-image')) {
+                this.$('img').css({'background-image': "url(" + this.options.image + ")" });
+            }
+            return this;
         }
     });
 
@@ -1940,7 +2039,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'events': {
             'click .close, .mask': function () {
                 this.$el.scrollable(false);
-                this.$el.fadeOut(SecondFunnel.option('previewAnimationDuration')).remove();
+                this.$el.fadeOut(SecondFunnel.option('previewAnimationDuration'));
+                this.close();
             }
         },
 
