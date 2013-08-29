@@ -32,6 +32,10 @@ a, a:hover, a:focus {
     color: inherit;
 }
 
+.navbar {
+    background: white;
+}
+
 .nav>li>a:hover, .nav>li>a:focus {
     background-color: transparent;
 }

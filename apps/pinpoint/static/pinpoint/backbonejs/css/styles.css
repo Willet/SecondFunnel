@@ -155,6 +155,10 @@ body {
     font-weight: bold;
 }
 
+.previewContainer .desc-title {
+    font-weight: bold;
+}
+
 .previewContainer .image {
     margin: 20px auto;
     text-align: center;
@@ -176,7 +180,7 @@ body {
     margin: 0 0 20px 0;
 }
 
-.previewContainer .selector {
+.previewContainer .gallery {
     white-space: nowrap;
     text-align: left;
     height: 70px;
@@ -185,14 +189,14 @@ body {
     text-align: left;
 }
 
-.previewContainer .selector img {
+.previewContainer .gallery img {
     margin: 0px 5px;
     max-height: 50px;
     height: auto;
     width: auto;
     border: 1px solid #CECECE;
 }
-.previewContainer .selector img.selected {
+.previewContainer .gallery img.selected {
     border: 1px solid black;
 }
 

@@ -37,7 +37,7 @@ broadcast = function () {
     if (!window.SecondFunnel) {
         return;  // SecondFunnel not initialized yet
     }
-    if (SecondFunnel.option('debug') > 1) {
+    if (SecondFunnel.option('debug') > 2) {
         console.log('Broadcasting "' + arguments[0] + '" with args=%O', pArgs);
     }
     SecondFunnel.vent.trigger.apply(SecondFunnel.vent, arguments);
@@ -264,6 +264,41 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             //   a.render()
             classType = classType || 'ItemView';
             return Backbone.Marionette[classType].extend(params);
+        };
+
+        utils.addWidget = function (name, selector, functionality) {
+            // add a predefined UI component implemented as a region.
+            // name must be unique. if addWidget is called with an existing
+            // widget, the old one is overwritten.
+            SecondFunnel.options.regions = SecondFunnel.options.regions || {};
+            SecondFunnel.options.regionWidgets = SecondFunnel.options.regionWidgets || {};
+            SecondFunnel.options.regions[name] = selector;
+            SecondFunnel.options.regionWidgets[name] = functionality;
+        };
+
+        utils.runWidget = function (viewObject) {
+            // process widget regions.
+            // each widget function receives args (the view, the $element, option alias).
+            var self = viewObject;
+
+            // process itself (if it is a view)
+            _.each(SecondFunnel.options.regions, function (selector, name, list) {
+                var widgetFunc = SecondFunnel.options.regionWidgets[name];
+                self.$(selector).each(function (idx, el) {
+                    return widgetFunc(self, $(el), SecondFunnel.option);
+                });
+            });
+
+            // process children regions (if it is a layout)
+            _.each(self.regions, function (selector, name, list) {
+                var isWidget = _.contains(SecondFunnel.options.regions, name),
+                    widgetFunc = (SecondFunnel.options.regionWidgets || {})[name];
+                if (isWidget && widgetFunc) {
+                    self.$(selector).each(function (idx, el) {
+                        return widgetFunc(self, $(el), SecondFunnel.option);
+                    });
+                }
+            });
         };
 
         utils.pickImageSize = function (url, minWidth, scalePolicy) {
@@ -679,6 +714,40 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     });
                 },
 
+                // can't do click with delegation: stopPropagation in effect
+                "hover .social-buttons .button": function (e) {
+                    var $button = $(e.currentTarget);
+                    broadcast('socialButtonHover', $button);
+                    tracker.registerEvent({
+                        "type": "inpage",
+                        "subtype": "hoverSocialButton",
+                        "label": $button.getClasses().join(':')
+                    });
+                },
+
+                // core metrics: 'Shop Now', 'Find in Store' or similar
+                "click .find-store, .in-store": function (e) {
+                    var $button = $(e.currentTarget),
+                        isFindStore = $button.hasClass('find-store'),
+                        isInStore = $button.hasClass('in-store');
+                    if (isFindStore) {
+                        broadcast('findStoreClick', $button);
+                        tracker.registerEvent({
+                            "type": "inpage",
+                            "subtype": "clickFindStore",
+                            "label": "???"  // TODO: decide on a label
+                        });
+                    }
+                    if (isInStore) {
+                        broadcast('inStoreClick', $button);
+                        tracker.registerEvent({
+                            "type": "inpage",
+                            "subtype": "clickInStore",
+                            "label": "???"  // TODO: decide on a label
+                        });
+                    }
+                },
+
                 "click .pinterest": function () {
                     // social hover and popup pinterest click events
                     tracker.registerEvent({
@@ -756,8 +825,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     'columnWidth': options.columnWidth(),
                     'isAnimated': !mobile,
                     'transitionDuration': (mobile ?
-                                           options.masonryMobileAnimationDuration
-                        :
+                                           options.masonryMobileAnimationDuration :
                                            options.masonryAnimationDuration) + 's'
                 }, options.masonry);
 
@@ -952,6 +1020,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             broadcast('tileModelIntialized', this);
         },
 
+        'sync': function () {
+            return false;
+        },
+
         'is': function (type) {
             // check if a tile is of (type). the type is _not_ the tile's template.
             return this.get('content-type').toLowerCase() === type.toLowerCase();
@@ -1042,10 +1114,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             "mouseleave": "onHover"
         },
 
-        'regions': {
+        'regions': _.extend({}, {
             'socialButtons': '.social-buttons',
             'tapIndicator': '.tap-indicator-target'
-        },
+        }, SecondFunnel.options.regions || {}),
 
         'initialize': function (options) {
             // Creates the TileView using the options.  Subclasses should not override this
@@ -1160,6 +1232,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 }
                 this.tapIndicator.show(new TapIndicator());
             }
+
+            this.$el.scaleImages();
         }
     });
 
@@ -1382,6 +1456,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         // from this class and modify as necessary.
         'events': {
             'click': function (ev) {
+                SecondFunnel.vent.trigger('tracker:registerEvent', {
+                    "network": "oneOfThem",
+                    "type": "share",
+                    "subtype": "clicked"
+                });
                 ev.stopPropagation(); // you did not click below the button
             },
             'hover': function (/* this */) {
@@ -1822,6 +1901,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 this.$('.content').css('width', width + 'px');
             }
 
+            this.$el.scaleImages();
+
+            // process widgets
+            SecondFunnel.utils.runWidget(this);
+
             // out of scope
             $('.scrollable', '.previewContainer').scrollable(true);
             broadcast('previewRendered', this);
@@ -1857,6 +1941,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         },
 
         'onBeforeRender': function () {
+
         },
 
         'templateHelpers': function () {
@@ -1865,6 +1950,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
         'onRender': function () {
             this.$el.css({display: "table"});
+            this.$el.scaleImages();
+
+            // process widgets
+            SecondFunnel.utils.runWidget(this);
+
             $('body').append(this.$el.fadeIn(SecondFunnel.option('previewAnimationDuration')));
         }
     });
@@ -1894,7 +1984,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 var event = key.substr(0, key.indexOf(' ')),
                     selectors = key.substr(key.indexOf(' ') + 1);
                 self.$el.on(event, selectors, func);
-                if (SecondFunnel.option('debug', false) > 0) {
+                if (SecondFunnel.option('debug', 0) > 0) {
                     console.log('regEvent ' + key);
                 }
             });
@@ -1979,6 +2069,17 @@ SecondFunnel.addInitializer(function (options) {
         // random helper. get an element's list of classes.
         // example output: ['facebook', 'button']
         return _.compact($(this).attr('class').split(' ').map($.trim));
+    };
+
+    $.fn.scaleImages = $.fn.scaleImages || function () {
+        // looks for .auto-scale elements and replace them with an image.
+        $(this).find('img.auto-scale').each(function () {
+            var $el = $(this),
+                data = $el.data();
+            if (data.src && data.size) {
+                $el.attr('src', SecondFunnel.utils.pickImageSize(data.src, data.size));
+            }
+        });
     };
 
     // underscore's fancy pants capitalize()
