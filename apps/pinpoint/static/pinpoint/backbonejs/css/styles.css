@@ -140,6 +140,11 @@ body {
     }
 }
 
+@media screen and (min-width: 768px) {
+    .previewContainer .gallery {
+        white-space: nowrap;
+    }
+}
 
 /* === */
 .shareContainer img {
@@ -164,6 +169,25 @@ body {
     text-align: center;
 }
 
+.previewContainer .image:before, .previewContainer .image:after {
+    position: absolute;
+    font-size: 100px;
+    width: 50px;
+    height: 90px;
+    line-height: 75px;
+    top: 50%;
+    margin-top: -45px;
+    color: #ddd;
+}
+.previewContainer .image:before {
+    content: "‹";  /* no, entities won't work here */
+    left: 0;
+}
+.previewContainer .image:after {
+    content: "›";
+    right: 0;
+}
+
 .previewContainer .main-image {
     /* actually the largest product image */
     float: left;
@@ -181,12 +205,9 @@ body {
 }
 
 .previewContainer .gallery {
-    white-space: nowrap;
-    text-align: left;
+    text-align: center;
     height: 70px;
     overflow-x: auto;
-    white-space: nowrap;
-    text-align: left;
 }
 
 .previewContainer .gallery img {
@@ -202,6 +223,7 @@ body {
 
 .previewContainer .gap-buttons {
     padding: 30px 0;
+    line-height: 70px;
     text-align: center;
 }
 
