@@ -235,9 +235,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             SecondFunnel.options.regionWidgets = SecondFunnel.options.regionWidgets || {};
             SecondFunnel.options.regions[name] = selector;
             SecondFunnel.options.regionWidgets[name] = functionality;
+            broadcast('widgetAdded', name, selector, functionality);
         };
 
-        utils.runWidget = function (viewObject) {
+        utils.runWidgets = function (viewObject) {
             // process widget regions.
             // each widget function receives args (the view, the $element, option alias).
             var self = viewObject;
@@ -1045,6 +1046,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             if (this.$el.length) {  // if something rendered, it was successful
                 $('#hero-area').html(this.$el.html());
             }
+
+            // process widgets
+            SecondFunnel.utils.runWidgets(this);
         }
     });
 
@@ -1188,6 +1192,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             }
 
             this.$el.scaleImages();
+
+            // process widgets
+            SecondFunnel.utils.runWidgets(this);
         }
     });
 
@@ -1474,6 +1481,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             this.$el.parent().hide();
             this.$el = this.$el.children();
             this.setElement(this.$el);
+
+            // process widgets
+            SecondFunnel.utils.runWidgets(this);
         },
         // 'onDomRefresh': $.noop,
         // 'onBeforeClose': function () { return true; },
@@ -1513,6 +1523,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             if (!this.showCount) {
                 this.$el.addClass('no-count');
             }
+
+            // process widgets
+            SecondFunnel.utils.runWidgets(this);
         },
 
         'onTemplateHelpers': function (helpers) {
@@ -1594,6 +1607,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'onRender': function () {
             this.$el.css({'display': "table"});
             $('body').append(this.$el.fadeIn(100));
+
+            // process widgets
+            SecondFunnel.utils.runWidgets(this);
         }
     });
 
@@ -1857,7 +1873,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             this.$el.scaleImages();
 
             // process widgets
-            SecondFunnel.utils.runWidget(this);
+            SecondFunnel.utils.runWidgets(this);
 
             // out of scope
             $('.scrollable', '.previewContainer').scrollable(true);
@@ -1891,7 +1907,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             this.$el.scaleImages();
 
             // process widgets
-            SecondFunnel.utils.runWidget(this);
+            SecondFunnel.utils.runWidgets(this);
 
             $('body').append(this.$el.fadeIn(SecondFunnel.option('previewAnimationDuration')));
         }
