@@ -421,6 +421,7 @@
                 ],
                 'enableTracking': true, // optional; default: true
                 'eventMap': undefined,  // optional
+                'tileElement': undefined,  // optional. alters the type of tag used by tiles.
                 'imageTileWide': 0.25,
                 'imageSizes': undefined,  // optional, overrides built-in size map
                 'previewAnimationDuration': 100,  // in ms
@@ -540,7 +541,13 @@
                     'gallery',  // name (must be unique)
                     '.gallery',  // selector (scoped!)
                     function (view, $el, option) {
-                        _.each(view.model.get('images'), function (image) {
+                        var images;
+                        try {
+                            images = view.model.attributes['related-products'][0].images;
+                        } catch (err) {
+                            images = view.model.get('images');
+                        }
+                        _.each(images, function (image) {
                             var $img = $('<img />')
                                 .attr({
                                     'src': sizeImage(image, 100)
