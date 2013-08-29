@@ -1,4 +1,4 @@
-/*global Image, setTimeout, imagesLoaded, Backbone, jQuery, $, _, Willet */
+/*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _, Willet */
 // JSLint/Emacs js2-mode directive to stop global 'undefined' warnings.
 if (!window.console) {  // shut up JSLint / good practice
     var console = window.console = {
@@ -171,8 +171,47 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 }
             }
         }
-
         return template;
+    };
+
+    Backbone.Marionette.ItemView.prototype.render =  function () {
+        this.isClosed = false;
+
+        this.triggerMethod("before:render", this);
+        this.triggerMethod("item:before:render", this);
+
+        var data = this.serializeData(),
+            html;
+        data = this.mixinTemplateHelpers(data);
+        try {
+            var template = this.getTemplate();
+            html = Marionette.Renderer.render(template, data);
+        } catch (err) {
+            // If template not found, signal error if debug is enabled, otherwise
+            // just delete the model.
+            if (err.name && err.name === "NoTemplateError") {
+                SecondFunnel.vent.trigger('log', "Could not found template " +
+                    template + ".  View did not render.");
+                // Trigger method to signal an error
+                this.triggerMethod("missing:template", this);
+                return this;
+            } else {
+                throw err;
+            }
+        }
+
+        this.$el.html(html);
+        this.bindUIElements();
+
+        this.triggerMethod("render", this);
+        this.triggerMethod("item:rendered", this);
+
+        return this;
+    };
+
+    Backbone.Marionette.ItemView.prototype.onMissingTemplate = function () {
+        // Default on missing template event
+        this.remove();
     };
 
     SecondFunnel.module("observable", function (observable) {
@@ -696,11 +735,15 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 'isResizeBound': true,
                 'visibleStyle': {
                     'opacity': 1,
-                    '-webkit-transform': 'none'
+                    'transform': 'none',
+                    '-webkit-transform': 'none',
+                    '-moz-transform': 'none'
                 },
                 'hiddenStyle': {
                     'opacity': 0,
-                    '-webkit-transform': 'scale(1)'
+                    'transform': 'scale(1)',
+                    '-webkit-transform': 'scale(1)',
+                    '-moz-transform': 'none'
                 }
             };
 
@@ -747,7 +790,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
             layoutEngine.append = function ($fragment, callback) {
                 broadcast('fragmentAppended', $fragment);
-                layoutEngine.$el.append($fragment).masonry('appended', $fragment);
+                if ($fragment.length) {
+                    layoutEngine.$el.append($fragment).masonry('appended', $fragment);
+                }
                 return callback ? callback($fragment) : layoutEngine;
             };
 
@@ -776,13 +821,15 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
             layoutEngine.insert = function ($fragment, $target, callback) {
                 var initialBottom = $target.position().top + $target.height();
-                // Find a target that is low enough on the screen to insert after
-                while ($target.position().top <= initialBottom &&
-                    $target.next().length > 0) {
-                    $target = $target.next();
+                if ($fragment.length) {
+                    // Find a target that is low enough on the screen to insert after
+                    while ($target.position().top <= initialBottom &&
+                           $target.next().length > 0) {
+                        $target = $target.next();
+                    }
+                    $fragment.insertAfter($target);
+                    layoutEngine.reload();
                 }
-                $fragment.insertAfter($target);
-                layoutEngine.reload();
                 return callback ? callback($fragment) : layoutEngine;
             };
 
@@ -935,7 +982,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // undeclared / class not found in scope
             view = new TargetClass({model: this});
             broadcast('tileViewIntialized', view, this);
-            return view;
+            return view.render();
         }
     });
 
@@ -982,10 +1029,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'templates': function (currentView) {
             return [
                 "#<%= data.template %>_tile_template",
-                "#product_tile_template" // default
+                "f#product_tile_template" // default
             ];
         },
-        'template': "#product_tile_template",
+        'template': "f#product_tile_template",
         'className': SecondFunnel.option('discoveryItemSelector',
             '').substring(1),
 
@@ -1028,7 +1075,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             if (this.onInitialize) {
                 this.onInitialize(options);
             }
-            this.render();
         },
 
         'modelChanged': function (model, value) {
@@ -1053,13 +1099,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     'model': tile,
                     'caller': ev.currentTarget
                 });
-
-            preview.render();
-            preview.content.show(new PreviewContent({
-                'model': tile,
-                'caller': ev.currentTarget
-            }));
-
             SecondFunnel.vent.trigger("tileClicked", ev, this);
         },
 
@@ -1083,9 +1122,15 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // the View/Model to free memory
             this.$el.on('remove', function (ev) {
                 if (ev.target === self.el) {
-                    self.close();
+                    self.model.destroy();
                 }
             });
+        },
+
+        'onMissingTemplate': function () {
+            // If a tile fails to load, destroy the model
+            // and subsequently this tile.
+            this.model.destroy();
         },
 
         'onRender': function () {
@@ -1269,12 +1314,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 var count = options.showCount,
                     button = null,
                     template = "#" + type.toLowerCase() + "_social_button_template";
-                if (!Backbone.Marionette.TemplateCache._exists(template)) {
-                    // TODO: What to do if social button template is missing?
-                    SecondFunnel.vent.trigger('log',
-                        "No social button template found for " + type);
-                    return false;
-                }
                 type = _.capitalize(type);
                 switch (type) {
                 case "Facebook":
@@ -1393,9 +1432,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         // 'onBeforeRender': $.noop,
         'onRender': function () {
             // Hide this element when it's rendered.
-            this.$el.parent().hide();
             this.$el = this.$el.children();
             this.setElement(this.$el);
+            this.$el.parent().hide();
         },
         // 'onDomRefresh': $.noop,
         // 'onBeforeClose': function () { return true; },
@@ -1607,8 +1646,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     img = tile.get('image'),
                     view = tile.createView();
 
-                self.collection.add(tile);
-                $fragment = $fragment.add(view.$el);
+                if (view && view.$el) {
+                    // Ensure we were given something
+                    self.collection.add(tile);
+                    $fragment = $fragment.add(view.$el);
+                }
             });
 
             if (tile) {
@@ -1797,15 +1839,30 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 this.$el.fadeOut(SecondFunnel.option('previewAnimationDuration')).remove();
             }
         },
+
         'regions': {
             'content': '.template.target',
             'socialButtons': '.social-buttons'
         },
+
+
+        'initialize': function (options) {
+            var rendered = this.render();
+            if (rendered) {
+                this.content.show(new PreviewContent({
+                    'model': options.model,
+                    'caller': options.caller
+                }));
+            }
+        },
+
         'onBeforeRender': function () {
         },
+
         'templateHelpers': function () {
             // return {data: $.extend({}, this.options, {template: this.template})};
         },
+
         'onRender': function () {
             this.$el.css({display: "table"});
             $('body').append(this.$el.fadeIn(SecondFunnel.option('previewAnimationDuration')));
