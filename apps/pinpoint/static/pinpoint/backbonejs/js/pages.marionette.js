@@ -193,6 +193,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 SecondFunnel.vent.trigger('log', "Could not found template " +
                     template + ".  View did not render.");
                 // Trigger method to signal an error
+                this.isClosed = true;
                 this.triggerMethod("missing:template", this);
                 return this;
             } else {
@@ -1101,10 +1102,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'templates': function (currentView) {
             return [
                 "#<%= data.template %>_tile_template",
-                "f#product_tile_template" // default
+                "#product_tile_template" // default
             ];
         },
-        'template': "f#product_tile_template",
+        'template': "#product_tile_template",
         'className': SecondFunnel.option('discoveryItemSelector',
             '').substring(1),
 
@@ -1203,6 +1204,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // If a tile fails to load, destroy the model
             // and subsequently this tile.
             this.model.destroy();
+            this.close();
         },
 
         'onRender': function () {
@@ -1430,7 +1432,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             var self = this;
             _.each(self.views, function (view) {
                 view.render();
-                self.$el.append(view.$el);
+                if (!view.isClosed) {
+                    self.$el.append(view.$el);
+                }
             });
             return this;
         }
@@ -1725,7 +1729,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     img = tile.get('image'),
                     view = tile.createView();
 
-                if (view && view.$el) {
+                if (!view.isClosed) {
                     // Ensure we were given something
                     self.collection.add(tile);
                     $fragment = $fragment.add(view.$el);
@@ -1931,13 +1935,22 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
 
         'initialize': function (options) {
-            var rendered = this.render();
-            if (rendered) {
+            // Initialize the PreviewWindow by rendering the content to
+            // display in it as well.
+            this.render();
+            if (!this.isClosed) {
                 this.content.show(new PreviewContent({
                     'model': options.model,
                     'caller': options.caller
                 }));
+                if (this.content.currentView.isClosed) {
+                    this.close();
+                }
             }
+        },
+
+        'onMissingTemplate': function () {
+            this.close();
         },
 
         'onBeforeRender': function () {
