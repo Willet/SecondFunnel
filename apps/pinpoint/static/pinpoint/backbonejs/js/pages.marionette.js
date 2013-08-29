@@ -173,39 +173,22 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         return template;
     };
 
+    Backbone.Marionette.ItemView.prototype.superRender = Backbone.Marionette.ItemView.prototype.render;
     Backbone.Marionette.ItemView.prototype.render =  function () {
-        this.isClosed = false;
-
-        this.triggerMethod("before:render", this);
-        this.triggerMethod("item:before:render", this);
-
-        var data = this.serializeData(),
-            html;
-        data = this.mixinTemplateHelpers(data);
         try {
-            var template = this.getTemplate();
-            html = Marionette.Renderer.render(template, data);
+            this.superRender();
         } catch (err) {
-            // If template not found, signal error if debug is enabled, otherwise
-            // just delete the model.
-            if (err.name && err.name === "NoTemplateError") {
-                SecondFunnel.vent.trigger('log', "Could not found template " +
-                    template + ".  View did not render.");
-                // Trigger method to signal an error
+            // If template not found signal error in rendering view.
+            if (err.name &&  err.name === "NoTemplateError") {
+                SecondFunnel.vent.trigger('log', "Could not find template " +
+                   this.template + ". View did not render.");
+                // Trigger methods
                 this.isClosed = true;
                 this.triggerMethod("missing:template", this);
-                return this;
             } else {
                 throw err;
             }
         }
-
-        this.$el.html(html);
-        this.bindUIElements();
-
-        this.triggerMethod("render", this);
-        this.triggerMethod("item:rendered", this);
-
         return this;
     };
 
@@ -1785,7 +1768,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'attachListeners': function () {
             // TODO: Find a better way than this...
             _.bindAll(this, 'pageScroll', 'toggleLoading',
-                'layoutResults');
+                'toggleMoreResults', 'layoutResults');
             $window
                 .scroll(_.throttle(this.pageScroll, 500))
                 .resize(_.throttle(function () {
@@ -1813,10 +1796,19 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             return this;
         },
 
+        'toggleMoreResults': function () {
+            var self = this;
+            this.toggleLoading(false);
+            setTimeout(function () {
+                self.pageScroll();
+            }, 100);
+            return this;
+        },
+
         'layoutResults': function (data, tile, callback) {
             var self = this,
                 $fragment = $();
-            callback = callback || this.toggleLoading;
+            callback = callback || this.toggleMoreResults;
 
             // Check if we don't have anything
             if (data.length === 0) {
