@@ -236,7 +236,7 @@
             <div class='content-wrapper row'>
                 <div class='image-div col-sm-6 col-md-6'>
                     <div class='image'>
-                        <img src='<%= sizeImage(obj.image, 400) %>'/>
+                        <img class='img-rounded' src='<%= sizeImage(obj.image, 400) %>'/>
                     </div>
                 </div>
                 <div class='info col-sm-6 col-md-6'>
@@ -303,7 +303,7 @@
                 <div class="image-with-related-products">
                     <div class="row">
                         <div class="image col-sm-6 col-md-6">
-                            <img src="<%= sizeImage(obj.image, 400) %>" alt="image" />
+                            <img class='img-rounded' src="<%= sizeImage(obj.image, 400) %>" alt="image" />
                         </div>
                         <div class="col-sm-6 col-md-6">
                             <% var product = obj['related-products'][0]; %>
@@ -402,6 +402,7 @@
                  ],
                 'enableTracking': true, // optional; default: true
                 'eventMap': undefined,  // optional
+                'tileElement': undefined,  // optional. alters the type of tag used by tiles.
                 'imageTileWide': 0.25,
                 'imageSizes': undefined,  // optional, overrides built-in size map
                 'previewAnimationDuration': 100,  // in ms
@@ -485,6 +486,7 @@
         <script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
         <script type="text/javascript" src="js/respond.min.js"></script><!-- "as early after the css as possible" -->
         <script type="text/javascript" src="js/jquery.min.js"></script>
+        <script type="text/javascript" src="js/jquery.mobile.swipeonly.min.js"></script>
         <script type="text/javascript" src="js/json2.js"></script>
         <script type="text/javascript" src="js/underscore.js"></script>
         <script type="text/javascript" src="js/backbone.js"></script>
@@ -493,6 +495,7 @@
         <script type="text/javascript" src="js/jquery.masonry.pkgd.min.js"></script>
         <script type="text/javascript" src="js/bootstrap.min.js"></script>
         <script type="text/javascript" src="js/pages.marionette.js"></script>
+        <script type="text/javascript" src="js/pages.marionette.widget.gallery.js"></script>
         <script type="text/javascript" src="js/css3-mediaqueries.js"></script><!-- IE8 -->
         <script type="text/javascript">
             if (window.SecondFunnel) {
@@ -516,35 +519,6 @@
                     }
                 });
 
-                // Example: adding custom behaviour to supported layouts
-                SecondFunnel.utils.addWidget(
-                    'gallery',  // name (must be unique)
-                    '.gallery',  // selector (scoped!)
-                    function (view, $el, option) {
-                        _.each(view.model.get('images'), function (image) {
-                            var $img = $('<img />')
-                                .attr({
-                                    'src': sizeImage(image, 100)
-                                })
-                                .click(function (ev) {
-                                    // show a larger image on the left when a thumbnail is clicked.
-                                    var $ev = $(ev.currentTarget),
-                                        new_url = $ev.attr('src');
-
-                                    $ev
-                                        .parents('.previewContainer')
-                                        .find('.gallery img')
-                                        .removeClass('selected');
-                                    $ev
-                                        .addClass('selected')
-                                        .parents('.previewContainer')
-                                        .find('.image img')
-                                        .attr('src', sizeImage(new_url, 300));
-                                });
-                            $el.append($img);
-                        });
-                    }
-                );
 
                 // Example: receive event notifications
                 SecondFunnel.vent.on({

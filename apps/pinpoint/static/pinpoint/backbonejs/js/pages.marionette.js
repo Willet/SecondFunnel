@@ -624,15 +624,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 }
             };
 
-            tracker.clearTimeout = function () {
-                if (typeof tracker._pptimeout === "number") {
-                    window.clearTimeout(tracker._pptimeout);
-
-                    // TODO remove this? not valid in strict mode
-                    delete tracker._pptimeout;
-                }
-            };
-
             tracker.registerTwitterListeners = function () {
                 if (!window.twttr) {
                     return;
@@ -721,7 +712,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 "hover .featured": function () {
                     // this = window because that's what $el is
                     broadcast('featuredHover');
-                    tracker.clearTimeout();
                     tracker.setSocialShareVars();
                 },
 
@@ -849,7 +839,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
             this.socialShareType = undefined;
             this.socialShareUrl = undefined;
-            this._pptimeout = undefined;
 
             // add mediator triggers if the module exists.
             SecondFunnel.vent.on({
@@ -857,7 +846,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 'tracking:registerEvent': tracker.registerEvent,
                 'tracking:trackEvent': tracker.trackEvent,
                 'tracking:setSocialShareVars': tracker.setSocialShareVars,
-                'tracking:clearTimeout': tracker.clearTimeout,
                 'tracking:registerTwitterListeners': tracker.registerTwitterListeners,
                 'tracking:notABounce': tracker.notABounce,
                 'tracking:videoStateChange': tracker.videoStateChange,
@@ -1170,7 +1158,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
     TileView = Backbone.Marionette.Layout.extend({
         // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
-        'tagName': "div", // TODO: Should this be a setting?
+        'tagName': SecondFunnel.option('tileElement', "div"),
         'templates': function (currentView) {
             return [
                 "#<%= data.template %>_<%= data['content-type'] %>_tile_template",
@@ -1231,7 +1219,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'onHover': function (ev) {
             // Trigger tile hover event with event and tile
             SecondFunnel.vent.trigger("tileHover", ev, this);
-            if (this.socialButtons && this.socialButtons.$el &&
+            if (!SecondFunnel.observable.mobile() &&
+                !SecondFunnel.observable.touch() &&
+                this.socialButtons && this.socialButtons.$el &&
                 this.socialButtons.$el.children().length) {
                 var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn'
                     : 'fadeOut';
@@ -1353,6 +1343,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 'height': $thumb.height(),
                 'videoId': this.model.attributes['original-id'] || this.model.id,
                 'playerVars': {
+                    'wmode': 'opaque',
                     'autoplay': 1,
                     'controls': SecondFunnel.observable.mobile()
                 },
@@ -1377,8 +1368,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         },
 
         'onVideo': function () {
-            // TODO: Possible support for native video files?
-            // Pass for now
+            // TODO: play videos more appropriately
+            window.open(this.model.get('original-url') || this.model.get('url'));
         },
 
         'onPlaybackEnd': function (ev) {
@@ -1422,7 +1413,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 window.twttr.widgets.load();
                 window.twttr.ready(function (twttr) {
                     twttr.events.bind('tweet', function (event) {
-                        // TODO: actual tracking
                         SecondFunnel.tracker.registerEvent({
                             "network": "Twitter",
                             "type": "share",
@@ -1543,12 +1533,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     "subtype": "clicked"
                 });
                 ev.stopPropagation(); // you did not click below the button
-            },
-            'hover': function (/* this */) {
-                if (!this.$el.hasClass('loaded')) {
-                    // TODO: load something... but hasn't everything been loaded?
-                    var derp;
-                }
             }
         },
 
@@ -1570,8 +1554,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             var helpers = {},
                 data = this.model.attributes,
                 page = SecondFunnel.option('page', {}),
-            // TODO: this will err on product.url if page.product is undefined
-                product = data || page.product,
+                product = data || page.product || {},
                 image = page['stl-image'] || page['featured-image'] || data.image || data.url;
 
             helpers.url = encodeURIComponent(product.url || image);
