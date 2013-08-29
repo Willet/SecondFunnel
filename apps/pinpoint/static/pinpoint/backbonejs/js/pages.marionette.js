@@ -1149,7 +1149,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'onHover': function (ev) {
             // Trigger tile hover event with event and tile
             SecondFunnel.vent.trigger("tileHover", ev, this);
-            if (this.socialButtons && this.socialButtons.$el &&
+            if (!SecondFunnel.observable.mobile() &&
+                !SecondFunnel.observable.touch() &&
+                this.socialButtons && this.socialButtons.$el &&
                 this.socialButtons.$el.children().length) {
                 var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn'
                     : 'fadeOut';
@@ -1271,6 +1273,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 'height': $thumb.height(),
                 'videoId': this.model.attributes['original-id'] || this.model.id,
                 'playerVars': {
+                    'wmode': 'opaque',
                     'autoplay': 1,
                     'controls': SecondFunnel.observable.mobile()
                 },

@@ -169,23 +169,26 @@ body {
     text-align: center;
 }
 
-.previewContainer .image:before, .previewContainer .image:after {
-    position: absolute;
-    font-size: 100px;
-    width: 50px;
-    height: 90px;
-    line-height: 75px;
-    top: 50%;
-    margin-top: -45px;
-    color: #ddd;
-}
-.previewContainer .image:before {
-    content: "‹";  /* no, entities won't work here */
-    left: 0;
-}
-.previewContainer .image:after {
-    content: "›";
-    right: 0;
+@media screen and (max-width: 768px) {
+    /* indicate that the image can be swiped */
+    .previewContainer .image:before, .previewContainer .image:after {
+        position: absolute;
+        font-size: 100px;
+        width: 50px;
+        height: 90px;
+        line-height: 75px;
+        top: 50%;
+        margin-top: -45px;
+        color: #ddd;
+    }
+    .previewContainer .image:before {
+        content: "‹";  /* no, entities won't work here */
+        left: 0;
+    }
+    .previewContainer .image:after {
+        content: "›";
+        right: 0;
+    }
 }
 
 .previewContainer .main-image {
@@ -222,7 +225,7 @@ body {
 }
 
 .previewContainer .gap-buttons {
-    padding: 30px 0;
+    padding: 30px 0 15px 0;
     line-height: 70px;
     text-align: center;
 }
