@@ -208,9 +208,9 @@
         </script>
         <script type="text/template" id="share_popup_option_template">
             <a href="<%= url %>" target="_blank">
-                <div>
-                    <img alt="<%= name %>" />
-                    <span><%= text %></span>
+                <div style="position: relative;">
+                    <div class="share_img"></div>
+                    <span class="share_text"><%= text %></span>
                 </div>
             </a>
         </script>
@@ -392,14 +392,7 @@
                     "tumblr",
                     "share"
                  ], // optional
-                'shareSocialButtons': [
-                    "facebook",
-                    "twitter",
-                    "reddit",
-                    "tumblr",
-                    "pinterest",
-                    "google+"
-                 ],
+                //'shareSocialButtons': [] // optional; default: all
                 'enableTracking': true, // optional; default: true
                 'eventMap': undefined,  // optional
                 'tileElement': undefined,  // optional. alters the type of tag used by tiles.

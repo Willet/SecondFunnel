@@ -613,7 +613,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             'tagName': "div",
             'className': "shareContainer previewContainer",
             'template': "#share_popup_template",
-            'buttons': SecondFunnel.option('shareSocialButtons', []),
+            'buttons': SecondFunnel.option('shareSocialButtons'),
 
             'events': {
                 'click .close, .mask': function (ev) {
@@ -628,6 +628,12 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
                 this.$el.css({'display': "table"});
                 $('body').append(this.$el.fadeIn(100));
+
+                if (!(this.buttons && this.buttons.length)) {
+                    this.buttons = _.map(sharing.sources, function (obj, key) {
+                        return key;
+                    });
+                }
 
                 _.each(this.buttons, function (button) {
                     var share = new sharing.ShareOption(_.extend({
@@ -654,26 +660,23 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             'template': "#share_popup_option_template",
 
             'templateHelpers': function () {
-                var helpers = SecondFunnel.sharing.get(this.options.type);
-                if (helpers.url) {
-                    helpers.url = _.template(helpers.url,
+                var uri = SecondFunnel.sharing.get(this.options.type),
+                    helpers = {};
+                if (uri) {
+                    helpers.url = _.template(uri,
                         _.extend({
                             'landing': encodeURIComponent(window.location),
                             'title': document.title
                     }, this.options, this.model.attributes));
+                } else {
+                    helpers.url = window.location;
                 }
-                this.options.image = helpers.image || "";
-                helpers.text = "Share this on " + _.capitalize(this.options.type) + "!";
+                helpers.text = _.capitalize(this.options.type);
                 return helpers;
             },
 
             'onRender': function () {
-                this.$el.addClass(this.options.type + "_share");
-                var $img = this.$('img');
-                if ($img.css('background-image') === "none" ||
-                    !$img.css('background-image')) {
-                    this.$('img').css({'background-image': "url(" + this.options.image + ")" });
-                }
+                this.$el.addClass((this.options.type + "_share").replace(/[+\-]/g, ""));
                 return this;
             }
         });
@@ -684,48 +687,18 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // TODO: Can we do better than this ?
 
             // Main ones (e.g. Facebook, Twitter, Tumblr, etc.)
-            'facebook': {
-                'url': "//facebook.com/sharer/sharer.php?u=<%= url %>",
-                'image': ""
-            },
-            'twitter': {
-                'url': "//twitter.com/share?url=<%= url %>",
-                'image': "//abs.twimg.com/a/1377684308/images/resources/twitter-bird-white-on-blue.png"
-            },
-            'reddit': {
-                'url': "//reddit.com/submit?url=<%= url %>",
-                'image': ""
-            },
-            'tumblr': {
-                'url': "//tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= landing %>",
-                'image': ""
-            },
-            'pinterest': {
-                'url': "//pinterest.com/pin/create/button/?url=<%= url %>",
-                'image': ""
-            },
+            'facebook': "//facebook.com/sharer/sharer.php?u=<%= url %>",
+            'twitter': "//twitter.com/share?url=<%= url %>",
+            'reddit':  "//reddit.com/submit?url=<%= url %>",
+            'tumblr': "//tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= landing %>",
+            'pinterest': "//pinterest.com/pin/create/button/?url=<%= url %>",
 
             // Auxiliary ones
-            'email': {
-                'url': "mailto:user@example.com?subject=<%= subject %>&body=<%= caption %>&#10;<%= url %>",
-                'image': ""
-            },
-            'google+': {
-                'url': "//plus.google.com/share?url=<%= url %>",
-                'image': ""
-            },
-            'digg': {
-                'url': "//digg.com/submit?url=<%= url %>",
-                'image': ""
-            },
-            'blogger': {
-                'url': "//blogger.com/blog-this.g?t=<%= caption %>&u=<%= url %>&n=<%= title %>",
-                'image': ""
-            },
-            'stumbleupon': {
-                'url': "//stumbleupon.com/submit?url=<%= url %>",
-                'image': ""
-            }
+            'email': "mailto:user@example.com?subject=<%= title %>&body=<%= caption %>&#10;<%= url %>",
+            'google+': "//plus.google.com/share?url=<%= url %>",
+            'digg': "//digg.com/submit?url=<%= url %>",
+            'blogger': "//blogger.com/blog-this.g?t=<%= caption %>&u=<%= url %>&n=<%= title %>",
+            'stumbleupon': "//stumbleupon.com/submit?url=<%= url %>"
         };
 
         sharing.get = function (type) {
@@ -733,15 +706,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 return {};
             }
             type = type.toLowerCase();
-            type = this.sources[type] || {};
-
-            // TODO: Default image + images
-            if (!_.isEmpty(type)) {
-                type.image = type.image.length ?
-                    type.image :
-                    this.sources['twitter'].image;
-            }
-            return type;
+            return this.sources[type];
         };
 
         sharing.getButton = function (type) {
