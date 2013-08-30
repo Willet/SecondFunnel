@@ -689,13 +689,13 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // Main ones (e.g. Facebook, Twitter, Tumblr, etc.)
             'facebook': "//facebook.com/sharer/sharer.php?u=<%= url %>",
             'twitter': "//twitter.com/share?url=<%= url %>",
-            'reddit':  "//reddit.com/submit?url=<%= url %>",
             'tumblr': "//tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= landing %>",
             'pinterest': "//pinterest.com/pin/create/button/?url=<%= url %>",
+            'google+': "//plus.google.com/share?url=<%= url %>",
+            'reddit':  "//reddit.com/submit?url=<%= url %>",
 
             // Auxiliary ones
-            'email': "mailto:user@example.com?subject=<%= title %>&body=<%= caption %>&#10;<%= url %>",
-            'google+': "//plus.google.com/share?url=<%= url %>",
+            'email': "mailto:user@example.com?subject=<%= title %>&body=<%= caption %>%20<%= url %>",
             'digg': "//digg.com/submit?url=<%= url %>",
             'blogger': "//blogger.com/blog-this.g?t=<%= caption %>&u=<%= url %>&n=<%= title %>",
             'stumbleupon': "//stumbleupon.com/submit?url=<%= url %>"
