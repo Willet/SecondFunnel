@@ -1789,6 +1789,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     // can still react to potential resizes by having its
                     // own .bind('resize', function () {})?
                     $('.resizable', document).resize();
+
+                    broadcast('windowResize');
                 }, 500));
 
             // Vent Listeners
