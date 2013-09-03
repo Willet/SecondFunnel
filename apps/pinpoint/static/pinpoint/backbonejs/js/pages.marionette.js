@@ -1,4 +1,5 @@
-/*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _, Willet */
+/*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _,
+  Willet, broadcast */
 // JSLint/Emacs js2-mode directive to stop global 'undefined' warnings.
 // Declaration of the SecondFunnel JS application
 SecondFunnel = (function (SecondFunnel, $window, $document) {
@@ -123,6 +124,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
     Backbone.Marionette.ItemView.prototype.superRender = Backbone.Marionette.ItemView.prototype.render;  // TODO: ugly
     Backbone.Marionette.ItemView.prototype.render =  function () {
+        // wrap around the original render function to give custom behaviour when a template is not found.
         try {
             this.superRender();
         } catch (err) {
@@ -147,6 +149,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
 
     SecondFunnel.module("utils", function (utils) {
+        // can't move utils out of SecondFunnel (used too soon)
+
         utils.safeString = function (str, opts) {
             // trims the string and checks if it's just 'None'.
             // more checks to come later.
@@ -172,6 +176,15 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             SecondFunnel.options.regions[name] = selector;
             SecondFunnel.options.regionWidgets[name] = functionality;
             broadcast('widgetAdded', name, selector, functionality);
+        };
+
+        utils.addClass = function (name, defn) {
+            // allows designers to add a custom (tile) class.
+            // if class name is already taken, the original class is overwritten.
+            SecondFunnel.classRegistry = SecondFunnel.classRegistry || {};
+            SecondFunnel.classRegistry[name] = defn;
+            broadcast('classAdded', name, defn);
+            return defn;
         };
 
         utils.runWidgets = function (viewObject) {
@@ -270,13 +283,13 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             var videoTypes = ["youtube", "video"],
                 type = this.get('content-type').toLowerCase();
 
-            this.type = 'image';  // TODO: what is this
+            // set up tile type overrides
             this.set({
-                "type": "image",
+                "type": this.get('template'),  // default type being its template
                 "caption": SecondFunnel.utils.safeString(this.get("caption"))
             });
             if (_.contains(videoTypes, type)) {
-                this.type = 'video';
+                this.set('type', 'video');
             }
             broadcast('tileModelInitialized', this);
         },
@@ -293,12 +306,12 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'createView': function () {
             var targetClassName, TargetClass, view;
 
-            switch (this.type) {
+            switch (this.get('type')) {
             case "video":
                 TargetClass = VideoTileView;
                 break;
             default:
-                targetClassName = _.capitalize(this.type) + 'TileView';
+                targetClassName = _.capitalize(this.get('type')) + 'TileView';
                 if (window[targetClassName] !== undefined) {
                     TargetClass = window[targetClassName];
                     break;
@@ -306,14 +319,15 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 if (SecondFunnel.classRegistry &&
                     SecondFunnel.classRegistry[targetClassName] !== undefined) {
                     // if designers want to define a new tile view, they must
-                    // let SecondFunnel know about its existence.
+                    // let SecondFunnel know of its existence.
                     TargetClass = SecondFunnel.classRegistry[targetClassName];
                     break;
                 }
+                // undeclared / class not found in scope
                 TargetClass = TileView;
             }
-            // undeclared / class not found in scope
-            view = new TargetClass({model: this});
+            // #CtrlF fshkjr
+            view = new TargetClass({'model': this});
             broadcast('tileViewInitialized', view, this);
             return view.render();
         }
@@ -325,6 +339,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             var SubClass = 'Tile';
             if (window[SubClass]) {
                 return new window[SubClass](attrs);
+            }
+            if (SecondFunnel.classRegistry[SubClass]) {
+                return new SecondFunnel.classRegistry[SubClass](attrs);
             }
             return new Tile(attrs);  // base class
         },
@@ -363,11 +380,19 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
         'tagName': SecondFunnel.option('tileElement', "div"),
         'templates': function (currentView) {
-            return [
-                "#<%= data.template %>_<%= data['content-type'] %>_tile_template",
-                "#<%= data['content-type'] %>_<%= data.template %>_tile_template",
-                "#<%= data.template %>_tile_template",
-                "#product_tile_template" // default
+            return [  // dictated by CtrlF fshkjr
+                "#<%= options.store.name %>_<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
+                "#<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
+                "#<%= options.store.name %>_<%= data.template %>_mobile_tile_template",                              // gap_image_mobile_tile_template
+                "#<%= data.template %>_mobile_tile_template",                                                        // image_mobile_tile_template
+
+                "#<%= options.store.name %>_<%= data['content-type'] %>_<%= data.template %>_tile_template",         // gap_instagram_image_tile_template
+                "#<%= data['content-type'] %>_<%= data.template %>_tile_template",                                   // instagram_image_tile_template
+                "#<%= options.store.name %>_<%= data.template %>_tile_template",                                     // gap_image_tile_template
+                "#<%= data.template %>_tile_template",                                                               // image_tile_template
+
+                "#product_mobile_tile_template",                                                                     // fallback
+                "#product_tile_template"                                                                             // fallback
             ];
         },
         'template': "#product_tile_template",
@@ -812,7 +837,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     CategorySelector = Backbone.Marionette.CompositeView.extend({
         // This ItemView does not create an element, rather is passed
         // the element that it will use for category selection
-        itemView: CategoryView,
+        'itemView': CategoryView,
 
         'initialize': function (categories) {
             // Initialize a category view for each object with a
@@ -838,8 +863,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             var defaultTemplateRules = [
                 // supported contexts: options, data
                 '#<%= options.store.name %>_<%= data.template %>_mobile_preview_template',
-                '#<%= options.store.name %>_<%= data.template %>_preview_template',
                 '#<%= data.template %>_mobile_preview_template',
+                '#<%= options.store.name %>_<%= data.template %>_preview_template',
                 '#<%= data.template %>_preview_template',
                 '#tile_mobile_preview_template', // fallback
                 '#tile_preview_template' // fallback

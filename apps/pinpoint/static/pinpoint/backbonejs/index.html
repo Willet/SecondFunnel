@@ -344,9 +344,9 @@
                         </div>
                         <div class="col-sm-6 col-md-6">
                             <% var product = obj['related-products'][0]; %>
-                            <img class="main-image" src="<%= sizeImage(product.image, 150) %>" alt="related product" />
                             <div class='title'><%= product.title %></div>
                             <div class='price'><%= product.price %></div>
+                            <img class="main-image" src="<%= sizeImage(product.image, 150) %>" alt="related product" />
                             <div class='description'>
                                 <div class='desc-title'>Overview</div>
                                 <ul>
@@ -405,7 +405,7 @@
                 },
                 'campaign': 96,
                 'categories': [
-                    { 
+                    {  // you will still need to make elements with data-category="96" on the page.
                         'id': 96
                     },
                     {
@@ -517,6 +517,7 @@
         <script type="text/javascript" src="js/respond.min.js"></script><!-- "as early after the css as possible" -->
         <script type="text/javascript" src="js/jquery.min.js"></script>
         <script type="text/javascript" src="js/jquery.mobile.swipeonly.min.js"></script>
+        <script type="text/javascript" src="js/jquery.viewport.min.js"></script><!-- after jquery -->
         <script type="text/javascript" src="js/json2.js"></script>
         <script type="text/javascript" src="js/underscore.js"></script>
         <script type="text/javascript" src="js/backbone.js"></script>
