@@ -1,4 +1,5 @@
 // Example: adding custom behaviour to supported layouts
+// TODO: lazy load widgets
 SecondFunnel.utils.addWidget(
     'gallery',  // name (must be unique)
     '.gallery',  // selector (scoped!)
