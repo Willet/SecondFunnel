@@ -3,7 +3,13 @@ SecondFunnel.vent.on('rotate', function (desiredWidth) {
     // by scaling the entire viewport.
     // the meta viewport tag is NOT standard, and does NOT work on all devices.
     // (this concerns mostly IE10 on Windows Phone)
-    if (SecondFunnel.option('lockWidth') !== true) {
+    var enabled = SecondFunnel.option('lockWidth');
+
+    if (typeof enabled === 'function') {
+        enabled = enabled();
+    }
+
+    if (enabled !== true) {
         console.warn('viewport agent disabled.');
         return;
     }

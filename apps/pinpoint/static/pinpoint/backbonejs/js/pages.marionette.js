@@ -672,9 +672,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 }, 500));
 
             // serve orientation change event via vent
-            window.addEventListener("orientationchange", function () {
-                SecondFunnel.vent.trigger("rotate", SecondFunnel.option('desiredWidth'));
-            }, false);
+            if (window.addEventListener) {  // IE 8
+                window.addEventListener("orientationchange", function () {
+                    SecondFunnel.vent.trigger("rotate", SecondFunnel.option('desiredWidth'));
+                }, false);
+            }
 
             // Vent Listeners
             SecondFunnel.vent.on("tileClicked", this.updateContentStream,
