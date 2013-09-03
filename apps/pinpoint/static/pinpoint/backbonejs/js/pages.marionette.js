@@ -278,7 +278,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             if (_.contains(videoTypes, type)) {
                 this.type = 'video';
             }
-            broadcast('tileModelIntialized', this);
+            broadcast('tileModelInitialized', this);
         },
 
         'sync': function () {
@@ -314,7 +314,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             }
             // undeclared / class not found in scope
             view = new TargetClass({model: this});
-            broadcast('tileViewIntialized', view, this);
+            broadcast('tileViewInitialized', view, this);
             return view.render();
         }
     });
@@ -340,7 +340,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     this.add(new Tile(data));
                 }
             }
-            broadcast('tileCollectionIntialized', this);
+            broadcast('tileCollectionInitialized', this);
         }
     });
 

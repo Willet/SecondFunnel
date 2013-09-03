@@ -36,7 +36,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine) {
 
         $elem.masonry(layoutEngine.options).masonry('bindResize');
         layoutEngine.$el = $elem;
-        broadcast('layoutEngineIntialized', layoutEngine);
+        broadcast('layoutEngineInitialized', layoutEngine);
         // @temporary
         layoutEngine.imagesLoaded = layoutEngine.imagesLoadedTransitional;
     };

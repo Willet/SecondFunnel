@@ -30,22 +30,22 @@ SecondFunnel.module("intentRank", function (intentRank) {
                           intentRank.getResultsOffline
         });
 
-        broadcast('intentRankIntialized', intentRank);
+        broadcast('intentRankInitialized', intentRank);
     };
 
     intentRank.getResultsOffline = function (options, callback) {
-        broadcast('beforeintentRankgetResultsOffline', options,
+        broadcast('beforeIntentRankGetResultsOffline', options,
             callback, intentRank);
         var args = _.toArray(arguments).slice(2);
         args.unshift(intentRank.content);
 
-        broadcast('intentRankgetResultsOffline', options, callback,
+        broadcast('intentRankGetResultsOffline', options, callback,
             intentRank);
         return callback.apply(callback, args);
     };
 
     intentRank.getResultsOnline = function (options, callback) {
-        broadcast('beforeintentRankgetResultsOnline', options,
+        broadcast('beforeIntentRankGetResultsOnline', options,
             callback, intentRank);
 
         var uri = _.template(intentRank.templates[options.type],

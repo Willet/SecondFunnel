@@ -45,6 +45,13 @@ SecondFunnel.addInitializer(function (options) {
 });
 
 SecondFunnel.addInitializer(function (options) {
+    if (window.console) {
+        SecondFunnel.vent.on('log', _.bind(window.console.log, window.console));
+        SecondFunnel.vent.on('error', _.bind(window.console.error, window.console));
+    }
+});
+
+SecondFunnel.addInitializer(function (options) {
     // Add our initializer, this allows us to pass a series of tiles
     // to be displayed immediately (and first) on the landing page.
     broadcast('beforeInit', options, SecondFunnel);
