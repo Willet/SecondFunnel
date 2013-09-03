@@ -171,32 +171,32 @@ body {
 }
 
 .sharing .icon {
-    background:  url('https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Website-stay-connected-icons.png') top left no-repeat;
+    background:  url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Website-stay-connected-icons.png') top left no-repeat;
     padding-right: 1px;
 }
 
 .sharing .icon.pinterest {
-    background-position: -3px 0px;
+    background-position: -3px 0;
 }
 
 .sharing .icon.facebook {
-    background-position: -27px 0px;
+    background-position: -27px 0;
 }
 
 .sharing .icon.twitter {
-    background-position: -52px 0px;
+    background-position: -52px 0;
 }
 
 .sharing .icon.instagram {
-    background-position: -76px 0px;
+    background-position: -76px 0;
 }
 
 .sharing .icon.youtube {
-    background-position: -100px 0px;
+    background-position: -100px 0;
 }
 
 .sharing .icon.tumblr {
-    background-position: -124px 0px;
+    background-position: -124px 0;
 }
 
 

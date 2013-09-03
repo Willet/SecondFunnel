@@ -3,6 +3,7 @@
     <head>
         <title>BackboneJS Gap Landing Page</title>
         <!-- CSS -->
+        <noscript><style> .no-noscript { display: none } </style></noscript>
         <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
         <link rel="stylesheet" type="text/css" href="css/pages2.css" />
         <link rel="stylesheet" type="text/css" href="css/styles.css" />
@@ -109,7 +110,15 @@
             <div id="discovery-area" class="discovery-area">
                 <!-- paste pre-rendered tiles here (TODO... event handling for them) -->
             </div>
-            <div class="loading"></div>
+            <div class="no-noscript loading"></div>
+            <noscript>
+                <!-- promotions to show when user does not have javascript.
+                     this is a 'we need javascript' message by default.
+                 -->
+                <div class="alert alert-danger">
+                    <b>Oh no!</b> We need JavaScript enabled to show you this page.
+                </div>
+            </noscript>
         </div>
 
 
@@ -380,7 +389,7 @@
         <!-- End Templates -->
         <!-- Javascript Files -->
         <script type="text/javascript">
-            window.TEST_PAGE_DATA = {
+            window.PAGES_INFO = {
                 'debug': 0,
                 'base_url': "http://www.secondfunnel.com",
                 'discoveryTarget': "#discovery-area",
@@ -485,17 +494,17 @@
                 _gaq.push(['_setDomainName', 'none']);
             }
 
-            _gaq.push(['_setAccount', window.TEST_PAGE_DATA.gaAccountNumber]);
+            _gaq.push(['_setAccount', window.PAGES_INFO.gaAccountNumber]);
 
             _gaq.push(['_setCustomVar',
                 1,                               // slot id
                 'StoreID',                       // name
-                window.TEST_PAGE_DATA.store.id,  // value
+                window.PAGES_INFO.store.id,  // value
                 3                                // scope: page-level
             ]);
 
             _gaq.push(['_setCustomVar', 2, 'CampaignID',
-                window.TEST_PAGE_DATA.campaign,  // <int>
+                window.PAGES_INFO.campaign,  // <int>
                 3
             ]);
 
@@ -509,7 +518,7 @@
         <script type="text/javascript" src="js/jquery.min.js"></script>
         <script type="text/javascript" src="js/jquery.mobile.swipeonly.min.js"></script>
         <script type="text/javascript" src="js/json2.js"></script>
-        <script type="text/javascript" src="js/lodash.js"></script>
+        <script type="text/javascript" src="js/underscore.js"></script>
         <script type="text/javascript" src="js/backbone.js"></script>
         <script type="text/javascript" src="js/backbone.marionette.min.js"></script><!-- after backbone -->
         <script type="text/javascript" src="js/imagesloaded.pkgd.min.js"></script>
@@ -550,7 +559,7 @@
 
 
                 // Example: receive event notifications
-                SecondFunnel.vent.on({
+                receive({
                     'previewRendered': function () {
                         console.log('bur... preview rendered');
                     }

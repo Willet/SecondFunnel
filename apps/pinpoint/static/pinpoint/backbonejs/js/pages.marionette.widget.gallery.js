@@ -1,3 +1,5 @@
+/*global $, _, SecondFunnel, sizeImage*/
+
 // Example: adding custom behaviour to supported layouts
 // TODO: lazy load widgets
 SecondFunnel.utils.addWidget(

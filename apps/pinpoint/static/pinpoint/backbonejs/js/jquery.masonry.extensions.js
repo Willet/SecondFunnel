@@ -3,8 +3,8 @@
    It should be possible to define simple rules for how tiles can be placed, or sized.
 
    Implementation Concerns:
-       - May not be compatible with furture iterations of Masonry.
-       - Have to exend Masonry to allow layout logic control which divs can be placed near each
+       - May not be compatible with future iterations of Masonry.
+       - Have to extend Masonry to allow layout logic control which divs can be placed near each
          other; for this purpose, we'll assume two divs are the same if they have the same type;
          so the same classname besides the selector).
 */

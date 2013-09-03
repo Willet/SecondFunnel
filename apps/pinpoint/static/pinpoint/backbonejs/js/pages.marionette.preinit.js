@@ -10,6 +10,7 @@ if (!window.console) {  // shut up JSLint / good practice
 
 var SecondFunnel,
     broadcast,
+    receive,
     debugOp,
     ev = new $.Event('remove'),
     orig = $.fn.remove;
@@ -135,6 +136,23 @@ broadcast = function () {
     SecondFunnel.vent.trigger.apply(SecondFunnel.vent, arguments);
     if (window.Willet && window.Willet.mediator) {  // to each his own
         Willet.mediator.fire(arguments[0], pArgs);
+    }
+};
+
+receive = function () {
+    // alias for vent.on with a clear intent that the event triggered
+    // is NOT used by internal code (pages.js).
+    // calling method: (eventName, other stuff)
+    var pArgs = Array.prototype.slice.call(arguments, 1);
+    if (!window.SecondFunnel) {
+        return;  // SecondFunnel not initialized yet
+    }
+    if (SecondFunnel.option('debug') > 2) {
+        console.log('Received "' + arguments[0] + '" with args=%O', pArgs);
+    }
+    SecondFunnel.vent.on.apply(SecondFunnel.vent, arguments);
+    if (window.Willet && window.Willet.mediator) {  // to each his own
+        Willet.mediator.on(arguments[0], pArgs);
     }
 };
 
