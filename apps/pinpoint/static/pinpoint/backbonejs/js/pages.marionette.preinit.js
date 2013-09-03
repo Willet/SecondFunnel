@@ -1,9 +1,12 @@
 /*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _, Willet */
 // JSLint/Emacs js2-mode directive to stop global 'undefined' warnings.
 
+// A ?debug value of > 1 will leak memory, and should not be used as reference
+// heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 if (!window.console) {  // shut up JSLint / good practice
     var console = window.console = {
         log: $.noop,
+        warn: $.noop,
         error: $.noop
     };
 }

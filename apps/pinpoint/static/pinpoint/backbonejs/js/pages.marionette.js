@@ -671,6 +671,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     broadcast('windowResize');
                 }, 500));
 
+            // serve orientation change event via vent
+            window.addEventListener("orientationchange", function () {
+                SecondFunnel.vent.trigger("rotate", SecondFunnel.option('desiredWidth'));
+            }, false);
+
             // Vent Listeners
             SecondFunnel.vent.on("tileClicked", this.updateContentStream,
                 this);

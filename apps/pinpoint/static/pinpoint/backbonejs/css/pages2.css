@@ -385,13 +385,6 @@ div.loading {
     -o-border-radius: 4px;
 }
 
-.shareContainer .content h2 {
-    margin-top: 3px;
-    margin-bottom: 5px;
-    border-bottom: 2px solid #2F2F2F;
-    color: #2F2F2F;
-}
-
 .shareContainer .content .share {
     margin: 0 auto;
 }

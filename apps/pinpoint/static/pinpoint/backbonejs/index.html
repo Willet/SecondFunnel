@@ -8,7 +8,7 @@
         <link rel="stylesheet" type="text/css" href="css/pages2.css" />
         <link rel="stylesheet" type="text/css" href="css/styles.css" />
         <!-- End CSS -->
-        <meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1.5"><!-- required by bootstrap -->
+        <meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><!-- required by bootstrap -->
         <meta http-equiv="X-UA-Compatible" content="IE=edge"><!-- required by bootstrap, IE -->
     </head>
 
@@ -60,7 +60,7 @@
                             <li><a href="#" data-category="99">Samsung SSD</a></li>
                           </ul>
                     </ul>
-                    <ul class="nav navbar-nav navbar-right hidden-xxs">
+                    <ul class="nav navbar-nav navbar-right hidden-xs">
                         <li class="sharing">
                             Stay Connected:
                             <ul>
@@ -480,6 +480,9 @@
                 // underneath, no matter how fast you scroll.
                 'prefetchHeight': 1,
 
+                'lockWidth': true,  // must be true (not 1, {}, ...) to retain rotational consistency
+                'desiredWidth': 1024,
+
                 'backupResults': [
                     // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
                     // it really should contain at least 10 products.
@@ -533,6 +536,7 @@
         <script type="text/javascript" src="js/pages.marionette.layoutengine.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.marionette.sharing.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.marionette.ir.js"></script><!-- after marionette -->
+        <script type="text/javascript" src="js/pages.marionette.viewport.js"></script><!-- after pages -->
         <script type="text/javascript" src="js/pages.marionette.init.js"></script><!-- after pages -->
         <script type="text/javascript" src="js/pages.marionette.widget.gallery.js"></script>
         <script type="text/javascript" src="js/css3-mediaqueries.js"></script><!-- IE8 -->
@@ -562,7 +566,7 @@
                 // Example: receive event notifications
                 receive({
                     'previewRendered': function () {
-                        console.log('bur... preview rendered');
+                        console.log('doh! preview rendered');
                     }
                 });
             }

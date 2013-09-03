@@ -47,8 +47,14 @@ SecondFunnel.addInitializer(function (options) {
 SecondFunnel.addInitializer(function (options) {
     if (window.console) {
         SecondFunnel.vent.on('log', _.bind(window.console.log, window.console));
+        SecondFunnel.vent.on('warn', _.bind(window.console.warn, window.console));
         SecondFunnel.vent.on('error', _.bind(window.console.error, window.console));
     }
+});
+
+SecondFunnel.addInitializer(function (options) {
+    // set its width to whatever it began with.
+    SecondFunnel.options.desiredWidth = $(window).width();
 });
 
 SecondFunnel.addInitializer(function (options) {
@@ -59,6 +65,10 @@ SecondFunnel.addInitializer(function (options) {
     $('.brand-label').text(options.store.displayName ||
                            _.capitalize(options.store.name) ||
                            'Brand Name');
+
+    $(document).ajaxError(function (event, request, settings) {
+        broadcast('ajaxError', settings.url, SecondFunnel);
+    });
 
     SecondFunnel.discovery = new SecondFunnel.classRegistry.Discovery(options);
     SecondFunnel.tracker.init();
