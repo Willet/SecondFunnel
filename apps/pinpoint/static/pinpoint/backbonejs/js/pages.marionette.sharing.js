@@ -2,10 +2,21 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
     "use strict";
 
     var $document = $(document),
-        $window = $(window);
+        $window = $(window),
+        getButton = function (type) {
+            // returns 'best' button class based on requested type.
+            type = _.capitalize(type);  // e.g. Facebook
+
+            // if we define a custom button class, return that.
+            if (sharing[type + 'SocialButton']) {
+                return sharing[type + 'SocialButton'];
+            }
+            // otherwise, return the default.
+            return sharing.SocialButtonView;
+        };
 
     sharing.SocialButtons = Backbone.Marionette.View.extend({
-        // Acts as a manager for the social buttons; allows us to create arbitrary
+        // Container for the social buttons; allows us to create arbitrary
         // social buttons.
 
         // override the template by passing it in: new SocialButtons({ template: ... })
@@ -29,9 +40,9 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             // and twitter handlers.
             if (window.FB && _.contains(this.buttonTypes, "facebook")) {
                 window.FB.init({
-                    cookie: true,
-                    status: false, // No AppID
-                    xfbml: true
+                    'cookie': true,
+                    'status': false, // No AppID
+                    'xfbml': true
                 });
             }
 
@@ -73,20 +84,19 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         },
 
         'initialize': function (options) {
-            // Initializes the SocialButton CompositeView by determining what
+            // Initializes the SocialButton View by determining what
             // social buttons to show and loading the initial config if necessary.
             var self = this;
             // Only load the social once
             this.loadSocial(_.bind(this.initSocial, this));
-            this.views = [];
+            this.views = [];  // list of button views (used by marionette)
 
-            _.each(self.buttonTypes, function (type) {
-                var count = options.showCount,
-                    button = null,
+            _.each(_.compact(self.buttonTypes), function (type) {
+                var count = options.showCount || false,
+                    ButtonClass,
                     template = "#" + type.toLowerCase() + "_social_button_template";
-                type = _.capitalize(type);
-                button = SecondFunnel.sharing.getButton(type);
-                self.views.push(new button({
+                ButtonClass = getButton(type);
+                self.views.push(new ButtonClass({
                     'model': options.model,
                     'template': template,
                     'showCount': self.showCount
@@ -165,12 +175,13 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             // Call the after template handler to allow subclasses to modify this
             // data
             return this.onTemplateHelpers ?
-                this.onTemplateHelpers(helpers) :
-                helpers;
+                   this.onTemplateHelpers(helpers) :
+                   helpers;
         },
 
         'onBeforeRender': function () {
-            if(!this.showCondition()) {
+            if (!this.showCondition()) {
+                this.unbind();
                 this.close();
             }
         },
@@ -205,9 +216,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
                     var fbId = this.cid + '-fb';
                     facebookButton.attr('id', fbId);
 
-                    // this makes 1 iframe request to fb per button regardless
-                    // so stretch out its loading by a second and make the
-                    // the page look less owned by the lag
+                    // after the button is parsed, remove its dummy placeholder
                     window.FB.XFBML.parse(facebookButton[0], function () {
                         facebookButton.find('.placeholder').remove();
                     });
@@ -245,9 +254,10 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         'load': function () {
             // Load the widget when called.
             try {
+                // mainly lets you show tweet count.
                 window.twttr.widgets.load();
             } catch (err) {
-                // do other things
+                SecondFunnel.vent.trigger('warn', 'Could not load twitter');
             }
             return this;
         }
@@ -287,7 +297,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         'events': {
             'click .close, .mask': function (ev) {
                 this.$el.fadeOut(100).remove();
-                this.unbind();
+                this.unbind();  // Removes all callbacks on `this`.
                 this.views = [];
             }
         },
@@ -298,6 +308,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             this.$el.css({'display': "table"});
             $('body').append(this.$el.fadeIn(100));
 
+            // this.buttons = ["facebook", "twitter", "tumblr", ...]
             if (!(this.buttons && this.buttons.length)) {
                 this.buttons = _.map(sharing.sources, function (obj, key) {
                     return key;
@@ -315,14 +326,15 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
                 }
             });
 
-            // process widgets
+            // process widgets in this view
             SecondFunnel.utils.runWidgets(this);
         }
     });
 
     sharing.ShareOption = Backbone.Marionette.ItemView.extend({
+        // a View for each option within the 'share this' dialogue.
         'tagName': "div",
-        'className': "shareOption",
+        'className': "button",
         'templates': [
             '#<%= data.type %>_share_popup_option_template'
         ],
@@ -336,7 +348,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
                     _.extend({
                         'landing': encodeURIComponent(window.location),
                         'title': document.title
-                }, this.options, this.model.attributes));
+                    }, this.options, this.model.attributes));
             } else {
                 helpers.url = window.location;
             }
@@ -345,7 +357,8 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         },
 
         'onRender': function () {
-            this.$el.addClass((this.options.type + "_share").replace(/[+\-]/g, ""));
+            this.$el.addClass((this.options.type + "_share").replace(/[+\-]/g,
+                ""));
             return this;
         }
     });
@@ -353,18 +366,17 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
     sharing.sources = {
         // A mapping of the different sharing options and the related
         // share url.
-        // TODO: Can we do better than this ?
 
         // Main ones (e.g. Facebook, Twitter, Tumblr, etc.)
         'facebook': "//facebook.com/sharer/sharer.php?u=<%= url %>",
         'twitter': "//twitter.com/share?url=<%= url %>",
         'tumblr': "//tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= landing %>",
         'pinterest': "//pinterest.com/pin/create/button/?url=<%= url %>",
-        'google+': "//plus.google.com/share?url=<%= url %>",
-        'reddit':  "//reddit.com/submit?url=<%= url %>",
 
         // Auxiliary ones
-        'email': "mailto:user@example.com?subject=<%= title %>&body=<%= caption %>%20<%= url %>",
+        'google+': "//plus.google.com/share?url=<%= url %>",
+        'reddit': "//reddit.com/submit?url=<%= url %>",
+        'email': "mailto: ?subject=<%= title %>&body=<%= caption %>%20<%= url %>",
         'digg': "//digg.com/submit?url=<%= url %>",
         'blogger': "//blogger.com/blog-this.g?t=<%= caption %>&u=<%= url %>&n=<%= title %>",
         'stumbleupon': "//stumbleupon.com/submit?url=<%= url %>"
@@ -376,24 +388,5 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
         type = type.toLowerCase();
         return this.sources[type];
-    };
-
-    sharing.getButton = function (type) {
-        var button;
-        switch (type) {
-        case "Facebook":
-            button = sharing.FacebookSocialButton;
-            break;
-        case "Twitter":
-            button = sharing.TwitterSocialButton;
-            break;
-        case "Share":
-            button = sharing.ShareSocialButton;
-            break;
-        default:
-            button = sharing.SocialButtonView;
-            break;
-        }
-        return button;
     };
 });

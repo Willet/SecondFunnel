@@ -374,22 +374,7 @@ div.loading {
     clear: both;
 }
 
-.shareContainer .content {
-    margin: 0 auto;
-    font-size: 18px;
-    width: 100%;
-    border-radius: 4px;
-    -moz-border-radius: 4px;
-    -webkit-border-radius: 4px;
-    -ms-border-radius: 4px;
-    -o-border-radius: 4px;
-}
-
-.shareContainer .content .share {
-    margin: 0 auto;
-}
-
-.shareContainer .content .share div.shareOption {
+.shareContainer .share .button {
     display: inline-block;
     padding: 5px;
     min-width: 180px;
@@ -397,14 +382,14 @@ div.loading {
     position: relative;
 }
 
-.shareContainer .content .share a {
+.shareContainer .share a {
     text-decoration: none;
     text-align: center;
     position: absolute;
     top: 10px;
 }
 
-.shareContainer .content .share a:hover div {
+.shareContainer .share a:hover div {
     opacity: 0.8;
 }
 

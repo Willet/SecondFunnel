@@ -425,7 +425,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 });
             this.$el.attr({
                 'class': this.className,
-                'id': this.cid
+                'id': this.model.cid
             });
 
             // do some kind of magic such that these methods are always called
@@ -565,7 +565,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
         'onYoutube': function (ev) {
             // Renders a YouTube video in the tile
-            var thumbId = 'thumb-' + this.cid,
+            var thumbId = 'thumb-' + this.model.cid,
                 $thumb = this.$('div.thumbnail'),
                 self = this;
 
