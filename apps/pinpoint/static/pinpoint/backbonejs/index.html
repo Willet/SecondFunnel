@@ -153,7 +153,7 @@
             <% } %>
             <% if (obj.name) { %>
                 <div class="caption">
-                    <span><%= obj.name.truncate(30) %></span>
+                    <span><%= obj.name.truncate(40, false, true) %></span>
                 </div>
             <% } %>
             <div class="social-buttons"></div>
@@ -443,7 +443,8 @@
                     "tumblr",
                     "share"  // who requested this feature?
                  ], // optional
-                //'shareSocialButtons': [] // optional; default: all
+                //'shareSocialButtons': [], // optional; default: all
+                'shareSources': {},  // optional: default: see sharing module
                 'socialButtonsEnableCondition': function (button) {
                     // required.
                     // this function must return true for a social button to show

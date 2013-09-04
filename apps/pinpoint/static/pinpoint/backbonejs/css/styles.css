@@ -6,6 +6,11 @@ body {
     background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/fall_2012_US_BeBright.gif') top center no-repeat;
 }
 
+header {
+    /* if your navbar has the 'navbar-fixed-top' class, this offset is required. */
+    padding: 57px 0 10px 0;
+}
+
 .navbar {
     background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/universalBar_bkg.png') repeat-x;
     border-radius: 0;
@@ -85,8 +90,9 @@ body {
 .tile .caption {
     position: relative;
     background-color: transparent;
-    color: #404040;
     border-radius: 0 0 4px 4px;
+    color: #404040;
+    font-size: 13px;
     min-height: 20px;
     padding-top: 10px;
 }
@@ -146,6 +152,9 @@ body {
 @media screen and (max-width: 768px) {
     .previewContainer .content {
         margin-bottom: 50px;  /* bump scrollable area up */
+    }
+    .previewContainer .gallery {
+        height: auto;
     }
 }
 

@@ -13,7 +13,27 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             }
             // otherwise, return the default.
             return sharing.SocialButton;
-        };
+        },
+        sources = _.extend({}, {
+            // A mapping of the different sharing options and the related
+            // share url.
+
+            // add more via PAGES_INFO.shareSources.
+
+            // Main ones (e.g. Facebook, Twitter, Tumblr, etc.)
+            'facebook': "//facebook.com/sharer/sharer.php?u=<%= url %>",
+            'twitter': "//twitter.com/share?url=<%= url %>",
+            'tumblr': "//tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= landing %>",
+            'pinterest': "//pinterest.com/pin/create/button/?url=<%= url %>",
+
+            // Auxiliary ones
+            'google+': "//plus.google.com/share?url=<%= url %>",
+            'reddit': "//reddit.com/submit?url=<%= url %>",
+            'email': "mailto: ?subject=<%= title %>&body=<%= caption %>%20<%= url %>",
+            'digg': "//digg.com/submit?url=<%= url %>",
+            'blogger': "//blogger.com/blog-this.g?t=<%= caption %>&u=<%= url %>&n=<%= title %>",
+            'stumbleupon': "//stumbleupon.com/submit?url=<%= url %>"
+        }, SecondFunnel.option('shareSources'));
 
     sharing.SocialButtons = Backbone.Marionette.View.extend({
         // Container for the social buttons; allows us to create arbitrary
@@ -310,7 +330,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
 
             // this.buttons = ["facebook", "twitter", "tumblr", ...]
             if (!(this.buttons && this.buttons.length)) {
-                this.buttons = _.map(sharing.sources, function (obj, key) {
+                this.buttons = _.map(sources, function (obj, key) {
                     return key;
                 });
             }
@@ -363,30 +383,12 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
     });
 
-    sharing.sources = {
-        // A mapping of the different sharing options and the related
-        // share url.
-
-        // Main ones (e.g. Facebook, Twitter, Tumblr, etc.)
-        'facebook': "//facebook.com/sharer/sharer.php?u=<%= url %>",
-        'twitter': "//twitter.com/share?url=<%= url %>",
-        'tumblr': "//tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= landing %>",
-        'pinterest': "//pinterest.com/pin/create/button/?url=<%= url %>",
-
-        // Auxiliary ones
-        'google+': "//plus.google.com/share?url=<%= url %>",
-        'reddit': "//reddit.com/submit?url=<%= url %>",
-        'email': "mailto: ?subject=<%= title %>&body=<%= caption %>%20<%= url %>",
-        'digg': "//digg.com/submit?url=<%= url %>",
-        'blogger': "//blogger.com/blog-this.g?t=<%= caption %>&u=<%= url %>&n=<%= title %>",
-        'stumbleupon': "//stumbleupon.com/submit?url=<%= url %>"
-    };
-
     sharing.get = function (type) {
-        if (!typeof type === 'string') {
+        // get source config of a social network type.
+        if (typeof type !== 'string') {
             return {};
         }
         type = type.toLowerCase();
-        return this.sources[type];
+        return sources[type];
     };
 });

@@ -19,11 +19,14 @@ if (!window.console) {  // shut up JSLint / good practice
 }
 
 // http://stackoverflow.com/questions/1199352/smart-way-to-shorten-long-strings-with-javascript/1199420#1199420
-String.prototype.truncate = function (n, useSentenceBoundary) {
+String.prototype.truncate = function (n, useSentenceBoundary, addEllipses) {
     var toLong = this.length > n,
         s = toLong ? this.substr(0, n - 1) : this;
     s = useSentenceBoundary && toLong? s.substr(0, s.lastIndexOf('. ') + 1): s;
-    return  s;
+    if (addEllipses) {
+        s = s.substr(0, s.length - 3) + '...';
+    }
+    return s;
 };
 
 // JQuery Special event to listen to delete
@@ -41,7 +44,7 @@ $.fn.remove = function () {
 
 $.fn.scrollable = $.fn.scrollable || function (yesOrNo) {
     // make an element scrollable on mobile.
-    if (SecondFunnel.observable.touch()) { //if touch events exist...
+    if (SecondFunnel.observable.mobile() || SecondFunnel.observable.touch()) {
         var $el = $(this),  // warning: multiple selectors
             $html = $('html'),
             $body = $('body'),
@@ -63,9 +66,13 @@ $.fn.scrollable = $.fn.scrollable || function (yesOrNo) {
                 'height': '100%'
             });
 
-            $body.data('previous-overflow', $body.css('overflow'));
+            $body.data({
+                'previous-overflow': $body.css('overflow'),
+                'previous-overflow-y': $body.css('overflow-y')
+            });
             $body.css({
                 'overflow': 'hidden',
+                'overflow-y': 'hidden',
                 'height': '100%'
             });
 
@@ -82,6 +89,7 @@ $.fn.scrollable = $.fn.scrollable || function (yesOrNo) {
             });
             $body.css({
                 'overflow': $body.data('previous-overflow'),
+                'overflow-y': $html.data('previous-overflow-y'),
                 'height': 'auto'
             });
         }
