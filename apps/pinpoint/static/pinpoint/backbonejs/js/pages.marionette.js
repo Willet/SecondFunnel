@@ -460,11 +460,16 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
         'onClick': function (ev) {
             var tile = this.model,
+                preview;
+
+            // clicking on social buttons is not clicking on the tile.
+            if (!$(ev.target).parents('.button').length) {
                 preview = new PreviewWindow({
                     'model': tile,
                     'caller': ev.currentTarget
                 });
-            SecondFunnel.vent.trigger("tileClicked", ev, this);
+                SecondFunnel.vent.trigger("tileClicked", ev, this);
+            }
         },
 
         'onBeforeRender': function () {

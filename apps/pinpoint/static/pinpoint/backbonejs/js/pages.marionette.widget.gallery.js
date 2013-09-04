@@ -55,7 +55,7 @@ SecondFunnel.utils.addWidget(
                     if (selIdx >= images.length) {
                         selIdx = images.length - 1;
                     }
-                } else {
+                } else {  // can only be swiperight, based on available events
                     selIdx--;  // not retreat
                     if (selIdx < 0) {
                         selIdx = 0;

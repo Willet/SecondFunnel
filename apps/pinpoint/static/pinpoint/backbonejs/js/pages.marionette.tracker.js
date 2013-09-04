@@ -254,7 +254,6 @@ SecondFunnel.module("tracker", function (tracker) {
             });
         },
 
-        // can't do click with delegation: stopPropagation in effect
         "hover .social-buttons .button": function (e) {
             var $button = $(e.currentTarget);
             broadcast('socialButtonHover', $button);
@@ -263,6 +262,10 @@ SecondFunnel.module("tracker", function (tracker) {
                 "subtype": "hoverSocialButton",
                 "label": $button.getClasses().join(':')
             });
+        },
+
+        "click .social-buttons .button": function (e) {
+            // insert code here
         },
 
         // core metrics: 'Shop Now', 'Find in Store' or similar

@@ -1,4 +1,4 @@
-SecondFunnel.module("sharing", function (sharing) {
+SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
     "use strict";
 
     var $document = $(document),
@@ -94,11 +94,6 @@ SecondFunnel.module("sharing", function (sharing) {
             });
         },
 
-        'showCondition': function () {
-            // @override to false under any condition you don't want buttons to show
-            return true;
-        },
-
         'load': function () {
             // Initialize each Social Button; lazy loading to improve
             // page load times.
@@ -131,7 +126,6 @@ SecondFunnel.module("sharing", function (sharing) {
                     "type": "share",
                     "subtype": "clicked"
                 });
-                ev.stopPropagation(); // you did not click below the button
             }
         },
 
@@ -143,6 +137,11 @@ SecondFunnel.module("sharing", function (sharing) {
         'load': function () {
             // @override: subclasses should override this method
             return this;
+        },
+
+        'showCondition': function () {
+            // @override to false under any condition you don't want buttons to show
+            return SecondFunnel.option('socialButtonsEnableCondition')(this);
         },
 
         'templateHelpers': function () {  // or {k: v}
@@ -168,6 +167,12 @@ SecondFunnel.module("sharing", function (sharing) {
             return this.onTemplateHelpers ?
                 this.onTemplateHelpers(helpers) :
                 helpers;
+        },
+
+        'onBeforeRender': function () {
+            if(!this.showCondition()) {
+                this.close();
+            }
         },
 
         // 'triggers': { "click .facebook": "event1 event2" },

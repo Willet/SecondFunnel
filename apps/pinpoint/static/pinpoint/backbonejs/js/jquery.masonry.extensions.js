@@ -6,20 +6,10 @@
        - May not be compatible with future iterations of Masonry.
        - Have to extend Masonry to allow layout logic control which divs can be placed near each
          other; for this purpose, we'll assume two divs are the same if they have the same type;
-         so the same classname besides the selector).
+         so the same class name besides the selector).
 */
 
 // Helper functions
-function near (elem1, elem2, distance) {
-    var rect1 = getRectangle(elem1),
-        rect2 = getRectangle(elem2);
-    // TODO: Where is this 15 coming from ?
-    distance += 15;
-
-    // Test if they are within distance
-    return true;
-}
-
 function getRectangle(elem) {
     // Get the bounding rectangle if it exists
     var rect = elem;
@@ -31,6 +21,16 @@ function getRectangle(elem) {
         });
     }
     return rect;
+}
+
+function near(elem1, elem2, distance) {
+    var rect1 = getRectangle(elem1),
+        rect2 = getRectangle(elem2);
+    // TODO: Where is this 15 coming from ?
+    distance += 15;
+
+    // Test if they are within distance
+    return true;
 }
 
 Masonry.prototype.__create = Masonry.prototype._create;
@@ -65,14 +65,14 @@ Masonry.prototype._filters = {
     }
 };
 
-Masonry.prototype._getColSpan = function(item) {
+Masonry.prototype._getColSpan = function (item) {
     var colSpan;
     item.getSize();
     colSpan = Math.ceil(item.size.outerWidth / this.columnWidth);
     return Math.min(colSpan, this.cols);
 };
 
-Masonry.prototype._layoutItems = function(items, isInstant) {
+Masonry.prototype._layoutItems = function (items, isInstant) {
     if (!items || !items.length) {
         // no items, emit event with empty array
         this.emitEvent('layoutComplete', [this, items]);
@@ -88,7 +88,7 @@ Masonry.prototype._layoutItems = function(items, isInstant) {
     this.recent = this.recent || [];
 
     var queue = [], i,
-        // used for determing changes and/or exit conditions
+    // used for determing changes and/or exit conditions
         ignoreFail = false, changed = true;
 
     while (items.length > 0) {
@@ -119,7 +119,7 @@ Masonry.prototype._layoutItems = function(items, isInstant) {
 };
 
 
-Masonry.prototype._getItemLayoutPosition = function(item, ignoreFail) {
+Masonry.prototype._getItemLayoutPosition = function (item, ignoreFail) {
     // how many columns does this brick span
     var colSpan = this._getColSpan(item),
         i, y;
@@ -128,7 +128,7 @@ Masonry.prototype._getItemLayoutPosition = function(item, ignoreFail) {
     var colGroup = this._getColGroup(colSpan);
     // get the minimum Y value(s) from the columns.
     var minimumYs = _.clone(colGroup).sort(function (a, b) {
-            return a > b; 
+            return a > b;
         }),
         minimumY = _.indexOf(colGroup, minimumYs[0]);
 
