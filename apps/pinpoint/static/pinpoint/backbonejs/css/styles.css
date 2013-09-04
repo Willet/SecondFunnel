@@ -17,6 +17,7 @@ body {
 .dropdown-menu .twitter,
 .dropdown-menu .pinterest,
 .dropdown-menu .instagram,
+.dropdown-menu .youtube,
 .dropdown-menu .tumblr {
     background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Social+Subscribe+-+Mobile.png') no-repeat top left;
     background-size: 24px auto;
@@ -81,8 +82,16 @@ body {
     box-shadow: none;
 }
 
+.tile .caption {
+    position: relative;
+    background-color: transparent;
+    color: #404040;
+    border-radius: 0 0 4px 4px;
+    min-height: 20px;
+    padding-top: 10px;
+}
+
 .tile.product {
-    font-size: 10px;
     text-align: center;
 }
 

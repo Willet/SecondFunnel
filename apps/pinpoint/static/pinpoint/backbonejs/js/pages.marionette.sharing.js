@@ -12,7 +12,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
                 return sharing[type + 'SocialButton'];
             }
             // otherwise, return the default.
-            return sharing.SocialButtonView;
+            return sharing.SocialButton;
         };
 
     sharing.SocialButtons = Backbone.Marionette.View.extend({
@@ -126,7 +126,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
     });
 
-    sharing.SocialButtonView = Backbone.Marionette.ItemView.extend({
+    sharing.SocialButton = Backbone.Marionette.ItemView.extend({
         // Base object for Social buttons, when adding a new Social button, extend
         // from this class and modify as necessary.
         'events': {
@@ -203,8 +203,8 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         'commas': false
     });
 
-    sharing.FacebookSocialButton = sharing.SocialButtonView.extend({
-        // Subclass of the SocialButtonView for FaceBook Social Buttons.
+    sharing.FacebookSocialButton = sharing.SocialButton.extend({
+        // Subclass of the SocialButton for FaceBook Social Buttons.
         'load': function () {
             // Onload, render the button and remove the placeholder
             var facebookButton = this.$el;
@@ -249,8 +249,8 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
     });
 
-    sharing.TwitterSocialButton = sharing.SocialButtonView.extend({
-        // Subclass of the SocialButtonView for Twitter Social Buttons.
+    sharing.TwitterSocialButton = sharing.SocialButton.extend({
+        // Subclass of the SocialButton for Twitter Social Buttons.
         'load': function () {
             // Load the widget when called.
             try {
@@ -263,8 +263,8 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
     });
 
-    sharing.ShareSocialButton = sharing.SocialButtonView.extend({
-        // Subclass of SocialButtonView for triggering a Share popup
+    sharing.ShareSocialButton = sharing.SocialButton.extend({
+        // The "share this" button that opens a "share this" popup
         'events': {
             'click': function (ev) {
                 // Creates a new popup instead of the default action

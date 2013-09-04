@@ -1,6 +1,13 @@
 /*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _, Willet */
 // JSLint/Emacs js2-mode directive to stop global 'undefined' warnings.
 
+var SecondFunnel,
+    broadcast,
+    receive,
+    debugOp,
+    ev = new $.Event('remove'),
+    orig = $.fn.remove;
+
 // A ?debug value of > 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 if (!window.console) {  // shut up JSLint / good practice
@@ -11,12 +18,13 @@ if (!window.console) {  // shut up JSLint / good practice
     };
 }
 
-var SecondFunnel,
-    broadcast,
-    receive,
-    debugOp,
-    ev = new $.Event('remove'),
-    orig = $.fn.remove;
+// http://stackoverflow.com/questions/1199352/smart-way-to-shorten-long-strings-with-javascript/1199420#1199420
+String.prototype.truncate = function (n, useSentenceBoundary) {
+    var toLong = this.length > n,
+        s = toLong ? this.substr(0, n - 1) : this;
+    s = useSentenceBoundary && toLong? s.substr(0, s.lastIndexOf('. ') + 1): s;
+    return  s;
+};
 
 // JQuery Special event to listen to delete
 // stackoverflow.com/questions/2200494
