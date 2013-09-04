@@ -14,7 +14,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     SecondFunnel.classRegistry = {};
     SecondFunnel.option = function (name, defaultValue) {
-        // convenience method for accessing PAGES_INFO or TEST_*
+        // convenience method for accessing PAGES_INFO or TEST_*.
+        // to access deep options (e.g. PAGES_INFO.store.name), use the key
+        // "store.name" or "store:name" (preferred).
         var opt = Backbone.Marionette.getOption(SecondFunnel, name),
             keyNest = _.compact(name.split(/[:.]/)),
             keyName,
@@ -43,6 +45,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         }
         return defaultValue;  // ...and defaultValue defaults to undefined
     };
+
     try {
         SecondFunnel.options.debug = 0;
 
@@ -422,7 +425,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 });
             this.$el.attr({
                 'class': this.className,
-                'id': this.cid
+                'id': this.model.cid
             });
 
             // do some kind of magic such that these methods are always called
@@ -562,7 +565,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
         'onYoutube': function (ev) {
             // Renders a YouTube video in the tile
-            var thumbId = 'thumb-' + this.cid,
+            var thumbId = 'thumb-' + this.model.cid,
                 $thumb = this.$('div.thumbnail'),
                 self = this;
 
