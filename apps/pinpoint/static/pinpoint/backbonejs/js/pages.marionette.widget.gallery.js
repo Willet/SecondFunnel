@@ -41,8 +41,8 @@ SecondFunnel.utils.addWidget(
         });
 
         // swipeleft is "from right to left"
-        view.$el.on('swipeleft swiperight', '.image, .image img',
-            function (ev) {
+        view.$el
+            .on('swipeleft swiperight', '.image, .image img', function (ev) {
                 // select an image one to the left or right and select it
                 var type = ev.type,  // swipeleft or swiperight
                     sel = view.$('.gallery .selected'),
@@ -62,6 +62,14 @@ SecondFunnel.utils.addWidget(
                     }
                 }
                 images.eq(selIdx).addClass('selected').click();
-            });
+            })
+        .on('click', '.image, .image img', function (ev) {
+            var $pseudo = $(ev.target);
+            if (ev.offsetX >= 0 && ev.offsetX <= 50) {   // left (which is swiping right)
+                $pseudo.swiperight();
+            } else if (ev.offsetX >= $pseudo.width() - 50) {  // right
+                $pseudo.swipeleft();
+            }
+        });
     }
 );
