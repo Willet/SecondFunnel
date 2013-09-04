@@ -20,10 +20,12 @@ if (!window.console) {  // shut up JSLint / good practice
 
 // http://stackoverflow.com/questions/1199352/smart-way-to-shorten-long-strings-with-javascript/1199420#1199420
 String.prototype.truncate = function (n, useSentenceBoundary, addEllipses) {
-    var toLong = this.length > n,
-        s = toLong ? this.substr(0, n - 1) : this;
-    s = useSentenceBoundary && toLong? s.substr(0, s.lastIndexOf('. ') + 1): s;
-    if (addEllipses) {
+    var tooLong = this.length > n,
+        s = tooLong ? this.substr(0, n - 1) : this;
+    if (useSentenceBoundary && tooLong) {
+        s = s.substr(0, s.lastIndexOf('. ') + 1);
+    }
+    if (tooLong && addEllipses) {
         s = s.substr(0, s.length - 3) + '...';
     }
     return s;
@@ -40,6 +42,17 @@ $.fn.remove = function () {
     } else {
         return $(this);
     }
+};
+
+$.fn.scrollStopped = function (callback) {
+    // stackoverflow.com/a/14035162/1558430
+    $(this).scroll(function () {
+        var self = this, $this = $(self);
+        if ($this.data('scrollTimeout')) {
+            clearTimeout($this.data('scrollTimeout'));
+        }
+        $this.data('scrollTimeout', setTimeout(callback, 250, self));
+    });
 };
 
 $.fn.scrollable = $.fn.scrollable || function (yesOrNo) {

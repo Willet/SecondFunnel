@@ -253,7 +253,7 @@ header {
         line-height: 75px;
         top: 50%;
         margin-top: -45px;
-        color: #ddd;
+        color: #eee;
     }
     .previewContainer .image:before {
         content: "‹";  /* no, entities won't work here */

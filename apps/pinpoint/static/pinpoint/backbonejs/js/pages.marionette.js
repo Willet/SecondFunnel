@@ -676,6 +676,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         },
 
         'attachListeners': function () {
+            var self = this;
             // TODO: Find a better way than this...
             _.bindAll(this, 'pageScroll', 'toggleLoading',
                 'toggleMoreResults', 'layoutResults');
@@ -688,7 +689,13 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     $('.resizable', document).resize();
 
                     broadcast('windowResize');
-                }, 500));
+                }, 500))
+                .scrollStopped(function () {
+                    // deal with tap indicator fade in/outs
+                    if (SecondFunnel.observable.touch()) {
+                        SecondFunnel.vent.trigger('scrollStopped', self);
+                    }
+                });
 
             // serve orientation change event via vent
             if (window.addEventListener) {  // IE 8
@@ -988,7 +995,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
     TapIndicator = Backbone.Marionette.ItemView.extend({
         'template': "#tap_indicator_template",
-        'className': 'tap_indicator animated fadeIn',
+        'className': 'tap_indicator',
+        'initialize': function () {
+            SecondFunnel.vent.on('scrollStopped',
+                                 _.bind(this.onScrollStopped, this));
+        },
         'onBeforeRender': function () {
             // http://jsperf.com/hasclass-vs-toggleclass
             // toggleClass with a boolean is 55% slower than manual checks
@@ -996,6 +1007,16 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 $('html').addClass('touch-enabled');
             } else {
                 $('html').removeClass('touch-enabled');
+            }
+        },
+        'onScrollStopped': function (dA) {
+            var $indicatorEl = this.$el;
+            if ($indicatorEl
+                    .parents(SecondFunnel.option('discoveryItemSelector'))
+                    .hasClass('wide')) {
+                if ($indicatorEl.is(':in-viewport')) {  // this one is in view.
+                    $indicatorEl.delay(500).fadeOut(600);
+                }
             }
         }
     });

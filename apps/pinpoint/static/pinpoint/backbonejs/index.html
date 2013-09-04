@@ -139,6 +139,7 @@
         </script>
 
         <script type="text/template" id="product_tile_template">
+            <div class="tap-indicator-target"></div>
             <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
             <% if (SecondFunnel.option('debug', 0) > 1) { %>
                 <span class="type"><%= obj['content-type'] %></span>

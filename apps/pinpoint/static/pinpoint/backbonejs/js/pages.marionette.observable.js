@@ -12,7 +12,8 @@ SecondFunnel.module("observable", function (observable) {
         return ($window.width() < 768);  // 768 is set in stone now
     };
     observable.touch = function () {
-        return ('ontouchstart' in document.documentElement);
+        return ('ontouchstart' in document.documentElement) ||
+            $('html').hasClass('touch-enabled');
     };
 
     observable.isAniPad = function () {

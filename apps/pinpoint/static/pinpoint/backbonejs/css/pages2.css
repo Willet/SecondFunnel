@@ -479,11 +479,11 @@ div.loading {
     }
 }
 
-
 .discovery-area .tap_indicator {
     /* show only on large (wide) instagram blocks (see below) */
     display: none;
 }
+
 .touch-enabled .discovery-area .wide .tap_indicator {
     /* should contain a '+' symbol, and
        another div with the hint text */
@@ -506,6 +506,7 @@ div.loading {
     border-radius: 50px;
     line-height: 85px;
 }
+
 .touch-enabled .discovery-area .wide .tap_indicator > div {
     font-size:10px;
     margin: -54px -1px 0 -1px;
