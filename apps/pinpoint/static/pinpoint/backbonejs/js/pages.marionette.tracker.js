@@ -5,6 +5,12 @@ SecondFunnel.module("tracker", function (tracker) {
         $window = $(window),
         isBounce = true,  // this flag set to false once user scrolls down
         videosPlayed = [],
+        GA_CUSTOMVAR_SCOPE = {
+            'PAGE': 3,
+            'EVENT': 3,
+            'SESSION': 2,
+            'VISITOR': 1
+        },
         parseUri = function (str) {
             // parseUri 1.2.2
             // (c) Steven Levithan <stevenlevithan.com>
@@ -49,17 +55,24 @@ SecondFunnel.module("tracker", function (tracker) {
         },
 
         trackEvent = function (o) {
-            var category = "appname=pinpoint|" +
-                "storeid=" + SecondFunnel.option('store:id') + "|" +
-                "campaignid=" + SecondFunnel.option('page:id') + "|" +
-                "referrer=" + referrerName() + "|" +
-                "domain=" + parseUri(window.location.href).host;
+            // category       - type of object that was acted on
+            // action         - type of action that took place (e.g. share, preview)
+            // label          - Data specific to event (e.g. product, URL)
+            // value          - Optional numeric data
+            // nonInteraction - if true, don't count in bounce rate
+            //                  by default, events are interactive
 
             if (SecondFunnel.option('enableTracking', true)) {
                 if (window._gaq) {
-                    window._gaq.push(['_trackEvent', category, o.action, o.label, o.value || undefined]);
+                    window._gaq.push(['_trackEvent',
+                        o.category,
+                        o.action,
+                        o.label,
+                        o.value || undefined,
+                        !!o.nonInteraction || undefined
+                    ]);
                 }
-                broadcast('eventTracked', o, category);
+                broadcast('eventTracked', o, o.category);
             }
         },
 
@@ -67,7 +80,7 @@ SecondFunnel.module("tracker", function (tracker) {
             var slotId = o.slotId,
                 name = o.name,
                 value = o.value,
-                scope = o.scope || 3; // 3 = page-level
+                scope = o.scope || GA_CUSTOMVAR_SCOPE.PAGE; // 3 = page-level
 
             if (!(slotId && name && value)) {
                 return;
@@ -182,9 +195,37 @@ SecondFunnel.module("tracker", function (tracker) {
         // arguments = args[1~n] when calling .trigger()
         tracker.setSocialShareVars();
 
+        setCustomVar({
+            'slotId': 1,
+            'name': 'Store',
+            'value': SecondFunnel.option('store:id'),
+            'scope': GA_CUSTOMVAR_SCOPE.PAGE
+        });
+
+        setCustomVar({
+            'slotId': 2,
+            'name': 'Page',
+            'value': SecondFunnel.option('page:id'),
+            'scope': GA_CUSTOMVAR_SCOPE.PAGE
+        });
+
+        setCustomVar({
+            'slotId': 3,
+            'name': 'Internal Visitor', // Name?
+            'value': true ? 'Yes' : 'No', // How to determine?
+            'scope': GA_CUSTOMVAR_SCOPE.VISITOR
+        });
+
+        // referrer? domain?
+
         broadcast('trackerInitialized', tracker);
         // setTrackingDomHooks() on $.ready
     };
+
+    // Generally, we have views handle event tracking on their own.
+    // However, it can be expensive to bind events to every single view.
+    // So, to avoid the performance penalty, we do most of our tracking via
+    // delegated events.
 
     // Backbone format: { '(event) (selectors)': function(ev), ...  }
     tracker.defaultEventMap = {
