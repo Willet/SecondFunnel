@@ -121,10 +121,17 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         // from this class and modify as necessary.
         'events': {
             'click': function (ev) {
-                SecondFunnel.vent.trigger('tracker:registerEvent', {
-                    "network": "oneOfThem",
-                    "type": "share",
-                    "subtype": "clicked"
+                // TODO: Track proper data
+//                SecondFunnel.vent.trigger('tracker:registerEvent', {
+//                    "network": "oneOfThem",
+//                    "type": "share",
+//                    "subtype": "clicked"
+//                });
+
+                SecondFunnel.vent.trigger('tracker:trackEvent', {
+                    'category': '', // Type of tile: product, content, video
+                    'action': '', // Network
+                    'label': '' // Name (Product) / URL (content)
                 });
             }
         },

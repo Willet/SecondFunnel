@@ -99,7 +99,8 @@ SecondFunnel.module("tracker", function (tracker) {
             "actionScope=" + tracker.socialShareType
         ];
 
-        tracker.notABounce(o.type);
+        // We can mark non-bounces in a more correct way
+//        tracker.notABounce(o.type);
 
         trackEvent({
             "action": actionData.join("|"),
@@ -117,49 +118,57 @@ SecondFunnel.module("tracker", function (tracker) {
         }
     };
 
-    tracker.registerTwitterListeners = function () {
-        if (!window.twttr) {
-            return;
-        }
-        window.twttr.ready(function (twttr) {
-            twttr.events.bind('tweet', function (event) {
-                tracker.registerEvent({
-                    "network": "Twitter",
-                    "type": "share",
-                    "subtype": "shared"
-                });
-            });
+    // TODO: Unused: Remove?
+//    tracker.registerTwitterListeners = function () {
+//        if (!window.twttr) {
+//            return;
+//        }
+//        window.twttr.ready(function (twttr) {
+//            twttr.events.bind('tweet', function (event) {
+//                tracker.registerEvent({
+//                    "network": "Twitter",
+//                    "type": "share",
+//                    "subtype": "shared"
+//                });
+//
+//                tracker.trackEvent({
+//                    'category': '',
+//                    'action': 'Twitter',
+//                    'label': ''
+//                })
+//            });
+//
+//            twttr.events.bind('click', function (event) {
+//                var sType;
+//                if (event.region === "tweet") {
+//                    sType = "clicked";
+//                } else if (event.region === "tweetcount") {
+//                    sType = "leftFor";
+//                } else {
+//                    sType = event.region;
+//                }
+//                tracker.registerEvent({
+//                    "network": "Twitter",
+//                    "type": "share",
+//                    "subtype": sType
+//                });
+//            });
+//        });
+//    };
 
-            twttr.events.bind('click', function (event) {
-                var sType;
-                if (event.region === "tweet") {
-                    sType = "clicked";
-                } else if (event.region === "tweetcount") {
-                    sType = "leftFor";
-                } else {
-                    sType = event.region;
-                }
-                tracker.registerEvent({
-                    "network": "Twitter",
-                    "type": "share",
-                    "subtype": sType
-                });
-            });
-        });
-    };
-
-    tracker.notABounce = _.once(function (how) {
-        // visitor already marked as "non-bounce"
-        // this function becomes nothing after it's first run, even
-        // after re-initialisation, or if the function throws an exception.
-        broadcast('notABounce', how, tracker);
-
-        tracker.registerEvent({
-            "type": "visit",
-            "subtype": "noBounce",
-            "label": how
-        });
-    });
+    // TODO: Remove: Pointless?
+//    tracker.notABounce = _.once(function (how) {
+//        // visitor already marked as "non-bounce"
+//        // this function becomes nothing after it's first run, even
+//        // after re-initialisation, or if the function throws an exception.
+//        broadcast('notABounce', how, tracker);
+//
+//        tracker.registerEvent({
+//            "type": "visit",
+//            "subtype": "noBounce",
+//            "label": how
+//        });
+//    });
 
     tracker.videoStateChange = function (videoId, event) {
         broadcast('videoStateChange', videoId, event, tracker);
@@ -172,10 +181,16 @@ SecondFunnel.module("tracker", function (tracker) {
         if (event.data === window.YT.PlayerState.PLAYING) {
             videosPlayed.push(videoId);
 
-            tracker.registerEvent({
-                "type": "content",
-                "subtype": "video",
-                "label": videoId
+//            tracker.registerEvent({
+//                "type": "content",
+//                "subtype": "video",
+//                "label": videoId
+//            });
+
+            tracker.trackEvent({
+                'category': 'Content',
+                'action': 'Video Play',
+                'label': '' //Youtube URL
             });
         }
     };
@@ -227,6 +242,8 @@ SecondFunnel.module("tracker", function (tracker) {
     // So, to avoid the performance penalty, we do most of our tracking via
     // delegated events.
 
+    // TODO: Of the events that we broadcast, which are actually used?
+
     // Backbone format: { '(event) (selectors)': function(ev), ...  }
     tracker.defaultEventMap = {
         // reset tracking scope: hover into featured product area
@@ -239,38 +256,42 @@ SecondFunnel.module("tracker", function (tracker) {
         "hover .tile": function (ev) {
             // this = window because that's what $el is
             broadcast('tileHover', ev.currentTarget);
-            tracker.registerEvent({
-                "type": "???",  // no known values for this new event
-                "subtype": "???",
-                "label": "???"
-            });
+            // No need to track tile hover
         },
 
         "click .header a": function (ev) {
             broadcast('headerHover', ev.currentTarget);
-            tracker.registerEvent({
-                "type": "clickthrough",
-                "subtype": "header",
-                "label": $(this).attr("href")
+//            tracker.registerEvent({
+//                "type": "clickthrough",
+//                "subtype": "header",
+//                "label": $(this).attr("href")
+//            });
+
+            tracker.trackEvent({
+                'category': 'Header',
+                'action': 'Clickthrough'
+//                'label': '' // Do we need a label? Info should be included in segment
             });
         },
 
         "click .previewContainer .close": function () {
             broadcast('popupClosed');
-            tracker.registerEvent({
-                "type": "???",  // no known values for this new event
-                "subtype": "???",
-                "label": "???"
-            });
+            // No need to track preview closed
         },
 
         // buy now event
         "click a.buy": function () {
             broadcast('buyClick');
-            tracker.registerEvent({
-                "type": "clickthrough",
-                "subtype": "buy",
-                "label": $(this).attr("href")
+//            tracker.registerEvent({
+//                "type": "clickthrough",
+//                "subtype": "buy",
+//                "label": $(this).attr("href")
+//            });
+
+            tracker.trackEvent({
+                'category': '', // What tile type?
+                'action': 'Purchase',
+                'label': '' // Product name
             });
         },
 
@@ -278,35 +299,48 @@ SecondFunnel.module("tracker", function (tracker) {
         "click .tile.product, .tile.combobox .product": function (e) {
             // TODO: data('label') === ?
             broadcast('tileClick');
-            tracker.registerEvent({
-                "type": "inpage",
-                "subtype": "openpopup",
-                "label": $(this).data("label")
+//            tracker.registerEvent({
+//                "type": "inpage",
+//                "subtype": "openpopup",
+//                "label": $(this).data("label")
+//            });
+
+            tracker.trackEvent({
+                'category': 'Product',
+                'action': 'Preview',
+                'label': '' // Product name
             });
         },
 
         // lifestyle image click
         "click .tile.combobox .lifestyle, .tile.image, .tile>img": function (e) {
             broadcast('lifestyleTileClick');
-            tracker.registerEvent({
-                "type": "content",
-                "subtype": "openpopup",
-                "label": $(this).data("label")
+//            tracker.registerEvent({
+//                "type": "content",
+//                "subtype": "openpopup",
+//                "label": $(this).data("label")
+//            });
+
+            tracker.trackEvent({
+                'category': '', // Tile type?
+                'action': 'Purchase',
+                'label': '' // Product / URL
             });
         },
 
         "hover .social-buttons .button": function (e) {
             var $button = $(e.currentTarget);
             broadcast('socialButtonHover', $button);
-            tracker.registerEvent({
-                "type": "inpage",
-                "subtype": "hoverSocialButton",
-                "label": $button.getClasses().join(':')
-            });
+            // No need to track social buttons hover
         },
 
         "click .social-buttons .button": function (e) {
             // insert code here
+            tracker.trackEvent({
+                'category': '', // What tile type?
+                'action': 'Purchase',
+                'label': '' // Product name
+            });
         },
 
         // core metrics: 'Shop Now', 'Find in Store' or similar
@@ -316,29 +350,30 @@ SecondFunnel.module("tracker", function (tracker) {
                 isInStore = $button.hasClass('in-store');
             if (isFindStore) {
                 broadcast('findStoreClick', $button);
-                tracker.registerEvent({
-                    "type": "inpage",
-                    "subtype": "clickFindStore",
-                    "label": "???"  // TODO: decide on a label
+//                tracker.registerEvent({
+//                    "type": "inpage",
+//                    "subtype": "clickFindStore",
+//                    "label": "???"  // TODO: decide on a label
+//                });
+                tracker.trackEvent({
+                    'category': '', // What tile type?
+                    'action': 'Purchase',
+                    'label': '' // Product name
                 });
             }
             if (isInStore) {
                 broadcast('inStoreClick', $button);
-                tracker.registerEvent({
-                    "type": "inpage",
-                    "subtype": "clickInStore",
-                    "label": "???"  // TODO: decide on a label
+//                tracker.registerEvent({
+//                    "type": "inpage",
+//                    "subtype": "clickInStore",
+//                    "label": "???"  // TODO: decide on a label
+//                });
+                tracker.trackEvent({
+                    'category': '', // What tile type? Preview?
+                    'action': 'Clickthrough',
+                    'label': '' // Product name
                 });
             }
-        },
-
-        "click .pinterest": function () {
-            // social hover and popup pinterest click events
-            tracker.registerEvent({
-                "network": "Pinterest",
-                "type": "share",
-                "subtype": "clicked"
-            });
         }
     };
 
@@ -371,7 +406,7 @@ SecondFunnel.module("tracker", function (tracker) {
         'tracking:trackEvent': tracker.trackEvent,
         'tracking:setSocialShareVars': tracker.setSocialShareVars,
         'tracking:registerTwitterListeners': tracker.registerTwitterListeners,
-        'tracking:notABounce': tracker.notABounce,
+//        'tracking:notABounce': tracker.notABounce,
         'tracking:videoStateChange': tracker.videoStateChange,
         'tracking:changeCampaign': tracker.changeCampaign
     });

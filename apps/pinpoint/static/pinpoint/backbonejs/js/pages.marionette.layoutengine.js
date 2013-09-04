@@ -183,12 +183,16 @@ SecondFunnel.module("layoutEngine", function (layoutEngine) {
                 // Batch removal of bad elements
                 $badImages.remove();
             }
+
             // Trigger tracking event and call the callback
-            SecondFunnel.vent.trigger('tracking:trackEvent', {
-                'action': "network=|actionType=impression|actionSubtype=productImpression|actionScope=???",
-                'label': 'productViewed',
-                'value': ''
-            });
+            // Uncomment the below if we want to track impressions
+            // Will need to add appropriate category, etc.
+//            SecondFunnel.vent.trigger('tracking:trackEvent', {
+//                'category': '',
+//                'action': '',
+//                'label': '',
+//                'nonInteraction': true
+//            });
             args.unshift($fragment);
             callback.apply(layoutEngine, args);
         });
