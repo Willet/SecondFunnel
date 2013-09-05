@@ -64,37 +64,13 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
                     'status': false, // No AppID
                     'xfbml': true
                 });
+                SecondFunnel.vent.trigger('tracking:registerFacebookListeners');
             }
 
             if (window.twttr && window.twttr.widgets &&
                 _.contains(this.buttonTypes, "twitter")) {
+                SecondFunnel.vent.trigger('tracking:registerTwitterListeners');
                 window.twttr.widgets.load();
-                window.twttr.ready(function (twttr) {
-                    twttr.events.bind('tweet', function (event) {
-                        SecondFunnel.tracker.registerEvent({
-                            "network": "Twitter",
-                            "type": "share",
-                            "subtype": "shared"
-                        });
-                    });
-
-                    twttr.events.bind('click', function (event) {
-                        var sType;
-                        if (event.region === "tweet") {
-                            sType = "clicked";
-                        } else if (event.region === "tweetcount") {
-                            sType = "leftFor";
-                        } else {
-                            sType = event.region;
-                        }
-
-                        SecondFunnel.tracker.registerEvent({
-                            "network": "Twitter",
-                            "type": "share",
-                            "subtype": sType
-                        });
-                    });
-                });
             }
 
             // pinterest does its own stuff - just include pinit.js.
@@ -149,15 +125,6 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
     sharing.SocialButton = Backbone.Marionette.ItemView.extend({
         // Base object for Social buttons, when adding a new Social button, extend
         // from this class and modify as necessary.
-        'events': {
-            'click': function (ev) {
-                SecondFunnel.vent.trigger('tracker:registerEvent', {
-                    "network": "oneOfThem",
-                    "type": "share",
-                    "subtype": "clicked"
-                });
-            }
-        },
 
         'initialize': function (options) {
             // Assign attributes to the object
