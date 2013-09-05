@@ -1,6 +1,13 @@
 /*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _, Willet */
 // JSLint/Emacs js2-mode directive to stop global 'undefined' warnings.
 
+var SecondFunnel,
+    broadcast,
+    receive,
+    debugOp,
+    ev = new $.Event('remove'),
+    orig = $.fn.remove;
+
 // A ?debug value of > 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 if (!window.console) {  // shut up JSLint / good practice
@@ -11,12 +18,18 @@ if (!window.console) {  // shut up JSLint / good practice
     };
 }
 
-var SecondFunnel,
-    broadcast,
-    receive,
-    debugOp,
-    ev = new $.Event('remove'),
-    orig = $.fn.remove;
+// http://stackoverflow.com/questions/1199352/smart-way-to-shorten-long-strings-with-javascript/1199420#1199420
+String.prototype.truncate = function (n, useSentenceBoundary, addEllipses) {
+    var tooLong = this.length > n,
+        s = tooLong ? this.substr(0, n - 1) : this;
+    if (useSentenceBoundary && tooLong) {
+        s = s.substr(0, s.lastIndexOf('. ') + 1);
+    }
+    if (tooLong && addEllipses) {
+        s = s.substr(0, s.length - 3) + '...';
+    }
+    return s;
+};
 
 // JQuery Special event to listen to delete
 // stackoverflow.com/questions/2200494
@@ -31,9 +44,20 @@ $.fn.remove = function () {
     }
 };
 
+$.fn.scrollStopped = function (callback) {
+    // stackoverflow.com/a/14035162/1558430
+    $(this).scroll(function () {
+        var self = this, $this = $(self);
+        if ($this.data('scrollTimeout')) {
+            clearTimeout($this.data('scrollTimeout'));
+        }
+        $this.data('scrollTimeout', setTimeout(callback, 500, self));
+    });
+};
+
 $.fn.scrollable = $.fn.scrollable || function (yesOrNo) {
     // make an element scrollable on mobile.
-    if (SecondFunnel.observable.touch()) { //if touch events exist...
+    if (SecondFunnel.observable.mobile() || SecondFunnel.observable.touch()) {
         var $el = $(this),  // warning: multiple selectors
             $html = $('html'),
             $body = $('body'),
@@ -55,14 +79,18 @@ $.fn.scrollable = $.fn.scrollable || function (yesOrNo) {
                 'height': '100%'
             });
 
-            $body.data('previous-overflow', $body.css('overflow'));
+            $body.data({
+                'previous-overflow': $body.css('overflow'),
+                'previous-overflow-y': $body.css('overflow-y')
+            });
             $body.css({
                 'overflow': 'hidden',
+                'overflow-y': 'hidden',
                 'height': '100%'
             });
 
             $el
-                .height(1.5 * $(window).height())
+                .height(1.2 * $(window).height())
                 .css('max-height', '100%');
 
         } else {
@@ -74,6 +102,7 @@ $.fn.scrollable = $.fn.scrollable || function (yesOrNo) {
             });
             $body.css({
                 'overflow': $body.data('previous-overflow'),
+                'overflow-y': $html.data('previous-overflow-y'),
                 'height': 'auto'
             });
         }

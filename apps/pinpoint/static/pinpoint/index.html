@@ -4,7 +4,7 @@
         <title>BackboneJS Gap Landing Page</title>
         <!-- CSS -->
         <noscript><style> .no-noscript { display: none } </style></noscript>
-        <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+        <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css" />
         <link rel="stylesheet" type="text/css" href="css/pages2.css" />
         <link rel="stylesheet" type="text/css" href="css/styles.css" />
         <!-- End CSS -->
@@ -33,32 +33,24 @@
                     <ul class="nav navbar-nav"><!-- RHS: .navbar-right -->
                         <li><a class="navbar-brand brand-label" href="#"></a></li>
                         <!-- li class="active"><a href="#">Home</a></li -->
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">More brands <b class="caret"></b></a>
-                            <ul class="dropdown-menu">
-                                <li><a href="#">Action</a></li>
-                                <li><a href="#">Another action</a></li>
-                                <li><a href="#">Something else here</a></li>
-                                <li><a href="#">Separated link</a></li>
-                                <li><a href="#">One more separated link</a></li>
+                        <li class="dropdown hidden-md hidden-lg">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Other brands <b class="caret"></b></a>
+                            <ul class="related-products dropdown-menu">
+                                <li><a href="http://www.gap.com">Gap</a></li>
+                                <li><a href="http://www.oldnavy.com">Old Navy</a></li>
+                                <li><a href="http://www.bananarepublic.com">Banana Republic</a></li>
+                                <li><a href="http://www.piperlime.com">Piperlime</a></li>
+                                <li><a href="http://www.athleta.com">Athleta</a></li>
                             </ul>
                         </li>
                         <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Stay connected <b class="caret"></b></a>
+                            <a href="#" class="dropdown-toggle"
+                               data-toggle="dropdown">Categories <b class="caret"></b></a>
                             <ul class="dropdown-menu">
-                                <li><a class="facebook" href="http://www.facebook.com/Gap">Facebook</a></li>
-                                <li><a class="twitter" href="http://www.twitter.com/gap">Twitter</a></li>
-                                <li><a class="pinterest" href="http://www.pinterest.com/Gap">Pinterest</a></li>
-                                <li><a class="instagram" href="http://www.instagram.com/gap">Instagram</a></li>
-                                <li><a class="tumblr" href="http://gap.tumblr.com/">Tumblr</a></li>
+                                <li><a href="#" data-category="96">Back to Blue</a></li>
+                                <li><a href="#" data-category="99">Samsung SSD</a></li>
                             </ul>
                         </li>
-                        <li class="dropdown">
-                          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Categories <b class="caret"></b></a>
-                          <ul class="dropdown-menu">
-                            <li><a href="#" data-category="96">Back to Blue</a></li>
-                            <li><a href="#" data-category="99">Samsung SSD</a></li>
-                          </ul>
                     </ul>
                     <ul class="nav navbar-nav navbar-right hidden-xs">
                         <li class="sharing">
@@ -141,10 +133,22 @@
         <script type="text/template" id="product_tile_template">
             <div class="tap-indicator-target"></div>
             <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
-            <span class="type"><%= obj['content-type'] %></span>
-            <div class="caption">
-                <span><%= obj.caption %></span>
-            </div>
+            <% if (SecondFunnel.option('debug', 0) > 1) { %>
+                <span class="type"><%= obj['content-type'] %></span>
+            <% } %>
+            <div class="social-buttons"></div>
+        </script>
+        <script type="text/template" id="product_mobile_tile_template">
+            <div class="tap-indicator-target"></div>
+            <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
+            <% if (SecondFunnel.option('debug', 0) > 1) { %>
+                <span class="type"><%= obj['content-type'] %></span>
+            <% } %>
+            <% if (obj.name) { %>
+                <div class="caption">
+                    <span><%= obj.name.truncate(40, false, true) %></span>
+                </div>
+            <% } %>
             <div class="social-buttons"></div>
         </script>
         <script type="text/template" id="youtube_tile_template">
@@ -265,6 +269,9 @@
             <img src="<%= obj.image %>" alt=""/>
             <div class="social-buttons"></div>
         </script>
+
+
+
 
         <!-- store-specific templates -->
         <script type="text/template" id="gap_product_preview_template">
@@ -401,6 +408,7 @@
                 },
                 'page': {  // required
                     'id': 9001,  // required
+                    'product': undefined,  // optional (supplied to featured template)
                     'offline': false  // optional (if true, loads .content immediately)
                 },
                 'campaign': 96,
@@ -429,13 +437,15 @@
                     "tumblr",
                     "share"  // who requested this feature?
                  ], // optional
-                //'shareSocialButtons': [] // optional; default: all
+                //'shareSocialButtons': [], // optional; default: all
+                'shareSources': {},  // optional: default: see sharing module
                 'socialButtonsEnableCondition': function (button) {
                     // required.
                     // this function must return true for a social button to show
                     // and return false for a social button not to show
                     return true;
                 },
+                'showCount': false,  // for social buttons
                 'enableTracking': true, // optional; default: true
                 'eventMap': undefined,  // optional
                 'tileElement': undefined,  // optional. alters the type of tag used by tiles.
@@ -492,8 +502,7 @@
                 'backupResults': [
                     // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
                     // it really should contain at least 10 products.
-                ],
-                'showCount': true
+                ]
             };
 
             var _gaq = _gaq || [];
@@ -523,18 +532,18 @@
         <div id="fb-root"></div>
         <!-- End Social -->
         <script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
-        <script type="text/javascript" src="js/respond.min.js"></script><!-- "as early after the css as possible" -->
-        <script type="text/javascript" src="js/jquery.min.js"></script>
-        <script type="text/javascript" src="js/jquery.mobile.swipeonly.min.js"></script>
-        <script type="text/javascript" src="js/jquery.viewport.min.js"></script><!-- after jquery -->
-        <script type="text/javascript" src="js/json2.js"></script>
-        <script type="text/javascript" src="js/underscore.js"></script>
-        <script type="text/javascript" src="js/backbone.js"></script>
-        <script type="text/javascript" src="js/backbone.marionette.min.js"></script><!-- after backbone -->
-        <script type="text/javascript" src="js/imagesloaded.pkgd.min.js"></script>
-        <script type="text/javascript" src="js/jquery.masonry.pkgd.min.js"></script>
+        <script type="text/javascript" src="/static/js/respond.min.js"></script><!-- "as early after the css as possible" -->
+        <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.mobile.swipeonly.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.viewport.min.js"></script><!-- after jquery -->
+        <script type="text/javascript" src="/static/js/json2.js"></script>
+        <script type="text/javascript" src="/static/js/underscore.js"></script>
+        <script type="text/javascript" src="/static/js/backbone.js"></script>
+        <script type="text/javascript" src="/static/js/backbone.marionette.min.js"></script><!-- after backbone -->
+        <script type="text/javascript" src="/static/js/imagesloaded.pkgd.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.masonry.pkgd.min.js"></script>
         <script type="text/javascript" src="js/jquery.masonry.extensions.js"></script>
-        <script type="text/javascript" src="js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="js/pages.marionette.preinit.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.marionette.js"></script><!-- after preinit -->
         <script type="text/javascript" src="js/pages.marionette.observable.js"></script><!-- after marionette -->
@@ -545,7 +554,7 @@
         <script type="text/javascript" src="js/pages.marionette.viewport.js"></script><!-- after pages -->
         <script type="text/javascript" src="js/pages.marionette.init.js"></script><!-- after pages -->
         <script type="text/javascript" src="js/pages.marionette.widget.gallery.js"></script>
-        <script type="text/javascript" src="js/css3-mediaqueries.js"></script><!-- IE8 -->
+        <script type="text/javascript" src="/static/js/css3-mediaqueries.js"></script><!-- IE8 -->
         <script type="text/javascript">
             if (window.SecondFunnel) {
                 // Start the SecondFunnel app

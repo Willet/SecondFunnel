@@ -5,6 +5,21 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
 
+def internal_ip():
+    """INTERNAL! TESTING ONLY!
+
+    http://stackoverflow.com/a/166589/1558430
+    """
+    try:
+        import socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("google.com", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except:
+        return '127.0.0.1'
+
 DATABASES = {
     'default': {
         'ENGINE'  : 'django.db.backends.sqlite3',
@@ -53,8 +68,9 @@ DEFAULT_FILE_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 COMPRESS_STORAGE = STATICFILES_STORAGE
 
-INTERNAL_IPS = ('127.0.0.1',)
-WEBSITE_BASE_URL = 'http://127.0.0.1:8000'
+INTERNAL_IP = internal_ip()
+INTERNAL_IPS = ('127.0.0.1', INTERNAL_IP)
+WEBSITE_BASE_URL = 'http://{0}:8000'.format(INTERNAL_IP)
 
 STATIC_URL = '{0}/static/'.format(WEBSITE_BASE_URL)
 COMPRESS_URL = STATIC_URL

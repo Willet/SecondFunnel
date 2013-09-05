@@ -367,7 +367,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     FeaturedAreaView = Backbone.Marionette.ItemView.extend({
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
-        'model': new Tile(SecondFunnel.option('featured')),
+        'model': new Tile(SecondFunnel.option('page:product')),
         'template': "#stl_template, #featured_template, #hero_template",
         'onRender': function () {
             if (this.$el.length) {  // if something rendered, it was successful
@@ -383,7 +383,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
         'tagName': SecondFunnel.option('tileElement', "div"),
         'templates': function (currentView) {
-            return [  // dictated by CtrlF fshkjr
+            var defaultTemplateRules = [  // dictated by CtrlF fshkjr
                 "#<%= options.store.name %>_<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
                 "#<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
                 "#<%= options.store.name %>_<%= data.template %>_mobile_tile_template",                              // gap_image_mobile_tile_template
@@ -397,6 +397,17 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 "#product_mobile_tile_template",                                                                     // fallback
                 "#product_tile_template"                                                                             // fallback
             ];
+
+            if (!SecondFunnel.observable.mobile()) {
+                // remove mobile templates if it isn't mobile, since they take
+                // higher precedence by default
+                defaultTemplateRules = _.reject(defaultTemplateRules,
+                    function (t) {
+                        return t.indexOf('mobile') >= 0;
+                    });
+            }
+
+            return defaultTemplateRules;
         },
         'template': "#product_tile_template",
         'className': SecondFunnel.option('discoveryItemSelector',
@@ -665,6 +676,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         },
 
         'attachListeners': function () {
+            var self = this;
             // TODO: Find a better way than this...
             _.bindAll(this, 'pageScroll', 'toggleLoading',
                 'toggleMoreResults', 'layoutResults');
@@ -677,7 +689,13 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     $('.resizable', document).resize();
 
                     broadcast('windowResize');
-                }, 500));
+                }, 500))
+                .scrollStopped(function () {
+                    // deal with tap indicator fade in/outs
+                    if (SecondFunnel.observable.touch()) {
+                        SecondFunnel.vent.trigger('scrollStopped', self);
+                    }
+                });
 
             // serve orientation change event via vent
             if (window.addEventListener) {  // IE 8
@@ -983,7 +1001,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
     TapIndicator = Backbone.Marionette.ItemView.extend({
         'template': "#tap_indicator_template",
-        'className': 'tap_indicator animated fadeIn',
+        'className': 'tap_indicator',
+        'initialize': function () {
+            SecondFunnel.vent.on('scrollStopped',
+                                 _.bind(this.onScrollStopped, this));
+        },
         'onBeforeRender': function () {
             // http://jsperf.com/hasclass-vs-toggleclass
             // toggleClass with a boolean is 55% slower than manual checks
@@ -991,6 +1013,16 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 $('html').addClass('touch-enabled');
             } else {
                 $('html').removeClass('touch-enabled');
+            }
+        },
+        'onScrollStopped': function (dA) {
+            var $indicatorEl = this.$el;
+            if ($indicatorEl
+                    .parents(SecondFunnel.option('discoveryItemSelector'))
+                    .hasClass('wide')) {
+                if ($indicatorEl.is(':in-viewport')) {  // this one is in view.
+                    $indicatorEl.delay(500).fadeOut(600);
+                }
             }
         }
     });

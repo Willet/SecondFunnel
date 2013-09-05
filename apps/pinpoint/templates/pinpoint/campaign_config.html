@@ -1,0 +1,120 @@
+{% load staticfiles %}
+{% load compress %}
+
+{% compress js %}
+<script type="text/javascript">
+    window.PAGES_INFO = {
+        'debug': ('{{ debug|default:0 }}' === 'True'),  // django built-in
+        'base_url': '{{ base_url }}',
+        'discoveryTarget': '{{ discovery_target|default:"#discovery-area" }}',
+        'discoveryItemSelector': '{{ discovery_item_selector|default:".tile" }}',
+        'store': {
+            'id': '{{ campaign.store.slug }}',
+            'name': '{{ campaign.store.name }}',
+            'displayName': '{{ campaign.store.display_name|default:'' }}'  // leave blank to use "Gap"
+        },
+        'page': {  // required
+            'id': '{{ campaign.default_intentrank.id|default:campaign.id }}',  // required
+            'product': {{ product.json|safe }},
+            'pubDate': '{{ pub_date }}',  // for verifying the original upload date of a static campaign. for human use only
+            'offline': false,  // optional (if true, loads .content immediately)
+
+            'main-block-template': '{{ campaign.template }}',  // DEPRECATED
+            'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},  // DEPRECATED
+            'stl-image': '{{ campaign.stl_image }}',  // DEPRECATED
+            'featured-image': '{{ campaign.featured_image }}',  // DEPRECATED
+            'description': '{{ campaign.description|escapejs }}'  // DEPRECATED
+        },
+        'campaign': '{{ campaign.default_intentrank.id|default:campaign.id }}',
+        // you will still need to make elements with data-category="96" on the page.
+        'categories': [
+            {% with categories=campaign.intentrank.all%}
+            {% if categories|length > 1 %}
+            {% for category in categories %}
+                {
+                    'id': '{{ category.id }}',
+                    'name': '{{ category.name }}'
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        ],
+        'columnWidth': function($element) {
+            return 240 + 15;
+        },
+        'events': undefined,  // page event bindings (optional)
+        'socialButtons': [
+            "facebook",
+            "twitter",
+            "pinterest",
+            "tumblr",
+            "share"  // who requested this feature?
+         ], // optional
+        //'shareSocialButtons': [], // optional; default: all
+        'shareSources': {},  // optional: default: see sharing module
+        'socialButtonsEnableCondition': function (button) {
+            // required.
+            // this function must return true for a social button to show
+            // and return false for a social button not to show
+            return true;
+        },
+        'showCount': false,  // for social buttons
+        'enableTracking': true, // optional; default: true
+        'eventMap': undefined,  // optional
+        'tileElement': undefined,  // optional. alters the type of tag used by tiles.
+        'imageTileWide': 0.25,
+        'imageSizes': undefined,  // optional, overrides built-in size map
+        'previewAnimationDuration': 100,  // in ms
+        'previewMobileAnimationDuration': 0,
+        'masonryAnimationDuration': 0.4,  // in seconds
+        'masonryMobileAnimationDuration': 0,
+        'featured': {% include "pinpoint/snippets/product_object.js" with product=product featured=True only %},
+        {% if initial_results %}
+            // stuff that loads when page loads, even if IR is available
+            'initialResults': {{ initial_results|safe }},
+        {% endif %}
+        'IRResultsCount': 10,
+        'IRTimeout': 1000,
+        'IRSource': "http://intentrank-test.elasticbeanstalk.com/intentrank", // optional, defaults to intentrank-test
+        'gaAccountNumber': '{{ ga_account_number }}',  // required
+
+        // number of viewports worth of results to keep below the page.
+        // 0 is not an acceptable value, but 0.0001 is. default is 1,
+        // i.e. there will always be one page worth of results
+        // underneath, no matter how fast you scroll.
+        'prefetchHeight': 1,
+
+        'lockWidth': true,  // must be true (not 1, {}, ...) or a function that returns true
+        'desiredWidth': 1024,
+
+        {% if backup_results %}
+            // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
+            // it really should contain at least 10 products.
+            'backupResults': {{ backup_results|safe }}
+        {% endif %}
+    };
+
+    var _gaq = _gaq || [];
+
+    if (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1') {
+        _gaq.push(['_setDomainName', 'none']);
+    }
+
+    _gaq.push(['_setAccount', window.PAGES_INFO.gaAccountNumber]);
+
+    _gaq.push(['_setCustomVar',
+        1,                               // slot id
+        'StoreID',                       // name
+        window.PAGES_INFO.store.id,  // value
+        3                                // scope: page-level
+    ]);
+
+    _gaq.push(['_setCustomVar', 2, 'CampaignID',
+        window.PAGES_INFO.campaign,  // <int>
+        3
+    ]);
+
+    _gaq.push(['_trackPageview']);
+</script>
+{% endcompress %}

@@ -21,9 +21,6 @@
 html, body {
     font-family: "helvetica neue", helvetica, arial, sans-serif;
 }
-header {
-    padding: 57px 0 10px 0;
-}
 header .container {
     /* null set */
 }
@@ -152,22 +149,18 @@ div.loading {
 
 .tile .caption {
     position: absolute;
-    background-color: rgba(0,0,0,0.8);
+    background-color: rgba(0,0,0,0.7);
     color: #fff;
-    font-size: 13px;
-    z-index: 100;
-    left:5px;
+    left: auto;
     bottom: 5px;
     width: 100%;
-    min-height: 100px;
+    min-height: 50px;
     padding-bottom: 5px;
     text-align: center;
     vertical-align: middle;
-    display: table;
 }
 
 .tile .caption span {
-    display: table-cell;
     vertical-align: middle;
 }
 
@@ -177,12 +170,6 @@ div.loading {
     top: 5px;
     color: #FFF;
     background-color: #2F2f2F;
-}
-
-.tile .caption,
-.tile .caption span,
-.tile .type {
-    display: none !important;
 }
 
 .tile.wide {
@@ -454,7 +441,6 @@ div.loading {
         padding: 20px;
 
         width: 100%;
-        height: 100%;
 
         background: #fff;
         border: 0;
@@ -492,11 +478,11 @@ div.loading {
     }
 }
 
-
 .discovery-area .tap_indicator {
     /* show only on large (wide) instagram blocks (see below) */
     display: none;
 }
+
 .touch-enabled .discovery-area .wide .tap_indicator {
     /* should contain a '+' symbol, and
        another div with the hint text */
@@ -519,6 +505,7 @@ div.loading {
     border-radius: 50px;
     line-height: 85px;
 }
+
 .touch-enabled .discovery-area .wide .tap_indicator > div {
     font-size:10px;
     margin: -54px -1px 0 -1px;

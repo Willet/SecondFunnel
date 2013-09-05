@@ -6,6 +6,11 @@ body {
     background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/fall_2012_US_BeBright.gif') top center no-repeat;
 }
 
+header {
+    /* if your navbar has the 'navbar-fixed-top' class, this offset is required. */
+    padding: 57px 0 10px 0;
+}
+
 .navbar {
     background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/universalBar_bkg.png') repeat-x;
     border-radius: 0;
@@ -17,6 +22,7 @@ body {
 .dropdown-menu .twitter,
 .dropdown-menu .pinterest,
 .dropdown-menu .instagram,
+.dropdown-menu .youtube,
 .dropdown-menu .tumblr {
     background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Social+Subscribe+-+Mobile.png') no-repeat top left;
     background-size: 24px auto;
@@ -81,8 +87,17 @@ body {
     box-shadow: none;
 }
 
+.tile .caption {
+    position: relative;
+    background-color: transparent;
+    border-radius: 0 0 4px 4px;
+    color: #404040;
+    font-size: 13px;
+    min-height: 20px;
+    padding-top: 10px;
+}
+
 .tile.product {
-    font-size: 10px;
     text-align: center;
 }
 
@@ -135,8 +150,15 @@ body {
 }
 
 @media screen and (max-width: 768px) {
+    .previewContainer .close {
+        font-size: 40px;
+        padding: 0 0 10px 10px;
+    }
     .previewContainer .content {
         margin-bottom: 50px;  /* bump scrollable area up */
+    }
+    .previewContainer .gallery {
+        height: auto;
     }
 }
 
@@ -235,7 +257,7 @@ body {
         line-height: 75px;
         top: 50%;
         margin-top: -45px;
-        color: #ddd;
+        color: #eee;
     }
     .previewContainer .image:before {
         content: "‹";  /* no, entities won't work here */

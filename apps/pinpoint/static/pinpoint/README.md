@@ -15,6 +15,8 @@ To change the appearance of any template, *do not edit them*. Copy and paste the
 * to edit `product_tile_template`, copy and paste the `product_tile_template` tag, and rename it to `yourStoreName_product_tile_template`.
 * To edit `image_preview_template`, copy and paste the `image_preview_template` tag, and rename it to `yourStoreName_image_preview_template`.
 
+Your store name is case-sensitive.
+
 ## Create a template just for mobile devices
 
 If `pages.js` thinks it is being viewed from a mobile device, it prefers `abc_xyz_mobile_template` to `abc_xyz_template`. To override a desktop template, create its mobile counterpart with a `_mobile` ID.

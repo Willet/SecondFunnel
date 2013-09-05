@@ -46,9 +46,21 @@ SecondFunnel.addInitializer(function (options) {
 
 SecondFunnel.addInitializer(function (options) {
     if (window.console) {
-        SecondFunnel.vent.on('log', _.bind(window.console.log, window.console));
-        SecondFunnel.vent.on('warn', _.bind(window.console.warn, window.console));
-        SecondFunnel.vent.on('error', _.bind(window.console.error, window.console));
+        SecondFunnel.vent.on('log', function () {
+            try {  // console.log is an object in IE...?
+                console.log.apply(console, arguments);
+            } catch (e) {}
+        });
+        SecondFunnel.vent.on('warn', function () {
+            try {
+                console.warn.apply(console, arguments);
+            } catch (e) {}
+        });
+        SecondFunnel.vent.on('error', function () {
+            try {
+                console.error.apply(console, arguments);
+            } catch (e) {}
+        });
     }
 });
 
