@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>BackboneJS Gap Landing Page</title>
+        {{ opengraph_tags }}
         {{ head_content }}
         {{ desktop_content }}
         <link rel="stylesheet" href="/static/pinpoint/css/styles.css"/>
+        <title>Gap: Shorts</title>
     </head>
     <body>
         <header>
@@ -140,33 +141,6 @@
             </div>
         </script>
         <script type="text/template" id="GAP_image_preview_template">
-            <!-- any (store.name)_(type)_... templates will be used in place
-                 of default templates if they exist. -->
-            <%
-                // > console.log(obj);
-                // caption: " "
-                // content-id: 562949953426705
-                // content-type: "Instagram"
-                // db-id: 5393
-                // image: "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif"
-                // original-id: "tumblr_mra6qu7uh11s6ofheo1_500"
-                // related-products: [{
-                //     "product-id": 19387,
-                //     "description": "Long sleeves with button cuffs. Collar. Button front. Button patch pockets, buttonhole pen slot.",
-                //     "title": "1969 chambray shirt",
-                //     "url": "http://www.gap.com/browse/product.do?pid=350489002",
-                //     "price": "$59.95",
-                //     "tags": {
-                //         "campaign": "99"
-                //     },
-                //     "db-id": 19387,
-                //     "template": "product",
-                //     "images": ["http://images.secondfunnel.com/store/gap/product/19387/image/0eaa9c2e36ade25c6c6985f50c54fe09/master.jpg"],
-                //     "image": "http://images.secondfunnel.com/store/gap/product/19387/image/0eaa9c2e36ade25c6c6985f50c54fe09/master.jpg"
-                // }]
-                // template: "instagram"
-                // tile-id: 562949953426705
-            %>
             <% if (obj['related-products'].length) { %>
                 <div class="image-with-related-products">
                     <div class="row">
