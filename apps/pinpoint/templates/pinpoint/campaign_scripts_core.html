@@ -1,24 +1,34 @@
 {% load staticfiles %}
 {% load compress %}
 
+<script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
 {% compress js %}
 <script type="text/javascript">
-    var Willet = Willet || {},  // Willet namespace
-        local_data = local_data || {};  // exists in mobile themes
-
     window.PAGES_INFO = {
-        'base_url': '{{ base_url }}',  // might be absent in TEST_PAGE_DATA
-        'page': {
-            'pubDate': '{{ pub_date }}',  // for verifying the original upload date of a static campaign. for human use only
-            'id': '{{ campaign.default_intentrank.id|default:campaign.id }}',
-            'main-block-template': '{{ campaign.template }}',
-            'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},
-            'stl-image': '{{ campaign.stl_image }}',
-            'featured-image': '{{ campaign.featured_image }}',
-            'description': '{{ campaign.description|escapejs }}',
-            'offline': false,  // true only in TEST_PAGE_DATA
+        'debug': {{ debug | default:0 }},
+        'base_url': '{{ base_url }}',
+        'discoveryTarget': '{{ discovery_target | default:"#discovery-area" }}',
+        'discoveryItemSelector': '{{ discovery_item_selector | default:".tile" }}',
+        'store': {
+            'id': '{{ campaign.store.slug }}',
+            'name': '{{ campaign.store.name }}',
+            'displayName': '{{ campaign.store.display_name | default:'' }}'  // leave blank to use "Gap"
+        },
+        'page': {  // required
+            'id': '{{ campaign.default_intentrank.id|default:campaign.id }}',  // required
             'product': {{ product.json|safe }},
-            'categories': [
+            'pubDate': '{{ pub_date }}',  // for verifying the original upload date of a static campaign. for human use only
+            'offline': false,  // optional (if true, loads .content immediately)
+
+            'main-block-template': '{{ campaign.template }}',  // DEPRECATED
+            'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},  // DEPRECATED
+            'stl-image': '{{ campaign.stl_image }}',  // DEPRECATED
+            'featured-image': '{{ campaign.featured_image }}',  // DEPRECATED
+            'description': '{{ campaign.description|escapejs }}'  // DEPRECATED
+        },
+        'campaign': '{{ campaign.default_intentrank.id|default:campaign.id }}',
+        // you will still need to make elements with data-category="96" on the page.
+        'categories': [
             {% with categories=campaign.intentrank.all%}
             {% if categories|length > 1 %}
             {% for category in categories %}
@@ -29,78 +39,142 @@
             {% endfor %}
             {% endif %}
             {% endwith %}
-            ]
+        ],
+        'columnWidth': function($element) {
+            return 240 + 15;
         },
-        'store': {
-            'id': '{{ campaign.store.slug }}',
-            'name': '{{ campaign.store.name }}'
+        'events': undefined,  // page event bindings (optional)
+        'socialButtons': [
+            "facebook",
+            "twitter",
+            "pinterest",
+            "tumblr",
+            "share"  // who requested this feature?
+         ], // optional
+        //'shareSocialButtons': [], // optional; default: all
+        'shareSources': {},  // optional: default: see sharing module
+        'socialButtonsEnableCondition': function (button) {
+            // required.
+            // this function must return true for a social button to show
+            // and return false for a social button not to show
+            return true;
         },
-        'content': [],
-        'featured': {% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}
-        {% if backup_results %}{# offline, pseudo-custom results #}
-        , 'backupResults': {{ backup_results|safe }}
+        'showCount': false,  // for social buttons
+        'enableTracking': true, // optional; default: true
+        'eventMap': undefined,  // optional
+        'tileElement': undefined,  // optional. alters the type of tag used by tiles.
+        'imageTileWide': 0.25,
+        'imageSizes': undefined,  // optional, overrides built-in size map
+        'previewAnimationDuration': 100,  // in ms
+        'previewMobileAnimationDuration': 0,
+        'masonryAnimationDuration': 0.4,  // in seconds
+        'masonryMobileAnimationDuration': 0,
+        'featured': {% include "pinpoint/snippets/product_object.js" with product=product featured=True only %},
+        {% if backup_results %}
+            // stuff that loads when page loads, even if IR is available
+            'initialResults': {{ initial_results|safe }},
+        {% endif %}
+        'IRResultsCount': 10,
+        'IRTimeout': 5000,
+        'IRSource': "http://intentrank-test.elasticbeanstalk.com/intentrank", // optional, defaults to intentrank-test
+        'gaAccountNumber': '{{ ga_account_number }}',  // required
+
+        // number of viewports worth of results to keep below the page.
+        // 0 is not an acceptable value, but 0.0001 is. default is 1,
+        // i.e. there will always be one page worth of results
+        // underneath, no matter how fast you scroll.
+        'prefetchHeight': 1,
+
+        'lockWidth': true,  // must be true (not 1, {}, ...) or a function that returns true
+        'desiredWidth': 1024,
+
+        {% if backup_results %}
+            // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
+            // it really should contain at least 10 products.
+            'backupResults': {{ backup_results|safe }}
         {% endif %}
     };
 
-    // can't use user agents - desktop CSS gets triggered on high ppi devices,
-    // messing up everything
-    Willet.browser = Willet.browser || {
-        mobile: (document.width < 1024),
-        touch: ('ontouchstart' in document.documentElement)
-    };
-</script>
-<script src="{% static "js/underscore.js" %}"></script>
-<script src="{% static "js/jquery-1.8.1.min.js" %}"></script>
-<script src="{% static "js/jquery.tools.js" %}"></script>
-<script src="{% static "pinpoint/js/mediator.js" %}"></script>
-<script src="{% static "pinpoint/js/utils.js" %}"></script>
-<script src="{% static "pinpoint/js/tracking.js" %}"></script>
-<script src="{% static "pinpoint/js/button_maker.js" %}"></script>
-<script src="{% static "pinpoint/js/pages.js" %}"></script>
-<script src="{% static "pinpoint/js/pages.ir.js" %}"></script>
-<script src="{% static "js/jquery.mobile.swipeonly.min.js" %}"></script>
-<script src="{% static "js/jquery.viewport.js" %}"></script>
-<script src="{% static "js/jquery.masonry.pkgd.min.js" %}"></script>
-<script src="{% static "js/jquery.masonry.prototypes.js" %}"></script>
-<script src="{% static "js/jquery.imagesloaded.min.js" %}"></script>
-<script src="{% static "js/mbp.js" %}"></script>
-<script src="{% static "js/swipe.js" %}"></script>
-
-<script type="text/javascript">
     var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', '{{ ga_account_number }}']);
+
+    if (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1') {
+        _gaq.push(['_setDomainName', 'none']);
+    }
+
+    _gaq.push(['_setAccount', window.PAGES_INFO.gaAccountNumber]);
 
     _gaq.push(['_setCustomVar',
-        1,                          // slot id
-        'StoreID',                  // name
-        '{{ campaign.store.id }}',  // value
-        3                           // scope: page-level
+        1,                               // slot id
+        'StoreID',                       // name
+        window.PAGES_INFO.store.id,  // value
+        3                                // scope: page-level
     ]);
 
-    _gaq.push(['_setCustomVar',
-        2,
-        'CampaignID',
-        '{{ campaign.default_intentrank.id|default:campaign.id }}',
+    _gaq.push(['_setCustomVar', 2, 'CampaignID',
+        window.PAGES_INFO.campaign,  // <int>
         3
     ]);
 
     _gaq.push(['_trackPageview']);
-
-    (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-
-    function onYouTubeIframeAPIReady() {
-        PAGES.init();
-    }
-
-    // Load Youtube IFrame Player API code asynchronously
-    var tag = document.createElement('script');
-    tag.src = "//www.youtube.com/iframe_api";
-
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 </script>
+<script type="text/javascript" src="{% static 'js/respond.min.js' %}"></script><!-- "as early after the css as possible" -->
+<script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.mobile.swipeonly.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.viewport.min.js' %}"></script><!-- after jquery -->
+<script type="text/javascript" src="{% static 'js/json2.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/underscore.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/backbone.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/backbone.marionette.min.js' %}"></script><!-- after backbone -->
+<script type="text/javascript" src="{% static 'js/imagesloaded.pkgd.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.masonry.pkgd.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.masonry.extensions.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/pages.marionette.preinit.js' %}"></script><!-- after marionette -->
+<script type="text/javascript" src="{% static 'js/pages.marionette.js' %}"></script><!-- after preinit -->
+<script type="text/javascript" src="{% static 'js/pages.marionette.observable.js' %}"></script><!-- after marionette -->
+<script type="text/javascript" src="{% static 'js/pages.marionette.tracker.js' %}"></script><!-- after marionette -->
+<script type="text/javascript" src="{% static 'js/pages.marionette.layoutengine.js' %}"></script><!-- after marionette -->
+<script type="text/javascript" src="{% static 'js/pages.marionette.sharing.js' %}"></script><!-- after marionette -->
+<script type="text/javascript" src="{% static 'js/pages.marionette.ir.js' %}"></script><!-- after marionette -->
+<script type="text/javascript" src="{% static 'js/pages.marionette.viewport.js' %}"></script><!-- after pages -->
+<script type="text/javascript" src="{% static 'js/pages.marionette.init.js' %}"></script><!-- after pages -->
+<script type="text/javascript" src="{% static 'js/pages.marionette.widget.gallery.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/css3-mediaqueries.js' %}"></script><!-- IE8 -->
+<script type="text/javascript">
+    if (window.SecondFunnel) {
+        // Start the SecondFunnel app
+        SecondFunnel.start(SecondFunnel.options);
+        window.sizeImage = SecondFunnel.utils.pickImageSize;  // export for designers
+
+        // Example: add UI events
+        new SecondFunnel.classRegistry.EventManager({
+            'click .navbar-brand': function (ev) {
+                console.log('bur... custom event triggered');
+            }
+        });
+
+        // Example: handle right hand side link clicks
+        new SecondFunnel.classRegistry.EventManager({
+            'click .navbar-right a': function (ev) {
+                var $ev = $(ev.currentTarget);
+
+                console.log('Click detected! ' + $ev.attr('href'));
+            }
+        });
+
+
+        // Example: receive event notifications
+        receive({
+            'previewRendered': function () {
+                console.log('doh! preview rendered');
+            }
+        });
+    }
+</script>
+<!-- End Javascript -->
 {% endcompress %}
+
+<!-- Social -->
+<div id="fb-root"></div>
+<!-- End Social -->

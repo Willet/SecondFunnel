@@ -367,7 +367,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     FeaturedAreaView = Backbone.Marionette.ItemView.extend({
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
-        'model': new Tile(SecondFunnel.option('featured')),
+        'model': new Tile(SecondFunnel.option('page:product')),
         'template': "#stl_template, #featured_template, #hero_template",
         'onRender': function () {
             if (this.$el.length) {  // if something rendered, it was successful
