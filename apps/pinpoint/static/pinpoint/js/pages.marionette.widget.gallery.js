@@ -1,6 +1,6 @@
 /*global $, _, SecondFunnel, sizeImage*/
 
-// Example: adding custom behaviour to supported layouts
+// Gallery widget. loads inside a .gallery container.
 // TODO: lazy load widgets
 SecondFunnel.utils.addWidget(
     'gallery',  // name (must be unique)

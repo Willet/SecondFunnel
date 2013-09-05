@@ -22,6 +22,7 @@
     <% } %>
     <div class="social-buttons"></div>
 </script>
+
 <script type="text/template" id="product_mobile_tile_template">
     <div class="tap-indicator-target"></div>
     <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
@@ -35,6 +36,19 @@
     <% } %>
     <div class="social-buttons"></div>
 </script>
+
+<script type="text/template" id="image_tile_template">
+    <div class="tap-indicator-target"></div>
+    <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
+    <% if (SecondFunnel.option('debug', 0) > 1) { %>
+        <span class="type"><%= obj['content-type'] %></span>
+    <% } %>
+    <div class="social-buttons"></div>
+    <% if (obj['related-products'].length) { %>
+        <div class="combobox-enabled" style="display:none"></div>
+    <% } %>
+</script>
+
 <script type="text/template" id="youtube_tile_template">
     <div class="img-responsive thumbnail"
          style="background-image: url('<%= obj.thumbnail || obj.image %>');">
@@ -44,6 +58,7 @@
     <%= obj.caption || obj.name %>
     <div class="social-buttons"></div>
 </script>
+
 <script type="text/template" id="preview_container_template">
     <div class="tablecell">
         <div class="content">
@@ -55,6 +70,7 @@
     </div>
     <div class="mask"></div>
 </script>
+
 <script type="text/template" id="tile_preview_template">
     <h2><span class="label label-info"><%= obj.template %>_preview_template</span> is missing.</h2>
     <p>You can define one in <code>index.html</code>.</p>
@@ -64,6 +80,7 @@
         <% } %>
     </ul>
 </script>
+
 <script type="text/template" id="tap_indicator_template">
     +
     <div>
@@ -77,6 +94,7 @@
                  show_faces="false"></fb:like>
     </div>
 </script>
+
 <script type="text/template" id="twitter_social_button_template">
     <% if (showCount) { %>
         <div class='button twitter' style='height: 13px; width: 77px;'>
@@ -94,12 +112,14 @@
         </div>
     <% } %>
 </script>
+
 <script type="text/template" id="pinterest_social_button_template">
     <div class='button pinterest'>
         <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>"
            target="_blank"><img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/></a>
     </div>
 </script>
+
 <script type="text/template" id="reddit_social_button_template">
     <div class="button reddit">
         <a href="http://www.reddit.com/submit"
@@ -109,18 +129,21 @@
                border="0" /></a>
     </div>
 </script>
+
 <script type="text/template" id="tumblr_social_button_template">
     <div class="button tumblr">
         <a href="http://www.tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= url %>"
              target='_blank'><img src="http://platform.tumblr.com/v1/share_1.png"/></a>
     </div>
 </script>
+
 <script type="text/template" id="share_social_button_template">
     <div class="button share-this">
         <a href=""><img src="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Sharethis-draft1.png"
                         alt="Share this" border="0" /></a>
     </div>
 </script>
+
 <script type="text/template" id="share_popup_template">
     <div class="mask"></div>
     <div class="tablecell">
@@ -131,6 +154,7 @@
         </div>
     </div>
 </script>
+
 <script type="text/template" id="share_popup_option_template">
     <a href="<%= url %>" target="_blank">
         <div style="position: relative;">
@@ -139,11 +163,13 @@
         </div>
     </a>
 </script>
+
 <script type="text/template" id="product_preview_template">
     <img src="<%= obj.image %>" alt=""/>
     <%= obj.price %>
     <div class="social-buttons"></div>
 </script>
+
 <script type="text/template" id="image_preview_template">
     <h4>
         <span class="label label-info"><%= obj.template %></span>

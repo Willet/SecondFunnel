@@ -843,6 +843,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 broadcast('scrollUp', this);
             }
             this.lastScrollTop = st;
+        },
+
+        'onRender': function () {
+            // process widgets
+            SecondFunnel.utils.runWidgets(this);
         }
     });
 
