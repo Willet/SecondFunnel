@@ -209,6 +209,7 @@ SecondFunnel.module("tracker", function (tracker) {
     tracker.videoStateChange = function (videoId, event) {
         broadcast('videoStateChange', videoId, event, tracker);
 
+        // TODO: Do we only want to measure one event per video?
         if (videosPlayed.indexOf(videoId) !== -1) {
             // not that video
             return;
