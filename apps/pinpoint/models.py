@@ -68,7 +68,7 @@ class StoreTheme(BaseModelNamed):
             },
             'desktop_content': {
                 'type': 'template',
-                'values': ['pinpoint/campaign_scripts_core.html']
+                'values': ['pinpoint/campaign_config.html']
             },
             'js_templates': {
                 'type': 'template',

@@ -90,7 +90,7 @@ def render_campaign(campaign, request, get_seeds_func=None):
     # REQUIRED is a bit of a misnomer...
     for field, details in theme.REQUIRED_FIELDS.iteritems():
         # field: e.g. 'desktop_content'
-        # details: e.g. {'values': ['pinpoint/campaign_scripts_core.html',
+        # details: e.g. {'values': ['pinpoint/campaign_config.html',
         #                           'pinpoint/default_templates.html'],
         #                'type': 'template'}
         field_type = details.get('type')

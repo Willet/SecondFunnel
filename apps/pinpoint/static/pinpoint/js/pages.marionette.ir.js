@@ -54,13 +54,14 @@ SecondFunnel.module("intentRank", function (intentRank) {
                 })),
             args = _.toArray(arguments).slice(2);
 
-        $.ajax({
+        ($.jsonp || $.ajax)({
             'url': uri,
             'data': {
                 'results': intentRank.IRResultsCount
             },
             'contentType': "json",
             'dataType': 'jsonp',
+            'callbackParameter': 'callback',  // $.jsonp only
             'timeout': intentRank.IRTimeout,
             'success': function (results) {
                 // Check for non-empty results.
