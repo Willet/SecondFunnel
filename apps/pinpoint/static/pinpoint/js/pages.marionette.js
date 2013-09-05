@@ -843,6 +843,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 broadcast('scrollUp', this);
             }
             this.lastScrollTop = st;
+        },
+
+        'onRender': function () {
+            // process widgets
+            SecondFunnel.utils.runWidgets(this);
         }
     });
 
@@ -909,6 +914,14 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 defaultTemplateRules = _.reject(defaultTemplateRules,
                     function (t) {
                         return t.indexOf('mobile') >= 0;
+                    });
+            }
+
+            if (!SecondFunnel.options.debug) {
+                // remove debugger if not desired.
+                defaultTemplateRules = _.reject(defaultTemplateRules,
+                    function (t) {
+                        return t === '#tile_preview_template';
                     });
             }
             return defaultTemplateRules;

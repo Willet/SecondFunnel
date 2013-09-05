@@ -75,7 +75,7 @@
         {% endif %}
         'IRResultsCount': 10,
         'IRTimeout': 1000,
-        'IRSource': "http://intentrank-test.elasticbeanstalk.com/intentrank", // optional, defaults to intentrank-test
+        'IRSource': "{{ base_url }}", // optional, defaults to intentrank-test
         'gaAccountNumber': '{{ ga_account_number }}',  // required
 
         // number of viewports worth of results to keep below the page.
