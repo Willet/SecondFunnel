@@ -1,6 +1,6 @@
 /*global $, _, SecondFunnel, sizeImage*/
 
-// experimental combobox widget
+// experimental combobox widget. usable, but not pretty
 SecondFunnel.utils.addWidget(
     'combobox',  // name (must be unique)
     'div.combobox-enabled',  // selector (scoped!)
@@ -22,7 +22,5 @@ SecondFunnel.utils.addWidget(
         boundingBox.append(left).append(right);
 
         boundingBox.appendTo(actualTile);
-        console.log(actualTile);
-
     }
 );

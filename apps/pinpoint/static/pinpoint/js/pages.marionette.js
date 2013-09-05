@@ -916,6 +916,14 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                         return t.indexOf('mobile') >= 0;
                     });
             }
+
+            if (!SecondFunnel.options.debug) {
+                // remove debugger if not desired.
+                defaultTemplateRules = _.reject(defaultTemplateRules,
+                    function (t) {
+                        return t === '#tile_preview_template';
+                    });
+            }
             return defaultTemplateRules;
         },
         'onRender': function () {
