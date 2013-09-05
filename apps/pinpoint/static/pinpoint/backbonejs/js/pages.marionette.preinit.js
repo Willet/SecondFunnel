@@ -51,7 +51,7 @@ $.fn.scrollStopped = function (callback) {
         if ($this.data('scrollTimeout')) {
             clearTimeout($this.data('scrollTimeout'));
         }
-        $this.data('scrollTimeout', setTimeout(callback, 250, self));
+        $this.data('scrollTimeout', setTimeout(callback, 500, self));
     });
 };
 
@@ -90,7 +90,7 @@ $.fn.scrollable = $.fn.scrollable || function (yesOrNo) {
             });
 
             $el
-                .height(1.5 * $(window).height())
+                .height(1.2 * $(window).height())
                 .css('max-height', '100%');
 
         } else {
