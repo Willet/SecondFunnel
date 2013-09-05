@@ -58,9 +58,13 @@ class StoreTheme(BaseModelNamed):
                 'type': 'template',
                 'values': ['pinpoint/campaign_opengraph_tags.html']
             },
-            'header_content': {
+            'head_content': {
                 'type': 'template',
                 'values': ['pinpoint/campaign_head.html']
+            },
+            'body_content': {
+                'type': 'template',
+                'values': ['pinpoint/campaign_body.html']
             },
             'desktop_content': {
                 'type': 'template',

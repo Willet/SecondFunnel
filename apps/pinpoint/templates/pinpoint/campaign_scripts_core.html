@@ -1,18 +1,17 @@
 {% load staticfiles %}
 {% load compress %}
 
-<script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
 {% compress js %}
 <script type="text/javascript">
     window.PAGES_INFO = {
-        'debug': {{ debug | default:0 }},
+        'debug': ('{{ debug|default:0 }}' === 'True'),  // django built-in
         'base_url': '{{ base_url }}',
-        'discoveryTarget': '{{ discovery_target | default:"#discovery-area" }}',
-        'discoveryItemSelector': '{{ discovery_item_selector | default:".tile" }}',
+        'discoveryTarget': '{{ discovery_target|default:"#discovery-area" }}',
+        'discoveryItemSelector': '{{ discovery_item_selector|default:".tile" }}',
         'store': {
             'id': '{{ campaign.store.slug }}',
             'name': '{{ campaign.store.name }}',
-            'displayName': '{{ campaign.store.display_name | default:'' }}'  // leave blank to use "Gap"
+            'displayName': '{{ campaign.store.display_name|default:'' }}'  // leave blank to use "Gap"
         },
         'page': {  // required
             'id': '{{ campaign.default_intentrank.id|default:campaign.id }}',  // required
@@ -70,7 +69,7 @@
         'masonryAnimationDuration': 0.4,  // in seconds
         'masonryMobileAnimationDuration': 0,
         'featured': {% include "pinpoint/snippets/product_object.js" with product=product featured=True only %},
-        {% if backup_results %}
+        {% if initial_results %}
             // stuff that loads when page loads, even if IR is available
             'initialResults': {{ initial_results|safe }},
         {% endif %}
@@ -118,63 +117,4 @@
 
     _gaq.push(['_trackPageview']);
 </script>
-<script type="text/javascript" src="{% static 'js/respond.min.js' %}"></script><!-- "as early after the css as possible" -->
-<script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/jquery.mobile.swipeonly.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/jquery.viewport.min.js' %}"></script><!-- after jquery -->
-<script type="text/javascript" src="{% static 'js/json2.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/underscore.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/backbone.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/backbone.marionette.min.js' %}"></script><!-- after backbone -->
-<script type="text/javascript" src="{% static 'js/imagesloaded.pkgd.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/jquery.masonry.pkgd.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/jquery.masonry.extensions.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/pages.marionette.preinit.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'js/pages.marionette.js' %}"></script><!-- after preinit -->
-<script type="text/javascript" src="{% static 'js/pages.marionette.observable.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'js/pages.marionette.tracker.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'js/pages.marionette.layoutengine.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'js/pages.marionette.sharing.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'js/pages.marionette.ir.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'js/pages.marionette.viewport.js' %}"></script><!-- after pages -->
-<script type="text/javascript" src="{% static 'js/pages.marionette.init.js' %}"></script><!-- after pages -->
-<script type="text/javascript" src="{% static 'js/pages.marionette.widget.gallery.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/css3-mediaqueries.js' %}"></script><!-- IE8 -->
-<script type="text/javascript">
-    if (window.SecondFunnel) {
-        // Start the SecondFunnel app
-        SecondFunnel.start(SecondFunnel.options);
-        window.sizeImage = SecondFunnel.utils.pickImageSize;  // export for designers
-
-        // Example: add UI events
-        new SecondFunnel.classRegistry.EventManager({
-            'click .navbar-brand': function (ev) {
-                console.log('bur... custom event triggered');
-            }
-        });
-
-        // Example: handle right hand side link clicks
-        new SecondFunnel.classRegistry.EventManager({
-            'click .navbar-right a': function (ev) {
-                var $ev = $(ev.currentTarget);
-
-                console.log('Click detected! ' + $ev.attr('href'));
-            }
-        });
-
-
-        // Example: receive event notifications
-        receive({
-            'previewRendered': function () {
-                console.log('doh! preview rendered');
-            }
-        });
-    }
-</script>
-<!-- End Javascript -->
 {% endcompress %}
-
-<!-- Social -->
-<div id="fb-root"></div>
-<!-- End Social -->

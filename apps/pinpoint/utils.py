@@ -12,7 +12,7 @@ from django.template.defaultfilters import slugify, safe
 
 from apps.utils import noop
 
-def render_campaign(campaign, request=None, get_seeds_func=None):
+def render_campaign(campaign, request, get_seeds_func=None):
     """Generates the HTML page for a standard pinpoint product page.
 
     Related products are populated statically only if a request object
@@ -36,12 +36,8 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
     content_block = campaign.content_blocks.all()[0]
 
     product = content_block.data.product
-    product.json = json.dumps(product.data(raw=True))
+    product.json = json.dumps(product.data(raw=True))  # not a defined property
 
-    campaign.stl_image = getattr(
-        content_block.data, 'get_ls_image', noop)(url=True) or ''
-    campaign.featured_image = getattr(
-        content_block.data, 'get_image', noop)(url=True) or ''
     campaign.description = (content_block.data.description or product.description).encode('unicode_escape')
     campaign.template = slugify(
         content_block.block_type.name)
@@ -51,7 +47,7 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
     else:
         base_url = settings.INTENTRANK_BASE_URL
 
-    if get_seeds_func and request:
+    if get_seeds_func:
         #
 
         # "borrow" IR for results
@@ -77,10 +73,8 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
         "base_url": base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
     }
-    if request:
-        context = RequestContext(request, attributes)
-    else:
-        context = Context(attributes)
+
+    context = RequestContext(request, attributes)
 
     theme = campaign.get_theme()
 
@@ -111,8 +105,6 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
             else:
                 continue
 
-            # TODO: Do we need to render, or can we just convert to string?
-            # answer: we only need to convert it to a string.
             if isinstance(result, Template):
                 result = result.render(context)
             else:
