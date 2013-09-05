@@ -915,6 +915,12 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // out of scope
             $('.scrollable', '.previewContainer').scrollable(true);
             broadcast('previewRendered', this);
+        },
+
+        'initialize': function() {
+            this.$el.attr({
+                'id': 'preview-' + this.model.cid
+            });
         }
     });
 
