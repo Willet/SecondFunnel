@@ -113,7 +113,7 @@ $.fn.scrollable = $.fn.scrollable || function (yesOrNo) {
 $.fn.getClasses = $.fn.getClasses || function () {
     // random helper. get an element's list of classes.
     // example output: ['facebook', 'button']
-    return _.compact($(this).attr('class').split(' ').map($.trim));
+    return _.compact(_.map($(this).attr('class').split(' '), $.trim));
 };
 
 $.fn.scaleImages = $.fn.scaleImages || function () {

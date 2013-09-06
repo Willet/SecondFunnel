@@ -43,6 +43,7 @@
         'columnWidth': function($element) {
             return 240 + 15;
         },
+        'maxColumnCount': {{ campaign.column_count|default:4 }},  // optional (default: 4)
         'events': undefined,  // page event bindings (optional)
         'socialButtons': [
             "facebook",

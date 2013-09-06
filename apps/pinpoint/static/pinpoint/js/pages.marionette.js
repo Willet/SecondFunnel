@@ -680,6 +680,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             this.collection = new TileCollection();
             this.categories = new CategorySelector(options.categories || []);
             this.attachListeners();
+            this.countColumns();
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
@@ -708,6 +709,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     // can still react to potential resizes by having its
                     // own .bind('resize', function () {})?
                     $('.resizable', document).resize();
+
+                    this.countColumns();
 
                     broadcast('windowResize');
                 }, 500))
@@ -809,6 +812,25 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 }
             }
             return content;
+        },
+
+        'countColumns': function () {
+            var i,
+                $html = $('html'),
+                maxColsDef = SecondFunnel.option('maxColumnCount', 4),
+                maxCols = $window.width() / (SecondFunnel.option('columnWidth', $.noop)() || 256);
+            $html.removeClass(function (idx, cls) {
+                // remove all current col-* classes
+                return (cls.match(/col-\d+/g) || []).join(' ');
+            });
+            for (i = 0; i < maxCols; i++) {
+                if (i <= maxColsDef) {
+                    $html.addClass('col-' + i);
+                }
+            }
+
+            SecondFunnel.layoutEngine.layout();
+            return maxCols;
         },
 
         'updateContentStream': function (ev, tile) {
