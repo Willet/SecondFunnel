@@ -10,6 +10,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         CategorySelector, PreviewContent, PreviewWindow,
         TapIndicator, EventManager, ShadowTile;
 
+    // not actual php values
+    _.extend(SecondFunnel, {
+        E_NONE: 0, E_ERROR: 1, E_WARNING: 2, E_INFO: 3, E_VERBOSE: 4, E_ALL: 5
+    });
+
     // keep reference to options. this needs to be done before classes are declared.
     SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     SecondFunnel.classRegistry = {};
@@ -47,11 +52,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     };
 
     try {
-        SecondFunnel.options.debug = 0;
+        SecondFunnel.options.debug = SecondFunnel.E_NONE;
 
         if (window.location.hostname === 'localhost' ||
             window.location.hostname === '127.0.0.1') {
-            SecondFunnel.options.debug = 1;
+            SecondFunnel.options.debug = SecondFunnel.E_ERROR;
         }
 
         (function (hash) {
@@ -190,6 +195,30 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             return defn;
         };
 
+        utils.findClass = function (typeName, prefix, defaultClass) {
+            // returns a class in the window scope and class registry.
+            // default: optional. returns it if nothing else is found.
+            var FoundClass,
+                targetClassName = _.capitalize(prefix) + _.capitalize(typeName);
+            if (SecondFunnel.classRegistry &&
+                SecondFunnel.classRegistry[targetClassName] !== undefined) {
+                // if designers want to define a new tile view, they must
+                // let SecondFunnel know of its existence.
+                FoundClass = SecondFunnel.classRegistry[targetClassName];
+            }
+            if (window[targetClassName] !== undefined) {
+                FoundClass = window[targetClassName];
+            }
+            FoundClass = defaultClass;
+
+            if (SecondFunnel.options.debug >= SecondFunnel.E_VERBOSE) {
+                console.log('findClass(%s, %s, %O) -> %O',
+                            typeName, prefix, defaultClass, FoundClass);
+            }
+
+            return FoundClass;
+        };
+
         utils.runWidgets = function (viewObject) {
             // process widget regions.
             // each widget function receives args (the view, the $element, option alias).
@@ -314,20 +343,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 TargetClass = VideoTileView;
                 break;
             default:
-                targetClassName = _.capitalize(this.get('type')) + 'TileView';
-                if (window[targetClassName] !== undefined) {
-                    TargetClass = window[targetClassName];
-                    break;
-                }
-                if (SecondFunnel.classRegistry &&
-                    SecondFunnel.classRegistry[targetClassName] !== undefined) {
-                    // if designers want to define a new tile view, they must
-                    // let SecondFunnel know of its existence.
-                    TargetClass = SecondFunnel.classRegistry[targetClassName];
-                    break;
-                }
-                // undeclared / class not found in scope
-                TargetClass = TileView;
+                TargetClass = SecondFunnel.utils.findClass(
+                    'TileView', this.get('type'), TileView);
             }
             // #CtrlF fshkjr
             view = new TargetClass({'model': this});
@@ -339,14 +356,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     TileCollection = Backbone.Collection.extend({
         // Our TileCollection manages ALL the tiles on the page.
         'model': function (attrs) {
-            var SubClass = 'Tile';
-            if (window[SubClass]) {
-                return new window[SubClass](attrs);
-            }
-            if (SecondFunnel.classRegistry[SubClass]) {
-                return new SecondFunnel.classRegistry[SubClass](attrs);
-            }
-            return new Tile(attrs);  // base class
+            return new SecondFunnel.utils.findClass('Tile', '', Tile)(attrs);
         },
         'loading': false,
         'totalItems': null,
@@ -383,7 +393,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
         'tagName': SecondFunnel.option('tileElement', "div"),
         'templates': function (currentView) {
-            var defaultTemplateRules = [  // dictated by CtrlF fshkjr
+            var templateRules = [  // dictated by CtrlF fshkjr
                 "#<%= options.store.name %>_<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
                 "#<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
                 "#<%= options.store.name %>_<%= data.template %>_mobile_tile_template",                              // gap_image_mobile_tile_template
@@ -401,13 +411,17 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             if (!SecondFunnel.observable.mobile()) {
                 // remove mobile templates if it isn't mobile, since they take
                 // higher precedence by default
-                defaultTemplateRules = _.reject(defaultTemplateRules,
+                templateRules = _.reject(templateRules,
                     function (t) {
                         return t.indexOf('mobile') >= 0;
                     });
             }
 
-            return defaultTemplateRules;
+            if (SecondFunnel.options.debug >= SecondFunnel.E_VERBOSE) {
+                console.log('Template search tree for view %O: %O',
+                            currentView, templateRules);
+            }
+            return templateRules;
         },
         'template': "#product_tile_template",
         'className': SecondFunnel.option('discoveryItemSelector',
@@ -898,12 +912,14 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     PreviewContent = Backbone.Marionette.ItemView.extend({
         'template': '#tile_preview_template',
         'templates': function (currentView) {
-            var defaultTemplateRules = [
+            var templateRules = [
                 // supported contexts: options, data
                 '#<%= options.store.name %>_<%= data.template %>_mobile_preview_template',
                 '#<%= data.template %>_mobile_preview_template',
                 '#<%= options.store.name %>_<%= data.template %>_preview_template',
                 '#<%= data.template %>_preview_template',
+                '#product_mobile_preview_template',
+                '#product_preview_template',
                 '#tile_mobile_preview_template', // fallback
                 '#tile_preview_template' // fallback
             ];
@@ -911,20 +927,17 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             if (!SecondFunnel.observable.mobile()) {
                 // remove mobile templates if it isn't mobile, since they take
                 // higher precedence by default
-                defaultTemplateRules = _.reject(defaultTemplateRules,
+                templateRules = _.reject(templateRules,
                     function (t) {
                         return t.indexOf('mobile') >= 0;
                     });
             }
 
-            if (!SecondFunnel.options.debug) {
-                // remove debugger if not desired.
-                defaultTemplateRules = _.reject(defaultTemplateRules,
-                    function (t) {
-                        return t === '#tile_preview_template';
-                    });
+            if (SecondFunnel.options.debug >= SecondFunnel.E_VERBOSE) {
+                console.log('Template search tree for view %O: %O',
+                            currentView, templateRules);
             }
-            return defaultTemplateRules;
+            return templateRules;
         },
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
@@ -977,12 +990,16 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'initialize': function (options) {
             // Initialize the PreviewWindow by rendering the content to
             // display in it as well.
-            this.render();
-            if (!this.isClosed) {
-                this.content.show(new PreviewContent({
+            var ContentClass = SecondFunnel.utils.findClass('PreviewContent',
+                    options.model.get('template'), PreviewContent),
+                contentOpts = {
                     'model': options.model,
                     'caller': options.caller
-                }));
+                };
+
+            this.render();
+            if (!this.isClosed) {
+                this.content.show(new ContentClass(contentOpts));
                 if (this.content.currentView.isClosed) {
                     this.close();
                 }
@@ -990,6 +1007,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         },
 
         'onMissingTemplate': function () {
+            this.content.currentView.close();
             this.close();
         },
 
@@ -1051,7 +1069,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 var event = key.substr(0, key.indexOf(' ')),
                     selectors = key.substr(key.indexOf(' ') + 1);
                 self.$el.on(event, selectors, func);
-                if (SecondFunnel.option('debug', 0) > 0) {
+                if (SecondFunnel.option('debug', SecondFunnel.E_NONE) >=
+                    SecondFunnel.E_INFO) {
                     console.log('regEvent ' + key);
                 }
             });
