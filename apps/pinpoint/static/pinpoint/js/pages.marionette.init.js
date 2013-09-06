@@ -17,7 +17,7 @@ SecondFunnel.addInitializer(function (options) {
 });
 
 SecondFunnel.addInitializer(function (options) {
-    if (SecondFunnel.option('debug', false) > SecondFunnel.E_INFO) {
+    if (SecondFunnel.option('debug', false) >= SecondFunnel.E_ALL) {
         $(document).ready(function () {
             // don't use getScript, firebug needs to know its src path
             // and getScript removes the tag so firebug doesn't know what to do
@@ -29,6 +29,15 @@ SecondFunnel.addInitializer(function (options) {
             firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
             broadcast('firebugLoaded');
         });
+    }
+
+    if (SecondFunnel.option('debug', false) >= SecondFunnel.E_VERBOSE) {
+        setInterval(function () {
+            // highlight elements
+            $('div').css('outline', '1px rgba(255,0,0,0.5) dotted');
+            $('span').css('outline', '1px rgba(0,255,0,0.5) dotted');
+            $('img').css('outline', '1px rgba(0,255,0,0.5) dotted');
+        }, 5000);
     }
 });
 
@@ -60,6 +69,20 @@ SecondFunnel.addInitializer(function (options) {
             try {
                 console.error.apply(console, arguments);
             } catch (e) {}
+        });
+
+        SecondFunnel.vent.on('beforeInit', function (details) {
+            var pubDate;
+            if (details && details.page && details.page.pubDate) {
+                pubDate = details.page.pubDate;
+            }
+            console.log(  // feature, not a bug
+                '____ ____ ____ ____ _  _ ___     ____ _  _ ' +
+                '_  _ _  _ ____ _    \n[__  |___ |    |  | |' +
+                '\\ | |  \\    |___ |  | |\\ | |\\ | |___ | ' +
+                '   \n___] |___ |___ |__| | \\| |__/    |   ' +
+                ' |__| | \\| | \\| |___ |___ \n' +
+                '           Published ' + pubDate);
         });
     }
 });

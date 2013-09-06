@@ -76,6 +76,16 @@ a, a:hover, a:focus {
     padding-left: 0;
 }
 
+.container .legal {
+    /* legal text is optional */
+    font-size: 8px;
+    font-weight: 100;
+    color: #c0c0c0;
+    line-height: 7px;
+    text-align: justify;
+    margin-top: 0;
+}
+
 .featured.product {
     /* featured "template" defaults */
     height: 341px;

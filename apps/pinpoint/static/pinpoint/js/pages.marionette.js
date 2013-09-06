@@ -847,12 +847,13 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         },
 
         'pageScroll': function () {
-            var pageBottomPos = $window.innerHeight() + $window.scrollTop(),
+            var pageHeight = $window.innerHeight(),
+                pageBottomPos = pageHeight + $window.scrollTop(),
                 documentBottomPos = $document.height(),
-                viewportHeights = $window.innerHeight() * (SecondFunnel.option('prefetchHeight',
-                    1));
+                viewportHeights = pageHeight * (SecondFunnel.option('prefetchHeight', 1));
 
-            if (pageBottomPos >= documentBottomPos - viewportHeights && !this.loading) {
+            if (!this.loading && $('html').css('overflow') !== 'hidden' &&
+                pageBottomPos >= documentBottomPos - viewportHeights) {
                 this.getTiles();
             }
 

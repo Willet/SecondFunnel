@@ -75,6 +75,10 @@ header {
     background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Gap_Shorts_Desktop.png');
 }
 
+.legal.us {
+    margin-top: -35px;
+}
+
 .featured.product {
     background-color: #fff;
 }

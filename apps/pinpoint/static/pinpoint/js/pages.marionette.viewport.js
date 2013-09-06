@@ -15,12 +15,16 @@
         }
 
         if (enabled !== true) {
-            console.warn('viewport agent disabled.');
+            if (app.option('debug', SecondFunnel.E_NONE) >= SecondFunnel.E_WARNING) {
+                console.warn('viewport agent disabled.');
+            }
             return;
         }
 
         if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
-            console.warn('viewport agent called on device with unsupported ppi.');
+            if (app.option('debug', SecondFunnel.E_NONE) >= SecondFunnel.E_WARNING) {
+                console.warn('viewport agent called on device with unsupported ppi.');
+            }
             return;
         }
 
@@ -38,7 +42,9 @@
         }
 
         if (!desiredWidth || desiredWidth <= 0 || desiredWidth > 2048) {
-            console.warn('viewport agent called with invalid width.');
+            if (app.option('debug', SecondFunnel.E_NONE) >= SecondFunnel.E_WARNING) {
+                console.warn('viewport agent called with invalid width.');
+            }
             return;
         }
 
