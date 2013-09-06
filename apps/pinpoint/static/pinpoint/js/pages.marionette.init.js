@@ -66,7 +66,7 @@ SecondFunnel.addInitializer(function (options) {
 
 SecondFunnel.addInitializer(function (options) {
     // set its width to whatever it began with.
-    SecondFunnel.options.desiredWidth = $(window).width();
+    SecondFunnel.options.initialWidth = $(window).width();
 });
 
 SecondFunnel.addInitializer(function (options) {

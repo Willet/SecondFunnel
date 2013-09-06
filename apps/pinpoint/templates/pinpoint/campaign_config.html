@@ -86,8 +86,8 @@
         // underneath, no matter how fast you scroll.
         'prefetchHeight': 1,
 
-        'lockWidth': true,  // must be true (not 1, {}, ...) or a function that returns true
-        'desiredWidth': 1024,
+        'lockWidth': undefined,  // must be true (not 1, {}, ...) or a function that returns true. undefined means auto.
+        'desiredWidth': 0,  // number, or a function that returns a number. 0 means auto.
 
         {% if backup_results %}
             // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
