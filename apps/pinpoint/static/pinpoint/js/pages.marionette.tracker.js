@@ -241,6 +241,8 @@ SecondFunnel.module("tracker", function (tracker) {
         // arguments = args[1~n] when calling .trigger()
         tracker.setSocialShareVars();
 
+        // TODO: If these are already set on page load, do we need to set them
+        // again here? Should they be set here instead?
         setCustomVar({
             'slotId': 1,
             'name': 'Store',
@@ -255,6 +257,8 @@ SecondFunnel.module("tracker", function (tracker) {
             'scope': GA_CUSTOMVAR_SCOPE.PAGE
         });
 
+        // TODO: Need a better way to determine internal v. external visitor
+        // By that I mean we should be able to segment out internal visitors
         setCustomVar({
             'slotId': 3,
             'name': 'Internal Visitor', // Name?
