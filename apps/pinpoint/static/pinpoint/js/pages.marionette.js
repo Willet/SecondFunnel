@@ -383,9 +383,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             if (this.$el.length) {  // if something rendered, it was successful
                 $('#hero-area').html(this.$el.html());
             }
-
-            // process widgets
-            SecondFunnel.utils.runWidgets(this);
         }
     });
 
@@ -394,14 +391,14 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'tagName': SecondFunnel.option('tileElement', "div"),
         'templates': function (currentView) {
             var templateRules = [  // dictated by CtrlF fshkjr
-                "#<%= options.store.name %>_<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
+                "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
                 "#<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
-                "#<%= options.store.name %>_<%= data.template %>_mobile_tile_template",                              // gap_image_mobile_tile_template
+                "#<%= options.store.slug %>_<%= data.template %>_mobile_tile_template",                              // gap_image_mobile_tile_template
                 "#<%= data.template %>_mobile_tile_template",                                                        // image_mobile_tile_template
 
-                "#<%= options.store.name %>_<%= data['content-type'] %>_<%= data.template %>_tile_template",         // gap_instagram_image_tile_template
+                "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_tile_template",         // gap_instagram_image_tile_template
                 "#<%= data['content-type'] %>_<%= data.template %>_tile_template",                                   // instagram_image_tile_template
-                "#<%= options.store.name %>_<%= data.template %>_tile_template",                                     // gap_image_tile_template
+                "#<%= options.store.slug %>_<%= data.template %>_tile_template",                                     // gap_image_tile_template
                 "#<%= data.template %>_tile_template",                                                               // image_tile_template
 
                 "#product_mobile_tile_template",                                                                     // fallback
@@ -562,9 +559,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             }
 
             this.$el.scaleImages();
-
-            // process widgets
-            SecondFunnel.utils.runWidgets(this);
         }
     });
 
@@ -857,11 +851,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 broadcast('scrollUp', this);
             }
             this.lastScrollTop = st;
-        },
-
-        'onRender': function () {
-            // process widgets
-            SecondFunnel.utils.runWidgets(this);
         }
     });
 
@@ -914,9 +903,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'templates': function (currentView) {
             var templateRules = [
                 // supported contexts: options, data
-                '#<%= options.store.name %>_<%= data.template %>_mobile_preview_template',
+                '#<%= options.store.slug %>_<%= data.template %>_mobile_preview_template',
                 '#<%= data.template %>_mobile_preview_template',
-                '#<%= options.store.name %>_<%= data.template %>_preview_template',
+                '#<%= options.store.slug %>_<%= data.template %>_preview_template',
                 '#<%= data.template %>_preview_template',
                 '#product_mobile_preview_template',
                 '#product_preview_template',
@@ -952,9 +941,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             }
 
             this.$el.scaleImages();
-
-            // process widgets
-            SecondFunnel.utils.runWidgets(this);
 
             // out of scope
             $('.scrollable', '.previewContainer').scrollable(true);
@@ -1022,9 +1008,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'onRender': function () {
             this.$el.css({display: "table"});
             this.$el.scaleImages();
-
-            // process widgets
-            SecondFunnel.utils.runWidgets(this);
 
             $('body').append(this.$el.fadeIn(SecondFunnel.option('previewAnimationDuration')));
         }

@@ -154,6 +154,21 @@ _.mixin({
     }
 });
 
+(function (views) {
+    // patch render to always run widgets.
+    _.each(views, function (ViewClass) {
+        var oldRender = ViewClass.prototype.render;
+        ViewClass.prototype.render = function () {
+            var result = oldRender.apply(this, arguments);  // usually 'this'
+            SecondFunnel.utils.runWidgets(this);
+            return result;
+        };
+    });
+}([Backbone.Marionette.View,
+   Backbone.Marionette.CollectionView,
+   Backbone.Marionette.CompositeView,
+   Backbone.Marionette.ItemView]));
+
 broadcast = function () {
     // alias for vent.trigger with a clear intent that the event triggered
     // is NOT used by internal code (pages.js).

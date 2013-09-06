@@ -9,7 +9,8 @@
         'discoveryTarget': '{{ discovery_target|default:"#discovery-area" }}',
         'discoveryItemSelector': '{{ discovery_item_selector|default:".tile" }}',
         'store': {
-            'id': '{{ campaign.store.slug }}',
+            'id': '{{ campaign.store.id }}',  // TODO: why was ID slug?
+            'slug': '{{ campaign.store.slug }}',  // required for store-specific themes
             'name': '{{ campaign.store.name }}',
             'displayName': '{{ campaign.store.display_name|default:'' }}'  // leave blank to use "Gap"
         },

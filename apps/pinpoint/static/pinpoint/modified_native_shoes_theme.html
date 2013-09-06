@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {{ opengraph_tags }}
+        {{ head_content }}
+        {{ desktop_content }}
+        <link rel="stylesheet" href="/static/pinpoint/css/styles_native_shoes.css"/>
+        <title>Native Shoes</title>
+    </head>
+    <body>
+        <header>
+            <div class="centered">
+                <a href="http://shop.nativeshoes.com/"><img src="https://s3-us-west-2.amazonaws.com/secondfunnel-public-images/native/logo.png"></a>
+                <ul>
+                    <li class="adults"><a href="http://shop.nativeshoes.com/adults.html">ADULTS</a> / <div class="hover-menu">
+                        <ul class="inner">
+                            <li><a href="http://shop.nativeshoes.com/adults/slip-ons.html"><b>Slip Ons</b></a></li>
+                            <li><a href="http://shop.nativeshoes.com/adults/slip-ons/jefferson.html">Jefferson</a></li>
+                            <li><a href="http://shop.nativeshoes.com/adults/slip-ons/miller.html">Miller</a></li>
+                            <li><a href="http://shop.nativeshoes.com/adults/slip-ons/corrado.html">Corrado</a></li>
+                            <li><a href="http://shop.nativeshoes.com/adults/slip-ons/jericho-mens.html">Jericho Men's</a></li>
+                            <li><a href="http://shop.nativeshoes.com/adults/slip-ons/jericho-womens.html">Jericho Women's</a></li>
+                            <li><a href="http://shop.nativeshoes.com/adults/slip-ons/howard.html">Howard</a></li>
+                            <li><a href="http://shop.nativeshoes.com/adults/slip-ons/verona.html">Verona</a></li>
+                            <li><a href="http://shop.nativeshoes.com/adults/slip-ons/hugo.html">Hugo</a></li>
+                        </ul>
+                        <ul class="inner">
+                            <li><a href="http://shop.nativeshoes.com/adults/boots.html"><b>Boots</b></a></li>
+                            <li><a href="http://shop.nativeshoes.com/adults/boots/fitzsimmons.html">Fitzsimmons</a></li>
+                            <li><a href="http://shop.nativeshoes.com/adults/boots/jimmy-winters.html">Jimmy</a></li>
+                            <li><a href="http://shop.nativeshoes.com/adults/boots/jimmy-mid.html">Jimmy Mid</a></li>
+                        </ul>
+                        <ul class="inner">
+                            <li><a href="http://shop.nativeshoes.com/adults/sandals.html"><b>Sandals</b></a></li>
+                            <li><a href="http://shop.nativeshoes.com/adults/sandals/paolo.html">Paolo</a></li>
+                            <li><a href="http://shop.nativeshoes.com/adults/sandals/blanca.html">Blanca</a></li>
+                        </ul>
+                    </div></li>
+                    <li class="kids"><a href="http://shop.nativeshoes.com/kids.html">KIDS</a> / <div class="hover-menu">
+                        <ul class="inner">
+                            <li><a href="http://shop.nativeshoes.com/kids/slip-ons-kids.html"><b>Slip Ons</b></a></li>
+                            <li><a href="http://shop.nativeshoes.com/kids/slip-ons-kids/kids-jefferson.html">Jefferson</a></li>
+                            <li><a href="http://shop.nativeshoes.com/kids/slip-ons-kids/kids-corrado.html">Corrado</a></li>
+                            <li><a href="http://shop.nativeshoes.com/kids/slip-ons-kids/miller-kids.html">Miller</a></li>
+                            <li><a href="http://shop.nativeshoes.com/kids/slip-ons-kids/kids-howard.html">Howard</a></li>
+                        </ul>
+                        <ul class="inner">
+                            <li><a href="http://shop.nativeshoes.com/kids/boots-kids.html"><b>Boots</b></a></li>
+                            <li><a href="http://shop.nativeshoes.com/kids/boots-kids/jimmy-kids.html">Jimmy</a></li>
+                            <li><a href="http://shop.nativeshoes.com/kids/boots-kids/kids-fitzsimmons.html">Fitzsimmons</a></li>
+                        </ul>
+                    </div></li>
+                    <li><a href="http://shop.nativeshoes.com/news.html">NEWS</a> / </li>
+                    <li><a href="http://shop.nativeshoes.com/nativision.html">NATIVISION</a> / </li>
+                    <li><a href="http://shop.nativeshoes.com/dealers.html">DEALERS</a> / </li>
+                    <li><a href="http://shop.nativeshoes.com/contact.html">CONTACT</a></li>
+                </ul>
+            </div>
+        </header>
+        <div class="container"><!-- .container is bootstrap magic, and has a viewport-dependent width. -->
+            <!-- remove contents of hero-area if it is dynamically generated -->
+            <div id="hero-area" class="featured">
+            </div>
+            <div id="discovery-area" class="discovery-area">
+                <!-- paste pre-rendered tiles here (TODO... event handling for them) -->
+            </div>
+            <div class="no-noscript loading"></div>
+            <noscript>
+                <!-- promotions to show when user does not have javascript.
+                     this is a 'we need javascript' message by default.
+                 -->
+                <div class="alert alert-danger">
+                    <b>Oh no!</b> We need JavaScript enabled to show you this page.
+                </div>
+            </noscript>
+        </div>
+
+
+        {{ js_templates }}
+
+
+        <!-- store-specific templates -->
+        <script type='text/template' id="nativeshoes_combobox_tile_template">
+            <% if (obj['lifestyle-image']) { %>
+            <div class='lifestyle' data-label='<%= obj['lifestyle-image'] %>'>
+                <img src='<%= obj['lifestyle-image'] %>'/>
+            </div>
+            <% } %>
+            <div class='product' data-label='<%= obj['url'] %>'>
+                <img src='<%= obj.image %>'/>
+                <div class="social-buttons"></div>
+                <div class='title'><b><%= obj.title %></b></div>
+            </div>
+        </script>
+        <script type="text/template" id="featured_template">
+            <div class='cell'>
+                <!-- Main Display Area -->
+                <div class='title text'><b><%= SecondFunnel.options.page.product.title %></b></div>
+                <div class='table'>
+                    <div class="image-div">
+                        <img class='image' src='<%= SecondFunnel.options.page['featured-image'] %>' />
+                    </div>
+                    <div class="info">
+                        <div class='price text'><%= SecondFunnel.options.page.product.price %></div>
+                        <div>
+                            <div class="social-buttons"></div>
+                            <div class='spacer'></div>
+                        </div>
+                    </div>
+                </div>
+                <div class='text'><a href='<%= SecondFunnel.options.page.product.url %>' class='buy' target='_blank'>BUY NOW</a></div>
+            </div>
+
+            <div class='spacer'></div>
+        </script>
+
+
+        {{ body_content }}
+    </body>
+</html>
