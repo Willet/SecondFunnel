@@ -237,6 +237,10 @@ div.loading {
     display: none; /* all themes have buttons hidden by default */
 }
 
+.social-buttons>span {
+    line-height: 20px;
+}
+
 .social-buttons button, .social-buttons .button {
     display: inline-block;
     margin-left: 1px;
@@ -251,6 +255,12 @@ div.loading {
 }
 .social-buttons .facebook.no-count .placeholder {
     max-width: none;
+}
+
+.social-buttons .pinterest {
+    /* fix odd "propped up" bug */
+    height: 20px;
+    vertical-align: middle;
 }
 
 @media (max-width: 480px) { /* phone */

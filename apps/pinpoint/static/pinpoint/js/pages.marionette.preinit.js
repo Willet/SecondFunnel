@@ -159,8 +159,13 @@ _.mixin({
     _.each(views, function (ViewClass) {
         var oldRender = ViewClass.prototype.render;
         ViewClass.prototype.render = function () {
+            // call the original function
             var result = oldRender.apply(this, arguments);  // usually 'this'
+
+            // do something else
             SecondFunnel.utils.runWidgets(this);
+
+            // return the return of the original function, pretend nothing happened
             return result;
         };
     });

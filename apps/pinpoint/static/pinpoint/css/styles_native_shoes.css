@@ -138,10 +138,10 @@ header .centered > ul > li:hover .hover-menu {
     background-image: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Gap_Shorts_Desktop.png');
 }
 
-.featured.product {
+.featured {
     background-color: #fff;
 }
-.featured.product img {
+.featured img {
     max-height: 100%;
 }
 
@@ -294,31 +294,22 @@ header .centered > ul > li:hover .hover-menu {
 /* FEATURED AREA */
 
 
-.featured.product {
+.featured {
     margin-top: 30px;
-    display: table;
 }
 
-.table {
-    display: table;
-}
-
-.cell {
-    display: table-cell;
-}
-
-.featured.product .lifestyle {
+.featured .lifestyle {
     width: 300px;
     vertical-align:middle;
 }
 
-.featured.product .image-div {
+.featured .image-div {
     width: 560px;
     display: table-cell;
     vertical-align:middle;
 }
 
-.featured.product .image {
+.featured .image {
     max-width: 560px;
     max-height: 380px;
     width: auto;
@@ -327,30 +318,26 @@ header .centered > ul > li:hover .hover-menu {
     margin: auto;
 }
 
-.featured.product .info {
-    max-width: 400px;
-    width: auto;
-}
-
-.featured.product .info > * {
+.featured .info > * {
     margin: 30px;
+    text-align: center;
 }
 
-.featured.product .title {
-    text-align: right;
+.featured .title {
+    text-align: center;
     margin: 10px;
     font-family: proxima-nova-soft, sans-serif;
     font-size: 31px;
     color: black;
 }
 
-.featured.product .price {
+.featured .price {
     font-family: proxima-nova-soft, sans-serif;
     font-size: 22px;
     color: #666;
 }
 
-.featured.product .buy {
+.featured .buy {
     padding: 10px 40px;
     -webkit-border-radius: 8px;
     -moz-border-radius: 8px;
@@ -360,6 +347,45 @@ header .centered > ul > li:hover .hover-menu {
     font-family: proxima-nova-soft, sans-serif, Helvetica, Arial, sans-serif;
     font-size: 15px;
     color: #FFF;
+}
+
+
+/* DIVIDER */
+
+
+.divider {
+    padding: 40px 0px;
+    position: relative;
+    clear: both;
+    height: 1px;
+    text-align: center;
+}
+
+.divider .bar {
+    height: 1px;
+    background: #ffffff;
+    background: -moz-linear-gradient(left,  #ffffff 0%, #d5d5d5 25%, #d5d5d5 75%, #ffffff 100%);
+    background: -webkit-gradient(linear, left top, right top, color-stop(0%,#ffffff), color-stop(25%,#d5d5d5), color-stop(75%,#d5d5d5), color-stop(100%,#ffffff));
+    background: -webkit-linear-gradient(left,  #ffffff 0%,#d5d5d5 25%,#d5d5d5 75%,#ffffff 100%);
+    background: -o-linear-gradient(left,  #ffffff 0%,#d5d5d5 25%,#d5d5d5 75%,#ffffff 100%);
+    background: -ms-linear-gradient(left,  #ffffff 0%,#d5d5d5 25%,#d5d5d5 75%,#ffffff 100%);
+    background: linear-gradient(left,  #ffffff 0%,#d5d5d5 25%,#d5d5d5 75%,#ffffff 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ffffff',GradientType=1 );
+}
+
+.divider .text {
+    color: #848484;
+    font-size: 14px;
+    font-family: Helvetica, Arial, sans-serif;
+    position: relative ;
+    top: -8px;
+    padding-left: 20px;
+    padding-right: 20px;
+    background: #fff;
+    -moz-box-shadow: 0px 0px 10px 10px #fff;
+    -webkit-box-shadow: 0px 0px 10px 10px #fff;
+    -o-box-shadow: 0px 0px 10px 10px #fff;
+    box-shadow: 0px 0px 10px 10px #fff;
 }
 
 

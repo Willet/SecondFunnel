@@ -93,25 +93,30 @@
             </div>
         </script>
         <script type="text/template" id="featured_template">
-            <div class='cell'>
+            <div class='row'>
                 <!-- Main Display Area -->
-                <div class='title text'><b><%= SecondFunnel.options.page.product.title %></b></div>
-                <div class='table'>
+                <div class='col-xs-6'>
                     <div class="image-div">
-                        <img class='image' src='<%= SecondFunnel.options.page['featured-image'] %>' />
+                        <img class='image' src='<%= SecondFunnel.options.page.product['lifestyle-image'] %>' />
                     </div>
+                </div>
+                <div class="col-xs-6">
                     <div class="info">
+                        <div class='title text'><b><%= SecondFunnel.options.page.product.title %></b></div>
                         <div class='price text'><%= SecondFunnel.options.page.product.price %></div>
                         <div>
                             <div class="social-buttons"></div>
                             <div class='spacer'></div>
                         </div>
+                        <div class='text'><a href='<%= SecondFunnel.options.page.product.url %>'
+                                             class='buy' target='_blank'>BUY NOW</a></div>
                     </div>
                 </div>
-                <div class='text'><a href='<%= SecondFunnel.options.page.product.url %>' class='buy' target='_blank'>BUY NOW</a></div>
             </div>
-
-            <div class='spacer'></div>
+            <div class="divider">
+                <div class="bar"></div>
+                <span class="text">Browse more from Native Shoes</span>
+            </div>
         </script>
 
 

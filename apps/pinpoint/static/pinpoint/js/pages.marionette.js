@@ -382,6 +382,16 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'onRender': function () {
             if (this.$el.length) {  // if something rendered, it was successful
                 $('#hero-area').html(this.$el.html());
+
+                if (!(SecondFunnel.observable.touch() || SecondFunnel.observable.mobile()) &&
+                    this.$('.social-buttons').length >= 1) {
+                    var buttons = new SecondFunnel.sharing.SocialButtons({
+                            'model': this.model
+                        })
+                        .render().load().$el;
+                    $('#hero-area').find('.social-buttons').append(buttons);
+                }
+
             }
         }
     });
