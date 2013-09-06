@@ -43,14 +43,12 @@ SecondFunnel.module("layoutEngine", function (layoutEngine) {
 
     layoutEngine.call = function (callback, $fragment) {
         if (typeof callback !== 'string') {
-            SecondFunnel.vent.trigger('log', "Unsupported type " +
+            console.error("Unsupported type " +
                 (typeof callback) + " passed to LayoutEngine.");
             return layoutEngine;
         }
         if (!layoutEngine[callback]) {
-            SecondFunnel.vent.trigger('log',
-                "LayoutEngine has no property " +
-                    callback + ".");
+            console.error("LayoutEngine has no property " + callback + ".");
             return layoutEngine;
         }
 

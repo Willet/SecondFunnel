@@ -244,7 +244,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
                 // mainly lets you show tweet count.
                 window.twttr.widgets.load();
             } catch (err) {
-                SecondFunnel.vent.trigger('warn', 'Could not load twitter');
+                console.warn('Could not load twitter');
             }
             return this;
         }

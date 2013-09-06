@@ -73,8 +73,10 @@ SecondFunnel.module("intentRank", function (intentRank) {
                 args.unshift(results);
                 return callback.apply(callback, args);
             },
-            'error': function () {
-                SecondFunnel.vent.trigger('log', arguments[1]);
+            'error': function (jqXHR, textStatus, errorThrown) {
+                // $.jsonp calls this func as function (xOptions, textStatus)
+                console.error('AJAX / JSONP call ' + textStatus + ': ' +
+                    (errorThrown || jqXHR.url));
                 // On error, fall back to backup results
                 var results = _.shuffle(intentRank.backupResults);
                 results = _.first(results, intentRank.IRResultsCount);

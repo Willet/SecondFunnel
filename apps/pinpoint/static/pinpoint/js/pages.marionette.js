@@ -138,8 +138,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         } catch (err) {
             // If template not found signal error in rendering view.
             if (err.name &&  err.name === "NoTemplateError") {
-                SecondFunnel.vent.trigger('log', "Could not find template " +
-                   this.template + ". View did not render.");
+                console.warn("Could not find template " +
+                             this.template + ". View did not render.");
                 // Trigger methods
                 this.isClosed = true;
                 this.triggerMethod("missing:template", this);
@@ -718,7 +718,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // serve orientation change event via vent
             if (window.addEventListener) {  // IE 8
                 window.addEventListener("orientationchange", function () {
-                    SecondFunnel.vent.trigger("rotate", SecondFunnel.option('desiredWidth'));
+                    SecondFunnel.vent.trigger("rotate");
                 }, false);
             }
 

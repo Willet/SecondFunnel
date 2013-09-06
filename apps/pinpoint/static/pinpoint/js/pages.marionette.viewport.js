@@ -10,20 +10,8 @@
             return $.browser.mobile;
         });
 
-        desiredWidth = desiredWidth || app.option('desiredWidth') || function () {
-            // 767 is the last width to show as mobile.
-            // screen.height is screen.width prior to rotation.
-            // 48: android UI bar overestimation
-            var w = Math.min(screen.width + 48, screen.height + 48, $window.width(), 767);
-            return w;
-        };
-
         if (typeof enabled === 'function') {
             enabled = enabled();
-        }
-
-        if (typeof desiredWidth === 'function') {
-            desiredWidth = desiredWidth();
         }
 
         if (enabled !== true) {
@@ -34,6 +22,19 @@
         if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
             console.warn('viewport agent called on device with unsupported ppi.');
             return;
+        }
+
+        desiredWidth = desiredWidth || app.option('desiredWidth') || function () {
+            // 767 is the last width to show as mobile.
+            // screen.height is screen.width prior to rotation.
+            // 48: android UI bar overestimation
+            var w = Math.min(screen.width + 48, screen.height + 48,
+                             $window.width(), 767);
+            return w;
+        };
+
+        if (typeof desiredWidth === 'function') {
+            desiredWidth = desiredWidth();
         }
 
         if (!desiredWidth || desiredWidth <= 0 || desiredWidth > 2048) {
@@ -55,17 +56,18 @@
                 return tag;
             },
             viewportMeta = getMeta(),
-            adjustedScale = $window.width() / desiredWidth;
+            adjustedScale = $window.width() / desiredWidth,
+            proposedMeta = "user-scalable=no," +
+                           "width=" + desiredWidth + "," +
+                           "initial-scale=" + adjustedScale + "," +
+                           "minimum-scale=" + adjustedScale + "," +
+                           "maximum-scale=" + adjustedScale;
 
-        viewportMeta.prop('content',
-            "user-scalable=no," +
-            "width=" + desiredWidth + "," +
-            "initial-scale=" + adjustedScale + "," +
-            "minimum-scale=" + adjustedScale + "," +
-            "maximum-scale=" + adjustedScale
-        );
-
-        broadcast('viewportResized', desiredWidth);
+        if (viewportMeta.prop('content') !== proposedMeta) {
+            // avoid re-rendering: edit tag only if it needs to change
+            viewportMeta.prop('content', proposedMeta);
+            broadcast('viewportResized', desiredWidth);
+        }
     };
 
     app.vent.on('beforeInit', function () {
