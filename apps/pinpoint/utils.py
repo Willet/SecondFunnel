@@ -51,7 +51,7 @@ def render_campaign(campaign, request, get_seeds_func=None):
         #
 
         # "borrow" IR for results
-        related_results = get_seeds_func(
+        backup_results = get_seeds_func(
             request, store=campaign.store.slug,
             campaign=campaign.default_intentrank_id or campaign.id,
             base_url=base_url + '/intentrank',
@@ -59,7 +59,7 @@ def render_campaign(campaign, request, get_seeds_func=None):
             raw=True
         )
     else:
-        related_results = []
+        backup_results = []
 
     base_url += '/intentrank'
 
@@ -68,7 +68,7 @@ def render_campaign(campaign, request, get_seeds_func=None):
         "columns": range(4),
         "preview": not campaign.live,
         "product": product,
-        "backup_results": json.dumps(related_results),
+        "backup_results": backup_results,
         "pub_date": datetime.now(),
         "base_url": base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,

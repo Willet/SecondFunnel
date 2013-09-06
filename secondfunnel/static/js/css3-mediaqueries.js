@@ -1,3 +1,4 @@
+// CSS3 media queries custom
 if (/(MSIE|Trident)/i.test(window.navigator.userAgent)) {
     if (typeof Object.create !== "function") {
         Object.create = function (o) {

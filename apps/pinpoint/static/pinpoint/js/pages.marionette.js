@@ -683,6 +683,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
+                if (options.debug >= SecondFunnel.E_INFO) {
+                    console.log('laying out initial results');
+                }
                 this.layoutResults(options.initialResults, undefined,
                     function () {
                         self.getTiles();
