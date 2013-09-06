@@ -162,7 +162,7 @@ broadcast = function () {
     if (!window.SecondFunnel) {
         return;  // SecondFunnel not initialized yet
     }
-    if (SecondFunnel.option('debug') > 2) {
+    if (SecondFunnel.option('debug') >= SecondFunnel.E_INFO) {
         console.log('Broadcasting "' + arguments[0] + '" with args=%O', pArgs);
     }
     SecondFunnel.vent.trigger.apply(SecondFunnel.vent, arguments);
@@ -179,7 +179,7 @@ receive = function () {
     if (!window.SecondFunnel) {
         return;  // SecondFunnel not initialized yet
     }
-    if (SecondFunnel.option('debug') > 2) {
+    if (SecondFunnel.option('debug') >= SecondFunnel.E_INFO) {
         console.log('Received "' + arguments[0] + '" with args=%O', pArgs);
     }
     SecondFunnel.vent.on.apply(SecondFunnel.vent, arguments);

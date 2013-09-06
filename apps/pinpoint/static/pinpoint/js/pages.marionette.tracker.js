@@ -97,6 +97,11 @@ SecondFunnel.module("tracker", function (tracker) {
             var category,
                 label;
 
+            if (!model) {
+                throw 'Cannot get information of undefined model ' +
+                      '(check if correct template is used)';
+            }
+
             // Convert model to proper category?
             switch (model.get('template')) {
                 case 'product':

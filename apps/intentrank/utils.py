@@ -1,7 +1,7 @@
 import math
 import json
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import HttpResponse
 
 from apps.assets.models import Product, Store
@@ -40,11 +40,11 @@ def video_probability_function(x, m):
     else:
         return 1 - (math.log(m - x) / math.log(m))
 
-def random_products(store, param_dict, id_only=True):
+def random_products(store_slug, param_dict, id_only=True):
     """Returns a list of random product ids, as would be returned by IR.
 
     Only used in development; not in production"""
-    store_id = Store.objects.get(slug__exact=store)
+    store_id = Store.objects.filter(Q(slug=store_slug) | Q(name=store_slug))
     num_results = int(param_dict.get('results', DEFAULT_RESULTS))
     results = []
 

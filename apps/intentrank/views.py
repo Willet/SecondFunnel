@@ -445,7 +445,7 @@ def invalidate_session(request):
     return HttpResponse("[]", mimetype='application/json')
 
 
-def get_results_dev(request, store_id, campaign, content_id=None, **kwargs):
+def get_results_dev(request, store_slug, campaign, content_id=None, **kwargs):
     """Returns random results for a campaign
 
     kwargs['raw'] also toggles between returning a dictionary
@@ -453,7 +453,7 @@ def get_results_dev(request, store_id, campaign, content_id=None, **kwargs):
     """
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
 
-    products = random_products(store_id, {'results': DEFAULT_RESULTS},
+    products = random_products(store_slug, {'results': DEFAULT_RESULTS},
                                id_only=True)
     filtered_products = Product.objects.filter(
         pk__in=products, available=True).exclude(media=None)

@@ -17,7 +17,7 @@ SecondFunnel.addInitializer(function (options) {
 });
 
 SecondFunnel.addInitializer(function (options) {
-    if (SecondFunnel.option('debug', false) > 5) {
+    if (SecondFunnel.option('debug', false) >= SecondFunnel.E_ALL) {
         $(document).ready(function () {
             // don't use getScript, firebug needs to know its src path
             // and getScript removes the tag so firebug doesn't know what to do
