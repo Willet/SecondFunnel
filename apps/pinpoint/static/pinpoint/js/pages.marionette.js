@@ -519,7 +519,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     this.$el.addClass('wide');
                 }  // else: leave it as 1-col
             } catch (imageServiceNotReady) {
-                if (Math.random() < 0.333) {
+                if (this.model.get('template') === 'combobox' || (Math.random() < 0.333)) {
                     this.$el.addClass('wide');
                 }
             }

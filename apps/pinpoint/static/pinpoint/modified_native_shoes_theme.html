@@ -76,49 +76,52 @@
         </div>
 
 
-        {{ js_templates }}
+        <div>
+            <!-- generic templates -->
+            {{ js_templates }}
 
-
-        <!-- store-specific templates -->
-        <script type='text/template' id="nativeshoes_combobox_tile_template">
-            <% if (obj['lifestyle-image']) { %>
-            <div class='lifestyle' data-label='<%= obj['lifestyle-image'] %>'>
-                <img src='<%= obj['lifestyle-image'] %>'/>
-            </div>
-            <% } %>
-            <div class='product' data-label='<%= obj['url'] %>'>
-                <img src='<%= obj.image %>'/>
-                <div class="social-buttons"></div>
-                <div class='title'><b><%= obj.title %></b></div>
-            </div>
-        </script>
-        <script type="text/template" id="featured_template">
-            <div class='row'>
-                <!-- Main Display Area -->
-                <div class='col-xs-6'>
-                    <div class="image-div">
-                        <img class='image' src='<%= SecondFunnel.options.page.product['lifestyle-image'] %>' />
-                    </div>
-                </div>
-                <div class="col-xs-6">
-                    <div class="info">
-                        <div class='title text'><b><%= SecondFunnel.options.page.product.title %></b></div>
-                        <div class='price text'><%= SecondFunnel.options.page.product.price %></div>
-                        <div>
-                            <div class="social-buttons"></div>
-                            <div class='spacer'></div>
+            <!-- custom templates -->
+            <script type='text/template' id="nativeshoes_combobox_tile_template">
+                <div class="row">
+                    <% if (obj['lifestyle-image']) { %>
+                        <div class='col-xs-6 lifestyle' data-label='<%= obj['lifestyle-image'] %>'>
+                            <img src='<%= obj['lifestyle-image'] %>'/>
                         </div>
-                        <div class='text'><a href='<%= SecondFunnel.options.page.product.url %>'
-                                             class='buy' target='_blank'>BUY NOW</a></div>
+                    <% } %>
+                    <div class='col-xs-6 product' data-label='<%= obj['url'] %>'>
+                        <img src='<%= obj.image %>'/>
+                        <div class='title'><b><%= obj.title %></b></div>
+                        <div class="social-buttons"></div>
                     </div>
                 </div>
-            </div>
-            <div class="divider">
-                <div class="bar"></div>
-                <span class="text">Browse more from Native Shoes</span>
-            </div>
-        </script>
-
+            </script>
+            <script type="text/template" id="featured_template">
+                <div class='row'>
+                    <!-- Main Display Area -->
+                    <div class='col-xs-6'>
+                        <div class="image-div">
+                            <img class='image' src='<%= SecondFunnel.options.page.product['lifestyle-image'] %>' />
+                        </div>
+                    </div>
+                    <div class="col-xs-6">
+                        <div class="info">
+                            <div class='title text'><b><%= SecondFunnel.options.page.product.title %></b></div>
+                            <div class='price text'><%= SecondFunnel.options.page.product.price %></div>
+                            <div>
+                                <div class="social-buttons"></div>
+                                <div class='spacer'></div>
+                            </div>
+                            <div class='text'><a href='<%= SecondFunnel.options.page.product.url %>'
+                                                 class='buy' target='_blank'>BUY NOW</a></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="divider">
+                    <div class="bar"></div>
+                    <span class="text">Browse more from Native Shoes</span>
+                </div>
+            </script>
+        </div>
 
         {{ body_content }}
     </body>

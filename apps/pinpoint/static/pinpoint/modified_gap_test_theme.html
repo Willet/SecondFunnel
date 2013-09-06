@@ -95,100 +95,102 @@
         </div>
 
 
-        {{ js_templates }}
+        <div>
+            <!-- generic templates -->
+            {{ js_templates }}
 
-
-        <!-- store-specific templates -->
-        <script type="text/template" id="gap_product_preview_template">
-            <!-- any (store.name)_(type)_... templates will be used in place
-                 of default templates if they exist. -->
-            <div class='content-wrapper row'>
-                <div class='image-div col-sm-6 col-md-6'>
-                    <div class='image'>
-                        <img class='img-rounded' src='<%= sizeImage(obj.image, 400) %>'/>
-                    </div>
-                </div>
-                <div class='info col-sm-6 col-md-6'>
-                    <div class='title'><%= obj.title %></div>
-                    <div class='red marker price'><%= obj.price %></div>
-                    <div class='description'>
-                        <div class='desc-title'>Overview</div>
-                        <ul>
-                            <% var sentences = _.compact(obj.description.split('.')); %>
-                            <% _.each(sentences, function(sentence) { %>
-                                <li><%= SecondFunnel.utils.safeString(sentence) %></li>
-                            <% }); %>
-                        </ul>
-                    </div>
-                    <div>
-                        <div class="social-buttons"></div>
-                        <div class='spacer'></div>
-                    </div>
-                    <div class='gap-buttons'>
-                        <a class='button find-store' href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>
-                            <!-- find-store is magic -->
-                            Find in Store
-                        </a>
-                        <a class='button in-store' href='<%= obj.url %>' target='_blank'>
-                            <!-- in-store is magic -->
-                            Shop on Gap.com
-                        </a>
-                    </div>
-                    <% if(obj.images.length >1) { %>
-                        <div class='gallery'></div>
-                    <% } %>
-                </div>
-            </div>
-        </script>
-        <script type="text/template" id="gap_image_preview_template">
-            <% if (obj['related-products'].length) { %>
-                <div class="image-with-related-products">
-                    <div class="row">
-                        <div class="image col-sm-6 col-md-6">
-                            <img class='img-rounded' src="<%= sizeImage(obj.image, 400) %>" alt="image" />
-                        </div>
-                        <div class="col-sm-6 col-md-6">
-                            <% var product = obj['related-products'][0]; %>
-                            <div class='title'><%= product.title %></div>
-                            <div class='price'><%= product.price %></div>
-                            <img class="main-image" src="<%= sizeImage(product.image, 150) %>" alt="related product" />
-                            <div class='description'>
-                                <div class='desc-title'>Overview</div>
-                                <ul>
-                                    <% var sentences = _.compact(product.description.split('.')); %>
-                                    <% _.each(sentences, function(sentence) { %>
-                                        <li><%= SecondFunnel.utils.safeString(sentence) %></li>
-                                    <% }); %>
-                                </ul>
-                            </div>
-                            <div>
-                                <div class="social-buttons"></div>
-                                <div class='spacer'></div>
-                            </div>
-                            <div class='gap-buttons'>
-                                <a class='button find-store' href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>
-                                    Find in Store
-                                </a>
-                                <a class='button in-store' href='<%= product.url %>' target='_blank'>
-                                    Shop on Gap.com
-                                </a>
-                            </div>
-                            <% if (product.images.length > 1) { %>
-                                <div class='gallery'></div>
-                            <% } %>
+            <!-- custom templates -->
+            <script type="text/template" id="gap_product_preview_template">
+                <!-- any (store.name)_(type)_... templates will be used in place
+                     of default templates if they exist. -->
+                <div class='content-wrapper row'>
+                    <div class='image-div col-sm-6 col-md-6'>
+                        <div class='image'>
+                            <img class='img-rounded' src='<%= sizeImage(obj.image, 400) %>'/>
                         </div>
                     </div>
-                </div>
-            <% } else { %>
-                <div class="image-without-related-products">
-                    <img src="<%= sizeImage(obj.image, 400) %>" alt="image" />
-                    <div class="info">
-                        <%= SecondFunnel.utils.safeString(obj.caption) %>
-                        <span class="label label-info pull-right"><%= obj.template %></span>
+                    <div class='info col-sm-6 col-md-6'>
+                        <div class='title'><%= obj.title %></div>
+                        <div class='red marker price'><%= obj.price %></div>
+                        <div class='description'>
+                            <div class='desc-title'>Overview</div>
+                            <ul>
+                                <% var sentences = _.compact(obj.description.split('.')); %>
+                                <% _.each(sentences, function(sentence) { %>
+                                    <li><%= SecondFunnel.utils.safeString(sentence) %></li>
+                                <% }); %>
+                            </ul>
+                        </div>
+                        <div>
+                            <div class="social-buttons"></div>
+                            <div class='spacer'></div>
+                        </div>
+                        <div class='gap-buttons'>
+                            <a class='button find-store' href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>
+                                <!-- find-store is magic -->
+                                Find in Store
+                            </a>
+                            <a class='button in-store' href='<%= obj.url %>' target='_blank'>
+                                <!-- in-store is magic -->
+                                Shop on Gap.com
+                            </a>
+                        </div>
+                        <% if(obj.images.length >1) { %>
+                            <div class='gallery'></div>
+                        <% } %>
                     </div>
                 </div>
-            <% } %>
-        </script>
+            </script>
+            <script type="text/template" id="gap_image_preview_template">
+                <% if (obj['related-products'].length) { %>
+                    <div class="image-with-related-products">
+                        <div class="row">
+                            <div class="image col-sm-6 col-md-6">
+                                <img class='img-rounded' src="<%= sizeImage(obj.image, 400) %>" alt="image" />
+                            </div>
+                            <div class="col-sm-6 col-md-6">
+                                <% var product = obj['related-products'][0]; %>
+                                <div class='title'><%= product.title %></div>
+                                <div class='price'><%= product.price %></div>
+                                <img class="main-image" src="<%= sizeImage(product.image, 150) %>" alt="related product" />
+                                <div class='description'>
+                                    <div class='desc-title'>Overview</div>
+                                    <ul>
+                                        <% var sentences = _.compact(product.description.split('.')); %>
+                                        <% _.each(sentences, function(sentence) { %>
+                                            <li><%= SecondFunnel.utils.safeString(sentence) %></li>
+                                        <% }); %>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <div class="social-buttons"></div>
+                                    <div class='spacer'></div>
+                                </div>
+                                <div class='gap-buttons'>
+                                    <a class='button find-store' href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>
+                                        Find in Store
+                                    </a>
+                                    <a class='button in-store' href='<%= product.url %>' target='_blank'>
+                                        Shop on Gap.com
+                                    </a>
+                                </div>
+                                <% if (product.images.length > 1) { %>
+                                    <div class='gallery'></div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <div class="image-without-related-products">
+                        <img src="<%= sizeImage(obj.image, 400) %>" alt="image" />
+                        <div class="info">
+                            <%= SecondFunnel.utils.safeString(obj.caption) %>
+                            <span class="label label-info pull-right"><%= obj.template %></span>
+                        </div>
+                    </div>
+                <% } %>
+            </script>
+        </div>
 
         {{ body_content }}
     </body>
