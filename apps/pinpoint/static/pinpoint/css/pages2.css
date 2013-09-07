@@ -295,6 +295,11 @@ div.loading {
         display: none !important;
     }
 }
+@media (max-width: 768px) { /* phone and tablet */
+    .hidden-xs {
+        display: none;
+    }
+}
 @media (min-width: 510px) and (max-width: 768px) { /* tablet */
     .navbar-nav {
         margin-right: 0;

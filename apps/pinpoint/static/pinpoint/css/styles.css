@@ -29,6 +29,18 @@ header {
     padding-left: 30px;
 }
 
+@media (min-width:768px) { /* Larger than tablet */
+    .dropdown-xs {
+        display: none!important;
+    }
+}
+
+@media (max-width: 768px) { /* phone and tablet */
+    .dropdown-xs {
+        display: block;
+    }
+}
+
 .dropdown-menu .facebook {
     background-position: 4px 1px;
 }
