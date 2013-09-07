@@ -356,3 +356,7 @@ header {
     width:  190px;
     background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0.00,#EDEDED),color-stop(1.0,#CDCDCD));
 }
+
+.no-scroll {
+    overflow: hidden;
+}
