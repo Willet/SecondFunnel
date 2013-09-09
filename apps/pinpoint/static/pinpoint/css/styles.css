@@ -29,6 +29,18 @@ header {
     padding-left: 30px;
 }
 
+@media (min-width:768px) { /* Larger than tablet */
+    .dropdown-xs {
+        display: none!important;
+    }
+}
+
+@media (max-width: 768px) { /* phone and tablet */
+    .dropdown-xs {
+        display: block;
+    }
+}
+
 .dropdown-menu .facebook {
     background-position: 4px 1px;
 }
@@ -343,4 +355,8 @@ header {
 .previewContainer .gap-buttons .button.in-store {
     width:  190px;
     background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0.00,#EDEDED),color-stop(1.0,#CDCDCD));
+}
+
+.no-scroll {
+    overflow: hidden;
 }

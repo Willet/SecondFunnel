@@ -980,6 +980,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
             // out of scope
             $('.scrollable', '.previewContainer').scrollable(true);
+
+            // disable scrolling for the rest of the document
+            $(document.body).addClass('no-scroll');
             broadcast('previewRendered', this);
         },
 
@@ -987,6 +990,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             this.$el.attr({
                 'id': 'preview-' + this.model.cid
             });
+        },
+
+        'close': function() {
+            $(document.body).removeClass('no-scroll');
         }
     });
 
