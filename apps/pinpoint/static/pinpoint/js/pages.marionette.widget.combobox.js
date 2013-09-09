@@ -1,7 +1,7 @@
 /*global $, _, SecondFunnel, sizeImage*/
 
 // experimental combobox widget. usable, but not pretty
-SecondFunnel.utils.addWidget(
+SecondFunnel.utils.registerWidget(
     'combobox',  // name (must be unique)
     'div.combobox-enabled',  // selector (scoped!)
     function (view, $el, option) {

@@ -2,7 +2,7 @@
 
 // Gallery widget. loads inside a .gallery container.
 // TODO: lazy load widgets
-SecondFunnel.utils.addWidget(
+SecondFunnel.utils.registerWidget(
     'gallery',  // name (must be unique)
     '.gallery',  // selector (scoped!)
     function (view, $el, option) {

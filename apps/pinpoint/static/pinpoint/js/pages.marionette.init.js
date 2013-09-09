@@ -8,7 +8,7 @@ SecondFunnel.addInitializer(function (options) {
 });
 
 SecondFunnel.addInitializer(function (options) {
-    if (SecondFunnel.option('debug', false) >= SecondFunnel.E_ALL) {
+    if (SecondFunnel.option('debug', false) >= SecondFunnel.ALL) {
         $(document).ready(function () {
             // don't use getScript, firebug needs to know its src path
             // and getScript removes the tag so firebug doesn't know what to do
@@ -22,7 +22,7 @@ SecondFunnel.addInitializer(function (options) {
         });
     }
 
-    if (SecondFunnel.option('debug', false) >= SecondFunnel.E_VERBOSE) {
+    if (SecondFunnel.option('debug', false) >= SecondFunnel.VERBOSE) {
         setInterval(function () {
             // highlight elements
             $('div').css('outline', '1px rgba(255,0,0,0.5) dotted');
@@ -34,13 +34,13 @@ SecondFunnel.addInitializer(function (options) {
 
 SecondFunnel.addInitializer(function (options) {
     try {
-        var fa = new SecondFunnel.classRegistry.FeaturedAreaView();
+        var fa = new SecondFunnel.classRegistry.HeroAreaView();
         fa.render();
-        broadcast('featureAreaRendered', fa);
+        broadcast('heroAreaRendered', fa);
     } catch (err) {
         // marionette throws an error if no hero templates are found or needed.
         // it is safe to ignore it.
-        broadcast('featureAreaNotRendered');
+        broadcast('heroAreaNotRendered');
     }
 });
 

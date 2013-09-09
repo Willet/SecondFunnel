@@ -8,9 +8,10 @@ SecondFunnel.module("observable", function (observable) {
             return regex.test(window.navigator.userAgent);
         };
 
-    observable.mobile = function () {
+    observable.mobile = _.memoize(function () {
+        // if one day device mode can change, remove _.memoize.
         return ($window.width() < 768);  // 768 is set in stone now
-    };
+    });
     observable.touch = function () {
         return ('ontouchstart' in document.documentElement) ||
             $('html').hasClass('touch-enabled');

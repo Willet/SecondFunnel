@@ -244,6 +244,30 @@ SecondFunnel.module("tracker", function (tracker) {
     tracker.on('start', function () {
         // this = SecondFunnel.vent
         // arguments = args[1~n] when calling .trigger()
+
+        if (window._gaq) {
+            if (window.location.hostname === 'localhost' ||
+                window.location.hostname === '127.0.0.1') {
+                _gaq.push(['_setDomainName', 'none']);
+            }
+
+            _gaq.push(['_setAccount', SecondFunnel.option('gaAccountNumber')]);
+
+            _gaq.push(['_setCustomVar',
+                1,                               // slot id
+                'StoreID',                       // name
+                SecondFunnel.option('store:id'), // value
+                3                                // scope: page-level
+            ]);
+
+            _gaq.push(['_setCustomVar', 2, 'CampaignID',
+                SecondFunnel.option('campaign'),  // <int>
+                3
+            ]);
+
+            _gaq.push(['_trackPageview']);
+        }
+
         tracker.setSocialShareVars();
 
         // TODO: If these are already set on page load, do we need to set them

@@ -5,19 +5,18 @@
 SecondFunnel = (function (SecondFunnel, $window, $document) {
     "use strict";
 
-    var Tile, TileCollection, FeaturedAreaView, TileView,
+    var Tile, TileCollection, HeroAreaView, TileView,
         VideoTileView, Discovery, Category, CategoryView,
         CategorySelector, PreviewContent, PreviewWindow,
         TapIndicator, EventManager, ShadowTile, getModifiedTemplateName;
 
     // not actual php values
     _.extend(SecondFunnel, {
-        E_NONE: 0, E_ERROR: 1, E_WARNING: 2, E_INFO: 3, E_VERBOSE: 4, E_ALL: 5
+        QUIET: 0, ERROR: 1, WARNING: 2, LOG: 3, VERBOSE: 4, ALL: 5
     });
 
     // keep reference to options. this needs to be done before classes are declared.
     SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
-    SecondFunnel.classRegistry = {};
     SecondFunnel.option = function (name, defaultValue) {
         // convenience method for accessing PAGES_INFO or TEST_*.
         // to access deep options (e.g. PAGES_INFO.store.name), use the key
@@ -52,11 +51,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     };
 
     try {
-        SecondFunnel.options.debug = SecondFunnel.E_NONE;
+        SecondFunnel.options.debug = SecondFunnel.QUIET;
 
         if (window.location.hostname === 'localhost' ||
             window.location.hostname === '127.0.0.1') {
-            SecondFunnel.options.debug = SecondFunnel.E_ERROR;
+            SecondFunnel.options.debug = SecondFunnel.ERROR;
         }
 
         (function (hash) {
@@ -130,173 +129,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         return template;
     };
 
-    Backbone.Marionette.ItemView.prototype.superRender = Backbone.Marionette.ItemView.prototype.render;  // TODO: ugly
-    Backbone.Marionette.ItemView.prototype.render =  function () {
-        // wrap around the original render function to give custom behaviour when a template is not found.
-        try {
-            this.superRender();
-        } catch (err) {
-            // If template not found signal error in rendering view.
-            if (err.name &&  err.name === "NoTemplateError") {
-                console.warn("Could not find template " +
-                             this.template + ". View did not render.");
-                // Trigger methods
-                this.isClosed = true;
-                this.triggerMethod("missing:template", this);
-            } else {
-                throw err;
-            }
-        }
-        return this;
-    };
-
     Backbone.Marionette.ItemView.prototype.onMissingTemplate = function () {
         // Default on missing template event
         this.remove();
     };
-
-
-    SecondFunnel.module("utils", function (utils) {
-        // can't move utils out of SecondFunnel (used too soon)
-
-        utils.safeString = function (str, opts) {
-            // trims the string and checks if it's just 'None'.
-            // more checks to come later.
-            return $.trim(str).replace(/^(None|undefined|false|0)$/, '');
-        };
-
-        utils.makeView = function (classType, params) {
-            // view factory to allow views that bind to arbitrary regions
-            // and use any template decided at runtime, e.g.
-            //   someTemplate = '#derp1'
-            //   a = makeView('Layout', {template: someTemplate})
-            //   a.render()
-            classType = classType || 'ItemView';
-            return Backbone.Marionette[classType].extend(params);
-        };
-
-        utils.addWidget = function (name, selector, functionality) {
-            // add a predefined UI component implemented as a region.
-            // name must be unique. if addWidget is called with an existing
-            // widget, the old one is overwritten.
-            SecondFunnel.options.regions = SecondFunnel.options.regions || {};
-            SecondFunnel.options.regionWidgets = SecondFunnel.options.regionWidgets || {};
-            SecondFunnel.options.regions[name] = selector;
-            SecondFunnel.options.regionWidgets[name] = functionality;
-            broadcast('widgetAdded', name, selector, functionality);
-        };
-
-        utils.addClass = function (name, defn) {
-            // allows designers to add a custom (tile) class.
-            // if class name is already taken, the original class is overwritten.
-            SecondFunnel.classRegistry = SecondFunnel.classRegistry || {};
-            SecondFunnel.classRegistry[name] = defn;
-            broadcast('classAdded', name, defn);
-            return defn;
-        };
-
-        utils.findClass = function (typeName, prefix, defaultClass) {
-            // returns a class in the window scope and class registry.
-            // default: optional. returns it if nothing else is found.
-            var FoundClass,
-                targetClassName = _.capitalize(prefix) + _.capitalize(typeName);
-            if (SecondFunnel.classRegistry &&
-                SecondFunnel.classRegistry[targetClassName] !== undefined) {
-                // if designers want to define a new tile view, they must
-                // let SecondFunnel know of its existence.
-                FoundClass = SecondFunnel.classRegistry[targetClassName];
-            }
-            if (window[targetClassName] !== undefined) {
-                FoundClass = window[targetClassName];
-            }
-            FoundClass = defaultClass;
-
-            if (SecondFunnel.options.debug >= SecondFunnel.E_VERBOSE) {
-                console.log('findClass(%s, %s, %O) -> %O',
-                            typeName, prefix, defaultClass, FoundClass);
-            }
-
-            return FoundClass;
-        };
-
-        utils.runWidgets = function (viewObject) {
-            // process widget regions.
-            // each widget function receives args (the view, the $element, option alias).
-            var self = viewObject;
-
-            // process itself (if it is a view)
-            _.each(SecondFunnel.options.regions, function (selector, name, list) {
-                var widgetFunc = SecondFunnel.options.regionWidgets[name];
-                self.$(selector).each(function (idx, el) {
-                    return widgetFunc(self, $(el), SecondFunnel.option);
-                });
-            });
-
-            // process children regions (if it is a layout)
-            _.each(self.regions, function (selector, name, list) {
-                var isWidget = _.contains(SecondFunnel.options.regions, name),
-                    widgetFunc = (SecondFunnel.options.regionWidgets || {})[name];
-                if (isWidget && widgetFunc) {
-                    self.$(selector).each(function (idx, el) {
-                        return widgetFunc(self, $(el), SecondFunnel.option);
-                    });
-                }
-            });
-        };
-
-        utils.pickImageSize = function (url, minWidth, scalePolicy) {
-            // returns a url that is either
-            //   - the url, if it is not an image service url, or
-            //   - an image url pointing to one that is at least as wide as
-            //     minWidth, or
-            //   - an image url pointing to one that is at most as wide as
-            //     the window width, or
-            //   - if minWidth is ridiculously large, master.jpg.
-            // if scalePolicy is "max", then the image served is always smaller
-            //   than requested.
-            var i,
-                prevKey = 'pico',
-                maxLogicalSize = Math.min($window.width(), $window.height()),
-                sizable = /images\.secondfunnel\.com.+\.(jpe?g|png)/.test(url),
-                nameRegex = /([^/]+)\.(jpe?g|png)/,
-                imageSizes = SecondFunnel.option('imageSizes', {
-                    // see Scraper: ImageServiceIntegrationTest.java#L52
-                    "pico": 16,
-                    "icon": 32,
-                    "thumb": 50,
-                    "small": 100,
-                    "compact": 160,
-                    "medium": 240,
-                    "large": 480,
-                    "grande": 600,
-                    "1024x1024": 1024,
-                    "master": 2048
-                });
-
-            if (!sizable) {
-                return url;
-            }
-
-            for (i in imageSizes) {
-                if (imageSizes.hasOwnProperty(i)) {
-                    if (!scalePolicy || scalePolicy === 'min') {
-                        if (imageSizes[i] >= minWidth) {
-                            return url.replace(nameRegex, i + '.$2');
-                        }
-                    } else if (scalePolicy === 'max') {
-                        if (imageSizes[i] >= minWidth) {
-                            return url.replace(nameRegex, prevKey + '.$2');
-                        }
-                    }
-                    if (imageSizes[i] >= maxLogicalSize) {
-                        return url.replace(nameRegex, prevKey + '.$2');
-                    }
-                }
-                prevKey = i;
-            }
-            return url;
-        };
-    });
 
     Tile = Backbone.Model.extend({
         'defaults': {
@@ -359,7 +195,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             return new SecondFunnel.utils.findClass('Tile', '', Tile)(attrs);
         },
         'loading': false,
-        'totalItems': null,
+        // 'totalItems': null,  // TODO: what is this?
 
         'initialize': function (arrayOfData) {
             // Our TileCollection starts by rendering several Tiles using the
@@ -374,7 +210,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         }
     });
 
-    FeaturedAreaView = Backbone.Marionette.ItemView.extend({
+    HeroAreaView = Backbone.Marionette.ItemView.extend({
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
         'model': new Tile(SecondFunnel.option('page:product')),
@@ -424,7 +260,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     });
             }
 
-            if (SecondFunnel.options.debug >= SecondFunnel.E_VERBOSE) {
+            if (SecondFunnel.options.debug >= SecondFunnel.VERBOSE) {
                 console.log('Template search tree for view %O: %O',
                             currentView, templateRules);
             }
@@ -589,10 +425,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // Determine which click handler to use; determined by the
             // content type.
             var handler = _.capitalize(this.model.get('content-type'));
-            this.onClick = this['on' + handler] || this.onVideo;
+            this.onClick = this['onClick' + handler] || this.onClickVideo;
         },
 
-        'onYoutube': function (ev) {
+        'onClickYoutube': function (ev) {
             // Renders a YouTube video in the tile
             var thumbId = 'thumb-' + this.model.cid,
                 $thumb = this.$('div.thumbnail'),
@@ -633,26 +469,13 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             });
         },
 
-        'onVideo': function () {
+        'onClickVideo': function () {
             // TODO: play videos more appropriately
             window.open(this.model.get('original-url') || this.model.get('url'));
         },
 
         'onPlaybackEnd': function (ev) {
             SecondFunnel.vent.trigger("videoEnded", ev, this);
-        }
-    });
-
-    ShadowTile = Tile.extend({
-        // based on a View, this object contains a get() and a set()
-        // that does NOT alter its original model.
-        'propBag': {},
-        'get': function (key) {
-            return this.propBag[key] || Backbone.Model.prototype.get.apply(this, arguments);
-        },
-        'set': function (key, val, options) {
-            this.propBag[key] = val;
-            return this;
         }
     });
 
@@ -685,7 +508,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
-                if (options.debug >= SecondFunnel.E_INFO) {
+                if (options.debug >= SecondFunnel.LOG) {
                     console.log('laying out initial results');
                 }
                 this.layoutResults(options.initialResults, undefined,
@@ -837,11 +660,13 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'updateContentStream': function (ev, tile) {
             // Loads in related content below the specified tile
             var id = tile.model.get('tile-id');
-            return id === null ? this :
-                   this.getTiles({
-                       'type': "content",
-                       'id': id
-                   }, tile);
+            if (id === null) {
+                return this;
+            }
+            return this.getTiles({
+                'type': "content",
+                'id': id
+            }, tile);
         },
 
         'categoryChanged': function (ev, category) {
@@ -913,7 +738,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     });
 
     CategorySelector = Backbone.Marionette.CompositeView.extend({
-        // This ItemView does not create an element, rather is passed
+        // This CompositeView does not create an element, rather is passed
         // the element that it will use for category selection
         'itemView': CategoryView,
 
@@ -959,7 +784,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     });
             }
 
-            if (SecondFunnel.options.debug >= SecondFunnel.E_VERBOSE) {
+            if (SecondFunnel.options.debug >= SecondFunnel.VERBOSE) {
                 console.log('Template search tree for view %O: %O',
                             currentView, templateRules);
             }
@@ -1096,8 +921,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 var event = key.substr(0, key.indexOf(' ')),
                     selectors = key.substr(key.indexOf(' ') + 1);
                 self.$el.on(event, selectors, func);
-                if (SecondFunnel.option('debug', SecondFunnel.E_NONE) >=
-                    SecondFunnel.E_INFO) {
+                if (SecondFunnel.option('debug', SecondFunnel.QUIET) >=
+                    SecondFunnel.LOG) {
                     console.log('regEvent ' + key);
                 }
             });
@@ -1115,9 +940,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     SecondFunnel.classRegistry = {
         Discovery: Discovery,
         EventManager: EventManager,
-        FeaturedAreaView: FeaturedAreaView,
-        ShadowTile: ShadowTile
+        HeroAreaView: HeroAreaView
     };
 
     return SecondFunnel;
-}(new Backbone.Marionette.Application(), $(window), $(document)));
+}(SecondFunnel, $(window), $(document)));

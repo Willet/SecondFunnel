@@ -1,7 +1,7 @@
 /*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _, Willet */
 // JSLint/Emacs js2-mode directive to stop global 'undefined' warnings.
 
-var SecondFunnel,
+var SecondFunnel = new Backbone.Marionette.Application(),
     broadcast,
     receive,
     debugOp,
@@ -151,6 +151,14 @@ $.getScripts = function (urls, callback, options) {
 _.mixin({
     'capitalize': function (string) {
         return string.charAt(0).toUpperCase() + string.substring(1).toLowerCase();
+    },
+    'get': function (obj, key) {
+        // thin wrapper around obj key access that never throws an error.
+        try {
+            return obj[key];
+        } catch (err) {
+            return undefined;
+        }
     }
 });
 
@@ -170,6 +178,16 @@ _.mixin({
             } catch (err) {
                 // failed... close the view
                 broadcast('viewRenderError', err, this);
+
+                // If template not found signal error in rendering view.
+                if (err.name &&  err.name === "NoTemplateError") {
+                    console.warn("Could not find template " +
+                                 this.template + ". View did not render.");
+                    // Trigger methods
+                    this.isClosed = true;
+                    this.triggerMethod("missing:template", this);
+                }
+
                 this.close();
             }
 
@@ -190,7 +208,7 @@ broadcast = function () {
     if (!window.SecondFunnel) {
         return;  // SecondFunnel not initialized yet
     }
-    if (SecondFunnel.option('debug') >= SecondFunnel.E_INFO) {
+    if (SecondFunnel.option('debug') >= SecondFunnel.LOG) {
         console.log('Broadcasting "' + arguments[0] + '" with args=%O', pArgs);
     }
     SecondFunnel.vent.trigger.apply(SecondFunnel.vent, arguments);
@@ -207,7 +225,7 @@ receive = function () {
     if (!window.SecondFunnel) {
         return;  // SecondFunnel not initialized yet
     }
-    if (SecondFunnel.option('debug') >= SecondFunnel.E_INFO) {
+    if (SecondFunnel.option('debug') >= SecondFunnel.LOG) {
         console.log('Received "' + arguments[0] + '" with args=%O', pArgs);
     }
     SecondFunnel.vent.on.apply(SecondFunnel.vent, arguments);

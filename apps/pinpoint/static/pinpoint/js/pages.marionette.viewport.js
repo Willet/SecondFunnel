@@ -18,14 +18,14 @@
             }
 
             if (enabled !== true) {
-                if (app.option('debug', SecondFunnel.E_NONE) >= SecondFunnel.E_WARNING) {
+                if (app.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
                     console.warn('viewport agent disabled.');
                 }
                 return;
             }
 
             if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
-                if (app.option('debug', SecondFunnel.E_NONE) >= SecondFunnel.E_WARNING) {
+                if (app.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
                     console.warn('viewport agent called on device with unsupported ppi.');
                 }
                 return;
@@ -45,14 +45,14 @@
             }
 
             if (typeof desiredWidth !== 'number') {
-                if (app.option('debug', SecondFunnel.E_NONE) >= SecondFunnel.E_WARNING) {
+                if (app.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
                     console.warn('viewport agent not called with number.');
                 }
                 return;
             }
 
             if (!desiredWidth || desiredWidth <= 0 || desiredWidth > 2048) {
-                if (app.option('debug', SecondFunnel.E_NONE) >= SecondFunnel.E_WARNING) {
+                if (app.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
                     console.warn('viewport agent called with invalid width.');
                 }
                 return;
