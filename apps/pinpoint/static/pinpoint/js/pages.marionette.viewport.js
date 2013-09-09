@@ -1,4 +1,6 @@
 (function (app) {
+    "use strict";
+
     app.module('viewport', function (viewport) {
         viewport.scale = function (desiredWidth) {
             // attempt to lock the viewport to appear as wide as desiredWidth
@@ -42,6 +44,13 @@
                 desiredWidth = desiredWidth();
             }
 
+            if (typeof desiredWidth !== 'number') {
+                if (app.option('debug', SecondFunnel.E_NONE) >= SecondFunnel.E_WARNING) {
+                    console.warn('viewport agent not called with number.');
+                }
+                return;
+            }
+
             if (!desiredWidth || desiredWidth <= 0 || desiredWidth > 2048) {
                 if (app.option('debug', SecondFunnel.E_NONE) >= SecondFunnel.E_WARNING) {
                     console.warn('viewport agent called with invalid width.');
@@ -63,7 +72,7 @@
                     return tag;
                 },
                 viewportMeta = getMeta(),
-                adjustedScale = $window.width() / desiredWidth,
+                adjustedScale = ($window.width() / desiredWidth).toFixed(2),
                 proposedMeta = "user-scalable=no," +
                                "width=" + desiredWidth + "," +
                                "initial-scale=" + adjustedScale + "," +

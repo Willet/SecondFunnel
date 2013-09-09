@@ -15,12 +15,15 @@ describe("Viewport", function () {
             }
             return tag;
         }()),
+        resetMeta = function () {
+            meta.attr('content', '');
+        },
         originalContent = meta.attr('content');
 
     beforeEach(function () {
         app = SecondFunnel;
         app.options.mobile = false;
-        meta.attr('content', '');
+        resetMeta();
     });
 
     describe('scale', function () {
@@ -53,11 +56,67 @@ describe("Viewport", function () {
             expect(meta.attr('content')).not.toEqual(originalContent);
         });
 
+        it("should handle functions", function () {
+            // fake a mobile device
+            app.options.mobile = true;
+            window.devicePixelRatio = 2;
+
+            app.viewport.scale(function () {
+                return 1024;
+            });
+            expect(meta.attr('content')).not.toEqual(originalContent);
+        });
+
+        it("should scale correctly after successive resizes", function () {
+            // fake a mobile device
+            app.options.mobile = true;
+            window.devicePixelRatio = 2;
+
+            var ratio = ($(window).width() / 1024).toFixed(2);
+            app.viewport.scale(1024);
+            expect(meta.attr('content')).toEqual('user-scalable=no,width=1024,initial-scale=' +
+                ratio + ',minimum-scale=' + ratio + ',maximum-scale=' + ratio);
+
+            ratio = ($(window).width() / 768).toFixed(2);
+            app.viewport.scale(768);
+            expect(meta.attr('content')).toEqual('user-scalable=no,width=768,initial-scale=' +
+                ratio + ',minimum-scale=' + ratio + ',maximum-scale=' + ratio);
+
+            ratio = ($(window).width() / 2048).toFixed(2);
+            app.viewport.scale(2048);
+            expect(meta.attr('content')).toEqual('user-scalable=no,width=2048,initial-scale=' +
+                ratio + ',minimum-scale=' + ratio + ',maximum-scale=' + ratio);
+        });
+
         it("should handle incorrect width values", function () {
             // fake a mobile device
             app.options.mobile = true;
             window.devicePixelRatio = 2;
+            app.viewport.scale('poop master');
+            expect(meta.attr('content')).toEqual(originalContent);
+
+            resetMeta();
             app.viewport.scale(-1);
+            expect(meta.attr('content')).toEqual(originalContent);
+
+            resetMeta();
+            app.viewport.scale(0);
+            expect(meta.attr('content')).not.toEqual(originalContent);
+
+            resetMeta();
+            app.viewport.scale(1);
+            expect(meta.attr('content')).not.toEqual(originalContent);
+
+            resetMeta();
+            app.viewport.scale(1500);
+            expect(meta.attr('content')).not.toEqual(originalContent);
+
+            resetMeta();
+            app.viewport.scale(2048);
+            expect(meta.attr('content')).not.toEqual(originalContent);
+
+            resetMeta();
+            app.viewport.scale(2049);
             expect(meta.attr('content')).toEqual(originalContent);
         });
     });

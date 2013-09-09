@@ -4,10 +4,17 @@ SecondFunnel.module("intentRank", function (intentRank) {
     var $document = $(document),
         $window = $(window);
 
-    intentRank.base = "http://intentrank-test.elasticbeanstalk.com/intentrank";
-    intentRank.templates = {
-        'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
-        'content': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/content/<%=id%>/getresults"
+    intentRank.options = {
+        'baseUrl': "http://intentrank-test.elasticbeanstalk.com/intentrank",
+        'urlTemplates': {
+            'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
+            'content': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/content/<%=id%>/getresults"
+        },
+        'categories': {},
+        'backupResults': [],
+        'IRResultsCount': 10,
+        'IRTimeout': 5000,
+        'content': []
     };
 
     intentRank.initialize = function (options) {
@@ -15,8 +22,8 @@ SecondFunnel.module("intentRank", function (intentRank) {
         var page = options.page || {},
             online = !page.offline;
 
-        _.extend(intentRank, {
-            'base': options.IRSource || this.base,
+        _.extend(intentRank.options, {
+            'baseUrl': options.IRSource || this.baseUrl,
             'store': options.store,
             'campaign': options.campaign,
             // @deprecated: options.categories will be page.categories
@@ -24,52 +31,53 @@ SecondFunnel.module("intentRank", function (intentRank) {
             'backupResults': options.backupResults || [],
             'IRResultsCount': options.IRResultsCount || 10,
             'IRTimeout': options.IRTimeout || 5000,
-            'content': options.content || [],
-            'getResults': online ?
-                          intentRank.getResultsOnline :
-                          intentRank.getResultsOffline
+            'content': options.content || []
         });
 
+        if (online) {
+            intentRank.getResults = intentRank.getResultsOnline;
+        } else {
+            intentRank.getResults = intentRank.getResultsOffline;
+        }
+
         broadcast('intentRankInitialized', intentRank);
+        return this;
     };
 
     intentRank.getResultsOffline = function (options, callback) {
-        broadcast('beforeIntentRankGetResultsOffline', options,
-            callback, intentRank);
+        broadcast('beforeIntentRankGetResultsOffline', options, callback, intentRank);
         var args = _.toArray(arguments).slice(2);
-        args.unshift(intentRank.content);
+        args.unshift(intentRank.options.content);
 
-        broadcast('intentRankGetResultsOffline', options, callback,
-            intentRank);
+        broadcast('intentRankGetResultsOffline', options, callback, intentRank);
         return callback.apply(callback, args);
     };
 
     intentRank.getResultsOnline = function (options, callback) {
-        broadcast('beforeIntentRankGetResultsOnline', options,
-            callback, intentRank);
+        broadcast('beforeIntentRankGetResultsOnline', options, callback, intentRank);
 
-        var uri = _.template(intentRank.templates[options.type],
-                _.extend({}, options, intentRank, {
-                    'url': intentRank.base
+        var uri = _.template(intentRank.options.urlTemplates[options.type],
+                _.extend({}, options, intentRank.options, {
+                    'url': intentRank.options.baseUrl
                 })),
             args = _.toArray(arguments).slice(2);
 
         ($.jsonp || $.ajax)({
             'url': uri,
             'data': {
-                'results': intentRank.IRResultsCount
+                'results': intentRank.options.IRResultsCount
             },
             'contentType': "json",
             'dataType': 'jsonp',
             'callbackParameter': 'callback',  // $.jsonp only
-            'timeout': intentRank.IRTimeout,
+            'timeout': intentRank.options.IRTimeout,
             'success': function (results) {
                 // Check for non-empty results.
                 results = results.length ?
                           results :
                     // If no results, fetch from backup
-                          _.shuffle(intentRank.backupResults);
-                results = _.first(results, intentRank.IRResultsCount);
+                          _.shuffle(intentRank.options.backupResults);
+                results = _.first(results, intentRank.options.IRResultsCount);
                 args.unshift(results);
                 return callback.apply(callback, args);
             },
@@ -78,8 +86,8 @@ SecondFunnel.module("intentRank", function (intentRank) {
                 console.error('AJAX / JSONP call ' + textStatus + ': ' +
                     (errorThrown || jqXHR.url));
                 // On error, fall back to backup results
-                var results = _.shuffle(intentRank.backupResults);
-                results = _.first(results, intentRank.IRResultsCount);
+                var results = _.shuffle(intentRank.options.backupResults);
+                results = _.first(results, intentRank.options.IRResultsCount);
                 args.unshift(results);
                 return callback.apply(callback, args);
             }
@@ -90,11 +98,20 @@ SecondFunnel.module("intentRank", function (intentRank) {
     };
 
     intentRank.changeCategory = function (category) {
-        // Change the category; category has been validated
-        // by the CategoryView, so a check isn't necessary
+        // Change the category
+        if (!_.findWhere(intentRank.options.categories,
+            {'id': Number(category)})) {
+            // requested category not configured for this page
+            if (SecondFunnel.option('debug', SecondFunnel.E_NONE) >=
+                SecondFunnel.E_WARNING) {
+                console.warn('Category ' + category + ' not found');
+            }
+            return;
+        }
+
         broadcast('intentRankChangeCategory', category, intentRank);
 
-        intentRank.campaign = category;
+        intentRank.options.campaign = category;
         return intentRank;
     };
 });

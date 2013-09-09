@@ -1,6 +1,6 @@
 @charset 'UTF-8';
 
-/* include this file to get 5 columns.
+/*
  * number of products fetched per call should be bumped up by 25%
  */
 @media screen and (min-width: 1280px) {
@@ -12,7 +12,7 @@
     }
 }
 
-/* include this file to get 6 columns.
+/*
  * number of products fetched per call should be bumped up by 20%
  */
 @media screen and (min-width: 1536px) {

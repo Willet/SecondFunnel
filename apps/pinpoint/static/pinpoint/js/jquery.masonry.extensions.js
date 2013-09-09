@@ -1,5 +1,8 @@
 /*global Masonry, _, console, $, jQuery */
-/* Flexibility 2.6:
+/*
+   EXPERIMENTAL CODE
+
+   Flexibility 2.6:
    It should be possible to define simple rules for how tiles can be placed, or sized.
 
    Implementation Concerns:

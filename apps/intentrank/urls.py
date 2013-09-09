@@ -14,7 +14,7 @@ urlpatterns = patterns('apps.intentrank.views',
    url(r'^store/(?P<store_slug>[a-zA-Z0-9 -_]+)/campaign/(?P<campaign>\d+)/getresults$',
        'get_results_dev', name='get-results'),
 
-   url(r'^store/(?P<store_slug>\w+)/campaign/(?P<campaign>\d+)/content/'
+   url(r'^store/(?P<store_slug>[a-zA-Z0-9 -_]+)/campaign/(?P<campaign>\d+)/content/'
        r'(?P<content_id>\w+)/getresults$', 'get_results_dev', name='get-results'),
 
    # TEMPORARY: These methods should be removed as soon as Neal's

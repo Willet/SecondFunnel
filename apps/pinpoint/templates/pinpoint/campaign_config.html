@@ -20,6 +20,20 @@
             'pubDate': '{{ pub_date }}',  // for verifying the original upload date of a static campaign. for human use only
             'offline': false,  // optional (if true, loads .content immediately)
 
+            // you will still need to make elements with data-category="96" on the page.
+            'categories': [
+                {% with categories=campaign.intentrank.all%}
+                {% if categories|length > 1 %}
+                {% for category in categories %}
+                    {
+                        'id': '{{ category.id }}',
+                        'name': '{{ category.name }}'
+                    }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            ],
+
             'main-block-template': '{{ campaign.template }}',  // DEPRECATED
             'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},  // DEPRECATED
             'stl-image': '{{ campaign.stl_image }}',  // DEPRECATED
@@ -27,19 +41,6 @@
             'description': '{{ campaign.description|escapejs }}'  // DEPRECATED
         },
         'campaign': '{{ campaign.default_intentrank.id|default:campaign.id }}',
-        // you will still need to make elements with data-category="96" on the page.
-        'categories': [
-            {% with categories=campaign.intentrank.all%}
-            {% if categories|length > 1 %}
-            {% for category in categories %}
-                {
-                    'id': '{{ category.id }}',
-                    'name': '{{ category.name }}'
-                }{% if not forloop.last %},{% endif %}
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
-        ],
         'columnWidth': function($element) {
             return 240 + 15;
         },

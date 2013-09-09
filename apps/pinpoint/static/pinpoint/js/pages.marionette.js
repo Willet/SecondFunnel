@@ -8,7 +8,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     var Tile, TileCollection, FeaturedAreaView, TileView,
         VideoTileView, Discovery, Category, CategoryView,
         CategorySelector, PreviewContent, PreviewWindow,
-        TapIndicator, EventManager, ShadowTile;
+        TapIndicator, EventManager, ShadowTile, getModifiedTemplateName;
 
     // not actual php values
     _.extend(SecondFunnel, {
@@ -111,7 +111,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             for (i = 0; i < templateIDs.length; i++) {
                 data = $.extend({},
                     Backbone.Marionette.getOption(this, "model").attributes);
-                data.template = SecondFunnel.getModifiedTemplateName(data.template);
+                data.template = getModifiedTemplateName(data.template);
 
                 temp = _.template(templateIDs[i], {
                     'options': SecondFunnel.options,
@@ -678,7 +678,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             SecondFunnel.layoutEngine.initialize(this.$el,
                 options);
             this.collection = new TileCollection();
-            this.categories = new CategorySelector(options.categories || []);
+            this.categories = new CategorySelector(  // v-- options.categories is deprecated
+                options.page.categories || options.categories || []);
             this.attachListeners();
             this.countColumns();
 
@@ -1102,6 +1103,13 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             });
         }
     });
+
+    getModifiedTemplateName = function (name) {
+        // If this logic gets any more complex, it should be moved into
+        // Tile or TileView.
+        return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i,
+            'image');
+    };
 
     // expose some classes (only if required)
     SecondFunnel.classRegistry = {

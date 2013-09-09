@@ -2,15 +2,6 @@
 // SecondFunnel initializers.
 
 SecondFunnel.addInitializer(function (options) {
-    window.SecondFunnel = SecondFunnel;
-
-    SecondFunnel.getModifiedTemplateName = function (name) {
-        return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i,
-            'image');
-    };
-});
-
-SecondFunnel.addInitializer(function (options) {
     // delegated analytics bindings
     var defaults = new SecondFunnel.classRegistry.EventManager(SecondFunnel.tracker.defaultEventMap),
         customs = new SecondFunnel.classRegistry.EventManager(options.events);
@@ -106,6 +97,5 @@ SecondFunnel.addInitializer(function (options) {
     });
 
     SecondFunnel.discovery = new SecondFunnel.classRegistry.Discovery(options);
-    SecondFunnel.tracker.init();
     broadcast('finished', options, SecondFunnel);
 });

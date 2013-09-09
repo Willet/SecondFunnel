@@ -241,7 +241,7 @@ SecondFunnel.module("tracker", function (tracker) {
         broadcast('trackerChangeCampaign', campaignId, tracker);
     };
 
-    tracker.init = function () {
+    tracker.on('start', function () {
         // this = SecondFunnel.vent
         // arguments = args[1~n] when calling .trigger()
         tracker.setSocialShareVars();
@@ -275,7 +275,7 @@ SecondFunnel.module("tracker", function (tracker) {
 
         broadcast('trackerInitialized', tracker);
         // setTrackingDomHooks() on $.ready
-    };
+    });
 
     // Generally, we have views handle event tracking on their own.
     // However, it can be expensive to bind events to every single view.
@@ -467,7 +467,6 @@ SecondFunnel.module("tracker", function (tracker) {
 
     // add mediator triggers if the module exists.
     SecondFunnel.vent.on({
-        'tracking:init': tracker.init,
         'tracking:trackEvent': trackEvent,
         'tracking:setSocialShareVars': tracker.setSocialShareVars,
         'tracking:registerTwitterListeners': tracker.registerTwitterListeners,
@@ -475,6 +474,5 @@ SecondFunnel.module("tracker", function (tracker) {
         'tracking:videoStateChange': tracker.videoStateChange,
         'tracking:changeCampaign': tracker.changeCampaign
     });
-
-    // the app initializer init()s it
 });
+
