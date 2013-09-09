@@ -5,7 +5,7 @@ import shutil
 import sys
 import random
 
-from secondfunnel.settings.common import fromProjectRoot
+from secondfunnel.settings.common import from_project_root
 from apps.testing.settings import BROWSERS_MAC, BROWSERS_LINUX, CONFIGS
 from apps.testing.utils import parse_results, getPath
 
@@ -21,14 +21,14 @@ def wait_for_pid(application):
     @return: int
     """
     pid = None
-    cmd = "ps -ax | grep \"{0}\" | grep -v grep | grep -v open | awk '{{print $1}}' | tail -n 1".format(application)
+    cmd = "ps ax | grep \"{0}\" | grep -v grep | grep -v open | awk '{{print $1}}' | tail -n 1".format(application)
     while not pid or len(pid) == 0:
         pid = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         pid, err = pid.communicate()
 
         if err:
             raise Exception(err)
-    
+
     return int(pid)
 
 
@@ -189,7 +189,7 @@ def call_JsTestDriver(config, tests, browsers, *args, **kwargs):
     command = "java -jar {0}".format(getPath("resources/JsTestDriver.jar"))
     basepath = os.path.abspath(
                    os.path.join(
-                       fromProjectRoot('manage.py'), os.pardir))
+                       from_project_root('manage.py'), os.pardir))
 
     if config in CONFIGS:
         command += " --config {0}".format(getPath(CONFIGS[config]))

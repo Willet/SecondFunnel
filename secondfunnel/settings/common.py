@@ -27,7 +27,8 @@ MANAGERS = ADMINS
 
 BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(days=30)).strftime("%a, %d %b %Y %H:%M:%S GMT")
 
-def fromProjectRoot(path):
+def from_project_root(path):
+    """returns the path prepended by the project root."""
     return os.path.join(
            os.path.dirname(
            os.path.dirname(
@@ -68,7 +69,7 @@ TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en-us'
 
 LOCALE_PATHS = (
-    fromProjectRoot('locale'),
+    from_project_root('locale'),
 )
 
 SITE_ID = 1
@@ -101,7 +102,7 @@ MIN_MEDIA_HEIGHT = 1
 # Example: "/home/media/media.lawrence.com/static/"
 
 # TODO: has to be a better way to get the path...
-STATIC_ROOT = fromProjectRoot('static')
+STATIC_ROOT = from_project_root('static')
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE

@@ -55,8 +55,7 @@ def quieter(option, opt_str, value, parser):
 
 class Command(BaseCommand):
     """
-    Command class for the JavaScript tester; acts as an interface to simplify calling the associated
-    program.
+    Runs JS tests through ./manage.py jstest [options].
 
     @ivar args: A general overview of what arguments are accepted.
     @ivar help: The help message to display.
