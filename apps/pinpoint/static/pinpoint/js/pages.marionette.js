@@ -710,7 +710,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     // own .bind('resize', function () {})?
                     $('.resizable', document).resize();
 
-                    this.countColumns();
+                    self.countColumns();
 
                     broadcast('windowResize');
                 }, 500))
