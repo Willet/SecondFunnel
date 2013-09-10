@@ -46,7 +46,9 @@ def render_campaign(campaign, request=None, get_seeds_func=None):
     campaign.template = slugify(
         content_block.block_type.name)
 
-    if settings.DEBUG:
+    # Dirty hack
+    if settings.DEBUG or re.search(r'native shoes', campaign.store.name, re.I):
+        # If in debug mode, or we otherwise need to use the old proxy
         base_url = settings.WEBSITE_BASE_URL
     else:
         base_url = settings.INTENTRANK_BASE_URL
