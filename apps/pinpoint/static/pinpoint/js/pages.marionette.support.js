@@ -1,4 +1,4 @@
-SecondFunnel.module("support", function (support) {
+SecondFunnel.module("support", function (support, SecondFunnel) {
     // make new module full of transient utilities
     "use strict";
 

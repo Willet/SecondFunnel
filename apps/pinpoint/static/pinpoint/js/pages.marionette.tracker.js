@@ -1,4 +1,4 @@
-SecondFunnel.module("tracker", function (tracker) {
+SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
     "use strict";
 
     var $document = $(document),
@@ -55,6 +55,13 @@ SecondFunnel.module("tracker", function (tracker) {
             return host;
         },
 
+        addItem = function () {
+            // wrap _gaq.push to obey our tracking
+            if (window._gaq && SecondFunnel.option('enableTracking', true)) {
+                _gaq.push.apply(_gaq, arguments);
+            }
+        },
+
         trackEvent = function (o) {
             // category       - type of object that was acted on
             // action         - type of action that took place (e.g. share, preview)
@@ -62,19 +69,13 @@ SecondFunnel.module("tracker", function (tracker) {
             // value          - Optional numeric data
             // nonInteraction - if true, don't count in bounce rate
             //                  by default, events are interactive
-
-            if (SecondFunnel.option('enableTracking', true)) {
-                if (window._gaq) {
-                    window._gaq.push(['_trackEvent',
-                        o.category,
-                        o.action,
-                        o.label,
-                        o.value || undefined,
-                        !!o.nonInteraction || undefined
-                    ]);
-                }
-                broadcast('eventTracked', o, o.category);
-            }
+            addItem(['_trackEvent',
+                o.category,
+                o.action,
+                o.label,
+                o.value || undefined,
+                !!o.nonInteraction || undefined
+            ]);
         },
 
         setCustomVar = function (o) {
@@ -87,9 +88,7 @@ SecondFunnel.module("tracker", function (tracker) {
                 return;
             }
 
-            if (window._gaq && SecondFunnel.option('enableTracking', true)) {
-                window._gaq.push(['_setCustomVar', slotId, name, value, scope]);
-            }
+            addItem(['_setCustomVar', slotId, name, value, scope]);
         },
 
         getTrackingInformation = function(model, isPreview) {
@@ -98,7 +97,7 @@ SecondFunnel.module("tracker", function (tracker) {
                 label;
 
             if (!model) {
-                throw 'Cannot get information of undefined model ' +
+                throw 'Lost reference to model ' +
                       '(check if correct template is used)';
             }
 
@@ -241,32 +240,24 @@ SecondFunnel.module("tracker", function (tracker) {
         broadcast('trackerChangeCampaign', campaignId, tracker);
     };
 
-    tracker.on('start', function () {
-        // this = SecondFunnel.vent
-        // arguments = args[1~n] when calling .trigger()
-
-        if (window._gaq) {
-            if (window.location.hostname === 'localhost' ||
-                window.location.hostname === '127.0.0.1') {
-                _gaq.push(['_setDomainName', 'none']);
-            }
-
-            _gaq.push(['_setAccount', SecondFunnel.option('gaAccountNumber')]);
-
-            _gaq.push(['_setCustomVar',
-                1,                               // slot id
-                'StoreID',                       // name
-                SecondFunnel.option('store:id'), // value
-                3                                // scope: page-level
-            ]);
-
-            _gaq.push(['_setCustomVar', 2, 'CampaignID',
-                SecondFunnel.option('campaign'),  // <int>
-                3
-            ]);
-
-            _gaq.push(['_trackPageview']);
+    tracker.on('start', function () {  // this = tracker
+        if (SecondFunnel.option('debug', SecondFunnel.NONE) > SecondFunnel.NONE) {
+            // debug mode.
+            addItem(['_setDomainName', 'none']);
         }
+
+        addItem(['_setAccount', SecondFunnel.option('gaAccountNumber')]);
+        addItem(['_setCustomVar',
+            1,                               // slot id
+            'StoreID',                       // name
+            SecondFunnel.option('store:id'), // value
+            3                                // scope: page-level
+        ]);
+        addItem(['_setCustomVar', 2, 'CampaignID',
+            SecondFunnel.option('campaign'),  // <int>
+            3
+        ]);
+        addItem(['_trackPageview']);
 
         tracker.setSocialShareVars();
 
@@ -315,7 +306,9 @@ SecondFunnel.module("tracker", function (tracker) {
         // Product Preview
         'click .tile': function() {
             var modelId = $(this).attr('id'),
-                model = SecondFunnel.discovery.collection.get(modelId),
+                model = SecondFunnel.discovery.collection.get(modelId) ||
+                        // {cXXX} models could be here instead, for some reason
+                        SecondFunnel.discovery.collection._byId[modelId],
                 trackingInfo = getTrackingInformation(model);
 
             trackEvent({

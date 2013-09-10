@@ -1,4 +1,4 @@
-SecondFunnel.module("intentRank", function (intentRank) {
+SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     "use strict";
 
     var $document = $(document),

@@ -522,7 +522,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             var self = this;
             // TODO: Find a better way than this...
             _.bindAll(this, 'pageScroll', 'toggleLoading',
-                'toggleMoreResults', 'layoutResults');
+                'getMoreResults', 'layoutResults');
             $window
                 .scroll(_.throttle(this.pageScroll, 500))
                 .resize(_.throttle(function () {
@@ -563,11 +563,16 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 options.type = options.type || 'campaign';
                 SecondFunnel.intentRank.getResults(options,
                     this.layoutResults, $tile);
+            } else {
+                if (SecondFunnel.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
+                    console.warn('Already loading tiles. Try again later');
+                }
             }
             return this;
         },
 
-        'toggleMoreResults': function () {
+        "getMoreResults": function () {
+            // creates conditions needed to get more results.
             var self = this;
             this.toggleLoading(false);
             setTimeout(function () {
@@ -578,8 +583,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
         'layoutResults': function (data, tile, callback) {
             var self = this,
-                $fragment = $();
-            callback = callback || this.toggleMoreResults;
+                $tileEls = $();
+            callback = callback || this.getMoreResults;
 
             // Check if we don't have anything
             if (data.length === 0) {
@@ -587,25 +592,26 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             }
 
             // If we have data to use.
-            data = this.filter(data);
+            data = this.filter(data);  // custom function
             _.each(data, function (tileData) {
                 // Create the new tiles using the data
                 var tile = new Tile(tileData),
                     img = tile.get('image'),
                     view = tile.createView();
 
+                // add this model to our collection of models.
+                self.collection.add(tile);
                 if (!view.isClosed) {
                     // Ensure we were given something
-                    self.collection.add(tile);
-                    $fragment = $fragment.add(view.$el);
+                    $tileEls = $tileEls.add(view.$el);
                 }
             });
 
             if (tile) {
-                SecondFunnel.layoutEngine.call('insert', $fragment, tile.$el,
+                SecondFunnel.layoutEngine.call('insert', $tileEls, tile.$el,
                     callback);
             } else {
-                SecondFunnel.layoutEngine.call('append', $fragment,
+                SecondFunnel.layoutEngine.call('append', $tileEls,
                     callback);
             }
             return this;

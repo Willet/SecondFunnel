@@ -1,4 +1,5 @@
-SecondFunnel.module("layoutEngine", function (layoutEngine) {
+SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
+    // Masonry wrapper
     "use strict";
 
     var $document = $(document),

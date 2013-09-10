@@ -1,4 +1,4 @@
-SecondFunnel.module("utils", function (utils) {
+SecondFunnel.module("utils", function (utils, SecondFunnel) {
     "use strict";
 
     var $document = $(document),

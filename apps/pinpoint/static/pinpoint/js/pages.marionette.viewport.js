@@ -1,7 +1,7 @@
 (function (app) {
     "use strict";
 
-    app.module('viewport', function (viewport) {
+    app.module('viewport', function (viewport, SecondFunnel) {
         viewport.scale = function (desiredWidth) {
             // attempt to lock the viewport to appear as wide as desiredWidth
             // by scaling the entire viewport.
