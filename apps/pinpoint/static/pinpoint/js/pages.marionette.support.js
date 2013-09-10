@@ -1,4 +1,4 @@
-SecondFunnel.module("observable", function (observable) {
+SecondFunnel.module("support", function (support) {
     // make new module full of transient utilities
     "use strict";
 
@@ -8,23 +8,22 @@ SecondFunnel.module("observable", function (observable) {
             return regex.test(window.navigator.userAgent);
         };
 
-    observable.mobile = _.memoize(function () {
+    support.mobile = _.memoize(function () {
         // if one day device mode can change, remove _.memoize.
         return ($window.width() < 768);  // 768 is set in stone now
     });
-    observable.touch = function () {
+    support.touch = function () {
         return ('ontouchstart' in document.documentElement) ||
             $('html').hasClass('touch-enabled');
     };
 
-    observable.isAniPad = function () {
+    support.isAniPad = function () {
         // use of this function is highly discouraged, but you know it
         // will be used anyway
         return testUA(/ipad/i);
     };
 
-    observable.onErrorResumeNext = function (func, context) {
-        // ms.system.reactive.linq.observable.onerrorresumenext(v=vs.103)
+    support.failsafe = function (func, context /*, *args */) {
         // the absolutely-no-errors-must-leave-this-function 'decorator'.
         // context should be the caller's 'this'.
         // arguments after context will be passed to func.

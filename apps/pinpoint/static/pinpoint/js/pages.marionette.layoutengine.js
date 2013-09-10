@@ -22,7 +22,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine) {
     };
 
     layoutEngine.initialize = function ($elem, options) {
-        var mobile = SecondFunnel.observable.mobile();
+        var mobile = SecondFunnel.support.mobile();
 
         layoutEngine.selector = options.discoveryItemSelector;
         _.extend(layoutEngine.options, {

@@ -55,9 +55,9 @@ $.fn.scrollStopped = function (callback) {
     });
 };
 
-$.fn.scrollable = $.fn.scrollable || function (yesOrNo) {
+$.fn.scrollable = function (yesOrNo) {
     // make an element scrollable on mobile.
-    if (SecondFunnel.observable.mobile() || SecondFunnel.observable.touch()) {
+    if (SecondFunnel.support.mobile() || SecondFunnel.observable.touch()) {
         var $el = $(this),  // warning: multiple selectors
             $html = $('html'),
             $body = $('body'),

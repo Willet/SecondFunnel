@@ -219,7 +219,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             if (this.$el.length) {  // if something rendered, it was successful
                 $('#hero-area').html(this.$el.html());
 
-                if (!(SecondFunnel.observable.touch() || SecondFunnel.observable.mobile()) &&
+                if (!(SecondFunnel.support.touch() || SecondFunnel.support.mobile()) &&
                     this.$('.social-buttons').length >= 1) {
                     var buttons = new SecondFunnel.sharing.SocialButtons({
                             'model': this.model
@@ -251,7 +251,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 "#product_tile_template"                                                                             // fallback
             ];
 
-            if (!SecondFunnel.observable.mobile()) {
+            if (!SecondFunnel.support.mobile()) {
                 // remove mobile templates if it isn't mobile, since they take
                 // higher precedence by default
                 templateRules = _.reject(templateRules,
@@ -276,7 +276,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             "mouseleave": "onHover"
         },
 
-        'regions': _.extend({}, {
+        'regions': _.extend({}, {  // if ItemView, the key is 'ui': /docs/marionette.itemview.md#organizing-ui-elements
             'socialButtons': '.social-buttons',
             'tapIndicator': '.tap-indicator-target'
         }, SecondFunnel.options.regions || {}),
@@ -306,9 +306,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // If the tile model is removed, remove the DOM element
             this.listenTo(this.model, 'destroy', this.close);
             // Call onInitialize if it exists
-            if (this.onInitialize) {
-                this.onInitialize(options);
-            }
+            this.triggerMethod('initialize');
         },
 
         'modelChanged': function (model, value) {
@@ -318,8 +316,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'onHover': function (ev) {
             // Trigger tile hover event with event and tile
             SecondFunnel.vent.trigger("tileHover", ev, this);
-            if (!SecondFunnel.observable.mobile() &&
-                !SecondFunnel.observable.touch() &&
+            if (!SecondFunnel.support.mobile() &&
+                !SecondFunnel.support.touch() &&
                 this.socialButtons && this.socialButtons.$el &&
                 this.socialButtons.$el.children().length) {
                 var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn'
@@ -398,7 +396,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 // Need to do this check in case layout is closing due
                 // to broken images.
                 if (SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length && 
-                    !(SecondFunnel.observable.touch() || SecondFunnel.observable.mobile())) {
+                    !(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
                     this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({model: this.model}));
                 }
                 this.tapIndicator.show(new TapIndicator());
@@ -408,10 +406,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         }
     });
 
-    // TODO: Seperate this into modules/seperate files
     VideoTileView = TileView.extend({
-        // VideoTile extends from TileView, allows playing of Video files; for
-        // now, we only support YT
+        // VideoTile extends from TileView, allows playing of Video files;
+        // for now, we only support YT
         'onInitialize': function (options) {
             // Add here additional things to do when loading a VideoTile
             this.$el.addClass('wide');
@@ -447,7 +444,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 'playerVars': {
                     'wmode': 'opaque',
                     'autoplay': 1,
-                    'controls': SecondFunnel.observable.mobile()
+                    'controls': SecondFunnel.support.mobile()
                 },
                 'events': {
                     'onReady': $.noop,
@@ -540,7 +537,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 }, 500))
                 .scrollStopped(function () {
                     // deal with tap indicator fade in/outs
-                    if (SecondFunnel.observable.touch()) {
+                    if (SecondFunnel.support.touch()) {
                         SecondFunnel.vent.trigger('scrollStopped', self);
                     }
                 });
@@ -775,7 +772,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 '#tile_preview_template' // fallback
             ];
 
-            if (!SecondFunnel.observable.mobile()) {
+            if (!SecondFunnel.support.mobile()) {
                 // remove mobile templates if it isn't mobile, since they take
                 // higher precedence by default
                 templateRules = _.reject(templateRules,
@@ -793,7 +790,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
             var buttons, width;
-            if (!(SecondFunnel.observable.touch() || SecondFunnel.observable.mobile())) {
+            if (!(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
                 buttons = new SecondFunnel.sharing.SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
             }
@@ -892,7 +889,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'onBeforeRender': function () {
             // http://jsperf.com/hasclass-vs-toggleclass
             // toggleClass with a boolean is 55% slower than manual checks
-            if (SecondFunnel.observable.touch()) {
+            if (SecondFunnel.support.touch()) {
                 $('html').addClass('touch-enabled');
             } else {
                 $('html').removeClass('touch-enabled');
