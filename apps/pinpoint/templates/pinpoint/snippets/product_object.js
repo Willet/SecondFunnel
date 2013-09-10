@@ -1,6 +1,11 @@
-{# use by passing a 'product' into this template #}
+{# /* use by passing a 'product' into this template #}
 {
     "id": "{{ product.id }}",
+    {% if product.id %}
+        "content-id": {{ product.id|escapejs }},  {# by default, anyway #}
+        "db-id": {{ product.id|escapejs }},
+    {% endif %}
+
     "description": "{{ product.description|escapejs }}",
     "name": "{{ product.name|escapejs }}",
     "title": "{{ product.name|escapejs }}",
@@ -12,20 +17,20 @@
         {% endfor %}
     },
     {% if featured %}
-    "stl-image": "{{ product.stl_image|escapejs }}",
-    "featured-image": "{{ product.featured_image|escapejs }}",
+        "stl-image": "{{ product.stl_image|escapejs }}",
+        "featured-image": "{{ product.featured_image|escapejs }}",
     {% else %}
-    "image": "{{ product.image }}",
+        "image": "{{ product.image }}",
     {% endif %}
     {% ifequal product.template "combobox" %}
-    "lifestyle-image": "{{ product.lifestyle_image }}",
+        "lifestyle-image": "{{ product.lifestyle_image }}",
     {% endifequal %}
     "images": [
-    {% for image in product.images %}
-        {% if image %}
-        "{{ image|escapejs }}"{% if not forloop.last %},{% endif %}
-        {% endif %}
-    {% endfor %}
+        {% for image in product.images %}
+            {% if image %}
+                "{{ image|escapejs }}"{% if not forloop.last %},{% endif %}
+            {% endif %}
+        {% endfor %}
     ],
     "url": "{{ product.url|escapejs }}"
 
@@ -44,3 +49,4 @@
         , "autoplay": {{ product.autoplay }}
     {% endif %}
 }
+{# */ #}

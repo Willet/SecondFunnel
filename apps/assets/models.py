@@ -53,17 +53,11 @@ class Store(BaseModelNamed):
     staff = models.ManyToManyField(User)
     social_auth = models.ManyToManyField(UserSocialAuth, blank=True, null=True)
 
-    theme  = models.ForeignKey('pinpoint.StoreTheme',
+    theme = models.ForeignKey('pinpoint.StoreTheme',
         related_name='store',
         blank=True,
         null=True,
         verbose_name='Default theme')
-
-    mobile = models.ForeignKey('pinpoint.StoreTheme',
-        related_name='store_mobile',
-        blank=True,
-        null=True,
-        verbose_name='Default mobile theme')
 
     public_base_url = models.URLField(
         help_text="e.g. explore.nativeshoes.com", blank=True, null=True)

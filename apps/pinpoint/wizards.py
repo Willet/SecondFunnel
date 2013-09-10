@@ -9,7 +9,8 @@ from django.http import HttpResponseRedirect, HttpResponse
 
 from apps.assets.models import Product, ProductMedia, GenericImage
 from apps.pinpoint.models import (BlockType, BlockContent, Campaign,
-                                  FeaturedProductBlock, ShopTheLookBlock)
+                                  FeaturedProductBlock, ShopTheLookBlock,
+                                  StoreTheme)
 from apps.pinpoint.forms import FeaturedProductWizardForm, ShopTheLookWizardForm
 
 # TODO: Consider replacing with ModelForm?

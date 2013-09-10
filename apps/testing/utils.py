@@ -1,5 +1,5 @@
 from apps.testing.settings import RESOURCES as resources
-from secondfunnel.settings.common import fromProjectRoot
+from secondfunnel.settings.common import from_project_root
 
 try:
     from collections import OrderedDict
@@ -63,7 +63,7 @@ def getPath(path):
 
     @return: string
     """
-    return fromProjectRoot(
+    return from_project_root(
         os.path.join("apps/testing", path)
     )
 
@@ -112,5 +112,3 @@ def install():
 
     # Explicit return
     return None
-
-
