@@ -47,7 +47,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             ['facebook', 'twitter', 'pinterest']), // @override via constructor
 
         'loadSocial': _.once(function (callback) {
-            $.getScripts([  // well, load once, right?
+            $.getScripts([
                 "//www.youtube.com/iframe_api",
                 "//assets.pinterest.com/js/pinit.js",
                 // "//connect.facebook.net/en_US/all.js",
@@ -74,14 +74,13 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             }
 
             // pinterest does its own stuff - just include pinit.js.
-            // however, if it is to be disabled, the div needs to go.
-            // see 'render' of SocialButtons.
             return this;
         },
 
         'initialize': function (options) {
             // Initializes the SocialButton View by determining what
             // social buttons to show and loading the initial config if necessary.
+            // automatically called when its parent Layout is rendered.
             var self = this;
             // Only load the social once
             this.loadSocial(_.bind(this.initSocial, this));

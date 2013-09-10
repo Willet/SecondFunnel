@@ -57,7 +57,7 @@ $.fn.scrollStopped = function (callback) {
 
 $.fn.scrollable = function (yesOrNo) {
     // make an element scrollable on mobile.
-    if (SecondFunnel.support.mobile() || SecondFunnel.observable.touch()) {
+    if (SecondFunnel.support.mobile() || SecondFunnel.support.touch()) {
         var $el = $(this),  // warning: multiple selectors
             $html = $('html'),
             $body = $('body'),

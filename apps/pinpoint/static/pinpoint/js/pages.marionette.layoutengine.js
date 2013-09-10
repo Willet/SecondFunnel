@@ -42,6 +42,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine) {
     };
 
     layoutEngine.call = function (callback, $fragment) {
+        // relays the function to be run after imagesLoaded.
         if (typeof callback !== 'string') {
             console.error("Unsupported type " +
                 (typeof callback) + " passed to LayoutEngine.");
@@ -125,16 +126,17 @@ SecondFunnel.module("layoutEngine", function (layoutEngine) {
         $fragment.children('img').each(function () {
             // Create a dummy image to load the image
             var img = new Image(),
-                self = this;
+                self = this,
+                onImage;
             img.src = $(this).attr('src');
             // Clear the src attribute so it doesn't load there
             $(this).attr('src', '');
 
             // Now apply handlers
-            var onImage = function () {
+            onImage = function () {
                 // Function to check on each image load/error
                 --toLoad;
-                if ($badImages.length !== 0 && toLoad == 0) {
+                if ($badImages.length !== 0 && toLoad === 0) {
                     // If broken images exist, remove them and
                     // reload the layout.
                     $badImages.remove();
