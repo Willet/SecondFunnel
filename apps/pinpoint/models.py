@@ -10,41 +10,11 @@ from apps.assets.models import (MediaBase, BaseModel, BaseModelNamed,
                                 Store, GenericImage, Product, ProductMedia)
 
 
-def page_template_includes(value):
-    """
-    Checks that the given template has its required fields.
-
-    @param value: The template to check.
-
-    @raise ValidationError: This is raised when a template is missing a required field.
-    """
-    # Ought to be a staticmethod, but can't for whatever reason...
-    INCLUDE_PATTERN = re.compile('{{ *(\w*?) *}}')
-    REQUIRED_FIELDS = ['featured_content', 'discovery_area',
-                       'header_content', 'preview_area']
-
-    matches = INCLUDE_PATTERN.findall(value)
-    missing = []
-
-    for field in REQUIRED_FIELDS:
-        if not field in matches:
-            missing.append(field)
-
-    if missing:
-        raise ValidationError('Missing required includes for page '
-                              'template: {fields}'
-                              .format(fields=', '.join(missing)))
-
-
 class StoreTheme(BaseModelNamed):
     """
     The database model for a store theme.
 
     @ivar DEFAULT_PAGE_TEMPLATE: The default page template.
-    @ivar DEFAULT_FEATURED_PRODUCT: The default featured product block template.
-    @ivar DEFAULT_PRODUCT_PREVIEW: The default template for the preview box content.
-    @ivar DEFAULT_DISCOVERY_BLOCK: The default discovery block template.
-    @ivar DEFAULT_YOUTUBE_BLOCK: The default youtube block template.
 
     @ivar store: A one-to-one foreign key to the store this template is for.
     @ivar page_template: The template for the entire page. Css is also usually put here.
@@ -60,235 +30,22 @@ class StoreTheme(BaseModelNamed):
 <!DOCTYPE HTML>
 <html>
     <head>
-        <!--
-        This statement is required; it loads any content needed for the
-        head, and must be located in the <head> tag
-        -->
         {{ header_content }}
-
     </head>
     <body>
-        <!--This div will load the 'shop-the-look' template-->
-        <div class="template target featured product" data-src="shop-the-look"></div>
-
-        <!--This div will load the 'featured-product' template-->
-        <div class="template target featured product" data-src="featured-product"></div>
-
-        <div class='divider'>
-            <div class='bar'></div>
-            <span class='text'>Browse more</span>
-        </div>
-        <div class='discovery-area'></div>
-
-        <!--
-        This statement ensures that templates are available,
-        and should come before {{body_content}}
-        -->
         {{ js_templates }}
-
-        <!--
-        This statement loads any scripts that may be required. If you want to
-        include your own javascript, include them after this statement
-        -->
+        <div class='discovery-area'></div>
         {{ body_content }}
     </body>
 </html>
     """
 
-    DEFAULT_SHOP_THE_LOOK = """
-<script type='text/template' data-template-id='shop-the-look'>
-    <img src='<%= page["stl-image"] %>' />
-    <img src='<%= page["featured-image"] %>' />
-    <div><%= page.product.title %></b></div>
-    <div><%= page.product.price %></div>
-    <div><%= page.product.description %></div>
-    <div>
-    <% _.each(page.product.images, function(image){ %>
-        <img src='<%= image %>'/>
-    <% }); %>
-    </div>
-    <div>
-        <% include social_buttons %>
-    </div>
-    <div>
-        <a href='<%= page.product.url %>' target='_blank'>link</a>
-    </div>
-</script>
-    """
-
-    DEFAULT_FEATURED_PRODUCT = """
-<script type='text/template' data-template-id='featured-product'>
-    <img src='<%= page["featured-image"] %>' />
-    <div><%= page.product.title %></b></div>
-    <div><%= page.product.price %></div>
-    <div><%= page.product.description %></div>
-    <div>
-    <% _.each(page.product.images, function(image){ %>
-        <img src='<%= image %>'/>
-    <% }); %>
-    </div>
-    <div>
-        <% include social_buttons %>
-    </div>
-    <div>
-        <a href='<%= page.product.url %>' target='_blank'>link</a>
-    </div>
-</script>
-    """
-
-    DEFAULT_PRODUCT = """
-<script type='text/template' data-template-id='product'>
-    <div class='block product'>
-        <div><%= data.title %></div>
-        <div><%= data.description %></div>
-        <img src='<%= data.image %>'/>
-        <div><%= data.url %></div>
-        <% _.each(page.product.images, function(image){ %>
-        <img src='<%= image %>'/>
-        <% }); %>
-    </div>
-</script>
-    """
-
-    DEFAULT_COMBOBOX = """
-<script type='text/template' data-template-id='combobox'>
-    <div class='block product'>
-        <img src='<%= data["lifestyle-image"] %>'/>
-        <div><%= data.title %></div>
-        <div><%= data.description %></div>
-        <img src='<%= data.image %>'/>
-        <div><%= data.url %></div>
-        <% _.each(page.product.images, function(image){ %>
-        <img src='<%= image %>'/>
-        <% }); %>
-    </div>
-</script>
-    """
-
-    DEFAULT_YOUTUBE = """
-<script type='text/template' data-template-id='youtube'>
-    <% include youtube_video_template %>
-</script>
-    """
-
-    DEFAULT_PRODUCT_PREVIEW = """
-<script type='text/template' data-template-id='product-preview'>
-    <div class='image'><img src='<%= data.image %>' /></div>
-    <div class='images'>
-        <% _.each(data.images, function(image) { %>
-        <img src='<%= image %>' />
-        <% }); %>
-    </div>
-    <div class='price'><%= data.price %></div>
-    <div class='title'><%= data.title %></div>
-    <div class='description'><%= data.description %></div>
-    <div class='url'><a href='<%= data.url %>' target="_blank">BUY
-        NOW</a></div>
-    <% include social_buttons %>
-    </div>
-</script>
-    """
-
-    DEFAULT_COMBOBOX_PREVIEW = """
-<script type='text/template' data-template-id='combobox-preview'>
-    <div class='image'><img src='<%= data.image %>' /></div>
-    <div class='images'>
-        <% _.each(data.images, function(image) { %>
-        <img src='<%= image %>' />
-        <% }); %>
-    </div>
-    <div class='price'><%= data.price %></div>
-    <div class='title'><%= data.title %></div>
-    <div class='description'><%= data.description %></div>
-    <div class='url'><a href='<%= data.url %>' target="_blank">BUY
-        NOW</a></div>
-    <% include social_buttons %>
-    </div>
-</script>
-    """
-
-    DEFAULT_INSTAGRAM_PREVIEW = """
-<script type='text/template' data-template-id='instagram-preview'>
-    <img src='<%= data["image"] %>'/>
-</script>
-    """
-
-    DEFAULT_INSTAGRAM_PRODUCT_PREVIEW = """
-<script type='text/template' data-template-id='instagram-product-preview'>
-    <img src='<%= data["image"] %>'/>
-</script>
-    """
-
-    DEFAULT_INSTAGRAM = """
-<script type='text/template' data-template-id='instagram'
-        data-appearance-probability='0.25'>
-    <div class='block image external-content instagram'>
-        <div class='product'>
-            <div class='img-container'>
-                <img src='<%= sizeImage(data.image, "master") %>'
-                     alt='Instagram image'
-                     data-original-id='<%= data["original-id"] %>' />
-            </div>
-        </div>
-    </div>
-</script>
-    """
-
     # Django templates
     page = models.TextField(default=DEFAULT_PAGE, verbose_name='Page')
 
-    # JS Templates
-    # Main block templates
-    shop_the_look = models.TextField(
-        default=DEFAULT_SHOP_THE_LOOK,
-        verbose_name='"Shop the look"',
-    )
-    featured_product = models.TextField(
-        default=DEFAULT_FEATURED_PRODUCT,
-        verbose_name='"Featured product"',
-    )
-
-    # Discovery block templates
-    product = models.TextField(
-        default=DEFAULT_PRODUCT,
-        verbose_name='Product',
-    )
-    combobox = models.TextField(
-        default=DEFAULT_COMBOBOX,
-        verbose_name='Combobox',
-    )
-    youtube = models.TextField(
-        default=DEFAULT_YOUTUBE,
-        verbose_name='Youtube',
-    )
-    instagram = models.TextField(
-        default=DEFAULT_INSTAGRAM,
-        verbose_name='Image'
-    )
-
-    # Preview Templates
-    product_preview = models.TextField(
-        default=DEFAULT_PRODUCT_PREVIEW,
-        verbose_name='Product preview'
-    )
-    combobox_preview = models.TextField(
-        default=DEFAULT_COMBOBOX_PREVIEW,
-        verbose_name='Combobox preview'
-    )
-    instagram_preview = models.TextField(
-        default=DEFAULT_INSTAGRAM_PREVIEW,
-        verbose_name='Image preview'
-    )
-    instagram_product_preview = models.TextField(
-        default=DEFAULT_INSTAGRAM_PRODUCT_PREVIEW,
-        verbose_name='Image product preview'
-    )
-
     # not necessarily "all lower case attributes in this class"
-    THEMABLE_ATTRIBS = ['page', 'shop_the_look', 'featured_product', 'product',
-                       'combobox', 'youtube', 'instagram', 'product_preview',
-                       'combobox_preview', 'instagram_preview',
-                       'instagram_product_preview']
+    # TODO: check if theme editor is affected
+    THEMABLE_ATTRIBS = ['page']
 
     DEFAULT_STRING_BEFORE = "do not edit after this line"
     DEFAULT_STRING_AFTER = "do not edit before this line"
@@ -299,42 +56,23 @@ class StoreTheme(BaseModelNamed):
         self.REQUIRED_FIELDS = {
             'opengraph_tags': {
                 'type': 'template',
-                'values': [
-                    'pinpoint/campaign_opengraph_tags.html'
-                ]
+                'values': ['pinpoint/campaign_opengraph_tags.html']
             },
-            'header_content': {
+            'head_content': {
                 'type': 'template',
                 'values': ['pinpoint/campaign_head.html']
             },
-            'desktop_content': {
+            'body_content': {
                 'type': 'template',
-                'values': ['pinpoint/campaign_scripts_core.html',
-                           'pinpoint/default_templates.html']
+                'values': ['pinpoint/campaign_body.html']
             },
-            'mobile_content': {
+            'campaign_config': {
                 'type': 'template',
-                'values': ['pinpoint/campaign_scripts_core.html']
+                'values': ['pinpoint/campaign_config.html']
             },
             'js_templates': {
-                'type': 'theme',
-                'values': [
-                    # Featured area templates
-                    'shop_the_look',
-                    'featured_product',
-
-                    # Discovery blocks
-                    'product',
-                    'combobox',
-                    'youtube',
-                    'instagram',
-
-                    # Previews
-                    'product_preview',
-                    'combobox_preview',
-                    'instagram_preview',
-                    'instagram_product_preview'
-                ]
+                'type': 'template',
+                'values': ['pinpoint/default_templates.html']
             }
         }
 
@@ -486,11 +224,6 @@ class Campaign(BaseModelNamed):
         blank=True,
         null=True,
         verbose_name='Campaign Theme')
-    mobile = models.ForeignKey(StoreTheme,
-        related_name='mobile',
-        blank=True,
-        null=True,
-        verbose_name='Campaign Mobile Theme')
     content_blocks = models.ManyToManyField(BlockContent,
         related_name="content_campaign")
 
@@ -512,17 +245,12 @@ class Campaign(BaseModelNamed):
         super(Campaign, self).save(*args, **kwargs)
 
         if not self.default_intentrank:
-            if re.search(r'native shoes', self.store.name, re.I):
-                ir_campaign = IntentRankCampaign.objects.get(
-                    name='NATIVE SHOES COMMUNITY LOOKBOOK #066'
-                )
-            else:
-                ir_campaign = IntentRankCampaign(
-                    name=self.name,
-                    slug=self.slug,
-                    description=self.description
-                )
-                ir_campaign.save()
+            ir_campaign = IntentRankCampaign(
+                name=self.name,
+                slug=self.slug,
+                description=self.description
+            )
+            ir_campaign.save()
 
             self.default_intentrank = ir_campaign
             self.intentrank.add(ir_campaign)
@@ -532,15 +260,9 @@ class Campaign(BaseModelNamed):
 
         type: a string; either 'full' or 'mobile'
         """
-        priorities = {
-            'auto': [
-                self.theme,
-                self.store.theme,
-                self.mobile,  # if for some reason it still exists, use it
-                self.store.mobile,
-                None
-            ]
-        }
+        priorities = {'auto': [self.theme,
+                               self.store.theme,
+                               None]}
 
         themes = priorities.get(theme_type)
         if not themes:

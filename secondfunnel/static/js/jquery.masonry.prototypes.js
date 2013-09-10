@@ -14,28 +14,32 @@
         // BEGIN WILLET
         this.recent = this.recent || [];
         var queue = [],
-            dupes, instagramImg;
+            dupes, tileId;
 
         for (var i = 0, len = items.length; i < len; i++) {
             var item = items[i],
                 $item = $(item.element);
-            // Check to see if we've recently included this instagram image, if we
+
+            // Check to see if we've recently included this image, if we
             // have, we'll want to skip it here.
-            instagramImg = $item.find('.instagram :not(.social-buttons) img').prop('src');
-            dupes = _.filter(this.recent, function ($elem) {
-                var elemImg = $elem.find('.instagram :not(.social-buttons) img').prop('src');
-                return (elemImg === instagramImg);
-            });
+            tileId = $item.data('tile-id');
 
-            if (instagramImg && dupes.length !== 0) {
-                // remove item from collection
-                var index = this.items.indexOf(item);
-                this.items.splice(index, 1);
-                len -= 1;
+            if (tileId) {
+                dupes = _.filter(this.recent, function ($elem) {
+                    var elemId = $elem.data('tile-id');
+                    return elemId === tileId;
+                });
 
-                // remove item from DOM
-                item.element.parentNode.removeChild(item.element);
-                continue;
+                if (dupes.length !== 0) {
+                    // remove item from collection
+                    var index = this.items.indexOf(item);
+                    this.items.splice(index, 1);
+                    len -= 1;
+
+                    // remove item from DOM
+                    item.element.parentNode.removeChild(item.element);
+                    continue;
+                }
             }
             // END WILLET
             // get x/y object from method
@@ -57,7 +61,7 @@
         var colGroup = this._getColGroup(colSpan);
         // get the minimum Y value from the columns
         var minimumY = Math.min.apply(Math, colGroup),
-            shortColIndex = colGroup.indexOf(minimumY);
+            shortColIndex = $.inArray(minimumY, colGroup);
 
         // BEGIN WILLET
         /*
@@ -97,13 +101,13 @@
 
         this.recent = this.recent || [];
 
-        if (item.element.className.indexOf('instagram') > -1) {
-            while (this.recent.length > 5) {
-                this.recent.shift();
-            }
-
-            this.recent.push($(item.element));
+        // No longer care about just instagram:
+        // Put the five most recent tiles in
+        while (this.recent.length > 5) {
+            this.recent.shift();
         }
+
+        this.recent.push($(item.element));
         // END WILLET
 
         // position the brick
