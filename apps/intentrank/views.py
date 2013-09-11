@@ -132,8 +132,8 @@ def get_product_json_data(product, products_with_images_only=True):
         raise ValueError('Product has no images, but one or more is required.')
 
     try:
-        product_template = loader.get_template('pinpoint/snippets/'
-                                               'product_object.js')
+        product_template = loader.get_template(
+            'pinpoint/snippets/product_object.js')
         product_context = Context({'product': product})
         return json.loads(product_template.render(product_context))
     except TemplateDoesNotExist:
