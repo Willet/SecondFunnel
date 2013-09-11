@@ -9,7 +9,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
     utils.safeString = function (str, opts) {
         // trims the string and checks if it's just 'None'.
         // more checks to come later.
-        return $.trim(str).replace(/^(None|undefined|false|0)$/, '');
+        return $.trim(str).replace(/^(None|undefined|[Ff]alse|0)$/, '');
     };
 
     utils.registerWidget = function (name, selector, functionality) {
