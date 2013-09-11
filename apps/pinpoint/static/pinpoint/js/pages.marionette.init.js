@@ -99,22 +99,3 @@ SecondFunnel.addInitializer(function (options) {
     SecondFunnel.discovery = new SecondFunnel.classRegistry.Discovery(options);
     broadcast('finished', options, SecondFunnel);
 });
-
-SecondFunnel.addInitializer(function (options) {
-    $(document).ready(function () {
-        if (window.jasmine) {
-            var jasmineEnv = jasmine.getEnv();
-            jasmineEnv.updateInterval = 1000;
-
-            var htmlReporter = new jasmine.HtmlReporter();
-
-            jasmineEnv.addReporter(htmlReporter);
-
-            jasmineEnv.specFilter = function (spec) {
-                return htmlReporter.specFilter(spec);
-            };
-
-            jasmineEnv.execute();
-        }
-    });
-});

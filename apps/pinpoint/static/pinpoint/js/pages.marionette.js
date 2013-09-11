@@ -171,8 +171,15 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             return this.get('content-type').toLowerCase() === type.toLowerCase();
         },
 
+        /**
+         * Using its model instance, create a view of the "best" class.
+         * If the chosen view's matching template cannot be found, this
+         * returns undefined.
+         *
+         * @returns {TileView}
+         */
         'createView': function () {
-            var targetClassName, TargetClass, view;
+            var TargetClass, view;
 
             switch (this.get('type')) {
             case "video":
@@ -484,6 +491,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'collection': null,
         'loading': false,
         'lastScrollTop': 0,
+        'failedLayoutsCounter': [0, 0],  // after fetching stuff from IR, nothing was added to the page.
 
         // prevent default appendHtml behaviour (append in batch)
         'appendHtml': $.noop,
@@ -575,6 +583,22 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // creates conditions needed to get more results.
             var self = this;
             this.toggleLoading(false);
+            if (self.failedLayoutsCounter[1] === self.collection.models.length) {
+                // loaded nothing last time.
+                self.failedLayoutsCounter[0]++;
+                if (self.failedLayoutsCounter[0] > 5) {
+                    if (SecondFunnel.option('debug', SecondFunnel.QUIET) >=
+                        SecondFunnel.ERROR) {
+                        console.error('Too many consecutive endpoint failures. ' +
+                            'Not trying again.');
+                    }
+                    return this;
+                }
+            } else {
+                // success = counter reset
+                self.failedLayoutsCounter[0] = 0;
+                self.failedLayoutsCounter[1] = self.collection.models.length;
+            }
             setTimeout(function () {
                 self.pageScroll();
             }, 100);
@@ -601,9 +625,12 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
                 // add this model to our collection of models.
                 self.collection.add(tile);
-                if (!view.isClosed) {
+                if (view && !view.isClosed) {
                     // Ensure we were given something
                     $tileEls = $tileEls.add(view.$el);
+                } else if (view === undefined) {
+                    // render unsuccessful (warning already issued in createView)
+                    return null;
                 }
             });
 

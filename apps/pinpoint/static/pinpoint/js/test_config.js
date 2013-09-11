@@ -108,26 +108,3 @@ window.PAGES_INFO = {
         // it really should contain at least 10 products.
     ]
 };
-
-var _gaq = _gaq || [];
-
-if (window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1') {
-    _gaq.push(['_setDomainName', 'none']);
-}
-
-_gaq.push(['_setAccount', window.PAGES_INFO.gaAccountNumber]);
-
-_gaq.push(['_setCustomVar',
-    1,                               // slot id
-    'StoreID',                       // name
-    window.PAGES_INFO.store.id,  // value
-    3                                // scope: page-level
-]);
-
-_gaq.push(['_setCustomVar', 2, 'CampaignID',
-    window.PAGES_INFO.campaign,  // <int>
-    3
-]);
-
-_gaq.push(['_trackPageview']);

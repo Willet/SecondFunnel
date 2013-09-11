@@ -181,8 +181,11 @@ _.mixin({
 
                 // If template not found signal error in rendering view.
                 if (err.name &&  err.name === "NoTemplateError") {
-                    console.warn("Could not find template " +
-                                 this.template + ". View did not render.");
+                    if (SecondFunnel.option('debug', SecondFunnel.QUIET) >=
+                        SecondFunnel.WARNING) {
+                        console.warn("Could not find template " +
+                                     this.template + ". View did not render.");
+                    }
                     // Trigger methods
                     this.isClosed = true;
                     this.triggerMethod("missing:template", this);
@@ -237,3 +240,21 @@ receive = function () {
 debugOp = function () {
     console.log('%O, %O', this, arguments);
 };
+
+// not an initializer (too late)
+$(document).ready(function () {
+    if (window.jasmine) {
+        var jasmineEnv = jasmine.getEnv();
+        jasmineEnv.updateInterval = 1000;
+
+        var htmlReporter = new jasmine.HtmlReporter();
+
+        jasmineEnv.addReporter(htmlReporter);
+
+        jasmineEnv.specFilter = function (spec) {
+            return htmlReporter.specFilter(spec);
+        };
+
+        jasmineEnv.execute();
+    }
+});
