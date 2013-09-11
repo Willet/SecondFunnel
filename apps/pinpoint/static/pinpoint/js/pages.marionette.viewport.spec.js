@@ -1,5 +1,5 @@
 /*global describe, jasmine, it, beforeEach, expect */
-describe("Viewport", function () {
+describe("viewport", function () {
     var app,
         meta = (function () {
             var tag = $('meta[name="viewport"]', 'head');
