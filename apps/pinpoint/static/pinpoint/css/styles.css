@@ -80,7 +80,7 @@ header {
         padding-left: 0;
     }
 
-    #accordion-gapimage .panel {
+    #accordion-gapimage .panel .panel-body{
         max-height: 209px!important;
         overflow-y: scroll;
     }

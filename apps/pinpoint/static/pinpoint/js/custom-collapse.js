@@ -65,7 +65,7 @@
         var scrollSize = $.camelCase(['scroll', dimension].join('-'))
         var scrollSizeVal = this.$element[0][scrollSize]
 
-        var targetDimension = parseInt($('.panel').css('max-height'))
+        var targetDimension = parseInt($('.panel .in').css('max-height'))
         if (!targetDimension | targetDimension > scrollSizeVal) {
 
             targetDimension = scrollSizeVal
