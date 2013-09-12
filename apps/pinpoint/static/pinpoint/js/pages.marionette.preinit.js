@@ -164,9 +164,26 @@ _.mixin({
 });
 
 (function (views) {
+    // View's render() is a noop. It won't trigger a NoTemplateError
+    // like other views do. Here's a patch.
+    Backbone.Marionette.View.prototype.render = function () {
+        if (!$(this.template).length) {
+            function throwError(message, name) {
+                var error = new Error(message);
+                error.name = name || 'Error';
+                throw error;
+            }
+            throwError(this.template, "NoTemplateError");
+        }
+
+        // default functionality: $.noop()
+
+        return this;
+    };
+
     // patch render to always run widgets.
     _.each(views, function (ViewClass) {
-        var oldRender = ViewClass.prototype.render;
+        var oldRender = ViewClass.prototype.render || $.noop;
         ViewClass.prototype.render = function () {
             var result;
             try {
@@ -190,7 +207,9 @@ _.mixin({
                     // Trigger methods
                     this.isClosed = true;
                     // .triggerMethod only triggers methods defined in prototype
-                    this.triggerMethod("missing:template", this);
+                    this.triggerMethod("missing:template");
+                } else {
+                    this.triggerMethod("render:error", err);
                 }
 
                 this.close();
@@ -201,7 +220,6 @@ _.mixin({
         };
     });
 }([Backbone.Marionette.View,
-   Backbone.Marionette.CollectionView,
    Backbone.Marionette.CompositeView,
    Backbone.Marionette.ItemView]));
 

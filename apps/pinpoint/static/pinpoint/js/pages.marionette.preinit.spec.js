@@ -108,19 +108,6 @@ describe("preinit", function () {
                 expect(dvInstance.onMissingTemplate).toHaveBeenCalled();
             });
 
-            it("works for CollectionView", function () {
-                var DummySubclass = Backbone.Marionette.CollectionView.extend({
-                        'template': '#templateThatNeverExists',
-                        'onMissingTemplate': $.noop
-                    }),
-                    dvInstance = new DummySubclass();
-                spyOn(dvInstance, 'onMissingTemplate');
-
-                dvInstance.render();
-
-                expect(dvInstance.onMissingTemplate).toHaveBeenCalled();
-            });
-
             it("works for CompositeView", function () {
                 var DummySubclass = Backbone.Marionette.CompositeView.extend({
                         'template': '#templateThatNeverExists',
