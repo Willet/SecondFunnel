@@ -14,6 +14,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         'backupResults': [],
         'IRResultsCount': 10,
         'IRTimeout': 5000,
+        'store': {},
         'content': []
     };
 
@@ -24,7 +25,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
         _.extend(intentRank.options, {
             'baseUrl': options.IRSource || this.baseUrl,
-            'store': options.store,
+            'store': options.store || {},
             'campaign': options.campaign,
             // @deprecated: options.categories will be page.categories
             'categories': page.categories || options.categories || {},

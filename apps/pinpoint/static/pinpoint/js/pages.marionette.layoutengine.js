@@ -28,7 +28,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         layoutEngine.selector = options.discoveryItemSelector;
         _.extend(layoutEngine.options, {
             'itemSelector': options.discoveryItemSelector,
-            'columnWidth': options.columnWidth(),
+            'columnWidth': (options.columnWidth || $.noop)() || 256,
             'isAnimated': !mobile,
             'transitionDuration': (mobile ?
                                    options.masonryMobileAnimationDuration :

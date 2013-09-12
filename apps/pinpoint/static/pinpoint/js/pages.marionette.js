@@ -45,7 +45,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             }
         } catch (KeyError) {
             // requested traversal path does not exist. do the next line
-            console.error('no such path');
+            if (SecondFunnel.options.debug >= SecondFunnel.WARNING) {
+                console.warn('Missing option: ' + name);
+            }
         }
         return defaultValue;  // ...and defaultValue defaults to undefined
     };
@@ -220,7 +222,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     HeroAreaView = Backbone.Marionette.ItemView.extend({
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
-        'model': new Tile(SecondFunnel.option('page:product')),
+        'model': new Tile(SecondFunnel.option('page:product', {})),
         'template': "#stl_template, #featured_template, #hero_template",
         'onRender': function () {
             if (this.$el.length) {  // if something rendered, it was successful
@@ -507,7 +509,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 options);
             this.collection = new TileCollection();
             this.categories = new CategorySelector(  // v-- options.categories is deprecated
-                options.page.categories || options.categories || []);
+                SecondFunnel.option("page:categories") ||
+                SecondFunnel.option("categories") || []
+            );
             this.attachListeners();
             this.countColumns();
 

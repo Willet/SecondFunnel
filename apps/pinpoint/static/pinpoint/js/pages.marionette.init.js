@@ -88,8 +88,8 @@ SecondFunnel.addInitializer(function (options) {
     // to be displayed immediately (and first) on the landing page.
     broadcast('beforeInit', options, SecondFunnel);
 
-    $('.brand-label').text(options.store.displayName ||
-                           _.capitalize(options.store.name) ||
+    $('.brand-label').text(SecondFunnel.option("store:displayName") ||
+                           _.capitalize(SecondFunnel.option("store:name")) ||
                            'Brand Name');
 
     $(document).ajaxError(function (event, request, settings) {

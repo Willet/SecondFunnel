@@ -150,6 +150,7 @@ $.getScripts = function (urls, callback, options) {
 // underscore's fancy pants capitalize()
 _.mixin({
     'capitalize': function (string) {
+        string = string || "";
         return string.charAt(0).toUpperCase() + string.substring(1).toLowerCase();
     },
     'get': function (obj, key) {
