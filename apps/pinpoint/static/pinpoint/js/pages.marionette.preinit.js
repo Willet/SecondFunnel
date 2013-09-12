@@ -18,11 +18,11 @@ if (!window.console) {  // shut up JSLint / good practice
     };
 }
 
-// http://stackoverflow.com/questions/1199352/smart-way-to-shorten-long-strings-with-javascript/1199420#1199420
+// http://stackoverflow.com/questions/1199352/
 String.prototype.truncate = function (n, useSentenceBoundary, addEllipses) {
     var tooLong = this.length > n,
-        s = tooLong ? this.substr(0, n - 1) : this;
-    if (useSentenceBoundary && tooLong) {
+        s = tooLong ? this.substr(0, n) : this;
+    if (tooLong && useSentenceBoundary && s.lastIndexOf('. ') > -1) {
         s = s.substr(0, s.lastIndexOf('. ') + 1);
     }
     if (tooLong && addEllipses) {
@@ -134,7 +134,7 @@ $.getScripts = function (urls, callback, options) {
     // like getScript, this function is incompatible with scripts relying on
     // its own tag existing on the page (e.g. firebug, facebook jssdk)
     var calls = _.map(urls, function (url) {
-        options = $.extend(options || {}, {
+        var options = $.extend(options || {}, {
             'dataType': 'script',
             'crossDomain': true,
             'cache': true,
@@ -150,8 +150,8 @@ $.getScripts = function (urls, callback, options) {
 // underscore's fancy pants capitalize()
 _.mixin({
     'capitalize': function (string) {
-        string = string || "";
-        return string.charAt(0).toUpperCase() + string.substring(1).toLowerCase();
+        var str = string || "";
+        return str.charAt(0).toUpperCase() + str.substring(1).toLowerCase();
     },
     'get': function (obj, key) {
         // thin wrapper around obj key access that never throws an error.

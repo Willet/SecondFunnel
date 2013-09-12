@@ -492,4 +492,3 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         'tracking:changeCampaign': tracker.changeCampaign
     });
 });
-
