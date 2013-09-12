@@ -66,23 +66,86 @@ describe("preinit", function () {
         });
     });
 
-    describe("Performance", function () {
+    describe("Required Underscore patches", function () {
+        describe("capitalize", function () {
+            it("exists", function () {
+                expect(_.capitalize).toBeDefined();
+            });
 
+            it("works", function () {
+                expect(_.capitalize('')).toEqual('');
+                expect(_.capitalize('abc')).toEqual('Abc');
+                expect(_.capitalize('aBC')).toEqual('ABC');
+                expect(_.capitalize('abc_def')).toEqual('Abc_def');
+            });
+        });
+
+        describe("get", function () {
+            it("exists", function () {
+                expect(_.get).toBeDefined();
+            });
+
+            it("works", function () {
+                expect(_.get({}, 'derp')).not.toBeDefined();
+                expect(_.get({}.derp, 'derp')).not.toBeDefined();
+                expect(_.get({'a': 'b'}, 'a')).toEqual('b');
+            });
+        });
     });
 
-    describe("Flexibility", function () {
+    describe("Required Marionette patches", function () {
+        describe("missing template mofo", function () {
+            it("works for View", function () {
+                var DummySubclass = Backbone.Marionette.View.extend({
+                        'template': '#templateThatNeverExists',
+                        'onMissingTemplate': $.noop
+                    }),
+                    dvInstance = new DummySubclass();
+                spyOn(dvInstance, 'onMissingTemplate');
 
-    });
+                dvInstance.render();
 
-    describe("Behaviour / Error Handling", function () {
+                expect(dvInstance.onMissingTemplate).toHaveBeenCalled();
+            });
 
-    });
+            it("works for CollectionView", function () {
+                var DummySubclass = Backbone.Marionette.CollectionView.extend({
+                        'template': '#templateThatNeverExists',
+                        'onMissingTemplate': $.noop
+                    }),
+                    dvInstance = new DummySubclass();
+                spyOn(dvInstance, 'onMissingTemplate');
 
-    describe("Tracking", function () {
+                dvInstance.render();
 
-    });
+                expect(dvInstance.onMissingTemplate).toHaveBeenCalled();
+            });
 
-    describe("Theme Design / Templating", function () {
+            it("works for CompositeView", function () {
+                var DummySubclass = Backbone.Marionette.CompositeView.extend({
+                        'template': '#templateThatNeverExists',
+                        'onMissingTemplate': $.noop
+                    }),
+                    dvInstance = new DummySubclass();
+                spyOn(dvInstance, 'onMissingTemplate');
 
+                dvInstance.render();
+
+                expect(dvInstance.onMissingTemplate).toHaveBeenCalled();
+            });
+
+            it("works for ItemView", function () {
+                var DummySubclass = Backbone.Marionette.ItemView.extend({
+                        'template': '#templateThatNeverExists',
+                        'onMissingTemplate': $.noop
+                    }),
+                    dvInstance = new DummySubclass();
+                spyOn(dvInstance, 'onMissingTemplate');
+
+                dvInstance.render();
+
+                expect(dvInstance.onMissingTemplate).toHaveBeenCalled();
+            });
+        });
     });
 });

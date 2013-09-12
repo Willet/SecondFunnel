@@ -151,7 +151,7 @@ $.getScripts = function (urls, callback, options) {
 _.mixin({
     'capitalize': function (string) {
         var str = string || "";
-        return str.charAt(0).toUpperCase() + str.substring(1).toLowerCase();
+        return str.charAt(0).toUpperCase() + str.substring(1);
     },
     'get': function (obj, key) {
         // thin wrapper around obj key access that never throws an error.
@@ -189,6 +189,7 @@ _.mixin({
                     }
                     // Trigger methods
                     this.isClosed = true;
+                    // .triggerMethod only triggers methods defined in prototype
                     this.triggerMethod("missing:template", this);
                 }
 
@@ -221,10 +222,12 @@ broadcast = function () {
     }
 };
 
+/**
+ * alias for vent.on with a clear intent that the event triggered
+ * is NOT used by internal code (pages.js).
+ * calling method: (eventName, other stuff)
+ */
 receive = function () {
-    // alias for vent.on with a clear intent that the event triggered
-    // is NOT used by internal code (pages.js).
-    // calling method: (eventName, other stuff)
     var pArgs = Array.prototype.slice.call(arguments, 1);
     if (!window.SecondFunnel) {
         return;  // SecondFunnel not initialized yet
@@ -238,6 +241,9 @@ receive = function () {
     }
 };
 
+/**
+ * similar usage as $.noop
+ */
 debugOp = function () {
     console.log('%O, %O', this, arguments);
 };
