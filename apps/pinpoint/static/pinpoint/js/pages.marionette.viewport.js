@@ -10,8 +10,8 @@
             var $window = $(window),
                 $document = $(document),
                 enabled = app.option('lockWidth', function () {
-                return $.browser.mobile;
-            });
+                    return $.browser.mobile;
+                });
 
             if (typeof enabled === 'function') {
                 enabled = enabled();

@@ -23,6 +23,7 @@ describe("viewport", function () {
     beforeEach(function () {
         app = SecondFunnel;
         app.options.mobile = false;
+        $.browser.mobile = false;
         resetMeta();
     });
 
@@ -35,6 +36,7 @@ describe("viewport", function () {
         it("should be enabled on tablets", function () {
             // fake a mobile device
             app.options.mobile = true;
+            $.browser.mobile = true;
             window.devicePixelRatio = 1.5;
             app.viewport.scale();
             expect(meta.attr('content')).not.toEqual(originalContent);
@@ -43,6 +45,7 @@ describe("viewport", function () {
         it("should be enabled on mobiles", function () {
             // fake a mobile device
             app.options.mobile = true;
+            $.browser.mobile = true;
             window.devicePixelRatio = 2;
             app.viewport.scale();
             expect(meta.attr('content')).not.toEqual(originalContent);
@@ -51,6 +54,7 @@ describe("viewport", function () {
         it("should be enabled on HTC Butterfly", function () {
             // fake a mobile device
             app.options.mobile = true;
+            $.browser.mobile = true;
             window.devicePixelRatio = 3;
             app.viewport.scale();
             expect(meta.attr('content')).not.toEqual(originalContent);
@@ -59,6 +63,7 @@ describe("viewport", function () {
         it("should handle functions", function () {
             // fake a mobile device
             app.options.mobile = true;
+            $.browser.mobile = true;
             window.devicePixelRatio = 2;
 
             app.viewport.scale(function () {
@@ -70,6 +75,7 @@ describe("viewport", function () {
         it("should scale correctly after successive resizes", function () {
             // fake a mobile device
             app.options.mobile = true;
+            $.browser.mobile = true;
             window.devicePixelRatio = 2;
 
             var ratio = ($(window).width() / 1024).toFixed(2);
@@ -91,6 +97,7 @@ describe("viewport", function () {
         it("should handle incorrect width values", function () {
             // fake a mobile device
             app.options.mobile = true;
+            $.browser.mobile = true;
             window.devicePixelRatio = 2;
             app.viewport.scale('poop master');
             expect(meta.attr('content')).toEqual(originalContent);
