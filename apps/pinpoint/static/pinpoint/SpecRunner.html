@@ -46,5 +46,19 @@
         <script src="js/pages.marionette.utils.spec.js"></script>
         <script src="js/pages.marionette.layoutengine.spec.js"></script>
         <script src="js/pages.marionette.viewport.spec.js"></script>
+        <script type="text/javascript">
+            var jasmineEnv = jasmine.getEnv();
+            jasmineEnv.updateInterval = 1000;
+
+            var htmlReporter = new jasmine.HtmlReporter();
+
+            jasmineEnv.addReporter(htmlReporter);
+
+            jasmineEnv.specFilter = function (spec) {
+                return htmlReporter.specFilter(spec);
+            };
+
+            jasmineEnv.execute();
+        </script>
     </body>
 </html>

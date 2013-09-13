@@ -15,10 +15,10 @@ describe("viewport", function () {
             }
             return tag;
         }()),
+        originalContent = meta.attr('content'),
         resetMeta = function () {
-            meta.attr('content', '');
-        },
-        originalContent = meta.attr('content');
+            meta.attr('content', originalContent);
+        };
 
     beforeEach(function () {
         app = SecondFunnel;

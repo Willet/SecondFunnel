@@ -1,25 +1,6 @@
-(function () {
-    var jasmineEnv = jasmine.getEnv();
-    jasmineEnv.updateInterval = 1000;
+/*global jasmine*/
+var jasmineEnv = jasmine.getEnv(),
+    reporter = new jasmine.ConsoleReporter();
 
-    var htmlReporter = new jasmine.HtmlReporter();
-
-    jasmineEnv.addReporter(htmlReporter);
-
-    jasmineEnv.specFilter = function (spec) {
-        return htmlReporter.specFilter(spec);
-    };
-
-    var currentWindowOnload = window.onload;
-
-    window.onload = function () {
-        if (currentWindowOnload) {
-            currentWindowOnload();
-        }
-        execJasmine();
-    };
-
-    function execJasmine() {
-        jasmineEnv.execute();
-    }
-})();
+jasmineEnv.addReporter(reporter);
+jasmineEnv.execute();

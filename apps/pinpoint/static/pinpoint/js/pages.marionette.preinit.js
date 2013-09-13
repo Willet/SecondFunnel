@@ -268,18 +268,20 @@ debugOp = function () {
 
 // not an initializer (too late)
 $(document).ready(function () {
-    if (window.jasmine) {
-        var jasmineEnv = jasmine.getEnv();
-        jasmineEnv.updateInterval = 1000;
-
-        var htmlReporter = new jasmine.HtmlReporter();
-
-        jasmineEnv.addReporter(htmlReporter);
-
-        jasmineEnv.specFilter = function (spec) {
-            return htmlReporter.specFilter(spec);
-        };
-
-        jasmineEnv.execute();
+    if (window.location.href.toLowerCase().indexOf('specrunner') < 0) {
+        return;
     }
+
+    _.map([
+        "/static/testing/lib/jasmine-1.3.1/jasmine.js",
+        "/static/testing/lib/jasmine-1.3.1/jasmine-console.js",
+        "/static/pinpoint/js/pages.marionette.preinit.spec.js",
+        "/static/pinpoint/js/pages.marionette.preinit.spec.js",
+        "/static/pinpoint/js/pages.marionette.spec.js",
+        "/static/pinpoint/js/pages.marionette.support.spec.js",
+        "/static/pinpoint/js/pages.marionette.utils.spec.js",
+        "/static/pinpoint/js/pages.marionette.layoutengine.spec.js",
+        "/static/pinpoint/js/pages.marionette.viewport.spec.js",
+        "/static/js/jasmine.specrunner.js"
+    ], $.getScript);
 });
