@@ -25,80 +25,74 @@ describe("Tile Collection:", function () {
         });
     });
 
-    // Tile models are just vessels: They do not sync
+    // TODO: Since JSONP is a weird hack, can't use sinon to test it
+    // We can, however, stub out $.ajax, but that seems way grosser
     describe("Functional requirements:", function() {
-        var tileCollection;
 
         beforeEach(function() {
-            tileCollection = new TileCollection();
+            this.tileCollection = new TileCollection();
+            this.server = sinon.fakeServer.create();
+            this.server.respondWith(
+                this.response(this.fixtures.TileCollection.valid)
+            );
         });
 
         afterEach(function() {
-            tileCollection = null; // Necessary? Probably not.
+            this.server.restore();
         });
 
         // Pass? What?
         it("should fetch model instances", function() {
-            var self = this;
-            var initialSize = tileCollection.length;
+            var initialSize = this.tileCollection.length;
 
-            // TODO: Is this how we should test, or should we use Jasmine's
-            // latch / async stuff?
-            tileCollection.on('sync', function (collection) {
-                expect(collection.length).toBeGreaterThan(initialSize);
+            // TODO: shouldn't be overriding this, but have no choice at the moment.
+            this.tileCollection.fetch({
+                'dataType': 'json'
             });
+            this.server.respond();
 
-            tileCollection.on('error', function() {
-                self.fail('Unexpected: There was an error fetching.');
-            });
-
-            // TODO: Bake these options into the collection?
-            tileCollection.fetch();
+            expect(this.tileCollection.length).toBeGreaterThan(initialSize);
+            // TODO: Should verify it gets the exact right model instances
         });
 
-        xit("should not remove existing model instances when fetching", function() {
-            var self = this;
+        it("should not remove existing model instances when fetching", function() {
+            var model, initialLength;
 
-            // example data
-            tileCollection.add({
-                'key': 'value'
-            });
-            var initialSize = tileCollection.length;
-
-            // TODO: Is this how we should test, or should we use Jasmine's
-            // latch / async stuff?
-            tileCollection.on('sync', function (collection) {
-                expect(collection.length).toBeGreaterThan(initialSize);
-            });
-
-            tileCollection.on('error', function() {
-                self.fail('Unexpected: There was an error fetching.');
-            });
-
-            tileCollection.fetch();
-        });
-
-        xit("should not merge existing model instances when fetching", function() {
-            var self = this;
-            var initialSize = tileCollection.length;
-
-            // example data
-            tileCollection.add({
+            this.tileCollection.add({
                 'key': 'value'
             });
 
-            // TODO: Is this how we should test, or should we use Jasmine's
-            // latch / async stuff?
-            tileCollection.on('sync', function (collection) {
-                expect(collection.length).toBeGreaterThan(initialSize);
-            });
+            expect(this.tileCollection.length).toEqual(1);
 
-            tileCollection.on('error', function() {
-                self.fail('Unexpected: There was an error fetching.');
-            });
+            model = this.tileCollection.at(0);
 
-            // TODO: Bake these options into the collection?
-            tileCollection.fetch();
+            this.tileCollection.fetch({
+                'dataType': 'json'
+            });
+            this.server.respond();
+
+            expect(this.tileCollection.get(model.cid)).toBe(model);
+            expect(this.tileCollection.length).toBeGreaterThan(1);
+        });
+
+        // TODO: Backbone doesn't allow duplicate models. Do we want to?
+        it("should not merge existing model instances when fetching", function() {
+            var model, initialLength;
+
+            // Get initial data...
+            this.tileCollection.fetch({
+                'dataType': 'json'
+            });
+            this.server.respond();
+            initialLength = this.tileCollection.length;
+
+            // Fetch again
+            this.tileCollection.fetch({
+                'dataType': 'json'
+            });
+            this.server.respond();
+
+            expect(this.tileCollection.length).toEqual(2*initialLength);
         });
 
         // TODO: When a model is fetched, whether it exists or not, create a new view for it.
