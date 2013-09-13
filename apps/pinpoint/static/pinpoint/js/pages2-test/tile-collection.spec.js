@@ -75,11 +75,14 @@ describe("Tile Collection:", function () {
             expect(this.tileCollection.length).toBeGreaterThan(1);
         });
 
-        // TODO: Backbone doesn't allow duplicate models. Do we want to?
-        it("should not merge existing model instances when fetching", function() {
-            var model, initialLength;
+        it("should 'allow duplicates' (e.g. fire the 'add' event on duplicates)", function() {
+            var counter = 0,
+                numElements = this.fixtures.TileCollection.valid.length;
 
-            // Get initial data...
+            this.tileCollection.on('add', function() {
+                counter += 1;
+            });
+
             this.tileCollection.fetch({
                 'dataType': 'json'
             });
@@ -92,7 +95,7 @@ describe("Tile Collection:", function () {
             });
             this.server.respond();
 
-            expect(this.tileCollection.length).toEqual(2*initialLength);
+            expect(counter).toEqual(2*numElements);
         });
 
         // TODO: When a model is fetched, whether it exists or not, create a new view for it.

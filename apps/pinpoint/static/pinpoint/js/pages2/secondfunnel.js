@@ -12,6 +12,33 @@ Tile = Backbone.Model.extend({
 TileCollection = Backbone.Collection.extend({
     url: "http://localhost:8000/intentrank/store/nativeshoes/campaign/32/getresults",
     model: Tile,
+    add: function (model) {
+        Backbone.Collection.prototype.add.call(this, model);
+    },
+    set: function (models, options) {
+        // If the element already exists, fire an add event anyway
+        // Alternatively, we could dupe the model via .toJSON();
+
+        // Need to check for duplicates before we call set, otherwise all results
+        // will be duplicates.
+        var i, model, existing, duplicates = [];
+        for(i = 0; i < models.length; i++) {
+            if (!(model = this._prepareModel(models[i], options))) continue;
+
+            // Of COURSE they already exist!
+            if (existing = this.get(model)) {
+                duplicates.push(existing);
+            }
+        }
+
+        Backbone.Collection.prototype.set.call(this, models, options);
+
+        // After Backbone has done its stuff, fire the necessary 'add' events
+        // Inspired by Backbone's existing methods `set` method
+        for(i = 0; i < duplicates.length; i++) {
+            (existing = duplicates[i]).trigger('add', existing, this, options);
+        }
+    },
     parse: function (response) {
         return response;
     },
@@ -21,7 +48,6 @@ TileCollection = Backbone.Collection.extend({
         // TODO: Enable option for overriding; sinon can't do jsonp with fakeserver
         options.dataType =  options.dataType || 'jsonp';
         options.remove = false;  // don't remove things
-        options.merge = false; // don't merge existing
         options.callbackParameter = 'fn';
 
         return Backbone.Collection.prototype.fetch.call(this, options);
