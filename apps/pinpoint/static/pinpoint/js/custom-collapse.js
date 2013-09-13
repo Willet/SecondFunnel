@@ -66,7 +66,7 @@
         var scrollSizeVal = this.$element[0][scrollSize]
 
         var targetDimension = parseInt($('.panel .in').css('max-height'))
-        if (!targetDimension | targetDimension > scrollSizeVal) {
+        if (!targetDimension || targetDimension > scrollSizeVal) {
 
             targetDimension = scrollSizeVal
         }

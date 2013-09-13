@@ -83,6 +83,8 @@ header {
     #accordion-gapimage .panel .panel-body{
         max-height: 209px!important;
         overflow-y: auto;
+        /* constant height */
+        height: 209px;
     }
 }
 
