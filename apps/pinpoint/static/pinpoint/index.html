@@ -297,12 +297,12 @@
                         <div class='title'><%= obj.title %></div>
                         <div class='red marker price'><%= obj.price %></div>
                     <ul class="nav nav-tabs">
-                        <li class="active"><a href="#overview" data-toggle="tab">Overview</a></li>
-                        <li><a href="#tags" data-toggle="tab">tags</a></li>
-                        <li><a href="#reviews" data-toggle="tab">Reviews</a></li>
+                        <li class="active"><a data-toggle="tab" data-target=".overview">Overview</a></li>
+                        <li><a data-toggle="tab" data-target=".tags">tags</a></li>
+                        <li><a data-toggle="tab" data-target=".reviews">Reviews</a></li>
                     </ul>
                     <div class="tab-content">
-                        <div class="tab-pane description active" id="overview">
+                        <div class="tab-pane description active overview">
                             <ul>
                                 <% var sentences = _.compact(obj.description.split('.')); %>
                                 <% _.each(sentences, function(sentence) { %>
@@ -310,8 +310,8 @@
                                 <% }); %>
                             </ul>
                         </div>
-                        <div class="tab-pane" id="tags"> Tags go here </div>
-                        <div class="tab-pane" id="reviews"> Something </div>
+                        <div class="tab-pane tags"> Tags go here </div>
+                        <div class="tab-pane reviews"> Something </div>
                     </div>
                         <div>
                             <div class="social-buttons"></div>
@@ -382,12 +382,12 @@
                             <div class="accordion-container col-lg-8 col-md-8 col-sm-8">
                                 <div class="panel-group" id="accordion-gapimage">
                                     <div class="panel panel-default">
-                                        <div class=' panel-heading'>
-                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-gapimage" href="#collapseOne">
+                                        <a class="accordion-toggle" data-toggle="collapse" data-target=".collapseOne" data-parent="#accordion-gapimage" >
+                                            <div class=' panel-heading'>
                                                 Overview
-                                            </a>
-                                        </div>
-                                        <div class="panel-collapse collapse in" id="collapseOne">
+                                            </div>
+                                        </a>
+                                        <div class="panel-collapse collapse in collapseOne">
 
                                             <div class="panel-body description">
                                                 <ul>
@@ -400,24 +400,24 @@
                                         </div>
                                     </div>
                                     <div class="panel panel-default">
-                                        <div class="panel-heading">
-                                            <a href="#collapseTwo" class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-gapimage">
+                                        <a  class="accordion-toggle" data-toggle="collapse" data-target=".collapseTwo" data-parent="#accordion-gapimage">
+                                            <div class="panel-heading">
                                                 Details
-                                            </a>
-                                        </div>
-                                        <div class="panel-collapse collapse" id="collapseTwo">
+                                            </div>
+                                        </a>
+                                        <div class="panel-collapse collapse collapseTwo">
                                             <div class="panel-body">
                                                 ...
                                             </div>
                                         </div>
                                     </div>
                                     <div class="panel panel-default">
-                                        <div class="panel-heading">
-                                            <a href="#collapseThree" class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-gapimage">
+                                        <a  class="accordion-toggle" data-toggle="collapse" data-target=".collapseThree" data-parent="#accordion-gapimage">
+                                            <div class="panel-heading">
                                                 Reviews
-                                            </a>
-                                        </div>
-                                        <div class="panel-collapse collapse" id="collapseThree">
+                                            </div>
+                                        </a>
+                                        <div class="panel-collapse collapse collapseThree">
                                             <div class="panel-body">
                                                 More lines <br/> More lines <br/> More lines <br/>
                                                 More lines <br/> More lines <br/> More lines <br/>

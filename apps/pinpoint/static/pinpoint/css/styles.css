@@ -87,12 +87,21 @@ header {
 }
 
 
-.panel-default>.panel-heading {
+.panel-default>a>.panel-heading {
     background-color: #f8f8f8;
+    color: #333;
+    border-color: #ddd;
+    border-bottom: 0;
 }
-
+.panel-default>a:hover {
+    cursor: pointer;
+}
 .buttons-container {
     padding: 0 0 7px 9px;
+}
+
+.nav-tabs>li>a:hover {
+    cursor: pointer;
 }
 
 .jumbotron {
