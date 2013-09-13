@@ -75,14 +75,14 @@ header {
 @media (min-width: 768px) {
     .accordion-container {
         /* Allow scrolling accordion on tablet and desktop */
-        overflow-y: hidden;
+        overflow-y: auto;
         height: 345px;
         padding-left: 0;
     }
 
     #accordion-gapimage .panel .panel-body{
         max-height: 209px!important;
-        overflow-y: scroll;
+        overflow-y: auto;
     }
 }
 
