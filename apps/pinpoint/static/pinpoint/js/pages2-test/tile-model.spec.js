@@ -15,6 +15,8 @@ describe("Tile Model:", function () {
         it("should have certain default values set", function() {
             var tile = new Tile();
 
+            expect(tile.idAttribute).toEqual('db-id');
+
             expect(tile.get('content-type')).toEqual('product');
             // TODO: Set more defaults
         });

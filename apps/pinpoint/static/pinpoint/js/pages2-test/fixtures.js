@@ -6,6 +6,7 @@ beforeEach(function () {
                 "original-url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
                 "original-id": "ch0xaHVYAOQ",
                 "likes": 0,
+                "db-id": 42,
                 "template": "youtube",
                 "caption": "The money is in the banana stand!",
                 "url": "http://youtube.com/watch?v=ch0xaHVYAOQ",

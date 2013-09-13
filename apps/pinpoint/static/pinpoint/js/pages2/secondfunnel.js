@@ -1,5 +1,5 @@
 Tile = Backbone.Model.extend({
-    url: "",
+    idAttribute: 'db-id',
     defaults: {
         'content-type': 'product'
     },
