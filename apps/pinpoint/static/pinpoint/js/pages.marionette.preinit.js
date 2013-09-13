@@ -266,13 +266,10 @@ debugOp = function () {
     console.log('%O, %O', this, arguments);
 };
 
+// allow jasmine to run on the campaign page if the url contains "specrunner".
 // not an initializer (too late)
 $(document).ready(function () {
-    if (window.location.href.toLowerCase().indexOf('specrunner') < 0) {
-        return;
-    }
-
-    _.map([
+    var protoSrcMaps = [
         "/static/testing/lib/jasmine-1.3.1/jasmine.js",
         "/static/testing/lib/jasmine-1.3.1/jasmine-console.js",
         "/static/pinpoint/js/pages.marionette.preinit.spec.js",
@@ -283,5 +280,16 @@ $(document).ready(function () {
         "/static/pinpoint/js/pages.marionette.layoutengine.spec.js",
         "/static/pinpoint/js/pages.marionette.viewport.spec.js",
         "/static/js/jasmine.specrunner.js"
-    ], $.getScript);
+    ];
+
+    if (window.location.href.toLowerCase().indexOf('specrunner') < 0) {
+        return;
+    }
+
+    if (window.SecondFunnel) {
+        // test/production/s3 overridable
+        protoSrcMaps = SecondFunnel.option('protoSrcMaps', protoSrcMaps);
+    }
+
+    _.map(protoSrcMaps, $.getScript);
 });

@@ -1,7 +1,12 @@
-/**
- * Created with PyCharm.
- * User: brian
- * Date: 12/09/13
- * Time: 2:55 PM
- * To change this template use File | Settings | File Templates.
- */
+/*global describe, jasmine, it, beforeEach, expect */
+describe("layoutEngine", function () {
+    var app, module;
+
+    beforeEach(function () {
+        app = SecondFunnel;
+        module = app.layoutEngine;
+    });
+
+    // how ... .... can I test a module like this?
+    describe("...", $.noop);
+});

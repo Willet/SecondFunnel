@@ -1,7 +1,6 @@
 import json
 import random
 from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import get_model
 from django.template.defaultfilters import striptags
