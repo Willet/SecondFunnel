@@ -276,7 +276,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             return templateRules;
         },
         'template': "#product_tile_template",
-        'className': SecondFunnel.option('discoveryItemSelector',
+        'className': SecondFunnel.option('itemSelector',
             '').substring(1),
 
         'events': {
@@ -395,7 +395,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // semi-stupid view-based resizer
             var tileImg = this.$('img.focus'),
                 columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
-                columnWidth = SecondFunnel.option('columnWidth', $.noop)() || 256;
+                columnWidth = SecondFunnel.option('columnWidth', $.noop)() || 255;
             if (tileImg.length) {
                 tileImg.attr('src', SecondFunnel.utils.pickImageSize(tileImg.attr('src'),
                                     columnWidth * columns));
@@ -505,8 +505,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             SecondFunnel.intentRank.initialize(options);
 
             // Black box Masonry (this will make migrating easier in the future)
-            SecondFunnel.layoutEngine.initialize(this.$el,
-                options);
+            SecondFunnel.layoutEngine.initialize(this.$el);
             this.collection = new TileCollection();
             this.categories = new CategorySelector(  // v-- options.categories is deprecated
                 SecondFunnel.option("page:categories") ||
@@ -676,7 +675,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             var i,
                 $html = $('html'),
                 maxColsDef = SecondFunnel.option('maxColumnCount', 4),
-                maxCols = $window.width() / (SecondFunnel.option('columnWidth', $.noop)() || 256);
+                maxCols = $window.width() / (SecondFunnel.option('columnWidth', $.noop)() || 255);
             $html.removeClass(function (idx, cls) {
                 // remove all current col-* classes
                 return (cls.match(/col-\d+/g) || []).join(' ');
@@ -713,7 +712,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 }, 100);
             } else {
                 SecondFunnel.intentRank.changeCategory(category.model.get('id'));
-                SecondFunnel.layoutEngine.clear();
+                SecondFunnel.layoutEngine.empty();
                 return this.getTiles();
             }
             return this;
@@ -935,7 +934,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'onScrollStopped': function (dA) {
             var $indicatorEl = this.$el;
             if ($indicatorEl
-                    .parents(SecondFunnel.option('discoveryItemSelector'))
+                    .parents(SecondFunnel.option('itemSelector'))
                     .hasClass('wide')) {
                 if ($indicatorEl.is(':in-viewport')) {  // this one is in view.
                     $indicatorEl.delay(500).fadeOut(600);

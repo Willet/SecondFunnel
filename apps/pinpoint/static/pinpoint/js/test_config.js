@@ -2,7 +2,7 @@ window.PAGES_INFO = {
     'debug': 0,
     'base_url': "http://www.secondfunnel.com",
     'discoveryTarget': "#discovery-area",
-    'discoveryItemSelector': ".tile",
+    'itemSelector': ".tile",
     'store': {
         'id': "38",
         'name': "gap",
@@ -57,8 +57,10 @@ window.PAGES_INFO = {
     'tapIndicatorText': undefined,  // optional
     'previewAnimationDuration': 100,  // in ms
     'previewMobileAnimationDuration': 0,
-    'masonryAnimationDuration': 0.4,  // in seconds
-    'masonryMobileAnimationDuration': 0,
+    'masonry': {  // passed to masonry
+        'animationDuration': 0.4,  // in seconds
+        'mobileAnimationDuration': 0
+    },
     'featured': { // the featured product
         "tile-id": 19325,
         "content-id": 19325,

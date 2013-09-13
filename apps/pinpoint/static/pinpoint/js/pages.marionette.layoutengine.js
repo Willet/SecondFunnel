@@ -3,43 +3,39 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
     "use strict";
 
     var $document = $(document),
-        $window = $(window);
-
-    layoutEngine.options = {
-        'isInitLayout': true,
-        'isResizeBound': true,
-        'visibleStyle': {
-            'opacity': 1,
-            'transform': 'none',
-            '-webkit-transform': 'none',
-            '-moz-transform': 'none'
+        $window = $(window),
+        // TODO: this logic is axiomatically incorrect. a mobile device will
+        // have no animation even with a duration defined.
+        defaults = {
+            'columnWidth': SecondFunnel.option('columnWidth', $.noop)() || 255,
+            'isAnimated': !SecondFunnel.support.mobile(),
+            'transitionDuration': '0.4s',
+            'isInitLayout': true,
+            'isResizeBound': true,
+            'visibleStyle': {
+                'opacity': 1,
+                'transform': 'none',
+                '-webkit-transform': 'none',
+                '-moz-transform': 'none'
+            },
+            'hiddenStyle': {
+                'opacity': 0,
+                'transform': 'scale(1)',
+                '-webkit-transform': 'scale(1)',
+                '-moz-transform': 'none'
+            }
         },
-        'hiddenStyle': {
-            'opacity': 0,
-            'transform': 'scale(1)',
-            '-webkit-transform': 'scale(1)',
-            '-moz-transform': 'none'
-        }
-    };
+        lastOpts;  // last-used options (used by clear())
 
     layoutEngine.initialize = function ($elem, options) {
-        var mobile = SecondFunnel.support.mobile();
+        var mobile = SecondFunnel.support.mobile(),
+            opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
+            lastOpts = opts;  // keep a copy for clear()
 
-        layoutEngine.selector = options.discoveryItemSelector;
-        _.extend(layoutEngine.options, {
-            'itemSelector': options.discoveryItemSelector,
-            'columnWidth': (options.columnWidth || $.noop)() || 256,
-            'isAnimated': !mobile,
-            'transitionDuration': (mobile ?
-                                   options.masonryMobileAnimationDuration :
-                                   options.masonryAnimationDuration) + 's'
-        }, options.masonry);
-
-        $elem.masonry(layoutEngine.options).masonry('bindResize');
-        layoutEngine.$el = $elem;
-        broadcast('layoutEngineInitialized', layoutEngine);
-        // @temporary
-        layoutEngine.imagesLoaded = layoutEngine.imagesLoadedTransitional;
+        $elem.masonry(opts);
+        layoutEngine.$el = $elem;  // TODO: wat
+        broadcast('layoutEngineInitialized', layoutEngine, opts);
+        return layoutEngine;
     };
 
     layoutEngine.call = function (callback, $fragment) {
@@ -106,16 +102,23 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         return callback ? callback($fragment) : layoutEngine;
     };
 
-    layoutEngine.clear = function () {
-        // Resets the LayoutEngine's instance so that it is empty
+    /**
+     * Resets the LayoutEngine's instance so that it is empty.
+     * Conventional $el.empty() doesn't work because the container height
+     * is set by masonry.
+     */
+    layoutEngine.empty = function () {
         layoutEngine.$el
             .masonry('destroy')
             .html("")
             .css('position', 'relative')
-            .masonry(layoutEngine.options);
+            .masonry(lastOpts);
     };
 
-    layoutEngine.imagesLoaded = function (callback, $fragment) {
+    /**
+     * @private (enable when IR supports colour and dimensions)
+     */
+    layoutEngine.__imagesLoaded = function (callback, $fragment) {
         // This function is based on the understanding that the ImageService will
         // return dimensions and/or a dominant colour; elements in the $fragment have
         // assigned widths and heights; (e.g. .css('width', '100px'))
@@ -151,14 +154,14 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
             img.onerror = function () {
                 broadcast('tileRemoved', self);
-                $badImages = $badImages.add($(self).parents(layoutEngine.selector));
+                $badImages = $badImages.add($(self).parents(layoutEngine.itemSelector));
                 onImage();
             };
         });
         return callback.apply(layoutEngine, args);
     };
 
-    layoutEngine.imagesLoadedTransitional = function (callback, $fragment) {
+    layoutEngine.imagesLoaded = function (callback, $fragment) {
         // @deprecated: Use until ImageService is reading/returns dominant colour
         // Calls the broken handler to remove broken images as they appear;
         // when all images are loaded, calls the appropriate layout function
@@ -174,7 +177,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                 _.each(imgLoad.images, function (image) {
                     if (!image.isLoaded) {
                         var $img = $(image.img),
-                            $elem = $img.parents(layoutEngine.selector);
+                            $elem = $img.parents(layoutEngine.itemSelector);
                         $fragment = $fragment.filter(function () {
                             return !$(this).is($elem);
                         });
