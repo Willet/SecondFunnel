@@ -19,7 +19,8 @@ describe("support", function () {
 
     describe('touch', function () {
         it("should be overwritten", function () {
-            expect(module.touch()).toEqual(false);
+            // initial state is device-dependent
+            expect(module.touch()).toEqual(document.documentElement.ontouchstart !== undefined);
         });
 
         it("should be true if html tag has the class 'touch-enabled'", function () {

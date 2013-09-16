@@ -37,14 +37,14 @@
                 if (app.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
                     console.warn('viewport agent disabled.');
                 }
-                return [false];
+                return [false, undefined, undefined, undefined];
             }
 
             if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
                 if (app.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
                     console.warn('viewport agent called on device with unsupported ppi.');
                 }
-                return [false];
+                return [false, undefined, undefined, undefined];
             }
 
             desiredWidth = desiredWidth || app.option('desiredWidth') || function () {
@@ -64,18 +64,17 @@
                 if (app.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
                     console.warn('viewport agent not called with number.');
                 }
-                return [false];
+                return [false, undefined, undefined, undefined];
             }
 
             if (!desiredWidth || desiredWidth <= 0 || desiredWidth > 2048) {
                 if (app.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
                     console.warn('viewport agent called with invalid width.');
                 }
-                return [false];
+                return [false, undefined, undefined, undefined];
             }
 
-            var viewportMeta = getMeta(),
-                adjustedScale = ($window.width() / desiredWidth).toFixed(2),
+            var adjustedScale = ($window.width() / desiredWidth).toFixed(2),
                 proposedMeta = "user-scalable=no," +
                                "width=" + desiredWidth + "," +
                                "initial-scale=" + adjustedScale + "," +
@@ -100,7 +99,7 @@
             var analysis = viewport.determine(desiredWidth),
                 metaTag = getMeta(),
                 proposedMeta = '';
-            if (analysis.length >= 4 && metaTag.length >= 1) {
+            if (analysis[0] === true && metaTag.length >= 1) {
                 // if both tag and condition exist
                 proposedMeta = analysis[3];
                 if (metaTag.prop('content') !== proposedMeta) {
@@ -122,3 +121,9 @@
     });
     app.vent.on('rotate', app.viewport.scale);
 }(SecondFunnel));
+
+// module-specific initializer
+SecondFunnel.addInitializer(function (options) {
+    // set its width to whatever it began with.
+    SecondFunnel.options.initialWidth = $(window).width();
+});

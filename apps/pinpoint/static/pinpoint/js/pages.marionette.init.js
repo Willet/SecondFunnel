@@ -79,11 +79,6 @@ SecondFunnel.addInitializer(function (options) {
 });
 
 SecondFunnel.addInitializer(function (options) {
-    // set its width to whatever it began with.
-    SecondFunnel.options.initialWidth = $(window).width();
-});
-
-SecondFunnel.addInitializer(function (options) {
     // Add our initializer, this allows us to pass a series of tiles
     // to be displayed immediately (and first) on the landing page.
     broadcast('beforeInit', options, SecondFunnel);

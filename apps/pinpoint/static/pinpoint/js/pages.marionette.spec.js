@@ -41,7 +41,7 @@ describe("SecondFunnel", function () {
             "the device’s effective resolution: If the effective resolution " +
             "is X, the landing page must use the mobile display mode", function () {
             var myWidth = $(window).width(),
-                myPixelDensity = window.devicePixelDensity || 1,
+                myPixelRatio = window.devicePixelRatio || 1,
                 viewportData;
 
             beforeEach(function () {
@@ -56,7 +56,7 @@ describe("SecondFunnel", function () {
 
             it("should be disabled when window pixel ratio is not high " +
                 "enough to be a portable device", function () {
-                if (myPixelDensity < 1.5) {
+                if (myPixelRatio < 1.5) {
                     expect(viewportData[0]).toEqual(false);
                 } // else: not necessarily true
             });
@@ -70,26 +70,55 @@ describe("SecondFunnel", function () {
 
             it("should be enabled if believed " +
                 "to be a portable device", function () {
-                if ($.browser.mobile && myPixelDensity >= 1.5 && myWidth < 768) {
+                if ($.browser.mobile && myPixelRatio >= 1.5 && myWidth < 768) {
                     expect(viewportData[0]).toEqual(true);
                 }
             });
         });
 
-        it("Landing pages must display in one of two display modes depending on " +
+        describe("Landing pages must display in one of two display modes depending on " +
             "the device’s effective resolution: If the effective resolution " +
             "is Y, the landing page must use the desktop display mode", function () {
 
+            it("must be in desktop mode if window width is too wide, " +
+                "pixel density too low, or " +
+                "forcibly disabled", function () {
+                var myWidth = $(window).width(),
+                    myPixelDensity = window.devicePixelDensity || 1,
+                    viewportData = app.viewport.determine();
+
+                if (myWidth >= 768) {
+                    expect(viewportData[0]).toEqual(false);
+                }
+
+                if (myPixelDensity >= 1) {
+                    expect(viewportData[0]).toEqual(false);
+                }
+            });
         });
 
         it("A landing page must maintain its display mode even if the device " +
             "orientation changes", function () {
+            var isInMobileMode = ($(window).width() < 768);
 
+            if (isInMobileMode) {
+                // if in mobile mode, expect to stay in mobile mode
+                SecondFunnel.vent.trigger("rotate");
+                expect($(window).width()).toBeLessThan(768);
+            }
         });
 
         it("If a device is mobile or vice versa, it must always render in that " +
             "mode, regardless if the initial orientation of the page.", function () {
+            var isDeviceMobile = $.browser.mobile;
 
+            if (isDeviceMobile) {
+                // if in mobile mode, expect width to be locked below 768px
+                // by the viewport agent.
+                expect($(window).width()).toBeLessThan(768);
+                SecondFunnel.vent.trigger("rotate");
+                expect($(window).width()).toBeLessThan(768);
+            }
         });
 
         it("Landing pages must present some visual indication that a tile " +
