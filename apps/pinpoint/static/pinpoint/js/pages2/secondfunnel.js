@@ -54,6 +54,32 @@ TileCollection = Backbone.Collection.extend({
     }
 });
 
-TileView = Backbone.View.extend({
-    
+// Start with View: work from there?
+TileView = Backbone.Marionette.Layout.extend({
+    regions: {
+        'socialButtons': '.social-buttons',
+        'tapIndicator': '.tap-indicator',
+        'loadingIndicator': '.loading-indicator'
+    },
+
+    // Fire an event when something happens
+    // TODO: Is this how we want to handle *all* events?
+    //triggers: {},
+    events: {
+        'click': 'activate'
+    },
+
+    activate: function() {
+        // TODO: Do something, likely preview
+        return this;
+    },
+
+    render: function() {
+        try {
+            Backbone.Marionette.Layout.prototype.render.call(this);
+        } catch (e) {
+            // TODO: Do *more* something on error
+            this.close();
+        }
+    }
 });
