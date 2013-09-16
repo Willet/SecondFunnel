@@ -65,8 +65,11 @@ TileView = Backbone.Marionette.Layout.extend({
     // Fire an event when something happens
     // TODO: Is this how we want to handle *all* events?
     //triggers: {},
-    events: {
-        'click': 'activate'
+
+    events: function() {
+        return {
+            'click': 'activate'
+        }
     },
 
     activate: function() {
