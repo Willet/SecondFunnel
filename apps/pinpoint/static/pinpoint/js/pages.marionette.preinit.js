@@ -153,13 +153,17 @@ _.mixin({
         var str = string || "";
         return str.charAt(0).toUpperCase() + str.substring(1);
     },
-    'get': function (obj, key) {
+    'get': function (obj, key, defaultValue) {
         // thin wrapper around obj key access that never throws an error.
         try {
-            return obj[key];
+            var val = obj[key];
+            if (val !== undefined) {
+                return obj[key];
+            }
         } catch (err) {
-            return undefined;
+            // default
         }
+        return defaultValue;
     }
 });
 

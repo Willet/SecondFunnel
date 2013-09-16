@@ -1,6 +1,7 @@
 import json
 import random
 from django.contrib.auth.models import User
+from django.core import serializers
 from django.db import models
 from django.db.models import get_model
 from django.template.defaultfilters import striptags
@@ -46,16 +47,7 @@ class BaseModelNamed(BaseModel):
 
     def json(self):
         """default method for all models to have a json representation."""
-        fields = {}
-        for field in self._meta.get_all_field_names():
-            if field[:1] != '_':
-                try:
-                    fields[field] = unicode(getattr(self, field, None))
-                except UnicodeEncodeError:
-                    fields[field] = str(getattr(self, field, None))
-                except:
-                    pass  # bail on this particular attribute
-        return json.dumps(fields)
+        return serializers.get_serializer("json")().serialize(iter([self]))
 
 
 class Store(BaseModelNamed):

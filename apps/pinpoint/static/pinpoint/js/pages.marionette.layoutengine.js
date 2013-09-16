@@ -118,7 +118,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
     /**
      * @private (enable when IR supports colour and dimensions)
      */
-    layoutEngine.__imagesLoaded = function (callback, $fragment) {
+    var __imagesLoaded = function (callback, $fragment) {
         // This function is based on the understanding that the ImageService will
         // return dimensions and/or a dominant colour; elements in the $fragment have
         // assigned widths and heights; (e.g. .css('width', '100px'))

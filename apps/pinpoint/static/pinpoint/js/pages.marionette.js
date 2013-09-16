@@ -493,7 +493,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'collection': null,
         'loading': false,
         'lastScrollTop': 0,
-        'failedLayoutsCounter': [0, 0],  // after fetching stuff from IR, nothing was added to the page.
+        'intentRankResults': [0, 0],  // after fetching stuff from IR, nothing was added to the page.
 
         // prevent default appendHtml behaviour (append in batch)
         'appendHtml': $.noop,
@@ -586,10 +586,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // creates conditions needed to get more results.
             var self = this;
             this.toggleLoading(false);
-            if (self.failedLayoutsCounter[1] === self.collection.models.length) {
+            if (self.intentRankResults[1] === self.collection.models.length) {
                 // loaded nothing last time.
-                self.failedLayoutsCounter[0]++;
-                if (self.failedLayoutsCounter[0] > 5) {
+                self.intentRankResults[0]++;
+                if (self.intentRankResults[0] > 5) {
                     if (SecondFunnel.option('debug', SecondFunnel.QUIET) >=
                         SecondFunnel.ERROR) {
                         console.error('Too many consecutive endpoint failures. ' +
@@ -599,8 +599,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 }
             } else {
                 // success = counter reset
-                self.failedLayoutsCounter[0] = 0;
-                self.failedLayoutsCounter[1] = self.collection.models.length;
+                self.intentRankResults[0] = 0;
+                self.intentRankResults[1] = self.collection.models.length;
             }
             setTimeout(function () {
                 self.pageScroll();

@@ -1,6 +1,16 @@
 /*global describe, jasmine, it, beforeEach, expect */
 describe("preinit", function () {
-    var app;
+    var app,
+        randomLowerCaseStringSpaced = function (len) {
+            var charSet = 'abcdefghijklmnopqrstuvwxyz ';
+            var randomString = '';
+            for (var i = 0; i < len; i++) {
+                var randomPoz = Math.floor(Math.random() * charSet.length);
+                randomString += charSet.substring(randomPoz,randomPoz+1);
+            }
+            return randomString;
+        };
+;
 
     beforeEach(function () {
         app = SecondFunnel;
@@ -72,12 +82,26 @@ describe("preinit", function () {
                 expect(_.capitalize).toBeDefined();
             });
 
-            it("works", function () {
+            it("always converts first character to upper", function () {
                 expect(_.capitalize('')).toEqual('');
                 expect(_.capitalize('abc')).toEqual('Abc');
                 expect(_.capitalize('aBC')).toEqual('ABC');
                 expect(_.capitalize('abc_def')).toEqual('Abc_def');
+                expect(_.capitalize('abc def')).toEqual('Abc def');
             });
+
+            it("never converts characters after the first character to upper", function () {
+                var str = '', comp = '';
+
+                // verify that other characters are never converted to upper
+                for(var i = 10000; i < 10100; i++) {
+                    // generate a random string of length i
+                    str = randomLowerCaseStringSpaced(i);
+                    comp = str.toLowerCase();
+                    expect(_.capitalize(str).substring(1))
+                               .toEqual(comp.substring(1));
+                }
+            })
         });
 
         describe("get", function () {

@@ -1,4 +1,4 @@
-/*global describe, jasmine, it, beforeEach, expect */
+/*global describe, jasmine, it, beforeEach, afterEach, expect */
 describe("SecondFunnel", function () {
     var app;
 
@@ -8,7 +8,7 @@ describe("SecondFunnel", function () {
     });
 
     afterEach(function () {
-
+        delete window.SecondFunnel;
     });
 
     it("must exist", function () {
@@ -36,18 +36,73 @@ describe("SecondFunnel", function () {
     });
 
     describe("Usability", function () {
+
+        describe("Landing pages must display in one of two display modes depending on " +
+            "the device’s effective resolution: If the effective resolution " +
+            "is X, the landing page must use the mobile display mode", function () {
+            var myWidth = $(window).width(),
+                myPixelDensity = window.devicePixelDensity || 1,
+                viewportData;
+
+            beforeEach(function () {
+                // default
+                viewportData = app.viewport.determine();
+                app.options.lockWidth = true;  // force enable
+            });
+
+            afterEach(function () {
+                app.options.lockWidth = $.browser.mobile;  // restore default
+            });
+
+            it("should be disabled when window pixel ratio is not high " +
+                "enough to be a portable device", function () {
+                if (myPixelDensity < 1.5) {
+                    expect(viewportData[0]).toEqual(false);
+                } // else: not necessarily true
+            });
+
+            it("should be disabled when window width is too wide " +
+                "to be a portable device", function () {
+                if (myWidth >= 768) {
+                    expect(viewportData[0]).toEqual(false);
+                } // else: not necessarily true
+            });
+
+            it("should be enabled if believed " +
+                "to be a portable device", function () {
+                if ($.browser.mobile && myPixelDensity >= 1.5 && myWidth < 768) {
+                    expect(viewportData[0]).toEqual(true);
+                }
+            });
+        });
+
+        it("Landing pages must display in one of two display modes depending on " +
+            "the device’s effective resolution: If the effective resolution " +
+            "is Y, the landing page must use the desktop display mode", function () {
+
+        });
+
+        it("A landing page must maintain its display mode even if the device " +
+            "orientation changes", function () {
+
+        });
+
+        it("If a device is mobile or vice versa, it must always render in that " +
+            "mode, regardless if the initial orientation of the page.", function () {
+
+        });
+
+        it("Landing pages must present some visual indication that a tile " +
+            "can be activated: For non-mouse enabled devices, this indicator " +
+            "should be an element overlayed on the tile. For mouse enabled " +
+            "devices, this indicator should be a mouse pointer", function () {
+
+        });
+
         /*
 
         Not machine-testable
 
-        Landing pages must display in one of two display modes depending on the device’s effective resolution:
-         If the effective resolution is X, the landing page must use the mobile display mode
-         If the effective resolution is Y, the landing page must use the desktop display mode
-        A landing page must maintain its display mode even if the device orientation changes.
-         If a device is mobile or vice versa, it must always render in that mode, regardless if the initial orientation of the page.
-        Landing pages must present some visual indication that a tile can be activated
-         For non-mouse enabled devices, this indicator should be an element overlayed on the tile
-         For mouse enabled devices, this indicator should be a mouse pointer
         The number of columns should scale dependent on the effective resolution of the viewport
          The number of columns should not exceed 4 (added 08-23)
         A tile should be rendered as soon as possible
