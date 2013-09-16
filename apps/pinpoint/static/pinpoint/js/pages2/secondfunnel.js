@@ -86,3 +86,23 @@ TileView = Backbone.Marionette.Layout.extend({
         }
     }
 });
+
+// nterwoord: The application object seems like the strangest
+// Marionette object... Unlike everything else, you build it
+// in separate steps.
+Page = new Backbone.Marionette.Application({});
+
+Page.addRegions({
+    'heroArea': '#hero-area',
+    'discoveryArea': '#discovery-area'
+});
+
+Page.addInitializer(function(options) {
+    // TODO: Replace with actually rendering the correct views.
+    this.heroArea.show(new Backbone.View());
+    this.discoveryArea.show(new Backbone.View());
+});
+
+Page.addInitializer(function(options) {
+    this.tiles = new TileCollection();
+});
