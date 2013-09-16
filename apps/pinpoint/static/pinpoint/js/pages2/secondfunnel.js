@@ -53,3 +53,7 @@ TileCollection = Backbone.Collection.extend({
         return Backbone.Collection.prototype.fetch.call(this, options);
     }
 });
+
+TileView = Backbone.View.extend({
+    
+});
