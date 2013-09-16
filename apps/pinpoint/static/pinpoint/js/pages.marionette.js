@@ -408,7 +408,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     !(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
                     this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({model: this.model}));
                 }
-                this.tapIndicator.show(new TapIndicator());
+                if (SecondFunnel.support.touch()) {
+                    this.tapIndicator.show(new TapIndicator());
+                }
             }
 
             this.$el.scaleImages();
@@ -973,7 +975,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     SecondFunnel.classRegistry = {
         Discovery: Discovery,
         EventManager: EventManager,
-        HeroAreaView: HeroAreaView
+        HeroAreaView: HeroAreaView,
+        Tile: Tile,
+        TileView: TileView,
+        trailingCommas: undefined
     };
 
     return SecondFunnel;

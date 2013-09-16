@@ -44,6 +44,9 @@ $.fn.remove = function () {
     }
 };
 
+/**
+ * @param {function} callback
+ */
 $.fn.scrollStopped = function (callback) {
     // stackoverflow.com/a/14035162/1558430
     $(this).scroll(function () {
@@ -51,7 +54,9 @@ $.fn.scrollStopped = function (callback) {
         if ($this.data('scrollTimeout')) {
             clearTimeout($this.data('scrollTimeout'));
         }
-        $this.data('scrollTimeout', setTimeout(callback, 500, self));
+        if (callback) {
+            $this.data('scrollTimeout', setTimeout(callback, 500, self));
+        }
     });
 };
 

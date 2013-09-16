@@ -8,17 +8,13 @@ describe("SecondFunnel", function () {
     });
 
     afterEach(function () {
-        delete window.SecondFunnel;
-    });
 
-    it("must exist", function () {
-        expect(app).not.toEqual(undefined);
     });
 
     describe("General", function () {
         /*
 
-        Not machine-testable
+        TODO
 
         Landing pages must support mobile devices. The following devices must work:
          iPhone (retina)
@@ -121,16 +117,32 @@ describe("SecondFunnel", function () {
             }
         });
 
-        it("Landing pages must present some visual indication that a tile " +
-            "can be activated: For non-mouse enabled devices, this indicator " +
-            "should be an element overlayed on the tile. For mouse enabled " +
-            "devices, this indicator should be a mouse pointer", function () {
+        describe("Landing pages must present some visual indication that a tile " +
+            "can be activated:", function () {
+            it("For non-mouse enabled devices, this indicator " +
+                "should be an element overlayed on the tile.", function () {
+                if (app.support.touch()) {
+                    var tile = new SecondFunnel.classRegistry.Tile({});
+                    tile.createView();  // trigger tap indicator
+                    expect($('html').hasClass('touch-enabled')).toEqual(true);
+                }
+            });
 
+            it("For mouse enabled devices, this indicator should be a " +
+                "mouse pointer", function () {
+                if (!app.support.touch() && window.getComputedStyle) {
+                    var tile = new SecondFunnel.classRegistry.Tile(window.PAGES_INFO.featured),
+                        view = tile.createView();  // trigger tile creation
+                    if (view) {
+                        expect($('html').hasClass('touch-enabled')).toEqual(false);
+                    }
+                }
+            });
         });
 
         /*
 
-        Not machine-testable
+        TODO
 
         The number of columns should scale dependent on the effective resolution of the viewport
          The number of columns should not exceed 4 (added 08-23)
