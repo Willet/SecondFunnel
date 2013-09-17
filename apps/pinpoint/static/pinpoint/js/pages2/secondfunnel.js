@@ -3,6 +3,8 @@
 // in separate steps.
 Page = new Backbone.Marionette.Application({});
 
+Page.defaults = {};
+
 Page.addRegions({
     'heroArea': '#hero-area',
     'discoveryArea': '#discovery-area'
@@ -19,6 +21,7 @@ Page.addInitializer(function(options) {
 });
 
 Page.module("core", function(core, page, B, M, $, _) {
+    // Models
     core.Tile = Backbone.Model.extend({
         idAttribute: 'db-id', // TODO: Replace with proper id
         defaults: {
@@ -30,6 +33,7 @@ Page.module("core", function(core, page, B, M, $, _) {
         }
     });
 
+    // Collections
     core.TileCollection = Backbone.Collection.extend({
         url: "http://localhost:8000/intentrank/store/nativeshoes/campaign/32/getresults",
         model: core.Tile,
@@ -75,6 +79,7 @@ Page.module("core", function(core, page, B, M, $, _) {
         }
     });
 
+    // Views
     core.TileView = Backbone.Marionette.Layout.extend({
         regions: {
             'socialButtons': '.social-buttons',

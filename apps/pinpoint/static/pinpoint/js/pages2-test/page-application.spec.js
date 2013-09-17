@@ -28,6 +28,8 @@ describe("Page Application:", function () {
 
             expect(this.app.heroArea.show).toHaveBeenCalled();
             expect(this.app.discoveryArea.show).toHaveBeenCalled();
+
+            // TODO: Verify that areas rendered?
         });
 
         it("should create a TileCollection on start", function() {
@@ -35,7 +37,31 @@ describe("Page Application:", function () {
 
             expect(this.app.tiles).toBeDefined();
 
-            // TODO: Verify that the collection is actually a collection
+            expect(this.app.tiles.length).toEqual(0);
         });
+
+        it("should have default options", function() {
+            expect(this.app.defaults).toBeDefined();
+
+            // TODO: Set other default values
+
+        });
+
+        it("should populate options from PAGES_INFO", function() {
+
+        });
+
+//        it("should create add initial elements to collection", function() {
+//            this.app.start();
+//
+//            expect(this.app.tiles).toBeDefined();
+//
+//            expect(this.app.tiles.length).toEqual(0);
+//        });
+
+        // should add initial elements to collection (.reset, reset event), and render
+        // what event is fired on fetch?
+        //  - Uses set (add)
+        //      - could pass {reset: true}, but would that replace the entire collection
     });
 });
