@@ -1,4 +1,6 @@
 describe("Tile Model:", function () {
+    var Tile = Page.core.Tile;
+
     describe("Initialization:", function() {
         it("should exist", function() {
             expect(Tile).toBeDefined();

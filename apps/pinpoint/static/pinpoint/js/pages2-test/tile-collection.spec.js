@@ -1,4 +1,7 @@
 describe("Tile Collection:", function () {
+    var Tile = Page.core.Tile;
+        TileCollection = Page.core.TileCollection;
+
     describe("Initialization:", function() {
         it("should exist", function() {
             expect(TileCollection).toBeDefined();

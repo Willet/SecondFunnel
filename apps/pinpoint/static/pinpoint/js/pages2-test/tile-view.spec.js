@@ -6,7 +6,8 @@ describe("Tile View:", function () {
     //  http://open.bekk.no/maintainable-tests-for-backbone-views
 
     var createTileView,
-        tileViewPageObject;
+        tileViewPageObject,
+        TileView = Page.core.TileView;
 
     createTileView = function(options) {
         options = options || {};
