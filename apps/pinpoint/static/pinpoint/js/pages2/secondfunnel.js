@@ -11,6 +11,7 @@ PAGES_INFO = {
     'fruit': 'banana'
 }
 
+// TODO: Mixin instead of separate class? Add to prototype?
 LandingPage = Backbone.Marionette.Application.extend({
     getOption: function(optionName) {
         var value = Marionette.getOption(this, optionName);
@@ -48,6 +49,19 @@ Page.addInitializer(function(options) {
 });
 
 Page.module("utils", function(utils, page, B, M, $, _) {
+    // WARNING: Untested
+    utils.createApplication = function (options, initializers, regions) {
+        var i,
+            app = M.Application(options);
+
+        app.addRegions(regions);
+
+        for(i = 0; i < initializers.length; i++) {
+            app.addInitializer(initializers[i]);
+        }
+
+        return app;
+    };
 });
 
 Page.module("core", function(core, page, B, M, $, _) {
