@@ -60,19 +60,40 @@ describe('intentRank', function () {
             });
         });
 
-        it('should fetch n results when told to', function() {
-            function setResults(received) {
-                results = received;
-                done = true;
-            }
-            module.options.IRResultsCount = 4;
-            module.getResultsOnline(module.options,setResults);
+        it('should fetch 4 results when told to', function() {
+            {
+                n = 4;
+                function setResults(received) {
+                    results = received;
+                    done = true;
+                }
+                module.options.IRResultsCount = n;
+                module.getResultsOnline(module.options,setResults);
 
-            waitsFor(function() {return done},
-                'fetching results', 6000);
-            runs(function() {
-                expect(results && results.length).toBe(4);
-            });
+                waitsFor(function() {return done},
+                    'fetching results', 6000);
+                runs(function() {
+                    expect(results && results.length).toBe(n);
+                });
+            }
+        });
+
+        it('should fetch 55 results when told to', function() {
+            {
+                n = 55;
+                function setResults(received) {
+                    results = received;
+                    done = true;
+                }
+                module.options.IRResultsCount = n;
+                module.getResultsOnline(module.options,setResults);
+
+                waitsFor(function() {return done},
+                    'fetching results', 6000);
+                runs(function() {
+                    expect(results && results.length).toBe(n);
+                });
+            }
         });
 
         it('should use its backup results if it does not receive anything from the server', function() {
@@ -86,6 +107,7 @@ describe('intentRank', function () {
                     console.log(results);
                 });
             }
+
             module.getResultsOnline(module.options,test_fn);
             waitsFor(function() {return done})
         });
