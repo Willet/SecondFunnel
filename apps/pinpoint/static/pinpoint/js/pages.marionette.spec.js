@@ -1,10 +1,9 @@
 /*global describe, jasmine, it, beforeEach, afterEach, expect */
 describe("SecondFunnel", function () {
-    var app;
+    var app = SecondFunnel;
 
     beforeEach(function () {
         app = SecondFunnel;
-        app.start(app.options);
     });
 
     afterEach(function () {
@@ -133,7 +132,7 @@ describe("SecondFunnel", function () {
                 if (!app.support.touch() && window.getComputedStyle) {
                     var tile = new SecondFunnel.classRegistry.Tile(window.PAGES_INFO.featured),
                         view = tile.createView();  // trigger tile creation
-                    if (view) {
+                    if (view) {  // 'no template' is a reason why this check is needed
                         expect($('html').hasClass('touch-enabled')).toEqual(false);
                     }
                 }
