@@ -1,9 +1,36 @@
 // nterwoord: The application object seems like the strangest
 // Marionette object... Unlike everything else, you build it
 // in separate steps.
-Page = new Backbone.Marionette.Application({});
 
-Page.defaults = {};
+// Open question on WTF Application object is supposed to do:
+//  http://stackoverflow.com/q/18858834/165988
+// If the result is "Yes, its just a top-level thing" then
+// we'll likely have a top-level Application (SecondFunnel?) and
+// a separate application for the Page?
+PAGES_INFO = {
+    'fruit': 'banana'
+}
+
+LandingPage = Backbone.Marionette.Application.extend({
+    getOption: function(optionName) {
+        var value = Marionette.getOption(this, optionName);
+
+        // TODO: Do we want it to fallback to the `defaults` object, or
+        // a value that we pass in (e.g. a second parameter)?
+        if (_.isUndefined(value)) {
+            value = this.defaults[optionName];
+        }
+
+        return value;
+    }
+});
+
+Page = new LandingPage(PAGES_INFO);
+
+Page.defaults = {
+    'fruit': 'grape',
+    'unchanged_default': 'unchanged'
+};
 
 Page.addRegions({
     'heroArea': '#hero-area',
@@ -18,6 +45,9 @@ Page.addInitializer(function(options) {
 
 Page.addInitializer(function(options) {
     this.tiles = new TileCollection();
+});
+
+Page.module("utils", function(utils, page, B, M, $, _) {
 });
 
 Page.module("core", function(core, page, B, M, $, _) {

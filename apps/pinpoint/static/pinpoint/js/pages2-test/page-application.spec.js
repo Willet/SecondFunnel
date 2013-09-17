@@ -43,12 +43,22 @@ describe("Page Application:", function () {
         it("should have default options", function() {
             expect(this.app.defaults).toBeDefined();
 
+            expect(this.app.defaults.unchanged_default).toBeDefined();
+            expect(this.app.defaults.unchanged_default).toEqual('unchanged');
             // TODO: Set other default values
-
         });
 
-        it("should populate options from PAGES_INFO", function() {
+        it("should have a `getOption` function", function() {
+            expect(this.app.getOption).toBeDefined();
 
+            // TODO: Verify that this is a function
+        });
+
+        // TODO: Should not hardcode values like this
+        // TODO: Fall back to default if selected option not found
+        it("should populate options from PAGES_INFO", function() {
+            expect(this.app.getOption('fruit'), 'banana');
+            expect(this.app.getOption('unchanged_default')).toEqual('unchanged');
         });
 
 //        it("should create add initial elements to collection", function() {
