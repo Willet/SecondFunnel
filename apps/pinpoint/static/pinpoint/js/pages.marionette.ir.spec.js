@@ -1,4 +1,5 @@
 describe('intentRank', function () {
+    "use strict"
     // tested for campaigns
 
     var module = SecondFunnel.intentRank,
@@ -71,6 +72,13 @@ describe('intentRank', function () {
         });
     });
 
+    describe('getResultsOffline',function() {
+        // TODO: tests
+        it('should exists', function() {
+            expect(module.getResultsOffline);
+        });
+    });
+
     describe('getResultsOnline', function () {
         it('should fetch content when asked to', function() {
             module.getResultsOnline(module.options,setResults);
@@ -82,7 +90,7 @@ describe('intentRank', function () {
 
         it('should fetch 4 results when told to', function() {
             {
-                n = 4;
+                var n = 4;
                 module.options.IRResultsCount = n;
                 module.getResultsOnline(module.options,setResults);
 
@@ -95,7 +103,7 @@ describe('intentRank', function () {
 
         it('should fetch 55 results when told to', function() {
             {
-                n = 55;
+                var n = 55;
                 module.options.IRResultsCount = n;
                 module.getResultsOnline(module.options,setResults);
 
