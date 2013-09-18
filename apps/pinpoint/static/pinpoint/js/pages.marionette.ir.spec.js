@@ -1,5 +1,5 @@
 describe('intentRank', function () {
-    "use strict"
+    "use strict";
     // tested for campaigns
 
     var module = SecondFunnel.intentRank,
@@ -78,11 +78,19 @@ describe('intentRank', function () {
             expect(module.getResultsOffline);
         });
 
-        it('should fetch results', function() {
+        it('should pass results to callback', function() {
+            module.getResultsOffline(module.options, setResults);
+            waitsFor(areWeDone, 500, 'callback function to be called');
+        });
+
+        it('should fetch content when asked to', function() {
+            var PAGES_INFO_test = $.extend(true,{}, PAGES_INFO);
+            PAGES_INFO_test.content = ['here','goes','content'];
+            module.initialize(PAGES_INFO_test);
             module.getResultsOffline(module.options, setResults);
             waitsFor(function () {return done;});
             expect(results && results.length).toBeTruthy();
-        })
+        });
     });
 
     describe('getResultsOnline', function () {
@@ -92,6 +100,11 @@ describe('intentRank', function () {
             runs(function () {
                 expect(results && results.length).toBeTruthy();
             });
+        });
+
+        it('should pass results to callback', function() {
+            module.getResultsOnline(module.options, setResults);
+            waitsFor(areWeDone, 500, 'callback function to be called');
         });
 
         it('should fetch 4 results when told to', function() {
