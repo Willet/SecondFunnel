@@ -1,6 +1,7 @@
 /*global describe, jasmine, it, beforeEach, afterEach, expect */
 describe("SecondFunnel", function () {
     var app = SecondFunnel;
+    app.start(app.options);
 
     beforeEach(function () {
         app = SecondFunnel;
@@ -33,7 +34,7 @@ describe("SecondFunnel", function () {
     describe("Usability", function () {
 
         describe("Landing pages must display in one of two display modes depending on " +
-            "the device’s effective resolution: If the effective resolution " +
+            "the device's effective resolution: If the effective resolution " +
             "is X, the landing page must use the mobile display mode", function () {
             var myWidth = $(window).width(),
                 myPixelRatio = window.devicePixelRatio || 1,
@@ -72,7 +73,7 @@ describe("SecondFunnel", function () {
         });
 
         describe("Landing pages must display in one of two display modes depending on " +
-            "the device’s effective resolution: If the effective resolution " +
+            "the device's effective resolution: If the effective resolution " +
             "is Y, the landing page must use the desktop display mode", function () {
 
             it("must be in desktop mode if window width is too wide, " +
@@ -150,16 +151,159 @@ describe("SecondFunnel", function () {
          If an image is loading, a placeholder image should be displayed with the dominant colour as the background colour
         A tile must not be rendered if:
          The tile contains images that are broken
-         The tile does not meet ‘acceptable tile’ criteria
+         The tile does not meet 'acceptable tile' criteria
          */
     });
 
     describe("Performance", function () {
+        describe("Tiles that are not 'near' the viewport must be removed from the viewport", function () {
+            it("must remove from the viewport the tiles that are not 'near' the viewport", function () {
+                // we aren't doing this yet
+                expect(true).not.toEqual("placeholder");
+            });
+            describe("'Near' should be a configurable value, but should default to a " +
+                "reasonable value such as one page from the viewport in either " +
+                "direction.", function () {
+                it("'Near' should be a configurable value", function () {
+                    // we aren't doing this yet
+                    expect(true).not.toEqual("placeholder");
+                });
 
+                it("'Near' should default to a reasonable value such as one " +
+                    "page from the viewport in either direction", function () {
+                    // we aren't doing this yet
+                    expect(true).not.toEqual("placeholder");
+                });
+            });
+            it("Removing the tiles from the viewport must not cause the tiles " +
+                "to be rearranged", function () {
+                // app.discovery = new app.classRegistry.Discovery(app.options);
+
+                spyOn(Masonry.prototype, 'layout');
+
+                // remove one tile (removing model also triggers view removal)
+                app.discovery.collection.models.shift();
+
+                expect(Masonry.prototype.layout).not.toHaveBeenCalled();
+            });
+            it("Adding new tiles after tiles have been removed must not " +
+                "rearrange existing tiles", function () {
+                // TODO
+            });
+        });
+        describe("Pages must have some number of tiles pre-rendered on the landing page", function () {
+            it("These tiles must not be loaded via javascript", function () {
+                // we aren't doing this yet
+                expect(true).not.toEqual("placeholder");
+            });
+
+            it("The number of tiles must default to four.", function () {
+                // this is not a passing test for the test config,
+                // but it is one for live configs
+                expect(PAGES_INFO.initialResults.length).toEqual(4);
+            });
+        });
     });
 
     describe("Flexibility", function () {
+        describe("Landing pages should have configuration options " +
+            "for the feed", function () {
+            var config = window.PAGES_INFO || window.TEST_PAGE_DATA;
 
+            it("should have configuration options for the feed", function () {
+                // how to test the config does anything?
+                expect(config).toBeDefined();
+            });
+
+            it("should be possible to configure performance options for the " +
+                "feed, including, but not limited to: animation", function () {
+                var hasAtLeastOneKeyWithTheWordAnimationInIt = (_.filter(
+                    _.keys(PAGES_INFO), function (v) {
+                        return v.indexOf('nimation') >= 0
+                    }).length > 0);
+                expect(hasAtLeastOneKeyWithTheWordAnimationInIt).toEqual(true);
+            });
+
+            it("should be possible to configure the default " +
+                "column width", function () {
+                // how to test the config does anything?
+                expect(config.columnWidth).toBeDefined();
+            });
+
+            it("It should be possible to disable or enable internal " +
+                "event tracking", function () {
+                spyOn(window._gaq, 'push');
+                app.options.enableTracking = false;
+
+                app.vent.trigger("tracking:trackEvent", {
+                    'category': 'foo',
+                    'action': 'bar',
+                    'label': 'baz'
+                });
+
+                expect(_gaq.push).not.toHaveBeenCalled();
+            });
+
+            it("It should be possible to define an alternative " +
+                "source URL", function () {
+                // what to test when its existence is optional?
+                expect(app.intentRank.options.baseUrl).toEqual(config.IRSource);
+            });
+        });
+
+        describe("Landing pages must support arbitrary tile templates", function () {
+            describe("Tile templates can be any HTML but must be denoted with " +
+                "a unique identifier describing what type the template is.", function () {
+                // we denote templates with IDs.
+            });
+        });
+
+        describe("Landing pages must support social buttons", function () {
+            it("requires existence of the sharing module", function () {
+                expect(app.sharing).toBeDefined();
+                expect(app.sharing.SocialButton).toBeDefined();
+                expect(app.sharing.SocialButtons).toBeDefined();
+            });
+
+            describe("Social buttons must be configurable with options including, " +
+                "but not limited to: show / hide like count, enable / disable " +
+                "buttons", function () {
+                it("Social buttons must be configurable with " +
+                    "show / hide like count", function () {
+                    app.options.showCount = true;
+
+                    var buttons = new app.sharing.SocialButtons({
+                            'model': app.options.featured
+                        })
+                        .render().load().$el;
+
+                    expect(buttons.find('.facebook').hasClass('no-count')).toEqual(false);
+
+                    // ---
+
+                    app.options.showCount = false;
+
+                    buttons = new app.sharing.SocialButtons({
+                            'model': app.options.featured
+                        })
+                        .render().load().$el;
+
+                    expect(buttons.find('.facebook').hasClass('no-count')).toEqual(true);
+                });
+
+                it("Social buttons must be configurable with " +
+                    "enable / disable buttons", function () {
+                    app.options.socialButtons = [];
+
+                    buttons = new app.sharing.SocialButtons({
+                            'model': app.options.featured
+                        })
+                        .render().load().$el;
+
+                    expect(buttons.find('div, span').length).toEqual(0);
+                });
+            });
+        });
     });
 
     describe("Behaviour / Error Handling", function () {

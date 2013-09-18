@@ -121,9 +121,3 @@
     });
     app.vent.on('rotate', app.viewport.scale);
 }(SecondFunnel));
-
-// module-specific initializer
-SecondFunnel.addInitializer(function (options) {
-    // set its width to whatever it began with.
-    SecondFunnel.options.initialWidth = $(window).width();
-});

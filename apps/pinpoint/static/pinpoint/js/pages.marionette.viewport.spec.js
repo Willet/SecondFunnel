@@ -15,7 +15,7 @@ describe("viewport", function () {
             }
             return tag;
         }()),
-        originalContent = meta.attr('content'),
+        originalContent = meta.attr('content') || '',
         resetMeta = function () {
             meta.attr('content', originalContent);
         };
