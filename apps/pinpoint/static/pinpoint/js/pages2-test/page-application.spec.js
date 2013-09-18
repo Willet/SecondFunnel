@@ -3,6 +3,13 @@ describe("Page Application:", function () {
         this.app = Page;
     });
 
+    afterEach(function() {
+        _.each(this.app.submodules, function(module) {
+            module.stop();
+        });
+        Page._initCallbacks.reset();
+    });
+
     describe("Functional requirements:", function() {
         it("should exist", function() {
             expect(this.app).toBeDefined();
@@ -42,23 +49,28 @@ describe("Page Application:", function () {
 
         it("should have default options", function() {
             expect(this.app.defaults).toBeDefined();
-
-            expect(this.app.defaults.unchanged_default).toBeDefined();
-            expect(this.app.defaults.unchanged_default).toEqual('unchanged');
+            expect(this.app.defaults.LOG).toBeDefined();
             // TODO: Set other default values
+
+            expect(this.app.defaults.fruit).not.toBeDefined()
         });
 
         it("should have a `getOption` function", function() {
             expect(this.app.getOption).toBeDefined();
-
             // TODO: Verify that this is a function
         });
 
-        // TODO: Should not hardcode values like this
-        // TODO: Fall back to default if selected option not found
-        it("should populate options from PAGES_INFO", function() {
-            expect(this.app.getOption('fruit'), 'banana');
-            expect(this.app.getOption('unchanged_default')).toEqual('unchanged');
+        it("should populate options from passed in options", function() {
+            var default_log,
+                options = {
+                    'fruit': 'banana'
+                };
+
+            default_log = this.app.defaults.LOG
+            this.app.start(options);
+
+            expect(this.app.getOption('fruit')).toEqual(options.fruit);
+            expect(this.app.getOption('LOG')).toEqual(default_log);
         });
 
 //        it("should create add initial elements to collection", function() {

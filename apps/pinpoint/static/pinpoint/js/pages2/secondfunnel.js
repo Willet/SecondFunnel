@@ -24,11 +24,10 @@ Marionette.Application.prototype.getOption = function(optionName) {
     return value;
 }
 
-Page = new Backbone.Marionette.Application(PAGES_INFO);
+Page = new Backbone.Marionette.Application();
 
 Page.defaults = {
-    'fruit': 'grape',
-    'unchanged_default': 'unchanged'
+    LOG: {QUIET: 0, ERROR: 1, WARNING: 2, LOG: 3, VERBOSE: 4, ALL: 5}
 };
 
 Page.addRegions({
@@ -44,6 +43,11 @@ Page.addInitializer(function(options) {
 
 Page.addInitializer(function(options) {
     this.tiles = new TileCollection();
+});
+
+// TODO: Should this always be last?
+Page.addInitializer(function(options) {
+    _.extend(this, options);
 });
 
 Page.module("utils", function(utils, page, B, M, $, _) {
