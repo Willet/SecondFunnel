@@ -77,6 +77,12 @@ describe('intentRank', function () {
         it('should exists', function() {
             expect(module.getResultsOffline);
         });
+
+        it('should fetch results', function() {
+            module.getResultsOffline(module.options, setResults);
+            waitsFor(function () {return done;});
+            expect(results && results.length).toBeTruthy();
+        })
     });
 
     describe('getResultsOnline', function () {
@@ -125,20 +131,18 @@ describe('intentRank', function () {
 
         it('should use its backup results if it does not find the server', function() {
             function test_fn () {
-                module.options.base_url = 'fail';
+                module.options.baseUrl = 'fail';
                 module.getResultsOnline(module.options, setResults);
                 waitsFor(areWeDone, 'fetching backup results',500);
                 runs(function() {
                     expect(results && results.length).toBeTruthy();
-                    console.log(module.options.backupResults);
-                    console.log(results);
                 });
             }
 
             // I forgot why I did this in one day. Then it came back. I wanted a successful
             // request before the failed one. So the failed request is in the callback function.
             // Why? Because we want backup results from the successful request.
-            module.getResultsOnline(module.options,test_fn);
+            module.getResultsOnline(module.options, test_fn);
             waitsFor(areWeDone, 'fetching results', 6000);
         });
 
@@ -151,6 +155,7 @@ describe('intentRank', function () {
                     expect (results && results.length).toBeTruthy();
                 });
             }
+
             module.getResultsOnline(module.options, test_fn);
             waitsFor(areWeDone, 'fetching results', 6000);
         });
