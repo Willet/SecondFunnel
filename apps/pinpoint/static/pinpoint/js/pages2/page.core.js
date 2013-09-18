@@ -76,7 +76,7 @@ Page.module("core", function(core, page, B, M, $, _) {
         },
 
         activate: function() {
-            // TODO: Do something, likely preview
+            page.vent.trigger('fetch:related');
             return this;
         },
 

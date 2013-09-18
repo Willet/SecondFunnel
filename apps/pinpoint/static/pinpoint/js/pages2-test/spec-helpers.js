@@ -1,4 +1,11 @@
 beforeEach(function() {
+    this.resetApp = function (app) {
+        _.each(app.submodules, function(module) {
+            module.stop();
+        });
+        app._initCallbacks.reset();
+    };
+
     this.response = function(responseText, options) {
         var response;
 

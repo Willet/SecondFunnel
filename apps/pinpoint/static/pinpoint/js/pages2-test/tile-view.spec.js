@@ -33,6 +33,15 @@ describe("Tile View:", function () {
         }
     };
 
+    beforeEach(function(){
+        this.app = Page;
+        this.app.start();
+    });
+
+    afterEach(function(){
+        this.resetApp(this.app);
+    })
+
     describe("Initialization:", function() {
         it("should exist", function() {
             expect(TileView).toBeDefined();
@@ -113,13 +122,21 @@ describe("Tile View:", function () {
                     'action': 'click'
                 });
 
-                // TODO: Why doesn't our spy get called?
                 expect(this.tileView.activate).toHaveBeenCalled();
             });
 
-            xit("Behaviour 1.2. (When a user activates a tile, that tile must) " +
+            it("Behaviour 1.2. (When a user activates a tile, that tile must) " +
                 "[l]oad related results from the source URL", function() {
+                var spy = jasmine.createSpy();
+                expect(this.tileView.activate).toBeDefined();
 
+                this.app.vent.on('fetch:related', spy);
+
+                tileViewPageObject(this.tileView.$el).tile({
+                    'action': 'click'
+                });
+
+                expect(spy).toHaveBeenCalledWith();
             });
 
             // TODO: Deal with mobile / non-mobile

@@ -4,10 +4,7 @@ describe("Page Application:", function () {
     });
 
     afterEach(function() {
-        _.each(this.app.submodules, function(module) {
-            module.stop();
-        });
-        Page._initCallbacks.reset();
+        this.resetApp(this.app);
     });
 
     describe("Functional requirements:", function() {
