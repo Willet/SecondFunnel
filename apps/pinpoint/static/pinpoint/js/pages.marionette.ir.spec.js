@@ -2,17 +2,16 @@ describe('intentRank', function () {
     // tested for campaigns
 
     var module = SecondFunnel.intentRank,
-        originalModule= $.extend({}, module),
         results, // to test fetching content
         done, // to test fetching content
         setResults = function (received) {
             results = received;
             done = true;
-        }
+        },
+        areWeDone = function() {return done;};
 
     beforeEach(function () {
-        // restore original state
-        module = $.extend({},originalModule);
+        // restore original state (not really but close.)
         module.initialize(PAGES_INFO);
         module.options.type='campaign';
 
@@ -50,11 +49,32 @@ describe('intentRank', function () {
         });
     });
 
+    describe('getResults', function() {
+        it('should call getResultsOnline if options.page.offline is falsy', function() {
+            spyOn(module,'getResultsOnline');
+            var test_PAGES_INFO = $.extend(true,{},PAGES_INFO);
+            test_PAGES_INFO.page.offline = false;
+            module.initialize(test_PAGES_INFO);
+            module.options.type='campaign';
+            module.getResults(module.options,setResults);
+            expect(module.getResultsOnline).toHaveBeenCalled();
+        });
+
+        it('should call getResultsOffline if options.page.offline is truthy', function () {
+            spyOn(module,'getResultsOffline');
+            var test_PAGES_INFO = $.extend(true,{},PAGES_INFO);
+            test_PAGES_INFO.page.offline = true;
+            module.initialize(test_PAGES_INFO);
+            module.options.type = 'campaign';
+            module.getResults(module.options,setResults);
+            expect(module.getResultsOffline).toHaveBeenCalled();
+        });
+    });
+
     describe('getResultsOnline', function () {
         it('should fetch content when asked to', function() {
             module.getResultsOnline(module.options,setResults);
-            waitsFor(function() {return done},
-                'fetching results', 6000);
+            waitsFor(areWeDone, 'fetching results', 6000);
             runs(function () {
                 expect(results && results.length).toBeTruthy();
             });
@@ -63,15 +83,10 @@ describe('intentRank', function () {
         it('should fetch 4 results when told to', function() {
             {
                 n = 4;
-                function setResults(received) {
-                    results = received;
-                    done = true;
-                }
                 module.options.IRResultsCount = n;
                 module.getResultsOnline(module.options,setResults);
 
-                waitsFor(function() {return done},
-                    'fetching results', 6000);
+                waitsFor(areWeDone, 'fetching results', 6000);
                 runs(function() {
                     expect(results && results.length).toBe(n);
                 });
@@ -81,35 +96,56 @@ describe('intentRank', function () {
         it('should fetch 55 results when told to', function() {
             {
                 n = 55;
-                function setResults(received) {
-                    results = received;
-                    done = true;
-                }
                 module.options.IRResultsCount = n;
                 module.getResultsOnline(module.options,setResults);
 
-                waitsFor(function() {return done},
-                    'fetching results', 6000);
+                waitsFor(areWeDone, 'fetching results', 6000);
                 runs(function() {
                     expect(results && results.length).toBe(n);
                 });
             }
         });
 
-        it('should use its backup results if it does not receive anything from the server', function() {
+        it('should store backup results if a request is successful', function() {
+            module.getResultsOnline(module.options,setResults);
+            waitsFor(areWeDone);
+            runs(function() {
+                expect(module.options.backupResults &&
+                    module.options.backupResults.length).toBeTruthy();
+            });
+        });
+
+        it('should use its backup results if it does not find the server', function() {
             function test_fn () {
-                module.base_url = 1;
-                module.getResultsOnline(module.options,setResults);
-                waitsFor(function() {return done},
-                    'fetching backup results',500);
+                module.options.base_url = 'fail';
+                module.getResultsOnline(module.options, setResults);
+                waitsFor(areWeDone, 'fetching backup results',500);
                 runs(function() {
                     expect(results && results.length).toBeTruthy();
+                    console.log(module.options.backupResults);
                     console.log(results);
                 });
             }
 
+            // I forgot why I did this in one day. Then it came back. I wanted a successful
+            // request before the failed one. So the failed request is in the callback function.
+            // Why? Because we want backup results from the successful request.
             module.getResultsOnline(module.options,test_fn);
-            waitsFor(function() {return done})
+            waitsFor(areWeDone, 'fetching results', 6000);
         });
+
+        it('should use its backup results if the request times out', function() {
+            function test_fn() {
+                module.options.IRTimeout = 1;
+                module.getResultsOnline(module.options, setResults);
+                waitsFor(areWeDone, 'fetching backup results', 500);
+                runs(function() {
+                    expect (results && results.length).toBeTruthy();
+                });
+            }
+            module.getResultsOnline(module.options, test_fn);
+            waitsFor(areWeDone, 'fetching results', 6000);
+        });
+
     });
 });

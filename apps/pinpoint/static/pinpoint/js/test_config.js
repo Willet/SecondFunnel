@@ -2,6 +2,7 @@ window.PAGES_INFO = {
     'debug': 0,
     'base_url': "http://www.secondfunnel.com",
     'discoveryTarget': "#discovery-area",
+    'IRSOURCE': 'http://intentrank-test.elasticbeanstalk.com/intentrank',
     'discoveryItemSelector': ".tile",
     'store': {
         'id': "38",
