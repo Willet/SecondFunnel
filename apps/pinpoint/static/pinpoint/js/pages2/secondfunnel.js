@@ -42,7 +42,17 @@ Page.addInitializer(function(options) {
 });
 
 Page.addInitializer(function(options) {
+    var preloadedModels = [];
+    options = options || {};
+
+    // TODO: Change name as necessary
+    options.models = options.models || [];
+
+    // TODO: Change to make the default number configurable
+    preloadedModels = _.first(options.models, 4);
+
     this.tiles = new TileCollection();
+    this.tiles.reset(preloadedModels);
 });
 
 // TODO: Should this always be last?

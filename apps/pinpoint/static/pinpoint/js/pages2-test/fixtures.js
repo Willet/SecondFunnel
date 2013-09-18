@@ -13,7 +13,7 @@ beforeEach(function () {
                 "image": "",
                 "content-type": "Youtube",
                 "user-image": ""
-            },{
+            }, {
                 "description": "",
                 "tags": {},
                 "url": "http://shop.nativeshoes.com/jimmy-jiffy-black.html",

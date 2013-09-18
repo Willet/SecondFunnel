@@ -73,13 +73,26 @@ describe("Page Application:", function () {
             expect(this.app.getOption('LOG')).toEqual(default_log);
         });
 
-//        it("should create add initial elements to collection", function() {
-//            this.app.start();
-//
-//            expect(this.app.tiles).toBeDefined();
-//
-//            expect(this.app.tiles.length).toEqual(0);
-//        });
+        // TODO: Move PAGE_INFO (or equivalent) to fixtures.js?
+        // TODO: List relevant requirement
+        it("should add initial elements to collection", function() {
+            var options = {
+                    models: []
+                },
+                i = 10;
+
+            while(i > 0) {
+                options.models.push(this.generateTile());
+                i--;
+            }
+
+            this.app.start(options);
+
+            expect(this.app.tiles).toBeDefined();
+
+            // Spec says only load 4 tiles initially... we can change as necessary
+            expect(this.app.tiles.length).toEqual(4);
+        });
 
         // should add initial elements to collection (.reset, reset event), and render
         // what event is fired on fetch?
