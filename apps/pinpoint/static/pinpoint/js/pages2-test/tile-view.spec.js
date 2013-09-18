@@ -24,8 +24,22 @@ describe("Tile View:", function () {
                 switch(options.action) {
                     case 'click':
                         $el.trigger('click');
+                    case 'visible':
                     default:
-                        break;
+                        return $el.length == 1;
+                }
+
+                return this;
+            },
+            loadingIndicator: function(options) {
+                options = options || {};
+
+                switch(options.action) {
+                    case 'visible':
+                    default:
+                        //TODO: If dom nodes are never on screen in tests, how
+                        // to use :visible?
+                        return $el.find('.indicators-region > .loading').length == 1;
                 }
 
                 return this;
@@ -87,9 +101,8 @@ describe("Tile View:", function () {
             "tile indicators, and so on", function() {
             var tileView = createTileView();
 
-            expect(tileView.socialButtons).toBeDefined();
-            expect(tileView.tapIndicator).toBeDefined();
-            expect(tileView.loadingIndicator).toBeDefined();
+            expect(tileView.buttons).toBeDefined();
+            expect(tileView.indicators).toBeDefined();
 
             // TODO: Verify that these areas are regions
         });
@@ -139,6 +152,45 @@ describe("Tile View:", function () {
                 expect(spy).toHaveBeenCalledWith();
             });
 
+            it("Usability 5.1. If an image is loading, the user should see " +
+                "some indication that some action is taking place", function() {
+                var exists,
+                    myTile = new TileView({
+                        el: $('<div></div>'),
+                        loading: true,
+                        template: function(model) {
+                            return _.template("\
+                                <div class='indicators-region'></div>\
+                            ", {});
+                        }
+                    });
+
+                // TODO: getOptions EVERYWHERE?
+                expect(myTile.options.loading).toBeTruthy();
+
+                // TODO: Loading by default?
+                myTile.render();
+
+                exists = tileViewPageObject(myTile.$el).loadingIndicator({
+                    'action': 'visible'
+                });
+                expect(exists).toBeTruthy();
+
+                myTile.setLoading(false);
+                expect(myTile.options.loading).toBeFalsy();
+
+                exists = tileViewPageObject(myTile.$el).loadingIndicator({
+                    'action': 'visible'
+                });
+                expect(exists).toBeFalsy();
+            });
+
+            it("Usability 5.2. If an image is loading, a placeholder image " +
+                "should be displayed with the dominant colour as the " +
+                "background colour", function() {
+
+            });
+
             // TODO: Deal with mobile / non-mobile
             xit("Usability 3.1. For non-mouse enabled devices, this indicator " +
                 "should be an element overlayed on the tile", function() {
@@ -147,16 +199,6 @@ describe("Tile View:", function () {
 
             xit("Usability 3.2. For mouse enabled devices," +
                 "this indicator should be a mouse pointer", function() {
-            });
-
-            xit("Usability 5.1. If an image is loading, the user should see " +
-                "some indication that some action is taking place", function() {
-            });
-
-            xit("Usability 5.2. If an image is loading, a placeholder image " +
-                "should be displayed with the dominant colour as the " +
-                "background colour", function() {
-
             });
 
             xit("Usability 6.1. (A tile must not be rendered if) [t]he tile " +

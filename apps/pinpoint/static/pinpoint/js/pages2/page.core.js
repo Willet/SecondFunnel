@@ -59,10 +59,11 @@ Page.module("core", function(core, page, B, M, $, _) {
 
     // Views
     core.TileView = Backbone.Marionette.Layout.extend({
+        // TODO: Has some template?
+
         regions: {
-            'socialButtons': '.social-buttons',
-            'tapIndicator': '.tap-indicator',
-            'loadingIndicator': '.loading-indicator'
+            'buttons': '.buttons-region',
+            'indicators': '.indicators-region'
         },
 
         // Fire an event when something happens
@@ -83,10 +84,23 @@ Page.module("core", function(core, page, B, M, $, _) {
         render: function() {
             try {
                 Backbone.Marionette.Layout.prototype.render.call(this);
+
+                // TODO: Should this be in 'after:render'?
+                // TODO: Don't do things like this
+                this.indicators.show(new B.View({
+                    className: 'loading'
+                }));
             } catch (e) {
                 // TODO: Do *more* something on error
                 this.close();
             }
+            return this;
+        },
+
+        setLoading: function(state) {
+            this.options.loading = !!state;
+            this.indicators.reset();
+            return this;
         }
     });
 });
