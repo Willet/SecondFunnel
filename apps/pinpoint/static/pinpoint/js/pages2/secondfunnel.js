@@ -11,22 +11,20 @@ PAGES_INFO = {
     'fruit': 'banana'
 }
 
-// TODO: Mixin instead of separate class? Add to prototype?
-LandingPage = Backbone.Marionette.Application.extend({
-    getOption: function(optionName) {
-        var value = Marionette.getOption(this, optionName);
+// Should we use Marionette.extend instead?
+Marionette.Application.prototype.getOption = function(optionName) {
+    var value = Marionette.getOption(this, optionName);
 
-        // TODO: Do we want it to fallback to the `defaults` object, or
-        // a value that we pass in (e.g. a second parameter)?
-        if (_.isUndefined(value)) {
-            value = this.defaults[optionName];
-        }
-
-        return value;
+    // TODO: Do we want it to fallback to the `defaults` object, or
+    // a value that we pass in (e.g. a second parameter)?
+    if (_.isUndefined(value)) {
+        value = this.defaults[optionName];
     }
-});
 
-Page = new LandingPage(PAGES_INFO);
+    return value;
+}
+
+Page = new Backbone.Marionette.Application(PAGES_INFO);
 
 Page.defaults = {
     'fruit': 'grape',
