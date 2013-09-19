@@ -120,36 +120,19 @@ describe("Tile View:", function () {
                 expect(spy).toHaveBeenCalledWith();
             });
 
-            xit("Usability 5.1. If an image is loading, the user should see " +
+            it("Usability 5.1. If an image is loading, the user should see " +
                 "some indication that some action is taking place", function() {
-                var exists,
-                    myTile = new TileView({
-                        loading: true,
-                        template: function(model) {
-                            return _.template("\
-                                <div class='indicators-region'></div>\
-                            ", {});
-                        }
-                    });
+                // TODO: Be more specific about visibility
 
-                // TODO: getOptions EVERYWHERE?
-                expect(myTile.options.loading).toBeTruthy();
+                expect(this.tileView.loading).toBeTruthy();
 
-                // TODO: Loading by default?
-                myTile.render();
+                this.tileView.render();
+                expect(this.tileView.indicators.$el).toBeVisible();
 
-                exists = tileViewPageObject(myTile.$el).loadingIndicator({
-                    'action': 'visible'
-                });
-                expect(exists).toBeTruthy();
+                this.tileView.setLoading(false);
+                expect(this.tileView.loading).toBeFalsy();
 
-                myTile.setLoading(false);
-                expect(myTile.options.loading).toBeFalsy();
-
-                exists = tileViewPageObject(myTile.$el).loadingIndicator({
-                    'action': 'visible'
-                });
-                expect(exists).toBeFalsy();
+                expect(this.tileView.indicators.$el).not.toBeVisible();
             });
 
             it("Usability 5.2. If an image is loading, a placeholder image " +
