@@ -5,11 +5,15 @@ describe("Tile View:", function () {
     // Modelled after code from this post:
     //  http://open.bekk.no/maintainable-tests-for-backbone-views
 
-    var createTileView,
+    var createTestTileView,
         TileView = Page.core.TileView;
 
-    createTileView = function(options) {
+    createTestTileView = function(options) {
         options = options || {};
+
+        // Test views always use an in-memory element
+        // unless we've said otherwise
+        options.el = options.el || $('<div></div>');
 
         return new TileView(options);
     };
@@ -30,13 +34,11 @@ describe("Tile View:", function () {
         });
 
         it("should be possible to create an instance", function() {
-            expect(createTileView).not.toThrow();
+            expect(createTestTileView).not.toThrow();
         });
 
         it("should be possible to render an instance with a template", function() {
-            var view = createTileView({
-                el: $('<div></div>')
-            });
+            var view = createTestTileView();
         });
 
         describe('Specification:', function() {
@@ -44,9 +46,8 @@ describe("Tile View:", function () {
                 "be rendered otherwise", function() {
                 var view, renderFn;
 
-                view = createTileView({
-                    template: '#doesnotexist',
-                    el: $('<div></div>')
+                view = createTestTileView({
+                    template: '#doesnotexist'
                 });
 
                 spyOn(view, 'close');
@@ -68,9 +69,7 @@ describe("Tile View:", function () {
     describe("Functional requirements:", function() {
         it("should have regions for social buttons, " +
             "tile indicators, and so on", function() {
-            var tileView = createTileView({
-                    el: $('<div></div>')
-                });
+            var tileView = createTestTileView();
 
             expect(tileView.buttons).toBeDefined();
             expect(tileView.indicators).toBeDefined();
@@ -78,11 +77,15 @@ describe("Tile View:", function () {
             // TODO: Verify that these areas are regions
         });
 
+        it("should be loading by default", function() {
+            var tileView = createTestTileView();
+
+            expect(tileView.loading).toBeTruthy();
+        });
+
         describe('Specification:', function() {
             beforeEach(function(){
-                this.tileView  = createTileView({
-                    el: $('<div></div>')
-                });
+                this.tileView  = createTestTileView();
                 this.tileView.render();
             });
 
@@ -121,7 +124,6 @@ describe("Tile View:", function () {
                 "some indication that some action is taking place", function() {
                 var exists,
                     myTile = new TileView({
-                        el: $('<div></div>'),
                         loading: true,
                         template: function(model) {
                             return _.template("\

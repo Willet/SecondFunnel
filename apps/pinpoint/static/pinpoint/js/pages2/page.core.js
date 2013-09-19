@@ -61,6 +61,10 @@ Page.module("core", function(core, page, B, M, $, _) {
     core.TileView = Backbone.Marionette.Layout.extend({
         template: '#willet-tile-view',
 
+        defaults: {
+            loading: true
+        },
+
         regions: {
             'buttons': '.buttons-region',
             'indicators': '.indicators-region'
@@ -74,6 +78,12 @@ Page.module("core", function(core, page, B, M, $, _) {
             return {
                 'click': 'activate'
             }
+        },
+
+        initialize: function (options) {
+            options = options || {};
+
+            this.loading = options.loading || this.defaults.loading;
         },
 
         activate: function() {
@@ -98,7 +108,7 @@ Page.module("core", function(core, page, B, M, $, _) {
         },
 
         setLoading: function(state) {
-            this.options.loading = !!state;
+            this.loading = !!state;
             this.indicators.reset();
             return this;
         }
