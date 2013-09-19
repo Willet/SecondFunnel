@@ -9,7 +9,23 @@ describe('intentRank', function () {
             results = received;
             done = true;
         },
-        areWeDone = function() {return done;};
+        areWeDone = function() {return done;},
+
+        mockAjaxSuccess = function (paramaters) {
+            var results = [];
+            for (var i = 0; i < paramaters.data.results; ++i) {
+                results.push({});
+            }
+            paramaters.success(results);
+        },
+
+        mockAjaxZeroResults = function (paramaters) {
+            paramaters.success([]);
+        },
+
+        mockAjaxError = function (paramaters) {
+            paramaters.error('jqXHR', 'textStatus', 'errorThrown');
+        };
 
     beforeEach(function () {
         // restore original state (not really but close.)
@@ -19,6 +35,10 @@ describe('intentRank', function () {
         // reset variables used to test fetching
         results = undefined;
         done = undefined;
+
+        // restore jsonp and ajax if stubbed
+        ($ &&  $.jsonp && $.jsonp.restore && $.jsonp.restore());
+        ($ && $.ajax && $.ajax.restore && $.ajax.restore());
     });
 
     describe('initialize', function () {
@@ -108,6 +128,8 @@ describe('intentRank', function () {
         });
 
         it('should fetch 4 results when told to', function() {
+            sinon.stub($, 'ajax', mockAjaxSuccess);
+            ($.jsonp && sinon.stub($, 'jsonp', mockAjaxSuccess));
             {
                 var n = 4;
                 module.options.IRResultsCount = n;
@@ -121,6 +143,8 @@ describe('intentRank', function () {
         });
 
         it('should fetch 55 results when told to', function() {
+            sinon.stub($, 'ajax', mockAjaxSuccess);
+            ($.jsonp && sinon.stub($, 'jsonp', mockAjaxSuccess));
             {
                 var n = 55;
                 module.options.IRResultsCount = n;
@@ -133,45 +157,31 @@ describe('intentRank', function () {
             }
         });
 
-        it('should store backup results if a request is successful', function() {
-            module.getResultsOnline(module.options,setResults);
-            waitsFor(areWeDone);
+
+        it('should use its backup results if server returns nothing', function() {
+            sinon.stub($, 'ajax', mockAjaxZeroResults);
+            ($.jsonp && sinon.stub($, 'jsonp', mockAjaxZeroResults));
+            module.options.backupResults = [{'backup':'backup'}];
+            module.getResultsOnline(module.options, setResults);
+
+            // not necessary anymore since we're using a stub but oh well
+            waitsFor(areWeDone, 'fetching backup results',500);
             runs(function() {
-                expect(module.options.backupResults &&
-                    module.options.backupResults.length).toBeTruthy();
+                expect(results).toEqual(module.options.backupResults);
+
             });
         });
 
-        it('should use its backup results if it does not find the server', function() {
-            function test_fn () {
-                module.options.baseUrl = 'fail';
-                module.getResultsOnline(module.options, setResults);
-                waitsFor(areWeDone, 'fetching backup results',500);
-                runs(function() {
-                    expect(results && results.length).toBeTruthy();
-                });
-            }
+        it('should use its backup results if we receive an Ajax error', function (){
+            sinon.stub($, 'ajax', mockAjaxError);
+            ($.jsonp && sinon.stub($, 'jsonp', mockAjaxError));
+            module.options.backupResults = [{'backup': 'backup'}];
+            module.getResultsOnline(module.options,setResults);
 
-            // I forgot why I did this in one day. Then it came back. I wanted a successful
-            // request before the failed one. So the failed request is in the callback function.
-            // Why? Because we want backup results from the successful request.
-            module.getResultsOnline(module.options, test_fn);
-            waitsFor(areWeDone, 'fetching results', 6000);
-        });
-
-        it('should use its backup results if the request times out', function() {
-            function test_fn() {
-                module.options.IRTimeout = 1;
-                module.getResultsOnline(module.options, setResults);
-                waitsFor(areWeDone, 'fetching backup results', 500);
-                runs(function() {
-                    expect (results && results.length).toBeTruthy();
-                });
-            }
-
-            module.getResultsOnline(module.options, test_fn);
-            waitsFor(areWeDone, 'fetching results', 6000);
-        });
-
+            waitsFor(areWeDone, 'fetching backup results', 500);
+            runs(function() {
+                expect(results).toEqual(module.options.backupResults);
+            })
+        })
     });
 });
