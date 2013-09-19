@@ -6,7 +6,6 @@ describe("Tile View:", function () {
     //  http://open.bekk.no/maintainable-tests-for-backbone-views
 
     var createTileView,
-        tileViewPageObject,
         TileView = Page.core.TileView;
 
     createTileView = function(options) {
@@ -15,41 +14,10 @@ describe("Tile View:", function () {
         return new TileView(options);
     };
 
-    tileViewPageObject = function ($el) {
-        return {
-            // the tile is a big thing...
-            tile: function(options) {
-                options = options || {};
-
-                switch(options.action) {
-                    case 'click':
-                        $el.trigger('click');
-                    case 'visible':
-                    default:
-                        return $el.length == 1;
-                }
-
-                return this;
-            },
-            loadingIndicator: function(options) {
-                options = options || {};
-
-                switch(options.action) {
-                    case 'visible':
-                    default:
-                        //TODO: If dom nodes are never on screen in tests, how
-                        // to use :visible?
-                        return $el.find('.indicators-region > .loading').length == 1;
-                }
-
-                return this;
-            }
-        }
-    };
-
     beforeEach(function(){
         this.app = Page;
         this.app.start();
+        loadFixtures('templates.html');
     });
 
     afterEach(function(){
@@ -67,9 +35,7 @@ describe("Tile View:", function () {
 
         it("should be possible to render an instance with a template", function() {
             var view = createTileView({
-                template: function(model) {
-                    return _.template("<div></div>", {});
-                }
+                el: $('<div></div>')
             });
         });
 
@@ -78,7 +44,10 @@ describe("Tile View:", function () {
                 "be rendered otherwise", function() {
                 var view, renderFn;
 
-                view = createTileView();
+                view = createTileView({
+                    template: '#doesnotexist',
+                    el: $('<div></div>')
+                });
 
                 spyOn(view, 'close');
 
@@ -99,7 +68,9 @@ describe("Tile View:", function () {
     describe("Functional requirements:", function() {
         it("should have regions for social buttons, " +
             "tile indicators, and so on", function() {
-            var tileView = createTileView();
+            var tileView = createTileView({
+                    el: $('<div></div>')
+                });
 
             expect(tileView.buttons).toBeDefined();
             expect(tileView.indicators).toBeDefined();
@@ -110,9 +81,7 @@ describe("Tile View:", function () {
         describe('Specification:', function() {
             beforeEach(function(){
                 this.tileView  = createTileView({
-                    template: function(model) {
-                        return _.template("<div></div>", {});
-                    }
+                    el: $('<div></div>')
                 });
                 this.tileView.render();
             });
@@ -131,9 +100,7 @@ describe("Tile View:", function () {
                 this.tileView.delegateEvents();
 
 
-                tileViewPageObject(this.tileView.$el).tile({
-                    'action': 'click'
-                });
+                this.tileView.$el.click();
 
                 expect(this.tileView.activate).toHaveBeenCalled();
             });
@@ -145,14 +112,12 @@ describe("Tile View:", function () {
 
                 this.app.vent.on('fetch:related', spy);
 
-                tileViewPageObject(this.tileView.$el).tile({
-                    'action': 'click'
-                });
+                this.tileView.$el.click();
 
                 expect(spy).toHaveBeenCalledWith();
             });
 
-            it("Usability 5.1. If an image is loading, the user should see " +
+            xit("Usability 5.1. If an image is loading, the user should see " +
                 "some indication that some action is taking place", function() {
                 var exists,
                     myTile = new TileView({

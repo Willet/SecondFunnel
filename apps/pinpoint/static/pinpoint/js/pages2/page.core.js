@@ -59,7 +59,7 @@ Page.module("core", function(core, page, B, M, $, _) {
 
     // Views
     core.TileView = Backbone.Marionette.Layout.extend({
-        // TODO: Has some template?
+        template: '#willet-tile-view',
 
         regions: {
             'buttons': '.buttons-region',
