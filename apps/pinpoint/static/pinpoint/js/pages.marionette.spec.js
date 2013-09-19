@@ -307,14 +307,45 @@ describe("SecondFunnel", function () {
     });
 
     describe("Behaviour / Error Handling", function () {
+        describe("If the source URL does not return results, " +
+            "landing pages must:", function () {
+            it("If the source URL does not return results, " +
+                "landing pages must fetch results from an included list of " +
+                "backup results within the same page.", function () {
 
+                // screw with the url
+                app.intentRank.getResultsOnline({
+                    'url': 'http://ohai.ca/h/err/403?'
+                }, jasmine.createSpy());
+            });
+        });
+
+        /**
+         * When a user activates a tile, that tile must:
+         *  Take its activation action
+         *  Load related results from the source URL
+         * Developers and designers must be able to create listeners for important events including, but not limited to: hovering over a tile, hovering over a social button, sharing using a social button, page scrolling, preview activation / deactivation, product clickthrough, page exit, tiles added to the landing page, tiles finished loading, window resized, dependencies loaded, page complete load, pre-page complete load
+         */
     });
 
     describe("Tracking", function () {
-
+        /**
+         * Landing pages must track the following customer metrics:
+         *  Time on site
+         *  Page bounce rate
+         *  Product interactions including but not limited to: preview, shares
+         *  Lifestyle interactions including, but not limited to: preview, shares, video plays
+         *  Purchase actions including, but not limited to: ‘Shop Now’, ‘Find in Store’ or similar
+         *  Product impressions
+         *  Content impressions including, but not limited to: lifestyle images, video
+         */
     });
 
     describe("Theme Design / Templating", function () {
-
+        /**
+         * Landing pages must not add or remove classes that cause an unexpected change in style
+         * Theme designers should not need to implement complex functionality:
+         *  Complex functionality should be encapsulated as additional functionality that is available to theme designers
+         */
     });
 });
