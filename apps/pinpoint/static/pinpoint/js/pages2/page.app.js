@@ -23,12 +23,6 @@ Page.addRegions({
 });
 
 Page.addInitializer(function(options) {
-    // TODO: Replace with actually rendering the correct views.
-    this.heroArea.show(new Backbone.View());
-    this.discoveryArea.show(new Backbone.View());
-});
-
-Page.addInitializer(function(options) {
     var preloadedModels = [];
     options = options || {};
 
@@ -38,8 +32,22 @@ Page.addInitializer(function(options) {
     // TODO: Change to make the default number configurable
     preloadedModels = _.first(options.models, 4);
 
-    this.tiles = new TileCollection();
+    this.tiles = new Page.core.TileCollection();
     this.tiles.reset(preloadedModels);
+});
+
+Page.addInitializer(function(options) {
+    options = options || {};
+
+    options.heroAreaView = options.heroAreaView
+        || new Page.core.HeroAreaView;
+    options.discoveryAreaView = options.discoveryAreaView
+        || new Page.core.DiscoveryArea({
+            collection: this.tiles
+        });
+
+    this.heroArea.show(options.heroAreaView);
+    this.discoveryArea.show(options.discoveryAreaView);
 });
 
 // TODO: Should this always be last?

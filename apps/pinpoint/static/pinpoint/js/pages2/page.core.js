@@ -60,6 +60,7 @@ Page.module("core", function(core, page, B, M, $, _) {
     // Views
     core.TileView = Backbone.Marionette.Layout.extend({
         template: '#willet-tile-view',
+        className: 'tile',
 
         defaults: {
             loading: true
@@ -121,5 +122,18 @@ Page.module("core", function(core, page, B, M, $, _) {
         'tagName': 'div',
         'class': 'loading',
         'template': '#willet-tile-loading'
+    });
+
+    core.HeroAreaView = Backbone.Marionette.ItemView.extend({
+        'tagName': 'div',
+        'template': '#willet-hero-area'
+    });
+
+    // Perhaps this should be a composite view?
+    //      Used for when a collection needs to be rendered with a wrapper
+    core.DiscoveryArea = Backbone.Marionette.CollectionView.extend({
+        'itemView': page.core.TileView
+        // How is this going to work when we have different types?
+        // Apparently, we can use `getItemView` to handle that
     });
 });

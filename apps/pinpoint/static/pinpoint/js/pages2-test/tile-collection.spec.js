@@ -1,4 +1,4 @@
-describe("Tile Collection:", function () {
+xdescribe("Tile Collection:", function () {
     var Tile = Page.core.Tile;
         TileCollection = Page.core.TileCollection;
 

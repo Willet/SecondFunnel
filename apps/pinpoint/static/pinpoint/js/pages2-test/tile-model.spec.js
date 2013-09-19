@@ -1,4 +1,4 @@
-describe("Tile Model:", function () {
+xdescribe("Tile Model:", function () {
     var Tile = Page.core.Tile;
 
     describe("Initialization:", function() {

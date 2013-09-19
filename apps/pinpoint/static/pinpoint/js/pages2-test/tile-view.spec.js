@@ -1,4 +1,4 @@
-describe("Tile View:", function () {
+xdescribe("Tile View:", function () {
     // Our views are different in that they don't really do much with the model
     // However, we still may want a model instance to verify rendering
 
