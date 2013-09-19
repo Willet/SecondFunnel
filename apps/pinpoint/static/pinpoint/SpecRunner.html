@@ -23,6 +23,7 @@
         <script src="js/jquery.masonry.extensions.js"></script>
         <script src="../js/bootstrap.min.js"></script>
         <script src="../js/sinon-1.7.3.js"></script>
+        <script src="../testing/lib/jasmine-1.3.1/jasmine-jquery.js"></script>
 
         <!--script src="js/pages.marionette.preinit.js"></script>
         <script src="js/pages.marionette.js"></script>
@@ -66,6 +67,10 @@
                 jasmineEnv.specFilter = function (spec) {
                     return htmlReporter.specFilter(spec);
                 };
+
+                // Change path for HTML fixtures
+                // mostly for templates
+                jasmine.getFixtures().fixturesPath = 'js/pages2-test';
 
                 var currentWindowOnload = window.onload;
 
