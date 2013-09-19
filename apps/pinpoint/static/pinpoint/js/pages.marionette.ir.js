@@ -58,10 +58,10 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         var opts, uri, args;
 
         // build a one-off options object for the request.
-        opts = _.extend({}, intentRank.options, {
+        opts = $.extend(true, {}, intentRank.options, {
             'url': intentRank.options.baseUrl
         });
-        _.extend(opts, overrides);
+        $.extend(opts, overrides);
 
         uri = _.template(opts.urlTemplates[opts.type || 'campaign'], opts);
         args = _.toArray(arguments).slice(2);

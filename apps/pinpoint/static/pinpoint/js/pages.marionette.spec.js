@@ -1,15 +1,6 @@
-/*global describe, jasmine, it, beforeEach, afterEach, expect */
+/*global describe, jasmine, it, beforeEach, afterEach, expect, spyOn */
 describe("SecondFunnel", function () {
     var app = SecondFunnel;
-    app.start(app.options);
-
-    beforeEach(function () {
-        app = SecondFunnel;
-    });
-
-    afterEach(function () {
-
-    });
 
     describe("General", function () {
         /*
@@ -268,11 +259,13 @@ describe("SecondFunnel", function () {
             describe("Social buttons must be configurable with options including, " +
                 "but not limited to: show / hide like count, enable / disable " +
                 "buttons", function () {
+                var buttons;
+
                 it("Social buttons must be configurable with " +
                     "show / hide like count", function () {
                     app.options.showCount = true;
 
-                    var buttons = new app.sharing.SocialButtons({
+                    buttons = new app.sharing.SocialButtons({
                             'model': app.options.featured
                         })
                         .render().load().$el;
@@ -293,7 +286,7 @@ describe("SecondFunnel", function () {
 
                 it("Social buttons must be configurable with " +
                     "enable / disable buttons", function () {
-                    app.options.socialButtons = [];
+                    app.options.socialButtons = [];  // render 0 buttons = disable
 
                     buttons = new app.sharing.SocialButtons({
                             'model': app.options.featured
@@ -313,10 +306,24 @@ describe("SecondFunnel", function () {
                 "landing pages must fetch results from an included list of " +
                 "backup results within the same page.", function () {
 
-                // screw with the url
-                app.intentRank.getResultsOnline({
-                    'url': 'http://ohai.ca/h/err/403?'
-                }, jasmine.createSpy());
+                var results;
+
+                runs(function () {
+                    // screw with the url
+                    app.intentRank.getResultsOnline({
+                        'url': 'http://ohai.ca/h/err/403?'
+                    }, function (data) {
+                        results = data;
+                    });
+                });
+
+                waitsFor(function () {
+                    return (results && results.length > 0);  // wait
+                }, "callback will have been called", 1000);
+
+                runs(function() {
+                    expect(results && results.length > 0).toEqual(true);
+                });
             });
         });
 
@@ -339,6 +346,9 @@ describe("SecondFunnel", function () {
          *  Product impressions
          *  Content impressions including, but not limited to: lifestyle images, video
          */
+        it("truth", function () {
+            expect(true).toBeTruthy();
+        });
     });
 
     describe("Theme Design / Templating", function () {
@@ -347,5 +357,8 @@ describe("SecondFunnel", function () {
          * Theme designers should not need to implement complex functionality:
          *  Complex functionality should be encapsulated as additional functionality that is available to theme designers
          */
+        it("truth", function () {
+            expect(true).toBeTruthy();
+        });
     });
 });

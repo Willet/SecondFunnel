@@ -120,7 +120,10 @@
         <script src="js/pages.marionette.layoutengine.spec.js"></script>
         <script src="js/pages.marionette.viewport.spec.js"></script>
         <script type="text/javascript">
+            SecondFunnel.start(SecondFunnel.options);
+
             $(document).ready(function () {
+
                 var jasmineEnv = jasmine.getEnv();
                 jasmineEnv.updateInterval = 1000;
 
