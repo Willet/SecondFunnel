@@ -2,6 +2,14 @@
 describe("SecondFunnel", function () {
     var app = SecondFunnel;
 
+    beforeEach(function () {
+        jasmine.Clock.installMock();
+    });
+
+    afterEach(function () {
+        jasmine.Clock.uninstallMock();
+    });
+
     describe("General", function () {
         /*
 
@@ -302,6 +310,7 @@ describe("SecondFunnel", function () {
     describe("Behaviour / Error Handling", function () {
         describe("If the source URL does not return results, " +
             "landing pages must:", function () {
+
             it("If the source URL does not return results, " +
                 "landing pages must fetch results from an included list of " +
                 "backup results within the same page.", function () {
@@ -311,17 +320,19 @@ describe("SecondFunnel", function () {
                 runs(function () {
                     // screw with the url
                     app.intentRank.getResultsOnline({
-                        'url': 'http://ohai.ca/h/err/403?'
+                        'url': 'http://ohai.ca/h/err/404?'
                     }, function (data) {
                         results = data;
                     });
-                });
+                })
 
                 waitsFor(function () {
-                    return (results && results.length > 0);  // wait
-                }, "callback will have been called", 1000);
+                    if (results && results.length) {
+                        return true;
+                    }
+                }, 5000);
 
-                runs(function() {
+                runs(function () {
                     expect(results && results.length > 0).toEqual(true);
                 });
             });

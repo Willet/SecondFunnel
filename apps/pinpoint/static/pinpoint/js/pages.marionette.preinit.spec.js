@@ -10,10 +10,14 @@ describe("preinit", function () {
             }
             return randomString;
         };
-;
 
     beforeEach(function () {
         app = SecondFunnel;
+        jasmine.Clock.installMock();
+    });
+
+    afterEach(function () {
+        jasmine.Clock.uninstallMock();
     });
 
     describe("Console", function () {
