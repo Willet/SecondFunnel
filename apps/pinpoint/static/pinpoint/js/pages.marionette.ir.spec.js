@@ -10,21 +10,26 @@ describe('intentRank', function () {
             done = true;
         },
         areWeDone = function() {return done;},
+        delay = 100,
 
         mockAjaxSuccess = function (paramaters) {
             var results = [];
             for (var i = 0; i < paramaters.data.results; ++i) {
                 results.push({});
             }
+            // make it asynchronous
+            setTimeout(function () {paramaters.success(results)}, delay);
             paramaters.success(results);
         },
 
         mockAjaxZeroResults = function (paramaters) {
-            paramaters.success([]);
+            // make it asynchronous
+            setTimeout(function () {paramaters.success([])}, delay);
         },
 
         mockAjaxError = function (paramaters) {
-            paramaters.error('jqXHR', 'textStatus', 'errorThrown');
+            // make it asynchronous
+            setTimeout(function () {paramaters.error('jqXHR', 'textStatus', 'errorThrown')}, delay);
         };
 
     beforeEach(function () {
@@ -164,7 +169,6 @@ describe('intentRank', function () {
             module.options.backupResults = [{'backup':'backup'}];
             module.getResultsOnline(module.options, setResults);
 
-            // not necessary anymore since we're using a stub but oh well
             waitsFor(areWeDone, 'fetching backup results',500);
             runs(function() {
                 expect(results).toEqual(module.options.backupResults);
