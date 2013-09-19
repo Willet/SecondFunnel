@@ -120,7 +120,7 @@ Page.module("core", function(core, page, B, M, $, _) {
 
     core.LoadingIndicator = Backbone.Marionette.ItemView.extend({
         'tagName': 'div',
-        'class': 'loading',
+        'className': 'loading',
         'template': '#willet-tile-loading'
     });
 
@@ -132,7 +132,10 @@ Page.module("core", function(core, page, B, M, $, _) {
     // Perhaps this should be a composite view?
     //      Used for when a collection needs to be rendered with a wrapper
     core.DiscoveryArea = Backbone.Marionette.CollectionView.extend({
-        'itemView': page.core.TileView
+        // Will render some view when there are no results...
+        // How can we create an 'emptyView' that does
+        'emptyView': core.LoadingIndicator,
+        'itemView': core.TileView
         // How is this going to work when we have different types?
         // Apparently, we can use `getItemView` to handle that
     });

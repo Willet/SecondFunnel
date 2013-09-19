@@ -50,7 +50,21 @@ Page.addInitializer(function(options) {
     this.discoveryArea.show(options.discoveryAreaView);
 });
 
-// TODO: Should this always be last?
+Page.addInitializer(function(options) {
+    var self = this;
+    options = options || {};
+    options.window = options.window || window;
+
+    // According to previous documentation, we can't register scroll events
+    // otherwise, so, do it like this:
+    $(options.window).scroll(function() {
+        self.tiles.fetch({
+            'dataType': options.fetchMode
+        });
+    });
+});
+
+// TODO: Should this always be last? Or ever?
 Page.addInitializer(function(options) {
     _.extend(this, options);
 });
