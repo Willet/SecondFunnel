@@ -88,6 +88,11 @@ describe("Tile View:", function () {
             beforeEach(function(){
                 this.tileView  = createTestTileView();
                 this.tileView.render();
+
+                // In order for most of jquery-jasmine matchers to work,
+                // needs to be appended to DOM. Don't worry, it'll clean itself up
+                // Still, would be handy if we could just keep everythign in memory.
+                appendSetFixtures(this.tileView.$el);
             });
 
             it("Behaviour 1.1. (When a user activates a tile, that tile must) " +
@@ -123,8 +128,6 @@ describe("Tile View:", function () {
 
             it("Usability 5.1. If an image is loading, the user should see " +
                 "some indication that some action is taking place", function() {
-                // TODO: Be more specific about visibility
-
                 expect(this.tileView.loading).toBeTruthy();
 
                 this.tileView.render();
@@ -136,7 +139,7 @@ describe("Tile View:", function () {
                 expect(this.tileView.loadingIndicator.$el).not.toBeVisible();
             });
 
-            it("Usability 5.2. If an image is loading, a placeholder image " +
+            xit("Usability 5.2. If an image is loading, a placeholder image " +
                 "should be displayed with the dominant colour as the " +
                 "background colour", function() {
 

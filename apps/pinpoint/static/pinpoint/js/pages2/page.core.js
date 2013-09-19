@@ -86,6 +86,9 @@ Page.module("core", function(core, page, B, M, $, _) {
             options = options || {};
 
             this.loading = options.loading || this.defaults.loading;
+            this.indicators = {
+                'loading': options.loadingIndicator || new core.LoadingIndicator
+            };
         },
 
         activate: function() {
@@ -97,11 +100,9 @@ Page.module("core", function(core, page, B, M, $, _) {
             try {
                 Backbone.Marionette.Layout.prototype.render.call(this);
 
-                // TODO: Should this be in 'after:render'?
+                // TODO: Should this be in 'after:render'? Does that exist?
                 // TODO: Don't do things like this
-                this.loadingIndicator.show(new B.View({
-                    className: 'loading'
-                }));
+                this.loadingIndicator.show(this.indicators.loading);
             } catch (e) {
                 // TODO: Do *more* something on error
                 this.close();
@@ -114,5 +115,11 @@ Page.module("core", function(core, page, B, M, $, _) {
             this.loadingIndicator.reset();
             return this;
         }
+    });
+
+    core.LoadingIndicator = Backbone.Marionette.ItemView.extend({
+        'tagName': 'div',
+        'class': 'loading',
+        'template': '#willet-tile-loading'
     });
 });
