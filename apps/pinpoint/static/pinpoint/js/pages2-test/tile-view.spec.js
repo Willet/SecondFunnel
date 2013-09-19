@@ -71,8 +71,9 @@ describe("Tile View:", function () {
             "tile indicators, and so on", function() {
             var tileView = createTestTileView();
 
-            expect(tileView.buttons).toBeDefined();
-            expect(tileView.indicators).toBeDefined();
+            expect(tileView.buttonsIndicator).toBeDefined();
+            expect(tileView.loadingIndicator).toBeDefined();
+            expect(tileView.tapIndicator).toBeDefined();
 
             // TODO: Verify that these areas are regions
         });
@@ -127,12 +128,12 @@ describe("Tile View:", function () {
                 expect(this.tileView.loading).toBeTruthy();
 
                 this.tileView.render();
-                expect(this.tileView.indicators.$el).toBeVisible();
+                expect(this.tileView.loadingIndicator.$el).toBeVisible();
 
                 this.tileView.setLoading(false);
                 expect(this.tileView.loading).toBeFalsy();
 
-                expect(this.tileView.indicators.$el).not.toBeVisible();
+                expect(this.tileView.loadingIndicator.$el).not.toBeVisible();
             });
 
             it("Usability 5.2. If an image is loading, a placeholder image " +
@@ -164,7 +165,7 @@ describe("Tile View:", function () {
             xit("Error Handling 5.2. (If an error occurs during an " +
                 "activation action), landing pages should fall back to taking " +
                 "some default action ", function() {
-
+                // On activation fail, do whatever is defined in defaults
             });
         });
 

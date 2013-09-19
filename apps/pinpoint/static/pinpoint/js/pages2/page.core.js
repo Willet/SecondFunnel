@@ -65,9 +65,11 @@ Page.module("core", function(core, page, B, M, $, _) {
             loading: true
         },
 
+        // maybe later, just have a stack of indicators?
         regions: {
-            'buttons': '.buttons-region',
-            'indicators': '.indicators-region'
+            'tapIndicator'    : '.tap-region',
+            'buttonsIndicator': '.buttons-region',
+            'loadingIndicator': '.loading-region'
         },
 
         // Fire an event when something happens
@@ -97,7 +99,7 @@ Page.module("core", function(core, page, B, M, $, _) {
 
                 // TODO: Should this be in 'after:render'?
                 // TODO: Don't do things like this
-                this.indicators.show(new B.View({
+                this.loadingIndicator.show(new B.View({
                     className: 'loading'
                 }));
             } catch (e) {
@@ -109,7 +111,7 @@ Page.module("core", function(core, page, B, M, $, _) {
 
         setLoading: function(state) {
             this.loading = !!state;
-            this.indicators.reset();
+            this.loadingIndicator.reset();
             return this;
         }
     });
