@@ -257,7 +257,31 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
     });
 
     describe("Tile Interaction: ", function() {
-        // clicking tile launches preview
+        afterEach(function() {
+            this.resetApp(this.app);
+        });
+
+        // We'll settle for 'called its activate method'
+        it("Should launch a preview when clicking on a tile", function() {
+            var tileView;
+
+            loadFixtures('templates.html');
+
+            this.app.start();
+
+            tileView = new this.app.core.TileView({
+                el: $('<div></div>')
+            });
+            tileView.render();
+
+            spyOn(tileView, 'activate');
+            // Redelegate events so that our spy works, AFAIK
+            // http://stackoverflow.com/a/7930247
+            tileView.delegateEvents();
+            tileView.$el.click();
+            expect(tileView.activate).toHaveBeenCalled();
+        });
+
         // tile type renders dependent on data / model
         // buttons appear on hover
         // buttons don't appear on mobile
