@@ -283,8 +283,58 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
         });
 
         // buttons only appear on hover on desktop
+        it("Buttons should only appear on hover", function() {
+            var tileView;
+
+            loadFixtures('templates.html');
+
+            this.app.start();
+
+            tileView = new this.app.core.TileView({
+                el: $('<div></div>')
+            });
+            tileView.render();
+
+            expect(tileView.buttonsIndicator.$el).not.toBeDefined();
+
+            tileView.$el.mouseenter();
+
+            expect(tileView.buttonsIndicator.$el).toBeDefined();
+            expect(tileView.buttonsIndicator.$el).not.toBeEmpty();
+
+            tileView.$el.mouseleave();
+            expect(tileView.buttonsIndicator.$el).not.toBeDefined();
+        });
 
         // buttons don't appear on mobile
+        it("Buttons should not appear at all on mobile", function() {
+            var tileView;
+
+            loadFixtures('templates.html');
+
+            this.app.start({
+                mobile: true
+            });
+
+            tileView = new this.app.core.TileView({
+                el: $('<div></div>')
+            });
+            tileView.render();
+
+            expect(tileView.buttonsIndicator.$el).not.toBeDefined();
+
+            // not really possible on mobile, but lets try!
+            tileView.$el.mouseenter();
+            expect(tileView.buttonsIndicator.$el).not.toBeDefined();
+
+            // not really possible on mobile, but lets try!
+            tileView.$el.mouseleave();
+            expect(tileView.buttonsIndicator.$el).not.toBeDefined();
+        });
+
+        // TODO: Test that tap equivalents do not trigger hover.
+
+        // hover events shouldn't be registered at all on mobile
 
         // specific buttons render depending on page settings? (Here or elsewhere)
 

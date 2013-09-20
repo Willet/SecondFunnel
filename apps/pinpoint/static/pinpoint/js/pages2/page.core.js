@@ -82,9 +82,16 @@ Page.module("core", function(core, page, B, M, $, _) {
         //triggers: {},
 
         events: function() {
-            return {
-                'click': 'activate'
+            var events = {};
+
+            events.click = 'activate';
+
+            if (!page.mobile) {
+                events.mouseenter = 'mouseenter';
+                events.mouseleave = 'mouseleave';
             }
+
+            return events;
         },
 
         initialize: function (options) {
@@ -93,7 +100,8 @@ Page.module("core", function(core, page, B, M, $, _) {
             this.loading = options.loading || this.defaults.loading;
             this.indicators = {
                 'loading': options.loadingIndicator || new core.LoadingIndicator,
-                'tap': options.tapIndicator || new core.TapIndicator
+                'tap': options.tapIndicator || new core.TapIndicator,
+                'buttons': options.buttonsIndicator || new core.ButtonsIndicator
             };
         },
 
@@ -101,6 +109,14 @@ Page.module("core", function(core, page, B, M, $, _) {
             // Why do I need to pass along the page?
             page.vent.trigger('fetch:related', page);
             return this;
+        },
+
+        mouseenter: function() {
+            this.buttonsIndicator.show(this.indicators.buttons);
+        },
+
+        mouseleave: function() {
+            this.buttonsIndicator.reset();
         },
 
         render: function() {
@@ -154,6 +170,21 @@ Page.module("core", function(core, page, B, M, $, _) {
         'tagName': 'div',
         'className': 'tap',
         'template': '#willet-tile-tap',
+        render: function() { // TODO: Make a 'BaseItemView' that does this
+            try {
+                Backbone.Marionette.ItemView.prototype.render.call(this);
+            } catch (e) {
+                // TODO: Do *more* something on error
+                this.close();
+            }
+            return this;
+        }
+    });
+
+    core.ButtonsIndicator = Backbone.Marionette.ItemView.extend({
+        'tagName': 'div',
+        'className': 'buttons',
+        'template': '#willet-buttons',
         render: function() { // TODO: Make a 'BaseItemView' that does this
             try {
                 Backbone.Marionette.ItemView.prototype.render.call(this);
