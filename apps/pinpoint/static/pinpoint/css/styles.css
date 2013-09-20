@@ -1,0 +1,46 @@
+@charset "UTF-8";
+
+
+.main-image-container {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+@media (min-width: 768px) {
+    .accordion-container {
+        /* Allow scrolling accordion on tablet and desktop */
+        overflow-y: auto;
+        height: 345px;
+        padding-left: 0;
+    }
+
+    .panel-group .panel .panel-body{
+        max-height: 209px!important;
+        overflow-y: auto;
+        /* constant height */
+        height: 209px;
+    }
+}
+
+
+.panel-default>a>.panel-heading {
+    background-color: #f8f8f8;
+    color: #333;
+    border-color: #ddd;
+    border-bottom: 0;
+}
+.panel-default>a:hover {
+    cursor: pointer;
+}
+.buttons-container {
+    padding: 0 0 7px 9px;
+}
+
+.nav-tabs>li>a:hover {
+    cursor: pointer;
+}
+
+.previewContainer .gap-buttons .button.find-store {
+    width: 154px!important;
+
+}
