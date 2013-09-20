@@ -163,13 +163,33 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
         });
 
         // show loading indicator when loading
+        it("Should show a loading indicator when loading tiles", function() {
+            var tileView;
+
+            loadFixtures('templates.html');
+
+            this.app.start();
+
+            tileView = new this.app.core.TileView({
+                el: $('<div></div>')
+            });
+            tileView.render();
+
+            expect(tileView.loading).toBeTruthy();
+            expect(tileView.loadingIndicator.$el).not.toBeEmpty();
+
+            tileView.setLoading(false);
+
+            // Actually removes the indicator entirely.
+            expect(tileView.loading).toBeFalsy();
+            expect(tileView.loadingIndicator.$el).toBeUndefined();
+        });
         // show tap indicator if on mobile
         // show mouse hints if not on mobile
     });
 
     describe("Tile Interaction: ", function() {
         // clicking tile launches preview
-        // more results are fetched on tile click
         // tile type renders dependent on data / model
         // buttons appear on hover
         // buttons don't appear on mobile
