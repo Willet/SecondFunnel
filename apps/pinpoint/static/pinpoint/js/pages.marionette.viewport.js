@@ -74,10 +74,11 @@
                 return [false, undefined, undefined, 'width invalid'];
             }
 
-            var adjustedScale = Math.min(
-                    10,
+            // http://stackoverflow.com/a/6134070/1558430
+            var adjustedScale = parseFloat(Math.round(Math.min(
+                    10,  // viewport scale > 10 is not allowed.
                     ($window.width() / desiredWidth).toFixed(2)
-                ),
+                ) * 100) / 100).toFixed(2),
                 proposedMeta = "user-scalable=no," +
                                "width=" + desiredWidth + "," +
                                "initial-scale=" + adjustedScale + "," +
