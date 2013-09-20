@@ -288,8 +288,9 @@ describe("SecondFunnel", function () {
                             'model': app.options.featured
                         })
                         .render().load().$el;
-
-                    expect(buttons.find('.facebook').hasClass('no-count')).toEqual(true);
+                    if (buttons.find('.facebook').length) {
+                        expect(buttons.find('.facebook').hasClass('no-count')).toEqual(true);
+                    }  // else: didn't have facebook
                 });
 
                 it("Social buttons must be configurable with " +
