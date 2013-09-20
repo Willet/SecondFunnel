@@ -223,6 +223,37 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
         });
 
         // show mouse hints if not on mobile
+        it("Should show mouse hints if not on mobile", function() {
+            var tileView;
+
+            loadFixtures('templates.html');
+
+            this.app.start({
+                mobile: true
+            });
+
+            tileView = new this.app.core.TileView({
+                el: $('<div></div>')
+            });
+            tileView.render();
+
+            expect(tileView.$el).not.toHaveClass('mouse-hint');
+        });
+
+        it("Should not show mouse hints if not on mobile", function() {
+            var tileView;
+
+            loadFixtures('templates.html');
+
+            this.app.start();
+
+            tileView = new this.app.core.TileView({
+                el: $('<div></div>')
+            });
+            tileView.render();
+
+            expect(tileView.$el).toHaveClass('mouse-hint');
+        })
     });
 
     describe("Tile Interaction: ", function() {

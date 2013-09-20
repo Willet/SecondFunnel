@@ -114,6 +114,8 @@ Page.module("core", function(core, page, B, M, $, _) {
                 // TODO: Move this down to tapIndicator?
                 if (page.mobile) {
                     this.tapIndicator.show(this.indicators.tap);
+                } else {
+                    this.$el.addClass('mouse-hint');
                 };
             } catch (e) {
                 // TODO: Do *more* something on error
