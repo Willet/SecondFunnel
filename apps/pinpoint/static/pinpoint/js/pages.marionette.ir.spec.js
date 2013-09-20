@@ -12,24 +12,24 @@ describe('intentRank', function () {
         areWeDone = function() {return done;},
         delay = 100,
 
-        mockAjaxSuccess = function (patameters) {
+        mockAjaxSuccess = function (parameters) {
             var results = [];
-            for (var i = 0; i < patameters.data.results; ++i) {
+            for (var i = 0; i < parameters.data.results; ++i) {
                 results.push({});
             }
             // make it asynchronous
-            setTimeout(function () {patameters.success(results)}, delay);
-            patameters.success(results);
+            setTimeout(function () {parameters.success(results)}, delay);
+            parameters.success(results);
         },
 
-        mockAjaxZeroResults = function (patameters) {
+        mockAjaxZeroResults = function (parameters) {
             // make it asynchronous
-            setTimeout(function () {patameters.success([])}, delay);
+            setTimeout(function () {parameters.success([])}, delay);
         },
 
-        mockAjaxError = function (patameters) {
+        mockAjaxError = function (parameters) {
             // make it asynchronous
-            setTimeout(function () {patameters.error('jqXHR', 'textStatus', 'errorThrown')}, delay);
+            setTimeout(function () {parameters.error('jqXHR', 'textStatus', 'errorThrown')}, delay);
         };
 
     beforeEach(function () {
