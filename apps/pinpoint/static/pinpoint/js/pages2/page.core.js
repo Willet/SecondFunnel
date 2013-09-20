@@ -131,6 +131,10 @@ Page.module("core", function(core, page, B, M, $, _) {
         }
     });
 
+    core.VideoView = core.TileView.extend({
+        className: 'tile video'
+    });
+
     core.LoadingIndicator = Backbone.Marionette.ItemView.extend({
         'tagName': 'div',
         'className': 'loading',
@@ -181,8 +185,21 @@ Page.module("core", function(core, page, B, M, $, _) {
         // Will render some view when there are no results...
         // How can we create an 'emptyView' that does
         'emptyView': core.LoadingIndicator,
-        'itemView': core.TileView
-        // How is this going to work when we have different types?
-        // Apparently, we can use `getItemView` to handle that
+        'itemView': core.TileView,
+        getItemView: function(item) {
+            var type = item.get('template'),
+                cls;
+
+            switch(type) {
+                case 'video':
+                    cls = core.VideoView;
+                    break;
+                default:
+                    cls = core.TileView;
+                    break;
+            }
+
+            return cls;
+        }
     });
 });

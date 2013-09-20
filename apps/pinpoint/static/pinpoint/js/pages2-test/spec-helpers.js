@@ -32,6 +32,7 @@ beforeEach(function() {
 
     this.generateTile = function(options) {
         // TODO: generate random tiles
+        options = options || {};
 
         return {
             "description": "",
@@ -41,7 +42,7 @@ beforeEach(function() {
             "title": "Jimmy - Jiffy Black",
             "lifestyle-image": "http://images.secondfunnel.com/store/generic/generic/d7278173d66e6b3dce27c6c1f5f0798d/master.jpg",
             "id": "5383",
-            "template": "combobox",
+            "template": options.type || "combobox",
             "images": [
                 "http://images.secondfunnel.com/store/nativeshoes/product/5383/image/c64b054e88cc4a7a2d2f0a27c8e57cdf/master.jpg",
                 "http://images.secondfunnel.com/store/nativeshoes/product/5383/image/f772f1fc737b684106ef8036da67cccf/master.jpg",
@@ -53,6 +54,7 @@ beforeEach(function() {
         }
     };
 });
+
 afterEach(function() {
     //Clear the template cache!
     Backbone.Marionette.TemplateCache.clear();

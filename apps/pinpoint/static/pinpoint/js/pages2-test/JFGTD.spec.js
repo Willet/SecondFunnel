@@ -282,11 +282,51 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
             expect(tileView.activate).toHaveBeenCalled();
         });
 
-        // tile type renders dependent on data / model
-        // buttons appear on hover
+        // buttons only appear on hover on desktop
+
         // buttons don't appear on mobile
+
         // specific buttons render depending on page settings? (Here or elsewhere)
-        // different tile types (e.g. video, etc.)
+
+    });
+
+    describe("Tile Collection:", function() {
+        beforeEach(function() {
+            loadFixtures('pageTemplate.html', 'templates.html');
+
+            this.server = sinon.fakeServer.create();
+            this.server.autoRespond = true;
+            this.server.respondWith(
+                this.response([
+                    this.generateTile({type: 'video'}),
+                    this.generateTile()
+                ])
+            );
+        });
+
+        afterEach(function() {
+            this.resetApp(this.app);
+            this.server.restore();
+        });
+
+        // tile type renders dependent on data / model
+        it("Should render different views depending on the model", function() {
+            // fill collection with two different models.
+            // check the views
+            var options = {
+                fetchMode: 'json' // dirty hack
+            };
+
+            this.app.start(options);
+
+            // Apparently, Nick got lazy
+            this.app.tiles.fetch({dataType: 'json'});
+            this.server.respond();
+
+            expect(this.app.discoveryArea.$el).not.toBeEmpty();
+            expect(this.app.discoveryArea.$el.find('.tile').length).toEqual(2);
+            expect(this.app.discoveryArea.$el.find('.tile.video').length).toEqual(1);
+        });
     });
 
     describe("Preview: ", function() {
