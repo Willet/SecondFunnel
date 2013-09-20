@@ -53,3 +53,7 @@ beforeEach(function() {
         }
     };
 });
+afterEach(function() {
+    //Clear the template cache!
+    Backbone.Marionette.TemplateCache.clear();
+});

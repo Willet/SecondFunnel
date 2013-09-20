@@ -123,12 +123,45 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
         });
     });
 
+    describe("Page Templates:", function() {
+        it("Should not render views that don't have a template", function() {
+            var self = this,
+                renderTemplatesOnStart = function() {
+                self.app.start();
+            }
+            expect(renderTemplatesOnStart).not.toThrow();
+        });
+    });
+
     describe("Tile Models:", function() {
         // ???
     });
 
     describe("Tile Loading:", function() {
+        beforeEach(function() {
+            loadFixtures('pageTemplate.html');
+        });
+
         // don't render tiles that don't have a template
+        it("Should not render tiles that don't have a template", function() {
+            var tileView;
+            this.app.start();
+
+            tileView = new this.app.core.TileView({
+                el: $('<div></div>')
+            });
+            tileView.render();
+            expect(tileView.$el).toBeEmpty();
+
+            // loadFixtures wipes out any previously loaded fixtures
+            loadFixtures('templates.html');
+            tileView = new this.app.core.TileView({
+                el: $('<div></div>')
+            });
+            tileView.render();
+            expect(tileView.$el).not.toBeEmpty();
+        });
+
         // show loading indicator when loading
         // show tap indicator if on mobile
         // show mouse hints if not on mobile

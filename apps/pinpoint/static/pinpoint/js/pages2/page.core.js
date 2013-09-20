@@ -126,12 +126,30 @@ Page.module("core", function(core, page, B, M, $, _) {
     core.LoadingIndicator = Backbone.Marionette.ItemView.extend({
         'tagName': 'div',
         'className': 'loading',
-        'template': '#willet-tile-loading'
+        'template': '#willet-tile-loading',
+        render: function() { // TODO: Make a 'BaseItemView' that does this
+            try {
+                Backbone.Marionette.ItemView.prototype.render.call(this);
+            } catch (e) {
+                // TODO: Do *more* something on error
+                this.close();
+            }
+            return this;
+        }
     });
 
     core.HeroAreaView = Backbone.Marionette.ItemView.extend({
         'tagName': 'div',
-        'template': '#willet-hero-area'
+        'template': '#willet-hero-area',
+        render: function() {
+            try {
+                Backbone.Marionette.ItemView.prototype.render.call(this);
+            } catch (e) {
+                // TODO: Do *more* something on error
+                this.close();
+            }
+            return this;
+        }
     });
 
     // Perhaps this should be a composite view?
