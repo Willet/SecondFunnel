@@ -60,7 +60,7 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
         });
 
         // collection loads more results on page scroll
-        it("should load more results on page scroll", function() {
+        it("Should load more results on page scroll", function() {
             var numTiles,
                 // How can we avoid using JSONP in test, in general?
                 // Maybe pass in a testing collection that extends the
@@ -101,6 +101,26 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
         });
 
         // collection loads more results when fetch related is called
+        it("Should load more results when an item is clicked", function () {
+            this.app.start({
+                'fetchMode': 'json'
+            });
+
+            // What would be better would be triggering
+            // a tile's 'activate' method
+
+            spyOn(this.app.tiles, 'fetch').andCallThrough();
+
+            this.app.vent.trigger('fetch:related', this.app);
+
+            expect(this.app.tiles.fetch).toHaveBeenCalled();
+            // Always need to call respond when using
+            // fake server asynchronously...
+            this.server.respond();
+
+            expect(this.app.discoveryArea.$el.find('.tile').length)
+                .toBeGreaterThan(0);
+        });
     });
 
     describe("Tile Models:", function() {

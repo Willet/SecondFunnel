@@ -15,9 +15,11 @@ Page.module("core", function(core, page, B, M, $, _) {
     core.TileCollection = Backbone.Collection.extend({
         url: "http://localhost:8000/intentrank/store/nativeshoes/campaign/32/getresults",
         model: core.Tile,
+
         add: function (model) {
             Backbone.Collection.prototype.add.call(this, model);
         },
+
         set: function (models, options) {
             // If the element already exists, fire an add event anyway
             // Alternatively, we could dupe the model via .toJSON();
@@ -42,9 +44,11 @@ Page.module("core", function(core, page, B, M, $, _) {
                 (existing = duplicates[i]).trigger('add', existing, this, options);
             }
         },
+
         parse: function (response) {
             return response;
         },
+
         fetch: function(options) {
             options = options || {};
             options.results = 10;
@@ -93,7 +97,8 @@ Page.module("core", function(core, page, B, M, $, _) {
         },
 
         activate: function() {
-            page.vent.trigger('fetch:related');
+            // Why do I need to pass along the page?
+            page.vent.trigger('fetch:related', page);
             return this;
         },
 

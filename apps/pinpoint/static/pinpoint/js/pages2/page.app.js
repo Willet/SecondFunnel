@@ -68,3 +68,13 @@ Page.addInitializer(function(options) {
 Page.addInitializer(function(options) {
     _.extend(this, options);
 });
+
+// this doesn't feel right; perhaps we should be using controllers? e.g.
+//      https://github.com/davidsulc/marionette-gentle-introduction/blob/master/assets/js/apps/contacts/list/list_controller.js#L38
+Page.vent.on('fetch:related', function(page) {
+    // why can't we have a consistent set of arguments when listening on the vent?
+
+    page.tiles.fetch({
+        'dataType': page.fetchMode
+    });
+});
