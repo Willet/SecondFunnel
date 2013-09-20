@@ -1,22 +1,19 @@
 /*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _,
   Willet, broadcast */
-// JSLint/Emacs js2-mode directive to stop global 'undefined' warnings.
-// Declaration of the SecondFunnel JS application
-SecondFunnel = (function (SecondFunnel, $window, $document) {
+SecondFunnel.module('core', function (core, SecondFunnel) {
+    // other args: https://github.com/marionettejs/backbone.marionette/blob/master/docs/marionette.application.module.md#custom-arguments
     "use strict";
-
-    var Tile, TileCollection, HeroAreaView, TileView,
-        VideoTileView, Discovery, Category, CategoryView,
-        CategorySelector, PreviewContent, PreviewWindow,
-        TapIndicator, EventManager, ShadowTile, getModifiedTemplateName;
+    var $window = $(window),
+        $document = $(document),
+        Tile, TileCollection, HeroAreaView, TileView, VideoTileView,
+        Category, CategoryView, CategorySelector, PreviewContent, PreviewWindow,
+        TapIndicator, getModifiedTemplateName;
 
     // not actual php values
     _.extend(SecondFunnel, {
         QUIET: 0, ERROR: 1, WARNING: 2, LOG: 3, VERBOSE: 4, ALL: 5
     });
 
-    // keep reference to options. this needs to be done before classes are declared.
-    SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     SecondFunnel.option = function (name, defaultValue) {
         // convenience method for accessing PAGES_INFO or TEST_*.
         // to access deep options (e.g. PAGES_INFO.store.name), use the key
@@ -45,30 +42,13 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             }
         } catch (KeyError) {
             // requested traversal path does not exist. do the next line
-            if (SecondFunnel.options.debug >= SecondFunnel.WARNING) {
+            if (SecondFunnel.options &&
+                SecondFunnel.options.debug >= SecondFunnel.WARNING) {
                 console.warn('Missing option: ' + name);
             }
         }
         return defaultValue;  // ...and defaultValue defaults to undefined
     };
-
-    try {
-        SecondFunnel.options.debug = SecondFunnel.QUIET;
-
-        if (window.location.hostname === 'localhost' ||
-            window.location.hostname === '127.0.0.1') {
-            SecondFunnel.options.debug = SecondFunnel.ERROR;
-        }
-
-        (function (hash) {
-            var hashIdx = hash.indexOf('debug=');
-            if (hashIdx > -1) {
-                SecondFunnel.options.debug = hash[hashIdx + 6];
-            }
-        }(window.location.hash + window.location.search));
-    } catch (e) {
-        // this is an optional operation. never let this stop the script.
-    }
 
     Backbone.Marionette.TemplateCache._exists = function (templateId) {
         // Marionette TemplateCache extension to allow checking cache for template
@@ -288,7 +268,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'regions': _.extend({}, {  // if ItemView, the key is 'ui': /docs/marionette.itemview.md#organizing-ui-elements
             'socialButtons': '.social-buttons',
             'tapIndicator': '.tap-indicator-target'
-        }, SecondFunnel.options.regions || {}),
+        }, _.get(SecondFunnel.options, 'regions') || {}),
 
         'initialize': function (options) {
             // Creates the TileView using the options.  Subclasses should not override this
@@ -404,7 +384,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             if (this.tapIndicator && this.socialButtons) {
                 // Need to do this check in case layout is closing due
                 // to broken images.
-                if (SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length && 
+                if (SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length &&
                     !(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
                     this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({model: this.model}));
                 }
@@ -487,7 +467,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         }
     });
 
-    Discovery = Backbone.Marionette.CompositeView.extend({
+    core.Discovery = Backbone.Marionette.CompositeView.extend({
         // Manages the HTML/View of ALL the tiles on the page (our discovery area)
         // tagName: "div"
         'el': $(SecondFunnel.option('discoveryTarget')),
@@ -506,8 +486,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // Initialize IntentRank; use as a seperate module to make changes easier.
             SecondFunnel.intentRank.initialize(options);
 
-            // Black box Masonry (this will make migrating easier in the future)
-            SecondFunnel.layoutEngine.initialize(this.$el);
             this.collection = new TileCollection();
             this.categories = new CategorySelector(  // v-- options.categories is deprecated
                 SecondFunnel.option("page:categories") ||
@@ -945,25 +923,6 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         }
     });
 
-    EventManager = Backbone.View.extend({
-        // Top-level event binding wrapper. all events bubble up to this level.
-        // the theme can declare as many event handlers as they like by creating
-        // their own new EventManager({ event: handler, event: ... })s.
-        'el': $window.add($document),
-        'initialize': function (bindings) {
-            var self = this;
-            _.each(bindings, function (func, key, l) {
-                var event = key.substr(0, key.indexOf(' ')),
-                    selectors = key.substr(key.indexOf(' ') + 1);
-                self.$el.on(event, selectors, func);
-                if (SecondFunnel.option('debug', SecondFunnel.QUIET) >=
-                    SecondFunnel.LOG) {
-                    console.log('regEvent ' + key);
-                }
-            });
-        }
-    });
-
     getModifiedTemplateName = function (name) {
         // If this logic gets any more complex, it should be moved into
         // Tile or TileView.
@@ -973,13 +932,9 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
     // expose some classes (only if required)
     SecondFunnel.classRegistry = {
-        Discovery: Discovery,
-        EventManager: EventManager,
         HeroAreaView: HeroAreaView,
         Tile: Tile,
         TileView: TileView,
         trailingCommas: undefined
     };
-
-    return SecondFunnel;
-}(SecondFunnel, $(window), $(document)));
+});

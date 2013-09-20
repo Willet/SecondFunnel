@@ -3,6 +3,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
 
     var $document = $(document),
         $window = $(window),
+        EventManager,
         isBounce = true,  // this flag set to false once user scrolls down
         videosPlayed = [],
         GA_CUSTOMVAR_SCOPE = {
@@ -124,6 +125,25 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
                 'label': label
             }
         };
+
+    EventManager = Backbone.View.extend({
+        // Top-level event binding wrapper. all events bubble up to this level.
+        // the theme can declare as many event handlers as they like by creating
+        // their own new EventManager({ event: handler, event: ... })s.
+        'el': $window.add($document),
+        'initialize': function (bindings) {
+            var self = this;
+            _.each(bindings, function (func, key, l) {
+                var event = key.substr(0, key.indexOf(' ')),
+                    selectors = key.substr(key.indexOf(' ') + 1);
+                self.$el.on(event, selectors, func);
+                if (SecondFunnel.option('debug', SecondFunnel.QUIET) >=
+                    SecondFunnel.LOG) {
+                    console.log('regEvent ' + key);
+                }
+            });
+        }
+    });
 
     tracker.setSocialShareVars = function (o) {
         if (o && o.url && o.sType) {
@@ -260,6 +280,10 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         addItem(['_trackPageview']);
 
         tracker.setSocialShareVars();
+
+        // register event maps
+        var defaults = new EventManager(tracker.defaultEventMap),
+            customs = new EventManager(SecondFunnel.option('events'));
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?

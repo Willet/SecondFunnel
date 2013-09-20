@@ -4,19 +4,19 @@
         <title>Jasmine Spec Runner</title>
 
         <link rel="stylesheet" type="text/css" href="../testing/lib/jasmine-1.3.1/jasmine.css">
-        <script src="../testing/lib/jasmine-1.3.1/jasmine.js"></script>
-        <script src="../testing/lib/jasmine-1.3.1/jasmine-html.js"></script>
-        <script src="../testing/lib/jasmine-1.3.1/jasmine-console.js"></script>
 
         <!-- include source files here... -->
         <script src="js/test_config.js"></script>
+
         <script src="//connect.facebook.net/en_US/all.js"></script>
         <script src="//google-analytics.com/ga.js"></script>
 
         <script src="../js/respond.min.js"></script>
         <script src="../js/jquery.min.js"></script>
         <script src="../js/jquery.mobile.swipeonly.min.js"></script>
+        <script src="../js/jquery.browser.mobile.js"></script>
         <script src="../js/jquery.viewport.min.js"></script>
+        <script src="../js/jquery.jsonp.min.js"></script>
         <script src="../js/json2.js"></script>
         <script src="../js/underscore.js"></script>
         <script src="../js/backbone.js"></script>
@@ -113,30 +113,12 @@
         </script>
 
         <!-- include spec files here... -->
-        <script src="js/pages.marionette.preinit.spec.js"></script>
-        <script src="js/pages.marionette.spec.js"></script>
-        <script src="js/pages.marionette.support.spec.js"></script>
-        <script src="js/pages.marionette.utils.spec.js"></script>
-        <script src="js/pages.marionette.layoutengine.spec.js"></script>
-        <script src="js/pages.marionette.viewport.spec.js"></script>
         <script type="text/javascript">
-            SecondFunnel.start(SecondFunnel.options);
-
-            $(document).ready(function () {
-
-                var jasmineEnv = jasmine.getEnv();
-                jasmineEnv.updateInterval = 1000;
-
-                var htmlReporter = new jasmine.HtmlReporter();
-
-                jasmineEnv.addReporter(htmlReporter);
-
-                jasmineEnv.specFilter = function (spec) {
-                    return htmlReporter.specFilter(spec);
-                };
-
-                jasmineEnv.execute();
-            });
+            if (window.SecondFunnel) {
+                // Start the SecondFunnel app
+                // (which also starts the SpecRunner)
+                SecondFunnel.start();
+            }
         </script>
     </body>
 </html>

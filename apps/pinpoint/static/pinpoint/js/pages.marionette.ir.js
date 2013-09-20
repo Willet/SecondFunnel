@@ -78,8 +78,8 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             'timeout': opts.IRTimeout,
             'success': function (results) {
                 // Check for non-empty results.
-                results = results.length ?
-                          results :
+                results = (results && results.length)?
+                          results:
                     // If no results, fetch from backup
                           _.shuffle(opts.backupResults);
                 results = _.first(results, opts.IRResultsCount);

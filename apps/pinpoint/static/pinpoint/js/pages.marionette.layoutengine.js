@@ -25,18 +25,17 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                 '-moz-transform': 'none'
             }
         },
-        lastOpts;  // last-used options (used by clear())
+        opts;  // last-used options (used by clear())
 
-    layoutEngine.initialize = function ($elem, options) {
-        var mobile = SecondFunnel.support.mobile(),
-            opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
-            lastOpts = opts;  // keep a copy for clear()
+    layoutEngine.on('start', function () {  // this = layoutEngine
+        opts = $.extend({}, defaults, opts, _.get(opts, 'masonry'));
 
-        $elem.masonry(opts);
-        layoutEngine.$el = $elem;  // TODO: wat
+        this.$el = $(SecondFunnel.option('discoveryTarget'));
+        this.$el.masonry(opts);
+
         broadcast('layoutEngineInitialized', layoutEngine, opts);
         return layoutEngine;
-    };
+    });
 
     layoutEngine.call = function (callback, $fragment) {
         // relays the function to be run after imagesLoaded.
@@ -112,7 +111,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
             .masonry('destroy')
             .html("")
             .css('position', 'relative')
-            .masonry(lastOpts);
+            .masonry(opts);
     };
 
     /**

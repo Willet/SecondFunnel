@@ -8,6 +8,8 @@ var SecondFunnel = new Backbone.Marionette.Application(),
     ev = new $.Event('remove'),
     orig = $.fn.remove;
 
+SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
+
 // A ?debug value of > 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 if (!window.console) {  // shut up JSLint / good practice
@@ -277,28 +279,45 @@ debugOp = function () {
 
 // allow jasmine to run on the campaign page if the url contains "specrunner".
 // not an initializer (too late)
-$(document).ready(function () {
-    var protoSrcMaps = [
-        "/static/testing/lib/jasmine-1.3.1/jasmine.js",
-        "/static/testing/lib/jasmine-1.3.1/jasmine-console.js",
-        "/static/pinpoint/js/pages.marionette.preinit.spec.js",
-        "/static/pinpoint/js/pages.marionette.preinit.spec.js",
-        "/static/pinpoint/js/pages.marionette.spec.js",
-        "/static/pinpoint/js/pages.marionette.support.spec.js",
-        "/static/pinpoint/js/pages.marionette.utils.spec.js",
-        "/static/pinpoint/js/pages.marionette.layoutengine.spec.js",
-        "/static/pinpoint/js/pages.marionette.viewport.spec.js",
-        "/static/js/jasmine.specrunner.js"
-    ];
+(function () {
+    var getScripts = function (urls, callback) {
+            var script = urls.shift();
+            $.getScript(script, function () {
+                if (urls.length + 1 <= 0) {
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
+                } else {
+                    getScripts(urls, callback);
+                }
+            });
+        },
+        runTest = function () {
+            var protoSrcMaps = [
+                    "/static/testing/lib/jasmine-1.3.1/jasmine.js",
+                    "/static/testing/lib/jasmine-1.3.1/jasmine-html.js",
+                    "/static/testing/lib/jasmine-1.3.1/jasmine-console.js",
+                    "/static/pinpoint/js/pages.marionette.preinit.spec.js",
+                    "/static/pinpoint/js/pages.marionette.spec.js",
+                    "/static/pinpoint/js/pages.marionette.support.spec.js",
+                    "/static/pinpoint/js/pages.marionette.utils.spec.js",
+                    "/static/pinpoint/js/pages.marionette.layoutengine.spec.js",
+                    "/static/pinpoint/js/pages.marionette.viewport.spec.js"
+                ],
+                href = window.location.href.toLowerCase();
 
-    if (window.location.href.toLowerCase().indexOf('specrunner') < 0) {
-        return;
-    }
+            if (href.indexOf('specrunner.html') > 0) {
+                protoSrcMaps.push("/static/js/jasmine.specrunner.html.js");
+            } else if (href.indexOf('specrunner') > 0) {
+                protoSrcMaps.push("/static/js/jasmine.specrunner.console.js");
+            } else {
+                return;
+            }
 
-    if (window.SecondFunnel) {
-        // test/production/s3 overridable
-        protoSrcMaps = SecondFunnel.option('protoSrcMaps', protoSrcMaps);
-    }
+            protoSrcMaps = SecondFunnel.option('protoSrcMaps') || protoSrcMaps;
+            // return _.each(protoSrcMaps, addScript);
+            getScripts(protoSrcMaps);
+        };
 
-    _.map(protoSrcMaps, $.getScript);
-});
+    SecondFunnel.vent.on('finished', runTest);
+}());

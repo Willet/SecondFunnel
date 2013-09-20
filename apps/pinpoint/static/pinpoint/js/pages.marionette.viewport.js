@@ -21,7 +21,7 @@
          * returns an array containing viewport analysis
          *
          * @param {int} desiredWidth
-         * @return {array} enabled[, width, scale, meta], some of which can
+         * @return {Array} enabled[, width, scale, meta], some of which can
          *                 be undefined if not applicable.
          */
         viewport.determine = function (desiredWidth) {
@@ -37,14 +37,14 @@
                 if (app.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
                     console.warn('viewport agent disabled.');
                 }
-                return [false, undefined, undefined, undefined];
+                return [false, undefined, undefined, 'disabled'];
             }
 
             if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
                 if (app.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
                     console.warn('viewport agent called on device with unsupported ppi.');
                 }
-                return [false, undefined, undefined, undefined];
+                return [false, undefined, undefined, 'unsupported ppi'];
             }
 
             desiredWidth = desiredWidth || app.option('desiredWidth') || function () {
@@ -64,17 +64,20 @@
                 if (app.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
                     console.warn('viewport agent not called with number.');
                 }
-                return [false, undefined, undefined, undefined];
+                return [false, undefined, undefined, 'width NaN'];
             }
 
             if (!desiredWidth || desiredWidth <= 0 || desiredWidth > 2048) {
                 if (app.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
                     console.warn('viewport agent called with invalid width.');
                 }
-                return [false, undefined, undefined, undefined];
+                return [false, undefined, undefined, 'width invalid'];
             }
 
-            var adjustedScale = ($window.width() / desiredWidth).toFixed(2),
+            var adjustedScale = Math.min(
+                    10,
+                    ($window.width() / desiredWidth).toFixed(2)
+                ),
                 proposedMeta = "user-scalable=no," +
                                "width=" + desiredWidth + "," +
                                "initial-scale=" + adjustedScale + "," +
@@ -107,6 +110,8 @@
                     metaTag.prop('content', proposedMeta);
                     broadcast('viewportResized', desiredWidth);
                 }
+            } else {
+                broadcast('viewportNotResized', analysis[3]);
             }
         };
     });

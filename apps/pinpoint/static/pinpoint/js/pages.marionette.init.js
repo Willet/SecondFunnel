@@ -12,18 +12,32 @@ function reInitialize(app) {
         return;
     }
 
-    app.addInitializer(function (options) {
-        // delegated analytics bindings
-        var defaults = new app.classRegistry.EventManager(app.tracker.defaultEventMap),
-            customs = new app.classRegistry.EventManager(options.events);
+    app.addInitializer(function () {
+        try {
+            SecondFunnel.options.debug = SecondFunnel.QUIET;
+
+            if (window.location.hostname === 'localhost' ||
+                window.location.hostname === '127.0.0.1') {
+                SecondFunnel.options.debug = SecondFunnel.ERROR;
+            }
+
+            (function (hash) {
+                var hashIdx = hash.indexOf('debug=');
+                if (hashIdx > -1) {
+                    SecondFunnel.options.debug = hash[hashIdx + 6];
+                }
+            }(window.location.hash + window.location.search));
+        } catch (e) {
+            // this is an optional operation. never let this stop the script.
+        }
     });
 
-    app.addInitializer(function (options) {
+    app.addInitializer(function () {
         // set its width to whatever it began with.
         app.options.initialWidth = $(window).width();
     });
 
-    app.addInitializer(function (options) {
+    app.addInitializer(function () {
         if (app.option('debug', false) >= app.ALL) {
             $(document).ready(function () {
                 // don't use getScript, firebug needs to know its src path
@@ -48,7 +62,7 @@ function reInitialize(app) {
         }
     });
 
-    app.addInitializer(function (options) {
+    app.addInitializer(function () {
         try {
             var fa = new app.classRegistry.HeroAreaView();
             fa.render();
@@ -60,7 +74,7 @@ function reInitialize(app) {
         }
     });
 
-    app.addInitializer(function (options) {
+    app.addInitializer(function () {
         if (window.console) {
             app.vent.on('log', function () {
                 try {  // console.log is an object in IE...?
@@ -94,10 +108,10 @@ function reInitialize(app) {
         }
     });
 
-    app.addInitializer(function (options) {
+    app.addInitializer(function () {
         // Add our initializer, this allows us to pass a series of tiles
         // to be displayed immediately (and first) on the landing page.
-        broadcast('beforeInit', options, app);
+        broadcast('beforeInit', app.options, app);
 
         $('.brand-label').text(app.option("store:displayName") ||
                                _.capitalize(app.option("store:name")) ||
@@ -107,11 +121,11 @@ function reInitialize(app) {
             broadcast('ajaxError', settings.url, app);
         });
 
-        app.discovery = new app.classRegistry.Discovery(options);
-        broadcast('finished', options, app);
+        app.discovery = new SecondFunnel.core.Discovery(app.options);
+        broadcast('finished', app.options, app);
     });
 
-    app.addInitializer(function (options) {
+    app.addInitializer(function () {
         // set its width to whatever it began with.
         app.options.initialWidth = $(window).width();
     });

@@ -30,7 +30,9 @@ SecondFunnel.module("support", function (support, SecondFunnel) {
             var pArgs = Array.prototype.slice.call(arguments, 2);
             return func.apply(context || window, pArgs);
         } catch (err) {
-            console.error('Exception in %O: %O', func, err);
+            if (SecondFunnel.option('debug', SecondFunnel.QUIET) >= SecondFunnel.ERROR) {
+                console.error('Exception in %O: %O', func, err);
+            }
         }
         return null;  // have a return, just to shut up jslint
     };

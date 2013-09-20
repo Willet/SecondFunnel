@@ -89,6 +89,36 @@ window.PAGES_INFO = {
             'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
             'template': "instagram",
             'tile-id': 562949953426705
+        },
+        {
+            'caption': "None",
+            'content-id': 562949953426705,
+            'content-type': "Instagram",
+            'db-id': 5393,
+            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
+            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
+            'template': "instagram",
+            'tile-id': 562949953426705
+        },
+        {
+            'caption': "None",
+            'content-id': 562949953426705,
+            'content-type': "Instagram",
+            'db-id': 5393,
+            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
+            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
+            'template': "instagram",
+            'tile-id': 562949953426705
+        },
+        {
+            'caption': "None",
+            'content-id': 562949953426705,
+            'content-type': "Instagram",
+            'db-id': 5393,
+            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
+            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
+            'template': "instagram",
+            'tile-id': 562949953426705
         }
     ],
     'IRResultsCount': 10,
@@ -108,5 +138,25 @@ window.PAGES_INFO = {
     'backupResults': [
         // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
         // it really should contain at least 10 products.
+        {
+            'caption': "None",
+            'content-id': 562949953426705,
+            'content-type': "Instagram",
+            'db-id': 5393,
+            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
+            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
+            'template': "instagram",
+            'tile-id': 562949953426705
+        },
+        {
+            'caption': "None",
+            'content-id': 562949953426705,
+            'content-type': "Instagram",
+            'db-id': 5393,
+            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
+            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
+            'template': "instagram",
+            'tile-id': 562949953426705
+        }
     ]
 };
