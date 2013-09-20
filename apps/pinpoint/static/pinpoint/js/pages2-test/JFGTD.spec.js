@@ -142,6 +142,10 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
             loadFixtures('pageTemplate.html');
         });
 
+        afterEach(function() {
+            this.resetApp(this.app);
+        });
+
         // don't render tiles that don't have a template
         it("Should not render tiles that don't have a template", function() {
             var tileView;
@@ -184,7 +188,40 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
             expect(tileView.loading).toBeFalsy();
             expect(tileView.loadingIndicator.$el).toBeUndefined();
         });
-        // show tap indicator if on mobile
+
+        it("Should show a tap indicator if on mobile", function() {
+            var tileView;
+
+            loadFixtures('templates.html');
+
+            this.app.start({
+                mobile: true
+            });
+
+            tileView = new this.app.core.TileView({
+                el: $('<div></div>')
+            });
+            tileView.render();
+
+            expect(tileView.tapIndicator.$el).toBeDefined();
+            expect(tileView.tapIndicator.$el).not.toBeEmpty();
+        });
+
+        it("Should not show a tap indicator if not on mobile", function() {
+            var tileView;
+
+            loadFixtures('templates.html');
+
+            this.app.start();
+
+            tileView = new this.app.core.TileView({
+                el: $('<div></div>')
+            });
+            tileView.render();
+
+            expect(tileView.tapIndicator.$el).toBeUndefined();
+        });
+
         // show mouse hints if not on mobile
     });
 

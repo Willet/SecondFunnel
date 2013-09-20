@@ -92,7 +92,8 @@ Page.module("core", function(core, page, B, M, $, _) {
 
             this.loading = options.loading || this.defaults.loading;
             this.indicators = {
-                'loading': options.loadingIndicator || new core.LoadingIndicator
+                'loading': options.loadingIndicator || new core.LoadingIndicator,
+                'tap': options.tapIndicator || new core.TapIndicator
             };
         },
 
@@ -109,6 +110,11 @@ Page.module("core", function(core, page, B, M, $, _) {
                 // TODO: Should this be in 'after:render'? Does that exist?
                 // TODO: Don't do things like this
                 this.loadingIndicator.show(this.indicators.loading);
+
+                // TODO: Move this down to tapIndicator?
+                if (page.mobile) {
+                    this.tapIndicator.show(this.indicators.tap);
+                };
             } catch (e) {
                 // TODO: Do *more* something on error
                 this.close();
@@ -127,6 +133,21 @@ Page.module("core", function(core, page, B, M, $, _) {
         'tagName': 'div',
         'className': 'loading',
         'template': '#willet-tile-loading',
+        render: function() { // TODO: Make a 'BaseItemView' that does this
+            try {
+                Backbone.Marionette.ItemView.prototype.render.call(this);
+            } catch (e) {
+                // TODO: Do *more* something on error
+                this.close();
+            }
+            return this;
+        }
+    });
+
+    core.TapIndicator = Backbone.Marionette.ItemView.extend({
+        'tagName': 'div',
+        'className': 'tap',
+        'template': '#willet-tile-tap',
         render: function() { // TODO: Make a 'BaseItemView' that does this
             try {
                 Backbone.Marionette.ItemView.prototype.render.call(this);

@@ -53,7 +53,6 @@ Page.addInitializer(function(options) {
 Page.addInitializer(function(options) {
     var self = this;
     options = options || {};
-    options.window = options.window || window;
 
     // According to previous documentation, we can't register scroll events
     // otherwise, so, do it like this:
@@ -66,6 +65,12 @@ Page.addInitializer(function(options) {
 
 // TODO: Should this always be last? Or ever?
 Page.addInitializer(function(options) {
+    options = options || {};
+
+    // Why do some options get saved, but other don't?
+    this.mobile = options.mobile;
+
+    // even after this?
     _.extend(this, options);
 });
 
