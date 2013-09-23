@@ -1,0 +1,56 @@
+<html>
+    <head>
+
+    </head>
+    <body>
+        <!-- default page template -->
+        <div id='hero-area'></div>
+        <div id='discovery-area'></div>
+
+        <!-- templates -->
+        <script type="text/template" id="willet-hero-area">
+            Hero Area
+        </script>
+
+        <script type="text/template" id="willet-discovery-area">
+            Discovery Area
+        </script>
+
+        <script type="text/template" id="willet-tile-view">
+            <div class='loading-region'></div>
+            <div class='tap-region'></div>
+            <div class='buttons-region'></div>
+            <div class='content'></div>
+        </script>
+
+        <script type="text/template" id="willet-tile-loading">
+            Loading spinner
+        </script>
+
+        <script type="text/template" id="willet-tile-tap">
+            Tap indicator
+        </script>
+
+        <script type="text/template" id="willet-buttons">
+            Buttons
+        </script>
+
+        <!-- dependencies -->
+        <script src="../../../js/jquery.min.js"></script>
+        <script src="../../../js/json2.js"></script>
+        <script src="../../../js/underscore.js"></script>
+        <script src="../../../js/backbone.js"></script>
+        <script src="../../../js/backbone.marionette.js"></script>
+
+        <!-- our code -->
+        <script src="./page.app.js"></script>
+        <script src="./page.core.js"></script>
+        <script src="./page.utils.js"></script>
+        <script type='text/javascript'>
+            var PAGE_INFO = {
+
+            };
+            Page.start(PAGE_INFO);
+        </script>
+    </body>
+</html>
