@@ -7,7 +7,7 @@
         'debug': ('{{ debug|default:0 }}' === 'True'),  // django built-in
         'base_url': '{{ base_url }}',
         'discoveryTarget': '{{ discovery_target|default:"#discovery-area" }}',
-        'discoveryItemSelector': '{{ discovery_item_selector|default:".tile" }}',
+        'itemSelector': '{{ item_selector|default:".tile" }}',
         'store': {
             'id': '{{ campaign.store.id }}',  // TODO: why was ID slug?
             'slug': '{{ campaign.store.slug }}',  // required for store-specific themes
@@ -70,8 +70,10 @@
         'tapIndicatorText': undefined,  // optional
         'previewAnimationDuration': 100,  // in ms
         'previewMobileAnimationDuration': 0,
-        'masonryAnimationDuration': 0.4,  // in seconds
-        'masonryMobileAnimationDuration': 0,
+        'masonry': {  // passed to masonry
+            'animationDuration': 0.4,  // in seconds
+            'mobileAnimationDuration': 0
+        },
         'featured': {% filter escapejs %}{% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}{% endfilter %},
         // stuff that loads when page loads, even if IR is available
         {% if initial_results %}

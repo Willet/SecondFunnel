@@ -14,6 +14,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         'backupResults': [],
         'IRResultsCount': 10,
         'IRTimeout': 5000,
+        'store': {},
         'content': []
     };
 
@@ -24,7 +25,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
         _.extend(intentRank.options, {
             'baseUrl': options.IRSource || this.baseUrl,
-            'store': options.store,
+            'store': options.store || {},
             'campaign': options.campaign,
             // @deprecated: options.categories will be page.categories
             'categories': page.categories || options.categories || {},
@@ -53,31 +54,35 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         return callback.apply(callback, args);
     };
 
-    intentRank.getResultsOnline = function (options, callback) {
-        broadcast('beforeIntentRankGetResultsOnline', options, callback, intentRank);
+    intentRank.getResultsOnline = function (overrides, callback) {
+        var opts, uri, args;
 
-        var uri = _.template(intentRank.options.urlTemplates[options.type],
-                _.extend({}, options, intentRank.options, {
-                    'url': intentRank.options.baseUrl
-                })),
-            args = _.toArray(arguments).slice(2);
+        // build a one-off options object for the request.
+        opts = $.extend(true, {}, intentRank.options, {
+            'url': intentRank.options.baseUrl
+        });
+        $.extend(opts, overrides);
 
+        uri = _.template(opts.urlTemplates[opts.type || 'campaign'], opts);
+        args = _.toArray(arguments).slice(2);
+
+        broadcast('beforeIntentRankGetResultsOnline', opts, callback, intentRank);
         ($.jsonp || $.ajax)({
             'url': uri,
             'data': {
-                'results': intentRank.options.IRResultsCount
+                'results': opts.IRResultsCount
             },
             'contentType': "json",
             'dataType': 'jsonp',
             'callbackParameter': 'callback',  // $.jsonp only
-            'timeout': intentRank.options.IRTimeout,
+            'timeout': opts.IRTimeout,
             'success': function (results) {
                 // Check for non-empty results.
-                results = results.length ?
-                          results :
+                results = (results && results.length)?
+                          results:
                     // If no results, fetch from backup
-                          _.shuffle(intentRank.options.backupResults);
-                results = _.first(results, intentRank.options.IRResultsCount);
+                          _.shuffle(opts.backupResults);
+                results = _.first(results, opts.IRResultsCount);
                 args.unshift(results);
                 return callback.apply(callback, args);
             },
@@ -86,14 +91,14 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
                 console.error('AJAX / JSONP call ' + textStatus + ': ' +
                     (errorThrown || jqXHR.url));
                 // On error, fall back to backup results
-                var results = _.shuffle(intentRank.options.backupResults);
-                results = _.first(results, intentRank.options.IRResultsCount);
+                var results = _.shuffle(opts.backupResults);
+                results = _.first(results, opts.IRResultsCount);
                 args.unshift(results);
                 return callback.apply(callback, args);
             }
         });
 
-        broadcast('intentRankgetResultsOffline', options, callback,
+        broadcast('intentRankgetResultsOnline', opts, callback,
             intentRank);
     };
 

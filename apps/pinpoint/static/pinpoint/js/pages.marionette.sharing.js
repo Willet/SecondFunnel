@@ -35,7 +35,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             'stumbleupon': "//stumbleupon.com/submit?url=<%= url %>"
         }, SecondFunnel.option('shareSources'));
 
-    sharing.SocialButtons = Backbone.Marionette.View.extend({
+    sharing.SocialButtons = Marionette.View.extend({
         // Container for the social buttons; allows us to create arbitrary
         // social buttons.
 
@@ -121,7 +121,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
     });
 
-    sharing.SocialButton = Backbone.Marionette.ItemView.extend({
+    sharing.SocialButton = Marionette.ItemView.extend({
         // Base object for Social buttons, when adding a new Social button, extend
         // from this class and modify as necessary.
 
@@ -141,7 +141,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         },
 
         'templateHelpers': function () {  // or {k: v}
-            //github.com/marionettejs/backbone.marionette/blob/master/docs/marionette.view.md#viewtemplatehelpers
+            //github.com/marionettejs/Marionette/blob/master/docs/marionette.view.md#viewtemplatehelpers
 
             // Template Helpers; add additional data to the data we're serializing to
             // render our template.
@@ -272,7 +272,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
     });
 
-    sharing.SharePopup = Backbone.Marionette.ItemView.extend({
+    sharing.SharePopup = Marionette.ItemView.extend({
         // Displays a popup that provides the viewer with a plethora of other
         // social share options as defined by the designer/developer.
         'tagName': "div",
@@ -317,7 +317,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
     });
 
-    sharing.ShareOption = Backbone.Marionette.ItemView.extend({
+    sharing.ShareOption = Marionette.ItemView.extend({
         // a View for each option within the 'share this' dialogue.
         'tagName': "div",
         'className': "button",
