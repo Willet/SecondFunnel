@@ -67,7 +67,7 @@ describe("utils", function () {
         });
 
         it("should register the class under its intended name", function () {
-            expect(app.classRegistry.Derp).toEqual(defn);
+            expect(app.core.Derp).toEqual(defn);
         });
     });
 

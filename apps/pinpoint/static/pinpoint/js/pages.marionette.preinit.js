@@ -1,7 +1,7 @@
 /*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _, Willet */
 // JSLint/Emacs js2-mode directive to stop global 'undefined' warnings.
 
-var SecondFunnel = new Backbone.Marionette.Application(),
+var SecondFunnel = new Marionette.Application(),
     broadcast,
     receive,
     debugOp,
@@ -177,7 +177,7 @@ _.mixin({
 (function (views) {
     // View's render() is a noop. It won't trigger a NoTemplateError
     // like other views do. Here's a patch.
-    Backbone.Marionette.View.prototype.render = function () {
+    Marionette.View.prototype.render = function () {
         if (!$(this.template).length) {
             function throwError(message, name) {
                 var error = new Error(message);
@@ -230,9 +230,7 @@ _.mixin({
             return result;
         };
     });
-}([Backbone.Marionette.View,
-   Backbone.Marionette.CompositeView,
-   Backbone.Marionette.ItemView]));
+}([Marionette.View, Marionette.CompositeView, Marionette.ItemView]));
 
 broadcast = function () {
     // alias for vent.trigger with a clear intent that the event triggered

@@ -121,7 +121,7 @@ describe("SecondFunnel", function () {
             it("For non-mouse enabled devices, this indicator " +
                 "should be an element overlayed on the tile.", function () {
                 if (app.support.touch()) {
-                    var tile = new SecondFunnel.classRegistry.Tile({});
+                    var tile = new SecondFunnel.core.Tile({});
                     tile.createView();  // trigger tap indicator
                     expect($('html').hasClass('touch-enabled')).toEqual(true);
                 }
@@ -130,7 +130,7 @@ describe("SecondFunnel", function () {
             it("For mouse enabled devices, this indicator should be a " +
                 "mouse pointer", function () {
                 if (!app.support.touch() && window.getComputedStyle) {
-                    var tile = new SecondFunnel.classRegistry.Tile(window.PAGES_INFO.featured),
+                    var tile = new SecondFunnel.core.Tile(window.PAGES_INFO.featured),
                         view = tile.createView();  // trigger tile creation
                     if (view) {  // 'no template' is a reason why this check is needed
                         expect($('html').hasClass('touch-enabled')).toEqual(false);
@@ -176,7 +176,6 @@ describe("SecondFunnel", function () {
             });
             it("Removing the tiles from the viewport must not cause the tiles " +
                 "to be rearranged", function () {
-                // app.discovery = new app.classRegistry.Discovery(app.options);
 
                 spyOn(Masonry.prototype, 'layout');
 

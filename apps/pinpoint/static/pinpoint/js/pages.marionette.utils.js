@@ -61,15 +61,15 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @returns defn
      */
     utils.addClass = function (name, defn) {
-        SecondFunnel.classRegistry = SecondFunnel.classRegistry || {};
-        SecondFunnel.classRegistry[_.capitalize(name)] = defn;
+        SecondFunnel.core[_.capitalize(name)] = defn;
         broadcast('classAdded', name, defn);
         return defn;
     };
 
     /**
-     * returns a class in the window scope and class registry,
+     * returns a class in the window scope and app core,
      *  or defaultClass if nothing else is found.
+     * This is also known as patching.
      *
      * @param {string} typeName e.g. 'Tile', 'TileView'
      * @param {string} prefix e.g. 'Video'
@@ -80,10 +80,10 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
         var FoundClass,
             targetClassName = _.capitalize(prefix || '') +
                               _.capitalize(typeName || '');
-        if (SecondFunnel.classRegistry[targetClassName] !== undefined) {
+        if (SecondFunnel.core[targetClassName] !== undefined) {
             // if designers want to define a new tile view, they must
             // let SecondFunnel know of its existence.
-            FoundClass = SecondFunnel.classRegistry[targetClassName];
+            FoundClass = SecondFunnel.core[targetClassName];
         } else {
             FoundClass = defaultClass;
         }

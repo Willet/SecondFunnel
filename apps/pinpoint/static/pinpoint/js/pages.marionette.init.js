@@ -64,7 +64,7 @@ function reInitialize(app) {
 
     app.addInitializer(function () {
         try {
-            var fa = new app.classRegistry.HeroAreaView();
+            var fa = new app.core.HeroAreaView();
             fa.render();
             broadcast('heroAreaRendered', fa);
         } catch (err) {

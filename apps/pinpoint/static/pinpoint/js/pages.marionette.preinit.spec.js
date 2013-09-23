@@ -124,7 +124,7 @@ describe("preinit", function () {
     describe("Required Marionette patches", function () {
         describe("missing template mofo", function () {
             it("works for View", function () {
-                var DummySubclass = Backbone.Marionette.View.extend({
+                var DummySubclass = Marionette.View.extend({
                         'template': '#templateThatNeverExists',
                         'onMissingTemplate': $.noop
                     }),
@@ -137,7 +137,7 @@ describe("preinit", function () {
             });
 
             it("works for CompositeView", function () {
-                var DummySubclass = Backbone.Marionette.CompositeView.extend({
+                var DummySubclass = Marionette.CompositeView.extend({
                         'template': '#templateThatNeverExists',
                         'onMissingTemplate': $.noop
                     }),
@@ -150,7 +150,7 @@ describe("preinit", function () {
             });
 
             it("works for ItemView", function () {
-                var DummySubclass = Backbone.Marionette.ItemView.extend({
+                var DummySubclass = Marionette.ItemView.extend({
                         'template': '#templateThatNeverExists',
                         'onMissingTemplate': $.noop
                     }),

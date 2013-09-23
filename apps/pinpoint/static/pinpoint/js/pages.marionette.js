@@ -929,12 +929,4 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i,
             'image');
     };
-
-    // expose some classes (only if required)
-    SecondFunnel.classRegistry = {
-        HeroAreaView: core.HeroAreaView,
-        Tile: core.Tile,
-        TileView: core.TileView,
-        trailingCommas: undefined
-    };
 });
