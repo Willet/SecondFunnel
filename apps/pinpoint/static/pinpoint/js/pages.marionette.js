@@ -7,15 +7,17 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         $document = $(document),
         getModifiedTemplateName;
 
-    // console logging thresholds
-    _.extend(SecondFunnel, {
-        QUIET: 0, ERROR: 1, WARNING: 2, LOG: 3, VERBOSE: 4, ALL: 5
-    });
-
+    /**
+     * convenience method for accessing PAGES_INFO or TEST_*.
+     *
+     * To access deep options (e.g. PAGES_INFO.store.name), use the key
+     * "store.name" or "store:name" (preferred).
+     *
+     * @param {string} name
+     * @param {*} defaultValue
+     * @returns {*}
+     */
     SecondFunnel.option = function (name, defaultValue) {
-        // convenience method for accessing PAGES_INFO or TEST_*.
-        // to access deep options (e.g. PAGES_INFO.store.name), use the key
-        // "store.name" or "store:name" (preferred).
         var opt = Marionette.getOption(SecondFunnel, name),
             keyNest = _.compact(name.split(/[:.]/)),
             keyName,
@@ -40,10 +42,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             }
         } catch (KeyError) {
             // requested traversal path does not exist. do the next line
-            if (SecondFunnel.options &&
-                SecondFunnel.options.debug >= SecondFunnel.WARNING) {
-                console.warn('Missing option: ' + name);
-            }
+            console.warn('Missing option: ' + name);
         }
         return defaultValue;  // ...and defaultValue defaults to undefined
     };
@@ -197,6 +196,19 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         }
     });
 
+    /**
+     * WIP
+     * @type {*}
+     */
+    core.TileCollectionView = Marionette.CollectionView.extend({
+        // Our TileCollection manages ALL the tiles on the page.
+        'itemView': core.TileView,
+        'onBeforeRender': $.noop,
+        'onRender': $.noop,
+
+        'trailingCommas': undefined
+    });
+
     core.HeroAreaView = Marionette.ItemView.extend({
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
@@ -249,10 +261,8 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                     });
             }
 
-            if (SecondFunnel.options.debug >= SecondFunnel.VERBOSE) {
-                console.log('Template search tree for view %O: %O',
-                            currentView, templateRules);
-            }
+            console.debug('Template search tree for view %O: %O',
+                        currentView, templateRules);
             return templateRules;
         },
         'template': "#product_tile_template",
@@ -496,9 +506,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
-                if (options.debug >= SecondFunnel.LOG) {
-                    console.log('laying out initial results');
-                }
+                console.log('laying out initial results');
                 this.layoutResults(options.initialResults, undefined,
                     function () {
                         self.getTiles();
@@ -520,7 +528,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                     // did you know any DOM element without resize events
                     // can still react to potential resizes by having its
                     // own .bind('resize', function () {})?
-                    $('.resizable', document).resize();
+                    $('.resizable', document).trigger('resize');
 
                     self.countColumns();
 
@@ -528,9 +536,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                 }, 500))
                 .scrollStopped(function () {
                     // deal with tap indicator fade in/outs
-                    if (SecondFunnel.support.touch()) {
-                        SecondFunnel.vent.trigger('scrollStopped', self);
-                    }
+                    SecondFunnel.vent.trigger('scrollStopped', self);
                 });
 
             // serve orientation change event via vent
@@ -555,9 +561,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                 SecondFunnel.intentRank.getResults(options,
                     this.layoutResults, $tile);
             } else {
-                if (SecondFunnel.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
-                    console.warn('Already loading tiles. Try again later');
-                }
+                console.warn('Already loading tiles. Try again later');
             }
             return this;
         },
@@ -570,11 +574,8 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                 // loaded nothing last time.
                 self.intentRankResults[0]++;
                 if (self.intentRankResults[0] > 5) {
-                    if (SecondFunnel.option('debug', SecondFunnel.QUIET) >=
-                        SecondFunnel.ERROR) {
-                        console.error('Too many consecutive endpoint failures. ' +
-                            'Not trying again.');
-                    }
+                    console.error('Too many consecutive endpoint failures. ' +
+                        'Not trying again.');
                     return this;
                 }
             } else {
@@ -651,6 +652,10 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             return content;
         },
 
+        /**
+         * Adds "col-n" classes to the html tag.
+         * @returns {number}
+         */
         'countColumns': function () {
             var i,
                 $html = $('html'),
@@ -797,10 +802,8 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                     });
             }
 
-            if (SecondFunnel.options.debug >= SecondFunnel.VERBOSE) {
-                console.log('Template search tree for view %O: %O',
-                            currentView, templateRules);
-            }
+            console.debug('Template search tree for view %O: %O', currentView,
+                templateRules);
             return templateRules;
         },
         'onRender': function () {

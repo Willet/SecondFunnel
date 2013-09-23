@@ -107,10 +107,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         if (!_.findWhere(intentRank.options.categories,
             {'id': Number(category)})) {
             // requested category not configured for this page
-            if (SecondFunnel.option('debug', SecondFunnel.QUIET) >=
-                SecondFunnel.WARNING) {
-                console.warn('Category ' + category + ' not found');
-            }
+            console.warn('Category ' + category + ' not found');
             return;
         }
 

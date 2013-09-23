@@ -71,8 +71,7 @@
         'previewAnimationDuration': 100,  // in ms
         'previewMobileAnimationDuration': 0,
         'masonry': {  // passed to masonry
-            'animationDuration': 0.4,  // in seconds
-            'mobileAnimationDuration': 0
+            'animationDuration': 0.4  // in seconds
         },
         'featured': {% filter escapejs %}{% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}{% endfilter %},
         // stuff that loads when page loads, even if IR is available

@@ -12,13 +12,55 @@ SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
 // A ?debug value of > 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
-if (!window.console) {  // shut up JSLint / good practice
-    var console = window.console = {
-        log: $.noop,
-        warn: $.noop,
-        error: $.noop
-    };
-}
+(function (console, level, hash) {
+    var hashIdx = hash.indexOf('debug=');
+    try {
+        // console logging thresholds
+        SecondFunnel.QUIET = 0;
+        SecondFunnel.ERROR = 1;
+        SecondFunnel.WARNING = 2;
+        SecondFunnel.LOG = 3;
+        SecondFunnel.VERBOSE = 4;
+        SecondFunnel.ALL = 5;
+
+        // patch all console methods individually.
+        console.debug = console.debug || $.noop;
+        console.log = console.log || $.noop;
+        console.warn = console.warn || $.noop;
+        console.error = console.error || $.noop;
+
+        if (window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1') {
+            level = SecondFunnel.options.debug = SecondFunnel.ERROR;
+        }
+
+        if (hashIdx > -1) {
+            level = SecondFunnel.options.debug = hash[hashIdx + 6];
+        }
+
+        // remove console functions depending on desired debug threshold.
+        if (level < SecondFunnel.ERROR) {
+            console.error = $.noop;
+        }
+
+        if (level < SecondFunnel.WARNING) {
+            console.warn = $.noop;
+        }
+
+        if (level < SecondFunnel.LOG) {
+            console.log = $.noop;
+        }
+
+        if (level < SecondFunnel.VERBOSE) {
+            console.debug = $.noop;
+        }
+    } catch (e) {
+        // this is an optional operation. never let this stop the script.
+    }
+}(window.console = window.console || {},
+  SecondFunnel.options.debug,
+  window.location.hash + window.location.search));
+
 
 // http://stackoverflow.com/questions/1199352/
 String.prototype.truncate = function (n, useSentenceBoundary, addEllipses) {
@@ -210,11 +252,8 @@ _.mixin({
 
                 // If template not found signal error in rendering view.
                 if (err.name &&  err.name === "NoTemplateError") {
-                    if (SecondFunnel.option('debug', SecondFunnel.QUIET) >=
-                        SecondFunnel.WARNING) {
-                        console.warn("Could not find template " +
-                                     this.template + ". View did not render.");
-                    }
+                    console.warn("Could not find template " +
+                                 this.template + ". View did not render.");
                     // Trigger methods
                     this.isClosed = true;
                     // .triggerMethod only triggers methods defined in prototype
@@ -240,9 +279,7 @@ broadcast = function () {
     if (!window.SecondFunnel) {
         return;  // SecondFunnel not initialized yet
     }
-    if (SecondFunnel.option('debug') >= SecondFunnel.LOG) {
-        console.log('Broadcasting "' + arguments[0] + '" with args=%O', pArgs);
-    }
+    console.log('Broadcasting "' + arguments[0] + '" with args=%O', pArgs);
     SecondFunnel.vent.trigger.apply(SecondFunnel.vent, arguments);
     if (window.Willet && window.Willet.mediator) {  // to each his own
         Willet.mediator.fire(arguments[0], pArgs);
@@ -259,9 +296,7 @@ receive = function () {
     if (!window.SecondFunnel) {
         return;  // SecondFunnel not initialized yet
     }
-    if (SecondFunnel.option('debug') >= SecondFunnel.LOG) {
-        console.log('Received "' + arguments[0] + '" with args=%O', pArgs);
-    }
+    console.log('Received "' + arguments[0] + '" with args=%O', pArgs);
     SecondFunnel.vent.on.apply(SecondFunnel.vent, arguments);
     if (window.Willet && window.Willet.mediator) {  // to each his own
         Willet.mediator.on(arguments[0], pArgs);

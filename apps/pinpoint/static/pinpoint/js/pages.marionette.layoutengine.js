@@ -1,11 +1,10 @@
+/*global SecondFunnel, Backbone, Marionette, console, broadcast */
 SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
     // Masonry wrapper
     "use strict";
 
     var $document = $(document),
         $window = $(window),
-        // TODO: this logic is axiomatically incorrect. a mobile device will
-        // have no animation even with a duration defined.
         defaults = {
             'columnWidth': SecondFunnel.option('columnWidth', $.noop)() || 255,
             'isAnimated': !SecondFunnel.support.mobile(),

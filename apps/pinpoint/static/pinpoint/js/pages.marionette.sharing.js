@@ -1,3 +1,4 @@
+/*global SecondFunnel, Backbone, Marionette, console, broadcast */
 SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
     "use strict";
 
