@@ -1,12 +1,14 @@
 /*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _, Willet */
 // JSLint/Emacs js2-mode directive to stop global 'undefined' warnings.
 
-var SecondFunnel = new Backbone.Marionette.Application(),
+var SecondFunnel = new Marionette.Application(),
     broadcast,
     receive,
     debugOp,
     ev = new $.Event('remove'),
     orig = $.fn.remove;
+
+SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
 // A ?debug value of > 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
@@ -18,11 +20,11 @@ if (!window.console) {  // shut up JSLint / good practice
     };
 }
 
-// http://stackoverflow.com/questions/1199352/smart-way-to-shorten-long-strings-with-javascript/1199420#1199420
+// http://stackoverflow.com/questions/1199352/
 String.prototype.truncate = function (n, useSentenceBoundary, addEllipses) {
     var tooLong = this.length > n,
-        s = tooLong ? this.substr(0, n - 1) : this;
-    if (useSentenceBoundary && tooLong) {
+        s = tooLong ? this.substr(0, n) : this;
+    if (tooLong && useSentenceBoundary && s.lastIndexOf('. ') > -1) {
         s = s.substr(0, s.lastIndexOf('. ') + 1);
     }
     if (tooLong && addEllipses) {
@@ -44,6 +46,9 @@ $.fn.remove = function () {
     }
 };
 
+/**
+ * @param {function} callback
+ */
 $.fn.scrollStopped = function (callback) {
     // stackoverflow.com/a/14035162/1558430
     $(this).scroll(function () {
@@ -51,7 +56,9 @@ $.fn.scrollStopped = function (callback) {
         if ($this.data('scrollTimeout')) {
             clearTimeout($this.data('scrollTimeout'));
         }
-        $this.data('scrollTimeout', setTimeout(callback, 500, self));
+        if (callback) {
+            $this.data('scrollTimeout', setTimeout(callback, 500, self));
+        }
     });
 };
 
@@ -134,7 +141,7 @@ $.getScripts = function (urls, callback, options) {
     // like getScript, this function is incompatible with scripts relying on
     // its own tag existing on the page (e.g. firebug, facebook jssdk)
     var calls = _.map(urls, function (url) {
-        options = $.extend(options || {}, {
+        var options = $.extend(options || {}, {
             'dataType': 'script',
             'crossDomain': true,
             'cache': true,
@@ -150,22 +157,44 @@ $.getScripts = function (urls, callback, options) {
 // underscore's fancy pants capitalize()
 _.mixin({
     'capitalize': function (string) {
-        return string.charAt(0).toUpperCase() + string.substring(1).toLowerCase();
+        var str = string || "";
+        return str.charAt(0).toUpperCase() + str.substring(1);
     },
-    'get': function (obj, key) {
+    'get': function (obj, key, defaultValue) {
         // thin wrapper around obj key access that never throws an error.
         try {
-            return obj[key];
+            var val = obj[key];
+            if (val !== undefined) {
+                return obj[key];
+            }
         } catch (err) {
-            return undefined;
+            // default
         }
+        return defaultValue;
     }
 });
 
 (function (views) {
+    // View's render() is a noop. It won't trigger a NoTemplateError
+    // like other views do. Here's a patch.
+    Marionette.View.prototype.render = function () {
+        if (!$(this.template).length) {
+            function throwError(message, name) {
+                var error = new Error(message);
+                error.name = name || 'Error';
+                throw error;
+            }
+            throwError(this.template, "NoTemplateError");
+        }
+
+        // default functionality: $.noop()
+
+        return this;
+    };
+
     // patch render to always run widgets.
     _.each(views, function (ViewClass) {
-        var oldRender = ViewClass.prototype.render;
+        var oldRender = ViewClass.prototype.render || $.noop;
         ViewClass.prototype.render = function () {
             var result;
             try {
@@ -181,11 +210,17 @@ _.mixin({
 
                 // If template not found signal error in rendering view.
                 if (err.name &&  err.name === "NoTemplateError") {
-                    console.warn("Could not find template " +
-                                 this.template + ". View did not render.");
+                    if (SecondFunnel.option('debug', SecondFunnel.QUIET) >=
+                        SecondFunnel.WARNING) {
+                        console.warn("Could not find template " +
+                                     this.template + ". View did not render.");
+                    }
                     // Trigger methods
                     this.isClosed = true;
-                    this.triggerMethod("missing:template", this);
+                    // .triggerMethod only triggers methods defined in prototype
+                    this.triggerMethod("missing:template");
+                } else {
+                    this.triggerMethod("render:error", err);
                 }
 
                 this.close();
@@ -195,10 +230,7 @@ _.mixin({
             return result;
         };
     });
-}([Backbone.Marionette.View,
-   Backbone.Marionette.CollectionView,
-   Backbone.Marionette.CompositeView,
-   Backbone.Marionette.ItemView]));
+}([Marionette.View, Marionette.CompositeView, Marionette.ItemView]));
 
 broadcast = function () {
     // alias for vent.trigger with a clear intent that the event triggered
@@ -217,10 +249,12 @@ broadcast = function () {
     }
 };
 
+/**
+ * alias for vent.on with a clear intent that the event triggered
+ * is NOT used by internal code (pages.js).
+ * calling method: (eventName, other stuff)
+ */
 receive = function () {
-    // alias for vent.on with a clear intent that the event triggered
-    // is NOT used by internal code (pages.js).
-    // calling method: (eventName, other stuff)
     var pArgs = Array.prototype.slice.call(arguments, 1);
     if (!window.SecondFunnel) {
         return;  // SecondFunnel not initialized yet
@@ -234,6 +268,54 @@ receive = function () {
     }
 };
 
+/**
+ * similar usage as $.noop
+ */
 debugOp = function () {
     console.log('%O, %O', this, arguments);
 };
+
+// allow jasmine to run on the campaign page if the url contains "specrunner".
+// not an initializer (too late)
+(function () {
+    var getScripts = function (urls, callback) {
+            var script = urls.shift();
+            $.getScript(script, function () {
+                if (urls.length + 1 <= 0) {
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
+                } else {
+                    getScripts(urls, callback);
+                }
+            });
+        },
+        runTest = function () {
+            var protoSrcMaps = [
+                    "/static/testing/lib/jasmine-1.3.1/jasmine.js",
+                    "/static/testing/lib/jasmine-1.3.1/jasmine-html.js",
+                    "/static/testing/lib/jasmine-1.3.1/jasmine-console.js",
+                    "/static/pinpoint/js/pages.marionette.preinit.spec.js",
+                    "/static/pinpoint/js/pages.marionette.spec.js",
+                    "/static/pinpoint/js/pages.marionette.support.spec.js",
+                    "/static/pinpoint/js/pages.marionette.utils.spec.js",
+                    "/static/pinpoint/js/pages.marionette.layoutengine.spec.js",
+                    "/static/pinpoint/js/pages.marionette.viewport.spec.js"
+                ],
+                href = window.location.href.toLowerCase();
+
+            if (href.indexOf('specrunner.html') > 0) {
+                protoSrcMaps.push("/static/js/jasmine.specrunner.html.js");
+            } else if (href.indexOf('specrunner') > 0) {
+                protoSrcMaps.push("/static/js/jasmine.specrunner.console.js");
+            } else {
+                return;
+            }
+
+            protoSrcMaps = SecondFunnel.option('protoSrcMaps') || protoSrcMaps;
+            // return _.each(protoSrcMaps, addScript);
+            getScripts(protoSrcMaps);
+        };
+
+    SecondFunnel.vent.on('finished', runTest);
+}());

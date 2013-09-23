@@ -36,7 +36,6 @@ def render_campaign(campaign, request, get_seeds_func=None):
     content_block = campaign.content_blocks.all()[0]
 
     product = content_block.data.product
-    product.json = json.dumps(product.data(raw=True))  # not a defined property
 
     campaign.description = (content_block.data.description or product.description).encode('unicode_escape')
     campaign.template = slugify(
