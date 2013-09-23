@@ -5,6 +5,7 @@ describe('intentRank', function () {
     var module = SecondFunnel.intentRank,
         results, // to test fetching content
         done, // to test fetching content
+        expected, // to test fetching content
         setResults = function (received) {
             results = received;
             done = true;
@@ -17,9 +18,9 @@ describe('intentRank', function () {
             for (var i = 0; i < parameters.data.results; ++i) {
                 results.push({});
             }
+            expected = results;
             // make it asynchronous
             setTimeout(function () {parameters.success(results)}, delay);
-            parameters.success(results);
         },
 
         mockAjaxZeroResults = function (parameters) {
@@ -40,10 +41,9 @@ describe('intentRank', function () {
         // reset variables used to test fetching
         results = undefined;
         done = undefined;
+        expected = undefined;
 
-        // restore jsonp and ajax if stubbed
-        ($ &&  $.jsonp && $.jsonp.restore && $.jsonp.restore());
-        ($ && $.ajax && $.ajax.restore && $.ajax.restore());
+        ($.ajax.restore && $.ajax.restore());
     });
 
     describe('initialize', function () {
@@ -56,13 +56,15 @@ describe('intentRank', function () {
 
         it('should not change the category if it\'s not a number', function() {
             var oldCategory = module.options.campaign;
-            module.changeCategory(' 8%f');
+            module.changeCategory('don\'t');
+            expect(module.options.campaign).toEqual(oldCategory);
+            module.changeCategory('');
             expect(module.options.campaign).toEqual(oldCategory);
         });
 
-        it('should not change the category if it\'s not present', function() {
+        it('should not change the category if it\'s legal but not valid (not meant for this campaign)', function() {
             var oldCategory = module.options.campaign;
-            module.changeCategory(-3);
+            module.changeCategory(3);
             expect(module.options.campaign).toEqual(oldCategory);
         });
 
@@ -98,7 +100,6 @@ describe('intentRank', function () {
     });
 
     describe('getResultsOffline',function() {
-        // TODO: tests
         it('should exists', function() {
             expect(module.getResultsOffline);
         });
@@ -114,16 +115,20 @@ describe('intentRank', function () {
             module.initialize(PAGES_INFO_test);
             module.getResultsOffline(module.options, setResults);
             waitsFor(function () {return done;});
-            expect(results && results.length).toBeTruthy();
+            runs( function () {
+                // assuming it does not return more items than it has stored;
+                expect(results && results.length).toEqual(3);
+            })
         });
     });
 
     describe('getResultsOnline', function () {
         it('should fetch content when asked to', function() {
+            sinon.stub($,'ajax',mockAjaxSuccess);
             module.getResultsOnline(module.options,setResults);
             waitsFor(areWeDone, 'fetching results', 6000);
             runs(function () {
-                expect(results && results.length).toBeTruthy();
+                expect(results).toEqual(expected);
             });
         });
 
@@ -134,7 +139,6 @@ describe('intentRank', function () {
 
         it('should fetch 4 results when told to', function() {
             sinon.stub($, 'ajax', mockAjaxSuccess);
-            ($.jsonp && sinon.stub($, 'jsonp', mockAjaxSuccess));
             {
                 var n = 4;
                 module.options.IRResultsCount = n;
@@ -149,7 +153,6 @@ describe('intentRank', function () {
 
         it('should fetch 55 results when told to', function() {
             sinon.stub($, 'ajax', mockAjaxSuccess);
-            ($.jsonp && sinon.stub($, 'jsonp', mockAjaxSuccess));
             {
                 var n = 55;
                 module.options.IRResultsCount = n;
@@ -165,7 +168,6 @@ describe('intentRank', function () {
 
         it('should use its backup results if server returns nothing', function() {
             sinon.stub($, 'ajax', mockAjaxZeroResults);
-            ($.jsonp && sinon.stub($, 'jsonp', mockAjaxZeroResults));
             module.options.backupResults = [{'backup':'backup'}];
             module.getResultsOnline(module.options, setResults);
 
@@ -178,7 +180,6 @@ describe('intentRank', function () {
 
         it('should use its backup results if we receive an Ajax error', function (){
             sinon.stub($, 'ajax', mockAjaxError);
-            ($.jsonp && sinon.stub($, 'jsonp', mockAjaxError));
             module.options.backupResults = [{'backup': 'backup'}];
             module.getResultsOnline(module.options,setResults);
 
