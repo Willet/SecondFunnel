@@ -27,14 +27,18 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         opts;  // last-used options (used by clear())
 
     layoutEngine.on('start', function () {  // this = layoutEngine
-        opts = $.extend({}, defaults, opts, _.get(opts, 'masonry'));
+        this.initialize(SecondFunnel.options);
+    });
+
+    layoutEngine.initialize = function (options) {
+        opts = $.extend({}, defaults, options, _.get(opts, 'masonry'));
 
         this.$el = $(SecondFunnel.option('discoveryTarget'));
         this.$el.masonry(opts);
 
         broadcast('layoutEngineInitialized', layoutEngine, opts);
         return layoutEngine;
-    });
+    };
 
     layoutEngine.stamp = function (element) {
         broadcast('elementStamped', element);
@@ -69,23 +73,23 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      */
     layoutEngine.add = function ($fragment, $target) {
         return $.when(layoutEngine.imagesLoaded($fragment))
-            .always(function ($fragment) {
+            .always(function ($frag) {
                 if ($target && $target.length) {
                     var initialBottom = $target.position().top +
                         $target.height();
-                    if ($fragment.length) {
+                    if ($frag.length) {
                         // Find a target that is low enough on the screen to insert after
                         while ($target.position().top <= initialBottom &&
                                $target.next().length > 0) {
                             $target = $target.next();
                         }
-                        $fragment.insertAfter($target);
+                        $frag.insertAfter($target);
                         layoutEngine.reload();
                     }
-                } else if ($fragment.length) {
+                } else if ($frag.length) {
                     layoutEngine.$el
-                        .append($fragment)
-                        .masonry('appended', $fragment);
+                        .append($frag)
+                        .masonry('appended', $frag);
                 }
             });
     };
@@ -164,6 +168,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
     layoutEngine.imagesLoaded = function ($fragment) {
         var args = _.toArray(arguments).slice(1),
             $badImages = $(),
+            $goodFragments = $fragment,
             imgLoad = imagesLoaded($fragment.children('img')),
             deferred = new $.Deferred();
 
@@ -177,7 +182,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                     if (!image.isLoaded) {
                         var $img = $(image.img),
                             $elem = $img.parents(layoutEngine.itemSelector);
-                        $fragment = $fragment.filter(function () {
+                        $goodFragments = $goodFragments.filter(function () {
                             return !$(this).is($elem);
                         });
                         $badImages = $badImages.add($elem);
@@ -187,8 +192,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                 $badImages.remove();
             }
 
-            args.unshift($fragment);
-            deferred.resolve(args);
+            deferred.resolve($goodFragments);
         });
 
         return deferred.promise();

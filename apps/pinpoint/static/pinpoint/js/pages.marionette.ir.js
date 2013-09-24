@@ -98,7 +98,8 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      * @returns $.Deferred()
      */
     intentRank.getResultsOnline = function (overrides) {
-        var ajax, deferred, opts, uri, backupResults;
+        var ajax, deferred, opts, uri, backupResults,
+            apiFailuresAllowed = SecondFunnel.option('apiFailuresAllowed', 5);
 
         // build a one-off options object for the request.
         opts = $.extend(true, {}, intentRank.options, {
@@ -116,7 +117,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         // http://stackoverflow.com/a/18986305/1558430
         deferred = new $.Deferred();
 
-        if (consecutiveFailures > 5) {
+        if (consecutiveFailures > apiFailuresAllowed) {
             // API is dead. serve backup results instantly
             deferred.resolve(backupResults);
         } else {
@@ -150,7 +151,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
                 consecutiveFailures++;
 
-                if (consecutiveFailures > 5) {
+                if (consecutiveFailures > apiFailuresAllowed) {
                     console.error(
                         'Too many consecutive endpoint failures. ' +
                         'All subsequent results will be backup results.');

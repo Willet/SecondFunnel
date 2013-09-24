@@ -4,7 +4,6 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
 
     var $document = $(document),
         $window = $(window),
-        isBounce = true,  // this flag set to false once user scrolls down
         videosPlayed = [],
         GA_CUSTOMVAR_SCOPE = {
             'PAGE': 3,
@@ -77,26 +76,6 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
                 o.value || undefined,
                 !!o.nonInteraction || undefined
             ]);
-        },
-
-        /**
-         * Peripheral function for tracking an event that has social network
-         * information worth tracking. (I think)
-         */
-        registerEvent = function (event) {
-            var actionData = [
-                "network=" + event.network || "",
-                "actionType=" + event.type,
-                "actionSubtype=" + event.subtype || "",
-                "actionScope=" + tracker.socialShareType
-            ];
-
-            tracker.registerPageView(event.type);
-
-            trackEvent({
-                "action": actionData.join("|"),
-                "label": event.label || tracker.socialShareUrl
-            });
         },
 
         setCustomVar = function (o) {
@@ -182,20 +161,6 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             tracker.socialShareUrl = SecondFunnel.option('featured:image', '');
             tracker.socialShareType = "featured";
         }
-    };
-
-    tracker.registerPageView = function (how) {
-        if (!isBounce) {
-            return;
-        }
-
-        isBounce = false;
-
-        registerEvent({
-            "type": "visit",
-            "subtype": "noBounce",
-            "label": how
-        });
     };
 
     tracker.registerFacebookListeners = function () {
