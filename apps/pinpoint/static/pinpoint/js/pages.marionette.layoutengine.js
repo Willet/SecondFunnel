@@ -69,7 +69,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      */
     layoutEngine.add = function ($fragment, $target) {
         return $.when(layoutEngine.imagesLoaded($fragment))
-            .always(function () {
+            .always(function ($fragment) {
                 if ($target && $target.length) {
                     var initialBottom = $target.position().top +
                         $target.height();

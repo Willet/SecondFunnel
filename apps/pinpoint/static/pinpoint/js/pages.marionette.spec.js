@@ -331,7 +331,7 @@ describe("SecondFunnel", function () {
                     if (results && results.length) {
                         return true;
                     }
-                }, 5000);
+                }, 5500);  // give it 500ms more, because 5000ms is exactly the timeout
 
                 runs(function () {
                     expect(results && results.length > 0).toEqual(true);

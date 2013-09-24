@@ -478,9 +478,6 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         'initialize': function (options) {
             var self = this;
 
-            // Initialize IntentRank; use as a separate module to make changes easier.
-            SecondFunnel.intentRank.initialize(options);
-
             this.collection = new core.TileCollection();
             this.categories = new core.CategorySelector(  // v-- options.categories is deprecated
                 SecondFunnel.option("page:categories") ||

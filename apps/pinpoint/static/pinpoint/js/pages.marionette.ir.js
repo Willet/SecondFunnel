@@ -18,9 +18,10 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         'content': []
     };
 
-    intentRank.initialize = function (options) {
+    intentRank.on('start', function () {
         // Any additional init declarations go here
-        var page = options.page || {},
+        var options = SecondFunnel.options,
+            page = options.page || {},
             online = !page.offline;
 
         _.extend(intentRank.options, {
@@ -44,7 +45,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
         broadcast('intentRankInitialized', intentRank);
         return this;
-    };
+    });
 
     /**
      * Filter the content based on the selector
@@ -84,7 +85,6 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      * @returns something $.when() accepts
      */
     intentRank.getResultsOffline = function (overrides) {
-        console.error('getResultsOffline');
         // instantly mark the deferral as complete.
         return _.chain(intentRank.options.backupResults)
             .filter(intentRank.filter)
@@ -133,7 +133,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             ajax.done(function (results) {
                 consecutiveFailures = 0;  // reset
 
-                deferred.resolve(
+                return deferred.resolve(
                     // => list of n qualifying products
                     _.chain(results || opts.backupResults)
                         .filter(intentRank.filter)
@@ -156,7 +156,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
                         'All subsequent results will be backup results.');
                 }
 
-                deferred.resolve(backupResults);
+                return deferred.resolve(backupResults);
             });
         }
 

@@ -184,9 +184,6 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             // process widgets
             SecondFunnel.utils.runWidgets(this);
         },
-        // 'onDomRefresh': $.noop,
-        // 'onBeforeClose': function () { return true; },
-        // 'onClose': $.noop,
         'commas': false
     });
 
