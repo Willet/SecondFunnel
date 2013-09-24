@@ -48,7 +48,10 @@ describe('intentRank', function () {
 
     describe('initialize', function () {
         it('should initialize without options', function() {
-            expect(module.initialize({}));
+            var emptyCall = function() {
+                module.initialize({});
+            }
+            expect(emptyCall).not.toThrow();
         });
     });
 
