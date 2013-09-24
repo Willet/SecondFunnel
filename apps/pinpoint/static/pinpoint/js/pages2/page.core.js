@@ -231,6 +231,21 @@ Page.module("core", function(core, page, B, M, $, _) {
             }
 
             return cls;
+        },
+        initialize: function (options) {
+            this.layoutManager = new Masonry(
+                this.el, {
+                    itemSelector: '.tile',
+                    columnWidth: 202
+                }
+            );
+        },
+        onAfterItemAdded: function (itemView) {
+            this.layoutManager.appended(itemView.$el);
+
+            // TODO: Is there an event that fires after
+            // we have finished with all items?
+            this.layoutManager.layout();
         }
     });
 });

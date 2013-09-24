@@ -383,7 +383,60 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
     });
 
     describe("Layout:", function() {
-        // How to verify that layout is done correctly?
+        beforeEach(function() {
+            loadFixtures('pageTemplate.html', 'templates.html');
+
+            this.server = sinon.fakeServer.create();
+            this.server.autoRespond = true;
+            this.server.respondWith(
+                this.response([
+                    this.generateTile({type: 'video'}),
+                    this.generateTile()
+                ])
+            );
+        });
+
+        afterEach(function() {
+            this.resetApp(this.app);
+            this.server.restore();
+        });
+
+        // TODO: These two tests are not great; they check that things are called on masonry.
+        // really, we should check that some behaviour has happened (e.g. a tile is at some location
+        // or some properties are set on tiles).
+        it("Should layout the tiles initially", function () {
+            var options = {
+                fetchMode: 'json' // dirty hack
+            };
+
+            spyOn(Masonry.prototype, 'layout');
+            this.app.start(options);
+
+            expect(this.app.discoveryArea.currentView.layoutManager.layout).toHaveBeenCalled();
+            this.fail("Above expectation should have failed, but didn't. `layout()` called somehow?")
+        });
+
+        it("Should add and layout the tiles when new results are fetched", function () {
+            var options = {
+                fetchMode: 'json' // dirty hack
+            };
+
+            spyOn(Masonry.prototype, 'layout');
+            spyOn(Masonry.prototype, 'appended');
+
+            this.app.start(options);
+            expect(this.app.discoveryArea.currentView.layoutManager.layout).toHaveBeenCalled();
+
+            // Apparently, Nick got lazy
+            this.app.tiles.fetch({dataType: 'json'});
+            this.server.respond();
+
+            // Should we verify that `appended` and `layout` are only called once?
+            // Right now, they're called once per item, as I don't think we have an event to notice
+            // when all items have loaded
+            expect(this.app.discoveryArea.currentView.layoutManager.appended).toHaveBeenCalled();
+            expect(this.app.discoveryArea.currentView.layoutManager.layout).toHaveBeenCalled();
+        });
     });
 
     describe("Preview:", function() {
