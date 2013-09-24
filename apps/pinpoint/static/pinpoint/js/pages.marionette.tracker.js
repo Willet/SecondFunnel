@@ -79,6 +79,26 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             ]);
         },
 
+        /**
+         * Peripheral function for tracking an event that has social network
+         * information worth tracking. (I think)
+         */
+        registerEvent = function (event) {
+            var actionData = [
+                "network=" + event.network || "",
+                "actionType=" + event.type,
+                "actionSubtype=" + event.subtype || "",
+                "actionScope=" + tracker.socialShareType
+            ];
+
+            tracker.registerPageView(event.type);
+
+            trackEvent({
+                "action": actionData.join("|"),
+                "label": event.label || tracker.socialShareUrl
+            });
+        },
+
         setCustomVar = function (o) {
             var slotId = o.slotId,
                 name = o.name,
@@ -123,13 +143,21 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             return {
                 'category': category,
                 'label': label
-            }
+            };
         };
 
+    tracker.socialShareType = undefined;
+    tracker.socialShareUrl = undefined;
+
+    /**
+     * Top-level event binding wrapper. all events bubble up to this level.
+     *
+     * The theme can declare as many event handlers as they like by creating
+     * their own new EventManager({ event: handler, event: ... })s.
+     *
+     * @type {*}
+     */
     tracker.EventManager = Backbone.View.extend({
-        // Top-level event binding wrapper. all events bubble up to this level.
-        // the theme can declare as many event handlers as they like by creating
-        // their own new EventManager({ event: handler, event: ... })s.
         'el': $window.add($document),
         'initialize': function (bindings) {
             var self = this;
@@ -142,14 +170,32 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         }
     });
 
-    tracker.setSocialShareVars = function (o) {
-        if (o && o.url && o.sType) {
-            tracker.socialShareUrl = o.url;
-            tracker.socialShareType = o.sType;
+    /**
+     *
+     * @param attrs {Object}
+     */
+    tracker.setSocialShareVars = function (attrs) {
+        if (attrs && attrs.url && attrs.sType) {
+            tracker.socialShareUrl = attrs.url;
+            tracker.socialShareType = attrs.sType;
         } else {
-            tracker.socialShareUrl = $("#featured_img").data("url");
+            tracker.socialShareUrl = SecondFunnel.option('featured:image', '');
             tracker.socialShareType = "featured";
         }
+    };
+
+    tracker.registerPageView = function (how) {
+        if (!isBounce) {
+            return;
+        }
+
+        isBounce = false;
+
+        registerEvent({
+            "type": "visit",
+            "subtype": "noBounce",
+            "label": how
+        });
     };
 
     tracker.registerFacebookListeners = function () {
@@ -499,9 +545,6 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             'loose': /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
         }
     };
-
-    this.socialShareType = undefined;
-    this.socialShareUrl = undefined;
 
     // add mediator triggers if the module exists.
     SecondFunnel.vent.on({

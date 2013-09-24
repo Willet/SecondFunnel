@@ -1,9 +1,8 @@
+/*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast */
 SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     "use strict";
 
-    var $document = $(document),
-        $window = $(window),
-        consecutiveFailures = 0;
+    var consecutiveFailures = 0;
 
     intentRank.options = {
         'baseUrl': "http://intentrank-test.elasticbeanstalk.com/intentrank",
@@ -51,10 +50,10 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      * Filter the content based on the selector
      * passed and the criteria/filters defined in the SecondFunnel options.
      *
-     * @param {array} content
-     * @param selector {string}: no idea what this is.
+     * @param {Array} content
+     * @param selector {string}: (optional) no idea what this is.
      *                           I think it stands for additional filters.
-     * @returns {array} filtered content
+     * @returns {Array} filtered content
      */
     intentRank.filter = function (content, selector) {
         var i, filter,
@@ -81,13 +80,17 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     };
 
     /**
-     * @param overrides (not used)
-     * @returns $.Deferred() (blank, with deferred methods)
+     * @param overrides (unused)
+     * @returns something $.when() accepts
      */
     intentRank.getResultsOffline = function (overrides) {
         console.error('getResultsOffline');
         // instantly mark the deferral as complete.
-        return intentRank.options.backupResults;
+        return _.chain(intentRank.options.backupResults)
+            .filter(intentRank.filter)
+            .shuffle()
+            .first(intentRank.options.IRResultsCount)
+            .value();
     };
 
     /**
@@ -95,7 +98,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      * @returns $.Deferred()
      */
     intentRank.getResultsOnline = function (overrides) {
-        var ajax, deferred, opts, uri, args, backupResults;
+        var ajax, deferred, opts, uri, backupResults;
 
         // build a one-off options object for the request.
         opts = $.extend(true, {}, intentRank.options, {
@@ -104,7 +107,6 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         $.extend(opts, overrides);
 
         uri = _.template(opts.urlTemplates[opts.type || 'campaign'], opts);
-        args = _.toArray(arguments).slice(2);
         backupResults = _.chain(opts.backupResults)
             .filter(intentRank.filter)
             .shuffle()
