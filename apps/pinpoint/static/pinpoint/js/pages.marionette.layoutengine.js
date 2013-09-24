@@ -1,4 +1,4 @@
-/*global SecondFunnel, Backbone, Marionette, console, broadcast */
+/*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast */
 SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
     // Masonry wrapper
     "use strict";
@@ -62,10 +62,10 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
     /**
      * Mix of append() and insert()
      *
-     * @param $fragment
-     * @param $target: if given, fragment is inserted after the target,
-     *                 if not, fragment is appended at the bottom.
-     * @returns {*}
+     * @param $fragment {array}: a array of jquery elements.
+     * @param $target {jQuery}: if given, fragment is inserted after the target,
+     *                          if not, fragment is appended at the bottom.
+     * @returns {Deferred}
      */
     layoutEngine.add = function ($fragment, $target) {
         return $.when(layoutEngine.imagesLoaded($fragment))
@@ -105,15 +105,16 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
     /**
      * @private (enable when IR supports colour and dimensions)
-     * TODO: use deferred
+     * @returns {deferred(args)}
      */
-    var __imagesLoaded = function (callback, $fragment) {
+    var __imagesLoaded = function ($fragment) {
         // This function is based on the understanding that the ImageService will
         // return dimensions and/or a dominant colour; elements in the $fragment have
         // assigned widths and heights; (e.g. .css('width', '100px'))
         var args = _.toArray(arguments).slice(1),
             toLoad = $fragment.children('img').length,
-            $badImages = $();
+            $badImages = $(),
+            deferred = new $.Deferred();
         // We set the background image of the tile image as the dominant colour/loading;
         // when the image is loaded, we replace the src.
         $fragment.children('img').each(function () {
@@ -134,6 +135,8 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                     // reload the layout.
                     $badImages.remove();
                     layoutEngine.reload();
+
+                    deferred.resolve(args);
                 }
             };
             img.onload = function () {
@@ -147,14 +150,19 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                 onImage();
             };
         });
-        return callback.apply(layoutEngine, args);
+        return deferred.promise();
     };
 
+    /**
+     * @deprecated: Use until ImageService is reading/returns dominant colour
+     * Calls the broken handler to remove broken images as they appear;
+     * When all images are loaded, resolves the promise returned
+     *
+     * @param $fragment
+     * @returns {promise(args)}
+     */
     layoutEngine.imagesLoaded = function ($fragment) {
-        // @deprecated: Use until ImageService is reading/returns dominant colour
-        // Calls the broken handler to remove broken images as they appear;
-        // when all images are loaded, calls the appropriate layout function
-        var args = _.toArray(arguments).slice(2),
+        var args = _.toArray(arguments).slice(1),
             $badImages = $(),
             imgLoad = imagesLoaded($fragment.children('img')),
             deferred = new $.Deferred();
@@ -180,9 +188,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
             }
 
             args.unshift($fragment);
-            // callback.apply(layoutEngine, args);
-            // deferred.resolve.apply(deferred, args);
-            deferred.resolve($fragment);
+            deferred.resolve(args);
         });
 
         return deferred.promise();

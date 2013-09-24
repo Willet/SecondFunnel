@@ -33,7 +33,8 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             'backupResults': options.backupResults || [],
             'IRResultsCount': options.IRResultsCount || 10,
             'IRTimeout': options.IRTimeout || 5000,
-            'content': options.content || []
+            'content': options.content || [],
+            'filters': options.filters || []
         });
 
         if (online) {
@@ -44,6 +45,39 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
         broadcast('intentRankInitialized', intentRank);
         return this;
+    };
+
+    /**
+     * Filter the content based on the selector
+     * passed and the criteria/filters defined in the SecondFunnel options.
+     *
+     * @param {array} content
+     * @param selector {string}: no idea what this is.
+     *                           I think it stands for additional filters.
+     * @returns {array} filtered content
+     */
+    intentRank.filter = function (content, selector) {
+        var i, filter,
+            filters = intentRank.options.filters || [];
+
+        filters.push(selector);
+        filters = _.flatten(filters);
+
+        for (i = 0; i < filters.length; ++i) {
+            filter = filters[i];
+            if (content.length === 0) {
+                break;
+            }
+            switch (typeof filter) {
+            case 'function':
+                content = _.filter(content, filter);
+                break;
+            case 'object':
+                content = _.where(content, filter);
+                break;
+            }
+        }
+        return content;
     };
 
     /**
@@ -71,7 +105,11 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
         uri = _.template(opts.urlTemplates[opts.type || 'campaign'], opts);
         args = _.toArray(arguments).slice(2);
-        backupResults = _.first(_.shuffle(opts.backupResults), opts.IRResultsCount);
+        backupResults = _.chain(opts.backupResults)
+            .filter(intentRank.filter)
+            .shuffle()
+            .first(opts.IRResultsCount)
+            .value();
 
         // http://stackoverflow.com/a/18986305/1558430
         deferred = new $.Deferred();
@@ -93,18 +131,19 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             ajax.done(function (results) {
                 consecutiveFailures = 0;  // reset
 
-                if (!(results && results.length)) {
-                    // "results.length <= 0" is still false if it is undefined
-                    results = opts.backupResults;
-                }
-                // trim the number of results if IR returns too many
-                results = _.first(_.shuffle(results), opts.IRResultsCount);
-
-                deferred.resolve(results);
+                deferred.resolve(
+                    // => list of n qualifying products
+                    _.chain(results || opts.backupResults)
+                        .filter(intentRank.filter)
+                        .shuffle()
+                        // trim the number of results if IR returns too many
+                        .first(opts.IRResultsCount)
+                        .value()
+                );
             });
             ajax.fail(function (jqXHR, textStatus, errorThrown) {
                 // $.jsonp calls this func as function (jqXHR, textStatus)
-                console.error('AJAX / JSONP call ' + textStatus + ': ' +
+                console.error('AJAX / JSONP ' + textStatus + ': ' +
                     (errorThrown || jqXHR.url));
 
                 consecutiveFailures++;
@@ -130,7 +169,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             {'id': Number(category)})) {
             // requested category not configured for this page
             console.warn('Category ' + category + ' not found');
-            return;
+            return intentRank;
         }
 
         broadcast('intentRankChangeCategory', category, intentRank);

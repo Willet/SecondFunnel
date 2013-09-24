@@ -1,4 +1,4 @@
-/*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _,
+/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _,
   Willet, broadcast, console, SecondFunnel */
 SecondFunnel.module('core', function (core, SecondFunnel) {
     // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
@@ -132,8 +132,8 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 
             // set up tile type overrides
             this.set({
-                "type": this.get('template'),  // default type being its template
-                "caption": SecondFunnel.utils.safeString(this.get("caption"))
+                'type': this.get('template'),  // default type being its template
+                'caption': SecondFunnel.utils.safeString(this.get("caption"))
             });
             if (_.contains(videoTypes, type)) {
                 this.set('type', 'video');
@@ -196,19 +196,6 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         }
     });
 
-    /**
-     * WIP
-     * @type {*}
-     */
-    core.TileCollectionView = Marionette.CollectionView.extend({
-        // Our TileCollection manages ALL the tiles on the page.
-        'itemView': core.TileView,
-        'onBeforeRender': $.noop,
-        'onRender': $.noop,
-
-        'trailingCommas': undefined
-    });
-
     core.HeroAreaView = Marionette.ItemView.extend({
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
@@ -266,13 +253,12 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             return templateRules;
         },
         'template': "#product_tile_template",
-        'className': SecondFunnel.option('itemSelector',
-            '').substring(1),
+        'className': SecondFunnel.option('itemSelector', '').substring(1),
 
         'events': {
             'click': "onClick",
             'mouseenter': "onHover",
-            "mouseleave": "onHover"
+            'mouseleave': "onHover"
         },
 
         'regions': _.extend({}, {  // if ItemView, the key is 'ui': /docs/marionette.itemview.md#organizing-ui-elements
@@ -548,18 +534,29 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             return this;
         },
 
-        'getTiles': function (options, $tile) {
-            var opts;
+        /**
+         *
+         * @param options
+         * @param tile {TileView}: supply a tile View to have tiles inserted
+         *                         after it. (optional)
+         * @returns this
+         */
+        'getTiles': function (options, tile) {
+            var self = this,
+                opts;
             if (this.loading) {
                 console.warn('Already loading tiles. Try again later');
                 return this;
             }
-            this.toggleLoading();
+            this.toggleLoading(true);
             opts = options || {};
             opts.type = opts.type || 'campaign';
 
             $.when(SecondFunnel.intentRank.getResults(opts))
-                .always(this.layoutResults, this.getMoreResults);  // TODO: check getMoreResults input
+                .always(function (data) {
+                    self.layoutResults(data, tile);
+                })
+                .always(this.getMoreResults);
             return this;
         },
 
@@ -568,7 +565,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
          *                      its use is not recommended.
          * @returns this
          */
-        "getMoreResults": function (data) {
+        'getMoreResults': function (data) {
             // creates conditions needed to get more results.
             var self = this;
             this.toggleLoading(false);
@@ -591,11 +588,10 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 
             // Check if we don't have anything
             if (data.length === 0) {
-                return this.toggleLoading();
+                return this.toggleLoading(false);
             }
 
             // If we have data to use.
-            data = this.filter(data);  // custom function
             _.each(data, function (tileData) {
                 // Create the new tiles using the data
                 var tile = new core.Tile(tileData),
@@ -616,33 +612,11 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                 $tile = tile.$el;  // this would be the "insert after" target
             }
             SecondFunnel.layoutEngine.add($tileEls, $tile)
+                .always(function () {
+                    self.toggleLoading(false);
+                })
                 .always(this.getMoreResults);
             return this;
-        },
-
-        'filter': function (content, selector) {
-            // Filter the content in the LayoutEngine based on the selector
-            // passed and the criteria/filters defined in the SecondFunnel options.
-            var i,
-                filters = this.options.filters || [];
-            filters.push(selector);
-            filters = _.flatten(filters);
-
-            for (i = 0; i < filters.length; ++i) {
-                var filter = filters[i];
-                if (content.length === 0) {
-                    break;
-                }
-                switch (typeof filter) {
-                case 'function':
-                    content = _.filter(content, filter);
-                    break;
-                case 'object':
-                    content = _.where(content, filter);
-                    break;
-                }
-            }
-            return content;
         },
 
         /**
@@ -672,6 +646,8 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             // Loads in related content below the specified tile
             var id = tile.model.get('tile-id');
             if (id === null) {
+                console.warn('updateContentStream got a null ID. ' +
+                    'I don\'t think it is supposed to happen.');
                 return this;
             }
             return this.getTiles({
