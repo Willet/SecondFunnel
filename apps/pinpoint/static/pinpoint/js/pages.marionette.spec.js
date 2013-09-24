@@ -315,16 +315,17 @@ describe("SecondFunnel", function () {
                 "landing pages must fetch results from an included list of " +
                 "backup results within the same page.", function () {
 
-                var results;
+                var promise, results;
 
                 runs(function () {
                     // screw with the url
-                    app.intentRank.getResultsOnline({
+                    promise = app.intentRank.getResultsOnline({
                         'url': 'http://ohai.ca/h/err/404?'
-                    }, function (data) {
+                    });
+                    $.when(promise).always(function (data) {
                         results = data;
                     });
-                })
+                });
 
                 waitsFor(function () {
                     if (results && results.length) {

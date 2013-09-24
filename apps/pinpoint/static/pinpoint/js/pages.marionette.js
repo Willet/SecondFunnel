@@ -507,14 +507,10 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
                 console.log('laying out initial results');
-                this.layoutResults(options.initialResults, undefined,
-                    function () {
-                        self.getTiles();
-                    });
-            } else {
-                // Load additional results and add them to our collection
-                this.getTiles();
+                this.layoutResults(options.initialResults);
             }
+            // ... then fetch more products from IR
+            this.getTiles();
         },
 
         'attachListeners': function () {
@@ -554,15 +550,19 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         },
 
         'getTiles': function (options, $tile) {
-            if (!this.loading) {
-                this.toggleLoading();
-                options = options || {};
-                options.type = options.type || 'campaign';
-                SecondFunnel.intentRank.getResults(options,
-                    this.layoutResults, $tile);
-            } else {
+            var promise, opts;
+            if (this.loading) {
                 console.warn('Already loading tiles. Try again later');
+                return this;
             }
+            this.toggleLoading();
+            opts = options || {};
+            opts.type = opts.type || 'campaign';
+            promise = SecondFunnel.intentRank.getResults(opts);
+            console.error('promise = %O', promise);
+
+            $.when(promise)
+                .always(this.layoutResults, this.getMoreResults);  // TODO: check getMoreResults input
             return this;
         },
 
@@ -589,10 +589,15 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             return this;
         },
 
-        'layoutResults': function (data, tile, callback) {
+        /**
+         * @param data {array}: list of product json objects
+         * @param tile {View}: pre-rendered tile view
+         * @returns {*}
+         */
+        'layoutResults': function (data, tile) {
             var self = this,
-                $tileEls = $();
-            callback = callback || this.getMoreResults;
+                $tileEls = $(),
+                $tile;
 
             // Check if we don't have anything
             if (data.length === 0) {
@@ -617,13 +622,11 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                 }
             });
 
-            if (tile) {
-                SecondFunnel.layoutEngine.call('insert', $tileEls, tile.$el,
-                    callback);
-            } else {
-                SecondFunnel.layoutEngine.call('append', $tileEls,
-                    callback);
+            if (tile && tile.$el) {
+                $tile = tile.$el;  // this would be the "insert after" target
             }
+            SecondFunnel.layoutEngine.add($tileEls, $tile)
+                .always(this.getMoreResults);
             return this;
         },
 

@@ -36,33 +36,6 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         return layoutEngine;
     });
 
-    layoutEngine.call = function (callback, $fragment) {
-        // relays the function to be run after imagesLoaded.
-        if (typeof callback !== 'string') {
-            console.error("Unsupported type " +
-                (typeof callback) + " passed to LayoutEngine.");
-            return layoutEngine;
-        }
-        if (!layoutEngine[callback]) {
-            console.error("LayoutEngine has no property " + callback + ".");
-            return layoutEngine;
-        }
-
-        // turn name of function into function itself
-        var args = _.toArray(arguments);
-        args[0] = layoutEngine[callback];  // [callback, fragment, ...]
-
-        return layoutEngine.imagesLoaded.apply(layoutEngine, args);
-    };
-
-    layoutEngine.append = function ($fragment, callback) {
-        broadcast('fragmentAppended', $fragment);
-        if ($fragment.length) {
-            layoutEngine.$el.append($fragment).masonry('appended', $fragment);
-        }
-        return callback ? callback($fragment) : layoutEngine;
-    };
-
     layoutEngine.stamp = function (element) {
         broadcast('elementStamped', element);
         layoutEngine.$el.masonry('stamp', element);
@@ -86,18 +59,35 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         return layoutEngine;
     };
 
-    layoutEngine.insert = function ($fragment, $target, callback) {
-        var initialBottom = $target.position().top + $target.height();
-        if ($fragment.length) {
-            // Find a target that is low enough on the screen to insert after
-            while ($target.position().top <= initialBottom &&
-                   $target.next().length > 0) {
-                $target = $target.next();
-            }
-            $fragment.insertAfter($target);
-            layoutEngine.reload();
-        }
-        return callback ? callback($fragment) : layoutEngine;
+    /**
+     * Mix of append() and insert()
+     *
+     * @param $fragment
+     * @param $target: if given, fragment is inserted after the target,
+     *                 if not, fragment is appended at the bottom.
+     * @returns {*}
+     */
+    layoutEngine.add = function ($fragment, $target) {
+        return $.when(layoutEngine.imagesLoaded($fragment))
+            .always(function () {
+                if ($target && $target.length) {
+                    var initialBottom = $target.position().top +
+                        $target.height();
+                    if ($fragment.length) {
+                        // Find a target that is low enough on the screen to insert after
+                        while ($target.position().top <= initialBottom &&
+                               $target.next().length > 0) {
+                            $target = $target.next();
+                        }
+                        $fragment.insertAfter($target);
+                        layoutEngine.reload();
+                    }
+                } else if ($fragment.length) {
+                    layoutEngine.$el
+                        .append($fragment)
+                        .masonry('appended', $fragment);
+                }
+            });
     };
 
     /**
@@ -115,6 +105,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
     /**
      * @private (enable when IR supports colour and dimensions)
+     * TODO: use deferred
      */
     var __imagesLoaded = function (callback, $fragment) {
         // This function is based on the understanding that the ImageService will
@@ -159,13 +150,15 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         return callback.apply(layoutEngine, args);
     };
 
-    layoutEngine.imagesLoaded = function (callback, $fragment) {
+    layoutEngine.imagesLoaded = function ($fragment) {
         // @deprecated: Use until ImageService is reading/returns dominant colour
         // Calls the broken handler to remove broken images as they appear;
         // when all images are loaded, calls the appropriate layout function
         var args = _.toArray(arguments).slice(2),
             $badImages = $(),
-            imgLoad = imagesLoaded($fragment.children('img'));
+            imgLoad = imagesLoaded($fragment.children('img')),
+            deferred = new $.Deferred();
+
         imgLoad.on('always', function (imgLoad) {
             // When all images are loaded and/or error'd remove the broken ones, and load
             // the good ones.
@@ -186,18 +179,12 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                 $badImages.remove();
             }
 
-            // Trigger tracking event and call the callback
-            // Uncomment the below if we want to track impressions
-            // Will need to add appropriate category, etc.
-//            SecondFunnel.vent.trigger('tracking:trackEvent', {
-//                'category': '',
-//                'action': '',
-//                'label': '',
-//                'nonInteraction': true
-//            });
             args.unshift($fragment);
-            callback.apply(layoutEngine, args);
+            // callback.apply(layoutEngine, args);
+            // deferred.resolve.apply(deferred, args);
+            deferred.resolve($fragment);
         });
-        return layoutEngine;
+
+        return deferred.promise();
     };
 });
