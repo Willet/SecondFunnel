@@ -189,6 +189,9 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
             expect(tileView.loadingIndicator.$el).toBeUndefined();
         });
 
+        // TODO: Should not show buttons if loading
+        // TODO: Should eventually not be loading
+
         it("Should show a tap indicator if on mobile", function() {
             var tileView;
 
@@ -256,7 +259,7 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
         })
     });
 
-    describe("Tile Interaction: ", function() {
+    describe("Tile Interaction:", function() {
         afterEach(function() {
             this.resetApp(this.app);
         });
@@ -379,21 +382,25 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
         });
     });
 
-    describe("Preview: ", function() {
+    describe("Layout:", function() {
+        // How to verify that layout is done correctly?
+    });
+
+    describe("Preview:", function() {
         // preview displays data from tile model
         // something about closing tile
     });
 
-    describe("Tile Layout: ", function() {
+    describe("Tile Layout:", function() {
         // tiles injected near activated tile
         // tiles injected at the bottom of the page on scroll
     });
 
-    describe("Tracking: ", function() {
+    describe("Tracking:", function() {
 
     });
 
-    describe("Display modes: ", function() {
+    describe("Display modes:", function() {
 
     });
 });

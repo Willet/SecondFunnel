@@ -1,6 +1,12 @@
 <html>
     <head>
-
+        <style type='text/css'>
+            .tile {
+                border: 1px solid #000;
+                width: 200px;
+                height: 200px;
+            }
+        </style>
     </head>
     <body>
         <!-- default page template -->
@@ -41,6 +47,7 @@
         <script src="../../../js/underscore.js"></script>
         <script src="../../../js/backbone.js"></script>
         <script src="../../../js/backbone.marionette.js"></script>
+        <script src="../../../js/masonry.pkgd.js"></script>
 
         <!-- our code -->
         <script src="./page.app.js"></script>
@@ -48,7 +55,51 @@
         <script src="./page.utils.js"></script>
         <script type='text/javascript'>
             var PAGE_INFO = {
-
+                models: [{
+                    "username": "",
+                    "original-url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "original-id": "ch0xaHVYAOQ",
+                    "likes": 0,
+                    "template": "youtube",
+                    "caption": "The money is in the banana stand!",
+                    "url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "image": "",
+                    "content-type": "Youtube",
+                    "user-image": ""
+                }, {
+                    "username": "",
+                    "original-url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "original-id": "ch0xaHVYAOQ",
+                    "likes": 0,
+                    "template": "youtube",
+                    "caption": "The money is in the banana stand!",
+                    "url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "image": "",
+                    "content-type": "Youtube",
+                    "user-image": ""
+                }, {
+                    "username": "",
+                    "original-url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "original-id": "ch0xaHVYAOQ",
+                    "likes": 0,
+                    "template": "youtube",
+                    "caption": "The money is in the banana stand!",
+                    "url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "image": "",
+                    "content-type": "Youtube",
+                    "user-image": ""
+                }, {
+                    "username": "",
+                    "original-url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "original-id": "ch0xaHVYAOQ",
+                    "likes": 0,
+                    "template": "youtube",
+                    "caption": "The money is in the banana stand!",
+                    "url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "image": "",
+                    "content-type": "Youtube",
+                    "user-image": ""
+                }]
             };
             Page.start(PAGE_INFO);
         </script>
