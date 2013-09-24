@@ -485,7 +485,6 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         'collection': null,
         'loading': false,
         'lastScrollTop': 0,
-        'intentRankResults': [0, 0],  // after fetching stuff from IR, nothing was added to the page.
 
         // prevent default appendHtml behaviour (append in batch)
         'appendHtml': $.noop,
@@ -550,7 +549,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         },
 
         'getTiles': function (options, $tile) {
-            var promise, opts;
+            var opts;
             if (this.loading) {
                 console.warn('Already loading tiles. Try again later');
                 return this;
@@ -558,31 +557,22 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             this.toggleLoading();
             opts = options || {};
             opts.type = opts.type || 'campaign';
-            promise = SecondFunnel.intentRank.getResults(opts);
-            console.error('promise = %O', promise);
 
-            $.when(promise)
+            $.when(SecondFunnel.intentRank.getResults(opts))
                 .always(this.layoutResults, this.getMoreResults);  // TODO: check getMoreResults input
             return this;
         },
 
-        "getMoreResults": function () {
+        /**
+         * @param data {array}: byproduct of .always() passing back the data.
+         *                      its use is not recommended.
+         * @returns this
+         */
+        "getMoreResults": function (data) {
             // creates conditions needed to get more results.
             var self = this;
             this.toggleLoading(false);
-            if (self.intentRankResults[1] === self.collection.models.length) {
-                // loaded nothing last time.
-                self.intentRankResults[0]++;
-                if (self.intentRankResults[0] > 5) {
-                    console.error('Too many consecutive endpoint failures. ' +
-                        'Not trying again.');
-                    return this;
-                }
-            } else {
-                // success = counter reset
-                self.intentRankResults[0] = 0;
-                self.intentRankResults[1] = self.collection.models.length;
-            }
+
             setTimeout(function () {
                 self.pageScroll();
             }, 100);
@@ -592,7 +582,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         /**
          * @param data {array}: list of product json objects
          * @param tile {View}: pre-rendered tile view
-         * @returns {*}
+         * @returns this
          */
         'layoutResults': function (data, tile) {
             var self = this,
@@ -723,6 +713,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 
             if (!this.loading && $('html').css('overflow') !== 'hidden' &&
                 pageBottomPos >= documentBottomPos - viewportHeights) {
+                // get more tiles to fill the screen.
                 this.getTiles();
             }
 
