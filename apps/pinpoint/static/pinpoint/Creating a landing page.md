@@ -6,7 +6,7 @@ pallette of products that encourages them to stay on the page and interact with
 the images on the page.
 
 Creating a campaign is fast and simple. The only three things you need to use
-to create a template are HTML, CSS, and Underscore templates.
+to create one are HTML, CSS, and Underscore templates.
 
 ## Creating a functioning page
 
@@ -140,9 +140,9 @@ To add tabs to your page, you will need to follow the following example:
 
 ```html
 <ul class="nav nav-tabs">
-    <li class="active"> <a data-toggle="tab" data-target=".tab1"> Overview </a></li>
-    <li> <a data-toggle="tab" data-target=".tab2"> tags </a> </li>
-    <li> <a data-toggle="tab" data-target=".tab3"> Reviews </a> </li>
+    <li class="active"> <a data-toggle="tab" data-target=".tab1"> tab1 </a></li>
+    <li> <a data-toggle="tab" data-target=".tab2"> tab2 </a> </li>
+    <li> <a data-toggle="tab" data-target=".tab3"> tab3 </a> </li>
 </ul>
 
 <div class="tab-content">
@@ -176,9 +176,8 @@ The `data-toggle="tab"` attribute tells SecondFunnel this is a tab toggle, and
 `data-target=".tab1"` indicates the target of this tab. Note that `.tab1` is a
 `class`.
 
-The class `.active` indicates which tabs are active. By marking a tab as active
-in your page, that will make it the default tab. Ensure you have one active
-tab.
+The class `.active` indicates which tabs are active. Marking a tab as active
+in your page will make it the default tab. Ensure you have one active tab.
 
 ### Tab pages
 
@@ -189,13 +188,13 @@ active and hide it otherwise.
 
 ## Accordions
 
-To add an accordion to your page, folow the following example:
+To add an accordion to your page, follow the following example:
 
 ```html
-<div class="accordion-container" id="accordion-group">
-    <div class="panel-group">
+<div class="accordion-container">
+    <div class="panel-group"  id="my-accordion">
         <div class="panel panel-default">
-            <a class="accordion-toggle" data-toggle="collapse" data-target=".collapse1" data-parent="#accordion-group" >
+            <a class="accordion-toggle" data-toggle="sf-collapse" data-target=".collapse1" data-parent="#my-accordion" >
                 <div class=' panel-heading'>
                     collapse1 title
                 </div>
@@ -208,7 +207,7 @@ To add an accordion to your page, folow the following example:
 
 
         <div class="panel panel-default">
-            <a  class="accordion-toggle" data-toggle="collapse" data-target=".collapse2" data-parent="#accordion-group">
+            <a  class="accordion-toggle" data-toggle="sf-collapse" data-target=".collapse2" data-parent="#my-accordion">
                 <div class="panel-heading">
                     collapse2 title
                 </div>
@@ -223,3 +222,10 @@ To add an accordion to your page, folow the following example:
     </div>
 </div>
 ```
+SecondFunnel detects accordions when it finds the structure `.accordion-container > .panel-group > .panel`.
+
+### Accordion style
+
+You need to follow the accordion structure to make sure your accordion will be styled correctly.
+
+To change the style of your accordion pages, modify the style of 
