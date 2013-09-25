@@ -125,6 +125,7 @@ Page.module("core", function(core, page, B, M, $, _) {
         },
 
         render: function() {
+            var self = this;
             try {
                 Backbone.Marionette.Layout.prototype.render.call(this);
 
@@ -139,11 +140,9 @@ Page.module("core", function(core, page, B, M, $, _) {
                     this.$el.addClass('mouse-hint');
                 };
 
-                // Testing image loading
-                var self = this;
-                setTimeout(function() {
+                this.$el.imagesLoaded(function() {
                     self.triggerMethod('loaded');
-                }, 2000+Math.random()*5000)
+                });
             } catch (e) {
                 // TODO: Do *more* something on error
                 this.close();
