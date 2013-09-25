@@ -274,17 +274,25 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
 
             this.app.start();
 
+            expect(this.app.previewArea).toBeDefined();
+            expect(this.app.previewArea.$el).toBeUndefined()
+
             tileView = new this.app.core.TileView({
                 el: $('<div></div>')
             });
             tileView.render();
 
-            spyOn(tileView, 'activate');
+            spyOn(tileView, 'activate').andCallThrough();
             // Redelegate events so that our spy works, AFAIK
             // http://stackoverflow.com/a/7930247
             tileView.delegateEvents();
             tileView.$el.click();
             expect(tileView.activate).toHaveBeenCalled();
+
+            // TODO: change so that preview is the default action,
+            // but `activate` can be overridden
+            expect(this.app.previewArea.$el).toBeDefined();
+            expect(this.app.previewArea.$el).not.toBeEmpty();
         });
 
         // buttons only appear on hover on desktop

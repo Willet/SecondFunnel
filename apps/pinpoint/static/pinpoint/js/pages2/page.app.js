@@ -19,7 +19,8 @@ Page.defaults = {
 
 Page.addRegions({
     'heroArea': '#hero-area',
-    'discoveryArea': '#discovery-area'
+    'discoveryArea': '#discovery-area',
+    'previewArea': '#preview'
 });
 
 Page.addInitializer(function(options) {
@@ -79,6 +80,12 @@ Page.addInitializer(function(options) {
 
 // this doesn't feel right; perhaps we should be using controllers? e.g.
 //      https://github.com/davidsulc/marionette-gentle-introduction/blob/master/assets/js/apps/contacts/list/list_controller.js#L38
+Page.vent.on('preview', function(page, model) {
+    var preview = new Page.core.Preview();
+
+    page.previewArea.show(preview);
+});
+
 Page.vent.on('fetch:related', function(page) {
     // why can't we have a consistent set of arguments when listening on the vent?
 

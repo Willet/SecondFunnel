@@ -111,6 +111,7 @@ Page.module("core", function(core, page, B, M, $, _) {
         },
 
         activate: function() {
+            page.vent.trigger('preview', page, this.model);
             // Why do I need to pass along the page?
             page.vent.trigger('fetch:related', page);
             return this;
@@ -228,6 +229,20 @@ Page.module("core", function(core, page, B, M, $, _) {
             }
             return this;
         }
+    });
+
+    core.Preview = Backbone.Marionette.Layout.extend({
+        'tagName': 'div',
+        'template': '#willet-preview'
+//        render: function() {
+//            try {
+//                Backbone.Marionette.Layout.prototype.render.call(this);
+//            } catch (e) {
+//                // TODO: Do *more* something on error
+//                this.close();
+//            }
+//            return this;
+//        }
     });
 
     core.DiscoveryArea = Backbone.Marionette.CollectionView.extend({
