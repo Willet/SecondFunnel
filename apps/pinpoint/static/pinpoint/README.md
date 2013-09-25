@@ -1,5 +1,7 @@
 # `pages.js`: How-to implement the features you want
 
+**[Newer version available](Creating a landing page.md)**
+
 ## Edit the page's styles
 
 1. Create `styles.css` in the `css/` directory. Do not edit `pages2.css`.
