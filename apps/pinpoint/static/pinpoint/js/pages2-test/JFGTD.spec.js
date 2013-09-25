@@ -98,6 +98,8 @@ describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
 
             expect(this.app.discoveryArea.$el.find('.tile').length)
                 .toBeGreaterThan(numTiles);
+
+            // TODO: Should only add new tiles when scrolling near the bottom
         });
 
         // collection loads more results when fetch related is called

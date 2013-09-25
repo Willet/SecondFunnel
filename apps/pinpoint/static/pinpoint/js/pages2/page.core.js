@@ -82,9 +82,9 @@ Page.module("core", function(core, page, B, M, $, _) {
         //triggers: {},
 
         events: function() {
-            var events = {};
-
-            events.click = 'activate';
+            var events = {
+                'click': 'activate'
+            };
 
             if (!page.mobile) {
                 events.mouseenter = 'mouseenter';
@@ -96,6 +96,11 @@ Page.module("core", function(core, page, B, M, $, _) {
 
         initialize: function (options) {
             options = options || {};
+
+            // Should loading indicator know about the model?
+            // Probably; its going to be sizing things.
+
+            // Does loading indicator know about its parent?
 
             this.loading = options.loading || this.defaults.loading;
             this.indicators = {
@@ -133,6 +138,12 @@ Page.module("core", function(core, page, B, M, $, _) {
                 } else {
                     this.$el.addClass('mouse-hint');
                 };
+
+                // Testing image loading
+                var self = this;
+                setTimeout(function() {
+                    self.triggerMethod('loaded');
+                }, 2000+Math.random()*5000)
             } catch (e) {
                 // TODO: Do *more* something on error
                 this.close();
@@ -142,8 +153,18 @@ Page.module("core", function(core, page, B, M, $, _) {
 
         setLoading: function(state) {
             this.loading = !!state;
-            this.loadingIndicator.reset();
+
+            // Why wouldn't the loading indicator exist?
+
+            if (this.loadingIndicator) {
+                this.loadingIndicator.reset();
+            }
             return this;
+        },
+
+        onLoaded: function() {
+            this.setLoading(false);
+            // What else to do when loaded?
         }
     });
 
@@ -210,11 +231,8 @@ Page.module("core", function(core, page, B, M, $, _) {
         }
     });
 
-    // Perhaps this should be a composite view?
-    //      Used for when a collection needs to be rendered with a wrapper
     core.DiscoveryArea = Backbone.Marionette.CollectionView.extend({
         // Will render some view when there are no results...
-        // How can we create an 'emptyView' that does
         'emptyView': core.LoadingIndicator,
         'itemView': core.TileView,
         getItemView: function(item) {
