@@ -135,20 +135,30 @@ conversion rates, you might want to add the following features to your page
 To add social buttons to your page, you will simply need to include (TODO)
 
 
-## Tabs To add tabs to your page, you will need to follow the following
-example:
+## Tabs
+To add tabs to your page, you will need to follow the following example:
 
-```html <ul class="nav nav-tabs"> <li class="active"> <a data-toggle="tab"
-data-target=".tab1"> Overview </a></li> <li> <a data-toggle="tab"
-data-target=".tab2"> tags </a> </li> <li> <a data-toggle="tab"
-data-target=".tab3"> Reviews </a> </li> </ul>
+```html
+<ul class="nav nav-tabs">
+    <li class="active"> <a data-toggle="tab" data-target=".tab1"> Overview </a></li>
+    <li> <a data-toggle="tab" data-target=".tab2"> tags </a> </li>
+    <li> <a data-toggle="tab" data-target=".tab3"> Reviews </a> </li>
+</ul>
 
-<div class="tab-content"> <div class="tab-pane description active tab1"> tab1
+<div class="tab-content">
+    <div class="tab-pane description active tab1">
+        tab1
+    </div>
+    
+    <div class="tab-pane tab2">
+        tab2
+    </div>
+    
+    <div class="tab-pane tab3">
+        tab3
+    </div>
 </div>
-    
-    <div class="tab-pane tab2"> tab2     </div>
-    
-    <div class="tab-pane tab3"> tab3 </div> </div> ```
+```
 
 ### Tab style
 
@@ -181,21 +191,35 @@ active and hide it otherwise.
 
 To add an accordion to your page, folow the following example:
 
-```html <div class="accordion-container" id="accordion-group"> <div
-class="panel-group">
+```html
+<div class="accordion-container" id="accordion-group">
+    <div class="panel-group">
+        <div class="panel panel-default">
+            <a class="accordion-toggle" data-toggle="collapse" data-target=".collapse1" data-parent="#accordion-group" >
+                <div class=' panel-heading'>
+                    collapse1 title
+                </div>
+            </a>
 
-	<div class="panel panel-default"> <a class="accordion-toggle"
-data-toggle="collapse" data-target=".collapse1" data-parent="#accordion-group"
-> <div class=' panel-heading'> collapse1 title </div> </a>
-
-	    <div class="panel-collapse collapse in collapseOne"> <div>
-collapse1 content</div> </div> </div>
+            <div class="panel-collapse collapse in collapseOne">
+                <div> collapse1 content</div>
+            </div>
+        </div>
 
 
-	<div class="panel panel-default"> <a  class="accordion-toggle"
-data-toggle="collapse" data-target=".collapse2" data-parent="#accordion-group">
-<div class="panel-heading"> collapse2 title </div> </a>
+        <div class="panel panel-default">
+            <a  class="accordion-toggle" data-toggle="collapse" data-target=".collapse2" data-parent="#accordion-group">
+                <div class="panel-heading">
+                    collapse2 title
+                </div>
+            </a>
 
-	    <div class="panel-collapse collapse collapseTwo"> <div
-class="panel-body"> collapse2 content </div> </div> </div> </div> </div> ```
-
+            <div class="panel-collapse collapse collapseTwo">
+                <div class="panel-body">
+                    collapse2 content
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+```
