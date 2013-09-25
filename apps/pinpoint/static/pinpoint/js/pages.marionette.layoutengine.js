@@ -6,7 +6,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
     var $document = $(document),
         $window = $(window),
         defaults = {
-            'columnWidth': SecondFunnel.option('columnWidth', $.noop)() || 255,
+            'columnWidth': 255,
             'isAnimated': !SecondFunnel.support.mobile(),
             'transitionDuration': '0.4s',
             'isInitLayout': true,
@@ -27,14 +27,23 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         opts;  // last-used options (used by clear())
 
     layoutEngine.on('start', function () {  // this = layoutEngine
-        opts = $.extend({}, defaults, opts, _.get(opts, 'masonry'));
+        return this.initialize(SecondFunnel.options);
+    });
 
-        this.$el = $(SecondFunnel.option('discoveryTarget'));
+    layoutEngine.initialize = function (options) {
+        opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
+
+        this.$el = $(opts.discoveryTarget);
+
+        if (typeof opts.columnWidth === 'function') {
+            opts.columnWidth = opts.columnWidth(this.$el);
+        }
+
         this.$el.masonry(opts);
 
         broadcast('layoutEngineInitialized', layoutEngine, opts);
         return layoutEngine;
-    });
+    };
 
     layoutEngine.stamp = function (element) {
         broadcast('elementStamped', element);

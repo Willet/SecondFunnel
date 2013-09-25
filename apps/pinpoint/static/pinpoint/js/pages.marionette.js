@@ -371,7 +371,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             // semi-stupid view-based resizer
             var tileImg = this.$('img.focus'),
                 columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
-                columnWidth = SecondFunnel.option('columnWidth', $.noop)() || 255;
+                columnWidth = SecondFunnel.option('columnWidth', 255);
             if (tileImg.length) {
                 tileImg.attr('src', SecondFunnel.utils.pickImageSize(tileImg.attr('src'),
                                     columnWidth * columns));
@@ -624,7 +624,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             var i,
                 $html = $('html'),
                 maxColsDef = SecondFunnel.option('maxColumnCount', 4),
-                maxCols = $window.width() / (SecondFunnel.option('columnWidth', $.noop)() || 255);
+                maxCols = $window.width() / SecondFunnel.option('columnWidth', 255);
             $html.removeClass(function (idx, cls) {
                 // remove all current col-* classes
                 return (cls.match(/col-\d+/g) || []).join(' ');

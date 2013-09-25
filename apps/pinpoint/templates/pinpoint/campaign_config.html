@@ -41,9 +41,7 @@
             'description': '{{ campaign.description|escapejs }}'  // DEPRECATED
         },
         'campaign': '{{ campaign.default_intentrank.id|default:campaign.id }}',
-        'columnWidth': function ($element) {
-            return 240 + 15;
-        },
+        'columnWidth': undefined,  // optional (defaults to 255, pixels)
         'maxColumnCount': {{ campaign.column_count|default:4 }},  // optional (default: 4)
         'events': undefined,  // page event bindings (optional)
         'socialButtons': [
