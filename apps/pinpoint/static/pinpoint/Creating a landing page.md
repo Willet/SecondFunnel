@@ -81,7 +81,19 @@ template has the name "name", your template definition will have the tag
 ### Template names
 
 In SecondFunnel, template names follow a convention. The name of your template
-will decide how specific it is. (TODO explain names)
+will decide how specific it is. In order of decreasing specificity, the rules for naming templates are:
+
+(META these are tile templates. Make sure conventions apply everywhere.)
+(TODO talk about them, finish. Add other templates if warranted)
+
+- `store`_`content type`_`data type`_mobile_tile_template 
+- `content type`_`data type`_mobile_tile_template 
+- `store`_`data type`_mobile_tile_template 
+- `data type`_mobile_tile_template 
+- `store`_`content type`_image_tile_template 
+- `content type`_`data type`_tile_template 
+- `store`_`data type`_tile_template
+- `data type`_tile_template 
 
 ### Template contents
 
@@ -228,4 +240,7 @@ SecondFunnel detects accordions when it finds the structure
 
 You need to follow the accordion structure to make sure your accordion will be styled correctly.
 
-To change the style of your accordion pages, modify the style of 
+To change the style of your accordion, you need to override one or more of the following:
+
+- `.accordion-container > .panel-group > .panel > .accordion-toggle` Accordion toggles
+- `.accordion-container > .panel-group > .panel > .panel-collapse` Accordion contents
