@@ -123,6 +123,8 @@ div.loading {
     font-size: 15px;
     color: #b5b5b5;
 
+    float: left;
+
     cursor: pointer;
     cursor: -webkit-zoom-in;
     cursor: -moz-zoom-in;

@@ -73,7 +73,8 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      */
     layoutEngine.add = function ($fragment, $target) {
         return $.when(layoutEngine.imagesLoaded($fragment))
-            .always(function ($frag) {
+            .done(function ($frag) {
+                // $target = layoutEngine.$el.find('.tile').eq(0);
                 if ($target && $target.length) {
                     var initialBottom = $target.position().top +
                         $target.height();
@@ -150,7 +151,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
             img.onerror = function () {
                 broadcast('tileRemoved', self);
-                $badImages = $badImages.add($(self).parents(layoutEngine.itemSelector));
+                $badImages = $badImages.add($(self).parents(opts.itemSelector));
                 onImage();
             };
         });
@@ -162,38 +163,42 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * Calls the broken handler to remove broken images as they appear;
      * When all images are loaded, resolves the promise returned
      *
-     * @param $fragment
+     * @param $tiles
      * @returns {promise(args)}
      */
-    layoutEngine.imagesLoaded = function ($fragment) {
+    layoutEngine.imagesLoaded = function ($tiles) {
         var args = _.toArray(arguments).slice(1),
-            $badImages = $(),
-            $goodFragments = $fragment,
-            imgLoad = imagesLoaded($fragment.children('img')),
             deferred = new $.Deferred();
 
-        imgLoad.on('always', function (imgLoad) {
-            // When all images are loaded and/or error'd remove the broken ones, and load
-            // the good ones.
-            if (imgLoad.hasAnyBroken) {
-                // Iterate through the images and collect the bad images.
-                var $badImages = $();
-                _.each(imgLoad.images, function (image) {
-                    if (!image.isLoaded) {
-                        var $img = $(image.img),
-                            $elem = $img.parents(layoutEngine.itemSelector);
-                        $goodFragments = $goodFragments.filter(function () {
-                            return !$(this).is($elem);
-                        });
-                        $badImages = $badImages.add($elem);
-                    }
-                });
-                // Batch removal of bad elements
-                $badImages.remove();
-            }
+        // "Triggered after all images have been either loaded or confirmed broken."
+        // huh? imagesLoaded uses $.Deferred?
+        $tiles.children('img').imagesLoaded()
+            .always(function (instance) {
+                var $badImages = $(),
+                    $goodTiles = $();
+                // When all images are loaded and/or error'd remove the broken ones, and load
+                // the good ones.
+                if (instance.hasAnyBroken) {
+                    // Iterate through the images and collect the bad images.
+                    _.each(instance.images, function (image) {
+                        var $img = $(image.img),  // image.img is a dom element
+                            $elem = $img.parents(opts.itemSelector);
 
-            deferred.resolve($goodFragments);
-        });
+                        if (image.isLoaded) {
+                            $goodTiles.add($elem);
+                        } else {
+                            $badImages.add($img);
+                        }
+                    });
+                    // Batch removal of bad elements
+                    $badImages.remove();
+
+                    deferred.resolve($goodTiles);
+                } else {
+                    // no images broken
+                    deferred.resolve($tiles);
+                }
+            });
 
         return deferred.promise();
     };
