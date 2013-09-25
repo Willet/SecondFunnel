@@ -1,15 +1,13 @@
 Page.module("utils", function(utils, page, B, M, $, _) {
-    // WARNING: Untested
-    utils.createApplication = function (options, initializers, regions) {
-        var i,
-            app = M.Application(options);
-
-        app.addRegions(regions);
-
-        for(i = 0; i < initializers.length; i++) {
-            app.addInitializer(initializers[i]);
+    utils.ItemView = M.ItemView.extend({
+        render: function() {
+            try {
+                Backbone.Marionette.ItemView.prototype.render.call(this);
+            } catch (e) {
+                // TODO: Do *more* something on error
+                this.close();
+            }
+            return this;
         }
-
-        return app;
-    };
+    })
 });

@@ -172,77 +172,32 @@ Page.module("core", function(core, page, B, M, $, _) {
         className: 'tile video'
     });
 
-    core.LoadingIndicator = Backbone.Marionette.ItemView.extend({
+    core.LoadingIndicator = Page.utils.ItemView.extend({
         'tagName': 'div',
         'className': 'loading',
-        'template': '#willet-tile-loading',
-        render: function() { // TODO: Make a 'BaseItemView' that does this
-            try {
-                Backbone.Marionette.ItemView.prototype.render.call(this);
-            } catch (e) {
-                // TODO: Do *more* something on error
-                this.close();
-            }
-            return this;
-        }
+        'template': '#willet-tile-loading'
     });
 
-    core.TapIndicator = Backbone.Marionette.ItemView.extend({
+    core.TapIndicator = Page.utils.ItemView.extend({
         'tagName': 'div',
         'className': 'tap',
-        'template': '#willet-tile-tap',
-        render: function() { // TODO: Make a 'BaseItemView' that does this
-            try {
-                Backbone.Marionette.ItemView.prototype.render.call(this);
-            } catch (e) {
-                // TODO: Do *more* something on error
-                this.close();
-            }
-            return this;
-        }
+        'template': '#willet-tile-tap'
     });
 
-    core.ButtonsIndicator = Backbone.Marionette.ItemView.extend({
+    core.ButtonsIndicator = Page.utils.ItemView.extend({
         'tagName': 'div',
         'className': 'buttons',
-        'template': '#willet-buttons',
-        render: function() { // TODO: Make a 'BaseItemView' that does this
-            try {
-                Backbone.Marionette.ItemView.prototype.render.call(this);
-            } catch (e) {
-                // TODO: Do *more* something on error
-                this.close();
-            }
-            return this;
-        }
+        'template': '#willet-buttons'
     });
 
-    core.HeroAreaView = Backbone.Marionette.ItemView.extend({
+    core.HeroAreaView = Page.utils.ItemView.extend({
         'tagName': 'div',
-        'template': '#willet-hero-area',
-        render: function() {
-            try {
-                Backbone.Marionette.ItemView.prototype.render.call(this);
-            } catch (e) {
-                // TODO: Do *more* something on error
-                this.close();
-            }
-            return this;
-        }
+        'template': '#willet-hero-area'
     });
 
-    core.Preview = Backbone.Marionette.Layout.extend({
+    core.Preview = Page.utils.ItemView.extend({
         'tagName': 'div',
         'template': '#willet-preview'
-//        render: function() {
-//            try {
-//                Backbone.Marionette.Layout.prototype.render.call(this);
-//            } catch (e) {
-//                // TODO: Do *more* something on error
-//                this.close();
-//            }
-//            return this;
-//        }
     });
 
     core.DiscoveryArea = Backbone.Marionette.CollectionView.extend({
