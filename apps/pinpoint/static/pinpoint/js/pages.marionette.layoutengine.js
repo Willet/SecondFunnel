@@ -1,6 +1,11 @@
 /*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast */
 /**
  * @module layoutEngine
+ * @property initialize
+ * @property stamp
+ * @property unstamp
+ * @property layout
+ * @property reload
  */
 SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
     // Masonry wrapper
@@ -29,11 +34,11 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         },
         opts;  // last-used options (used by clear())
 
-    layoutEngine.on('start', function () {  // this = layoutEngine
+    this.on('start', function () {  // this = layoutEngine
         return this.initialize(SecondFunnel.options);
     });
 
-    layoutEngine.initialize = function (options) {
+    this.initialize = function (options) {
         opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
 
         this.$el = $(opts.discoveryTarget);
@@ -44,31 +49,31 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
         this.$el.masonry(opts);
 
-        broadcast('layoutEngineInitialized', layoutEngine, opts);
-        return layoutEngine;
+        broadcast('layoutEngineInitialized', this, opts);
+        return this;
     };
 
-    layoutEngine.stamp = function (element) {
+    this.stamp = function (element) {
         broadcast('elementStamped', element);
-        layoutEngine.$el.masonry('stamp', element);
-        return layoutEngine;
+        this.$el.masonry('stamp', element);
+        return this;
     };
 
-    layoutEngine.unstamp = function (element) {
+    this.unstamp = function (element) {
         broadcast('elementUnstamped', element);
-        layoutEngine.$el.masonry('unstamp', element);
-        return layoutEngine;
+        this.$el.masonry('unstamp', element);
+        return this;
     };
 
-    layoutEngine.layout = function () {
-        layoutEngine.$el.masonry('layout');
-        return layoutEngine;
+    this.layout = function () {
+        this.$el.masonry('layout');
+        return this;
     };
 
-    layoutEngine.reload = function ($fragment) {
-        layoutEngine.$el.masonry('reloadItems');
-        layoutEngine.$el.masonry();
-        return layoutEngine;
+    this.reload = function ($fragment) {
+        this.$el.masonry('reloadItems');
+        this.$el.masonry();
+        return this;
     };
 
     /**
@@ -79,8 +84,9 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      *                          if not, fragment is appended at the bottom.
      * @returns {Deferred}
      */
-    layoutEngine.add = function (fragment, $target) {
-        return $.when(layoutEngine.imagesLoaded(fragment))
+    this.add = function (fragment, $target) {
+        var self = this;
+        return $.when(this.imagesLoaded(fragment))
             .done(function (frag) {
                 if ($target && $target.length) {
                     var initialBottom = $target.position().top +
@@ -92,10 +98,10 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                             $target = $target.next();
                         }
                         $target.after(frag);
-                        layoutEngine.reload();
+                        self.reload();
                     }
                 } else if (frag.length) {
-                    layoutEngine.$el
+                    self.$el
                         .append(frag)
                         .masonry('appended', frag);
                 }
@@ -107,8 +113,8 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * Conventional $el.empty() doesn't work because the container height
      * is set by masonry.
      */
-    layoutEngine.empty = function () {
-        layoutEngine.$el
+    this.empty = function () {
+        this.$el
             .masonry('destroy')
             .html("")
             .css('position', 'relative')
@@ -125,7 +131,8 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         // This function is based on the understanding that the ImageService will
         // return dimensions and/or a dominant colour; elements in the $fragment have
         // assigned widths and heights; (e.g. .css('width', '100px'))
-        var args = _.toArray(arguments).slice(1),
+        var self = this,
+            args = _.toArray(arguments).slice(1),
             toLoad = $fragment.children('img').length,
             $badImages = $(),
             deferred = new $.Deferred();
@@ -148,7 +155,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                     // If broken images exist, remove them and
                     // reload the layout.
                     $badImages.remove();
-                    layoutEngine.reload();
+                    self.reload();
 
                     deferred.resolve(args);
                 }
@@ -175,7 +182,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * @param tiles
      * @returns {promise(args)}
      */
-    layoutEngine.imagesLoaded = function (tiles) {
+    this.imagesLoaded = function (tiles) {
         var deferred = new $.Deferred();
 
         // "Triggered after all images have been either loaded or confirmed broken."

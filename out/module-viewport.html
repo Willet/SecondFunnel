@@ -62,7 +62,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="pages.marionette.viewport.js.html">pages.marionette.viewport.js</a>, <a href="pages.marionette.viewport.js.html#line3">line 3</a>
+        <a href="pages.marionette.viewport.js.html">pages.marionette.viewport.js</a>, <a href="pages.marionette.viewport.js.html#line1">line 1</a>
     </li></ul></dd>
     
     
@@ -91,6 +91,282 @@
     
     
     
+        <h3 class="subsection-title">Methods</h3>
+        
+        <dl>
+            
+<dt>
+    <h4 class="name" id="determine"><span class="type-signature">&lt;static> </span>determine<span class="signature">(desiredWidth)</span><span class="type-signature"> &rarr; {Array}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Returns an array containing viewport analysis.
+Used by .scale().
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>desiredWidth</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">int</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="pages.marionette.viewport.js.html">pages.marionette.viewport.js</a>, <a href="pages.marionette.viewport.js.html#line44">line 44</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    enabled[, width, scale, meta], some of which can
+                be undefined if not applicable.
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">Array</span>
+
+
+	</dd>
+</dl>
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="scale"><span class="type-signature">&lt;static> </span>scale<span class="signature">(desiredWidth)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        attempt to lock the viewport to appear as wide as desiredWidth
+by scaling the entire viewport.
+
+the meta viewport tag is NOT standard, and does NOT work on all devices.
+(this concerns mostly IE10 on Windows Phone)
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>desiredWidth</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">int</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="pages.marionette.viewport.js.html">pages.marionette.viewport.js</a>, <a href="pages.marionette.viewport.js.html#line111">line 111</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    undefined
+</div>
+
+
+
+        
+    
+    
+</dd>
+
+        </dl>
+    
     
     
     
@@ -105,13 +381,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-core.html">core</a></li><li><a href="module-intentRank.html">intentRank</a></li><li><a href="module-layoutEngine.html">layoutEngine</a></li><li><a href="module-sharing.html">sharing</a></li><li><a href="module-support.html">support</a></li><li><a href="module-tracker.html">tracker</a></li><li><a href="module-utils.html">utils</a></li><li><a href="module-viewport.html">viewport</a></li></ul><h3>Classes</h3><ul><li><a href="module-core-core.Discovery.html">Discovery</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_exists">_exists</a></li><li><a href="global.html#debugOp">debugOp</a></li><li><a href="global.html#determine">determine</a></li><li><a href="global.html#failsafe">failsafe</a></li><li><a href="global.html#isAniPad">isAniPad</a></li><li><a href="global.html#mobile">mobile</a></li><li><a href="global.html#option">option</a></li><li><a href="global.html#receive">receive</a></li><li><a href="global.html#reInitialize">reInitialize</a></li><li><a href="global.html#scale">scale</a></li><li><a href="global.html#touch">touch</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-core.html">core</a></li><li><a href="module-intentRank.html">intentRank</a></li><li><a href="module-layoutEngine.html">layoutEngine</a></li><li><a href="module-sharing.html">sharing</a></li><li><a href="module-support.html">support</a></li><li><a href="module-tracker.html">tracker</a></li><li><a href="module-utils.html">utils</a></li><li><a href="module-viewport.html">viewport</a></li></ul><h3>Classes</h3><ul><li><a href="module-core-core.Discovery.html">Discovery</a></li><li><a href="module-core-core.HeroAreaView.html">HeroAreaView</a></li><li><a href="module-core-core.TileCollection.html">TileCollection</a></li><li><a href="module-core-core.TileView.html">TileView</a></li><li><a href="module-core-core.VideoTileView.html">VideoTileView</a></li><li><a href="sharing.FacebookSocialButton.html">FacebookSocialButton</a></li><li><a href="sharing.ShareOption.html">ShareOption</a></li><li><a href="sharing.SharePopup.html">SharePopup</a></li><li><a href="sharing.ShareSocialButton.html">ShareSocialButton</a></li><li><a href="sharing.SocialButton.html">SocialButton</a></li><li><a href="sharing.SocialButtons.html">SocialButtons</a></li><li><a href="sharing.TwitterSocialButton.html">TwitterSocialButton</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_exists">_exists</a></li><li><a href="global.html#debugOp">debugOp</a></li><li><a href="global.html#option">option</a></li><li><a href="global.html#receive">receive</a></li><li><a href="global.html#reInitialize">reInitialize</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-dev</a> on Wed Sep 25 2013 17:14:07 GMT-0400 (EDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-dev</a> on Wed Sep 25 2013 18:03:34 GMT-0400 (EDT)
 </footer>
 
 <script> prettyPrint(); </script>

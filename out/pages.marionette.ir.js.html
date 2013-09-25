@@ -34,7 +34,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
     var consecutiveFailures = 0;
 
-    intentRank.options = {
+    this.options = {
         'baseUrl': "http://intentrank-test.elasticbeanstalk.com/intentrank",
         'urlTemplates': {
             'campaign': "&lt;%=url%>/store/&lt;%=store.name%>/campaign/&lt;%=campaign%>/getresults",
@@ -48,7 +48,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         'content': []
     };
 
-    intentRank.on('start', function () {
+    this.on('start', function () {
         // Any additional init declarations go here
         var options = SecondFunnel.options,
             page = options.page || {};
@@ -79,7 +79,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      *                           I think it stands for additional filters.
      * @returns {Array} filtered content
      */
-    intentRank.filter = function (content, selector) {
+    this.filter = function (content, selector) {
         var i, filter,
             filters = intentRank.options.filters || [];
 
@@ -106,7 +106,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     /**
      * general implementation
      */
-    intentRank.getResults = function () {
+    this.getResults = function () {
         try {
             var online = !SecondFunnel.option('page:offline', false);
             if (online) {
@@ -120,7 +120,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      * @param overrides (unused)
      * @returns something $.when() accepts
      */
-    intentRank.getResultsOffline = function (overrides) {
+    this.getResultsOffline = function (overrides) {
         // instantly mark the deferral as complete.
         return _.chain(intentRank.options.backupResults)
             .filter(intentRank.filter)
@@ -133,7 +133,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      * @param overrides
      * @returns $.Deferred()
      */
-    intentRank.getResultsOnline = function (overrides) {
+    this.getResultsOnline = function (overrides) {
         var ajax, deferred, opts, uri, backupResults,
             irFailuresAllowed = SecondFunnel.option('IRFailuresAllowed', 5);
 
@@ -202,7 +202,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         return deferred.promise();
     };
 
-    intentRank.changeCategory = function (category) {
+    this.changeCategory = function (category) {
         // Change the category
         if (!_.findWhere(intentRank.options.categories,
             {'id': Number(category)})) {
@@ -227,13 +227,13 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-core.html">core</a></li><li><a href="module-intentRank.html">intentRank</a></li><li><a href="module-layoutEngine.html">layoutEngine</a></li><li><a href="module-sharing.html">sharing</a></li><li><a href="module-support.html">support</a></li><li><a href="module-tracker.html">tracker</a></li><li><a href="module-utils.html">utils</a></li><li><a href="module-viewport.html">viewport</a></li></ul><h3>Classes</h3><ul><li><a href="module-core-core.Discovery.html">Discovery</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_exists">_exists</a></li><li><a href="global.html#debugOp">debugOp</a></li><li><a href="global.html#determine">determine</a></li><li><a href="global.html#failsafe">failsafe</a></li><li><a href="global.html#isAniPad">isAniPad</a></li><li><a href="global.html#mobile">mobile</a></li><li><a href="global.html#option">option</a></li><li><a href="global.html#receive">receive</a></li><li><a href="global.html#reInitialize">reInitialize</a></li><li><a href="global.html#scale">scale</a></li><li><a href="global.html#touch">touch</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-core.html">core</a></li><li><a href="module-intentRank.html">intentRank</a></li><li><a href="module-layoutEngine.html">layoutEngine</a></li><li><a href="module-sharing.html">sharing</a></li><li><a href="module-support.html">support</a></li><li><a href="module-tracker.html">tracker</a></li><li><a href="module-utils.html">utils</a></li><li><a href="module-viewport.html">viewport</a></li></ul><h3>Classes</h3><ul><li><a href="module-core-core.Discovery.html">Discovery</a></li><li><a href="module-core-core.HeroAreaView.html">HeroAreaView</a></li><li><a href="module-core-core.TileCollection.html">TileCollection</a></li><li><a href="module-core-core.TileView.html">TileView</a></li><li><a href="module-core-core.VideoTileView.html">VideoTileView</a></li><li><a href="sharing.FacebookSocialButton.html">FacebookSocialButton</a></li><li><a href="sharing.ShareOption.html">ShareOption</a></li><li><a href="sharing.SharePopup.html">SharePopup</a></li><li><a href="sharing.ShareSocialButton.html">ShareSocialButton</a></li><li><a href="sharing.SocialButton.html">SocialButton</a></li><li><a href="sharing.SocialButtons.html">SocialButtons</a></li><li><a href="sharing.TwitterSocialButton.html">TwitterSocialButton</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_exists">_exists</a></li><li><a href="global.html#debugOp">debugOp</a></li><li><a href="global.html#option">option</a></li><li><a href="global.html#receive">receive</a></li><li><a href="global.html#reInitialize">reInitialize</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-dev</a> on Wed Sep 25 2013 17:14:06 GMT-0400 (EDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-dev</a> on Wed Sep 25 2013 18:03:33 GMT-0400 (EDT)
 </footer>
 
 <script> prettyPrint(); </script>

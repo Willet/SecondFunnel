@@ -29,7 +29,7 @@
 /**
  * @module support
  */
-SecondFunnel.module("support", function (support, SecondFunnel) {
+SecondFunnel.module("support", function (module, SecondFunnel) {
     // make new module full of transient utilities
     "use strict";
 
@@ -43,11 +43,10 @@ SecondFunnel.module("support", function (support, SecondFunnel) {
      * Currently, this is just a check to see if the screen is 767px or less.
      * For a more "draconian" detection method, use `$.browser.mobile`.
      *
-     * @method mobile
      * @type {Function}
      * @returns {Boolean}
      */
-    support.mobile = _.memoize(function () {
+    this.mobile = _.memoize(function () {
         // if one day device mode can change, remove _.memoize.
         return ($window.width() &lt; 768);  // 768 is set in stone now
     });
@@ -55,11 +54,10 @@ SecondFunnel.module("support", function (support, SecondFunnel) {
     /**
      * True if the browser supports touch events.
      *
-     * @method touch
      * @type {Function}
      * @returns {Boolean}
      */
-    support.touch = function () {
+    this.touch = function () {
         return ('ontouchstart' in document.documentElement) ||
             $('html').hasClass('touch-enabled');
     };
@@ -67,11 +65,10 @@ SecondFunnel.module("support", function (support, SecondFunnel) {
     /**
      * True if the device identifies itself as an iPad.
      *
-     * @method isAniPad
      * @type {Function}
      * @returns {Boolean}
      */
-    support.isAniPad = function () {
+    this.isAniPad = function () {
         // use of this function is highly discouraged, but you know it
         // will be used anyway
         return testUA(/ipad/i);
@@ -81,12 +78,11 @@ SecondFunnel.module("support", function (support, SecondFunnel) {
      * The absolutely-no-errors-must-leave-this-function 'decorator'.
      * arguments after context will be passed to func.
      *
-     * @method failsafe
      * @param func {Function}: the method to protect.
      * @param context {object}: should be the caller's "this"
      * @returns protected function return
      */
-    support.failsafe = function (func, context /*, *args */) {
+    this.failsafe = function (func, context /*, *args */) {
         try {
             var pArgs = Array.prototype.slice.call(arguments, 2);
             return func.apply(context || window, pArgs);
@@ -105,13 +101,13 @@ SecondFunnel.module("support", function (support, SecondFunnel) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-core.html">core</a></li><li><a href="module-intentRank.html">intentRank</a></li><li><a href="module-layoutEngine.html">layoutEngine</a></li><li><a href="module-sharing.html">sharing</a></li><li><a href="module-support.html">support</a></li><li><a href="module-tracker.html">tracker</a></li><li><a href="module-utils.html">utils</a></li><li><a href="module-viewport.html">viewport</a></li></ul><h3>Classes</h3><ul><li><a href="module-core-core.Discovery.html">Discovery</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_exists">_exists</a></li><li><a href="global.html#debugOp">debugOp</a></li><li><a href="global.html#determine">determine</a></li><li><a href="global.html#failsafe">failsafe</a></li><li><a href="global.html#isAniPad">isAniPad</a></li><li><a href="global.html#mobile">mobile</a></li><li><a href="global.html#option">option</a></li><li><a href="global.html#receive">receive</a></li><li><a href="global.html#reInitialize">reInitialize</a></li><li><a href="global.html#scale">scale</a></li><li><a href="global.html#touch">touch</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-core.html">core</a></li><li><a href="module-intentRank.html">intentRank</a></li><li><a href="module-layoutEngine.html">layoutEngine</a></li><li><a href="module-sharing.html">sharing</a></li><li><a href="module-support.html">support</a></li><li><a href="module-tracker.html">tracker</a></li><li><a href="module-utils.html">utils</a></li><li><a href="module-viewport.html">viewport</a></li></ul><h3>Classes</h3><ul><li><a href="module-core-core.Discovery.html">Discovery</a></li><li><a href="module-core-core.HeroAreaView.html">HeroAreaView</a></li><li><a href="module-core-core.TileCollection.html">TileCollection</a></li><li><a href="module-core-core.TileView.html">TileView</a></li><li><a href="module-core-core.VideoTileView.html">VideoTileView</a></li><li><a href="sharing.FacebookSocialButton.html">FacebookSocialButton</a></li><li><a href="sharing.ShareOption.html">ShareOption</a></li><li><a href="sharing.SharePopup.html">SharePopup</a></li><li><a href="sharing.ShareSocialButton.html">ShareSocialButton</a></li><li><a href="sharing.SocialButton.html">SocialButton</a></li><li><a href="sharing.SocialButtons.html">SocialButtons</a></li><li><a href="sharing.TwitterSocialButton.html">TwitterSocialButton</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_exists">_exists</a></li><li><a href="global.html#debugOp">debugOp</a></li><li><a href="global.html#option">option</a></li><li><a href="global.html#receive">receive</a></li><li><a href="global.html#reInitialize">reInitialize</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-dev</a> on Wed Sep 25 2013 17:14:06 GMT-0400 (EDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-dev</a> on Wed Sep 25 2013 18:03:33 GMT-0400 (EDT)
 </footer>
 
 <script> prettyPrint(); </script>

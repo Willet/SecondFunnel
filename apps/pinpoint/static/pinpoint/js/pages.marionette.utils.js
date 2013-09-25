@@ -17,7 +17,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @param {undefined} opts
      * @returns {string}
      */
-    utils.safeString = function (str, opts) {
+    this.safeString = function (str, opts) {
         var regex =/^(None|undefined|[Ff]alse|0)$/,
             trimmed = $.trim(str);
         if (regex.test(trimmed)) {
@@ -32,7 +32,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @param {string} url
      * @returns {bool}
      */
-    utils.isURL = function (url) {
+    this.isURL = function (url) {
         return (typeof url === 'string' && url.length > 2 &&
             url.indexOf('//') >= 0);
     };
@@ -48,7 +48,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @param {function} functionality the widget function.
      * @returns true
      */
-    utils.registerWidget = function (name, selector, functionality) {
+    this.registerWidget = function (name, selector, functionality) {
         regions[name] = selector;
         regionWidgets[name] = functionality;
         broadcast('widgetRegistered', name, selector, functionality,
@@ -64,7 +64,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @param {object} defn
      * @returns defn
      */
-    utils.addClass = function (name, defn) {
+    this.addClass = function (name, defn) {
         SecondFunnel.core[_.capitalize(name)] = defn;
         broadcast('classAdded', name, defn);
         return defn;
@@ -80,7 +80,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @param {object} defaultClass e.g. TileView
      * @returns {object}|defaultClass
      */
-    utils.findClass = function (typeName, prefix, defaultClass) {
+    this.findClass = function (typeName, prefix, defaultClass) {
         var FoundClass,
             targetClassName = _.capitalize(prefix || '') +
                               _.capitalize(typeName || '');
@@ -105,7 +105,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      *
      * @param {View} viewObject
      */
-    utils.runWidgets = function (viewObject) {
+    this.runWidgets = function (viewObject) {
         var self = viewObject;
 
         // process itself (if it is a view)
@@ -144,7 +144,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @param {min|max|undefined} scalePolicy
      * @returns {string}
      */
-    utils.pickImageSize = function (url, minWidth, scalePolicy) {
+    this.pickImageSize = function (url, minWidth, scalePolicy) {
         var i,
             prevKey = 'pico',
             maxLogicalSize = Math.min($window.width(), $window.height()),

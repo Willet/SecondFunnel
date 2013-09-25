@@ -7,7 +7,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
     var consecutiveFailures = 0;
 
-    intentRank.options = {
+    this.options = {
         'baseUrl': "http://intentrank-test.elasticbeanstalk.com/intentrank",
         'urlTemplates': {
             'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
@@ -21,7 +21,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         'content': []
     };
 
-    intentRank.on('start', function () {
+    this.on('start', function () {
         // Any additional init declarations go here
         var options = SecondFunnel.options,
             page = options.page || {};
@@ -52,7 +52,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      *                           I think it stands for additional filters.
      * @returns {Array} filtered content
      */
-    intentRank.filter = function (content, selector) {
+    this.filter = function (content, selector) {
         var i, filter,
             filters = intentRank.options.filters || [];
 
@@ -79,7 +79,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     /**
      * general implementation
      */
-    intentRank.getResults = function () {
+    this.getResults = function () {
         try {
             var online = !SecondFunnel.option('page:offline', false);
             if (online) {
@@ -93,7 +93,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      * @param overrides (unused)
      * @returns something $.when() accepts
      */
-    intentRank.getResultsOffline = function (overrides) {
+    this.getResultsOffline = function (overrides) {
         // instantly mark the deferral as complete.
         return _.chain(intentRank.options.backupResults)
             .filter(intentRank.filter)
@@ -106,7 +106,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      * @param overrides
      * @returns $.Deferred()
      */
-    intentRank.getResultsOnline = function (overrides) {
+    this.getResultsOnline = function (overrides) {
         var ajax, deferred, opts, uri, backupResults,
             irFailuresAllowed = SecondFunnel.option('IRFailuresAllowed', 5);
 
@@ -175,7 +175,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         return deferred.promise();
     };
 
-    intentRank.changeCategory = function (category) {
+    this.changeCategory = function (category) {
         // Change the category
         if (!_.findWhere(intentRank.options.categories,
             {'id': Number(category)})) {

@@ -186,8 +186,11 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         }
     });
 
+    /**
+     * Our TileCollection manages ALL the tiles on the page.
+     * @constructor
+     */
     core.TileCollection = Backbone.Collection.extend({
-        // Our TileCollection manages ALL the tiles on the page.
         'model': function (attrs) {
             return new SecondFunnel.utils.findClass('Tile', '', core.Tile)(attrs);
         },
@@ -207,6 +210,12 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         }
     });
 
+    /**
+     * View responsible for the "Hero Area"
+     * (e.g. Shop-the-look, featured, or just a plain div)
+     *
+     * @constructor
+     */
     core.HeroAreaView = Marionette.ItemView.extend({
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
@@ -231,6 +240,11 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         }
     });
 
+    /**
+     * View for showing a Tile (or its extensions)
+     *
+     * @constructor
+     */
     core.TileView = Marionette.Layout.extend({
         // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
         'tagName': SecondFunnel.option('tileElement', "div"),
@@ -404,9 +418,16 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         }
     });
 
+    /**
+     * View for showing a Tile whose attributes decide it should be rendered
+     * differently from a normal tile.
+     *
+     * VideoTile extends from TileView, allows playing of Video files;
+     * for now, we only support YT
+     *
+     * @constructor
+     */
     core.VideoTileView = core.TileView.extend({
-        // VideoTile extends from TileView, allows playing of Video files;
-        // for now, we only support YT
         'onInitialize': function () {
             // Add here additional things to do when loading a VideoTile
             this.$el.addClass('wide');
@@ -420,7 +441,6 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 
         /**
          * Determine which click handler to use; determined by the content type.
-         *
          * @returns {Function}
          */
         'onClick': function () {

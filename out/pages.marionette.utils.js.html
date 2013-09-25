@@ -44,7 +44,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @param {undefined} opts
      * @returns {string}
      */
-    utils.safeString = function (str, opts) {
+    this.safeString = function (str, opts) {
         var regex =/^(None|undefined|[Ff]alse|0)$/,
             trimmed = $.trim(str);
         if (regex.test(trimmed)) {
@@ -59,7 +59,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @param {string} url
      * @returns {bool}
      */
-    utils.isURL = function (url) {
+    this.isURL = function (url) {
         return (typeof url === 'string' && url.length > 2 &&
             url.indexOf('//') >= 0);
     };
@@ -75,7 +75,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @param {function} functionality the widget function.
      * @returns true
      */
-    utils.registerWidget = function (name, selector, functionality) {
+    this.registerWidget = function (name, selector, functionality) {
         regions[name] = selector;
         regionWidgets[name] = functionality;
         broadcast('widgetRegistered', name, selector, functionality,
@@ -91,7 +91,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @param {object} defn
      * @returns defn
      */
-    utils.addClass = function (name, defn) {
+    this.addClass = function (name, defn) {
         SecondFunnel.core[_.capitalize(name)] = defn;
         broadcast('classAdded', name, defn);
         return defn;
@@ -107,7 +107,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @param {object} defaultClass e.g. TileView
      * @returns {object}|defaultClass
      */
-    utils.findClass = function (typeName, prefix, defaultClass) {
+    this.findClass = function (typeName, prefix, defaultClass) {
         var FoundClass,
             targetClassName = _.capitalize(prefix || '') +
                               _.capitalize(typeName || '');
@@ -132,7 +132,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      *
      * @param {View} viewObject
      */
-    utils.runWidgets = function (viewObject) {
+    this.runWidgets = function (viewObject) {
         var self = viewObject;
 
         // process itself (if it is a view)
@@ -171,7 +171,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @param {min|max|undefined} scalePolicy
      * @returns {string}
      */
-    utils.pickImageSize = function (url, minWidth, scalePolicy) {
+    this.pickImageSize = function (url, minWidth, scalePolicy) {
         var i,
             prevKey = 'pico',
             maxLogicalSize = Math.min($window.width(), $window.height()),
@@ -230,13 +230,13 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-core.html">core</a></li><li><a href="module-intentRank.html">intentRank</a></li><li><a href="module-layoutEngine.html">layoutEngine</a></li><li><a href="module-sharing.html">sharing</a></li><li><a href="module-support.html">support</a></li><li><a href="module-tracker.html">tracker</a></li><li><a href="module-utils.html">utils</a></li><li><a href="module-viewport.html">viewport</a></li></ul><h3>Classes</h3><ul><li><a href="module-core-core.Discovery.html">Discovery</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_exists">_exists</a></li><li><a href="global.html#debugOp">debugOp</a></li><li><a href="global.html#determine">determine</a></li><li><a href="global.html#failsafe">failsafe</a></li><li><a href="global.html#isAniPad">isAniPad</a></li><li><a href="global.html#mobile">mobile</a></li><li><a href="global.html#option">option</a></li><li><a href="global.html#receive">receive</a></li><li><a href="global.html#reInitialize">reInitialize</a></li><li><a href="global.html#scale">scale</a></li><li><a href="global.html#touch">touch</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-core.html">core</a></li><li><a href="module-intentRank.html">intentRank</a></li><li><a href="module-layoutEngine.html">layoutEngine</a></li><li><a href="module-sharing.html">sharing</a></li><li><a href="module-support.html">support</a></li><li><a href="module-tracker.html">tracker</a></li><li><a href="module-utils.html">utils</a></li><li><a href="module-viewport.html">viewport</a></li></ul><h3>Classes</h3><ul><li><a href="module-core-core.Discovery.html">Discovery</a></li><li><a href="module-core-core.HeroAreaView.html">HeroAreaView</a></li><li><a href="module-core-core.TileCollection.html">TileCollection</a></li><li><a href="module-core-core.TileView.html">TileView</a></li><li><a href="module-core-core.VideoTileView.html">VideoTileView</a></li><li><a href="sharing.FacebookSocialButton.html">FacebookSocialButton</a></li><li><a href="sharing.ShareOption.html">ShareOption</a></li><li><a href="sharing.SharePopup.html">SharePopup</a></li><li><a href="sharing.ShareSocialButton.html">ShareSocialButton</a></li><li><a href="sharing.SocialButton.html">SocialButton</a></li><li><a href="sharing.SocialButtons.html">SocialButtons</a></li><li><a href="sharing.TwitterSocialButton.html">TwitterSocialButton</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_exists">_exists</a></li><li><a href="global.html#debugOp">debugOp</a></li><li><a href="global.html#option">option</a></li><li><a href="global.html#receive">receive</a></li><li><a href="global.html#reInitialize">reInitialize</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-dev</a> on Wed Sep 25 2013 17:14:06 GMT-0400 (EDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-dev</a> on Wed Sep 25 2013 18:03:33 GMT-0400 (EDT)
 </footer>
 
 <script> prettyPrint(); </script>

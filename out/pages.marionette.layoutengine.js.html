@@ -28,6 +28,11 @@
             <pre class="prettyprint source"><code>/*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast */
 /**
  * @module layoutEngine
+ * @property initialize
+ * @property stamp
+ * @property unstamp
+ * @property layout
+ * @property reload
  */
 SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
     // Masonry wrapper
@@ -56,11 +61,11 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         },
         opts;  // last-used options (used by clear())
 
-    layoutEngine.on('start', function () {  // this = layoutEngine
+    this.on('start', function () {  // this = layoutEngine
         return this.initialize(SecondFunnel.options);
     });
 
-    layoutEngine.initialize = function (options) {
+    this.initialize = function (options) {
         opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
 
         this.$el = $(opts.discoveryTarget);
@@ -71,31 +76,31 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
         this.$el.masonry(opts);
 
-        broadcast('layoutEngineInitialized', layoutEngine, opts);
-        return layoutEngine;
+        broadcast('layoutEngineInitialized', this, opts);
+        return this;
     };
 
-    layoutEngine.stamp = function (element) {
+    this.stamp = function (element) {
         broadcast('elementStamped', element);
-        layoutEngine.$el.masonry('stamp', element);
-        return layoutEngine;
+        this.$el.masonry('stamp', element);
+        return this;
     };
 
-    layoutEngine.unstamp = function (element) {
+    this.unstamp = function (element) {
         broadcast('elementUnstamped', element);
-        layoutEngine.$el.masonry('unstamp', element);
-        return layoutEngine;
+        this.$el.masonry('unstamp', element);
+        return this;
     };
 
-    layoutEngine.layout = function () {
-        layoutEngine.$el.masonry('layout');
-        return layoutEngine;
+    this.layout = function () {
+        this.$el.masonry('layout');
+        return this;
     };
 
-    layoutEngine.reload = function ($fragment) {
-        layoutEngine.$el.masonry('reloadItems');
-        layoutEngine.$el.masonry();
-        return layoutEngine;
+    this.reload = function ($fragment) {
+        this.$el.masonry('reloadItems');
+        this.$el.masonry();
+        return this;
     };
 
     /**
@@ -106,8 +111,9 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      *                          if not, fragment is appended at the bottom.
      * @returns {Deferred}
      */
-    layoutEngine.add = function (fragment, $target) {
-        return $.when(layoutEngine.imagesLoaded(fragment))
+    this.add = function (fragment, $target) {
+        var self = this;
+        return $.when(this.imagesLoaded(fragment))
             .done(function (frag) {
                 if ($target && $target.length) {
                     var initialBottom = $target.position().top +
@@ -119,10 +125,10 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                             $target = $target.next();
                         }
                         $target.after(frag);
-                        layoutEngine.reload();
+                        self.reload();
                     }
                 } else if (frag.length) {
-                    layoutEngine.$el
+                    self.$el
                         .append(frag)
                         .masonry('appended', frag);
                 }
@@ -134,8 +140,8 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * Conventional $el.empty() doesn't work because the container height
      * is set by masonry.
      */
-    layoutEngine.empty = function () {
-        layoutEngine.$el
+    this.empty = function () {
+        this.$el
             .masonry('destroy')
             .html("")
             .css('position', 'relative')
@@ -152,7 +158,8 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         // This function is based on the understanding that the ImageService will
         // return dimensions and/or a dominant colour; elements in the $fragment have
         // assigned widths and heights; (e.g. .css('width', '100px'))
-        var args = _.toArray(arguments).slice(1),
+        var self = this,
+            args = _.toArray(arguments).slice(1),
             toLoad = $fragment.children('img').length,
             $badImages = $(),
             deferred = new $.Deferred();
@@ -175,7 +182,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                     // If broken images exist, remove them and
                     // reload the layout.
                     $badImages.remove();
-                    layoutEngine.reload();
+                    self.reload();
 
                     deferred.resolve(args);
                 }
@@ -202,7 +209,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * @param tiles
      * @returns {promise(args)}
      */
-    layoutEngine.imagesLoaded = function (tiles) {
+    this.imagesLoaded = function (tiles) {
         var deferred = new $.Deferred();
 
         // "Triggered after all images have been either loaded or confirmed broken."
@@ -250,13 +257,13 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-core.html">core</a></li><li><a href="module-intentRank.html">intentRank</a></li><li><a href="module-layoutEngine.html">layoutEngine</a></li><li><a href="module-sharing.html">sharing</a></li><li><a href="module-support.html">support</a></li><li><a href="module-tracker.html">tracker</a></li><li><a href="module-utils.html">utils</a></li><li><a href="module-viewport.html">viewport</a></li></ul><h3>Classes</h3><ul><li><a href="module-core-core.Discovery.html">Discovery</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_exists">_exists</a></li><li><a href="global.html#debugOp">debugOp</a></li><li><a href="global.html#determine">determine</a></li><li><a href="global.html#failsafe">failsafe</a></li><li><a href="global.html#isAniPad">isAniPad</a></li><li><a href="global.html#mobile">mobile</a></li><li><a href="global.html#option">option</a></li><li><a href="global.html#receive">receive</a></li><li><a href="global.html#reInitialize">reInitialize</a></li><li><a href="global.html#scale">scale</a></li><li><a href="global.html#touch">touch</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-core.html">core</a></li><li><a href="module-intentRank.html">intentRank</a></li><li><a href="module-layoutEngine.html">layoutEngine</a></li><li><a href="module-sharing.html">sharing</a></li><li><a href="module-support.html">support</a></li><li><a href="module-tracker.html">tracker</a></li><li><a href="module-utils.html">utils</a></li><li><a href="module-viewport.html">viewport</a></li></ul><h3>Classes</h3><ul><li><a href="module-core-core.Discovery.html">Discovery</a></li><li><a href="module-core-core.HeroAreaView.html">HeroAreaView</a></li><li><a href="module-core-core.TileCollection.html">TileCollection</a></li><li><a href="module-core-core.TileView.html">TileView</a></li><li><a href="module-core-core.VideoTileView.html">VideoTileView</a></li><li><a href="sharing.FacebookSocialButton.html">FacebookSocialButton</a></li><li><a href="sharing.ShareOption.html">ShareOption</a></li><li><a href="sharing.SharePopup.html">SharePopup</a></li><li><a href="sharing.ShareSocialButton.html">ShareSocialButton</a></li><li><a href="sharing.SocialButton.html">SocialButton</a></li><li><a href="sharing.SocialButtons.html">SocialButtons</a></li><li><a href="sharing.TwitterSocialButton.html">TwitterSocialButton</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_exists">_exists</a></li><li><a href="global.html#debugOp">debugOp</a></li><li><a href="global.html#option">option</a></li><li><a href="global.html#receive">receive</a></li><li><a href="global.html#reInitialize">reInitialize</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-dev</a> on Wed Sep 25 2013 17:14:06 GMT-0400 (EDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-dev</a> on Wed Sep 25 2013 18:03:33 GMT-0400 (EDT)
 </footer>
 
 <script> prettyPrint(); </script>

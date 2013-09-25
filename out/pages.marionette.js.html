@@ -213,8 +213,11 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         }
     });
 
+    /**
+     * Our TileCollection manages ALL the tiles on the page.
+     * @constructor
+     */
     core.TileCollection = Backbone.Collection.extend({
-        // Our TileCollection manages ALL the tiles on the page.
         'model': function (attrs) {
             return new SecondFunnel.utils.findClass('Tile', '', core.Tile)(attrs);
         },
@@ -234,6 +237,12 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         }
     });
 
+    /**
+     * View responsible for the "Hero Area"
+     * (e.g. Shop-the-look, featured, or just a plain div)
+     *
+     * @constructor
+     */
     core.HeroAreaView = Marionette.ItemView.extend({
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
@@ -258,6 +267,11 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         }
     });
 
+    /**
+     * View for showing a Tile (or its extensions)
+     *
+     * @constructor
+     */
     core.TileView = Marionette.Layout.extend({
         // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
         'tagName': SecondFunnel.option('tileElement', "div"),
@@ -431,9 +445,16 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         }
     });
 
+    /**
+     * View for showing a Tile whose attributes decide it should be rendered
+     * differently from a normal tile.
+     *
+     * VideoTile extends from TileView, allows playing of Video files;
+     * for now, we only support YT
+     *
+     * @constructor
+     */
     core.VideoTileView = core.TileView.extend({
-        // VideoTile extends from TileView, allows playing of Video files;
-        // for now, we only support YT
         'onInitialize': function () {
             // Add here additional things to do when loading a VideoTile
             this.$el.addClass('wide');
@@ -447,7 +468,6 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 
         /**
          * Determine which click handler to use; determined by the content type.
-         *
          * @returns {Function}
          */
         'onClick': function () {
@@ -963,13 +983,13 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-core.html">core</a></li><li><a href="module-intentRank.html">intentRank</a></li><li><a href="module-layoutEngine.html">layoutEngine</a></li><li><a href="module-sharing.html">sharing</a></li><li><a href="module-support.html">support</a></li><li><a href="module-tracker.html">tracker</a></li><li><a href="module-utils.html">utils</a></li><li><a href="module-viewport.html">viewport</a></li></ul><h3>Classes</h3><ul><li><a href="module-core-core.Discovery.html">Discovery</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_exists">_exists</a></li><li><a href="global.html#debugOp">debugOp</a></li><li><a href="global.html#determine">determine</a></li><li><a href="global.html#failsafe">failsafe</a></li><li><a href="global.html#isAniPad">isAniPad</a></li><li><a href="global.html#mobile">mobile</a></li><li><a href="global.html#option">option</a></li><li><a href="global.html#receive">receive</a></li><li><a href="global.html#reInitialize">reInitialize</a></li><li><a href="global.html#scale">scale</a></li><li><a href="global.html#touch">touch</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-core.html">core</a></li><li><a href="module-intentRank.html">intentRank</a></li><li><a href="module-layoutEngine.html">layoutEngine</a></li><li><a href="module-sharing.html">sharing</a></li><li><a href="module-support.html">support</a></li><li><a href="module-tracker.html">tracker</a></li><li><a href="module-utils.html">utils</a></li><li><a href="module-viewport.html">viewport</a></li></ul><h3>Classes</h3><ul><li><a href="module-core-core.Discovery.html">Discovery</a></li><li><a href="module-core-core.HeroAreaView.html">HeroAreaView</a></li><li><a href="module-core-core.TileCollection.html">TileCollection</a></li><li><a href="module-core-core.TileView.html">TileView</a></li><li><a href="module-core-core.VideoTileView.html">VideoTileView</a></li><li><a href="sharing.FacebookSocialButton.html">FacebookSocialButton</a></li><li><a href="sharing.ShareOption.html">ShareOption</a></li><li><a href="sharing.SharePopup.html">SharePopup</a></li><li><a href="sharing.ShareSocialButton.html">ShareSocialButton</a></li><li><a href="sharing.SocialButton.html">SocialButton</a></li><li><a href="sharing.SocialButtons.html">SocialButtons</a></li><li><a href="sharing.TwitterSocialButton.html">TwitterSocialButton</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_exists">_exists</a></li><li><a href="global.html#debugOp">debugOp</a></li><li><a href="global.html#option">option</a></li><li><a href="global.html#receive">receive</a></li><li><a href="global.html#reInitialize">reInitialize</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-dev</a> on Wed Sep 25 2013 17:14:06 GMT-0400 (EDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-dev</a> on Wed Sep 25 2013 18:03:33 GMT-0400 (EDT)
 </footer>
 
 <script> prettyPrint(); </script>
