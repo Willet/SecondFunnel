@@ -1,5 +1,7 @@
+import json
 import random
 from django.contrib.auth.models import User
+from django.core import serializers
 from django.db import models
 from django.db.models import get_model
 from django.template.defaultfilters import striptags
@@ -42,6 +44,10 @@ class BaseModelNamed(BaseModel):
 
     class Meta:
         abstract = True
+
+    def json(self):
+        """default method for all models to have a json representation."""
+        return serializers.get_serializer("json")().serialize(iter([self]))
 
 
 class Store(BaseModelNamed):
@@ -250,6 +256,10 @@ class Product(BaseModelNamed):
         @return: The number of media objects associated to this product.
         """
         return self.media.count()
+
+    def json(self):
+        """Change its default set of attributes to those defined in data()."""
+        return json.dumps(self.data(raw=True))
 
     # Template Aliases
     def url(self):

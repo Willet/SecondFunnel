@@ -7,7 +7,7 @@
         'debug': ('{{ debug|default:0 }}' === 'True'),  // django built-in
         'base_url': '{{ base_url }}',
         'discoveryTarget': '{{ discovery_target|default:"#discovery-area" }}',
-        'discoveryItemSelector': '{{ discovery_item_selector|default:".tile" }}',
+        'itemSelector': '{{ item_selector|default:".tile" }}',
         'store': {
             'id': '{{ campaign.store.id }}',  // TODO: why was ID slug?
             'slug': '{{ campaign.store.slug }}',  // required for store-specific themes
@@ -41,9 +41,7 @@
             'description': '{{ campaign.description|escapejs }}'  // DEPRECATED
         },
         'campaign': '{{ campaign.default_intentrank.id|default:campaign.id }}',
-        'columnWidth': function ($element) {
-            return 240 + 15;
-        },
+        'columnWidth': undefined,  // optional (defaults to 255, pixels)
         'maxColumnCount': {{ campaign.column_count|default:4 }},  // optional (default: 4)
         'events': undefined,  // page event bindings (optional)
         'socialButtons': [
@@ -70,8 +68,9 @@
         'tapIndicatorText': undefined,  // optional
         'previewAnimationDuration': 100,  // in ms
         'previewMobileAnimationDuration': 0,
-        'masonryAnimationDuration': 0.4,  // in seconds
-        'masonryMobileAnimationDuration': 0,
+        'masonry': {  // passed to masonry
+            'animationDuration': 0.4  // in seconds
+        },
         'featured': {% filter escapejs %}{% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}{% endfilter %},
         // stuff that loads when page loads, even if IR is available
         {% if initial_results %}
@@ -89,6 +88,7 @@
         {% endif %}
         'IRResultsCount': 10,
         'IRTimeout': 5000,
+        'IRFailuresAllowed': undefined,  // optional. defaults to 5
         'IRSource': "{{ base_url }}", // optional, defaults to intentrank-test
         'gaAccountNumber': '{{ ga_account_number }}',  // required
 

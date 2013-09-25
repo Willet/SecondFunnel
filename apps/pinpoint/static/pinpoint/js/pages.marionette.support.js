@@ -2,8 +2,7 @@ SecondFunnel.module("support", function (support, SecondFunnel) {
     // make new module full of transient utilities
     "use strict";
 
-    var $document = $(document),
-        $window = $(window),
+    var $window = $(window),
         testUA = function (regex) {
             return regex.test(window.navigator.userAgent);
         };

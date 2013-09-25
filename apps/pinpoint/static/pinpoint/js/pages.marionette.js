@@ -1,27 +1,24 @@
-/*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _,
-  Willet, broadcast */
-// JSLint/Emacs js2-mode directive to stop global 'undefined' warnings.
-// Declaration of the SecondFunnel JS application
-SecondFunnel = (function (SecondFunnel, $window, $document) {
+/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _,
+  Willet, broadcast, console, SecondFunnel */
+SecondFunnel.module('core', function (core, SecondFunnel) {
+    // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
     "use strict";
+    var $window = $(window),
+        $document = $(document),
+        getModifiedTemplateName;
 
-    var Tile, TileCollection, HeroAreaView, TileView,
-        VideoTileView, Discovery, Category, CategoryView,
-        CategorySelector, PreviewContent, PreviewWindow,
-        TapIndicator, EventManager, ShadowTile, getModifiedTemplateName;
-
-    // not actual php values
-    _.extend(SecondFunnel, {
-        QUIET: 0, ERROR: 1, WARNING: 2, LOG: 3, VERBOSE: 4, ALL: 5
-    });
-
-    // keep reference to options. this needs to be done before classes are declared.
-    SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
+    /**
+     * convenience method for accessing PAGES_INFO or TEST_*.
+     *
+     * To access deep options (e.g. PAGES_INFO.store.name), use the key
+     * "store.name" or "store:name" (preferred).
+     *
+     * @param {string} name
+     * @param {*} defaultValue
+     * @returns {*}
+     */
     SecondFunnel.option = function (name, defaultValue) {
-        // convenience method for accessing PAGES_INFO or TEST_*.
-        // to access deep options (e.g. PAGES_INFO.store.name), use the key
-        // "store.name" or "store:name" (preferred).
-        var opt = Backbone.Marionette.getOption(SecondFunnel, name),
+        var opt = Marionette.getOption(SecondFunnel, name),
             keyNest = _.compact(name.split(/[:.]/)),
             keyName,
             cursor = SecondFunnel.options,
@@ -45,30 +42,12 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             }
         } catch (KeyError) {
             // requested traversal path does not exist. do the next line
-            console.error('no such path');
+            console.warn('Missing option: ' + name);
         }
         return defaultValue;  // ...and defaultValue defaults to undefined
     };
 
-    try {
-        SecondFunnel.options.debug = SecondFunnel.QUIET;
-
-        if (window.location.hostname === 'localhost' ||
-            window.location.hostname === '127.0.0.1') {
-            SecondFunnel.options.debug = SecondFunnel.ERROR;
-        }
-
-        (function (hash) {
-            var hashIdx = hash.indexOf('debug=');
-            if (hashIdx > -1) {
-                SecondFunnel.options.debug = hash[hashIdx + 6];
-            }
-        }(window.location.hash + window.location.search));
-    } catch (e) {
-        // this is an optional operation. never let this stop the script.
-    }
-
-    Backbone.Marionette.TemplateCache._exists = function (templateId) {
+    Marionette.TemplateCache._exists = function (templateId) {
         // Marionette TemplateCache extension to allow checking cache for template
         // Checks if the Template exists in the cache, if not found
         // updates the cache with the template (if it exists), otherwise fail
@@ -81,7 +60,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         }
 
         // template exists but was not cached
-        cachedTemplate = new Backbone.Marionette.TemplateCache(templateId);
+        cachedTemplate = new Marionette.TemplateCache(templateId);
         try {
             cachedTemplate.load();
             // Only cache on success
@@ -94,11 +73,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         return !!this.templateCaches[templateId];
     };
 
-    Backbone.Marionette.View.prototype.getTemplate = function () {
+    Marionette.View.prototype.getTemplate = function () {
         // Accept an arbitrary number of template selectors instead of just one.
         // function will return in a short-circuit manner once a template is found.
-        var i, templateIDs = Backbone.Marionette.getOption(this, "templates"),
-            template = Backbone.Marionette.getOption(this, "template"),
+        var i, templateIDs = Marionette.getOption(this, "templates"),
+            template = Marionette.getOption(this, "template"),
             temp, templateExists, data;
 
         if (templateIDs) {
@@ -109,14 +88,14 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
             for (i = 0; i < templateIDs.length; i++) {
                 data = $.extend({},
-                    Backbone.Marionette.getOption(this, "model").attributes);
+                    Marionette.getOption(this, "model").attributes);
                 data.template = getModifiedTemplateName(data.template);
 
                 temp = _.template(templateIDs[i], {
                     'options': SecondFunnel.options,
                     'data': data
                 });
-                templateExists = Backbone.Marionette.TemplateCache._exists(temp);
+                templateExists = Marionette.TemplateCache._exists(temp);
 
                 if (templateExists) {
                     // replace this thing's desired template ID to the
@@ -129,12 +108,12 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         return template;
     };
 
-    Backbone.Marionette.ItemView.prototype.onMissingTemplate = function () {
+    Marionette.ItemView.prototype.onMissingTemplate = function () {
         // Default on missing template event
         this.remove();
     };
 
-    Tile = Backbone.Model.extend({
+    core.Tile = Backbone.Model.extend({
         'defaults': {
             // Default product tile settings, some tiles don't
             // come specifying a type or caption
@@ -153,8 +132,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
             // set up tile type overrides
             this.set({
-                "type": this.get('template'),  // default type being its template
-                "caption": SecondFunnel.utils.safeString(this.get("caption"))
+                'type': this.get('template'),  // default type being its template
+                'caption': SecondFunnel.utils.safeString(this.get("caption"))
             });
             if (_.contains(videoTypes, type)) {
                 this.set('type', 'video');
@@ -171,16 +150,23 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             return this.get('content-type').toLowerCase() === type.toLowerCase();
         },
 
+        /**
+         * Using its model instance, create a view of the "best" class.
+         * If the chosen view's matching template cannot be found, this
+         * returns undefined.
+         *
+         * @returns {TileView}
+         */
         'createView': function () {
-            var targetClassName, TargetClass, view;
+            var TargetClass, view;
 
             switch (this.get('type')) {
             case "video":
-                TargetClass = VideoTileView;
+                TargetClass = core.VideoTileView;
                 break;
             default:
                 TargetClass = SecondFunnel.utils.findClass(
-                    'TileView', this.get('type'), TileView);
+                    'TileView', this.get('type'), core.TileView);
             }
             // #CtrlF fshkjr
             view = new TargetClass({'model': this});
@@ -189,10 +175,10 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         }
     });
 
-    TileCollection = Backbone.Collection.extend({
+    core.TileCollection = Backbone.Collection.extend({
         // Our TileCollection manages ALL the tiles on the page.
         'model': function (attrs) {
-            return new SecondFunnel.utils.findClass('Tile', '', Tile)(attrs);
+            return new SecondFunnel.utils.findClass('Tile', '', core.Tile)(attrs);
         },
         'loading': false,
         // 'totalItems': null,  // TODO: what is this?
@@ -203,36 +189,38 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             var data;
             for (data in arrayOfData) {  // Generate Tile
                 if (arrayOfData.hasOwnProperty(data)) {
-                    this.add(new Tile(data));
+                    this.add(new core.Tile(data));
                 }
             }
             broadcast('tileCollectionInitialized', this);
         }
     });
 
-    HeroAreaView = Backbone.Marionette.ItemView.extend({
+    core.HeroAreaView = Marionette.ItemView.extend({
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
-        'model': new Tile(SecondFunnel.option('page:product')),
+        'model': new core.Tile(SecondFunnel.option('page:product', {})),
         'template': "#stl_template, #featured_template, #hero_template",
         'onRender': function () {
+            var buttons,
+                $heroArea = $('#hero-area');
             if (this.$el.length) {  // if something rendered, it was successful
-                $('#hero-area').html(this.$el.html());
+                $heroArea.html(this.$el.html());
 
                 if (!(SecondFunnel.support.touch() || SecondFunnel.support.mobile()) &&
                     this.$('.social-buttons').length >= 1) {
-                    var buttons = new SecondFunnel.sharing.SocialButtons({
+                        buttons = new SecondFunnel.sharing.SocialButtons({
                             'model': this.model
                         })
                         .render().load().$el;
-                    $('#hero-area').find('.social-buttons').append(buttons);
+                    $heroArea.find('.social-buttons').append(buttons);
                 }
 
             }
         }
     });
 
-    TileView = Backbone.Marionette.Layout.extend({
+    core.TileView = Marionette.Layout.extend({
         // Manages the HTML/View of a SINGLE tile on the page (single pinpoint block)
         'tagName': SecondFunnel.option('tileElement', "div"),
         'templates': function (currentView) {
@@ -260,26 +248,23 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     });
             }
 
-            if (SecondFunnel.options.debug >= SecondFunnel.VERBOSE) {
-                console.log('Template search tree for view %O: %O',
-                            currentView, templateRules);
-            }
+            console.debug('Template search tree for view %O: %O',
+                        currentView, templateRules);
             return templateRules;
         },
         'template': "#product_tile_template",
-        'className': SecondFunnel.option('discoveryItemSelector',
-            '').substring(1),
+        'className': SecondFunnel.option('itemSelector', '').substring(1),
 
         'events': {
             'click': "onClick",
             'mouseenter': "onHover",
-            "mouseleave": "onHover"
+            'mouseleave': "onHover"
         },
 
         'regions': _.extend({}, {  // if ItemView, the key is 'ui': /docs/marionette.itemview.md#organizing-ui-elements
             'socialButtons': '.social-buttons',
             'tapIndicator': '.tap-indicator-target'
-        }, SecondFunnel.options.regions || {}),
+        }, _.get(SecondFunnel.options, 'regions') || {}),
 
         'initialize': function (options) {
             // Creates the TileView using the options.  Subclasses should not override this
@@ -333,7 +318,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
             // clicking on social buttons is not clicking on the tile.
             if (!$(ev.target).parents('.button').length) {
-                preview = new PreviewWindow({
+                preview = new core.PreviewWindow({
                     'model': tile,
                     'caller': ev.currentTarget
                 });
@@ -386,7 +371,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // semi-stupid view-based resizer
             var tileImg = this.$('img.focus'),
                 columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
-                columnWidth = SecondFunnel.option('columnWidth', $.noop)() || 256;
+                columnWidth = SecondFunnel.option('columnWidth', 255);
             if (tileImg.length) {
                 tileImg.attr('src', SecondFunnel.utils.pickImageSize(tileImg.attr('src'),
                                     columnWidth * columns));
@@ -395,21 +380,23 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             if (this.tapIndicator && this.socialButtons) {
                 // Need to do this check in case layout is closing due
                 // to broken images.
-                if (SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length && 
+                if (SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length &&
                     !(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
                     this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({model: this.model}));
                 }
-                this.tapIndicator.show(new TapIndicator());
+                if (SecondFunnel.support.touch()) {
+                    this.tapIndicator.show(new core.TapIndicator());
+                }
             }
 
             this.$el.scaleImages();
         }
     });
 
-    VideoTileView = TileView.extend({
+    core.VideoTileView = core.TileView.extend({
         // VideoTile extends from TileView, allows playing of Video files;
         // for now, we only support YT
-        'onInitialize': function (options) {
+        'onInitialize': function () {
             // Add here additional things to do when loading a VideoTile
             this.$el.addClass('wide');
 
@@ -431,7 +418,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 $thumb = this.$('div.thumbnail'),
                 self = this;
 
-            if (typeof window.YT === 'undefined') {
+            if (window.YT === undefined) {
                 window.open(this.model.get('original-url'));
                 return;
             }
@@ -476,11 +463,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         }
     });
 
-    Discovery = Backbone.Marionette.CompositeView.extend({
+    core.Discovery = Marionette.CompositeView.extend({
         // Manages the HTML/View of ALL the tiles on the page (our discovery area)
         // tagName: "div"
         'el': $(SecondFunnel.option('discoveryTarget')),
-        'itemView': TileView,
+        'itemView': core.TileView,
         'collection': null,
         'loading': false,
         'lastScrollTop': 0,
@@ -491,31 +478,21 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         'initialize': function (options) {
             var self = this;
 
-            // Initialize IntentRank; use as a seperate module to make changes easier.
-            SecondFunnel.intentRank.initialize(options);
-
-            // Black box Masonry (this will make migrating easier in the future)
-            SecondFunnel.layoutEngine.initialize(this.$el,
-                options);
-            this.collection = new TileCollection();
-            this.categories = new CategorySelector(  // v-- options.categories is deprecated
-                options.page.categories || options.categories || []);
+            this.collection = new core.TileCollection();
+            this.categories = new core.CategorySelector(  // v-- options.categories is deprecated
+                SecondFunnel.option("page:categories") ||
+                SecondFunnel.option("categories") || []
+            );
             this.attachListeners();
             this.countColumns();
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
-                if (options.debug >= SecondFunnel.LOG) {
-                    console.log('laying out initial results');
-                }
-                this.layoutResults(options.initialResults, undefined,
-                    function () {
-                        self.getTiles();
-                    });
-            } else {
-                // Load additional results and add them to our collection
-                this.getTiles();
+                console.log('laying out initial results');
+                this.layoutResults(options.initialResults);
             }
+            // ... then fetch more products from IR
+            this.getTiles();
         },
 
         'attachListeners': function () {
@@ -529,7 +506,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     // did you know any DOM element without resize events
                     // can still react to potential resizes by having its
                     // own .bind('resize', function () {})?
-                    $('.resizable', document).resize();
+                    $('.resizable', document).trigger('resize');
 
                     self.countColumns();
 
@@ -537,9 +514,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 }, 500))
                 .scrollStopped(function () {
                     // deal with tap indicator fade in/outs
-                    if (SecondFunnel.support.touch()) {
-                        SecondFunnel.vent.trigger('scrollStopped', self);
-                    }
+                    SecondFunnel.vent.trigger('scrollStopped', self);
                 });
 
             // serve orientation change event via vent
@@ -556,96 +531,100 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             return this;
         },
 
-        'getTiles': function (options, $tile) {
-            if (!this.loading) {
-                this.toggleLoading();
-                options = options || {};
-                options.type = options.type || 'campaign';
-                SecondFunnel.intentRank.getResults(options,
-                    this.layoutResults, $tile);
-            } else {
-                if (SecondFunnel.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
-                    console.warn('Already loading tiles. Try again later');
-                }
+        /**
+         *
+         * @param options
+         * @param tile {TileView}: supply a tile View to have tiles inserted
+         *                         after it. (optional)
+         * @returns this
+         */
+        'getTiles': function (options, tile) {
+            var self = this,
+                opts;
+            if (this.loading) {
+                console.warn('Already loading tiles. Try again later');
+                return this;
             }
+            this.toggleLoading(true);
+            opts = options || {};
+            opts.type = opts.type || 'campaign';
+
+            $.when(SecondFunnel.intentRank.getResults(opts))
+                .always(function (data) {
+                    self.layoutResults(data, tile);
+                })
+                .always(this.getMoreResults);
             return this;
         },
 
-        "getMoreResults": function () {
+        /**
+         * @param data {array}: byproduct of .always() passing back the data.
+         *                      its use is not recommended.
+         * @returns this
+         */
+        'getMoreResults': function (data) {
             // creates conditions needed to get more results.
             var self = this;
             this.toggleLoading(false);
+
             setTimeout(function () {
                 self.pageScroll();
             }, 100);
             return this;
         },
 
-        'layoutResults': function (data, tile, callback) {
+        /**
+         * @param data {array}: list of product json objects
+         * @param tile {View}: pre-rendered tile view
+         * @returns this
+         */
+        'layoutResults': function (data, tile) {
             var self = this,
-                $tileEls = $();
-            callback = callback || this.getMoreResults;
+                tileEls = [],
+                $tile;
 
             // Check if we don't have anything
             if (data.length === 0) {
-                return this.toggleLoading();
+                return this.toggleLoading(false);
             }
 
             // If we have data to use.
-            data = this.filter(data);  // custom function
             _.each(data, function (tileData) {
                 // Create the new tiles using the data
-                var tile = new Tile(tileData),
-                    img = tile.get('image'),
+                var tile = new core.Tile(tileData),
                     view = tile.createView();
 
                 // add this model to our collection of models.
                 self.collection.add(tile);
-                if (!view.isClosed) {
+                if (view && view.$el && !view.isClosed) {
                     // Ensure we were given something
-                    $tileEls = $tileEls.add(view.$el);
+                    tileEls.push(view.$el[0]);
+                } else if (view === undefined) {
+                    // render unsuccessful (warning already issued in createView)
+                    return null;
                 }
             });
 
-            if (tile) {
-                SecondFunnel.layoutEngine.call('insert', $tileEls, tile.$el,
-                    callback);
-            } else {
-                SecondFunnel.layoutEngine.call('append', $tileEls,
-                    callback);
+            if (tile && tile.$el) {
+                $tile = tile.$el;  // this would be the "insert after" target
             }
+            SecondFunnel.layoutEngine.add(tileEls, $tile)
+                .always(function () {
+                    self.toggleLoading(false);
+                })
+                .always(this.getMoreResults);
             return this;
         },
 
-        'filter': function (content, selector) {
-            // Filter the content in the LayoutEngine based on the selector
-            // passed and the criteria/filters defined in the SecondFunnel options.
-            var filters = this.options.filters || [];
-            filters.push(selector);
-            filters = _.flatten(filters);
-
-            for (var i = 0; i < filters.length; ++i) {
-                var filter = filters[i];
-                if (content.length === 0) {
-                    break;
-                }
-                switch (typeof filter) {
-                case 'function':
-                    content = _.filter(content, filter);
-                    break;
-                case 'object':
-                    content = _.where(content, filter);
-                    break;
-                }
-            }
-            return content;
-        },
-
+        /**
+         * Adds "col-n" classes to the html tag.
+         * @returns {number}
+         */
         'countColumns': function () {
             var i,
                 $html = $('html'),
                 maxColsDef = SecondFunnel.option('maxColumnCount', 4),
-                maxCols = $window.width() / (SecondFunnel.option('columnWidth', $.noop)() || 256);
+                maxCols = $window.width() / SecondFunnel.option('columnWidth', 255);
             $html.removeClass(function (idx, cls) {
                 // remove all current col-* classes
                 return (cls.match(/col-\d+/g) || []).join(' ');
@@ -664,6 +643,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // Loads in related content below the specified tile
             var id = tile.model.get('tile-id');
             if (id === null) {
+                console.warn('updateContentStream got a null ID. ' +
+                    'I don\'t think it is supposed to happen.');
                 return this;
             }
             return this.getTiles({
@@ -673,7 +654,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         },
 
         'categoryChanged': function (ev, category) {
-            // Changes the category (campaign) by refreshign IntentRank, clearing
+            // Changes the category (campaign) by refreshing IntentRank, clearing
             // the Layout Engine and collecting new tiles.
             var self = this;
             if (this.loading) {
@@ -682,7 +663,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 }, 100);
             } else {
                 SecondFunnel.intentRank.changeCategory(category.model.get('id'));
-                SecondFunnel.layoutEngine.clear();
+                SecondFunnel.layoutEngine.empty();
                 return this.getTiles();
             }
             return this;
@@ -705,6 +686,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
 
             if (!this.loading && $('html').css('overflow') !== 'hidden' &&
                 pageBottomPos >= documentBottomPos - viewportHeights) {
+                // get more tiles to fill the screen.
                 this.getTiles();
             }
 
@@ -719,11 +701,11 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         }
     });
 
-    Category = Backbone.Model.extend({
+    core.Category = Backbone.Model.extend({
         // Base empty category, no functionality needed here
     });
 
-    CategoryView = Backbone.Marionette.ItemView.extend({
+    core.CategoryView = Marionette.ItemView.extend({
         'events': {
             'click': function (ev) {
                 ev.preventDefault();
@@ -736,14 +718,14 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             this.el = options.el;
             this.$el = $(this.el);
             delete options.$el;
-            this.model = new Category(options);
+            this.model = new core.Category(options);
         }
     });
 
-    CategorySelector = Backbone.Marionette.CompositeView.extend({
+    core.CategorySelector = Marionette.CompositeView.extend({
         // This CompositeView does not create an element, rather is passed
         // the element that it will use for category selection
-        'itemView': CategoryView,
+        'itemView': core.CategoryView,
 
         'initialize': function (categories) {
             // Initialize a category view for each object with a
@@ -753,7 +735,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 var id = $(this).attr('data-category');
                 if (_.findWhere(categories, {'id': Number(id)})) {
                     // Make sure category is a valid one.
-                    views.push(new CategoryView({
+                    views.push(new core.CategoryView({
                         'id': id,
                         'el': this
                     }));
@@ -763,7 +745,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         }
     });
 
-    PreviewContent = Backbone.Marionette.ItemView.extend({
+    core.PreviewContent = Marionette.ItemView.extend({
         'template': '#tile_preview_template',
         'templates': function (currentView) {
             var templateRules = [
@@ -787,10 +769,8 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                     });
             }
 
-            if (SecondFunnel.options.debug >= SecondFunnel.VERBOSE) {
-                console.log('Template search tree for view %O: %O',
-                            currentView, templateRules);
-            }
+            console.debug('Template search tree for view %O: %O', currentView,
+                templateRules);
             return templateRules;
         },
         'onRender': function () {
@@ -800,7 +780,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 buttons = new SecondFunnel.sharing.SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
             }
-            width = Backbone.Marionette.getOption(this, 'width');
+            width = Marionette.getOption(this, 'width');
             if (width) {
                 this.$('.content').css('width', width + 'px');
             }
@@ -827,7 +807,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
     });
 
 
-    PreviewWindow = Backbone.Marionette.Layout.extend({
+    core.PreviewWindow = Marionette.Layout.extend({
         'tagName': "div",
         'className': "previewContainer",
         'template': "#preview_container_template",
@@ -849,7 +829,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
             // Initialize the PreviewWindow by rendering the content to
             // display in it as well.
             var ContentClass = SecondFunnel.utils.findClass('PreviewContent',
-                    options.model.get('template'), PreviewContent),
+                    options.model.get('template'), core.PreviewContent),
                 contentOpts = {
                     'model': options.model,
                     'caller': options.caller
@@ -885,7 +865,7 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         }
     });
 
-    TapIndicator = Backbone.Marionette.ItemView.extend({
+    core.TapIndicator = Marionette.ItemView.extend({
         'template': "#tap_indicator_template",
         'className': 'tap_indicator',
         'initialize': function () {
@@ -901,34 +881,15 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
                 $('html').removeClass('touch-enabled');
             }
         },
-        'onScrollStopped': function (dA) {
+        'onScrollStopped': function () {
             var $indicatorEl = this.$el;
             if ($indicatorEl
-                    .parents(SecondFunnel.option('discoveryItemSelector'))
+                    .parents(SecondFunnel.option('itemSelector'))
                     .hasClass('wide')) {
                 if ($indicatorEl.is(':in-viewport')) {  // this one is in view.
                     $indicatorEl.delay(500).fadeOut(600);
                 }
             }
-        }
-    });
-
-    EventManager = Backbone.View.extend({
-        // Top-level event binding wrapper. all events bubble up to this level.
-        // the theme can declare as many event handlers as they like by creating
-        // their own new EventManager({ event: handler, event: ... })s.
-        'el': $window.add($document),
-        'initialize': function (bindings) {
-            var self = this;
-            _.each(bindings, function (func, key, l) {
-                var event = key.substr(0, key.indexOf(' ')),
-                    selectors = key.substr(key.indexOf(' ') + 1);
-                self.$el.on(event, selectors, func);
-                if (SecondFunnel.option('debug', SecondFunnel.QUIET) >=
-                    SecondFunnel.LOG) {
-                    console.log('regEvent ' + key);
-                }
-            });
         }
     });
 
@@ -938,13 +899,4 @@ SecondFunnel = (function (SecondFunnel, $window, $document) {
         return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i,
             'image');
     };
-
-    // expose some classes (only if required)
-    SecondFunnel.classRegistry = {
-        Discovery: Discovery,
-        EventManager: EventManager,
-        HeroAreaView: HeroAreaView
-    };
-
-    return SecondFunnel;
-}(SecondFunnel, $(window), $(document)));
+});
