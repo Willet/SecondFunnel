@@ -1,4 +1,31 @@
-/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _,
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: pages.marionette.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: pages.marionette.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source"><code>/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _,
   Willet, broadcast, console, SecondFunnel */
 /**
  * @module core
@@ -37,7 +64,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         // marionette sucks, so we'll do extra traversing to get stuff out of
         // our nested objects ourselves
         try {
-            for (i = 0, depth = keyNest.length; i < depth; i++) {
+            for (i = 0, depth = keyNest.length; i &lt; depth; i++) {
                 keyName = keyNest[i];
                 cursor = cursor[keyName];
             }
@@ -93,11 +120,11 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 
         if (templateIDs) {
             if (typeof templateIDs === 'function') {
-                // if given as a function, call it, and expect [<string> selectors]
+                // if given as a function, call it, and expect [&lt;string> selectors]
                 templateIDs = templateIDs(this);
             }
 
-            for (i = 0; i < templateIDs.length; i++) {
+            for (i = 0; i &lt; templateIDs.length; i++) {
                 data = $.extend({},
                     Marionette.getOption(this, "model").attributes);
                 data.template = getModifiedTemplateName(data.template);
@@ -236,15 +263,15 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         'tagName': SecondFunnel.option('tileElement', "div"),
         'templates': function (currentView) {
             var templateRules = [  // dictated by CtrlF fshkjr
-                "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
-                "#<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
-                "#<%= options.store.slug %>_<%= data.template %>_mobile_tile_template",                              // gap_image_mobile_tile_template
-                "#<%= data.template %>_mobile_tile_template",                                                        // image_mobile_tile_template
+                "#&lt;%= options.store.slug %>_&lt;%= data['content-type'] %>_&lt;%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
+                "#&lt;%= data['content-type'] %>_&lt;%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
+                "#&lt;%= options.store.slug %>_&lt;%= data.template %>_mobile_tile_template",                              // gap_image_mobile_tile_template
+                "#&lt;%= data.template %>_mobile_tile_template",                                                        // image_mobile_tile_template
 
-                "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_tile_template",         // gap_instagram_image_tile_template
-                "#<%= data['content-type'] %>_<%= data.template %>_tile_template",                                   // instagram_image_tile_template
-                "#<%= options.store.slug %>_<%= data.template %>_tile_template",                                     // gap_image_tile_template
-                "#<%= data.template %>_tile_template",                                                               // image_tile_template
+                "#&lt;%= options.store.slug %>_&lt;%= data['content-type'] %>_&lt;%= data.template %>_tile_template",         // gap_instagram_image_tile_template
+                "#&lt;%= data['content-type'] %>_&lt;%= data.template %>_tile_template",                                   // instagram_image_tile_template
+                "#&lt;%= options.store.slug %>_&lt;%= data.template %>_tile_template",                                     // gap_image_tile_template
+                "#&lt;%= data.template %>_tile_template",                                                               // image_tile_template
 
                 "#product_mobile_tile_template",                                                                     // fallback
                 "#product_tile_template"                                                                             // fallback
@@ -349,7 +376,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                     this.$el.addClass('wide');
                 }  // else: leave it as 1-col
             } catch (imageServiceNotReady) {
-                if (this.model.get('template') === 'combobox' || (Math.random() < 0.333)) {
+                if (this.model.get('template') === 'combobox' || (Math.random() &lt; 0.333)) {
                     this.$el.addClass('wide');
                 }
             }
@@ -445,7 +472,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                 return;
             }
 
-            $thumb.attr('id', thumbId).wrap('<div class="video-container" />');
+            $thumb.attr('id', thumbId).wrap('&lt;div class="video-container" />');
             var player = new window.YT.Player(thumbId, {
                 'width': $thumb.width(),
                 'height': $thumb.height(),
@@ -656,8 +683,8 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                 // remove all current col-* classes
                 return (cls.match(/col-\d+/g) || []).join(' ');
             });
-            for (i = 0; i < maxCols; i++) {
-                if (i <= maxColsDef) {
+            for (i = 0; i &lt; maxCols; i++) {
+                if (i &lt;= maxColsDef) {
                     $html.addClass('col-' + i);
                 }
             }
@@ -777,10 +804,10 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         'templates': function (currentView) {
             var templateRules = [
                 // supported contexts: options, data
-                '#<%= options.store.slug %>_<%= data.template %>_mobile_preview_template',
-                '#<%= data.template %>_mobile_preview_template',
-                '#<%= options.store.slug %>_<%= data.template %>_preview_template',
-                '#<%= data.template %>_preview_template',
+                '#&lt;%= options.store.slug %>_&lt;%= data.template %>_mobile_preview_template',
+                '#&lt;%= data.template %>_mobile_preview_template',
+                '#&lt;%= options.store.slug %>_&lt;%= data.template %>_preview_template',
+                '#&lt;%= data.template %>_preview_template',
                 '#product_mobile_preview_template',
                 '#product_preview_template',
                 '#tile_mobile_preview_template', // fallback
@@ -926,4 +953,26 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i,
             'image');
     };
-});
+});</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-core.html">core</a></li><li><a href="module-intentRank.html">intentRank</a></li><li><a href="module-layoutEngine.html">layoutEngine</a></li><li><a href="module-sharing.html">sharing</a></li><li><a href="module-support.html">support</a></li><li><a href="module-tracker.html">tracker</a></li><li><a href="module-utils.html">utils</a></li><li><a href="module-viewport.html">viewport</a></li></ul><h3>Classes</h3><ul><li><a href="module-core-core.Discovery.html">Discovery</a></li></ul><h3>Global</h3><ul><li><a href="global.html#_exists">_exists</a></li><li><a href="global.html#debugOp">debugOp</a></li><li><a href="global.html#determine">determine</a></li><li><a href="global.html#failsafe">failsafe</a></li><li><a href="global.html#isAniPad">isAniPad</a></li><li><a href="global.html#mobile">mobile</a></li><li><a href="global.html#option">option</a></li><li><a href="global.html#receive">receive</a></li><li><a href="global.html#reInitialize">reInitialize</a></li><li><a href="global.html#scale">scale</a></li><li><a href="global.html#touch">touch</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-dev</a> on Wed Sep 25 2013 17:14:06 GMT-0400 (EDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
