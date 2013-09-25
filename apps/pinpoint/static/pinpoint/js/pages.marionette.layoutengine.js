@@ -1,13 +1,12 @@
+/*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast */
 SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
     // Masonry wrapper
     "use strict";
 
     var $document = $(document),
         $window = $(window),
-        // TODO: this logic is axiomatically incorrect. a mobile device will
-        // have no animation even with a duration defined.
         defaults = {
-            'columnWidth': SecondFunnel.option('columnWidth', $.noop)() || 255,
+            'columnWidth': 255,
             'isAnimated': !SecondFunnel.support.mobile(),
             'transitionDuration': '0.4s',
             'isInitLayout': true,
@@ -28,40 +27,22 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         opts;  // last-used options (used by clear())
 
     layoutEngine.on('start', function () {  // this = layoutEngine
-        opts = $.extend({}, defaults, opts, _.get(opts, 'masonry'));
+        return this.initialize(SecondFunnel.options);
+    });
 
-        this.$el = $(SecondFunnel.option('discoveryTarget'));
+    layoutEngine.initialize = function (options) {
+        opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
+
+        this.$el = $(opts.discoveryTarget);
+
+        if (typeof opts.columnWidth === 'function') {
+            opts.columnWidth = opts.columnWidth(this.$el);
+        }
+
         this.$el.masonry(opts);
 
         broadcast('layoutEngineInitialized', layoutEngine, opts);
         return layoutEngine;
-    });
-
-    layoutEngine.call = function (callback, $fragment) {
-        // relays the function to be run after imagesLoaded.
-        if (typeof callback !== 'string') {
-            console.error("Unsupported type " +
-                (typeof callback) + " passed to LayoutEngine.");
-            return layoutEngine;
-        }
-        if (!layoutEngine[callback]) {
-            console.error("LayoutEngine has no property " + callback + ".");
-            return layoutEngine;
-        }
-
-        // turn name of function into function itself
-        var args = _.toArray(arguments);
-        args[0] = layoutEngine[callback];  // [callback, fragment, ...]
-
-        return layoutEngine.imagesLoaded.apply(layoutEngine, args);
-    };
-
-    layoutEngine.append = function ($fragment, callback) {
-        broadcast('fragmentAppended', $fragment);
-        if ($fragment.length) {
-            layoutEngine.$el.append($fragment).masonry('appended', $fragment);
-        }
-        return callback ? callback($fragment) : layoutEngine;
     };
 
     layoutEngine.stamp = function (element) {
@@ -87,18 +68,35 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         return layoutEngine;
     };
 
-    layoutEngine.insert = function ($fragment, $target, callback) {
-        var initialBottom = $target.position().top + $target.height();
-        if ($fragment.length) {
-            // Find a target that is low enough on the screen to insert after
-            while ($target.position().top <= initialBottom &&
-                   $target.next().length > 0) {
-                $target = $target.next();
-            }
-            $fragment.insertAfter($target);
-            layoutEngine.reload();
-        }
-        return callback ? callback($fragment) : layoutEngine;
+    /**
+     * Mix of append() and insert()
+     *
+     * @param fragment {array}: a array of elements.
+     * @param $target {jQuery}: if given, fragment is inserted after the target,
+     *                          if not, fragment is appended at the bottom.
+     * @returns {Deferred}
+     */
+    layoutEngine.add = function (fragment, $target) {
+        return $.when(layoutEngine.imagesLoaded(fragment))
+            .done(function (frag) {
+                if ($target && $target.length) {
+                    var initialBottom = $target.position().top +
+                        $target.height();
+                    if (frag.length) {
+                        // Find a target that is low enough on the screen to insert after
+                        while ($target.position().top <= initialBottom &&
+                               $target.next().length > 0) {
+                            $target = $target.next();
+                        }
+                        $target.after(frag);
+                        layoutEngine.reload();
+                    }
+                } else if (frag.length) {
+                    layoutEngine.$el
+                        .append(frag)
+                        .masonry('appended', frag);
+                }
+            });
     };
 
     /**
@@ -116,14 +114,16 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
     /**
      * @private (enable when IR supports colour and dimensions)
+     * @returns {deferred(args)}
      */
-    var __imagesLoaded = function (callback, $fragment) {
+    var __imagesLoaded = function ($fragment) {
         // This function is based on the understanding that the ImageService will
         // return dimensions and/or a dominant colour; elements in the $fragment have
         // assigned widths and heights; (e.g. .css('width', '100px'))
         var args = _.toArray(arguments).slice(1),
             toLoad = $fragment.children('img').length,
-            $badImages = $();
+            $badImages = $(),
+            deferred = new $.Deferred();
         // We set the background image of the tile image as the dominant colour/loading;
         // when the image is loaded, we replace the src.
         $fragment.children('img').each(function () {
@@ -144,6 +144,8 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                     // reload the layout.
                     $badImages.remove();
                     layoutEngine.reload();
+
+                    deferred.resolve(args);
                 }
             };
             img.onload = function () {
@@ -153,52 +155,56 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
             img.onerror = function () {
                 broadcast('tileRemoved', self);
-                $badImages = $badImages.add($(self).parents(layoutEngine.itemSelector));
+                $badImages = $badImages.add($(self).parents(opts.itemSelector));
                 onImage();
             };
         });
-        return callback.apply(layoutEngine, args);
+        return deferred.promise();
     };
 
-    layoutEngine.imagesLoaded = function (callback, $fragment) {
-        // @deprecated: Use until ImageService is reading/returns dominant colour
-        // Calls the broken handler to remove broken images as they appear;
-        // when all images are loaded, calls the appropriate layout function
-        var args = _.toArray(arguments).slice(2),
-            $badImages = $(),
-            imgLoad = imagesLoaded($fragment.children('img'));
-        imgLoad.on('always', function (imgLoad) {
-            // When all images are loaded and/or error'd remove the broken ones, and load
-            // the good ones.
-            if (imgLoad.hasAnyBroken) {
+    /**
+     * @deprecated: Use until ImageService is reading/returns dominant colour
+     * Calls the broken handler to remove broken images as they appear;
+     * When all images are loaded, resolves the promise returned
+     *
+     * @param tiles
+     * @returns {promise(args)}
+     */
+    layoutEngine.imagesLoaded = function (tiles) {
+        var deferred = new $.Deferred();
+
+        // "Triggered after all images have been either loaded or confirmed broken."
+        // huh? imagesLoaded uses $.Deferred?
+        $(tiles).children('img').imagesLoaded().always(function (instance) {
+            var $badImages = $(),
+                goodTiles = [];
+
+            if (instance.hasAnyBroken) {
                 // Iterate through the images and collect the bad images.
-                var $badImages = $();
-                _.each(imgLoad.images, function (image) {
-                    if (!image.isLoaded) {
-                        var $img = $(image.img),
-                            $elem = $img.parents(layoutEngine.itemSelector);
-                        $fragment = $fragment.filter(function () {
-                            return !$(this).is($elem);
-                        });
-                        $badImages = $badImages.add($elem);
+                _.each(instance.images, function (image) {
+                    var $img = $(image.img),  // image.img is a dom element
+                        $elem;
+
+                    if (image.isLoaded) {
+                        $elem = $img.parents(opts.itemSelector);
+                        if ($elem && $elem[0]) {
+                            goodTiles.push($elem[0]);
+                        }
+                    } else {
+                        console.warn('image ' + $img.attr('src') + ' is dead');
+                        $badImages.add($img);
                     }
                 });
                 // Batch removal of bad elements
                 $badImages.remove();
-            }
 
-            // Trigger tracking event and call the callback
-            // Uncomment the below if we want to track impressions
-            // Will need to add appropriate category, etc.
-//            SecondFunnel.vent.trigger('tracking:trackEvent', {
-//                'category': '',
-//                'action': '',
-//                'label': '',
-//                'nonInteraction': true
-//            });
-            args.unshift($fragment);
-            callback.apply(layoutEngine, args);
+                deferred.resolve(goodTiles);
+            } else {
+                // no images broken
+                deferred.resolve(tiles);
+            }
         });
-        return layoutEngine;
+
+        return deferred.promise();
     };
 });

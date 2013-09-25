@@ -1,10 +1,9 @@
+/*global SecondFunnel, Backbone, Marionette, console, broadcast */
 SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
     "use strict";
 
     var $document = $(document),
         $window = $(window),
-        EventManager,
-        isBounce = true,  // this flag set to false once user scrolls down
         videosPlayed = [],
         GA_CUSTOMVAR_SCOPE = {
             'PAGE': 3,
@@ -123,13 +122,21 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             return {
                 'category': category,
                 'label': label
-            }
+            };
         };
 
-    EventManager = Backbone.View.extend({
-        // Top-level event binding wrapper. all events bubble up to this level.
-        // the theme can declare as many event handlers as they like by creating
-        // their own new EventManager({ event: handler, event: ... })s.
+    tracker.socialShareType = undefined;
+    tracker.socialShareUrl = undefined;
+
+    /**
+     * Top-level event binding wrapper. all events bubble up to this level.
+     *
+     * The theme can declare as many event handlers as they like by creating
+     * their own new EventManager({ event: handler, event: ... })s.
+     *
+     * @type {*}
+     */
+    tracker.EventManager = Backbone.View.extend({
         'el': $window.add($document),
         'initialize': function (bindings) {
             var self = this;
@@ -137,20 +144,21 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
                 var event = key.substr(0, key.indexOf(' ')),
                     selectors = key.substr(key.indexOf(' ') + 1);
                 self.$el.on(event, selectors, func);
-                if (SecondFunnel.option('debug', SecondFunnel.QUIET) >=
-                    SecondFunnel.LOG) {
-                    console.log('regEvent ' + key);
-                }
+                console.debug('regEvent ' + key);
             });
         }
     });
 
-    tracker.setSocialShareVars = function (o) {
-        if (o && o.url && o.sType) {
-            tracker.socialShareUrl = o.url;
-            tracker.socialShareType = o.sType;
+    /**
+     *
+     * @param attrs {Object}
+     */
+    tracker.setSocialShareVars = function (attrs) {
+        if (attrs && attrs.url && attrs.sType) {
+            tracker.socialShareUrl = attrs.url;
+            tracker.socialShareType = attrs.sType;
         } else {
-            tracker.socialShareUrl = $("#featured_img").data("url");
+            tracker.socialShareUrl = SecondFunnel.option('featured:image', '');
             tracker.socialShareType = "featured";
         }
     };
@@ -261,7 +269,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
     };
 
     tracker.on('start', function () {  // this = tracker
-        if (SecondFunnel.option('debug', SecondFunnel.NONE) > SecondFunnel.NONE) {
+        if (SecondFunnel.option('debug', SecondFunnel.QUIET) > SecondFunnel.QUIET) {
             // debug mode.
             addItem(['_setDomainName', 'none']);
         }
@@ -282,8 +290,8 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         tracker.setSocialShareVars();
 
         // register event maps
-        var defaults = new EventManager(tracker.defaultEventMap),
-            customs = new EventManager(SecondFunnel.option('events'));
+        var defaults = new tracker.EventManager(tracker.defaultEventMap),
+            customs = new tracker.EventManager(SecondFunnel.option('events'));
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?
@@ -461,7 +469,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
 
         // Extension Points
 
-        // TODO: Any event below this is likely subject to be deleted
+        // TODO: Any event below this is likely subject to deletion
         // reset tracking scope: hover into featured product area
         "hover .featured": function () {
             // this = window because that's what $el is
@@ -502,9 +510,6 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             'loose': /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
         }
     };
-
-    this.socialShareType = undefined;
-    this.socialShareUrl = undefined;
 
     // add mediator triggers if the module exists.
     SecondFunnel.vent.on({

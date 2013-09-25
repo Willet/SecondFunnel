@@ -13,26 +13,6 @@ function reInitialize(app) {
     }
 
     app.addInitializer(function () {
-        try {
-            SecondFunnel.options.debug = SecondFunnel.QUIET;
-
-            if (window.location.hostname === 'localhost' ||
-                window.location.hostname === '127.0.0.1') {
-                SecondFunnel.options.debug = SecondFunnel.ERROR;
-            }
-
-            (function (hash) {
-                var hashIdx = hash.indexOf('debug=');
-                if (hashIdx > -1) {
-                    SecondFunnel.options.debug = hash[hashIdx + 6];
-                }
-            }(window.location.hash + window.location.search));
-        } catch (e) {
-            // this is an optional operation. never let this stop the script.
-        }
-    });
-
-    app.addInitializer(function () {
         // set its width to whatever it began with.
         app.options.initialWidth = $(window).width();
     });
@@ -50,15 +30,6 @@ function reInitialize(app) {
                 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
                 broadcast('firebugLoaded');
             });
-        }
-
-        if (app.option('debug', false) >= app.VERBOSE) {
-            setInterval(function () {
-                // highlight elements
-                $('div').css('outline', '1px rgba(255,0,0,0.5) dotted');
-                $('span').css('outline', '1px rgba(0,255,0,0.5) dotted');
-                $('img').css('outline', '1px rgba(0,255,0,0.5) dotted');
-            }, 5000);
         }
     });
 
