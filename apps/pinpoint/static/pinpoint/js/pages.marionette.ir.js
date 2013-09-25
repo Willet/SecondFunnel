@@ -21,8 +21,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     intentRank.on('start', function () {
         // Any additional init declarations go here
         var options = SecondFunnel.options,
-            page = options.page || {},
-            online = !page.offline;
+            page = options.page || {};
 
         _.extend(intentRank.options, {
             'baseUrl': options.IRSource || this.baseUrl,
@@ -36,12 +35,6 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             'content': options.content || [],
             'filters': options.filters || []
         });
-
-        if (online) {
-            intentRank.getResults = intentRank.getResultsOnline;
-        } else {
-            intentRank.getResults = intentRank.getResultsOffline;
-        }
 
         broadcast('intentRankInitialized', intentRank);
         return this;
@@ -81,6 +74,19 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     };
 
     /**
+     * general implementation
+     */
+    intentRank.getResults = function () {
+        try {
+            var online = !SecondFunnel.option('page:offline', false);
+            if (online) {
+                return intentRank.getResultsOnline.apply(intentRank, arguments);
+            }
+        } catch (e) {}
+        return intentRank.getResultsOffline.apply(intentRank, arguments);
+    };
+
+    /**
      * @param overrides (unused)
      * @returns something $.when() accepts
      */
@@ -99,7 +105,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      */
     intentRank.getResultsOnline = function (overrides) {
         var ajax, deferred, opts, uri, backupResults,
-            apiFailuresAllowed = SecondFunnel.option('apiFailuresAllowed', 5);
+            irFailuresAllowed = SecondFunnel.option('IRFailuresAllowed', 5);
 
         // build a one-off options object for the request.
         opts = $.extend(true, {}, intentRank.options, {
@@ -117,9 +123,9 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         // http://stackoverflow.com/a/18986305/1558430
         deferred = new $.Deferred();
 
-        if (consecutiveFailures > apiFailuresAllowed) {
+        if (consecutiveFailures > irFailuresAllowed) {
             // API is dead. serve backup results instantly
-            deferred.resolve(backupResults);
+            deferred.resolve([]);  // deferred.resolve([backupResults]); // TODO: remove
         } else {
             ajax = ($.jsonp || $.ajax)({
                 'url': uri,
@@ -151,7 +157,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
                 consecutiveFailures++;
 
-                if (consecutiveFailures > apiFailuresAllowed) {
+                if (consecutiveFailures > irFailuresAllowed) {
                     console.error(
                         'Too many consecutive endpoint failures. ' +
                         'All subsequent results will be backup results.');

@@ -580,7 +580,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
          */
         'layoutResults': function (data, tile) {
             var self = this,
-                $tileEls = $(),
+                tileEls = [],
                 $tile;
 
             // Check if we don't have anything
@@ -596,9 +596,9 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 
                 // add this model to our collection of models.
                 self.collection.add(tile);
-                if (view && !view.isClosed) {
+                if (view && view.$el && !view.isClosed) {
                     // Ensure we were given something
-                    $tileEls = $tileEls.add(view.$el);
+                    tileEls.push(view.$el[0]);
                 } else if (view === undefined) {
                     // render unsuccessful (warning already issued in createView)
                     return null;
@@ -608,7 +608,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             if (tile && tile.$el) {
                 $tile = tile.$el;  // this would be the "insert after" target
             }
-            SecondFunnel.layoutEngine.add($tileEls, $tile)
+            SecondFunnel.layoutEngine.add(tileEls, $tile)
                 .always(function () {
                     self.toggleLoading(false);
                 })

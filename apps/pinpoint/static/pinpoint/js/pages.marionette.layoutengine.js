@@ -27,7 +27,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         opts;  // last-used options (used by clear())
 
     layoutEngine.on('start', function () {  // this = layoutEngine
-        this.initialize(SecondFunnel.options);
+        return this.initialize(SecondFunnel.options);
     });
 
     layoutEngine.initialize = function (options) {
@@ -66,31 +66,30 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
     /**
      * Mix of append() and insert()
      *
-     * @param $fragment {array}: a array of jquery elements.
+     * @param fragment {array}: a array of elements.
      * @param $target {jQuery}: if given, fragment is inserted after the target,
      *                          if not, fragment is appended at the bottom.
      * @returns {Deferred}
      */
-    layoutEngine.add = function ($fragment, $target) {
-        return $.when(layoutEngine.imagesLoaded($fragment))
-            .done(function ($frag) {
-                // $target = layoutEngine.$el.find('.tile').eq(0);
+    layoutEngine.add = function (fragment, $target) {
+        return $.when(layoutEngine.imagesLoaded(fragment))
+            .done(function (frag) {
                 if ($target && $target.length) {
                     var initialBottom = $target.position().top +
                         $target.height();
-                    if ($frag.length) {
+                    if (frag.length) {
                         // Find a target that is low enough on the screen to insert after
                         while ($target.position().top <= initialBottom &&
                                $target.next().length > 0) {
                             $target = $target.next();
                         }
-                        $frag.insertAfter($target);
+                        $target.after(frag);
                         layoutEngine.reload();
                     }
-                } else if ($frag.length) {
+                } else if (frag.length) {
                     layoutEngine.$el
-                        .append($frag)
-                        .masonry('appended', $frag);
+                        .append(frag)
+                        .masonry('appended', frag);
                 }
             });
     };
@@ -163,17 +162,17 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * Calls the broken handler to remove broken images as they appear;
      * When all images are loaded, resolves the promise returned
      *
-     * @param $tiles
+     * @param tiles
      * @returns {promise(args)}
      */
-    layoutEngine.imagesLoaded = function ($tiles) {
+    layoutEngine.imagesLoaded = function (tiles) {
         var deferred = new $.Deferred();
 
         // "Triggered after all images have been either loaded or confirmed broken."
         // huh? imagesLoaded uses $.Deferred?
-        $tiles.children('img').imagesLoaded().always(function (instance) {
+        $(tiles).children('img').imagesLoaded().always(function (instance) {
             var $badImages = $(),
-                $goodTiles = $();
+                goodTiles = [];
 
             if (instance.hasAnyBroken) {
                 // Iterate through the images and collect the bad images.
@@ -183,18 +182,21 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
                     if (image.isLoaded) {
                         $elem = $img.parents(opts.itemSelector);
-                        $goodTiles.add($elem);
+                        if ($elem && $elem[0]) {
+                            goodTiles.push($elem[0]);
+                        }
                     } else {
+                        console.warn('image ' + $img.attr('src') + ' is dead');
                         $badImages.add($img);
                     }
                 });
                 // Batch removal of bad elements
                 $badImages.remove();
 
-                deferred.resolve($goodTiles);
+                deferred.resolve(goodTiles);
             } else {
                 // no images broken
-                deferred.resolve($tiles);
+                deferred.resolve(tiles);
             }
         });
 
