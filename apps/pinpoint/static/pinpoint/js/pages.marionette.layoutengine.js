@@ -167,38 +167,36 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * @returns {promise(args)}
      */
     layoutEngine.imagesLoaded = function ($tiles) {
-        var args = _.toArray(arguments).slice(1),
-            deferred = new $.Deferred();
+        var deferred = new $.Deferred();
 
         // "Triggered after all images have been either loaded or confirmed broken."
         // huh? imagesLoaded uses $.Deferred?
-        $tiles.children('img').imagesLoaded()
-            .always(function (instance) {
-                var $badImages = $(),
-                    $goodTiles = $();
-                // When all images are loaded and/or error'd remove the broken ones, and load
-                // the good ones.
-                if (instance.hasAnyBroken) {
-                    // Iterate through the images and collect the bad images.
-                    _.each(instance.images, function (image) {
-                        var $img = $(image.img),  // image.img is a dom element
-                            $elem = $img.parents(opts.itemSelector);
+        $tiles.children('img').imagesLoaded().always(function (instance) {
+            var $badImages = $(),
+                $goodTiles = $();
 
-                        if (image.isLoaded) {
-                            $goodTiles.add($elem);
-                        } else {
-                            $badImages.add($img);
-                        }
-                    });
-                    // Batch removal of bad elements
-                    $badImages.remove();
+            if (instance.hasAnyBroken) {
+                // Iterate through the images and collect the bad images.
+                _.each(instance.images, function (image) {
+                    var $img = $(image.img),  // image.img is a dom element
+                        $elem;
 
-                    deferred.resolve($goodTiles);
-                } else {
-                    // no images broken
-                    deferred.resolve($tiles);
-                }
-            });
+                    if (image.isLoaded) {
+                        $elem = $img.parents(opts.itemSelector);
+                        $goodTiles.add($elem);
+                    } else {
+                        $badImages.add($img);
+                    }
+                });
+                // Batch removal of bad elements
+                $badImages.remove();
+
+                deferred.resolve($goodTiles);
+            } else {
+                // no images broken
+                deferred.resolve($tiles);
+            }
+        });
 
         return deferred.promise();
     };
