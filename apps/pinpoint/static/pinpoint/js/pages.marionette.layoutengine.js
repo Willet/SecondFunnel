@@ -27,18 +27,14 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         opts;  // last-used options (used by clear())
 
     layoutEngine.on('start', function () {  // this = layoutEngine
-        return this.initialize(SecondFunnel.options);
-    });
-
-    layoutEngine.initialize = function (options) {
-        opts = $.extend({}, defaults, options, _.get(opts, 'masonry'));
+        opts = $.extend({}, defaults, opts, _.get(opts, 'masonry'));
 
         this.$el = $(SecondFunnel.option('discoveryTarget'));
         this.$el.masonry(opts);
 
         broadcast('layoutEngineInitialized', layoutEngine, opts);
         return layoutEngine;
-    };
+    });
 
     layoutEngine.stamp = function (element) {
         broadcast('elementStamped', element);
