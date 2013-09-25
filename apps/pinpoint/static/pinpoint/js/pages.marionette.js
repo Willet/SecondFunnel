@@ -1,4 +1,4 @@
-/*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _,
+/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _,
   Willet, broadcast, console, SecondFunnel */
 SecondFunnel.module('core', function (core, SecondFunnel) {
     // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
@@ -7,15 +7,17 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         $document = $(document),
         getModifiedTemplateName;
 
-    // console logging thresholds
-    _.extend(SecondFunnel, {
-        QUIET: 0, ERROR: 1, WARNING: 2, LOG: 3, VERBOSE: 4, ALL: 5
-    });
-
+    /**
+     * convenience method for accessing PAGES_INFO or TEST_*.
+     *
+     * To access deep options (e.g. PAGES_INFO.store.name), use the key
+     * "store.name" or "store:name" (preferred).
+     *
+     * @param {string} name
+     * @param {*} defaultValue
+     * @returns {*}
+     */
     SecondFunnel.option = function (name, defaultValue) {
-        // convenience method for accessing PAGES_INFO or TEST_*.
-        // to access deep options (e.g. PAGES_INFO.store.name), use the key
-        // "store.name" or "store:name" (preferred).
         var opt = Marionette.getOption(SecondFunnel, name),
             keyNest = _.compact(name.split(/[:.]/)),
             keyName,
@@ -40,10 +42,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             }
         } catch (KeyError) {
             // requested traversal path does not exist. do the next line
-            if (SecondFunnel.options &&
-                SecondFunnel.options.debug >= SecondFunnel.WARNING) {
-                console.warn('Missing option: ' + name);
-            }
+            console.warn('Missing option: ' + name);
         }
         return defaultValue;  // ...and defaultValue defaults to undefined
     };
@@ -133,8 +132,8 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 
             // set up tile type overrides
             this.set({
-                "type": this.get('template'),  // default type being its template
-                "caption": SecondFunnel.utils.safeString(this.get("caption"))
+                'type': this.get('template'),  // default type being its template
+                'caption': SecondFunnel.utils.safeString(this.get("caption"))
             });
             if (_.contains(videoTypes, type)) {
                 this.set('type', 'video');
@@ -249,20 +248,17 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                     });
             }
 
-            if (SecondFunnel.options.debug >= SecondFunnel.VERBOSE) {
-                console.log('Template search tree for view %O: %O',
-                            currentView, templateRules);
-            }
+            console.debug('Template search tree for view %O: %O',
+                        currentView, templateRules);
             return templateRules;
         },
         'template': "#product_tile_template",
-        'className': SecondFunnel.option('itemSelector',
-            '').substring(1),
+        'className': SecondFunnel.option('itemSelector', '').substring(1),
 
         'events': {
             'click': "onClick",
             'mouseenter': "onHover",
-            "mouseleave": "onHover"
+            'mouseleave': "onHover"
         },
 
         'regions': _.extend({}, {  // if ItemView, the key is 'ui': /docs/marionette.itemview.md#organizing-ui-elements
@@ -375,7 +371,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             // semi-stupid view-based resizer
             var tileImg = this.$('img.focus'),
                 columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
-                columnWidth = SecondFunnel.option('columnWidth', $.noop)() || 255;
+                columnWidth = SecondFunnel.option('columnWidth', 255);
             if (tileImg.length) {
                 tileImg.attr('src', SecondFunnel.utils.pickImageSize(tileImg.attr('src'),
                                     columnWidth * columns));
@@ -475,16 +471,12 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
         'collection': null,
         'loading': false,
         'lastScrollTop': 0,
-        'intentRankResults': [0, 0],  // after fetching stuff from IR, nothing was added to the page.
 
         // prevent default appendHtml behaviour (append in batch)
         'appendHtml': $.noop,
 
         'initialize': function (options) {
             var self = this;
-
-            // Initialize IntentRank; use as a separate module to make changes easier.
-            SecondFunnel.intentRank.initialize(options);
 
             this.collection = new core.TileCollection();
             this.categories = new core.CategorySelector(  // v-- options.categories is deprecated
@@ -496,17 +488,11 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
-                if (options.debug >= SecondFunnel.LOG) {
-                    console.log('laying out initial results');
-                }
-                this.layoutResults(options.initialResults, undefined,
-                    function () {
-                        self.getTiles();
-                    });
-            } else {
-                // Load additional results and add them to our collection
-                this.getTiles();
+                console.log('laying out initial results');
+                this.layoutResults(options.initialResults);
             }
+            // ... then fetch more products from IR
+            this.getTiles();
         },
 
         'attachListeners': function () {
@@ -520,7 +506,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                     // did you know any DOM element without resize events
                     // can still react to potential resizes by having its
                     // own .bind('resize', function () {})?
-                    $('.resizable', document).resize();
+                    $('.resizable', document).trigger('resize');
 
                     self.countColumns();
 
@@ -528,9 +514,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                 }, 500))
                 .scrollStopped(function () {
                     // deal with tap indicator fade in/outs
-                    if (SecondFunnel.support.touch()) {
-                        SecondFunnel.vent.trigger('scrollStopped', self);
-                    }
+                    SecondFunnel.vent.trigger('scrollStopped', self);
                 });
 
             // serve orientation change event via vent
@@ -547,59 +531,64 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             return this;
         },
 
-        'getTiles': function (options, $tile) {
-            if (!this.loading) {
-                this.toggleLoading();
-                options = options || {};
-                options.type = options.type || 'campaign';
-                SecondFunnel.intentRank.getResults(options,
-                    this.layoutResults, $tile);
-            } else {
-                if (SecondFunnel.option('debug', SecondFunnel.QUIET) >= SecondFunnel.WARNING) {
-                    console.warn('Already loading tiles. Try again later');
-                }
+        /**
+         *
+         * @param options
+         * @param tile {TileView}: supply a tile View to have tiles inserted
+         *                         after it. (optional)
+         * @returns this
+         */
+        'getTiles': function (options, tile) {
+            var self = this,
+                opts;
+            if (this.loading) {
+                console.warn('Already loading tiles. Try again later');
+                return this;
             }
+            this.toggleLoading(true);
+            opts = options || {};
+            opts.type = opts.type || 'campaign';
+
+            $.when(SecondFunnel.intentRank.getResults(opts))
+                .always(function (data) {
+                    self.layoutResults(data, tile);
+                })
+                .always(this.getMoreResults);
             return this;
         },
 
-        "getMoreResults": function () {
+        /**
+         * @param data {array}: byproduct of .always() passing back the data.
+         *                      its use is not recommended.
+         * @returns this
+         */
+        'getMoreResults': function (data) {
             // creates conditions needed to get more results.
             var self = this;
             this.toggleLoading(false);
-            if (self.intentRankResults[1] === self.collection.models.length) {
-                // loaded nothing last time.
-                self.intentRankResults[0]++;
-                if (self.intentRankResults[0] > 5) {
-                    if (SecondFunnel.option('debug', SecondFunnel.QUIET) >=
-                        SecondFunnel.ERROR) {
-                        console.error('Too many consecutive endpoint failures. ' +
-                            'Not trying again.');
-                    }
-                    return this;
-                }
-            } else {
-                // success = counter reset
-                self.intentRankResults[0] = 0;
-                self.intentRankResults[1] = self.collection.models.length;
-            }
+
             setTimeout(function () {
                 self.pageScroll();
             }, 100);
             return this;
         },
 
-        'layoutResults': function (data, tile, callback) {
+        /**
+         * @param data {array}: list of product json objects
+         * @param tile {View}: pre-rendered tile view
+         * @returns this
+         */
+        'layoutResults': function (data, tile) {
             var self = this,
-                $tileEls = $();
-            callback = callback || this.getMoreResults;
+                tileEls = [],
+                $tile;
 
             // Check if we don't have anything
             if (data.length === 0) {
-                return this.toggleLoading();
+                return this.toggleLoading(false);
             }
 
             // If we have data to use.
-            data = this.filter(data);  // custom function
             _.each(data, function (tileData) {
                 // Create the new tiles using the data
                 var tile = new core.Tile(tileData),
@@ -607,55 +596,35 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 
                 // add this model to our collection of models.
                 self.collection.add(tile);
-                if (view && !view.isClosed) {
+                if (view && view.$el && !view.isClosed) {
                     // Ensure we were given something
-                    $tileEls = $tileEls.add(view.$el);
+                    tileEls.push(view.$el[0]);
                 } else if (view === undefined) {
                     // render unsuccessful (warning already issued in createView)
                     return null;
                 }
             });
 
-            if (tile) {
-                SecondFunnel.layoutEngine.call('insert', $tileEls, tile.$el,
-                    callback);
-            } else {
-                SecondFunnel.layoutEngine.call('append', $tileEls,
-                    callback);
+            if (tile && tile.$el) {
+                $tile = tile.$el;  // this would be the "insert after" target
             }
+            SecondFunnel.layoutEngine.add(tileEls, $tile)
+                .always(function () {
+                    self.toggleLoading(false);
+                })
+                .always(this.getMoreResults);
             return this;
         },
 
-        'filter': function (content, selector) {
-            // Filter the content in the LayoutEngine based on the selector
-            // passed and the criteria/filters defined in the SecondFunnel options.
-            var i,
-                filters = this.options.filters || [];
-            filters.push(selector);
-            filters = _.flatten(filters);
-
-            for (i = 0; i < filters.length; ++i) {
-                var filter = filters[i];
-                if (content.length === 0) {
-                    break;
-                }
-                switch (typeof filter) {
-                case 'function':
-                    content = _.filter(content, filter);
-                    break;
-                case 'object':
-                    content = _.where(content, filter);
-                    break;
-                }
-            }
-            return content;
-        },
-
+        /**
+         * Adds "col-n" classes to the html tag.
+         * @returns {number}
+         */
         'countColumns': function () {
             var i,
                 $html = $('html'),
                 maxColsDef = SecondFunnel.option('maxColumnCount', 4),
-                maxCols = $window.width() / (SecondFunnel.option('columnWidth', $.noop)() || 255);
+                maxCols = $window.width() / SecondFunnel.option('columnWidth', 255);
             $html.removeClass(function (idx, cls) {
                 // remove all current col-* classes
                 return (cls.match(/col-\d+/g) || []).join(' ');
@@ -674,6 +643,8 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             // Loads in related content below the specified tile
             var id = tile.model.get('tile-id');
             if (id === null) {
+                console.warn('updateContentStream got a null ID. ' +
+                    'I don\'t think it is supposed to happen.');
                 return this;
             }
             return this.getTiles({
@@ -715,6 +686,7 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 
             if (!this.loading && $('html').css('overflow') !== 'hidden' &&
                 pageBottomPos >= documentBottomPos - viewportHeights) {
+                // get more tiles to fill the screen.
                 this.getTiles();
             }
 
@@ -797,10 +769,8 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
                     });
             }
 
-            if (SecondFunnel.options.debug >= SecondFunnel.VERBOSE) {
-                console.log('Template search tree for view %O: %O',
-                            currentView, templateRules);
-            }
+            console.debug('Template search tree for view %O: %O', currentView,
+                templateRules);
             return templateRules;
         },
         'onRender': function () {
