@@ -118,9 +118,10 @@ might want to consider customizing are:
 - `.sharing` __not sure__ 
 - `.previewContainer .price`
 
-
 ## Adding social buttons
-# Optional Customizations
+
+	(META should this be emphasized more than the other features? It feels important enough.)
+## Optional Customizations
 
 To make your page more appealing and to drive more traffic or achieve higher
 conversion rates, you might want to add the following features to your page
@@ -129,11 +130,9 @@ conversion rates, you might want to add the following features to your page
 - Accordions
 - Tabs
 
-
 ## Social buttons
 
 To add social buttons to your page, you will simply need to include (TODO)
-
 
 ## Tabs
 To add tabs to your page, you will need to follow the following example:
@@ -185,7 +184,6 @@ The content of the tab page should go under an element of class `.tab-pane`.
 This will indicate to SecondFunnel it needs to display it when the tab is
 active and hide it otherwise.
 
-
 ## Accordions
 
 To add an accordion to your page, follow the following example:
@@ -194,7 +192,8 @@ To add an accordion to your page, follow the following example:
 <div class="accordion-container">
     <div class="panel-group"  id="my-accordion">
         <div class="panel panel-default">
-            <a class="accordion-toggle" data-toggle="sf-collapse" data-target=".collapse1" data-parent="#my-accordion" >
+            <a class="accordion-toggle" data-toggle="sf-collapse"
+            data-target=".collapse1" data-parent="#my-accordion" >
                 <div class=' panel-heading'>
                     collapse1 title
                 </div>
@@ -205,9 +204,9 @@ To add an accordion to your page, follow the following example:
             </div>
         </div>
 
-
         <div class="panel panel-default">
-            <a  class="accordion-toggle" data-toggle="sf-collapse" data-target=".collapse2" data-parent="#my-accordion">
+            <a  class="accordion-toggle" data-toggle="sf-collapse"
+            data-target=".collapse2" data-parent="#my-accordion">
                 <div class="panel-heading">
                     collapse2 title
                 </div>
@@ -222,7 +221,8 @@ To add an accordion to your page, follow the following example:
     </div>
 </div>
 ```
-SecondFunnel detects accordions when it finds the structure `.accordion-container > .panel-group > .panel`.
+SecondFunnel detects accordions when it finds the structure 
+`.accordion-container > .panel-group > .panel`.
 
 ### Accordion style
 
