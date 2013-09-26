@@ -179,6 +179,8 @@ Page.module("core", function(core, page, B, M, $, _) {
         className: 'tile video'
     });
 
+    // TODO: Fill tile with proper width / height of image
+    // Also, BG color
     core.LoadingIndicator = Page.utils.ItemView.extend({
         'tagName': 'div',
         'className': 'loading',

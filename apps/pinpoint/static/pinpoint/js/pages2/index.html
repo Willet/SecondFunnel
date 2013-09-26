@@ -4,8 +4,11 @@
             .tile {
                 border: 1px solid #000;
                 width: 200px;
-                height: 200px;
                 position: relative;
+            }
+
+            .tile img {
+                max-width: 100%;
             }
 
             .buttons {
@@ -16,7 +19,7 @@
 
             #preview-window {
                 display: none;
-                position: absolute;
+                position: fixed;
                 top: 0;
                 left: 0;
                 width: 100%;
@@ -30,7 +33,7 @@
             }
 
             #preview-window .content {
-                position: absolute;
+                position: fixed;
                 top: 0;
                 left: 0;
             }
@@ -62,6 +65,9 @@
             <div class='buttons-region'></div>
             <div class='content'>
                 <%= tile.template %>
+                <% if (tile.image) { %>
+                <img src='<%= tile.image %>'/>
+                <% } %>
             </div>
         </script>
 
