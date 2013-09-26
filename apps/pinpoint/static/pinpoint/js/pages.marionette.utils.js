@@ -88,10 +88,8 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
             FoundClass = defaultClass;
         }
 
-        if (SecondFunnel.options.debug >= SecondFunnel.VERBOSE) {
-            console.log('findClass(%s, %s, %O) -> %O',
-                        typeName, prefix, defaultClass, FoundClass);
-        }
+        console.debug('findClass(%s, %s, %O) -> %O', typeName, prefix,
+            defaultClass, FoundClass);
 
         return FoundClass;
     };
