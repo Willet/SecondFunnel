@@ -167,10 +167,17 @@ name of the product. The following fields are supported by most campaigns:
 
 ### JavaScript in templates
 
-You can insert JavaScript code between those two tags that will execute at that
-stage when the template is loading. A nifty and simple trick you can use is
+You can insert JavaScript code between &lt;% and %&gt; tags that will execute at 
+that stage when the template is loading. A nifty and simple trick you can use is
 `for` loops. For example, to iterate over the images of related products, you
 can insert this following snippet into your template: (TODO: add snippet)
+
+Another trick you can use in your template is checking whether a field exists.
+You can do that using the `if` keyword. For instance, 
+```html <% if (obj.designer) { %>
+	<%- obj.designer %> will only include the field if it exists.
+<% } %>
+```
 
 
 ## Styling your page
