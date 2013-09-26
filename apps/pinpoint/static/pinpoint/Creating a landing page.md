@@ -16,7 +16,7 @@ You can use [this example](example/example.html) and modify it to match your nee
 
 If you choose to build your page from scratch, ensure you include all the
 elements needed for SecondFunnel to function, and add the following at the
-end of your HTML <body> tag:
+end of your HTML &lt;body&gt; tag:
 
 ```html
 <!-- Javascript Files -->
