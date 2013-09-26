@@ -1,14 +1,10 @@
 /*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast */
 /**
+ * Masonry wrapper
+ *
  * @module layoutEngine
- * @property initialize
- * @property stamp
- * @property unstamp
- * @property layout
- * @property reload
  */
 SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
-    // Masonry wrapper
     "use strict";
 
     var $document = $(document),
@@ -38,6 +34,12 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         return this.initialize(SecondFunnel.options);
     });
 
+    /**
+     * Initializes the underlying masonry instance onto the discovery target.
+     *
+     * @param options {Object}    overrides.
+     * @returns this
+     */
     this.initialize = function (options) {
         opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
 
@@ -53,27 +55,60 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         return this;
     };
 
+    /**
+     * Wrapper around masonry's stamp method.
+     *
+     * @param element {Element}
+     * @returns this
+     */
     this.stamp = function (element) {
         broadcast('elementStamped', element);
         this.$el.masonry('stamp', element);
         return this;
     };
 
+    /**
+     * Wrapper around masonry's unstamp method.
+     *
+     * @param element {Element}
+     * @returns this
+     */
     this.unstamp = function (element) {
         broadcast('elementUnstamped', element);
         this.$el.masonry('unstamp', element);
         return this;
     };
 
+    /**
+     * Perform a partial reload of the masonry object.
+     * Less computationally expensive than reload().
+     *
+     * @returns this
+     */
     this.layout = function () {
         this.$el.masonry('layout');
         return this;
     };
 
-    this.reload = function ($fragment) {
+    /**
+     * Perform a complete reload of the masonry object.
+     *
+     * @returns this
+     */
+    this.reload = function () {
         this.$el.masonry('reloadItems');
         this.$el.masonry();
         return this;
+    };
+
+    /**
+     * Returns the options with which the layout engine is running.
+     * Used mainly for testing.
+     *
+     * @returns {Object}
+     */
+    this._opts = function () {
+        return opts;
     };
 
     /**

@@ -128,8 +128,8 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             };
         };
 
-    tracker.socialShareType = undefined;
-    tracker.socialShareUrl = undefined;
+    this.socialShareType = undefined;
+    this.socialShareUrl = undefined;
 
     /**
      * Top-level event binding wrapper. all events bubble up to this level.
@@ -137,9 +137,10 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
      * The theme can declare as many event handlers as they like by creating
      * their own new EventManager({ event: handler, event: ... })s.
      *
+     * @constructor
      * @type {*}
      */
-    tracker.EventManager = Backbone.View.extend({
+    this.EventManager = Backbone.View.extend({
         'el': $window.add($document),
         'initialize': function (bindings) {
             var self = this;
@@ -153,20 +154,28 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
     });
 
     /**
-     *
-     * @param attrs {Object}
+     * Sets socialShareUrl and socialShareType. (?)
+     * @param attrs {Object}    an object of {url, sType}
      */
-    tracker.setSocialShareVars = function (attrs) {
+    this.setSocialShareVars = function (attrs) {
         if (attrs && attrs.url && attrs.sType) {
-            tracker.socialShareUrl = attrs.url;
-            tracker.socialShareType = attrs.sType;
+            this.socialShareUrl = attrs.url;
+            this.socialShareType = attrs.sType;
         } else {
-            tracker.socialShareUrl = SecondFunnel.option('featured:image', '');
-            tracker.socialShareType = "featured";
+            this.socialShareUrl = SecondFunnel.option('featured:image', '');
+            this.socialShareType = "featured";
         }
     };
 
-    tracker.registerFacebookListeners = function () {
+    /**
+     * Registers facebook tracking events that are fired whenever a facebook
+     * action is performed, which I believe to be mostly 'click on fb button'.
+     *
+     * This method does nothing if facebook is not present on the page.
+     *
+     * @returns undefined
+     */
+    this.registerFacebookListeners = function () {
         if (!window.FB) {
             return;
         }
@@ -197,7 +206,15 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         });
     };
 
-    tracker.registerTwitterListeners = function () {
+    /**
+     * Registers twitter tracking events that are fired whenever a user
+     * completes a tweet.
+     *
+     * This method does nothing if twitter  is not present on the page.
+     *
+     * @returns undefined
+     */
+    this.registerTwitterListeners = function () {
         if (!window.twttr) {
             return;
         }
@@ -241,8 +258,18 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         });
     };
 
-    tracker.videoStateChange = function (videoId, event) {
-        broadcast('videoStateChange', videoId, event, tracker);
+    /**
+     * Handles youtube tracking events that are fired whenever a youtube
+     * video changes play state, e.g. pause, stop.
+     *
+     * This method has no effect on other types of videos.
+     *
+     * @param videoId {String}      the youtube video id.
+     * @param event {Object}        a youtube event object.
+     * @returns undefined
+     */
+    this.videoStateChange = function (videoId, event) {
+        broadcast('videoStateChange', videoId, event, this);
 
         // TODO: Do we only want to measure one event per video?
         if (videosPlayed.indexOf(videoId) !== -1) {
@@ -261,17 +288,29 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         }
     };
 
-    tracker.changeCampaign = function (campaignId) {
+    /**
+     * Records the fact that the campaign has been changed.
+     *
+     * @param campaignId {Number}   A campaign ID served by this page.
+     * @returns undefined
+     */
+    this.changeCampaign = function (campaignId) {
         setCustomVar({
             'slotId': 2,
             'name': 'CampaignID',
             'value': '' + campaignId
         });
 
-        broadcast('trackerChangeCampaign', campaignId, tracker);
+        broadcast('trackerChangeCampaign', campaignId, this);
     };
 
-    tracker.on('start', function () {  // this = tracker
+    /**
+     * Starts the module.
+     * Sets up default tracking events.
+     *
+     * @alias tracker.start
+     */
+    this.on('start', function () {  // this = tracker
         if (SecondFunnel.option('debug', SecondFunnel.QUIET) > SecondFunnel.QUIET) {
             // debug mode.
             addItem(['_setDomainName', 'none']);
@@ -290,11 +329,11 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         ]);
         addItem(['_trackPageview']);
 
-        tracker.setSocialShareVars();
+        this.setSocialShareVars();
 
         // register event maps
-        var defaults = new tracker.EventManager(tracker.defaultEventMap),
-            customs = new tracker.EventManager(SecondFunnel.option('events'));
+        var defaults = new this.EventManager(this.defaultEventMap),
+            customs = new this.EventManager(SecondFunnel.option('events'));
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?
@@ -323,7 +362,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
 
         // referrer? domain?
 
-        broadcast('trackerInitialized', tracker);
+        broadcast('trackerInitialized', this);
         // setTrackingDomHooks() on $.ready
     });
 
@@ -335,7 +374,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
     // TODO: Of the events that we broadcast, which are actually used?
 
     // Backbone format: { '(event) (selectors)': function(ev), ...  }
-    tracker.defaultEventMap = {
+    this.defaultEventMap = {
         // Events that we care about:
         // Content Preview
         // Product Preview
@@ -496,7 +535,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
     };
 
     // more events can be declared by the theme without EventManager instances
-    $.extend(true, tracker.defaultEventMap,
+    $.extend(true, this.defaultEventMap,
              SecondFunnel.option('eventMap', {}));
 
     parseUri.options = {
@@ -517,10 +556,10 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
     // add mediator triggers if the module exists.
     SecondFunnel.vent.on({
         'tracking:trackEvent': trackEvent,
-        'tracking:setSocialShareVars': tracker.setSocialShareVars,
-        'tracking:registerTwitterListeners': tracker.registerTwitterListeners,
-        'tracking:registerFacebookListeners': tracker.registerFacebookListeners,
-        'tracking:videoStateChange': tracker.videoStateChange,
-        'tracking:changeCampaign': tracker.changeCampaign
+        'tracking:setSocialShareVars': this.setSocialShareVars,
+        'tracking:registerTwitterListeners': this.registerTwitterListeners,
+        'tracking:registerFacebookListeners': this.registerFacebookListeners,
+        'tracking:videoStateChange': this.videoStateChange,
+        'tracking:changeCampaign': this.changeCampaign
     });
 });
