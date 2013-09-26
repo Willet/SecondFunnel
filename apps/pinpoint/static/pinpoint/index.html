@@ -492,18 +492,18 @@
         <script type="text/javascript">
             if (window.SecondFunnel) {
                 // Start the SecondFunnel app
-                SecondFunnel.start(SecondFunnel.options);
+                SecondFunnel.start();
                 window.sizeImage = SecondFunnel.utils.pickImageSize;  // export for designers
 
                 // Example: add UI events
-                new SecondFunnel.classRegistry.EventManager({
+                new SecondFunnel.tracker.EventManager({
                     'click .navbar-brand': function (ev) {
                         console.log('bur... custom event triggered');
                     }
                 });
 
                 // Example: handle right hand side link clicks
-                new SecondFunnel.classRegistry.EventManager({
+                new SecondFunnel.tracker.EventManager({
                     'click .navbar-right a': function (ev) {
                         var $ev = $(ev.currentTarget);
 
