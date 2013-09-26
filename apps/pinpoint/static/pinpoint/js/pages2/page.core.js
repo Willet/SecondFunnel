@@ -77,6 +77,13 @@ Page.module("core", function(core, page, B, M, $, _) {
             'loadingIndicator': '.loading-region'
         },
 
+        templateHelpers: function() {
+            var view = this;
+            return {
+                tile: view.model.toJSON()
+            }
+        },
+
         // Fire an event when something happens
         // TODO: Is this how we want to handle *all* events?
         //triggers: {},
