@@ -1,5 +1,7 @@
 /*global SecondFunnel, Backbone, Marionette, console, broadcast */
 /**
+ * This module has no initialization options.
+ *
  * @module sharing
  */
 SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
@@ -18,12 +20,14 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             // otherwise, return the default.
             return sharing.SocialButton;
         },
+        /**
+         * A mapping of the different sharing options and the related
+         * share url.
+         * add more via PAGES_INFO.shareSources.
+         *
+         * @type {String}
+         */
         sources = _.extend({}, {
-            // A mapping of the different sharing options and the related
-            // share url.
-
-            // add more via PAGES_INFO.shareSources.
-
             // Main ones (e.g. Facebook, Twitter, Tumblr, etc.)
             'facebook': "//facebook.com/sharer/sharer.php?u=<%= url %>",
             'twitter': "//twitter.com/share?url=<%= url %>",

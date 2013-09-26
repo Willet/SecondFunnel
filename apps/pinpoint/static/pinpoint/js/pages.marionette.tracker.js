@@ -304,13 +304,17 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         broadcast('trackerChangeCampaign', campaignId, this);
     };
 
+    this.on('start', function () {  // this = tracker
+        return this.initialize(SecondFunnel.options);
+    });
+
     /**
      * Starts the module.
      * Sets up default tracking events.
      *
      * @alias tracker.start
      */
-    this.on('start', function () {  // this = tracker
+    this.initialize = function (options) {
         if (SecondFunnel.option('debug', SecondFunnel.QUIET) > SecondFunnel.QUIET) {
             // debug mode.
             addItem(['_setDomainName', 'none']);
@@ -364,7 +368,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
 
         broadcast('trackerInitialized', this);
         // setTrackingDomHooks() on $.ready
-    });
+    };
 
     // Generally, we have views handle event tracking on their own.
     // However, it can be expensive to bind events to every single view.

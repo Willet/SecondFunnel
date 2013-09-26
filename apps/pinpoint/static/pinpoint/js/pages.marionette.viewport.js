@@ -20,7 +20,15 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
         };
 
     this.on('start', function () {
-        // register hooks.
+        return this.initialize(SecondFunnel.options);
+    });
+
+    /**
+     * Starts the module. Registers hooks.
+     *
+     * @alias tracker.start
+     */
+    this.initialize = function (options) {
         var self = this;
         SecondFunnel.vent.on('beforeInit', function () {
             // single call func removes args
@@ -31,7 +39,7 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
             self.scale();
         });
         SecondFunnel.vent.on('rotate', self.scale);
-    });
+    };
 
     /**
      * Returns an array containing viewport analysis.

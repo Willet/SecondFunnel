@@ -22,9 +22,18 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     };
 
     this.on('start', function () {
+        return this.initialize(SecondFunnel.options);
+    });
+
+    /**
+     * Initializes intentRank.
+     *
+     * @param options {Object}    overrides.
+     * @returns this
+     */
+    this.initialize = function (options) {
         // Any additional init declarations go here
-        var options = SecondFunnel.options,
-            page = options.page || {};
+        var page = options.page || {};
 
         _.extend(intentRank.options, {
             'baseUrl': options.IRSource || this.baseUrl,
@@ -41,7 +50,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
         broadcast('intentRankInitialized', intentRank);
         return this;
-    });
+    };
 
     /**
      * Filter the content based on the selector
