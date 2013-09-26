@@ -1,20 +1,84 @@
 # Creating a SecondFunnel Theme
-(TODO: talk about themes)
-
 
 SecondFunnel campaigns are meant to present viewers with a visually-appealing
 pallette of products that encourages them to stay on the page and interact with
 the products.
 
-Creating a campaign is fast and simple. The only three things you need to use
-t are HTML, CSS, and Underscore templates.
+Creating a theme is fast and simple. The only three things you need to use
+are HTML, CSS, and Underscore templates.
 
-## Creating a functioning page
+## Making a functioning page
 
 A functioning landing page has to include the main elements in a page and at
 least minimal templates.
 
-If there are issues, fix them. Otherwise, proceed.
+You can use [this example](example/example.html) and modify it to match your needs.
+
+If you choose to build your page from scratch, ensure you include all the
+elements needed for SecondFunnel to function, and add the following at the
+end of your HTML <body> tag:
+
+```html
+<!-- Javascript Files -->
+<script type="text/javascript" src="js/test_config.js"></script>
+<script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
+<script type="text/javascript" src="/static/js/respond.min.js"></script><!-- "as early after the css as possible" -->
+<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery.mobile.swipeonly.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery.viewport.min.js"></script><!-- after jquery -->
+<script type="text/javascript" src="/static/js/json2.js"></script>
+<script type="text/javascript" src="/static/js/underscore.js"></script>
+<script type="text/javascript" src="/static/js/backbone.js"></script>
+<script type="text/javascript" src="/static/js/backbone.marionette.min.js"></script><!-- after backbone -->
+<script type="text/javascript" src="/static/js/imagesloaded.pkgd.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery.masonry.pkgd.min.js"></script>
+<script type="text/javascript" src="js/jquery.masonry.extensions.js"></script>
+<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/pages.marionette.preinit.js"></script><!-- after marionette -->
+<script type="text/javascript" src="js/pages.marionette.utils.js"></script>
+<script type="text/javascript" src="js/pages.marionette.js"></script><!-- after preinit -->
+<script type="text/javascript" src="js/pages.marionette.support.js"></script><!-- after marionette -->
+<script type="text/javascript" src="js/pages.marionette.tracker.js"></script><!-- after marionette -->
+<script type="text/javascript" src="js/pages.marionette.layoutengine.js"></script><!-- after marionette -->
+<script type="text/javascript" src="js/pages.marionette.sharing.js"></script><!-- after marionette -->
+<script type="text/javascript" src="js/pages.marionette.ir.js"></script><!-- after marionette -->
+<script type="text/javascript" src="js/pages.marionette.viewport.js"></script><!-- after pages -->
+<script type="text/javascript" src="js/pages.marionette.init.js"></script><!-- after pages -->
+<script type="text/javascript" src="js/pages.marionette.widget.gallery.js"></script>
+<script type="text/javascript" src="/static/js/css3-mediaqueries.js"></script><!-- IE8 -->
+<script type="text/javascript">
+    if (window.SecondFunnel) {
+        // Start the SecondFunnel app
+        SecondFunnel.start(SecondFunnel.options);
+        window.sizeImage = SecondFunnel.utils.pickImageSize;  // export for designers
+
+        // Example: add UI events
+        new SecondFunnel.classRegistry.EventManager({
+            'click .navbar-brand': function (ev) {
+                console.log('bur... custom event triggered');
+            }
+        });
+
+        // Example: handle right hand side link clicks
+        new SecondFunnel.classRegistry.EventManager({
+            'click .navbar-right a': function (ev) {
+                var $ev = $(ev.currentTarget);
+
+                console.log('Click detected! ' + $ev.attr('href'));
+            }
+        });
+
+
+        // Example: receive event notifications
+        receive({
+            'previewRendered': function () {
+                console.log('doh! preview rendered');
+            }
+        });
+    }
+</script>
+<!-- End Javascript -->
+```
 
 ## Components of a landing page
 
@@ -45,13 +109,16 @@ A SecondFunnel landing page follows the following structure:
 
 ## Demo
 
-    (TODO Insert simple demo here)
-
+	(META moved to Creating a functioning page)
+	
 ## Underscore templates
 
-Underscore templates are a method for adding HTML tags to content that has not
-added to the page yet. Tiles and previews will be pulled from our servers, and
-Underscore templates will add the HTML tags and attributes based on their
+(You can learn everything you need to know about Underscore templates 
+[here](http://underscorejs.org/#template))
+
+Templates are a method for adding HTML tags to content that has not added
+to the page yet. Tiles and previews will be pulled from our servers, and
+Underscore templates will add the HTML tags and attributes based on the
 template type they're associated with.
 
 Templates are used in tiles and previews as their content is fetched from our
