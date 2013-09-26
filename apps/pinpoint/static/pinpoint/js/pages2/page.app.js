@@ -86,6 +86,10 @@ Page.vent.on('preview', function(page, model) {
     page.previewArea.show(preview);
 });
 
+Page.vent.on('preview:close', function(page) {
+    page.previewArea.close();
+});
+
 Page.vent.on('fetch:related', function(page) {
     // why can't we have a consistent set of arguments when listening on the vent?
 

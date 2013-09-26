@@ -197,7 +197,21 @@ Page.module("core", function(core, page, B, M, $, _) {
 
     core.Preview = Page.utils.ItemView.extend({
         'tagName': 'div',
-        'template': '#willet-preview'
+        'template': '#willet-preview',
+        'id': 'preview-window',
+        events: {
+            'click .mask': 'onMaskClick' // bad name
+        },
+        onMaskClick: function() {
+            // TODO: Should this just close itself instead?
+            page.vent.trigger('preview:close', page);
+        },
+        onBeforeClose: function() {
+            this.$el.hide();
+        },
+        onShow: function() {
+            this.$el.show();
+        }
     });
 
     core.DiscoveryArea = Backbone.Marionette.CollectionView.extend({

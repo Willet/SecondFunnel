@@ -5,6 +5,34 @@
                 border: 1px solid #000;
                 width: 200px;
                 height: 200px;
+                position: relative;
+            }
+
+            .buttons {
+                position: absolute;
+                bottom: 0px;
+                right: 0px;
+            }
+
+            #preview-window {
+                display: none;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            #preview-window .mask {
+                width: 100%;
+                height: 100%;
+                background: rgba(255,255,255,0.75);
+            }
+
+            #preview-window .content {
+                position: absolute;
+                top: 0;
+                left: 0;
             }
         </style>
     </head>
@@ -23,8 +51,9 @@
             Discovery Area
         </script>
 
-        <script type="text/template" id="willet-discovery-area">
-            Preview
+        <script type="text/template" id="willet-preview">
+            <div class='mask'></div>
+            <div class='content'>Preview</div>
         </script>
 
         <script type="text/template" id="willet-tile-view">
