@@ -1,12 +1,13 @@
-# Creating a SecondFunnel campaign
-(TODO: talk about what SF campaigns are about)
+# Creating a SecondFunnel Theme
+(TODO: talk about themes)
+
 
 SecondFunnel campaigns are meant to present viewers with a visually-appealing
 pallette of products that encourages them to stay on the page and interact with
-the images on the page.
+the products.
 
 Creating a campaign is fast and simple. The only three things you need to use
-to create one are HTML, CSS, and Underscore templates.
+t are HTML, CSS, and Underscore templates.
 
 ## Creating a functioning page
 
@@ -21,28 +22,14 @@ A landing is a standard HTML page. The main parts in a SecondFunnel landing
 page are:
 
 (TODO fix)
-
-- the "hero image" `.visible-xs.jumbotron`, `.visible-sm.jumbotron`,
-  `.visible-md.jumbotron`, `.visible-lg.jumbotron`
-
-    This image will be visible at the top of your page. It will be big, and it
-will communciate what your page is about. The various classes exist for
-different screen sizes.
   
-- the discovery feed `div#discovery-area`
-
-    The discovery feed is the region that contains the tiles for your campaign.
+- **the discovery feed**: the discovery feed is the region that contains the 
+tiles for your campaign.
   
-- tiles `div.tile`
+- **tiles**: images that are meant to give the viewer an idea about the 
+product behind the tile.
 
-    Tiles are images and additional elements you might choose to include. They
-are meant to give the viewer an idea about the product behind the tile.
-
-- previews `div.preview`
-
-    Previews can be thought of as expanded tiles. They are modals that sit on
-top of the page, and they become the focus of the browser when they are
-clicked. Previews should give the details about a product.
+- **previews**: Modals that include details about a product
 
 ## Structure of a landing page
 
@@ -50,7 +37,7 @@ A SecondFunnel landing page follows the following structure:
 
 - `body`
     - `div.container`
-        - `div.discovery-area`
+        - `div#discovery-area`
             - `div.tile`
     - `div.previewContainer`
         - `...`
@@ -81,7 +68,8 @@ template has the name "name", your template definition will have the tag
 ### Template names
 
 In SecondFunnel, template names follow a convention. The name of your template
-will decide how specific it is. In order of decreasing specificity, the rules for naming templates are:
+will decide how specific it is. In order of decreasing specificity, the rules for 
+naming templates are:
 
 (META these are tile templates. Make sure conventions apply everywhere.)
 (TODO talk about them, finish. Add other templates if warranted)
@@ -100,7 +88,7 @@ will decide how specific it is. In order of decreasing specificity, the rules fo
 Everything in your template will follow standard HTML and CSS rules, but you
 also have access to variables related to the campaign.
 
-The key to accessing those variables is the tag (TODO: wording) `<% %>`.
+The key to accessing those variables is the tag (TODO: wording) `<%- %>`.
 Everything included between the opening and closing tag will be treated as
 JavaScript. You do not need to know JavaScript to access the data.
 
@@ -151,22 +139,22 @@ To add tabs to your page, you will need to follow the following example:
 
 ```html
 <ul class="nav nav-tabs">
-    <li class="active"> <a data-toggle="tab" data-target=".tab1"> tab1 </a></li>
-    <li> <a data-toggle="tab" data-target=".tab2"> tab2 </a> </li>
-    <li> <a data-toggle="tab" data-target=".tab3"> tab3 </a> </li>
+    <li class="active"> <a data-toggle="tab" data-target=".banana"> banana </a></li>
+    <li> <a data-toggle="tab" data-target=".orange"> orange </a> </li>
+    <li> <a data-toggle="tab" data-target=".apple"> apple </a> </li>
 </ul>
 
 <div class="tab-content">
-    <div class="tab-pane description active tab1">
-        tab1
+    <div class="tab-pane description active banana">
+        banana
     </div>
     
-    <div class="tab-pane tab2">
-        tab2
+    <div class="tab-pane orange">
+        orange
     </div>
     
-    <div class="tab-pane tab3">
-        tab3
+    <div class="tab-pane apple">
+        apple
     </div>
 </div>
 ```
@@ -205,28 +193,28 @@ To add an accordion to your page, follow the following example:
     <div class="panel-group"  id="my-accordion">
         <div class="panel panel-default">
             <a class="accordion-toggle" data-toggle="sf-collapse"
-            data-target=".collapse1" data-parent="#my-accordion" >
+            data-target=".pineapple" data-parent="#my-accordion" >
                 <div class=' panel-heading'>
-                    collapse1 title
+                    pineapple title
                 </div>
             </a>
 
             <div class="panel-collapse collapse in collapseOne">
-                <div> collapse1 content</div>
+                <div> pineapple content</div>
             </div>
         </div>
 
         <div class="panel panel-default">
             <a  class="accordion-toggle" data-toggle="sf-collapse"
-            data-target=".collapse2" data-parent="#my-accordion">
+            data-target=".papaya" data-parent="#my-accordion">
                 <div class="panel-heading">
-                    collapse2 title
+                    papaya title
                 </div>
             </a>
 
             <div class="panel-collapse collapse collapseTwo">
                 <div class="panel-body">
-                    collapse2 content
+                    papaya content
                 </div>
             </div>
         </div>
@@ -238,7 +226,8 @@ SecondFunnel detects accordions when it finds the structure
 
 ### Accordion style
 
-You need to follow the accordion structure to make sure your accordion will be styled correctly.
+You need to follow the accordion structure to make sure your accordion will be styled 
+correctly.
 
 To change the style of your accordion, you need to override one or more of the following:
 
