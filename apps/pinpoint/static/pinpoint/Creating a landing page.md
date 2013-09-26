@@ -49,31 +49,31 @@ end of your HTML &lt;body&gt; tag:
 <script type="text/javascript">
     if (window.SecondFunnel) {
         // Start the SecondFunnel app
-        SecondFunnel.start(SecondFunnel.options);
+        SecondFunnel.start();
         window.sizeImage = SecondFunnel.utils.pickImageSize;  // export for designers
 
         // Example: add UI events
-        new SecondFunnel.classRegistry.EventManager({
-            'click .navbar-brand': function (ev) {
-                console.log('bur... custom event triggered');
-            }
+        new SecondFunnel.tracker.EventManager({
+        'click .navbar-brand': function (ev) {
+            console.log('bur... custom event triggered');
+        }
         });
 
         // Example: handle right hand side link clicks
-        new SecondFunnel.classRegistry.EventManager({
-            'click .navbar-right a': function (ev) {
-                var $ev = $(ev.currentTarget);
+        new SecondFunnel.tracker.EventManager({
+        'click .navbar-right a': function (ev) {
+            var $ev = $(ev.currentTarget);
 
-                console.log('Click detected! ' + $ev.attr('href'));
-            }
+            console.log('Click detected! ' + $ev.attr('href'));
+        }
         });
 
 
         // Example: receive event notifications
         receive({
-            'previewRendered': function () {
-                console.log('doh! preview rendered');
-            }
+        'previewRendered': function () {
+            console.log('doh! preview rendered');
+        }
         });
     }
 </script>
