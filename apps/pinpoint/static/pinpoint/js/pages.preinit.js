@@ -333,12 +333,12 @@ debugOp = function () {
                     "/static/testing/lib/jasmine-1.3.1/jasmine.js",
                     "/static/testing/lib/jasmine-1.3.1/jasmine-html.js",
                     "/static/testing/lib/jasmine-1.3.1/jasmine-console.js",
-                    "/static/pinpoint/js/pages.marionette.preinit.spec.js",
-                    "/static/pinpoint/js/pages.marionette.spec.js",
-                    "/static/pinpoint/js/pages.marionette.support.spec.js",
-                    "/static/pinpoint/js/pages.marionette.utils.spec.js",
-                    "/static/pinpoint/js/pages.marionette.layoutengine.spec.js",
-                    "/static/pinpoint/js/pages.marionette.viewport.spec.js"
+                    "/static/pinpoint/js/pages.preinit.spec.js",
+                    "/static/pinpoint/js/pages.spec.js",
+                    "/static/pinpoint/js/pages.support.spec.js",
+                    "/static/pinpoint/js/pages.utils.spec.js",
+                    "/static/pinpoint/js/pages.layoutengine.spec.js",
+                    "/static/pinpoint/js/pages.viewport.spec.js"
                 ],
                 href = window.location.href.toLowerCase();
 
