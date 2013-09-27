@@ -4,15 +4,22 @@ SecondFunnel campaigns are meant to present viewers with a visually-appealing
 pallette of products that encourages them to stay on the page and interact with
 the products.
 
-Creating a theme is fast and simple. The only three things you need to use
-are HTML, CSS, and Underscore templates.
+## You will need
+
+To create a new theme, you will need
+
+- a web browser
+- basic knowledge of HTML, CSS, JavaScript, and Underscore Templates
+
+This tutorial includes a short introduction into working with UnderScore templates.
 
 ## Making a functioning page
 
 A functioning landing page has to include the main elements in a page and at
 least minimal templates.
 
-You can use [this example](example/example.html) and modify it to match your needs.
+It's recommended that you use [this example](example/example.html) and modify
+it to match your needs.
 
 If you choose to build your page from scratch, ensure you include all the
 elements needed for SecondFunnel to function, and add the following at the
@@ -85,16 +92,13 @@ end of your HTML &lt;body&gt; element:
 
 A landing is a standard HTML page. The main parts in a SecondFunnel landing
 page are:
-
-(TODO fix)
   
-- **the discovery feed**: the discovery feed is the region that contains the 
-tiles for your campaign.
+- **the discovery feed**: the region that contains your campaign's tiles.
   
 - **tiles**: images that are meant to give the viewer an idea about the 
 product behind the tile.
 
-- **previews**: Modals that include details about a product
+- **previews**: modals that include details about a product.
 
 ## Structure of a landing page
 
@@ -125,7 +129,14 @@ The structure of the page with tiles and previews would look something like:
 
 You can add content anywhere as long as the elements SecondFunnel requires are where they need to be.
 
-If you would likd to change the style of the page, include a custom.css file (TODO finish)
+If you would likd to change the style of the page, include a custom.css file. Elements you might want to style are:
+
+- `body`
+- `.tile` tiles
+- `.previewContainer` previews
+- `.social-buttons` social buttons (maybe not)
+- `.sharing` __not sure__ 
+- `.previewContainer .price`
 
 ## Demo
 
@@ -150,7 +161,7 @@ it into the page the way you decide.
 You define a template using the `<script type="text/template">` tag. You put
 the template name in the script tag as an id attribute. For example, if your
 template has the name "name", your template definition will have the tag
-`<script type="text/template" id="name"`.
+`<script type="text/template" id="name">`.
 
 ### Template names
 
@@ -202,22 +213,6 @@ You can do that using the `if` keyword. For instance,
 <% } %>
 ```
 
-
-## Styling your page
-
-Include your styles in a CSS file, and upload them to the server. Elements you
-might want to consider customizing are:
-
-- `body`
-- `.tile` tiles
-- `.previewContainer` previews
-- `.social-buttons` social buttons (maybe not)
-- `.sharing` __not sure__ 
-- `.previewContainer .price`
-
-## Adding social buttons
-
-	(META should this be emphasized more than the other features? It feels important enough.)
 ## Optional Customizations
 
 To make your page more appealing and to drive more traffic or achieve higher
@@ -226,10 +221,6 @@ conversion rates, you might want to add the following features to your page
 - Social buttons
 - Accordions
 - Tabs
-
-## Social buttons
-
-To add social buttons to your page, you will simply need to include (TODO)
 
 ## Tabs
 To add tabs to your page, you will need to follow the following example:
@@ -320,6 +311,7 @@ To add an accordion to your page, follow the following example:
     </div>
 </div>
 ```
+
 SecondFunnel detects accordions when it finds the structure 
 `.accordion-container > .panel-group > .panel`.
 
