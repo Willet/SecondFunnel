@@ -16,7 +16,7 @@ You can use [this example](example/example.html) and modify it to match your nee
 
 If you choose to build your page from scratch, ensure you include all the
 elements needed for SecondFunnel to function, and add the following at the
-end of your HTML &lt;body&gt; tag:
+end of your HTML &lt;body&gt; element:
 
 ```html
 <!-- Javascript Files -->
@@ -97,15 +97,34 @@ product behind the tile.
 
 ## Structure of a landing page
 
-A SecondFunnel landing page follows the following structure:
+In order for SecondFunnel to function correctly, your page should contain
+the following elements: (TODO investigate)
 
 - `body`
     - `div.container`
         - `div#discovery-area`
-            - `div.tile`
+
+When SecondFunnel runs, and tiles are loaded, they are added to the page
+as direct children of the div#discovery-area element.
+
+A preview is loaded when a tile is clicked, and it is added as a direct 
+child of div.container (TODO: investigate)
+
+The structure of the page with tiles and previews would look like:
+
+- `body`
+    - `div.container`
+        - `div#discovery-area`
+        	- `div.tile`
     - `div.previewContainer`
         - `...`
             - `div.preview`
+
+## Customizing a landing page
+
+You can add content anywhere as long as the elements SecondFunnel requires are where they need to be.
+
+If you would likd to change the style of the page, include a custom.css file (TODO finish)
 
 ## Demo
 
