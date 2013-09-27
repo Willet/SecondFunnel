@@ -117,7 +117,7 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
      * @returns undefined
      */
     this.scale = function (desiredWidth) {
-        var analysis = this.determine(desiredWidth),
+        var analysis = viewport.determine(desiredWidth),
             metaTag = getMeta(),
             proposedMeta = '';
         if (analysis[0] === true && metaTag.length >= 1) {

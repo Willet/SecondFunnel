@@ -467,7 +467,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          */
         'onClick': function () {
             var handler = _.capitalize(this.model.get('content-type'));
-            return (this['onClick' + handler] || this.onClickVideo)();
+            return (this['onClick' + handler] || this.onClickVideo).apply(this);
         },
 
         /**
