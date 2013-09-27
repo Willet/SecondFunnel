@@ -142,8 +142,8 @@ Elements you might want to consider styling:
 
 Templates are a method for adding HTML tags to content that has not added
 to the page yet. Tiles and previews will be pulled from our servers, and
-Underscore templates will add the HTML tags and attributes based on the
-template type they're associated with.
+Underscore templates will add the HTML tags and attributes from the most
+appropriate template.
 
 Templates are used in tiles and previews as their content is fetched from our
 servers after the page is loaded. They will take the fetched content and insert
