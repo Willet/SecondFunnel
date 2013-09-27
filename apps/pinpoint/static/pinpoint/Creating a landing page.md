@@ -110,7 +110,7 @@ as direct children of the div#discovery-area element.
 A preview is loaded when a tile is clicked, and it is added as a direct 
 child of div.container (TODO: investigate)
 
-The structure of the page with tiles and previews would look like:
+The structure of the page with tiles and previews would look something like:
 
 - `body`
     - `div.container`
