@@ -1,33 +1,7 @@
 {% load staticfiles %}
 {% load compress %}
 
-<script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
 {% compress js %}
-<script type="text/javascript" src="{% static 'js/respond.min.js' %}"></script><!-- "as early after the css as possible" -->
-<script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/jquery.mobile.swipeonly.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/jquery.browser.mobile.js' %}"></script><!-- after jquery -->
-<script type="text/javascript" src="{% static 'js/jquery.viewport.min.js' %}"></script><!-- after browser mobile -->
-<script type="text/javascript" src="{% static 'js/jquery.jsonp.min.js' %}"></script><!-- after jquery -->
-<script type="text/javascript" src="{% static 'js/json2.js' %}"></script><!-- before marionette -->
-<script type="text/javascript" src="{% static 'js/underscore.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/backbone.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/backbone.marionette.min.js' %}"></script><!-- after backbone -->
-<script type="text/javascript" src="{% static 'js/imagesloaded.pkgd.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/jquery.masonry.pkgd.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.preinit.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.utils.js' %}"></script><!-- before pages -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.js' %}"></script><!-- after preinit -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.support.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.tracker.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.layoutengine.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.sharing.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.ir.js' %}"></script><!-- after marionette -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.viewport.js' %}"></script><!-- after pages -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.init.js' %}"></script><!-- after pages -->
-<script type="text/javascript" src="{% static 'pinpoint/js/pages.widget.gallery.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/css3-mediaqueries.js' %}"></script><!-- IE8 -->
 <script type="text/javascript">
     if (window.SecondFunnel) {
         // Start the SecondFunnel app
@@ -35,8 +9,10 @@
         window.sizeImage = SecondFunnel.utils.pickImageSize;  // export for designers
     }
 </script>
-<!-- End Javascript -->
+<script type="text/javascript" src="{% static 'js/css3-mediaqueries.js' %}"></script><!-- IE8 -->
 {% endcompress %}
+<script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
+<!-- End Javascript -->
 
 <!-- Social -->
 <div id="fb-root"></div>

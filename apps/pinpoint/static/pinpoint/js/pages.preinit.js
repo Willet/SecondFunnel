@@ -60,6 +60,16 @@ SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
   SecondFunnel.options.debug,
   window.location.hash + window.location.search));
 
+// pre-fetch images for the initial results. (shaves off a second for imagesLoaded)
+(function () {
+    var img;
+    _.each(_.pluck(SecondFunnel.options.initialResults, 'image'), function (src) {
+        if (typeof src === 'string') {
+            img = new Image(src.replace('master.jpg', 'grande.jpg'));
+            img = new Image(src.replace('master.jpg', 'large.jpg'));
+        }
+    });
+}());
 
 // http://stackoverflow.com/questions/1199352/
 String.prototype.truncate = function (n, useSentenceBoundary, addEllipses) {
