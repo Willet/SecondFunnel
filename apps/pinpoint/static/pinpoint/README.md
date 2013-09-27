@@ -104,17 +104,13 @@ product behind the tile.
 ## Structure of a landing page
 
 In order for SecondFunnel to function correctly, your page should contain
-the following elements: (TODO investigate)
-
-- `body`
-    - `div.container`
-        - `div#discovery-area`
+the element `div#discovery-area`
 
 When SecondFunnel runs, and tiles are loaded, they are added to the page
 as direct children of the div#discovery-area element.
 
 A preview is loaded when a tile is clicked, and it is added as a direct
-child of div.container (TODO: investigate)
+child of body.
 
 The structure of the page with tiles and previews would look something like:
 
