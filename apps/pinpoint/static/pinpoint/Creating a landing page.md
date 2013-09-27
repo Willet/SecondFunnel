@@ -19,6 +19,7 @@ elements needed for SecondFunnel to function, and add the following at the
 end of your HTML &lt;body&gt; element:
 
 ```html
+
 <!-- Javascript Files -->
 <script type="text/javascript" src="js/test_config.js"></script>
 <script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
@@ -192,9 +193,12 @@ that stage when the template is loading. A nifty and simple trick you can use is
 can insert this following snippet into your template: (TODO: add snippet)
 
 Another trick you can use in your template is checking whether a field exists.
-You can do that using the `if` keyword. For instance, 
-```html <% if (obj.designer) { %>
-	<%- obj.designer %> will only include the field if it exists.
+You can do that using the `if` keyword. For instance,
+
+```
+
+<% if (obj.designer) { %>
+	<%- obj.designer %> <!-- will only include the field if it exists. -->
 <% } %>
 ```
 
@@ -231,6 +235,7 @@ To add social buttons to your page, you will simply need to include (TODO)
 To add tabs to your page, you will need to follow the following example:
 
 ```html
+
 <ul class="nav nav-tabs">
     <li class="active"> <a data-toggle="tab" data-target=".banana"> banana </a></li>
     <li> <a data-toggle="tab" data-target=".orange"> orange </a> </li>
@@ -282,6 +287,7 @@ active and hide it otherwise.
 To add an accordion to your page, follow the following example:
 
 ```html
+
 <div class="accordion-container">
     <div class="panel-group"  id="my-accordion">
         <div class="panel panel-default">
