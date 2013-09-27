@@ -1,4 +1,4 @@
-# `pages.js`: How-to implement the features you want
+# SecondFunnel: How-to implement the features you want
 
 ## Edit the page's styles
 
@@ -324,10 +324,9 @@ You can do that using the `if` keyword. For instance,
 
 ## Optional Customizations
 
-To make your page more appealing and to drive more traffic or achieve higher
-conversion rates, you might want to add the following features to your page
+SecondFunnel supports the followoing features:
 
-- Social buttons
+- Social buttons (enabled by default)
 - Accordions
 - Tabs
 
@@ -424,6 +423,8 @@ To add an accordion to your page, follow the following example:
 SecondFunnel detects accordions when it finds the structure
 `.accordion-container > .panel-group > .panel`.
 
+Read the next section to learn about accordion style and setting accordion height.
+
 ### Accordion style
 
 You need to follow the accordion structure to make sure your accordion will be styled
@@ -433,3 +434,6 @@ To change the style of your accordion, you need to override one or more of the f
 
 - `.accordion-container > .panel-group > .panel > .accordion-toggle` Accordion toggles
 - `.accordion-container > .panel-group > .panel > .panel-collapse` Accordion contents
+
+Accordions have a constant height. If you would like to override the height, set
+(TODO what element) to the desired height in your custom.css file.
