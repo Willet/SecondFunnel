@@ -1,126 +1,8 @@
 # SecondFunnel: How-to implement the features you want
 
-## Edit the page's styles
-
-1. Create `styles.css` in the `css/` directory. Do not edit `pages2.css`.
-2. Override any styles you wish in `styles.css`.
-3. Never use inline styles.
-
-## Change a template
-
-There are many types of tiles available to you, all of which are suffixed with
-`_template` in `index.html`.
-
-To change the appearance of any template, *do not edit them*. Copy and paste
-the template with a new id, with your company name prefixed. For example,
-
-* to edit `product_tile_template`, copy and paste the `product_tile_template`
-tag, and rename it to `yourStoreName_product_tile_template`.
-* To edit `image_preview_template`, copy and paste the `image_preview_template`
-tag, and rename it to `yourStoreName_image_preview_template`.
-
-Your store name is case-sensitive.
-
-## Create a template just for mobile devices
-
-If `pages.js` thinks it is being viewed from a mobile device, it prefers
-`abc_xyz_mobile_template` to `abc_xyz_template`. To override a desktop
-template, create its mobile counterpart with a `_mobile` ID.
-
-## Modify page behaviour
-
-There is a `window.PAGES_INFO` or `window.TEST_PAGE_DATA` object on the page.
-You can tweak values from there. *Never modify `pages.js`*.
-
-## Add page behaviour
-
-### Listen to events
-
-`pages.js` notifies you of many events, all of which you can find by searching
-`broadcast(...)` in the code. To do something when events are fired, use this
-example code.
-
-    SecondFunnel.vent.on({
-        'previewRendered': function () {  // listen to the "previewRendered" event.
-            console.log('bur... preview rendered');  // do something about it.
-        }
-    });
-
-### Listen to events that `pages.js` doesn't broadcast
-
-If you want to do something that `pages.js` was not designed to notify, you can
-still write your own event handlers. For example, while `pages.js` does not
-tell you if a certain link is clicked, you can still add events for it.
-
-    new SecondFunnel.classRegistry.EventManager({
-        'click .navbar-brand': function (ev) {  // (event) (selector)
-            console.log('bur... custom event triggered');
-        }
-    });
-
-### Add complex behaviour
-
-Should you need to add more elaborate behaviour to your page, you can do so by
-adding *widgets*.
-
-    SecondFunnel.utils.addWidget(
-        'gallery',  // name (must be unique)
-        '.gallery',  // selector (scoped!)
-        function (view, $el, option) {
-            ...
-        }
-    );
-
-Widgets are only available in certain page elements. Experiment with the code
-to get an idea where it works and where it doesn't.
-
-## Change the number of columns for the discovery area
-
-Normally, you cannot. However, you can experiment with overriding the width of
-`.container`, a style provided by `bootstrap.css`.
-
-## Change the "hero image"
-
-Assign background images to one or more of these selectors:
-`.visible-xs.jumbotron, .visible-sm.jumbotron, .visible-md.jumbotron, .visible-lg.jumbotron`
-
-## Add product information to the hero area
-
-Write a `text/template` with the id `featured_template`. If this template
-exists, it will replace the default `.jumbotron` area. Inside this template,
-an `obj` object is available to you, containing information you provided in
-`PAGES_INFO.featured` or `TEST_PAGE_DATA.featured`. An example featured
-template would look like this.
-
-    <script type="text/template" id="featured_template">
-        <div class='featured product'>
-            <!-- Main Display Area -->
-            <img class='img-responsive pull-left' src='<%= obj.image %>' />
-            <div class='pull-right'><%= obj.title %></div>
-                <div class='price'><%= obj.price %></div>
-                <div>
-                    <a href='<%= obj.url %>' target='_blank'>BUY NOW</a>
-                </div>
-            </div>
-        </div>
-
-        <div class='spacer'></div>
-    </script>
-
-# Creating a SecondFunnel Theme
-
 SecondFunnel campaigns are meant to present viewers with a visually-appealing
-pallette of products that encourages them to stay on the page and interact with
+palette of products that encourages them to stay on the page and interact with
 the products.
-
-## You will need
-
-To create a new theme, you will need
-
-- a web browser
-- basic knowledge of HTML, CSS, JavaScript, and Underscore Templates
-
-This tutorial includes a short introduction into working with UnderScore templates.
 
 ## Making a functioning page
 
@@ -197,6 +79,16 @@ end of your HTML &lt;body&gt; element:
 <!-- End Javascript -->
 ```
 
+
+## You will need
+
+To create a new theme, you will need
+
+- a web browser
+- basic knowledge of HTML, CSS, JavaScript, and Underscore Templates
+
+This tutorial includes a short introduction into working with UnderScore templates.
+
 ## Components of a landing page
 
 A landing is a standard HTML page. The main parts in a SecondFunnel landing
@@ -238,23 +130,19 @@ The structure of the page with tiles and previews would look something like:
 
 You can add content anywhere as long as the elements SecondFunnel requires are where they need to be.
 
-If you would likd to change the style of the page, include a custom.css file. Elements you might want to style are:
+If you would like to change the style of the page, create a **styles.css** in the **css/** directory. Do not use inline styles. If you would like to overwrite or add a style, include it in styles.css.
 
-- `body`
+Elements you might want to consider styling:
+
 - `.tile` tiles
 - `.previewContainer` previews
 - `.social-buttons` social buttons (maybe not)
 - `.sharing` __not sure__
 - `.previewContainer .price`
 
-## Demo
+### Underscore templates
 
-	(META moved to Creating a functioning page)
-
-## Underscore templates
-
-(You can learn everything you need to know about Underscore templates
-[here](http://underscorejs.org/#template))
+(You can find the full documentation [here](http://underscorejs.org/#template))
 
 Templates are a method for adding HTML tags to content that has not added
 to the page yet. Tiles and previews will be pulled from our servers, and
@@ -265,14 +153,38 @@ Templates are used in tiles and previews as their content is fetched from our
 servers after the page is loaded. They will take the fetched content and insert
 it into the page the way you decide.
 
-### Defining templates
+(TODO fix the following)
+
+```
+
+There are many types of tiles available to you, all of which are suffixed with
+`_template` in `index.html`.
+
+To change the appearance of any template, *do not edit them*. Copy and paste
+the template with a new id, with your company name prefixed. For example,
+
+* to edit `product_tile_template`, copy and paste the `product_tile_template`
+tag, and rename it to `yourStoreName_product_tile_template`.
+* To edit `image_preview_template`, copy and paste the `image_preview_template`
+tag, and rename it to `yourStoreName_image_preview_template`.
+
+Your store name is case-sensitive.
+
+## Create a template just for mobile devices
+
+If `pages.js` thinks it is being viewed from a mobile device, it prefers
+`abc_xyz_mobile_template` to `abc_xyz_template`. To override a desktop
+template, create its mobile counterpart with a `_mobile` ID.
+```
+
+#### Defining templates
 
 You define a template using the `<script type="text/template">` tag. You put
 the template name in the script tag as an id attribute. For example, if your
 template has the name "name", your template definition will have the tag
 `<script type="text/template" id="name">`.
 
-### Template names
+#### Template names
 
 In SecondFunnel, template names follow a convention. The name of your template
 will decide how specific it is. In order of decreasing specificity, the rules for
@@ -290,7 +202,7 @@ naming templates are:
 - `store`_`data type`_tile_template
 - `data type`_tile_template
 
-### Template contents
+#### Template contents
 
 Everything in your template will follow standard HTML and CSS rules, but you
 also have access to variables related to the campaign.
@@ -305,7 +217,7 @@ name of the product. The following fields are supported by most campaigns:
 
 (TODO: add fields)
 
-### JavaScript in templates
+#### JavaScript in templates
 
 You can insert JavaScript code between &lt;% and %&gt; tags that will execute at
 that stage when the template is loading. A nifty and simple trick you can use is
@@ -324,7 +236,7 @@ You can do that using the `if` keyword. For instance,
 
 ## Optional Customizations
 
-SecondFunnel supports the followoing features:
+SecondFunnel supports the following features:
 
 - Social buttons (enabled by default)
 - Accordions
