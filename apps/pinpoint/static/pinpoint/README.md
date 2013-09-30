@@ -4,6 +4,19 @@ SecondFunnel campaigns are meant to present viewers with a visually-appealing
 palette of products that encourages them to stay on the page and interact with
 the products.
 
+This tutorial will give you an overview of SecondFunnel pages and show you how
+to get your page running. If you would like to learn about styling your page,
+take a look at [the style document](styld.md).
+
+## You will need
+
+To create a new theme, you will need
+
+- a web browser
+- basic knowledge of **HTML**, **CSS**, **JavaScript**, and **Underscore** Templates
+
+This tutorial includes a short introduction into working with UnderScore templates.
+
 ## Making a functioning page
 
 A functioning landing page has to include the main elements in a page and at
@@ -79,19 +92,9 @@ end of your HTML &lt;body&gt; element:
 <!-- End Javascript -->
 ```
 
-
-## You will need
-
-To create a new theme, you will need
-
-- a web browser
-- basic knowledge of HTML, CSS, JavaScript, and Underscore Templates
-
-This tutorial includes a short introduction into working with UnderScore templates.
-
 ## Components of a landing page
 
-A landing is a standard HTML page. The main parts in a SecondFunnel landing
+A landing page is a standard HTML page. The main parts in a SecondFunnel landing
 page are:
 
 - **the discovery feed**: the region that contains your campaign's tiles.
@@ -106,10 +109,12 @@ product behind the tile.
 In order for SecondFunnel to function correctly, your page should contain
 the element `div#discovery-area`
 
-When SecondFunnel runs, and tiles are loaded, they are added to the page
+You can add content anywhere as long as `div#discovery-area` is present.
+
+When SecondFunnel runs, and **tiles** are loaded, they are added to the page
 as direct children of the div#discovery-area element.
 
-A preview is loaded when a tile is clicked, and it is added as a direct
+A **preview** is loaded when a tile is clicked, and it is added as a direct
 child of body.
 
 The structure of the page with tiles and previews would look something like:
@@ -120,13 +125,10 @@ The structure of the page with tiles and previews would look something like:
         	- `div.tile`
     - `div.previewContainer`
         - `...`
-            - `div.preview`
+            - `div.preview` (TODO decide if important)
 
 ## Customizing a landing page
 
-You can add content anywhere as long as the elements SecondFunnel requires are where they need to be.
-
-If you would like to change the style of the page, create a **styles.css** in the **css/** directory. Do not use inline styles. If you would like to overwrite or add a style, include it in styles.css.
 
 Elements you might want to consider styling:
 
@@ -138,47 +140,15 @@ Elements you might want to consider styling:
 
 ### Underscore templates
 
-(You can find the full documentation [here](http://underscorejs.org/#template))
+SecondFunnel uses templates to render tiles and previews.
 
-Templates are a method for adding HTML tags to content that has not added
-to the page yet. Tiles and previews will be pulled from our servers, and
-Underscore templates will add the HTML tags and attributes from the most
-appropriate template.
+(You can find the full template documentation [here](http://underscorejs.org/#template))
 
 Templates are used in tiles and previews as their content is fetched from our
 servers after the page is loaded. They will take the fetched content and insert
 it into the page the way you decide.
 
-(TODO fix the following)
-
-```
-
-There are many types of tiles available to you, all of which are suffixed with
-`_template` in `index.html`.
-
-To change the appearance of any template, *do not edit them*. Copy and paste
-the template with a new id, with your company name prefixed. For example,
-
-* to edit `product_tile_template`, copy and paste the `product_tile_template`
-tag, and rename it to `yourStoreName_product_tile_template`.
-* To edit `image_preview_template`, copy and paste the `image_preview_template`
-tag, and rename it to `yourStoreName_image_preview_template`.
-
 Your store name is case-sensitive.
-
-## Create a template just for mobile devices
-
-If `pages.js` thinks it is being viewed from a mobile device, it prefers
-`abc_xyz_mobile_template` to `abc_xyz_template`. To override a desktop
-template, create its mobile counterpart with a `_mobile` ID.
-```
-
-#### Defining templates
-
-You define a template using the `<script type="text/template">` tag. You put
-the template name in the script tag as an id attribute. For example, if your
-template has the name "name", your template definition will have the tag
-`<script type="text/template" id="name">`.
 
 #### Template names
 
@@ -188,6 +158,7 @@ naming templates are:
 
 (META these are tile templates. Make sure conventions apply everywhere.)
 (TODO talk about them, finish. Add other templates if warranted)
+(TODO move to technical)
 
 - `store`_`content type`_`data type`_mobile_tile_template
 - `content type`_`data type`_mobile_tile_template
@@ -199,6 +170,8 @@ naming templates are:
 - `data type`_tile_template
 
 #### Template contents
+
+(TODO move to technical)
 
 Everything in your template will follow standard HTML and CSS rules, but you
 also have access to variables related to the campaign.
