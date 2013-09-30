@@ -27,7 +27,7 @@ least minimal templates.
 It's recommended that you use [this example](example.html) and modify
 it to match your needs.
 
-(META do we really expect people to?)
+(META do we really expect people to make a page from scratch?)
 
 If you choose to build your page from scratch, ensure you include all the
 elements needed for SecondFunnel to function, and add the following at the
