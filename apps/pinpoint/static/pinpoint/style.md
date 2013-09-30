@@ -10,8 +10,6 @@ that's in pages2.css, you have to overwrite it.
 To change your page's style, create a styles.css file, and file, and add your
 styles into that file.
 
-Do not use inline styles.
-
 ### Elements you might want to style
 
 - `body`

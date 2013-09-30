@@ -8,10 +8,6 @@ In SecondFunnel, template names follow a convention. The name of your template
 will decide how specific it is. In order of decreasing specificity, the rules
 for naming templates are:
 
-(META these are tile templates. Make sure conventions apply everywhere.)
-(TODO talk about them, finish. Add other templates if warranted)
-(TODO move to technical)
-
 - `store`_`content type`_`data type`_mobile_tile_template
 - `content type`_`data type`_mobile_tile_template
 - `store`_`data type`_mobile_tile_template
@@ -33,13 +29,16 @@ also have access to variables related to the campaign.
 For example, assuming the template was passed in a variable called `foo` with a
 value of `bar`:
 
-    `<div><%= foo %></div>`
+    `<div><%- foo %></div>`
 
 When the page is loaded, it becomes:
 
 ```html
 <div>bar</div>
 ```
+
+**Note:** this method is HTML-escaped. If you want your data as-is, use
+`<%- variable_name %>` instead.
 
 Every template has access to certain variables:
 
@@ -48,7 +47,6 @@ Every template has access to certain variables:
 
 The following fields are available to most campaigns:
 
-Useful:
 - caption
 - url
 - image
@@ -61,38 +59,34 @@ Useful:
 - dominant-color
 - type
 
-Pretty useless:
-- tile-id
-- content-id
-- username
-- related-products
-- db-id
-- user-image
-
 All templates can be identified by their `data-template-id` attribute, and will
 always look like this:
 
+    ```html
     <script type='text/template' data-template-id='template_name'></script>
+    ```
 
 If you want mobile devices to use a different template, add a new tag below it,
 so it looks like this:
 
+    ```html
     <script type='text/template' data-template-id='template_name'></script>
     <script type='text/template' data-template-id='template_name' data-media='mobile'></script>
+    ```
 
 Putting it all together, a template might look like this:
 
 ```
 <script type='text/template' data-template-id='shop-the-look'>
     <div class="shop-the-look">
-        <img class="look-image" src='<%= page["stl-image"] %>' />
-        <img class="prod-image" src='<%= page["featured-image"] %>' />
+        <img class="look-image" src='<%- page["stl-image"] %>' />
+        <img class="prod-image" src='<%- page["featured-image"] %>' />
         <div class="product">
-            <div class="title"><%= page.product.title %></div>
-            <div class="price"><%= page.product.price %></div>
-            <div class="desc"><%= page.product.description %></div>
+            <div class="title"><%- page.product.title %></div>
+            <div class="price"><%- page.product.price %></div>
+            <div class="desc"><%- page.product.description %></div>
             <div class="shop-button">
-                <a href='<%= page.product.url %>' target='_blank'>link</a>
+                <a href='<%- page.product.url %>' target='_blank'>link</a>
             </div>
         </div>
     </div>
