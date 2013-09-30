@@ -133,21 +133,25 @@ The structure of the page with tiles and previews would look something like:
 
 ## Customizing a landing page
 
-To learn about changing the style of your page, please refer to [the style document](style.md)
+To learn about changing the style of your page, please refer to
+[the style document](style.md)
 
 ### Underscore templates
 
 (TODO make relevant to this document.)
 
-SecondFunnel uses templates to render tiles and previews.
+To make it easier to theme a landing page, its parts are broken down into
+several templates.
 You can find the full template documentation
 [here](http://underscorejs.org/#template)
+
 
 Templates are used in tiles and previews as their content is fetched from our
 servers after the page is loaded. They will take the fetched content and insert
 it into the page the way you decide.
 
-
+If you need to modify a template, please refer to [the templates section in the
+technical documentation](technical.md#Templates)
 
 ## Optional features
 

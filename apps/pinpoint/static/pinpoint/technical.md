@@ -21,22 +21,104 @@ for naming templates are:
 - `store`_`data type`_tile_template
 - `data type`_tile_template
 
-#### Template contents
+### Template contents
 
 Everything in your template will follow standard HTML and CSS rules, but you
 also have access to variables related to the campaign.
 
-The key to accessing those variables is the tag (TODO: wording) `<%- %>`.
-Everything included between the opening and closing tag will be treated as
-JavaScript. You do not need to know JavaScript to access the data.
+**Template variables** can be included using this notation:
 
-Accessing the data is as simple as typing `object.field`. For example,
-`obj.price` would give you the price of an item. `obj.name` will give you the
-name of the product. The following fields are supported by most campaigns:
+    `<%- variable_name %>`
+
+For example, assuming the template was passed in a variable called `foo` with a value of `bar`:
+
+```<div><%= foo %></div>```
+
+When the page is loaded, it becomes:
+
+```html
+<div>bar</div>
+```
+
+Every template has access to certain variables:
+
+- **data**: The data associated with the content object. See *Changing the default details: `PAGE_DATA.content`* for more details for an idea of what content can be included in the template
+- **page**: Information about the page. See *Changing the default details: `PAGE_DATA.page`* for more details
+- **store**: Information about the store: See *Changing the default details: `PAGE_DATA.store`* for more details
+
+All templates can be identified by their `data-template-id` attribute, and will always look like this:
+
+    <script type='text/template' data-template-id='template_name'></script>
+
+If you want mobile devices to use a different template, add a new tag below it, so it looks like this:
+
+    <script type='text/template' data-template-id='template_name'></script>
+    <script type='text/template' data-template-id='template_name' data-media='mobile'></script>
+
+Putting it all together, a template might look like this:
+
+```
+<script type='text/template' data-template-id='shop-the-look'>
+    <div class="shop-the-look">
+        <img class="look-image" src='<%= page["stl-image"] %>' />
+        <img class="prod-image" src='<%= page["featured-image"] %>' />
+        <div class="product">
+            <div class="title"><%= page.product.title %></div>
+            <div class="price"><%= page.product.price %></div>
+            <div class="desc"><%= page.product.description %></div>
+            <div class="shop-button">
+                <a href='<%= page.product.url %>' target='_blank'>link</a>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script type='text/template' data-template-id='shop-the-look'
+                             data-media='mobile'>
+    mobile template (optional)
+</script>
+```
+
+... and be supplied variables like this...
+
+```json
+{
+    'page': {
+        'featured-image': 'http://example.com/image2.jpg'
+        'stl-image': 'http://example.com/image.jpg'
+        'product': {
+            'title': 'My Awesome Product',
+            'price': '$1 billion USD',
+            'description': 'Description? We don\'t need no steenking description!',
+            'url': 'http://example.com/my-awesome-product'
+        }
+    },
+}
+```
+
+... and it will show up on the page like this:
+
+```html
+<div class="shop-the-look">
+    <img class="look-image" src='http://example.com/image.jpg' />
+    <img class="prod-image" src='http://example.com/image2.jpg' />
+    <div class="product">
+        <div class="title">My Awesome Product</div>
+        <div class="price">$1 billion USD</div>
+        <div class="desc">Description? We don\'t need no steenking description!</div>
+        <div class="shop-button">
+            <a href='http://example.com/my-awesome-product' target='_blank'>link</a>
+        </div>
+    </div>
+</div>
+```
+
+The following fields are availaboe to most campaigns:
 
 (TODO: add fields)
 
-#### JavaScript in templates
+### JavaScript in templates
 
 You can insert JavaScript code between &lt;% and %&gt; tags that will execute at
 that stage when the template is loading. A nifty and simple trick you can use is
@@ -53,18 +135,7 @@ You can do that using the `if` keyword. For instance,
 <% } %>
 ```
 
-
-Original readme.md
-
-# `pages.js`: How-to implement the features you want
-
-## Edit the page's styles
-
-1. Create `styles.css` in the `css/` directory. Do not edit `pages2.css`.
-2. Override any styles you wish in `styles.css`.
-3. Never use inline styles.
-
-## Change a template
+### Template style
 
 There are many types of tiles available to you, all of which are suffixed with
 `_template` in `index.html`.
@@ -79,89 +150,9 @@ tag, and rename it to `yourStoreName_image_preview_template`.
 
 Your store name is case-sensitive.
 
-## Create a template just for mobile devices
+### Create a template just for mobile devices
 
 If `pages.js` thinks it is being viewed from a mobile device, it prefers
 `abc_xyz_mobile_template` to `abc_xyz_template`. To override a desktop
 template, create its mobile counterpart with a `_mobile` ID.
-
-## Modify page behaviour
-
-There is a `window.PAGES_INFO` or `window.TEST_PAGE_DATA` object on the page.
-You can tweak values from there. *Never modify `pages.js`*.
-
-## Add page behaviour
-
-### Listen to events
-
-`pages.js` notifies you of many events, all of which you can find by searching
-`broadcast(...)` in the code. To do something when events are fired, use this
-example code.
-
-    SecondFunnel.vent.on({
-        'previewRendered': function () {  // listen to the "previewRendered" event.
-            console.log('bur... preview rendered');  // do something about it.
-        }
-    });
-
-### Listen to events that `pages.js` doesn't broadcast
-
-If you want to do something that `pages.js` was not designed to notify, you can
-still write your own event handlers. For example, while `pages.js` does not
-tell you if a certain link is clicked, you can still add events for it.
-
-    new SecondFunnel.classRegistry.EventManager({
-        'click .navbar-brand': function (ev) {  // (event) (selector)
-            console.log('bur... custom event triggered');
-        }
-    });
-
-### Add complex behaviour
-
-Should you need to add more elaborate behaviour to your page, you can do so by
-adding *widgets*.
-
-    SecondFunnel.utils.addWidget(
-        'gallery',  // name (must be unique)
-        '.gallery',  // selector (scoped!)
-        function (view, $el, option) {
-            ...
-        }
-    );
-
-Widgets are only available in certain page elements. Experiment with the code
-to get an idea where it works and where it doesn't.
-
-## Change the number of columns for the discovery area
-
-Normally, you cannot. However, you can experiment with overriding the width of
-`.container`, a style provided by `bootstrap.css`.
-
-## Change the "hero image"
-
-Assign background images to one or more of these selectors:
-`.visible-xs.jumbotron, .visible-sm.jumbotron, .visible-md.jumbotron, .visible-lg.jumbotron`
-
-## Add product information to the hero area
-
-Write a `text/template` with the id `featured_template`. If this template
-exists, it will replace the default `.jumbotron` area. Inside this template,
-an `obj` object is available to you, containing information you provided in
-`PAGES_INFO.featured` or `TEST_PAGE_DATA.featured`. An example featured
-template would look like this.
-
-    <script type="text/template" id="featured_template">
-        <div class='featured product'>
-            <!-- Main Display Area -->
-            <img class='img-responsive pull-left' src='<%= obj.image %>' />
-            <div class='pull-right'><%= obj.title %></div>
-                <div class='price'><%= obj.price %></div>
-                <div>
-                    <a href='<%= obj.url %>' target='_blank'>BUY NOW</a>
-                </div>
-            </div>
-        </div>
-
-        <div class='spacer'></div>
-    </script>
 
