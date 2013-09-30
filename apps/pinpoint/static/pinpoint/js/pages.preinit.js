@@ -167,6 +167,24 @@ $.fn.scrollable = function (yesOrNo) {
     }
 };
 
+/**
+ * Version 2 of the scrollable hack by Sime Vidas and Nikso
+ * http://stackoverflow.com/a/7600806/1558430
+ */
+$.fn.scrollable2 = function () {
+    var $el = $(this);
+    $el.scroll(function (e) {
+        var delta = e.wheelDelta || -e.detail;
+        if (!delta) {
+            // webkit scroll propagation
+            e = e.originalEvent;
+        }
+        delta = e.wheelDelta || -e.detail;
+        this.scrollTop += (delta < 0 ? 1 : -1) * 30;
+        e.preventDefault();
+    });
+};
+
 $.fn.getClasses = $.fn.getClasses || function () {
     // random helper. get an element's list of classes.
     // example output: ['facebook', 'button']
