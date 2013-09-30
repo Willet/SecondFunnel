@@ -1,12 +1,11 @@
-# SecondFunnel: How-to implement the features you want
+# SecondFunnel: An Introduction
 
 SecondFunnel campaigns are meant to present viewers with a visually-appealing
 palette of products that encourages them to stay on the page and interact with
 the products.
 
 This tutorial will give you an overview of SecondFunnel pages and show you how
-to get your page running. If you would like to learn about styling your page,
-take a look at [the style document](styld.md).
+to get your page running.
 
 ## You will need
 
@@ -15,7 +14,7 @@ To create a new theme, you will need
 - a web browser
 - basic knowledge of **HTML**, **CSS**, **JavaScript**, and **Underscore** Templates
 
-This tutorial includes a short introduction into working with UnderScore templates.
+This tutorial includes a short introduction into using templates with SecondFunnel.
 
 ## Making a functioning page
 
@@ -24,6 +23,8 @@ least minimal templates.
 
 It's recommended that you use [this example](example/example.html) and modify
 it to match your needs.
+
+(META do we really expect people to?)
 
 If you choose to build your page from scratch, ensure you include all the
 elements needed for SecondFunnel to function, and add the following at the
@@ -122,94 +123,33 @@ The structure of the page with tiles and previews would look something like:
 - `body`
     - `div.container`
         - `div#discovery-area`
-        	- `div.tile`
+            - `div.tile`
     - `div.previewContainer`
         - `...`
             - `div.preview` (TODO decide if important)
 
 ## Customizing a landing page
 
-
-Elements you might want to consider styling:
-
-- `.tile` tiles
-- `.previewContainer` previews
-- `.social-buttons` social buttons (maybe not)
-- `.sharing` __not sure__
-- `.previewContainer .price`
+To learn about changing the style of your page, please refer to the style document (style.md)
 
 ### Underscore templates
 
-SecondFunnel uses templates to render tiles and previews.
+(TODO make this relevant to document.)
 
-(You can find the full template documentation [here](http://underscorejs.org/#template))
+SecondFunnel uses templates to render tiles and previews.
+You can find the full template documentation
+[here](http://underscorejs.org/#template)
 
 Templates are used in tiles and previews as their content is fetched from our
 servers after the page is loaded. They will take the fetched content and insert
 it into the page the way you decide.
 
-Your store name is case-sensitive.
-
-#### Template names
-
-In SecondFunnel, template names follow a convention. The name of your template
-will decide how specific it is. In order of decreasing specificity, the rules for
-naming templates are:
-
-(META these are tile templates. Make sure conventions apply everywhere.)
-(TODO talk about them, finish. Add other templates if warranted)
-(TODO move to technical)
-
-- `store`_`content type`_`data type`_mobile_tile_template
-- `content type`_`data type`_mobile_tile_template
-- `store`_`data type`_mobile_tile_template
-- `data type`_mobile_tile_template
-- `store`_`content type`_image_tile_template
-- `content type`_`data type`_tile_template
-- `store`_`data type`_tile_template
-- `data type`_tile_template
-
-#### Template contents
-
-(TODO move to technical)
-
-Everything in your template will follow standard HTML and CSS rules, but you
-also have access to variables related to the campaign.
-
-The key to accessing those variables is the tag (TODO: wording) `<%- %>`.
-Everything included between the opening and closing tag will be treated as
-JavaScript. You do not need to know JavaScript to access the data.
-
-Accessing the data is as simple as typing `object.field`. For example,
-`obj.price` would give you the price of an item. `obj.name` will give you the
-name of the product. The following fields are supported by most campaigns:
-
-(TODO: add fields)
-
-#### JavaScript in templates
-
-You can insert JavaScript code between &lt;% and %&gt; tags that will execute at
-that stage when the template is loading. A nifty and simple trick you can use is
-`for` loops. For example, to iterate over the images of related products, you
-can insert this following snippet into your template: (TODO: add snippet)
-
-Another trick you can use in your template is checking whether a field exists.
-You can do that using the `if` keyword. For instance,
-
-```
-
-<% if (obj.designer) { %>
-	<%- obj.designer %> <!-- will only include the field if it exists. -->
-<% } %>
-```
-
 ## Optional Customizations
 
 SecondFunnel supports the following features:
 
-- Social buttons (enabled by default)
-- Accordions
-- Tabs
+- tabs
+- accordions
 
 ## Tabs
 To add tabs to your page, you will need to follow the following example:
@@ -244,7 +184,7 @@ belongs to classes `nav` and `nav-tabs`.
 
 Your **tab pages** should go under elements of class `.tab-pane`. You will
 usually need to use a `div` element. Additionally, add the tab name as a class.
-For example, if your tab is named tab1, `tab1` would have to be one of the
+For example, if your tab is named yew, `yew` would have to be one of the
 classes of your tab page.
 
 ### Tab behavior
@@ -318,3 +258,8 @@ To change the style of your accordion, you need to override one or more of the f
 
 Accordions have a constant height. If you would like to override the height, set
 (TODO what element) to the desired height in your custom.css file.
+
+## Further reading
+
+- [customizing the look of your page](style.md)
+- [web development documentation](technical.md)

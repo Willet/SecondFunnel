@@ -1,5 +1,59 @@
 Detailed documentation will go here
 
+## Templates
+
+### Template names
+
+In SecondFunnel, template names follow a convention. The name of your template
+will decide how specific it is. In order of decreasing specificity, the rules
+for naming templates are:
+
+(META these are tile templates. Make sure conventions apply everywhere.)
+(TODO talk about them, finish. Add other templates if warranted)
+(TODO move to technical)
+
+- `store`_`content type`_`data type`_mobile_tile_template
+- `content type`_`data type`_mobile_tile_template
+- `store`_`data type`_mobile_tile_template
+- `data type`_mobile_tile_template
+- `store`_`content type`_image_tile_template
+- `content type`_`data type`_tile_template
+- `store`_`data type`_tile_template
+- `data type`_tile_template
+
+#### Template contents
+
+Everything in your template will follow standard HTML and CSS rules, but you
+also have access to variables related to the campaign.
+
+The key to accessing those variables is the tag (TODO: wording) `<%- %>`.
+Everything included between the opening and closing tag will be treated as
+JavaScript. You do not need to know JavaScript to access the data.
+
+Accessing the data is as simple as typing `object.field`. For example,
+`obj.price` would give you the price of an item. `obj.name` will give you the
+name of the product. The following fields are supported by most campaigns:
+
+(TODO: add fields)
+
+#### JavaScript in templates
+
+You can insert JavaScript code between &lt;% and %&gt; tags that will execute at
+that stage when the template is loading. A nifty and simple trick you can use is
+`for` loops. For example, to iterate over the images of related products, you
+can insert this following snippet into your template: (TODO: add snippet)
+
+Another trick you can use in your template is checking whether a field exists.
+You can do that using the `if` keyword. For instance,
+
+```
+
+<% if (obj.designer) { %>
+	<%- obj.designer %> <!-- will only include the field if it exists. -->
+<% } %>
+```
+
+
 Original readme.md
 
 # `pages.js`: How-to implement the features you want
@@ -110,3 +164,4 @@ template would look like this.
 
         <div class='spacer'></div>
     </script>
+

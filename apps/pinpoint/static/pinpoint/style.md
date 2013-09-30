@@ -10,8 +10,7 @@ that's in pages2.css, you have to overwrite it.
 To change your page's style, create a styles.css file, and file, and add the
 styles you want added or overwritten in that file.
 
-(META please or no please?)
-Please do not use inline styles.
+Do not use inline styles.
 
 ## Changing Template Elements
 
