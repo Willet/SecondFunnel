@@ -13,11 +13,9 @@ styles into that file.
 ### Elements you might want to style
 
 - `body`
-- `.tile` tiles
-- `.previewContainer` previews
-- `.social-buttons` social buttons (maybe not)
-- `.sharing` __not sure__
-- `.previewContainer .price`
+- tiles: `.tile`
+- preview wrappers: `.previewContainer`
+- previews: `.content`
 
 ## Changing Template Elements
 
@@ -30,12 +28,23 @@ To create a custom desktop template, copy a non-mobile template, and add
 modified template will load instead of the default one. Note that the store name
 is case-sensitive.
 
-#### Illustration
+#### Example
 
-- to edit `product_tile_template`, copy and paste the `product_tile_template`
-tag, and rename it to "`store name`_product_tile_template".
-- To edit `image_preview_template`, copy and paste the `image_preview_template`
-tag, and rename it to "`store name`_image_preview_template".
+To edit `product_tile_template`:
+- copy and paste the `product_tile_template` tag
+  ```html
+  <script id=product_tile_template> content </script>
+  ```
+
+- rename it to "`store name`_product_tile_template". So if you work for
+  planetexpress, your new template would look something like
+  ```html
+  <script id=planetexpress_product_tile_template> content </script>
+  ```
+
+- modify it to suit your needs.
+  ```html
+  <script id=planetexpress_product_tile_template> NO CONTENT </script>
 
 ### Mobile templates
 

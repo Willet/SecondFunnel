@@ -56,7 +56,7 @@ The structure of the page with tiles and previews would look something like:
 
 - `body`
     - `div.container` discovery feed wrapper
-        - `div#discovery-area` discovery feed (tiles)
+        - `div#discovery-area` discovery feed (collection of tiles)
             - `div.tile` individual tiles
     - `div.previewContainer` preview wrapper
         - `div.tablecell`
