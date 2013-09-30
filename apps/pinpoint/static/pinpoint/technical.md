@@ -30,7 +30,8 @@ also have access to variables related to the campaign.
 
     `<%- variable_name %>`
 
-For example, assuming the template was passed in a variable called `foo` with a value of `bar`:
+For example, assuming the template was passed in a variable called `foo` with a
+value of `bar`:
 
 ```<div><%= foo %></div>```
 
@@ -42,9 +43,12 @@ When the page is loaded, it becomes:
 
 Every template has access to certain variables:
 
-- **data**: The data associated with the content object. See *Changing the default details: `PAGE_DATA.content`* for more details for an idea of what content can be included in the template
-- **page**: Information about the page. See *Changing the default details: `PAGE_DATA.page`* for more details
-- **store**: Information about the store: See *Changing the default details: `PAGE_DATA.store`* for more details
+- **page**: Information about the page
+- **store**: Information about the store
+
+The following fields are available to most campaigns:
+
+(TODO add fields)
 
 All templates can be identified by their `data-template-id` attribute, and will always look like this:
 
@@ -114,9 +118,6 @@ Putting it all together, a template might look like this:
 </div>
 ```
 
-The following fields are availaboe to most campaigns:
-
-(TODO: add fields)
 
 ### JavaScript in templates
 
