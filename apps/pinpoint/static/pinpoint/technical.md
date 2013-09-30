@@ -86,7 +86,7 @@ Putting it all together, a template might look like this:
             <div class="price"><%- page.product.price %></div>
             <div class="desc"><%- page.product.description %></div>
             <div class="shop-button">
-                <a href='<%- page.product.url %>' target='_blank'>link</a>
+                <a href='<%= page.product.url %>' target='_blank'>link</a>
             </div>
         </div>
     </div>
