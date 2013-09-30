@@ -46,5 +46,3 @@ contains "mobile_" before tile. i.e. your template name would be one of:
 
 - `store`_`content type`_`data type`_mobile_tile_template
 - `content type`_`data type`_mobile_tile_template
-
-## 

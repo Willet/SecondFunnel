@@ -253,17 +253,22 @@ To add an accordion to your page, follow the following example:
 SecondFunnel detects accordions when it finds the structure
 `.accordion-container > .panel-group > .panel`.
 
-Read the next section to learn about accordion style and setting accordion height.
+Read the next section to learn about accordion style and setting accordion
+height.
 
 ### Accordion style
 
-You need to follow the accordion structure to make sure your accordion will be styled
+You need to follow the accordion structure to make sure your accordion will be
+styled
 correctly.
 
-To change the style of your accordion, you need to override one or more of the following:
+To change the style of your accordion, you need to override one or more of the
+following:
 
-- `.accordion-container > .panel-group > .panel > .accordion-toggle` Accordion toggles
-- `.accordion-container > .panel-group > .panel > .panel-collapse` Accordion contents
+- `.accordion-container > .panel-group > .panel > .accordion-toggle` Accordion
+toggles
+- `.accordion-container > .panel-group > .panel > .panel-collapse` Accordion
+contents
 
 Accordions have a constant height. If you would like to override the height, set
 (TODO what element) to the desired height in your custom.css file.

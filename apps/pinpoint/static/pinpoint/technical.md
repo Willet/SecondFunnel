@@ -69,11 +69,13 @@ Pretty useless:
 - db-id
 - user-image
 
-All templates can be identified by their `data-template-id` attribute, and will always look like this:
+All templates can be identified by their `data-template-id` attribute, and will
+always look like this:
 
     <script type='text/template' data-template-id='template_name'></script>
 
-If you want mobile devices to use a different template, add a new tag below it, so it looks like this:
+If you want mobile devices to use a different template, add a new tag below it,
+so it looks like this:
 
     <script type='text/template' data-template-id='template_name'></script>
     <script type='text/template' data-template-id='template_name' data-media='mobile'></script>
