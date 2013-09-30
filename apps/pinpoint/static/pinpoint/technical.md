@@ -33,7 +33,7 @@ also have access to variables related to the campaign.
 For example, assuming the template was passed in a variable called `foo` with a
 value of `bar`:
 
-```<div><%= foo %></div>```
+    `<div><%= foo %></div>`
 
 When the page is loaded, it becomes:
 
@@ -105,7 +105,7 @@ Putting it all together, a template might look like this:
 
 ... and be supplied variables like this...
 
-```json
+```javascript
 {
     'page': {
         'featured-image': 'http://example.com/image2.jpg'
@@ -163,10 +163,10 @@ There are many types of tiles available to you, all of which are suffixed with
 To change the appearance of any template, *do not edit them*. Copy and paste
 the template with a new id, with your company name prefixed. For example,
 
-* to edit `product_tile_template`, copy and paste the `product_tile_template`
-tag, and rename it to `yourStoreName_product_tile_template`.
-* To edit `image_preview_template`, copy and paste the `image_preview_template`
-tag, and rename it to `yourStoreName_image_preview_template`.
+- to edit `product_tile_template`, copy and paste the `product_tile_template`
+  tag, and rename it to `yourStoreName_product_tile_template`.
+- To edit `image_preview_template`, copy and paste the `image_preview_template`
+  tag, and rename it to `yourStoreName_image_preview_template`.
 
 Your store name is case-sensitive.
 
