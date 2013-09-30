@@ -7,12 +7,12 @@ that's in pages2.css, you have to overwrite it.
 
 ## The right way to customize your page
 
-To change your page's style, create a styles.css file, and file, and add the
-styles you want added or overwritten in that file.
+To change your page's style, create a styles.css file, and file, and add your
+styles into that file.
 
 Do not use inline styles.
 
-Elements you might want to style:
+### Elements you might want to style
 
 - `body`
 - `.tile` tiles
@@ -25,14 +25,14 @@ Elements you might want to style:
 
 ### Desktop templates
 
-Do not modify the in the example.
+Do not modify the templates in the example.
 
 To create a custom desktop template, copy a non-mobile template, and add
 "`store name`_" in front of its name. Modify it to suit your needs. The
 modified template will load instead of the default one. Note that the store name
 is case-sensitive.
 
-#### Illustration:
+#### Illustration
 
 - to edit `product_tile_template`, copy and paste the `product_tile_template`
 tag, and rename it to "`store name`_product_tile_template".

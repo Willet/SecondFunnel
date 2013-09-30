@@ -12,16 +12,19 @@ to get your page running.
 To create a new theme, you will need
 
 - a web browser
-- basic knowledge of **HTML**, **CSS**, **JavaScript**, and **Underscore** Templates
+- a text editor
+- basic knowledge of **HTML**, **CSS**, **JavaScript**, and **Underscore**
+  Templates
 
-This tutorial includes a short introduction into using templates with SecondFunnel.
+This tutorial includes a short introduction into using Underscore templates with
+SecondFunnel.
 
 ## Making a functioning page
 
 A functioning landing page has to include the main elements in a page and at
 least minimal templates.
 
-It's recommended that you use [this example](example/example.html) and modify
+It's recommended that you use [this example](example.html) and modify
 it to match your needs.
 
 (META do we really expect people to?)
@@ -126,15 +129,15 @@ The structure of the page with tiles and previews would look something like:
             - `div.tile`
     - `div.previewContainer`
         - `...`
-            - `div.preview` (TODO decide if important)
+            - `div.preview` (META is this important?)
 
 ## Customizing a landing page
 
-To learn about changing the style of your page, please refer to the style document (style.md)
+To learn about changing the style of your page, please refer to [the style document](style.md)
 
 ### Underscore templates
 
-(TODO make this relevant to document.)
+(TODO make relevant to this document.)
 
 SecondFunnel uses templates to render tiles and previews.
 You can find the full template documentation
@@ -144,7 +147,9 @@ Templates are used in tiles and previews as their content is fetched from our
 servers after the page is loaded. They will take the fetched content and insert
 it into the page the way you decide.
 
-## Optional Customizations
+
+
+## Optional features
 
 SecondFunnel supports the following features:
 
