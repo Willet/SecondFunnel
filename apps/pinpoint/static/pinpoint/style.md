@@ -12,6 +12,15 @@ styles you want added or overwritten in that file.
 
 Do not use inline styles.
 
+Elements you might want to style:
+
+- `body`
+- `.tile` tiles
+- `.previewContainer` previews
+- `.social-buttons` social buttons (maybe not)
+- `.sharing` __not sure__
+- `.previewContainer .price`
+
 ## Changing Template Elements
 
 ### Desktop templates
@@ -23,7 +32,7 @@ To create a custom desktop template, copy a non-mobile template, and add
 modified template will load instead of the default one. Note that the store name
 is case-sensitive.
 
-Illustration:
+#### Illustration:
 
 - to edit `product_tile_template`, copy and paste the `product_tile_template`
 tag, and rename it to "`store name`_product_tile_template".
