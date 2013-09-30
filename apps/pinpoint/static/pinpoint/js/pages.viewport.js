@@ -1,3 +1,4 @@
+/*global $, _, SecondFunnel, Marionette, console, broadcast*/
 /**
  * @module viewport
  */
@@ -19,28 +20,6 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
             return tag;
         };
 
-    this.on('start', function () {
-        return this.initialize(SecondFunnel.options);
-    });
-
-    /**
-     * Starts the module. Registers hooks.
-     *
-     * @alias tracker.start
-     */
-    this.initialize = function (options) {
-        var self = this;
-        SecondFunnel.vent.on('beforeInit', function () {
-            // single call func removes args
-            self.scale();
-        });
-        SecondFunnel.vent.on('finished', function () {
-            // single call func removes args
-            self.scale();
-        });
-        SecondFunnel.vent.on('rotate', self.scale);
-    };
-
     /**
      * Returns an array containing viewport analysis.
      * Used by .scale().
@@ -50,30 +29,45 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
      *                 be undefined if not applicable.
      */
     this.determine = function (desiredWidth) {
-        var enabled = SecondFunnel.option('lockWidth', function () {
-                return $.browser.mobile;
+        var adjustedScale,
+            proposedMeta,
+            maxMobileWidth = 511,
+            maxTabletWidth = 767,
+            enabled;
+
+        // if browser's UA claims to be a mobile device, scaling cannot be turned off.
+        if ($.browser.mobile) {
+            // enabled by default, except...
+
+            if (SecondFunnel.support.isAniPad()) {
+                console.warn('viewport agent disabled for the iPad.');
+                return [false, undefined, undefined, 'disabled'];
+            }
+        } else {
+            enabled = SecondFunnel.option('lockWidth', function () {
+                return true;
             });
 
-        if (typeof enabled === 'function') {
-            enabled = enabled();
-        }
+            if (typeof enabled === 'function') {
+                enabled = enabled();
+            }
 
-        if (enabled !== true) {
-            console.warn('viewport agent disabled.');
-            return [false, undefined, undefined, 'disabled'];
-        }
+            if (enabled !== true) {
+                console.warn('viewport agent disabled.');
+                return [false, undefined, undefined, 'disabled'];
+            }
 
-        if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
-            console.warn('viewport agent called on device with unsupported ppi.');
-            return [false, undefined, undefined, 'unsupported ppi'];
+            if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
+                console.warn('viewport agent called on device with unsupported ppi.');
+                return [false, undefined, undefined, 'unsupported ppi'];
+            }
         }
 
         desiredWidth = desiredWidth || SecondFunnel.option('desiredWidth') || function () {
-            // 767 is the last width to show as mobile.
             // screen.height is screen.width prior to rotation.
             // 48: android UI bar overestimation
             var w = Math.min(screen.width + 48, screen.height + 48,
-                             $window.width(), 767);
+                             $window.width(), maxMobileWidth);
             return w;
         };
 
@@ -92,15 +86,16 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
         }
 
         // http://stackoverflow.com/a/6134070/1558430
-        var adjustedScale = parseFloat(Math.round(Math.min(
-                10,  // viewport scale > 10 is not allowed.
-                ($window.width() / desiredWidth).toFixed(2)
-            ) * 100) / 100).toFixed(2),
-            proposedMeta = "user-scalable=no," +
-                           "width=" + desiredWidth + "," +
-                           "initial-scale=" + adjustedScale + "," +
-                           "minimum-scale=" + adjustedScale + "," +
-                           "maximum-scale=" + adjustedScale;
+        adjustedScale = parseFloat(Math.round(Math.min(
+            10,  // viewport scale > 10 is not allowed.
+            ($window.width() / desiredWidth).toFixed(2)
+        ) * 100) / 100).toFixed(2);
+
+        proposedMeta = "user-scalable=no," +
+                       "width=" + desiredWidth + "," +
+                       "initial-scale=" + adjustedScale + "," +
+                       "minimum-scale=" + adjustedScale + "," +
+                       "maximum-scale=" + adjustedScale;
 
         // it's enabled
         return [true, desiredWidth, adjustedScale, proposedMeta];
@@ -132,4 +127,14 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
             broadcast('viewportNotResized', analysis[3]);
         }
     };
+
+    SecondFunnel.vent.on('beforeInit', function () {
+        // single call func removes args
+        viewport.scale();
+    });
+    SecondFunnel.vent.on('finished', function () {
+        // single call func removes args
+        viewport.scale();
+    });
+    SecondFunnel.vent.on('rotate', viewport.scale);
 });
