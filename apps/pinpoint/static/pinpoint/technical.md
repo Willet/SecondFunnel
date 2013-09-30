@@ -48,7 +48,26 @@ Every template has access to certain variables:
 
 The following fields are available to most campaigns:
 
-(TODO add fields)
+Useful:
+- caption
+- url
+- image
+- original-url
+- original-id
+- likes
+- template
+- content-type
+- categories
+- dominant-color
+- type
+
+Pretty useless:
+- tile-id
+- content-id
+- username
+- related-products
+- db-id
+- user-image
 
 All templates can be identified by their `data-template-id` attribute, and will always look like this:
 
