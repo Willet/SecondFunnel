@@ -4,17 +4,21 @@ Make sure you read [the intro](README.md) first.
 
 This tutorial will show you how you can add your styles to a SecondFunnel theme.
 
+You will be using [our example](example.md) as the base for your theme.
+
 ## Create a stylesheet
 
-Create a css/ folder, and add a styles.css file in it. Include your styles in
-that file
+Create a css/ folder, and create a styles.css file inside it. Include your
+styles in styles.css
 
 ### Elements you might want to style
 
 - tiles: `.tile`
 - preview wrappers: `.previewContainer`
 - previews: `.content`
-(TODO add text, etc.)
+
+(META when we create our example.html, it needs to have a clear 'text' region.
+ Add that to the list when it's here)
 
 ## Modify existing styles
 
@@ -25,8 +29,8 @@ stylesheet.
 ## Change template elements
 
 If you need to change the layout of a template in order to achieve the
-appearance you'd like, read the following and refer to
-[the template documentation](templates.md).
+appearance you'd like, read the following section and refer to
+[the template documentation](templates.md) if you need more information.
 
 ### Desktop templates
 
