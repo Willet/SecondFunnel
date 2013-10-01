@@ -1,23 +1,32 @@
-# Customising the look of your page
+# Customising the Look of your Page
 
-## pages2.css
+Make sure you read ["Creating a SecondFunnel Theme"](README.md) first.
 
-pages2.css is not meant to be modified. If there is anything you want to change
-that's in pages2.css, you have to overwrite it.
+This tutorial will show you how you can add your styles to a SecondFunnel theme.
 
-## The right way to customize your page
+## Create a stylesheet
 
-To change your page's style, create a styles.css file, and file, and add your
-styles into that file.
+Create a css/ folder, and add a styles.css file in it. Include your styles in
+that file
 
 ### Elements you might want to style
 
-- `body`
 - tiles: `.tile`
 - preview wrappers: `.previewContainer`
 - previews: `.content`
+(TODO add text, etc.)
 
-## Changing Template Elements
+## Modify existing styles
+
+Do not take out the stylesheets included in [the example provided](example.md).
+If you'd like to change any of the styles it includes, overwrite it in your
+stylesheet.
+
+## Change template elements
+
+If you need to change the layout of a template in order to achieve the
+appearance you'd like, read the following and refer to
+[the template documentation](templates.md).
 
 ### Desktop templates
 
@@ -30,21 +39,23 @@ is case-sensitive.
 
 #### Example
 
+(META examples can include
+
 To edit `product_tile_template`:
 - copy and paste the `product_tile_template` tag
   ```html
-  <script id=product_tile_template> content </script>
+  <script id=product_tile_template> Zoidberg </script>
   ```
 
 - rename it to "`store name`_product_tile_template". So if you work for
   planetexpress, your new template would look something like
   ```html
-  <script id=planetexpress_product_tile_template> content </script>
+  <script id=planetexpress_product_tile_template> Zoidberg </script>
   ```
 
 - modify it to suit your needs.
   ```html
-  <script id=planetexpress_product_tile_template> NO CONTENT </script>
+  <script id=planetexpress_product_tile_template> No Zoidberg </script>
 
 ### Mobile templates
 
@@ -53,3 +64,20 @@ contains "mobile_" before tile. i.e. your template name would be one of:
 
 - `store`_`content type`_`data type`_mobile_tile_template
 - `content type`_`data type`_mobile_tile_template
+
+#### Example
+
+- copy and paste the `product_mobile_tile_template` tag
+  ```html
+  <script id=product_mobile_tile_template> Zoidberg </script>
+  ```
+
+- rename it to "`store name`_product_mobile_tile_template". So if you work for
+  planetexpress, your new template would look something like
+  ```html
+  <script id=planetexpress_product_mobile_tile_template> Zoidberg </script>
+  ```
+
+- modify it to suit your needs.
+  ```html
+  <script id=planetexpress_product_mobile_tile_template> No Zoidberg </script>

@@ -1,4 +1,4 @@
-# Using Templates with SecondFunnel
+# Using Templates with SecondFunnel: Reference
 
 ## Template names
 
