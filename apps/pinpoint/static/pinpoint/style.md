@@ -39,7 +39,7 @@ is case-sensitive.
 
 #### Example
 
-(META examples can include
+(META examples can include variables, JS, fancier stuff. Should they?)
 
 To edit `product_tile_template`:
 - copy and paste the `product_tile_template` tag
@@ -56,6 +56,7 @@ To edit `product_tile_template`:
 - modify it to suit your needs.
   ```html
   <script id=planetexpress_product_tile_template> No Zoidberg </script>
+  ```
 
 ### Mobile templates
 
@@ -81,3 +82,4 @@ contains "mobile_" before tile. i.e. your template name would be one of:
 - modify it to suit your needs.
   ```html
   <script id=planetexpress_product_mobile_tile_template> No Zoidberg </script>
+  ```

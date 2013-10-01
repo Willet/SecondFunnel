@@ -19,7 +19,7 @@ To create a new theme, you will need
 
 ## Step One: make a functioning page
 
-Use [this example](example.html) as the basis for your page. Modify it according
+Use [the example](example.html) as the basis for your page. Modify it according
 to this tutorial and [the style tutorial](style.md) to achieve the appearance
 you want.
 In order for SecondFunnel to function, your page has to include:
