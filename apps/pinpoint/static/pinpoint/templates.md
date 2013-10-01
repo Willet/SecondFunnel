@@ -1,8 +1,6 @@
-Detailed documentation will go here
+# Using Templates with SecondFunnel
 
-## Templates
-
-### Template names
+## Template names
 
 In SecondFunnel, template names follow a convention. The name of your template
 will decide how specific it is. In order of decreasing specificity, the rules
@@ -17,7 +15,7 @@ for naming templates are:
 - `store`_`data type`_tile_template
 - `data type`_tile_template
 
-### Template contents
+## Template contents
 
 Everything in your template will follow standard HTML and CSS rules, but you
 also have access to variables related to the campaign.
@@ -62,17 +60,17 @@ The following fields are available to most campaigns:
 All templates can be identified by their `data-template-id` attribute, and will
 always look like this:
 
-    ```html
-    <script type='text/template' data-template-id='template_name'></script>
-    ```
+```html
+<script type='text/template' data-template-id='template_name'></script>
+```
 
 If you want mobile devices to use a different template, add a new tag below it,
 so it looks like this:
 
-    ```html
-    <script type='text/template' data-template-id='template_name'></script>
-    <script type='text/template' data-template-id='template_name' data-media='mobile'></script>
-    ```
+```html
+<script type='text/template' data-template-id='template_name'></script>
+<script type='text/template' data-template-id='template_name' data-media='mobile'></script>
+```
 
 Putting it all together, a template might look like this:
 
@@ -134,7 +132,7 @@ Putting it all together, a template might look like this:
 ```
 
 
-### JavaScript in templates
+## JavaScript in templates
 
 You can insert JavaScript code between &lt;% and %&gt; tags that will execute at
 that stage when the template is loading. A nifty and simple trick you can use is
@@ -151,7 +149,7 @@ You can do that using the `if` keyword. For instance,
 <% } %>
 ```
 
-### Template style
+## Template style
 
 There are many types of tiles available to you, all of which are suffixed with
 `_template` in `index.html`.
@@ -166,7 +164,7 @@ the template with a new id, with your company name prefixed. For example,
 
 Your store name is case-sensitive.
 
-### Create a template just for mobile devices
+## Create a template just for mobile devices
 
 If `pages.js` thinks it is being viewed from a mobile device, it prefers
 `abc_xyz_mobile_template` to `abc_xyz_template`. To override a desktop
