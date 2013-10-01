@@ -21,15 +21,12 @@ To create a new theme, you will need
 ## Making a functioning page
 
 Use [this example](example.html) as the basis for your page. Modify it according
-to this introduction and (style.md)[style.md] to achieve the appearance you
+to this introduction and [style.md](style.md) to achieve the appearance you
 want.
 In order for SecondFunnel to function, your page has to include:
 
 - at least minimal templates
-- the element
-  ```html
-  <div id="discovery-area></div>
-  ```
+- the element `<div id="discovery-area></div>`
 - the stylesheets included in the example.
 - the scripts included in the example.
 
