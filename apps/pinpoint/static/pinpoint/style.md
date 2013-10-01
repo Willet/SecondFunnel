@@ -1,4 +1,4 @@
-# Changing the Style
+# Customising the look of your page
 
 ## pages2.css
 
