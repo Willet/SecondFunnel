@@ -121,9 +121,9 @@
     // COLLAPSE PLUGIN DEFINITION
     // ==========================
 
-    var old = $.fn['sf-collapse']
+    var old = $.fn.sfCollapse
 
-    $.fn['sf-collapse'] = function (option) {
+    $.fn.sfCollapse = function (option) {
         return this.each(function () {
             var $this   = $(this)
             var data    = $this.data('bs.collapse')
@@ -134,14 +134,14 @@
         })
     }
 
-    $.fn['sf-collapse'].Constructor = Collapse
+    $.fn.sfCollapse.Constructor = Collapse
 
 
     // COLLAPSE NO CONFLICT
     // ====================
 
-    $.fn['sf-collapse'].noConflict = function () {
-        $.fn['sf-collapse'] = old
+    $.fn.sfCollapse.noConflict = function () {
+        $.fn.sfCollapse = old
         return this
     }
 
