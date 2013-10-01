@@ -14,21 +14,29 @@ To create a new theme, you will need
 - a web browser
 - a text editor
 - basic knowledge of **HTML**, **CSS**, and **JavaScript**
-
-This tutorial includes a short introduction into using Underscore templates with
-SecondFunnel.
+- (our example)[example.html]
+- this tutorial
+- [the style document](style.md)
 
 ## Making a functioning page
 
-A functioning landing page has to include the main elements in a page and at
-least minimal templates.
+Use [this example](example.html) as the basis for your page. Modify it according
+to this introduction and (style.md)[style.md] to achieve the appearance you
+want.
+In order for SecondFunnel to function, your page has to include:
 
-Take a look at [this example](example.html) and modify it to match your needs.
+- at least minimal templates
+- the element
+  ```html
+  <div id="discovery-area></div>
+  ```
+- the stylesheets included in the example.
+- the scripts included in the example.
+
 
 ## Components of a landing page
 
-A landing page is a standard HTML page. The main parts in a SecondFunnel landing
-page are:
+The main parts in a SecondFunnel landing page are:
 
 - **tiles**: images that are meant to give the viewer an idea about your
   products.
@@ -39,18 +47,16 @@ page are:
 
 ## Structure of a landing page
 
-In order for SecondFunnel to function correctly, your page should contain
-the element
+You can add content anywhere as long as
 ```html
-<div id="discovery-area"></div>
+<div id="discovery-area></div>
 ```
+is present.
 
-You can add content anywhere as long as `div#discovery-area` is present.
-
-**Tiles** are added to the page as direct children of the div#discovery-area
+**Tiles** are direct children of the div#discovery-area
 element.
 
-A **preview** is added to the page as a direct child of body.
+A **preview** is a direct child of body.
 
 The structure of the page with tiles and previews would look something like:
 
@@ -74,132 +80,22 @@ several Underscore templates.
 You can find the full template documentation
 [here](http://underscorejs.org/#template)
 
-
-
-If you need to modify a template, please refer to [the templates section in the
-technical documentation](technical.md#templates)
+If you need to modify a template, please refer to
+[the templates  documentation](templates.md)
 
 ## Widgets
 
 SecondFunnel supports the following widgets:
 
+- gallery
 - tabs
 - accordions
 
-### Tabs
-To add tabs to your page, you will need to follow the following example:
-
-```html
-
-<ul class="nav nav-tabs">
-    <li class="active"> <a data-toggle="tab" data-target=".banana"> banana </a></li>
-    <li> <a data-toggle="tab" data-target=".orange"> orange </a> </li>
-    <li> <a data-toggle="tab" data-target=".apple"> apple </a> </li>
-</ul>
-
-<div class="tab-content">
-    <div class="tab-pane description active banana">
-        banana
-    </div>
-
-    <div class="tab-pane orange">
-        orange
-    </div>
-
-    <div class="tab-pane apple">
-        apple
-    </div>
-</div>
-```
-
-#### Tab style
-
-Include the titles of the tabs as a list (`ul` and `li` elements). Ensure `ul`
-belongs to classes `nav` and `nav-tabs`.
-
-Your **tab pages** should go under elements of class `.tab-pane`. You will
-usually need to use a `div` element. Additionally, add the tab name as a class.
-For example, if your tab is named yew, `yew` would have to be one of the
-classes of your tab page.
-
-#### Tab behavior
-
-The `data-toggle="tab"` attribute tells SecondFunnel this is a tab toggle, and
-`data-target=".tab1"` indicates the target of this tab. Note that `.tab1` is a
-`class`.
-
-The class `.active` indicates which tabs are active. Marking a tab as active
-in your page will make it the default tab. Ensure you have one active tab.
-
-#### Tab pages
-
-The content of the tab page should go under an element of class `.tab-pane`.
-This will indicate to SecondFunnel it needs to display it when the tab is
-active and hide it otherwise.
-
-### Accordions
-
-To add an accordion to your page, follow the following example:
-
-```html
-
-<div class="accordion-container">
-    <div class="panel-group"  id="my-accordion">
-        <div class="panel panel-default">
-            <a class="accordion-toggle" data-toggle="sf-collapse"
-            data-target=".pineapple" data-parent="#my-accordion" >
-                <div class=' panel-heading'>
-                    pineapple title
-                </div>
-            </a>
-
-            <div class="panel-collapse collapse in collapseOne">
-                <div> pineapple content</div>
-            </div>
-        </div>
-
-        <div class="panel panel-default">
-            <a  class="accordion-toggle" data-toggle="sf-collapse"
-            data-target=".papaya" data-parent="#my-accordion">
-                <div class="panel-heading">
-                    papaya title
-                </div>
-            </a>
-
-            <div class="panel-collapse collapse collapseTwo">
-                <div class="panel-body">
-                    papaya content
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-```
-
-SecondFunnel detects accordions when it finds the structure
-`.accordion-container > .panel-group > .panel`.
-
-Read the next section to learn about accordion style and setting accordion
-height.
-
-#### Accordion style
-
-You need to follow the accordion structure to make sure your accordion will be
-styled
-correctly.
-
-To change the style of your accordion, you need to override one or more of the
-following:
-
-- `.accordion-container > .panel-group > .panel > .accordion-toggle` Accordion
-toggles
-- `.accordion-container > .panel-group > .panel > .panel-collapse` Accordion
-contents
-
-Accordions have a constant height. If you would like to override the height, set
-(TODO what element) to the desired height in your custom.css file.
+You can find demos and tutorials related to those widgets in
+[the widgets tutorial](widgets.md)
 
 ## Further reading
 
-- [customizing the look of your page](style.md)
-- [web development documentation](technical.md)
+- [Customising the look of your page](style.md)
+- [Adding widgets to your page](widgets.md)
+- [Using templates with SecondFunnel](technical.md)
