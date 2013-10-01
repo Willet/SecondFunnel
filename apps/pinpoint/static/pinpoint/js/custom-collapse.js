@@ -29,17 +29,17 @@
     Collapse.prototype.show = function () {
         if (this.transitioning || this.$element.hasClass('in')) return
 
-        var startEvent = $.Event('show.sf.collapse')
+        var startEvent = $.Event('show.bs.collapse')
         this.$element.trigger(startEvent)
         if (startEvent.isDefaultPrevented()) return
 
         var actives = this.$parent && this.$parent.find('> .panel > .in')
 
         if (actives && actives.length) {
-            var hasData = actives.data('sf.collapse')
+            var hasData = actives.data('bs.collapse')
             if (hasData && hasData.transitioning) return
             actives.collapse('hide')
-            hasData || actives.data('sf.collapse', null)
+            hasData || actives.data('bs.collapse', null)
         }
 
         var dimension = this.dimension()
@@ -57,7 +57,7 @@
                 .addClass('in')
                 [dimension]('auto')
             this.transitioning = 0
-            this.$element.trigger('shown.sf.collapse')
+            this.$element.trigger('shown.bs.collapse')
         }
 
         if (!$.support.transition) return complete.call(this)
@@ -80,7 +80,7 @@
     Collapse.prototype.hide = function () {
         if (this.transitioning || !this.$element.hasClass('in')) return
 
-        var startEvent = $.Event('hide.sf.collapse')
+        var startEvent = $.Event('hide.bs.collapse')
         this.$element.trigger(startEvent)
         if (startEvent.isDefaultPrevented()) return
 
@@ -100,7 +100,7 @@
         var complete = function () {
             this.transitioning = 0
             this.$element
-                .trigger('hidden.sf.collapse')
+                .trigger('hidden.bs.collapse')
                 .removeClass('collapsing')
                 .addClass('collapse')
         }
@@ -126,10 +126,10 @@
     $.fn['sf-collapse'] = function (option) {
         return this.each(function () {
             var $this   = $(this)
-            var data    = $this.data('sf.collapse')
+            var data    = $this.data('bs.collapse')
             var options = $.extend({}, Collapse.DEFAULTS, $this.data(), typeof option == 'object' && option)
 
-            if (!data) $this.data('sf.collapse', (data = new Collapse(this, options)))
+            if (!data) $this.data('bs.collapse', (data = new Collapse(this, options)))
             if (typeof option == 'string') data[option]()
         })
     }
@@ -149,13 +149,13 @@
     // COLLAPSE DATA-API
     // =================
 
-    $(document).on('click.sf.collapse.data-api', '[data-toggle=sf-collapse]', function (e) {
+    $(document).on('click.bs.collapse.data-api', '[data-toggle=sf-collapse]', function (e) {
         var $this   = $(this), href
         var target  = $this.attr('data-target')
             || e.preventDefault()
             || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '') //strip for ie7
         var $target = $(target)
-        var data    = $target.data('sf.collapse')
+        var data    = $target.data('bs.collapse')
         var option  = data ? 'toggle' : $this.data()
         var parent  = $this.attr('data-parent')
         var $parent = parent && $(parent)
