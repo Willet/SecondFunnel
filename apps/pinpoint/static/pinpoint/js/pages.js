@@ -580,7 +580,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
                     self.countColumns();
 
-                    broadcast('windowResize');
+                    SecondFunnel.vent.trigger('windowResize');
                 }, 500))
                 .scrollStopped(function () {
                     // deal with tap indicator fade in/outs
@@ -613,6 +613,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 opts;
             if (this.loading) {
                 console.warn('Already loading tiles. Try again later');
+                return this;
+            }
+            if (!$('#discovery-area').is(':visible')) {
+                console.warn('Cannot load tiles when the feed is invisible');
                 return this;
             }
             this.toggleLoading(true);
@@ -884,11 +888,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             this.$el.scaleImages();
 
-            // out of scope
-            $('.scrollable', '.previewContainer').scrollable(true);
+            // hide discovery, then show this window as a page.
+            if (SecondFunnel.support.mobile()) {
+                // out of scope
+                $(SecondFunnel.option('discoveryTarget')).parent()
+                    .swapWith(this.$el);
+            }
 
-            // disable scrolling for the rest of the document
-            $(document.body).addClass('no-scroll');
             broadcast('previewRendered', this);
         },
 
@@ -896,10 +902,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.$el.attr({
                 'id': 'preview-' + this.model.cid
             });
-        },
-
-        'close': function() {
-            $(document.body).removeClass('no-scroll');
         }
     });
 
@@ -915,8 +917,15 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'template': "#preview_container_template",
         'events': {
             'click .close, .mask': function () {
-                this.$el.scrollable(false);
-                this.$el.fadeOut(SecondFunnel.option('previewAnimationDuration'));
+                // hide this, then restore discovery.
+                var discoveryEl = $(SecondFunnel.option('discoveryTarget'));
+                if (SecondFunnel.support.mobile()) {
+                    this.$el.swapWith(discoveryEl.parent());
+
+                    // handle results that got loaded while the discovery
+                    // area has an undefined height.
+                    SecondFunnel.layoutEngine.layout();
+                }
                 this.close();
             }
         },
@@ -963,7 +972,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'onRender': function () {
-            this.$el.css({display: "table"});
+            // cannot declare display:table in marionette class.
+            this.$el.css({'display': "table"});
             this.$el.scaleImages();
 
             $('body').append(this.$el.fadeIn(SecondFunnel.option('previewAnimationDuration')));

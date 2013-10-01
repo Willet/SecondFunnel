@@ -112,77 +112,19 @@ $.fn.scrollStopped = function (callback) {
     });
 };
 
-$.fn.scrollable = function (yesOrNo) {
-    // make an element scrollable on mobile.
-    if (SecondFunnel.support.mobile() || SecondFunnel.support.touch()) {
-        var $el = $(this),  // warning: multiple selectors
-            $html = $('html'),
-            $body = $('body'),
-            scrollPosition;
-
-        if (yesOrNo) {  // lock
-            scrollPosition = [
-                self.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft,
-                self.pageYOffset || document.documentElement.scrollTop  || document.body.scrollTop
-            ];
-
-            $html.data({
-                'scroll-position': scrollPosition,
-                'previous-overflow': $html.css('overflow')
-            });
-
-            $html.css({
-                'overflow': 'hidden',
-                'height': '100%'
-            });
-
-            $body.data({
-                'previous-overflow': $body.css('overflow'),
-                'previous-overflow-y': $body.css('overflow-y')
-            });
-            $body.css({
-                'overflow': 'hidden',
-                'overflow-y': 'hidden',
-                'height': '100%'
-            });
-
-            $el
-                .height(1.2 * $(window).height())
-                .css('max-height', '100%');
-
-        } else {
-            scrollPosition = $html.data('scroll-position');
-
-            $html.css({
-                'overflow': $html.data('previous-overflow'),
-                'height': 'auto'
-            });
-            $body.css({
-                'overflow': $body.data('previous-overflow'),
-                'overflow-y': $html.data('previous-overflow-y'),
-                'height': 'auto'
-            });
-        }
-        window.scrollTo(scrollPosition[0], scrollPosition[1]);
-    }
-};
-
 /**
- * Version 2 of the scrollable hack by Sime Vidas and Nikso
- * http://stackoverflow.com/a/7600806/1558430
+ * Hides this page element, then shows another page element in place.
+ * This is very similar to what JQM does.
+ *
+ * @param showWhich {jQuery}   selected page
+ * @returns {jQuery}
  */
-$.fn.scrollable2 = function () {
-    var $el = $(this);
-    $el.scroll(function (e) {
-        var delta = e.wheelDelta || -e.detail;
-        if (!delta) {
-            // webkit scroll propagation
-            e = e.originalEvent;
-        }
-        delta = e.wheelDelta || -e.detail;
-        this.scrollTop += (delta < 0 ? 1 : -1) * 30;
-        e.preventDefault();
-    });
+$.fn.swapWith = function (showWhich) {
+    showWhich.css('display', showWhich.data('display') || 'block');
+    this.data('offset', $(window).scrollTop()).css('display', 'none');
+    $(window).scrollTop(showWhich.data('offset') || 0);
+
+    return this;
 };
 
 $.fn.getClasses = $.fn.getClasses || function () {

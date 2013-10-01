@@ -14,7 +14,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
             'isAnimated': !SecondFunnel.support.mobile(),
             'transitionDuration': '0.4s',
             'isInitLayout': true,
-            'isResizeBound': true,
+            'isResizeBound': false,  // we are handling it ourselves
             'visibleStyle': {
                 'opacity': 1,
                 'transform': 'none',
@@ -41,6 +41,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * @returns this
      */
     this.initialize = function (options) {
+        var self = this;
         opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
 
         this.$el = $(opts.discoveryTarget);
@@ -50,6 +51,10 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         }
 
         this.$el.masonry(opts);
+
+        SecondFunnel.vent.on('windowResize', function () {
+            self.layout();
+        });
 
         broadcast('layoutEngineInitialized', this, opts);
         return this;

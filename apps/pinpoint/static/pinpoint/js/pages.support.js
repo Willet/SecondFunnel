@@ -19,10 +19,9 @@ SecondFunnel.module("support", function (module, SecondFunnel) {
      * @type {Function}
      * @returns {Boolean}
      */
-    this.mobile = _.memoize(function () {
-        // if one day device mode can change, remove _.memoize.
+    this.mobile = function () {
         return ($window.width() < 768);  // 768 is set in stone now
-    });
+    };
 
     /**
      * True if the browser supports touch events.
