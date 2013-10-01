@@ -121,9 +121,9 @@
     // COLLAPSE PLUGIN DEFINITION
     // ==========================
 
-    var old = $.fn.collapse
+    var old = $.fn.sfCollapse
 
-    $.fn.collapse = function (option) {
+    $.fn.sfCollapse = function (option) {
         return this.each(function () {
             var $this   = $(this)
             var data    = $this.data('bs.collapse')
@@ -134,14 +134,14 @@
         })
     }
 
-    $.fn.collapse.Constructor = Collapse
+    $.fn.sfCollapse.Constructor = Collapse
 
 
     // COLLAPSE NO CONFLICT
     // ====================
 
-    $.fn.collapse.noConflict = function () {
-        $.fn.collapse = old
+    $.fn.sfCollapse.noConflict = function () {
+        $.fn.sfCollapse = old
         return this
     }
 
@@ -149,7 +149,7 @@
     // COLLAPSE DATA-API
     // =================
 
-    $(document).on('click.bs.collapse.data-api', '[data-toggle=custom-collapse]', function (e) {
+    $(document).on('click.bs.collapse.data-api', '[data-toggle=sf-collapse]', function (e) {
         var $this   = $(this), href
         var target  = $this.attr('data-target')
             || e.preventDefault()
@@ -161,7 +161,7 @@
         var $parent = parent && $(parent)
 
         if (!data || !data.transitioning) {
-            if ($parent) $parent.find('[data-toggle=collapse][data-parent="' + parent + '"]').not($this).addClass('collapsed')
+            if ($parent) $parent.find('[data-toggle=sf-collapse][data-parent="' + parent + '"]').not($this).addClass('collapsed')
             $this[$target.hasClass('in') ? 'addClass' : 'removeClass']('collapsed')
         }
 
