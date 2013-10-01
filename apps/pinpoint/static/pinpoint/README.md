@@ -13,7 +13,7 @@ To create a new theme, you will need
 - a web browser
 - a text editor
 - basic knowledge of **HTML**, **CSS**, and **JavaScript**
-- (our example)[example.html]
+- [our example](example.html)
 - this tutorial
 - [the style document](style.md)
 
