@@ -1,6 +1,6 @@
 # Customising the Look of your Page
 
-Make sure you read ["Creating a SecondFunnel Theme"](README.md) first.
+Make sure you read [the intro](README.md) first.
 
 This tutorial will show you how you can add your styles to a SecondFunnel theme.
 
