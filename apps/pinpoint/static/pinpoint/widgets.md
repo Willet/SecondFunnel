@@ -2,7 +2,29 @@
 
 ## Gallery
 
+Creating a gallery is very simple. Insert a gallery into your template, and it
+will make it possible for a viewer to look at different images of your product.
 
+To insert a gallery, you will need two things:
+
+- an image inside a `div.image`
+
+```html
+<div class='image'>
+    <img src="..." />
+</div>
+```
+
+- The element `div.gallery`
+
+```
+<% if(obj.images.length >1) { %>
+    <div class='gallery'></div>
+<% } %>
+```
+
+The gallery widget will replace the image inside `div.image` with the gallery
+image that the user clicks on.
 
 ## Tabs
 To add tabs to your page, you will need to follow the following example:
