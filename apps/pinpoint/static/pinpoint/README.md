@@ -167,7 +167,7 @@ are supported by all campaigns:
 - type
 - images
 
-So if we were to modify the above templates with meaningful, we can have:
+So if we were to modify the above templates and make it meaningful, we can have:
 
 ```
 <script type="text/template" id="storeName_product_tile_template">
@@ -189,8 +189,8 @@ Note that variables are added between `<%=` and `%>`.
 
 (META should we mention `<%-` or would that be information overload?)
 
-We have more material to guide you create beautiful templates at the end of this
-README. Visit them when you reach that part.
+We have more material to guide you in creating beautiful templates at the end of
+this tutorial. Visit them when you are done reading.
 
 P.S. SecondFunnel widgets would can make great additions to previews. They are
 customized to be easy to insert into a preview. Make sure you take a look when
