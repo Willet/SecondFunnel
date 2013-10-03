@@ -2,8 +2,9 @@
 
 ## Gallery
 
-Creating a gallery is very simple. Insert a gallery into your template, and it
-will make it possible for a viewer to look at different images of your product.
+Creating a gallery is very simple. Insert a gallery into your preview template,
+and it will make it possible for a viewer to look at different images of your
+product.
 
 To insert a gallery, you will need two things:
 
@@ -24,7 +25,9 @@ To insert a gallery, you will need two things:
 ```
 
 The gallery widget will replace the image inside `div.image` with the gallery
-image that the user clicks on.
+image that the user clicks on. It will automatically do all the work. You don't
+have to do anything else; it will add images, and it will handle changing the
+main image
 
 ## Tabs
 To add tabs to your page, you will need to follow the following example:
