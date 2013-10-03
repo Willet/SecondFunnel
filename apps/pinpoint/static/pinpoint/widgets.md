@@ -27,7 +27,10 @@ To insert a gallery, you will need two things:
 The gallery widget will replace the image inside `div.image` with the gallery
 image that the user clicks on. It will automatically do all the work. You don't
 have to do anything else; it will add images, and it will handle changing the
-main image
+main image.
+
+Note: It's a good idea to have the `div.gallery` element go under the main
+image.
 
 ## Tabs
 To add tabs to your page, you will need to follow the following example:
