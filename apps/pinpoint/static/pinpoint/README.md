@@ -1,4 +1,4 @@
-# Creating a SecondFunnel Theme: A Tutorial
+# Creating a SecondFunnel Theme: Tutorial
 
 SecondFunnel landing pages are beautiful image palettes that try to get the user
 to interact.
@@ -35,7 +35,7 @@ The region where the tiles are displayed is called the **discovery feed**.
 Use your editor to look at the source for example.html. Notice the body contains
 three main parts:
 
-- visible elements: your users will see this
+- visible elements: your visitors will see this
 - templates: SecondFunnel uses those to add tiles and previews to the page. Look
   for the comment that says "templates" to find this part.
 - JavaScript: The Scripts SecondFunnel needs to run.
@@ -119,7 +119,7 @@ You should **never delete any of the default templates**. If you want to replace
 the default templates, simply copy the template, and add `<yourStoreName>_` in
 in front of the template name.
 
-Let's say, you want to replace the above templates. You would copy and paste
+Let's say you want to replace the above templates. You would copy and paste
 them then modify their names so they look something like:
 
 ```html
