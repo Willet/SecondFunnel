@@ -1,4 +1,4 @@
-# Customising the Look of your Page
+# Customizing the Look of your Page
 
 Make sure you read [the intro](README.md) first as this document builds on the
 information presented there.
@@ -81,7 +81,7 @@ Replace the default tile template, and add an overlay on top of it:
 <div> tile content... </div>
 
 <div class="tile-onhover">
-    <div class="price> <%- obj.price %> </div>
+    <div class="price"> <%- obj.price %> </div>
 </div>
 </script>
 ```
