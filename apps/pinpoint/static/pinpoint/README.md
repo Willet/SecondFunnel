@@ -36,13 +36,13 @@ Use your editor to look at the source for example.html. Notice the body contains
 three main parts:
 
 - visible elements: your visitors will see this
-- templates: SecondFunnel uses those to add tiles and previews to the page. Look
-  for the comment that says "templates" to find this part.
-- JavaScript: The Scripts SecondFunnel needs to run.
+- templates: SecondFunnel uses templates to add tiles and previews to the page. Look
+  for the comment that says "Templates" to find this part.
+- JavaScript: The scripts SecondFunnel needs to run.
 
 Take a quick look at the default stylesheet included in the example. If you
 would like to disable or modify any of the styles there, you will have to
-override them.
+override them. (Instructions in the next step.)
 
 ## Step Three: modify the example
 
@@ -50,10 +50,10 @@ override them.
 
 Add a css/ directory, and inside it create styles.css. Include your styles in
 this file. You can override any of the default styles here. If the default style
-is still being loaded, consider adding "!important" at the end of your style,
-but use it sparingly.
+is still being loaded after you tried overriding, consider adding "!important"
+at the end of your style, but use it sparingly.
 
-Modify the elements in the example as you please, but ensure everything
+Modify the elements in the example as you please; however, ensure everything
 SecondFunnel requires stays on the page. SecondFunnel requires the following:
 
 - at least minimal templates
@@ -61,7 +61,7 @@ SecondFunnel requires stays on the page. SecondFunnel requires the following:
 - the stylesheets included in the example.
 - the scripts included in the example.
 
-There are many things you change about your page to make it represent your
+There are many things you can change about your page to make it represent your
 brand. Here are a few things to start off with:
 
 - add a header that identifies your brand
@@ -70,7 +70,7 @@ brand. Here are a few things to start off with:
 - add banners (make sure they're not distracting)
 
 Now you have a landing page that makes visitors think of your brand. The next
-thing to do is to customize tiles and previews.
+thing to do is customize tiles and previews.
 
 ### 2. Add your JavaScript files
 
@@ -84,11 +84,21 @@ If you have worked with Underscore templates before, this will be a refresher
 for you. If you've never worked with Underscore templates before, not to worry,
 we have enough material to get you started.
 
+#### What are templates?
+
 In SecondFunnel, templates are associated with products. When a viewer loads
 your landing page, they see tiles added to the discovery feed. Each of these
 tiles represents a product, and each of these tiles was created using a
 template. When a user clicks on a tile, a preview is loaded. That preview is
 created using a template.
+
+Templates can be thought of as relationships between products and elements
+on the page.
+
+`product` -&gt; `tile template` -&gt; `tile`
+`product` -&gt; `preview template` -&gt; `preview`
+
+#### Getting familiar with SecondFunnel templates
 
 The first thing you should do is take a look at the different templates we have.
 Some of them are tile templates; others are preview templates. You can tell
