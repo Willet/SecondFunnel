@@ -1,89 +1,114 @@
 # Customising the Look of your Page
 
-Make sure you read [the intro](README.md) first.
+Make sure you read [the intro](README.md) first as this document builds on the
+information presented there.
 
-This tutorial will show you how you can add your styles to a SecondFunnel theme.
+## Desktop and Mobile
 
-You will be using [our example](example.md) as the base for your theme.
+SecondFunnel is meant to be viewed on both personal computers and mobile
+devices. It's important to keep that in mind as you create your theme.
 
-## Create a stylesheet
+To make it possible to render all the elements on both types of devices,
+SecondFunnel detects the type of the device it's being viewed on at every level
+and makes decisions based on that.
 
-Create a css/ folder, and create a styles.css file inside it. Include your
-styles in styles.css
+### Templates
 
-### Elements you might want to style
+You already know there are tile and preview templates. If you have read
+[the template reference](template.md), you also know that there are mobile
+and desktop templates. Mobile templates are used when SecondFunnel believes it's
+being viewed on a mobile device.
+
+You can override either one or both type of templates.
+
+### CSS
+
+We make use of the BootStrap library, which includes several styles that make
+it possible to display or hide elements at different resolution levels. You
+can refer to [the BootStrap documentation](http://getbootstrap.com/css/) to
+learn about how you can use those classes.
+
+## Structure of a landing page
+
+**Tiles** are direct children of the div#discovery-area
+element.
+
+A **preview** is a direct child of body.
+
+The structure of the page with tiles and previews would look something like:
+
+- `body`
+    - `div.container` discovery feed wrapper
+        - `div#discovery-area` discovery feed (collection of tiles)
+            - `div.tile` individual tiles
+    - `div.previewContainer` preview wrapper
+        - `div.tablecell`
+            - `div.content` preview content
+
+## Elements you might want to decorate
 
 - tiles: `.tile`
-- preview wrappers: `.previewContainer`
 - previews: `.content`
+
+Note that decorating the above templates will likely require modifying the
+templates. You should refer to [the template reference](template.md) for
+information on that.
 
 (META when we create our example.html, it needs to have a clear 'text' region.
  Add that to the list when it's here)
 
-## Modify existing styles
+### Tiles
 
-Do not take out the stylesheets included in [the example provided](example.md).
-If you'd like to change any of the styles it includes, overwrite it in your
-stylesheet.
+Consider adding information to tiles when they're being hovered on. Note that
+this will only work for desktop templates.
 
-## Change template elements
+To achieve that, you will need to overlay content on top of the tile that
+is only visible when it's being hovered on.
 
-If you need to change the layout of a template in order to achieve the
-appearance you'd like, read the following section and refer to
-[the template documentation](templates.md) if you need more information.
+Example:
 
-### Desktop templates
+Replace the default tile template, and add an overlay on top of it:
 
-Do not modify the templates in the example.
+Example:
 
-To create a custom desktop template, copy a non-mobile template, and add
-"`store name`_" in front of its name. Modify it to suit your needs. The
-modified template will load instead of the default one. Note that the store name
-is case-sensitive.
+```html
+<style>.tile:hover>.tile-onhover{ visibility: visible;}
+    .tile-onhover {width:100%; height:1.5em; top: 0px; background-color: #000;
+                   filter: alpha(opacity=40); opacity:0.4; position: absolute;
+                   visibility: hidden;}
+    .tile-onhover > .price {vertical-align: middle;}
+</style>
 
-#### Example
+<script type="text/template" id="product_tile_template">
+<div> tile content... </div>
 
-(META examples can include variables, JS, fancier stuff. Should they?)
+<div class="tile-onhover">
+    <div class="price> <%- obj.price %> </div>
+</div>
+</script>
+```
 
-To edit `product_tile_template`:
-- copy and paste the `product_tile_template` tag
-  ```html
-  <script id=product_tile_template> Zoidberg </script>
-  ```
+The above example will display the price at the top of the tile when it's under
+the cursor.
 
-- rename it to "`store name`_product_tile_template". So if you work for
-  planetexpress, your new template would look something like
-  ```html
-  <script id=planetexpress_product_tile_template> Zoidberg </script>
-  ```
+You can add anything to your tile that you think visitors will value. It can be
+triggered by hovering, or it can always be visible.
 
-- modify it to suit your needs.
-  ```html
-  <script id=planetexpress_product_tile_template> No Zoidberg </script>
-  ```
+### Previews
 
-### Mobile templates
+As with tiles above, you will likely have to modify templates if you want to
+decorate previews. Consider doing the following:
 
-Follow the same procedure as desktop templates; only make sure the template name
-contains "mobile_" before tile. i.e. your template name would be one of:
+- change the focus of the preview (choices include: image, price, description,
+  buy button)
+- change the color scheme of the preview
+- customize the "buy" and "find in store" buttons
+- [add widgets](widgets.md)
 
-- `store`_`content type`_`data type`_mobile_tile_template
-- `content type`_`data type`_mobile_tile_template
+Previews are the point at which the conversion is made, so you want the customer
+to see enough information and to be encouraged to click on one of the two
+action buttons ("buy", "find in store"). Make the buttons visible and appealing.
 
-#### Example
+Widgets are an easy way to decorate your previews. They are customized for
+SecondFunnel, which makes them easy to add, so give them a look.
 
-- copy and paste the `product_mobile_tile_template` tag
-  ```html
-  <script id=product_mobile_tile_template> Zoidberg </script>
-  ```
-
-- rename it to "`store name`_product_mobile_tile_template". So if you work for
-  planetexpress, your new template would look something like
-  ```html
-  <script id=planetexpress_product_mobile_tile_template> Zoidberg </script>
-  ```
-
-- modify it to suit your needs.
-  ```html
-  <script id=planetexpress_product_mobile_tile_template> No Zoidberg </script>
-  ```

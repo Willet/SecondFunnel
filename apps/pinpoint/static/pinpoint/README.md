@@ -1,4 +1,4 @@
-# Creating a SecondFunnel Theme: Tutorial
+# Creating a SecondFunnel Theme: Intro
 
 SecondFunnel landing pages are beautiful image palettes that try to get the user
 to interact.
@@ -36,8 +36,8 @@ Use your editor to look at the source for example.html. Notice the body contains
 three main parts:
 
 - visible elements: your visitors will see this
-- templates: SecondFunnel uses templates to add tiles and previews to the page. Look
-  for the comment that says "Templates" to find this part.
+- templates: SecondFunnel uses templates to add tiles and previews to the page.
+  Look for the comment that says "Templates" to find this part.
 - JavaScript: The scripts SecondFunnel needs to run.
 
 Take a quick look at the default stylesheet included in the example. If you
@@ -96,6 +96,7 @@ Templates can be thought of as relationships between products and elements
 on the page.
 
 `product` -&gt; `tile template` -&gt; `tile`
+
 `product` -&gt; `preview template` -&gt; `preview`
 
 #### Getting familiar with SecondFunnel templates
@@ -167,7 +168,7 @@ are supported by all campaigns:
 - type
 - images
 
-So if we were to modify the above templates and make it meaningful, we can have:
+So if we were to modify the above template and make it meaningful, we can have:
 
 ```
 <script type="text/template" id="storeName_product_tile_template">
