@@ -19,7 +19,8 @@ You already know there are tile and preview templates. If you have read
 and desktop templates. Mobile templates are used when SecondFunnel believes it's
 being viewed on a mobile device.
 
-You can override either one or both type of templates.
+You can override either one or both type of templates. Refer to the template
+reference for information on that.
 
 ### CSS
 
@@ -30,10 +31,9 @@ learn about how you can use those classes.
 
 ## Structure of a landing page
 
-**Tiles** are direct children of the div#discovery-area
-element.
+**Tiles** are direct children of the discovery feed `div#discovery-area`
 
-A **preview** is a direct child of body.
+A **preview** is a direct child of `body`.
 
 The structure of the page with tiles and previews would look something like:
 
@@ -50,7 +50,7 @@ The structure of the page with tiles and previews would look something like:
 - tiles: `.tile`
 - previews: `.content`
 
-Note that decorating the above templates will likely require modifying the
+Note that decorating the above elements will likely require modifying the
 templates. You should refer to [the template reference](template.md) for
 information on that.
 
@@ -69,10 +69,8 @@ Example:
 
 Replace the default tile template, and add an overlay on top of it:
 
-Example:
-
 ```html
-<style>.tile:hover>.tile-onhover{ visibility: visible;}
+<style>.tile:hover>.tile-onhover{visibility: visible;}
     .tile-onhover {width:100%; height:1.5em; top: 0px; background-color: #000;
                    filter: alpha(opacity=40); opacity:0.4; position: absolute;
                    visibility: hidden;}
@@ -88,8 +86,10 @@ Example:
 </script>
 ```
 
-The above example will display the price at the top of the tile when it's under
-the cursor.
+The above example will display the price at the top of the tile when the tile
+is under the cursor. Use the above snippet and modify it to your liking, or
+create your own way of adding content to tiles.
+[The template reference](templates.md) will definitely be handy.
 
 You can add anything to your tile that you think visitors will value. It can be
 triggered by hovering, or it can always be visible.
@@ -102,13 +102,19 @@ decorate previews. Consider doing the following:
 - change the focus of the preview (choices include: image, price, description,
   buy button)
 - change the color scheme of the preview
+- change the background
+- create columns, rows, tables
 - customize the "buy" and "find in store" buttons
 - [add widgets](widgets.md)
-
-Previews are the point at which the conversion is made, so you want the customer
-to see enough information and to be encouraged to click on one of the two
-action buttons ("buy", "find in store"). Make the buttons visible and appealing.
 
 Widgets are an easy way to decorate your previews. They are customized for
 SecondFunnel, which makes them easy to add, so give them a look.
 
+Remember that previews are the point at which the conversion is made, so you
+want the customer to see enough information and to be encouraged to click on one
+of the two action buttons ("buy", "find in store"). Make the buttons visible and
+appealing. By making the buttons playful, you will be more likely to get a
+reaction
+
+Note: By default, the maximum dimensions for a preview on a desktop screen are
+768px * 666px
