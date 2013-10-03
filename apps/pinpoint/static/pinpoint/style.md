@@ -5,8 +5,8 @@ information presented there.
 
 ## Desktop and Mobile
 
-SecondFunnel is meant to be viewed on both personal computers and mobile
-devices. It's important to keep that in mind as you create your theme.
+SecondFunnel is meant to be viewed on both desktops and mobile devices. It's
+important to keep that in mind as you create your theme.
 
 To make it possible to render all the elements on both types of devices,
 SecondFunnel detects the type of the device it's being viewed on at every level

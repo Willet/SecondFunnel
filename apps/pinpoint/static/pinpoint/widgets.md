@@ -16,7 +16,7 @@ To insert a gallery, you will need two things:
 </div>
 ```
 
-- The element `div.gallery`
+- An element of class `.gallery`
 
 ```
 <% if(obj.images.length >1) { %>
@@ -143,4 +143,6 @@ toggles
 contents
 
 Accordions have a constant height. If you would like to override the height, set
-(TODO what element) to the desired height in your custom.css file.
+the height of `.accordion-container` to be the height of the full accordion, and
+set the height of `.panel-group .panel .panel-body`to be the height of a single
+expanded panel.

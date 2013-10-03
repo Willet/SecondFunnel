@@ -1,4 +1,4 @@
-# Creating a SecondFunnel Theme: Intro
+# Creating a SecondFunnel Theme: An Introduction
 
 SecondFunnel landing pages are beautiful image palettes that try to get the user
 to interact.
@@ -18,10 +18,11 @@ To create a new theme, you will need
 
 ## Step One: download the example, look around
 
-Use the example linked above as the base for your theme. You will modify it and
-add styles until you're happy with it.
+Use [the example](example.html) as the base for your theme. You will modify it
+and add styles until you're happy with it.
 
-Take a look at example.html. Scroll, click around, click around some more.
+Take a look at example.html. Click around, scroll, click around, click around
+some more.
 
 Notice that the landing page has two main components:
 
@@ -57,7 +58,7 @@ Modify the elements in the example as you please; however, ensure everything
 SecondFunnel requires stays on the page. SecondFunnel requires the following:
 
 - at least minimal templates
-- the discovery feed `<div id="discovery-area></div>`
+- the discovery feed `<div id="discovery-area"></div>`
 - the stylesheets included in the example.
 - the scripts included in the example.
 
@@ -113,7 +114,7 @@ a tile template.
 <script type="text/template" id="product_tile_template"> </script>
 ```
 
-Note that templates are added using the `<script type="text/template>` tag.
+Note that templates are added using the `<script type="text/template">` tag.
 
 Also note that the above template contains does not contain anything between its
 opening and closing tag, so if it's ever used, it will insert a blank.
@@ -141,9 +142,10 @@ them then modify their names so they look something like:
 Now when someone visits your site, your templates will be used instead of the
 default ones.
 
-Note that there are also **mobile templates**. The same rules apply to those.
-They are used if a visitor is using a mobile device to view your page. If you
-want to replace them, follow the same procedure outlined above.
+Note that there are also **mobile templates**. The same name rules apply to
+those and you would use the same procedure to replace them. They are used if a
+visitor is using a mobile device to view your page. If you want to replace them,
+follow the same procedure outlined above.
 
 #### Adding variables, scripts
 
@@ -164,7 +166,6 @@ are supported by all campaigns:
 - template
 - content-type
 - categories
-- dominant-color
 - type
 - images
 

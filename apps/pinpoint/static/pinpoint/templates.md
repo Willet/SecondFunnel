@@ -41,12 +41,12 @@ also have access to variables related to the campaign.
 
 **Template variables** can be included using this notation:
 
-    `<%- variable_name %>`
+    `<%= variable_name %>`
 
 For example, assuming the template was passed in a variable called `foo` with a
 value of `bar`:
 
-    `<div><%- foo %></div>`
+    `<div><%= foo %></div>`
 
 When the page is loaded, it becomes:
 
@@ -54,8 +54,7 @@ When the page is loaded, it becomes:
 <div>bar</div>
 ```
 
-**Note:** this method is HTML-escaped. If you want your data as-is, use
-`<%= variable_name %>` instead.
+**Note:** this method is a little dangerous as it can insert HTML. If you want your data as-is, use `<%= variable_name %>` instead. It's recommended you use `<%-` unless you have to use `<%=`. (You will need to use in URLs as you do not want to modify the URL string.)
 
 All product templates have access to a product object called `obj`. That object
 includes the following variables:
@@ -76,14 +75,14 @@ includes the following variables:
 - dominant-color
 - type
 
-All templates can be identified by their `id` attribute, and will
+All templates can be identified by their `id` attributes, and will
 always look like this:
 
 ```html
 <script type='text/template' id='template_name'></script>
 ```
 
-Mobile devices use a different templates than PCs. Mobile templates have similar
+Mobile devices use different templates than PCs. Mobile templates have similar
 names except for `_mobile_` inserted before either `tile` or `preview`.
 
 ```html
@@ -99,7 +98,7 @@ Putting it all together, a template might look like this:
 ```
 <script type='text/template' id='storeName_preview_template'>
     <div class="preview">
-        <img class="image" src='<%- obj.image %>' />
+        <img class="image" src='<%= obj.image %>' />
         <div class="product">
             <div class="title"><%- obj.title %></div>
             <div class="price"><%- obj.price %></div>
@@ -113,7 +112,8 @@ Putting it all together, a template might look like this:
 
 
 <script type='text/template' id='storeName_mobile_preview_template'>
-    mobile template (optional)
+    Mobile template. You don't have to replace both desktop and mobile; you
+    can replace only one.
 </script>
 ```
 
@@ -125,7 +125,7 @@ Putting it all together, a template might look like this:
         'image': 'http://example.com/image.jpg'
         'title': 'My Awesome Product',
         'price': '$1 billion USD',
-        'description': 'Description? We don\'t need no steenking description!',
+        'description': 'Description? We don't need no steenking description!',
         'url': 'http://example.com/my-awesome-product'
     },
 }
@@ -162,18 +162,18 @@ is case-sensitive.
 To edit `product_tile_template`:
 - copy and paste the `product_tile_template` tag
   ```html
-  <script id=product_tile_template> Zoidberg </script>
+  <script id="product_tile_template"> Zoidberg </script>
   ```
 
 - rename it to "`store name`_product_tile_template". So if you work for
   planetexpress, your new template would look something like
   ```html
-  <script id=planetexpress_product_tile_template> Zoidberg </script>
+  <script id="planetexpress_product_tile_template"> Zoidberg </script>
   ```
 
 - modify it to suit your needs.
   ```html
-  <script id=planetexpress_product_tile_template> No Zoidberg </script>
+  <script id="planetexpress_product_tile_template"> No Zoidberg </script>
   ```
 
 ### Mobile templates
@@ -188,18 +188,18 @@ contains "mobile_" before tile. i.e. your template name would be one of:
 
 - copy and paste the `product_mobile_tile_template` tag
   ```html
-  <script id=product_mobile_tile_template> Zoidberg </script>
+  <script id="product_mobile_tile_template"> Zoidberg </script>
   ```
 
 - rename it to "`store name`_product_mobile_tile_template". So if you work for
   planetexpress, your new template would look something like
   ```html
-  <script id=planetexpress_product_mobile_tile_template> Zoidberg </script>
+  <script id="planetexpress_product_mobile_tile_template"> Zoidberg </script>
   ```
 
 - modify it to suit your needs.
   ```html
-  <script id=planetexpress_product_mobile_tile_template> No Zoidberg </script>
+  <script id="planetexpress_product_mobile_tile_template"> No Zoidberg </script>
   ```
 ## JavaScript in templates
 
@@ -211,7 +211,7 @@ insert this following snippet into your template:
 ```
 <script type="text/template" id="iterate_over_images">
     <%  for(i in obj.images) { %>
-            <img src=<%= i %> />
+            <img src="<%= i %>" />
     <%  } %>
 </script>
 ```
