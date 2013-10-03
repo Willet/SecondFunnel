@@ -192,9 +192,9 @@ Note that variables are added between `<%=` and `%>`.
 We have more material to guide you in creating beautiful templates at the end of
 this tutorial. Visit them when you are done reading.
 
-P.S. SecondFunnel widgets would can make great additions to previews. They are
-customized to be easy to insert into a preview. Make sure you take a look when
-you're done reading this tutorial. (link at the end)
+P.S. SecondFunnel widgets can make great additions to previews. They are
+customized to be easy to insert into a preview. Make sure you take a look at the
+widget document when you're done reading this tutorial. (link at the end)
 
 ## Step Five: Upload your modified landing page
 
