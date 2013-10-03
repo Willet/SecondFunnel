@@ -1,10 +1,16 @@
 # Using Templates with SecondFunnel: Reference
 
+SecondFunnel uses templates for an array of things. Of interest to you are
+previews and tiles, both of which will be covered by this document.
+
 ## Template names
 
 In SecondFunnel, template names follow a convention. The name of your template
-will decide how specific it is. In order of decreasing specificity, the rules
-for naming templates are:
+will decide how specific it is.
+
+### Tiles
+
+In order of decreasing specificity, here are the patterns for tile names:
 
 - `store`_`content type`_`data type`_mobile_tile_template
 - `content type`_`data type`_mobile_tile_template
@@ -14,6 +20,18 @@ for naming templates are:
 - `content type`_`data type`_tile_template
 - `store`_`data type`_tile_template
 - `data type`_tile_template
+
+### Previews
+
+In order of decreasing specificity, here are the patterns for preview names:
+- `store`_`content type`_mobile_preview_template
+- `content type`_mobile_preview_template
+- `store`_`content type`_preview_template
+- `content type`preview_template
+- product_mobile_preview_template
+- product_preview_template
+- tile_mobile_preview_template
+- tile_preview_template
 
 ## Template contents
 
@@ -36,15 +54,15 @@ When the page is loaded, it becomes:
 ```
 
 **Note:** this method is HTML-escaped. If you want your data as-is, use
-`<%- variable_name %>` instead.
+`<%= variable_name %>` instead.
 
-Every template has access to certain variables:
+All product templates have access to a product object called `obj`. That object
+includes the following variables:
 
-- **page**: Information about the page
-- **store**: Information about the store
-
-The following fields are available to most campaigns:
-
+- title
+- price
+- images
+- related-products
 - caption
 - url
 - image
@@ -57,42 +75,44 @@ The following fields are available to most campaigns:
 - dominant-color
 - type
 
-All templates can be identified by their `data-template-id` attribute, and will
+All templates can be identified by their `id` attribute, and will
 always look like this:
 
 ```html
-<script type='text/template' data-template-id='template_name'></script>
+<script type='text/template' id='template_name'></script>
 ```
 
-If you want mobile devices to use a different template, add a new tag below it,
-so it looks like this:
+If you want mobile devices to use a different template, Add a mobile template,
+which would have a similar name, except for `_mobile_` inserted before either
+`tile` or `preview`
 
 ```html
-<script type='text/template' data-template-id='template_name'></script>
-<script type='text/template' data-template-id='template_name' data-media='mobile'></script>
+<script type='text/template' id='product_preview_template'></script>
+<script type='text/template' id='product_mobile_preview_template'></script>
+
+<script type='text/template' id='product_tile_template'></script>
+<script type='text/template' id='product_mobile_tile_template'></script>
 ```
 
 Putting it all together, a template might look like this:
 
 ```
-<script type='text/template' data-template-id='shop-the-look'>
-    <div class="shop-the-look">
-        <img class="look-image" src='<%- page["stl-image"] %>' />
-        <img class="prod-image" src='<%- page["featured-image"] %>' />
+<script type='text/template' id='storeName_preview_template'>
+    <div class="preview">
+        <img class="image" src='<%- obj.image %>' />
         <div class="product">
-            <div class="title"><%- page.product.title %></div>
-            <div class="price"><%- page.product.price %></div>
-            <div class="desc"><%- page.product.description %></div>
+            <div class="title"><%- obj.title %></div>
+            <div class="price"><%- obj.price %></div>
+            <div class="desc"><%- obj.description %></div>
             <div class="shop-button">
-                <a href='<%= page.product.url %>' target='_blank'>link</a>
+                <a href='<%= obj.url %>' target='_blank'>link</a>
             </div>
         </div>
     </div>
 </script>
 
 
-<script type='text/template' data-template-id='shop-the-look'
-                             data-media='mobile'>
+<script type='text/template' id='storeName_mobile_preview_template'>
     mobile template (optional)
 </script>
 ```
@@ -101,15 +121,12 @@ Putting it all together, a template might look like this:
 
 ```javascript
 {
-    'page': {
-        'featured-image': 'http://example.com/image2.jpg'
-        'stl-image': 'http://example.com/image.jpg'
-        'product': {
-            'title': 'My Awesome Product',
-            'price': '$1 billion USD',
-            'description': 'Description? We don\'t need no steenking description!',
-            'url': 'http://example.com/my-awesome-product'
-        }
+    'obj': {
+        'image': 'http://example.com/image.jpg'
+        'title': 'My Awesome Product',
+        'price': '$1 billion USD',
+        'description': 'Description? We don\'t need no steenking description!',
+        'url': 'http://example.com/my-awesome-product'
     },
 }
 ```
@@ -117,9 +134,8 @@ Putting it all together, a template might look like this:
 ... and it will show up on the page like this:
 
 ```html
-<div class="shop-the-look">
-    <img class="look-image" src='http://example.com/image.jpg' />
-    <img class="prod-image" src='http://example.com/image2.jpg' />
+<div class="preview">
+    <img class="image" src='http://example.com/image.jpg' />
     <div class="product">
         <div class="title">My Awesome Product</div>
         <div class="price">$1 billion USD</div>
@@ -148,25 +164,4 @@ You can do that using the `if` keyword. For instance,
 	<%- obj.designer %> <!-- will only include the field if it exists. -->
 <% } %>
 ```
-
-## Template style
-
-There are many types of tiles available to you, all of which are suffixed with
-`_template` in `index.html`.
-
-To change the appearance of any template, *do not edit them*. Copy and paste
-the template with a new id, with your company name prefixed. For example,
-
-- to edit `product_tile_template`, copy and paste the `product_tile_template`
-  tag, and rename it to `yourStoreName_product_tile_template`.
-- To edit `image_preview_template`, copy and paste the `image_preview_template`
-  tag, and rename it to `yourStoreName_image_preview_template`.
-
-Your store name is case-sensitive.
-
-## Create a template just for mobile devices
-
-If `pages.js` thinks it is being viewed from a mobile device, it prefers
-`abc_xyz_mobile_template` to `abc_xyz_template`. To override a desktop
-template, create its mobile counterpart with a `_mobile` ID.
 
