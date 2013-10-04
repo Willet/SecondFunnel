@@ -336,6 +336,7 @@ debugOp = function () {
                     "/static/pinpoint/js/pages.marionette.utils.spec.js",
                     "/static/pinpoint/js/pages.marionette.layoutengine.spec.js",
                     "/static/pinpoint/js/pages.marionette.viewport.spec.js"
+                    "/static/pinpoint/js/pages.marionette.ir.spec.js"
                 ],
                 href = window.location.href.toLowerCase();
 
