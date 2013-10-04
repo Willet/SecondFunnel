@@ -14,7 +14,23 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @returns {string}
      */
     utils.safeString = function (str, opts) {
-        return $.trim(str).replace(/^(None|undefined|[Ff]alse|0)$/, '');
+        var regex =/^(None|undefined|[Ff]alse|0)$/,
+            trimmed = $.trim(str);
+        if (regex.test(trimmed)) {
+            return trimmed.replace(regex, '');
+        }
+        return str;
+    };
+
+    /**
+     * Does minimal URL checking (stackoverflow.com/a/1305082/1558430)
+     *
+     * @param {string} url
+     * @returns {bool}
+     */
+    utils.isURL = function (url) {
+        return (typeof url === 'string' && url.length > 2 &&
+            url.indexOf('//') >= 0);
     };
 
     /**
@@ -45,15 +61,15 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @returns defn
      */
     utils.addClass = function (name, defn) {
-        SecondFunnel.classRegistry = SecondFunnel.classRegistry || {};
-        SecondFunnel.classRegistry[_.capitalize(name)] = defn;
+        SecondFunnel.core[_.capitalize(name)] = defn;
         broadcast('classAdded', name, defn);
         return defn;
     };
 
     /**
-     * returns a class in the window scope and class registry,
+     * returns a class in the window scope and app core,
      *  or defaultClass if nothing else is found.
+     * This is also known as patching.
      *
      * @param {string} typeName e.g. 'Tile', 'TileView'
      * @param {string} prefix e.g. 'Video'
@@ -64,18 +80,16 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
         var FoundClass,
             targetClassName = _.capitalize(prefix || '') +
                               _.capitalize(typeName || '');
-        if (SecondFunnel.classRegistry[targetClassName] !== undefined) {
+        if (SecondFunnel.core[targetClassName] !== undefined) {
             // if designers want to define a new tile view, they must
             // let SecondFunnel know of its existence.
-            FoundClass = SecondFunnel.classRegistry[targetClassName];
+            FoundClass = SecondFunnel.core[targetClassName];
         } else {
             FoundClass = defaultClass;
         }
 
-        if (SecondFunnel.options.debug >= SecondFunnel.VERBOSE) {
-            console.log('findClass(%s, %s, %O) -> %O',
-                        typeName, prefix, defaultClass, FoundClass);
-        }
+        console.debug('findClass(%s, %s, %O) -> %O', typeName, prefix,
+            defaultClass, FoundClass);
 
         return FoundClass;
     };
@@ -130,6 +144,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
         var i,
             prevKey = 'pico',
             maxLogicalSize = Math.min($window.width(), $window.height()),
+            // TODO: URL spec not found in /Willet/planning/blob/master/architecture/specifications/image-service.md
             sizable = /images\.secondfunnel\.com.+\.(jpe?g|png)/.test(url),
             nameRegex = /([^/]+)\.(jpe?g|png)/,
             imageSizes = SecondFunnel.option('imageSizes', {
@@ -145,6 +160,10 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
                 "1024x1024": 1024,
                 "master": 2048
             });
+
+        if (!utils.isURL(url)) {
+            throw "First parameter must be a valid URL";
+        }
 
         if (!sizable) {
             return url;

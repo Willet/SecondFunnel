@@ -4,23 +4,25 @@
         <title>Jasmine Spec Runner</title>
 
         <link rel="stylesheet" type="text/css" href="../testing/lib/jasmine-1.3.1/jasmine.css">
-        <script src="../testing/lib/jasmine-1.3.1/jasmine.js"></script>
-        <script src="../testing/lib/jasmine-1.3.1/jasmine-html.js"></script>
 
         <!-- include source files here... -->
         <script src="js/test_config.js"></script>
+
         <script src="//connect.facebook.net/en_US/all.js"></script>
+        <script src="//google-analytics.com/ga.js"></script>
+
         <script src="../js/respond.min.js"></script>
         <script src="../js/jquery.min.js"></script>
         <script src="../js/jquery.mobile.swipeonly.min.js"></script>
+        <script src="../js/jquery.browser.mobile.js"></script>
         <script src="../js/jquery.viewport.min.js"></script>
+        <script src="../js/jquery.jsonp.min.js"></script>
         <script src="../js/json2.js"></script>
         <script src="../js/underscore.js"></script>
         <script src="../js/backbone.js"></script>
         <script src="../js/backbone.marionette.min.js"></script>
         <script src="../js/imagesloaded.pkgd.min.js"></script>
         <script src="../js/jquery.masonry.pkgd.min.js"></script>
-        <script src="js/jquery.masonry.extensions.js"></script>
         <script src="../js/bootstrap.min.js"></script>
         <script src="js/pages.marionette.preinit.js"></script>
         <script src="js/pages.marionette.utils.js"></script>
@@ -35,15 +37,89 @@
         <script src="js/pages.marionette.widget.gallery.js"></script>
         <script src="../js/css3-mediaqueries.js"></script>
         <script src="../js/sinon-1.7.3.js"></script>
-
-        <!-- include spec files here... -->
-        <script src="js/pages.marionette.utils.spec.js"></script>
-        <script src="js/pages.marionette.viewport.spec.js"></script>
-        <script src="js/pages.marionette.ir.spec.js"></script>
-        <script src="../js/jasmine.specrunner.js"></script>
-
     </head>
 
     <body>
+        <script type="text/template" id="disabled_featured_template">
+
+        </script>
+
+        <script type="text/template" id="product_tile_template">
+
+        </script>
+
+        <script type="text/template" id="product_mobile_tile_template">
+
+        </script>
+
+        <script type="text/template" id="image_tile_template">
+
+        </script>
+
+        <script type="text/template" id="youtube_tile_template">
+
+        </script>
+
+        <script type="text/template" id="preview_container_template">
+
+        </script>
+
+        <script type="text/template" id="tile_preview_template">
+
+        </script>
+
+        <script type="text/template" id="tap_indicator_template">
+
+        </script>
+        <script type="text/template" id="facebook_social_button_template">
+            <div class='button facebook'>
+
+            </div>
+        </script>
+
+        <script type="text/template" id="twitter_social_button_template">
+
+        </script>
+
+        <script type="text/template" id="pinterest_social_button_template">
+
+        </script>
+
+        <script type="text/template" id="reddit_social_button_template">
+
+        </script>
+
+        <script type="text/template" id="tumblr_social_button_template">
+
+        </script>
+
+        <script type="text/template" id="share_social_button_template">
+
+        </script>
+
+        <script type="text/template" id="share_popup_template">
+
+        </script>
+
+        <script type="text/template" id="share_popup_option_template">
+
+        </script>
+
+        <script type="text/template" id="product_preview_template">
+
+        </script>
+
+        <script type="text/template" id="image_preview_template">
+
+        </script>
+
+        <!-- include spec files here... -->
+        <script type="text/javascript">
+            if (window.SecondFunnel) {
+                // Start the SecondFunnel app
+                // (which also starts the SpecRunner)
+                SecondFunnel.start();
+            }
+        </script>
     </body>
 </html>

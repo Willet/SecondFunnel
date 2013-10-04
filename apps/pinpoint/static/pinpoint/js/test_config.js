@@ -2,8 +2,7 @@ window.PAGES_INFO = {
     'debug': 0,
     'base_url': "http://www.secondfunnel.com",
     'discoveryTarget': "#discovery-area",
-    'IRSOURCE': 'http://intentrank-test.elasticbeanstalk.com/intentrank',
-    'discoveryItemSelector': ".tile",
+   'itemSelector': ".tile",
     'store': {
         'id': "38",
         'name': "gap",
@@ -58,8 +57,9 @@ window.PAGES_INFO = {
     'tapIndicatorText': undefined,  // optional
     'previewAnimationDuration': 100,  // in ms
     'previewMobileAnimationDuration': 0,
-    'masonryAnimationDuration': 0.4,  // in seconds
-    'masonryMobileAnimationDuration': 0,
+    'masonry': {  // passed to masonry
+        'animationDuration': 0.4  // in seconds
+    },
     'featured': { // the featured product
         "tile-id": 19325,
         "content-id": 19325,
@@ -88,6 +88,36 @@ window.PAGES_INFO = {
             'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
             'template': "instagram",
             'tile-id': 562949953426705
+        },
+        {
+            'caption': "None",
+            'content-id': 562949953426705,
+            'content-type': "Instagram",
+            'db-id': 5393,
+            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
+            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
+            'template': "instagram",
+            'tile-id': 562949953426705
+        },
+        {
+            'caption': "None",
+            'content-id': 562949953426705,
+            'content-type': "Instagram",
+            'db-id': 5393,
+            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
+            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
+            'template': "instagram",
+            'tile-id': 562949953426705
+        },
+        {
+            'caption': "None",
+            'content-id': 562949953426705,
+            'content-type': "Instagram",
+            'db-id': 5393,
+            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
+            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
+            'template': "instagram",
+            'tile-id': 562949953426705
         }
     ],
     'IRResultsCount': 10,
@@ -107,28 +137,25 @@ window.PAGES_INFO = {
     'backupResults': [
         // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
         // it really should contain at least 10 products.
+        {
+            'caption': "None",
+            'content-id': 562949953426705,
+            'content-type': "Instagram",
+            'db-id': 5393,
+            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
+            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
+            'template': "instagram",
+            'tile-id': 562949953426705
+        },
+        {
+            'caption': "None",
+            'content-id': 562949953426705,
+            'content-type': "Instagram",
+            'db-id': 5393,
+            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
+            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
+            'template': "instagram",
+            'tile-id': 562949953426705
+        }
     ]
 };
-
-var _gaq = _gaq || [];
-
-if (window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1') {
-    _gaq.push(['_setDomainName', 'none']);
-}
-
-_gaq.push(['_setAccount', window.PAGES_INFO.gaAccountNumber]);
-
-_gaq.push(['_setCustomVar',
-    1,                               // slot id
-    'StoreID',                       // name
-    window.PAGES_INFO.store.id,  // value
-    3                                // scope: page-level
-]);
-
-_gaq.push(['_setCustomVar', 2, 'CampaignID',
-    window.PAGES_INFO.campaign,  // <int>
-    3
-]);
-
-_gaq.push(['_trackPageview']);
