@@ -189,6 +189,7 @@ MIDDLEWARE_CLASSES = (
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'maintenancemode.middleware.MaintenanceModeMiddleware',
+    'secondfunnel.middleware.cors.XsSharing',
     )
 
 KEEP_COMMENTS_ON_MINIFYING = True
