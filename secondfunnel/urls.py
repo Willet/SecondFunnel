@@ -18,11 +18,11 @@ urlpatterns = patterns('',
     # APPS
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
     url(r'p/', include('apps.pinpoint.global_urls')),
-    url(r'^analytics/', include('apps.analytics.urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
 
     # APIs
     url(r'^api/assets/', include('apps.assets.api_urls')),
+    url(r'^api/', include('apps.api.urls')),
 
     # ACCOUNTS
     url(r'^accounts/login/$',
@@ -81,7 +81,7 @@ if settings.DEBUG:
     # dev environment.
     urlpatterns += patterns('django.contrib.staticfiles.views',
         url(r'^static/(?P<path>.*)$', 'serve'),
-    ) + patterns('', url(r'^testing/', include('apps.testing.urls')))
+    )
 
 
 handler500 = 'apps.pinpoint.views.app_exception_handler'

@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'social_auth',
 
     # our apps
+    'apps.api',
     'apps.assets',
     'apps.pinpoint',
     'apps.website',
