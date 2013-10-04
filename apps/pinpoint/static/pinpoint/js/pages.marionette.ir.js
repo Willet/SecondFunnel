@@ -92,11 +92,12 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      */
     intentRank.getResultsOffline = function (overrides) {
         // instantly mark the deferral as complete.
-        return _.chain(intentRank.options.backupResults)
+        return $.when(
+            _.chain(intentRank.options.backupResults)
             .filter(intentRank.filter)
             .shuffle()
             .first(intentRank.options.IRResultsCount)
-            .value();
+            .value());
     };
 
     /**
