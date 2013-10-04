@@ -1,10 +1,15 @@
 from django.conf.urls import *
+from django.http import HttpResponse
 from tastypie.api import Api
 from apps.api.resources import UserResource
 
-v1_api = Api(api_name='v1')
-v1_api.register(UserResource())
+prefix = 'v1'
 
-urlpatterns = patterns('',
-    (r'', include(v1_api.urls)),
+api = Api(api_name=prefix)
+api.register(UserResource())
+
+urlpatterns = api.urls
+
+urlpatterns += patterns('apps.api.views',
+    url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view')
 )
