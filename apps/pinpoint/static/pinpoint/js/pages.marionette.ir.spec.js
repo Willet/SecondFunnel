@@ -36,9 +36,9 @@ describe('intentRank', function () {
             if(replaced.length) {
                 _.each(replaced, function(element, index, list) {
                     element.object[element['property']] = element.orig;
-                })
+                });
             }
-            replaced = []
+            replaced = [];
         },
 
         mockAjaxSuccess = function (parameters) {
@@ -51,7 +51,7 @@ describe('intentRank', function () {
             if(parameters.success) {
                 setTimeout(function () {parameters.success(results)}, delay);
             }
-            return $.when(results)
+            return $.when(results);
         },
 
         mockAjaxZeroResults = function (parameters) {
@@ -118,18 +118,18 @@ describe('intentRank', function () {
     describe('getResults', function() {
         it('should call getResultsOnline if SecondFunnel.options.page.offline is falsy', function() {
             spyOn(module,'getResultsOnline');
-            var test_options_page = $.extend(true,{},SecondFunnel.options.page);
-            test_options_page.offline = false;
-            replace(SecondFunnel.options,'page').with(test_options_page);
+            var testOptionsPage = $.extend(true,{},SecondFunnel.options.page);
+            testOptionsPage.offline = false;
+            replace(SecondFunnel.options,'page').with(testOptionsPage);
             module.getResults(module.options,setResults);
             expect(module.getResultsOnline).toHaveBeenCalled();
         });
 
         it('should call getResultsOffline if SecondFunnel.options.page.offline is truthy', function () {
             spyOn(module,'getResultsOffline');
-            var test_options_page = $.extend(true,{},SecondFunnel.options.page);
-            test_options_page.offline = true;
-            replace(SecondFunnel.options,'page').with(test_options_page);
+            var testOptionsPage = $.extend(true,{},SecondFunnel.options.page);
+            testOptionsPage.offline = true;
+            replace(SecondFunnel.options,'page').with(testOptionsPage);
             module.options.type = 'campaign';
             module.getResults(module.options,setResults);
             expect(module.getResultsOffline).toHaveBeenCalled();
@@ -217,13 +217,13 @@ describe('intentRank', function () {
         it('should use its backup results if server returns nothing', function() {
             sinon.stub($, 'ajax', mockAjaxZeroResults);
             sinon.stub($, 'jsonp', mockAjaxZeroResults);
-            var backup_results = [{'backup':'backup'}];
-            replace(module.options, 'backupResults').with(backup_results);
+            var backupResults = [{'backup':'backup'}];
+            replace(module.options, 'backupResults').with(backupResults);
             module.getResultsOnline(module.options).always(setResults);
 
             waitsFor(areWeDone, 'fetching backup results',500);
             runs(function() {
-                expect(results).toEqual(backup_results);
+                expect(results).toEqual(backupResults);
 
             });
         });
@@ -231,8 +231,8 @@ describe('intentRank', function () {
         it('should use its backup results if we receive an Ajax error', function (){
             sinon.stub($, 'ajax', mockAjaxError);
             sinon.stub($, 'jsonp', mockAjaxError);
-            var backup_results = [{'backup':'backup'}];
-            replace(module.options, 'backupResults').with(backup_results);
+            var backupResults = [{'backup':'backup'}];
+            replace(module.options, 'backupResults').with(backupResults);
             module.getResultsOnline(module.options).always(setResults);
 
             waitsFor(areWeDone, 'fetching backup results', 500);
