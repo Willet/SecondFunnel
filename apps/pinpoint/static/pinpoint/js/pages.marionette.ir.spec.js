@@ -1,3 +1,4 @@
+// idea: test that overrides are obeyed but not neccessary
 describe('intentRank', function () {
     "use strict";
     // tested for campaigns
@@ -12,6 +13,33 @@ describe('intentRank', function () {
         },
         areWeDone = function() {return done;},
         delay = 100,
+        replaced = [], // used to reset state
+
+        // Probably not necessary, but I can't help it
+        // How to use:
+        // replace(object.property).with(replacement)
+        // reset() restores original
+
+        replace = function (object, property) {
+            var _orig = object[property];
+            return  {
+                'with': function(replacement) {
+                    replaced.unshift({'object': object,'property':
+                        property,'orig': _orig});
+                    object[property] = replacement;
+                    return object[property];
+                }
+            };
+        },
+
+        reset = function() {
+            if(replaced.length) {
+                _.each(replaced, function(element, index, list) {
+                    element.object[element['property']] = element.orig;
+                })
+            }
+            replaced = []
+        },
 
         mockAjaxSuccess = function (parameters) {
             var results = [];
@@ -20,22 +48,37 @@ describe('intentRank', function () {
             }
             expected = results;
             // make it asynchronous
-            setTimeout(function () {parameters.success(results)}, delay);
+            if(parameters.success) {
+                setTimeout(function () {parameters.success(results)}, delay);
+            }
+            return $.when(results)
         },
 
         mockAjaxZeroResults = function (parameters) {
+            var results = [];
             // make it asynchronous
-            setTimeout(function () {parameters.success([])}, delay);
+            if(parameters.success) {
+                setTimeout(function () {parameters.success(results)}, delay);
+            }
+            return $.when(results);
         },
 
         mockAjaxError = function (parameters) {
             // make it asynchronous
-            setTimeout(function () {parameters.error('jqXHR', 'textStatus', 'errorThrown')}, delay);
+            if (parameters.success) {
+                setTimeout(function () {parameters.error('jqXHR', 'textStatus', 'errorThrown')}, delay);
+            }
+
+            // TODO: not sure this actually works. Need to investigate
+            return {'fail': function(callback) {callback(parameters);},
+                'done': function() {}, always: function(callback) {callback()}};
         };
 
     beforeEach(function () {
         // restore original state (not really but close.)
-        module.initialize(PAGES_INFO);
+        reset();
+
+        //campaign mode
         module.options.type='campaign';
 
         // reset variables used to test fetching
@@ -43,16 +86,8 @@ describe('intentRank', function () {
         done = undefined;
         expected = undefined;
 
+        ($.jsonp && $.jsonp.restore && $.jsonp.restore());
         ($.ajax.restore && $.ajax.restore());
-    });
-
-    describe('initialize', function () {
-        it('should initialize without options', function() {
-            var emptyCall = function() {
-                module.initialize({});
-            }
-            expect(emptyCall).not.toThrow();
-        });
     });
 
     describe('changeCategory', function () {
@@ -81,21 +116,20 @@ describe('intentRank', function () {
     });
 
     describe('getResults', function() {
-        it('should call getResultsOnline if options.page.offline is falsy', function() {
+        it('should call getResultsOnline if SecondFunnel.options.page.offline is falsy', function() {
             spyOn(module,'getResultsOnline');
-            var test_PAGES_INFO = $.extend(true,{},PAGES_INFO);
-            test_PAGES_INFO.page.offline = false;
-            module.initialize(test_PAGES_INFO);
-            module.options.type='campaign';
+            var test_options_page = $.extend(true,{},SecondFunnel.options.page);
+            test_options_page.offline = false;
+            replace(SecondFunnel.options,'page').with(test_options_page);
             module.getResults(module.options,setResults);
             expect(module.getResultsOnline).toHaveBeenCalled();
         });
 
-        it('should call getResultsOffline if options.page.offline is truthy', function () {
+        it('should call getResultsOffline if SecondFunnel.options.page.offline is truthy', function () {
             spyOn(module,'getResultsOffline');
-            var test_PAGES_INFO = $.extend(true,{},PAGES_INFO);
-            test_PAGES_INFO.page.offline = true;
-            module.initialize(test_PAGES_INFO);
+            var test_options_page = $.extend(true,{},SecondFunnel.options.page);
+            test_options_page.offline = true;
+            replace(SecondFunnel.options,'page').with(test_options_page);
             module.options.type = 'campaign';
             module.getResults(module.options,setResults);
             expect(module.getResultsOffline).toHaveBeenCalled();
@@ -104,87 +138,102 @@ describe('intentRank', function () {
 
     describe('getResultsOffline',function() {
         it('should exists', function() {
-            expect(module.getResultsOffline);
+            expect(module.getResultsOffline).toBeDefined();
         });
 
         it('should pass results to callback', function() {
-            module.getResultsOffline(module.options, setResults);
+            module.getResultsOffline(module.options).always(setResults);
             waitsFor(areWeDone, 500, 'callback function to be called');
         });
 
         it('should fetch content when asked to', function() {
-            var PAGES_INFO_test = $.extend(true,{}, PAGES_INFO);
-            PAGES_INFO_test.content = ['here','goes','content'];
-            module.initialize(PAGES_INFO_test);
-            module.getResultsOffline(module.options, setResults);
+            var fakeResults = ['here','goes','content'];
+            replace(module.options, 'backupResults').with(fakeResults);
+            module.getResultsOffline(module.options).always(setResults);
             waitsFor(function () {return done;});
             runs( function () {
                 // assuming it does not return more items than it has stored;
-                expect(results && results.length).toEqual(3);
-            })
+                expect(results.length).toBeGreaterThan(0);
+            });
+        });
+
+        it('should fetch 3 results when asked to', function () {
+            var n = 3;
+            var fakeResults = ['here','goes','content','more','content'];
+            replace(module.options, 'backupResults').with(fakeResults);
+            replace(module.options, 'IRResultsCount').with(n);
+            module.getResultsOffline(module.options).always(setResults);
+            waitsFor(function () {return done;});
+            runs( function () {
+                // assuming it does not return more items than it has stored;
+                expect(results.length).toEqual(3);
+            });
         });
     });
 
     describe('getResultsOnline', function () {
+         it('should pass results to callback', function() {
+            module.getResultsOnline(module.options).always(setResults);
+            waitsFor(areWeDone, 500, 'callback function to be called');
+        });
+
         it('should fetch content when asked to', function() {
             sinon.stub($,'ajax',mockAjaxSuccess);
-            module.getResultsOnline(module.options,setResults);
+            sinon.stub($,'jsonp',mockAjaxSuccess);
+            module.getResultsOnline(module.options).always(setResults);
             waitsFor(areWeDone, 'fetching results', 6000);
             runs(function () {
                 expect(results).toEqual(expected);
             });
         });
 
-        it('should pass results to callback', function() {
-            module.getResultsOnline(module.options, setResults);
-            waitsFor(areWeDone, 500, 'callback function to be called');
-        });
-
         it('should fetch 4 results when told to', function() {
             sinon.stub($, 'ajax', mockAjaxSuccess);
-            {
-                var n = 4;
-                module.options.IRResultsCount = n;
-                module.getResultsOnline(module.options,setResults);
+            sinon.stub($, 'jsonp', mockAjaxSuccess);
+            var n = 4;
+            replace(module.options, 'IRResultsCount').with(n);
+            module.getResultsOnline(module.options).always(setResults);
 
-                waitsFor(areWeDone, 'fetching results', 6000);
-                runs(function() {
-                    expect(results && results.length).toBe(n);
-                });
-            }
+            waitsFor(areWeDone, 'fetching results', 6000);
+            runs(function() {
+                expect(results.length).toBe(n);
+            });
         });
 
         it('should fetch 55 results when told to', function() {
             sinon.stub($, 'ajax', mockAjaxSuccess);
-            {
-                var n = 55;
-                module.options.IRResultsCount = n;
-                module.getResultsOnline(module.options,setResults);
+            sinon.stub($, 'jsonp', mockAjaxSuccess);
+            var n = 55;
+            replace(module.options, 'IRResultsCount').with(n);
+            module.getResultsOnline(module.options).always(setResults);
 
-                waitsFor(areWeDone, 'fetching results', 6000);
-                runs(function() {
-                    expect(results && results.length).toBe(n);
-                });
-            }
+            waitsFor(areWeDone, 'fetching results', 6000);
+            runs(function() {
+                expect(results.length).toBe(n);
+            });
         });
 
 
         it('should use its backup results if server returns nothing', function() {
             sinon.stub($, 'ajax', mockAjaxZeroResults);
-            module.options.backupResults = [{'backup':'backup'}];
-            module.getResultsOnline(module.options, setResults);
+            sinon.stub($, 'jsonp', mockAjaxZeroResults);
+            var backup_results = [{'backup':'backup'}];
+            replace(module.options, 'backupResults').with(backup_results);
+            module.getResultsOnline(module.options).always(setResults);
 
             waitsFor(areWeDone, 'fetching backup results',500);
             runs(function() {
-                expect(results).toEqual(module.options.backupResults);
+                expect(results).toEqual(backup_results);
 
             });
         });
 
         it('should use its backup results if we receive an Ajax error', function (){
             sinon.stub($, 'ajax', mockAjaxError);
-            module.options.backupResults = [{'backup': 'backup'}];
-            module.getResultsOnline(module.options,setResults);
+            sinon.stub($, 'jsonp', mockAjaxError);
+            var backup_results = [{'backup':'backup'}];
+            replace(module.options, 'backupResults').with(backup_results);
+            module.getResultsOnline(module.options).always(setResults);
 
             waitsFor(areWeDone, 'fetching backup results', 500);
             runs(function() {
