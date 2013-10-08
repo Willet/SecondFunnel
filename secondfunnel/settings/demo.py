@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     "maintenancemode",
     "compressor",
     'social_auth',
+    'corsheaders',
 
     # our apps
     'apps.api',
