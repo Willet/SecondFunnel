@@ -42,7 +42,8 @@ describe('intentRank', function () {
         },
 
         mockAjaxSuccess = function (parameters) {
-            var results = [];
+            var results = [],
+            deferred = new $.Deferred();
             for (var i = 0; i < parameters.data.results; ++i) {
                 results.push({});
             }
@@ -51,27 +52,32 @@ describe('intentRank', function () {
             if(parameters.success) {
                 setTimeout(function () {parameters.success(results)}, delay);
             }
-            return $.when(results);
+            setTimeout(function() {deferred.resolve(results)}, delay);
+            return deferred.promise();
         },
 
         mockAjaxZeroResults = function (parameters) {
-            var results = [];
+            var results = [],
+            deferred = new $.Deferred();
             // make it asynchronous
             if(parameters.success) {
                 setTimeout(function () {parameters.success(results)}, delay);
             }
-            return $.when(results);
+            setTimeout(function() {deferred.resolve(results)}, delay);
+            return deferred.promise();
         },
 
         mockAjaxError = function (parameters) {
+            var deferred = new $.Deferred();
+
             // make it asynchronous
             if (parameters.success) {
                 setTimeout(function () {parameters.error('jqXHR', 'textStatus', 'errorThrown')}, delay);
             }
+            setTimeout(function() {deferred.reject('jqXHR', 'textStatus', 'errorThrown')}, delay);
 
             // TODO: not sure this actually works. Need to investigate
-            return {'fail': function(callback) {callback(parameters);},
-                'done': function() {}, always: function(callback) {callback()}};
+            return deferred.promise();
         };
 
     beforeEach(function () {
