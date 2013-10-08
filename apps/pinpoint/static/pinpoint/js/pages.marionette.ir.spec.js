@@ -96,8 +96,12 @@ describe('intentRank', function () {
         done = undefined;
         expected = undefined;
 
-        ($.jsonp && $.jsonp.restore && $.jsonp.restore());
-        ($.ajax.restore && $.ajax.restore());
+        if ($.jsonp && $.jsonp.restore) {
+            $.jsonp.restore();
+        }
+        if ($.ajax.restore) {
+            $.ajax.restore();
+        }
     });
 
     describe('changeCategory', function () {
