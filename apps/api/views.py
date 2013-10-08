@@ -1,11 +1,13 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from django.conf import settings
 import httplib2
 
 # http://stackoverflow.com/questions/2217445/django-ajax-proxy-view
+
 @login_required
 def proxy_view(request, path):
-    target_url = 'http://google.ca/'
+    target_url = settings.CONTENTGRAPH_BASE_URL
 
     url = '%s%s' % (target_url, path)
     if request.META.has_key('QUERY_STRING'):
