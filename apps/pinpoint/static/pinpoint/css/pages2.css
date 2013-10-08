@@ -446,21 +446,26 @@ div.loading {
 /* mobile-grade preview container styles */
 @media screen and (max-width: 768px) {
     .previewContainer {
-        top: 50px;
+        display: block;
+        overflow: auto;
+        heiht: auto;
+        position: relative;
     }
     .previewContainer .mask {
+        /* since mobile previews are not floating, this class is cancelled */
         display: none;
     }
     .previewContainer .tablecell {
+        /* since mobile previews are not floating, this class is cancelled */
         display: block;
-        width: 100%;
-        height: 100%;
-        overflow-y: scroll;
+        width: auto;
+        height: auto;
+        overflow-y: auto;
     }
     .previewContainer .content {
         display: block;
         position: relative;
-        z-index: 1002;
+        z-index: 0;
 
         margin: 0;
         padding: 20px;
@@ -470,6 +475,14 @@ div.loading {
         background: #fff;
         border: 0;
         box-shadow: none;
+    }
+
+    .previewContainer .gallery {
+        height: auto;  /* show all thumbnails in multiple rows */
+    }
+
+    .previewContainer .image img {
+        min-height: 300px; /* mandatory android webkit patch (because standards) */
     }
 }
 

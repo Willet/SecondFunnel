@@ -1,4 +1,9 @@
 /*global SecondFunnel, Backbone, Marionette, console, broadcast */
+/**
+ * This module has no initialization options.
+ *
+ * @module sharing
+ */
 SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
     "use strict";
 
@@ -15,12 +20,14 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             // otherwise, return the default.
             return sharing.SocialButton;
         },
+        /**
+         * A mapping of the different sharing options and the related
+         * share url.
+         * add more via PAGES_INFO.shareSources.
+         *
+         * @type {String}
+         */
         sources = _.extend({}, {
-            // A mapping of the different sharing options and the related
-            // share url.
-
-            // add more via PAGES_INFO.shareSources.
-
             // Main ones (e.g. Facebook, Twitter, Tumblr, etc.)
             'facebook': "//facebook.com/sharer/sharer.php?u=<%= url %>",
             'twitter': "//twitter.com/share?url=<%= url %>",
@@ -36,12 +43,20 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             'stumbleupon': "//stumbleupon.com/submit?url=<%= url %>"
         }, SecondFunnel.option('shareSources'));
 
-    sharing.SocialButtons = Marionette.View.extend({
-        // Container for the social buttons; allows us to create arbitrary
-        // social buttons.
-
-        // override the template by passing it in: new SocialButtons({ template: ... })
-        // template can be a selector or a function(json) ->  <_.template>
+    /**
+     * Container for the social buttons; allows us to create arbitrary
+     * social buttons.
+     *
+     * override the template by passing it in:
+     *   `new sharing.SocialButtons({ template: ... })`.
+     *
+     * Template can be a selector or a function(json) ->  <_.template>
+     *
+     * @constructor
+     * @alias sharing.SocialButtons
+     * @type {*}
+     */
+    this.SocialButtons = Marionette.View.extend({
         'tagName': 'span',
         'showCount': SecondFunnel.option('showCount', true),
         'buttonTypes': SecondFunnel.option('socialButtons',
@@ -122,10 +137,16 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
     });
 
-    sharing.SocialButton = Marionette.ItemView.extend({
-        // Base object for Social buttons, when adding a new Social button, extend
-        // from this class and modify as necessary.
-
+    /**
+     * Base object for Social buttons.
+     * When adding a new Social button, extend from this class and modify
+     * as necessary.
+     *
+     * @constructor
+     * @alias sharing.SocialButton
+     * @type {ItemView}
+     */
+    this.SocialButton = Marionette.ItemView.extend({
         'initialize': function (options) {
             // Assign attributes to the object
             _.extend(this, options);
@@ -187,8 +208,14 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         'commas': false
     });
 
-    sharing.FacebookSocialButton = sharing.SocialButton.extend({
-        // Subclass of the SocialButton for FaceBook Social Buttons.
+    /**
+     * Subclass of the SocialButton for FaceBook Social Buttons.
+     *
+     * @constructor
+     * @alias sharing.FacebookSocialButton
+     * @type {SocialButton}
+     */
+    this.FacebookSocialButton = sharing.SocialButton.extend({
         'load': function () {
             // Onload, render the button and remove the placeholder
             var facebookButton = this.$el;
@@ -233,8 +260,14 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
     });
 
-    sharing.TwitterSocialButton = sharing.SocialButton.extend({
-        // Subclass of the SocialButton for Twitter Social Buttons.
+    /**
+     * Subclass of the SocialButton for Twitter Social Buttons.
+     *
+     * @constructor
+     * @alias sharing.TwitterSocialButton
+     * @type {SocialButton}
+     */
+    this.TwitterSocialButton = sharing.SocialButton.extend({
         'load': function () {
             // Load the widget when called.
             try {
@@ -247,8 +280,14 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
     });
 
-    sharing.ShareSocialButton = sharing.SocialButton.extend({
-        // The "share this" button that opens a "share this" popup
+    /**
+     * The "share this" button that opens a "share this" popup
+     *
+     * @constructor
+     * @alias sharing.ShareSocialButton
+     * @type {SocialButton}
+     */
+    this.ShareSocialButton = sharing.SocialButton.extend({
         'events': {
             'click': function (ev) {
                 // Creates a new popup instead of the default action
@@ -270,9 +309,15 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
     });
 
-    sharing.SharePopup = Marionette.ItemView.extend({
-        // Displays a popup that provides the viewer with a plethora of other
-        // social share options as defined by the designer/developer.
+    /**
+     * Displays a popup that provides the viewer with a plethora of other
+     * social share options as defined by the designer/developer.
+     *
+     * @constructor
+     * @alias sharing.SharePopup
+     * @type {ItemView}
+     */
+    this.SharePopup = Marionette.ItemView.extend({
         'tagName': "div",
         'className': "shareContainer previewContainer",
         'template': "#share_popup_template",
@@ -315,8 +360,14 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
     });
 
-    sharing.ShareOption = Marionette.ItemView.extend({
-        // a View for each option within the 'share this' dialogue.
+    /**
+     * A View for each share option within the 'share this' dialogue.
+     *
+     * @constructor
+     * @alias sharing.ShareOption
+     * @type {ItemView}
+     */
+    this.ShareOption = Marionette.ItemView.extend({
         'tagName': "div",
         'className': "button",
         'templates': [
@@ -347,8 +398,13 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         }
     });
 
-    sharing.get = function (type) {
-        // get source config of a social network type.
+    /**
+     * Get source config of a social network type.
+     *
+     * @param {String} type     the button name.
+     * @returns {String}        the url for that button.
+     */
+    this.get = function (type) {
         if (typeof type !== 'string') {
             return {};
         }
