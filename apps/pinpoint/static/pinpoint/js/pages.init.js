@@ -12,6 +12,8 @@ function reInitialize(app) {
         return;
     }
 
+    broadcast('beforeInit', app.options, app);
+
     app.addInitializer(function () {
         // set its width to whatever it began with.
         app.options.initialWidth = $(window).width();
@@ -82,7 +84,6 @@ function reInitialize(app) {
     app.addInitializer(function () {
         // Add our initializer, this allows us to pass a series of tiles
         // to be displayed immediately (and first) on the landing page.
-        broadcast('beforeInit', app.options, app);
 
         $('.brand-label').text(app.option("store:displayName") ||
                                _.capitalize(app.option("store:name")) ||

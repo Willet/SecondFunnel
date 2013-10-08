@@ -225,7 +225,8 @@ describe("SecondFunnel", function () {
             it("should be possible to configure the default " +
                 "column width", function () {
                 // how to test the config does anything?
-                expect(config.columnWidth).toBeDefined();
+                app.layoutEngine.initialize({columnWidth: 999});
+                expect(app.layoutEngine._opts().columnWidth).toEqual(999);
             });
 
             it("It should be possible to disable or enable internal " +
