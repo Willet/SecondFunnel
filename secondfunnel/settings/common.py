@@ -252,6 +252,19 @@ INSTALLED_APPS = (
     'django_jenkins',
 )
 
+CORS_ORIGIN_WHITELIST = () # TODO: Set whitelist
+#CORS_ORIGIN_REGEX_WHITELIST # could also be useful
+#CORS_URLS_REGEX # could also be useful
+CORS_ALLOW_HEADERS = (
+    'x-requested-with',
+    'content-type',
+    'accept',
+    'origin',
+    'authorization',
+    'x-csrftoken',
+    'ApiKey'
+)
+
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 JENKINS_TEST_RUNNER = 'django_jenkins.nose_runner.CINoseTestSuiteRunner'
 COVERAGE_REPORT_HTML_OUTPUT_DIR = os.path.join(

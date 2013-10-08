@@ -53,6 +53,10 @@ CACHES = {
     }
 }
 
+CORS_ORIGIN_REGEX_WHITELIST = (
+    '^(localhost|127.0.0.1):(\d+)$'
+)
+
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
