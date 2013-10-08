@@ -327,9 +327,9 @@ debugOp = function () {
         },
         runTest = function () {
             var protoSrcMaps = [
-                    "/static/testing/lib/jasmine-1.3.1/jasmine.js",
-                    "/static/testing/lib/jasmine-1.3.1/jasmine-html.js",
-                    "/static/testing/lib/jasmine-1.3.1/jasmine-console.js",
+                    "/static/js/jasmine.js",
+                    "/static/js/jasmine-html.js",
+                    "/static/js/jasmine-console.js",
                     "/static/pinpoint/js/pages.marionette.preinit.spec.js",
                     "/static/pinpoint/js/pages.marionette.spec.js",
                     "/static/pinpoint/js/pages.marionette.support.spec.js",
