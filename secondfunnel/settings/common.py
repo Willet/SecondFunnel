@@ -318,7 +318,7 @@ FIXTURE_DIRS = (
 
 WEBSITE_BASE_URL = 'http://www.secondfunnel.com'
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
-CONTENTGRAPH_BASE_URL = '???' # TODO: What is this URL?
+CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
 
 AUTHENTICATION_BACKENDS = (
     'social_auth.backends.contrib.instagram.InstagramBackend',

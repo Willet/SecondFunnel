@@ -1,3 +1,4 @@
+from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.conf import settings
@@ -6,6 +7,7 @@ import httplib2
 # http://stackoverflow.com/questions/2217445/django-ajax-proxy-view
 
 @login_required
+@csrf_protect
 def proxy_view(request, path):
     target_url = settings.CONTENTGRAPH_BASE_URL
 
