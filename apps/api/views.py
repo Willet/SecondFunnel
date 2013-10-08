@@ -11,7 +11,7 @@ import httplib2
 def proxy_view(request, path):
     target_url = settings.CONTENTGRAPH_BASE_URL
 
-    url = '%s%s' % (target_url, path)
+    url = '%s/%s' % (target_url, path)
     if request.META.has_key('QUERY_STRING'):
         url += '?' + request.META['QUERY_STRING']
 
