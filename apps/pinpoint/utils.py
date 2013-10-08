@@ -10,6 +10,7 @@ from django.conf import settings
 from django.template import Context, RequestContext, Template, loader
 from django.template.defaultfilters import slugify, safe
 
+from apps.static_pages.utils import get_remote_data
 from apps.utils import noop
 
 def render_campaign(campaign, request, get_seeds_func=None):

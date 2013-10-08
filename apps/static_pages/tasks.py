@@ -14,11 +14,13 @@ from apps.intentrank.views import get_seeds_ir
 from apps.pinpoint.models import Campaign
 from apps.pinpoint.utils import render_campaign
 from apps.static_pages.models import StaticLog
+from apps.utils import noop, proxy
 
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
     get_route53_change_status, upload_to_bucket)
 from apps.static_pages.utils import (save_static_log, remove_static_log,
-    bucket_exists_or_pending, get_bucket_name, create_dummy_request)
+    bucket_exists_or_pending, get_remote_data, get_bucket_name,
+    create_dummy_request)
 
 celery = Celery()
 # TODO: make use of logging, instead of suppressing errors as is done now
@@ -138,15 +140,22 @@ def generate_static_campaigns():
 
 @celery.task
 def generate_static_campaign(campaign_id, ignore_static_logs=False):
-    """Renders individual campaign and saves it to S3"""
+    """Renders individual campaign and saves it to S3.
+
+    TODO: verify static log checks will be needed in the future, when the
+    page generator is hosted on "barebones django app"
+    """
 
     campaign_type = ContentType.objects.get_for_model(Campaign)
 
     try:
-        campaign = Campaign.objects.get(id=campaign_id)
+        campaign_json = get_remote_data(Campaign.objects.get(id=campaign_id))
 
-    except Campaign.DoesNotExist:
-        logger.error("Campaign #{0} does not exist".format(campaign_id))
+        # do -something- to turn ContentGraph JSON into a campaign object
+        campaign = proxy(campaign_json)
+
+    except ValueError:
+        logger.error("Could not understand campaign JSON #{0}".format(campaign_id))
         return
 
     dummy_request = create_dummy_request()

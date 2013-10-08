@@ -30,6 +30,15 @@ def bucket_exists_or_pending(store):
     return len(log_records) > 1
 
 
+def get_remote_data(*args, **kwargs):
+    """Mocked datasource.
+
+    Returns the first positional argument, or, if kwargs are present,
+    a dictionary of the kwargs... which is just kwargs.
+    """
+    return kwargs or args[0] or None
+
+
 def get_bucket_name(bucket_name):
     """
     Generates a bucket name based on current environment.
