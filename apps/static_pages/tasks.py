@@ -3,7 +3,7 @@ Static pages celery tasks
 """
 from urlparse import urlparse
 
-from celery import task, group
+from celery import Celery, task, group
 from celery.utils.log import get_task_logger
 
 from django.contrib.contenttypes.models import ContentType
@@ -20,6 +20,7 @@ from apps.static_pages.aws_utils import (create_bucket_website_alias,
 from apps.static_pages.utils import (save_static_log, remove_static_log,
     bucket_exists_or_pending, get_bucket_name, create_dummy_request)
 
+celery = Celery()
 # TODO: make use of logging, instead of suppressing errors as is done now
 logger = get_task_logger(__name__)
 
@@ -46,7 +47,7 @@ def change_complete(store_id):
     RELEASE_LOCK()
 
 
-@task()
+@celery.task
 def create_bucket_for_stores():
     stores = Store.objects.all()
 
@@ -60,7 +61,7 @@ def create_bucket_for_stores():
     task_group.apply_async()
 
 
-@task()
+@celery.task
 def create_bucket_for_store(store_id):
     if ACQUIRE_LOCK():
         try:
@@ -96,7 +97,7 @@ def create_bucket_for_store(store_id):
         create_bucket_for_store.subtask((store_id,), countdown=5).delay()
 
 
-@task()
+@celery.task
 def confirm_change_success(change_id, store_id):
     change_status = get_route53_change_status(change_id)
 
@@ -122,7 +123,7 @@ def confirm_change_success(change_id, store_id):
             change_status, change_id))
 
 
-@task()
+@celery.task
 def generate_static_campaigns():
     """Creates a group of tasks to generate/save campaigns,
     and runs them in parallel"""
@@ -135,8 +136,8 @@ def generate_static_campaigns():
     task_group.apply_async()
 
 
-@task()
-def generate_static_campaign(campaign_id):
+@celery.task
+def generate_static_campaign(campaign_id, ignore_static_logs=False):
     """Renders individual campaign and saves it to S3"""
 
     campaign_type = ContentType.objects.get_for_model(Campaign)
@@ -163,6 +164,9 @@ def generate_static_campaign(campaign_id):
         try:
             log_entry = StaticLog.objects.get(
                 content_type=campaign_type, object_id=campaign.id, key=log_key)
+
+            if log_entry and ignore_static_logs:
+                raise StaticLog.DoesNotExist('force-regeneration override')
 
             continue
 

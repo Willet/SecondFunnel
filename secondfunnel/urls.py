@@ -17,12 +17,13 @@ urlpatterns = patterns('',
 
     # APPS
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
-    url(r'p/', include('apps.pinpoint.global_urls')),
+    url(r'^p/', include('apps.pinpoint.global_urls')),
     url(r'^analytics/', include('apps.analytics.urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
 
     # APIs
     url(r'^api/assets/', include('apps.assets.api_urls')),
+    url(r'^static_pages/', include('apps.static_pages.urls')),
 
     # ACCOUNTS
     url(r'^accounts/login/$',
