@@ -1,3 +1,6 @@
+import json
+import httplib2
+
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.core.files.images import get_image_dimensions
@@ -90,3 +93,20 @@ def valid_dimensions( product_image ):
         return False
     return True
     
+
+def get_content_graph_data(endpoint_path, headers=None, method="GET", body=""):
+
+    if not headers:
+        headers = {}
+
+    headers.update({'ApiKey' : 'secretword'})
+
+    http = httplib2.Http()
+    response, content = http.request(
+        settings.CONTENTGRAPH_BASE_URL + endpoint_path, method=method,
+        body=body, headers=headers)
+
+    try:
+        return json.loads(content)
+    except:
+        return content

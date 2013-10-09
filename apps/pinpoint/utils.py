@@ -33,12 +33,16 @@ def render_campaign(campaign, request, get_seeds_func=None):
             return match.group(0)  # leave unchanged
 
     def create_theme_from_data(theme_data):
-        return StoreTheme(json.loads(theme_data))
+        # return StoreTheme(json.loads(theme_data))
+        return theme_data
 
     # TODO: Content blocks don't make as much sense now; when to clean up?
     # TODO: If we keep content blocks, should this be a method?
     # Assume only one content block
-    content_block = campaign.content_blocks.all()[0]
+    try:
+        content_block = campaign.content_block
+    except AttributeError:  # transition incomplete
+        content_block = campaign.content_blocks.all()[0]
 
     product = content_block.data.product
 
@@ -46,8 +50,7 @@ def render_campaign(campaign, request, get_seeds_func=None):
     campaign.template = slugify(
         content_block.block_type.name)
 
-    # Dirty hack
-    if settings.DEBUG or re.search(r'native shoes', campaign.store.name, re.I):
+    if settings.DEBUG:
         # If in debug mode, or we otherwise need to use the old proxy
         base_url = settings.WEBSITE_BASE_URL + '/intentrank'
     else:
@@ -76,7 +79,7 @@ def render_campaign(campaign, request, get_seeds_func=None):
 
     try:
         # theme = campaign.get_theme()
-        theme_data = campaign.theme  # likely transition
+        theme_data = campaign.theme or campaign.get_theme()  # likely transition
 
         if not theme_data:
             raise ValueError('campaign has no theme when campaign manager saved it')
@@ -92,8 +95,8 @@ def render_campaign(campaign, request, get_seeds_func=None):
     sub_values = defaultdict(list)
     regex = re.compile("\{\{\s*(\w+)\s*\}\}")
 
-    # REQUIRED is a bit of a misnomer...
-    for field, details in theme.REQUIRED_FIELDS.iteritems():
+    # replace our own "django-style" tags before django templating touches them
+    for field, details in theme.CUSTOM_FIELDS.iteritems():
         # field: e.g. 'desktop_content'
         # details: e.g. {'values': ['pinpoint/campaign_config.html',
         #                           'pinpoint/default_templates.html'],

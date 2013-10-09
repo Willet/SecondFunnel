@@ -524,6 +524,8 @@ def style_theme(request, store_id, theme_id):
 def preview_theme(request, store_id, theme_id=None):
     """Generates a dummy page based on the theme data the user supplies.
 
+    @deprecated
+
     POST creates a dummy theme.
     GET generates a dummy page, then deletes the dummy theme.
     """

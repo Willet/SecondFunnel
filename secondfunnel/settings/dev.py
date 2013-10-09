@@ -53,6 +53,8 @@ CACHES = {
     }
 }
 
+CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
+
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'

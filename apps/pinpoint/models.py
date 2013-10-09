@@ -52,8 +52,7 @@ class StoreTheme(BaseModelNamed):
 
     def __init__(self, *args, **kwargs):
         super(StoreTheme, self).__init__(*args, **kwargs)
-        # Required is a bit of a misnomer...
-        self.REQUIRED_FIELDS = {
+        self.CUSTOM_FIELDS = {
             'opengraph_tags': {
                 'type': 'template',
                 'values': ['pinpoint/campaign_opengraph_tags.html']

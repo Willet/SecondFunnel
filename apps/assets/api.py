@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from tastypie import fields
 from tastypie.constants import ALL_WITH_RELATIONS
+from tastypie.fields import ForeignKey
 from tastypie.models import ApiKey
 from tastypie.resources import ModelResource, ALL
 from tastypie.authentication import Authentication, ApiKeyAuthentication, MultiAuthentication
@@ -11,7 +12,7 @@ from django.db.models import Q
 from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
     YoutubeVideo, GenericImage, ExternalContent, ExternalContentType)
 
-from apps.pinpoint.models import BlockContent, Campaign
+from apps.pinpoint.models import BlockContent, Campaign, StoreTheme
 
 
 class UserAuthentication(Authentication):
@@ -61,6 +62,39 @@ class StoreResource(ModelResource):
             'id': ('exact',),
             'name': ('icontains',),
         }
+
+
+class StoreThemeResource(ModelResource):
+    """REST-style store themes of the current user's store."""
+    class Meta:
+        queryset = StoreTheme.objects.all()
+        resource_name = 'store_theme'
+        authentication = MultiAuthentication(
+            ApiKeyAuthentication(),
+            UserAuthentication())
+        authorization= Authorization()
+
+    def get_object_list(self, request):
+        store_themes = []
+        user_themes = self._get_user_themes(request)
+        all_themes = super(StoreThemeResource, self).get_object_list(request)
+
+        return store_themes
+
+    def _get_store_staff(self, request):
+        """get a {store: [users]} map."""
+        stores = {}
+        for store in Store.objects.all():
+            stores[store] = store.staff.all()
+        return stores
+
+    def _get_user_themes(self, request):
+        """get list of themes of stores that this user has access to."""
+        themes = []
+        for store, users in self._get_store_staff(request):
+            if store.theme and request.user in users:
+                themes.append(store.theme)
+        return themes
 
 
 class ProductResource(ModelResource):

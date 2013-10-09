@@ -33,6 +33,10 @@ def random_products(store_slug, param_dict, id_only=True):
     return results[:num_results]
 
 def ajax_jsonp(result, callback_name, status=200):
+    """
+    @param result   a json-serializable object, or an object that
+                    has a json() method.
+    """
     response_text = ''
     try:
         response_text = json.dumps(result)
