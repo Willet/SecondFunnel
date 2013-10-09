@@ -13,8 +13,7 @@ from mock import MagicMock
 
 from apps.assets.models import Product, Store
 
-from apps.intentrank.utils import (random_products, VideoCookie,
-    video_probability_function, ajax_jsonp)
+from apps.intentrank.utils import random_products, ajax_jsonp
 
 from apps.pinpoint.models import IntentRankCampaign
 
@@ -196,43 +195,6 @@ def get_json_data(request, products, campaign_id, seeds=None):
             # if that requirement is not met, ignore product.
             continue
 
-    
-    # videos
-    video_cookie = request.session.get('pinpoint-video-cookie')
-    if not video_cookie:
-        video_cookie = request.session['pinpoint-video-cookie'] = VideoCookie()
-
-    videos = cache.get('videos-campaign-{0}'.format(campaign_id))
-    if not videos:
-        videos = campaign.store.videos.exclude(
-            video_id__in=video_cookie.videos_already_shown)
-
-        if campaign.supports_categories:
-            videos = videos.filter(categories__id=campaign_id)
-
-        cache.set('videos-campaign-{0}'.format(campaign_id), videos, 60*60*3)
-
-    # if this is the first batch of results, or the random amount is under the
-    # curve of the probability function, then add a video
-    show_video = random.random() <= video_probability_function(
-        video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
-    if videos.exists() and (video_cookie.is_empty() or show_video):
-        video = videos.order_by('?')[0]
-        results.append({
-            'id': video.video_id,
-            'url': 'http://www.youtube.com/watch?v={0}'.format(video.video_id),
-            'provider': 'youtube',
-            'width': '450',
-            'height': '250',
-            'autoplay': 0,
-            'template': 'youtube'
-        })
-        video_cookie.add_video(video.video_id)
-    else:
-        video_cookie.add_blocks(len(results))
-
-    request.session['pinpoint-video-cookie'] = video_cookie
-
     # store-wide external content
     external_content = cache.get('storec-external-content-{0}-{1}'.format(
         campaign.store.id, campaign_id))
@@ -347,8 +309,6 @@ def get_seeds(request, **kwargs):
                                                         DEFAULT_RESULTS))
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
 
-    request.session['pinpoint-video-cookie'] = VideoCookie()
-
     results, status = process_intentrank_request(
         request, store, page, 'getseeds', {
             'seeds': seeds,
@@ -427,7 +387,6 @@ def update_clickstream(request):
 
     # Proxy is *mostly* deprecated; always succeed
     return ajax_jsonp([], callback, status=SUCCESS)
-
 
 
 def invalidate_session(request):
