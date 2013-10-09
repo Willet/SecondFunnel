@@ -1,6 +1,8 @@
 """
 Static pages celery tasks
 """
+
+import json
 from urlparse import urlparse
 
 from celery import Celery, task, group
@@ -147,64 +149,65 @@ def generate_static_campaign(campaign_id, ignore_static_logs=False):
     """
 
     campaign_type = ContentType.objects.get_for_model(Campaign)
+    get_campaign_data = get_remote_data  # TODO: implement
+
+    def create_campaign_from_dict(campaign_data):
+        post_processing = proxy  # TODO: implement
+        campaign_data = post_processing(campaign_data)
+        return Campaign(campaign_data)
 
     try:
-        campaign_json = get_remote_data(Campaign.objects.get(id=campaign_id))
+        campaign_json = json.loads(get_campaign_data(Campaign.objects.get(id=campaign_id)))
 
         # do -something- to turn ContentGraph JSON into a campaign object
-        campaign = proxy(campaign_json)
+        campaign = create_campaign_from_dict(campaign_json)
 
-    except ValueError:
+    except ValueError:  # json.loads exception
         logger.error("Could not understand campaign JSON #{0}".format(campaign_id))
         return
 
     dummy_request = create_dummy_request()
 
-    rendered_content = [
-        # s3_file_name, log_key, page_content
-        ("index.html", "CD", render_campaign(
-            campaign, get_seeds_func=get_seeds_ir, request=dummy_request
-        ))
-    ]
+    # prepare the file name, static log, and the actual page
+    s3_file_name = "index.html"
+    log_key = "CD"
+    page_content = render_campaign(campaign, get_seeds_func=get_seeds_ir,
+                                   request=dummy_request)
 
-    for s3_file_name, log_key, page_content in rendered_content:
+    # if we think this static page already exists, finish task
+    try:
+        log_entry = StaticLog.objects.get(content_type=campaign_type,
+                                          object_id=campaign.id, key=log_key)
 
-        # if we think this static page already exists, skip to the next one
-        try:
-            log_entry = StaticLog.objects.get(
-                content_type=campaign_type, object_id=campaign.id, key=log_key)
+        if log_entry and ignore_static_logs:
+            raise StaticLog.DoesNotExist('force-regeneration override')
 
-            if log_entry and ignore_static_logs:
-                raise StaticLog.DoesNotExist('force-regeneration override')
+    # otherwise, render and upload it
+    except StaticLog.DoesNotExist:
 
-            continue
+        s3_path = "{0}/{1}".format(
+            campaign.slug or campaign.id, s3_file_name)
 
-        # otherwise, render and upload it
-        except StaticLog.DoesNotExist:
+        store_url = ''
+        if campaign.store.public_base_url:
+            url = urlparse(campaign.store.public_base_url).hostname
+            if url:
+                store_url = url
 
-            s3_path = "{0}/{1}".format(
-                campaign.slug or campaign.id, s3_file_name)
+        dns_name = get_bucket_name(campaign.store.slug)
+        bucket_name =  store_url or dns_name
 
-            store_url = ''
-            if campaign.store.public_base_url:
-                url = urlparse(campaign.store.public_base_url).hostname
-                if url:
-                    store_url = url
+        bytes_written = upload_to_bucket(
+            bucket_name, s3_path, page_content, public=True)
 
-            dns_name = get_bucket_name(campaign.store.slug)
-            bucket_name =  store_url or dns_name
+        if bytes_written > 0:
+            # remove any old entries
+            remove_static_log(Campaign, campaign.id, log_key)
 
-            bytes_written = upload_to_bucket(
-                bucket_name, s3_path, page_content, public=True)
+            # write a new log entry for this static campaign
+            save_static_log(Campaign, campaign.id, log_key)
 
-            if bytes_written > 0:
-                # remove any old entries
-                remove_static_log(Campaign, campaign.id, log_key)
-
-                # write a new log entry for this static campaign
-                save_static_log(Campaign, campaign.id, log_key)
-
-            # boto claims it didn't write anything to S3
-            else:
-                logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
-                    campaign_id))
+        # boto claims it didn't write anything to S3
+        else:
+            logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
+                campaign_id))

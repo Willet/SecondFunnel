@@ -10,6 +10,7 @@ from django.conf import settings
 from django.template import Context, RequestContext, Template, loader
 from django.template.defaultfilters import slugify, safe
 
+from apps.pinpoint.models import StoreTheme
 from apps.static_pages.utils import get_remote_data
 from apps.utils import noop
 
@@ -31,6 +32,9 @@ def render_campaign(campaign, request, get_seeds_func=None):
         else:
             return match.group(0)  # leave unchanged
 
+    def create_theme_from_data(theme_data):
+        return StoreTheme(json.loads(theme_data))
+
     # TODO: Content blocks don't make as much sense now; when to clean up?
     # TODO: If we keep content blocks, should this be a method?
     # Assume only one content block
@@ -45,25 +49,17 @@ def render_campaign(campaign, request, get_seeds_func=None):
     # Dirty hack
     if settings.DEBUG or re.search(r'native shoes', campaign.store.name, re.I):
         # If in debug mode, or we otherwise need to use the old proxy
-        base_url = settings.WEBSITE_BASE_URL
+        base_url = settings.WEBSITE_BASE_URL + '/intentrank'
     else:
-        base_url = settings.INTENTRANK_BASE_URL
+        base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
 
+    # "borrow" IR for results
     if get_seeds_func:
-        #
-
-        # "borrow" IR for results
-        backup_results = get_seeds_func(
-            request, store=campaign.store.slug,
+        backup_results = get_seeds_func(request, store=campaign.store.slug,
             campaign=campaign.default_intentrank_id or campaign.id,
-            base_url=base_url + '/intentrank',
-            results=100,
-            raw=True
-        )
+            base_url=base_url, results=100, raw=True)
     else:
         backup_results = []
-
-    base_url += '/intentrank'
 
     attributes = {
         "campaign": campaign,
@@ -78,10 +74,17 @@ def render_campaign(campaign, request, get_seeds_func=None):
 
     context = RequestContext(request, attributes)
 
-    theme = campaign.get_theme()
+    try:
+        # theme = campaign.get_theme()
+        theme_data = campaign.theme  # likely transition
 
-    if not theme:
-        raise ValueError('Neither campaign nor its store has a theme defined')
+        if not theme_data:
+            raise ValueError('campaign has no theme when campaign manager saved it')
+
+        # page_str = theme.page
+        theme = create_theme_from_data(theme_data)  # likely transition
+    except ValueError:
+        raise  # TODO: otherwise...?
 
     page_str = theme.page
 
@@ -123,9 +126,9 @@ def render_campaign(campaign, request, get_seeds_func=None):
     page = Template(page_str)
 
     # Render response
-    # TODO: Doesn't make sense but is required; why?
     rendered_page = page.render(context)
     if isinstance(rendered_page, unicode):
+        # TODO: Doesn't make sense but is required; why?
         rendered_page = rendered_page.encode('utf-8')
 
     rendered_page = unicode(rendered_page, 'utf-8')
