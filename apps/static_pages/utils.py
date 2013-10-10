@@ -154,6 +154,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
 
     attributes = {
         "campaign": campaign,
+        "content_block": content_block,
         "columns": range(4),
         "preview": not campaign.live,
         "product": product,
