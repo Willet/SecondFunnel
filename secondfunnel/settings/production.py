@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'apps.analytics',
     'apps.assets',
     'apps.pinpoint',
+    'apps.contentgraph',
     'apps.website',
     'apps.scraper',
     'apps.static_pages',

@@ -32,21 +32,40 @@ def random_products(store_slug, param_dict, id_only=True):
 
     return results[:num_results]
 
-def ajax_jsonp(result, callback_name, status=200):
+
+def ajax_jsonp(result, callback_name=None, status=200):
     """
     @param result   a json-serializable object, or an object that
                     has a json() method.
+    @param callback_name  a callback. if omitted, json.
+                                      if '', 'callback'.
     """
     response_text = ''
     try:
         response_text = json.dumps(result)
     except TypeError:  # blah blah is not JSON serializable
+        pass
+
+    if not response_text:
         try:
             # serialize BasedModelNamed objects
             response_text = result.json()
         except AttributeError:
-            raise  # no serialization method worked
-    pass
+            pass
 
-    return HttpResponse("{0}({1});".format(callback_name, response_text),
-        mimetype='application/json', status=status)
+    if not response_text:
+        try:
+            # serialize list of BasedModelNamed objects
+            response_text = json.dumps([json.loads(r.json()) for r in result])
+        except TypeError:
+            raise # no serialization method worked
+
+    if callback_name == '':
+        callback_name = 'callback'
+
+    if callback_name:
+        return HttpResponse("{0}({1});".format(callback_name, response_text),
+            mimetype='application/javascript', status=status)
+    else:
+        return HttpResponse(response_text,
+            mimetype='application/json', status=status)

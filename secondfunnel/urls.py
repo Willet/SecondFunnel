@@ -20,6 +20,7 @@ urlpatterns = patterns('',
     url(r'^p/', include('apps.pinpoint.global_urls')),
     url(r'^analytics/', include('apps.analytics.urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
+    url(r'^contentgraph/', include('apps.contentgraph.urls')),
 
     # APIs
     url(r'^api/assets/', include('apps.assets.api_urls')),

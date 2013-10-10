@@ -53,9 +53,3 @@ urlpatterns = patterns('apps.pinpoint.views',
     url(r'^(?P<campaign_id>\d+)/$', 'campaign', name='campaign'),
     url(r'^(?P<campaign_id>\d+)/(?:(?P<mode>\w+).html)?$', 'campaign', name='campaign'),
 )
-
-# @deprecated (AJAX)
-urlpatterns += patterns('apps.pinpoint.ajax',
-    url(r'^ajax/upload_image/$',
-        'ajax_upload_image', name='ajax-upload-image'),
-)
