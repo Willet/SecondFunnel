@@ -51,7 +51,7 @@ class BaseModelNamed(BaseModel):
     @classmethod
     def from_json(cls, json_data):
         """create an object from data. this is a subclassable stub."""
-        return cls(json_data)  # TODO: what preprocessing should this have?
+        return cls(**json_data)  # TODO: what preprocessing should this have?
 
 
 # class Store(BaseModelNamed):
@@ -72,6 +72,9 @@ class Store(BaseModelNamed):
 
     public_base_url = models.URLField(
         help_text="e.g. explore.nativeshoes.com", blank=True, null=True)
+
+    features = models.ManyToManyField('assets.StoreFeature', blank=True,
+        null=True, related_name='stores')
 
     def __unicode__(self):
         return self.name
@@ -98,6 +101,17 @@ class Store(BaseModelNamed):
 
     def features_list(self):
         return [x.slug for x in self.features.all()]
+
+    @classmethod
+    def from_json(cls, json_data):
+        from apps.pinpoint.models import StoreTheme
+        try:
+            if isinstance(json_data['theme'], basestring):
+                json_data['theme'] = StoreTheme(page=json_data['theme'])
+        except:
+            raise  # TODO: handling
+
+        return cls(**json_data)
 
 
 class StoreFeature(BaseModelNamed):

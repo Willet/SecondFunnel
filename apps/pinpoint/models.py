@@ -73,7 +73,7 @@ class StoreTheme(BaseModelNamed):
         return u"Theme: %s" % self.name
 
     def from_json(cls, json_data):
-        return cls(json_data)
+        return cls(**json_data)
 
 
 class BlockType(BaseModelNamed):
@@ -124,6 +124,17 @@ class Campaign(BaseModelNamed):
     intentrank = models.ManyToManyField(IntentRankCampaign,
         related_name='campaigns', blank=True, null=True)
 
+    def __init__(self, *args, **kwargs):
+        try:
+            super(Campaign, self).__init__(*args, **kwargs)
+        except:
+            pass  # doesn't really matter, to be honest
+
+        # allow temporary storage of arbitrary attributes
+        for key in kwargs:
+            if not hasattr(self, key):
+                setattr(self, key, kwargs[key])
+
     def __unicode__(self):
         return u"Campaign: %s" % self.name
 
@@ -162,3 +173,13 @@ class Campaign(BaseModelNamed):
             return None
 
         return results[0]
+
+    @classmethod
+    def from_json(cls, json_data):
+        try:
+            if isinstance(json_data['theme'], basestring):
+                json_data['theme'] = StoreTheme(page=json_data['theme'])
+        except:
+            raise  # TODO: handling
+
+        return cls(**json_data)

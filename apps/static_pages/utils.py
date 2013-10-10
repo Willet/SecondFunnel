@@ -57,6 +57,7 @@ def get_bucket_name(bucket_name):
         raise Exception("Unknown ENVIRONMENT name: {0}".format(
             settings.ENVIRONMENT))
 
+
 def create_dummy_request():
     # Monkeypatch request
     # https://code.djangoproject.com/ticket/15736?cversion=0&cnum_hist=1
