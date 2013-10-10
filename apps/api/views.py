@@ -18,7 +18,7 @@ def proxy_view(request, path):
         return HttpResponse(
             content='{"error": "Not logged in"}',
             mimetype='application/json',
-            status=403
+            status=401
         )
 
     target_url = settings.CONTENTGRAPH_BASE_URL
