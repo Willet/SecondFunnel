@@ -12,6 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 
 from apps.assets.models import Store
+from apps.contentgraph.views import get_page
 from apps.intentrank.views import get_seeds_ir
 from apps.pinpoint.models import Campaign
 from apps.pinpoint.utils import render_campaign
@@ -148,16 +149,13 @@ def generate_static_campaign(campaign_id, ignore_static_logs=False):
     page generator is hosted on "barebones django app"
     """
 
-    campaign_type = ContentType.objects.get_for_model(Campaign)
-    get_campaign_data = get_remote_data  # TODO: implement
-
     def create_campaign_from_dict(campaign_data):
         post_processing = proxy  # TODO: implement
         campaign_data = post_processing(campaign_data)
         return Campaign(campaign_data)
 
     try:
-        campaign_json = json.loads(get_campaign_data(Campaign.objects.get(id=campaign_id)))
+        campaign_json = get_page(store_id=None, page_id=campaign_id)
 
         # do -something- to turn ContentGraph JSON into a campaign object
         campaign = create_campaign_from_dict(campaign_json)
@@ -176,8 +174,10 @@ def generate_static_campaign(campaign_id, ignore_static_logs=False):
 
     # if we think this static page already exists, finish task
     try:
-        log_entry = StaticLog.objects.get(content_type=campaign_type,
-                                          object_id=campaign.id, key=log_key)
+        log_entry = StaticLog.objects.get(
+            # content_type=content_type,
+            content_type=None,
+            object_id=campaign.id, key=log_key)
 
         if log_entry and ignore_static_logs:
             raise StaticLog.DoesNotExist('force-regeneration override')
