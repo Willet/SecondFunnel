@@ -1,8 +1,9 @@
+import json
+import re
+
 from collections import defaultdict
 from datetime import datetime
-import json
-from apps.contentgraph.views import get_page
-from apps.pinpoint.models import StoreTheme, Campaign
+
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.handlers.wsgi import WSGIRequest
@@ -11,9 +12,10 @@ from django.template.defaultfilters import slugify
 from django.test import RequestFactory
 from django.utils.importlib import import_module
 
-from apps.static_pages.models import StaticLog
 from apps.assets.models import Store, Product
-import re
+from apps.contentgraph.views import get_page
+from apps.pinpoint.models import StoreTheme, Campaign
+from apps.static_pages.models import StaticLog
 
 
 def save_static_log(object_class, object_id, key):

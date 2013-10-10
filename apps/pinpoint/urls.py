@@ -24,14 +24,8 @@ urlpatterns = patterns('apps.pinpoint.views',
     url(r'^admin/(?P<store_id>\d+)/theme/(?P<theme_id>\d+)/styles', 'style_theme',
         name='style-theme'),
 
-    url(r'^admin/(?P<store_id>\d+)/asset-manager/upload/$', 'upload_asset',
-        name='upload-asset'),
-
     url(r'^admin/(?P<store_id>\d+)/new_campaign/$',
         'new_campaign', name='new-campaign-admin'),
-
-    url(r'^admin/(?P<store_id>\d+)/edit_campaign/(?P<campaign_id>\d+)/$',
-        'edit_campaign', name='edit-campaign-admin'),
 
     url(r'^admin/(?P<store_id>\d+)/delete_campaign/(?P<campaign_id>\d+)/$',
         'delete_campaign', name='delete-campaign-admin'),

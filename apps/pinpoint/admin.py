@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from apps.pinpoint.models import (StoreTheme, BlockType, Campaign,
                                   IntentRankCampaign)
-from apps.assets.admin import BaseAdmin, BaseNamedAdmin, BaseNamedMediaAdmin
+from apps.assets.admin import BaseNamedAdmin
 
 
 class StoreThemeAdmin(BaseNamedAdmin):

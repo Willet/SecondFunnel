@@ -17,10 +17,11 @@ class StoreTheme(BaseModelNamed):
     """
 
     DEFAULT_PAGE = """
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
     <head>
-        {{ header_content }}
+        {{ campaign_config }}
+        {{ head_content }}
     </head>
     <body>
         {{ js_templates }}
@@ -31,7 +32,7 @@ class StoreTheme(BaseModelNamed):
     """
 
     # Django templates
-    page = models.TextField(default=DEFAULT_PAGE, verbose_name='Page')
+    page = models.TextField(verbose_name='Page', default=DEFAULT_PAGE)
 
     store_id = models.PositiveSmallIntegerField(null=False, blank=False)
     page_id = models.PositiveSmallIntegerField(null=True, blank=True)
