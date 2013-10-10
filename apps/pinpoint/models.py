@@ -153,7 +153,11 @@ class Campaign(BaseModelNamed):
 
     @property
     def default_intentrank(self):
-        return self.intentrank.all()[0]
+        try:
+            return self.intentrank.all()[0]
+        except IndexError:
+            # TODO: raise if appropriate
+            return 0
 
     def get_theme(self, theme_type='auto'):
         """Returns the best match for the given theme type.
