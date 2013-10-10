@@ -1,10 +1,7 @@
 from django.core.exceptions import ValidationError
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
 from django.db import models
 
-from apps.assets.models import (BaseModel, BaseModelNamed, Store, GenericImage,
-                                Product, ProductMedia)
+from apps.assets.models import BaseModelNamed, Store, Product
 
 
 class StoreTheme(BaseModelNamed):
@@ -99,39 +96,6 @@ class BlockType(BaseModelNamed):
         return u"Block type: %s" % self.name
 
 
-class BlockContent(BaseModel):
-    """
-    Represents a generic content block. This allows other models to
-    include content blocks without worrying what type of content they are.
-
-    @ivar block_type: The type of content this is.
-    @ivar priority:???
-    @ivar content_type: The name of the model of the content block.
-    @ivar object_id: The id of the model of type content_type.
-    @ivar data: The generic foreign key that uses content_type and object_id
-        to link to a content-type database object.
-    """
-    block_type = models.ForeignKey(BlockType)
-    priority = models.IntegerField(blank=True, null=True)
-    """@deprecated: This was never used."""
-
-    content_type = models.ForeignKey(ContentType)
-    object_id = models.PositiveIntegerField()
-
-    # This line was copied (and can be referenced) straight from
-    # https://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/
-    # It ties self.data with table(content_type)(pk=object_id).
-    data = generic.GenericForeignKey('content_type', 'object_id')
-
-    def __unicode__(self):
-        return u"BlockContent of type %s for %s: %s" % (
-            self.content_type, self.block_type, self.data
-        )
-
-    def get_data(self):
-        # tastypie patch
-        return self.__unicode__()
-
 class IntentRankCampaign(BaseModelNamed):
     def __unicode__(self):
         return u'{0}'.format(self.name)
@@ -142,7 +106,6 @@ class Campaign(BaseModelNamed):
     Defines a pinpoint page.
 
     @ivar store: The store this page is for.
-    @ivar content_blocks: The featured content blocks for this page.
     @ivar discovery_blocks: The discovery blocks for this page.
     @ivar live: Whether or not the current page is live.
     """
@@ -152,14 +115,11 @@ class Campaign(BaseModelNamed):
         blank=True,
         null=True,
         verbose_name='Campaign Theme')
-    content_blocks = models.ManyToManyField(BlockContent,
-        related_name="content_campaign")
-
-    discovery_blocks = models.ManyToManyField(
-        BlockContent, related_name="discovery_campaign", blank=True, null=True)
 
     live = models.BooleanField(default=True)
     supports_categories = models.BooleanField(default=False)
+
+    content_block = None  # stub
 
     default_intentrank = models.ForeignKey(IntentRankCampaign,
         related_name='campaign', blank=True, null=True)
@@ -201,128 +161,3 @@ class Campaign(BaseModelNamed):
             return None
 
         return results[0]
-
-
-class FeaturedProductBlock(BaseModelNamed):
-    """
-    Data model for Featured Content blocks, to be used with BlockContent
-
-    @ivar product: The product to feature.
-    @ivar existing_image: A scraped image to use to feature the
-        product. Either this or custom_image must exist.
-    @ivar custom_image: A custom image to use to feature the product.
-        Either this or existing_image must exist.
-    """
-
-    product = models.ForeignKey(Product)
-    existing_image = models.ForeignKey(ProductMedia, blank=True, null=True)
-    custom_image = models.OneToOneField(GenericImage, blank=True, null=True)
-
-    def __unicode__(self):
-        return u"Featured Content Data for %s" % self.product
-    
-    def get_image(self, url=False):
-        """
-        Get an image associated with this block. Prefer custom image over existing image.
-        
-        @return: A Generic Image object.
-        """
-        
-        image = self.custom_image or self.existing_image or None
-        
-        if url and image:
-            return image.get_url()
-        
-        return image
-    
-    
-    def save(self, *args, **kwargs):
-        """Overridden save method to do multi-field validation."""
-        self.clean()
-        super(self.__class__, self).save(*args, **kwargs)
-
-    def clean(self):
-        """Multi-field validation goes here.
-
-        docs.djangoproject.com/en/1.4/ref/models/instances/#validating-objects
-        """
-        if not (self.existing_image or self.custom_image):
-            # TODO: "collect all the errors and return them all at once"
-            #       (and display on the form, if model is being modified
-            #        on a form)
-            raise ValidationError('Block needs at least one product image.')
-
-
-class ShopTheLookBlock(BaseModelNamed):
-    """
-    Data model for Shop the Look blocks, to be used with BlockContent.
-
-    @attention: This should inherit from FeaturedProductBlock.
-
-    @ivar product: The product to feature.
-    @ivar existing_image: A scraped image to use to feature the
-        product. Either this or custom_image must exist.
-    @ivar custom_image: A custom image to use to feature the product.
-        Either this or existing_image must exist.
-
-    @ivar existing_ls_image: A scraped image to use to show the product
-        in action. Either this or custom_image must exist.
-    @ivar custom_ls_image: A custom image to use to show the product in
-        action. Either this or existing_image must exist.
-    """
-
-    product = models.ForeignKey(Product)
-
-    # existing_image is populated if the campaign was created using
-    # an image already in the database
-    existing_image = models.ForeignKey(ProductMedia, blank=True, null=True)
-
-    # custom_image is populated if the campaign was created using
-    # an image already in the database
-    custom_image   = models.OneToOneField(GenericImage, blank=True, null=True)
-
-    existing_ls_image = models.ForeignKey(
-        ProductMedia, blank=True, null=True, related_name='ls_image_set')
-    custom_ls_image = models.OneToOneField(
-        GenericImage, blank=True, null=True, related_name='ls_image')
-
-    def __unicode__(self):
-        return u"Featured Content Data for %s" % self.product
-
-    def get_image(self, url=False):
-        """Get an image associated with this block"""
-
-        image = self.custom_image or self.existing_image or None
-
-        if url and image:
-            return image.get_url()
-
-        return image
-
-    def get_ls_image(self, url=False):
-        """Get a lifestyle image associated with this block"""
-
-        image = self.custom_ls_image or self.existing_ls_image or None
-
-        if url and image:
-            return image.get_url()
-
-        return image
-
-    def save(self, *args, **kwargs):
-        """Overridden save method to do multi-field validation."""
-        self.clean()
-        super(self.__class__, self).save(*args, **kwargs)
-
-    def clean(self):
-        """Multi-field validation goes here.
-
-        docs.djangoproject.com/en/1.4/ref/models/instances/#validating-objects
-        """
-        if not (self.existing_image or self.custom_image):
-            # TODO: "collect all the errors and return them all at once"
-            #       (and display on the form, if model is being modified
-            #        on a form)
-            raise ValidationError('Block needs at least one product image.')
-        if not (self.existing_ls_image or self.custom_ls_image):
-            raise ValidationError('Block needs at least one STL image.')

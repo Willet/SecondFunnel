@@ -9,6 +9,7 @@ from django.conf import settings
 from django.template import Context, RequestContext, Template, loader
 from django.template.defaultfilters import slugify, safe
 
+from apps.assets.models import Product
 from apps.contentgraph.views import get_page
 from apps.pinpoint.models import Campaign
 
@@ -36,22 +37,32 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         return theme_data
 
     campaign = None
+    campaign_data = {}
     try:
-        campaign = Campaign(get_page(store_id=store_id, page_id=campaign_id))
+        campaign_cg = get_page(store_id=store_id, page_id=campaign_id)
+        campaign_data = campaign_cg.json(False)
+        campaign = Campaign.from_json(campaign_data)
     except ValueError:
         raise  # json error
 
     # TODO: Content blocks don't make as much sense now; when to clean up?
     # TODO: If we keep content blocks, should this be a method?
     # Assume only one content block
+    content_block = None
     try:
-        content_block = campaign.content_block
-    except AttributeError:  # transition incomplete
         content_block = campaign.content_blocks.all()[0]
+    except AttributeError:  # transition complete
+        content_block = campaign.content_block
+    finally:
+        if not content_block:
+            content_block = ''
 
-    product = content_block.data.product
 
-    campaign.description = (content_block.data.description or product.description).encode('unicode_escape')
+    # product = content_block.data.product
+    product = Product.objects.get(pk=campaign_data.get('featured_product_id'))
+
+    # campaign.description = (content_block.data.description or product.description).encode('unicode_escape')
+    campaign.description = campaign_data['featured_product_description']
     campaign.template = slugify(
         content_block.block_type.name)
 
@@ -63,8 +74,12 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
 
     # "borrow" IR for results
     if get_seeds_func:
-        backup_results = get_seeds_func(request, store=campaign.store.slug,
-            campaign=campaign.default_intentrank_id or campaign.id,
+        backup_results = get_seeds_func(
+            request,
+            # store=campaign.store.slug,
+            store=campaign_data.get('store_slug'),
+            # campaign=campaign.default_intentrank_id or campaign.id,
+            campaign=campaign_data.get('intentrank_id') or campaign.id,
             base_url=base_url, results=100, raw=True)
     else:
         backup_results = []

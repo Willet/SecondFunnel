@@ -56,5 +56,8 @@ class ContentGraphObject(object):
         return get_contentgraph_data(endpoint_path=self.endpoint_path,
             method="PATCH", body=json.dumps({key: value}))
 
-    def json(self):
-        return json.dumps(self.cached_data)
+    def json(self, serialized=True):
+        if serialized:
+            return json.dumps(self.cached_data)
+        else:
+            return self.cached_data
