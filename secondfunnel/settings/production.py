@@ -42,13 +42,13 @@ INSTALLED_APPS = (
     'maintenancemode',
     'compressor',
     'social_auth',
+    'corsheaders',
 
     # our apps
-    'apps.analytics',
+    'apps.api',
     'apps.assets',
     'apps.pinpoint',
     'apps.website',
-    'apps.scraper',
     'apps.static_pages',
 )
 
