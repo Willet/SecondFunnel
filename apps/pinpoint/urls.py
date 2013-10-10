@@ -44,6 +44,6 @@ urlpatterns = patterns('apps.pinpoint.views',
 
     # As suggested in the docs, but how will this affect reverse / url?
     # https://docs.djangoproject.com/en/dev/topics/http/urls/#notes-on-capturing-text-in-urls
-    url(r'^(?P<campaign_id>\d+)/$', 'campaign', name='campaign'),
-    url(r'^(?P<campaign_id>\d+)/(?:(?P<mode>\w+).html)?$', 'campaign', name='campaign'),
+    url(r'^(?P<store_id>\d+)/(?P<campaign_id>\d+)/?$', 'campaign', name='campaign'),
+    url(r'^(?P<store_id>\d+)/(?P<campaign_id>\d+)/(?:(?P<mode>\w+).html)?$', 'campaign', name='campaign'),
 )

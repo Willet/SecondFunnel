@@ -1,7 +1,6 @@
 """
 Various utilities to assist and share among components of the PinPoint app
 """
-import json
 import re
 from collections import defaultdict
 from datetime import datetime
@@ -10,11 +9,11 @@ from django.conf import settings
 from django.template import Context, RequestContext, Template, loader
 from django.template.defaultfilters import slugify, safe
 
-from apps.pinpoint.models import StoreTheme
-from apps.static_pages.utils import get_remote_data
-from apps.utils import noop
+from apps.contentgraph.views import get_page
+from apps.pinpoint.models import Campaign
 
-def render_campaign(campaign, request, get_seeds_func=None):
+
+def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     """Generates the HTML page for a standard pinpoint product page.
 
     Related products are populated statically only if a request object
@@ -35,6 +34,12 @@ def render_campaign(campaign, request, get_seeds_func=None):
     def create_theme_from_data(theme_data):
         # return StoreTheme(json.loads(theme_data))
         return theme_data
+
+    campaign = None
+    try:
+        campaign = Campaign(get_page(store_id=store_id, page_id=campaign_id))
+    except ValueError:
+        raise  # json error
 
     # TODO: Content blocks don't make as much sense now; when to clean up?
     # TODO: If we keep content blocks, should this be a method?

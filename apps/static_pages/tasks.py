@@ -22,11 +22,9 @@ from apps.utils import noop, proxy
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
     get_route53_change_status, upload_to_bucket)
 from apps.static_pages.utils import (save_static_log, remove_static_log,
-    bucket_exists_or_pending, get_remote_data, get_bucket_name,
-    create_dummy_request)
+    bucket_exists_or_pending, get_bucket_name, create_dummy_request)
 
 celery = Celery()
-# TODO: make use of logging, instead of suppressing errors as is done now
 logger = get_task_logger(__name__)
 
 

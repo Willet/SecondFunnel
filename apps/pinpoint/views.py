@@ -471,7 +471,7 @@ def style_theme(request, store_id, theme_id):
         template_vars.update({'theme_saved': True})
 
     # response_body is used to scan for styling regions declared by the theme.
-    response_body = render_campaign(campaign, request, get_seeds_ir)
+    response_body = render_campaign(campaign.id, request, get_seeds_ir)
     field_styles = []
     for selector, hint in themable_fields:
         field_style = theme.get_styles(response_body, selector)
@@ -523,7 +523,7 @@ def preview_theme(request, store_id, theme_id=None):
 
         campaign.theme = theme
 
-        response_body = render_campaign(campaign, request, get_seeds_ir)
+        response_body = render_campaign(campaign.id, request, get_seeds_ir)
         page = HttpResponse(response_body)
 
         if request.GET.get('dummy_theme_id'):  # delete only if made to mock
@@ -568,11 +568,9 @@ def campaign_short(request, campaign_id_short):
 
 
 @vary_on_headers('Accept-Encoding')
-def campaign(request, campaign_id):
+def campaign(request, store_id, campaign_id):
     """Returns a rendered campaign response of the given id."""
-    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
-
-    rendered_content = render_campaign(campaign_instance,
+    rendered_content = render_campaign(store_id, campaign_id,
         request=request, get_seeds_func=get_seeds_ir)
 
     return HttpResponse(rendered_content)
