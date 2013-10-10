@@ -299,9 +299,9 @@ debugOp = function () {
         },
         runTest = function () {
             var protoSrcMaps = [
-                    "/static/testing/lib/jasmine-1.3.1/jasmine.js",
-                    "/static/testing/lib/jasmine-1.3.1/jasmine-html.js",
-                    "/static/testing/lib/jasmine-1.3.1/jasmine-console.js",
+                    "/static/js/jasmine.js",
+                    "/static/js/jasmine-html.js",
+                    "/static/js/jasmine-console.js",
                     "/static/pinpoint/js/pages.preinit.spec.js",
                     "/static/pinpoint/js/pages.spec.js",
                     "/static/pinpoint/js/pages.support.spec.js",

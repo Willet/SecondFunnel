@@ -30,12 +30,6 @@ urlpatterns = patterns('apps.pinpoint.views',
     url(r'^admin/(?P<store_id>\d+)/asset-manager/upload/$', 'upload_asset',
         name='upload-asset'),
 
-    url(r'^admin/(?P<store_id>\d+)/(?P<campaign_id>\d+)/analytics/$',
-        'campaign_analytics_admin', name='analytics-campaign-admin'),
-
-    url(r'^admin/(?P<store_id>\d+)/analytics/$',
-        'store_analytics_admin', name='analytics-store-admin'),
-
     url(r'^admin/(?P<store_id>\d+)/new_campaign/$',
         'new_campaign', name='new-campaign-admin'),
 

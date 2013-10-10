@@ -189,6 +189,7 @@ MIDDLEWARE_CLASSES = (
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'maintenancemode.middleware.MaintenanceModeMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     )
 
 KEEP_COMMENTS_ON_MINIFYING = True
@@ -237,20 +238,35 @@ INSTALLED_APPS = (
     'compressor',
     'maintenancemode',
     'social_auth',
+    'corsheaders',
 
     # our apps
-    'apps.analytics',
+    'apps.api',
     'apps.assets',
     'apps.pinpoint',
     'apps.website',
-    'apps.scraper',
     'apps.static_pages',
     'apps.utils',
-    'apps.testing',
 
     # CI
     'django_jenkins',
 )
+
+CORS_ORIGIN_REGEX_WHITELIST = (
+    '^[\w-]+\.secondfunnel\.com$'
+)
+CORS_ALLOW_HEADERS = (
+    'x-requested-with',
+    'content-type',
+    'accept',
+    'origin',
+    'authorization',
+    'x-csrftoken',
+    'ApiKey'
+)
+CORS_ALLOW_CREDENTIALS = True
+SESSION_COOKIE_DOMAIN = '.secondfunnel.com'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 JENKINS_TEST_RUNNER = 'django_jenkins.nose_runner.CINoseTestSuiteRunner'
@@ -319,6 +335,7 @@ FIXTURE_DIRS = (
 
 WEBSITE_BASE_URL = 'http://www.secondfunnel.com'
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
+CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
 
 AUTHENTICATION_BACKENDS = (
     'social_auth.backends.contrib.instagram.InstagramBackend',
