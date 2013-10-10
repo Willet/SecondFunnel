@@ -106,6 +106,7 @@ class Store(BaseModelNamed):
     def from_json(cls, json_data):
         from apps.pinpoint.models import StoreTheme
         try:
+            # special case... the theme needs to become an instance beforehand
             if isinstance(json_data['theme'], basestring):
                 json_data['theme'] = StoreTheme(page=json_data['theme'])
         except:

@@ -50,6 +50,31 @@ def view_pages(request, store_id):
     return ajax_jsonp(get_pages(store_id))
 
 
+def get_product(store_id, page_id, product_id):
+    """TODO: check if endpoint outputs are consistent with pages/stores"""
+    return ContentGraphObject('/store/{0}/page/{1}/product/{2}'.format(
+        store_id, page_id, product_id))
+
+
+def view_product(request, store_id, page_id, product_id):
+    """TODO: check if endpoint outputs are consistent with pages/stores"""
+    return ajax_jsonp(get_product(store_id, page_id, product_id))
+
+
+def get_products(store_id, page_id):
+    """TODO: check if endpoint outputs are consistent with pages/stores"""
+    products = []
+    data = get_contentgraph_data('/store/{0}/page/{1}/product'.format(
+        store_id, page_id))
+    for product in data['results']:  # json format: {"results": [...]}
+        products.append(get_product(store_id, product['id']))
+    return products
+
+
+def view_products(request, store_id, page_id):
+    return ajax_jsonp(get_products(store_id, page_id))
+
+
 def proxy(request, endpoint_path='/'):
     """generic version of all view_defs.
 
