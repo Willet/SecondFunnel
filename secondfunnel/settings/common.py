@@ -252,9 +252,9 @@ INSTALLED_APPS = (
     'django_jenkins',
 )
 
-CORS_ORIGIN_WHITELIST = () # TODO: Set whitelist
-#CORS_ORIGIN_REGEX_WHITELIST # could also be useful
-#CORS_URLS_REGEX # could also be useful
+CORS_ORIGIN_REGEX_WHITELIST = (
+    '^[\w-]+\.secondfunnel\.com$'
+)
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'content-type',
@@ -265,7 +265,7 @@ CORS_ALLOW_HEADERS = (
     'ApiKey'
 )
 CORS_ALLOW_CREDENTIALS = True
-SESSION_COOKIE_DOMAIN = '.localhost'
+SESSION_COOKIE_DOMAIN = '.secondfunnel.com'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
