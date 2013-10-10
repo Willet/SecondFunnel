@@ -1,7 +1,9 @@
 """
 Various utilities to assist and share among components of the PinPoint app
 """
+import json
 import re
+
 from collections import defaultdict
 from datetime import datetime
 
@@ -11,7 +13,7 @@ from django.template.defaultfilters import slugify, safe
 
 from apps.assets.models import Product
 from apps.contentgraph.views import get_page
-from apps.pinpoint.models import Campaign
+from apps.pinpoint.models import Campaign, StoreTheme
 
 
 def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
@@ -33,8 +35,8 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
             return match.group(0)  # leave unchanged
 
     def create_theme_from_data(theme_data):
-        # return StoreTheme(json.loads(theme_data))
-        return theme_data
+        return StoreTheme(json.loads(theme_data))
+        # return theme_data
 
     campaign = None
     campaign_data = {}
@@ -58,13 +60,16 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
             content_block = ''
 
 
-    # product = content_block.data.product
-    product = Product.objects.get(pk=campaign_data.get('featured_product_id'))
+    try:
+        # product = content_block.data.product
+        product = Product.objects.get(pk=campaign_data.get('featured_product_id'))
+    except:
+        # TODO: is this okay?
+        product = None
 
     # campaign.description = (content_block.data.description or product.description).encode('unicode_escape')
-    campaign.description = campaign_data['featured_product_description']
-    campaign.template = slugify(
-        content_block.block_type.name)
+    campaign.description = campaign_data.get('featured_product_description')
+    campaign.template = slugify(campaign_data.get('template', 'hero'))  # TODO: hero? hero-image?
 
     if settings.DEBUG:
         # If in debug mode, or we otherwise need to use the old proxy
@@ -99,7 +104,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
 
     try:
         # theme = campaign.get_theme()
-        theme_data = campaign.theme or campaign.get_theme()  # likely transition
+        theme_data = campaign_data.get('theme') or campaign.get_theme()  # likely transition
 
         if not theme_data:
             raise ValueError('campaign has no theme when campaign manager saved it')

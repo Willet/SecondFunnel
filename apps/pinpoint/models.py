@@ -10,14 +10,10 @@ class StoreTheme(BaseModelNamed):
 
     @ivar DEFAULT_PAGE_TEMPLATE: The default page template.
 
-    @ivar store: A one-to-one foreign key to the store this template is for.
-    @ivar page_template: The template for the entire page. Css is also usually put here.
-    @ivar preview_product: The template for the content of the preview box.
-
-    @ivar featured_product: The template for featured product blocks.
-
-    @ivar discovery_product: The template for discovery blocks containing products.
-    @ivar discovery_youtube: The template for discovery blocks containing youtube videos.
+    @ivar store_id: a number corresponding to a "store" in contentgraph.
+    @ivar page_id: a number corresponding to a "page" in contentgraph.
+                   this is optional.
+    @ivar page: The template for the entire page. Css is also usually put here.
     """
 
     DEFAULT_PAGE = """
@@ -38,7 +34,7 @@ class StoreTheme(BaseModelNamed):
     page = models.TextField(default=DEFAULT_PAGE, verbose_name='Page')
 
     store_id = models.PositiveSmallIntegerField(null=False, blank=False)
-    page_id = models.PositiveSmallIntegerField(null=False, blank=False)
+    page_id = models.PositiveSmallIntegerField(null=True, blank=True)
 
     class Meta:
         # unique_together: stackoverflow.com/a/2201687/1558430
@@ -121,8 +117,6 @@ class Campaign(BaseModelNamed):
 
     content_block = None  # stub
 
-    default_intentrank = models.ForeignKey(IntentRankCampaign,
-        related_name='campaign', blank=True, null=True)
     intentrank = models.ManyToManyField(IntentRankCampaign,
         related_name='campaigns', blank=True, null=True)
 
@@ -140,8 +134,11 @@ class Campaign(BaseModelNamed):
             )
             ir_campaign.save()
 
-            self.default_intentrank = ir_campaign
             self.intentrank.add(ir_campaign)
+
+    @property
+    def default_intentrank(self):
+        return self.intentrank.all()[0]
 
     def get_theme(self, theme_type='auto'):
         """Returns the best match for the given theme type.
