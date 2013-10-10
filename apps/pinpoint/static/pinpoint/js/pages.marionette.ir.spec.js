@@ -80,7 +80,6 @@ describe('intentRank', function () {
             }
             setTimeout(function () {deferred.reject('jqXHR', 'textStatus', 'errorThrown'); }, delay);
 
-            // TODO: not sure this actually works. Need to investigate
             return deferred.promise();
         };
 
