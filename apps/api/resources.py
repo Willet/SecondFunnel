@@ -59,14 +59,14 @@ class UserResource(ModelResource):
                 'reason': 'disabled'
             }, HttpForbidden)
 
+        # Add CSRF token. Nick is not a security expert
+        csrf_token = django.middleware.csrf.get_token(request)
+
         login(request, user)
         response = self.create_response(request, {
-            'success': True
+            'success': True,
+            'csrf': csrf_token
         })
-
-        # Add CSRF token.
-        csrf_token = django.middleware.csrf.get_token(request)
-        response.set_cookie('csrftoken', csrf_token)
 
         return response
 

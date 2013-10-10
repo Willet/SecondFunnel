@@ -264,6 +264,9 @@ CORS_ALLOW_HEADERS = (
     'x-csrftoken',
     'ApiKey'
 )
+CORS_ALLOW_CREDENTIALS = True
+SESSION_COOKIE_DOMAIN = '.localhost'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 JENKINS_TEST_RUNNER = 'django_jenkins.nose_runner.CINoseTestSuiteRunner'
