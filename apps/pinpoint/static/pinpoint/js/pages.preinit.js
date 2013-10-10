@@ -299,6 +299,7 @@ debugOp = function () {
         },
         runTest = function () {
             var protoSrcMaps = [
+<<<<<<< HEAD:apps/pinpoint/static/pinpoint/js/pages.preinit.js
                     "/static/testing/lib/jasmine-1.3.1/jasmine.js",
                     "/static/testing/lib/jasmine-1.3.1/jasmine-html.js",
                     "/static/testing/lib/jasmine-1.3.1/jasmine-console.js",
@@ -308,6 +309,17 @@ debugOp = function () {
                     "/static/pinpoint/js/pages.utils.spec.js",
                     "/static/pinpoint/js/pages.layoutengine.spec.js",
                     "/static/pinpoint/js/pages.viewport.spec.js"
+=======
+                    "/static/js/jasmine.js",
+                    "/static/js/jasmine-html.js",
+                    "/static/js/jasmine-console.js",
+                    "/static/pinpoint/js/pages.marionette.preinit.spec.js",
+                    "/static/pinpoint/js/pages.marionette.spec.js",
+                    "/static/pinpoint/js/pages.marionette.support.spec.js",
+                    "/static/pinpoint/js/pages.marionette.utils.spec.js",
+                    "/static/pinpoint/js/pages.marionette.layoutengine.spec.js",
+                    "/static/pinpoint/js/pages.marionette.viewport.spec.js"
+>>>>>>> 865d1c0e65b77a6fa68d6715b9f736162d1787ae:apps/pinpoint/static/pinpoint/js/pages.marionette.preinit.js
                 ],
                 href = window.location.href.toLowerCase();
 

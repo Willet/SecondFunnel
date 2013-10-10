@@ -55,6 +55,11 @@ CACHES = {
 
 CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
 
+CORS_ORIGIN_REGEX_WHITELIST = (
+    '^(localhost|127.0.0.1):(\d+)$'
+)
+SESSION_COOKIE_DOMAIN = '.localhost'
+
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'

@@ -1,3 +1,4 @@
+import django
 from django.conf.urls import url
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -58,10 +59,16 @@ class UserResource(ModelResource):
                 'reason': 'disabled'
             }, HttpForbidden)
 
+        # Add CSRF token. Nick is not a security expert
+        csrf_token = django.middleware.csrf.get_token(request)
+
         login(request, user)
-        return self.create_response(request, {
-            'success': True
+        response = self.create_response(request, {
+            'success': True,
+            'csrf': csrf_token
         })
+
+        return response
 
     def logout(self, request, **kwargs):
         self.method_check(request, allowed=['post'])
