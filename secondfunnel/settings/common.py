@@ -239,15 +239,13 @@ INSTALLED_APPS = (
     'social_auth',
 
     # our apps
-    'apps.analytics',
+    'apps.api',
     'apps.assets',
     'apps.pinpoint',
     'apps.contentgraph',
     'apps.website',
-    'apps.scraper',
     'apps.static_pages',
     'apps.utils',
-    'apps.testing',
 
     # CI
     'django_jenkins',
