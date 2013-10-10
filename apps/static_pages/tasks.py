@@ -15,14 +15,13 @@ from apps.assets.models import Store
 from apps.contentgraph.views import get_page
 from apps.intentrank.views import get_seeds_ir
 from apps.pinpoint.models import Campaign
-from apps.pinpoint.utils import render_campaign
 from apps.static_pages.models import StaticLog
 from apps.utils import noop, proxy
 
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
     get_route53_change_status, upload_to_bucket)
 from apps.static_pages.utils import (save_static_log, remove_static_log,
-    bucket_exists_or_pending, get_bucket_name, create_dummy_request)
+    bucket_exists_or_pending, get_bucket_name, create_dummy_request, render_campaign)
 
 celery = Celery()
 logger = get_task_logger(__name__)

@@ -14,17 +14,7 @@ class ThemeForm(ModelForm):
         queryset=Store.objects.none()
     )
 
-    store_mobile_theme = forms.ModelMultipleChoiceField(
-        required=False,
-        queryset=Store.objects.none()
-    )
-
     campaign_theme = forms.ModelMultipleChoiceField(
-        required=False,
-        queryset=Campaign.objects.none()
-    )
-
-    campaign_mobile_theme = forms.ModelMultipleChoiceField(
         required=False,
         queryset=Campaign.objects.none()
     )

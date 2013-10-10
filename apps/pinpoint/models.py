@@ -71,6 +71,9 @@ class StoreTheme(BaseModelNamed):
     def __unicode__(self):
         return u"Theme: %s" % self.name
 
+    def from_json(cls, json_data):
+        return cls(json_data)
+
 
 class BlockType(BaseModelNamed):
     """

@@ -1,4 +1,5 @@
 from urllib import urlencode
+from apps.static_pages.utils import render_campaign
 from django.db.models import Q
 from apps.pinpoint.forms import ThemeForm
 
@@ -25,9 +26,6 @@ from apps.pinpoint.ajax import upload_image
 
 from apps.pinpoint.models import Campaign, BlockType, StoreTheme
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
-from apps.pinpoint.utils import render_campaign
-import apps.pinpoint.wizards as wizards
-from apps.pinpoint.wizards import Wizard
 from apps.utils.ajax import ajax_error, ajax_success
 
 import apps.utils.base62 as base62
@@ -135,27 +133,6 @@ def new_campaign(request, store_id):
 
 
 @login_required
-def edit_campaign(request, store_id, campaign_id):
-    """
-    Allows a user to edit a pre-existing pinpoint page.
-
-    This function calls the appropriate handler in apps.pinpoint.wizards using the
-    handler attribute of the block type of the given page.
-
-    @param request: The request for this page.
-    @param store_id: The id of the store the page was created for.
-    @param campaign_id: The page to edit.
-
-    @return: An HttpResponse with a form to change the pinpoint page.
-    """
-    store = get_object_or_404(Store, pk=store_id)
-    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
-    block_type = None # campaign_instance.content_blocks.all()[0].block_type
-
-    return getattr(wizards, block_type.handler)(
-        request, store, block_type, campaign=campaign_instance)
-
-@login_required
 def delete_campaign(request, store_id, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
     campaign_instance.live = False
@@ -164,29 +141,6 @@ def delete_campaign(request, store_id, campaign_id):
     messages.success(request, "Your page was deleted.")
 
     return redirect('store-admin', store_id=store_id)
-
-
-@require_POST
-@login_required
-def upload_asset(request, store_id):
-    store = get_object_or_404(Store, pk=store_id)
-    media = ''
-    try:
-        media = upload_image(request)
-        url = media.get_url()
-        asset = create_external_content(
-            store,
-            type='upload-image',
-            original_id=url,
-            text_content=url,
-            image_url=url
-        )
-    except Exception, e:
-        if isinstance(media, HttpResponse):
-            return media
-        return ajax_error({'error': str(e)})
-
-    return ajax_success()
 
 
 @belongs_to_store
