@@ -54,7 +54,6 @@ class BaseModelNamed(BaseModel):
         return cls(**json_data)  # TODO: what preprocessing should this have?
 
 
-# class Store(BaseModelNamed):
 class Store(BaseModelNamed):
     """
     This defines a store in the databse.
@@ -75,6 +74,18 @@ class Store(BaseModelNamed):
 
     features = models.ManyToManyField('assets.StoreFeature', blank=True,
         null=True, related_name='stores')
+
+    def __init__(self, *args, **kwargs):
+        try:
+            super(Store, self).__init__(*args, **kwargs)
+        except:
+            pass  # doesn't really matter, to be honest
+
+        # allow temporary storage of arbitrary attributes
+        for key in kwargs:
+            if not hasattr(self, key):
+                setattr(self, key, kwargs[key])
+
 
     def __unicode__(self):
         return self.name
