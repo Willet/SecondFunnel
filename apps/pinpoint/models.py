@@ -181,8 +181,10 @@ class Campaign(BaseModelNamed):
     @classmethod
     def from_json(cls, json_data):
         try:
-            if isinstance(json_data['theme'], basestring):
-                json_data['theme'] = StoreTheme(page=json_data['theme'])
+            theme = json_data.get('theme', '')
+            if isinstance(theme, basestring):
+                # automatically defaults to DEFAULT_PAGE
+                json_data['theme'] = StoreTheme(page=theme)
         except:
             raise  # TODO: handling
 

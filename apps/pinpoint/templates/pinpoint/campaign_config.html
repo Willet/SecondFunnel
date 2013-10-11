@@ -21,18 +21,7 @@
             , 'offline': false  // optional (if true, loads .content immediately)
 
             // you will still need to make elements with data-category="96" on the page.
-            , 'categories': [
-                {% with categories=campaign.intentrank.all%}
-                    {% if categories|length > 1 %}
-                        {% for category in categories %}
-                            {
-                                'id': '{{ category.id }}',
-                                'name': '{{ category.name }}'
-                            }{% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-            ]
+            , 'categories': {{ campaign.categories|default:"[]" }}  // string representation of [{id: 123, name: 'gap'}, ...]
 
             // 'main-block-template': '{{ campaign.template }}',  // DEPRECATED
             // 'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},  // DEPRECATED

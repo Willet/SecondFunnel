@@ -16,6 +16,7 @@ def get_contentgraph_data(endpoint_path, headers=None, method="GET", body=""):
     if not headers:
         headers = {}
 
+    # it will get fancier over time
     headers.update({'ApiKey' : 'secretword'})
 
     http = httplib2.Http()
@@ -28,13 +29,16 @@ def get_contentgraph_data(endpoint_path, headers=None, method="GET", body=""):
         return json.loads(content)
 
     if response['status'] == '401':
-        raise ValueError('Requested object requires authentication')
+        raise ValueError('401 Requested object requires authentication')
 
     if response['status'] == '403':
-        raise ValueError('Requested object is not accessible')
+        raise ValueError('403 Requested object is not accessible')
 
     if response['status'] == '404':
-        raise ValueError('Requested object does not exist')
+        raise ValueError('404 Requested object does not exist')
+
+    if response['status'] == '405':
+        raise ValueError('405 Method does not work on request object')
 
     # try to return something in all other cases
     try:
@@ -44,13 +48,24 @@ def get_contentgraph_data(endpoint_path, headers=None, method="GET", body=""):
 
 
 class ContentGraphObject(object):
-    """object representation of any CG endpoint."""
+    """object representation of any CG endpoint.
+
+    This object is not bound to a database, and cannot be saved unless data
+    is transferred to another model.
+    """
     endpoint_path = '/'
     cached_data = {}
 
-    def __init__(self, endpoint_path):
-        """supply a path to connect to, e.g. /store/126."""
+    def __init__(self, endpoint_path, auto_create=False):
+        """supply a path to connect to, e.g. /store/126.
+
+        @param {boolean} auto_create        create this object if it is missing
+        """
         self.endpoint_path = endpoint_path
+        if auto_create:
+            get_contentgraph_data(endpoint_path=endpoint_path, method="PUT",
+                                  body=json.dumps({}))
+
         self.cached_data = get_contentgraph_data(endpoint_path=self.endpoint_path)
 
     def data(self):
@@ -62,8 +77,8 @@ class ContentGraphObject(object):
 
         return self.cached_data
 
-    def get(self, item):
-        return self.data().get(item, None)
+    def get(self, item, default_value=None):
+        return self.data().get(item, default_value)
 
     def set(self, key, value):
         if key == 'endpoint_path':

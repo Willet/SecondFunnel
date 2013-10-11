@@ -1,4 +1,5 @@
 import json
+from apps.intentrank.utils import random_products
 import re
 
 from collections import defaultdict
@@ -102,14 +103,10 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         else:
             return match.group(0)  # leave unchanged
 
-    campaign = None
-    campaign_data = {}
-    try:
-        campaign_cg = get_page(store_id=store_id, page_id=campaign_id)
-        campaign_data = campaign_cg.json(False)
-        campaign = Campaign.from_json(campaign_data)
-    except ValueError:
-        raise  # json error
+    # these 3 lines will trigger ValueErrors if remote JSON is invalid.
+    campaign_cg = get_page(store_id=store_id, page_id=campaign_id)
+    campaign_data = campaign_cg.json(False)
+    campaign = Campaign.from_json(campaign_data)
 
     # TODO: Content blocks don't make as much sense now; when to clean up?
     # TODO: If we keep content blocks, should this be a method?
@@ -123,13 +120,19 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         if not content_block:
             content_block = ''
 
-
+    # get the featured product from our DB.
     try:
         # product = content_block.data.product
         product = Product.objects.get(pk=campaign_data.get('featured_product_id'))
     except:
         # TODO: is this okay?
         product = None
+
+    # get initial results (if any) from our DB.
+    try:
+        initial_results = Product.objects.get(pk__in=campaign_data.get('initial_results'))
+    except:
+        initial_results = []
 
     # campaign.description = (content_block.data.description or product.description).encode('unicode_escape')
     campaign.description = campaign_data.get('featured_product_description')
@@ -159,6 +162,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         "columns": range(4),
         "preview": not campaign.live,
         "product": product,
+        "initial_results": initial_results,
         "backup_results": backup_results,
         "pub_date": datetime.now(),
         "base_url": base_url,

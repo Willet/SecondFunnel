@@ -61,7 +61,7 @@ class Store(BaseModelNamed):
 
     @ivar staff: The users who are allowed to access this store's admin pages.
     """
-    staff = models.ManyToManyField(User)
+    staff = models.ManyToManyField(User, related_name='stores')
     social_auth = models.ManyToManyField(UserSocialAuth, blank=True, null=True)
 
     theme = models.ForeignKey('pinpoint.StoreTheme',
