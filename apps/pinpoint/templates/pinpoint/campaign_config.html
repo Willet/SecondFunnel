@@ -15,13 +15,13 @@
             'displayName': '{{ store.display_name|default:'' }}'  // leave blank to use "Gap"
         }
         , 'page': {  // required
-            'id': '{{ campaign.default_intentrank_id|default:campaign.id }}'  // required
+            'id': '{{ campaign.intentrank_id|default:campaign.id }}'  // required
             , 'product': {% filter escapejs %}{% include "pinpoint/snippets/product_object.js" with product=product only %}{% endfilter %}
             , 'pubDate': '{{ pub_date }}'  // for verifying the original upload date of a static campaign. for human use only
             , 'offline': false  // optional (if true, loads .content immediately)
 
             // you will still need to make elements with data-category="96" on the page.
-            , 'categories': {{ campaign.categories|default:"[]" }}  // string representation of [{id: 123, name: 'gap'}, ...]
+            , 'categories': {{ campaign.categories|escapejs|default:"[]" }}  // string representation of [{id: 123, name: 'gap'}, ...]
 
             // 'main-block-template': '{{ campaign.template }}',  // DEPRECATED
             // 'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},  // DEPRECATED
@@ -29,7 +29,7 @@
             // 'featured-image': '{{ campaign.featured_image }}',  // DEPRECATED
             // 'description': '{{ campaign.description|escapejs }}'  // DEPRECATED
         }
-        , 'campaign': '{{ campaign.default_intentrank_id|default:campaign.id }}'
+        , 'campaign': '{{ campaign.intentrank_id|default:campaign.id }}'
         , 'columnWidth': undefined  // optional (defaults to 255, pixels)
         , 'maxColumnCount': {{ campaign.column_count|default:4 }}  // optional (default: 4)
         // , 'events': undefined  // page event bindings (optional)

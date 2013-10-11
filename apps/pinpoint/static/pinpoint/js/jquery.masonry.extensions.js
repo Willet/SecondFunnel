@@ -29,7 +29,7 @@ function getRectangle(elem) {
 function near(elem1, elem2, distance) {
     var rect1 = getRectangle(elem1),
         rect2 = getRectangle(elem2);
-    // TODO: Where is this 15 coming from ?
+    // 15 is arbitrary
     distance += 15;
 
     // Test if they are within distance

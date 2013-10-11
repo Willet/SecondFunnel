@@ -1,5 +1,4 @@
 import json
-from apps.intentrank.utils import random_products
 import re
 
 from collections import defaultdict
@@ -14,7 +13,9 @@ from django.test import RequestFactory
 from django.utils.importlib import import_module
 
 from apps.assets.models import Store, Product
+from apps.contentgraph.models import get_contentgraph_data
 from apps.contentgraph.views import get_page, get_store
+from apps.intentrank.utils import random_products
 from apps.pinpoint.models import StoreTheme, Campaign
 from apps.static_pages.models import StaticLog
 
@@ -113,18 +114,6 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     store_data = store_cg.json(False)
     store = Store.from_json(store_data)
 
-    # TODO: Content blocks don't make as much sense now; when to clean up?
-    # TODO: If we keep content blocks, should this be a method?
-    # Assume only one content block
-    content_block = None
-    try:
-        content_block = campaign.content_blocks.all()[0]
-    except AttributeError:  # transition complete
-        content_block = campaign.content_block
-    finally:
-        if not content_block:
-            content_block = ''
-
     # get the featured product from our DB.
     try:
         # product = content_block.data.product
@@ -133,7 +122,6 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         # TODO: is this okay?
         product = None
 
-    # campaign.description = (content_block.data.description or product.description).encode('unicode_escape')
     campaign.description = campaign_data.get('featured_product_description')
     campaign.template = slugify(campaign_data.get('template', 'hero'))  # TODO: hero? hero-image?
 
@@ -149,7 +137,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
             campaign=campaign_data.get('intentrank_id') or campaign.id,
             base_url=ir_base_url, results=100, raw=True)
     # (get_seeds_func is None and you ran it, IR offline)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         backup_results = []
 
     # get initial results (if any) from our DB.
@@ -162,7 +150,6 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     attributes = {
         "campaign": campaign,
         "store": store,
-        "content_block": content_block,
         "columns": range(4),
         "preview": not campaign.live,
         "product": product,
@@ -175,19 +162,18 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
 
     context = RequestContext(request, attributes)
 
+    # theme is a temporary StoreTheme object
+    theme = campaign_data.get('theme')
+    if not theme:
+        raise ValueError('campaign has no theme when campaign manager saved it')
+
+    # check if the theme is actually a contentgraph resource
     try:
-        # theme = campaign.get_theme()
-        theme_data = campaign_data.get('theme') or campaign.get_theme()  # likely transition
-
-        if not theme_data:
-            raise ValueError('campaign has no theme when campaign manager saved it')
-
-        # page_str = theme.page
-        theme = StoreTheme(theme_data)  # likely transition
+        theme_url = theme.page
+        # 'template' is a key proposed by alex
+        page_str = get_contentgraph_data(theme_url)['template']['results']
     except ValueError:
-        raise  # TODO: otherwise...?
-
-    page_str = theme.page
+        page_str = theme.page  # it's fine, this theme is a string
 
     # Replace necessary tags
     sub_values = defaultdict(list)

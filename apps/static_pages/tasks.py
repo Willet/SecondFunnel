@@ -146,16 +146,11 @@ def generate_static_campaign(campaign_id, ignore_static_logs=False):
     page generator is hosted on "barebones django app"
     """
 
-    def create_campaign_from_dict(campaign_data):
-        post_processing = proxy  # TODO: implement
-        campaign_data = post_processing(campaign_data)
-        return Campaign(campaign_data)
-
     try:
         campaign_json = get_page(store_id=None, page_id=campaign_id)
 
         # do -something- to turn ContentGraph JSON into a campaign object
-        campaign = create_campaign_from_dict(campaign_json)
+        campaign = Campaign.from_json(campaign_json)
 
     except ValueError:  # json.loads exception
         logger.error("Could not understand campaign JSON #{0}".format(campaign_id))

@@ -1,6 +1,5 @@
 from django.conf.urls import patterns, url
 
-# TODO: Replace with TastyPie
 urlpatterns = patterns('apps.intentrank.views',
     url(r'^get-seeds/$', 'get_seeds', name='get-seeds'),
 

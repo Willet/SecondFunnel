@@ -51,7 +51,7 @@ class BaseModelNamed(BaseModel):
     @classmethod
     def from_json(cls, json_data):
         """create an object from data. this is a subclassable stub."""
-        return cls(**json_data)  # TODO: what preprocessing should this have?
+        return cls(**json_data)
 
 
 class Store(BaseModelNamed):
@@ -116,12 +116,11 @@ class Store(BaseModelNamed):
     @classmethod
     def from_json(cls, json_data):
         from apps.pinpoint.models import StoreTheme
-        try:
-            # special case... the theme needs to become an instance beforehand
-            if isinstance(json_data['theme'], basestring):
-                json_data['theme'] = StoreTheme(page=json_data['theme'])
-        except:
-            raise  # TODO: handling
+        # special case... the theme needs to become an instance beforehand
+        # automatically defaults to DEFAULT_PAGE
+        theme = json_data.get('theme', '')
+        if isinstance(theme, basestring):
+            json_data['theme'] = StoreTheme(page=theme)
 
         return cls(**json_data)
 
