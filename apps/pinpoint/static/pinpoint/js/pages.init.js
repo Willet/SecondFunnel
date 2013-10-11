@@ -12,8 +12,7 @@ function reInitialize(app) {
         return;
     }
 
-    // culprit
-    // broadcast('beforeInit', app.options, app);
+    broadcast('beforeInit', app.options, app);
 
     app.addInitializer(function () {
         // set its width to whatever it began with.
@@ -96,8 +95,7 @@ function reInitialize(app) {
 
         app.discovery = new SecondFunnel.core.Discovery(app.options);
 
-        // culprit
-        // broadcast('finished', app.options, app);
+        broadcast('finished', app.options, app);
     });
 
 }

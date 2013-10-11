@@ -25,7 +25,7 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
      * Used by .scale().
      *
      * @param {int} desiredWidth
-     * @return {Array} enabled[, width, scale, meta], some of which can
+     * @return {Array} [enabled, width, scale, meta], some of which can
      *                 be undefined if not applicable.
      */
     this.determine = function (desiredWidth) {
@@ -44,13 +44,8 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
                 return [false, undefined, undefined, 'disabled'];
             }
         } else {
-            enabled = SecondFunnel.option('lockWidth', function () {
-                return true;
-            });
+            enabled = SecondFunnel.option('lockWidth', true);
 
-            if (typeof enabled === 'function') {
-                enabled = enabled();
-            }
 
             if (enabled !== true) {
                 console.warn('viewport agent disabled.');
@@ -63,16 +58,20 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
             }
         }
 
-        desiredWidth = desiredWidth || SecondFunnel.option('desiredWidth') || function () {
-            // screen.height is screen.width prior to rotation.
-            // 48: android UI bar overestimation
-            var w = Math.min(screen.width + 48, screen.height + 48,
-                             $window.width(), maxMobileWidth);
-            return w;
-        };
 
-        if (typeof desiredWidth === 'function') {
-            desiredWidth = desiredWidth();
+        // pick the lowest of: - window width
+        //                     - desired width
+        //                     - max mobile width (if mobile)
+        //                     - max tablet width (if tablet)
+
+        if ($.browser.mobile) {
+            desiredWidth = Math.min(maxMobileWidth, desiredWidth, window.outerWidth);
+        } else if ($.browser.tablet) {
+            // TODO Need to set $.browser.tablet first.
+            desiredWidth = Math.min(maxTabletWidth, desiredWidth, window.outerWidth);
+            delete console.log;
+        } else {
+            desiredWidth = Math.min(desiredWidth, window.outerWidth);
         }
 
         if (typeof desiredWidth !== 'number') {
@@ -80,7 +79,7 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
             return [false, undefined, undefined, 'width NaN'];
         }
 
-        if (!desiredWidth || desiredWidth <= 0 || desiredWidth > 2048) {
+        if (!desiredWidth || desiredWidth <= 100 || desiredWidth > 2048) {
             console.warn('viewport agent called with invalid width.');
             return [false, undefined, undefined, 'width invalid'];
         }
@@ -90,7 +89,6 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
             10,  // viewport scale > 10 is not allowed.
             ($window.width() / desiredWidth).toFixed(2)
         ) * 100) / 100).toFixed(2);
-
         proposedMeta = "user-scalable=no," +
                        "width=" + desiredWidth + "," +
                        "initial-scale=" + adjustedScale + "," +
