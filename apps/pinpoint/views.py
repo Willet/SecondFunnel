@@ -19,7 +19,6 @@ from social_auth.db.django_models import UserSocialAuth
 from django.views.decorators.vary import vary_on_headers
 from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnInteger
 
-from apps.analytics.models import Category
 from apps.assets.models import ExternalContent, ExternalContentType, Store
 from apps.intentrank.views import get_seeds_ir
 from apps.pinpoint.ajax import upload_image
@@ -185,35 +184,6 @@ def block_type_router(request, store_id, block_type_id):
     block_type = get_object_or_404(BlockType, pk=block_type_id)
 
     return getattr(wizards, block_type.handler)(request, store, block_type)
-
-
-@login_required
-def store_analytics_admin(request, store_id):
-    store = get_object_or_404(Store, pk=store_id)
-
-    return analytics_admin(request, store)
-
-
-@login_required
-def campaign_analytics_admin(request, store_id, campaign_id):
-    campaign = get_object_or_404(Campaign, pk=campaign_id)
-
-    return analytics_admin(
-        request, campaign.store, campaign=campaign, is_overview=False)
-
-
-@belongs_to_store
-@has_store_feature('analytics')
-@login_required
-def analytics_admin(request, store, campaign=False, is_overview=True):
-    categories = Category.objects.filter(enabled=True)
-
-    return render_to_response('pinpoint/admin_analytics.html', {
-        'is_overview': is_overview,
-        'store': store,
-        'campaign': campaign,
-        'categories': categories
-    }, context_instance=RequestContext(request))
 
 
 def create_external_content(store, **obj):
