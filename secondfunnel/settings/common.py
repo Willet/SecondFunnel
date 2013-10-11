@@ -244,13 +244,11 @@ INSTALLED_APPS = (
     'apps.api',
     'apps.assets',
     'apps.pinpoint',
+    'apps.intentrank',
     'apps.contentgraph',
     'apps.website',
     'apps.static_pages',
     'apps.utils',
-
-    # CI
-    'django_jenkins',
 )
 
 CORS_ORIGIN_REGEX_WHITELIST = (

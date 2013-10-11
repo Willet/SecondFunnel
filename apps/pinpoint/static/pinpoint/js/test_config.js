@@ -1,6 +1,6 @@
 window.PAGES_INFO = {
     'debug': 0,
-    'base_url': "http://www.secondfunnel.com",
+    // 'base_url': "http://www.secondfunnel.com",  // DEPRECATED
     'discoveryTarget': "#discovery-area",
     'itemSelector': ".tile",
     'store': {

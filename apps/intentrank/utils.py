@@ -16,18 +16,18 @@ def random_products(store_slug, param_dict, id_only=True):
     store_id = Store.objects.filter(Q(slug=store_slug) | Q(name=store_slug))
     num_results = int(param_dict.get('results', DEFAULT_RESULTS))
     results = []
+    iters = 0  # prevent infinite loop when DB has no products
 
-    while len(results) < num_results:
+    while len(results) < num_results and iters < 50:
         query_set = Product.objects.select_related()\
-                           .annotate(num_images=Count('media'))\
-                           .filter(store_id__exact=store_id,
-                                   num_images__gt=0)[:num_results]
+                           .filter(store_id__exact=store_id)[:num_results]
         results_partial = list(query_set)
 
         if id_only:
             results_partial = [x.id for x in results_partial]
 
         results.extend(results_partial)
+        iters = iters + 1
 
     return results[:num_results]
 

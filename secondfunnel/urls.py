@@ -15,7 +15,7 @@ urlpatterns = patterns('',
     # Which apps do we need to keep enabled to keep old pages working?
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
     #url(r'p/', include('apps.pinpoint.global_urls')),
-    #url(r'^intentrank/', include('apps.intentrank.urls')),
+    url(r'^intentrank/', include('apps.intentrank.urls')),
 
     # APIs
     url(r'^contentgraph/', include('apps.contentgraph.urls')),

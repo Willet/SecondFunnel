@@ -48,9 +48,11 @@ INSTALLED_APPS = (
     'apps.api',
     'apps.assets',
     'apps.pinpoint',
+    'apps.intentrank',
     'apps.contentgraph',
     'apps.website',
     'apps.static_pages',
+    'apps.utils'
 )
 
 WEBSITE_BASE_URL = 'http://secondfunnel-test.elasticbeanstalk.com'

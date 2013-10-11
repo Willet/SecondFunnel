@@ -133,33 +133,31 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         # TODO: is this okay?
         product = None
 
-    # get initial results (if any) from our DB.
-    try:
-        initial_results = Product.objects.get(pk__in=campaign_data.get('initial_results'))
-    except:
-        initial_results = []
-
     # campaign.description = (content_block.data.description or product.description).encode('unicode_escape')
     campaign.description = campaign_data.get('featured_product_description')
     campaign.template = slugify(campaign_data.get('template', 'hero'))  # TODO: hero? hero-image?
 
-    if settings.DEBUG:
-        # If in debug mode, or we otherwise need to use the old proxy
-        base_url = settings.WEBSITE_BASE_URL + '/intentrank'
-    else:
-        base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
+    ir_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
 
     # "borrow" IR for results
-    if get_seeds_func:
+    try:
         backup_results = get_seeds_func(
             request,
             # store=campaign.store.slug,
-            store=campaign_data.get('store_slug'),
+            store_slug=store_data.get('slug'),
             # campaign=campaign.default_intentrank_id or campaign.id,
             campaign=campaign_data.get('intentrank_id') or campaign.id,
-            base_url=base_url, results=100, raw=True)
-    else:
+            base_url=ir_base_url, results=100, raw=True)
+    # (get_seeds_func is None and you ran it, IR offline)
+    except TypeError, ValueError:
         backup_results = []
+
+    # get initial results (if any) from our DB.
+    try:
+        initial_results = Product.objects.get(pk__in=campaign_data.get('initial_results'))
+    except:  # all exceptions
+        # if there are backup results, serve the first 4.
+        initial_results = backup_results[:4]
 
     attributes = {
         "campaign": campaign,
@@ -171,7 +169,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         "initial_results": initial_results,
         "backup_results": backup_results,
         "pub_date": datetime.now(),
-        "base_url": base_url,
+        "ir_base_url": ir_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
     }
 

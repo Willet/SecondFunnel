@@ -13,7 +13,7 @@ from django.core.cache import cache
 
 from apps.assets.models import Store
 from apps.contentgraph.views import get_page
-from apps.intentrank.views import get_seeds_ir
+from apps.intentrank.views import get_seeds
 from apps.pinpoint.models import Campaign
 from apps.static_pages.models import StaticLog
 from apps.utils import noop, proxy
@@ -166,7 +166,7 @@ def generate_static_campaign(campaign_id, ignore_static_logs=False):
     # prepare the file name, static log, and the actual page
     s3_file_name = "index.html"
     log_key = "CD"
-    page_content = render_campaign(campaign, get_seeds_func=get_seeds_ir,
+    page_content = render_campaign(campaign, get_seeds_func=get_seeds,
                                    request=dummy_request)
 
     # if we think this static page already exists, finish task

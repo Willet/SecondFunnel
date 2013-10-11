@@ -5,7 +5,7 @@
 <script type="text/javascript">
     window.PAGES_INFO = {
           'debug': ('{{ debug|default:0 }}' === 'True')  // django built-in
-        , 'base_url': '{{ base_url }}'
+        // , 'base_url': '{{ base_url }}'  // DEPRECATED
         , 'discoveryTarget': '{{ discovery_target|default:"#discovery-area" }}'
         , 'itemSelector': '{{ item_selector|default:".tile" }}'
         , 'store': {
@@ -62,23 +62,10 @@
         }
         , 'featured': {% filter escapejs %}{% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}{% endfilter %}
         // stuff that loads when page loads, even if IR is available
-        {% if initial_results %}
-            , 'initialResults': {{ initial_results|safe }}
-        {% elif backup_results %}
-            , 'initialResults': [
-                {# keep 4 backup results as inital results by default #}
-                {% for result in backup_results|slice:":4" %}
-                    {% filter escapejs %}
-                        {% include "pinpoint/snippets/product_object.js" with product=product only %}
-                    {% endfilter %}
-                    {% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ]
-        {% endif %}
         , 'IRResultsCount': 10
         , 'IRTimeout': 5000
         // , 'IRFailuresAllowed': undefined  // optional. defaults to 5
-        , 'IRSource': "{{ base_url }}"  // optional, defaults to intentrank-test
+        , 'IRSource': "{{ ir_base_url }}"  // optional, defaults to intentrank-test
         , 'gaAccountNumber': '{{ ga_account_number }}'  // required
 
         // number of viewports worth of results to keep below the page.
@@ -90,18 +77,24 @@
         // , 'lockWidth': undefined  // must be true (not 1, {}, ...) or a function that returns true. undefined means auto.
         // , 'desiredWidth': 0,  // number, or a function that returns a number. 0 means auto.
 
-        {% if backup_results %}
+        , 'initialResults': [
+            {% for result in initial_results %}
+                {% filter escapejs %}
+                    {% include "pinpoint/snippets/product_object.js" with product=product only %}
+                {% endfilter %}
+                {% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+        , 'backupResults': [
             // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
             // it really should contain at least 10 products.
-            , 'backupResults': [
-                {% for result in backup_results %}
-                    {% filter escapejs %}
-                        {% include "pinpoint/snippets/product_object.js" with product=result only %}
-                    {% endfilter %}
-                    {% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ]
-        {% endif %}
+            {% for result in backup_results %}
+                {% filter escapejs %}
+                    {% include "pinpoint/snippets/product_object.js" with product=result only %}
+                {% endfilter %}
+                {% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
     };
 
     var _gaq = _gaq || [];

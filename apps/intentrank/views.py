@@ -240,7 +240,7 @@ def get_json_data(request, products, campaign_id, seeds=None):
     return results
         
 
-def get_seeds_ir(request, **kwargs):
+def get_seeds(request, **kwargs):
     """Gets initial results (products, photos, etc.) to be saved with a page
 
     kwargs['raw'] also toggles between returning a dictionary
@@ -248,7 +248,9 @@ def get_seeds_ir(request, **kwargs):
     """
     num_results = kwargs.get('results', request.GET.get('results',  DEFAULT_RESULTS))
 
-    store = kwargs.get('store', request.GET.get('store', '-1'))
+    # store now needs to be a slug
+    store_slug = kwargs.get('store_slug', request.GET.get('store_slug',
+                                                          'store_slug'))
     campaign = kwargs.get('campaign', request.GET.get('campaign', '-1'))
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
     base_url = kwargs.get('base_url', request.GET.get(
@@ -256,7 +258,7 @@ def get_seeds_ir(request, **kwargs):
         settings.INTENTRANK_BASE_URL + '/intentrank'
     ))
 
-    url = '{0}/store/{1}/campaign/{2}/getresults'.format(base_url, store,
+    url = '{0}/store/{1}/campaign/{2}/getresults'.format(base_url, store_slug,
                                                       campaign)
 
     # Add required get parameters
@@ -267,10 +269,14 @@ def get_seeds_ir(request, **kwargs):
         response, content = send_request(request, url)
         status = response.status
         content = unicode(content, 'windows-1252')
+        if status >= 400:
+            raise ValueError('get_seeds received error')
     except httplib2.HttpLib2Error as e:
         # Don't care what went wrong; do something!
         content = u"{'error': '{0}'}".format(str(e))
         status = 400
+    except ValueError:
+        raise
 
     # Since we are sending the request, and we'll get JSONP back
     # we know what the callback will be named
@@ -292,86 +298,6 @@ def get_seeds_ir(request, **kwargs):
         return results
     else:
         return ajax_jsonp(results, callback, status=status)
-
-
-def get_seeds(request, **kwargs):
-    """kwargs overrides request values when provided.
-
-    kwargs['raw'] also toggles between returning a dictionary
-    or an entire HttpResponse.
-
-    returns a list of (json) dicts representing e.g. products.
-    """
-    store   = kwargs.get('store', request.GET.get('store', '-1'))
-    page    = kwargs.get('campaign', request.GET.get('campaign', '-1'))
-    seeds   = kwargs.get('seeds', request.GET.get('seeds', '-1'))
-    num_results = kwargs.get('results', request.GET.get('results',
-                                                        DEFAULT_RESULTS))
-    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
-
-    results, status = process_intentrank_request(
-        request, store, page, 'getseeds', {
-            'seeds': seeds,
-            'results': num_results
-        }
-    )
-
-    if status in SUCCESS_STATUSES:
-        result = get_json_data(request, results, page,
-                               seeds=filter(None, str(seeds).split(',')))
-    else:
-        result = results
-
-    if kwargs.get('raw', False):
-        return result
-    else:
-        return ajax_jsonp(result, callback, status=status)
-
-
-def get_results(request, **kwargs):
-    """kwargs overrides request values when provided.
-
-    kwargs['raw'] also toggles between returning a dictionary
-    or an entire HttpResponse.
-    """
-    store = kwargs.get('store', request.GET.get('store', '-1'))
-    page = kwargs.get('campaign', request.GET.get('campaign', '-1'))
-    seeds   = kwargs.get('seeds', request.GET.get('seeds', '-1'))
-    num_results = kwargs.get('results', request.GET.get('results',
-                                                        DEFAULT_RESULTS))
-    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
-
-    cache_version = random.randrange(50)
-    cache_key = 'getresults-json-{0}-{1}-{2}'.format(
-        store, page, seeds)
-    cached_results = cache.get(cache_key, version=cache_version)
-
-    if not cached_results or settings.DEBUG:
-
-        results, status = process_intentrank_request(
-            request, store, page, 'getresults', {
-                'results': num_results
-            }
-        )
-
-        if status in SUCCESS_STATUSES:
-            cached_results = get_json_data(request, results, page,
-                                   seeds=filter(None, seeds.split(',')))
-
-        # workaround for a weird bug on intentrank's side
-        elif status == 400:
-            return get_seeds(request)
-
-        else:
-            cached_results = results
-
-        cache.set(cache_key, cached_results, 60*5, version=cache_version)
-
-    if kwargs.get('raw', False):
-        return cached_results
-    else:
-        return ajax_jsonp(cached_results, callback, status=200)
-
 
 
 def update_clickstream(request):
@@ -415,7 +341,7 @@ def get_results_dev(request, store_slug, campaign, content_id=None, **kwargs):
     products = random_products(store_slug, {'results': DEFAULT_RESULTS},
                                id_only=True)
     filtered_products = Product.objects.filter(
-        pk__in=products, available=True).exclude(media=None)
+        pk__in=products, available=True)
     results = get_json_data(request, filtered_products, campaign)
 
     if kwargs.get('raw', False):
