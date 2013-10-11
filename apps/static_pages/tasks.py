@@ -16,7 +16,6 @@ from apps.contentgraph.views import get_page
 from apps.intentrank.views import get_seeds
 from apps.pinpoint.models import Campaign
 from apps.static_pages.models import StaticLog
-from apps.utils import noop, proxy
 
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
     get_route53_change_status, upload_to_bucket)
@@ -139,7 +138,7 @@ def generate_static_campaigns():
 
 
 @celery.task
-def generate_static_campaign(campaign_id, ignore_static_logs=False):
+def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
     """Renders individual campaign and saves it to S3.
 
     TODO: verify static log checks will be needed in the future, when the
@@ -147,7 +146,7 @@ def generate_static_campaign(campaign_id, ignore_static_logs=False):
     """
 
     try:
-        campaign_json = get_page(store_id=None, page_id=campaign_id)
+        campaign_json = get_page(store_id=store_id, page_id=campaign_id)
 
         # do -something- to turn ContentGraph JSON into a campaign object
         campaign = Campaign.from_json(campaign_json)
@@ -161,7 +160,8 @@ def generate_static_campaign(campaign_id, ignore_static_logs=False):
     # prepare the file name, static log, and the actual page
     s3_file_name = "index.html"
     log_key = "CD"
-    page_content = render_campaign(campaign, get_seeds_func=get_seeds,
+    page_content = render_campaign(store_id, campaign_id,
+                                   get_seeds_func=get_seeds,
                                    request=dummy_request)
 
     # if we think this static page already exists, finish task

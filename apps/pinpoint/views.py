@@ -273,7 +273,7 @@ def style_theme(request, store_id, theme_id):
         template_vars.update({'theme_saved': True})
 
     # response_body is used to scan for styling regions declared by the theme.
-    response_body = render_campaign(campaign.id, request, get_seeds)
+    response_body = render_campaign(store_id, campaign.id, request, get_seeds)
     field_styles = []
     for selector, hint in themable_fields:
         field_style = theme.get_styles(response_body, selector)
@@ -325,7 +325,7 @@ def preview_theme(request, store_id, theme_id=None):
 
         campaign.theme = theme
 
-        response_body = render_campaign(campaign.id, request, get_seeds)
+        response_body = render_campaign(store_id, campaign.id, request, get_seeds)
         page = HttpResponse(response_body)
 
         if request.GET.get('dummy_theme_id'):  # delete only if made to mock
