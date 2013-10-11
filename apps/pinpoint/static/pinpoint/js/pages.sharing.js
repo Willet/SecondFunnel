@@ -103,7 +103,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             this.views = [];  // list of button views (used by marionette)
 
             _.each(_.compact(self.buttonTypes), function (type) {
-                var count = options.showCount || false,
+                var count = options.showCount || true,
                     ButtonClass,
                     template = "#" + type.toLowerCase() + "_social_button_template";
                 ButtonClass = getButton(type);

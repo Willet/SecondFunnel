@@ -14,7 +14,7 @@ from django.test import RequestFactory
 from django.utils.importlib import import_module
 
 from apps.assets.models import Store, Product
-from apps.contentgraph.views import get_page
+from apps.contentgraph.views import get_page, get_store
 from apps.pinpoint.models import StoreTheme, Campaign
 from apps.static_pages.models import StaticLog
 
@@ -108,6 +108,11 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     campaign_data = campaign_cg.json(False)
     campaign = Campaign.from_json(campaign_data)
 
+    # these 3 lines will trigger ValueErrors if remote JSON is invalid.
+    store_cg = get_store(store_id=store_id)
+    store_data = store_cg.json(False)
+    store = Store.from_json(store_data)
+
     # TODO: Content blocks don't make as much sense now; when to clean up?
     # TODO: If we keep content blocks, should this be a method?
     # Assume only one content block
@@ -158,6 +163,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
 
     attributes = {
         "campaign": campaign,
+        "store": store,
         "content_block": content_block,
         "columns": range(4),
         "preview": not campaign.live,
