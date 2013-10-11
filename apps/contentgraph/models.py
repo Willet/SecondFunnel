@@ -9,6 +9,10 @@ def get_contentgraph_data(endpoint_path, headers=None, method="GET", body=""):
 
     return will be a json dict, or a string if deserialization fails.
     """
+    def is_valid_response(status):
+        # wild guess (HTTP 200 series are usually valid)
+        return int(status) < 300
+
     if not headers:
         headers = {}
 
@@ -20,7 +24,23 @@ def get_contentgraph_data(endpoint_path, headers=None, method="GET", body=""):
         body=body, headers=headers)
 
     # possible ValueError intentionally propagated
-    return json.loads(content)
+    if is_valid_response(response['status']):
+        return json.loads(content)
+
+    if response['status'] == '401':
+        raise ValueError('Requested object requires authentication')
+
+    if response['status'] == '403':
+        raise ValueError('Requested object is not accessible')
+
+    if response['status'] == '404':
+        raise ValueError('Requested object does not exist')
+
+    # try to return something in all other cases
+    try:
+        return json.loads(content)
+    except:
+        return None
 
 
 class ContentGraphObject(object):
