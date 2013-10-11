@@ -2,14 +2,30 @@ import django
 from django.conf.urls import url
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from tastypie import fields
 from tastypie.exceptions import Unauthorized
 from tastypie.resources import ModelResource
 from tastypie.utils import trailing_slash
 from apps.api.utils import UserObjectsReadOnlyAuthorization
+from apps.assets.models import Store
+
+
+class StoreResource(ModelResource):
+    class Meta:
+        resource_name = 'internal_store'
+        queryset = Store.objects.all()
 
 
 # http://stackoverflow.com/questions/11770501/how-can-i-login-to-django-using-tastypie
 class UserResource(ModelResource):
+    stores = fields.ToManyField(
+        StoreResource,
+        'store_set',
+        null=True,
+        blank=True,
+        full=True # There is a way to pick specific fields, but I don't recall.
+    )
+
     class Meta:
         resource_name = 'user'
         queryset = User.objects.all()
