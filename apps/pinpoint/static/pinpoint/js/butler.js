@@ -86,6 +86,7 @@
 
             self.addData = function (data) {
                 self.queue.push(data);
+                self.start();
             };
 
         }

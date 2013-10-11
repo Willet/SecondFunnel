@@ -1,5 +1,5 @@
 /*global Image, Marionette, setTimeout, Backbone, jQuery, $, _,
-  Willet, broadcast, console, SecondFunnel */
+  Willet, broadcast, console, SecondFunnel, Task */
 SecondFunnel.module('core', function (core, SecondFunnel) {
     // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
     "use strict";
@@ -485,6 +485,9 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
             );
             this.attachListeners();
             this.countColumns();
+            this.layoutTask = new Task(function (dataAndTile) {
+                self.layoutResults([dataAndTile[0]], dataAndTile[1]);
+            } );
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
@@ -551,9 +554,10 @@ SecondFunnel.module('core', function (core, SecondFunnel) {
 
             $.when(SecondFunnel.intentRank.getResults(opts))
                 .always(function (data) {
-                    self.layoutResults(data, tile);
-                })
-                .always(this.getMoreResults);
+                    _.each(data, function (curr) {
+                        self.layoutTask.addData([curr, tile])
+                    });
+                });
             return this;
         },
 
