@@ -555,6 +555,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             );
             this.attachListeners();
             this.countColumns();
+            this.layoutTask = new Task(function (dataAndTile) {
+                self.layoutResults([dataAndTile[0]], dataAndTile[1]);
+            });
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
@@ -625,9 +628,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             $.when(SecondFunnel.intentRank.getResults(opts))
                 .always(function (data) {
-                    self.layoutResults(data, tile);
-                })
-                .always(this.getMoreResults);
+                    _.each(data, function (curr) {
+                        self.layoutTask.addData([curr, tile])
+                    });
+                });
             return this;
         },
 
