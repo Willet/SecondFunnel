@@ -265,8 +265,6 @@ CORS_ALLOW_HEADERS = (
     'ApiKey'
 )
 CORS_ALLOW_CREDENTIALS = True
-SESSION_COOKIE_DOMAIN = '.secondfunnel.com'
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 JENKINS_TEST_RUNNER = 'django_jenkins.nose_runner.CINoseTestSuiteRunner'
