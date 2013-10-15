@@ -146,15 +146,14 @@ def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
     """
 
     try:
-        campaign_cg = get_page(store_id=store_id, page_id=campaign_id)
-        campaign_json = campaign_cg.json(False)  # return dict
+        campaign_dict = get_page(store_id=store_id, page_id=campaign_id,
+                                 as_dict=True)
 
         # do -something- to turn ContentGraph JSON into a campaign object
-        campaign = Campaign.from_json(campaign_json)
+        campaign = Campaign.from_json(campaign_dict)
 
-        store_cg = get_store(store_id=store_id)
-        store_json = store_cg.json(False)
-        store = Store.from_json(store_json)
+        store_dict = get_store(store_id=store_id, as_dict=True)
+        store = Store.from_json(store_dict)
 
     except ValueError:  # json.loads exception
         logger.error("Could not understand campaign JSON #{0}".format(campaign_id))

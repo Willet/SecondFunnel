@@ -14,7 +14,7 @@ from django.utils.importlib import import_module
 
 from apps.assets.models import Store, Product
 from apps.contentgraph.models import get_contentgraph_data
-from apps.contentgraph.views import get_page, get_store
+from apps.contentgraph.views import get_page, get_product, get_store
 from apps.intentrank.utils import random_products
 from apps.pinpoint.models import StoreTheme, Campaign
 from apps.static_pages.models import StaticLog
@@ -108,20 +108,18 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         else:
             return match.group(0)  # leave unchanged
 
-    # these 3 lines will trigger ValueErrors if remote JSON is invalid.
-    campaign_cg = get_page(store_id=store_id, page_id=campaign_id)
-    campaign_data = campaign_cg.json(False)
+    # these 4 lines will trigger ValueErrors if remote JSON is invalid.
+    campaign_data = get_page(store_id=store_id, page_id=campaign_id, as_dict=True)
     campaign = Campaign.from_json(campaign_data)
-
-    # these 3 lines will trigger ValueErrors if remote JSON is invalid.
-    store_cg = get_store(store_id=store_id)
-    store_data = store_cg.json(False)
+    store_data = get_store(store_id=store_id, as_dict=True)
     store = Store.from_json(store_data)
 
     # get the featured product from our DB.
     try:
         # product = content_block.data.product
-        product = Product.objects.get(pk=campaign_data.get('featured_product_id'))
+        # based on Neal's description, this is what it will eventually be
+        product = get_product(campaign_data.get('featured-product-id')) or\
+                  get_product(campaign_data.get('product-ids', [0])[0])
     except:
         # TODO: is this okay?
         product = None
@@ -147,7 +145,10 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     # get initial results (if any) from our DB.
     # TODO: if product DB does not exist, this is skipped automatically.
     try:
-        initial_results = Product.objects.get(pk__in=campaign_data.get('initial_results'))
+        # initial_results = Product.objects.get(pk__in=campaign_data.get('initial_results'))
+        # based on Neal's description, featured-tiles is a magic json attribute
+        # that is already a list of tiles.
+        initial_results = json.loads(campaign_data['featured-tiles'])
     except:  # all exceptions
         # if there are backup results, serve the first 4.
         initial_results = backup_results[:4]
