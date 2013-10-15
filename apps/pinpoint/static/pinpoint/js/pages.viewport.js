@@ -44,8 +44,13 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
                 return [false, undefined, undefined, 'disabled'];
             }
         } else {
-            enabled = SecondFunnel.option('lockWidth', true);
+            enabled = SecondFunnel.option('lockWidth', function () {
+                return true;
+            });
 
+            if (typeof enabled === 'function') {
+                enabled = enabled();
+            }
 
             if (enabled !== true) {
                 console.warn('viewport agent disabled.');
@@ -58,7 +63,10 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
             }
         }
 
-
+        if (typeof desiredWidth === 'function') {
+            desiredWidth = desiredWidth();
+        }
+        
         // pick the lowest of: - window width
         //                     - desired width
         //                     - max mobile width (if mobile)
