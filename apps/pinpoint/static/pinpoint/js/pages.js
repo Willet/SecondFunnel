@@ -683,10 +683,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 $tile = tile.$el;  // this would be the "insert after" target
             }
             SecondFunnel.layoutEngine.add(tileEls, $tile)
-                .always(function () {
-                    self.toggleLoading(false);
-                })
-                .always(this.getMoreResults);
             return this;
         },
 
@@ -709,7 +705,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 }
             }
 
-            SecondFunnel.layoutEngine.layout();
             return maxCols;
         },
 
@@ -924,7 +919,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
                     // handle results that got loaded while the discovery
                     // area has an undefined height.
-                    SecondFunnel.layoutEngine.layout();
                 }
                 this.close();
             }

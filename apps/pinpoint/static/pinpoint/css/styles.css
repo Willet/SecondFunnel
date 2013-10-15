@@ -44,3 +44,31 @@
     width: 154px!important;
 
 }
+
+/* Salvattore */
+
+#discovery-area[data-columns]::before { display: none; } /* Don't forget this. */
+
+@media screen and (max-width: 450px) {
+    #discovery-area[data-columns]::before {
+        content: '1 .column';
+    }
+}
+
+@media screen and (min-width: 451px) and (max-width: 700px) {
+    #discovery-area[data-columns]::before {
+        content: '2 .column.size-1of2';
+    }
+}
+
+@media screen and (min-width: 701px) and (max-width: 850px) {
+    #discovery-area[data-columns]::before {
+        content: '3 .column.size-1of3';
+    }
+}
+
+@media screen and (min-width: 851px) {
+    #discovery-area[data-columns]::before {
+        content: '4 .column.size-1of4';
+    }
+}
