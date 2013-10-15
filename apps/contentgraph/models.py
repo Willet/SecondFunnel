@@ -11,7 +11,7 @@ def get_contentgraph_data(endpoint_path, headers=None, method="GET", body=""):
     """
     def is_valid_response(status):
         # wild guess (HTTP 200 series are usually valid)
-        return int(status) < 300
+        return 200 <= int(status) < 300
 
     if not headers:
         headers = {}

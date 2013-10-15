@@ -12,7 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 
 from apps.assets.models import Store
-from apps.contentgraph.views import get_page
+from apps.contentgraph.views import get_page, get_store
 from apps.intentrank.views import get_seeds
 from apps.pinpoint.models import Campaign
 from apps.static_pages.models import StaticLog
@@ -146,10 +146,15 @@ def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
     """
 
     try:
-        campaign_json = get_page(store_id=store_id, page_id=campaign_id)
+        campaign_cg = get_page(store_id=store_id, page_id=campaign_id)
+        campaign_json = campaign_cg.json(False)  # return dict
 
         # do -something- to turn ContentGraph JSON into a campaign object
         campaign = Campaign.from_json(campaign_json)
+
+        store_cg = get_store(store_id=store_id)
+        store_json = store_cg.json(False)
+        store = Store.from_json(store_json)
 
     except ValueError:  # json.loads exception
         logger.error("Could not understand campaign JSON #{0}".format(campaign_id))
@@ -158,48 +163,52 @@ def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
     dummy_request = create_dummy_request()
 
     # prepare the file name, static log, and the actual page
-    s3_file_name = "index.html"
     log_key = "CD"
-    page_content = render_campaign(store_id, campaign_id,
-                                   get_seeds_func=get_seeds,
-                                   request=dummy_request)
 
     # if we think this static page already exists, finish task
     try:
         log_entry = StaticLog.objects.get(
             # content_type=content_type,
-            content_type=None,
+            # content_type=None,
             object_id=campaign.id, key=log_key)
 
         if log_entry and ignore_static_logs:
             raise StaticLog.DoesNotExist('force-regeneration override')
 
-    # otherwise, render and upload it
     except StaticLog.DoesNotExist:
+        pass
+    else:
+        logger.error("Not generating campaign #{0}".format(campaign_id))
+        return  # no error = don't generate
 
-        s3_path = "{0}/{1}".format(
-            campaign.slug or campaign.id, s3_file_name)
+    page_content = render_campaign(store_id, campaign_id,
+                                   get_seeds_func=get_seeds,
+                                   request=dummy_request)
 
-        store_url = ''
-        if campaign.store.public_base_url:
-            url = urlparse(campaign.store.public_base_url).hostname
-            if url:
-                store_url = url
+    s3_path = "{0}/index.html".format(campaign.slug or campaign.id)
 
-        dns_name = get_bucket_name(campaign.store.slug)
-        bucket_name =  store_url or dns_name
+    store_url = ''
+    # this will err intentionally if a store has no public base url
+    url = urlparse(getattr(store, 'public-base-url')).hostname
+    if url:
+        store_url = url
 
-        bytes_written = upload_to_bucket(
-            bucket_name, s3_path, page_content, public=True)
+    dns_name = get_bucket_name(store.slug)
+    bucket_name =  store_url or dns_name
 
-        if bytes_written > 0:
-            # remove any old entries
-            remove_static_log(Campaign, campaign.id, log_key)
+    logger.info("Uploading campaign #{0} to {1}/{2}".format(
+        campaign_id, bucket_name, s3_path))
+    bytes_written = upload_to_bucket(
+        bucket_name, s3_path, page_content, public=True)
 
-            # write a new log entry for this static campaign
-            save_static_log(Campaign, campaign.id, log_key)
+    if bytes_written > 0:
+        # remove any old entries
+        remove_static_log(Campaign, campaign.id, log_key)
 
-        # boto claims it didn't write anything to S3
-        else:
-            logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
-                campaign_id))
+        # write a new log entry for this static campaign
+        save_static_log(Campaign, campaign.id, log_key)
+
+    # boto claims it didn't write anything to S3
+    else:
+        logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
+            campaign_id))

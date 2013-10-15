@@ -129,7 +129,8 @@ class Campaign(BaseModelNamed):
         try:
             super(Campaign, self).__init__(*args, **kwargs)
         except:
-            pass  # doesn't really matter, to be honest
+            # when __init__ doesn't take all keyword arguments, ignore exception
+            pass
 
         # allow temporary storage of arbitrary attributes
         for key in kwargs:

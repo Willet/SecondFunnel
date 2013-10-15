@@ -21,16 +21,20 @@ from apps.static_pages.models import StaticLog
 
 
 def save_static_log(object_class, object_id, key):
-    object_type = ContentType.objects.get_for_model(object_class)
+    # object_type = ContentType.objects.get_for_model(object_class)
     log_record = StaticLog(
-        content_type=object_type, object_id=object_id, key=key)
+        # content_type=object_type,
+        object_id=object_id,
+        key=key)
     log_record.save()
 
 
 def remove_static_log(object_class, object_id, key):
-    object_type = ContentType.objects.get_for_model(object_class)
+    # object_type = ContentType.objects.get_for_model(object_class)
     log_records = StaticLog.objects.filter(
-        content_type=object_type, object_id=object_id, key=key).delete()
+        # content_type=object_type,
+        object_id=object_id,
+        key=key).delete()
 
 
 def bucket_exists_or_pending(store):
@@ -141,6 +145,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         backup_results = []
 
     # get initial results (if any) from our DB.
+    # TODO: if product DB does not exist, this is skipped automatically.
     try:
         initial_results = Product.objects.get(pk__in=campaign_data.get('initial_results'))
     except:  # all exceptions
@@ -172,7 +177,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         theme_url = theme.page
         # 'template' is a key proposed by alex
         page_str = get_contentgraph_data(theme_url)['template']['results']
-    except ValueError:
+    except (TypeError, ValueError):
         page_str = theme.page  # it's fine, this theme is a string
 
     # Replace necessary tags

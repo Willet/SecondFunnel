@@ -5,7 +5,7 @@ from apps.static_pages.tasks import (create_bucket_for_store,
                                      generate_static_campaign)
 
 
-def regenerate_static_campaign(request, campaign_id):
+def regenerate_static_campaign(request, store_id, campaign_id):
     """Manual stimulation handler: re-save a campaign.
 
     Campaign *will* be regenerated despite having a static log entry.
@@ -15,10 +15,9 @@ def regenerate_static_campaign(request, campaign_id):
     """
     result = None
     try:
-        result = Campaign.objects.get(pk=campaign_id)
-
-        create_bucket_for_store.delay(result.store_id)
-        generate_static_campaign.delay(campaign_id, ignore_static_logs=True)
+        create_bucket_for_store.delay(store_id)
+        generate_static_campaign.delay(store_id, campaign_id,
+                                       ignore_static_logs=True)
 
         result = True  # succeeded
     except Campaign.DoesNotExist, Store.DoesNotExist:

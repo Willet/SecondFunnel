@@ -79,7 +79,8 @@ class Store(BaseModelNamed):
         try:
             super(Store, self).__init__(*args, **kwargs)
         except:
-            pass  # doesn't really matter, to be honest
+            # when __init__ doesn't take all keyword arguments, ignore exception
+            pass
 
         # allow temporary storage of arbitrary attributes
         for key in kwargs:
@@ -198,15 +199,16 @@ class Product(BaseModelNamed):
     price = models.CharField(max_length=255, blank=True, null=True)
     sku = models.CharField(max_length=255, blank=True, null=True)
 
-    tags = {}  # stub
-    images = []  # stub
-    lifestyle_image = ''  # stub
-    template = 'product'  # stub
-
     last_scraped = models.DateTimeField(blank=True, null=True)
     rescrape = models.BooleanField(default=False)
 
     available = models.BooleanField(default=True)
+
+    # default values for non-db attributes
+    tags = {}
+    images = []
+    lifestyle_image = ''
+    template = 'product'
 
     def __unicode__(self):
         return unicode(self.name) or u''

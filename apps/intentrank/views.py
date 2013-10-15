@@ -315,20 +315,6 @@ def update_clickstream(request):
     return ajax_jsonp([], callback, status=SUCCESS)
 
 
-def invalidate_session(request):
-    """
-    Invalidates an intentrank session.
-
-    @param request: The request.
-
-    @return: An empty json HttpResonse.
-    """
-    #intentrank/invalidate-session
-    url = '{0}/intentrank/invalidate-session'.format(
-        settings.INTENTRANK_BASE_URL)
-    send_intentrank_request(request, url)
-    return HttpResponse("[]", mimetype='application/json')
-
 
 def get_results_dev(request, store_slug, campaign, content_id=None, **kwargs):
     """Returns random results for a campaign
