@@ -28,7 +28,6 @@
 
     if (isAnIpad() || isAnAndroidTablet()) {
         jQuery.browser.tablet = true;
-        jQuery.browser.mobile = false;
     } else {
         jQuery.browser.tablet = false;
     }

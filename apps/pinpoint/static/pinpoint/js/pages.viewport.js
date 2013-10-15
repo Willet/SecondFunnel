@@ -71,7 +71,7 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
         //                     - desired width
         //                     - max mobile width (if mobile)
         //                     - max tablet width (if tablet)
-        if ($.browser.mobile) {
+        if ($.browser.mobile && !$.browser.tablet) {
             desiredWidth = Math.min(maxMobileWidth, desiredWidth, window.outerWidth);
         } else if ($.browser.tablet) {
             desiredWidth = Math.min(maxTabletWidth, desiredWidth, window.outerWidth);
