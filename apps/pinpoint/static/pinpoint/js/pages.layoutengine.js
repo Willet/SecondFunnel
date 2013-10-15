@@ -1,4 +1,5 @@
-/*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast */
+/*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast,
+  salvattore, $, _ */
 /**
  * Masonry wrapper
  *
@@ -44,7 +45,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         var self = this;
         opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
 
-    this.$el = $(opts.discoveryTarget)[0];
+        this.$el = $(opts.discoveryTarget)[0];
 
         if (typeof opts.columnWidth === 'function') {
             opts.columnWidth = opts.columnWidth(this.$el);
@@ -86,14 +87,14 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                 if (frag.length) {
                     // Find a target that is low enough on the screen to insert after
                     while ($target.position().top <= initialBottom &&
-                           $target.next().length > 0) {
+                            $target.next().length > 0) {
                         $target = $target.next();
                     }
                     $target.after(frag);
                     self.reload();
                 }
             } else if (frag.length) {
-                salvattore.append_elements(self.$el,frag)
+                salvattore.append_elements(self.$el, frag);
             }
         }(fragment));
     };

@@ -53,22 +53,36 @@
     #discovery-area[data-columns]::before {
         content: '1 .column';
     }
+
 }
 
 @media screen and (min-width: 451px) and (max-width: 700px) {
     #discovery-area[data-columns]::before {
-        content: '2 .column.size-1of2';
+        content: '1 .column';
+    }
+    .column {
+        max-width: 350px;
+        float:left;
     }
 }
 
 @media screen and (min-width: 701px) and (max-width: 850px) {
     #discovery-area[data-columns]::before {
-        content: '3 .column.size-1of3';
+        content: '2 .column.size-1of2';
+    }
+    .column {
+        max-width: 300px;
+        float: left;
     }
 }
 
 @media screen and (min-width: 851px) {
     #discovery-area[data-columns]::before {
-        content: '4 .column.size-1of4';
+        content: '3 .column.size-1of3';
+    }
+
+    .column {
+        max-width: 340px;
+        float: left;
     }
 }
