@@ -16,8 +16,6 @@ urlpatterns = patterns('apps.contentgraph.views',
     url(r'^store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/?$',
         'view_product', name='view_product'),
 
-    url(r'^poke/?$', 'poke', name='poke'),
-
     # last
     url(r'^(?P<endpoint_path>.+)$',
         'proxy', name='proxy'),
