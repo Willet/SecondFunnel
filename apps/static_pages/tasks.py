@@ -185,7 +185,8 @@ def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
                                    get_seeds_func=get_seeds,
                                    request=dummy_request)
 
-    s3_path = "{0}/index.html".format(campaign.slug or campaign.id)
+    s3_path = "{0}/index.html".format(
+        campaign.url or campaign.slug or campaign.id)
 
     store_url = ''
     # this will err intentionally if a store has no public base url
