@@ -14,7 +14,6 @@ class StaticLog(models.Model):
         ('PE', 'Pending'),
     )
 
-    # content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     parent = generic.GenericForeignKey('content_type', 'object_id')
 

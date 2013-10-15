@@ -22,8 +22,8 @@ def regenerate_static_campaign(request, store_id, campaign_id):
         result = True  # succeeded
     except Campaign.DoesNotExist, Store.DoesNotExist:
         pass
-    except:
-        result = False  # for other reasons... failed
+    except (Exception, BaseException), err:
+        result = str(err.message)  # for other reasons... failed
 
     # the return is either null, or true
     return ajax_jsonp(result, request.GET.get('callback', 'callback'))
