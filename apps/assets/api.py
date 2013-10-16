@@ -48,17 +48,8 @@ class StoreThemeResource(ModelResource):
     class Meta:
         queryset = StoreTheme.objects.all()
         resource_name = 'store_theme'
-        authentication = MultiAuthentication(
-            ApiKeyAuthentication(),
-            UserAuthentication())
+        authentication = ApiKeyAuthentication()
         authorization= Authorization()
-
-    def get_object_list(self, request):
-        store_themes = []
-        user_themes = self._get_user_themes(request)
-        all_themes = super(StoreThemeResource, self).get_object_list(request)
-
-        return store_themes
 
     def _get_store_staff(self, request):
         """get a {store: [users]} map."""
@@ -67,13 +58,12 @@ class StoreThemeResource(ModelResource):
             stores[store] = store.staff.all()
         return stores
 
-    def _get_user_themes(self, request):
-        """get list of themes of stores that this user has access to."""
-        themes = []
+    def apply_authorization_limits(self, request, object_list):
+        user_store_ids = []  # list of id of stores that this user can access
         for store, users in self._get_store_staff(request):
-            if store.theme and request.user in users:
-                themes.append(store.theme)
-        return themes
+            if request.user in users:
+                user_store_ids.append(store.id)
+        return object_list.filter(store_id__in=user_store_ids)
 
 
 class ProductResource(ModelResource):
