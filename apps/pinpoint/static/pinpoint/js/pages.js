@@ -555,6 +555,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             );
             this.attachListeners();
             this.countColumns();
+            this.layoutTask = new Task(function (data) {
+                self.layoutResults({'tileEl': data.tileEl, 'tile': data.tile});
+            });
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
@@ -625,9 +628,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             $.when(SecondFunnel.intentRank.getResults(opts))
                 .always(function (data) {
-                    self.layoutResults(data, tile);
-                })
-                .always(this.getMoreResults);
+                    _.each(data, function (curr) {
+                        self.layoutTask.addData({'tileEl': curr, 'tile': tile});
+                    });
+                });
             return this;
         },
 
@@ -682,6 +686,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             if (tile && tile.$el) {
                 $tile = tile.$el;  // this would be the "insert after" target
             }
+
+            _.each(tileEls, function(tileEl) {
+                self.layoutTask.addData({'tileEl': tileEl,
+                                         'tile': tile
+                    });
+            });
+
             SecondFunnel.layoutEngine.add(tileEls, $tile)
             return this;
         },
@@ -699,7 +710,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 // remove all current col-* classes
                 return (cls.match(/col-\d+/g) || []).join(' ');
             });
-            for (i = 0; i < maxCols; i++) {
+            for (i = 0; i < maxCols; i += 1) {
                 if (i <= maxColsDef) {
                     $html.addClass('col-' + i);
                 }
