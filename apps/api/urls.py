@@ -1,5 +1,4 @@
 from django.conf.urls import *
-from django.http import HttpResponse
 from tastypie.api import Api
 from apps.api.resources import UserResource
 
