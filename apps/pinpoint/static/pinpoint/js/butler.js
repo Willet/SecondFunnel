@@ -65,7 +65,7 @@
                 }
             };
 
-            self.setPriority(0.3);
+            self.setPriority(0.2);
 
             self.taskRunner = function () {
                 self.runTask();

@@ -52,10 +52,6 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         }
 
 
-        SecondFunnel.vent.on('windowResize', function () {
-            self.layout();
-        });
-
         broadcast('layoutEngineInitialized', this, opts);
         return this;
     };
@@ -79,6 +75,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * @returns {Deferred}
      */
     this.add = function (fragment, $target) {
+        console.log(fragment);
         var self = this;
         (function (frag) {
             if ($target && $target.length) {
@@ -94,6 +91,8 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                     self.reload();
                 }
             } else if (frag.length) {
+                delete console.log;
+                console.log(frag);
                 salvattore.append_elements(self.$el, frag);
             }
         }(fragment));

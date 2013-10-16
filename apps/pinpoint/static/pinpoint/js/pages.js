@@ -632,6 +632,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                         self.layoutTask.addData({'tileEl': curr, 'tile': tile});
                     });
                 });
+            self.layoutTask.done(function () {
+                self.reset();
+                self.getMoreResults();
+            })
             return this;
         },
 
@@ -643,7 +647,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'getMoreResults': function (data) {
             // creates conditions needed to get more results.
             var self = this;
-            this.toggleLoading(false);
+            self.reset();
 
             setTimeout(function () {
                 self.pageScroll();
@@ -663,7 +667,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // Check if we don't have anything
             if (data.length === 0) {
-                return this.toggleLoading(false);
+                return this.reset();
             }
 
             // If we have data to use.
@@ -748,6 +752,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 return this.getTiles();
             }
             return this;
+        },
+
+        'reset': function () {
+            var self = this;
+            setTimeout(function () {
+                self.toggleLoading(false);
+            }, 1000);
         },
 
         'toggleLoading': function (bool) {
