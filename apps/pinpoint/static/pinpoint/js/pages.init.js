@@ -94,13 +94,10 @@ function reInitialize(app) {
         });
 
         app.discovery = new SecondFunnel.core.Discovery(app.options);
+
         broadcast('finished', app.options, app);
     });
 
-    app.addInitializer(function () {
-        // set its width to whatever it began with.
-        app.options.initialWidth = $(window).width();
-    });
 }
 
 // auto-initialise existing instance on script inclusion
