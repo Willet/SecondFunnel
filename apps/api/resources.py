@@ -2,20 +2,36 @@ import django
 from django.conf.urls import url
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from tastypie.http import HttpUnauthorized, HttpForbidden
+from tastypie import fields
+from tastypie.exceptions import Unauthorized
 from tastypie.resources import ModelResource
 from tastypie.utils import trailing_slash
+from apps.api.utils import UserObjectsReadOnlyAuthorization
+from apps.assets.models import Store
+
+
+class StoreResource(ModelResource):
+    class Meta:
+        resource_name = 'internal_store'
+        queryset = Store.objects.all()
 
 
 # http://stackoverflow.com/questions/11770501/how-can-i-login-to-django-using-tastypie
 class UserResource(ModelResource):
+    stores = fields.ToManyField(
+        StoreResource,
+        'store_set',
+        null=True,
+        blank=True,
+        full=True # There is a way to pick specific fields, but I don't recall.
+    )
+
     class Meta:
         resource_name = 'user'
         queryset = User.objects.all()
         excludes = ['id', 'email', 'password', 'is_staff', 'is_superuser']
         allowed_methods = ['get', 'post']
-        # Do we need to allow querying / authorization?
-        # Not right now, at least.
+        authorization = UserObjectsReadOnlyAuthorization()
 
     def prepend_urls(self):
         """Adds URLs for login and logout"""
@@ -48,35 +64,23 @@ class UserResource(ModelResource):
 
         user = authenticate(username=username, password=password)
         if not user:
-            return self.create_response(request, {
-                'success': False,
-                'reason': 'incorrect'
-            }, HttpUnauthorized)
+            raise Unauthorized()
 
         if not user.is_active:
-            return self.create_response(request, {
-                'success': False,
-                'reason': 'disabled'
-            }, HttpForbidden)
+            raise Unauthorized()
 
         # Add CSRF token. Nick is not a security expert
         csrf_token = django.middleware.csrf.get_token(request)
 
         login(request, user)
-        response = self.create_response(request, {
-            'success': True,
-            'csrf': csrf_token
-        })
 
-        return response
+        return self.get_detail(request, username=username)
 
     def logout(self, request, **kwargs):
         self.method_check(request, allowed=['post'])
 
         if not request.user or not request.user.is_authenticated():
-            return self.create_response(request, {
-                'success': False
-            }, HttpUnauthorized)
+            raise Unauthorized()
 
         logout(request)
         return self.create_response(request, {

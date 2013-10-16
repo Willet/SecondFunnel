@@ -56,7 +56,6 @@ CACHES = {
 CORS_ORIGIN_REGEX_WHITELIST = (
     '^(localhost|127.0.0.1):(\d+)$'
 )
-SESSION_COOKIE_DOMAIN = '.localhost'
 
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
 
