@@ -17,9 +17,13 @@ def regenerate_static_campaign(request, store_id, campaign_id):
     """
     result = None
     try:
-        create_bucket_for_store_now(store_id)
-        campaign_returns = generate_static_campaign_now(store_id, campaign_id,
-                                                        ignore_static_logs=True)
+        create_bucket_for_store_now(store_id, force=True)
+    except:
+        pass  # bucket might already exist
+
+    try:
+        campaign_returns = generate_static_campaign_now(
+            store_id, campaign_id, ignore_static_logs=True)
 
         # succeeded
         result = {
@@ -37,7 +41,7 @@ def regenerate_static_campaign(request, store_id, campaign_id):
                 'bytes_written': campaign_returns.get('bytes_written', 0),
             }
         }
-    except Campaign.DoesNotExist, Store.DoesNotExist:
+    except (ValueError, Campaign.DoesNotExist, Store.DoesNotExist):
         result = {
             'result': {
                 'success': False,

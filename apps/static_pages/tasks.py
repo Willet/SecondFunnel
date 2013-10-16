@@ -62,8 +62,8 @@ def create_bucket_for_store(store_id):
     return create_bucket_for_store_now(store_id)
 
 
-def create_bucket_for_store_now(store_id):
-    if ACQUIRE_LOCK():
+def create_bucket_for_store_now(store_id, force=False):
+    if ACQUIRE_LOCK() or force:
         try:
             store = get_store(store_id, as_dict=True)
 
