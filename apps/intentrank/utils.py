@@ -34,6 +34,8 @@ def random_products(store_slug, param_dict, id_only=True):
 
 def ajax_jsonp(result, callback_name=None, status=200):
     """
+    This function now serves JSON as well as JSONP, when callback_name is None.
+
     @param result   a json-serializable object, or an object that
                     has a json() method.
     @param callback_name  a callback. if omitted, json.

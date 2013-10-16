@@ -15,7 +15,7 @@ def regenerate_static_campaign(request, store_id, campaign_id):
     @param [{string}] callback: jsonp callback (defaults to "callback")
     @returns {jsonp} true if succeeded, false if failed, null if campaign not found
     """
-    result = None
+    (result, status) = (None, 200)
     try:
         create_bucket_for_store_now(store_id, force=True)
     except:
@@ -24,8 +24,31 @@ def regenerate_static_campaign(request, store_id, campaign_id):
     try:
         campaign_returns = generate_static_campaign_now(
             store_id, campaign_id, ignore_static_logs=True)
+    except ValueError, err:
+        _, exception, _ = sys.exc_info()
+        stack = traceback.format_exc().splitlines()
 
-        # succeeded
+        result = {
+            'result': {
+                'success': False,
+                'reason': 'ContentGraph 404? {0}'.format(err.message),
+                'traceback': '\n'.join(stack)
+            }
+        }
+        status = 404
+    except (Exception, BaseException), err:  # for other reasons... failed
+        _, exception, _ = sys.exc_info()
+        stack = traceback.format_exc().splitlines()
+
+        result = {
+            'result': {
+                'success': False,
+                'reason': str(err.message),
+                'traceback': '\n'.join(stack)
+            }
+        }
+        status = 500
+    else:  # succeeded
         result = {
             'result': {
                 'success': True,
@@ -41,26 +64,6 @@ def regenerate_static_campaign(request, store_id, campaign_id):
                 'bytes_written': campaign_returns.get('bytes_written', 0),
             }
         }
-    except (ValueError, Campaign.DoesNotExist, Store.DoesNotExist):
-        result = {
-            'result': {
-                'success': False,
-                'reason': 'Campaign or Store does not exist',
-                'traceback': ''
-            }
-        }
-    except (Exception, BaseException), err:
-        # for other reasons... failed
-        _, exception, _ = sys.exc_info()
-        stack = traceback.format_exc().splitlines()
 
-        result = {
-            'result': {
-                'success': False,
-                'reason': str(err.message),
-                'traceback': '\n'.join(stack)
-            }
-        }
-
-    # the return is either null, or true
-    return ajax_jsonp(result, request.GET.get('callback', 'callback'))
+    return ajax_jsonp(result, request.GET.get('callback', 'callback'),
+                      status=status)

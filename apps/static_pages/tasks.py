@@ -160,9 +160,9 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
         store_dict = get_store(store_id=store_id, as_dict=True)
         store = Store.from_json(store_dict)
 
-    except ValueError:  # json.loads exception
-        logger.error("Could not understand campaign JSON #{0}".format(campaign_id))
-        return
+    except ValueError, err:  # json.loads exception
+        logger.error("Campaign #{0}: {1}".format(campaign_id, err.message))
+        raise  # someone catch it
 
     dummy_request = create_dummy_request()
 
@@ -183,7 +183,7 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
         pass
     else:
         logger.error("Not generating campaign #{0}".format(campaign_id))
-        return  # no error = don't generate
+        return {}  # no error = don't generate
 
     page_content = render_campaign(store_id, campaign_id,
                                    get_seeds_func=get_seeds,
