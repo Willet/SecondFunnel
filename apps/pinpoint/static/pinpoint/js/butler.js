@@ -1,4 +1,5 @@
 /* global $ */
+// jshint -W018
 
 (function () {
     "use strict";
@@ -17,6 +18,8 @@
             self.options = options || {};
             self.queue = [];
             self.func = func;
+            self.doneCallBacks = [];
+            self.deferred = new $.Deferred();
 
             if (data) {
                 self.queue.push(data);
@@ -46,6 +49,11 @@
                 }
             };
 
+            self.resolve = function () {
+                self.deferred.resolve();
+                self.deferred = new $.Deferred();
+            };
+
             self.setPriority = function (priority) {
                 if (priority < 0.1) {
                     self.options.priority = 0.1;
@@ -53,15 +61,19 @@
                 if (priority > 1) {
                     self.options.priority = 1;
                 } else {
-                    self.options.priority = 1;
+                    self.options.priority = priority;
                 }
             };
 
-            self.setPriority(0.5);
+            self.setPriority(0.3);
 
             self.taskRunner = function () {
                 self.runTask();
                 if (self.running) {
+                    if (!(self.queue.length > 0)) {
+                        self.resolve();
+
+                    }
                     var delay = (self.averageRuntime / self.priority) - (1 / self.priority);
                     self.nextRun = setTimeout(self.taskRunner, delay);
                 }
@@ -87,6 +99,16 @@
             self.addData = function (data) {
                 self.queue.push(data);
                 self.start();
+            };
+
+
+            // Wrapper for deferred.done
+            // Will resolve immediately if there is no work to be done
+            self.done = function (func) {
+                self.deferred.done(func);
+                if (self.queue.length === 0) {
+                    self.resolve();
+                }
             };
 
         }
