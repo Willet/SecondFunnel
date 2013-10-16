@@ -11,7 +11,7 @@ from django.conf import settings
 from django.core.cache import cache
 
 from apps.assets.models import Store
-from apps.contentgraph.views import get_page, get_store
+from apps.contentgraph.views import get_page, get_store, get_stores
 from apps.intentrank.views import get_seeds
 from apps.pinpoint.models import Campaign
 from apps.static_pages.models import StaticLog
@@ -19,7 +19,7 @@ from apps.static_pages.models import StaticLog
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
     get_route53_change_status, upload_to_bucket)
 from apps.static_pages.utils import (save_static_log, remove_static_log,
-    bucket_exists_or_pending, get_bucket_name, create_dummy_request, render_campaign)
+    get_bucket_name, create_dummy_request, render_campaign)
 
 celery = Celery()
 logger = get_task_logger(__name__)
@@ -49,14 +49,9 @@ def change_complete(store_id):
 
 @celery.task
 def create_bucket_for_stores():
-    stores = Store.objects.all()
+    stores = get_stores()
 
-    without_buckets = []
-    for store in stores:
-        if not bucket_exists_or_pending(store):
-            without_buckets.append(store)
-
-    task_group = group(create_bucket_for_store.s(s.id) for s in without_buckets)
+    task_group = group(create_bucket_for_store.s(s.id) for s in stores)
 
     task_group.apply_async()
 
@@ -70,13 +65,10 @@ def create_bucket_for_store(store_id):
 def create_bucket_for_store_now(store_id):
     if ACQUIRE_LOCK():
         try:
-            store = Store.objects.get(id=store_id)
+            store = get_store(store_id)
 
-        except Store.DoesNotExist:
+        except ValueError:
             logger.error("Store #{0} does not exist".format(store_id))
-            return
-
-        if bucket_exists_or_pending(store):
             return
 
         save_static_log(Store, store.id, "PE")

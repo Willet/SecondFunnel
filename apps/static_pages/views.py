@@ -38,7 +38,13 @@ def regenerate_static_campaign(request, store_id, campaign_id):
             }
         }
     except Campaign.DoesNotExist, Store.DoesNotExist:
-        pass
+        result = {
+            'result': {
+                'success': False,
+                'reason': 'Campaign or Store does not exist',
+                'traceback': ''
+            }
+        }
     except (Exception, BaseException), err:
         # for other reasons... failed
         _, exception, _ = sys.exc_info()

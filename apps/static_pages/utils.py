@@ -37,15 +37,6 @@ def remove_static_log(object_class, object_id, key):
         key=key).delete()
 
 
-def bucket_exists_or_pending(store):
-    store_type = ContentType.objects.get_for_model(Store)
-
-    log_records = StaticLog.objects.filter(
-            content_type=store_type, object_id=store.id)
-
-    return len(log_records) > 1
-
-
 def get_bucket_name(bucket_name):
     """
     Generates a bucket name based on current environment.
