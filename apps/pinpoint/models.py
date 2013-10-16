@@ -72,6 +72,9 @@ class StoreTheme(BaseModelNamed):
     def __unicode__(self):
         return u"Theme: %s" % self.name
 
+    def json(self):
+        return {'page': self.page}
+
     @classmethod
     def from_json(cls, json_data):
         return cls(**json_data)

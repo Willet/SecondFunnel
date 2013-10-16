@@ -148,7 +148,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         # initial_results = Product.objects.get(pk__in=campaign_data.get('initial_results'))
         # based on Neal's description, featured-tiles is a magic json attribute
         # that is already a list of tiles.
-        initial_results = json.loads(campaign_data['featured-tiles'])
+        initial_results = campaign_data['featured-tiles']
     except:  # all exceptions
         # if there are backup results, serve the first 4.
         initial_results = backup_results[:4]

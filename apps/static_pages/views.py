@@ -1,8 +1,10 @@
+import sys, traceback
+
 from apps.intentrank.utils import ajax_jsonp
 from apps.assets.models import Store
 from apps.pinpoint.models import Campaign
-from apps.static_pages.tasks import (create_bucket_for_store,
-                                     generate_static_campaign)
+from apps.static_pages.tasks import (create_bucket_for_store_now,
+                                     generate_static_campaign_now)
 
 
 def regenerate_static_campaign(request, store_id, campaign_id):
@@ -15,15 +17,40 @@ def regenerate_static_campaign(request, store_id, campaign_id):
     """
     result = None
     try:
-        create_bucket_for_store.delay(store_id)
-        generate_static_campaign.delay(store_id, campaign_id,
-                                       ignore_static_logs=True)
+        create_bucket_for_store_now(store_id)
+        campaign_returns = generate_static_campaign_now(store_id, campaign_id,
+                                                        ignore_static_logs=True)
 
-        result = True  # succeeded
+        # succeeded
+        result = {
+            'result': {
+                'success': True,
+                'campaign': {
+                    'id': campaign_returns['campaign'].get('id', -1),
+                    'url': campaign_returns['campaign'].get('url', ''),
+                    'backup_results': campaign_returns['campaign'].get('backupResults', []),
+                    'initial_results': campaign_returns['campaign'].get('initialResults', []),
+                    'last_modified': campaign_returns['campaign'].get('last-modified', 0),
+                },
+                's3_path': campaign_returns.get('s3_path', ''),
+                'bucket_name': campaign_returns.get('bucket_name', ''),
+                'bytes_written': campaign_returns.get('bytes_written', 0),
+            }
+        }
     except Campaign.DoesNotExist, Store.DoesNotExist:
         pass
     except (Exception, BaseException), err:
-        result = str(err.message)  # for other reasons... failed
+        # for other reasons... failed
+        _, exception, _ = sys.exc_info()
+        stack = traceback.format_exc().splitlines()
+
+        result = {
+            'result': {
+                'success': False,
+                'reason': str(err.message),
+                'traceback': '\n'.join(stack)
+            }
+        }
 
     # the return is either null, or true
     return ajax_jsonp(result, request.GET.get('callback', 'callback'))

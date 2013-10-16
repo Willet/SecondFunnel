@@ -2,13 +2,12 @@
 Static pages celery tasks
 """
 
-import json
 from urlparse import urlparse
 
-from celery import Celery, task, group
+from celery import Celery, group
 from celery.utils.log import get_task_logger
 
-from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 from django.core.cache import cache
 
 from apps.assets.models import Store
@@ -64,6 +63,11 @@ def create_bucket_for_stores():
 
 @celery.task
 def create_bucket_for_store(store_id):
+    """The task version of the synchronous operation."""
+    return create_bucket_for_store_now(store_id)
+
+
+def create_bucket_for_store_now(store_id):
     if ACQUIRE_LOCK():
         try:
             store = Store.objects.get(id=store_id)
@@ -139,11 +143,13 @@ def generate_static_campaigns():
 
 @celery.task
 def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
-    """Renders individual campaign and saves it to S3.
+    """The task version of the synchronous operation."""
+    return generate_static_campaign_now(store_id, campaign_id,
+                                        ignore_static_logs)
 
-    TODO: verify static log checks will be needed in the future, when the
-    page generator is hosted on "barebones django app"
-    """
+
+def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False):
+    """Renders individual campaign and saves it to S3."""
 
     try:
         campaign_dict = get_page(store_id=store_id, page_id=campaign_id,
@@ -184,6 +190,7 @@ def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
                                    get_seeds_func=get_seeds,
                                    request=dummy_request)
 
+    # e.g. "shorts3/index.html"
     s3_path = "{0}/index.html".format(
         campaign.url or campaign.slug or campaign.id)
 
@@ -195,6 +202,12 @@ def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
 
     dns_name = get_bucket_name(store.slug)
     bucket_name =  store_url or dns_name
+
+    # check for dev/test prefix. This allows campaign.url from campaign maanger
+    # to be a full secondfunnel.com url.
+    if settings.ENVIRONMENT in ["test", "dev"]:
+        if not bucket_name[:len(settings.ENVIRONMENT)] == settings.ENVIRONMENT:
+            bucket_name = '{0}-{1}'.format(settings.ENVIRONMENT, bucket_name)
 
     logger.info("Uploading campaign #{0} to {1}/{2}".format(
         campaign_id, bucket_name, s3_path))
@@ -212,3 +225,12 @@ def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
     else:
         logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
             campaign_id))
+
+    # return some kind of feedback
+    return {
+        's3_path': s3_path,
+        'bucket_name': bucket_name,
+        'campaign': campaign_dict,  # warning: contains store theme
+        'store': store_dict,
+        'bytes_written': bytes_written,
+    }

@@ -4,7 +4,7 @@ import json
 from django.db.models import Count, Q
 from django.http import HttpResponse
 
-from apps.assets.models import Product, Store
+from apps.assets.models import Product, Store, BaseModelNamed
 
 DEFAULT_RESULTS  = 12
 
@@ -39,25 +39,31 @@ def ajax_jsonp(result, callback_name=None, status=200):
     @param callback_name  a callback. if omitted, json.
                                       if '', 'callback'.
     """
-    response_text = ''
-    try:
-        response_text = json.dumps(result)
-    except TypeError:  # blah blah is not JSON serializable
-        pass
+    def serialize(result):
+        response_text = ''
 
-    if not response_text:
-        try:
-            # serialize BasedModelNamed objects
+        if isinstance(result, (bool, int, float, str, basestring)):
+            response_text = json.dumps(result)
+        elif isinstance(result, BaseModelNamed):
             response_text = result.json()
-        except AttributeError:
-            pass
+        elif isinstance(result, (tuple, list)):
+            result_list = []
+            for r in result:
+                result_list.append(json.loads(serialize(r)))
+            response_text = json.dumps(result_list)
+        elif isinstance(result, dict):
+            result_list = {}
+            for r in result:
+                result_list[r] = json.loads(serialize(result[r]))
+            response_text = json.dumps(result_list)
+        else:
+            try:
+                response_text = json.dumps(result)
+            except TypeError:
+                raise # no serialization method worked
+        return response_text
 
-    if not response_text:
-        try:
-            # serialize list of BasedModelNamed objects
-            response_text = json.dumps([json.loads(r.json()) for r in result])
-        except TypeError:
-            raise # no serialization method worked
+    response_text = serialize(result)
 
     if callback_name == '':
         callback_name = 'callback'
