@@ -1,4 +1,5 @@
 import json
+from django.utils.safestring import mark_safe
 import re
 
 from collections import defaultdict
@@ -99,6 +100,48 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         else:
             return match.group(0)  # leave unchanged
 
+    def json_postprocessor(product_dict):
+        """given a product dict, output a product string that can be printed
+        with the "|safe" filter.
+        """
+        if product_dict:
+            if not product_dict.get('content-id', False):
+                product_dict['content-id'] = product_dict.get('id', -1)
+
+            if not product_dict.get('db-id', False):
+                product_dict['db-id'] = product_dict.get(
+                    'db_id', product_dict.get('db-id', None))
+
+            if not product_dict.get('title', False):
+                product_dict['title'] = product_dict.get('name', '')
+
+            if not product_dict.get('template', False):
+                product_dict['template'] = 'product'
+
+            if not product_dict.get('provider', False):
+                product_dict['provider'] = 'youtube'
+
+            # process related_products field, which is a list of products
+            if product_dict.get('related_products', False):
+                rel_products = []
+                for rel_product in product_dict['related_products']:
+                    rel_products.append(json.loads(json_postprocessor(rel_product)))
+                product_dict['related_products'] = rel_products
+
+            escaped_product_dict = {}
+            for key in product_dict:
+                if isinstance(product_dict[key], (str, basestring)):
+                    escaped_product_dict[key] = product_dict[key]\
+                        .replace('\r', r'\r')\
+                        .replace('\n', r'\n')\
+                        .replace('"', r'\"')
+                else:
+                    escaped_product_dict[key] = product_dict[key]
+
+            return mark_safe(json.dumps(escaped_product_dict))
+        else:
+            return 'null'
+
     # these 4 lines will trigger ValueErrors if remote JSON is invalid.
     campaign_data = get_page(store_id=store_id, page_id=campaign_id, as_dict=True)
     campaign = Campaign.from_json(campaign_data)
@@ -153,9 +196,9 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         "store": store,
         "columns": range(4),
         "preview": not campaign.live,
-        "product": product,
-        "initial_results": initial_results,
-        "backup_results": backup_results,
+        "product": json_postprocessor(product),
+        "initial_results": map(json_postprocessor, initial_results),
+        "backup_results": map(json_postprocessor, backup_results),
         "pub_date": datetime.now(),
         "ir_base_url": ir_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
