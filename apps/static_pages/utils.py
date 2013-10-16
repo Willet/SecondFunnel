@@ -121,26 +121,30 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     ir_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
 
     # "borrow" IR for results
+    initial_results = []
+    cookie = ''
     try:
-        backup_results = get_seeds_func(
+        # make IR request without cookie.
+        initial_results, cookie = get_seeds_func(
             request,
-            # store=campaign.store.slug,
             store_slug=store_data.get('slug'),
-            # campaign=campaign.default_intentrank_id or campaign.id,
             campaign=campaign_data.get('intentrank_id') or campaign.id,
             base_url=ir_base_url, results=100, raw=True)
-    # (get_seeds_func is None and you ran it, IR offline)
-    except (TypeError, ValueError):
-        backup_results = []
-
-    # get initial results (if any) from our DB.
-    # TODO: if product DB does not exist, this is skipped automatically.
-    try:
-        # initial_results = Product.objects.get(pk__in=campaign_data.get('initial_results'))
-        # based on Neal's description, featured-tiles is a magic json attribute
-        # that is already a list of tiles.
-        initial_results = campaign_data['featured-tiles']
     except:  # all exceptions
+        pass
+
+    try:
+        # make IR request with cookie. (if there is one)
+        backup_results, cookie = get_seeds_func(
+            request,
+            store_slug=store_data.get('slug'),
+            campaign=campaign_data.get('intentrank_id') or campaign.id,
+            base_url=ir_base_url, results=100, raw=True, cookie=cookie)
+    except (TypeError, ValueError):
+        # (get_seeds_func is None and you ran it, IR offline)
+        backup_results, cookie = ([], '')
+
+    if not initial_results:
         # if there are backup results, serve the first 4.
         initial_results = backup_results[:4]
 

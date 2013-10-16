@@ -246,6 +246,9 @@ def get_seeds(request, **kwargs):
     kwargs['raw'] also toggles between returning a dictionary
     or an entire HttpResponse.
     """
+    # IR uses a cookie previously sent to us as a flag
+    cookie = kwargs.get('cookie', '')
+
     num_results = kwargs.get('results', request.GET.get('results',  DEFAULT_RESULTS))
 
     # store now needs to be a slug
@@ -266,8 +269,10 @@ def get_seeds(request, **kwargs):
 
     # Fetch results
     try:
-        response, content = send_request(request, url)
+        response, content = send_request(request, url,
+                                         headers={'Cookie': cookie})
         status = response.status
+        cookie = response.get('set-cookie', '')
         content = unicode(content, 'windows-1252')
         if status >= 400:
             raise ValueError('get_seeds received error')
@@ -295,7 +300,7 @@ def get_seeds(request, **kwargs):
         results.update({'url': url})
 
     if kwargs.get('raw', False):
-        return results
+        return (results, cookie)
     else:
         return ajax_jsonp(results, callback, status=status)
 

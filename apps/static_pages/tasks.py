@@ -65,22 +65,29 @@ def create_bucket_for_store(store_id):
 def create_bucket_for_store_now(store_id):
     if ACQUIRE_LOCK():
         try:
-            store = get_store(store_id)
+            store = get_store(store_id, as_dict=True)
 
         except ValueError:
             logger.error("Store #{0} does not exist".format(store_id))
             return
 
-        save_static_log(Store, store.id, "PE")
+        save_static_log(Store, store.get('id'), "PE")
 
         store_url = ''
-        if store.public_base_url:
-            url = urlparse(store.public_base_url).hostname
+        if store.get('public-base-url', False):
+            url = urlparse(store.get('public-base-url')).hostname
             if url:
                 store_url = url
 
-        dns_name = get_bucket_name(store.slug)
+        dns_name = get_bucket_name(store.get('slug'))
         bucket_name =  store_url or dns_name
+
+        # check for dev/test prefix. This allows campaign.url from campaign maanger
+        # to be a full secondfunnel.com url.
+        if settings.ENVIRONMENT in ["test", "dev"]:
+            if not bucket_name[:len(settings.ENVIRONMENT)] == settings.ENVIRONMENT:
+                bucket_name = '{0}-{1}'.format(settings.ENVIRONMENT, bucket_name)
+
         _, change_status, change_id = create_bucket_website_alias(dns_name, bucket_name)
 
         if change_status == "PENDING":

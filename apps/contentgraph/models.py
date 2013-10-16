@@ -78,6 +78,7 @@ class ContentGraphObject(object):
         return self.cached_data
 
     def get(self, item, default_value=None):
+        # dict method
         return self.data().get(item, default_value)
 
     def set(self, key, value):
