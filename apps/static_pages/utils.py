@@ -172,7 +172,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
             request,
             store_slug=store_data.get('slug'),
             campaign=campaign_data.get('intentrank_id') or campaign.id,
-            base_url=ir_base_url, results=100, raw=True)
+            base_url=ir_base_url, results=4, raw=True)
     except:  # all exceptions
         pass
 

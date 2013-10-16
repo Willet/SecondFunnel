@@ -79,10 +79,20 @@
         // , 'lockWidth': undefined  // must be true (not 1, {}, ...) or a function that returns true. undefined means auto.
         // , 'desiredWidth': 0,  // number, or a function that returns a number. 0 means auto.
 
-        , 'initialResults': initial_results
+        , 'initialResults': [
+            {% for result in initial_results %}
+                {{ result }}
+                {% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
         // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
         // it really should contain at least 10 products.
-        , 'backupResults': backup_results
+        , 'backupResults': [
+            {% for result in backup_results %}
+                {{ result }}
+                {% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
     };
 
     var _gaq = _gaq || [];
