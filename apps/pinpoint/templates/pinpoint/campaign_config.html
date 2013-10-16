@@ -23,7 +23,7 @@
             , 'name': '{{ campaign.name|default:"" }}'  // provided by campaign manager
 
             // you will still need to make elements with data-category="96" on the page.
-            , 'categories': {{ campaign.categories|default:"[]" }}  // string representation of [{id: 123, name: 'gap'}, ...]
+            , 'categories': {{ campaign.categories|safe|default:"[]" }}  // string representation of [{id: 123, name: 'gap'}, ...]
 
             // 'main-block-template': '{{ campaign.template }}',  // DEPRECATED
             // 'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},  // DEPRECATED

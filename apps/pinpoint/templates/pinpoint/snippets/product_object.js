@@ -1,10 +1,12 @@
 {# /* use by passing a 'product' into this template #}
 {
-    {% if product %}
+    {% if product and product.id %}
         "id": "{{ product.id }}",
         {% if product.id %}
             "content-id": {{ product.id|escapejs }},  {# by default, anyway #}
-            "db-id": {{ product.id|escapejs }},
+        {% endif %}
+        {% if product.db_id %}
+            "db-id": {{ product.db_id }},
         {% endif %}
 
         "description": "{{ product.description|escapejs }}",

@@ -299,10 +299,19 @@ def get_seeds(request, **kwargs):
     if 'error' in results:
         results.update({'url': url})
 
+    # post-processing for django templates: they can't access any attribute
+    # with a hyphen in it
+    new_results = []
+    for result in results:
+        new_result = {}
+        for attrib in result:
+            new_result[attrib.replace('-', '_')] = result[attrib]
+        new_results.append(new_result)
+
     if kwargs.get('raw', False):
-        return (results, cookie)
+        return (new_results, cookie)
     else:
-        return ajax_jsonp(results, callback, status=status)
+        return ajax_jsonp(new_results, callback, status=status)
 
 
 def update_clickstream(request):
