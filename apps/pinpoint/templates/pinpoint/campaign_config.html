@@ -16,14 +16,14 @@
         }
         , 'page': {  // required
             'id': '{{ campaign.intentrank_id|default:campaign.id }}'  // required
-            , 'product': {% filter escapejs %}{% include "pinpoint/snippets/product_object.js" with product=product only %}{% endfilter %}
+            , 'product': {% include "pinpoint/snippets/product_object.js" with product=product only %}
             , 'pubDate': '{{ pub_date }}'  // for verifying the original upload date of a static campaign. for human use only
             , 'offline': false  // optional (if true, loads .content immediately)
 
             , 'name': '{{ campaign.name|default:"" }}'  // provided by campaign manager
 
             // you will still need to make elements with data-category="96" on the page.
-            , 'categories': {{ campaign.categories|escapejs|default:"[]" }}  // string representation of [{id: 123, name: 'gap'}, ...]
+            , 'categories': {{ campaign.categories|default:"[]" }}  // string representation of [{id: 123, name: 'gap'}, ...]
 
             // 'main-block-template': '{{ campaign.template }}',  // DEPRECATED
             // 'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},  // DEPRECATED
@@ -62,7 +62,7 @@
         , 'masonry': {  // passed to masonry
             'animationDuration': 0.4  // in seconds
         }
-        , 'featured': {% filter escapejs %}{% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}{% endfilter %}
+        , 'featured': {% include "pinpoint/snippets/product_object.js" with product=product featured=True only %}
         // stuff that loads when page loads, even if IR is available
         , 'IRResultsCount': 10
         , 'IRTimeout': 5000
@@ -81,9 +81,7 @@
 
         , 'initialResults': [
             {% for result in initial_results %}
-                {% filter escapejs %}
-                    {% include "pinpoint/snippets/product_object.js" with product=product only %}
-                {% endfilter %}
+                {% include "pinpoint/snippets/product_object.js" with product=product only %}
                 {% if not forloop.last %},{% endif %}
             {% endfor %}
         ]
@@ -91,9 +89,7 @@
             // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
             // it really should contain at least 10 products.
             {% for result in backup_results %}
-                {% filter escapejs %}
-                    {% include "pinpoint/snippets/product_object.js" with product=result only %}
-                {% endfilter %}
+                {% include "pinpoint/snippets/product_object.js" with product=result only %}
                 {% if not forloop.last %},{% endif %}
             {% endfor %}
         ]
