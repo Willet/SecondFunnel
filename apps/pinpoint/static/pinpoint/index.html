@@ -495,7 +495,7 @@
         <script type="text/javascript" src="/static/js/imagesloaded.js"></script>
         <script type="text/javascript" src="/static/js/css3-mediaqueries.js"></script><!-- IE8 -->
         <script type="text/javascript">
-            if (!$.browser.mobile) {
+            if (!$.browser.mobile || $.browser.tablet) {
                 (function () {
                     var salvattore = document.createElement('script');
                     salvattore.type = 'text/JavaScript';

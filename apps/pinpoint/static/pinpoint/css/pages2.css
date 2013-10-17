@@ -286,7 +286,7 @@ div.loading {
 }
 @media (min-width: 480px) and (max-width: 510px) {
     #discovery-area {
-        width: 255px;
+        width: 380px;
     }
 }
 @media (max-width: 600px) {
@@ -327,6 +327,7 @@ div.loading {
     }
     #discovery-area {
         width: 765px;
+        margin-left: 10
     }
 }
 @media (min-width: 1024px) { /* formal desktops */
