@@ -1,8 +1,6 @@
 import sys, traceback
 
 from apps.intentrank.utils import ajax_jsonp
-from apps.assets.models import Store
-from apps.pinpoint.models import Campaign
 from apps.static_pages.tasks import (create_bucket_for_store_now,
                                      generate_static_campaign_now)
 
@@ -13,7 +11,7 @@ def regenerate_static_campaign(request, store_id, campaign_id):
     Campaign *will* be regenerated despite having a static log entry.
 
     @param [{string}] callback: jsonp callback (defaults to "callback")
-    @returns {jsonp} true if succeeded, false if failed, null if campaign not found
+    @returns {jsonp} the result key is true if succeeded, false if failed
     """
     (result, status) = (None, 200)
     try:

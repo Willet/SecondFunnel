@@ -1,10 +1,6 @@
 from django.db import models
 
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
-
-from apps.assets.models import Store
-from apps.pinpoint.models import Campaign
 
 
 class StaticLog(models.Model):

@@ -6,18 +6,16 @@ from collections import defaultdict
 from datetime import datetime
 
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from django.core.handlers.wsgi import WSGIRequest
 from django.template import RequestContext, loader, Template
 from django.template.defaultfilters import slugify
 from django.test import RequestFactory
 from django.utils.importlib import import_module
 
-from apps.assets.models import Store, Product
+from apps.assets.models import Store
 from apps.contentgraph.models import get_contentgraph_data
 from apps.contentgraph.views import get_page, get_product, get_store
-from apps.intentrank.utils import random_products
-from apps.pinpoint.models import StoreTheme, Campaign
+from apps.pinpoint.models import Campaign
 from apps.static_pages.models import StaticLog
 
 

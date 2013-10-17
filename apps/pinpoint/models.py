@@ -1,7 +1,6 @@
-from django.core.exceptions import ValidationError
 from django.db import models
 
-from apps.assets.models import BaseModelNamed, Store, Product
+from apps.assets.models import BaseModelNamed, Store
 
 
 class StoreTheme(BaseModelNamed):

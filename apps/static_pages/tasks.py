@@ -172,8 +172,6 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
     # if we think this static page already exists, finish task
     try:
         log_entry = StaticLog.objects.get(
-            # content_type=content_type,
-            # content_type=None,
             object_id=campaign.id, key=log_key)
 
         if log_entry and ignore_static_logs:
