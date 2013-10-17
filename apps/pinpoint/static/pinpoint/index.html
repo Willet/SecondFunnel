@@ -495,8 +495,13 @@
         <script type="text/javascript" src="/static/js/imagesloaded.js"></script>
         <script type="text/javascript" src="/static/js/css3-mediaqueries.js"></script><!-- IE8 -->
         <script type="text/javascript">
-            if ($.browser.mobile) {
-                document.write("\<script type=\"text/javascript\" src=\"js/salvattore.js\"><\/script>");
+            if (!$.browser.mobile) {
+                (function () {
+                    var salvattore = document.createElement('script');
+                    salvattore.type = 'text/JavaScript';
+                    salvattore.src = "js/salvattore.js";
+                    $('body').append(salvattore);
+                }());
             }
         </script>
         <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
