@@ -485,6 +485,7 @@
         <script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
         <script type="text/javascript" src="/static/js/respond.min.js"></script><!-- "as early after the css as possible" -->
         <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.browser.mobile.js"></script>
         <script type="text/javascript" src="/static/js/jquery.mobile.swipeonly.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.viewport.min.js"></script><!-- after jquery -->
         <script type="text/javascript" src="/static/js/json2.js"></script>
@@ -493,7 +494,11 @@
         <script type="text/javascript" src="/static/js/backbone.marionette.min.js"></script><!-- after backbone -->
         <script type="text/javascript" src="/static/js/imagesloaded.js"></script>
         <script type="text/javascript" src="/static/js/css3-mediaqueries.js"></script><!-- IE8 -->
-        <script type="text/javascript" src="js/salvattore.js"></script>
+        <script type="text/javascript">
+            if ($.browser.mobile) {
+                document.write("\<script type=\"text/javascript\" src=\"js/salvattore.js\"><\/script>");
+            }
+        </script>
         <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.browser.mobile.js"></script>
         <script type="text/javascript" src="js/butler.js"></script>

@@ -53,13 +53,7 @@
 }
 
 /* Salvattore */
-/*
- * Bootstrap 3 defines device sizes like so:
- *   Phones (<768px)
- *   Tablets (>768px)
- *   Desktops (>992px)
- *   Desktops (>1200px)
- * */
+
 #discovery-area[data-columns]::before { display: none; } /* Don't forget this. */
 
 @media screen and (max-width: 399px) {

@@ -45,7 +45,8 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         var self = this;
         opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
 
-        this.$el = $(opts.discoveryTarget)[0];
+        this.$el = $(opts.discoveryTarget);
+        this.el = this.$el[0];
 
         if (typeof opts.columnWidth === 'function') {
             opts.columnWidth = opts.columnWidth(this.$el);
@@ -93,7 +94,14 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
             } else if (frag.length) {
                 delete console.log;
                 console.log(frag);
-                salvattore.append_elements(self.$el, frag);
+                if ($.browser.mobile) {
+                    self.$el.append(frag);
+                    console.log('jQuery append');
+                }
+                else {
+                    salvattore.append_elements(self.el, frag);
+                    console.log('salvattore append');
+                }
             }
         }(fragment));
     };
