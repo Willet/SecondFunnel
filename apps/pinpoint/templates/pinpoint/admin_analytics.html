@@ -23,7 +23,7 @@
             "ajaxURL": "{% url ajax-analytics-pinpoint %}",
             "store_id": "{{ store.id }}",
             "campaign_name": "{{ campaign.name }}",
-            "campaign_id": "{{ campaign.default_intentrank_id }}"
+            "campaign_id": "{{ campaign.intentrank_id }}"
         };
     </script>
     <script src="{% static "js/jquery-ui.js" %}"></script>

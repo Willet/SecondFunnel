@@ -1,16 +1,15 @@
 import json
-import random
+
 from django.contrib.auth.models import User
 from django.core import serializers
 from django.db import models
 from django.db.models import get_model
 from django.template.defaultfilters import striptags
 from django.utils.html import escape
-from django.db.models.signals import post_save
 
 from social_auth.db.django_models import UserSocialAuth
 
-from apps.utils.image_service.hooks import media_saved
+from apps.contentgraph.models import ContentGraphObject
 
 
 class BaseModel(models.Model):
@@ -49,6 +48,11 @@ class BaseModelNamed(BaseModel):
         """default method for all models to have a json representation."""
         return serializers.get_serializer("json")().serialize(iter([self]))
 
+    @classmethod
+    def from_json(cls, json_data):
+        """create an object from data. this is a subclassable stub."""
+        return cls(**json_data)
+
 
 class Store(BaseModelNamed):
     """
@@ -56,7 +60,7 @@ class Store(BaseModelNamed):
 
     @ivar staff: The users who are allowed to access this store's admin pages.
     """
-    staff = models.ManyToManyField(User)
+    staff = models.ManyToManyField(User, related_name='stores')
     social_auth = models.ManyToManyField(UserSocialAuth, blank=True, null=True)
 
     theme = models.ForeignKey('pinpoint.StoreTheme',
@@ -70,6 +74,19 @@ class Store(BaseModelNamed):
 
     features = models.ManyToManyField('assets.StoreFeature', blank=True,
         null=True, related_name='stores')
+
+    def __init__(self, *args, **kwargs):
+        try:
+            super(Store, self).__init__(*args, **kwargs)
+        except:
+            # when __init__ doesn't take all keyword arguments, ignore exception
+            pass
+
+        # allow temporary storage of arbitrary attributes
+        for key in kwargs:
+            if not hasattr(self, key):
+                setattr(self, key, kwargs[key])
+
 
     def __unicode__(self):
         return self.name
@@ -97,66 +114,21 @@ class Store(BaseModelNamed):
     def features_list(self):
         return [x.slug for x in self.features.all()]
 
+    @classmethod
+    def from_json(cls, json_data):
+        from apps.pinpoint.models import StoreTheme
+        # special case... the theme needs to become an instance beforehand
+        # automatically defaults to DEFAULT_PAGE
+        theme = json_data.get('theme', '')
+        if isinstance(theme, basestring):
+            json_data['theme'] = StoreTheme(page=theme)
+
+        return cls(**json_data)
+
 
 class StoreFeature(BaseModelNamed):
     def __unicode__(self):
         return self.name
-
-
-class MediaBase(BaseModelNamed):
-    """
-    The base model for generic media assets.
-
-    @ivar MEDIA_TYPES: The types of allowed media.
-    @ivar remote: The url of a remote asset. Either this or hosted
-        must not be null.
-    @ivar hosted: The hosted asset as a file.
-    @ivar media_type: The media type of this asset.
-
-    @warning: Investigate adding "not null" restrictions on
-        remote and hosted fields
-    """
-    MEDIA_TYPES = (
-        ('js', 'JavaScript'),
-        ('css', 'CSS'),
-        ('img', 'Image'),
-    )
-    remote = models.CharField(
-        "Remote URL",
-        max_length=555, blank=True, null=True)
-
-    hosted = models.FileField(
-        "Hosted File",
-        upload_to="product_images",
-        blank=True,
-        null=True)
-
-    media_type = models.CharField(
-        max_length=3,
-        choices=MEDIA_TYPES,
-        default="css",
-        blank=True,
-        null=True)
-
-    class Meta:
-        abstract = True
-
-    def __unicode__(self):
-        return u"Media Asset URL %s" % self.get_url()
-
-    def get_url(self):
-        """
-        Gets a url of the asset. Prefers remote assets over hosted assets.
-
-        @return: None if no url exists, or url of the asset.
-        """
-        if self.remote:
-            return self.remote
-
-        if self.hosted:
-            return self.hosted.url
-
-        return None
 
 
 class ImageBase(BaseModelNamed):
@@ -200,21 +172,12 @@ class ImageBase(BaseModelNamed):
         return self.get_url()
 
 
-class GenericMedia(MediaBase):
-    """
-    A non-meta version of MediaBase. This allows object that function as MediaBase
-    objects while still allowing other models to extend MediaBase.
-    """
-    pass
-
-
 class GenericImage(ImageBase):
     """
     A non-meta version of ImageBase. This allows object that function as ImageBase
     objects while still allowing other models to extend ImageBase.
     """
     pass
-
 
 class Product(BaseModelNamed):
     """
@@ -228,7 +191,6 @@ class Product(BaseModelNamed):
     @ivar rescrape: Whether this product should be rescraped. Used by Scraper.
     @ivar lifestyleImage: An optional image of the product being used.
 
-    @ivar media: Related name for ProductMedia objects.
     """
     original_url = models.CharField(max_length=500, blank=True, null=True)
 
@@ -240,22 +202,16 @@ class Product(BaseModelNamed):
     last_scraped = models.DateTimeField(blank=True, null=True)
     rescrape = models.BooleanField(default=False)
 
-    lifestyleImages = models.ManyToManyField(GenericImage, blank=True, null=True,
-                                       related_name='associated_products')
-
-    default_image = models.ForeignKey("ProductMedia", blank=True, null=True,
-                                      related_name='primary_product')
-
     available = models.BooleanField(default=True)
+
+    # default values for non-db attributes
+    tags = {}
+    images = []
+    lifestyle_image = ''
+    template = 'product'
 
     def __unicode__(self):
         return unicode(self.name) or u''
-
-    def media_count(self):
-        """
-        @return: The number of media objects associated to this product.
-        """
-        return self.media.count()
 
     def json(self):
         """Change its default set of attributes to those defined in data()."""
@@ -267,35 +223,6 @@ class Product(BaseModelNamed):
         @return: The url of the product page.
         """
         return self.original_url
-
-    def image(self):
-        if self.default_image:
-            return self.default_image.get_url()
-
-        images = self.images()
-
-        return images[0] if images else None
-
-    def images(self, include_external=False):
-        """if include_external, then all external media (e.g. instagram photos)
-        will be included in the list.
-        
-        @return: A list of product image urls associated wih this product.
-        """
-        product_images = [x.get_url() for x in self.media.all()]
-        if include_external:
-            for external_content in self.external_content.all():
-                if external_content.image_url:
-                    product_images.append(external_content.image_url)
-
-        # Default image should be first
-        if self.default_image:
-            first_image = self.default_image.get_url()
-            if first_image in product_images:
-                product_images.remove(first_image)
-            product_images.insert(0, first_image)
-
-        return product_images
 
     def data(self, raw=False):
         """HTML string representation of some of the product's properties.
@@ -315,26 +242,20 @@ class Product(BaseModelNamed):
             modified_text = escape(modified_text)
             return modified_text
 
-        images = self.images()
-        image = self.image()
+        images = self.images
 
         fields = {
             'data-title': strip_and_escape(self.name),
             'data-description': strip_and_escape(self.description),
             'data-price': strip_and_escape(self.price),
             'data-url': strip_and_escape(self.original_url),
-            'data-image': strip_and_escape(image),
+            'data-image': strip_and_escape(images[0]),
             'data-images': '|'.join(strip_and_escape(x) for x in images),
             'data-product-id': self.id,
             'data-template': 'product',
         }
 
-        try:
-            fields['data-tags'] = self.tags.tags
-
-        # ProductTags.DoesNotExist
-        except:
-            fields['data-tags'] = {}
+        fields['data-tags'] = {}
 
         try:
             fields['data-lifestyle-image'] = self.lifestyle_image  # getter
@@ -361,38 +282,6 @@ class Product(BaseModelNamed):
 
         return data
 
-    def _get_preferred_template(self):
-        """Does some check to find out if combo boxes are preferred.
-
-        Clients may completely ignore this suggestion.
-        """
-        if self.lifestyleImages.all():
-            return 'combobox'
-        return 'product'
-
-    # getter used by templating
-    template = property(_get_preferred_template)
-
-    def _get_random_lifestyle_image(self):
-        """Returns a random lifestyle image url."""
-        if self.lifestyleImages.all():
-            random_idx = random.randint(0, self.lifestyleImages.count()-1)
-            random_img = self.lifestyleImages.all()[random_idx]
-            return unicode(random_img)
-        raise AttributeError('No lifestyle image.')
-
-    # getter used by templating
-    lifestyle_image = property(_get_random_lifestyle_image)
-
-
-class ProductMedia(ImageBase):
-    """
-    Images that relate to a product.
-
-    @ivar product: The product this image is for.
-    """
-    product = models.ForeignKey(Product, related_name="media")
-
 
 class YoutubeVideo(BaseModel):
     """
@@ -411,65 +300,6 @@ class YoutubeVideo(BaseModel):
     )
 
 
-class ExternalContent(BaseModel):
-    # "yes, 555 is arbitrary" - other developers
-    original_id = models.CharField(max_length=555, blank=True, null=True)
-    original_url = models.CharField(max_length=555, blank=True, null=True)
-    content_type = models.ForeignKey("ExternalContentType")
-    tagged_products = models.ManyToManyField(Product, blank=True, null=True,
-                                             related_name='external_content')
-
-    store = models.ForeignKey(Store, blank=True, null=True,
-                                            related_name='external_content')
-
-    categories = models.ManyToManyField(
-        get_model('pinpoint', 'IntentRankCampaign'),
-        blank=True,
-        null=True,
-        related_name='external_content'
-    )
-
-    text_content = models.TextField(blank=True, null=True)
-    image_url = models.CharField(max_length=555, blank=True, null=True)
-
-    likes = models.IntegerField(default=0, blank=True, null=True)
-    username = models.CharField(max_length=50, blank=True, null=True)
-    user_image = models.CharField(max_length=555, blank=True, null=True)
-
-    approved = models.BooleanField(default=False)
-    active = models.BooleanField(default=True)
-
-    class Meta:
-        unique_together = ('original_id', 'content_type', 'store')
-
-    def __unicode__(self):
-        return u''
-
-    def to_json(self):
-        """A bit like data(), but not returning an html data string"""
-
-        return {
-            'original-id': self.original_id,
-            'original-url': self.original_url,
-            'url': self.original_url,
-            'content-type': self.content_type.name,
-            'image': self.image_url,
-            'username': self.username,
-            'user-image': self.user_image,
-            'likes': self.likes,
-            'caption': self.text_content
-        }
-
-
-# If we need different behaviour per model, just use a proxy model.
-class ExternalContentType(BaseModelNamed):
-    """i.e. "Instagram"."""
-    enabled = models.BooleanField(default=True)
-    classname = models.CharField(max_length=128, default='')
-
-    def __unicode__(self):
-        return unicode(self.name) or u''
-
 class PinpointIrCampaignProducts(models.Model):
     campaign = models.ForeignKey(get_model('pinpoint', 'Campaign'),)
     product = models.ForeignKey(Product)
@@ -477,6 +307,6 @@ class PinpointIrCampaignProducts(models.Model):
         db_table = u'pinpoint_ir_campaign_products'
         managed = False
 
-
-# signals
-post_save.connect(media_saved, sender=GenericImage)
+    def __init__(self, *args, **kwargs):
+        super(PinpointIrCampaignProducts, self).__init__(*args, **kwargs)
+        raise PendingDeprecationWarning('what is this?')

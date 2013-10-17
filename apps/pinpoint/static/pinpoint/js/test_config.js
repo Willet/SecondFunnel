@@ -1,6 +1,6 @@
 window.PAGES_INFO = {
     'debug': 0,
-    'base_url': "http://www.secondfunnel.com",
+    // 'base_url': "http://www.secondfunnel.com",  // DEPRECATED
     'discoveryTarget': "#discovery-area",
     'itemSelector': ".tile",
     'store': {
@@ -48,7 +48,7 @@ window.PAGES_INFO = {
         // and return false for a social button not to show
         return true;
     },
-    'showCount': false,  // for social buttons
+    'showCount': true,  // optional, for social buttons (default: true)
     'enableTracking': true, // optional; default: true
     'eventMap': undefined,  // optional
     'tileElement': undefined,  // optional. alters the type of tag used by tiles.

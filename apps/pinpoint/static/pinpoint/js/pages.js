@@ -627,7 +627,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 .always(function (data) {
                     self.layoutResults(data, tile);
                 })
-                .always(this.getMoreResults);
+                .always(function (data) {
+                    if (data && data.length > 0) {
+                        self.getMoreResults();
+                    } else {
+                        self.toggleLoading(false);
+                    }
+                });
             return this;
         },
 
@@ -769,9 +775,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             var st = $window.scrollTop();
             if (st > this.lastScrollTop) {
                 broadcast('scrollDown', this);
-            } else {
+            } else if (st < this.lastScrollTop) {
                 broadcast('scrollUp', this);
-            }
+            }  // if equal, broadcast nothing
             this.lastScrollTop = st;
         }
     });
