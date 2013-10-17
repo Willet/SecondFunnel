@@ -20,9 +20,16 @@
         /* constant height */
         height: 209px;
     }
+
+    .tile {
+        padding: 10px;
+    }
+
 }
 
-
+.tile .social-buttons {
+    position: static!important;
+}
 .panel-default>a>.panel-heading {
     background-color: #f8f8f8;
     color: #333;
@@ -46,43 +53,63 @@
 }
 
 /* Salvattore */
-
+/*
+ * Bootstrap 3 defines device sizes like so:
+ *   Phones (<768px)
+ *   Tablets (>768px)
+ *   Desktops (>992px)
+ *   Desktops (>1200px)
+ * */
 #discovery-area[data-columns]::before { display: none; } /* Don't forget this. */
 
-@media screen and (max-width: 450px) {
+@media screen and (max-width: 399px) {
     #discovery-area[data-columns]::before {
         content: '1 .column';
     }
 
+    .column {
+        max-width: 370px;
+    }
 }
 
-@media screen and (min-width: 451px) and (max-width: 700px) {
+@media screen and (min-width: 400px) and (max-width: 509) {
     #discovery-area[data-columns]::before {
-        content: '1 .column';
+        content: '2 .column';
+    }
+
+    .column {
+        max-width: 220px;
+    }
+}
+
+
+@media screen and (min-width: 510px) and (max-width: 767px) {
+    #discovery-area[data-columns]::before {
+        content: '2 .column';
     }
     .column {
-        max-width: 350px;
+        max-width: 250px;
         float:left;
     }
 }
 
-@media screen and (min-width: 701px) and (max-width: 850px) {
+@media screen and (min-width: 768px) and (max-width: 850px) {
     #discovery-area[data-columns]::before {
-        content: '2 .column.size-1of2';
+        content: '3 .column.size-1of3';
     }
     .column {
-        max-width: 300px;
+        max-width: 240px;
         float: left;
     }
 }
 
 @media screen and (min-width: 851px) {
     #discovery-area[data-columns]::before {
-        content: '3 .column.size-1of3';
+        content: '4 .column.size-1of4';
     }
 
     .column {
-        max-width: 340px;
+        max-width: 200px;
         float: left;
     }
 }

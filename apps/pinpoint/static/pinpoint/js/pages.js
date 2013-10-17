@@ -574,7 +574,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             _.bindAll(this, 'pageScroll', 'toggleLoading',
                 'getMoreResults', 'layoutResults');
             $window
-                .scroll(_.throttle(this.pageScroll, 500))
+                .scroll(_.throttle(this.pageScroll, 1500))
                 .resize(_.throttle(function () {
                     // did you know any DOM element without resize events
                     // can still react to potential resizes by having its
@@ -609,11 +609,22 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @param options
          * @param tile {TileView}  supply a tile View to have tiles inserted
          *                         after it. (optional)
+         * @param prefetching {boolean}
          * @returns this.Discovery
          */
-        'getTiles': function (options, tile) {
+        'getTiles': function (options, tile, prefetching) {
             var self = this,
                 opts;
+            if(prefetching) {
+                self.layoutTask.setPriority(0.05);
+                self.layoutTask.done(function() {
+                    self.layoutTask.resetPriority();
+                })
+            } else {
+                // if we are not prefetching, then reset priority so tiles in
+                // queue are inserted more urgently
+                self.layoutTask.resetPriority();
+            }
             if (this.loading) {
                 console.warn('Already loading tiles. Try again later');
                 return this;
@@ -637,6 +648,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 self.getMoreResults();
             })
             return this;
+        },
+
+        'prefetchTiles': function (options, tile) {
+            this.getTiles(undefined, undefined, true);
         },
 
         /**
@@ -776,10 +791,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 documentBottomPos = $document.height(),
                 viewportHeights = pageHeight * (SecondFunnel.option('prefetchHeight', 1));
 
-            if (!this.loading && $('html').css('overflow') !== 'hidden' &&
-                pageBottomPos >= documentBottomPos - viewportHeights) {
-                // get more tiles to fill the screen.
-                this.getTiles();
+            if (!this.loading && $('html').css('overflow') !== 'hidden') {
+                if (pageBottomPos >= documentBottomPos - viewportHeights) {
+                    // get more tiles to fill the screen.
+                    this.getTiles();
+                } else if (pageBottomPos + 1000 >= documentBottomPos-viewportHeights) {
+                    this.prefetchTiles();
+                }
             }
 
             // detect scrolling detection. not used for anything yet.

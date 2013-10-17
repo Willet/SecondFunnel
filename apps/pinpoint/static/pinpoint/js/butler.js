@@ -7,7 +7,8 @@
 
     // data is optional
     butler.Task = function (func, data, options) {
-        var self = this;
+        var self = this,
+            initialPriority = 0.2;
         if (!(self instanceof butler.Task)) {
             throw ('Task is a constructor');
         } else {
@@ -55,8 +56,8 @@
             };
 
             self.setPriority = function (priority) {
-                if (priority < 0.1) {
-                    self.options.priority = 0.1;
+                if (priority < 0.05) {
+                    self.options.priority = 0.05;
                 }
                 if (priority > 1) {
                     self.options.priority = 1;
@@ -65,7 +66,11 @@
                 }
             };
 
-            self.setPriority(0.2);
+            self.resetPriority = function () {
+                self.setPriority(initialPriority);
+            };
+
+            self.resetPriority();
 
             self.taskRunner = function () {
                 self.runTask();
