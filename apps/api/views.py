@@ -36,6 +36,9 @@ def proxy_view(request, path):
         elif key.startswith('HTTP'):
             headers[key[5:]] = value
 
+    if not headers.get('ApiKey', None):
+        headers['ApiKey'] = 'secretword'
+
     h = httplib2.Http()
     response, content = h.request(
         url,
