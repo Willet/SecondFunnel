@@ -2,16 +2,16 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from tastypie import fields
 from tastypie.constants import ALL_WITH_RELATIONS
+from tastypie.fields import ForeignKey
 from tastypie.models import ApiKey
 from tastypie.resources import ModelResource, ALL
 from tastypie.authentication import Authentication, ApiKeyAuthentication, MultiAuthentication
 from tastypie.authorization import Authorization
 from django.db.models import Q
 
-from apps.assets.models import (Product, Store, ProductMedia, ExternalContent,
-    YoutubeVideo, GenericImage, ExternalContent, ExternalContentType)
+from apps.assets.models import (Product, Store, YoutubeVideo)
 
-from apps.pinpoint.models import BlockContent, Campaign
+from apps.pinpoint.models import Campaign, StoreTheme
 
 
 class UserAuthentication(Authentication):
@@ -30,26 +30,6 @@ class UserPartOfStore(Authorization):
             return False
 
 
-class BlockContentResource(ModelResource):
-    """Returns a campaign's content blocks."""
-    class Meta:
-        queryset = BlockContent.objects.all()
-        resource_name = 'block_content'
-
-    def dehydrate(self, bundle):
-        """convert BlockContent.data to something meaningful."""
-        # http://django-tastypie.readthedocs.org/en/latest/bundles.html
-        data_type = bundle.obj.data
-
-        fields = data_type._meta.fields
-        bundle.data['data'] = {}
-        for field in fields:
-            bundle.data['data'][field.name] = getattr(data_type, field.name,
-                                                      None)
-
-        return bundle
-
-
 class StoreResource(ModelResource):
     """REST-style store."""
     class Meta:
@@ -61,6 +41,29 @@ class StoreResource(ModelResource):
             'id': ('exact',),
             'name': ('icontains',),
         }
+
+
+class StoreThemeResource(ModelResource):
+    """REST-style store themes of the current user's store."""
+    class Meta:
+        queryset = StoreTheme.objects.all()
+        resource_name = 'store_theme'
+        authentication = ApiKeyAuthentication()
+        authorization= Authorization()
+
+    def _get_store_staff(self, request):
+        """get a {store: [users]} map."""
+        stores = {}
+        for store in Store.objects.all():
+            stores[store] = store.staff.all()
+        return stores
+
+    def apply_authorization_limits(self, request, object_list):
+        user_store_ids = []  # list of id of stores that this user can access
+        for store, users in self._get_store_staff(request):
+            if request.user in users:
+                user_store_ids.append(store.id)
+        return object_list.filter(store_id__in=user_store_ids)
 
 
 class ProductResource(ModelResource):
@@ -137,30 +140,12 @@ class ProductResource(ModelResource):
         return semi_filtered
 
 
-class ProductMediaResource(ModelResource):
-    product = fields.ForeignKey(ProductResource, 'product')
-
-    class Meta:
-        queryset = ProductMedia.objects.all()
-        resource_name = 'product_media'
-
-        filtering = {
-            'product': ALL
-        }
-        authentication = UserAuthentication()
-        authorization = UserPartOfStore()
-
-
 class CampaignResource(ModelResource):
     """Returns "a campaign".
 
     Campaign definitions are saved in apps/pinpoint/models.py.
     """
     store = fields.ForeignKey(StoreResource, 'store', full=True)
-    content_blocks = fields.ToManyField(BlockContentResource, 'content_blocks',
-                                        full=True)
-    discovery_blocks = fields.ToManyField(BlockContentResource,
-                                          'discovery_blocks', full=True)
 
     class Meta:
         queryset = Campaign.objects.all()
@@ -181,55 +166,6 @@ class YoutubeVideoResource(ModelResource):
 
         filtering = {
             'id': ('exact',)
-        }
-
-
-class GenericImageResource(ModelResource):
-    """Access to GenericImage model"""
-
-    class Meta:
-        queryset = GenericImage.objects.all()
-        authentication = UserAuthentication()
-        resource_name = 'generic_image'
-
-        filtering = {
-            'id': ('exact',)
-        }
-
-
-class ExternalContentTypeResource(ModelResource):
-    """Access to list of content types"""
-
-    class Meta:
-        queryset = ExternalContentType.objects.all()
-        authentication = UserAuthentication()
-        authorization= Authorization()
-        resource_name = 'external_content_type'
-
-
-class ExternalContentResource(ModelResource):
-    """Access to ExternalContent model"""
-
-    products = fields.ManyToManyField(ProductResource, 'tagged_products',
-        null=True, full=False, related_name='external_content')
-
-    type = fields.ForeignKey(ExternalContentTypeResource, 'content_type',
-                             full=True)
-    store = fields.ForeignKey(StoreResource, 'store')
-
-    class Meta:
-        queryset = ExternalContent.objects.all()
-        authentication = MultiAuthentication(
-            ApiKeyAuthentication(),
-            UserAuthentication())
-        authorization= Authorization()
-        resource_name = 'external_content'
-        excludes = ['created']
-
-        filtering = {
-            'id': ('exact',),
-            'original_id': ('exact',),
-            'store': ALL_WITH_RELATIONS
         }
 
 

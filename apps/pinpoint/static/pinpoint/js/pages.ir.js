@@ -5,7 +5,8 @@
 SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     "use strict";
 
-    var consecutiveFailures = 0;
+    var consecutiveFailures = 0,
+        resultsAlreadyRequested = [];  // list of product IDs
 
     this.options = {
         'baseUrl': "http://intentrank-test.elasticbeanstalk.com/intentrank",

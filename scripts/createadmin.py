@@ -5,8 +5,8 @@ import sys
 
 from django.contrib.auth.models import User
 
-if User.objects.count() == 0 and len(sys.argv) == 3:
-    admin = User.objects.create_user(sys.argv[0], sys.argv[1], sys.argv[2])
+if User.objects.count() == 0 and len(sys.argv) >= 4:
+    admin = User.objects.create_user(sys.argv[1], sys.argv[2], sys.argv[3])
     admin.is_superuser = True
     admin.is_staff = True
     admin.save()

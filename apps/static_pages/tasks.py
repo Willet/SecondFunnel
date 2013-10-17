@@ -1,26 +1,27 @@
 """
 Static pages celery tasks
 """
+
 from urlparse import urlparse
 
-from celery import task, group
+from celery import Celery, group
 from celery.utils.log import get_task_logger
 
-from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 from django.core.cache import cache
 
 from apps.assets.models import Store
-from apps.intentrank.views import get_seeds_ir
+from apps.contentgraph.views import get_page, get_store, get_stores
+from apps.intentrank.views import get_seeds
 from apps.pinpoint.models import Campaign
-from apps.pinpoint.utils import render_campaign
 from apps.static_pages.models import StaticLog
 
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
     get_route53_change_status, upload_to_bucket)
 from apps.static_pages.utils import (save_static_log, remove_static_log,
-    bucket_exists_or_pending, get_bucket_name, create_dummy_request)
+    get_bucket_name, create_dummy_request, render_campaign)
 
-# TODO: make use of logging, instead of suppressing errors as is done now
+celery = Celery()
 logger = get_task_logger(__name__)
 
 
@@ -46,43 +47,47 @@ def change_complete(store_id):
     RELEASE_LOCK()
 
 
-@task()
+@celery.task
 def create_bucket_for_stores():
-    stores = Store.objects.all()
+    stores = get_stores()
 
-    without_buckets = []
-    for store in stores:
-        if not bucket_exists_or_pending(store):
-            without_buckets.append(store)
-
-    task_group = group(create_bucket_for_store.s(s.id) for s in without_buckets)
+    task_group = group(create_bucket_for_store.s(s.id) for s in stores)
 
     task_group.apply_async()
 
 
-@task()
+@celery.task
 def create_bucket_for_store(store_id):
-    if ACQUIRE_LOCK():
-        try:
-            store = Store.objects.get(id=store_id)
+    """The task version of the synchronous operation."""
+    return create_bucket_for_store_now(store_id)
 
-        except Store.DoesNotExist:
+
+def create_bucket_for_store_now(store_id, force=False):
+    if ACQUIRE_LOCK() or force:
+        try:
+            store = get_store(store_id, as_dict=True)
+
+        except ValueError:
             logger.error("Store #{0} does not exist".format(store_id))
             return
 
-        if bucket_exists_or_pending(store):
-            return
-
-        save_static_log(Store, store.id, "PE")
+        save_static_log(Store, store.get('id'), "PE")
 
         store_url = ''
-        if store.public_base_url:
-            url = urlparse(store.public_base_url).hostname
+        if store.get('public-base-url', False):
+            url = urlparse(store.get('public-base-url')).hostname
             if url:
                 store_url = url
 
-        dns_name = get_bucket_name(store.slug)
+        dns_name = get_bucket_name(store.get('slug'))
         bucket_name =  store_url or dns_name
+
+        # check for dev/test prefix. This allows campaign.url from campaign maanger
+        # to be a full secondfunnel.com url.
+        if settings.ENVIRONMENT in ["test", "dev"]:
+            if not bucket_name[:len(settings.ENVIRONMENT)] == settings.ENVIRONMENT:
+                bucket_name = '{0}-{1}'.format(settings.ENVIRONMENT, bucket_name)
+
         _, change_status, change_id = create_bucket_website_alias(dns_name, bucket_name)
 
         if change_status == "PENDING":
@@ -96,7 +101,7 @@ def create_bucket_for_store(store_id):
         create_bucket_for_store.subtask((store_id,), countdown=5).delay()
 
 
-@task()
+@celery.task
 def confirm_change_success(change_id, store_id):
     change_status = get_route53_change_status(change_id)
 
@@ -122,7 +127,7 @@ def confirm_change_success(change_id, store_id):
             change_status, change_id))
 
 
-@task()
+@celery.task
 def generate_static_campaigns():
     """Creates a group of tasks to generate/save campaigns,
     and runs them in parallel"""
@@ -135,63 +140,94 @@ def generate_static_campaigns():
     task_group.apply_async()
 
 
-@task()
-def generate_static_campaign(campaign_id):
-    """Renders individual campaign and saves it to S3"""
+@celery.task
+def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
+    """The task version of the synchronous operation."""
+    return generate_static_campaign_now(store_id, campaign_id,
+                                        ignore_static_logs)
 
-    campaign_type = ContentType.objects.get_for_model(Campaign)
+
+def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False):
+    """Renders individual campaign and saves it to S3."""
 
     try:
-        campaign = Campaign.objects.get(id=campaign_id)
+        campaign_dict = get_page(store_id=store_id, page_id=campaign_id,
+                                 as_dict=True)
 
-    except Campaign.DoesNotExist:
-        logger.error("Campaign #{0} does not exist".format(campaign_id))
-        return
+        # do -something- to turn ContentGraph JSON into a campaign object
+        campaign = Campaign.from_json(campaign_dict)
+
+        store_dict = get_store(store_id=store_id, as_dict=True)
+        store = Store.from_json(store_dict)
+
+    except ValueError, err:  # json.loads exception
+        logger.error("Campaign #{0}: {1}".format(campaign_id, err.message))
+        raise  # someone catch it
 
     dummy_request = create_dummy_request()
 
-    rendered_content = [
-        # s3_file_name, log_key, page_content
-        ("index.html", "CD", render_campaign(
-            campaign, get_seeds_func=get_seeds_ir, request=dummy_request
-        ))
-    ]
+    # prepare the file name, static log, and the actual page
+    log_key = "CD"
 
-    for s3_file_name, log_key, page_content in rendered_content:
+    # if we think this static page already exists, finish task
+    try:
+        log_entry = StaticLog.objects.get(
+            object_id=campaign.id, key=log_key)
 
-        # if we think this static page already exists, skip to the next one
-        try:
-            log_entry = StaticLog.objects.get(
-                content_type=campaign_type, object_id=campaign.id, key=log_key)
+        if log_entry and ignore_static_logs:
+            raise StaticLog.DoesNotExist('force-regeneration override')
 
-            continue
+    except StaticLog.DoesNotExist:
+        pass
+    else:
+        logger.error("Not generating campaign #{0}".format(campaign_id))
+        return {}  # no error = don't generate
 
-        # otherwise, render and upload it
-        except StaticLog.DoesNotExist:
+    page_content = render_campaign(store_id, campaign_id,
+                                   get_seeds_func=get_seeds,
+                                   request=dummy_request)
 
-            s3_path = "{0}/{1}".format(
-                campaign.slug or campaign.id, s3_file_name)
+    # e.g. "shorts3/index.html"
+    s3_path = "{0}/index.html".format(
+        campaign.url or campaign.slug or campaign.id)
 
-            store_url = ''
-            if campaign.store.public_base_url:
-                url = urlparse(campaign.store.public_base_url).hostname
-                if url:
-                    store_url = url
+    store_url = ''
+    # this will err intentionally if a store has no public base url
+    url = urlparse(getattr(store, 'public-base-url')).hostname
+    if url:
+        store_url = url
 
-            dns_name = get_bucket_name(campaign.store.slug)
-            bucket_name =  store_url or dns_name
+    dns_name = get_bucket_name(store.slug)
+    bucket_name =  store_url or dns_name
 
-            bytes_written = upload_to_bucket(
-                bucket_name, s3_path, page_content, public=True)
+    # check for dev/test prefix. This allows campaign.url from campaign maanger
+    # to be a full secondfunnel.com url.
+    if settings.ENVIRONMENT in ["test", "dev"]:
+        if not bucket_name[:len(settings.ENVIRONMENT)] == settings.ENVIRONMENT:
+            bucket_name = '{0}-{1}'.format(settings.ENVIRONMENT, bucket_name)
 
-            if bytes_written > 0:
-                # remove any old entries
-                remove_static_log(Campaign, campaign.id, log_key)
+    logger.info("Uploading campaign #{0} to {1}/{2}".format(
+        campaign_id, bucket_name, s3_path))
+    bytes_written = upload_to_bucket(
+        bucket_name, s3_path, page_content, public=True)
 
-                # write a new log entry for this static campaign
-                save_static_log(Campaign, campaign.id, log_key)
+    if bytes_written > 0:
+        # remove any old entries
+        remove_static_log(Campaign, campaign.id, log_key)
 
-            # boto claims it didn't write anything to S3
-            else:
-                logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
-                    campaign_id))
+        # write a new log entry for this static campaign
+        save_static_log(Campaign, campaign.id, log_key)
+
+    # boto claims it didn't write anything to S3
+    else:
+        logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
+            campaign_id))
+
+    # return some kind of feedback
+    return {
+        's3_path': s3_path,
+        'bucket_name': bucket_name,
+        'campaign': campaign_dict,  # warning: contains store theme
+        'store': store_dict,
+        'bytes_written': bytes_written,
+    }

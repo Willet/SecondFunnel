@@ -1,4 +1,5 @@
 from urllib import urlencode
+from apps.static_pages.utils import render_campaign
 from django.db.models import Q
 from apps.pinpoint.forms import ThemeForm
 
@@ -13,28 +14,18 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, get_object_or_404, redirect, render
 from django.template import RequestContext, Context, loader
 from django.http import HttpResponse, HttpResponseServerError, HttpResponseNotAllowed
-from django.views.decorators.http import require_POST
 from fancy_cache import cache_page
-from social_auth.db.django_models import UserSocialAuth
 from django.views.decorators.vary import vary_on_headers
-from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnInteger
 
-from apps.assets.models import ExternalContent, ExternalContentType, Store
-from apps.intentrank.views import get_seeds_ir
-from apps.pinpoint.ajax import upload_image
+from apps.assets.models import Store
+from apps.intentrank.views import get_seeds
 
 from apps.pinpoint.models import Campaign, BlockType, StoreTheme
 from apps.pinpoint.decorators import belongs_to_store, has_store_feature
-from apps.pinpoint.utils import render_campaign
-import apps.pinpoint.wizards as wizards
-from apps.pinpoint.wizards import Wizard
 from apps.utils.ajax import ajax_error, ajax_success
 
 import apps.utils.base62 as base62
 from apps.utils.caching import nocache
-
-from apps.utils.image_service.api import queue_processing
-from apps.utils.social.utils import get_adapter_class
 
 
 @login_required
@@ -135,27 +126,6 @@ def new_campaign(request, store_id):
 
 
 @login_required
-def edit_campaign(request, store_id, campaign_id):
-    """
-    Allows a user to edit a pre-existing pinpoint page.
-
-    This function calls the appropriate handler in apps.pinpoint.wizards using the
-    handler attribute of the block type of the given page.
-
-    @param request: The request for this page.
-    @param store_id: The id of the store the page was created for.
-    @param campaign_id: The page to edit.
-
-    @return: An HttpResponse with a form to change the pinpoint page.
-    """
-    store = get_object_or_404(Store, pk=store_id)
-    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
-    block_type = campaign_instance.content_blocks.all()[0].block_type
-
-    return getattr(wizards, block_type.handler)(
-        request, store, block_type, campaign=campaign_instance)
-
-@login_required
 def delete_campaign(request, store_id, campaign_id):
     campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
     campaign_instance.live = False
@@ -165,174 +135,6 @@ def delete_campaign(request, store_id, campaign_id):
 
     return redirect('store-admin', store_id=store_id)
 
-
-@login_required
-def block_type_router(request, store_id, block_type_id):
-    """
-    Allows a user to configure the main content block of the page they are creating.
-
-    This function calls the appropriate handler in apps.pinpoint.wizards using the
-    handler attribute of the given block type.
-
-    @param request: The request for this page.
-    @param store_id: The id of the store this page is being created for.
-    @param block_type_id: The id of the block type for this page.
-
-    @return: An HttpRespose with a form to configure the content block.
-    """
-    store = get_object_or_404(Store, pk=store_id)
-    block_type = get_object_or_404(BlockType, pk=block_type_id)
-
-    return getattr(wizards, block_type.handler)(request, store, block_type)
-
-
-def create_external_content(store, **obj):
-    content_type = ExternalContentType.objects.get(slug=obj.get('type'))
-
-    new_content, created = ExternalContent.objects.get_or_create(
-        store=store,
-        original_id=obj.get('original_id'),
-        content_type=content_type)
-
-    if created:
-        new_content.text_content = obj.get('text_content')
-        
-        new_image_url = queue_processing( obj.get('image_url'),
-                                          store_slug = store.slug,
-                                          image_type = obj.get('type') )
-
-        # imageservice might or might not be working today
-        #so lets be careful with it
-        if new_image_url:
-            new_content.image_url = new_image_url
-
-    # Any fields that should be periodically updated                                                                                                                              
-    new_content.original_url = obj.get('original_url')
-    new_content.username = obj.get('username')
-    new_content.likes = obj.get('likes')
-    new_content.user_image = obj.get('user-image')
-    new_content.save()
-    return new_content
-
-
-@require_POST
-@login_required
-def upload_asset(request, store_id):
-    store = get_object_or_404(Store, pk=store_id)
-    media = ''
-    try:
-        media = upload_image(request)
-        url = media.get_url()
-        asset = create_external_content(
-            store,
-            type='upload-image',
-            original_id=url,
-            text_content=url,
-            image_url=url
-        )
-    except Exception, e:
-        if isinstance(media, HttpResponse):
-            return media
-        return ajax_error({'error': str(e)})
-
-    return ajax_success()
-
-@belongs_to_store
-@has_store_feature('asset-manager')
-@login_required
-def asset_manager(request, store_id):
-    """renders the page that allows store owners to tag their instagram photos
-    on their products (or, logically, the other way around).
-    """
-    store = get_object_or_404(Store, pk=store_id)
-    user = request.user
-
-    accounts = []
-    xcontent_types = ExternalContentType.objects.filter(enabled=True)
-    for xcontent_type in xcontent_types:
-        if xcontent_type.slug.startswith('upload'):
-            continue
-
-        try:
-            account_user = store.social_auth.get(provider=xcontent_type.slug)
-        except UserSocialAuth.DoesNotExist:
-            account_user = None
-
-        if not account_user:
-            try:
-                account_user = user.social_auth.get(provider=xcontent_type.slug)
-            except UserSocialAuth.DoesNotExist:
-                account_user = None
-
-        # Add the account regardless of if we have a user or not
-        # We use this to determine which accounts to show
-        accounts.append({
-            'type': xcontent_type.slug,
-            'connected': account_user,
-            'data': getattr(account_user, 'extra_data', {})
-        })
-
-        # If we do have an account, start fetching content
-        if account_user:
-            cls = get_adapter_class(xcontent_type.classname)
-
-            # If we can't get an adapter class, don't try to load content
-            if not cls:
-                continue
-
-            adapter = cls(tokens=account_user.tokens)
-            contents = adapter.get_content(count=500)
-
-            for obj in contents:
-                create_external_content(store, **obj)
-
-    all_contents = store.external_content.all().order_by('id')
-    external_content_types = [ type.name for type in xcontent_types ]
-    filtered_contents = OrderedDict([ ('needs_review', all_contents.filter(approved=False, active=True).order_by('id')),
-                                      ('rejected', all_contents.filter(active=False).order_by('id')),
-                                      ('approved', all_contents.filter(approved=True, active=True).order_by('id')),
-                                     ])
-
-    if not request.is_ajax():
-        content = []
-        for k, v in filtered_contents.iteritems():
-            content.append((k.replace('_', ' ').title(), k, len(v)))
-        return render_to_response('pinpoint/asset_manager.html', {
-                "store": store,
-                "accounts": accounts,
-                "content": content,
-                "store_id": store_id,
-                "external_content_types": external_content_types,
-                }, context_instance=RequestContext(request))
-    else:
-        # request is an ajax request, determine which content we're loading
-        content_type = request.GET['content_type']
-        # select our ordering
-        ordering = { "newest": "-id", "oldest": "id" }
-        order_key = request.GET['sortby'].lower()
-        selected_content = next(v for k,v in filtered_contents.iteritems() if k == content_type).order_by(ordering[order_key])
-    
-        #select our filters
-        xcontent_type = request.GET['filterby']
-        if not xcontent_type == "":
-            selected_content = selected_content.filter(content_type__name = xcontent_type)
-        
-        # set up pagination
-        paginator = Paginator(selected_content, 10)
-        try:
-            page = request.GET['page']
-            content = paginator.page(page)
-        except PageNotAnInteger:
-            content = paginator.page(1)
-        except (EmptyPage, InvalidPage):
-            content = paginator.page(paginator.num_pages)
-        
-        return render(request, 'pinpoint/assets.html', {
-            'content_data': content.object_list,
-            'content_type': content_type,
-            'paginator': content,
-            'external_content_types': external_content_types,
-            }, context_instance=RequestContext(request))
 
 @belongs_to_store
 @has_store_feature('theme-manager')
@@ -471,7 +273,7 @@ def style_theme(request, store_id, theme_id):
         template_vars.update({'theme_saved': True})
 
     # response_body is used to scan for styling regions declared by the theme.
-    response_body = render_campaign(campaign, request, get_seeds_ir)
+    response_body = render_campaign(store_id, campaign.id, request, get_seeds)
     field_styles = []
     for selector, hint in themable_fields:
         field_style = theme.get_styles(response_body, selector)
@@ -493,6 +295,8 @@ def style_theme(request, store_id, theme_id):
 @login_required
 def preview_theme(request, store_id, theme_id=None):
     """Generates a dummy page based on the theme data the user supplies.
+
+    @deprecated
 
     POST creates a dummy theme.
     GET generates a dummy page, then deletes the dummy theme.
@@ -521,7 +325,7 @@ def preview_theme(request, store_id, theme_id=None):
 
         campaign.theme = theme
 
-        response_body = render_campaign(campaign, request, get_seeds_ir)
+        response_body = render_campaign(store_id, campaign.id, request, get_seeds)
         page = HttpResponse(response_body)
 
         if request.GET.get('dummy_theme_id'):  # delete only if made to mock
@@ -566,12 +370,10 @@ def campaign_short(request, campaign_id_short):
 
 
 @vary_on_headers('Accept-Encoding')
-def campaign(request, campaign_id):
+def campaign(request, store_id, campaign_id):
     """Returns a rendered campaign response of the given id."""
-    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
-
-    rendered_content = render_campaign(campaign_instance,
-        request=request, get_seeds_func=get_seeds_ir)
+    rendered_content = render_campaign(store_id, campaign_id,
+        request=request, get_seeds_func=get_seeds)
 
     return HttpResponse(rendered_content)
 
