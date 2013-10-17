@@ -13,8 +13,7 @@ from mock import MagicMock
 
 from apps.assets.models import Product, Store
 
-from apps.intentrank.utils import (random_products, VideoCookie,
-    video_probability_function, ajax_jsonp)
+from apps.intentrank.utils import random_products, ajax_jsonp
 
 from apps.pinpoint.models import IntentRankCampaign
 
@@ -132,8 +131,8 @@ def get_product_json_data(product, products_with_images_only=True):
         raise ValueError('Product has no images, but one or more is required.')
 
     try:
-        product_template = loader.get_template('pinpoint/snippets/'
-                                               'product_object.js')
+        product_template = loader.get_template(
+            'pinpoint/snippets/product_object.js')
         product_context = Context({'product': product})
         return json.loads(product_template.render(product_context))
     except TemplateDoesNotExist:
@@ -196,43 +195,6 @@ def get_json_data(request, products, campaign_id, seeds=None):
             # if that requirement is not met, ignore product.
             continue
 
-    
-    # videos
-    video_cookie = request.session.get('pinpoint-video-cookie')
-    if not video_cookie:
-        video_cookie = request.session['pinpoint-video-cookie'] = VideoCookie()
-
-    videos = cache.get('videos-campaign-{0}'.format(campaign_id))
-    if not videos:
-        videos = campaign.store.videos.exclude(
-            video_id__in=video_cookie.videos_already_shown)
-
-        if campaign.supports_categories:
-            videos = videos.filter(categories__id=campaign_id)
-
-        cache.set('videos-campaign-{0}'.format(campaign_id), videos, 60*60*3)
-
-    # if this is the first batch of results, or the random amount is under the
-    # curve of the probability function, then add a video
-    show_video = random.random() <= video_probability_function(
-        video_cookie.blocks_since_last, MAX_BLOCKS_BEFORE_VIDEO)
-    if videos.exists() and (video_cookie.is_empty() or show_video):
-        video = videos.order_by('?')[0]
-        results.append({
-            'id': video.video_id,
-            'url': 'http://www.youtube.com/watch?v={0}'.format(video.video_id),
-            'provider': 'youtube',
-            'width': '450',
-            'height': '250',
-            'autoplay': 0,
-            'template': 'youtube'
-        })
-        video_cookie.add_video(video.video_id)
-    else:
-        video_cookie.add_blocks(len(results))
-
-    request.session['pinpoint-video-cookie'] = video_cookie
-
     # store-wide external content
     external_content = cache.get('storec-external-content-{0}-{1}'.format(
         campaign.store.id, campaign_id))
@@ -278,15 +240,20 @@ def get_json_data(request, products, campaign_id, seeds=None):
     return results
         
 
-def get_seeds_ir(request, **kwargs):
+def get_seeds(request, **kwargs):
     """Gets initial results (products, photos, etc.) to be saved with a page
 
     kwargs['raw'] also toggles between returning a dictionary
     or an entire HttpResponse.
     """
+    # IR uses a cookie previously sent to us as a flag
+    cookie = kwargs.get('cookie', '')
+
     num_results = kwargs.get('results', request.GET.get('results',  DEFAULT_RESULTS))
 
-    store = kwargs.get('store', request.GET.get('store', '-1'))
+    # store now needs to be a slug
+    store_slug = kwargs.get('store_slug', request.GET.get('store_slug',
+                                                          'store_slug'))
     campaign = kwargs.get('campaign', request.GET.get('campaign', '-1'))
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
     base_url = kwargs.get('base_url', request.GET.get(
@@ -294,7 +261,7 @@ def get_seeds_ir(request, **kwargs):
         settings.INTENTRANK_BASE_URL + '/intentrank'
     ))
 
-    url = '{0}/store/{1}/campaign/{2}/getresults'.format(base_url, store,
+    url = '{0}/store/{1}/campaign/{2}/getresults'.format(base_url, store_slug,
                                                       campaign)
 
     # Add required get parameters
@@ -302,13 +269,19 @@ def get_seeds_ir(request, **kwargs):
 
     # Fetch results
     try:
-        response, content = send_request(request, url)
+        response, content = send_request(request, url,
+                                         headers={'Cookie': cookie})
         status = response.status
+        cookie = response.get('set-cookie', '')
         content = unicode(content, 'windows-1252')
+        if status >= 400:
+            raise ValueError('get_seeds received error')
     except httplib2.HttpLib2Error as e:
         # Don't care what went wrong; do something!
         content = u"{'error': '{0}'}".format(str(e))
         status = 400
+    except ValueError:
+        raise
 
     # Since we are sending the request, and we'll get JSONP back
     # we know what the callback will be named
@@ -326,92 +299,19 @@ def get_seeds_ir(request, **kwargs):
     if 'error' in results:
         results.update({'url': url})
 
-    if kwargs.get('raw', False):
-        return results
-    else:
-        return ajax_jsonp(results, callback, status=status)
-
-
-def get_seeds(request, **kwargs):
-    """kwargs overrides request values when provided.
-
-    kwargs['raw'] also toggles between returning a dictionary
-    or an entire HttpResponse.
-
-    returns a list of (json) dicts representing e.g. products.
-    """
-    store   = kwargs.get('store', request.GET.get('store', '-1'))
-    page    = kwargs.get('campaign', request.GET.get('campaign', '-1'))
-    seeds   = kwargs.get('seeds', request.GET.get('seeds', '-1'))
-    num_results = kwargs.get('results', request.GET.get('results',
-                                                        DEFAULT_RESULTS))
-    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
-
-    request.session['pinpoint-video-cookie'] = VideoCookie()
-
-    results, status = process_intentrank_request(
-        request, store, page, 'getseeds', {
-            'seeds': seeds,
-            'results': num_results
-        }
-    )
-
-    if status in SUCCESS_STATUSES:
-        result = get_json_data(request, results, page,
-                               seeds=filter(None, str(seeds).split(',')))
-    else:
-        result = results
+    # post-processing for django templates: they can't access any attribute
+    # with a hyphen in it
+    new_results = []
+    for result in results:
+        new_result = {}
+        for attrib in result:
+            new_result[attrib.replace('-', '_')] = result[attrib]
+        new_results.append(new_result)
 
     if kwargs.get('raw', False):
-        return result
+        return (new_results, cookie)
     else:
-        return ajax_jsonp(result, callback, status=status)
-
-
-def get_results(request, **kwargs):
-    """kwargs overrides request values when provided.
-
-    kwargs['raw'] also toggles between returning a dictionary
-    or an entire HttpResponse.
-    """
-    store = kwargs.get('store', request.GET.get('store', '-1'))
-    page = kwargs.get('campaign', request.GET.get('campaign', '-1'))
-    seeds   = kwargs.get('seeds', request.GET.get('seeds', '-1'))
-    num_results = kwargs.get('results', request.GET.get('results',
-                                                        DEFAULT_RESULTS))
-    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
-
-    cache_version = random.randrange(50)
-    cache_key = 'getresults-json-{0}-{1}-{2}'.format(
-        store, page, seeds)
-    cached_results = cache.get(cache_key, version=cache_version)
-
-    if not cached_results or settings.DEBUG:
-
-        results, status = process_intentrank_request(
-            request, store, page, 'getresults', {
-                'results': num_results
-            }
-        )
-
-        if status in SUCCESS_STATUSES:
-            cached_results = get_json_data(request, results, page,
-                                   seeds=filter(None, seeds.split(',')))
-
-        # workaround for a weird bug on intentrank's side
-        elif status == 400:
-            return get_seeds(request)
-
-        else:
-            cached_results = results
-
-        cache.set(cache_key, cached_results, 60*5, version=cache_version)
-
-    if kwargs.get('raw', False):
-        return cached_results
-    else:
-        return ajax_jsonp(cached_results, callback, status=200)
-
+        return ajax_jsonp(new_results, callback, status=status)
 
 
 def update_clickstream(request):
@@ -430,22 +330,7 @@ def update_clickstream(request):
 
 
 
-def invalidate_session(request):
-    """
-    Invalidates an intentrank session.
-
-    @param request: The request.
-
-    @return: An empty json HttpResonse.
-    """
-    #intentrank/invalidate-session
-    url = '{0}/intentrank/invalidate-session'.format(
-        settings.INTENTRANK_BASE_URL)
-    send_intentrank_request(request, url)
-    return HttpResponse("[]", mimetype='application/json')
-
-
-def get_results_dev(request, store_id, campaign, content_id=None, **kwargs):
+def get_results_dev(request, store_slug, campaign, content_id=None, **kwargs):
     """Returns random results for a campaign
 
     kwargs['raw'] also toggles between returning a dictionary
@@ -453,96 +338,13 @@ def get_results_dev(request, store_id, campaign, content_id=None, **kwargs):
     """
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
 
-    products = random_products(store_id, {'results': DEFAULT_RESULTS},
+    products = random_products(store_slug, {'results': DEFAULT_RESULTS},
                                id_only=True)
     filtered_products = Product.objects.filter(
-        pk__in=products, available=True).exclude(media=None)
+        pk__in=products, available=True)
     results = get_json_data(request, filtered_products, campaign)
 
     if kwargs.get('raw', False):
         return results
     else:
         return ajax_jsonp(results, callback, status=200)
-
-
-# WARNING: As soon as Neal's service is up and running,
-# REMOVE THESE TWO METHODS BELOW
-def get_related_content_product(request, id=None):
-    if not id:
-        raise Exception('No ID')
-
-    product = Product.objects.get(id=id)
-
-    results = []
-    result = get_product_json_data(product,
-                                   products_with_images_only=False)
-    result.update({
-        'db-id': product.id
-    })
-
-    # Append the product JSON itself
-    results.append(result)
-
-    # Need to include related products to duplicate existing functionality
-    related_content = product.external_content.filter(active=True, approved=True)
-    for content in related_content:
-        item = content.to_json()
-        item.update({
-            'db-id': content.id,
-            'template': content.content_type.name.lower(),
-            'categories': list(
-                content.categories.all().values_list('id', flat=True)
-            )
-        })
-
-        # Need to include related products to duplicate existing functionality
-        related_products = content.tagged_products.all()
-        rel_product_results = []
-        for rel_product in related_products:
-            data = rel_product.data(raw=True)
-            data.update({'db-id': rel_product.id})
-            rel_product_results.append(data)
-
-        item.update({
-            'related-products': rel_product_results
-        })
-
-        results.append(item)
-
-    return HttpResponse(json.dumps(results), content_type='application/json')
-
-def get_related_content_store(request, id=None):
-    if not id:
-        raise Exception('No ID')
-
-    store = Store.objects.get(id=id)
-
-    # Get external content associated with store
-    results = []
-    related_external_content = store.external_content.filter(active=True, approved=True)
-    for content in related_external_content:
-        item = content.to_json()
-        item.update({
-            'db-id': content.id,
-            'template': content.content_type.name.lower(),
-            'categories': list(
-                content.categories.all().values_list('id', flat=True)
-            )
-        })
-
-        # Need to include related products to duplicate existing functionality
-        related_products = content.tagged_products.all()
-        rel_product_results = []
-        for rel_product in related_products:
-            data = rel_product.data(raw=True)
-            data.update({'db-id': rel_product.id})
-            rel_product_results.append(data)
-
-
-        item.update({
-            'related-products': rel_product_results
-        })
-
-        results.append(item)
-
-    return HttpResponse(json.dumps(results), content_type='application/json')

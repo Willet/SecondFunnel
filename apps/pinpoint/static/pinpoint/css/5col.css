@@ -1,0 +1,25 @@
+@charset 'UTF-8';
+
+/*
+ * number of products fetched per call should be bumped up by 25%
+ */
+@media screen and (min-width: 1280px) {
+    html.col-5 .container {
+        max-width: 1280px;
+    }
+    html.col-5 #discovery-area {
+        width: 100%;
+    }
+}
+
+/*
+ * number of products fetched per call should be bumped up by 20%
+ */
+@media screen and (min-width: 1536px) {
+    html.col-6 .container {
+        max-width: 1536px;
+    }
+    html.col-6 #discovery-area {
+        width: 100%;
+    }
+}

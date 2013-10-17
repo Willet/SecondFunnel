@@ -27,7 +27,8 @@ MANAGERS = ADMINS
 
 BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(days=30)).strftime("%a, %d %b %Y %H:%M:%S GMT")
 
-def fromProjectRoot(path):
+def from_project_root(path):
+    """returns the path prepended by the project root."""
     return os.path.join(
            os.path.dirname(
            os.path.dirname(
@@ -68,7 +69,7 @@ TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en-us'
 
 LOCALE_PATHS = (
-    fromProjectRoot('locale'),
+    from_project_root('locale'),
 )
 
 SITE_ID = 1
@@ -101,7 +102,7 @@ MIN_MEDIA_HEIGHT = 1
 # Example: "/home/media/media.lawrence.com/static/"
 
 # TODO: has to be a better way to get the path...
-STATIC_ROOT = fromProjectRoot('static')
+STATIC_ROOT = from_project_root('static')
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
@@ -188,6 +189,7 @@ MIDDLEWARE_CLASSES = (
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'maintenancemode.middleware.MaintenanceModeMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     )
 
 KEEP_COMMENTS_ON_MINIFYING = True
@@ -236,20 +238,32 @@ INSTALLED_APPS = (
     'compressor',
     'maintenancemode',
     'social_auth',
+    'corsheaders',
 
     # our apps
-    'apps.analytics',
+    'apps.api',
     'apps.assets',
     'apps.pinpoint',
+    'apps.intentrank',
+    'apps.contentgraph',
     'apps.website',
-    'apps.scraper',
     'apps.static_pages',
     'apps.utils',
-    'apps.testing',
-
-    # CI
-    'django_jenkins',
 )
+
+CORS_ORIGIN_REGEX_WHITELIST = (
+    '^[\w-]+\.secondfunnel\.com$'
+)
+CORS_ALLOW_HEADERS = (
+    'x-requested-with',
+    'content-type',
+    'accept',
+    'origin',
+    'authorization',
+    'x-csrftoken',
+    'ApiKey'
+)
+CORS_ALLOW_CREDENTIALS = True
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 JENKINS_TEST_RUNNER = 'django_jenkins.nose_runner.CINoseTestSuiteRunner'
@@ -318,6 +332,7 @@ FIXTURE_DIRS = (
 
 WEBSITE_BASE_URL = 'http://www.secondfunnel.com'
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
+CONTENTGRAPH_BASE_URL = 'http://contentgraph.elasticbeanstalk.com/graph'
 
 AUTHENTICATION_BACKENDS = (
     'social_auth.backends.contrib.instagram.InstagramBackend',

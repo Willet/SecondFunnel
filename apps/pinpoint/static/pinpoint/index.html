@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>BackboneJS Gap Landing Page</title>
+        <!-- CSS -->
+        <noscript><style> .no-noscript { display: none } </style></noscript>
+        <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css" />
+        <link rel="stylesheet" type="text/css" href="css/pages2.css" />
+        <link rel="stylesheet" type="text/css" href="css/styles.css" />
+        <link rel="stylesheet" type="text/css" href="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/css/gapshorts20130930.css" />
+        <!-- End CSS -->
+        <meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><!-- required by bootstrap -->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"><!-- required by bootstrap, IE -->
+    </head>
+
+    <body>
+        <header>
+            <nav class="navbar navbar-fixed-top navbar-static-top" role="navigation">
+                <!-- collapsible -->
+                <!-- div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="sf-collapse" data-target=".navbar-ex1-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand brand-label" href="#"></a>
+                </div>
+
+                <div class="collapse navbar-collapse navbar-ex1-collapse" -->
+
+                <!-- non-collapsible -->
+                <div class="container">
+                    <ul class="nav navbar-nav"><!-- RHS: .navbar-right -->
+                        <li><a class="navbar-brand brand-label" href="#"></a></li>
+                        <!-- li class="active"><a href="#">Home</a></li -->
+                        <li class="dropdown  hidden-xxs">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Other brands <b class="caret"></b></a>
+                            <ul class="related-products dropdown-menu">
+                                <li><a href="http://www.gap.com">Gap</a></li>
+                                <li><a href="http://www.oldnavy.com">Old Navy</a></li>
+                                <li><a href="http://www.bananarepublic.com">Banana Republic</a></li>
+                                <li><a href="http://www.piperlime.com">Piperlime</a></li>
+                                <li><a href="http://www.athleta.com">Athleta</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle"
+                               data-toggle="dropdown">Categories <b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" data-category="96">Back to Blue</a></li>
+                                <li><a href="#" data-category="99">Samsung SSD</a></li>
+                            </ul>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown dropdown-xs">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Stay connected <b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li><a class="facebook" href="http://www.facebook.com/Gap">Facebook</a></li>
+                                <li><a class="twitter" href="http://www.twitter.com/gap">Twitter</a></li>
+                                <li><a class="pinterest" href="http://www.pinterest.com/Gap">Pinterest</a></li>
+                                <li><a class="instagram" href="http://www.instagram.com/gap">Instagram</a></li>
+                                <li><a class="tumblr" href="http://gap.tumblr.com/">Tumblr</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right hidden-xs">
+                        <li class="sharing">
+                            Stay Connected:
+                            <ul>
+                                <li class="icon pinterest">
+                                    <a href="http://www.pinterest.com/Gap"
+                                       target="_blank">&nbsp;</a>
+                                </li>
+                                <li class="icon facebook">
+                                    <a href="http://www.facebook.com/Gap"
+                                       target="_blank">&nbsp;</a>
+                                </li>
+                                <li class="icon twitter">
+                                    <a href="http://www.twitter.com/gap"
+                                       target="_blank">&nbsp;</a>
+                                </li>
+                                <li class="icon instagram">
+                                    <a href="http://www.instagram.com/gap"
+                                       target="_blank">&nbsp;</a>
+                                </li>
+                                <li class="icon youtube">
+                                    <a href="http://www.youtube.com/Gap"
+                                       target="_blank">&nbsp;</a>
+                                </li>
+                                <li class="icon tumblr">
+                                    <a href="http://gap.tumblr.com"
+                                       target="_blank">&nbsp;</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div><!-- /.navbar-collapse -->
+            </nav>
+        </header>
+        <div class="container"><!-- .container is bootstrap magic, and has a viewport-dependent width. -->
+            <!-- remove contents of hero-area if it is dynamically generated -->
+            <div id="hero-area" class="featured">
+                <div class="visible-xs jumbotron"><!-- hero unit (mobile 1) -->
+                    <!-- configure hero images by overriding its background -->
+                </div>
+                <div class="visible-sm jumbotron"><!-- hero unit (mobile 2) -->
+                    <!-- configure hero images by overriding its background -->
+                </div>
+                <div class="visible-md visible-lg jumbotron"><!-- hero unit (desktop) -->
+                    <!-- configure hero images by overriding its background -->
+                </div>
+            </div>
+            <div id="discovery-area" class="discovery-area">
+                <!-- paste pre-rendered tiles here (TODO... event handling for them) -->
+            </div>
+            <div class="no-noscript loading"></div>
+            <noscript>
+                <!-- promotions to show when user does not have javascript.
+                     this is a 'we need javascript' message by default.
+                 -->
+                <div class="alert alert-danger">
+                    <b>Oh no!</b> We need JavaScript enabled to show you this page.
+                </div>
+            </noscript>
+        </div>
+
+
+        <!-- Templates -->
+        <div>
+            <script type="text/template" id="disabled_featured_template">
+                <div class='featured product'>
+                    <!-- Main Display Area -->
+                    <img class='img-responsive pull-left' src='<%= obj.image %>' />
+                    <div class='pull-right'><%= obj.title %></div>
+                        <div class='price'><%= obj.price %></div>
+                        <div>
+                            <a href='<%= obj.url %>' target='_blank'>BUY NOW</a>
+                        </div>
+                    </div>
+
+                <div class='spacer'></div>
+            </script>
+            <script type="text/template" id="product_tile_template">
+                <div class="tap-indicator-target"></div>
+                <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
+                <% if (SecondFunnel.option('debug', 0) > 1) { %>
+                    <span class="type"><%= obj['content-type'] %></span>
+                <% } %>
+                <div class="social-buttons"></div>
+            </script>
+            <script type="text/template" id="product_mobile_tile_template">
+                <div class="tap-indicator-target"></div>
+                <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
+                <% if (SecondFunnel.option('debug', 0) > 1) { %>
+                    <span class="type"><%= obj['content-type'] %></span>
+                <% } %>
+                <% if (obj.name) { %>
+                    <div class="caption">
+                        <span><%= obj.name.truncate(40, false, true) %></span>
+                    </div>
+                <% } %>
+                <div class="social-buttons"></div>
+            </script>
+            <script type="text/template" id="youtube_tile_template">
+                <div class="img-responsive thumbnail"
+                     style="background-image: url('<%= obj.thumbnail || obj.image %>');">
+                  &nbsp;
+                  <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
+                </div>
+                <%= obj.caption || obj.name %>
+                <div class="social-buttons"></div>
+            </script>
+            <script type="text/template" id="preview_container_template">
+                <div class="tablecell">
+                    <div class="content">
+                        <span class="close">&#x00D7;</span>
+                        <div class="scrollable">
+                            <div class="template target"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mask"></div>
+            </script>
+            <script type="text/template" id="tile_preview_template">
+                <h2><span class="label label-info"><%= obj.template %>_preview_template</span> is missing.</h2>
+                <p>You can define one in <code>index.html</code>.</p>
+                <ul>
+                    <% for (i in obj) { %>
+                        <li><b><%= i %></b>: <%= obj[i] %></li>
+                    <% } %>
+                </ul>
+            </script>
+            <script type="text/template" id="tap_indicator_template">
+                +
+                <div>
+                    <%= SecondFunnel.option('tapIndicatorText', 'tap to see more') %>
+                </div>
+            </script>
+            <script type="text/template" id="facebook_social_button_template">
+                <div class='button facebook'>
+                    <img src="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/fb-like-0.png" alt="Like" class="placeholder" />
+                    <fb:like href="<%= url %>" width="48" layout="button_count"
+                             show_faces="false"></fb:like>
+                </div>
+            </script>
+            <script type="text/template" id="twitter_social_button_template">
+                <% if (showCount) { %>
+                    <div class='button twitter' style='height: 13px; width: 77px;'>
+                        <a href="https://twitter.com/share?url=<%= url %>"
+                           class="twitter-share-button"
+                           data-lang="en" data-height= "15">
+                          Tweet
+                        </a>
+                    </div>
+                <% } else { %>
+                    <div class='button twitter'>
+                        <a href="https://twitter.com/share?url=<%= url %>" target="_blank">
+                            <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
+                        </a>
+                    </div>
+                <% } %>
+            </script>
+            <script type="text/template" id="pinterest_social_button_template">
+                <div class='button pinterest'>
+                    <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>"
+                       target="_blank"><img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/></a>
+                </div>
+            </script>
+            <script type="text/template" id="reddit_social_button_template">
+                <div class="button reddit">
+                    <a href="http://www.reddit.com/submit"
+                       onclick="window.location = 'http://www.reddit.com/submit?url=<%= url %>'; return false"
+                      ><img src="http://www.reddit.com/static/spreddit7.gif"
+                           alt="submit to reddit"
+                           border="0" /></a>
+                </div>
+            </script>
+            <script type="text/template" id="tumblr_social_button_template">
+                <div class="button tumblr">
+                    <a href="http://www.tumblr.com/share/photo?source=<%= url %>&caption=<%= caption %>&click_thru=<%= url %>"
+                         target='_blank'><img src="http://platform.tumblr.com/v1/share_1.png"/></a>
+                </div>
+            </script>
+            <script type="text/template" id="share_social_button_template">
+                <div class="button share-this">
+                    <a href=""><img src="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/Sharethis-draft1.png"
+                                    alt="Share this" border="0" /></a>
+                </div>
+            </script>
+            <script type="text/template" id="share_popup_template">
+                <div class="mask"></div>
+                <div class="tablecell">
+                    <div class="content">
+                        <span class="close">&#x00D7;</span>
+                        <h2> Share This </h2>
+                        <div class="share"></div>
+                    </div>
+                </div>
+            </script>
+            <script type="text/template" id="share_popup_option_template">
+                <a href="<%= url %>" target="_blank">
+                    <div style="position: relative;">
+                        <div class="share_img"></div>
+                        <span class="share_text"><%= text %></span>
+                    </div>
+                </a>
+            </script>
+            <script type="text/template" id="product_preview_template">
+                <img src="<%= obj.image %>" alt=""/>
+                <%= obj.price %>
+                <div class="social-buttons"></div>
+            </script>
+            <script type="text/template" id="image_preview_template">
+                <h4>
+                    <span class="label label-info"><%= obj.template %></span>
+                    <%= obj.caption || obj.title || obj.name %>
+                    <!-- in that order (it may still have none of those) -->
+                </h4>
+                <img src="<%= obj.image %>" alt=""/>
+                <div class="social-buttons"></div>
+            </script>
+
+
+
+
+            <!-- store-specific templates -->
+            <script type="text/template" id="gap_product_preview_template">
+                <!-- any (store.name)_(type)_... templates will be used in place
+                     of default templates if they exist. -->
+                <div class='content-wrapper row'>
+                    <div class='image-div col-sm-6 col-md-6'>
+                        <div class='image'>
+                            <img class='img-rounded' src='<%= sizeImage(obj.image, 400) %>'/>
+                        </div>
+                    </div>
+                    <div class='info col-sm-6 col-md-6'>
+                        <div class='title'><%= obj.title %></div>
+                        <div class='red marker price'><%= obj.price %></div>
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" data-target=".overview">Overview</a></li>
+                        <li><a data-toggle="tab" data-target=".tags">tags</a></li>
+                        <li><a data-toggle="tab" data-target=".reviews">Reviews</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane description active overview">
+                            <ul>
+                                <% var sentences = _.compact(obj.description.split('.')); %>
+                                <% _.each(sentences, function(sentence) { %>
+                                    <li><%= SecondFunnel.utils.safeString(sentence) %></li>
+                                <% }); %>
+                            </ul>
+                        </div>
+                        <div class="tab-pane tags"> Tags go here </div>
+                        <div class="tab-pane reviews"> Something </div>
+                    </div>
+                        <div>
+                            <div class="social-buttons"></div>
+                            <div class='spacer'></div>
+                        </div>
+                        </div>
+                        <% if(obj.images.length >1) { %>
+                            <div class='gallery'></div>
+                        <% } %>
+                    </div>
+            </script>
+            </div>
+            <script type="text/template" id="gap_image_preview_template">
+                <!-- any (store.name)_(type)_... templates will be used in place
+                     of default templates if they exist. -->
+            <% var product = obj['related-products'][0]; %>
+
+                <%
+                    // > console.log(obj);
+                    // caption: " "
+                    // content-id: 562949953426705
+                    // content-type: "Instagram"
+                    // db-id: 5393
+                    // image: "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif"
+                    // original-id: "tumblr_mra6qu7uh11s6ofheo1_500"
+                    // related-products: [{
+                    //     "product-id": 19387,
+                    //     "description": "Long sleeves with button cuffs. Collar. Button front. Button patch pockets, buttonhole pen slot.",
+                    //     "title": "1969 chambray shirt",
+                    //     "url": "http://www.gap.com/browse/product.do?pid=350489002",
+                    //     "price": "$59.95",
+                    //     "tags": {
+                    //         "campaign": "99"
+                    //     },
+                    //     "db-id": 19387,
+                    //     "template": "product",
+                    //     "images": ["http://images.secondfunnel.com/store/gap/product/19387/image/0eaa9c2e36ade25c6c6985f50c54fe09/master.jpg"],
+                    //     "image": "http://images.secondfunnel.com/store/gap/product/19387/image/0eaa9c2e36ade25c6c6985f50c54fe09/master.jpg"
+                    // }]
+                    // template: "instagram"
+                    // tile-id: 562949953426705
+                %>
+                <% if (obj['related-products'].length) { %>
+                    <div class="image-with-related-products">
+                        <div class="row">
+                    <div class="col-sm-6 col-md-6">
+                        <div class="image">
+                                <img class='img-rounded' src="<%= sizeImage(obj.image, 400) %>" alt="image" />
+                            </div>
+
+                        <div class="buttons-container">
+                            <div class="social-buttons"></div>
+                            <div class='spacer'></div>
+                        </div>
+
+                        <% if (product.images.length > 1) { %>
+                        <div class='gallery'></div>
+                        <% } %>
+
+                    </div>
+                            <div class="col-sm-6 col-md-6">
+                                <div class='title'><%= product.title %></div>
+                                <div class='price'><%= product.price %></div>
+                        <div class="row">
+                            <div class="col-lg-4 col-md-4 col-sm-4 main-image-container">
+                                <img class="main-image" src="<%= sizeImage(product.image, 150) %>" alt="related product" />
+                            </div>
+                            <div class="accordion-container col-lg-8 col-md-8 col-sm-8">
+                                <div class="panel-group" id="accordion-gapimage">
+                                    <div class="panel panel-default">
+                                        <a class="accordion-toggle" data-toggle="sf-collapse" data-target=".collapseOne" data-parent="#accordion-gapimage" >
+                                            <div class=' panel-heading'>
+                                                Overview
+                                            </div>
+                                        </a>
+                                        <div class="panel-collapse collapse in collapseOne">
+
+                                            <div class="panel-body description">
+                                                <ul>
+                                                    <% var sentences = _.compact(product.description.split('.')); %>
+                                                    <% _.each(sentences, function(sentence) { %>
+                                                    <li><%= SecondFunnel.utils.safeString(sentence) %></li>
+                                                    <% }); %>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="panel panel-default">
+                                        <a  class="accordion-toggle" data-toggle="sf-collapse" data-target=".collapseTwo" data-parent="#accordion-gapimage">
+                                            <div class="panel-heading">
+                                                Details
+                                            </div>
+                                        </a>
+                                        <div class="panel-collapse collapse collapseTwo">
+                                            <div class="panel-body">
+                                                ...
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="panel panel-default">
+                                        <a  class="accordion-toggle" data-toggle="sf-collapse" data-target=".collapseThree" data-parent="#accordion-gapimage">
+                                            <div class="panel-heading">
+                                                Reviews
+                                            </div>
+                                        </a>
+                                        <div class="panel-collapse collapse collapseThree">
+                                            <div class="panel-body">
+                                                More lines <br/> More lines <br/> More lines <br/>
+                                                More lines <br/> More lines <br/> More lines <br/>
+                                                More lines <br/> More lines <br/> More lines <br/>
+                                                More lines <br/> More lines <br/> More lines <br/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                                <div class='gap-buttons'>
+                                    <a class='button find-store' href='http://www.gap.com/customerService/storeLocator.do' target='_blank'>
+                                    <!-- find-store is magic -->
+                                        Find in Store
+                                    </a>
+                                    <a class='button in-store' href='<%= product.url %>' target='_blank'>
+                                    <!-- in-store is magic -->
+                                        Shop on Gap.com
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+                <% } else { %>
+                    <div class="image-without-related-products">
+                        <img src="<%= sizeImage(obj.image, 400) %>" alt="image" />
+                        <div class="info">
+                            <%= SecondFunnel.utils.safeString(obj.caption) %>
+                            <span class="label label-info pull-right"><%= obj.template %></span>
+                        </div>
+                    </div>
+                <% } %>
+            </script>
+        </div>
+
+        <!-- End Templates -->
+        <!-- Social -->
+        <div id="fb-root"></div>
+        <!-- End Social -->
+
+        <!-- Javascript Files -->
+        <script type="text/javascript" src="js/test_config.js"></script>
+        <script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
+        <script type="text/javascript" src="/static/js/respond.min.js"></script><!-- "as early after the css as possible" -->
+        <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.mobile.swipeonly.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.viewport.min.js"></script><!-- after jquery -->
+        <script type="text/javascript" src="/static/js/json2.js"></script>
+        <script type="text/javascript" src="/static/js/underscore.js"></script>
+        <script type="text/javascript" src="/static/js/backbone.js"></script>
+        <script type="text/javascript" src="/static/js/backbone.marionette.min.js"></script><!-- after backbone -->
+        <script type="text/javascript" src="/static/js/imagesloaded.pkgd.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.masonry.pkgd.min.js"></script>
+        <script type="text/javascript" src="js/jquery.masonry.extensions.js"></script>
+        <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.browser.mobile.js"></script>
+        <script type="text/javascript" src="js/pages.preinit.js"></script><!-- after marionette -->
+        <script type="text/javascript" src="js/pages.utils.js"></script>
+        <script type="text/javascript" src="js/pages.js"></script><!-- after preinit -->
+        <script type="text/javascript" src="js/pages.support.js"></script><!-- after marionette -->
+        <script type="text/javascript" src="js/pages.tracker.js"></script><!-- after marionette -->
+        <script type="text/javascript" src="js/pages.layoutengine.js"></script><!-- after marionette -->
+        <script type="text/javascript" src="js/pages.sharing.js"></script><!-- after marionette -->
+        <script type="text/javascript" src="js/pages.ir.js"></script><!-- after marionette -->
+        <script type="text/javascript" src="js/pages.viewport.js"></script><!-- after pages -->
+        <script type="text/javascript" src="js/pages.init.js"></script><!-- after pages -->
+        <script type="text/javascript" src="js/pages.widget.gallery.js"></script>
+        <script type="text/javascript" src="/static/js/css3-mediaqueries.js"></script><!-- IE8 -->
+        <script type="text/javascript">
+            if (window.SecondFunnel) {
+                // Start the SecondFunnel app
+                SecondFunnel.start();
+                window.sizeImage = SecondFunnel.utils.pickImageSize;  // export for designers
+
+                // Example: add UI events
+                new SecondFunnel.tracker.EventManager({
+                    'click .navbar-brand': function (ev) {
+                        console.log('bur... custom event triggered');
+                    }
+                });
+
+                // Example: handle right hand side link clicks
+                new SecondFunnel.tracker.EventManager({
+                    'click .navbar-right a': function (ev) {
+                        var $ev = $(ev.currentTarget);
+
+                        console.log('Click detected! ' + $ev.attr('href'));
+                    }
+                });
+
+
+                // Example: receive event notifications
+                receive({
+                    'previewRendered': function () {
+                        console.log('doh! preview rendered');
+                    }
+                });
+            }
+        </script>
+        <!-- End Javascript -->
+    </body>
+</html>

@@ -1,0 +1,100 @@
+{% load staticfiles %}
+{% load compress %}
+
+{% compress js %}
+<script type="text/javascript">
+    window.PAGES_INFO = {
+          'debug': ('{{ debug|default:0 }}' === 'True')  // django built-in
+        // , 'base_url': '{{ base_url }}'  // DEPRECATED
+        , 'discoveryTarget': '{{ discovery_target|default:"#discovery-area" }}'
+        , 'itemSelector': '{{ item_selector|default:".tile" }}'
+        , 'store': {
+            'id': '{{ store.id|default:0 }}',  // TODO: why was ID slug?
+            'slug': '{{ store.slug|default:"store" }}',  // required for store-specific themes
+            'name': '{{ store.name|default:"Store" }}',
+            'displayName': '{{ store.display_name|default:'' }}'  // leave blank to use "Gap"
+        }
+        , 'page': {  // required
+            'id': '{{ campaign.intentrank_id|default:campaign.id }}'  // required
+            , 'product': {{ product }}
+            , 'pubDate': '{{ pub_date }}'  // for verifying the original upload date of a static campaign. for human use only
+            , 'offline': false  // optional (if true, loads .content immediately)
+
+            , 'name': '{{ campaign.name|default:"" }}'  // provided by campaign manager
+
+            // you will still need to make elements with data-category="96" on the page.
+            , 'categories': {{ campaign.categories|safe|default:"[]" }}  // string representation of [{id: 123, name: 'gap'}, ...]
+
+            // 'main-block-template': '{{ campaign.template }}',  // DEPRECATED
+            // 'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},  // DEPRECATED
+            // 'stl-image': '{{ campaign.stl_image }}',  // DEPRECATED
+            // 'featured-image': '{{ campaign.featured_image }}',  // DEPRECATED
+            // 'description': '{{ campaign.description|escapejs }}'  // DEPRECATED
+        }
+        , 'campaign': '{{ campaign.intentrank_id|default:campaign.id }}'
+        , 'columnWidth': undefined  // optional (defaults to 255, pixels)
+        , 'maxColumnCount': {{ campaign.column_count|default:4 }}  // optional (default: 4)
+        // , 'events': undefined  // page event bindings (optional)
+        // , 'socialButtons': [  // optional
+        //     "facebook",
+        //     "twitter",
+        //     "pinterest",
+        //     "tumblr",
+        //     "share"  // who requested this feature?
+        //   ]
+        // , 'shareSocialButtons': []  // optional; default: all
+        // , 'shareSources': {}  // optional: default: see sharing module
+        , 'socialButtonsEnableCondition': function (button) {
+            // required.
+            // this function must return true for a social button to show
+            // and return false for a social button not to show
+            return true;
+        }
+        , 'showCount': true  // optional, for social buttons (default: true)
+        // , 'enableTracking': true  // optional; default: true
+        // , 'eventMap': undefined  // optional
+        // , 'tileElement': undefined  // optional. alters the type of tag used by tiles.
+        , 'imageTileWide': 0.25
+        // , 'imageSizes': undefined  // optional, overrides built-in size map
+        // , 'tapIndicatorText': undefined,  // optional
+        , 'previewAnimationDuration': 100  // in ms
+        , 'previewMobileAnimationDuration': 0
+        , 'masonry': {  // passed to masonry
+            'animationDuration': 0.4  // in seconds
+        }
+        , 'featured': {{ product }}
+        // stuff that loads when page loads, even if IR is available
+        , 'IRResultsCount': 10
+        , 'IRTimeout': 5000
+        // , 'IRFailuresAllowed': undefined  // optional. defaults to 5
+        , 'IRSource': "{{ ir_base_url }}"  // optional, defaults to intentrank-test
+        , 'gaAccountNumber': '{{ ga_account_number }}'  // required
+
+        // number of viewports worth of results to keep below the page.
+        // 0 is not an acceptable value, but 0.0001 is. default is 1,
+        // i.e. there will always be one page worth of results
+        // underneath, no matter how fast you scroll.
+        // , 'prefetchHeight': 1
+
+        // , 'lockWidth': undefined  // must be true (not 1, {}, ...) or a function that returns true. undefined means auto.
+        // , 'desiredWidth': 0,  // number, or a function that returns a number. 0 means auto.
+
+        , 'initialResults': [
+            {% for result in initial_results %}
+                {{ result }}
+                {% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+        // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
+        // it really should contain at least 10 products.
+        , 'backupResults': [
+            {% for result in backup_results %}
+                {{ result }}
+                {% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    };
+
+    var _gaq = _gaq || [];
+</script>
+{% endcompress %}

@@ -1,0 +1,143 @@
+/*global $, _, SecondFunnel, Marionette, console, broadcast*/
+/**
+ * @module viewport
+ */
+SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
+    "use strict";
+    var $window = $(window),
+        $document = $(document),
+        getMeta = function () {
+            var tag = $('meta[name="viewport"]', 'head');
+
+            if (!tag.length && window.devicePixelRatio) {
+                // if no viewport is found of it, it will be made.
+                // (assuming the device supports it)
+                tag = $('<meta />', {
+                    'name': 'viewport'
+                });
+                $('head').append(tag);
+            }
+            return tag;
+        };
+
+    /**
+     * Returns an array containing viewport analysis.
+     * Used by .scale().
+     *
+     * @param {int} desiredWidth
+     * @return {Array} [enabled, width, scale, meta], some of which can
+     *                 be undefined if not applicable.
+     */
+    this.determine = function (desiredWidth) {
+        var adjustedScale,
+            proposedMeta,
+            maxMobileWidth = 511,
+            maxTabletWidth = 767,
+            enabled;
+
+        // if browser's UA claims to be a mobile device, scaling cannot be turned off.
+        if ($.browser.mobile) {
+            // enabled by default, except...
+
+            if (SecondFunnel.support.isAniPad()) {
+                console.warn('viewport agent disabled for the iPad.');
+                return [false, undefined, undefined, 'disabled'];
+            }
+        } else {
+            enabled = SecondFunnel.option('lockWidth', function () {
+                return true;
+            });
+
+            if (typeof enabled === 'function') {
+                enabled = enabled();
+            }
+
+            if (enabled !== true) {
+                console.warn('viewport agent disabled.');
+                return [false, undefined, undefined, 'disabled'];
+            }
+
+            if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
+                console.warn('viewport agent called on device with unsupported ppi.');
+                return [false, undefined, undefined, 'unsupported ppi'];
+            }
+        }
+
+        if (typeof desiredWidth === 'function') {
+            desiredWidth = desiredWidth();
+        }
+        
+        // pick the lowest of: - window width
+        //                     - desired width
+        //                     - max mobile width (if mobile)
+        //                     - max tablet width (if tablet)
+        if ($.browser.mobile && !$.browser.tablet) {
+            desiredWidth = Math.min(maxMobileWidth, desiredWidth, window.outerWidth);
+        } else if ($.browser.tablet) {
+            desiredWidth = Math.min(maxTabletWidth, desiredWidth, window.outerWidth);
+        } else {
+            desiredWidth = Math.min(desiredWidth, window.outerWidth);
+        }
+
+        if (typeof desiredWidth !== 'number') {
+            console.warn('viewport agent not called with number.');
+            return [false, undefined, undefined, 'width NaN'];
+        }
+
+        if (!desiredWidth || desiredWidth <= 100 || desiredWidth > 2048) {
+            console.warn('viewport agent called with invalid width.');
+            return [false, undefined, undefined, 'width invalid'];
+        }
+
+        // http://stackoverflow.com/a/6134070/1558430
+        adjustedScale = parseFloat(Math.round(Math.min(
+            10,  // viewport scale > 10 is not allowed.
+            ($window.width() / desiredWidth).toFixed(2)
+        ) * 100) / 100).toFixed(2);
+        proposedMeta = "user-scalable=no," +
+                       "width=" + desiredWidth + "," +
+                       "initial-scale=" + adjustedScale + "," +
+                       "minimum-scale=" + adjustedScale + "," +
+                       "maximum-scale=" + adjustedScale;
+
+        // it's enabled
+        return [true, desiredWidth, adjustedScale, proposedMeta];
+    };
+
+    /**
+     * attempt to lock the viewport to appear as wide as desiredWidth
+     * by scaling the entire viewport.
+     *
+     * the meta viewport tag is NOT standard, and does NOT work on all devices.
+     * (this concerns mostly IE10 on Windows Phone)
+     *
+     * @param {int} desiredWidth
+     * @returns undefined
+     */
+    this.scale = function (desiredWidth) {
+        var analysis = viewport.determine(desiredWidth),
+            metaTag = getMeta(),
+            proposedMeta = '';
+        if (analysis[0] === true && metaTag.length >= 1) {
+            // if both tag and condition exist
+            proposedMeta = analysis[3];
+            if (metaTag.prop('content') !== proposedMeta) {
+                // avoid re-rendering: edit tag only if it needs to change
+                metaTag.prop('content', proposedMeta);
+                broadcast('viewportResized', desiredWidth);
+            }
+        } else {
+            broadcast('viewportNotResized', analysis[3]);
+        }
+    };
+
+    SecondFunnel.vent.on('beforeInit', function () {
+        // single call func removes args
+        viewport.scale();
+    });
+    SecondFunnel.vent.on('finished', function () {
+        // single call func removes args
+        viewport.scale();
+    });
+    SecondFunnel.vent.on('rotate', viewport.scale);
+});

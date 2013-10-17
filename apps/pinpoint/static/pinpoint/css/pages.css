@@ -99,7 +99,6 @@ body {
 
 /* Preview */
 .preview {
-    /* TODO: Should we have a separate class for a preview content block? */
     overflow: hidden;
     position: fixed;
     display : table;

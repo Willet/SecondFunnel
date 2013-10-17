@@ -1,1344 +1,1036 @@
-// http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
-var PAGES = (function ($, details, Willet) {
+/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _,
+  Willet, broadcast, console, SecondFunnel */
+/**
+ * @module core
+ */
+SecondFunnel.module('core', function (module, SecondFunnel) {
+    // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
     "use strict";
-    var i = 0,  // counter
-        domTemplateCache = {},
-        MAX_RESULTS_PER_SCROLL = 50,  // prevent long imagesLoaded
-        SHUFFLE_RESULTS = details.page.SHUFFLE_RESULTS || false,
-        DESKTOP_WIDTH = 0,  // >= which defines this theme's desktop mode
-        mediator = Willet.mediator,
-        browser = Willet.browser || {
-            'mobile': false,
-            'touch': false
-        },
-        mediaAPI = Willet.mediaAPI,
-        scripts,
-        scriptsLoaded = [],
-        spaceBelowFoldToStartLoading = 500,
-        templatesOnPage = {},  // dict of dicts
-        loadingBlocks = false,
-        globalIdCounters = {},
-        hoverTimer,
-        sizableRegex = /images\.secondfunnel\.com/,
-        $wnd = $(window),
-        me = {};
+    var $window = $(window),
+        $document = $(document),
+        getModifiedTemplateName;
 
-    // IE 8 really sucks
-    Date.now = Date.now || function() { return +new Date; };
+    /**
+     * convenience method for accessing PAGES_INFO or TEST_*.
+     *
+     * To access deep options (e.g. PAGES_INFO.store.name), use the key
+     * "store.name" or "store:name" (preferred).
+     *
+     * @method option
+     * @param {string} name
+     * @param {*} defaultValue
+     * @returns {*}
+     */
+    SecondFunnel.option = function (name, defaultValue) {
+        var opt = Marionette.getOption(SecondFunnel, name),
+            keyNest = _.compact(name.split(/[:.]/)),
+            keyName,
+            cursor = SecondFunnel.options,
+            i,
+            depth;
 
-    function getLoadingBlocks() {
-        return loadingBlocks;
-    }
-
-    function setLoadingBlocks(bool) {
-        loadingBlocks = bool;
-    }
-
-    function endsWith(str, suffix) {
-        return str.indexOf(suffix, str.length - suffix.length) !== -1;
-    }
-
-    function getModifiedTemplateName(name) {
-        // returns the template name suitable
-        var i,
-            type,
-            templateNames = [
-                'shop-the-look', 'featured-product',
-                'product', 'combobox', 'youtube', 'image', //formerly instagram
-                'product-preview', 'combobox-preview', 'image-preview',
-                'image-product-preview'
-            ],
-            imageTypes = [
-                // templates of these names will all use the "image" template.
-                'styld.by', 'styld-by',
-                'tumblr', 'pinterest', 'facebook', 'instagram'
-            ];
-
-        if (_.contains(templateNames, name)) {
-            return name;
+        if (opt !== undefined && (keyNest.length === 1 && !_.isEmpty(opt))) {
+            // getOption() returns a blank object when it thinks it is accessing
+            // a nested option so we have to patch that up
+            return opt;
         }
-
-        for (i = 0; i < imageTypes.length; i++) {
-            type = imageTypes[i];
-            switch (name) {
-            case type:
-                return 'image';
-            case type + '-preview':
-                return 'image-preview';
-            case type + '-product-preview':
-                return 'image-product-preview';
-            default:
-                // move on
-            }
-        }
-
-        return name;
-    }
-
-    function getByAttrib(key, value, x, scope) {
-        // attribute selector - shorthand for either
-        // $('[data-key="value"]')
-        // or
-        // $('[key="value"]').
-        // x and scope are optional. x defaults to 'data'.
-
-        if (x === undefined) {
-            x = 'data';
-        }
-        if (x !== '') {
-            x = x + '-';
-        }
-        scope = scope || document;  // the whole page. window doesn't work.
-        return $('[' + x + key + '="' +
-            value.replace(/([ #;&,.+*~\':"!^$[\]()=>|\/@])/g,'\\$1') +
-            '"]', scope);
-    }
-
-    function groupByAttrib($elements, key, data) {
-        // given a list of element selector results, group them by
-        // one of their common properties (denoted by key).
-        // all properties are grouped by their STRING representation,
-        // for safety and the 'undefined' special case.
-        // data is optional. if it is true, data() is used in place of prop().
-        var accessor = data ? 'data' : 'prop';
-        return _.groupBy(
-            _.map($elements, function (elem) {
-                return $(elem);
-            }),
-            function (elem) {
-                return elem[accessor](key);
-            }
-        );
-    }
-
-    function getTemplate(templateId) {
-        // returns the required template.
-        // right now, it only resolves mobile templates for mobile devices.
-        // in the event that a mobile template is not found, the full template
-        // will be served in place.
-        var templateEls = templatesOnPage[templateId];
-
-        if (browser.mobile && templateEls && templateEls.mobile) {
-            // return "the first jquery-wrapped item in the list of this key"
-            return templateEls.mobile[0].eq(0);
-        } else {
-            // if nothing specified or no mobile theme, pick the first one.
-            // it can be an empty jquery object. (for e.g. 'image' template)
-            try {
-                return templateEls.desktop[0].eq(0);
-            } catch (err) { }
-            try {
-                return templateEls['undefined'][0].eq(0);  // type undeclared
-            } catch (err) { }
-        }
-
-        if (templateId !== 'preview') {
-            // 'preview' is an exception (circular target-src reference)
-            mediator.fire('error', ['oops, no template ' + templateId]);
-        }
-        // no such template - return an object that has .html()
-        return $('');
-    }
-
-    function loadTemplates() {
-        // saves all javascript templates on the page to a dict of dicts.
-        // {
-        //     product: {
-        //         desktop: $(theElement),
-        //         mobile: $(theElement),
-        //     },
-        //     combobox: {
-        //         desktop: $(theElement),
-        //         mobile: $(theElement),
-        //     },
-        //     ...
-        // }
-        // The idea is to call this function only once per page load.
-        // Calling it more than once (perhaps to refresh themes?)
-        //   will eliminate the performance improvements that it introduces.
-        var templateIndicator = 'template-id',  // what makes a template a template
-            templateEls = $('[data-' + templateIndicator + ']'),
-            groupedTemplateEls;
-
-        groupedTemplateEls = _.groupBy(templateEls, function (el) {
-            return $(el).data('template-id');
-        });
-
-        _.each(groupedTemplateEls, function (value, key, list) {
-            // for 'image', then for everyone else
-            list[getModifiedTemplateName(key)] = list[key] =
-                groupByAttrib($(value), 'media', true);
-        });
-
-        templatesOnPage = groupedTemplateEls;  // export
-        return groupedTemplateEls;
-    }
-
-    function size(url, desiredSize) {
-        // NOTE: We do not check if the new image exists because we implicitly
-        // trust that our service will contain the required image.
-        // ... Also, because it could be expensive to check for the required
-        // image before use
-        var newUrl,
-            filename,
-            extension = url.split('.').pop(),
-            imageSizes = [
-                "icon", "thumb", "small", "compact", "medium", "large",
-                "grande", "1024x1024", "master"
-            ],
-            allowedExtensions = [
-                "png", "jpg", "jpeg"
-            ];
-
-        // Don't resize:
-        //      - images that haven't come from us
-        //      - sizes we don't have
-        //      - .gifs!
-        if (!sizableRegex.test(url)
-            || !_.contains(imageSizes, desiredSize)
-            || !_.contains(allowedExtensions, extension)) {
-            return url;
-        }
-
-        // Replace filename with new size
-        filename = url.substring(url.lastIndexOf('/') + 1);
-        newUrl = url.replace(filename, desiredSize + '.' + extension);
-
-        return newUrl;
-    }
-
-    /* --- START Utilities --- */
-    function checkKeys(testSubject, listOfKeys) {
-        /* checks testSubject for required keys OF those sub-objects
-         * until the lookup ends.
-         *
-         * checkKeys(console, ['log', 'abc'])
-         * >> Object {log: function}  // because console.log.abc does not exist
-         *
-         * @type {Object}
-         */
-        var i = 0,
-            keyOf = testSubject,
-            refBuilder = {};
-        do {
-            try {
-                keyOf = keyOf[listOfKeys[i]];
-                if (keyOf === 'undefined') {
-                    return refBuilder;
-                }
-            } catch (err) {
-                return refBuilder;
-            }
-            refBuilder[listOfKeys[i]] = keyOf;
-        } while (++i < listOfKeys.length);
-        return refBuilder;  // all requested key depths exist
-    }
-
-    function generateID(baseStr) {
-        // multi-baseStr variant of generateID: stackoverflow.com/a/6861381
-        globalIdCounters[baseStr] = globalIdCounters[baseStr] + 1 || 0;
-        return baseStr + globalIdCounters[baseStr];
-    }
-
-    function loadYoutubeVideo(videoID, thumbnailID, onStateChange) {
-        // @return: None
-        var forceOpenInNewWindow = false;
-
+        // marionette sucks, so we'll do extra traversing to get stuff out of
+        // our nested objects ourselves
         try {
-            forceOpenInNewWindow = (
-                $('#' + thumbnailID).parent().data('popout') === 'popout'
-            );
-        } catch (eitherThumbnailOrItsParentNotFoundErr) {
-            // stays false
+            for (i = 0, depth = keyNest.length; i < depth; i++) {
+                keyName = keyNest[i];
+                cursor = cursor[keyName];
+            }
+            if (cursor !== undefined) {
+                return cursor;
+            }
+        } catch (KeyError) {
+            // requested traversal path does not exist. do the next line
+            console.warn('Missing option: ' + name);
+        }
+        return defaultValue;  // ...and defaultValue defaults to undefined
+    };
+
+    /**
+     * Marionette TemplateCache extension to allow checking cache for template
+     * Checks if the Template exists in the cache, if not found
+     * updates the cache with the template (if it exists), otherwise fail
+     * returns true if exists otherwise false.
+     *
+     * @method _exists
+     * @param templateId
+     * @returns {boolean}
+     * @private
+     */
+    Marionette.TemplateCache._exists = function (templateId) {
+        var cached = this.templateCaches[templateId],
+            cachedTemplate;
+
+        if (cached) {
+            return true;
         }
 
-        if (typeof YT === 'undefined' || forceOpenInNewWindow) {
-            // http://stackoverflow.com/questions/12429969/ios-6-embed-youtube
-            window.open('http://youtube.com/watch?v=' + videoID);
-        } else { // default
-            var player = new YT.Player(thumbnailID, {
-                height: 250,
-                width: $('.block.youtube').width(),
-                videoId: videoID,
-                playerVars: {
+        // template exists but was not cached
+        cachedTemplate = new Marionette.TemplateCache(templateId);
+        try {
+            cachedTemplate.load();
+            // Only cache on success
+            this.templateCaches[templateId] = cachedTemplate;
+        } catch (err) {
+            if (!(err.name && err.name === "NoTemplateError")) {
+                throw err;
+            }
+        }
+        return !!this.templateCaches[templateId];
+    };
+
+    /**
+     * Accept an arbitrary number of template selectors instead of just one.
+     * Function will return in a short-circuit manner once a template is found.
+     *
+     * @param args {arguments}    at least one jquery selector.
+     * @returns {*}
+     */
+    Marionette.View.prototype.getTemplate = function () {
+        var i, templateIDs = Marionette.getOption(this, "templates"),
+            template = Marionette.getOption(this, "template"),
+            temp, templateExists, data;
+
+        if (templateIDs) {
+            if (typeof templateIDs === 'function') {
+                // if given as a function, call it, and expect [<string> selectors]
+                templateIDs = templateIDs(this);
+            }
+
+            for (i = 0; i < templateIDs.length; i++) {
+                data = $.extend({},
+                    Marionette.getOption(this, "model").attributes);
+                data.template = getModifiedTemplateName(data.template);
+
+                temp = _.template(templateIDs[i], {
+                    'options': SecondFunnel.options,
+                    'data': data
+                });
+                templateExists = Marionette.TemplateCache._exists(temp);
+
+                if (templateExists) {
+                    // replace this thing's desired template ID to the
+                    // highest-order template found
+                    template = temp;
+                    break;
+                }
+            }
+        }
+        return template;
+    };
+
+    Marionette.ItemView.prototype.onMissingTemplate = function () {
+        // Default on missing template event
+        this.remove();
+    };
+
+    /**
+     * Object store for information about a particular database product,
+     * its contents, or its media.
+     *
+     * @constructor
+     * @type {Model}
+     */
+    this.Tile = Backbone.Model.extend({
+        'defaults': {
+            // Default product tile settings, some tiles don't
+            // come specifying a type or caption
+            'caption': "Shop product",
+            'tile-id': null,
+            'content-type': "product",
+            'related-products': [],
+            // Awaiting ImageService for a name
+            // TODO: What's the real name?
+            'dominant-color': "pink"
+        },
+
+        'initialize': function (attributes, options) {
+            var videoTypes = ["youtube", "video"],
+                type = this.get('content-type').toLowerCase();
+
+            // set up tile type overrides
+            this.set({
+                'type': this.get('template'),  // default type being its template
+                'caption': SecondFunnel.utils.safeString(this.get("caption"))
+            });
+            if (_.contains(videoTypes, type)) {
+                this.set('type', 'video');
+            }
+            broadcast('tileModelInitialized', this);
+        },
+
+        'sync': function () {
+            return false;  // forces ajax PUT requests to the server to succeed.
+        },
+
+        'is': function (type) {
+            // check if a tile is of (type). the type is _not_ the tile's template.
+            return this.get('content-type').toLowerCase() === type.toLowerCase();
+        },
+
+        /**
+         * Using its model instance, create a view of the "best" class.
+         * If the chosen view's matching template cannot be found, this
+         * returns undefined.
+         *
+         * @returns {TileView}
+         */
+        'createView': function () {
+            var TargetClass, view;
+
+            switch (this.get('type')) {
+            case "video":
+                TargetClass = module.VideoTileView;
+                break;
+            default:
+                TargetClass = SecondFunnel.utils.findClass(
+                    'TileView', this.get('type'), module.TileView);
+            }
+            // #CtrlF fshkjr
+            view = new TargetClass({'model': this});
+            broadcast('tileViewInitialized', view, this);
+            return view.render();
+        }
+    });
+
+    /**
+     * Our TileCollection manages ALL the tiles on the page.
+     * @constructor
+     * @type {Collection}
+     */
+    this.TileCollection = Backbone.Collection.extend({
+        'model': function (attrs) {
+            return new SecondFunnel.utils.findClass('Tile', '', module.Tile)(attrs);
+        },
+        'loading': false,
+        // 'totalItems': null,  // TODO: what is this?
+
+        'initialize': function (arrayOfData) {
+            // Our TileCollection starts by rendering several Tiles using the
+            // data it is passed.
+            var data;
+            for (data in arrayOfData) {  // Generate Tile
+                if (arrayOfData.hasOwnProperty(data)) {
+                    this.add(new module.Tile(data));
+                }
+            }
+            broadcast('tileCollectionInitialized', this);
+        }
+    });
+
+    /**
+     * View responsible for the "Hero Area"
+     * (e.g. Shop-the-look, featured, or just a plain div)
+     *
+     * @constructor
+     * @type {ItemView}
+     */
+    this.HeroAreaView = Marionette.ItemView.extend({
+        // $(...).html() defaults to the first item successfully selected
+        // so featured will be used only if stl is not found.
+        'model': new this.Tile(SecondFunnel.option('page:product', {})),
+        'template': "#stl_template, #featured_template, #hero_template",
+        'onRender': function () {
+            var buttons,
+                $heroArea = $('#hero-area');
+            if (this.$el.length) {  // if something rendered, it was successful
+                $heroArea.html(this.$el.html());
+
+                if (!(SecondFunnel.support.touch() || SecondFunnel.support.mobile()) &&
+                    this.$('.social-buttons').length >= 1) {
+                        buttons = new SecondFunnel.sharing.SocialButtons({
+                            'model': this.model
+                        })
+                        .render().load().$el;
+                    $heroArea.find('.social-buttons').append(buttons);
+                }
+
+            }
+        }
+    });
+
+    /**
+     * View for showing a Tile (or its extensions).
+     * This Layout contains socialButtons and tapIndicator regions.
+     *
+     * @constructor
+     * @type {Layout}
+     */
+    this.TileView = Marionette.Layout.extend({
+        'tagName': SecondFunnel.option('tileElement', "div"),
+        'templates': function (currentView) {
+            var templateRules = [  // dictated by CtrlF fshkjr
+                "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
+                "#<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
+                "#<%= options.store.slug %>_<%= data.template %>_mobile_tile_template",                              // gap_image_mobile_tile_template
+                "#<%= data.template %>_mobile_tile_template",                                                        // image_mobile_tile_template
+
+                "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_tile_template",         // gap_instagram_image_tile_template
+                "#<%= data['content-type'] %>_<%= data.template %>_tile_template",                                   // instagram_image_tile_template
+                "#<%= options.store.slug %>_<%= data.template %>_tile_template",                                     // gap_image_tile_template
+                "#<%= data.template %>_tile_template",                                                               // image_tile_template
+
+                "#product_mobile_tile_template",                                                                     // fallback
+                "#product_tile_template"                                                                             // fallback
+            ];
+
+            if (!SecondFunnel.support.mobile()) {
+                // remove mobile templates if it isn't mobile, since they take
+                // higher precedence by default
+                templateRules = _.reject(templateRules,
+                    function (t) {
+                        return t.indexOf('mobile') >= 0;
+                    });
+            }
+
+            console.debug('Template search tree for view %O: %O',
+                        currentView, templateRules);
+            return templateRules;
+        },
+        'template': "#product_tile_template",
+        'className': SecondFunnel.option('itemSelector', '').substring(1),
+
+        'events': {
+            'click': "onClick",
+            'mouseenter': "onHover",
+            'mouseleave': "onHover"
+        },
+
+        'regions': _.extend({}, {  // if ItemView, the key is 'ui': /docs/marionette.itemview.md#organizing-ui-elements
+            'socialButtons': '.social-buttons',
+            'tapIndicator': '.tap-indicator-target'
+        }, _.get(SecondFunnel.options, 'regions') || {}),
+
+        /**
+         * Creates the TileView using the options.
+         * Subclasses should not override this method, rather provide an
+         * 'onInitialize' function.
+         *
+         * @param options {Tile}   Required. Passing in a Tile initializes the
+         *                         TileView.
+         */
+        'initialize': function (options) {
+            var data = options.model.attributes,
+                self = this;
+
+            _.each(data['content-type'].toLowerCase().split(),
+                function (cName) {
+                    self.className += " " + cName;
+                });
+            this.$el.attr({
+                'class': this.className,
+                'id': this.model.cid
+            });
+
+            // do some kind of magic such that these methods are always called
+            // with its context being this object.
+            _.bindAll(this, 'close', 'modelChanged');
+
+            // If the tile model is changed, re-render the tile
+            this.listenTo(this.model, 'changed', this.modelChanged);
+
+            // If the tile model is removed, remove the DOM element
+            this.listenTo(this.model, 'destroy', this.close);
+            // Call onInitialize if it exists
+            this.triggerMethod('initialize');
+        },
+
+        'modelChanged': function (model, value) {
+            this.render();
+        },
+
+        'onHover': function (ev) {
+            // Trigger tile hover event with event and tile
+            SecondFunnel.vent.trigger("tileHover", ev, this);
+            if (!SecondFunnel.support.mobile() &&
+                !SecondFunnel.support.touch() &&
+                this.socialButtons && this.socialButtons.$el &&
+                this.socialButtons.$el.children().length) {
+                var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn'
+                    : 'fadeOut';
+                this.socialButtons.$el[inOrOut](200);
+                this.socialButtons.currentView.load();
+            }
+        },
+
+        'onClick': function (ev) {
+            var tile = this.model,
+                preview;
+
+            // clicking on social buttons is not clicking on the tile.
+            if (!$(ev.target).parents('.button').length) {
+                preview = new module.PreviewWindow({
+                    'model': tile,
+                    'caller': ev.currentTarget
+                });
+                SecondFunnel.vent.trigger("tileClicked", ev, this);
+            }
+        },
+
+        'onBeforeRender': function () {
+            var maxImageSize,
+                self = this;
+            try {
+                maxImageSize = _.findWhere(this.model.images[0].sizes,
+                    {'name': 'master'})[0];
+                this.model.set('size', maxImageSize);
+
+                if (Math.random() > 0.333 && maxImageSize.width >= 512) {
+                    this.$el.addClass('wide');
+                }  // else: leave it as 1-col
+            } catch (imageServiceNotReady) {
+                if (this.model.get('template') === 'combobox' || (Math.random() < 0.333)) {
+                    this.$el.addClass('wide');
+                }
+            }
+            // Listen for the image being removed from the DOM, if it is, remove
+            // the View/Model to free memory
+            this.$el.on('remove', function (ev) {
+                if (ev.target === self.el) {
+                    self.model.destroy();
+                }
+            });
+        },
+
+        'onMissingTemplate': function () {
+            // If a tile fails to load, destroy the model
+            // and subsequently this tile.
+            this.model.destroy();
+            this.close();
+        },
+
+        'onRender': function () {
+            if (this.model.get('size')) {
+                // Check if ImageService is ready
+                this.$("img").css({
+                    'background-color': this.model.get('dominant-color'),
+                    'width': this.model.get('size').width,
+                    'height': this.model.get('size').height
+                });
+            }
+
+            // semi-stupid view-based resizer
+            var tileImg = this.$('img.focus'),
+                columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
+                columnWidth = SecondFunnel.option('columnWidth', 255);
+            if (tileImg.length) {
+                tileImg.attr('src', SecondFunnel.utils.pickImageSize(tileImg.attr('src'),
+                                    columnWidth * columns));
+            }
+
+            if (this.tapIndicator && this.socialButtons) {
+                // Need to do this check in case layout is closing due
+                // to broken images.
+                if (SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length &&
+                    !(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
+                    this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({model: this.model}));
+                }
+                if (SecondFunnel.support.touch()) {
+                    this.tapIndicator.show(new module.TapIndicator());
+                }
+            }
+
+            this.$el.scaleImages();
+        }
+    });
+
+    /**
+     * View for showing a Tile whose attributes decide it should be rendered
+     * differently from a normal tile.
+     *
+     * VideoTile extends from TileView, allows playing of Video files;
+     * for now, we only support YT
+     *
+     * @constructor
+     * @type {TileView}
+     */
+    this.VideoTileView = this.TileView.extend({
+        'onInitialize': function () {
+            // Add here additional things to do when loading a VideoTile
+            this.$el.addClass('wide');
+
+            if (this.model.is('youtube')) {
+                this.model.set("thumbnail", 'http://i.ytimg.com/vi/' +
+                                            this.model.get('original-id') +
+                                            '/hqdefault.jpg');
+            }
+        },
+
+        /**
+         * Determine which click handler to use; determined by the content type.
+         * @returns {Function}
+         */
+        'onClick': function () {
+            var handler = _.capitalize(this.model.get('content-type'));
+            return (this['onClick' + handler] || this.onClickVideo).apply(this);
+        },
+
+        /**
+         * Renders a YouTube video in the tile.
+         *
+         * @param ev {jQuery.Event}   JS event object
+         * @returns undefined
+         */
+        'onClickYoutube': function (ev) {
+            var thumbId = 'thumb-' + this.model.cid,
+                $thumb = this.$('div.thumbnail'),
+                self = this;
+
+            if (window.YT === undefined) {
+                console.warn('YT could not load. Opening link to youtube.com');
+                window.open(this.model.get('original-url'));
+                return;
+            }
+
+            $thumb.attr('id', thumbId).wrap('<div class="video-container" />');
+            var player = new window.YT.Player(thumbId, {
+                'width': $thumb.width(),
+                'height': $thumb.height(),
+                'videoId': this.model.attributes['original-id'] || this.model.id,
+                'playerVars': {
+                    'wmode': 'opaque',
                     'autoplay': 1,
-                    'controls': (browser.mobile || browser.touch) ? 1 : 0
+                    'controls': SecondFunnel.support.mobile()
                 },
-                events: {
+                'events': {
                     'onReady': $.noop,
-                    'onStateChange': onStateChange,
+                    'onStateChange': function (newState) {
+                        SecondFunnel.tracker.videoStateChange(
+                            self.model.attributes['original-id'] || self.model.id,
+                            newState
+                        );
+                        switch (newState) {
+                        case window.YT.PlayerState.ENDED:
+                            self.onPlaybackEnd();
+                            break;
+                        default:
+                            break;
+                        }
+                    },
                     'onError': $.noop
                 }
             });
+        },
+
+        'onClickVideo': function () {
+            // TODO: play videos more appropriately
+            window.open(this.model.get('original-url') || this.model.get('url'));
+        },
+
+        'onPlaybackEnd': function (ev) {
+            SecondFunnel.vent.trigger("videoEnded", ev, this);
         }
-    }
+    });
 
-    function getYoutubeThumbnail(videoID, videoData) {
-        // videoData is optional.
-        // @return: string
-        var preferredThumbnailQuality = 'hqdefault',
-            thumbURL = 'http://i.ytimg.com/vi/' + videoID +
-                '/' + preferredThumbnailQuality + '.jpg',
-            thumbObj,
-            thumbPath = ['entry', 'media$group', 'media$thumbnail'],
-            thumbChecker,
-            thumbnailArray;
+    /**
+     * Manages the HTML/View of ALL the tiles on the page (our discovery area)
+     *
+     * @class Discovery
+     * @constructor
+     * @type {CompositeView}
+     */
+    this.Discovery = Marionette.CompositeView.extend({
+        // tagName: "div"
+        'el': $(SecondFunnel.option('discoveryTarget')),
+        'itemView': this.TileView,
+        'collection': null,
+        'loading': false,
+        'lastScrollTop': 0,
 
-        if (videoData) {
-            thumbChecker = checkKeys(videoData, thumbPath);
-            thumbnailArray = thumbChecker.media$thumbnail || [];
-            thumbObj = _.findWhere(thumbnailArray, {
-                'yt$name': preferredThumbnailQuality
-            });
-            if (thumbObj && thumbObj.url) {
-                thumbURL = thumbObj.url;
-            }  // else fallback to the default thumbURL
-        }
+        // prevent default appendHtml behaviour (append in batch)
+        'appendHtml': $.noop,
 
-        return thumbURL;
-    }
+        'initialize': function (options) {
+            var self = this;
 
-    function changeViewportSettings(newOpts) {
-        // browser needs to support window.devicePixelRatio
-        // (a WebKit property), and it needs to be greater than 1
-        // (where 1 just means "it's a normal screen")
-        //
-        // this function changes the viewport content even if no option
-        // is given.
-        // www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html
-        if ((!window.devicePixelRatio) || (window.devicePixelRatio < 1)) {
-            mediator.fire('error', ['Missing / out-of-range devicePixelRatio']);
-            return;
-        }
-
-        var viewportMeta = $('meta[name="viewport"]', 'head'),
-            viewportProps,
-            optVal = '',
-            outputBuffer = '',
-            i;
-
-        newOpts = $.extend({}, newOpts);  // just turning it into an object
-
-        if (!viewportMeta.length && window.devicePixelRatio) {
-            // if no viewport is found of it, it will be made.
-            // (assuming the device supports it)
-            viewportMeta = $('<meta />', {
-                'name': 'viewport'
-            });
-            $('head').append(viewportMeta);
-        }
-
-        // deconstruct the content of the viewport meta tag.
-        // all WebKit browsers have Array.prototype.map
-        viewportProps = (viewportMeta.prop('content') || '')
-            // ';' is technically not allowed as a separator, but people use it
-            .split(/[,;]/)
-            .map($.trim)
-            .map(function (kv) {
-                // split them further by parameter groups
-                kv = kv || '=';
-                return kv.toLowerCase().split('=').map($.trim);
-            });
-
-        for (i = 0; i < viewportProps.length; i++) {
-            // replace each value by ones specified.
-            // values can be empty strings.
-            optVal = newOpts[viewportProps[i][0]];
-            if (optVal) {  // specified value
-                viewportProps[i][1] = optVal;
-                outputBuffer += viewportProps[i][0] + '=' +
-                                viewportProps[i][1] + ',';
-            } else if (optVal === '') {
-                // drop key
-            } else {
-                outputBuffer += viewportProps[i][0] + '=' +
-                                viewportProps[i][1] + ',';
-            }
-            delete newOpts[viewportProps[i][0]];  // remove the used key
-        }
-
-        for (i in newOpts) {
-            // rules in options that wasn't in the original content
-            if (_.has(newOpts, i)) {
-                outputBuffer += i + '=' + newOpts[i] + ',';
-            }
-        }
-
-        if (outputBuffer.substr(-1) === ',') {
-            // remove trailing comma (if present)
-            outputBuffer = outputBuffer.substring(0, outputBuffer.length - 1);
-        }
-
-        viewportMeta.prop('content', outputBuffer);
-        return {
-            'element': viewportMeta,
-            'rules': _.object(viewportProps)
-        };
-    }
-
-    function renderTemplate(str, context, isBlock) {
-        // MOD of
-        // http://emptysquare.net/blog/adding-an-include-tag-to-underscore-js-templates/
-        // match "<% include template-id %>" with caching
-        var appropriateSize,
-            lifestyleSize,
-            replaced = str.replace(
-                /<%\s*include\s*(.*?)\s*%>/g,
-                function (match, templateId) {
-                    if (domTemplateCache[templateId]) {
-                        // cached
-                        return domTemplateCache[templateId];
-                    } else {
-                        var $el = getTemplate(templateId);
-                        if ($el.length) {
-                            // cache
-                            domTemplateCache[templateId] = $el.html();
-                        }
-                        return $el.length ? $el.html() : '';
-                    }
-                }
+            this.collection = new module.TileCollection();
+            this.categories = new module.CategorySelector(  // v-- options.categories is deprecated
+                SecondFunnel.option("page:categories") ||
+                SecondFunnel.option("categories") || []
             );
+            this.attachListeners();
+            this.countColumns();
 
-        // Use 'appropriate' size images by default
-        // TODO: Determine appropriate size
-        appropriateSize = isBlock ? 'compact' : 'master';
-        lifestyleSize = isBlock ? 'large' : 'master';
-
-
-        // _.isEmpty does its own _.has check.
-        if (!_.isEmpty(context.data.image)) {
-            context.data.image = size(context.data.image, appropriateSize);
-        }
-
-        if (!_.isEmpty(context.data.images)) {
-            context.data.images = _.map(context.data.images, function (img) {
-                return size(img, appropriateSize);
-            });
-        }
-
-        if (!_.isEmpty(context.data['lifestyle-image'])) {
-            context.data['lifestyle-image'] = size(context.data['lifestyle-image'], lifestyleSize);
-        }
-
-        // Append template functions to data
-        _.extend(context, {
-            'sizeImage': size
-        });
-
-        return _.template(replaced, context);
-    }
-
-    function isScrolledIntoView($elem, completely) {
-        // mod of http://stackoverflow.com/a/488073/1558430
-        // only checks for up-down scrolling.
-        // completely: whether this is false when the elem is partially visible
-        var docViewTop = $wnd.scrollTop(),
-            docViewBottom = docViewTop + $wnd.height(),
-            elemTop = $elem.offset().top,
-            elemBottom = elemTop + $elem.height();
-
-        if (completely) {
-            return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
-        } else {
-            return ((elemTop <= docViewBottom) && (elemBottom >= docViewTop));
-        }
-    }
-
-    function renderTemplates(data) {
-        // finds templates currently on the page, and drops them onto their
-        // targets (elements with classes 'template' and 'target').
-        // Targets need a data-src attribute to indicate the template that
-        // should be used.
-        // data can be passed in, or left as default on the target element
-        // as data attributes.
-
-
-        // select every ".template.target" element and render them with their data-src
-        // attribute: data-src='abc' rendered by a data-template-id='abc'
-        $('.template.target').each(function () {
-            var originalContext = data || {},
-                target = $(this),
-                src = target.data('src') || '',
-                srcElement,
-                context = {};
-
-            if (src === 'featured') {
-                // this is supposed to make things easier for designers
-                src = details.page['main-block-template'];
+            // If the collection has initial values, lay them out
+            if (options.initialResults && options.initialResults.length > 0) {
+                console.log('laying out initial results');
+                this.layoutResults(options.initialResults);
             }
+            // ... then fetch more products from IR
+            this.getTiles();
+        },
 
-            // if the required template is on the page, use it
-            srcElement = getTemplate(src);
-            if (srcElement.length) {
-                // populate context with all available variables
-                $.extend(context, originalContext, {
-                    'page': details.page,
-                    'store': details.store,
-                    'data': $.extend({}, srcElement.data(), target.data())
+        'attachListeners': function () {
+            var self = this;
+            // TODO: Find a better way than this...
+            _.bindAll(this, 'pageScroll', 'toggleLoading',
+                'getMoreResults', 'layoutResults');
+            $window
+                .scroll(_.throttle(this.pageScroll, 500))
+                .resize(_.throttle(function () {
+                    // did you know any DOM element without resize events
+                    // can still react to potential resizes by having its
+                    // own .bind('resize', function () {})?
+                    $('.resizable', document).trigger('resize');
+
+                    self.countColumns();
+
+                    SecondFunnel.vent.trigger('windowResize');
+                }, 500))
+                .scrollStopped(function () {
+                    // deal with tap indicator fade in/outs
+                    SecondFunnel.vent.trigger('scrollStopped', self);
                 });
 
-                context.data.show_count = true;
-
-                target.html(renderTemplate(srcElement.html(), context));
-            } else {
-                target.html('Error: missing template #' + src);
-            }
-        });
-    }
-    /* --- END Utilities --- */
-
-    /* --- START element bindings --- */
-    function showPreview(me) {
-        var data = $(me).data(),
-            templateName = getModifiedTemplateName(data.template),
-            $previewContainer = getTemplate("preview-container"),  // built-in
-            $previewMask = $previewContainer.find('.mask'),
-            $target = $previewContainer.find('.template.target'),
-            fbButtons,
-            templateId,
-            template,
-            renderedTemplate;
-
-        // Since we don't know how to handle /multiple/ products
-        // provide a way to access /one/ related product
-        if (!_.isEmpty(data['related-products'])) {
-            data['related-product'] = data['related-products'][0];
-            templateName += '-product';
-        }
-
-        templateId = templateName + '-preview';
-
-        template = $.trim(getTemplate(templateId).html());
-
-        if (!template && (templateId.indexOf('image') === 0)) {
-            // legacy themes don't have 'image-' templates
-            templateId = 'instagram' + templateId.slice(5);
-            template = $.trim(getTemplate(templateId).html());
-        }
-
-        if (!template || _.isEmpty($target)) {
-            mediator.fire('log', ['oops, no preview template ' + templateName, templateId]);
-            return;
-        }
-
-        data.is_preview = !_.isUndefined(data.is_preview) ? data.is_preview : true;
-
-        renderedTemplate = renderTemplate(template, {
-            'data': data,
-            'page': details.page,
-            'store': details.store
-        });
-
-        $target.html(renderedTemplate);
-
-        mediator.fire('PAGES.previewOpened');
-        mediator.fire('tracking.clearTimeout');
-        mediator.fire('tracking.setSocialShareVars', [
-            {"sType": "popup", "url": data.url}
-        ]);
-
-        $previewContainer.css('display', 'table').fadeIn(100);
-        if ($previewMask.length) {
-            $previewMask.fadeIn(100);
-        }
-
-        // Parse Facebook, Twitter buttons
-        if (window.FB) {
-            fbButtons = $previewContainer.find('.social-buttons .button.facebook, .fb-like');
-            if (fbButtons.length) {
-                // if it does not exist, script will init
-                // ALL buttons on the page at once
-                window.FB.XFBML.parse(fbButtons[0]);
-            }
-        }
-
-        if (window.twttr) {
-            window.twttr.widgets.load();
-        }
-
-        // late binding for all close buttons
-        $('.preview .mask, .preview .close').on('click', hidePreview);
-    }
-
-    function addPreviewCallback(func) {
-        // used by some themes. func accepts no arguments.
-        mediator.on('PAGES.previewOpened', func);
-    }
-
-    function addOnBlocksAppendedCallback(func) {
-        // used by some themes. func accepts no arguments.
-        mediator.on('PAGES.blocksAppended', func);
-    }
-
-    function hidePreview() {
-        var $mask    = $('.preview .mask'),
-            $preview = $('.preview.container');
-
-        mediator.fire('tracking.setSocialShareVars', []);
-
-        $preview.fadeOut(100);
-        $mask.fadeOut(100);
-    }
-
-    function reloadMasonry(options) {
-        // Convenince method for triggering reload of Masonry
-        $('.content_list, .discovery-area').each(function () {
-            options = options || {
-                itemSelector: '.block',
-                columnWidth: $(this).width() / 4,
-                hiddenStyle: { opacity: 0, transform: 'scale(1)' },
-                isResizeBound: true,
-                visibleStyle: {
-                    opacity: 1
-                },
-                isAnimated: !browser.mobile,
-                transitionDuration: (browser.mobile) ? 0 : '0.4s'
-            };
-
-            $(this).masonry(options).masonry('reload');
-        });
-    }
-
-    function commonHoverOn(t, enableSocialButtons, enableTracking) {
-        if (enableTracking) {
-            mediator.fire('tracking.setSocialShareVars', [{
-                "sType": "discovery",
-                "url": $(t).data("label")
-            }]);
-            mediator.fire('tracking.clearTimeout');
-        }
-
-        if (enableTracking) {
-            hoverTimer = Date.now();
-        }
-
-        if (enableSocialButtons) {
-            var $buttons = $(t).find('.social-buttons') || $(t).parent().find('.social-buttons');
-            $buttons.fadeIn('fast');
-
-            if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
-                window.FB.XFBML.parse($buttons.find('.button.facebook')[0]);
-                $buttons.addClass('loaded');
-            }
-        }
-    }
-
-    function commonHoverOff(t, hoverCallback, enableTracking) {
-        var $buttons = $(t).parent().find('.social-buttons');
-        $buttons.fadeOut('fast');
-
-        if (!enableTracking) {
-            return;
-        }
-        hoverTimer = Date.now() - hoverTimer;
-        if (hoverTimer > 2000) {
-            hoverCallback(t);
-        }
-
-        mediator.fire('tracking.clearTimeout');
-        if (window.pagesTracking) {
-            if (pagesTracking.socialShareType !== "popup") {
-                pagesTracking._pptimeout = window.setTimeout(pagesTracking.setSocialShareVars, 2000);
-            }
-        } else {
-            mediator.fire('error', ['cannot find pagesTracking']);
-        }
-    }
-
-    function productHoverOn() {
-        if (browser.mobile) {
-            // no social buttons on top of products on mobile
-            commonHoverOn(this, false, true);
-        } else {
-            commonHoverOn(this, true, true);
-        }
-    }
-
-    function productHoverOff() {
-        commonHoverOff(this, function (t) {
-            mediator.fire('tracking.registerEvent', [{
-                "type": "inpage",
-                "subtype": "hover",
-                "label": $(t).data("label")
-            }]);
-        }, true);
-    }
-
-    function youtubeHoverOn() {
-        commonHoverOn(this, !(browser.mobile || browser.touch), false);
-    }
-
-    function youtubeHoverOff() {
-        commonHoverOff(this, $.noop, false);
-    }
-
-    function comboboxHoverOn() {
-        commonHoverOn(this, !browser.mobile, true);
-    }
-
-    function comboboxHoverOff() {
-        commonHoverOff(this, function (t) {
-            mediator.fire('tracking.registerEvent', [{
-                "type": "content",
-                "subtype": "hover",
-                "label": $(t).data("label")
-            }]);
-        }, true);
-    }
-    
-    function lifestyleHoverOn() {
-        commonHoverOn(this, !browser.mobile, false);
-    }
-
-    function lifestyleHoverOff() {
-        commonHoverOff(this, $.noop, false);
-    }
-
-    function loadResults(belowFold, callback) {
-        callback = callback || me.layoutResults;
-        if (!loadingBlocks) {
-            mediator.fire('IR.getResults', [callback, belowFold]);
-        }
-    }
-
-    function lifestyleHoverOn() {
-        commonHoverOn(this, true, false);
-    }
-
-    function lifestyleHoverOff() {
-        commonHoverOff(this, $.noop, false);
-    }
-
-    function loadInitialResults(seed) {
-        mediator.fire('IR.changeSeed', [seed]);
-        mediator.fire('IR.getInitialResults', [me.layoutResults]);
-    }
-
-    function loadMoreResults(callback, belowFold) {
-        // @deprecated
-        return loadResults(belowFold, callback);
-    }
-                          
-    me.layoutResults = function (jsonData, belowFold, callback) {
-        // renders product divs onto the page.
-        // suppose results is (now) a legit json object:
-        // {products: [], videos: [(sizeof 1)]}
-        var $block, el, j, initialResults, productDoms = [], results,
-            revisedType, template, templateEl, templateType, videos;
-
-        // check for rogue json data.
-        try {
-            if (jsonData.error) {
-                mediator.fire(
-                    'error',  // usually "Campaign xxx has no product for id xxx"
-                    [jsonData.error + ' (' + (jsonData.url || '') + ')']
-                );
-                return;
-            }
-        } catch (err) {
-            /* neither an array nor object - even worse */
-            mediator.fire('error', ['malformed jsonData', jsonData]);
-            return;
-        }
-        if (!jsonData.length) {
-            mediator.fire('error', ['IR returned zero results!']);
-            return;
-        }
-
-        if (SHUFFLE_RESULTS) {  // first we shuffle it (if needed)
-            results = _.shuffle(jsonData);
-        }
-        // then we limit it
-        results = $(results || jsonData).slice(0, MAX_RESULTS_PER_SCROLL);
-        initialResults = Math.max(results.length, MAX_RESULTS_PER_SCROLL);
-
-        // add products
-        _.each(results, function (result) {  // [template context]
-            try {
-                templateType = PAGES.getModifiedTemplateName(result.template) || 'product';
-                templateEl = PAGES.getTemplate(templateType);
-                template = templateEl.html();
-
-                // in case an image is wrong, don't bother with the product
-                if (result.image === "None") {
-                    return;
-                }
-
-                switch (templateType) {
-                case 'product':
-                    // in case an image is lacking, don't bother with the product
-                    if (!result.image) {
-                        return;
-                    }
-
-                    // use the resized images
-                    result.image = result.image.replace("master.jpg", "medium.jpg");
-                    break;
-                case 'combobox':
-                    // in case an image is lacking, don't bother with the product
-                    if (!result.image) {
-                        return;
-                    }
-                    break;
-                case 'image':
-                    if (!template) {
-                        // Legacy themes do not support these templates
-                        revisedType = 'instagram';
-                        templateEl = PAGES.getTemplate(revisedType);
-                        template = templateEl.html();
-                    }
-                    break;
-                default:
-                    break;
-                }
-
-                var renderedBlock = PAGES.renderTemplate(template, {
-                    'data': result,
-                    'page': PAGES.details.page,
-                    'store': PAGES.details.store
-                }, true);
-                if (!renderedBlock.length) {
-                    mediator.fire('error', ['skipping empty template block']);
-                    return;
-                } else {
-                    el = $(renderedBlock);
-                    el.data(result);  // populate the .product.block div with data
-
-                    var templateElsLength = el.length;
-                    for (j=0; j<templateElsLength; j++) {
-                        // didn't have a better name for a loop
-                        productDoms.push(el[j]);
-                    }
-                }
-
-            } catch (err) {  // hide rendering error
-                mediator.fire('error', ['oops @ item', err]);
-            }
-        });
-
-        // Remove potentially bad content
-        productDoms = _.filter(productDoms, function (elem) {
-            return !_.isEmpty(elem);
-        });
-
-        $block = $(productDoms);  // an array of DOM elements
-
-        // if it has a lifestyle image, add a wide class to it so it's styled properly
-        $block.each(function () {
-            var $elem = $(this),
-                $images = $elem.find('img'),
-
-                // Create a spinner image that can be used to indicate a block is loading.
-                $spinner = $('<img/>', {
-                    'class': "image-loading-spinner",
-                    'style': "padding-top:100px; padding-bottom:100px; width:32px !important; height:32px; margin-left: auto; margin-right: auto; display:block;",
-                    'src': "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif"
-                });
-
-            $elem.toLoad = $images.length;
-
-            // If there's images to be loaded, place a spinner in the block and load the content
-            // in the background.
-            if ($elem.toLoad > 0) {
-                // If the block actually has images, render the loading block.
-                $elem.find('div').addClass('hidden');
-                $elem.addClass('unclickable').append($spinner);
-                $images.each(function () {
-                    $(this).load(function () {
-                        $elem.toLoad -= 1;
-                        if ($elem.toLoad === 0) {
-                            // This block is ready to go, render it on the page.
-                            $elem.removeClass('unclickable').find('.image-loading-spinner').remove();
-                            $elem.find('div').removeClass('hidden');
-
-                            if (this.width < this.height) {
-                                mediator.fire('log', ['not wide enough to be wide']);
-                                $elem.removeClass('wide');
-                            }
-
-                            // Trigger a window resize event because Masonry's resize logic is better (faster)
-                            // than it's reload logic.
-                            $wnd.resize();
-                        }
-                    });
-                });
+            // serve orientation change event via vent
+            if (window.addEventListener) {  // IE 8
+                window.addEventListener("orientationchange", function () {
+                    SecondFunnel.vent.trigger("rotate");
+                }, false);
             }
 
-            $images.error(function(){
-                var instance = $(this),
-                    isAdded = setInterval(function(){
-                        if ($.contains(document.documentElement, instance[0])) {
-                            instance.closest('.block').remove();
-                            clearInterval(isAdded);
-                        }
-                    }, 500);
-            });
+            // Vent Listeners
+            SecondFunnel.vent.on("tileClicked", this.updateContentStream,
+                this);
+            SecondFunnel.vent.on('changeCampaign', this.categoryChanged, this);
+            return this;
+        },
 
-            if ($elem.find('.lifestyle').length > 0) {
-                $elem.addClass('wide');
+        /**
+         *
+         * @param options
+         * @param tile {TileView}  supply a tile View to have tiles inserted
+         *                         after it. (optional)
+         * @returns this.Discovery
+         */
+        'getTiles': function (options, tile) {
+            var self = this,
+                opts;
+            if (this.loading) {
+                console.warn('Already loading tiles. Try again later');
+                return this;
             }
-
-            if ($elem.hasClass('instagram') && (Math.random() >= 0.5)) {
-                $elem.addClass('wide');
+            if (!$('#discovery-area').is(':visible')) {
+                console.warn('Cannot load tiles when the feed is invisible');
+                return this;
             }
+            this.toggleLoading(true);
+            opts = options || {};
+            opts.type = opts.type || 'campaign';
 
-            $('.discovery-area').append($elem).masonry('appended', $elem, true);
-        });
-
-        // Render youtube blocks with player
-        videos = _.where(results, {'template': 'youtube'});  // (haystack, criteria)
-        _.each(videos, function (video) {
-            var video_id = video['original-id'] || video.id,
-                video_state_change = window.pagesTracking ?
-                        _.partial(window.pagesTracking.videoStateChange, video_id) :
-                        $.noop;
-
-            mediaAPI.getObject("video_gdata", video_id, function (video_data) {
-                // get results from the page...
-                // ... and from unrendered results
-                var containers = $(".youtube[data-label='" + video_id + "']"),
-                    new_containers = $block.filter(".youtube[data-label='" + video_id + "']"),
-                    thumbClass = 'youtube-thumbnail',
-                    thumbURL = getYoutubeThumbnail(video_id, video_data);
-
-                containers = containers.add(new_containers);
-
-                containers.each(function () {
-                    var container = $(this),
-                        uniqueThumbnailID = generateID('thumb-' + video_id),
-                        thumbnail = $('<div />', {
-                            'css': {  // this is to trim the 4:3 black bars
-                                'overflow': 'hidden',
-                                'height': 250 + 'px',
-                                'background-image': 'url("' + thumbURL + '")',
-                                'background-position': 'center center'
-                            },
-                            'id': uniqueThumbnailID
-                        });
-
-                    // when the thumbnail is clicked, replace itself with
-                    // the youtube video of the same size, then autoplay
-                    thumbnail
-                        .addClass('wide ' + thumbClass)
-                        .click(function () {
-                            loadYoutubeVideo(video_id, uniqueThumbnailID,
-                                             video_state_change);
-                        });
-
-                    if (container.find('.' + thumbClass).length === 0) {
-                        // add a thumbnail only if there isn't one already
-                        container.prepend(thumbnail);
-                        mediator.fire('log', ['loaded video thumbnail ' + video_id]);
+            $.when(SecondFunnel.intentRank.getResults(opts))
+                .always(function (data) {
+                    self.layoutResults(data, tile);
+                })
+                .always(function (data) {
+                    if (data && data.length > 0) {
+                        self.getMoreResults();
                     } else {
-                        mediator.fire('log', ['prevented thumbnail dupe']);
+                        self.toggleLoading(false);
                     }
-                    container.children(".title").html(video_data.entry.title.$t);
                 });
-            });
-        });
+            return this;
+        },
 
-        $block.imagesLoaded(function ($images, $proper, $broken) {
-            // make sure images are loaded or else masonry wont work properly
-            if ($broken && $broken.length) {
-                // possible that if all images are proper,
-                // this is undefined; i.e.
-                // Uncaught TypeError: Cannot call method 'parents' of undefined
-                $broken.parents('.block').remove();
+        /**
+         * @param data {array}  byproduct of .always() passing back the data.
+         *                      its use is not recommended.
+         * @returns this
+         */
+        'getMoreResults': function (data) {
+            // creates conditions needed to get more results.
+            var self = this;
+            this.toggleLoading(false);
+
+            setTimeout(function () {
+                self.pageScroll();
+            }, 100);
+            return this;
+        },
+
+        /**
+         * @param data {Array}  list of product json objects
+         * @param tile {View}   pre-rendered tile view
+         * @returns this
+         */
+        'layoutResults': function (data, tile) {
+            var self = this,
+                tileEls = [],
+                $tile;
+
+            // Check if we don't have anything
+            if (data.length === 0) {
+                return this.toggleLoading(false);
             }
-            $block.find('.block img[src=""]').parents('.block').remove();
 
-            // Don't continue to load results if we aren't getting more results
-            if (initialResults > 0) {
+            // If we have data to use.
+            _.each(data, function (tileData) {
+                // Create the new tiles using the data
+                var tile = new module.Tile(tileData),
+                    view = tile.createView();
+
+                // add this model to our collection of models.
+                self.collection.add(tile);
+                if (view && view.$el && !view.isClosed) {
+                    // Ensure we were given something
+                    tileEls.push(view.$el[0]);
+                } else if (view === undefined) {
+                    // render unsuccessful (warning already issued in createView)
+                    return null;
+                }
+            });
+
+            if (tile && tile.$el) {
+                $tile = tile.$el;  // this would be the "insert after" target
+            }
+            SecondFunnel.layoutEngine.add(tileEls, $tile)
+                .always(function () {
+                    self.toggleLoading(false);
+                })
+                .always(this.getMoreResults);
+            return this;
+        },
+
+        /**
+         * Adds "col-n" classes to the html tag.
+         * @returns {number}
+         */
+        'countColumns': function () {
+            var i,
+                $html = $('html'),
+                maxColsDef = SecondFunnel.option('maxColumnCount', 4),
+                maxCols = $window.width() / SecondFunnel.option('columnWidth', 255);
+            $html.removeClass(function (idx, cls) {
+                // remove all current col-* classes
+                return (cls.match(/col-\d+/g) || []).join(' ');
+            });
+            for (i = 0; i < maxCols; i++) {
+                if (i <= maxColsDef) {
+                    $html.addClass('col-' + i);
+                }
+            }
+
+            SecondFunnel.layoutEngine.layout();
+            return maxCols;
+        },
+
+        'updateContentStream': function (ev, tile) {
+            // Loads in related content below the specified tile
+            var id = tile.model.get('tile-id');
+            if (id === null) {
+                console.warn('updateContentStream got a null ID. ' +
+                    'I don\'t think it is supposed to happen.');
+                return this;
+            }
+            return this.getTiles({
+                'type': "content",
+                'id': id
+            }, tile);
+        },
+
+        'categoryChanged': function (ev, category) {
+            // Changes the category (campaign) by refreshing IntentRank, clearing
+            // the Layout Engine and collecting new tiles.
+            var self = this;
+            if (this.loading) {
                 setTimeout(function () {
-                    PAGES.pageScroll();
+                    self.categoryChanged(ev, category);
                 }, 100);
-            }
-
-            $block.find('.pinpoint-youtube-area').click(function() {
-                $(this).html($(this).data('embed'));
-            });
-
-            mediator.fire('PAGES.blocksAppended', [$block]);
-
-            // tell masonry to reposition blocks
-            reloadMasonry();
-            PAGES.setLoadingBlocks(false);
-
-            // Call back with the rendered content
-            if (callback) {
-                callback($block);
-            }
-        });
-    }
-
-    function layoutRelated(product, relatedContent) {
-        /* Load related content into the masonry instance.
-           @return: none */
-        var $product = $(product),
-            initialBottom = $product.position().top + $product.height(),
-            $target = $product.next();
-
-        // Find a target that is low enough on screen
-        // TODO: can $target.next() also be above initialBottom?
-        if (($target.position().top) <= initialBottom) {
-            $target = $target.next();
-        }
-
-        // Inserts content after the clicked product block (Animated)
-        relatedContent.insertAfter($target);
-        reloadMasonry();
-        relatedContent.show();
-    }
-
-    function pageScroll() {
-        // calculates screen location and decide if more results
-        // should be displayed.
-        var discoveryBlocks = $('.block', '.discovery-area'),
-            noResults     = (discoveryBlocks.length === 0),
-            pageBottomPos = $wnd.innerHeight() + $wnd.scrollTop(),
-            lowestBlock,
-            lowestHeight,
-            $divider = $(".divider"),
-            divider_bottom = ($divider.length) ? $divider[0].getBoundingClientRect().bottom : 0;
-
-        // user scrolled far enough not to be a "bounce"
-        if (divider_bottom < 150) {  // arbitrary
-            mediator.fire('tracking.notABounce', ["scroll"]);
-        }
-
-        discoveryBlocks.each(function() {
-            if (!lowestBlock || lowestBlock.offset().top < $(this).offset().top) {
-                lowestBlock = $(this);
-            }
-        });
-
-        if (!lowestBlock) {
-            lowestHeight = 0;
-        } else {
-            lowestHeight = lowestBlock.offset().top + lowestBlock.height();
-        }
-
-        if (noResults || (pageBottomPos + spaceBelowFoldToStartLoading > lowestHeight)) {
-            loadResults(true, me.layoutResults);
-        }
-
-        $('.block', '.discovery-area').each(function (idx, obj) {
-            // broadcast which blocks are visible
-            var $block = $(obj),
-                blockWasInView = $block.hasClass('in-view') || false,
-                blockIsInView = isScrolledIntoView($block, false);
-
-            if (blockWasInView !== blockIsInView) {  // visibility changed
-                $block.toggleClass('in-view', blockIsInView);  // tell the block
-
-                if ($block.hasClass('wide') && browser.touch) {
-                    if (blockIsInView) {
-                        $block.find('.tap_indicator')
-                            .removeClass('fadeIn')
-                            .addClass('animated fadeOut');
-                    } else {
-                        $block.find('.tap_indicator')
-                            .removeClass('fadeOut')
-                            .addClass('animated fadeIn');
-                    }
-                }
-            }
-        });
-    }
-
-    function windowResize() {
-        // if the browser changes size, switch to appropriate template,
-        // DESKTOP_WIDTH needs to match the theme's CSS desktop media queries.
-        // this cannot "un-render" js templates previously rendered with
-        // a different-size template.
-        var oldState = browser.mobile;
-        if (details.DESKTOP_WIDTH && details.DESKTOP_WIDTH > 480) {
-            // i.e. if the requested DESKTOP_WIDTH makes sense, use it
-            DESKTOP_WIDTH = details.DESKTOP_WIDTH;
-        } else {  // default desktop width is 1024px
-            DESKTOP_WIDTH = 1024;
-        }
-        browser.mobile = ($wnd.width() < DESKTOP_WIDTH);
-
-        if (browser.mobile !== oldState) {  // if it changed
-            if (browser.mobile) {
-                // style tag has no disabled attrib, but the DOM has it
-                $('style.mobile-only').prop('disabled', '');
-                $('style.desktop-only').prop('disabled', 'disabled');
             } else {
-                $('style.mobile-only').prop('disabled', 'disabled');
-                $('style.desktop-only').prop('disabled', '');
+                SecondFunnel.intentRank.changeCategory(category.model.get('id'));
+                SecondFunnel.tracker.changeCampaign(category.model.get('id'));
+                SecondFunnel.layoutEngine.empty();
+                return this.getTiles();
             }
-            $('html')
-                .toggleClass('mobile', browser.mobile)
-                .toggleClass('desktop', !browser.mobile);
-        }
+            return this;
+        },
 
-        var $discovery = $('.discovery-area'),
-            discoveryWidth = $discovery.width(),
-            discoveryHeight = $discovery.height(),
-            oldDiscoveryWidth = $discovery.data('width'),
-            oldDiscoveryHeight = $discovery.data('height');
-        if (discoveryWidth !== oldDiscoveryWidth ||
-                discoveryHeight !== oldDiscoveryHeight) {
-            // size of discovery area changed - update masonry
-            reloadMasonry();
-            // and update the old widths/heights
-            $discovery.data({
-                'width': discoveryWidth,
-                'height': discoveryHeight
-            });
-        }
-    }
-
-    function attachListeners() {
-        var $discovery = $('.discovery-area');
-        if ($discovery.length) {
-            // use delegated events to reduce overhead
-            $discovery.on('click', '.block.product:not(.unclickable), ' +
-                                   '.block.combobox:not(.unclickable)',
-                function (e) {
-                    showPreview(e.currentTarget);
-                    mediator.fire('IR.updateClickStream', [e.currentTarget, e]);
-                });
-
-            $discovery.on('click', '.block.image:not(.unclickable)',
-                function (e) {
-                    showPreview(e.currentTarget);
-                });
-
-            // load related content; update contentstream
-            $discovery.on('click', '.block:not(.youtube):not(.unclickable)',
-                function (e) {
-                    var callback = function(jsonData, belowFold) {
-                        me.layoutResults(jsonData, false, _.partial(layoutRelated, e.currentTarget));
-                    };
-                    mediator.fire('IR.getResults', [callback, false, e.currentTarget]);
-                });
-
-            // hovers
-            $discovery.on({
-                'mouseenter': productHoverOn,
-                'mouseleave': productHoverOff
-            }, '.block.product:not(.unclickable), .block.combobox:not(.unclickable) .product');
-
-            $discovery.on({
-                'mouseenter': youtubeHoverOn,
-                'mouseleave': youtubeHoverOff
-            }, '.block.youtube');
-
-            $discovery.on({
-                'mouseenter': comboboxHoverOn,
-                'mouseleave': comboboxHoverOff
-            }, '.block.combobox:not(.unclickable) .lifestyle');
-
-            // Is this safe enough?
-            $discovery.on({
-                'mouseenter': lifestyleHoverOn,
-                'mouseleave': lifestyleHoverOff
-            }, '.block.image:not(.unclickable)');
-        }
-
-        // Prevent social buttons from causing other events
-        $('.social-buttons').find('.button').on('click', function (e) {
-            e.stopPropagation();
-        });
-
-        $wnd.resize(_.throttle(windowResize, 1000))
-            .resize(_.throttle(pageScroll, 300))
-            .scroll(pageScroll);
-
-        if (window.MBP) {
-            // @mobile
-            window.MBP.hideUrlBarOnLoad();
-            window.MBP.preventZoom();
-        }
-
-        $discovery.on({
-            mouseenter: comboboxHoverOn,
-            mouseleave: comboboxHoverOff
-        }, '.block.combobox:not(.unclickable) .lifestyle');
-
-        // Is this safe enough?
-        $discovery.on({
-            mouseenter: lifestyleHoverOn,
-            mouseleave: lifestyleHoverOff
-        }, '.block.image:not(.unclickable)');
-    }
-    /* --- END element bindings --- */
-
-    function load(scripts) {
-        // loads a list of scripts by url.
-        _.each(scripts, function (script) {
-            if (!_.contains(scriptsLoaded, script.src)) {
-                $.getScript(script.src || script, script.onload || $.noop);
+        'toggleLoading': function (bool) {
+            if (typeof bool === 'boolean') {
+                this.loading = bool;
             } else {
-                mediator.fire('error', [script.src + ' already loaded; skipping.']);
+                this.loading = !this.loading;
             }
-        });
-    }
+            return this;
+        },
 
-    function ready() {
-        // Special Setup
+        'pageScroll': function () {
+            var pageHeight = $window.innerHeight(),
+                pageBottomPos = pageHeight + $window.scrollTop(),
+                documentBottomPos = $document.height(),
+                viewportHeights = pageHeight * (SecondFunnel.option('prefetchHeight', 1));
 
-        // stackoverflow.com/questions/2915833/how-to-check-browser-for-touchstart-support-using-js-jquery
-        browser.touch = ('ontouchstart' in document.documentElement);
-        $('html').toggleClass('touch-enabled', browser.touch);
-
-        loadTemplates(); // populate list of templates in templatesOnPage
-        renderTemplates();
-        attachListeners();
-
-        // Initialize Masonry
-        reloadMasonry();
-        $('.content_list, .discovery-area').masonry('bindResize');
-
-        // Take any necessary actions
-        mediator.fire('PAGES.ready', []);
-        loadInitialResults();
-    }
-
-    function init(readyFunc, layoutFunc) {
-        // both functions are optional.
-
-        var pubDate;
-        if (details && details.page && details.page.pubDate) {
-            pubDate = details.page.pubDate;
-        }
-        mediator.fire('log', [  // feature, not a bug
-            '____ ____ ____ ____ _  _ ___     ____ _  _ ' +
-            '_  _ _  _ ____ _    \n[__  |___ |    |  | |' +
-            '\\ | |  \\    |___ |  | |\\ | |\\ | |___ | ' +
-            '   \n___] |___ |___ |__| | \\| |__/    |   ' +
-            ' |__| | \\| | \\| |___ |___ \n' +
-            '           Published ' + pubDate]);
-
-
-        if (readyFunc) {  // override
-            ready = readyFunc;
-        }
-        if (layoutFunc) {  // override
-            me.layoutResults = layoutFunc;
-        }
-        load(scripts);
-        $(document).ready(ready);
-    }
-
-    // script actually starts here
-    var requiredInfo = [
-        'backupResults', 'featured', 'page', 'product', 'store'
-    ];
-    for (i = 0; i < requiredInfo.length; i++) {
-        details[requiredInfo[i]] = details[requiredInfo[i]] || {};
-    }
-    details.content = details.content || [];
-
-    mediator.fire('buttonMaker.init', [details]);
-
-    // Either a URL, or an object with 'src' key and optional 'onload' key
-    scripts = [{
-        'src'   : 'http://connect.facebook.net/en_US/all.js#xfbml=0',
-        'onload': mediator.callback('buttonMaker.loadFB')
-    }, {
-        'src'   : '//platform.twitter.com/widgets.js',
-        'onload': mediator.callback('tracking.registerTwitterListeners'),
-        'id': 'twitter-wjs'
-    }, {
-        'src'   : '//assets.pinterest.com/js/pinit.js',
-        'onload': $.noop
-    }];
-
-    // used by gap's promo buttons, and by any element that wish to open their
-    // own "pages"
-    mediator.on('PAGES.showPreview', showPreview);
-    mediator.on('PAGES.hidePreview', hidePreview);
-
-    mediator.on('PAGES.changeViewportSettings', changeViewportSettings);
-
-    me = {
-        'init': _.once(init),
-        'addPreviewCallback': addPreviewCallback,
-        'addOnBlocksAppendedCallback': addOnBlocksAppendedCallback,
-        'renderTemplate': renderTemplate,
-        'renderTemplates': renderTemplates,
-        'reloadMasonry': reloadMasonry,
-        'loadInitialResults': loadInitialResults,
-        'loadResults': loadResults,
-        'layoutResults': me.layoutResults,
-        'layoutRelated': layoutRelated,
-        'attachListeners': attachListeners,
-        'pageScroll': pageScroll,
-        'details': details,
-        'getLoadingBlocks': getLoadingBlocks,
-        'setLoadingBlocks': setLoadingBlocks,
-        'getModifiedTemplateName': getModifiedTemplateName,
-        'getTemplate': getTemplate
-    };
-
-    return me;
-}(jQuery, window.PAGES_INFO || window.TEST_PAGE_DATA, Willet));
-
-
-// mobile component
-PAGES.mobile = (function (me, Willet) {
-    "use strict";
-
-    var localData = {},
-        mediator = Willet.mediator;
-
-    me = {
-        'renderToView': function (viewSelector, templateName, context, append) {
-            var template = PAGES.getTemplate(templateName).html(),
-                renderedBlock;
-
-            // template does not exist
-            if (template === undefined || template === '') {
-                return;
+            if (!this.loading && $('html').css('overflow') !== 'hidden' &&
+                pageBottomPos >= documentBottomPos - viewportHeights) {
+                // get more tiles to fill the screen.
+                this.getTiles();
             }
 
-            renderedBlock = _.template(template, context);
-            renderedBlock = $(renderedBlock);
-            renderedBlock.data(context);
+            // detect scrolling detection. not used for anything yet.
+            var st = $window.scrollTop();
+            if (st > this.lastScrollTop) {
+                broadcast('scrollDown', this);
+            } else if (st < this.lastScrollTop) {
+                broadcast('scrollUp', this);
+            }  // if equal, broadcast nothing
+            this.lastScrollTop = st;
+        }
+    });
 
-            if (append) {
-                $(viewSelector).append(renderedBlock);
-            } else {
-                $(viewSelector).html(renderedBlock);
+    /**
+     * Base empty category, no functionality needed here.
+     *
+     * @constructor
+     * @type {Model}
+     */
+    this.Category = Backbone.Model.extend({
+
+    });
+
+    /**
+     * One instance of a category
+     *
+     * @constructor
+     * @type {*}
+     */
+    this.CategoryView = Marionette.ItemView.extend({
+        'events': {
+            'click': function (ev) {
+                ev.preventDefault();
+                SecondFunnel.vent.trigger('changeCampaign', ev, this);
             }
         },
-        'layoutFunc': function (jsonData, belowFold, callback) {
-            _.each(jsonData, function (data, index, list) {
 
-                var objectId = data.id || data['original-id'],
-                    templateName = PAGES.getModifiedTemplateName(data.template);
+        'initialize': function (options) {
+            // Initializes the category view, expects some el to use
+            this.el = options.el;
+            this.$el = $(this.el);
+            delete options.$el;
+            this.model = new module.Category(options);
+        }
+    });
 
-                // Old themes used 'instagram',
-                // need to verify template exists
-                if (templateName === 'image' &&
-                        !PAGES.getTemplate(templateName).html()) {
-                    templateName = 'instagram';
-                }
+    /**
+     * Computes the number of categories the page is allowed to display.
+     * This CompositeView does not create an element, rather is passed
+     * the element that it will use for category selection. (?)
+     *
+     * @constructor
+     * @type {CompositeView}
+     */
+    this.CategorySelector = Marionette.CompositeView.extend({
+        'itemView': module.CategoryView,
 
-                // cache content's data for future rendering
-                localData[templateName + objectId] = data;
-
-                // render object if possible
-                // .content_list is here for backward compatibility only
-                me.renderToView(".content_list, .discovery-area", templateName, {
-                    data: data
-                }, true);
-
-                // just rendered last element
-                if (index === (list.length - 1)) {
-                    PAGES.setLoadingBlocks(false);
+        'initialize': function (categories) {
+            // Initialize a category view for each object with a
+            // data-category option.
+            var views = [];
+            $('[data-category]').each(function () {
+                var id = $(this).attr('data-category');
+                if (_.findWhere(categories, {'id': Number(id)})) {
+                    // Make sure category is a valid one.
+                    views.push(new module.CategoryView({
+                        'id': id,
+                        'el': this
+                    }));
                 }
             });
+            this.views = views;
         }
+    });
+
+    /**
+     * Contents inside a PreviewWindow.
+     * Content is displayed using a cascading level of templates, which
+     * increases in specificity.
+     *
+     * @constructor
+     * @type {ItemView}
+     */
+    this.PreviewContent = Marionette.ItemView.extend({
+        'template': '#tile_preview_template',
+        'templates': function (currentView) {
+            var templateRules = [
+                // supported contexts: options, data
+                '#<%= options.store.slug %>_<%= data.template %>_mobile_preview_template',
+                '#<%= data.template %>_mobile_preview_template',
+                '#<%= options.store.slug %>_<%= data.template %>_preview_template',
+                '#<%= data.template %>_preview_template',
+                '#product_mobile_preview_template',
+                '#product_preview_template',
+                '#tile_mobile_preview_template', // fallback
+                '#tile_preview_template' // fallback
+            ];
+
+            if (!SecondFunnel.support.mobile()) {
+                // remove mobile templates if it isn't mobile, since they take
+                // higher precedence by default
+                templateRules = _.reject(templateRules,
+                    function (t) {
+                        return t.indexOf('mobile') >= 0;
+                    });
+            }
+
+            console.debug('Template search tree for view %O: %O', currentView,
+                templateRules);
+            return templateRules;
+        },
+        'onRender': function () {
+            // ItemViews don't have regions - have to do it manually
+            var buttons, width;
+            if (!(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
+                buttons = new SecondFunnel.sharing.SocialButtons({model: this.model}).render().load().$el;
+                this.$('.social-buttons').append(buttons);
+            }
+            width = Marionette.getOption(this, 'width');
+            if (width) {
+                this.$('.content').css('width', width + 'px');
+            }
+
+            this.$el.scaleImages();
+
+            // hide discovery, then show this window as a page.
+            if (SecondFunnel.support.mobile()) {
+                // out of scope
+                $(SecondFunnel.option('discoveryTarget')).parent()
+                    .swapWith(this.$el);
+            }
+
+            broadcast('previewRendered', this);
+        },
+
+        'initialize': function() {
+            this.$el.attr({
+                'id': 'preview-' + this.model.cid
+            });
+        }
+    });
+
+    /**
+     * Container view for a PreviewContent object.
+     *
+     * @constructor
+     * @type {Layout}
+     */
+    this.PreviewWindow = Marionette.Layout.extend({
+        'tagName': "div",
+        'className': "previewContainer",
+        'template': "#preview_container_template",
+        'events': {
+            'click .close, .mask': function () {
+                // hide this, then restore discovery.
+                var discoveryEl = $(SecondFunnel.option('discoveryTarget'));
+                if (SecondFunnel.support.mobile()) {
+                    this.$el.swapWith(discoveryEl.parent());
+
+                    // handle results that got loaded while the discovery
+                    // area has an undefined height.
+                    SecondFunnel.layoutEngine.layout();
+                }
+                this.close();
+            }
+        },
+
+        'regions': {
+            'content': '.template.target',
+            'socialButtons': '.social-buttons'
+        },
+
+        /**
+         * Initialize the PreviewWindow by rendering the content to
+         * display in it as well.
+         *
+         * @param options {Object}   optional overrides.
+         */
+        'initialize': function (options) {
+            var ContentClass = SecondFunnel.utils.findClass('PreviewContent',
+                    options.model.get('template'), module.PreviewContent),
+                contentOpts = {
+                    'model': options.model,
+                    'caller': options.caller
+                };
+
+            this.render();
+            if (!this.isClosed) {
+                this.content.show(new ContentClass(contentOpts));
+                if (this.content.currentView.isClosed) {
+                    this.close();
+                }
+            }
+        },
+
+        'onMissingTemplate': function () {
+            this.content.currentView.close();
+            this.close();
+        },
+
+        'onBeforeRender': function () {
+
+        },
+
+        'templateHelpers': function () {
+            // return {data: $.extend({}, this.options, {template: this.template})};
+        },
+
+        'onRender': function () {
+            // cannot declare display:table in marionette class.
+            this.$el.css({'display': "table"});
+            this.$el.scaleImages();
+
+            $('body').append(this.$el.fadeIn(SecondFunnel.option('previewAnimationDuration')));
+        }
+    });
+
+    /**
+     * Visual overlay on a TileView that indicates it can be tapped.
+     * This view is visible only on touch-enabled devices.
+     *
+     * @constructor
+     * @type {*}
+     */
+    this.TapIndicator = Marionette.ItemView.extend({
+        'template': "#tap_indicator_template",
+        'className': 'tap_indicator',
+        'initialize': function () {
+            SecondFunnel.vent.on('scrollStopped',
+                                 _.bind(this.onScrollStopped, this));
+        },
+        'onBeforeRender': function () {
+            // http://jsperf.com/hasclass-vs-toggleclass
+            // toggleClass with a boolean is 55% slower than manual checks
+            if (SecondFunnel.support.touch()) {
+                $('html').addClass('touch-enabled');
+            } else {
+                $('html').removeClass('touch-enabled');
+            }
+        },
+        'onScrollStopped': function () {
+            var $indicatorEl = this.$el;
+            if ($indicatorEl
+                    .parents(SecondFunnel.option('itemSelector'))
+                    .hasClass('wide')) {
+                if ($indicatorEl.is(':in-viewport')) {  // this one is in view.
+                    $indicatorEl.delay(500).fadeOut(600);
+                }
+            }
+        }
+    });
+
+    /**
+     * Reduces all image-type names to 'image'.
+     * If this logic gets any more complex, it should be moved into
+     * Tile or TileView.
+     *
+     * @param name {String}     the current template name
+     * @returns {String}        the correct template name
+     */
+    getModifiedTemplateName = function (name) {
+        return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i,
+            'image');
     };
-
-    // @deprecated
-    window.render_to_view = me.renderToView;  // old themes compatability
-    window.local_data = me.local_data = me.localData = localData;  // old themes compatability
-
-    return me;
-}(PAGES.mobile || {}, Willet));
+});

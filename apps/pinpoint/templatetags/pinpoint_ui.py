@@ -8,8 +8,6 @@ from django.template import Context
 from django.utils.html import escape
 from django.template.loader_tags import do_include
 
-from apps.pinpoint.models import BlockContent
-
 register = template.Library()
 
 

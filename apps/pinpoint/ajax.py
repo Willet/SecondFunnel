@@ -89,4 +89,3 @@ def valid_dimensions( product_image ):
         # image has to be able to fit a wide block
         return False
     return True
-    

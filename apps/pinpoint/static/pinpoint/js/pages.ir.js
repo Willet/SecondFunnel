@@ -1,113 +1,203 @@
-var PAGES = PAGES || {};
-
-PAGES.intentRank = (function (me, details, mediator) {
-    // PAGES.intentRank depends on PAGES.
+/*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast */
+/**
+ * @module intentRank
+ */
+SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     "use strict";
 
-    var userClicks = 0,
-        clickThreshold = 3,
-        campaignResultsUrl = "<%=url%>/store/<%=store%>/campaign/<%=campaign%>/getresults",
-        contentResultsUrl = "<%=url%>/store/<%=store%>/campaign/<%=campaign%>/content/<%=id%>/getresults";
+    var consecutiveFailures = 0,
+        resultsAlreadyRequested = [];  // list of product IDs
 
-    me.init = function () {
-        // load data (if any)
+    this.options = {
+        'baseUrl': "http://intentrank-test.elasticbeanstalk.com/intentrank",
+        'urlTemplates': {
+            'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
+            'content': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/content/<%=id%>/getresults"
+        },
+        'categories': {},
+        'backupResults': [],
+        'IRResultsCount': 10,
+        'IRTimeout': 5000,
+        'store': {},
+        'content': []
     };
 
-    me.getResults = function (callback, belowFold, related) {
-        var relatedData = $(related).data() || {},
-            urlParams = {
-                'url': details.base_url,
-                'store': details.store.id,
-                'campaign': details.page.id,
-                'id': relatedData['content-id']
-            },
-            url;
+    this.on('start', function () {
+        return this.initialize(SecondFunnel.options);
+    });
 
-        // callback function will receive a list of results as first param.
-        if (PAGES.getLoadingBlocks()) {
-            return;
+    /**
+     * Initializes intentRank.
+     *
+     * @param options {Object}    overrides.
+     * @returns this
+     */
+    this.initialize = function (options) {
+        // Any additional init declarations go here
+        var page = options.page || {};
+
+        _.extend(intentRank.options, {
+            'baseUrl': options.IRSource || this.baseUrl,
+            'store': options.store || {},
+            'campaign': options.campaign,
+            // @deprecated: options.categories will be page.categories
+            'categories': page.categories || options.categories || {},
+            'backupResults': options.backupResults || [],
+            'IRResultsCount': options.IRResultsCount || 10,
+            'IRTimeout': options.IRTimeout || 5000,
+            'content': options.content || [],
+            'filters': options.filters || []
+        });
+
+        broadcast('intentRankInitialized', intentRank);
+        return this;
+    };
+
+    /**
+     * Filter the content based on the selector
+     * passed and the criteria/filters defined in the SecondFunnel options.
+     *
+     * @param {Array} content
+     * @param selector {string}: (optional) no idea what this is.
+     *                           I think it stands for additional filters.
+     * @returns {Array} filtered content
+     */
+    this.filter = function (content, selector) {
+        var i, filter,
+            filters = intentRank.options.filters || [];
+
+        filters.push(selector);
+        filters = _.flatten(filters);
+
+        for (i = 0; i < filters.length; ++i) {
+            filter = filters[i];
+            if (content.length === 0) {
+                break;
+            }
+            switch (typeof filter) {
+            case 'function':
+                content = _.filter(content, filter);
+                break;
+            case 'object':
+                content = _.where(content, filter);
+                break;
+            }
         }
+        return content;
+    };
 
-        PAGES.setLoadingBlocks(true);
+    /**
+     * general implementation
+     */
+    this.getResults = function () {
+        try {
+            var online = !SecondFunnel.option('page:offline', false);
+            if (online) {
+                return intentRank.getResultsOnline.apply(intentRank, arguments);
+            }
+        } catch (e) {}
+        return intentRank.getResultsOffline.apply(intentRank, arguments);
+    };
 
-        /* TODO: If there are pre-loaded results, start with those?
-            if (!_.isEmpty(details.backupResults) &&
-                !('error' in details.backupResults)) {  // saved IR proxy error
-                callback(details.backupResults);
-                PAGES.setLoadingBlocks(false);
+    /**
+     * @param overrides (unused)
+     * @returns something $.when() accepts
+     */
+    this.getResultsOffline = function (overrides) {
+        // instantly mark the deferral as complete.
+        return $.when(
+            _.chain(intentRank.options.backupResults)
+            .filter(intentRank.filter)
+            .shuffle()
+            .first(intentRank.options.IRResultsCount)
+            .value());
+    };
 
-                details.backupResults = [];
-            } else {
-        */
+    /**
+     * @param overrides
+     * @returns $.Deferred()
+     */
+    this.getResultsOnline = function (overrides) {
+        var ajax, deferred, opts, uri, backupResults,
+            irFailuresAllowed = SecondFunnel.option('IRFailuresAllowed', 5);
 
-        // Not sure what this element will be called
+        // build a one-off options object for the request.
+        opts = $.extend(true, {}, intentRank.options, {
+            'url': intentRank.options.baseUrl
+        });
+        $.extend(opts, overrides);
 
-        if (relatedData['content-id']) {
-            url = _.template(contentResultsUrl, urlParams);
+        uri = _.template(opts.urlTemplates[opts.type || 'campaign'], opts);
+        backupResults = _.chain(opts.backupResults)
+            .filter(intentRank.filter)
+            .shuffle()
+            .first(opts.IRResultsCount)
+            .value();
+
+        // http://stackoverflow.com/a/18986305/1558430
+        deferred = new $.Deferred();
+
+        if (consecutiveFailures > irFailuresAllowed) {
+            // API is dead. serve backup results instantly
+            deferred.resolve([]);  // deferred.resolve([backupResults]); // TODO: remove
         } else {
-            url = _.template(campaignResultsUrl, urlParams);
-        }
-
-        if (!details.page.offline) {
-            $.ajax({
-                url: url,
-                data: {// TODO: Probably should be some calculated value
-                    'results': 10
+            ajax = ($.jsonp || $.ajax)({
+                'url': uri,
+                'data': {
+                    'results': opts.IRResultsCount
                 },
-                dataType: 'jsonp',
-                timeout: 5000,  // 5000 ~ 10000
-                success: function(results) {
-                    callback(results, belowFold);
-                    PAGES.setLoadingBlocks(false);
-                },
-                error: function () {
-                    callback(details.backupResults, belowFold);
-                    PAGES.setLoadingBlocks(false);
-                }
+                'contentType': "application/javascript",
+                'dataType': 'jsonp',
+                'callbackParameter': 'callback',  // $.jsonp only; $.ajax uses 'jsonpCallback'
+                'timeout': opts.IRTimeout
             });
-        } else {
-            callback(details.content, belowFold);
-            PAGES.setLoadingBlocks(false);
+            ajax.done(function (results) {
+                consecutiveFailures = 0;  // reset
+
+                return deferred.resolve(
+                    // => list of n qualifying products
+                    _.chain(results || opts.backupResults)
+                        .filter(intentRank.filter)
+                        .shuffle()
+                        // trim the number of results if IR returns too many
+                        .first(opts.IRResultsCount)
+                        .value()
+                );
+            });
+            ajax.fail(function (jqXHR, textStatus, errorThrown) {
+                // $.jsonp calls this func as function (jqXHR, textStatus)
+                console.error('AJAX / JSONP ' + textStatus + ': ' +
+                    (errorThrown || jqXHR.url));
+
+                consecutiveFailures++;
+
+                if (consecutiveFailures > irFailuresAllowed) {
+                    console.error(
+                        'Too many consecutive endpoint failures. ' +
+                        'All subsequent results will be backup results.');
+                }
+
+                return deferred.resolve(backupResults);
+            });
         }
+
+        // promises are shared w/ other objects, while deferred should be
+        // kept private, says the internet
+        return deferred.promise();
     };
 
-    me.changeSeed = function (seed) {
-        // If you're calling this function, you probably know what
-        // you're doing...
-
-        // Usually called in conjunction with `changeCategory`...
-
-        if (!seed) {
-            return;
+    this.changeCategory = function (category) {
+        // Change the category
+        if (!_.findWhere(intentRank.options.categories,
+            {'id': Number(category)})) {
+            // requested category not configured for this page
+            console.warn('Category ' + category + ' not found');
+            return intentRank;
         }
 
-        details.product['product-id'] = seed;
+        broadcast('intentRankChangeCategory', category, intentRank);
+
+        intentRank.options.campaign = category;
+        return intentRank;
     };
-
-    me.changeCategory = function (category) {
-        var categories = details.page.categories;
-        if (!categories || !_.findWhere(categories, {'id': '' + category})) {
-            return;
-        }
-
-        // If there are categories, and a valid category is supplied
-        // change the category
-        details.page.id = category;
-        mediator.fire('tracking.changeCampaign', [category]);
-    };
-
-    // register (most) PAGES.intentRank events.
-    if (mediator) {
-        mediator.on('IR.init', me.init);
-        mediator.on('IR.getInitialResults', me.getResults);
-        mediator.on('IR.getResults', me.getResults);
-        mediator.on('IR.changeSeed', me.changeSeed);
-        mediator.on('IR.changeCategory', me.changeCategory);
-    } else {
-        window.console && window.console.error && window.console.error(
-            'Could not add pages.ir.js hooks to mediator'
-        );
-    }
-
-    return me;
-}(PAGES.intentRank || {}, PAGES.details || {}, Willet.mediator));
+});
