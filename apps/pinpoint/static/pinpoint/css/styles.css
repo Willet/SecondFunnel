@@ -27,8 +27,11 @@
 
 }
 
-.tile .social-buttons {
-    position: static!important;
+/* This fixes absolute positioning when not using Masonry (social buttons,
+ * video indicator, tap indicator)
+ * */
+.tile {
+    position: relative;
 }
 .panel-default>a>.panel-heading {
     background-color: #f8f8f8;
