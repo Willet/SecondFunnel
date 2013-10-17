@@ -20,7 +20,7 @@ class StoreResource(ModelResource):
 class UserResource(ModelResource):
     stores = fields.ToManyField(
         StoreResource,
-        'stores',
+        'store_set',
         null=True,
         blank=True,
         full=True # There is a way to pick specific fields, but I don't recall.
