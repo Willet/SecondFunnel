@@ -199,8 +199,8 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         "backup_results": map(json_postprocessor, backup_results),
         "pub_date": datetime.now(),
         "legal_copy": getattr(campaign, 'legalCopy', ''),
-        "mobile_hero_image": getattr(campaign, 'mobile-hero-image', ''),
-        "desktop_hero_image": getattr(campaign, 'desktop-hero-image', ''),
+        "mobile_hero_image": getattr(campaign, 'heroImageMobile', ''),
+        "desktop_hero_image": getattr(campaign, 'heroImageDesktop', ''),
         "ir_base_url": ir_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
     }
