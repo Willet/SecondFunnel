@@ -1,4 +1,6 @@
 from django.db import models
+from django.template.context import Context
+from django.template.loader import get_template
 
 from apps.assets.models import BaseModelNamed, Store
 
@@ -15,20 +17,7 @@ class StoreTheme(BaseModelNamed):
     @ivar page: The template for the entire page. Css is also usually put here.
     """
 
-    DEFAULT_PAGE = """
-<!DOCTYPE html>
-<html>
-    <head>
-        {{ campaign_config }}
-        {{ head_content }}
-    </head>
-    <body>
-        {{ js_templates }}
-        <div class='discovery-area'></div>
-        {{ body_content }}
-    </body>
-</html>
-    """
+    DEFAULT_PAGE = get_template('pinpoint/gap.html').render(Context())
 
     # Django templates
     page = models.TextField(verbose_name='Page', default=DEFAULT_PAGE)
