@@ -24,7 +24,7 @@ def proxy_view(request, path):
     target_url = settings.CONTENTGRAPH_BASE_URL
 
     url = '%s/%s' % (target_url, path)
-    if request.META.has_key('QUERY_STRING'):
+    if request.META.get('QUERY_STRING', False):
         url += '?' + request.META['QUERY_STRING']
 
     # There's probably a more pythonic way to do this, but I feel like it would

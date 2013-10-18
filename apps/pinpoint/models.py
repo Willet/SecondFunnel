@@ -1,5 +1,6 @@
 from django.db import models
 
+from apps.pinpoint.utils import read_a_file
 from apps.assets.models import BaseModelNamed, Store
 
 
@@ -15,20 +16,7 @@ class StoreTheme(BaseModelNamed):
     @ivar page: The template for the entire page. Css is also usually put here.
     """
 
-    DEFAULT_PAGE = """
-<!DOCTYPE html>
-<html>
-    <head>
-        {{ campaign_config }}
-        {{ head_content }}
-    </head>
-    <body>
-        {{ js_templates }}
-        <div class='discovery-area'></div>
-        {{ body_content }}
-    </body>
-</html>
-    """
+    DEFAULT_PAGE = read_a_file('apps/pinpoint/templates/pinpoint/gap.html')
 
     # Django templates
     page = models.TextField(verbose_name='Page', default=DEFAULT_PAGE)
@@ -187,10 +175,15 @@ class Campaign(BaseModelNamed):
         try:
             # special case... the theme needs to become an instance beforehand
             # automatically defaults to DEFAULT_PAGE
-            theme = json_data.get('theme', '')
+            theme = json_data.get('theme', None)
             if isinstance(theme, basestring):
-                json_data['theme'] = StoreTheme(page=theme)
+                if theme:
+                    json_data['theme'] = StoreTheme(page=theme)
+                else:
+                    json_data['theme'] = StoreTheme()  # fallback to default theme
+            if theme is None:
+                raise AttributeError('')
         except:
-            raise  # TODO: handling
+            json_data['theme'] = StoreTheme()  # fallback to default theme
 
         return cls(**json_data)

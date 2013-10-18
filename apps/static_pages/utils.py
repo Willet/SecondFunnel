@@ -198,6 +198,9 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         "initial_results": map(json_postprocessor, initial_results),
         "backup_results": map(json_postprocessor, backup_results),
         "pub_date": datetime.now(),
+        "legal_copy": getattr(campaign, 'legalCopy', ''),
+        "mobile_hero_image": getattr(campaign, 'heroImageMobile', ''),
+        "desktop_hero_image": getattr(campaign, 'heroImageDesktop', ''),
         "ir_base_url": ir_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
     }
@@ -205,8 +208,8 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     context = RequestContext(request, attributes)
 
     # theme is a temporary StoreTheme object
-    theme = campaign_data.get('theme')
-    if not theme:
+    theme = campaign.theme
+    if not theme.page:
         raise ValueError('campaign has no theme when campaign manager saved it')
 
     # check if the theme is actually a contentgraph resource
