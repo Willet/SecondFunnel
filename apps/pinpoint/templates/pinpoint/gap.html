@@ -10,10 +10,18 @@
     <style type="text/css">
         /* out of necessity */
         .visible-xs.jumbotron, .visible-sm.jumbotron { /* mobile hero */
-            background-image: url('{{ mobile_hero_image }}');
+            {% if mobile_hero_image %}
+                background-image: url('{{ mobile_hero_image }}');
+            {% else %}
+                background-image: url('{{ desktop_hero_image }}');
+            {% endif %}
         }
         .visible-md.jumbotron, .visible-lg.jumbotron { /* desktop hero */
-            background-image: url('{{ desktop_hero_image }}');
+            {% if desktop_hero_image %}
+                background-image: url('{{ desktop_hero_image }}');
+            {% else %}
+                background-image: url('{{ mobile_hero_image }}');
+            {% endif %}
         }
     </style>
 </head>
