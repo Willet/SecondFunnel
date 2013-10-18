@@ -1,3 +1,4 @@
+from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.conf import settings
@@ -9,6 +10,7 @@ import httplib2
 # He does, however, recommend we read up security policy to see if using
 # CORS is sufficient to prevent against CSRF, because he is having a hard time
 # handling that...
+@never_cache
 @csrf_exempt
 def proxy_view(request, path):
     # Normally, we would use the login_required decorator, but it will
