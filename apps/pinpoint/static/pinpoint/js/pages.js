@@ -354,7 +354,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn'
                     : 'fadeOut';
                 this.socialButtons.$el[inOrOut](200);
-                this.socialButtons.currentView.load();
             }
         },
 
