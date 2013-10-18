@@ -208,8 +208,8 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     context = RequestContext(request, attributes)
 
     # theme is a temporary StoreTheme object
-    theme = campaign_data.get('theme')
-    if not theme:
+    theme = campaign.theme
+    if not theme.page:
         raise ValueError('campaign has no theme when campaign manager saved it')
 
     # check if the theme is actually a contentgraph resource

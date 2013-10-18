@@ -5,8 +5,17 @@
     {{ campaign_config }}
     {{ head_content }}
     <link rel="stylesheet"
-          href="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/css/gapshorts20131001.css"/>
+          href="//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/css/gapshorts20131018.css"/>
     <title>{{ page.name|default:"Gap: Shorts" }}</title>
+    <style type="text/css">
+        /* out of necessity */
+        .visible-xs.jumbotron, .visible-sm.jumbotron { /* mobile hero */
+            background-image: url('{{ mobile_hero_image }}');
+        }
+        .visible-md.jumbotron, .visible-lg.jumbotron { /* desktop hero */
+            background-image: url('{{ desktop_hero_image }}');
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -73,20 +82,15 @@
         <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
         <!-- remove contents of hero-area if it is dynamically generated -->
         <div id="hero-area" class="featured">
-            {% if mobile_hero_image %}
-                <div class="visible-xs jumbotron"><!-- hero unit (mobile 1) -->
-                    <img class="mobile_hero_image" src="{{ mobile_hero_image }}" alt="" />
-                </div>
-                <div class="visible-sm jumbotron"><!-- hero unit (mobile 2) -->
-                    <img class="mobile_hero_image" src="{{ mobile_hero_image }}" alt="" />
-                </div>
-            {% endif %}
-            {% if desktop_hero_image %}
-                <div class="visible-md visible-lg jumbotron">
-                    <!-- hero unit (desktop) -->
-                    <img class="desktop_hero_image" src="{{ desktop_hero_image }}" alt="" />
-                </div>
-            {% endif %}
+            <div class="visible-xs jumbotron"><!-- hero unit (mobile 1) -->
+
+            </div>
+            <div class="visible-sm jumbotron"><!-- hero unit (mobile 2) -->
+
+            </div>
+            <div class="visible-md visible-lg jumbotron">
+                <!-- hero unit (desktop) -->
+            </div>
             <div class="legal us">
                 {% if legal_copy %}
                     {{ legal_copy }}

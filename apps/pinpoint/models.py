@@ -181,6 +181,8 @@ class Campaign(BaseModelNamed):
                     json_data['theme'] = StoreTheme(page=theme)
                 else:
                     json_data['theme'] = StoreTheme()  # fallback to default theme
+            if theme is None:
+                raise AttributeError('')
         except:
             json_data['theme'] = StoreTheme()  # fallback to default theme
 
