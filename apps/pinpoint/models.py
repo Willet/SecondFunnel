@@ -191,6 +191,6 @@ class Campaign(BaseModelNamed):
             if isinstance(theme, basestring):
                 json_data['theme'] = StoreTheme(page=theme)
         except:
-            raise  # TODO: handling
+            json_data['theme'] = StoreTheme()  # fallback to default theme
 
         return cls(**json_data)
