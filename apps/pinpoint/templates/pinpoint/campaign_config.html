@@ -15,7 +15,7 @@
             'displayName': '{{ store.display_name|default:'' }}'  // leave blank to use "Gap"
         }
         , 'page': {  // required
-            'id': '{{ campaign.intentrank_id|default:campaign.id }}'  // required
+            'id': '97'  // '{{ campaign.intentrank_id|default:campaign.id }}'  // required (mocked out for 2013-10-18)
             , 'product': {{ product }}
             , 'pubDate': '{{ pub_date }}'  // for verifying the original upload date of a static campaign. for human use only
             , 'offline': false  // optional (if true, loads .content immediately)
@@ -31,7 +31,7 @@
             // 'featured-image': '{{ campaign.featured_image }}',  // DEPRECATED
             // 'description': '{{ campaign.description|escapejs }}'  // DEPRECATED
         }
-        , 'campaign': '{{ campaign.intentrank_id|default:campaign.id }}'
+        , 'campaign': '97'  //  '{{ campaign.intentrank_id|default:campaign.id }}' // (mocked out for 2013-10-18)
         , 'columnWidth': undefined  // optional (defaults to 255, pixels)
         , 'maxColumnCount': {{ campaign.column_count|default:4 }}  // optional (default: 4)
         // , 'events': undefined  // page event bindings (optional)
