@@ -175,9 +175,12 @@ class Campaign(BaseModelNamed):
         try:
             # special case... the theme needs to become an instance beforehand
             # automatically defaults to DEFAULT_PAGE
-            theme = json_data.get('theme', '')
+            theme = json_data.get('theme', None)
             if isinstance(theme, basestring):
-                json_data['theme'] = StoreTheme(page=theme)
+                if theme:
+                    json_data['theme'] = StoreTheme(page=theme)
+                else:
+                    json_data['theme'] = StoreTheme()  # fallback to default theme
         except:
             json_data['theme'] = StoreTheme()  # fallback to default theme
 
