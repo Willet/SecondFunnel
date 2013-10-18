@@ -426,13 +426,14 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             if (this.tapIndicator && this.socialButtons) {
                 // Need to do this check in case layout is closing due
                 // to broken images.
-                if (SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length &&
+                if (!$.browser.mobile &&
+                    SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length &&
                     !(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
                     this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({model: this.model}));
                 }
-                if (SecondFunnel.support.touch()) {
-                    this.tapIndicator.show(new module.TapIndicator());
-                }
+//                if (SecondFunnel.support.touch()) {
+//                    this.tapIndicator.show(new module.TapIndicator());
+//                }
             }
 
             this.$el.scaleImages();
@@ -574,7 +575,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             _.bindAll(this, 'pageScroll', 'toggleLoading',
                 'getMoreResults', 'layoutResults');
             $window
-                .scroll(_.throttle(this.pageScroll, 1500))
+                .scroll(_.throttle(this.pageScroll, 500))
                 .resize(_.throttle(function () {
                     // did you know any DOM element without resize events
                     // can still react to potential resizes by having its
@@ -912,7 +913,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
             var buttons, width;
-            if (!(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
+            if (!(SecondFunnel.support.touch() || SecondFunnel.support.mobile()) && !$.browser.mobile) {
                 buttons = new SecondFunnel.sharing.SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
             }
@@ -1021,33 +1022,33 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @constructor
      * @type {*}
      */
-    this.TapIndicator = Marionette.ItemView.extend({
-        'template': "#tap_indicator_template",
-        'className': 'tap_indicator',
-        'initialize': function () {
-            SecondFunnel.vent.on('scrollStopped',
-                                 _.bind(this.onScrollStopped, this));
-        },
-        'onBeforeRender': function () {
-            // http://jsperf.com/hasclass-vs-toggleclass
-            // toggleClass with a boolean is 55% slower than manual checks
-            if (SecondFunnel.support.touch()) {
-                $('html').addClass('touch-enabled');
-            } else {
-                $('html').removeClass('touch-enabled');
-            }
-        },
-        'onScrollStopped': function () {
-            var $indicatorEl = this.$el;
-            if ($indicatorEl
-                    .parents(SecondFunnel.option('itemSelector'))
-                    .hasClass('wide')) {
-                if ($indicatorEl.is(':in-viewport')) {  // this one is in view.
-                    $indicatorEl.delay(500).fadeOut(600);
-                }
-            }
-        }
-    });
+//    this.TapIndicator = Marionette.ItemView.extend({
+//        'template': "#tap_indicator_template",
+//        'className': 'tap_indicator',
+//        'initialize': function () {
+//            SecondFunnel.vent.on('scrollStopped',
+//                                 _.bind(this.onScrollStopped, this));
+//        },
+//        'onBeforeRender': function () {
+//            // http://jsperf.com/hasclass-vs-toggleclass
+//            // toggleClass with a boolean is 55% slower than manual checks
+//            if (SecondFunnel.support.touch()) {
+//                $('html').addClass('touch-enabled');
+//            } else {
+//                $('html').removeClass('touch-enabled');
+//            }
+//        },
+//        'onScrollStopped': function () {
+//            var $indicatorEl = this.$el;
+//            if ($indicatorEl
+//                    .parents(SecondFunnel.option('itemSelector'))
+//                    .hasClass('wide')) {
+//                if ($indicatorEl.is(':in-viewport')) {  // this one is in view.
+//                    $indicatorEl.delay(500).fadeOut(600);
+//                }
+//            }
+//        }
+//    });
 
     /**
      * Reduces all image-type names to 'image'.

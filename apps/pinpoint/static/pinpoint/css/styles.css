@@ -59,7 +59,7 @@
 
 #discovery-area[data-columns]::before { display: none; } /* Don't forget this. */
 
-@media screen and (max-width: 399px) {
+@media (max-width: 399px) {
     #discovery-area[data-columns]::before {
         content: '1 .column';
     }
@@ -69,7 +69,7 @@
     }
 }
 
-@media screen and (min-width: 400px) and (max-width: 509) {
+@media (min-width: 400px) and (max-width: 509) {
     #discovery-area[data-columns]::before {
         content: '2 .column';
     }
@@ -80,7 +80,7 @@
 }
 
 
-@media screen and (min-width: 510px) and (max-width: 767px) {
+@media (min-width: 510px) and (max-width: 767px) {
     #discovery-area[data-columns]::before {
         content: '2 .column';
     }
@@ -90,7 +90,7 @@
     }
 }
 
-@media screen and (min-width: 768px) and (max-width: 849px) {
+@media (min-width: 768px) and (max-width: 849px) {
     #discovery-area[data-columns]::before {
         content: '3 .column.size-1of3';
     }
@@ -100,7 +100,7 @@
     }
 }
 
-@media screen and (min-width: 850px) and (max-width: 1023px) {
+@media (min-width: 850px) and (max-width: 1023px) {
     #discovery-area[data-columns]::before {
         content: '4 .column.size-1of4';
     }
@@ -111,7 +111,7 @@
     }
 }
 
-@media screen and (min-width: 1024px) {
+@media (min-width: 1024px) {
     #discovery-area[data-columns]::before {
         content: '4 .column.size-1of4';
     }
