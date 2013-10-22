@@ -604,7 +604,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @param options
          * @param tile {TileView}  supply a tile View to have tiles inserted
          *                         after it. (optional)
-         * @param prefetching {boolean}
+         * @param prerendering {boolean}
          * @returns this.Discovery
          */
         'getTiles': function (options, tile, prerendering) {
@@ -633,7 +633,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.toggleLoading(true);
             opts = options || {};
             opts.type = opts.type || 'campaign';
-            var start = Date.now();
+            // var start = Date.now(); //DEBUG
             $.when(SecondFunnel.intentRank.getResults(opts))
                 .always(function (data) {
                     _.each(data, function (curr) {
@@ -644,7 +644,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 // console.log('we done'); //DEBUG
                 self.reset();
                 self.getMoreResults();
-                var end = Date.now();
+                // var end = Date.now(); //DEBUG
                 // console.log(end - start); //DEBUG
             });
             return this;
@@ -767,10 +767,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         'reset': function () {
             var self = this;
-            self.layoutTask.setPriority();
+            self.layoutTask.resetPriority();
             setTimeout(function () {
                 self.toggleLoading(false);
-            }, 1000);
+            }, 800);
         },
 
         'toggleLoading': function (bool) {
@@ -910,7 +910,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
             var buttons, width;
-            if (!(SecondFunnel.support.touch() || SecondFunnel.support.mobile()) && !$.browser.mobile) {
+            if (!(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
                 buttons = new SecondFunnel.sharing.SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
             }
@@ -954,9 +954,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 var discoveryEl = $(SecondFunnel.option('discoveryTarget'));
                 if (SecondFunnel.support.mobile()) {
                     this.$el.swapWith(discoveryEl.parent());
-
-                    // handle results that got loaded while the discovery
-                    // area has an undefined height.
                 }
                 this.close();
             }
@@ -1021,6 +1018,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      */
     this.TapIndicator = Marionette.ItemView.extend({
         'template': "#tap_indicator_template",
+        // TODO: verify this works ... then switch to CSS3
         'className': 'tap_indicator opaque',
         'initialize': function () {
             SecondFunnel.vent.on('scrollStopped',
