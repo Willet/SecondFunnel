@@ -344,16 +344,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.render();
         },
 
-        'onHover': function (ev) {
-            // Trigger tile hover event with event and tile
-            SecondFunnel.vent.trigger("tileHover", ev, this);
-            if (!SecondFunnel.support.mobile() &&
-                !SecondFunnel.support.touch() &&
-                this.socialButtons && this.socialButtons.$el &&
-                this.socialButtons.$el.children().length) {
-            }
-        },
-
         'onClick': function (ev) {
             var tile = this.model,
                 preview;
