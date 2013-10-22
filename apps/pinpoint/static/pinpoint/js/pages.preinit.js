@@ -97,6 +97,21 @@ $.fn.remove = function () {
     }
 };
 
+/**
+ * @param {function} callback
+ */
+$.fn.scrollStopped = function (callback) {
+    // stackoverflow.com/a/14035162/1558430
+    $(this).scroll(function () {
+        var self = this, $this = $(self);
+        if ($this.data('scrollTimeout')) {
+            clearTimeout($this.data('scrollTimeout'));
+        }
+        if (callback) {
+            $this.data('scrollTimeout', setTimeout(callback, 500, self));
+        }
+    });
+};
 
 /**
  * Hides this page element, then shows another page element in place.

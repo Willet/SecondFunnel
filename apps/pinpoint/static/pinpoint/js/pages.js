@@ -427,9 +427,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     !(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
                     this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({model: this.model}));
                 }
-//                if (SecondFunnel.support.touch()) {
-//                    this.tapIndicator.show(new module.TapIndicator());
-//                }
+                if (SecondFunnel.support.touch()) {
+                    this.tapIndicator.show(new module.TapIndicator());
+                }
             }
 
             this.$el.scaleImages();
@@ -574,7 +574,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             _.bindAll(this, 'pageScroll', 'toggleLoading',
                 'getMoreResults', 'layoutResults');
             $window
-                .scroll(_.throttle(this.pageScroll, 100))
+                .scroll(_.throttle(this.pageScroll, 500))
                 .resize(_.throttle(function () {
                     // did you know any DOM element without resize events
                     // can still react to potential resizes by having its
@@ -584,7 +584,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     self.countColumns();
 
                     SecondFunnel.vent.trigger('windowResize');
-                }, 500));
+                }, 500))
+                .scrollStopped(function () {
+                    // deal with tap indicator fade in/outs
+                    SecondFunnel.vent.trigger('scrollStopped', self);
+                });
 
             // serve orientation change event via vent
             if (window.addEventListener) {  // IE 8
@@ -1020,33 +1024,33 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @constructor
      * @type {*}
      */
-//    this.TapIndicator = Marionette.ItemView.extend({
-//        'template': "#tap_indicator_template",
-//        'className': 'tap_indicator',
-//        'initialize': function () {
-//            SecondFunnel.vent.on('scrollStopped',
-//                                 _.bind(this.onScrollStopped, this));
-//        },
-//        'onBeforeRender': function () {
-//            // http://jsperf.com/hasclass-vs-toggleclass
-//            // toggleClass with a boolean is 55% slower than manual checks
-//            if (SecondFunnel.support.touch()) {
-//                $('html').addClass('touch-enabled');
-//            } else {
-//                $('html').removeClass('touch-enabled');
-//            }
-//        },
-//        'onScrollStopped': function () {
-//            var $indicatorEl = this.$el;
-//            if ($indicatorEl
-//                    .parents(SecondFunnel.option('itemSelector'))
-//                    .hasClass('wide')) {
-//                if ($indicatorEl.is(':in-viewport')) {  // this one is in view.
-//                    $indicatorEl.delay(500).fadeOut(600);
-//                }
-//            }
-//        }
-//    });
+    this.TapIndicator = Marionette.ItemView.extend({
+        'template': "#tap_indicator_template",
+        'className': 'tap_indicator opaque',
+        'initialize': function () {
+            SecondFunnel.vent.on('scrollStopped',
+                                 _.bind(this.onScrollStopped, this));
+        },
+        'onBeforeRender': function () {
+            // http://jsperf.com/hasclass-vs-toggleclass
+            // toggleClass with a boolean is 55% slower than manual checks
+            if (SecondFunnel.support.touch()) {
+                $('html').addClass('touch-enabled');
+            } else {
+                $('html').removeClass('touch-enabled');
+            }
+        },
+        'onScrollStopped': function () {
+            var $indicatorEl = this.$el;
+            if ($indicatorEl
+                    .parents(SecondFunnel.option('itemSelector'))
+                    .hasClass('wide')) {
+                if ($indicatorEl.is(':in-viewport')) {  // this one is in view.
+                    $indicatorEl.delay(500).fadeOut(600);
+                }
+            }
+        }
+    });
 
     /**
      * Reduces all image-type names to 'image'.
