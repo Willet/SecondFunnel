@@ -47,6 +47,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
         this.$el = $(opts.discoveryTarget);
         this.el = this.$el[0];
+        this.columns = self.$el.children('.column');
 
         if (typeof opts.columnWidth === 'function') {
             opts.columnWidth = opts.columnWidth(this.$el);
@@ -66,6 +67,18 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
     this._opts = function () {
         return opts;
     };
+
+    this.recalculateHeight = function () {
+        var self = this;
+        var maxHeight = 0;
+        _.each(self.columns, function (column) {
+            var scrollHeight = column.scrollHeight;
+            if (scrollHeight > maxHeight) {
+                maxHeight = scrollHeight;
+            }
+        });
+        self.$el.height(maxHeight);
+    }
 
     /**
      * Mix of append() and insert()
@@ -94,9 +107,9 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                 delete console.log;
                 if ($.browser.mobile) {
                     self.$el.append(frag);
-                }
-                else {
+                } else {
                     salvattore.append_elements(self.el, frag);
+                    self.recalculateHeight();
                 }
             }
         }(fragment));
