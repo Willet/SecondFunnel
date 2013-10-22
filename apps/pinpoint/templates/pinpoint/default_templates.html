@@ -98,15 +98,17 @@
 <script type="text/template" id="twitter_social_button_template">
     <% if (showCount) { %>
         <div class='button twitter' style='height: 13px; width: 77px;'>
-            <a href="https://twitter.com/share?url=<%= url %>"
+            <a href="https://twitter.com/share"
                class="twitter-share-button"
+               data-text="{{ campaign.description|default:'' }} <%= url %>"
                data-lang="en" data-height= "15">
               Tweet
             </a>
         </div>
     <% } else { %>
         <div class='button twitter'>
-            <a href="https://twitter.com/share?url=<%= url %>" target="_blank">
+            <a href="https://twitter.com/share?url=<%= url %>&text={{ campaign.description|default:'' }}"
+               target="_blank">
                 <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
             </a>
         </div>
@@ -115,7 +117,7 @@
 
 <script type="text/template" id="pinterest_social_button_template">
     <div class='button pinterest'>
-        <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>"
+        <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description={{ campaign.description|default:'' }}"
            target="_blank"><img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/></a>
     </div>
 </script>
