@@ -184,8 +184,9 @@ div.loading {
 
 .tile.wide {
     width: 495px; /* 480px + 3 margins */
-    min-height: 250px;
+    min-height: 120px;
 }
+
 .tile img {
     max-width: 100%;
 }
@@ -195,13 +196,7 @@ div.loading {
 }
 
 .tile.wide.youtube div.thumbnail {
-    height: 250px;
-    background-size: cover;
-    background-position: center center;
-}
-
-.tile.wide.youtube div.thumbnail {
-    height: 250px;
+    height: 120px;
     background-size: cover;
     background-position: center center;
 }
@@ -217,7 +212,7 @@ div.loading {
     position: absolute;
     background-repeat: no-repeat;
     left: 50%;
-    top: 50%;
+    top: 70px;
     background-position: 0 0;
     margin: -35.5px 0 0 -35.5px;
 }
@@ -244,7 +239,14 @@ div.loading {
 
 .tile .social-buttons {
     width: 100%;
-    display: none; /* all themes have buttons hidden by default */
+    opacity: 0;
+    transition: opacity .20s ease-in-out;
+    -moz-transition: opacity .20s ease-in-out;
+    -webkit-transition: opacity .20s ease-in-out;
+}
+
+.tile:hover>.social-buttons {
+    opacity: 1;
 }
 
 .social-buttons>span {

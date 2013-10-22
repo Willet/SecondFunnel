@@ -351,9 +351,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 !SecondFunnel.support.touch() &&
                 this.socialButtons && this.socialButtons.$el &&
                 this.socialButtons.$el.children().length) {
-                var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn'
-                    : 'fadeOut';
-                this.socialButtons.$el[inOrOut](200);
             }
         },
 
@@ -545,6 +542,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         // prevent default appendHtml behaviour (append in batch)
         'appendHtml': $.noop,
 
+        'prefetched': [], // Array to store prefetched tiles, not utilized yet
+
         'initialize': function (options) {
             var self = this;
 
@@ -557,6 +556,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.countColumns();
             this.layoutTask = new Task(function (data) {
                 self.layoutResults({'tileEl': data.tileEl, 'tile': data.tile});
+                self.pageScroll();
             });
 
             // If the collection has initial values, lay them out
@@ -574,7 +574,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             _.bindAll(this, 'pageScroll', 'toggleLoading',
                 'getMoreResults', 'layoutResults');
             $window
-                .scroll(_.throttle(this.pageScroll, 500))
+                .scroll(_.throttle(this.pageScroll, 100))
                 .resize(_.throttle(function () {
                     // did you know any DOM element without resize events
                     // can still react to potential resizes by having its
@@ -584,11 +584,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     self.countColumns();
 
                     SecondFunnel.vent.trigger('windowResize');
-                }, 500))
-                .scrollStopped(function () {
-                    // deal with tap indicator fade in/outs
-                    SecondFunnel.vent.trigger('scrollStopped', self);
-                });
+                }, 500));
 
             // serve orientation change event via vent
             if (window.addEventListener) {  // IE 8
@@ -612,16 +608,17 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @param prefetching {boolean}
          * @returns this.Discovery
          */
-        'getTiles': function (options, tile, prefetching) {
+        'getTiles': function (options, tile, prerendering) {
             var self = this,
                 opts;
-            if(prefetching) {
-                self.layoutTask.setPriority(0.05);
-                self.layoutTask.done(function() {
+            if (prerendering) {
+                // console.debug('Prerendering'); //DEBUG
+                self.layoutTask.setPriority(0.15);
+                self.layoutTask.done(function () {
                     self.layoutTask.resetPriority();
-                })
+                });
             } else {
-                // if we are not prefetching, then reset priority so tiles in
+                // if we are not prerendering, then reset priority so tiles in
                 // queue are inserted more urgently
                 self.layoutTask.resetPriority();
             }
@@ -629,6 +626,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 console.warn('Already loading tiles. Try again later');
                 return this;
             }
+
             if (!$('#discovery-area').is(':visible')) {
                 console.warn('Cannot load tiles when the feed is invisible');
                 return this;
@@ -636,7 +634,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.toggleLoading(true);
             opts = options || {};
             opts.type = opts.type || 'campaign';
-
+            var start = Date.now();
             $.when(SecondFunnel.intentRank.getResults(opts))
                 .always(function (data) {
                     _.each(data, function (curr) {
@@ -644,13 +642,16 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     });
                 });
             self.layoutTask.done(function () {
+                // console.log('we done'); //DEBUG
                 self.reset();
                 self.getMoreResults();
-            })
+                var end = Date.now();
+                // console.log(end - start); //DEBUG
+            });
             return this;
         },
 
-        'prefetchTiles': function (options, tile) {
+        "prerenderTiles": function (options, tile) {
             this.getTiles(undefined, undefined, true);
         },
 
@@ -663,10 +664,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // creates conditions needed to get more results.
             var self = this;
             self.reset();
-
-            setTimeout(function () {
-                self.pageScroll();
-            }, 100);
             return this;
         },
 
@@ -771,6 +768,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         'reset': function () {
             var self = this;
+            self.layoutTask.setPriority();
             setTimeout(function () {
                 self.toggleLoading(false);
             }, 1000);
@@ -786,17 +784,18 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'pageScroll': function () {
+            delete console.log;
             var pageHeight = $window.innerHeight(),
                 pageBottomPos = pageHeight + $window.scrollTop(),
                 documentBottomPos = $document.height(),
                 viewportHeights = pageHeight * (SecondFunnel.option('prefetchHeight', 1));
 
             if (!this.loading && $('html').css('overflow') !== 'hidden') {
-                if (pageBottomPos >= documentBottomPos - viewportHeights) {
+                if (pageBottomPos + 1000 >= documentBottomPos - viewportHeights) {
                     // get more tiles to fill the screen.
                     this.getTiles();
-                } else if (pageBottomPos + 1000 >= documentBottomPos-viewportHeights) {
-                    this.prefetchTiles();
+                } else if (pageBottomPos + 3000 >= documentBottomPos-viewportHeights) {
+                    this.prerenderTiles();
                 }
             }
 

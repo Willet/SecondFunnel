@@ -60,6 +60,7 @@ SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
   SecondFunnel.options.debug,
   window.location.hash + window.location.search));
 
+// TODO do we still need this?
 // pre-fetch images for the initial results. (shaves off a second for imagesLoaded)
 (function () {
     _.each(_.pluck(SecondFunnel.options.initialResults, 'image'), function (src) {
@@ -96,21 +97,6 @@ $.fn.remove = function () {
     }
 };
 
-/**
- * @param {function} callback
- */
-$.fn.scrollStopped = function (callback) {
-    // stackoverflow.com/a/14035162/1558430
-    $(this).scroll(function () {
-        var self = this, $this = $(self);
-        if ($this.data('scrollTimeout')) {
-            clearTimeout($this.data('scrollTimeout'));
-        }
-        if (callback) {
-            $this.data('scrollTimeout', setTimeout(callback, 500, self));
-        }
-    });
-};
 
 /**
  * Hides this page element, then shows another page element in place.

@@ -6,9 +6,9 @@
     var butler = {};
 
     // data is optional
-    butler.Task = function (func, data, options) {
+    butler.Task = function (func, options) {
         var self = this,
-            initialPriority = 0.2;
+            initialPriority = 1;
         if (!(self instanceof butler.Task)) {
             throw ('Task is a constructor');
         } else {
@@ -22,9 +22,6 @@
             self.doneCallBacks = [];
             self.deferred = new $.Deferred();
 
-            if (data) {
-                self.queue.push(data);
-            }
             if (options) {
                 self.options = $.extend({}, options, true);
             }
@@ -32,17 +29,18 @@
             self.runTask = function () {
                 //noinspection JSHint
                 if (!(self.queue.length > 0)) {
-                    if (self.running) {
-                        self.running = false;
-                        self.nextRun = undefined;
-                    }
+                    // console.log('resolve'); //DEBUG
+                    self.deferred.resolve();
+                    self.running = false;
+                    self.nextRun = undefined;
                 } else {
+                    // console.log('runTask'); //DEBUG
                     var start,
                         end,
                         runtime;
-                    start = new Date().getTime();
-                    self.func(self.queue.shift());
-                    end = new Date().getTime();
+                    start = Date.now();
+                    self.func(self.queue.pop());
+                    end = Date.now();
                     runtime = end - start;
                     self.counter += 1;
                     self.averageRuntime = (self.averageRuntime + runtime) / self.counter;
@@ -51,6 +49,7 @@
             };
 
             self.resolve = function () {
+                // console.log('resolving'); //DEBUG
                 self.deferred.resolve();
                 self.deferred = new $.Deferred();
             };
@@ -74,15 +73,15 @@
 
             self.taskRunner = function () {
                 self.runTask();
+                if (!(self.queue.length > 0)) {
+                    self.resolve();
+                }
                 if (self.running) {
-                    if (!(self.queue.length > 0)) {
-                        self.resolve();
-
-                    }
                     var delay = (self.averageRuntime / self.priority) - (1 / self.priority);
+                    // console.log(delay); //DEBUG
                     self.nextRun = setTimeout(self.taskRunner, delay);
                 }
-            };
+           };
 
             self.start = function () {
                 if (self.running) {
@@ -99,23 +98,24 @@
                     clearTimeout(self.nextRun);
                     self.nextRun = undefined;
                 }
+                self.resolve();
             };
 
             self.addData = function (data) {
                 self.queue.push(data);
-                self.start();
+                if (!self.running) {
+                    self.start();
+                }
             };
 
 
             // Wrapper for deferred.done
-            // Will resolve immediately if there is no work to be done
             self.done = function (func) {
-                self.deferred.done(func);
-                if (self.queue.length === 0) {
-                    self.resolve();
+                if (self.deferred.state !== 'pending') {
+                    self.deferred = new $.Deferred();
                 }
+                self.deferred.done(func);
             };
-
         }
     };
 

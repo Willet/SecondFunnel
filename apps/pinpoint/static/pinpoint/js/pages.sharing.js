@@ -323,19 +323,19 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         'template': "#share_popup_template",
         'buttons': SecondFunnel.option('shareSocialButtons'),
 
-        'events': {
-            'click .close, .mask': function (ev) {
-                this.$el.fadeOut(100).remove();
-                this.unbind();  // Removes all callbacks on `this`.
-                this.views = [];
-            }
-        },
+//        'events': {
+//            'click .close, .mask': function (ev) {
+//                this.$el.fadeOut(100).remove();
+//                this.unbind();  // Removes all callbacks on `this`.
+//                this.views = [];
+//            }
+//        },
 
         'onRender': function () {
             var self = this;
 
-            this.$el.css({'display': "table"});
-            $('body').append(this.$el.fadeIn(100));
+//            this.$el.css({'display': "table"});
+//            $('body').append(this.$el.fadeIn(100));
 
             // this.buttons = ["facebook", "twitter", "tumblr", ...]
             if (!(this.buttons && this.buttons.length)) {

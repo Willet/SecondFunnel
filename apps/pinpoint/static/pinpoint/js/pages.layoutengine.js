@@ -76,7 +76,6 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * @returns {Deferred}
      */
     this.add = function (fragment, $target) {
-        console.log(fragment);
         var self = this;
         (function (frag) {
             if ($target && $target.length) {
@@ -93,14 +92,11 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                 }
             } else if (frag.length) {
                 delete console.log;
-                console.log(frag);
                 if ($.browser.mobile) {
                     self.$el.append(frag);
-                    console.log('jQuery append');
                 }
                 else {
                     salvattore.append_elements(self.el, frag);
-                    console.log('salvattore append');
                 }
             }
         }(fragment));
