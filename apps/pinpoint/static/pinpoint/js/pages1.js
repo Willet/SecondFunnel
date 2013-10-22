@@ -1145,7 +1145,7 @@ var PAGES = (function ($, details, Willet) {
         });
 
         $wnd.resize(_.throttle(windowResize, 1000))
-            .resize(_.throttle(pageScroll, 10))
+            .resize(_.throttle(pageScroll, 300))
             .scroll(pageScroll);
 
         if (window.MBP) {
