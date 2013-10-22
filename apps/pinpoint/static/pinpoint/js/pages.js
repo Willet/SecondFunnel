@@ -189,7 +189,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 break;
             default:
                 TargetClass = SecondFunnel.utils.findClass(
-                    'TileView', this.get('type'), module.TileView);
+                    'TileView',
+                    this.get('type'),
+                    module.TileView
+                );
             }
             // #CtrlF fshkjr
             view = new TargetClass({'model': this});
@@ -415,7 +418,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 if (!$.browser.mobile &&
                     SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length &&
                     !(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
-                    this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({model: this.model}));
+                        this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({model: this.model}));
                 }
                 if (SecondFunnel.support.touch()) {
                     this.tapIndicator.show(new module.TapIndicator());
@@ -556,6 +559,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
             // ... then fetch more products from IR
             this.getTiles();
+            // now run page scroll regularly to check the state of the page
+            setInterval(this.pageScroll, 300);
         },
 
         'attachListeners': function () {
@@ -697,7 +702,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 $tile = tile.$el;  // this would be the "insert after" target
             }
 
-            _.each(tileEls, function(tileEl) {
+            _.each(tileEls, function (tileEl) {
                 self.layoutTask.addData({'tileEl': tileEl,
                                          'tile': tile
                     });

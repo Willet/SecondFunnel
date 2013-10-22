@@ -53,6 +53,10 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
             opts.columnWidth = opts.columnWidth(this.$el);
         }
 
+        SecondFunnel.vent.on('windowResize', function () {
+            this.columns = self.$el.children('.column');
+        }, this);
+
 
         broadcast('layoutEngineInitialized', this, opts);
         return this;

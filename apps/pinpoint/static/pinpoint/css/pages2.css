@@ -279,6 +279,11 @@ div.loading {
     #discovery-area {
         width: 255px;
     }
+
+    .tile.wide.youtube div.thumbnail:before {
+        top: 50%
+    }
+
     .tile.wide.youtube div.thumbnail {
         height: 141px;
     }
@@ -558,4 +563,75 @@ div.loading {
 .touch-enabled .discovery-area .wide .tap_indicator > div {
     font-size:10px;
     margin: -54px -1px 0 -1px;
+}
+
+/* Salvattore */
+
+/* fallback */
+#discovery-area[data-columns]::before {
+    display: none;
+    content: '1 .columnsize-1of1';
+}
+
+@media (max-width: 399px) {
+    #discovery-area[data-columns]::before {
+        content: '1 .column.size-1of1';
+    }
+
+    .column {
+        max-width: 370px;
+    }
+}
+
+@media (min-width: 400px) and (max-width: 509) {
+    #discovery-area[data-columns]::before {
+        content: '2 .column.size-1of2';
+    }
+
+    .column {
+        max-width: 220px;
+    }
+}
+
+
+@media (min-width: 510px) and (max-width: 767px) {
+    #discovery-area[data-columns]::before {
+        content: '2 .column.size-1of2';
+    }
+    .column {
+        max-width: 250px;
+        float:left;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 849px) {
+    #discovery-area[data-columns]::before {
+        content: '3 .column.size-1of3';
+    }
+    .column {
+        max-width: 255px;
+        float: left;
+    }
+}
+
+@media (min-width: 850px) and (max-width: 1023px) {
+    #discovery-area[data-columns]::before {
+        content: '3 .column.size-1of3';
+    }
+
+    .column {
+        max-width: 255px;
+        float: left;
+    }
+}
+
+@media (min-width: 1024px) {
+    #discovery-area[data-columns]::before {
+        content: '4 .column.size-1of4';
+    }
+
+    .column {
+        max-width: 250px;
+        float: left;
+    }
 }
