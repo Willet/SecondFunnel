@@ -156,7 +156,8 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         # TODO: is this okay?
         product = None
 
-    campaign.description = campaign_data.get('featured_product_description')
+    campaign.description = campaign_data.get('shareText',
+         campaign_data.get('featured-product-description', ''))
     campaign.template = slugify(campaign_data.get('template', 'hero'))  # TODO: hero? hero-image?
 
     ir_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
