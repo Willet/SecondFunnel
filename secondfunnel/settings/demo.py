@@ -23,36 +23,6 @@ AWS_HEADERS =  {
     'Vary': 'Accept-Encoding',
 }
 
-INSTALLED_APPS = (
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.sites',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.admin',
-    'django.contrib.admindocs',
-    'django.contrib.humanize',
-
-    # external apps
-    'djcelery',
-    'storages',
-    'south',
-    'django_extensions',
-    'tastypie',
-    'ajax_forms',
-    "maintenancemode",
-    "compressor",
-    'social_auth',
-    'corsheaders',
-
-    # our apps
-    'apps.api',
-    'apps.assets',
-    'apps.pinpoint',
-    'apps.website',
-    'apps.static_pages',
-)
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"

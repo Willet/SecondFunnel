@@ -244,12 +244,11 @@ INSTALLED_APPS = (
     'apps.api',
     'apps.assets',
     'apps.pinpoint',
+    'apps.intentrank',
+    'apps.contentgraph',
     'apps.website',
     'apps.static_pages',
     'apps.utils',
-
-    # CI
-    'django_jenkins',
 )
 
 CORS_ORIGIN_REGEX_WHITELIST = (
@@ -333,7 +332,7 @@ FIXTURE_DIRS = (
 
 WEBSITE_BASE_URL = 'http://www.secondfunnel.com'
 INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
-CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
+CONTENTGRAPH_BASE_URL = 'http://contentgraph.elasticbeanstalk.com/graph'
 
 AUTHENTICATION_BACKENDS = (
     'social_auth.backends.contrib.instagram.InstagramBackend',

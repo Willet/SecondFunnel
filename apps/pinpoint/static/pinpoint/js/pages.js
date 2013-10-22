@@ -647,6 +647,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 // var end = Date.now(); //DEBUG
                 // console.log(end - start); //DEBUG
             });
+
             return this;
         },
 
@@ -802,9 +803,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             var st = $window.scrollTop();
             if (st > this.lastScrollTop) {
                 broadcast('scrollDown', this);
-            } else {
+            } else if (st < this.lastScrollTop) {
                 broadcast('scrollUp', this);
-            }
+            }  // if equal, broadcast nothing
             this.lastScrollTop = st;
         }
     });

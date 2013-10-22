@@ -39,8 +39,8 @@ INSTALLED_APPS = (
     'django_extensions',
     'tastypie',
     'ajax_forms',
-    'maintenancemode',
     'compressor',
+    'maintenancemode',
     'social_auth',
     'corsheaders',
 
@@ -48,8 +48,11 @@ INSTALLED_APPS = (
     'apps.api',
     'apps.assets',
     'apps.pinpoint',
+    'apps.intentrank',
+    'apps.contentgraph',
     'apps.website',
     'apps.static_pages',
+    'apps.utils',
 )
 
 # URL prefix for static files.
@@ -80,6 +83,8 @@ BROKER_TRANSPORT_OPTIONS = {
     'queue_name_prefix': 'celery-',
 }
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+
+SESSION_COOKIE_DOMAIN = '.secondfunnel.com'
 
 INSTAGRAM_CLIENT_ID = 'be95027932f64f4aaa465ffed160a8fb'
 INSTAGRAM_CLIENT_SECRET = 'aac059c1acb341d3b44b9139dc106dbe'

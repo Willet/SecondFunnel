@@ -48,14 +48,22 @@ INSTALLED_APPS = (
     'apps.api',
     'apps.assets',
     'apps.pinpoint',
+    'apps.intentrank',
+    'apps.contentgraph',
     'apps.website',
     'apps.static_pages',
+    'apps.utils'
 )
 
 WEBSITE_BASE_URL = 'http://secondfunnel-test.elasticbeanstalk.com'
 INTENTRANK_BASE_URL = 'http://intentrank-test.elasticbeanstalk.com'
 CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
+
+# if secondfunnel-test.elasticbeanstalk.com
+# SESSION_COOKIE_DOMAIN = '.elasticbeanstalk.com'
+# if test.secondfunnel.com (recommended)
+SESSION_COOKIE_DOMAIN = '.secondfunnel.com'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
