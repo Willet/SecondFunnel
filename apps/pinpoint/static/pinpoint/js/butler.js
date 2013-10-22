@@ -5,10 +5,9 @@
     "use strict";
     var butler = {};
 
-    // data is optional
     butler.Task = function (func, options) {
         var self = this,
-            initialPriority = 1;
+            initialPriority = 0.8;
         if (!(self instanceof butler.Task)) {
             throw ('Task is a constructor');
         } else {
