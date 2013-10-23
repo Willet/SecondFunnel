@@ -90,7 +90,7 @@
         self.getDelay = function () {
             var delay =  self.averageRuntime -
                 (self.averageRuntime * self.options.priority) +
-                8 / self.options.priority;
+                6 / self.options.priority;
             return delay;
         };
 

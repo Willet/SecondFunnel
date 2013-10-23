@@ -929,6 +929,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     .swapWith(this.$el);
             }
 
+            // disable scrolling for the rest of the document
+            $(document.body).addClass('no-scroll');
             broadcast('previewRendered', this);
         },
 
@@ -936,6 +938,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.$el.attr({
                 'id': 'preview-' + this.model.cid
             });
+        },
+
+        'close': function() {
+            $(document.body).removeClass('no-scroll');
         }
     });
 
