@@ -604,7 +604,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @param options
          * @param tile {TileView}  supply a tile View to have tiles inserted
          *                         after it. (optional)
-         * @param prerendering {boolean}
+         * @param prerendering {boolean} if true, getTiles knows you're not in
+         *                               a hurry because you're only prerendering tiles.
          * @returns this.Discovery
          */
         'getTiles': function (options, tile, prerendering) {

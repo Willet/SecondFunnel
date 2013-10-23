@@ -281,7 +281,7 @@ div.loading {
     }
 
     .tile.wide.youtube div.thumbnail:before {
-        top: 50%
+        top: 50%;
     }
 
     .tile.wide.youtube div.thumbnail {
@@ -334,7 +334,7 @@ div.loading {
     }
     #discovery-area {
         width: 765px;
-        margin-left: 10
+        margin-left: 10;
     }
 }
 @media (min-width: 1024px) { /* formal desktops */

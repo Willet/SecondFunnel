@@ -99,18 +99,24 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                 var initialBottom = $target.position().top +
                     $target.height();
                 if (frag.length) {
+
                     // Find a target that is low enough on the screen to insert after
                     while ($target.position().top <= initialBottom &&
                             $target.next().length > 0) {
                         $target = $target.next();
                     }
+
                     $target.after(frag);
                     self.reload();
                 }
+
+            // is there something to add?
             } else if (frag.length) {
-                delete console.log;
-                if ($.browser.mobile) {
+                // If on a mobile device that's not a tablet, use jQuery
+                if ($.browser.mobile && !$.browser.tablet) {
                     self.$el.append(frag);
+
+                // Otherwise Salvattore
                 } else {
                     salvattore.append_elements(self.el, frag);
                     self.recalculateHeight();
