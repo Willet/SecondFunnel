@@ -323,13 +323,13 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         'template': "#share_popup_template",
         'buttons': SecondFunnel.option('shareSocialButtons'),
 
-//        'events': {
-//            'click .close, .mask': function (ev) {
-//                this.$el.fadeOut(100).remove();
-//                this.unbind();  // Removes all callbacks on `this`.
-//                this.views = [];
-//            }
-//        },
+        'events': {
+            'click .close, .mask': function (ev) {
+                this.$el.fadeOut(100).remove();
+                this.unbind();  // Removes all callbacks on `this`.
+                this.views = [];
+            }
+        },
 
         'onRender': function () {
             var self = this;

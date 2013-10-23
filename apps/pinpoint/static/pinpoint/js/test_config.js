@@ -129,7 +129,7 @@ window.PAGES_INFO = {
     // 0 is not an acceptable value, but 0.0001 is. default is 1,
     // i.e. there will always be one page worth of results
     // underneath, no matter how fast you scroll.
-    'prefetchHeight': 1,
+    'prefetchHeight': 1.5,
 
     'lockWidth': true,  // must be true (not 1, {}, ...) or a function that returns true
     'desiredWidth': 1024,

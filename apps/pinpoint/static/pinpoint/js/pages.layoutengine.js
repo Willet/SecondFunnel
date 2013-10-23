@@ -82,7 +82,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
             }
         });
         self.$el.height(maxHeight);
-    }
+    };
 
     /**
      * Mix of append() and insert()
@@ -112,6 +112,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
             // is there something to add?
             } else if (frag.length) {
+
                 // If on a mobile device that's not a tablet, use jQuery
                 if ($.browser.mobile && !$.browser.tablet) {
                     self.$el.append(frag);
@@ -119,6 +120,10 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                 // Otherwise Salvattore
                 } else {
                     salvattore.append_elements(self.el, frag);
+                    // Salvattore does not update the height of its columns or
+                    // their container. We have a loading indicator that we
+                    // want shown after the container, so we have to manually
+                    // update heights.
                     self.recalculateHeight();
                 }
             }

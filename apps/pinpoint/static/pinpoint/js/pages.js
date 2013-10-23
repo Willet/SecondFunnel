@@ -547,6 +547,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             );
             this.attachListeners();
             this.countColumns();
+
+            /**
+             * This is an instance of Task. which you can use to add results to
+             * the page. To add tiles to the page, simply pass in an object
+             * @type {Task}
+             */
             this.layoutTask = new Task(function (data) {
                 self.layoutResults({'tileEl': data.tileEl, 'tile': data.tile});
                 self.pageScroll();
@@ -559,8 +565,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
             // ... then fetch more products from IR
             this.getTiles();
-            // now run page scroll regularly to check the state of the page
-            setInterval(this.pageScroll, 300);
         },
 
         'attachListeners': function () {
@@ -569,6 +573,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             _.bindAll(this, 'pageScroll', 'toggleLoading',
                 'getMoreResults', 'layoutResults');
             $window
+                // TODO replace with a debounce
                 .scroll(_.throttle(this.pageScroll, 500))
                 .resize(_.throttle(function () {
                     // did you know any DOM element without resize events
@@ -703,12 +708,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             if (tile && tile.$el) {
                 $tile = tile.$el;  // this would be the "insert after" target
             }
-
-            _.each(tileEls, function (tileEl) {
-                self.layoutTask.addData({'tileEl': tileEl,
-                                         'tile': tile
-                    });
-            });
 
             SecondFunnel.layoutEngine.add(tileEls, $tile)
             return this;
