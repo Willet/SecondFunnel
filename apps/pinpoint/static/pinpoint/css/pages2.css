@@ -532,10 +532,10 @@ div.loading {
 .touch-enabled .discovery-area .wide .tap_indicator {
     /* should contain a '+' symbol, and
        another div with the hint text */
-/*    opacity: 0; */
-    transition: opacity .20s ease-in-out;
-    -moz-transition: opacity .20s ease-in-out;
-    -webkit-transition: opacity .20s ease-in-out;
+    opacity: 0;
+    transition: opacity .80s ease-in-out;
+    -moz-transition: opacity .80s ease-in-out;
+    -webkit-transition: opacity .80s ease-in-out;
     display: block;
     position:absolute;
     width: 100px;
@@ -556,8 +556,8 @@ div.loading {
     line-height: 85px;
 }
 
-.touch-enabled .discovery-area .wide .tap_indicator .opaque {
-    opacity: 1;
+.touch-enabled .discovery-area .wide .opaque {
+    opacity: 1!important;
 }
 
 .touch-enabled .discovery-area .wide .tap_indicator > div {

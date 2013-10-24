@@ -1025,7 +1025,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      */
     this.TapIndicator = Marionette.ItemView.extend({
         'template': "#tap_indicator_template",
-        // TODO: verify this works ... then switch to CSS3
         'className': 'tap_indicator opaque',
         'initialize': function () {
             SecondFunnel.vent.on('scrollStopped',
@@ -1046,7 +1045,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     .parents(SecondFunnel.option('itemSelector'))
                     .hasClass('wide')) {
                 if ($indicatorEl.is(':in-viewport')) {  // this one is in view.
-                    $indicatorEl.delay(500).fadeOut(600);
+                    $indicatorEl.delay(500).removeClass('opaque');
                 }
             }
         }

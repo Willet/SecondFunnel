@@ -132,7 +132,11 @@
                     </div></span></div>
                 </div>                <!-- paste pre-rendered tiles here (TODO... event handling for them) -->
             </div>
-            <div class="no-noscript loading"></div>
+            <div class="no-noscript loading">
+                <div class="mobile-only">
+                    Loading
+                </div>
+            </div> <!-- On desktop, it's a gif. On mobile, the text: 'Loading' -->
             <noscript>
                 <!-- promotions to show when user does not have javascript.
                      this is a 'we need javascript' message by default.
@@ -507,6 +511,16 @@
                     $('body').append(facebookConnect).
                     append(salvattore);
                 }());
+            }
+        </script>
+        <!-- TODO Move this somewhere ... but where -->
+        <script type="text/javascript">
+            // Hide mobile loading indicator on desktop
+            if (!$.browser.mobile) {
+                $('.mobile-only').css('display', 'none');
+            // Hide desktop loading indicator on mobile
+            } else {
+                $('.loading').css('background', '');
             }
         </script>
         <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
