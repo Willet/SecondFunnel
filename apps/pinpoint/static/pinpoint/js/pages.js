@@ -784,7 +784,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'pageScroll': function () {
-            delete console.log;
             var pageHeight = $window.innerHeight(),
                 pageBottomPos = pageHeight + $window.scrollTop(),
                 documentBottomPos = $document.height(),
