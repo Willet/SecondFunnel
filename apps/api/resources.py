@@ -2,8 +2,8 @@ import django
 from django.conf.urls import url
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from tastypie import fields
-from tastypie.exceptions import Unauthorized
+from tastypie import http, fields
+from tastypie.exceptions import Unauthorized, ImmediateHttpResponse
 from tastypie.resources import ModelResource
 from tastypie.utils import trailing_slash
 from apps.api.utils import UserObjectsReadOnlyAuthorization
@@ -64,10 +64,10 @@ class UserResource(ModelResource):
 
         user = authenticate(username=username, password=password)
         if not user:
-            raise Unauthorized()
+            raise ImmediateHttpResponse(response=http.HttpUnauthorized())
 
         if not user.is_active:
-            raise Unauthorized()
+            raise ImmediateHttpResponse(response=http.HttpUnauthorized())
 
         # Add CSRF token. Nick is not a security expert
         csrf_token = django.middleware.csrf.get_token(request)
@@ -80,7 +80,7 @@ class UserResource(ModelResource):
         self.method_check(request, allowed=['post'])
 
         if not request.user or not request.user.is_authenticated():
-            raise Unauthorized()
+            raise ImmediateHttpResponse(response=http.HttpUnauthorized())
 
         logout(request)
         return self.create_response(request, {
