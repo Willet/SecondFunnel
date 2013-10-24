@@ -144,9 +144,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             'tile-id': null,
             'content-type': "product",
             'related-products': [],
-            // Awaiting ImageService for a name
-            // TODO: What's the real name?
-            'dominant-color': "pink"
+            'dominant-color': "transparent"
         },
 
         'initialize': function (attributes, options) {
