@@ -10,7 +10,6 @@
         };
     }
 
-    var butler = {};
 
     /**
      * A Task is a job that you give your butler to do so you don't have to
@@ -34,115 +33,140 @@
      *    - resetPriority: method that resets priority.
      *
      * @param {function} func Function to execute
-     * @param {object} options List of options (optional)
+     * @param {object} opts Object that contains options (optional)
      * @constructor
      */
-    butler.Task = function (func, options) {
-        var self = this,
-            initialPriority = 0.8;
-        if (!(self instanceof butler.Task)) {
+    window.Task = function (func, opts) {
+        if (!(this instanceof Task)) {
             throw ('Task is a constructor');
         }
-        self.running = false;
-        // Stores the timer ID of the next call to taskRunner
-        self.nextRun = undefined;
-
-        // Stores the timer ID of the next call to checkState
-        self.nextCheck = undefined;
-
-        // Average runtime of func
-        self.averageRuntime = 0;
-
-        // How many times have we run task
-        self.counter = 0;
-
-        // Right now, options stores priority. This will probably change
-        self.options = options || {};
-        self.queue = [];
-
-        // Function that we will call with data
-        self.func = func;
-
-        // Deferred object; allows user to add callbacks that execute when
-        // we've exhausted our data
-        self.deferred = new $.Deferred();
-
-        // TODO: Move to initializer
-        if (options) {
-            self.options = $.extend({}, options, true);
+        if (typeof func !== 'function') {
+            throw ('Task needs to receive a function as its first argument');
         }
+        
+        var self = this,
+            running = false,
+            options = {},
 
-        self.checkState = function () {
-            if (!(self.queue.length > 0)) {
-                self.resolve();
-                self.nextCheck = undefined;
-            } else {
-                self.nextCheck = setTimeout(self.checkState, 20);
-            }
-        };
+            // Stores the timer ID of the next call to taskRunner
+            nextRun, // Initialized as undefined
+            
+            // Stores the timer ID of the next call to checkState
+            nextCheck, // Initialized as undefined
 
-        /**
-         * getDelay returns what the delay should be for running task, which
-         * is then passed to setTimeout. The value it returns depends on
-         * average runtime and priority
-         * @returns {number}
-         */
-        self.getDelay = function () {
-            var delay =  self.averageRuntime -
-                (self.averageRuntime * self.options.priority) +
-                6 / self.options.priority;
-            return delay;
-        };
-
-        /**
-         * runTask is called when we want to run func once.
-         * Here's how runTask works:
-         *     - If there's data in the queue, pop one and send it to
-         *       self.func.
-         *     - If there's no data in the queue, reset self.running, reset
-         *       self.nextRun (timer ID), and resolve the Deferred object.
-         *
-         * @returns {Task}
-         */
-        self.runTask = function () {
-            //noinspection JSHint
-            // If no data
-            if (!(self.queue.length > 0)) {
-                self.stop();
-            } else {
-                // console.log('runTask'); //DEBUG
-                var start,
-                    end,
-                    runtime;
-
-                start = Date.now();
-
-                try {
-                    // Pop one from our queue, and send it to self.func
-                    self.func(self.queue.pop());
-
-                    // Update self.averageRuntime
-                    end = Date.now();
-                    runtime = end - start;
-                    self.counter += 1;
-                    self.averageRuntime = (self.averageRuntime + runtime) / self.counter;
-                    return self;
-                } catch (e) {
-                    self.stop();
-                    self.deferred.reject(e);
+            // Average runtime of func
+            averageRuntime = 0,
+            
+            // How many times have we run task
+            counter = 0,
+            
+            queue = [],
+            
+            // Deferred object; allows user to add callbacks that execute when
+            // we've exhausted our data
+            deferred = new $.Deferred(),
+            
+            checkState = function () {
+                if (!(queue.length > 0)) {
+                    resolve();
+                    nextCheck = undefined;
+                } else {
+                    nextCheck = setTimeout(checkState, 20);
                 }
-            }
-        };
+            },
 
-        /**
-         * Wrapper for Deferred.resolve. It calls the callbacks provided
-         * to the task, and it replaces the Deferred object.
-         */
-        self.resolve = function () {
-            // console.log('resolving'); //DEBUG
-            self.deferred.resolve();
-            self.deferred = new $.Deferred();
-        };
+            /**
+             * getDelay returns what the delay should be for running task, which
+             * is then passed to setTimeout. The value it returns depends on
+             * average runtime and priority
+             * @returns {number}
+             */
+            getDelay = function () {
+                var delay =  averageRuntime -
+                    (averageRuntime * options.priority) +
+                    1 / options.priority;
+                return delay;
+            },
+
+            /**
+             * runTask is called when we want to run func once.
+             * Here's how runTask works:
+             *     - If there's data in the queue, pop one and send it to
+             *       func.
+             *     - If there's no data in the queue, reset running, reset
+             *       nextRun (timer ID), and resolve the Deferred object.
+             *
+             * @returns {Task}
+             */
+            runTask = function () {
+                //noinspection JSHint
+                // If no data
+                if (!(queue.length > 0)) {
+                    self.stop();
+                } else {
+                    // console.log('runTask'); //DEBUG
+                    var start,
+                        end,
+                        runtime;
+
+                    start = Date.now();
+
+                    try {
+                        // Pop one from our queue, and send it to func
+                        func(queue.pop());
+
+                        // Update averageRuntime
+                        end = Date.now();
+                        runtime = end - start;
+                        counter += 1;
+                        averageRuntime = (averageRuntime + runtime) / counter;
+                        return self;
+                    } catch (e) {
+                        self.stop();
+                        deferred.reject(e);
+                    }
+                }
+            },
+
+            /**
+             * taskRunner glues everything together. It calls runTask and sets
+             * the timer for the next run (which is a call to itself).
+             */
+            taskRunner = function () {
+                delete console.log;
+                console.log('taskRunner');
+                if (!(queue.length > 0)) {
+                    self.stop();
+                } else if (running) {
+                    runTask();
+                    console.log('yeah');
+                    var delay = getDelay();
+                    console.log("avg: ", averageRuntime, 'priority:', options.priority, 'delay:', delay); //DEBUG
+                    nextRun = setTimeout(taskRunner, delay);
+                }
+                if (!nextCheck) {
+                    setTimeout(checkState, 20);
+                }
+            },
+            
+            /**
+             * Wrapper for Deferred.resolve. It calls the callbacks provided
+             * to the task, and it replaces the Deferred object.
+             */
+            resolve = function () {
+                // console.log('resolving'); //DEBUG
+                deferred.resolve();
+                deferred = new $.Deferred();
+            },
+
+            initialize = function () {
+                // Make a new copy so external modifications don't change our copy
+                options.$.extend({},options,true);
+                options.initialPriority = 0.8;
+                self.resetPriority();
+            };
+
+
 
         /**
          * setPriority accepts a number and sets priority to be that number
@@ -156,13 +180,13 @@
          */
         self.setPriority = function (priority) {
             if (typeof priority !== 'number') {
-                self.options.priority = initialPriority;
+                options.priority = options.initialPriority;
             } else if (priority < 0.05) {
-                self.options.priority = 0.05;
+                options.priority = 0.05;
             } else if (priority > 1) {
-                self.options.priority = 1;
+                options.priority = 1;
             } else {
-                self.options.priority = priority;
+                options.priority = priority;
             }
         };
 
@@ -170,32 +194,9 @@
          * resetPriority sets the priority to initialPriority.
          */
         self.resetPriority = function () {
-            self.setPriority(initialPriority);
+            self.setPriority(options.initialPriority);
         };
 
-        // TODO move to initializer
-        self.resetPriority();
-
-        /**
-         * taskRunner glues everything together. It calls runTask and sets
-         * the timer for the next run (which is a call to itself).
-         */
-        self.taskRunner = function () {
-            delete console.log;
-            console.log('taskRunner');
-            if (!(self.queue.length > 0)) {
-                self.stop();
-            } else if (self.running) {
-                self.runTask();
-                console.log('yeah');
-                var delay = self.getDelay();
-                console.log("avg: ", self.averageRuntime, 'priority:', self.options.priority, 'delay:', delay); //DEBUG
-                self.nextRun = setTimeout(self.taskRunner, delay);
-            }
-            if (!self.nextCheck) {
-                setTimeout(self.checkState, 20);
-            }
-        };
 
         /**
          * starts the task. It's recommended you don't call start unless
@@ -204,24 +205,24 @@
          * callbacks you have added to the task.
          */
         self.start = function () {
-            if (self.running) {
+            if (running) {
                 console.warn('Already running');
             } else {
-                self.running = true;
-                self.taskRunner();
+                running = true;
+                taskRunner();
             }
         };
 
         /**
          * stops the task by doing the following:
-         *     - setting self.running to false
-         *     - clearing the timer and setting self.nextRun to undefined
+         *     - setting running to false
+         *     - clearing the timer and setting nextRun to undefined
          */
         self.stop = function () {
-            self.running = false;
-            if (self.nextRun) {
-                clearTimeout(self.nextRun);
-                self.nextRun = undefined;
+            running = false;
+            if (nextRun) {
+                clearTimeout(nextRun);
+                nextRun = undefined;
             }
         };
 
@@ -231,8 +232,8 @@
          * @param data
          */
         self.addData = function (data) {
-            self.queue.push(data);
-            if (!self.running) {
+            queue.push(data);
+            if (!running) {
                 self.start();
             }
         };
@@ -244,19 +245,24 @@
          * @param func
          */
         self.done = function (func) {
-            if (self.deferred.state !== 'pending') {
-                self.deferred = new $.Deferred();
+            if (deferred.state !== 'pending') {
+                deferred = new $.Deferred();
             }
-            self.deferred.done(func);
+            deferred.done(func);
         };
 
         self.fail = function (func){
-            if (self.deferred.state !== 'pending') {
-                self.deferred = new $.Deferred();
+            if (deferred.state !== 'pending') {
+                deferred = new $.Deferred();
             }
-            self.deferred.fail(func);
+            deferred.fail(func);
+        }
+
+        self.always = function (func) {
+            if (deferred.state !== 'pending') {
+                deferred = new $.Deferred();
+            }
+            deferred.always(func);
         }
     };
-
-    window.Task = butler.Task;
 }());
