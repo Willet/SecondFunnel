@@ -200,6 +200,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 throw "Image #" + imgId + " not found";
             }
 
+            _.each(img.sizes, function (sizeObj, sizeName) {
+                // assign names to convenience urls.
+                img[sizeName] = img.url.replace(/master\./, sizeName + '.');
+            });
+
             return img;
         },
 
