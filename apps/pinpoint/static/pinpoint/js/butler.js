@@ -82,9 +82,9 @@
              * @returns {number}
              */
             getDelay = function () {
-                var delay =  averageRuntime -
-                    (averageRuntime * options.priority) +
-                    1 / options.priority;
+                var delay =  Math.max(averageRuntime - (averageRuntime * options.priority),
+                                      1);
+
                 return delay;
             },
 
@@ -119,7 +119,7 @@
                         end = Date.now();
                         runtime = end - start;
                         counter += 1;
-                        averageRuntime = (averageRuntime + runtime) / counter;
+                        averageRuntime = ((averageRuntime * counter) + runtime) / counter;
                         return self;
                     } catch (e) {
                         self.stop();
@@ -161,7 +161,7 @@
 
             initialize = function () {
                 // Make a new copy so external modifications don't change our copy
-                options.$.extend({},options,true);
+                options = $.extend({},options,true);
                 options.initialPriority = 0.8;
                 self.resetPriority();
             };
@@ -256,13 +256,15 @@
                 deferred = new $.Deferred();
             }
             deferred.fail(func);
-        }
+        };
 
         self.always = function (func) {
             if (deferred.state !== 'pending') {
                 deferred = new $.Deferred();
             }
             deferred.always(func);
-        }
+        };
+
+        initialize();
     };
 }());
