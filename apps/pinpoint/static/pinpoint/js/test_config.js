@@ -14,7 +14,7 @@ window.PAGES_INFO = {
         'product': undefined,  // optional (supplied to featured template)
         'offline': false  // optional (if true, loads .content immediately)
     },
-    'campaign': 96,
+    'campaign': 97,
     'categories': [
         {  // you will still need to make elements with data-category="96" on the page.
             'id': 96
@@ -79,6 +79,7 @@ window.PAGES_INFO = {
         "description": "Fabrication: Premium stretch knit. Hardware: Button closure, zip fly. Features: Five-pocket styling. Zipper detailing at coin pocket and ankle backs.\nCut: Mid-rise with a shorter length. Fit: Skinny through the hip and thigh. Leg opening: Skinny. Inseams: regular: 28\", tall: 32\", petite: 26\""
     },
     'initialResults': [  // stuff that loads when page loads, even if IR is available
+        /*
         {
             'caption': "None",
             'content-id': 562949953426705,
@@ -119,6 +120,7 @@ window.PAGES_INFO = {
             'template': "instagram",
             'tile-id': 562949953426705
         }
+        */
     ],
     'IRResultsCount': 10,
     'IRTimeout': 5000,
@@ -137,6 +139,7 @@ window.PAGES_INFO = {
     'backupResults': [
         // stuff that loads when IR doesn't respond within PAGES_INFO.IRTimeout.
         // it really should contain at least 10 products.
+        /*
         {
             'caption': "None",
             'content-id': 562949953426705,
@@ -157,5 +160,6 @@ window.PAGES_INFO = {
             'template': "instagram",
             'tile-id': 562949953426705
         }
+        */
     ]
 };

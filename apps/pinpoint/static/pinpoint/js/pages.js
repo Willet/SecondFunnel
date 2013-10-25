@@ -144,12 +144,26 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             'tile-id': null,
             'content-type': "product",
             'related-products': [],
-            'dominant-color': "transparent"
+            'dominant-colour': "transparent"
         },
 
         'initialize': function (attributes, options) {
-            var videoTypes = ["youtube", "video"],
+            var self = this,
+                defaultImage,
+                videoTypes = ["youtube", "video"],
                 type = this.get('content-type').toLowerCase();
+
+            $.extend(this.attributes, attributes);
+
+            try {
+                defaultImage = this.getImageAttrs();
+                this.set({
+                    'defaultImage': defaultImage,
+                    'dominant-colour': defaultImage['dominant-colour']
+                });
+            } catch (e) {
+                // not a tile with default-image
+            }
 
             // set up tile type overrides
             this.set({
@@ -162,6 +176,25 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             broadcast('tileModelInitialized', this);
         },
 
+        'getDefaultImageId': function () {
+            return this.get('default-image') || '0';
+        },
+
+        'getImageAttrs': function (imgId) {
+            // default to image-id
+            imgId = imgId || this.getDefaultImageId();
+
+            var img = _.findWhere(this.get('images'), {
+                'id': imgId.toString()
+            });
+
+            if (!(img && img.sizes)) {
+                throw "Image #" + imgId + " not found";
+            }
+
+            return img;
+        },
+
         /**
          * picks an image at least as large as the dimensions you needed.
          *
@@ -171,19 +204,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'getSizedImage': function (imgId, requirements) {
             var img, minDimension, sizeName, fnRegex;
 
-            // default to image-id
-            imgId = imgId || this.get('default-image');
-            if (!imgId) {
-                // tile with no default-image = typically instagram
-                return '';
-            }
-
-            img = _.findWhere(this.get('images'), {
-                'id': imgId.toString()
-            });
-
-            if (!(img && img.sizes)) {
-                throw "Image #" + imgId + " not found";
+            try {
+                img = this.getImageAttrs(imgId);
+            } catch (e) {
+                return img.url;
             }
 
             if (!requirements) {
@@ -462,11 +486,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'width': 255 * (tileImg.hasClass('wide') + 1)
                 }
             );
-            tileImg
-                .css({
-                    'background-color': this.model.get('dominant-color')
-                })
-                .attr('src', sizedUrl);
+            if (this.model.get('dominant-colour')) {
+                tileImg.css({
+                    'background-color': this.model.get('dominant-colour')
+                });
+            }
+            tileImg.attr('src', sizedUrl);
 
             // semi-stupid view-based resizer
             var columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
