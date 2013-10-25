@@ -159,7 +159,57 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             if (_.contains(videoTypes, type)) {
                 this.set('type', 'video');
             }
+
             broadcast('tileModelInitialized', this);
+        },
+
+        /**
+         * picks an image at least as large as the dimensions you needed.
+         *
+         * @param imgId
+         * @param {Object} requirements   width: 123, height: 123, or both
+         */
+        'getSizedImage': function (imgId, requirements) {
+            var img, minDimension, sizeName, fnRegex;
+
+            // default to image-id
+            imgId = imgId || this.get('default-image');
+
+            img = _.findWhere(this.model.get('images'), {
+                'id': imgId.toString()
+            });
+
+            if (!(img && img.sizes)) {
+                throw "Image #" + imgId + " not found";
+            }
+
+            if (!requirements) {
+                return img.url;  // always master.jpg
+            }
+
+            // filter defaults
+            requirements.width = requirements.width || 1;
+            requirements.height = requirements.height || 1;
+
+            // look through the list of sizes and pick the next biggest one
+            minDimension = _(img.sizes).filter(function (name, dimens) {
+                // filter "as least as large"
+                return dimens.width >= requirements.width &&
+                    dimens.height >= requirements.height;
+            }).sort(function(a, b) {
+                // sort sizes ASC
+                return a.width - b.width;
+            });
+
+            if (!minDimension.length) {
+                // requested size exceeded the largest one we have
+                return img.url;
+            }
+
+            // replace master.jpg by its resized image path.
+            sizeName = _.getKeyByValue(img.sizes, minDimension[0]);
+            fnRegex = new RegExp('master.' + img.format);
+            return img.url.replace(fnRegex, sizeName + img.format);
         },
 
         'sync': function () {
@@ -273,7 +323,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      */
     this.TileView = Marionette.Layout.extend({
         'tagName': SecondFunnel.option('tileElement', "div"),
-        'templates': function (currentView) {
+        /*'templates': function (currentView) {
             var templateRules = [  // dictated by CtrlF fshkjr
                 "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
                 "#<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
@@ -301,7 +351,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             console.debug('Template search tree for view %O: %O',
                         currentView, templateRules);
             return templateRules;
-        },
+        },*/
         'template': "#product_tile_template",
         'className': SecondFunnel.option('itemSelector', '').substring(1),
 
@@ -419,22 +469,23 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'onRender': function () {
-            if (this.model.get('size')) {
-                // Check if ImageService is ready
-                this.$("img").css({
-                    'background-color': this.model.get('dominant-color'),
-                    'width': this.model.get('size').width,
-                    'height': this.model.get('size').height
-                });
-            }
-
-            // semi-stupid view-based resizer
-            var tileImg = this.$('img.focus'),
-                columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
-                columnWidth = SecondFunnel.option('columnWidth', 255);
-            if (tileImg.length) {
-                tileImg.attr('src', SecondFunnel.utils.pickImageSize(tileImg.attr('src'),
-                                    columnWidth * columns));
+            var tileImg = this.$("img.focus");
+            try {  // Check if ImageService is ready
+                tileImg
+                    .css({
+                        'background-color': this.model.get('dominant-color')
+                    })
+                    .attr(
+                        'src',
+                        this.model.getSizedImage(
+                            undefined,
+                            {
+                                'width': 255 * (tileImg.hasClass('wide') + 1)
+                            }
+                        )
+                    );
+            } catch (e) {
+                // it is not ready
             }
 
             if (this.tapIndicator && this.socialButtons) {
@@ -552,7 +603,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @constructor
      * @type {CompositeView}
      */
-    this.Discovery = Marionette.CompositeView.extend({
+    this.Discovery = Marionette.CollectionView.extend({
         'lastScrollTop': 0,
         'loading': false,
 
@@ -579,6 +630,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
         },
 
+        // buildItemView (marionette.collectionview.md#collectionviews-builditemview)
+
         'initialize': function (options) {
             var self = this;
 
@@ -604,7 +657,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.listenTo(this.collection, 'add', self.render);
             this.listenTo(this.collection, 'sync', self.render);
 
-            this.collection.fetch({'dataType': "jsonp"});
+            this.collection.fetch();
         },
 
         'attachListeners': function () {
@@ -661,9 +714,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             opts = options || {};
             opts.type = opts.type || 'campaign';
 
-            $.when(SecondFunnel.intentRank.getResults(opts))
+            $.when(this.collection.fetch(opts))
                 .always(function (data) {
-                    self.layoutResults(data, tile);
+                    /*self.layoutResults(data, tile);*/
                 })
                 .always(function (data) {
                     if (data && data.length > 0) {
@@ -689,6 +742,14 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 self.pageScroll();
             }, 100);
             return this;
+        },
+
+        'onRender': function () {
+            var self = this;
+            /*_.each(self.collection.models, function (model) {
+                self.addChildView(new module.TileView({'model': model}));
+            });*/
+            console.log('render');
         },
 
         /**

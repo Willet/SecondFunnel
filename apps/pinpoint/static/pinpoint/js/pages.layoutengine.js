@@ -44,16 +44,16 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         var self = this;
         opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
 
-        this.$el = $(opts.discoveryTarget);
+        // this.$el = $(opts.discoveryTarget);
 
         if (typeof opts.columnWidth === 'function') {
             opts.columnWidth = opts.columnWidth(this.$el);
         }
 
-        this.$el.masonry(opts);
+        // this.$el.masonry(opts);
 
         SecondFunnel.vent.on('windowResize', function () {
-            self.layout();
+            // self.layout();
         });
 
         broadcast('layoutEngineInitialized', this, opts);
