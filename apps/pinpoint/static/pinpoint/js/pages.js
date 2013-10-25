@@ -546,15 +546,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.attachListeners();
             this.countColumns();
 
-            /**
-             * This is an instance of Task. which you can use to add results to
-             * the page. To add tiles to the page, simply pass in an object
-             * @type {Task}
-             */
-            this.layoutTask = new Task(function (data) {
-                self.layoutResults({'tileEl': data.tileEl, 'tile': data.tile});
-                self.pageScroll();
-            });
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
@@ -613,17 +604,16 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          */
         'getTiles': function (options, tile, prerendering) {
             var self = this,
-                opts;
+                opts,
+                timeout,
+                task;
             if (prerendering) {
-                // console.debug('Prerendering'); //DEBUG
-                self.layoutTask.setPriority(0.15);
-                self.layoutTask.done(function () {
-                    self.layoutTask.resetPriority();
-                });
+                timeout = 200;
+
             } else {
                 // if we are not prerendering, then reset priority so tiles in
                 // queue are inserted more urgently
-                self.layoutTask.resetPriority();
+                timeout = 150;
             }
             if (this.loading) {
                 console.warn('Already loading tiles. Try again later');
@@ -638,19 +628,19 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             opts = options || {};
             opts.type = opts.type || 'campaign';
             // var start = Date.now(); //DEBUG
+
+            task = new Task(function (tileEl) {
+                delete console.log
+                console.log(tileEl);
+                self.layoutResults([tileEl]);
+            });
+
             $.when(SecondFunnel.intentRank.getResults(opts))
                 .always(function (data) {
-                    _.each(data, function (curr) {
-                        self.layoutTask.addData({'tileEl': curr, 'tile': tile});
-                    });
+                    task.map(data, timeout)
+                        .always(self.reset)
+                        .always(self.getMoreResults);
                 });
-            self.layoutTask.done(function () {
-                // console.log('we done'); //DEBUG
-                self.reset();
-                self.getMoreResults();
-                // var end = Date.now(); //DEBUG
-                // console.log(end - start); //DEBUG
-            });
 
             return this;
         },
@@ -766,7 +756,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         'reset': function () {
             var self = this;
-            self.layoutTask.resetPriority();
             setTimeout(function () {
                 self.toggleLoading(false);
             }, 800);
