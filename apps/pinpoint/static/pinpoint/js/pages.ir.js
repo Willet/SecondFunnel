@@ -108,7 +108,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             return SecondFunnel.discovery.collection.models;
         } catch (err) {
             // first call, SecondFunnel.discovery is not a var yet
-            return [];
+            return SecondFunnel.option('initialResults') || [];
         }
     };
 
