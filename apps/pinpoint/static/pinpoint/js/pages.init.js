@@ -94,11 +94,7 @@ function reInitialize(app) {
         });
 
         app.discovery = new SecondFunnel.core.Discovery({
-            collection: new SecondFunnel.core.TileCollection(),
             options: app.options
-        });
-        app.discovery.collection.fetch({
-            'dataType': "jsonp"
         });
 
         broadcast('finished', app.options, app);

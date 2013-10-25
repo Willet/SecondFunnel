@@ -203,11 +203,21 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      */
     this.TileCollection = Backbone.Collection.extend({
         'model': function (attrs) {
-            return new SecondFunnel.utils.findClass('Tile', '', module.Tile)(attrs);
+            // switch(attrs.template) {  // hmm, there are no Tile subclasses.
+            return new module.Tile(attrs);
         },
-        'url': SecondFunnel.option('IRSource'),
+        'url': function () {
+            return _.template(
+                '<%=url%>/page/<%=campaign%>/getresults?results=<%=results%>',
+                {
+                    'url': SecondFunnel.option('IRSource'),
+                    'campaign': SecondFunnel.option('campaign'),
+                    'results': SecondFunnel.option('IRResultsCount')
+                }
+            );
+        },
 
-        'loading': false,
+        'loading' : false,
 
         'initialize': function (arrayOfData) {
             // Our TileCollection starts by rendering several Tiles using the
@@ -536,18 +546,22 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     });
 
     /**
-     * @stub
-     * @type {*}
+     * Manages the HTML/View of ALL the tiles on the page (our discovery area)
+     *
+     * @class Discovery
+     * @constructor
+     * @type {CompositeView}
      */
-    this.TileCollectionView = Marionette.CollectionView.extend({
-        'onInitialize': function () {
-            _.bindAll(this, 'getItemView');
+    this.Discovery = Marionette.CompositeView.extend({
+        'lastScrollTop': 0,
+        'loading': false,
 
-            this.listenTo(this.collection, 'sync', this.render);
-        },
+        'template': '.waterfall.container',
+        'itemViewContainer': SecondFunnel.option('discoveryTarget'),
+
+        'collection': null,
 
         /**
-         *
          * @param {Model} item
          */
         'getItemView': function (item) {
@@ -563,86 +577,39 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             default:
                 return module.TileView;
             }
-
-            var templateRules = [  // dictated by CtrlF fshkjr
-                "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
-                "#<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
-                "#<%= options.store.slug %>_<%= data.template %>_mobile_tile_template",                              // gap_image_mobile_tile_template
-                "#<%= data.template %>_mobile_tile_template",                                                        // image_mobile_tile_template
-
-                "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_tile_template",         // gap_instagram_image_tile_template
-                "#<%= data['content-type'] %>_<%= data.template %>_tile_template",                                   // instagram_image_tile_template
-                "#<%= options.store.slug %>_<%= data.template %>_tile_template",                                     // gap_image_tile_template
-                "#<%= data.template %>_tile_template",                                                               // image_tile_template
-
-                "#product_mobile_tile_template",                                                                     // fallback
-                "#product_tile_template"                                                                             // fallback
-            ];
-
-            if (!SecondFunnel.support.mobile()) {
-                // remove mobile templates if it isn't mobile, since they take
-                // higher precedence by default
-                templateRules = _.reject(templateRules,
-                    function (t) {
-                        return t.indexOf('mobile') >= 0;
-                    });
-            }
-
-            console.debug('Template search tree for view %O: %O',
-                        currentView, templateRules);
-            return templateRules;
-        }
-    });
-
-    /**
-     * Manages the HTML/View of ALL the tiles on the page (our discovery area)
-     *
-     * @class Discovery
-     * @constructor
-     * @type {Layout}
-     */
-    this.Discovery = Marionette.Layout.extend({
-        // tagName: "div"
-        'el': $(SecondFunnel.option('discoveryTarget')),
-        // 'itemView': this.TileView,
-        'collection': null,
-        'loading': false,
-        'lastScrollTop': 0,
-
-        'regions': {
-            'tiles': $(SecondFunnel.option('discoveryTarget'))
         },
-
-        // prevent default appendHtml behaviour (append in batch)
-        'appendHtml': $.noop,
 
         'initialize': function (options) {
             var self = this;
 
-            // this.collection = new module.TileCollection();
+            _.bindAll(this, 'pageScroll', 'toggleLoading', 'getMoreResults',
+                      'layoutResults');
+
             this.categories = new module.CategorySelector(  // v-- options.categories is deprecated
                 SecondFunnel.option("page:categories") ||
                 SecondFunnel.option("categories") || []
             );
             this.attachListeners();
-            this.countColumns();
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
                 console.log('laying out initial results');
                 this.layoutResults(options.initialResults);
             }
+
             // ... then fetch more products from IR
             // this.getTiles();
+            this.collection = new SecondFunnel.core.TileCollection();
 
-            this.tiles.show(new module.TileCollectionView({}));
+            this.listenTo(this.collection, 'add', self.render);
+            this.listenTo(this.collection, 'sync', self.render);
+
+            this.collection.fetch({'dataType': "jsonp"});
         },
 
         'attachListeners': function () {
             var self = this;
             // TODO: Find a better way than this...
-            _.bindAll(this, 'pageScroll', 'toggleLoading',
-                'getMoreResults', 'layoutResults');
             $window
                 .scroll(_.throttle(this.pageScroll, 500))
                 .resize(_.throttle(function () {
@@ -650,8 +617,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     // can still react to potential resizes by having its
                     // own .bind('resize', function () {})?
                     $('.resizable', document).trigger('resize');
-
-                    self.countColumns();
 
                     SecondFunnel.vent.trigger('windowResize');
                 }, 500))
@@ -767,29 +732,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 })
                 .always(this.getMoreResults);
             return this;
-        },
-
-        /**
-         * Adds "col-n" classes to the html tag.
-         * @returns {number}
-         */
-        'countColumns': function () {
-            var i,
-                $html = $('html'),
-                maxColsDef = SecondFunnel.option('maxColumnCount', 4),
-                maxCols = $window.width() / SecondFunnel.option('columnWidth', 255);
-            $html.removeClass(function (idx, cls) {
-                // remove all current col-* classes
-                return (cls.match(/col-\d+/g) || []).join(' ');
-            });
-            for (i = 0; i < maxCols; i++) {
-                if (i <= maxColsDef) {
-                    $html.addClass('col-' + i);
-                }
-            }
-
-            SecondFunnel.layoutEngine.layout();
-            return maxCols;
         },
 
         'updateContentStream': function (ev, tile) {
