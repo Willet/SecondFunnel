@@ -174,8 +174,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // default to image-id
             imgId = imgId || this.get('default-image');
+            if (!imgId) {
+                // tile with no default-image = typically instagram
+                return '';
+            }
 
-            img = _.findWhere(this.model.get('images'), {
+            img = _.findWhere(this.get('images'), {
                 'id': imgId.toString()
             });
 
@@ -393,13 +397,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // do some kind of magic such that these methods are always called
             // with its context being this object.
-            _.bindAll(this, 'close', 'modelChanged');
+            /*_.bindAll(this, 'close', 'modelChanged');*/
 
             // If the tile model is changed, re-render the tile
             this.listenTo(this.model, 'changed', this.modelChanged);
 
             // If the tile model is removed, remove the DOM element
-            this.listenTo(this.model, 'destroy', this.close);
+            /*this.listenTo(this.model, 'destroy', this.close);*/
             // Call onInitialize if it exists
             this.triggerMethod('initialize');
         },
@@ -454,39 +458,37 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
             // Listen for the image being removed from the DOM, if it is, remove
             // the View/Model to free memory
-            this.$el.on('remove', function (ev) {
+            /*this.$el.on('remove', function (ev) {
                 if (ev.target === self.el) {
                     self.model.destroy();
                 }
-            });
+            });*/
         },
 
         'onMissingTemplate': function () {
             // If a tile fails to load, destroy the model
             // and subsequently this tile.
-            this.model.destroy();
-            this.close();
+            /*this.model.destroy();
+            this.close();*/
         },
 
         'onRender': function () {
             var tileImg = this.$("img.focus");
-            try {  // Check if ImageService is ready
+            /*try {*/  // Check if ImageService is ready
+                var sizedUrl = this.model.getSizedImage(
+                    undefined, {
+                        'width': 255 * (tileImg.hasClass('wide') + 1)
+                    }
+                );
                 tileImg
                     .css({
                         'background-color': this.model.get('dominant-color')
                     })
-                    .attr(
-                        'src',
-                        this.model.getSizedImage(
-                            undefined,
-                            {
-                                'width': 255 * (tileImg.hasClass('wide') + 1)
-                            }
-                        )
-                    );
-            } catch (e) {
+                    .attr('src', sizedUrl);
+            /*} catch (e) {
                 // it is not ready
-            }
+                console.log(e);
+            }*/
 
             if (this.tapIndicator && this.socialButtons) {
                 // Need to do this check in case layout is closing due
@@ -599,11 +601,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     /**
      * Manages the HTML/View of ALL the tiles on the page (our discovery area)
      *
-     * @class Discovery
+     * @class Feed
      * @constructor
      * @type {CompositeView}
      */
-    this.Discovery = Marionette.CollectionView.extend({
+    this.Feed = Marionette.CompositeView.extend({
         'lastScrollTop': 0,
         'loading': false,
 
@@ -616,7 +618,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @param {Model} item
          */
         'getItemView': function (item) {
-            var itemType = item.get('template') ||
+            /*var itemType = item.get('template') ||
                            item.get('type');
 
             switch (itemType) {
@@ -625,9 +627,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             case 'image':
                 return module.ImageTileView;
             // case 'product':  // this *is* default
-            default:
+            default:*/
                 return module.TileView;
-            }
+            /*}*/
         },
 
         // buildItemView (marionette.collectionview.md#collectionviews-builditemview)
@@ -650,14 +652,14 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 this.layoutResults(options.initialResults);
             }
 
-            // ... then fetch more products from IR
-            // this.getTiles();
             this.collection = new SecondFunnel.core.TileCollection();
 
             this.listenTo(this.collection, 'add', self.render);
             this.listenTo(this.collection, 'sync', self.render);
 
-            this.collection.fetch();
+            // ... then fetch more products from IR
+            this.getTiles()
+                .done(this.layoutResults);
         },
 
         'attachListeners': function () {
@@ -697,7 +699,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @param options
          * @param tile {TileView}  supply a tile View to have tiles inserted
          *                         after it. (optional)
-         * @returns this.Discovery
+         * @returns this.Feed
          */
         'getTiles': function (options, tile) {
             var self = this,
@@ -711,12 +713,16 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 return this;
             }
             this.toggleLoading(true);
+
+            return this.collection.fetch();
+
+            /*
             opts = options || {};
             opts.type = opts.type || 'campaign';
 
             $.when(this.collection.fetch(opts))
                 .always(function (data) {
-                    /*self.layoutResults(data, tile);*/
+                    self.layoutResults(data, tile);
                 })
                 .always(function (data) {
                     if (data && data.length > 0) {
@@ -725,7 +731,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                         self.toggleLoading(false);
                     }
                 });
+            self.toggleLoading(false);
             return this;
+            */
         },
 
         /**
@@ -767,7 +775,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 return this.toggleLoading(false);
             }
 
-            // If we have data to use.
+            SecondFunnel.discoveryArea.show(this);
+            /* // If we have data to use.
             _.each(data, function (tileData) {
                 // Create the new tiles using the data
                 var tile = new module.Tile(tileData),
@@ -792,6 +801,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     self.toggleLoading(false);
                 })
                 .always(this.getMoreResults);
+            */
             return this;
         },
 

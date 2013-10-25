@@ -16,24 +16,9 @@
     <body>
         <header>
             <nav class="navbar navbar-fixed-top navbar-static-top" role="navigation">
-                <!-- collapsible -->
-                <!-- div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="sf-collapse" data-target=".navbar-ex1-collapse">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand brand-label" href="#"></a>
-                </div>
-
-                <div class="collapse navbar-collapse navbar-ex1-collapse" -->
-
-                <!-- non-collapsible -->
                 <div class="container">
-                    <ul class="nav navbar-nav"><!-- RHS: .navbar-right -->
+                    <ul class="nav navbar-nav">
                         <li><a class="navbar-brand brand-label" href="#"></a></li>
-                        <!-- li class="active"><a href="#">Home</a></li -->
                         <li class="dropdown  hidden-xxs">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Other brands <b class="caret"></b></a>
                             <ul class="related-products dropdown-menu">
@@ -95,7 +80,7 @@
                             </ul>
                         </li>
                     </ul>
-                </div><!-- /.navbar-collapse -->
+                </div>
             </nav>
         </header>
         <div class="waterfall container"><!-- .container is bootstrap magic, and has a viewport-dependent width. -->
@@ -128,6 +113,9 @@
 
         <!-- Templates -->
         <div>
+            <script type="text/template" id="TV_template">
+                <%= a %>
+            </script>
             <script type="text/template" id="disabled_featured_template">
                 <div class='featured product'>
                     <!-- Main Display Area -->
@@ -520,6 +508,33 @@
                     }
                 });
             }
+
+            /*var TC = Backbone.Collection.extend({});
+
+            var TV = Marionette.ItemView.extend({
+                'template': '#TV_template'
+            });
+
+            var CV = Marionette.CollectionView.extend({
+                'collection': null,
+                'getItemView': function (item) {
+                    return TV;
+                },
+                'initialize': function (options) {
+                    var self = this;
+                    this.collection = new TC(options.collection);
+                }
+            });
+
+            var g = new CV({collection: [
+                {a: 1},
+                {a: 2},
+                {a: 3},
+                {a: 4},
+                {a: 5}
+            ]});
+            g.render();
+            $('#discovery-area').append(g.$el);*/
         </script>
         <!-- End Javascript -->
     </body>

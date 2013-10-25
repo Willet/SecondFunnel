@@ -14,6 +14,10 @@ function reInitialize(app) {
 
     broadcast('beforeInit', app.options, app);
 
+    app.addRegions({
+        'discoveryArea': '#discovery-area'
+    });
+
     app.addInitializer(function () {
         // set its width to whatever it began with.
         app.options.initialWidth = $(window).width();
@@ -93,7 +97,7 @@ function reInitialize(app) {
             broadcast('ajaxError', settings.url, app);
         });
 
-        app.discovery = new SecondFunnel.core.Discovery({
+        app.discovery = new SecondFunnel.core.Feed({
             options: app.options
         });
 
