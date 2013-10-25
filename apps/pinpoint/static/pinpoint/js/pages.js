@@ -177,16 +177,24 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'getDefaultImageId': function () {
-            return this.get('default-image') || '0';
+            return this.get('default-image') || undefined;
         },
 
         'getImageAttrs': function (imgId) {
+            var img;
+
             // default to image-id
             imgId = imgId || this.getDefaultImageId();
 
-            var img = _.findWhere(this.get('images'), {
-                'id': imgId.toString()
-            });
+            if (imgId) {
+                // a product tile does not have default-image
+                img = _.findWhere(this.get('images'), {
+                    'id': imgId.toString()
+                });
+            } else {
+                // an image tile does not have default-image
+                img = this.attributes;
+            }
 
             if (!(img && img.sizes)) {
                 throw "Image #" + imgId + " not found";
@@ -207,10 +215,15 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             try {
                 img = this.getImageAttrs(imgId);
             } catch (e) {
-                return img.url;
+                // instagram image tiles with no images (wtf)
+                if (this.get('url')) {
+                    // broken instagram tiles can still have a master url
+                    return this.get('url');
+                }
+                return 'http://placehold.it/200&text=tile+json+error';
             }
 
-            if (!requirements) {
+            if (img && !requirements) {
                 return img.url;  // always master.jpg
             }
 
