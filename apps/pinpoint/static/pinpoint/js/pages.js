@@ -205,8 +205,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'model': function (attrs) {
             return new SecondFunnel.utils.findClass('Tile', '', module.Tile)(attrs);
         },
+        'url': SecondFunnel.option('IRSource'),
+
         'loading': false,
-        // 'totalItems': null,  // TODO: what is this?
 
         'initialize': function (arrayOfData) {
             // Our TileCollection starts by rendering several Tiles using the
@@ -217,6 +218,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     this.add(new module.Tile(data));
                 }
             }
+
             broadcast('tileCollectionInitialized', this);
         }
     });
@@ -370,7 +372,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'model': tile,
                     'caller': ev.currentTarget
                 });
-                SecondFunnel.vent.trigger("tileClicked", ev, this);
+                SecondFunnel.vent.trigger("click:tile", ev, this);
             }
         },
 
@@ -529,18 +531,66 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         }
     });
 
+    this.ImageTileView = this.TileView.extend({
+
+    });
+
     /**
      * @stub
      * @type {*}
      */
     this.TileCollectionView = Marionette.CollectionView.extend({
+        'onInitialize': function () {
+            _.bindAll(this, 'getItemView');
+
+            this.listenTo(this.collection, 'sync', this.render);
+        },
+
         /**
          *
          * @param {Model} item
          */
         'getItemView': function (item) {
             var itemType = item.get('template') ||
-                           item.get('template')
+                           item.get('type');
+
+            switch (itemType) {
+            case 'video':
+                return module.VideoTileView;
+            case 'image':
+                return module.ImageTileView;
+            // case 'product':  // this *is* default
+            default:
+                return module.TileView;
+            }
+
+            var templateRules = [  // dictated by CtrlF fshkjr
+                "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
+                "#<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
+                "#<%= options.store.slug %>_<%= data.template %>_mobile_tile_template",                              // gap_image_mobile_tile_template
+                "#<%= data.template %>_mobile_tile_template",                                                        // image_mobile_tile_template
+
+                "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_tile_template",         // gap_instagram_image_tile_template
+                "#<%= data['content-type'] %>_<%= data.template %>_tile_template",                                   // instagram_image_tile_template
+                "#<%= options.store.slug %>_<%= data.template %>_tile_template",                                     // gap_image_tile_template
+                "#<%= data.template %>_tile_template",                                                               // image_tile_template
+
+                "#product_mobile_tile_template",                                                                     // fallback
+                "#product_tile_template"                                                                             // fallback
+            ];
+
+            if (!SecondFunnel.support.mobile()) {
+                // remove mobile templates if it isn't mobile, since they take
+                // higher precedence by default
+                templateRules = _.reject(templateRules,
+                    function (t) {
+                        return t.indexOf('mobile') >= 0;
+                    });
+            }
+
+            console.debug('Template search tree for view %O: %O',
+                        currentView, templateRules);
+            return templateRules;
         }
     });
 
@@ -549,15 +599,19 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      *
      * @class Discovery
      * @constructor
-     * @type {CompositeView}
+     * @type {Layout}
      */
-    this.Discovery = Marionette.CompositeView.extend({
+    this.Discovery = Marionette.Layout.extend({
         // tagName: "div"
         'el': $(SecondFunnel.option('discoveryTarget')),
-        'itemView': this.TileView,
+        // 'itemView': this.TileView,
         'collection': null,
         'loading': false,
         'lastScrollTop': 0,
+
+        'regions': {
+            'tiles': $(SecondFunnel.option('discoveryTarget'))
+        },
 
         // prevent default appendHtml behaviour (append in batch)
         'appendHtml': $.noop,
@@ -565,7 +619,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'initialize': function (options) {
             var self = this;
 
-            this.collection = new module.TileCollection();
+            // this.collection = new module.TileCollection();
             this.categories = new module.CategorySelector(  // v-- options.categories is deprecated
                 SecondFunnel.option("page:categories") ||
                 SecondFunnel.option("categories") || []
@@ -579,7 +633,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 this.layoutResults(options.initialResults);
             }
             // ... then fetch more products from IR
-            this.getTiles();
+            // this.getTiles();
+
+            this.tiles.show(new module.TileCollectionView({}));
         },
 
         'attachListeners': function () {
@@ -612,9 +668,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
 
             // Vent Listeners
-            SecondFunnel.vent.on("tileClicked", this.updateContentStream,
+            SecondFunnel.vent.on("click:tile", this.updateContentStream,
                 this);
-            SecondFunnel.vent.on('changeCampaign', this.categoryChanged, this);
+            SecondFunnel.vent.on('change:campaign', this.categoryChanged, this);
             return this;
         },
 
@@ -819,7 +875,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'events': {
             'click': function (ev) {
                 ev.preventDefault();
-                SecondFunnel.vent.trigger('changeCampaign', ev, this);
+                SecondFunnel.vent.trigger('change:campaign', ev, this);
             }
         },
 
