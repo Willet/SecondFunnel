@@ -100,6 +100,33 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     };
 
     /**
+     * A unique list of all tiles shown on the page.
+     * @returns {array}
+     */
+    this.getAllResultsShown = function () {
+        try {
+            return SecondFunnel.discovery.collection.models;
+        } catch (err) {
+            // first call, SecondFunnel.discovery is not a var yet
+            return [];
+        }
+    };
+
+    /**
+     * @oaram {Tile} tiles
+     * @return {array} unique list of tile ids
+     */
+    this.getTileIds = function (tiles) {
+        return _.uniq(_.map(tiles, function (model) {
+            try {  // Tile
+                return model.get('tile-id');
+            } catch (err) {  // object
+                return model['tile-id'];
+            }
+        }));
+    };
+
+    /**
      * @param overrides (unused)
      * @returns something $.when() accepts
      */
@@ -118,7 +145,8 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      * @returns $.Deferred()
      */
     this.getResultsOnline = function (overrides) {
-        var ajax, deferred, opts, uri, backupResults,
+        var self = this,
+            ajax, deferred, opts, uri, backupResults,
             irFailuresAllowed = SecondFunnel.option('IRFailuresAllowed', 5);
 
         // build a one-off options object for the request.
@@ -144,12 +172,15 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             ajax = $.ajax({
                 'url': uri,
                 'data': {
-                    'results': opts.IRResultsCount
+                    'results': opts.IRResultsCount,
+                    'shown': resultsAlreadyRequested.join(',')
                 },
                 'timeout': opts.IRTimeout
             });
             ajax.done(function (results) {
                 consecutiveFailures = 0;  // reset
+
+                resultsAlreadyRequested = self.getTileIds(results);
 
                 return deferred.resolve(
                     // => list of n qualifying products
