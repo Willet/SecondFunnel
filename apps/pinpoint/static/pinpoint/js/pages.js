@@ -299,6 +299,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             'mouseleave': "onHover"
         },
 
+        'getItemView': function (item) {
+
+        },
+
         'regions': _.extend({}, {  // if ItemView, the key is 'ui': /docs/marionette.itemview.md#organizing-ui-elements
             'socialButtons': '.social-buttons',
             'tapIndicator': '.tap-indicator-target'
@@ -522,6 +526,21 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         'onPlaybackEnd': function (ev) {
             SecondFunnel.vent.trigger("videoEnded", ev, this);
+        }
+    });
+
+    /**
+     * @stub
+     * @type {*}
+     */
+    this.TileCollectionView = Marionette.CollectionView.extend({
+        /**
+         *
+         * @param {Model} item
+         */
+        'getItemView': function (item) {
+            var itemType = item.get('template') ||
+                           item.get('template')
         }
     });
 
