@@ -162,6 +162,59 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             broadcast('tileModelInitialized', this);
         },
 
+        /**
+         * picks an image at least as large as the dimensions you needed.
+         *
+         * @param imgId
+         * @param {Object} requirements   width: 123, height: 123, or both
+         */
+        'getSizedImage': function (imgId, requirements) {
+            var img, minDimension, sizeName, fnRegex;
+
+            // default to image-id
+            imgId = imgId || this.get('default-image');
+            if (!imgId) {
+                // tile with no default-image = typically instagram
+                return '';
+            }
+
+            img = _.findWhere(this.get('images'), {
+                'id': imgId.toString()
+            });
+
+            if (!(img && img.sizes)) {
+                throw "Image #" + imgId + " not found";
+            }
+
+            if (!requirements) {
+                return img.url;  // always master.jpg
+            }
+
+            // filter defaults
+            requirements.width = requirements.width || 1;
+            requirements.height = requirements.height || 1;
+
+            // look through the list of sizes and pick the next biggest one
+            minDimension = _(img.sizes).filter(function (name, dimens) {
+                // filter "as least as large"
+                return dimens.width >= requirements.width &&
+                    dimens.height >= requirements.height;
+            }).sort(function(a, b) {
+                // sort sizes ASC
+                return a.width - b.width;
+            });
+
+            if (!minDimension.length) {
+                // requested size exceeded the largest one we have
+                return img.url;
+            }
+
+            // replace master.jpg by its resized image path.
+            sizeName = _.getKeyByValue(img.sizes, minDimension[0]);
+            fnRegex = new RegExp('master.' + img.format);
+            return img.url.replace(fnRegex, sizeName + img.format);
+        },
+
         'sync': function () {
             return false;  // forces ajax PUT requests to the server to succeed.
         },
@@ -403,18 +456,20 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'onRender': function () {
-            if (this.model.get('size')) {
-                // Check if ImageService is ready
-                this.$("img").css({
-                    'background-color': this.model.get('dominant-color'),
-                    'width': this.model.get('size').width,
-                    'height': this.model.get('size').height
-                });
-            }
+            var tileImg = this.$('img.focus'),
+                sizedUrl = this.model.getSizedImage(
+                undefined, {
+                    'width': 255 * (tileImg.hasClass('wide') + 1)
+                }
+            );
+            tileImg
+                .css({
+                    'background-color': this.model.get('dominant-color')
+                })
+                .attr('src', sizedUrl);
 
             // semi-stupid view-based resizer
-            var tileImg = this.$('img.focus'),
-                columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
+            var columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
                 columnWidth = SecondFunnel.option('columnWidth', 255);
             if (tileImg.length) {
                 tileImg.attr('src', SecondFunnel.utils.pickImageSize(tileImg.attr('src'),

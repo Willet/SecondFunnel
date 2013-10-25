@@ -141,14 +141,11 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             // API is dead. serve backup results instantly
             deferred.resolve([]);  // deferred.resolve([backupResults]); // TODO: remove
         } else {
-            ajax = ($.jsonp || $.ajax)({
+            ajax = $.ajax({
                 'url': uri,
                 'data': {
                     'results': opts.IRResultsCount
                 },
-                'contentType': "application/javascript",
-                'dataType': 'jsonp',
-                'callbackParameter': 'callback',  // $.jsonp only; $.ajax uses 'jsonpCallback'
                 'timeout': opts.IRTimeout
             });
             ajax.done(function (results) {
