@@ -11,8 +11,8 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     this.options = {
         'baseUrl': "http://intentrank-test.elasticbeanstalk.com/intentrank",
         'urlTemplates': {
-            'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
-            'content': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/content/<%=id%>/getresults"
+            'campaign': "<%=url%>/page/<%=campaign%>/getresults",
+            'content': "<%=url%>/page/<%=campaign%>/content/<%=id%>/getresults"
         },
         'categories': {},
         'backupResults': [],
