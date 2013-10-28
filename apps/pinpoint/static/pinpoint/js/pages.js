@@ -298,16 +298,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @returns {TileView}
          */
         'createView': function () {
-            var TargetClass, view;
+            var view,
+                TargetClass = SecondFunnel.utils.findClass('TileView',
+                    this.get('type'), module.TileView);
 
-            switch (this.get('type')) {
-            case "video":
-                TargetClass = module.VideoTileView;
-                break;
-            default:
-                TargetClass = SecondFunnel.utils.findClass(
-                    'TileView', this.get('type'), module.TileView);
-            }
             // #CtrlF fshkjr
             view = new TargetClass({'model': this});
             broadcast('tileViewInitialized', view, this);
@@ -327,14 +321,22 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @type {Collection}
      */
     this.TileCollection = Backbone.Collection.extend({
-        'model': function (attrs) {
-            switch(attrs.template) {  // hmm, there are no Tile subclasses.
-            case 'image':
-                return new module.ImageTile(attrs);
-            default:
-                return new module.Tile(attrs);
-            }
+        /**
+         * Subclass each tile JSON into their specific containers.
+         * @param item      model attributes
+         * @returns {Tile}   or an extension of it
+         */
+        'model': function (item) {
+            var TileClass = SecondFunnel.utils.findClass('Tile',
+                    item.template, module.Tile);
+
+            return new TileClass(item);
         },
+        /**
+         * Interact with IR using the built-in Backbone thingy.
+         *
+         * @returns {Function|String}
+         */
         'url': function () {
             return _.template(
                 '<%=url%>/page/<%=campaign%>/getresults?results=<%=results%>',
@@ -351,10 +353,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'initialize': function (arrayOfData) {
             // Our TileCollection starts by rendering several Tiles using the
             // data it is passed.
-            var data;
+            var data, TileClass;
             for (data in arrayOfData) {  // Generate Tile
                 if (arrayOfData.hasOwnProperty(data)) {
-                    this.add(new module.Tile(data));
+                    TileClass = SecondFunnel.utils.findClass('Tile',
+                                data.template, module.Tile);
+                    this.add(new TileClass(data));
                 }
             }
 
@@ -457,10 +461,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             var data = options.model.attributes,
                 self = this;
 
+            // expose tile "types" as classes on the dom
             _.each(data['content-type'].toLowerCase().split(),
                 function (cName) {
                     self.className += " " + cName;
                 });
+
+            // expose model reference in form of id
             this.$el.attr({
                 'class': this.className,
                 'id': this.model.cid
@@ -579,6 +586,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             this.$el.scaleImages();
         }
+    });
+
+    this.ProductTileView = this.TileView.extend({
+        'template': "#product_tile_template"
     });
 
     /**
