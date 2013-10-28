@@ -142,7 +142,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // come specifying a type or caption
             'caption': "Shop product",
             'tile-id': null,
-            'content-type': "product",
+            'content-type': "",
             'related-products': [],
             'dominant-colour': "transparent"
         },
@@ -207,8 +207,17 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 img = this.attributes;
             }
 
-            if (!(img && img.sizes)) {
+            if (!img) {
                 throw "Image #" + imgId + " not found";
+            }
+            if (!img.sizes) {
+                // IR gave no sizes. fill it
+                img.sizes = {
+                    'master': {
+                        'width': 2048,
+                        'height': 2048
+                    }
+                };
             }
 
             _.each(img.sizes, function (sizeObj, sizeName) {
@@ -306,6 +315,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         }
     });
 
+    this.ImageTile = this.Tile.extend({
+        'defaults': {
+            'content-type': 'image'
+        }
+    });
+
     /**
      * Our TileCollection manages ALL the tiles on the page.
      * @constructor
@@ -313,8 +328,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      */
     this.TileCollection = Backbone.Collection.extend({
         'model': function (attrs) {
-            // switch(attrs.template) {  // hmm, there are no Tile subclasses.
-            return new module.Tile(attrs);
+            switch(attrs.template) {  // hmm, there are no Tile subclasses.
+            case 'image':
+                return new module.ImageTile(attrs);
+            default:
+                return new module.Tile(attrs);
+            }
         },
         'url': function () {
             return _.template(
@@ -419,10 +438,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             'click': "onClick",
             'mouseenter': "onHover",
             'mouseleave': "onHover"
-        },
-
-        'getItemView': function (item) {
-
         },
 
         'regions': _.extend({}, {  // if ItemView, the key is 'ui': /docs/marionette.itemview.md#organizing-ui-elements
@@ -545,7 +560,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // semi-stupid view-based resizer
             var columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
                 columnWidth = SecondFunnel.option('columnWidth', 255);
-            if (tileImg.length) {
+            if (tileImg.length && tileImg.attr('src')) {
                 tileImg.attr('src', SecondFunnel.utils.pickImageSize(tileImg.attr('src'),
                                     columnWidth * columns));
             }
@@ -655,7 +670,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     });
 
     this.ImageTileView = this.TileView.extend({
-
+        'template': '#image_tile_template'
     });
 
     /**
@@ -665,12 +680,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @constructor
      * @type {CompositeView}
      */
-    this.Feed = Marionette.CompositeView.extend({
+    this.Feed = Marionette.CollectionView.extend({
         'lastScrollTop': 0,
         'loading': false,
-
-        'template': '.waterfall.container',
-        'itemViewContainer': SecondFunnel.option('discoveryTarget'),
 
         'collection': null,
 
@@ -678,7 +690,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @param {Model} item
          */
         'getItemView': function (item) {
-            /*var itemType = item.get('template') ||
+            var itemType = item.get('template') ||
                            item.get('type');
 
             switch (itemType) {
@@ -687,9 +699,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             case 'image':
                 return module.ImageTileView;
             // case 'product':  // this *is* default
-            default:*/
+            default:
                 return module.TileView;
-            /*}*/
+            }
         },
 
         // buildItemView (marionette.collectionview.md#collectionviews-builditemview)

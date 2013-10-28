@@ -84,21 +84,12 @@
             </nav>
         </header>
         <div class="waterfall container"><!-- .container is bootstrap magic, and has a viewport-dependent width. -->
-            <!-- remove contents of hero-area if it is dynamically generated -->
             <div id="hero-area" class="featured">
-                <div class="visible-xs jumbotron"><!-- hero unit (mobile 1) -->
-                    <!-- configure hero images by overriding its background -->
-                </div>
-                <div class="visible-sm jumbotron"><!-- hero unit (mobile 2) -->
-                    <!-- configure hero images by overriding its background -->
-                </div>
-                <div class="visible-md visible-lg jumbotron"><!-- hero unit (desktop) -->
-                    <!-- configure hero images by overriding its background -->
-                </div>
+                <div class="visible-xs jumbotron"></div>
+                <div class="visible-sm jumbotron"></div>
+                <div class="visible-md visible-lg jumbotron"></div>
             </div>
-            <div id="discovery-area" class="discovery-area">
-                <!-- paste pre-rendered tiles here (TODO... event handling for them) -->
-            </div>
+            <div id="discovery-area" class="discovery-area"></div>
             <div class="no-noscript loading"></div>
             <noscript>
                 <!-- promotions to show when user does not have javascript.
@@ -113,9 +104,6 @@
 
         <!-- Templates -->
         <div>
-            <script type="text/template" id="TV_template">
-                <%= a %>
-            </script>
             <script type="text/template" id="disabled_featured_template">
                 <div class='featured product'>
                     <!-- Main Display Area -->
@@ -131,7 +119,7 @@
             </script>
             <script type="text/template" id="product_tile_template">
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.image || obj.defaultImage.url %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.image || obj.url|| obj.defaultImage.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -149,6 +137,17 @@
                     </div>
                 <% } %>
                 <div class="social-buttons"></div>
+            </script>
+            <script type="text/template" id="image_tile_template">
+                <div class="tap-indicator-target"></div>
+                <img class="focus" src="<%= obj.image || obj.url|| obj.defaultImage.url %>" alt="<%= caption %>" />
+                <% if (SecondFunnel.option('debug', 0) > 1) { %>
+                    <span class="type"><%= obj['content-type'] %></span>
+                <% } %>
+                <div class="social-buttons"></div>
+                <!-- if (obj['related-products'].length) { %>
+                    <div class="combobox-enabled" style="display:none"></div>
+                <% } -->
             </script>
             <script type="text/template" id="youtube_tile_template">
                 <div class="img-responsive thumbnail"
@@ -279,7 +278,7 @@
                 <div class='content-wrapper row'>
                     <div class='image-div col-sm-6 col-md-6'>
                         <div class='image'>
-                            <img class='img-rounded' src='<%= obj.defaultImage.url, 400) %>'/>
+                            <img class='img-rounded' src='<%= sizeImage(obj.defaultImage.url, 400) %>'/>
                         </div>
                     </div>
                     <div class='info col-sm-6 col-md-6'>
@@ -322,7 +321,7 @@
                         <div class="row">
                     <div class="col-sm-6 col-md-6">
                         <div class="image">
-                                <img class='img-rounded' src="<%= sizeImage(obj.url, 400) %>" alt="image" />
+                                <img class='img-rounded' src="<%= sizeImage(obj.defaultImage.url, 400) %>" alt="image" />
                             </div>
 
                         <div class="buttons-container">
