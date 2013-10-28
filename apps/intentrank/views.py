@@ -267,7 +267,7 @@ def get_seeds(request, **kwargs):
     url = '{0}/page/{1}/getresults'.format(base_url, campaign)
 
     # Add required get parameters
-    url += "?results={1}".format(num_results)
+    url += "?results={0}".format(num_results)
 
     # Fetch results
     try:
