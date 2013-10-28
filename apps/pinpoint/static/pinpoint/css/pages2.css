@@ -115,6 +115,7 @@ div.loading {
     border-radius: 3px;
     box-shadow: 0 1px 3px 0 #999;
     vertical-align: top;
+    position: relative;
 
     width: 240px;
     max-width: 93%; /* empirical (padding and all) */

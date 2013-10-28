@@ -118,6 +118,7 @@
                 <div class='spacer'></div>
             </script>
             <script type="text/template" id="product_tile_template">
+                <div>product</div>
                 <div class="tap-indicator-target"></div>
                 <img class="focus" src="<%= obj.image || obj.url|| obj.defaultImage.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
@@ -139,7 +140,9 @@
                 <div class="social-buttons"></div>
             </script>
             <script type="text/template" id="image_tile_template">
+                <div>image</div>
                 <div class="tap-indicator-target"></div>
+                <% console.log(obj); %>
                 <img class="focus" src="<%= obj.image || obj.url|| obj.defaultImage.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
@@ -311,7 +314,6 @@
                         <% } %>
                     </div>
             </script>
-            </div>
             <script type="text/template" id="gap_image_preview_template">
                 <!-- any (store.name)_(type)_... templates will be used in place
                      of default templates if they exist. -->
@@ -442,6 +444,8 @@
         <script type="text/javascript" src="js/pages.preinit.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.utils.js"></script>
         <script type="text/javascript" src="js/pages.js"></script><!-- after preinit -->
+        <script type="text/javascript" src="js/pages.core.models.js"></script><!-- after preinit -->
+        <script type="text/javascript" src="js/pages.core.views.js"></script><!-- after preinit -->
         <script type="text/javascript" src="js/pages.support.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.tracker.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.layoutengine.js"></script><!-- after marionette -->
