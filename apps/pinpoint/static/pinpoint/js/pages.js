@@ -144,12 +144,36 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             'tile-id': null,
             'content-type': "product",
             'related-products': [],
-            'dominant-color': "transparent"
+            'dominant-colour': "transparent"
         },
 
         'initialize': function (attributes, options) {
-            var videoTypes = ["youtube", "video"],
+            var self = this,
+                defaultImage,
+                videoTypes = ["youtube", "video"],
                 type = this.get('content-type').toLowerCase();
+
+            $.extend(this.attributes, attributes);
+
+            try {
+                defaultImage = this.getImageAttrs();
+                this.set({
+                    'defaultImage': defaultImage,
+                    'dominant-colour': defaultImage['dominant-colour']
+                });
+            } catch (e) {
+                // not a tile with default-image
+                try {
+                    // this happens when an image tile has no size information
+                    this.set({
+                        'defaultImage': {
+                            'url': this.get('url')
+                        }
+                    });
+                } catch (er) {
+                    // nothing else can be done
+                }
+            }
 
             // set up tile type overrides
             this.set({
@@ -161,6 +185,38 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
 
             broadcast('tileModelInitialized', this);
+        },
+
+        'getDefaultImageId': function () {
+            return this.get('default-image') || undefined;
+        },
+
+        'getImageAttrs': function (imgId) {
+            var img;
+
+            // default to image-id
+            imgId = imgId || this.getDefaultImageId();
+
+            if (imgId) {
+                // a product tile does not have default-image
+                img = _.findWhere(this.get('images'), {
+                    'id': imgId.toString()
+                });
+            } else {
+                // an image tile does not have default-image
+                img = this.attributes;
+            }
+
+            if (!(img && img.sizes)) {
+                throw "Image #" + imgId + " not found";
+            }
+
+            _.each(img.sizes, function (sizeObj, sizeName) {
+                // assign names to convenience urls.
+                img[sizeName] = img.url.replace(/master\./, sizeName + '.');
+            });
+
+            return img;
         },
 
         /**
@@ -473,22 +529,26 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'onRender': function () {
-            var tileImg = this.$("img.focus");
-            /*try {*/  // Check if ImageService is ready
-                var sizedUrl = this.model.getSizedImage(
-                    undefined, {
-                        'width': 255 * (tileImg.hasClass('wide') + 1)
-                    }
-                );
-                tileImg
-                    .css({
-                        'background-color': this.model.get('dominant-color')
-                    })
-                    .attr('src', sizedUrl);
-            /*} catch (e) {
-                // it is not ready
-                console.log(e);
-            }*/
+            var tileImg = this.$('img.focus'),
+                sizedUrl = this.model.getSizedImage(
+                undefined, {
+                    'width': 255 * (tileImg.hasClass('wide') + 1)
+                }
+            );
+            if (this.model.get('dominant-colour')) {
+                tileImg.css({
+                    'background-color': this.model.get('dominant-colour')
+                });
+            }
+            tileImg.attr('src', sizedUrl);
+
+            // semi-stupid view-based resizer
+            var columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
+                columnWidth = SecondFunnel.option('columnWidth', 255);
+            if (tileImg.length) {
+                tileImg.attr('src', SecondFunnel.utils.pickImageSize(tileImg.attr('src'),
+                                    columnWidth * columns));
+            }
 
             if (this.tapIndicator && this.socialButtons) {
                 // Need to do this check in case layout is closing due
