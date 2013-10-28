@@ -10,7 +10,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         $document = $(document),
         getModifiedTemplateName;
 
-
     /**
      * Object store for information about a particular database product,
      * its contents, or its media.
@@ -120,19 +119,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             var img, minDimension, sizeName, fnRegex;
 
             // default to image-id
-            imgId = imgId || this.get('default-image');
-            if (!imgId) {
-                // tile with no default-image = typically instagram
-                return '';
-            }
-
-            img = _.findWhere(this.get('images'), {
-                'id': imgId.toString()
-            });
-
-            if (!(img && img.sizes)) {
-                throw "Image #" + imgId + " not found";
-            }
+            img = this.getImageAttrs(imgId);
 
             if (!requirements) {
                 return img.url;  // always master.jpg
@@ -168,29 +155,15 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'is': function (type) {
-            // check if a tile is of (type). the type is _not_ the tile's template.
+            // check if a tile is of (type). the type is _not_ the tile json.
             return this.get('content-type').toLowerCase() === type.toLowerCase();
-        }/*,*/
-
-        /**
-         * Using its model instance, create a view of the "best" class.
-         * If the chosen view's matching template cannot be found, this
-         * returns undefined.
-         *
-         * @returns {TileView}
-         */
-        /*'createView': function () {
-            var view,
-                TargetClass = SecondFunnel.utils.findClass('TileView',
-                    this.get('type'), module.TileView);
-
-            // #CtrlF fshkjr
-            view = new TargetClass({'model': this});
-            broadcast('tileViewInitialized', view, this);
-            return view.render();
-        }*/
+        }
     });
 
+    /**
+     * TODO
+     * @type {*}
+     */
     this.Image = Backbone.Model.extend({});
 
     this.ImageTile = this.Tile.extend({

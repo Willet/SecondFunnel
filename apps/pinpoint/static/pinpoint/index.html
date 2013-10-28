@@ -143,7 +143,7 @@
                 <div>image</div>
                 <div class="tap-indicator-target"></div>
                 <% console.log(obj); %>
-                <img class="focus" src="<%= obj.image || obj.url|| obj.defaultImage.url %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -443,7 +443,7 @@
         <script type="text/javascript" src="/static/js/jquery.browser.mobile.js"></script>
         <script type="text/javascript" src="js/pages.preinit.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.utils.js"></script>
-        <script type="text/javascript" src="js/pages.js"></script><!-- after preinit -->
+        <script type="text/javascript" src="js/pages.core.js"></script><!-- after preinit -->
         <script type="text/javascript" src="js/pages.core.models.js"></script><!-- after preinit -->
         <script type="text/javascript" src="js/pages.core.views.js"></script><!-- after preinit -->
         <script type="text/javascript" src="js/pages.support.js"></script><!-- after marionette -->
