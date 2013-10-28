@@ -131,7 +131,7 @@
             <script type="text/template" id="disabled_featured_template">
                 <div class='featured product'>
                     <!-- Main Display Area -->
-                    <img class='img-responsive pull-left' src='<%= obj.image %>' />
+                    <img class='img-responsive pull-left' src='<%= obj.image || obj.defaultImage.url %>' />
                     <div class='pull-right'><%= obj.title %></div>
                         <div class='price'><%= obj.price %></div>
                         <div>
@@ -143,7 +143,7 @@
             </script>
             <script type="text/template" id="product_tile_template">
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.image || obj.defaultImage.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -151,7 +151,7 @@
             </script>
             <script type="text/template" id="product_mobile_tile_template">
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.image || obj.defaultImage.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -164,7 +164,7 @@
             </script>
             <script type="text/template" id="youtube_tile_template">
                 <div class="img-responsive thumbnail"
-                     style="background-image: url('<%= obj.thumbnail || obj.image %>');">
+                     style="background-image: url('<%= obj.thumbnail || obj.image || obj.defaultImage.url %>');">
                   &nbsp;
                   <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
                 </div>
@@ -267,7 +267,7 @@
                 </a>
             </script>
             <script type="text/template" id="product_preview_template">
-                <img src="<%= obj.image %>" alt=""/>
+                <img src="<%= obj.image || obj.defaultImage.url %>" alt=""/>
                 <%= obj.price %>
                 <div class="social-buttons"></div>
             </script>
@@ -277,7 +277,7 @@
                     <%= obj.caption || obj.title || obj.name %>
                     <!-- in that order (it may still have none of those) -->
                 </h4>
-                <img src="<%= obj.image %>" alt=""/>
+                <img src="<%= obj.image || obj.defaultImage.url %>" alt=""/>
                 <div class="social-buttons"></div>
             </script>
 

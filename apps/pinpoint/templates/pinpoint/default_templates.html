@@ -2,7 +2,7 @@
 <script type="text/template" id="disabled_featured_template">
     <div class='featured product'>
         <!-- Main Display Area -->
-        <img class='img-responsive pull-left' src='<%= obj.image %>' />
+        <img class='img-responsive pull-left' src='<%= obj.image || obj.defaultImage.url %>' />
         <div class='pull-right'><%= obj.title %></div>
             <div class='price'><%= obj.price %></div>
             <div>

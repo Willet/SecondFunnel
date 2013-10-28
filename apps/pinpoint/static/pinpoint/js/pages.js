@@ -163,6 +163,16 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 });
             } catch (e) {
                 // not a tile with default-image
+                try {
+                    // this happens when an image tile has no size information
+                    this.set({
+                        'defaultImage': {
+                            'url': this.get('url')
+                        }
+                    });
+                } catch (er) {
+                    // nothing else can be done
+                }
             }
 
             // set up tile type overrides
