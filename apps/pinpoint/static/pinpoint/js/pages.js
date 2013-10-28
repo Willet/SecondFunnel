@@ -144,12 +144,36 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             'tile-id': null,
             'content-type': "product",
             'related-products': [],
-            'dominant-color': "transparent"
+            'dominant-colour': "transparent"
         },
 
         'initialize': function (attributes, options) {
-            var videoTypes = ["youtube", "video"],
+            var self = this,
+                defaultImage,
+                videoTypes = ["youtube", "video"],
                 type = this.get('content-type').toLowerCase();
+
+            $.extend(this.attributes, attributes);
+
+            try {
+                defaultImage = this.getImageAttrs();
+                this.set({
+                    'defaultImage': defaultImage,
+                    'dominant-colour': defaultImage['dominant-colour']
+                });
+            } catch (e) {
+                // not a tile with default-image
+                try {
+                    // this happens when an image tile has no size information
+                    this.set({
+                        'defaultImage': {
+                            'url': this.get('url')
+                        }
+                    });
+                } catch (er) {
+                    // nothing else can be done
+                }
+            }
 
             // set up tile type overrides
             this.set({
@@ -160,6 +184,87 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 this.set('type', 'video');
             }
             broadcast('tileModelInitialized', this);
+        },
+
+        'getDefaultImageId': function () {
+            return this.get('default-image') || undefined;
+        },
+
+        'getImageAttrs': function (imgId) {
+            var img;
+
+            // default to image-id
+            imgId = imgId || this.getDefaultImageId();
+
+            if (imgId) {
+                // a product tile does not have default-image
+                img = _.findWhere(this.get('images'), {
+                    'id': imgId.toString()
+                });
+            } else {
+                // an image tile does not have default-image
+                img = this.attributes;
+            }
+
+            if (!(img && img.sizes)) {
+                throw "Image #" + imgId + " not found";
+            }
+
+            _.each(img.sizes, function (sizeObj, sizeName) {
+                // assign names to convenience urls.
+                img[sizeName] = img.url.replace(/master\./, sizeName + '.');
+            });
+
+            return img;
+        },
+
+        /**
+         * picks an image at least as large as the dimensions you needed.
+         *
+         * @param imgId
+         * @param {Object} requirements   width: 123, height: 123, or both
+         */
+        'getSizedImage': function (imgId, requirements) {
+            var img, minDimension, sizeName, fnRegex;
+
+            try {
+                img = this.getImageAttrs(imgId);
+            } catch (e) {
+                // instagram image tiles with no images (wtf)
+                if (this.get('url')) {
+                    // broken instagram tiles can still have a master url
+                    return this.get('url');
+                }
+                return 'http://placehold.it/200&text=tile+json+error';
+            }
+
+            if (img && !requirements) {
+                return img.url;  // always master.jpg
+            }
+
+            // filter defaults
+            requirements.width = requirements.width || 1;
+            requirements.height = requirements.height || 1;
+
+            // look through the list of sizes and pick the next biggest one
+            minDimension = _(img.sizes).filter(function (name, dimens) {
+                // filter "as least as large"
+                return dimens.width >= requirements.width &&
+                    dimens.height >= requirements.height;
+            }).sort(function(a, b) {
+                // sort sizes ASC
+                return a.width - b.width;
+            });
+
+            if (!minDimension.length) {
+                // requested size exceeded the largest one we have
+                return img.url;
+            }
+
+            // replace master.jpg by its resized image path.
+            sizeName = _.getKeyByValue(img.sizes, minDimension[0]);
+            fnRegex = new RegExp('master.' + img.format);
+            return img.url.replace(fnRegex, sizeName + img.format);
         },
 
         'sync': function () {
@@ -403,18 +508,21 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'onRender': function () {
-            if (this.model.get('size')) {
-                // Check if ImageService is ready
-                this.$("img").css({
-                    'background-color': this.model.get('dominant-color'),
-                    'width': this.model.get('size').width,
-                    'height': this.model.get('size').height
+            var tileImg = this.$('img.focus'),
+                sizedUrl = this.model.getSizedImage(
+                undefined, {
+                    'width': 255 * (tileImg.hasClass('wide') + 1)
+                }
+            );
+            if (this.model.get('dominant-colour')) {
+                tileImg.css({
+                    'background-color': this.model.get('dominant-colour')
                 });
             }
+            tileImg.attr('src', sizedUrl);
 
             // semi-stupid view-based resizer
-            var tileImg = this.$('img.focus'),
-                columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
+            var columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
                 columnWidth = SecondFunnel.option('columnWidth', 255);
             if (tileImg.length) {
                 tileImg.attr('src', SecondFunnel.utils.pickImageSize(tileImg.attr('src'),

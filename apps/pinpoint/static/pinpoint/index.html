@@ -131,7 +131,7 @@
             <script type="text/template" id="disabled_featured_template">
                 <div class='featured product'>
                     <!-- Main Display Area -->
-                    <img class='img-responsive pull-left' src='<%= obj.image %>' />
+                    <img class='img-responsive pull-left' src='<%= obj.image || obj.defaultImage.url %>' />
                     <div class='pull-right'><%= obj.title %></div>
                         <div class='price'><%= obj.price %></div>
                         <div>
@@ -143,7 +143,7 @@
             </script>
             <script type="text/template" id="product_tile_template">
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.image || obj.defaultImage.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -151,7 +151,7 @@
             </script>
             <script type="text/template" id="product_mobile_tile_template">
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.image || obj.defaultImage.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -164,7 +164,7 @@
             </script>
             <script type="text/template" id="youtube_tile_template">
                 <div class="img-responsive thumbnail"
-                     style="background-image: url('<%= obj.thumbnail || obj.image %>');">
+                     style="background-image: url('<%= obj.thumbnail || obj.image || obj.defaultImage.url %>');">
                   &nbsp;
                   <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
                 </div>
@@ -267,7 +267,7 @@
                 </a>
             </script>
             <script type="text/template" id="product_preview_template">
-                <img src="<%= obj.image %>" alt=""/>
+                <img src="<%= obj.image || obj.defaultImage.url %>" alt=""/>
                 <%= obj.price %>
                 <div class="social-buttons"></div>
             </script>
@@ -277,7 +277,7 @@
                     <%= obj.caption || obj.title || obj.name %>
                     <!-- in that order (it may still have none of those) -->
                 </h4>
-                <img src="<%= obj.image %>" alt=""/>
+                <img src="<%= obj.image || obj.defaultImage.url %>" alt=""/>
                 <div class="social-buttons"></div>
             </script>
 
@@ -291,7 +291,7 @@
                 <div class='content-wrapper row'>
                     <div class='image-div col-sm-6 col-md-6'>
                         <div class='image'>
-                            <img class='img-rounded' src='<%= sizeImage(obj.image, 400) %>'/>
+                            <img class='img-rounded' src='<%= obj.defaultImage.url, 400) %>'/>
                         </div>
                     </div>
                     <div class='info col-sm-6 col-md-6'>
@@ -329,38 +329,12 @@
                 <!-- any (store.name)_(type)_... templates will be used in place
                      of default templates if they exist. -->
             <% var product = obj['related-products'][0]; %>
-
-                <%
-                    // > console.log(obj);
-                    // caption: " "
-                    // content-id: 562949953426705
-                    // content-type: "Instagram"
-                    // db-id: 5393
-                    // image: "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif"
-                    // original-id: "tumblr_mra6qu7uh11s6ofheo1_500"
-                    // related-products: [{
-                    //     "product-id": 19387,
-                    //     "description": "Long sleeves with button cuffs. Collar. Button front. Button patch pockets, buttonhole pen slot.",
-                    //     "title": "1969 chambray shirt",
-                    //     "url": "http://www.gap.com/browse/product.do?pid=350489002",
-                    //     "price": "$59.95",
-                    //     "tags": {
-                    //         "campaign": "99"
-                    //     },
-                    //     "db-id": 19387,
-                    //     "template": "product",
-                    //     "images": ["http://images.secondfunnel.com/store/gap/product/19387/image/0eaa9c2e36ade25c6c6985f50c54fe09/master.jpg"],
-                    //     "image": "http://images.secondfunnel.com/store/gap/product/19387/image/0eaa9c2e36ade25c6c6985f50c54fe09/master.jpg"
-                    // }]
-                    // template: "instagram"
-                    // tile-id: 562949953426705
-                %>
                 <% if (obj['related-products'].length) { %>
                     <div class="image-with-related-products">
                         <div class="row">
                     <div class="col-sm-6 col-md-6">
                         <div class="image">
-                                <img class='img-rounded' src="<%= sizeImage(obj.image, 400) %>" alt="image" />
+                                <img class='img-rounded' src="<%= sizeImage(obj.url, 400) %>" alt="image" />
                             </div>
 
                         <div class="buttons-container">
@@ -378,7 +352,7 @@
                                 <div class='price'><%= product.price %></div>
                         <div class="row">
                             <div class="col-lg-4 col-md-4 col-sm-4 main-image-container">
-                                <img class="main-image" src="<%= sizeImage(product.image, 150) %>" alt="related product" />
+                                <img class="main-image" src="<%= sizeImage(product.defaultImage.url, 150) %>" alt="related product" />
                             </div>
                             <div class="accordion-container col-lg-8 col-md-8 col-sm-8">
                                 <div class="panel-group" id="accordion-gapimage">
@@ -447,7 +421,7 @@
             </div>
                 <% } else { %>
                     <div class="image-without-related-products">
-                        <img src="<%= sizeImage(obj.image, 400) %>" alt="image" />
+                        <img src="<%= sizeImage(obj.url, 400) %>" alt="image" />
                         <div class="info">
                             <%= SecondFunnel.utils.safeString(obj.caption) %>
                             <span class="label label-info pull-right"><%= obj.template %></span>
