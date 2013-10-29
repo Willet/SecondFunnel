@@ -552,6 +552,8 @@ div.loading {
 @media screen and (min-width: 768px) and (max-width: 1024px) { /* iPad */
     .previewContainer .content {
         position: fixed!important;
+
+        /* TODO: is there another way? */
         top: 0!important;
         bottom: 0!important;
     }
