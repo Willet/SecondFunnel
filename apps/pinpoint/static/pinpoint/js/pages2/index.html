@@ -1,0 +1,151 @@
+<html>
+    <head>
+        <style type='text/css'>
+            .tile {
+                border: 1px solid #000;
+                width: 200px;
+                position: relative;
+            }
+
+            .tile img {
+                max-width: 100%;
+            }
+
+            .buttons {
+                position: absolute;
+                bottom: 0px;
+                right: 0px;
+            }
+
+            #preview-window {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            #preview-window .mask {
+                width: 100%;
+                height: 100%;
+                background: rgba(255,255,255,0.75);
+            }
+
+            #preview-window .content {
+                position: fixed;
+                top: 0;
+                left: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- default page template -->
+        <div id='hero-area'></div>
+        <div id='discovery-area'></div>
+        <div id='preview'></div>
+
+        <!-- templates -->
+        <script type="text/template" id="willet-hero-area">
+            Hero Area
+        </script>
+
+        <script type="text/template" id="willet-discovery-area">
+            Discovery Area
+        </script>
+
+        <script type="text/template" id="willet-preview">
+            <div class='mask'></div>
+            <div class='content'>Preview</div>
+        </script>
+
+        <script type="text/template" id="willet-tile-view">
+            <div class='loading-region'></div>
+            <div class='tap-region'></div>
+            <div class='buttons-region'></div>
+            <div class='content'>
+                <%= tile.template %>
+                <% if (tile.image) { %>
+                <img src='<%= tile.image %>'/>
+                <% } %>
+            </div>
+        </script>
+
+        <script type="text/template" id="willet-tile-loading">
+            Loading spinner
+        </script>
+
+        <script type="text/template" id="willet-tile-tap">
+            Tap indicator
+        </script>
+
+        <script type="text/template" id="willet-buttons">
+            Buttons
+        </script>
+
+        <!-- dependencies -->
+        <script src="../../../js/jquery.min.js"></script>
+        <script src="../../../js/json2.js"></script>
+        <script src="../../../js/underscore.js"></script>
+        <script src="../../../js/backbone.js"></script>
+        <script src="../../../js/backbone.marionette.js"></script>
+        <script src="../../../js/masonry.pkgd.js"></script>
+        <script src="../../../js/imagesloaded.pkgd.js"></script>
+
+        <!-- our code -->
+        <script src="./page.app.js"></script>
+        <script src="./page.utils.js"></script>
+        <script src="./page.core.js"></script>
+        <script type='text/javascript'>
+            var PAGE_INFO = {
+                models: [{
+                    "username": "",
+                    "original-url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "original-id": "ch0xaHVYAOQ",
+                    "likes": 0,
+                    "template": "youtube",
+                    "caption": "The money is in the banana stand!",
+                    "url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "image": "",
+                    "content-type": "Youtube",
+                    "user-image": ""
+                }, {
+                    "username": "",
+                    "original-url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "original-id": "ch0xaHVYAOQ",
+                    "likes": 0,
+                    "template": "youtube",
+                    "caption": "The money is in the banana stand!",
+                    "url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "image": "",
+                    "content-type": "Youtube",
+                    "user-image": ""
+                }, {
+                    "username": "",
+                    "original-url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "original-id": "ch0xaHVYAOQ",
+                    "likes": 0,
+                    "template": "youtube",
+                    "caption": "The money is in the banana stand!",
+                    "url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "image": "",
+                    "content-type": "Youtube",
+                    "user-image": ""
+                }, {
+                    "username": "",
+                    "original-url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "original-id": "ch0xaHVYAOQ",
+                    "likes": 0,
+                    "template": "youtube",
+                    "caption": "The money is in the banana stand!",
+                    "url": "http://youtube.com/watch?v=ch0xaHVYAOQ",
+                    "image": "",
+                    "content-type": "Youtube",
+                    "user-image": ""
+                }]
+                //, window: window
+            };
+            Page.start(PAGE_INFO);
+        </script>
+    </body>
+</html>

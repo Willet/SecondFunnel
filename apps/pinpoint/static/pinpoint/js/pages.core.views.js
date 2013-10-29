@@ -284,6 +284,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
     this.YoutubeTileView = this.VideoTileView.extend({
         'model': module.YoutubeTile,
+        'template': function () {
+
+        },
         /**
          * Renders a YouTube video in the tile.
          *
@@ -329,7 +332,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'onError': $.noop
                 }
             });
-        },
+        }
     });
 
     this.ImageTileView = this.TileView.extend({
@@ -463,6 +466,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                         .add(_.shuffle(itemsFetched));
 
                     self.toggleLoading(false);
+                    return this;
                 });
         },
 

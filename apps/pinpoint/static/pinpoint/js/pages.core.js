@@ -87,7 +87,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * Accept an arbitrary number of template selectors instead of just one.
      * Function will return in a short-circuit manner once a template is found.
      *
-     * @param args {arguments}    at least one jquery selector.
+     * @arguments {*}    at least one jquery selector.
      * @returns {*}
      */
     Marionette.View.prototype.getTemplate = function () {

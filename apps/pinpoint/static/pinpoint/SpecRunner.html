@@ -5,7 +5,7 @@
 
         <link rel="stylesheet" type="text/css" href="../css/jasmine.css">
 
-        <!-- include source files here... -->
+        <!-- Include dependencies here... -->
         <script src="js/test_config.js"></script>
 
         <script src="//connect.facebook.net/en_US/all.js"></script>
@@ -20,7 +20,7 @@
         <script src="../js/json2.js"></script>
         <script src="../js/underscore.js"></script>
         <script src="../js/backbone.js"></script>
-        <script src="../js/backbone.marionette.min.js"></script>
+        <script src="../js/backbone.marionette.js"></script>
         <script src="../js/imagesloaded.pkgd.min.js"></script>
         <script src="../js/jquery.masonry.pkgd.min.js"></script>
         <script src="../js/bootstrap.min.js"></script>
@@ -37,11 +37,44 @@
         <script src="js/pages.widget.gallery.js"></script>
         <script src="../js/css3-mediaqueries.js"></script>
         <script src="../js/sinon-1.7.3.js"></script>
+        <script src="../js/jasmine-jquery.js"></script>
     </head>
 
     <body>
         <script type="text/template" id="disabled_featured_template">
 
+        </script>
+
+        <!-- Include components here -->
+        <script src="js/pages2/page.app.js"></script>
+        <script src="js/pages2/page.utils.js"></script>
+        <script src="js/pages2/page.core.js"></script>
+
+
+        <!-- include spec files here... -->
+        <script src="js/pages2-test/spec-helpers.js"></script>
+        <script src="js/pages2-test/fixtures.js"></script>
+        <script src="js/pages2-test/tile-model.spec.js"></script>
+        <script src="js/pages2-test/tile-collection.spec.js"></script>
+        <script src="js/pages2-test/tile-view.spec.js"></script>
+        <script src="js/pages2-test/page-application.spec.js"></script>
+        <script src="js/pages2-test/page-utilities.spec.js"></script>
+        <script src="js/pages2-test/JFGTD.spec.js"></script>
+        <script>
+            // TODO: It would be really nice if either we had a reporter
+            // that could sort things into the spec, or we could otherwise
+            // show that all parts of the spec are being met. Maybe tags?
+            // Is that a thing in jasmine?
+            (function () {
+                var jasmineEnv = jasmine.getEnv();
+                jasmineEnv.updateInterval = 1000;
+
+                // Change path for HTML fixtures
+                // mostly for templates
+                jasmine.getFixtures().fixturesPath = 'js/pages2-test';
+
+                var currentWindowOnload = window.onload;
+            }());
         </script>
 
         <script type="text/template" id="product_tile_template">
