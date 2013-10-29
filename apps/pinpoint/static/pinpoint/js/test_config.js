@@ -29,9 +29,7 @@ window.PAGES_INFO = {
             'id': 99
         }
     ],
-    'columnWidth': function($element) {
-        return 240 + 15;
-    },
+    'columnWidth': 255,
     'events': undefined,  // page event bindings (optional)
     'socialButtons': [
         "facebook",

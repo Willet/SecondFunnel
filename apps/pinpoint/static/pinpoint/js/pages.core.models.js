@@ -88,6 +88,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 // IR gave no sizes. fill it
                 img.sizes = {
                     'master': {
+                        'isStub': 5,
                         'width': 2048,
                         'height': 2048
                     }
@@ -176,9 +177,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     this.ImageTile = this.Tile.extend({
         'defaults': {
             'content-type': 'image'
-        },
-        'initialize': function (attributes) {
-            this.set('defaultImage', new module.Image(attributes));
         }
     });
 

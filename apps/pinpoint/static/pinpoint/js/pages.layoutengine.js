@@ -46,10 +46,6 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
         // this.$el = $(opts.discoveryTarget);
 
-        if (typeof opts.columnWidth === 'function') {
-            opts.columnWidth = opts.columnWidth(this.$el);
-        }
-
         // this.$el.masonry(opts);
 
         SecondFunnel.vent.on('windowResize', function () {
