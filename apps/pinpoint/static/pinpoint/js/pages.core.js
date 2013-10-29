@@ -7,8 +7,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
     "use strict";
     var $window = $(window),
-        $document = $(document),
-        getModifiedTemplateName;
+        $document = $(document);
 
     /**
      * convenience method for accessing PAGES_INFO or TEST_*.
@@ -105,7 +104,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             for (i = 0; i < templateIDs.length; i++) {
                 data = $.extend({},
                     Marionette.getOption(this, "model").attributes);
-                data.template = getModifiedTemplateName(data.template);
+                data.template = module.getModifiedTemplateName(data.template);
 
                 temp = _.template(templateIDs[i], {
                     'options': SecondFunnel.options,
@@ -137,7 +136,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @param name {String}     the current template name
      * @returns {String}        the correct template name
      */
-    getModifiedTemplateName = function (name) {
+    this.getModifiedTemplateName = function (name) {
         return name.replace(/(styld[\.\-]by|tumblr|pinterest|facebook|instagram)/i,
             'image');
     };

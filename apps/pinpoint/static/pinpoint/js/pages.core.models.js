@@ -7,8 +7,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
     "use strict";
     var $window = $(window),
-        $document = $(document),
-        getModifiedTemplateName;
+        $document = $(document);
 
     /**
      * Object store for information about a particular database product,
