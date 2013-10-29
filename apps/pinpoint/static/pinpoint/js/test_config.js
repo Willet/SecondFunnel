@@ -14,7 +14,7 @@ window.PAGES_INFO = {
         'product': undefined,  // optional (supplied to featured template)
         'offline': false  // optional (if true, loads .content immediately)
     },
-    'campaign': 96,
+    'campaign': 97,
     'categories': [
         {  // you will still need to make elements with data-category="96" on the page.
             'id': 96

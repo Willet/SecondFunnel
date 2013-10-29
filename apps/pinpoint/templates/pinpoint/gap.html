@@ -147,7 +147,7 @@
                 <div class='image-div col-sm-6 col-md-6'>
                     <div class='image'>
                         <img class='img-rounded'
-                             src='<%= sizeImage(obj.image, 400) %>'/>
+                             src='<%= sizeImage(obj.defaultImage.url, 400) %>'/>
                     </div>
                 </div>
                 <div class='info col-sm-6 col-md-6'>
@@ -194,7 +194,7 @@
                 <div class="row">
                     <div class="image col-sm-6 col-md-6">
                         <img class='img-rounded'
-                             src="<%= sizeImage(obj.image, 400) %>"
+                             src="<%= sizeImage(obj.defaultImage.url, 400) %>"
                              alt="image"/>
                     </div>
                     <div class="col-sm-6 col-md-6">
@@ -202,7 +202,7 @@
                         <div class='title'><%= product.title %></div>
                         <div class='price'><%= product.price %></div>
                         <img class="main-image"
-                             src="<%= sizeImage(product.image, 150) %>"
+                             src="<%= sizeImage(product.defaultImage.url, 150) %>"
                              alt="related product"/>
 
                         <div class='description'>
@@ -240,7 +240,7 @@
             </div>
             <% } else { %>
             <div class="image-without-related-products">
-                <img src="<%= sizeImage(obj.image, 400) %>" alt="image"/>
+                <img src="<%= sizeImage(obj.defaultImage.url, 400) %>" alt="image"/>
 
                 <div class="info">
                     <%= SecondFunnel.utils.safeString(obj.caption) %>
