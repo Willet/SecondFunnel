@@ -238,7 +238,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     });
 
     this.ProductTileView = this.TileView.extend({
-        'template': "#product_tile_template"
+        'template': "#product_tile_template",
+        'model': module.Tile
+    });
+
+    this.ImageTileView = this.TileView.extend({
+        'template': "#image_tile_template",
+        'model': module.ImageTile
     });
 
     /**
@@ -253,6 +259,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      */
     this.VideoTileView = this.TileView.extend({
         'template': "#video_tile_template",
+        'model': module.VideoTile,
+
         'onInitialize': function () {
             // Add here additional things to do when loading a VideoTile
             this.$el.addClass('wide');
@@ -264,22 +272,25 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
         },
 
-        /**
-         * Determine which click handler to use; determined by the content type.
-         * @returns {Function}
-         */
         'onClick': function () {
-            var handler = _.capitalize(this.model.get('content-type'));
-            return (this['onClick' + handler] || this.onClickVideo).apply(this);
+            // TODO: play videos more appropriately
+            window.open(this.model.get('original-url') || this.model.get('url'));
         },
 
+        'onPlaybackEnd': function (ev) {
+            SecondFunnel.vent.trigger("videoEnded", ev, this);
+        }
+    });
+
+    this.YoutubeTileView = this.VideoTileView.extend({
+        'model': module.YoutubeTile,
         /**
          * Renders a YouTube video in the tile.
          *
          * @param ev {jQuery.Event}   JS event object
          * @returns undefined
          */
-        'onClickYoutube': function (ev) {
+        'onClick': function (ev) {
             var thumbId = 'thumb-' + this.model.cid,
                 $thumb = this.$('div.thumbnail'),
                 self = this;
@@ -319,19 +330,14 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 }
             });
         },
-
-        'onClickVideo': function () {
-            // TODO: play videos more appropriately
-            window.open(this.model.get('original-url') || this.model.get('url'));
-        },
-
-        'onPlaybackEnd': function (ev) {
-            SecondFunnel.vent.trigger("videoEnded", ev, this);
-        }
     });
 
     this.ImageTileView = this.TileView.extend({
-        'template': '#image_tile_template'
+        'template': '#image_tile_template',
+        'onRender': function () {
+            console.log(this);
+            return this;
+        }
     });
 
     /**
@@ -392,8 +398,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // this.listenTo(this.collection, 'sync', self.render);
 
             // ... then fetch more products from IR
-            this.getTiles()
-                .done(this.layoutResults);
+            return this.getTiles();
         },
 
         'attachListeners': function () {
@@ -433,41 +438,32 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @param options
          * @param tile {TileView}  supply a tile View to have tiles inserted
          *                         after it. (optional)
-         * @returns this.Feed
+         * @returns deferred
          */
         'getTiles': function (options, tile) {
-            var self = this,
-                opts;
-            if (this.loading) {
-                console.warn('Already loading tiles. Try again later');
-                return this;
-            }
-            if (!$('#discovery-area').is(':visible')) {
-                console.warn('Cannot load tiles when the feed is invisible');
-                return this;
-            }
-            // this.toggleLoading(true);
+            var self = this;
 
-            return this.collection.fetch({'add': true, 'remove': false});
+            return this.collection
+                .fetch({'add': true, 'remove': false, 'merge': true})
+                .done(function (data) {
+                    // unorthodox 'after-the-fact partial list shuffling',
+                    // because there is no such thing in place, apparently
+                    var itemsFetchCount, itemsFetched, tail;
+                    itemsFetchCount = data.length;
 
-            /*
-            opts = options || {};
-            opts.type = opts.type || 'campaign';
-
-            $.when(this.collection.fetch(opts))
-                .always(function (data) {
-                    self.layoutResults(data, tile);
-                })
-                .always(function (data) {
                     if (data && data.length > 0) {
-                        self.getMoreResults();
-                    } else {
-                        self.toggleLoading(false);
+                        return self.getMoreResults();
                     }
+
+                    tail = self.collection.length - itemsFetchCount;
+                    itemsFetched = self.collection.slice(tail);
+
+                    self.collection
+                        .remove(itemsFetched)
+                        .add(_.shuffle(itemsFetched));
+
+                    self.toggleLoading(false);
                 });
-            self.toggleLoading(false);
-            return this;
-            */
         },
 
         /**

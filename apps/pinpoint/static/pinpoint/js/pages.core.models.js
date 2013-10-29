@@ -154,10 +154,24 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     });
 
     /**
+     * An image with some useful attributes: large, medium, ... (sizes => url)
      * TODO
      * @type {*}
      */
-    this.Image = Backbone.Model.extend({});
+    this.Image = Backbone.Model.extend({
+        'initialize': function (attributes) {
+            if (_.has(attributes, 'sizes')) {
+                _.each(attributes.sizes, function (sizeData, sizeName) {
+                    // {width, height}, 'grande'
+
+                });
+            } else {
+                this.set('sizes', [
+                    {'master': this.url}
+                ]);
+            }
+        }
+    });
 
     this.ImageTile = this.Tile.extend({
         'defaults': {

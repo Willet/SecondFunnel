@@ -38,7 +38,6 @@ SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
         }
 
         // remove console functions depending on desired debug threshold.
-        /*
         if (level < SecondFunnel.ERROR) {
             console.error = $.noop;
         }
@@ -54,7 +53,6 @@ SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
         if (level < SecondFunnel.VERBOSE) {
             console.debug = $.noop;
         }
-        */
     } catch (e) {
         // this is an optional operation. never let this stop the script.
     }
@@ -200,7 +198,6 @@ _.mixin({
 (function (views) {
     // View's render() is a noop. It won't trigger a NoTemplateError
     // like other views do. Here's a patch.
-    /*
     Marionette.View.prototype.render = function () {
         if (!$(this.template).length) {
             function throwError(message, name) {
@@ -251,7 +248,6 @@ _.mixin({
             return result;
         };
     });
-     */
 }([Marionette.View, Marionette.CompositeView, Marionette.ItemView]));
 
 broadcast = function (eventName) {
