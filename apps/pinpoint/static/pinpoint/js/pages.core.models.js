@@ -33,8 +33,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 videoTypes = ["youtube", "video"],
                 type = this.get('content-type').toLowerCase();
 
-            // $.extend(this.attributes, attributes);
-
             try {
                 defaultImage = this.getImageAttrs();
                 this.set({
@@ -42,17 +40,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'dominant-colour': defaultImage['dominant-colour']
                 });
             } catch (e) {
-                // not a tile with default-image
-                try {
-                    // this happens when an image tile has no size information
-                    this.set({
-                        'defaultImage': {
-                            'url': this.get('url')
-                        }
-                    });
-                } catch (er) {
-                    // nothing else can be done
-                }
+                // not a tile with default-image, or
+                // image tile has no size information
+                this.set({
+                    'defaultImage': {
+                        'url': this.get('url')
+                    }
+                });
             }
 
             // set up tile type overrides

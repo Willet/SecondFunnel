@@ -118,13 +118,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // do some kind of magic such that these methods are always called
             // with its context being this object.
-            /*_.bindAll(this, 'close', 'modelChanged');*/
+            _.bindAll(this, 'close', 'modelChanged');
 
             // If the tile model is changed, re-render the tile
             this.listenTo(this.model, 'changed', this.modelChanged);
 
             // If the tile model is removed, remove the DOM element
-            /*this.listenTo(this.model, 'destroy', this.close);*/
+            this.listenTo(this.model, 'destroy', this.close);
             // Call onInitialize if it exists
             this.triggerMethod('initialize');
         },
@@ -179,30 +179,36 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
             // Listen for the image being removed from the DOM, if it is, remove
             // the View/Model to free memory
-            /*this.$el.on('remove', function (ev) {
+            this.$el.on('remove', function (ev) {
                 if (ev.target === self.el) {
                     self.model.destroy();
                 }
-            });*/
+            });
         },
 
         'onMissingTemplate': function () {
             // If a tile fails to load, destroy the model
             // and subsequently this tile.
-            /*this.model.destroy();
-            this.close();*/
+            this.model.destroy();
+            this.close();
         },
 
         'onRender': function () {
             var tileImg = this.$('img.focus'),
                 sizedUrl = this.model.getSizedImage(
-                undefined, {
-                    'width': 255 * (tileImg.hasClass('wide') + 1)
-                }
-            );
+                    undefined, {
+                        'width': 255 * (tileImg.hasClass('wide') + 1)
+                    }
+                ),
+                hexColor,
+                rgbaColor;
+
             if (this.model.get('dominant-colour')) {
+                hexColor = this.model.get('dominant-colour');
+                rgbaColor = SecondFunnel.utils.hex2rgba(hexColor, 0.5);
+
                 tileImg.css({
-                    'background-color': this.model.get('dominant-colour')
+                    'background-color': rgbaColor
                 });
             }
             tileImg.attr('src', sizedUrl);
@@ -503,33 +509,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 return this.toggleLoading(false);
             }
 
-            SecondFunnel.discoveryArea.show(this);
-            /* // If we have data to use.
-            _.each(data, function (tileData) {
-                // Create the new tiles using the data
-                var tile = new module.Tile(tileData),
-                    view = tile.createView();
-
-                // add this model to our collection of models.
-                self.collection.add(tile);
-                if (view && view.$el && !view.isClosed) {
-                    // Ensure we were given something
-                    tileEls.push(view.$el[0]);
-                } else if (view === undefined) {
-                    // render unsuccessful (warning already issued in createView)
-                    return null;
-                }
-            });
-
-            if (tile && tile.$el) {
-                $tile = tile.$el;  // this would be the "insert after" target
-            }
-            SecondFunnel.layoutEngine.add(tileEls, $tile)
-                .always(function () {
-                    self.toggleLoading(false);
-                })
-                .always(this.getMoreResults);
-            */
+            // If we have data to use.
             return this;
         },
 

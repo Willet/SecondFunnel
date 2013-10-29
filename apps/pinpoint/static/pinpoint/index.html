@@ -118,7 +118,7 @@
                 <div class='spacer'></div>
             </script>
             <script type="text/template" id="product_tile_template">
-                <div>product</div>
+                <!-- div>product</div -->
                 <div class="tap-indicator-target"></div>
                 <img class="focus" src="<%= obj.image || obj.url|| obj.defaultImage.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
@@ -140,9 +140,8 @@
                 <div class="social-buttons"></div>
             </script>
             <script type="text/template" id="image_tile_template">
-                <div>image</div>
+                <!-- div>image</div -->
                 <div class="tap-indicator-target"></div>
-                <% console.log(obj); %>
                 <img class="focus" src="<%= obj.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>

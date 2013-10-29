@@ -244,4 +244,18 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
             return _.extend.apply(_.extend, args);
         };
     };
+
+    /**
+     * $.fn.css() cannot translate 8-code hex to rgba.
+     *
+     * @param {string} hexColor   e.g. '#abcdef'
+     * @param {float}  opacity    e.g. 0.5
+     * @return {string}           e.g. rgba(1,2,3,opacity)
+     */
+    this.hex2rgba = function (hexColor, opacity) {
+        return 'rgba(' + parseInt(hexColor.slice(-6, -4), 16) +
+            ',' + parseInt(hexColor.slice(-4, -2), 16) +
+            ',' + parseInt(hexColor.slice(-2), 16) +
+            ',' + opacity + ')';
+    };
 });

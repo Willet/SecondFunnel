@@ -8,13 +8,10 @@
 function reInitialize(app) {
     "use strict";
 
-    if (app === undefined) {
-        return;
-    }
-
     broadcast('beforeInit', app.options, app);
 
     app.addRegions({
+        'heroArea': '#discovery-area',
         'discoveryArea': '#discovery-area'
     });
 
@@ -40,49 +37,32 @@ function reInitialize(app) {
     });
 
     app.addInitializer(function () {
+        var fa;
         try {
-            var fa = new app.core.HeroAreaView();
-            fa.render();
+            fa = new app.core.HeroAreaView();
+            app.heroArea.show(fa);
             broadcast('heroAreaRendered', fa);
         } catch (err) {
             // marionette throws an error if no hero templates are found or needed.
             // it is safe to ignore it.
-            broadcast('heroAreaNotRendered');
+            broadcast('heroAreaNotRendered', err);
         }
     });
 
     app.addInitializer(function () {
-        if (window.console) {
-            app.vent.on('log', function () {
-                try {  // console.log is an object in IE...?
-                    console.log.apply(console, arguments);
-                } catch (e) {}
-            });
-            app.vent.on('warn', function () {
-                try {
-                    console.warn.apply(console, arguments);
-                } catch (e) {}
-            });
-            app.vent.on('error', function () {
-                try {
-                    console.error.apply(console, arguments);
-                } catch (e) {}
-            });
-
-            app.vent.on('beforeInit', function (details) {
-                var pubDate;
-                if (details && details.page && details.page.pubDate) {
-                    pubDate = details.page.pubDate;
-                }
-                console.log(  // feature, not a bug
-                    '____ ____ ____ ____ _  _ ___     ____ _  _ ' +
-                    '_  _ _  _ ____ _    \n[__  |___ |    |  | |' +
-                    '\\ | |  \\    |___ |  | |\\ | |\\ | |___ | ' +
-                    '   \n___] |___ |___ |__| | \\| |__/    |   ' +
-                    ' |__| | \\| | \\| |___ |___ \n' +
-                    '           Published ' + pubDate);
-            });
-        }
+        app.vent.on('beforeInit', function (details) {
+            var pubDate;
+            if (details && details.page && details.page.pubDate) {
+                pubDate = details.page.pubDate;
+            }
+            console.log(  // feature, not a bug
+                '____ ____ ____ ____ _  _ ___     ____ _  _ ' +
+                '_  _ _  _ ____ _    \n[__  |___ |    |  | |' +
+                '\\ | |  \\    |___ |  | |\\ | |\\ | |___ | ' +
+                '   \n___] |___ |___ |__| | \\| |__/    |   ' +
+                ' |__| | \\| | \\| |___ |___ \n' +
+                '           Published ' + pubDate);
+        });
     });
 
     app.addInitializer(function () {
@@ -101,9 +81,10 @@ function reInitialize(app) {
             options: app.options
         });
 
+        SecondFunnel.discoveryArea.show(app.discovery);
+
         broadcast('finished', app.options, app);
     });
-
 }
 
 // auto-initialise existing instance on script inclusion
