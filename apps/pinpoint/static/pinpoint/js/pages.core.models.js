@@ -27,6 +27,37 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             'dominant-colour': "transparent"
         },
 
+        /**
+         * Processes IR's image sizes. Instagram (Image) tiles have their
+         * own parsing implementation.
+         *
+         * @param resp
+         * @param options
+         * @returns {*}
+         */
+        'parse': function (resp, options) {
+            var defaultImage,
+                productImages = resp.images,
+                imgUrl,
+                imgSizes;
+
+            // if this tile has images at all
+            if (_.has(resp, 'default-image') &&
+                productImages && productImages.length) {
+                // if this tile has the default image that the tile claims
+                // to be default
+                defaultImage = _.findWhere(productImages, {
+                    'id': resp['default-image']
+                });
+
+                if (defaultImage) {
+                    imgUrl = defaultImage.url;
+                    imgSizes = defaultImage.sizes;
+                }
+            }
+            return resp;
+        },
+
         'initialize': function (attributes, options) {
             var self = this,
                 defaultImage,
@@ -209,6 +240,25 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             return new TileClass(item);
         },
+
+        /**
+         * process common attributes, then relay the collection's parsing
+         * method to their individual tiles.
+         *
+         * @param resp
+         * @param options
+         * @returns {Array}
+         */
+        'parse': function (resp, options) {
+            // this = the instance
+            var self = this;
+            return _.map(resp, function (jsonEntry) {
+                var TileClass = SecondFunnel.utils.findClass('Tile',
+                    resp.template, module.Tile);
+                return TileClass.prototype.parse.call(self, jsonEntry);
+            });
+        },
+
         /**
          * Interact with IR using the built-in Backbone thingy.
          *
