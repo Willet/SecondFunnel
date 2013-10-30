@@ -550,14 +550,16 @@ div.loading {
 }
 
 /* iPad */
-.ipad .previewContainer .content {
-    position: fixed!important;
+@media screen {
 
-    top: 0!important;
-    bottom: 0!important;
+    @media (max-width: 768px) {
+        .ipad .previewContainer .content {
+            position: fixed!important;
+            bottom: 16%!important;
+        }
+    }
+
+    .ipad .previewContainer .mask {
+        display: block!important;
+    }
 }
-
-.ipad .previewContainer .mask {
-    display: block!important;
-}
-
