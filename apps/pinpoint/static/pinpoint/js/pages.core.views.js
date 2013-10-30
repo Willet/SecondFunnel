@@ -19,23 +19,27 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     this.HeroAreaView = Marionette.ItemView.extend({
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
-        'model': new this.Tile(SecondFunnel.option('page:product', {})),
+        'model': module.Tile,
         'template': "#stl_template, #featured_template, #hero_template",
+        'initialize': function (data) {
+            if (!data) {
+                this.model = new module.Tile(data);
+            } else {
+                this.model = new module.Tile(SecondFunnel.option('page:product', {}));
+            }
+        },
         'onRender': function () {
-            var buttons,
-                $heroArea = $('#hero-area');
+            var buttons;
             if (this.$el.length) {  // if something rendered, it was successful
-                $heroArea.html(this.$el.html());
-
                 if (!(SecondFunnel.support.touch() || SecondFunnel.support.mobile()) &&
                     this.$('.social-buttons').length >= 1) {
-                        buttons = new SecondFunnel.sharing.SocialButtons({
-                            'model': this.model
-                        })
-                        .render().load().$el;
-                    $heroArea.find('.social-buttons').append(buttons);
-                }
 
+                    buttons = new SecondFunnel.sharing.SocialButtons({
+                        'model': this.model
+                    }).render().load();
+                    this.$('.social-buttons').html(buttons.$el);
+                }
+                SecondFunnel.heroArea.$el.append(this.$el);
             }
         }
     });

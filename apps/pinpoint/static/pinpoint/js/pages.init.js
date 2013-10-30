@@ -10,7 +10,7 @@ function reInitialize(app) {
     broadcast('beforeInit', app.options, app);
 
     app.addRegions({
-        'heroArea': '#discovery-area',
+        'heroArea': '#hero-area',
         'discoveryArea': '#discovery-area'
     });
 
@@ -47,16 +47,10 @@ function reInitialize(app) {
     });
 
     app.addInitializer(function () {
-        var fa;
-        try {
-            fa = new app.core.HeroAreaView();
-            app.heroArea.show(fa);
-            broadcast('heroAreaRendered', fa);
-        } catch (err) {
-            // marionette throws an error if no hero templates are found or needed.
-            // it is safe to ignore it.
-            broadcast('heroAreaNotRendered', err);
-        }
+        var fa = new app.core.HeroAreaView();
+        app.heroArea.show(fa);
+
+        broadcast('heroAreaRendered', fa);
     });
 
     app.addInitializer(function () {

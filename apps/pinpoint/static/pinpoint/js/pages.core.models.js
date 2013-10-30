@@ -334,7 +334,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         /**
          * (Re)configure this object to fetch from an Intent Rank URL.
          *
-         * @param url
+         * @param apiUrl
          * @param campaign
          * @param results
          */

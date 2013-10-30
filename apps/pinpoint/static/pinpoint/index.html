@@ -84,11 +84,7 @@
             </nav>
         </header>
         <div class="waterfall container"><!-- .container is bootstrap magic, and has a viewport-dependent width. -->
-            <div id="hero-area" class="featured">
-                <div class="visible-xs jumbotron"></div>
-                <div class="visible-sm jumbotron"></div>
-                <div class="visible-md visible-lg jumbotron"></div>
-            </div>
+            <div id="hero-area"></div>
             <div id="discovery-area" class="discovery-area"></div>
             <div class="no-noscript loading"></div>
             <noscript>
@@ -100,7 +96,6 @@
                 </div>
             </noscript>
         </div>
-
 
         <!-- Templates -->
         <div>
@@ -116,6 +111,11 @@
                     </div>
 
                 <div class='spacer'></div>
+            </script>
+            <script type="text/template" id="hero_template">
+                <div class="visible-xs jumbotron"></div>
+                <div class="visible-sm jumbotron"></div>
+                <div class="visible-md visible-lg jumbotron"></div>
             </script>
             <script type="text/template" id="product_tile_template">
                 <!-- div>product</div -->
