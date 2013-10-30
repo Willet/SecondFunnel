@@ -98,9 +98,8 @@ function reInitialize(app) {
         broadcast('finished', app.options, app);
     });
 
-    // I would use support.isAniPad, but it's support is loaded after init.
-    app.addInitializer(function () {
-        if (/ipad/i.test(navigator.userAgent)) {
+    app.vent.on('finished', function () {
+        if (SecondFunnel.support.isAniPad()) {
             $('html').addClass('ipad');
         }
     });
