@@ -21,7 +21,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // Default product tile settings, some tiles don't
             // come specifying a type or caption
             'caption': "Shop product",
-            'tile-id': null,
+            'tile-id': 0,
             'tile-class': 'tile',
             'content-type': "",
             'related-products': [],
@@ -120,7 +120,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 // IR gave no sizes. fill it
                 img.sizes = {
                     'master': {
-                        'isStub': 5,
                         'width': 2048,
                         'height': 2048
                     }
@@ -186,6 +185,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         }
     });
 
+    /**
+     * automatically subclassed by TileCollection's model() method
+     * @type {Tile}
+     */
     this.ImageTile = this.Tile.extend({
         'defaults': {
             'tile-class': 'image',
@@ -211,6 +214,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         }
     });
 
+    /**
+     * automatically subclassed by TileCollection's model() method
+     * @type {Tile}
+     */
     this.VideoTile = this.Tile.extend({
         'defaults': {
             'tile-class': 'video',
@@ -227,6 +234,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
     /**
      * Our TileCollection manages ALL the tiles on the page.
+     * This is essentially IntentRank.
+     *
      * @constructor
      * @type {Collection}
      */
@@ -242,6 +251,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             return new TileClass(item);
         },
+
+        'config': {},
 
         /**
          * process common attributes, then relay the collection's parsing
@@ -269,29 +280,21 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'url': function () {
             return _.template(
                 '<%=url%>/page/<%=campaign%>/getresults?results=<%=results%>',
-                {
-                    'url': SecondFunnel.option('IRSource'),
-                    'campaign': SecondFunnel.option('campaign'),
-                    'results': SecondFunnel.option('IRResultsCount')
-                }
+                this.config
             );
         },
 
         'loading' : false,
 
-        'initialize': function (arrayOfData) {
-            // Our TileCollection starts by rendering several Tiles using the
-            // data it is passed.
-            var data, TileClass;
-            for (data in arrayOfData) {  // Generate Tile
-                if (arrayOfData.hasOwnProperty(data)) {
-                    TileClass = SecondFunnel.utils.findClass('Tile',
-                        data.template, module.Tile);
-                    this.add(new TileClass(data));
-                }
-            }
-
+        'initialize': function (arrayOfData, url, campaign, results) {
+            this.setup(url, campaign, results);  // if necessary
             broadcast('tileCollectionInitialized', this);
+        },
+
+        'setup': function (url, campaign, results) {
+            this.config.url = url || SecondFunnel.option('IRSource');
+            this.config.campaign = campaign || SecondFunnel.option('campaign');
+            this.config.results = results || SecondFunnel.option('IRResultsCount');
         }
     });
 

@@ -136,61 +136,14 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      *    - an image url pointing to one that is at most as wide as
      *      the window width, or
      *    - if minWidth is ridiculously large, master.jpg.
-     * if scalePolicy is "max", then the image served is always smaller
-     *    than requested.
      *
      * @param {string} url
      * @param {int} minWidth
-     * @param {min|max|undefined} scalePolicy
+     * @deprecated
+     *
      * @returns {string}
      */
-    this.pickImageSize = function (url, minWidth, scalePolicy) {
-        var i,
-            prevKey = 'pico',
-            maxLogicalSize = Math.min($window.width(), $window.height()),
-            // TODO: URL spec not found in /Willet/planning/blob/master/architecture/specifications/image-service.md
-            sizable = /images\.secondfunnel\.com.+\.(jpe?g|png)/.test(url),
-            nameRegex = /([^/]+)\.(jpe?g|png)/,
-            imageSizes = SecondFunnel.option('imageSizes', {
-                // see Scraper: ImageServiceIntegrationTest.java#L52
-                "pico": 16,
-                "icon": 32,
-                "thumb": 50,
-                "small": 100,
-                "compact": 160,
-                "medium": 240,
-                "large": 480,
-                "grande": 600,
-                "1024x1024": 1024,
-                "master": 2048
-            });
-
-        if (!utils.isURL(url)) {
-            throw "First parameter must be a valid URL";
-        }
-
-        if (!sizable) {
-            return url;
-        }
-
-        // TODO: a better idea
-        for (i in imageSizes) {
-            if (imageSizes.hasOwnProperty(i)) {
-                if (!scalePolicy || scalePolicy === 'min') {
-                    if (imageSizes[i] >= minWidth) {
-                        return url.replace(nameRegex, i + '.$2');
-                    }
-                } else if (scalePolicy === 'max') {
-                    if (imageSizes[i] >= minWidth) {
-                        return url.replace(nameRegex, prevKey + '.$2');
-                    }
-                }
-                if (imageSizes[i] >= maxLogicalSize) {
-                    return url.replace(nameRegex, prevKey + '.$2');
-                }
-            }
-            prevKey = i;
-        }
+    this.pickImageSize = function (url, minWidth) {
         return url;
     };
 
@@ -239,7 +192,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
         /**
          * Return a single dict that reads the same as the ChainMap object.
          */
-        this.merge = function () {
+        this.combine = function () {
             var args = [{}].concat(_.clone(maps).reverse());
             return _.extend.apply(_.extend, args);
         };

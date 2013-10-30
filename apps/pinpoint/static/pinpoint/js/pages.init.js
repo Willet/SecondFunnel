@@ -77,6 +77,7 @@ function reInitialize(app) {
             broadcast('ajaxError', settings.url, app);
         });
 
+        // create a discovery area with tiles in it
         app.discovery = new SecondFunnel.core.Feed({
             options: app.options
         });

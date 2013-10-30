@@ -187,12 +187,12 @@ _.mixin({
      * @returns {*}
      */
     Marionette.View.prototype.render = function () {
+        function throwError(message, name) {
+            var error = new Error(message);
+            error.name = name || 'Error';
+            throw error;
+        }
         if (!$(this.template).length) {
-            function throwError(message, name) {
-                var error = new Error(message);
-                error.name = name || 'Error';
-                throw error;
-            }
             throwError(this.template, "NoTemplateError");
         }
 
@@ -206,14 +206,14 @@ _.mixin({
         var oldRender = ViewClass.prototype.render || $.noop;
         ViewClass.prototype.render = function () {
             var result;
-            try {
+            /*try {*/
                 // call the original function
                 result = oldRender.apply(this, arguments);  // usually 'this'
 
                 // do something else
                 SecondFunnel.utils.runWidgets(this);
 
-            } catch (err) {
+            /*} catch (err) {
                 // failed... close the view
                 broadcast('viewRenderError', err, this);
 
@@ -230,7 +230,7 @@ _.mixin({
                 }
 
                 this.close();
-            }
+            }*/
 
             // return the return of the original function, pretend nothing happened
             return result;

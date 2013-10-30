@@ -185,7 +185,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 sizes = defaultImage.sizes;
 
                 // bad tile, load its only size
-                if (!(sizes && sizes.length)) {
+                if (!(sizes && _.size(sizes))) {
                     sizes = {
                         'master': {
                             'width': 2048,
@@ -205,8 +205,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 //         wide: {width, height, url}, ...}
                 defaultImage[aliasName] = _.first(
                     _.filter(sizeIndex, function (sizeData) {
-                        return sizeData.width > width;
+                        return sizeData.width >= width;
                     }));
+
+                // couldn't find one large enough
+                if (!defaultImage[aliasName]) {
+                    defaultImage[aliasName] = {'width': 2048, 'height': 2048};
+                }
 
                 // get the real image size name (e.g. 'large')
                 // from the list of sizes that we just picked.
@@ -216,9 +221,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
                 defaultImage[aliasName].url =
                     defaultImage.url.replace(/master\./, sizeName + '.');
-
-                console.warn('defaultImage[' + aliasName + '].url = ' +
-                    defaultImage[aliasName].url);
             });
 
             // 0.333 is an arbitrary 'lets make this tile wide' factor
@@ -245,32 +247,40 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'onRender': function () {
-            var tileImg = this.$('img.focus'),
-                sizedUrl = this.model.getSizedImage(
-                    undefined, {
-                        'width': 255 * (tileImg.hasClass('wide') + 1)
-                    }
-                ),
+            var self = this,
+                model = this.model,
+                defaultImage = model.get('defaultImage'),
+                $tileImg = this.$('img.focus'),
+                idealSize,
                 hexColor,
                 rgbaColor;
 
-            if (this.model.get('dominant-colour')) {
-                hexColor = this.model.get('dominant-colour');
+            // set dominant colour on tile, and set the height of the tile
+            // so it looks like it is all-ready
+            if (model.get('dominant-colour')) {
+                hexColor = model.get('dominant-colour');
                 rgbaColor = SecondFunnel.utils.hex2rgba(hexColor, 0.5);
 
-                tileImg.css({
+                $tileImg.css({
                     'background-color': rgbaColor
                 });
             }
-            tileImg.attr('src', sizedUrl);
 
-            // semi-stupid view-based resizer
-            var columns = (this.$el.hasClass('wide') && $window.width() > 480) ? 2 : 1,
-                columnWidth = SecondFunnel.option('columnWidth', 255);
-            if (tileImg.length && tileImg.attr('src')) {
-                tileImg.attr('src', SecondFunnel.utils.pickImageSize(tileImg.attr('src'),
-                                    columnWidth * columns));
+            idealSize = defaultImage.normal;
+            if ($tileImg.hasClass('wide')) {
+                idealSize = defaultImage.wide;
             }
+
+            // master.jpgs have no defined size
+            if (idealSize.url.indexOf('master') < 0) {
+                // set tile image height to a scaled ratio of their chosen
+                // dimensions
+                $tileImg.css({
+                    'height': (idealSize.width / $tileImg.width()) *
+                        idealSize.height
+                });
+            }
+            $tileImg.attr('src', idealSize.url);
 
             if (this.tapIndicator && this.socialButtons) {
                 // Need to do this check in case layout is closing due
@@ -409,20 +419,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         /**
          * @param {Model} item
+         * @return {TileView}
          */
         'getItemView': function (item) {
-            var itemType = item.get('template') ||
-                           item.get('type');
-
-            switch (itemType) {
-            case 'video':
-                return module.VideoTileView;
-            case 'image':
-                return module.ImageTileView;
-            // case 'product':  // this *is* default
-            default:
-                return module.TileView;
-            }
+            return SecondFunnel.utils.findClass('TileView',
+                    item.get('template') || item.get('type'), module.TileView);
         },
 
         // buildItemView (marionette.collectionview.md#collectionviews-builditemview)
@@ -446,10 +447,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
 
             this.collection = new SecondFunnel.core.TileCollection();
-
-            // TODO: too sensitive. loops too many times.
-            // this.listenTo(this.collection, 'add', self.render);
-            // this.listenTo(this.collection, 'sync', self.render);
 
             // ... then fetch more products from IR
             return this.getTiles();

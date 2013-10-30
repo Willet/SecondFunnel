@@ -107,7 +107,7 @@
             <script type="text/template" id="disabled_featured_template">
                 <div class='featured product'>
                     <!-- Main Display Area -->
-                    <img class='img-responsive pull-left' src='<%= obj.image || obj.defaultImage.url %>' />
+                    <img class='img-responsive pull-left' src='<%= obj.defaultImage.url %>' />
                     <div class='pull-right'><%= obj.title %></div>
                         <div class='price'><%= obj.price %></div>
                         <div>
@@ -120,7 +120,7 @@
             <script type="text/template" id="product_tile_template">
                 <!-- div>product</div -->
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.image || obj.url|| obj.defaultImage.url %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -128,7 +128,7 @@
             </script>
             <script type="text/template" id="product_mobile_tile_template">
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.image || obj.defaultImage.url %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -153,7 +153,7 @@
             </script>
             <script type="text/template" id="youtube_tile_template">
                 <div class="img-responsive thumbnail"
-                     style="background-image: url('<%= obj.thumbnail || obj.image || obj.defaultImage.url %>');">
+                     style="background-image: url('<%= obj.defaultImage.url %>');">
                   &nbsp;
                   <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
                 </div>
@@ -256,7 +256,7 @@
                 </a>
             </script>
             <script type="text/template" id="product_preview_template">
-                <img src="<%= obj.image || obj.defaultImage.url %>" alt=""/>
+                <img src="<%= obj.defaultImage.url %>" alt=""/>
                 <%= obj.price %>
                 <div class="social-buttons"></div>
             </script>
@@ -266,7 +266,7 @@
                     <%= obj.caption || obj.title || obj.name %>
                     <!-- in that order (it may still have none of those) -->
                 </h4>
-                <img src="<%= obj.image || obj.defaultImage.url %>" alt=""/>
+                <img src="<%= obj.defaultImage.url %>" alt=""/>
                 <div class="social-buttons"></div>
             </script>
 
@@ -280,7 +280,7 @@
                 <div class='content-wrapper row'>
                     <div class='image-div col-sm-6 col-md-6'>
                         <div class='image'>
-                            <img class='img-rounded' src='<%= sizeImage(obj.defaultImage.url, 400) %>'/>
+                            <img class='img-rounded' src='<%= obj.defaultImage.url %>'/>
                         </div>
                     </div>
                     <div class='info col-sm-6 col-md-6'>
@@ -322,7 +322,7 @@
                         <div class="row">
                     <div class="col-sm-6 col-md-6">
                         <div class="image">
-                                <img class='img-rounded' src="<%= sizeImage(obj.defaultImage.url, 400) %>" alt="image" />
+                                <img class='img-rounded' src="<%= obj.defaultImage.url %>" alt="image" />
                             </div>
 
                         <div class="buttons-container">
@@ -340,7 +340,7 @@
                                 <div class='price'><%= product.price %></div>
                         <div class="row">
                             <div class="col-lg-4 col-md-4 col-sm-4 main-image-container">
-                                <img class="main-image" src="<%= sizeImage(product.defaultImage.url, 150) %>" alt="related product" />
+                                <img class="main-image" src="<%= product.defaultImage.url %>" alt="related product" />
                             </div>
                             <div class="accordion-container col-lg-8 col-md-8 col-sm-8">
                                 <div class="panel-group" id="accordion-gapimage">
@@ -458,59 +458,8 @@
             if (window.SecondFunnel) {
                 // Start the SecondFunnel app
                 SecondFunnel.start();
-                window.sizeImage = SecondFunnel.utils.pickImageSize;  // export for designers
-
-                // Example: add UI events
-                new SecondFunnel.tracker.EventManager({
-                    'click .navbar-brand': function (ev) {
-                        console.log('bur... custom event triggered');
-                    }
-                });
-
-                // Example: handle right hand side link clicks
-                new SecondFunnel.tracker.EventManager({
-                    'click .navbar-right a': function (ev) {
-                        var $ev = $(ev.currentTarget);
-
-                        console.log('Click detected! ' + $ev.attr('href'));
-                    }
-                });
-
-
-                // Example: receive event notifications
-                receive({
-                    'previewRendered': function () {
-                        console.log('doh! preview rendered');
-                    }
-                });
+                window.sizeImage = SecondFunnel.utils.pickImageSize;  // deprecated
             }
-
-            /*var TC = Backbone.Collection.extend({});
-
-            var TV = Marionette.ItemView.extend({
-                'template': '#TV_template'
-            });
-
-            var CV = Marionette.CollectionView.extend({
-                'collection': null,
-                'getItemView': function (item) {
-                    return TV;
-                },
-                'initialize': function (options) {
-                    var self = this;
-                    this.collection = new TC(options.collection);
-                }
-            });
-
-            var g = new CV({collection: [
-                {a: 1},
-                {a: 2},
-                {a: 3},
-                {a: 4},
-                {a: 5}
-            ]});
-            g.render();
-            $('#discovery-area').append(g.$el);*/
         </script>
         <!-- End Javascript -->
     </body>
