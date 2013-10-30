@@ -86,13 +86,14 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             var self = this,
                 defaultImage,
                 videoTypes = ["youtube", "video"],
-                type = this.get('content-type').toLowerCase();
+                type = this.get('content-type').toLowerCase(),
+                imgInstances = [];
 
             try {
-                defaultImage = this.getImageAttrs();
+                defaultImage = this.getDefaultImage();
                 this.set({
                     'defaultImage': defaultImage,
-                    'dominant-colour': defaultImage['dominant-colour']
+                    'dominant-colour': defaultImage.get('dominant-colour')
                 });
             } catch (e) {
                 // not a tile with default-image, or
@@ -113,11 +114,61 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 this.set('type', 'video');
             }
 
+            // replace all image json with their objects.
+            _.each(this.get('images'), function (image) {
+                imgInstances.push(new module.Image(image));
+            });
+            self.set('images', imgInstances);
+
             broadcast('tileModelInitialized', this);
         },
 
         'getDefaultImageId': function () {
-            return this.get('default-image') || undefined;
+            try {
+                return this.get('default-image') ||
+                    this.get('images')[0].id ||
+                    this.get('images')[0].get('id');
+            } catch (e) {  // no images
+                console.warn('this tile has no images.', this);
+                return undefined;
+            }
+        },
+
+        'getImage': function (imgId) {
+            var self = this, defImg;
+
+            imgId = imgId || self.getDefaultImageId();
+
+            defImg = _.findWhere(this.get('images'), {
+                'id': imgId
+            });
+
+            if (!defImg) {
+                try {
+                    if (this.get('images')[0] instanceof module.Image) {
+                        return this.get('images')[0];
+                    } else {
+                        return new module.Image(this.get('images')[0]);
+                    }
+                } catch (err) {
+                    // zero images
+                }
+            }
+
+            // found default image or undefined
+            if (defImg instanceof module.Image) {
+                // timing: attributes.images already coverted to Images
+                return defImg;
+            }
+            return new module.Image(defImg);
+        },
+
+        /**
+         * Get the tile's default image as an object.
+         * @returns {Image|undefined}
+         */
+        'getDefaultImage': function () {
+            return this.getImage();
         },
 
         'getImageAttrs': function (imgId) {
@@ -209,6 +260,76 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     });
 
     /**
+     *
+     * @type {*}
+     */
+    this.Image = Backbone.Model.extend({
+        'defaults': {
+            'url': 'http://placehold.it/2048&text=blank',
+            'sizes': {
+                'master': {
+                    'name': 'master',  // easier to know what this is as an obj
+                    'dominant-colour': '#ffffff',
+                    'width': 2048,
+                    'height': 2048
+                }
+            }
+        },
+
+        'initialize': function (data) {
+            // add a name, colour, and a sized url to each size datum
+            var self = this,
+                color = this.get('dominant-colour');
+            _.map(this.get('sizes'), function (size, sizeName) {
+                self.get('sizes')[sizeName].url =
+                    self.get('url').replace(/master\./, sizeName + '.');
+
+                self.get('sizes')[sizeName].name = sizeName;
+                self.get('sizes')[sizeName]['dominant-colour'] = color;
+            });
+        },
+
+        'toJSON': function (options) {
+            // the template needs something simpler.
+            var attribs = _.clone(this.attributes);
+            attribs.normal = this.width(255);
+            attribs.wide = this.width(510);
+            attribs.full = this.width(1020);
+            return attribs;
+        },
+
+        'size': function (size) {
+            // get url by size name, e.g. 'pico'
+            var sizes = this.get('sizes');
+            try {
+                return sizes[size].url;
+            } catch (e) {  // size not available ==> master.jpg
+                return this.get('url');
+            }
+        },
+        'dimens': function (width, height) {
+            var sizes = this.get('sizes');
+            try {
+                return _.first(_(sizes)
+                    .sortBy('width')
+                    .filter(function (size) {
+                        return size.width >= width && size.height >= height;
+                    })).url;
+            } catch (e) {  // size not available
+                return this.get('url');
+            }
+        },
+        'width': function (width) {
+            // get url by min width
+            return this.dimens(width, 0);
+        },
+        'height': function (height) {
+            // get url by min height
+            return this.dimens(0, height);
+        }
+    });
+
+    /**
      * automatically subclassed by TileCollection's model() method
      * @type {Tile}
      */
@@ -217,22 +338,20 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             'tile-class': 'image',
             'content-type': 'image'
         },
+        /**
+         * An ImageTile  *is* an image JSON, so we need to allocate all of its
+         * attributes inside an 'images' field.
+         *
+         * @param resp
+         * @param options
+         * @returns {*}
+         */
         'parse': function (resp, options) {
-            var newResp = _.clone(resp),
-                imgUrl = newResp.url,
-                imgSizes = newResp.sizes;
-            if (!imgSizes.length) {
-                newResp.sizes = {
-                    // stub out sizes for images without them
-                    'master': {
-                        'width': 2048,
-                        'height': 2048
-                    }
-                };
-            }
             // create tile-like attributes
+            resp['default-image'] = 0;
             return {
-                'defaultImage': newResp
+                'default-image': '0',
+                'images': [resp]
             };
         }
     });
@@ -291,7 +410,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             var self = this;
             return _.map(resp, function (jsonEntry) {
                 var TileClass = SecondFunnel.utils.findClass('Tile',
-                    resp.template, module.Tile);
+                    jsonEntry.template, module.Tile);
                 return TileClass.prototype.parse.call(self, jsonEntry);
             });
         },

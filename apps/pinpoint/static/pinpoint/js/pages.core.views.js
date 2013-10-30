@@ -169,9 +169,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * Before the View is rendered. this.$el is still an empty div.
          */
         'onBeforeRender': function () {
+/*
             var maxImageSize,
                 self = this,
-                defaultImage = self.model.get('defaultImage'),
+                defaultImage = self.model.getDefaultImage(),  // obj
                 normalTileWidth = SecondFunnel.option('columnWidth', 255),
                 wideTileWidth = normalTileWidth * 2,
                 fullTileWidth = normalTileWidth * 4,  // 4col (standby)
@@ -186,18 +187,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
                 // { grande: {width, height},
                 //   pico: {width, height}, ...
-                sizes = defaultImage.sizes;
-
-                // bad tile, load its only size
-                if (!(sizes && _.size(sizes))) {
-                    sizes = {
-                        'master': {
-                            'width': 2048,
-                            'height': 2048,
-                            'url': defaultImage.url
-                        }
-                    };
-                }
+                // Image class assures at least one size exists (master)
+                sizes = defaultImage.get('sizes');
 
                 // { 12: {width, height},
                 //   24: {width, height}, ...
@@ -223,14 +214,18 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 sizeName = _.getKeyByValue(defaultImage.sizes,
                     defaultImage[aliasName]) || 'master';
 
-                defaultImage[aliasName].url =
-                    defaultImage.url.replace(/master\./, sizeName + '.');
+                try {
+                    defaultImage[aliasName].url =
+                        defaultImage.url.replace(/master\./, sizeName + '.');
+                } catch (err) {
+                    console.log(err);
+                }
             });
 
             // 0.333 is an arbitrary 'lets make this tile wide' factor
             if (Math.random() > 0.333) {
                 this.model.set('size', 'wide');
-                this.model.get('defaultImage').url = this.model.get('defaultImage').wide.url;
+                // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
                 this.$el.addClass('wide');
             }
 
@@ -241,6 +236,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     self.model.destroy();
                 }
             });
+*/
+            console.log(this);
         },
 
         'onMissingTemplate': function () {
