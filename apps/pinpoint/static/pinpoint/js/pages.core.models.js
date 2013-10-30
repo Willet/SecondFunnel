@@ -22,6 +22,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // come specifying a type or caption
             'caption': "Shop product",
             'tile-id': null,
+            'tile-class': 'tile',
             'content-type': "",
             'related-products': [],
             'dominant-colour': "transparent"
@@ -185,40 +186,41 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         }
     });
 
-    /**
-     * An image with some useful attributes: large, medium, ... (sizes => url)
-     * TODO
-     * @type {*}
-     */
-    this.Image = Backbone.Model.extend({
-        'initialize': function (attributes) {
-            if (_.has(attributes, 'sizes')) {
-                _.each(attributes.sizes, function (sizeData, sizeName) {
-                    // {width, height}, 'grande'
-
-                });
-            } else {
-                this.set('sizes', [
-                    {'master': this.url}
-                ]);
-            }
-        }
-    });
-
     this.ImageTile = this.Tile.extend({
         'defaults': {
+            'tile-class': 'image',
             'content-type': 'image'
+        },
+        'parse': function (resp, options) {
+            var newResp = _.clone(resp),
+                imgUrl = newResp.url,
+                imgSizes = newResp.sizes;
+            if (!imgSizes.length) {
+                newResp.sizes = {
+                    // stub out sizes for images without them
+                    'master': {
+                        'width': 2048,
+                        'height': 2048
+                    }
+                };
+            }
+            // create tile-like attributes
+            return {
+                'defaultImage': newResp
+            };
         }
     });
 
     this.VideoTile = this.Tile.extend({
         'defaults': {
+            'tile-class': 'video',
             'content-type': 'video'
         }
     });
 
     this.YoutubeTile = this.VideoTile.extend({
         'defaults': {
+            'tile-class': 'youtube',
             'content-type': 'youtube'
         }
     });

@@ -167,57 +167,66 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'onBeforeRender': function () {
             var maxImageSize,
                 self = this,
+                defaultImage = self.model.get('defaultImage'),
                 normalTileWidth = SecondFunnel.option('columnWidth', 255),
                 wideTileWidth = normalTileWidth * 2,
-                fullTileWidth = normalTileWidth * 4;  // 4col (standby)
+                fullTileWidth = normalTileWidth * 4,  // 4col (standby)
+                sizes = {
+                    'normal': normalTileWidth,
+                    'wide': wideTileWidth,
+                    'full': fullTileWidth
+                };
 
-            // try {
-                _.each(
-                    {
-                        'normal': normalTileWidth,
-                        'wide': wideTileWidth,
-                        'full': fullTileWidth
-                    },
-                    function (width, aliasName) {
-                        var defaultImage = self.model.get('defaultImage'),
-                            // { grande: {width, height},
-                            //   pico: {width, height}, ...
-                            sizes = defaultImage.sizes,
-                            // { 12: {width, height},
-                            //   24: {width, height}, ...
-                            sizeIndex = _.indexBy(sizes, 'width'),
-                            sizeName;
+            _.each(sizes, function (width, aliasName) {
+                var sizes, sizeIndex, sizeName;
 
-                        // find the first image size to meet the current size's
-                        // minimum requirements, then create extra attribs,
-                        // i.e. {normal: {width, height, url},
-                        //         wide: {width, height, url}, ...}
-                        defaultImage[aliasName] = _.first(
-                            _.filter(sizeIndex, function (sizeData) {
-                                return sizeData.width > width;
-                            }));
+                // { grande: {width, height},
+                //   pico: {width, height}, ...
+                sizes = defaultImage.sizes;
 
-                        // get the real image size name (e.g. 'large')
-                        // from the list of sizes that we just picked
-                        sizeName = _.getKeyByValue(defaultImage.sizes,
-                            defaultImage[aliasName]);
-
-                        defaultImage[aliasName].url =
-                            defaultImage.url.replace(/master\./, sizeName + '.');
-
-                        console.warn('defaultImage[' + aliasName + '].url = ' +
-                            defaultImage[aliasName].url);
-                    });
-
-                // 0.333 is an arbitrary 'lets make this tile wide' factor
-                if (Math.random() > 0.333) {
-                    this.model.set('size', 'wide');
-                    this.model.get('defaultImage').url = this.model.get('defaultImage').wide.url;
-                    this.$el.addClass('wide');
+                // bad tile, load its only size
+                if (!(sizes && sizes.length)) {
+                    sizes = {
+                        'master': {
+                            'width': 2048,
+                            'height': 2048,
+                            'url': defaultImage.url
+                        }
+                    };
                 }
-            // } catch (incorrectImageData) {
-                // else: leave it as 1-col
-            // }
+
+                // { 12: {width, height},
+                //   24: {width, height}, ...
+                sizeIndex = _.indexBy(sizes, 'width');
+
+                // find the first image size to meet the current size's
+                // minimum requirements, then create extra attribs,
+                // i.e. {normal: {width, height, url},
+                //         wide: {width, height, url}, ...}
+                defaultImage[aliasName] = _.first(
+                    _.filter(sizeIndex, function (sizeData) {
+                        return sizeData.width > width;
+                    }));
+
+                // get the real image size name (e.g. 'large')
+                // from the list of sizes that we just picked.
+                // if size was stubbed, it defaults to 'master'.
+                sizeName = _.getKeyByValue(defaultImage.sizes,
+                    defaultImage[aliasName]) || 'master';
+
+                defaultImage[aliasName].url =
+                    defaultImage.url.replace(/master\./, sizeName + '.');
+
+                console.warn('defaultImage[' + aliasName + '].url = ' +
+                    defaultImage[aliasName].url);
+            });
+
+            // 0.333 is an arbitrary 'lets make this tile wide' factor
+            if (Math.random() > 0.333) {
+                this.model.set('size', 'wide');
+                this.model.get('defaultImage').url = this.model.get('defaultImage').wide.url;
+                this.$el.addClass('wide');
+            }
 
             // Listen for the image being removed from the DOM, if it is, remove
             // the View/Model to free memory
