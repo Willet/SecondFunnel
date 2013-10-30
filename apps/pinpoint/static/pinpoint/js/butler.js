@@ -33,13 +33,12 @@ var Task = function (fn) {
             };
 
         for(i = 0; i < data.length; i++) {
-            (function () {
-                var _i = i;
+            (function(_i) {
                 setTimeout(function() {
                     mapper(_i);
                 }, i * Math.max(time, timeout, 1));
-            }());
 
+            }(_i));
         }
         return deferred.promise();
     };
