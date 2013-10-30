@@ -38,7 +38,7 @@ var Task = function (fn) {
                     mapper(_i);
                 }, i * Math.max(time, timeout, 1));
 
-            }(_i));
+            }(i));
         }
         return deferred.promise();
     };
