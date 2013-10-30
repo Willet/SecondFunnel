@@ -307,25 +307,42 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 return this.get('url');
             }
         },
-        'dimens': function (width, height) {
-            var sizes = this.get('sizes');
+        /**
+         *
+         * @param width
+         * @param height
+         * @param {boolean} obj   whether the complete object or the url
+         *                        will be returned
+         * @returns {*}
+         */
+        'dimens': function (width, height, obj) {
+            var first, sizes = this.get('sizes');
             try {
-                return _.first(_(sizes)
+                first = _.first(_(sizes)
                     .sortBy('width')
                     .filter(function (size) {
                         return size.width >= width && size.height >= height;
-                    })).url;
+                    }));
+
+                if (obj) {
+                    return first;
+                }
+                return first.url;
             } catch (e) {  // size not available
+
+                if (obj) {
+                    return $.extend({}, this.defaults, this.get('url'));
+                }
                 return this.get('url');
             }
         },
-        'width': function (width) {
+        'width': function (width, obj) {
             // get url by min width
-            return this.dimens(width, 0);
+            return this.dimens(width, 0, obj);
         },
-        'height': function (height) {
+        'height': function (height, obj) {
             // get url by min height
-            return this.dimens(0, height);
+            return this.dimens(0, height, obj);
         }
     });
 

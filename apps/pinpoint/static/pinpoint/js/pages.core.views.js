@@ -252,7 +252,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 model = this.model,
                 defaultImage = model.get('defaultImage'),
                 $tileImg = this.$('img.focus'),
-                idealSize,
+                idealImage,
                 hexColor,
                 rgbaColor;
 
@@ -267,21 +267,21 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 });
             }
 
-            idealSize = defaultImage.normal;
+            idealImage = defaultImage.width(255, true);  // TODO: un-hardcode 255, 510, 1020
             if ($tileImg.hasClass('wide')) {
-                idealSize = defaultImage.wide;
+                idealImage = defaultImage.width(510, true);
             }
 
             // master.jpgs have no defined size
-            if (idealSize.url.indexOf('master') < 0) {
+            if (idealImage.url.indexOf('master') < 0) {
                 // set tile image height to a scaled ratio of their chosen
                 // dimensions
                 $tileImg.css({
-                    'height': (idealSize.width / $tileImg.width()) *
-                        idealSize.height
+                    'height': (idealImage.width / $tileImg.width()) *
+                        idealImage.height
                 });
             }
-            $tileImg.attr('src', idealSize.url);
+            $tileImg.attr('src', idealImage.url);
 
             // this is the 'image 404' event
             $tileImg[0].onerror = function () {
