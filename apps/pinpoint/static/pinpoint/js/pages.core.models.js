@@ -9,6 +9,29 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     var $window = $(window),
         $document = $(document);
 
+
+    /**
+     * Object store for information about a particular store
+     *
+     * @constructor
+     * @type {Model}
+     */
+    this.Store = Backbone.Model.extend({
+        'defaults': {
+            'id': '0',
+            'name': 'Store',
+            'displayName': ''
+        },
+        'initialize': function (data) {
+            if (!data.slug) {
+                throw "Missing store slug";
+            }
+            if (!data.displayName) {
+                this.set('displayName', this.get('name'));
+            }
+        }
+    });
+
     /**
      * Object store for information about a particular database product,
      * its contents, or its media.

@@ -8,6 +8,11 @@
         <!-- Include dependencies here... -->
         <script src="js/test_config.js"></script>
 
+        <script src="../js/jasmine.js"></script>
+        <script src="../js/sinon-1.7.3.js"></script>
+        <script src="../js/jasmine-html.js"></script>
+        <script src="../js/jasmine-jquery.js"></script>
+
         <script src="//connect.facebook.net/en_US/all.js"></script>
         <script src="//google-analytics.com/ga.js"></script>
 
@@ -24,9 +29,15 @@
         <script src="../js/imagesloaded.pkgd.min.js"></script>
         <script src="../js/jquery.masonry.pkgd.min.js"></script>
         <script src="../js/bootstrap.min.js"></script>
+    </head>
+
+    <body>
+        <!-- Include components here -->
         <script src="js/pages.preinit.js"></script>
         <script src="js/pages.utils.js"></script>
         <script src="js/pages.core.js"></script>
+        <script src="js/pages.core.models.js"></script>
+        <script src="js/pages.core.views.js"></script>
         <script src="js/pages.support.js"></script>
         <script src="js/pages.tracker.js"></script>
         <script src="js/pages.layoutengine.js"></script>
@@ -35,20 +46,6 @@
         <script src="js/pages.viewport.js"></script>
         <script src="js/pages.init.js"></script>
         <script src="js/pages.widget.gallery.js"></script>
-        <script src="../js/css3-mediaqueries.js"></script>
-        <script src="../js/sinon-1.7.3.js"></script>
-        <script src="../js/jasmine-jquery.js"></script>
-    </head>
-
-    <body>
-        <script type="text/template" id="disabled_featured_template">
-
-        </script>
-
-        <!-- Include components here -->
-        <script src="js/pages2/page.app.js"></script>
-        <script src="js/pages2/page.utils.js"></script>
-        <script src="js/pages2/page.core.js"></script>
 
 
         <!-- include spec files here... -->
@@ -60,7 +57,9 @@
         <script src="js/pages2-test/page-application.spec.js"></script>
         <script src="js/pages2-test/page-utilities.spec.js"></script>
         <script src="js/pages2-test/JFGTD.spec.js"></script>
-        <script>
+
+        <!-- include spec files here... -->
+        <script type="text/javascript">
             // TODO: It would be really nice if either we had a reporter
             // that could sort things into the spec, or we could otherwise
             // show that all parts of the spec are being met. Maybe tags?
@@ -75,79 +74,7 @@
 
                 var currentWindowOnload = window.onload;
             }());
-        </script>
 
-        <script type="text/template" id="product_tile_template">
-
-        </script>
-
-        <script type="text/template" id="product_mobile_tile_template">
-
-        </script>
-
-        <script type="text/template" id="image_tile_template">
-
-        </script>
-
-        <script type="text/template" id="youtube_tile_template">
-
-        </script>
-
-        <script type="text/template" id="preview_container_template">
-
-        </script>
-
-        <script type="text/template" id="tile_preview_template">
-
-        </script>
-
-        <script type="text/template" id="tap_indicator_template">
-
-        </script>
-        <script type="text/template" id="facebook_social_button_template">
-            <div class='button facebook'>
-
-            </div>
-        </script>
-
-        <script type="text/template" id="twitter_social_button_template">
-
-        </script>
-
-        <script type="text/template" id="pinterest_social_button_template">
-
-        </script>
-
-        <script type="text/template" id="reddit_social_button_template">
-
-        </script>
-
-        <script type="text/template" id="tumblr_social_button_template">
-
-        </script>
-
-        <script type="text/template" id="share_social_button_template">
-
-        </script>
-
-        <script type="text/template" id="share_popup_template">
-
-        </script>
-
-        <script type="text/template" id="share_popup_option_template">
-
-        </script>
-
-        <script type="text/template" id="product_preview_template">
-
-        </script>
-
-        <script type="text/template" id="image_preview_template">
-
-        </script>
-
-        <!-- include spec files here... -->
-        <script type="text/javascript">
             if (window.SecondFunnel) {
                 // Start the SecondFunnel app
                 // (which also starts the SpecRunner)

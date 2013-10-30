@@ -256,7 +256,7 @@
                 </a>
             </script>
             <script type="text/template" id="product_preview_template">
-                <img src="<%= obj.defaultImage.url %>" alt=""/>
+                <img src="<%= obj.defaultImage.full.url %>" alt=""/>
                 <%= obj.price %>
                 <div class="social-buttons"></div>
             </script>
@@ -266,10 +266,9 @@
                     <%= obj.caption || obj.title || obj.name %>
                     <!-- in that order (it may still have none of those) -->
                 </h4>
-                <img src="<%= obj.defaultImage.url %>" alt=""/>
+                <img src="<%= obj.defaultImage.full.url %>" alt=""/>
                 <div class="social-buttons"></div>
             </script>
-
 
 
 
@@ -280,7 +279,7 @@
                 <div class='content-wrapper row'>
                     <div class='image-div col-sm-6 col-md-6'>
                         <div class='image'>
-                            <img class='img-rounded' src='<%= obj.defaultImage.url %>'/>
+                            <img class='img-rounded' src='<%= obj.defaultImage.full.url %>'/>
                         </div>
                     </div>
                     <div class='info col-sm-6 col-md-6'>
@@ -316,13 +315,13 @@
             <script type="text/template" id="gap_image_preview_template">
                 <!-- any (store.name)_(type)_... templates will be used in place
                      of default templates if they exist. -->
-            <% var product = obj['related-products'][0]; %>
+                <% var product = obj['related-products'][0]; %>
                 <% if (obj['related-products'].length) { %>
                     <div class="image-with-related-products">
                         <div class="row">
                     <div class="col-sm-6 col-md-6">
                         <div class="image">
-                                <img class='img-rounded' src="<%= obj.defaultImage.url %>" alt="image" />
+                                <img class='img-rounded' src="<%= obj.defaultImage.full.url %>" alt="image" />
                             </div>
 
                         <div class="buttons-container">
@@ -406,13 +405,12 @@
                             </div>
                         </div>
                     </div>
-            </div>
                 <% } else { %>
                     <div class="image-without-related-products">
-                        <img src="<%= sizeImage(obj.url, 400) %>" alt="image" />
+                        <img src="<%= obj.defaultImage.full.url %>" alt="image" />
                         <div class="info">
                             <%= SecondFunnel.utils.safeString(obj.caption) %>
-                            <span class="label label-info pull-right"><%= obj.template %></span>
+                            <span class="label label-info pull-right">Gap <%= obj.template %></span>
                         </div>
                     </div>
                 <% } %>

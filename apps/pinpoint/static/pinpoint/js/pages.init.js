@@ -91,10 +91,15 @@ function reInitialize(app) {
     // from davidsulc/marionette-gentle-introduction
     app.on("initialize:after", function () {
         if (Backbone.history) {
+            // although not used as extensively as it should be (e.g.
+            // show tile preview, show specific category, etc.), it is here
+            // for the future
             Backbone.history.start();
 
             if (this.getCurrentRoute() === "") {
                 // create a discovery area with tiles in it
+                app.store = new SecondFunnel.core.Store(app.options.store);
+
                 app.discovery = new SecondFunnel.core.Feed({
                     options: app.options
                 });
