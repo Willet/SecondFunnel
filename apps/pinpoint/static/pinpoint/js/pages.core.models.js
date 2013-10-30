@@ -276,9 +276,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'config': {},
+        'loading' : false,
 
         /**
-         * process common attributes, then relay the collection's parsing
+         * process common attributes, then delegate the collection's parsing
          * method to their individual tiles.
          *
          * @param resp
@@ -308,7 +309,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 'add': true,
                 'merge': true,
                 'remove': false
-            }, options);
+            }, this.config, options);
 
             return Backbone.Collection.prototype.fetch.call(this, opts);
         },
@@ -320,22 +321,31 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          */
         'url': function () {
             return _.template(
-                '<%=url%>/page/<%=campaign%>/getresults?results=<%=results%>',
+                '<%=apiUrl%>/page/<%=campaign%>/getresults?results=<%=results%>',
                 this.config
             );
         },
-
-        'loading' : false,
 
         'initialize': function (arrayOfData, url, campaign, results) {
             this.setup(url, campaign, results);  // if necessary
             broadcast('tileCollectionInitialized', this);
         },
 
-        'setup': function (url, campaign, results) {
-            this.config.url = url || SecondFunnel.option('IRSource');
-            this.config.campaign = campaign || SecondFunnel.option('campaign');
-            this.config.results = results || SecondFunnel.option('IRResultsCount');
+        /**
+         * (Re)configure this object to fetch from an Intent Rank URL.
+         *
+         * @param url
+         * @param campaign
+         * @param results
+         */
+        'setup': function (apiUrl, campaign, results) {
+            // apply new parameters, or default to existing ones
+            this.config.apiUrl = apiUrl || this.config.apiUrl ||
+                SecondFunnel.option('IRSource');
+            this.config.campaign = campaign || this.config.campaign ||
+                SecondFunnel.option('campaign');
+            this.config.results = results || this.config.results ||
+                SecondFunnel.option('IRResultsCount');
         }
     });
 
