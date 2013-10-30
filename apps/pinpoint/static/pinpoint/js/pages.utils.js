@@ -169,10 +169,14 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
          */
         this.get = function (key, defaultValue) {
             for (i = 0; i < maps.length; i++) {
-                if (key in maps[i]) {
-                    if (maps[i].hasOwnProperty(key)) {
-                        return maps[i][key];
+                try {
+                    if (key in maps[i]) {
+                        if (maps[i].hasOwnProperty(key)) {
+                            return maps[i][key];
+                        }
                     }
+                } catch (err) {
+                    // if it wasn't an object -- skip it
                 }
             }
             return defaultValue;

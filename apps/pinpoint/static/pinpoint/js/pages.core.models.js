@@ -273,6 +273,24 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         /**
+         * From nicks-happy-place.
+         * Allows tiles to be fetched without options.
+         *
+         * @param options
+         * @returns {*}
+         */
+        fetch: function (options) {
+            var opts = $.extend({}, {
+                'results': 10,
+                'add': true,
+                'merge': true,
+                'remove': false
+            }, options);
+
+            return Backbone.Collection.prototype.fetch.call(this, opts);
+        },
+
+        /**
          * Interact with IR using the built-in Backbone thingy.
          *
          * @returns {Function|String}

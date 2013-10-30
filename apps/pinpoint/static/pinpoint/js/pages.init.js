@@ -1,5 +1,4 @@
-/*global $, _, SecondFunnel, broadcast*/
-// SecondFunnel initializers.
+/*global $, _, SecondFunnel, Backbone, broadcast*/
 
 /**
  * Given an instance of  Marionette Application, add initializers to it.
@@ -14,6 +13,17 @@ function reInitialize(app) {
         'heroArea': '#discovery-area',
         'discoveryArea': '#discovery-area'
     });
+
+    // from davidsulc/marionette-gentle-introduction
+    app.navigate = function (route, options) {
+        options = options || {};
+        Backbone.history.navigate(route, options);
+    };
+
+    // from davidsulc/marionette-gentle-introduction
+    app.getCurrentRoute = function () {
+        return Backbone.history.fragment;
+    };
 
     app.addInitializer(function () {
         // set its width to whatever it began with.
@@ -76,15 +86,23 @@ function reInitialize(app) {
         $(document).ajaxError(function (event, request, settings) {
             broadcast('ajaxError', settings.url, app);
         });
+    });
 
-        // create a discovery area with tiles in it
-        app.discovery = new SecondFunnel.core.Feed({
-            options: app.options
-        });
+    // from davidsulc/marionette-gentle-introduction
+    app.on("initialize:after", function () {
+        if (Backbone.history) {
+            Backbone.history.start();
 
-        SecondFunnel.discoveryArea.show(app.discovery);
+            if (this.getCurrentRoute() === "") {
+                // create a discovery area with tiles in it
+                app.discovery = new SecondFunnel.core.Feed({
+                    options: app.options
+                });
+                SecondFunnel.discoveryArea.show(app.discovery);
 
-        broadcast('finished', app.options, app);
+                broadcast('finished', app.options, app);
+            }
+        }
     });
 }
 

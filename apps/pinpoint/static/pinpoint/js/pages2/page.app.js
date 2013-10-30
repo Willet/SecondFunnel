@@ -9,7 +9,7 @@ Marionette.Application.prototype.getOption = function(optionName) {
     }
 
     return value;
-}
+};
 
 Page = new Backbone.Marionette.Application();
 

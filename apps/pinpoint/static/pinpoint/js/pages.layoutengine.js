@@ -44,12 +44,12 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         var self = this;
         opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
 
-        // this.$el = $(opts.discoveryTarget);
+        this.$el = $(opts.discoveryTarget);
 
-        // this.$el.masonry(opts);
+        this.$el.masonry(opts);
 
         SecondFunnel.vent.on('windowResize', function () {
-            // self.layout();
+            self.layout();
         });
 
         broadcast('layoutEngineInitialized', this, opts);
@@ -163,7 +163,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * @private
      * @returns {deferred(args)}
      */
-    var __imagesLoaded = function ($fragment) {
+    this.imagesLoaded = function ($fragment) {
         // This function is based on the understanding that the ImageService will
         // return dimensions and/or a dominant colour; elements in the $fragment have
         // assigned widths and heights; (e.g. .css('width', '100px'))
@@ -218,7 +218,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * @param tiles
      * @returns {promise(args)}
      */
-    this.imagesLoaded = function (tiles) {
+    var __imagesLoaded = function (tiles) {
         var deferred = new $.Deferred();
 
         // "Triggered after all images have been either loaded or confirmed broken."

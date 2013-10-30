@@ -49,7 +49,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      */
     this.TileView = Marionette.Layout.extend({
         'tagName': SecondFunnel.option('tileElement', "div"),
-        /*'templates': function (currentView) {
+        'template': "#product_tile_template",
+        'templates': function (currentView) {
             var templateRules = [  // dictated by CtrlF fshkjr
                 "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
                 "#<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
@@ -77,8 +78,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             console.debug('Template search tree for view %O: %O',
                         currentView, templateRules);
             return templateRules;
-        },*/
-        'template': "#product_tile_template",
+        },
         'className': SecondFunnel.option('itemSelector', '').substring(1),
 
         'events': {
@@ -282,6 +282,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
             $tileImg.attr('src', idealSize.url);
 
+            // this is the 'image 404' event
+            $tileImg[0].onerror = function () {
+                self.close();
+            };
+
             if (this.tapIndicator && this.socialButtons) {
                 // Need to do this check in case layout is closing due
                 // to broken images.
@@ -305,7 +310,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
     this.ImageTileView = this.TileView.extend({
         'template': "#image_tile_template",
-        'model': module.ImageTile
+        'model': module.ImageTile,
+        'onRender': function () {
+            console.log(this);
+            return this;
+        }
     });
 
     /**
@@ -393,14 +402,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'onError': $.noop
                 }
             });
-        }
-    });
-
-    this.ImageTileView = this.TileView.extend({
-        'template': '#image_tile_template',
-        'onRender': function () {
-            console.log(this);
-            return this;
         }
     });
 
@@ -515,7 +516,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
                     self.toggleLoading(false);
                     return this;
-                });
+                })
+                .done(this.layoutResults);
         },
 
         /**
@@ -536,9 +538,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         'onRender': function () {
             var self = this;
-            /*_.each(self.collection.models, function (model) {
-                self.addChildView(new module.TileView({'model': model}));
-            });*/
             console.log('render');
         },
 
@@ -551,6 +550,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             var self = this,
                 tileEls = [],
                 $tile;
+
+            // TODO: this must be removed after transitioning to salvatore
+            SecondFunnel.layoutEngine.layout();
 
             // Check if we don't have anything
             if (data.length === 0) {
