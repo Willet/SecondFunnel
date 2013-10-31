@@ -102,7 +102,7 @@
             <script type="text/template" id="disabled_featured_template">
                 <div class='featured product'>
                     <!-- Main Display Area -->
-                    <img class='img-responsive pull-left' src='<%= obj.defaultImage.url %>' />
+                    <img class='img-responsive pull-left' src='<%= obj.defaultImage.get("url") %>' />
                     <div class='pull-right'><%= obj.title %></div>
                         <div class='price'><%= obj.price %></div>
                         <div>
@@ -120,7 +120,7 @@
             <script type="text/template" id="product_tile_template">
                 <!-- div>product</div -->
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.defaultImage.get('url') %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -128,7 +128,7 @@
             </script>
             <script type="text/template" id="product_mobile_tile_template">
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.defaultImage.url %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.defaultImage.get('url') %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -142,7 +142,8 @@
             <script type="text/template" id="image_tile_template">
                 <!-- div>image</div -->
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.url %>" alt="<%= caption %>" />
+                <% console.log(obj); %>
+                <img class="focus" src="<%= obj.defaultImage.get('url') %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -153,7 +154,7 @@
             </script>
             <script type="text/template" id="youtube_tile_template">
                 <div class="img-responsive thumbnail"
-                     style="background-image: url('<%= obj.defaultImage.url %>');">
+                     style="background-image: url('<%= obj.defaultImage.get('url') %>');">
                   &nbsp;
                   <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
                 </div>
@@ -256,7 +257,7 @@
                 </a>
             </script>
             <script type="text/template" id="product_preview_template">
-                <img src="<%= obj.defaultImage.full.url %>" alt=""/>
+                <img src="<%= obj.defaultImage.get('url') %>" alt=""/>
                 <%= obj.price %>
                 <div class="social-buttons"></div>
             </script>
@@ -266,7 +267,7 @@
                     <%= obj.caption || obj.title || obj.name %>
                     <!-- in that order (it may still have none of those) -->
                 </h4>
-                <img src="<%= obj.defaultImage.full.url %>" alt=""/>
+                <img src="<%= obj.defaultImage.get('url') %>" alt=""/>
                 <div class="social-buttons"></div>
             </script>
 
@@ -279,7 +280,7 @@
                 <div class='content-wrapper row'>
                     <div class='image-div col-sm-6 col-md-6'>
                         <div class='image'>
-                            <img class='img-rounded' src='<%= obj.defaultImage.full.url %>'/>
+                            <img class='img-rounded' src='<%= obj.defaultImage.get("url") %>'/>
                         </div>
                     </div>
                     <div class='info col-sm-6 col-md-6'>
@@ -321,7 +322,7 @@
                         <div class="row">
                     <div class="col-sm-6 col-md-6">
                         <div class="image">
-                                <img class='img-rounded' src="<%= obj.defaultImage.full.url %>" alt="image" />
+                                <img class='img-rounded' src="<%= obj.defaultImage.get("url") %>" alt="image" />
                             </div>
 
                         <div class="buttons-container">
@@ -339,7 +340,7 @@
                                 <div class='price'><%= product.price %></div>
                         <div class="row">
                             <div class="col-lg-4 col-md-4 col-sm-4 main-image-container">
-                                <img class="main-image" src="<%= product.defaultImage.url %>" alt="related product" />
+                                <img class="main-image" src="<%= product.defaultImage.get('url') %>" alt="related product" />
                             </div>
                             <div class="accordion-container col-lg-8 col-md-8 col-sm-8">
                                 <div class="panel-group" id="accordion-gapimage">
@@ -397,6 +398,7 @@
                                     <!-- find-store is magic -->
                                         Find in Store
                                     </a>
+                                    <% console.log(product); %>
                                     <a class='button in-store' href='<%= product.url %>' target='_blank'>
                                     <!-- in-store is magic -->
                                         Shop on Gap.com
@@ -407,7 +409,7 @@
                     </div>
                 <% } else { %>
                     <div class="image-without-related-products">
-                        <img src="<%= obj.defaultImage.full.url %>" alt="image" />
+                        <img src="<%= obj.defaultImage.get('url') %>" alt="image" />
                         <div class="info">
                             <%= SecondFunnel.utils.safeString(obj.caption) %>
                             <span class="label label-info pull-right">Gap <%= obj.template %></span>
@@ -435,19 +437,18 @@
         <script type="text/javascript" src="/static/js/backbone.marionette.min.js"></script><!-- after backbone -->
         <script type="text/javascript" src="/static/js/imagesloaded.pkgd.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.masonry.pkgd.min.js"></script>
-        <script type="text/javascript" src="js/jquery.masonry.extensions.js"></script>
         <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.browser.mobile.js"></script>
         <script type="text/javascript" src="js/pages.preinit.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.utils.js"></script>
         <script type="text/javascript" src="js/pages.core.js"></script><!-- after preinit -->
+        <script type="text/javascript" src="js/pages.ir.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.core.models.js"></script><!-- after preinit -->
         <script type="text/javascript" src="js/pages.core.views.js"></script><!-- after preinit -->
         <script type="text/javascript" src="js/pages.support.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.tracker.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.layoutengine.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.sharing.js"></script><!-- after marionette -->
-        <script type="text/javascript" src="js/pages.ir.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.viewport.js"></script><!-- after pages -->
         <script type="text/javascript" src="js/pages.init.js"></script><!-- after pages -->
         <script type="text/javascript" src="js/pages.widget.gallery.js"></script>

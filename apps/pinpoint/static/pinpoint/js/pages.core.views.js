@@ -169,7 +169,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * Before the View is rendered. this.$el is still an empty div.
          */
         'onBeforeRender': function () {
-/*
             var maxImageSize,
                 self = this,
                 defaultImage = self.model.getDefaultImage(),  // obj
@@ -224,7 +223,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // 0.333 is an arbitrary 'lets make this tile wide' factor
             if (Math.random() > 0.333) {
-                this.model.set('size', 'wide');
                 // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
                 this.$el.addClass('wide');
             }
@@ -236,7 +234,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     self.model.destroy();
                 }
             });
-*/
+
             console.log(this);
         },
 

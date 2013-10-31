@@ -95,10 +95,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'getDefaultImageId': function () {
             try {
                 return this.get('default-image') ||
-                    this.get('images')[0].id ||
-                    this.get('images')[0].get('id');
+                    this.get('images')[0]['tile-id'] ||
+                    this.get('images')[0].get('tile-id');
             } catch (e) {  // no images
-                console.warn('this tile has no images.', this);
+                console.warn('This object does not have a default image.', this);
                 return undefined;
             }
         },
@@ -404,22 +404,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         /**
-         * From nicks-happy-place.
          * Allows tiles to be fetched without options.
          *
          * @param options
          * @returns {*}
          */
-        fetch: function (options) {
-            var opts = $.extend({}, {
-                'results': 10,
-                'add': true,
-                'merge': true,
-                'remove': false
-            }, this.config, options);
-
-            return Backbone.Collection.prototype.fetch.call(this, opts);
-        },
+        fetch: SecondFunnel.intentRank.fetch,
 
         /**
          * Interact with IR using the built-in Backbone thingy.

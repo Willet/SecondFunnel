@@ -14,6 +14,9 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             'campaign': "<%=url%>/page/<%=campaign%>/getresults",
             'content': "<%=url%>/page/<%=campaign%>/content/<%=id%>/getresults"
         },
+        'add': true,
+        'merge': true,
+        'remove': false,
         'categories': {},
         'backupResults': [],
         'IRResultsCount': 10,
@@ -51,6 +54,32 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
         broadcast('intentRankInitialized', intentRank);
         return this;
+    };
+
+    /**
+     * This function is a bridge between our IntentRank module and our
+     * Discovery area.
+     * It must be executed with a Backbone.Collection as context.
+     *
+     * @param options
+     * @returns {deferred}
+     */
+    this.fetch = function (options) {
+        // this IS NOT INTENTRANK
+        var opts = $.extend({}, {
+            'results': 10,
+            'add': true,
+            'merge': true,
+            'remove': false,
+            'data': {
+                'shown': resultsAlreadyRequested.join(',')
+            }
+        }, this.config, intentRank.options, options);
+
+        return Backbone.Collection.prototype.fetch.call(this, intentRank.options)
+            .done(function (results) {
+                resultsAlreadyRequested = intentRank.getTileIds(results);
+            });
     };
 
     /**
