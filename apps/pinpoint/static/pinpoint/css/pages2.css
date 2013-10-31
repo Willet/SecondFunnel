@@ -549,3 +549,18 @@ div.loading {
     font-size:10px;
     margin: -54px -1px 0 -1px;
 }
+
+/* iPad */
+@media screen {
+
+    @media (max-width: 768px) {
+        .ipad .previewContainer .content {
+            position: fixed!important;
+            bottom: 16%!important;
+        }
+    }
+
+    .ipad .previewContainer .mask {
+        display: block!important;
+    }
+}

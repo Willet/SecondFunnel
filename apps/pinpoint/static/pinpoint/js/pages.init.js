@@ -103,6 +103,12 @@ function reInitialize(app) {
             }
         }
     });
+
+    app.vent.on('finished', function () {
+        if (SecondFunnel.support.isAniPad()) {
+            $('html').addClass('ipad');
+        }
+    });
 }
 
 // auto-initialise existing instance on script inclusion
