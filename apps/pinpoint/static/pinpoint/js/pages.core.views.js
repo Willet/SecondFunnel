@@ -499,26 +499,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             return this.collection
                 .fetch({'add': true, 'remove': false, 'merge': true})
                 .done(function (data) {
-                    // unorthodox 'after-the-fact partial list shuffling',
-                    // because there is no such thing in place, apparently
-                    var itemsFetchCount, itemsFetched, tail;
-                    itemsFetchCount = data.length;
-
-                    if (data && data.length > 0) {
-                        return self.getMoreResults();
-                    }
-
-                    tail = self.collection.length - itemsFetchCount;
-                    itemsFetched = self.collection.slice(tail);
-
-                    self.collection
-                        .remove(itemsFetched)
-                        .add(_.shuffle(itemsFetched));
-
                     self.toggleLoading(false);
-                    return this;
-                })
-                .done(this.layoutResults);
+                    self.layoutResults();
+                });
         },
 
         /**

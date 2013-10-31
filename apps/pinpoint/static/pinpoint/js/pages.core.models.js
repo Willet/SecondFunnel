@@ -425,6 +425,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'parse': function (resp, options) {
             // this = the instance
             var self = this;
+
+            // SHUFFLE_RESULTS is always true
+            resp = _.shuffle(resp);
+
             return _.map(resp, function (jsonEntry) {
                 var TileClass = SecondFunnel.utils.findClass('Tile',
                     jsonEntry.template, module.Tile);
