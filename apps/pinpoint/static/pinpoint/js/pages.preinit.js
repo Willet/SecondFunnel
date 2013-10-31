@@ -116,17 +116,6 @@ $.fn.getClasses = $.fn.getClasses || function () {
     return _.compact(_.map($(this).attr('class').split(' '), $.trim));
 };
 
-$.fn.scaleImages = $.fn.scaleImages || function () {
-    // looks for .auto-scale elements and replace them with an image.
-    $(this).find('img.auto-scale').each(function () {
-        var $el = $(this),
-            data = $el.data();
-        if (data.src && data.size) {
-            $el.attr('src', SecondFunnel.utils.pickImageSize(data.src, data.size));
-        }
-    });
-};
-
 $.getScripts = function (urls, callback, options) {
     // batch getScript with caching
     // callback receives as many ajax xhr objects as the number of urls.

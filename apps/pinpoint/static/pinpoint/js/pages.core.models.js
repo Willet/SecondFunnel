@@ -92,17 +92,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             broadcast('tileModelInitialized', this);
         },
 
-        'getDefaultImageId': function () {
-            try {
-                return this.get('default-image') ||
-                    this.get('images')[0]['tile-id'] ||
-                    this.get('images')[0].get('tile-id');
-            } catch (e) {  // no images
-                console.warn('This object does not have a default image.', this);
-                return undefined;
-            }
-        },
-
+        /**
+         *
+         * @param imgId   if omitted, the default image id
+         * @returns {Image}
+         */
         'getImage': function (imgId) {
             var self = this, defImg;
 
@@ -132,90 +126,23 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             return new module.Image(defImg);
         },
 
+        'getDefaultImageId': function () {
+            try {
+                return this.get('default-image') ||
+                    this.get('images')[0]['tile-id'] ||
+                    this.get('images')[0].get('tile-id');
+            } catch (e) {  // no images
+                console.warn('This object does not have a default image.', this);
+                return undefined;
+            }
+        },
+
         /**
          * Get the tile's default image as an object.
          * @returns {Image|undefined}
          */
         'getDefaultImage': function () {
             return this.getImage();
-        },
-
-        'getImageAttrs': function (imgId) {
-            var img;
-
-            // default to image-id
-            imgId = imgId || this.getDefaultImageId();
-
-            if (imgId) {
-                // a product tile does not have default-image
-                img = _.clone(_.findWhere(this.get('images'), {
-                    'id': imgId.toString()
-                }));
-            } else {
-                // an image tile does not have default-image
-                img = this.attributes;
-            }
-
-            if (!img) {
-                throw "Image #" + imgId + " not found";
-            }
-            if (!img.sizes) {
-                // IR gave no sizes. fill it
-                img.sizes = {
-                    'master': {
-                        'width': 2048,
-                        'height': 2048
-                    }
-                };
-            }
-
-            _.each(img.sizes, function (sizeObj, sizeName) {
-                // assign names to convenience urls.
-                img[sizeName] = img.url.replace(/master\./, sizeName + '.');
-            });
-
-            return img;
-        },
-
-        /**
-         * picks an image at least as large as the dimensions you needed.
-         *
-         * @param imgId
-         * @param {Object} requirements   width: 123, height: 123, or both
-         */
-        'getSizedImage': function (imgId, requirements) {
-            var img, minDimension, sizeName, fnRegex;
-
-            // default to image-id
-            img = this.getImageAttrs(imgId);
-
-            if (!requirements) {
-                return img.url;  // always master.jpg
-            }
-
-            // filter defaults
-            requirements.width = requirements.width || 1;
-            requirements.height = requirements.height || 1;
-
-            // look through the list of sizes and pick the next biggest one
-            minDimension = _(img.sizes).filter(function (name, dimens) {
-                // filter "as least as large"
-                return dimens.width >= requirements.width &&
-                    dimens.height >= requirements.height;
-            }).sort(function(a, b) {
-                // sort sizes ASC
-                return a.width - b.width;
-            });
-
-            if (!minDimension.length) {
-                // requested size exceeded the largest one we have
-                return img.url;
-            }
-
-            // replace master.jpg by its resized image path.
-            sizeName = _.getKeyByValue(img.sizes, minDimension[0]);
-            fnRegex = new RegExp('master.' + img.format);
-            return img.url.replace(fnRegex, sizeName + img.format);
         },
 
         'sync': function () {
@@ -238,7 +165,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             'sizes': {
                 'master': {
                     'name': 'master',  // easier to know what this is as an obj
-                    'dominant-colour': '#ffffff',
+                    'dominant-colour': 'transparent',
                     'width': 2048,
                     'height': 2048
                 }
@@ -270,6 +197,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'size': function (size) {
             // get url by size name, e.g. 'pico'
             var sizes = this.get('sizes');
+
+            size = size || 'large';  // first size above 255px wide
+
             try {
                 return sizes[size].url;
             } catch (e) {  // size not available ==> master.jpg

@@ -181,7 +181,20 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'full': fullTileWidth
                 };
 
-            _.each(sizes, function (width, aliasName) {
+            this.model.set('image',
+                    this.model.get('defaultImage').width(normalTileWidth, true));
+
+            // 0.333 is an arbitrary 'lets make this tile wide' factor
+            if (Math.random() > 0.333) {
+                // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
+                this.$el.addClass('wide');
+                this.model.set({
+                    'image': this.model.get('defaultImage')
+                                 .width(wideTileWidth, true)
+                });
+            }
+
+            /*_.each(sizes, function (width, aliasName) {
                 var sizes, sizeIndex, sizeName;
 
                 // { grande: {width, height},
@@ -221,19 +234,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 }
             });
 
-            // 0.333 is an arbitrary 'lets make this tile wide' factor
-            if (Math.random() > 0.333) {
-                // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
-                this.$el.addClass('wide');
-            }
-
             // Listen for the image being removed from the DOM, if it is, remove
             // the View/Model to free memory
             this.$el.on('remove', function (ev) {
                 if (ev.target === self.el) {
                     self.model.destroy();
                 }
-            });
+            });*/
 
             console.log(this);
         },
@@ -245,12 +252,14 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.close();
         },
 
+        /**
+         * onRender occurs between beforeRender and show.
+         */
         'onRender': function () {
             var self = this,
                 model = this.model,
-                defaultImage = model.get('defaultImage'),
+                tileImage = model.get('image'),  // assigned by onBeforeRender
                 $tileImg = this.$('img.focus'),
-                idealImage,
                 hexColor,
                 rgbaColor;
 
@@ -265,21 +274,15 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 });
             }
 
-            idealImage = defaultImage.width(255, true);  // TODO: un-hardcode 255, 510, 1020
-            if ($tileImg.hasClass('wide')) {
-                idealImage = defaultImage.width(510, true);
-            }
-
             // master.jpgs have no defined size
-            if (idealImage.url.indexOf('master') < 0) {
+            if (tileImage.url.indexOf('master') < 0) {
                 // set tile image height to a scaled ratio of their chosen
                 // dimensions
                 $tileImg.css({
-                    'height': (idealImage.width / $tileImg.width()) *
-                        idealImage.height
+                    'height': (tileImage.width / $tileImg.width()) *
+                        tileImage.height
                 });
             }
-            $tileImg.attr('src', idealImage.url);
 
             // this is the 'image 404' event
             $tileImg[0].onerror = function () {
@@ -297,11 +300,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     this.tapIndicator.show(new module.TapIndicator());
                 }
             }
-
-            this.$el.scaleImages();
         }
     });
 
+    /**
+     * Right now, there is no distinction between a tile and a product tile.
+     * @type {*}
+     */
     this.ProductTileView = this.TileView.extend({
         'template': "#product_tile_template",
         'model': module.Tile
@@ -708,8 +713,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 this.$('.content').css('width', width + 'px');
             }
 
-            this.$el.scaleImages();
-
             // hide discovery, then show this window as a page.
             if (SecondFunnel.support.mobile()) {
                 // out of scope
@@ -796,7 +799,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'onRender': function () {
             // cannot declare display:table in marionette class.
             this.$el.css({'display': "table"});
-            this.$el.scaleImages();
 
             $('body').append(this.$el.fadeIn(SecondFunnel.option('previewAnimationDuration')));
         }

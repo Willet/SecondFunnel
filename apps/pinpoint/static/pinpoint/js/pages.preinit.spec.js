@@ -63,14 +63,6 @@ describe("preinit", function () {
             // TODO: actually test it
         });
 
-        describe("scaleImages", function () {
-            it("exists", function () {
-                expect($.fn.scaleImages).toBeDefined();
-            });
-
-            // TODO: actually test it
-        });
-
         describe("getScripts", function () {
             it("exists", function () {
                 expect($.getScripts).toBeDefined();

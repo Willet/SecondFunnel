@@ -102,7 +102,7 @@
             <script type="text/template" id="disabled_featured_template">
                 <div class='featured product'>
                     <!-- Main Display Area -->
-                    <img class='img-responsive pull-left' src='<%= obj.defaultImage.get("url") %>' />
+                    <img class='img-responsive pull-left' src='<%= obj.image.url %>' />
                     <div class='pull-right'><%= obj.title %></div>
                         <div class='price'><%= obj.price %></div>
                         <div>
@@ -120,7 +120,8 @@
             <script type="text/template" id="product_tile_template">
                 <!-- div>product</div -->
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.defaultImage.get('url') %>" alt="<%= caption %>" />
+                <div>Product</div>
+                <img class="focus" src="<%= obj.image.url %>" alt="<%= obj.caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -128,7 +129,7 @@
             </script>
             <script type="text/template" id="product_mobile_tile_template">
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.defaultImage.get('url') %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.image.url %>" alt="<%= obj.caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -143,7 +144,7 @@
                 <!-- div>image</div -->
                 <div class="tap-indicator-target"></div>
                 <% console.log(obj); %>
-                <img class="focus" src="<%= obj.defaultImage.get('url') %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -154,7 +155,7 @@
             </script>
             <script type="text/template" id="youtube_tile_template">
                 <div class="img-responsive thumbnail"
-                     style="background-image: url('<%= obj.defaultImage.get('url') %>');">
+                     style="background-image: url('<%= obj.image.url %>');">
                   &nbsp;
                   <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
                 </div>
@@ -257,7 +258,7 @@
                 </a>
             </script>
             <script type="text/template" id="product_preview_template">
-                <img src="<%= obj.defaultImage.get('url') %>" alt=""/>
+                <img src="<%= obj.defaultImage.size('large') %>" alt=""/>
                 <%= obj.price %>
                 <div class="social-buttons"></div>
             </script>
