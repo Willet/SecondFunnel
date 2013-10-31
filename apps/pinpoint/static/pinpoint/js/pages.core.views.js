@@ -21,6 +21,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         // so featured will be used only if stl is not found.
         'model': module.Tile,
         'template': "#stl_template, #featured_template, #hero_template",
+        /**
+         * @param data   normal product data, or, if omitted,
+         *               the featured product.
+         */
         'initialize': function (data) {
             if (!data) {
                 this.model = new module.Tile(data);
@@ -56,13 +60,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'template': "#product_tile_template",
         'templates': function (currentView) {
             var templateRules = [  // dictated by CtrlF fshkjr
-                "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
-                "#<%= data['content-type'] %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
+                "#<%= options.store.slug %>_<%= data.source %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
+                "#<%= data.source %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
                 "#<%= options.store.slug %>_<%= data.template %>_mobile_tile_template",                              // gap_image_mobile_tile_template
                 "#<%= data.template %>_mobile_tile_template",                                                        // image_mobile_tile_template
 
-                "#<%= options.store.slug %>_<%= data['content-type'] %>_<%= data.template %>_tile_template",         // gap_instagram_image_tile_template
-                "#<%= data['content-type'] %>_<%= data.template %>_tile_template",                                   // instagram_image_tile_template
+                "#<%= options.store.slug %>_<%= data.source %>_<%= data.template %>_tile_template",         // gap_instagram_image_tile_template
+                "#<%= data.source %>_<%= data.template %>_tile_template",                                   // instagram_image_tile_template
                 "#<%= options.store.slug %>_<%= data.template %>_tile_template",                                     // gap_image_tile_template
                 "#<%= data.template %>_tile_template",                                                               // image_tile_template
 
@@ -397,9 +401,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'initialize': function (options) {
             var self = this;
 
-            _.bindAll(this, 'pageScroll', 'toggleLoading', 'getMoreResults',
-                      'layoutResults');
+            _.bindAll(this, 'pageScroll', 'toggleLoading');
 
+            this.collection = new SecondFunnel.core.TileCollection();
             this.categories = new module.CategorySelector(  // v-- options.categories is deprecated
                 SecondFunnel.option("page:categories") ||
                 SecondFunnel.option("categories") || []
@@ -409,10 +413,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
                 console.log('laying out initial results');
-                this.layoutResults(options.initialResults);
+                this.collection.add(options.initialResults);
             }
-
-            this.collection = new SecondFunnel.core.TileCollection();
 
             // ... then fetch more products from IR
             return this.getTiles();
@@ -464,51 +466,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 .fetch()
                 .done(function (data) {
                     self.toggleLoading(false);
-                    self.layoutResults(data);
                 });
-        },
-
-        /**
-         * @param data {array}  byproduct of .always() passing back the data.
-         *                      its use is not recommended.
-         * @returns this
-         */
-        'getMoreResults': function (data) {
-            // creates conditions needed to get more results.
-            var self = this;
-            this.toggleLoading(false);
-
-            setTimeout(function () {
-                self.pageScroll();
-            }, 100);
-            return this;
         },
 
         'onRender': function () {
             var self = this;
             console.log('render');
-        },
-
-        /**
-         * @param data {Array}  list of product json objects
-         * @param tile {View}   pre-rendered tile view
-         * @returns this
-         */
-        'layoutResults': function (data, tile) {
-            var self = this,
-                tileEls = [],
-                $tile;
-
-            // TODO: this must be removed after transitioning to salvatore
-            SecondFunnel.layoutEngine.layout();
-
-            // Check if we don't have anything
-            if (data.length === 0) {
-                return this.toggleLoading(false);
-            }
-
-            // If we have data to use.
-            return this;
         },
 
         'updateContentStream': function (ev, tile) {

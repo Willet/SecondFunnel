@@ -8,7 +8,7 @@ SecondFunnel.utils.registerWidget(
     function (view, $el, option) {
         var images,
             changeImage = function ($el, url) {
-                $el.attr('src', sizeImage(url, 300));
+                $el.attr('src', url);
             };
 
         // get list of images.
@@ -21,7 +21,7 @@ SecondFunnel.utils.registerWidget(
         _.each(images, function (image) {
             var $img = $('<img />')
                 .attr({
-                    'src': sizeImage(image.get('url'), 100)
+                    'src': image.get('url')
                 })
                 .click(function (ev) {
                     // show a larger image on the left when a thumbnail is clicked.
