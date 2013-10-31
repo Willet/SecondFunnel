@@ -181,6 +181,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'full': fullTileWidth
                 };
 
+            // templates use this as obj.image.url
             this.model.set('image',
                     this.model.get('defaultImage').width(normalTileWidth, true));
 
@@ -194,60 +195,20 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 });
             }
 
-            /*_.each(sizes, function (width, aliasName) {
-                var sizes, sizeIndex, sizeName;
-
-                // { grande: {width, height},
-                //   pico: {width, height}, ...
-                // Image class assures at least one size exists (master)
-                sizes = defaultImage.get('sizes');
-
-                // { 12: {width, height},
-                //   24: {width, height}, ...
-                sizeIndex = _.indexBy(sizes, 'width');
-
-                // find the first image size to meet the current size's
-                // minimum requirements, then create extra attribs,
-                // i.e. {normal: {width, height, url},
-                //         wide: {width, height, url}, ...}
-                defaultImage[aliasName] = _.first(
-                    _.filter(sizeIndex, function (sizeData) {
-                        return sizeData.width >= width;
-                    }));
-
-                // couldn't find one large enough
-                if (!defaultImage[aliasName]) {
-                    defaultImage[aliasName] = {'width': 2048, 'height': 2048};
-                }
-
-                // get the real image size name (e.g. 'large')
-                // from the list of sizes that we just picked.
-                // if size was stubbed, it defaults to 'master'.
-                sizeName = _.getKeyByValue(defaultImage.sizes,
-                    defaultImage[aliasName]) || 'master';
-
-                try {
-                    defaultImage[aliasName].url =
-                        defaultImage.url.replace(/master\./, sizeName + '.');
-                } catch (err) {
-                    console.log(err);
-                }
-            });
-
             // Listen for the image being removed from the DOM, if it is, remove
             // the View/Model to free memory
             this.$el.on('remove', function (ev) {
                 if (ev.target === self.el) {
+                    console.debug('Model being destroyed', this);
                     self.model.destroy();
                 }
-            });*/
-
-            console.log(this);
+            });
         },
 
         'onMissingTemplate': function () {
             // If a tile fails to load, destroy the model
             // and subsequently this tile.
+            console.debug('Missing template - this view is closing.', this);
             this.model.destroy();
             this.close();
         },
