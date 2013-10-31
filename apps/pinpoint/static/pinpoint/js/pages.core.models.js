@@ -51,37 +51,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             'dominant-colour': "transparent"
         },
 
-        /**
-         * Processes IR's image sizes. Instagram (Image) tiles have their
-         * own parsing implementation.
-         *
-         * @param resp
-         * @param options
-         * @returns {*}
-         */
-        'parse': function (resp, options) {
-            var defaultImage,
-                productImages = resp.images,
-                imgUrl,
-                imgSizes;
-
-            // if this tile has images at all
-            if (_.has(resp, 'default-image') &&
-                productImages && productImages.length) {
-                // if this tile has the default image that the tile claims
-                // to be default
-                defaultImage = _.findWhere(productImages, {
-                    'id': resp['default-image']
-                });
-
-                if (defaultImage) {
-                    imgUrl = defaultImage.url;
-                    imgSizes = defaultImage.sizes;
-                }
-            }
-            return resp;
-        },
-
         'initialize': function (attributes, options) {
             var self = this,
                 defaultImage,
@@ -99,9 +68,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 // not a tile with default-image, or
                 // image tile has no size information
                 this.set({
-                    'defaultImage': {
+                    'defaultImage': new module.Image({
                         'url': this.get('url')
-                    }
+                    })
                 });
             }
 
@@ -366,10 +335,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'parse': function (resp, options) {
             // create tile-like attributes
             resp['default-image'] = 0;
-            return {
-                'default-image': '0',
-                'images': [resp]
-            };
+            resp.images = [resp];  // image tile containing one pointer to itself
+            return resp;
         }
     });
 

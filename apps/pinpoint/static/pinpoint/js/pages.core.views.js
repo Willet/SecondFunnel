@@ -497,10 +497,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             var self = this;
 
             return this.collection
-                .fetch({'add': true, 'remove': false, 'merge': true})
+                .fetch()
                 .done(function (data) {
                     self.toggleLoading(false);
-                    self.layoutResults();
+                    self.layoutResults(data);
                 });
         },
 

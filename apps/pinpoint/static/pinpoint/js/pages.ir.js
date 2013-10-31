@@ -114,7 +114,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
     /**
      * @oaram {Tile} tiles
-     * @return {array} unique list of tile ids
+     * @return {Array} unique list of tile ids
      */
     this.getTileIds = function (tiles) {
         return _.uniq(_.map(tiles, function (model) {
