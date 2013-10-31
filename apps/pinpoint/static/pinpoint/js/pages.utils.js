@@ -92,9 +92,6 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
             FoundClass = defaultClass;
         }
 
-        console.debug('findClass(%s, %s, %O) -> %O', typeName, prefix,
-            defaultClass, FoundClass);
-
         return FoundClass;
     };
 

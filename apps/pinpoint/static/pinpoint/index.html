@@ -120,7 +120,6 @@
             <script type="text/template" id="product_tile_template">
                 <!-- div>product</div -->
                 <div class="tap-indicator-target"></div>
-                <div>Product</div>
                 <img class="focus" src="<%= obj.image.url %>" alt="<%= obj.caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
@@ -143,7 +142,6 @@
             <script type="text/template" id="image_tile_template">
                 <!-- div>image</div -->
                 <div class="tap-indicator-target"></div>
-                <% console.log(obj); %>
                 <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
@@ -323,7 +321,7 @@
                         <div class="row">
                     <div class="col-sm-6 col-md-6">
                         <div class="image">
-                                <img class='img-rounded' src="<%= obj.defaultImage.get("url") %>" alt="image" />
+                                <img class='img-rounded' src="<%= obj.defaultImage.get('url') %>" alt="image" />
                             </div>
 
                         <div class="buttons-container">
@@ -399,7 +397,6 @@
                                     <!-- find-store is magic -->
                                         Find in Store
                                     </a>
-                                    <% console.log(product); %>
                                     <a class='button in-store' href='<%= product.url %>' target='_blank'>
                                     <!-- in-store is magic -->
                                         Shop on Gap.com

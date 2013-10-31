@@ -88,6 +88,7 @@
     </header>
     <div class="container">
         <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
+        <div id="hero-area"></div>
         <div id="discovery-area" class="discovery-area"></div>
         <div class="no-noscript loading"></div>
         <noscript>
@@ -106,31 +107,29 @@
         {{ js_templates }}
 
         <!-- custom templates -->
-        <script type="text/template" id="hero_area_template">
-            <div id="hero-area" class="featured">
-                <div class="visible-xs jumbotron"></div>
-                <div class="visible-sm jumbotron"></div>
-                <div class="visible-md visible-lg jumbotron"></div>
-                <div class="legal us">
-                    {% if legal_copy %}
-                        {{ legal_copy }}
-                    {% else %}
-                        Offer valid on regular price styles at Gap stores in the U.S.
-                        only (including Puerto Rico). Offer not valid at online, at
-                        GapBody, GapKids, babyGap, Gap Outlet or Gap Factory Stores.
-                        Discount applies to merchandise only and excludes LP by Linea
-                        Pelle, SeaVees, Minnetonka, â€™47 Brand, Linea Pelle, Vismaya,
-                        Baggu, Jonathan Adler, Casio, Clap, Coloud, Native Union,
-                        Moleskine, Sarut, Alice Ritter Brooklyn, bkr and any other
-                        products from brands other than Gap. Price adjustment allowed
-                        only once within 7 days of previous purchase. Not combinable
-                        with other offers or discounts except for Reward Cards, 10%
-                        GapCard Tuesday, 10% GapCard Shopping Pass and the initial
-                        acquisition discount when approved for a new GapCard. Not
-                        combinable with Gap Inc. Employee Discount. Discount taken at
-                        register.
-                    {% endif %}
-                </div>
+        <script type="text/template" id="gap_hero_template">
+            <div class="visible-xs jumbotron"></div>
+            <div class="visible-sm jumbotron"></div>
+            <div class="visible-md visible-lg jumbotron"></div>
+            <div class="legal us">
+                {% if legal_copy %}
+                    {{ legal_copy }}
+                {% else %}
+                    Offer valid on regular price styles at Gap stores in the U.S.
+                    only (including Puerto Rico). Offer not valid at online, at
+                    GapBody, GapKids, babyGap, Gap Outlet or Gap Factory Stores.
+                    Discount applies to merchandise only and excludes LP by Linea
+                    Pelle, SeaVees, Minnetonka, â€™47 Brand, Linea Pelle, Vismaya,
+                    Baggu, Jonathan Adler, Casio, Clap, Coloud, Native Union,
+                    Moleskine, Sarut, Alice Ritter Brooklyn, bkr and any other
+                    products from brands other than Gap. Price adjustment allowed
+                    only once within 7 days of previous purchase. Not combinable
+                    with other offers or discounts except for Reward Cards, 10%
+                    GapCard Tuesday, 10% GapCard Shopping Pass and the initial
+                    acquisition discount when approved for a new GapCard. Not
+                    combinable with Gap Inc. Employee Discount. Discount taken at
+                    register.
+                {% endif %}
             </div>
         </script>
         <script type="text/template" id="gap_product_preview_template">
@@ -140,7 +139,7 @@
                 <div class='image-div col-sm-6 col-md-6'>
                     <div class='image'>
                         <img class='img-rounded'
-                             src='<%= sizeImage(obj.defaultImage.url, 400) %>'/>
+                             src='<%= obj.image.get("url") %>'/>
                     </div>
                 </div>
                 <div class='info col-sm-6 col-md-6'>
@@ -187,7 +186,7 @@
                 <div class="row">
                     <div class="image col-sm-6 col-md-6">
                         <img class='img-rounded'
-                             src="<%= sizeImage(obj.defaultImage.url, 400) %>"
+                             src="<%= obj.defaultImage.get('url') %>"
                              alt="image"/>
                     </div>
                     <div class="col-sm-6 col-md-6">
@@ -195,7 +194,7 @@
                         <div class='title'><%= product.title %></div>
                         <div class='price'><%= product.price %></div>
                         <img class="main-image"
-                             src="<%= sizeImage(product.defaultImage.url, 150) %>"
+                             src="<%= product.image.url %>"
                              alt="related product"/>
 
                         <div class='description'>
@@ -233,7 +232,7 @@
             </div>
             <% } else { %>
             <div class="image-without-related-products">
-                <img src="<%= sizeImage(obj.defaultImage.url, 400) %>" alt="image"/>
+                <img src="<%= obj.defaultImage.get('url') %>" alt="image"/>
 
                 <div class="info">
                     <%= SecondFunnel.utils.safeString(obj.caption) %>

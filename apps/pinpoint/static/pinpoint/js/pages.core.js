@@ -104,7 +104,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             for (i = 0; i < templateIDs.length; i++) {
                 data = $.extend({},
                     Marionette.getOption(this, "model").attributes);
-                data.template = module.getModifiedTemplateName(data.template);
+
+                try {
+                    data.template = module.getModifiedTemplateName(data.template);
+                } catch (err) {
+                    data.template = '';
+                    // model did not need to specify a template.
+                }
 
                 temp = _.template(templateIDs[i], {
                     'options': SecondFunnel.options,

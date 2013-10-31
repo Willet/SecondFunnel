@@ -21,6 +21,16 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         // so featured will be used only if stl is not found.
         'model': module.Tile,
         'template': "#stl_template, #featured_template, #hero_template",
+        'templates': function (currentView) {
+            return [  // dictated by CtrlF fshkjr
+                "#<%= options.store.slug %>_stl_template",
+                "#<%= options.store.slug %>_featured_template",
+                "#<%= options.store.slug %>_hero_template",
+                "#stl_template",
+                "#featured_template",
+                "#hero_template"
+            ];
+        },
         /**
          * @param data   normal product data, or, if omitted,
          *               the featured product.
@@ -62,16 +72,16 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             var templateRules = [  // dictated by CtrlF fshkjr
                 "#<%= options.store.slug %>_<%= data.source %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
                 "#<%= data.source %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
-                "#<%= options.store.slug %>_<%= data.template %>_mobile_tile_template",                              // gap_image_mobile_tile_template
-                "#<%= data.template %>_mobile_tile_template",                                                        // image_mobile_tile_template
+                "#<%= options.store.slug %>_<%= data.template %>_mobile_tile_template",                     // gap_image_mobile_tile_template
+                "#<%= data.template %>_mobile_tile_template",                                               // image_mobile_tile_template
 
                 "#<%= options.store.slug %>_<%= data.source %>_<%= data.template %>_tile_template",         // gap_instagram_image_tile_template
                 "#<%= data.source %>_<%= data.template %>_tile_template",                                   // instagram_image_tile_template
-                "#<%= options.store.slug %>_<%= data.template %>_tile_template",                                     // gap_image_tile_template
-                "#<%= data.template %>_tile_template",                                                               // image_tile_template
+                "#<%= options.store.slug %>_<%= data.template %>_tile_template",                            // gap_image_tile_template
+                "#<%= data.template %>_tile_template",                                                      // image_tile_template
 
-                "#product_mobile_tile_template",                                                                     // fallback
-                "#product_tile_template"                                                                             // fallback
+                "#product_mobile_tile_template",                                                            // fallback
+                "#product_tile_template"                                                                    // fallback
             ];
 
             if (!SecondFunnel.support.mobile()) {
@@ -83,8 +93,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     });
             }
 
-            console.debug('Template search tree for view %O: %O',
-                        currentView, templateRules);
             return templateRules;
         },
         'className': SecondFunnel.option('itemSelector', '').substring(1),
@@ -279,11 +287,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
     this.ImageTileView = this.TileView.extend({
         'template': "#image_tile_template",
-        'model': module.ImageTile,
-        'onRender': function () {
-            console.log(this);
-            return this;
-        }
+        'model': module.ImageTile
     });
 
     /**
@@ -462,9 +466,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'getTiles': function (options, tile) {
             var self = this;
 
+            if (this.loading) {
+                return;
+            }
+
             return this.collection
                 .fetch()
-                .done(function (data) {
+                .always(function (data) {
                     self.toggleLoading(false);
                 });
         },
@@ -624,6 +632,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             console.debug('Template search tree for view %O: %O', currentView,
                 templateRules);
             return templateRules;
+        },
+        'onBeforeRender': function () {
+            // templates use this as obj.image.url
+            this.model.set('image',
+                    this.model.get('defaultImage').toJSON());
         },
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
