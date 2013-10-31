@@ -195,10 +195,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // templates use this as obj.image.url
             this.model.set('image',
-                    this.model.get('defaultImage').width(normalTileWidth, true));
+                this.model.get('defaultImage').width(normalTileWidth, true));
 
-            // 0.333 is an arbitrary 'lets make this tile wide' factor
-            if (Math.random() > 0.333) {
+            // 0.500 is an arbitrary 'lets make this tile wide' factor
+            if (Math.random() > 0.500) {
                 // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
                 this.$el.addClass('wide');
                 this.model.set({
@@ -247,15 +247,22 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 });
             }
 
-            // master.jpgs have no defined size
-            if (tileImage.url.indexOf('master') < 0) {
-                // set tile image height to a scaled ratio of their chosen
-                // dimensions
-                $tileImg.css({
-                    'height': (tileImage.width / $tileImg.width()) *
-                        tileImage.height
-                });
-            }
+            // resize image... later (because $el is hidden, width() gives 0)
+            // TODO
+            /*_.defer(function () {
+                // master.jpgs have no defined size
+                if (tileImage.url.indexOf('master') < 0) {
+                    // aim to fill the entire tile container
+                    var maxImageWidth = $tileImg.parent().width();
+                    // calculate tile's scaled image height
+                    $tileImg.css({
+                        'width': maxImageWidth + 'px',
+                        'max-width': '100%',
+                        'height': maxImageWidth / tileImage.width *
+                                  tileImage.height + 'px'
+                    });
+                }
+            });*/
 
             // this is the 'image 404' event
             $tileImg[0].onerror = function () {
@@ -316,8 +323,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'onClick': function () {
-            // TODO: play videos more appropriately
-            window.open(this.model.get('original-url') || this.model.get('url'));
+            if (this.model.get('url')) {
+                window.open(this.model.get('url'));
+            }
         },
 
         'onPlaybackEnd': function (ev) {
@@ -412,6 +420,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 SecondFunnel.option("page:categories") ||
                 SecondFunnel.option("categories") || []
             );
+
             this.attachListeners();
 
             // If the collection has initial values, lay them out
@@ -426,7 +435,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         'attachListeners': function () {
             var self = this;
-            // TODO: Find a better way than this...
+
+            SecondFunnel.layoutEngine.initialize(this, SecondFunnel.options);
+
             $window
                 .scroll(_.throttle(this.pageScroll, 500))
                 .resize(_.throttle(function () {
@@ -435,8 +446,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     // own .bind('resize', function () {})?
                     $('.resizable', document).trigger('resize');
 
+                    // automatically redraw tiles already added to the page
+                    // to fit the current page mode if it changes
+                    // (mobile/desktop)
+                    // SecondFunnel.discovery.render();
+
                     SecondFunnel.vent.trigger('windowResize');
-                }, 500))
+                }, 1000))
                 .scrollStopped(function () {
                     // deal with tap indicator fade in/outs
                     SecondFunnel.vent.trigger('scrollStopped', self);
@@ -467,19 +483,28 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             var self = this;
 
             if (this.loading) {
-                return;
+                return (new $.Deferred()).promise();
             }
-
+            self.toggleLoading(true);
             return this.collection
                 .fetch()
                 .always(function (data) {
                     self.toggleLoading(false);
+
+                    // see if we need to get more
+                    self.pageScroll();
                 });
         },
 
-        'onRender': function () {
+        'onAfterItemAdded': function (itemView) {
             var self = this;
-            console.log('render');
+            SecondFunnel.layoutEngine.layout(self);
+        },
+
+        'appendHtml': function (collectionView, itemView, index) {
+            // default functionality:
+            // collectionView.$el.append(itemView.el);
+            SecondFunnel.layoutEngine.add(collectionView, [itemView.el]);
         },
 
         'updateContentStream': function (ev, tile) {
@@ -507,7 +532,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             } else {
                 SecondFunnel.intentRank.changeCategory(category.model.get('id'));
                 SecondFunnel.tracker.changeCampaign(category.model.get('id'));
-                SecondFunnel.layoutEngine.empty();
+                SecondFunnel.layoutEngine.empty(this);
                 return this.getTiles();
             }
             return this;
@@ -526,7 +551,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             var pageHeight = $window.innerHeight(),
                 pageBottomPos = pageHeight + $window.scrollTop(),
                 documentBottomPos = $document.height(),
-                viewportHeights = pageHeight * (SecondFunnel.option('prefetchHeight', 1));
+                viewportHeights = pageHeight * (SecondFunnel.option('prefetchHeight', 1.5));
 
             if (!this.loading && $('html').css('overflow') !== 'hidden' &&
                 pageBottomPos >= documentBottomPos - viewportHeights) {
@@ -686,7 +711,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
                     // handle results that got loaded while the discovery
                     // area has an undefined height.
-                    SecondFunnel.layoutEngine.layout();
+                    SecondFunnel.layoutEngine.layout(SecondFunnel.discovery);
                 }
                 this.close();
             }
@@ -721,12 +746,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'onMissingTemplate': function () {
-            this.content.currentView.close();
+            this.content.close();
             this.close();
-        },
-
-        'onBeforeRender': function () {
-
         },
 
         'templateHelpers': function () {

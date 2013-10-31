@@ -136,6 +136,46 @@ $.getScripts = function (urls, callback, options) {
     });
 };
 
+// http://www.foliotek.com/devblog/getting-the-width-of-a-hidden-element-with-jquery-using-width/
+// get element sizes while they are hidden / being they are appended
+$.fn.getHiddenDimensions = function (includeMargin) {
+    /*ignore jslint start*/
+    var $item = this,
+        props = { position: 'absolute', visibility: 'hidden', display: 'block' },
+        dim = { width: 0, height: 0, innerWidth: 0, innerHeight: 0, outerWidth: 0, outerHeight: 0 },
+        $hiddenParents = $item.parents().andSelf().not(':visible'),
+        includeMargin = (includeMargin == null) ? false : includeMargin;
+
+    var oldProps = [];
+    $hiddenParents.each(function () {
+        var old = {};
+
+        for (var prop in props) {
+            old[prop] = this.style[prop];
+            this.style[prop] = props[prop];
+        }
+
+        oldProps.push(old);
+    });
+
+    dim.width = $item.width();
+    dim.outerWidth = $item.outerWidth(includeMargin);
+    dim.innerWidth = $item.innerWidth();
+    dim.height = $item.height();
+    dim.innerHeight = $item.innerHeight();
+    dim.outerHeight = $item.outerHeight(includeMargin);
+
+    $hiddenParents.each(function (i) {
+        var old = oldProps[i];
+        for (var name in props) {
+            this.style[name] = old[name];
+        }
+    });
+
+    return dim;
+    /*ignore jslint end*/
+};
+
 // underscore's fancy pants capitalize()
 _.mixin({
     'capitalize': function (string) {
@@ -266,52 +306,3 @@ receive = function (eventName) {
 debugOp = function () {
     console.debug('%O, %O', this, arguments);
 };
-
-// allow jasmine to run on the campaign page if the url contains "specrunner".
-(function () {
-    /**
-     * Sequential script getter. ($.fn.getScripts is parallel)
-     * @param urls {String}: array of script urls
-     * @param callback {Function}: what to do afterwards.
-     */
-    var getScripts = function (urls, callback) {
-            var script = urls.shift();
-            $.getScript(script, function () {
-                if (urls.length + 1 <= 0) {
-                    if (typeof callback === 'function') {
-                        callback();
-                    }
-                } else {
-                    getScripts(urls, callback);
-                }
-            });
-        },
-        runTest = function () {
-            var protoSrcMaps = [
-                    "/static/js/jasmine.js",
-                    "/static/js/jasmine-html.js",
-                    "/static/js/jasmine-console.js",
-                    "/static/pinpoint/js/pages.preinit.spec.js",
-                    "/static/pinpoint/js/pages.spec.js",
-                    "/static/pinpoint/js/pages.support.spec.js",
-                    "/static/pinpoint/js/pages.utils.spec.js",
-                    "/static/pinpoint/js/pages.layoutengine.spec.js",
-                    "/static/pinpoint/js/pages.viewport.spec.js"
-                ],
-                href = window.location.href.toLowerCase();
-
-            if (href.indexOf('specrunner.html') > 0) {
-                protoSrcMaps.push("/static/js/jasmine.specrunner.html.js");
-            } else if (href.indexOf('specrunner') > 0) {
-                protoSrcMaps.push("/static/js/jasmine.specrunner.console.js");
-            } else {
-                return;
-            }
-
-            protoSrcMaps = SecondFunnel.option('protoSrcMaps') || protoSrcMaps;
-
-            getScripts(protoSrcMaps);
-        };
-
-    SecondFunnel.vent.on('finished', runTest);
-}());

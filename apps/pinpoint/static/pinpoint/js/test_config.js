@@ -124,10 +124,10 @@ window.PAGES_INFO = {
     'gaAccountNumber': 'UA-65432-1',  // UA-65432-1 is not a real account
 
     // number of viewports worth of results to keep below the page.
-    // 0 is not an acceptable value, but 0.0001 is. default is 1,
+    // 0 is not an acceptable value, but 0.0001 is. default is 1.5,
     // i.e. there will always be one page worth of results
     // underneath, no matter how fast you scroll.
-    'prefetchHeight': 1,
+    'prefetchHeight': undefined,
 
     'lockWidth': true,  // must be true (not 1, {}, ...) or a function that returns true
     'desiredWidth': 1024,

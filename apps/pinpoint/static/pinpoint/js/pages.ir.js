@@ -91,7 +91,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         // if online, return the result, or a backup list if it fails.
         Backbone.Collection.prototype.fetch.call(this, opts)
             .done(function (results) {
-                deferred.resolve(results);
+                deferred.resolve(_.shuffle(results));
                 resultsAlreadyRequested = intentRank.getTileIds(results);
             })
             .fail(function () {

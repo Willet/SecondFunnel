@@ -120,7 +120,10 @@
             <script type="text/template" id="product_tile_template">
                 <!-- div>product</div -->
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.image.url %>" alt="<%= obj.caption %>" />
+                <img class="focus"
+                     src="<%= obj.image.url %>"
+                     width="<%= obj.image.width %>"
+                     alt="<%= obj.caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -330,13 +333,12 @@
                         </div>
 
                         <% if (product.images.length > 1) { %>
-                        <div class='gallery'></div>
+                            <div class='gallery'></div>
                         <% } %>
-
                     </div>
-                            <div class="col-sm-6 col-md-6">
-                                <div class='title'><%= product.title %></div>
-                                <div class='price'><%= product.price %></div>
+                    <div class="col-sm-6 col-md-6">
+                        <div class='title'><%= product.title %></div>
+                        <div class='price'><%= product.price %></div>
                         <div class="row">
                             <div class="col-lg-4 col-md-4 col-sm-4 main-image-container">
                                 <img class="main-image" src="<%= product.defaultImage.get('url') %>" alt="related product" />

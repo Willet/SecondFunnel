@@ -183,15 +183,16 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 self.get('sizes')[sizeName].name = sizeName;
                 self.get('sizes')[sizeName]['dominant-colour'] = color;
             });
+
+            // the template needs something simpler.
+            this.normal = this.width(255);
+            this.wide = this.width(510);
+            this.full = this.width(1020);
+            this.url = this.normal;
         },
 
-        'toJSON': function (options) {
-            // the template needs something simpler.
-            var attribs = _.clone(this.attributes);
-            attribs.normal = this.width(255);
-            attribs.wide = this.width(510);
-            attribs.full = this.width(1020);
-            return attribs;
+        'sync': function () {
+            return false;
         },
 
         'size': function (size) {
