@@ -76,7 +76,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             }
         }, this.config, intentRank.options, options);
 
-        return Backbone.Collection.prototype.fetch.call(this, intentRank.options)
+        return Backbone.Collection.prototype.fetch.call(this, opts)
             .done(function (results) {
                 resultsAlreadyRequested = intentRank.getTileIds(results);
             });
