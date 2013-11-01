@@ -11,7 +11,8 @@ function reInitialize(app) {
 
     app.addRegions({
         'heroArea': '#hero-area',
-        'discoveryArea': '#discovery-area'
+        'discoveryArea': '#discovery-area',
+        'previewArea': '#preview'
     });
 
     // from davidsulc/marionette-gentle-introduction

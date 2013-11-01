@@ -3,7 +3,7 @@
 // Then worry about the spec, and categorizing everything, ok?
 describe("JUST DO WHAT I EXPECT! IS THAT SO HARD TO UNDERSTAND?!", function () {
     beforeEach(function() {
-        this.app = Page;
+        this.app = SecondFunnel;
     });
 
     describe("Page Load:", function() {

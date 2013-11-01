@@ -1,6 +1,6 @@
 xdescribe("Tile Collection:", function () {
-    var Tile = Page.core.Tile;
-        TileCollection = Page.core.TileCollection;
+    var Tile = SecondFunnel.core.Tile;
+        TileCollection = SecondFunnel.core.TileCollection;
 
     describe("Initialization:", function() {
         it("should exist", function() {
