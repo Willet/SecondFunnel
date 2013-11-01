@@ -157,4 +157,18 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
             ',' + parseInt(hexColor.slice(-2), 16) +
             ',' + opacity + ')';
     };
+
+    /**
+     * execute param1 if any only if param2 is true
+     */
+    this.iff = function (fn, flag) {
+        var truthTest = flag;
+        if (typeof flag === 'function') {
+            truthTest = flag();
+        }
+        if (truthTest) {
+            return fn();
+        }
+        return false;
+    };
 });

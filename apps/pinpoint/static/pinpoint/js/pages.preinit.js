@@ -3,7 +3,6 @@ console */
 var SecondFunnel = new Marionette.Application(),
     broadcast,
     receive,
-    console = window.console || {},
     debugOp,
     ev = new $.Event('remove'),
     orig = $.fn.remove;
@@ -39,6 +38,14 @@ SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
         }
 
         // remove console functions depending on desired debug threshold.
+        if (level < SecondFunnel.ERROR) {
+            console.error = $.noop;
+        }
+
+        if (level < SecondFunnel.WARNING) {
+            console.warn = $.noop;
+        }
+
         if (level < SecondFunnel.LOG) {
             console.log = $.noop;
         }
@@ -49,7 +56,7 @@ SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     } catch (e) {
         // this is an optional operation. never let this stop the script.
     }
-}(console,
+}(window.console = window.console || {},
   SecondFunnel.options.debug,
   window.location.hash + window.location.search));
 
@@ -236,14 +243,14 @@ _.mixin({
         var oldRender = ViewClass.prototype.render || $.noop;
         ViewClass.prototype.render = function () {
             var result;
-            /*try {*/
+            try {
                 // call the original function
                 result = oldRender.apply(this, arguments);  // usually 'this'
 
                 // do something else
                 SecondFunnel.utils.runWidgets(this);
 
-            /*} catch (err) {
+            } catch (err) {
                 // failed... close the view
                 broadcast('viewRenderError', err, this);
 
@@ -260,7 +267,7 @@ _.mixin({
                 }
 
                 this.close();
-            }*/
+            }
 
             // return the return of the original function, pretend nothing happened
             return result;

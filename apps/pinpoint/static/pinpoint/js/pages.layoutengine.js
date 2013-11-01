@@ -68,7 +68,6 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * @returns this
      */
     this.layout = function (view) {
-        console.error('layout');
         view.$el.masonry('layout');
         return this;
     };

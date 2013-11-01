@@ -166,7 +166,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // show/hide buttons only if there are buttons
             if (this.socialButtons && this.socialButtons.$el &&
                 this.socialButtons.$el.children().length) {
-                var inOrOut = (ev.type === 'mouseenter')? 'fadeIn': 'fadeOut';
+                var inOrOut = (ev.type === 'mouseenter')? 'cssFadeIn': 'cssFadeOut';
                 this.socialButtons.currentView.load();
                 this.socialButtons.$el[inOrOut](200);
             }
@@ -421,7 +421,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
 
             // ... then fetch more products from IR
-            return this.getTiles();
+            this.getTiles();
+
+            return this;
         },
 
         'attachListeners': function () {
@@ -488,7 +490,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     self.toggleLoading(false);
 
                     // see if we need to get more
-                    self.pageScroll();
+                    // this setTimeout forces IE 8 to clear the stack
+                    setTimeout(function () {
+                        self.pageScroll();
+                    }, 100);
                 });
         },
 
@@ -503,15 +508,17 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             SecondFunnel.layoutEngine.add(collectionView, [itemView.el]);
         },
 
+        /**
+         * @return undefined
+         */
         'updateContentStream': function (ev, tile) {
             // Loads in related content below the specified tile
             var id = tile.model.get('tile-id');
             if (id === null) {
                 console.warn('updateContentStream got a null ID. ' +
                     'I don\'t think it is supposed to happen.');
-                return this;
             }
-            return this.getTiles({
+            this.getTiles({
                 'type': "content",
                 'id': id
             }, tile);
@@ -529,7 +536,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 SecondFunnel.intentRank.changeCategory(category.model.get('id'));
                 SecondFunnel.tracker.changeCampaign(category.model.get('id'));
                 SecondFunnel.layoutEngine.empty(this);
-                return this.getTiles();
+                this.getTiles();
             }
             return this;
         },
@@ -754,7 +761,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // cannot declare display:table in marionette class.
             this.$el.css({'display': "table"});
 
-            $('body').append(this.$el.fadeIn(SecondFunnel.option('previewAnimationDuration')));
+            $('body').append(this.$el.cssFadeIn(SecondFunnel.option('previewAnimationDuration')));
         }
     });
 
@@ -787,7 +794,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     .parents(SecondFunnel.option('itemSelector'))
                     .hasClass('wide')) {
                 if ($indicatorEl.is(':in-viewport')) {  // this one is in view.
-                    $indicatorEl.delay(500).fadeOut(600);
+                    $indicatorEl.cssDelay(500).cssFadeOut(600);
                 }
             }
         }

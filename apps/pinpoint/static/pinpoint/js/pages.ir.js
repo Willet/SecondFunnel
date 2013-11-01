@@ -73,6 +73,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
                 'add': true,
                 'merge': true,
                 'remove': false,
+                'crossDomain': true,
                 'data': {
                     'shown': resultsAlreadyRequested.join(',')
                 }

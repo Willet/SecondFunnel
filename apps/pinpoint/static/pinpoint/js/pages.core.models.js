@@ -148,7 +148,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     });
 
     /**
+     * The Image object (url, width, height, ...)
      *
+     * @constructor
      * @type {*}
      */
     this.Image = Backbone.Model.extend({
