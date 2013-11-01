@@ -240,6 +240,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'onRender': function () {
             var self = this,
                 model = this.model,
+                allocateTile = _.throttle(function () {
+                    // after the tile's dimensions are finalised, ask
+                    // masonry to handle it
+                    SecondFunnel.layoutEngine.layout(SecondFunnel.discovery);
+                }, 1000),
                 tileImage = model.get('image'),  // assigned by onBeforeRender
                 $tileImg = this.$('img.focus'),
                 hexColor,
@@ -256,27 +261,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 });
             }
 
-            // resize image... later (because $el is hidden, width() gives 0)
-            // TODO
-            /*_.defer(function () {
-                // master.jpgs have no defined size
-                if (tileImage.url.indexOf('master') < 0) {
-                    // aim to fill the entire tile container
-                    var maxImageWidth = $tileImg.parent().width();
-                    // calculate tile's scaled image height
-                    $tileImg.css({
-                        'width': maxImageWidth + 'px',
-                        'max-width': '100%',
-                        'height': maxImageWidth / tileImage.width *
-                                  tileImage.height + 'px'
-                    });
-                }
-            });*/
-
             // this is the 'image 404' event
             $tileImg[0].onerror = function () {
                 self.close();
             };
+
+            $tileImg.load(allocateTile);
 
             if (SecondFunnel.support.touch()) {
                 this.tapIndicator.show(new module.TapIndicator());
@@ -467,9 +457,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
 
             // Vent Listeners
-            SecondFunnel.vent.on("click:tile", this.updateContentStream,
-                this);
+            SecondFunnel.vent.on("click:tile", this.updateContentStream, this);
             SecondFunnel.vent.on('change:campaign', this.categoryChanged, this);
+
+            SecondFunnel.vent.on("finished", _.once(function () {
+                // the first batch of results need to layout themselves
+                SecondFunnel.layoutEngine.layout(self);
+            }));
             return this;
         },
 
@@ -484,6 +478,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             var self = this;
 
             if (this.loading) {
+                // do nothing
                 return (new $.Deferred()).promise();
             }
             self.toggleLoading(true);
@@ -497,10 +492,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 });
         },
 
-        'onAfterItemAdded': function (itemView) {
-            var self = this;
-            SecondFunnel.layoutEngine.layout(self);
-        },
+        'render': _.throttle(function () {
+            // limit how many times the feed can re-render.
+            Marionette.CollectionView.prototype.render.apply(this, arguments);
+        }, 500),
 
         'appendHtml': function (collectionView, itemView, index) {
             // default functionality:

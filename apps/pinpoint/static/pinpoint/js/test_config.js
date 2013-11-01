@@ -56,7 +56,7 @@ window.PAGES_INFO = {
     'previewAnimationDuration': 100,  // in ms
     'previewMobileAnimationDuration': 0,
     'masonry': {  // passed to masonry
-        'animationDuration': 0.4  // in seconds
+        'transitionDuration': '0'  // in seconds
     },
     'featured': { // the featured product
         "tile-id": 19325,

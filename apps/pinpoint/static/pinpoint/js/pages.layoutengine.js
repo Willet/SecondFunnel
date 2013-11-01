@@ -31,6 +31,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
                 '-moz-transform': 'none'
             }
         },
+        frags = [],  // common fragment storage
         opts;  // last-used options (used by clear())
 
     this.on('start', function () {  // this = layoutEngine
@@ -67,9 +68,8 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * @returns this
      */
     this.layout = function (view) {
-        setTimeout(function () {
-            view.$el.masonry('layout');
-        }, 100);
+        console.error('layout');
+        view.$el.masonry('layout');
         return this;
     };
 
@@ -104,26 +104,36 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * @returns {Deferred}
      */
     this.add = function (view, fragment, $target) {
-        var self = this;
-        if ($target && $target.length) {
-            var initialBottom = $target.position().top +
-                $target.height();
-            if (frag.length) {
-                // Find a target that is low enough on the screen to insert after
-                while ($target.position().top <= initialBottom &&
-                    $target.next().length > 0) {
-                    $target = $target.next();
-                }
-                $target.after(frag);
-                self.reload(view);
-            }
-        } else if (fragment.length) {
-            setTimeout(function () {
-                view.$el
-                    .append(fragment)
-                    .masonry('appended', fragment);
-            }, 100);
+        var self = this,
+            initialBottom;
+
+        if (!(fragment && fragment.length)) {
+            return this;  // nothing to add
         }
+
+        // collect fragments, append in batch
+        frags = frags.concat(fragment);
+        if (frags.length >= SecondFunnel.option('IRResultsCount', 10)) {
+            fragment = frags;
+            frags = [];
+        } else {
+            return;  // save for later
+        }
+
+        // inserting around a given tile
+        if ($target && $target.length) {
+            initialBottom = $target.position().top + $target.height();
+            // Find a target that is low enough on the screen to insert after
+            while ($target.position().top <= initialBottom &&
+                   $target.next().length > 0) {
+                $target = $target.next();
+            }
+            $target.after(fragment);
+            return self.reload(view);
+        }
+
+        // inserting at the bottom
+        view.$el.append(fragment).masonry('appended', fragment);
     };
 
     /**
