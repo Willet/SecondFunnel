@@ -53,41 +53,33 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         'initialize': function (attributes, options) {
             var self = this,
-                defaultImage,
+                defaultImage = this.getDefaultImage(),
                 videoTypes = ["youtube", "video"],
                 type = this.get('content-type').toLowerCase(),
                 imgInstances = [];
-
-            try {
-                defaultImage = this.getDefaultImage();
-                this.set({
-                    'defaultImage': defaultImage,
-                    'dominant-colour': defaultImage.get('dominant-colour')
-                });
-            } catch (e) {
-                // not a tile with default-image, or
-                // image tile has no size information
-                this.set({
-                    'defaultImage': new module.Image({
-                        'url': this.get('url')
-                    })
-                });
-            }
 
             // set up tile type overrides
             this.set({
                 'type': this.get('template'),  // default type being its template
                 'caption': SecondFunnel.utils.safeString(this.get("caption"))
             });
-            if (_.contains(videoTypes, type)) {
-                this.set('type', 'video');
-            }
 
             // replace all image json with their objects.
             _.each(this.get('images'), function (image) {
                 imgInstances.push(new module.Image(image));
             });
-            self.set('images', imgInstances);
+
+            // this tile has no images, or can be an image itself
+            if (imgInstances.length === 0) {
+                imgInstances.push(new module.Image({
+                    'url': this.get('url')
+                }));
+            }
+            self.set({
+                'images': imgInstances,
+                'defaultImage': defaultImage,
+                'dominant-colour': defaultImage.get('dominant-colour')
+            });
 
             broadcast('tileModelInitialized', this);
         },
@@ -185,10 +177,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             });
 
             // the template needs something simpler.
+            this.color = color;
             this.normal = this.width(255);
             this.wide = this.width(510);
             this.full = this.width(1020);
-            this.url = this.normal;
+            this.url = this.normal;  // overwrites backbone method
         },
 
         'sync': function () {
@@ -278,14 +271,16 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     this.VideoTile = this.Tile.extend({
         'defaults': {
             'tile-class': 'video',
-            'content-type': 'video'
+            'content-type': 'video',
+            'type': 'video'
         }
     });
 
     this.YoutubeTile = this.VideoTile.extend({
         'defaults': {
             'tile-class': 'youtube',
-            'content-type': 'youtube'
+            'content-type': 'youtube',
+            'type': 'video'
         }
     });
 

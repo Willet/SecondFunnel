@@ -122,6 +122,7 @@
                 <div class="tap-indicator-target"></div>
                 <img class="focus"
                      src="<%= obj.image.url %>"
+                     style="background-color:<%= obj.image.color %>;"
                      width="<%= obj.image.width %>"
                      alt="<%= obj.caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
@@ -131,7 +132,10 @@
             </script>
             <script type="text/template" id="product_mobile_tile_template">
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.image.url %>" alt="<%= obj.caption %>" />
+                <img class="focus" src="<%= obj.image.url %>"
+                     alt="<%= obj.caption %>"
+                     style="background-color:<%= obj.image.color %>;"
+                     width="<%= obj.image.width %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -145,7 +149,10 @@
             <script type="text/template" id="image_tile_template">
                 <!-- div>image</div -->
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.image.url %>"
+                     alt="<%= caption %>"
+                     style="background-color:<%= obj.image.color %>;"
+                     width="<%= obj.image.width %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
                     <span class="type"><%= obj['content-type'] %></span>
                 <% } %>
@@ -428,15 +435,15 @@
         <script type="text/javascript" src="js/test_config.js"></script>
         <script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
         <script type="text/javascript" src="/static/js/respond.min.js"></script><!-- "as early after the css as possible" -->
-        <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery-1.8.3.js"></script>
         <script type="text/javascript" src="/static/js/jquery.mobile.swipeonly.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.viewport.min.js"></script><!-- after jquery -->
         <script type="text/javascript" src="/static/js/json2.js"></script>
         <script type="text/javascript" src="/static/js/underscore.js"></script>
         <script type="text/javascript" src="/static/js/backbone.js"></script>
-        <script type="text/javascript" src="/static/js/backbone.marionette.min.js"></script><!-- after backbone -->
+        <script type="text/javascript" src="/static/js/backbone.marionette.js"></script><!-- after backbone -->
         <script type="text/javascript" src="/static/js/imagesloaded.pkgd.min.js"></script>
-        <script type="text/javascript" src="/static/js/jquery.masonry.pkgd.min.js"></script>
+        <script type="text/javascript" src="/static/js/masonry.pkgd.js"></script>
         <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.browser.mobile.js"></script>
         <script type="text/javascript" src="js/pages.preinit.js"></script><!-- after marionette -->

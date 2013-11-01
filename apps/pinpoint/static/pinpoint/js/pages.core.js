@@ -91,39 +91,42 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @returns {*}
      */
     Marionette.View.prototype.getTemplate = function () {
-        var i, templateIDs = Marionette.getOption(this, "templates"),
-            template = Marionette.getOption(this, "template"),
+        var i, templateIDs = this.templates,
+            template = this.template,
             temp, templateExists, data;
 
-        if (templateIDs) {
-            if (typeof templateIDs === 'function') {
-                // if given as a function, call it, and expect [<string> selectors]
-                templateIDs = templateIDs(this);
+        if (!templateIDs) {
+            // the custom 'templates' variable is not there
+            return template;
+        }
+
+        if (typeof templateIDs === 'function') {
+            // if given as a function, call it, and expect [<string> selectors]
+            templateIDs = templateIDs.apply(this, [this]);
+        }
+
+        for (i = 0; i < templateIDs.length; i++) {
+            // needs to be deep copy (for store info)
+            data = $.extend({}, this.model.attributes);
+
+            try {
+                data.template = module.getModifiedTemplateName(data.template);
+            } catch (err) {
+                data.template = '';
+                // model did not need to specify a template.
             }
 
-            for (i = 0; i < templateIDs.length; i++) {
-                data = $.extend({},
-                    Marionette.getOption(this, "model").attributes);
+            temp = _.template(templateIDs[i], {
+                'options': SecondFunnel.options,
+                'data': data
+            });
+            templateExists = Marionette.TemplateCache._exists(temp);
 
-                try {
-                    data.template = module.getModifiedTemplateName(data.template);
-                } catch (err) {
-                    data.template = '';
-                    // model did not need to specify a template.
-                }
-
-                temp = _.template(templateIDs[i], {
-                    'options': SecondFunnel.options,
-                    'data': data
-                });
-                templateExists = Marionette.TemplateCache._exists(temp);
-
-                if (templateExists) {
-                    // replace this thing's desired template ID to the
-                    // highest-order template found
-                    template = temp;
-                    break;
-                }
+            if (templateExists) {
+                // replace this thing's desired template ID to the
+                // highest-order template found
+                template = temp;
+                break;
             }
         }
         return template;

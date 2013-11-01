@@ -152,14 +152,23 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'onHover': function (ev) {
             // Trigger tile hover event with event and tile
             SecondFunnel.vent.trigger("tileHover", ev, this);
-            if (!SecondFunnel.support.mobile() &&
-                !SecondFunnel.support.touch() &&
-                this.socialButtons && this.socialButtons.$el &&
+            if (SecondFunnel.support.mobile() || SecondFunnel.support.touch()) {
+                return this;  // don't need buttons here
+            }
+
+            // load buttons for this tile only if it hasn't already been loaded
+            if (!this.socialButtons.$el) {
+                this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({
+                    model: this.model
+                }));
+            }
+
+            // show/hide buttons only if there are buttons
+            if (this.socialButtons && this.socialButtons.$el &&
                 this.socialButtons.$el.children().length) {
-                var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn'
-                    : 'fadeOut';
-                this.socialButtons.$el[inOrOut](200);
+                var inOrOut = (ev.type === 'mouseenter')? 'fadeIn': 'fadeOut';
                 this.socialButtons.currentView.load();
+                this.socialButtons.$el[inOrOut](200);
             }
         },
 
@@ -269,16 +278,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 self.close();
             };
 
-            if (this.tapIndicator && this.socialButtons) {
-                // Need to do this check in case layout is closing due
-                // to broken images.
-                if (SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length &&
-                    !(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
-                    this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({model: this.model}));
-                }
-                if (SecondFunnel.support.touch()) {
-                    this.tapIndicator.show(new module.TapIndicator());
-                }
+            if (SecondFunnel.support.touch()) {
+                this.tapIndicator.show(new module.TapIndicator());
             }
         }
     });

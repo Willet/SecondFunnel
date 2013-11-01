@@ -58,7 +58,7 @@ if ( typeof define === 'function' && define.amd ) {
 })( window );
 
 /**
- * getSize v1.1.4
+ * getSize v1.1.5
  * measure size of elements
  */
 
@@ -72,8 +72,9 @@ if ( typeof define === 'function' && define.amd ) {
 // -------------------------- helpers -------------------------- //
 
 var defView = document.defaultView;
+var isComputedStyle = defView && defView.getComputedStyle;
 
-var getStyle = defView && defView.getComputedStyle ?
+var getStyle = isComputedStyle ?
   function( elem ) {
     return defView.getComputedStyle( elem, null );
   } :
@@ -187,6 +188,7 @@ function getSize( elem ) {
   for ( var i=0, len = measurements.length; i < len; i++ ) {
     var measurement = measurements[i];
     var value = style[ measurement ];
+    value = mungeNonPixel( elem, value );
     var num = parseFloat( value );
     // any 'auto', 'medium' value will be 0
     size[ measurement ] = !isNaN( num ) ? num : 0;
@@ -223,6 +225,35 @@ function getSize( elem ) {
   size.outerHeight = size.height + marginHeight;
 
   return size;
+}
+
+// IE8 returns percent values, not pixels
+// taken from jQuery's curCSS
+function mungeNonPixel( elem, value ) {
+  // IE8 and has percent value
+  if ( isComputedStyle || value.indexOf('%') === -1 ) {
+    return value;
+  }
+  var style = elem.style;
+	// Remember the original values
+	var left = style.left;
+	var rs = elem.runtimeStyle;
+	var rsLeft = rs && rs.left;
+
+	// Put in the new values to get a computed value out
+	if ( rsLeft ) {
+		rs.left = elem.currentStyle.left;
+	}
+	style.left = value;
+	value = style.pixelLeft;
+
+	// Revert the changed values
+	style.left = left;
+	if ( rsLeft ) {
+		rs.left = rsLeft;
+	}
+
+  return value;
 }
 
 return getSize;
@@ -386,7 +417,7 @@ if ( typeof define === 'function' && define.amd ) {
 })( this );
 
 /*!
- * EventEmitter v4.2.3 - git.io/ee
+ * EventEmitter v4.2.4 - git.io/ee
  * Oliver Caldwell
  * MIT license
  * @preserve
@@ -724,6 +755,13 @@ if ( typeof define === 'function' && define.amd ) {
 
 		return this;
 	};
+
+	/**
+	 * Alias of removeEvent.
+	 *
+	 * Added to mirror the node API.
+	 */
+	proto.removeAllListeners = alias('removeEvent');
 
 	/**
 	 * Emits an event of your choice.

@@ -19,9 +19,9 @@ SecondFunnel.module("support", function (module, SecondFunnel) {
      * @type {Function}
      * @returns {Boolean}
      */
-    this.mobile = function () {
+    this.mobile = _.memoize(function () {
         return ($window.width() < 768);  // 768 is set in stone now
-    };
+    });
 
     /**
      * True if the browser supports touch events.
@@ -29,10 +29,10 @@ SecondFunnel.module("support", function (module, SecondFunnel) {
      * @type {Function}
      * @returns {Boolean}
      */
-    this.touch = function () {
+    this.touch = _.memoize(function () {
         return ('ontouchstart' in document.documentElement) ||
             $('html').hasClass('touch-enabled');
-    };
+    });
 
     /**
      * True if the device identifies itself as an iPad.
@@ -40,11 +40,11 @@ SecondFunnel.module("support", function (module, SecondFunnel) {
      * @type {Function}
      * @returns {Boolean}
      */
-    this.isAniPad = function () {
+    this.isAniPad = _.memoize(function () {
         // use of this function is highly discouraged, but you know it
         // will be used anyway
         return testUA(/ipad/i);
-    };
+    });
 
     /**
      * The absolutely-no-errors-must-leave-this-function 'decorator'.
