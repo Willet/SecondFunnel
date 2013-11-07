@@ -20,13 +20,14 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         // $(...).html() defaults to the first item successfully selected
         // so featured will be used only if stl is not found.
         'model': module.Tile,
-        'template': "#stl_template, #featured_template, #hero_template",
+        'template': "#shopthelook_template, #featured_template, #hero_template",
         'templates': function (currentView) {
             return [  // dictated by CtrlF fshkjr
-                "#<%= options.store.slug %>_stl_template",
+                "#<%= options.store.slug %>_<%= options.page.layout %>_template",
+                "#<%= options.store.slug %>_shopthelook_template",
                 "#<%= options.store.slug %>_featured_template",
                 "#<%= options.store.slug %>_hero_template",
-                "#stl_template",
+                "#shopthelook_template",
                 "#featured_template",
                 "#hero_template"
             ];
