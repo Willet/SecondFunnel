@@ -126,6 +126,8 @@ div.loading {
 
     float: left;
 
+    -webkit-transform: transform3d(0, 0, 0);
+
     cursor: pointer;
     cursor: -webkit-zoom-in;
     cursor: -moz-zoom-in;
