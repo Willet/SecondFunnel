@@ -263,9 +263,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
 
             // this is the 'image 404' event
-            $tileImg[0].onerror = function () {
-                self.close();
-            };
+            if ($tileImg && $tileImg.length >= 1) {
+                $tileImg[0].onerror = function () {
+                    self.close();
+                };
+            }
 
             $tileImg.load(allocateTile);
 

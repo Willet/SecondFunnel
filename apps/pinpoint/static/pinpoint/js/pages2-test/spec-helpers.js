@@ -9,7 +9,6 @@ beforeEach(function () {
         _.each(app.submodules, function (module) {
             module.stop();
         });
-        Backbone.History.stop();
         app._initCallbacks.reset();
 
         reinitialize(app);
