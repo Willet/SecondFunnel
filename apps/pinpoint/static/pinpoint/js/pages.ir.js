@@ -138,15 +138,12 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
     /**
      * general implementation
+     *
+     * @deprecated
      */
     this.getResults = function () {
-        try {
-            var online = !SecondFunnel.option('page:offline', false);
-            if (online) {
-                return intentRank.getResultsOnline.apply(intentRank, arguments);
-            }
-        } catch (e) {}
-        return intentRank.getResultsOffline.apply(intentRank, arguments);
+        var args = Array.prototype.slice.apply(arguments);
+        return this.fetch.apply(SecondFunnel.discovery.collection, args);
     };
 
     /**

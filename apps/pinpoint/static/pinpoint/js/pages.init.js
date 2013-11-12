@@ -4,7 +4,7 @@
  * Given an instance of  Marionette Application, add initializers to it.
  * @param app
  */
-function reInitialize(app) {
+function reinitialize(app) {
     "use strict";
 
     broadcast('beforeInit', app.options, app);
@@ -84,25 +84,16 @@ function reInitialize(app) {
     });
 
     // from davidsulc/marionette-gentle-introduction
-    app.on("initialize:after", function () {
-        if (Backbone.history) {
-            // although not used as extensively as it should be (e.g.
-            // show tile preview, show specific category, etc.), it is here
-            // for the future
-            Backbone.history.start();
+    app.addInitializer(function () {
+        // create a discovery area with tiles in it
+        app.store = new SecondFunnel.core.Store(app.options.store);
 
-            if (this.getCurrentRoute() === "") {
-                // create a discovery area with tiles in it
-                app.store = new SecondFunnel.core.Store(app.options.store);
+        app.discovery = new SecondFunnel.core.Feed({
+            options: app.options
+        });
+        SecondFunnel.discoveryArea.show(app.discovery);
 
-                app.discovery = new SecondFunnel.core.Feed({
-                    options: app.options
-                });
-                SecondFunnel.discoveryArea.show(app.discovery);
-
-                broadcast('finished', app.options, app);
-            }
-        }
+        broadcast('finished', app.options, app);
     });
 
     app.vent.on('finished', function () {
@@ -113,4 +104,4 @@ function reInitialize(app) {
 }
 
 // auto-initialise existing instance on script inclusion
-reInitialize(window.SecondFunnel);
+reinitialize(window.SecondFunnel);

@@ -53,6 +53,13 @@
         <!-- include spec files here... -->
         <script src="js/pages2-test/spec-helpers.js"></script>
         <script src="js/pages2-test/fixtures.js"></script>
+        <script src="js/pages2-test/pages.spec.js"></script>
+        <script src="js/pages2-test/pages.ir.spec.js"></script>
+        <script src="js/pages2-test/pages.layoutengine.spec.js"></script>
+        <script src="js/pages2-test/pages.preinit.spec.js"></script>
+        <script src="js/pages2-test/pages.support.spec.js"></script>
+        <script src="js/pages2-test/pages.utils.spec.js"></script>
+        <script src="js/pages2-test/pages.viewport.spec.js"></script>
         <script src="js/pages2-test/tile-model.spec.js"></script>
         <script src="js/pages2-test/tile-collection.spec.js"></script>
         <script src="js/pages2-test/tile-view.spec.js"></script>
@@ -92,15 +99,11 @@
                     if (currentWindowOnload) {
                         currentWindowOnload();
                     }
+
+                    SecondFunnel.start();
                     execJasmine();
                 };
             }());
-
-            if (window.SecondFunnel) {
-                // Start the SecondFunnel app
-                // (which also starts the SpecRunner)
-                // SecondFunnel.start();
-            }
         </script>
     </body>
 </html>

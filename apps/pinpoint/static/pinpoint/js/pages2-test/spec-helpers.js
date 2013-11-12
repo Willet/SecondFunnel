@@ -11,6 +11,8 @@ beforeEach(function () {
         });
         Backbone.History.stop();
         app._initCallbacks.reset();
+
+        reinitialize(app);
     };
 
     this.response = function (responseText, options) {

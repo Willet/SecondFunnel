@@ -424,12 +424,16 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // ... then fetch more products from IR
             this.getTiles();
 
+            // most-recent feed is the active feed
+            SecondFunnel.discovery = this;
+
             return this;
         },
 
         'attachListeners': function () {
             var self = this;
 
+            // loads masonry on this view
             SecondFunnel.layoutEngine.initialize(this, SecondFunnel.options);
 
             $window
