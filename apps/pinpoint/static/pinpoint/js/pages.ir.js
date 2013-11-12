@@ -66,7 +66,8 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
      */
     this.fetch = function (options) {
         // 'this' IS NOT INTENTRANK
-        var deferred = new $.Deferred(),
+        var collection = this,
+            deferred = new $.Deferred(),
             online = !SecondFunnel.option('page:offline', false),
             opts = $.extend({}, {
                 'results': 10,
@@ -85,17 +86,27 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
                 .value();
 
         // if offline, return a backup list
-        if (!online) {
+        if (!online || collection.ajaxFailCount > 5) {
             return $.when(backupResults);
         }
 
         // if online, return the result, or a backup list if it fails.
         Backbone.Collection.prototype.fetch.call(this, opts)
             .done(function (results) {
+                // reset fail counter
+                collection.ajaxFailCount = 0;
+
                 deferred.resolve(_.shuffle(results));
                 resultsAlreadyRequested = intentRank.getTileIds(results);
             })
             .fail(function () {
+                // reset fail counter
+                if (collection.ajaxFailCount) {
+                    collection.ajaxFailCount++;
+                } else {
+                    collection.ajaxFailCount = 1;
+                }
+
                 deferred.resolve(backupResults);
                 resultsAlreadyRequested = intentRank.getTileIds(backupResults);
             });

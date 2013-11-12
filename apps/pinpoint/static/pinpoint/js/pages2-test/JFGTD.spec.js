@@ -117,11 +117,11 @@ describe("(just fucking get things done)! IS THAT SO HARD TO UNDERSTAND?!", func
             // What would be better would be triggering
             // a tile's 'activate' method
 
-            spyOn(this.app.tiles, 'fetch').andCallThrough();
+            spyOn(this.app.discovery.collection, 'fetch').andCallThrough();
 
             this.app.vent.trigger('fetch:related', this.app);
 
-            expect(this.app.tiles.fetch).toHaveBeenCalled();
+            expect(this.app.discovery.collection.fetch).toHaveBeenCalled();
             // Always need to call respond when using
             // fake server asynchronously...
             this.server.respond();
@@ -389,7 +389,7 @@ describe("(just fucking get things done)! IS THAT SO HARD TO UNDERSTAND?!", func
             this.app.start(options);
 
             // Apparently, Nick got lazy
-            this.app.tiles.fetch({dataType: 'json'});
+            this.app.discovery.collection.fetch({dataType: 'json'});
             this.server.respond();
 
             expect(this.app.discoveryArea.$el).not.toBeEmpty();
@@ -444,7 +444,7 @@ describe("(just fucking get things done)! IS THAT SO HARD TO UNDERSTAND?!", func
             expect(this.app.layoutEngine.layout).toHaveBeenCalled();
 
             // Apparently, Nick got lazy
-            this.app.tiles.fetch({dataType: 'json'});
+            this.app.discovery.collection.fetch({dataType: 'json'});
             this.server.respond();
 
             // Should we verify that `appended` and `layout` are only called once?
