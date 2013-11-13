@@ -1,0 +1,11 @@
+Django==1.6
+South==0.8.2
+django-cors-headers==0.12
+django-storages==1.1.8
+django-tastypie==0.10.0
+httplib2==0.8
+python-dateutil==2.2
+python-mimeparse==0.1.4
+six==1.4.1
+wsgiref==0.1.2
+boto==2.9.5
