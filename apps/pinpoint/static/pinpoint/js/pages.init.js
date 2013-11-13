@@ -7,8 +7,6 @@
 function reinitialize(app) {
     "use strict";
 
-    broadcast('beforeInit', app.options, app);
-
     app.addRegions({
         'heroArea': '#hero-area',
         'discoveryArea': '#discovery-area',
@@ -55,19 +53,6 @@ function reinitialize(app) {
     });
 
     app.addInitializer(function () {
-        app.vent.on('beforeInit', function (details) {
-            var pubDate;
-            if (details && details.page && details.page.pubDate) {
-                pubDate = details.page.pubDate;
-            }
-
-            // feature, not a bug
-            console.log("%cSecondFunnel", "font-family:sans-serif; font-size:72pt;");
-            console.log('Published ' + pubDate);
-        });
-    });
-
-    app.addInitializer(function () {
         // Add our initializer, this allows us to pass a series of tiles
         // to be displayed immediately (and first) on the landing page.
 
@@ -83,6 +68,8 @@ function reinitialize(app) {
     // from davidsulc/marionette-gentle-introduction
     app.addInitializer(function () {
         // create a discovery area with tiles in it
+        broadcast('beforeInit', app.options, app);
+
         app.store = new SecondFunnel.core.Store(app.options.store);
 
         app.discovery = new SecondFunnel.core.Feed({

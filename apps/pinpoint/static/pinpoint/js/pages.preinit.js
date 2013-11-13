@@ -9,6 +9,19 @@ var SecondFunnel = new Marionette.Application(),
 
 SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
+(function (details) {
+    var pubDate;
+    if (details && details.page && details.page.pubDate) {
+        pubDate = details.page.pubDate;
+    }
+
+    // feature, not a bug
+    if (console && console.log) {
+        console.log("%cSecondFunnel", "font-family:sans-serif; font-size:72pt;");
+        console.log('Published ' + pubDate);
+    }
+}(SecondFunnel.options));
+
 // A ?debug value of > 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 (function (console, level, hash) {
