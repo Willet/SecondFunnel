@@ -194,19 +194,30 @@
       return fragments;
     };
     append_elements = function(grid, elements) {
-      var columnIndex, columns, fragments, numberOfColumns;
+      var columnIndex, columns, fragments, numberOfColumns, columnHeights;
 
       columns = grid.children;
       numberOfColumns = columns.length;
+      // columnHeights = get_column_heights(columns);
       fragments = create_list_of_fragments(numberOfColumns);
       columnIndex = next_element_column_index(grid, elements[0]);
       elements.forEach(function(element) {
-        fragments[columnIndex].appendChild(element);
-        if (columnIndex === (numberOfColumns - 1)) {
-          return columnIndex = 0;
-        } else {
-          return columnIndex++;
-        }
+          var i = 0,
+              i_height,
+              shortestColumn = 0,
+              shortestColumnHeight = undefined;
+          for (i = 0; i < numberOfColumns; i++) {
+              // If not more than (also catches NaN)
+              i_height = columns[i].scrollHeight;
+
+              console.log(i, i_height, fragments[i])
+
+              if (!(i_height > shortestColumnHeight)) {
+                  shortestColumn = i;
+                  shortestColumnHeight = i_height;
+              }
+          }
+        fragments[shortestColumn].appendChild(element);
       });
       return Array.prototype.forEach.call(columns, function(column, columnIndex) {
         return column.appendChild(fragments[columnIndex]);
