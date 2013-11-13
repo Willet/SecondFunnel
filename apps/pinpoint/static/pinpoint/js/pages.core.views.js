@@ -22,7 +22,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'model': module.Tile,
         'template': "#shopthelook_template, #featured_template, #hero_template",
         'templates': function (currentView) {
-            return [  // dictated by CtrlF fshkjr
+            return [
                 "#<%= options.store.slug %>_<%= options.page.layout %>_template",
                 "#<%= options.store.slug %>_shopthelook_template",
                 "#<%= options.store.slug %>_featured_template",
@@ -70,7 +70,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'tagName': SecondFunnel.option('tileElement', "div"),
         'template': "#product_tile_template",
         'templates': function (currentView) {
-            var templateRules = [  // dictated by CtrlF fshkjr
+            var templateRules = [
                 "#<%= options.store.slug %>_<%= data.source %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
                 "#<%= data.source %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
                 "#<%= options.store.slug %>_<%= data.template %>_mobile_tile_template",                     // gap_image_mobile_tile_template

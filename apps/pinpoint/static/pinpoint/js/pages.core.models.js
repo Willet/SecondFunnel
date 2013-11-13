@@ -51,18 +51,18 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             'dominant-colour': "transparent"
         },
 
-        'initialize': function (attributes, options) {
-            var self = this,
-                defaultImage = this.getDefaultImage(),
-                videoTypes = ["youtube", "video"],
-                type = this.get('content-type').toLowerCase(),
-                imgInstances = [];
+        'parse': function (resp, options) {
+            if (!resp.type) {
+                resp.type = resp.template;
+            }
+            resp.caption = SecondFunnel.utils.safeString(resp.caption || '');
 
-            // set up tile type overrides
-            this.set({
-                'type': this.get('template'),  // default type being its template
-                'caption': SecondFunnel.utils.safeString(this.get("caption"))
-            });
+            return resp;
+        },
+
+        'initialize': function (attributes, options) {
+            var defaultImage = this.getDefaultImage(),
+                imgInstances = [];
 
             // replace all image json with their objects.
             _.each(this.get('images'), function (image) {
@@ -75,7 +75,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'url': this.get('url')
                 }));
             }
-            self.set({
+            this.set({
                 'images': imgInstances,
                 'defaultImage': defaultImage,
                 'dominant-colour': defaultImage.get('dominant-colour')
@@ -139,11 +139,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         'sync': function () {
             return false;  // forces ajax PUT requests to the server to succeed.
-        },
-
-        'is': function (type) {
-            // check if a tile is of (type). the type is _not_ the tile json.
-            return this.get('content-type').toLowerCase() === type.toLowerCase();
         }
     });
 

@@ -60,13 +60,10 @@ function reinitialize(app) {
             if (details && details.page && details.page.pubDate) {
                 pubDate = details.page.pubDate;
             }
-            console.log(  // feature, not a bug
-                '____ ____ ____ ____ _  _ ___     ____ _  _ ' +
-                '_  _ _  _ ____ _    \n[__  |___ |    |  | |' +
-                '\\ | |  \\    |___ |  | |\\ | |\\ | |___ | ' +
-                '   \n___] |___ |___ |__| | \\| |__/    |   ' +
-                ' |__| | \\| | \\| |___ |___ \n' +
-                '           Published ' + pubDate);
+
+            // feature, not a bug
+            console.log("%cSecondFunnel", "font-family:sans-serif; font-size:72pt;");
+            console.log('Published ' + pubDate);
         });
     });
 
