@@ -144,7 +144,7 @@ div.loading {
 
 .tile img.focus {
     /* the "focus" image (i.e. main image) must be at least some pixels wide. */
-    min-width: 200px;
+    min-width: 150px;
     min-height: 75px;
     display: block;
     margin: auto;
@@ -567,6 +567,11 @@ div.loading {
 
 /* Salvattore */
 
+/* We have a lot of media queries because unlike Masonry, you need to tell
+ * Salvatore what size things need to be, so you have to tell it to make things
+ * a little bigger on a larger screen.
+ * */
+
 /* fallback */
 #discovery-area[data-columns]::before {
     display: none;
@@ -574,16 +579,41 @@ div.loading {
 
 }
 
+.column {
+    float: left;
+}
+
+.column .tile {
+    width: 45%;
+    overflow-y: hidden;
+}
+
+.column .tile.wide {
+    width: 100%!important;
+}
+
+/* restrict column width to discovery area width so we don't end up with two
+ * columns stacked one on top of the other
+ * */
+
+.column.size-1of1 {
+    max-width: 100%;
+}
+
+.column.size-1of2 {
+    max-width: 50%;
+}
+
+column.size-1of3 {
+    max-width: 33.3%;
+}
 
 @media (max-width: 399px) {
     #discovery-area[data-columns]::before {
         content: '1 .column.size-1of1';
     }
 
-    .column {
-        width: 370px;
-    }
-
+    /* same size as regular tile */
     .tile.wide {
         width: 240px;
         margin: 0 7.5px 15px;
@@ -595,10 +625,9 @@ div.loading {
     #discovery-area[data-columns]::before {
         content: '1 .column.size-1of1';
     }
-    .column {
-        width: 400px;
-        float:left;
-    }
+    /* Regular and wide tiles are intentionally the same size.
+     * (No room on a small screen)
+     * */
     .tile {
         width: 300px;
         margin: 0;
@@ -613,19 +642,11 @@ div.loading {
     #discovery-area[data-columns]::before {
         content: '2 .column.size-1of2';
     }
-    .column {
-        width: 250px;
-        float:left;
-    }
 }
 
 @media (min-width: 768px) and (max-width: 849px) {
     #discovery-area[data-columns]::before {
         content: '2 .column.size-1of2';
-    }
-    .column {
-        width: 360px;
-        float: left;
     }
 }
 
@@ -634,10 +655,6 @@ div.loading {
         content: '2 .column.size-1of2';
     }
 
-    .column {
-        width: 382px;
-        float: left;
-    }
 
     .tile {
         width: 400px;
@@ -647,11 +664,6 @@ div.loading {
 @media (min-width: 1024px) {
     #discovery-area[data-columns]::before {
         content: '2 .column.size-1of2';
-    }
-
-    .column {
-        width: 510px;
-        float: left;
     }
 }
 
