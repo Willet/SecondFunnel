@@ -47,7 +47,6 @@
         columnClasses = ((_ref = matchResult[2]) != null ? _ref.split('.') : void 0) || ['column'];
       } else {
         matchResult = content.match(/^\s*\.(.+)\s+(\d+)\s*$/);
-          delete console.log;
           console.log(content);
           console.log(matchResult);
 
@@ -64,7 +63,6 @@
 
       _ref = obtain_grid_settings(grid), numberOfColumns = _ref.numberOfColumns, columnClasses = _ref.columnClasses;
       columnsItems = new Array(+numberOfColumns);
-      console.log('settings', numberOfColumns, columnClasses);
       i = numberOfColumns;
       while (i-- !== 0) {
         selector = "[data-columns] > *:nth-child(" + numberOfColumns + "n-" + i + ")";
@@ -205,7 +203,6 @@
         var i = 0,
             heights = [];
         for (i = 0; i<columns.length; i++) {
-            console.log(columns);
             heights[i] = columns[i].scrollHeight;
         }
         return heights;

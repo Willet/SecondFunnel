@@ -1,7 +1,6 @@
 /* global $ */
 // jshint -W018
 
-delete console.log;
 
 var Task = function (fn) {
     "use strict";
@@ -9,13 +8,11 @@ var Task = function (fn) {
 
     // maps (fn) with (data) whenever the page is doing nothing.
     this.map = function (data, timeout) {
-        delete console.log;
         var results = new Array(data.length),
             time = 0,
             i = 0,
 
             mapper = function (i) {
-                console.log(i);
                 // setTimeouts are singly queued up anyway, so
                 // they are always executed in order
                 var start = new Date().getTime();

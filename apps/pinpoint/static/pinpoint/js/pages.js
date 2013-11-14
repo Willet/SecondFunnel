@@ -738,8 +738,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // var start = Date.now(); //DEBUG
 
             task = new Task(function (tileEl) {
-                delete console.log
-                console.log(tileEl);
                 self.layoutResults([tileEl]);
             });
 
