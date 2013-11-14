@@ -604,38 +604,39 @@ div.loading {
     max-width: 50%;
 }
 
-column.size-1of3 {
+.column.size-1of3 {
     max-width: 33.3%;
+}
+
+/* No wide tiles unless it's a formal desktop */
+@media (max-width: 1024px) {
+
+    /* Regular and wide tiles are intentionally the same size.
+     * (No room on a small screen)
+     * */
+    .column .tile {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+    }
+    .column .tile.wide {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+    }
 }
 
 @media (max-width: 399px) {
     #discovery-area[data-columns]::before {
         content: '1 .column.size-1of1';
     }
-
-    /* same size as regular tile */
-    .tile.wide {
-        width: 240px;
-        margin: 0 7.5px 15px;
-    }
-
 }
 
 @media (min-width: 400px) and (max-width: 510px) {
     #discovery-area[data-columns]::before {
         content: '1 .column.size-1of1';
     }
-    /* Regular and wide tiles are intentionally the same size.
-     * (No room on a small screen)
-     * */
-    .tile {
-        width: 300px;
-        margin: 0;
-    }
-    .tile.wide {
-        width: 300px;
-        margin: 0;
-    }
+
 }
 
 @media (min-width: 510px) and (max-width: 767px) {
@@ -644,20 +645,9 @@ column.size-1of3 {
     }
 }
 
-@media (min-width: 768px) and (max-width: 849px) {
+@media (min-width: 768px) and (max-width: 1024px) {
     #discovery-area[data-columns]::before {
-        content: '2 .column.size-1of2';
-    }
-}
-
-@media (min-width: 850px) and (max-width: 1023px) {
-    #discovery-area[data-columns]::before {
-        content: '2 .column.size-1of2';
-    }
-
-
-    .tile {
-        width: 400px;
+        content: '3 .column.size-1of3';
     }
 }
 
