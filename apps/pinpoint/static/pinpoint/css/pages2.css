@@ -116,6 +116,11 @@ div.loading {
     box-shadow: 0 1px 3px 0 #999;
     vertical-align: top;
 
+    /* This fixes absolute positioning when not using Masonry (social buttons,
+     * video indicator, tap indicator)
+     * */
+    position: relative;
+
     width: 240px;
     max-width: 93%; /* empirical (padding and all) */
 
