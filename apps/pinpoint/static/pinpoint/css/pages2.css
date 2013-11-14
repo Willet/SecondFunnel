@@ -656,15 +656,14 @@ div.loading {
 }
 
 /* iPad */
-@media screen {
-
-    @media (max-width: 768px) {
-        .ipad .previewContainer .content {
-            position: fixed!important;
-            bottom: 16%!important;
-        }
+@media screen and (max-width: 768px) {
+    .ipad .previewContainer .content {
+        position: fixed!important;
+        bottom: 16%!important;
     }
+}
 
+@media screen {
     .ipad .previewContainer .mask {
         display: block!important;
     }
