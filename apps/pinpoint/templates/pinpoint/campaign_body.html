@@ -3,15 +3,6 @@
 
 {% compress js %}
 <script type="text/javascript">
-    // Hide mobile loading indicator on desktop
-    if (!$.browser.mobile) {
-        $('.mobile-only').css('display', 'none');
-    // Hide desktop loading indicator on mobile
-    } else {
-        $('.loading').css('background', '');
-    }
-</script>
-<script type="text/javascript">
     if (!$.browser.mobile || $.browser.tablet) {
         (function () {
             var salvattore = document.createElement('script');

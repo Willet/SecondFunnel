@@ -103,6 +103,16 @@ function reInitialize(app) {
             $('html').addClass('ipad');
         }
     });
+    app.vent.on('finished', function() {
+        // Hide mobile loading indicator on desktop
+        if (!$.browser.mobile) {
+            $('.mobile-only').css('display', 'none');
+        // Hide desktop loading indicator on mobile
+        } else {
+            $('.loading').css('background', '');
+        }
+
+    });
 
 }
 
