@@ -10,6 +10,10 @@ api.register(UserResource())
 urlpatterns = api.urls
 
 # TODO: non-api URLS don't belong here
+urlpatterns += patterns('apps.page_generator.views',
+    url(r'^%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/generate/?$' %
+        prefix, 'generate', name='generate')
+)
 
 # Sink function; if all else fails, proxy
 urlpatterns += patterns('apps.contentgraph.views',
