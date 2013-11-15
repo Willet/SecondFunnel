@@ -17,5 +17,5 @@ urlpatterns += patterns('apps.page_generator.views',
 
 # Sink function; if all else fails, proxy
 urlpatterns += patterns('apps.contentgraph.views',
-    url(r'^%s/(?P<path>.*)$' % prefix, 'proxy', name='proxy')
+    url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_contentgraph', name='proxy_contentgraph')
 )
