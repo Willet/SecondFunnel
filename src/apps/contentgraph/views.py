@@ -12,7 +12,7 @@ import httplib2
 # handling that...
 @never_cache
 @csrf_exempt
-def proxy(request, path):
+def proxy(request, path, raw=False):
     # Normally, we would use the login_required decorator, but it will
     # redirect on fail. Instead, just do the check manually; side benefit: we
     # can also return something more useful
@@ -49,8 +49,19 @@ def proxy(request, path):
         headers=headers
     )
 
-    return HttpResponse(
-        content=content,
-        status=response['status'],
-        content_type=response['content-type']
-    )
+    if raw:
+        return (response, content)
+    else:
+        return HttpResponse(
+            content=content,
+            status=response['status'],
+            content_type=response['content-type']
+        )
+
+def proxy_store(request, store_id=None, raw=False):
+    path = '/store/%s' % store_id
+    return proxy(request, path, raw)
+
+def proxy_page(request, store_id, page_id=None, raw=False):
+    path = '/store/%s/page/%s' % (store_id, page_id)
+    return proxy(request, path, raw)

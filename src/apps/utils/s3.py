@@ -128,6 +128,24 @@ def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
     return bytes_written
 
 
+def get_bucket_name(bucket_name):
+    """
+    Generates a bucket name based on current environment.
+    """
+
+    if settings.ENVIRONMENT in ["test", "dev"]:
+        str_format = '{0}-{1}.secondfunnel.com'
+        return str_format.format(settings.ENVIRONMENT, bucket_name)
+
+    elif settings.ENVIRONMENT == "production":
+        str_format = '{0}.secondfunnel.com'
+        return str_format.format(bucket_name)
+
+    else:
+        raise Exception("Unknown ENVIRONMENT name: {0}".format(
+            settings.ENVIRONMENT))
+
+
 def get_bucket_zone_id(bucket):
     """
     Returns HostedZone ID for a given S3 Bucket.
