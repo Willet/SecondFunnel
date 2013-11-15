@@ -1,5 +1,7 @@
 from django.http import HttpResponse
-from apps.page_generator.utils import get_or_create_bucket
+import json
+from apps.contentgraph.views import proxy_store, proxy_page
+from apps.page_generator.utils import get_or_create_bucket, generate_page
 
 
 def generate(request, store_id, page_id):
@@ -7,7 +9,15 @@ def generate(request, store_id, page_id):
     # Generate the page if it exists
     # Handle all errors
 
-    get_or_create_bucket(store_id)
+    store_json, _ = proxy_store(request, store_id, raw=True)
+    store = json.loads(store_json)
+
+    page_json = proxy_page(request, store_id, page_id)
+    page = json.loads(page_json)
+
+    get_or_create_bucket(store)
+
+    generate_page(request, store, page)
 
 
     # (result, status) = (None, 200)
