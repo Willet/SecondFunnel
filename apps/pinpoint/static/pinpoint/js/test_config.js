@@ -78,48 +78,7 @@ window.PAGES_INFO = {
         "id": "19325",
         "description": "Fabrication: Premium stretch knit. Hardware: Button closure, zip fly. Features: Five-pocket styling. Zipper detailing at coin pocket and ankle backs.\nCut: Mid-rise with a shorter length. Fit: Skinny through the hip and thigh. Leg opening: Skinny. Inseams: regular: 28\", tall: 32\", petite: 26\""
     },
-    'initialResults': [  // stuff that loads when page loads, even if IR is available
-        {
-            'caption': "None",
-            'content-id': 562949953426705,
-            'content-type': "Instagram",
-            'db-id': 5393,
-            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
-            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
-            'template': "instagram",
-            'tile-id': 562949953426705
-        },
-        {
-            'caption': "None",
-            'content-id': 562949953426705,
-            'content-type': "Instagram",
-            'db-id': 5393,
-            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
-            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
-            'template': "instagram",
-            'tile-id': 562949953426705
-        },
-        {
-            'caption': "None",
-            'content-id': 562949953426705,
-            'content-type': "Instagram",
-            'db-id': 5393,
-            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
-            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
-            'template': "instagram",
-            'tile-id': 562949953426705
-        },
-        {
-            'caption': "None",
-            'content-id': 562949953426705,
-            'content-type': "Instagram",
-            'db-id': 5393,
-            'image': "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif",
-            'original-id': "tumblr_mra6qu7uh11s6ofheo1_500",
-            'template': "instagram",
-            'tile-id': 562949953426705
-        }
-    ],
+    'initialResults': [],
     'IRResultsCount': 10,
     'IRTimeout': 5000,
     'IRSource': "http://intentrank-test.elasticbeanstalk.com/intentrank", // optional, defaults to intentrank-test
