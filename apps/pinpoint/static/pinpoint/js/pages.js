@@ -518,18 +518,23 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                                     columnWidth * columns));
             }
 
-            if (this.tapIndicator && this.socialButtons) {
-                // Need to do this check in case layout is closing due
-                // to broken images.
-                if (!$.browser.mobile &&
-                    SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length &&
-                    !(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
-                        this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({model: this.model}));
-                }
-                if (SecondFunnel.support.touch()) {
-                    this.tapIndicator.show(new module.TapIndicator());
-                }
+            // Need to do this check in case layout is closing due
+            // to broken images.
+            if (this.socialButtons &&
+                    // this is not a mobile device (no social buttons in mobile tiles)
+                    !$.browser.mobile &&
+                    // and this is not a touch device
+                    !(SecondFunnel.support.touch()) &&
+                    // and we have social buttons
+                    SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length
+               ) {
+                    this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({model: this.model}));
             }
+
+            if (this.tapIndicator && SecondFunnel.support.touch()) {
+                this.tapIndicator.show(new module.TapIndicator());
+            }
+
 
             this.$el.scaleImages();
         }
