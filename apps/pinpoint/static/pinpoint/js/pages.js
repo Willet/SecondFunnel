@@ -292,7 +292,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 break;
             default:
                 TargetClass = SecondFunnel.utils.findClass(
-                    'TileView', this.get('type'), module.TileView);
+                    'TileView',
+                    this.get('type'),
+                    module.TileView
+                );
             }
             // #CtrlF fshkjr
             view = new TargetClass({'model': this});
@@ -447,20 +450,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.render();
         },
 
-        'onHover': function (ev) {
-            // Trigger tile hover event with event and tile
-            SecondFunnel.vent.trigger("tileHover", ev, this);
-            if (!SecondFunnel.support.mobile() &&
-                !SecondFunnel.support.touch() &&
-                this.socialButtons && this.socialButtons.$el &&
-                this.socialButtons.$el.children().length) {
-                var inOrOut = (ev.type === 'mouseenter') ? 'fadeIn'
-                    : 'fadeOut';
-                this.socialButtons.$el[inOrOut](200);
-                this.socialButtons.currentView.load();
-            }
-        },
-
         'onClick': function (ev) {
             var tile = this.model,
                 preview;
@@ -529,17 +518,23 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                                     columnWidth * columns));
             }
 
-            if (this.tapIndicator && this.socialButtons) {
-                // Need to do this check in case layout is closing due
-                // to broken images.
-                if (SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length &&
-                    !(SecondFunnel.support.touch() || SecondFunnel.support.mobile())) {
+            // Need to do this check in case layout is closing due
+            // to broken images.
+            if (this.socialButtons &&
+                    // this is not a mobile device (no social buttons in mobile tiles)
+                    !$.browser.mobile &&
+                    // and this is not a touch device
+                    !(SecondFunnel.support.touch()) &&
+                    // and we have social buttons
+                    SecondFunnel.sharing.SocialButtons.prototype.buttonTypes.length
+               ) {
                     this.socialButtons.show(new SecondFunnel.sharing.SocialButtons({model: this.model}));
-                }
-                if (SecondFunnel.support.touch()) {
-                    this.tapIndicator.show(new module.TapIndicator());
-                }
             }
+
+            if (this.tapIndicator && SecondFunnel.support.touch()) {
+                this.tapIndicator.show(new module.TapIndicator());
+            }
+
 
             this.$el.scaleImages();
         }
@@ -651,6 +646,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         // prevent default appendHtml behaviour (append in batch)
         'appendHtml': $.noop,
 
+        'prefetched': [], // Array to store prefetched tiles, not utilized yet
+
         'initialize': function (options) {
             var self = this;
 
@@ -661,6 +658,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             );
             this.attachListeners();
             this.countColumns();
+
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
@@ -677,6 +675,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             _.bindAll(this, 'pageScroll', 'toggleLoading',
                 'getMoreResults', 'layoutResults');
             $window
+                // TODO replace with a debounce
                 .scroll(_.throttle(this.pageScroll, 500))
                 .resize(_.throttle(function () {
                     // did you know any DOM element without resize events
@@ -712,15 +711,28 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @param options
          * @param tile {TileView}  supply a tile View to have tiles inserted
          *                         after it. (optional)
+         * @param prerendering {boolean} if true, getTiles knows you're not in
+         *                               a hurry because you're only prerendering tiles.
          * @returns this.Discovery
          */
-        'getTiles': function (options, tile) {
+        'getTiles': function (options, tile, prerendering) {
             var self = this,
-                opts;
+                opts,
+                timeout,
+                task;
+            if (prerendering) {
+                timeout = 200;
+
+            } else {
+                // if we are not prerendering, then reset priority so tiles in
+                // queue are inserted more urgently
+                timeout = 150;
+            }
             if (this.loading) {
                 console.warn('Already loading tiles. Try again later');
                 return this;
             }
+
             if (!$('#discovery-area').is(':visible')) {
                 console.warn('Cannot load tiles when the feed is invisible');
                 return this;
@@ -728,19 +740,24 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.toggleLoading(true);
             opts = options || {};
             opts.type = opts.type || 'campaign';
+            // var start = Date.now(); //DEBUG
+
+            task = new Task(function (tileEl) {
+                self.layoutResults([tileEl]);
+            });
 
             $.when(SecondFunnel.intentRank.getResults(opts))
                 .always(function (data) {
-                    self.layoutResults(data, tile);
-                })
-                .always(function (data) {
-                    if (data && data.length > 0) {
-                        self.getMoreResults();
-                    } else {
-                        self.toggleLoading(false);
-                    }
+                    task.map(data, timeout)
+                        .always(self.reset)
+                        .always(self.getMoreResults);
                 });
+
             return this;
+        },
+
+        "prerenderTiles": function (options, tile) {
+            this.getTiles(undefined, undefined, true);
         },
 
         /**
@@ -751,11 +768,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'getMoreResults': function (data) {
             // creates conditions needed to get more results.
             var self = this;
-            this.toggleLoading(false);
-
-            setTimeout(function () {
-                self.pageScroll();
-            }, 100);
+            self.reset();
             return this;
         },
 
@@ -771,7 +784,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // Check if we don't have anything
             if (data.length === 0) {
-                return this.toggleLoading(false);
+                return this.reset();
             }
 
             // If we have data to use.
@@ -794,11 +807,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             if (tile && tile.$el) {
                 $tile = tile.$el;  // this would be the "insert after" target
             }
+
             SecondFunnel.layoutEngine.add(tileEls, $tile)
-                .always(function () {
-                    self.toggleLoading(false);
-                })
-                .always(this.getMoreResults);
             return this;
         },
 
@@ -815,13 +825,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 // remove all current col-* classes
                 return (cls.match(/col-\d+/g) || []).join(' ');
             });
-            for (i = 0; i < maxCols; i++) {
+            for (i = 0; i < maxCols; i += 1) {
                 if (i <= maxColsDef) {
                     $html.addClass('col-' + i);
                 }
             }
 
-            SecondFunnel.layoutEngine.layout();
             return maxCols;
         },
 
@@ -856,6 +865,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             return this;
         },
 
+        'reset': function () {
+            var self = this;
+            setTimeout(function () {
+                self.toggleLoading(false);
+            }, 800);
+        },
+
         'toggleLoading': function (bool) {
             if (typeof bool === 'boolean') {
                 this.loading = bool;
@@ -871,10 +887,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 documentBottomPos = $document.height(),
                 viewportHeights = pageHeight * (SecondFunnel.option('prefetchHeight', 1));
 
-            if (!this.loading && $('html').css('overflow') !== 'hidden' &&
-                pageBottomPos >= documentBottomPos - viewportHeights) {
-                // get more tiles to fill the screen.
-                this.getTiles();
+            if (!this.loading && $('html').css('overflow') !== 'hidden') {
+                if (pageBottomPos + 1000 >= documentBottomPos - viewportHeights) {
+                    // get more tiles to fill the screen.
+                    this.getTiles();
+                } else if (pageBottomPos + 3000 >= documentBottomPos-viewportHeights) {
+                    this.prerenderTiles();
+                }
             }
 
             // detect scrolling detection. not used for anything yet.
@@ -1007,6 +1026,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     .swapWith(this.$el);
             }
 
+            // disable scrolling for the rest of the document
+            $(document.body).addClass('no-scroll');
             broadcast('previewRendered', this);
         },
 
@@ -1014,6 +1035,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.$el.attr({
                 'id': 'preview-' + this.model.cid
             });
+        },
+
+        'close': function() {
+            $(document.body).removeClass('no-scroll');
         }
     });
 
@@ -1033,10 +1058,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 var discoveryEl = $(SecondFunnel.option('discoveryTarget'));
                 if (SecondFunnel.support.mobile()) {
                     this.$el.swapWith(discoveryEl.parent());
-
-                    // handle results that got loaded while the discovery
-                    // area has an undefined height.
-                    SecondFunnel.layoutEngine.layout();
                 }
                 this.close();
             }
@@ -1101,7 +1122,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      */
     this.TapIndicator = Marionette.ItemView.extend({
         'template': "#tap_indicator_template",
-        'className': 'tap_indicator',
+        'className': 'tap_indicator opaque',
         'initialize': function () {
             SecondFunnel.vent.on('scrollStopped',
                                  _.bind(this.onScrollStopped, this));
@@ -1121,7 +1142,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     .parents(SecondFunnel.option('itemSelector'))
                     .hasClass('wide')) {
                 if ($indicatorEl.is(':in-viewport')) {  // this one is in view.
-                    $indicatorEl.delay(500).fadeOut(600);
+                    $indicatorEl.delay(500).removeClass('opaque');
                 }
             }
         }

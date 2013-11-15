@@ -614,7 +614,7 @@ var PAGES = (function ($, details, Willet) {
 
         if (enableSocialButtons) {
             var $buttons = $(t).find('.social-buttons') || $(t).parent().find('.social-buttons');
-            $buttons.fadeIn('fast');
+            // $buttons.fadeIn('fast');
 
             if ($buttons && !$buttons.hasClass('loaded') && window.FB) {
                 window.FB.XFBML.parse($buttons.find('.button.facebook')[0]);
@@ -625,7 +625,7 @@ var PAGES = (function ($, details, Willet) {
 
     function commonHoverOff(t, hoverCallback, enableTracking) {
         var $buttons = $(t).parent().find('.social-buttons');
-        $buttons.fadeOut('fast');
+        // $buttons.fadeOut('fast');
 
         if (!enableTracking) {
             return;

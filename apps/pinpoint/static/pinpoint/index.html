@@ -111,10 +111,12 @@
                     <!-- configure hero images by overriding its background -->
                 </div>
             </div>
-            <div id="discovery-area" class="discovery-area">
-                <!-- paste pre-rendered tiles here (TODO... event handling for them) -->
-            </div>
-            <div class="no-noscript loading"></div>
+            <div id="discovery-area" class="discovery-area" data-columns></div>
+            <div class="no-noscript loading">
+                <div class="mobile-only">
+                    Loading
+                </div>
+            </div> <!-- On desktop, it's a gif. On mobile, the text: 'Loading' -->
             <noscript>
                 <!-- promotions to show when user does not have javascript.
                      this is a 'we need javascript' message by default.
@@ -438,19 +440,36 @@
 
         <!-- Javascript Files -->
         <script type="text/javascript" src="js/test_config.js"></script>
-        <script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
         <script type="text/javascript" src="/static/js/respond.min.js"></script><!-- "as early after the css as possible" -->
         <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.browser.mobile.js"></script>
         <script type="text/javascript" src="/static/js/jquery.mobile.swipeonly.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.viewport.min.js"></script><!-- after jquery -->
         <script type="text/javascript" src="/static/js/json2.js"></script>
         <script type="text/javascript" src="/static/js/underscore.js"></script>
         <script type="text/javascript" src="/static/js/backbone.js"></script>
         <script type="text/javascript" src="/static/js/backbone.marionette.min.js"></script><!-- after backbone -->
-        <script type="text/javascript" src="/static/js/imagesloaded.pkgd.min.js"></script>
-        <script type="text/javascript" src="/static/js/jquery.masonry.pkgd.min.js"></script>
+        <script type="text/javascript" src="/static/js/imagesloaded.js"></script>
+        <script type="text/javascript" src="/static/js/css3-mediaqueries.js"></script><!-- IE8 -->
+        <script type="text/javascript">
+            if (!$.browser.mobile || $.browser.tablet) {
+                (function () {
+                    var salvattore = document.createElement('script');
+                    salvattore.type = 'text/javascript';
+                    salvattore.src = '/static/js/salvattore.js';
+
+                    var facebookConnect = document.createElement('script');
+                    facebookConnect.type = 'text/javascript';
+                    facebookConnect.src = '//connect.facebook.net/en_US/all.js';
+
+                    $('body').append(facebookConnect).
+                    append(salvattore);
+                }());
+            }
+        </script>
         <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.browser.mobile.js"></script>
+        <script type="text/javascript" src="js/butler.js"></script>
         <script type="text/javascript" src="js/pages.preinit.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.utils.js"></script>
         <script type="text/javascript" src="js/pages.js"></script><!-- after preinit -->
@@ -462,7 +481,6 @@
         <script type="text/javascript" src="js/pages.viewport.js"></script><!-- after pages -->
         <script type="text/javascript" src="js/pages.init.js"></script><!-- after pages -->
         <script type="text/javascript" src="js/pages.widget.gallery.js"></script>
-        <script type="text/javascript" src="/static/js/css3-mediaqueries.js"></script><!-- IE8 -->
         <script type="text/javascript">
             if (window.SecondFunnel) {
                 // Start the SecondFunnel app

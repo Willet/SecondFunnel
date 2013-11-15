@@ -1,4 +1,5 @@
-/*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast */
+/*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast,
+  salvattore, $, _ */
 /**
  * Masonry wrapper
  *
@@ -45,64 +46,19 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
 
         this.$el = $(opts.discoveryTarget);
+        this.el = this.$el[0];
+        this.columns = self.$el.children('.column');
 
         if (typeof opts.columnWidth === 'function') {
             opts.columnWidth = opts.columnWidth(this.$el);
         }
 
-        this.$el.masonry(opts);
-
         SecondFunnel.vent.on('windowResize', function () {
-            self.layout();
-        });
+            this.columns = self.$el.children('.column');
+        }, this);
+
 
         broadcast('layoutEngineInitialized', this, opts);
-        return this;
-    };
-
-    /**
-     * Wrapper around masonry's stamp method.
-     *
-     * @param element {Element}
-     * @returns this
-     */
-    this.stamp = function (element) {
-        broadcast('elementStamped', element);
-        this.$el.masonry('stamp', element);
-        return this;
-    };
-
-    /**
-     * Wrapper around masonry's unstamp method.
-     *
-     * @param element {Element}
-     * @returns this
-     */
-    this.unstamp = function (element) {
-        broadcast('elementUnstamped', element);
-        this.$el.masonry('unstamp', element);
-        return this;
-    };
-
-    /**
-     * Perform a partial reload of the masonry object.
-     * Less computationally expensive than reload().
-     *
-     * @returns this
-     */
-    this.layout = function () {
-        this.$el.masonry('layout');
-        return this;
-    };
-
-    /**
-     * Perform a complete reload of the masonry object.
-     *
-     * @returns this
-     */
-    this.reload = function () {
-        this.$el.masonry('reloadItems');
-        this.$el.masonry();
         return this;
     };
 
@@ -116,6 +72,18 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         return opts;
     };
 
+    this.recalculateHeight = function () {
+        var self = this;
+        var maxHeight = 0;
+        _.each(self.columns, function (column) {
+            var scrollHeight = column.scrollHeight;
+            if (scrollHeight > maxHeight) {
+                maxHeight = scrollHeight;
+            }
+        });
+        self.$el.height(maxHeight);
+    };
+
     /**
      * Mix of append() and insert()
      *
@@ -126,40 +94,43 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      */
     this.add = function (fragment, $target) {
         var self = this;
-        return $.when(this.imagesLoaded(fragment))
-            .done(function (frag) {
-                if ($target && $target.length) {
-                    var initialBottom = $target.position().top +
-                        $target.height();
-                    if (frag.length) {
-                        // Find a target that is low enough on the screen to insert after
-                        while ($target.position().top <= initialBottom &&
-                               $target.next().length > 0) {
-                            $target = $target.next();
-                        }
-                        $target.after(frag);
-                        self.reload();
+        (function (frag) {
+            if ($target && $target.length) {
+                var initialBottom = $target.position().top +
+                    $target.height();
+                if (frag.length) {
+
+                    // Find a target that is low enough on the screen to insert after
+                    while ($target.position().top <= initialBottom &&
+                            $target.next().length > 0) {
+                        $target = $target.next();
                     }
-                } else if (frag.length) {
-                    self.$el
-                        .append(frag)
-                        .masonry('appended', frag);
+
+                    $target.after(frag);
+                    self.reload();
                 }
-            });
+
+            // is there something to add?
+            } else if (frag.length) {
+
+                // If on a mobile device that's not a tablet, use jQuery
+                if ($.browser.mobile && !$.browser.tablet) {
+                    self.$el.append(frag);
+
+                // Otherwise Salvattore
+                } else {
+                    salvattore.append_elements(self.el, frag);
+                    // Salvattore does not update the height of its columns or
+                    // their container. We have a loading indicator that we
+                    // want shown after the container, so we have to manually
+                    // update heights.
+                    self.recalculateHeight();
+                }
+            }
+        }(fragment));
     };
 
-    /**
-     * Resets the LayoutEngine's instance so that it is empty.
-     * Conventional $el.empty() doesn't work because the container height
-     * is set by masonry.
-     */
-    this.empty = function () {
-        this.$el
-            .masonry('destroy')
-            .html("")
-            .css('position', 'relative')
-            .masonry(opts);
-    };
+
 
     /**
      * Enable when IR supports colour and dimensions.

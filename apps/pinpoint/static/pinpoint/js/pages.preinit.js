@@ -60,6 +60,7 @@ SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
   SecondFunnel.options.debug,
   window.location.hash + window.location.search));
 
+// TODO do we still need this?
 // pre-fetch images for the initial results. (shaves off a second for imagesLoaded)
 (function () {
     _.each(_.pluck(SecondFunnel.options.initialResults, 'image'), function (src) {

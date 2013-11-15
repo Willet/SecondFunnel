@@ -116,6 +116,11 @@ div.loading {
     box-shadow: 0 1px 3px 0 #999;
     vertical-align: top;
 
+    /* This fixes absolute positioning when not using Masonry (social buttons,
+     * video indicator, tap indicator)
+     * */
+    position: relative;
+
     width: 240px;
     max-width: 93%; /* empirical (padding and all) */
 
@@ -144,7 +149,7 @@ div.loading {
 
 .tile img.focus {
     /* the "focus" image (i.e. main image) must be at least some pixels wide. */
-    min-width: 200px;
+    min-width: 150px;
     min-height: 75px;
     display: block;
     margin: auto;
@@ -184,8 +189,9 @@ div.loading {
 
 .tile.wide {
     width: 495px; /* 480px + 3 margins */
-    min-height: 250px;
+    min-height: 120px;
 }
+
 .tile img {
     max-width: 100%;
 }
@@ -195,13 +201,7 @@ div.loading {
 }
 
 .tile.wide.youtube div.thumbnail {
-    height: 250px;
-    background-size: cover;
-    background-position: center center;
-}
-
-.tile.wide.youtube div.thumbnail {
-    height: 250px;
+    height: 120px;
     background-size: cover;
     background-position: center center;
 }
@@ -217,7 +217,7 @@ div.loading {
     position: absolute;
     background-repeat: no-repeat;
     left: 50%;
-    top: 50%;
+    top: 70px;
     background-position: 0 0;
     margin: -35.5px 0 0 -35.5px;
 }
@@ -244,7 +244,14 @@ div.loading {
 
 .tile .social-buttons {
     width: 100%;
-    display: none; /* all themes have buttons hidden by default */
+    opacity: 0;
+    transition: opacity .20s ease-in-out;
+    -moz-transition: opacity .20s ease-in-out;
+    -webkit-transition: opacity .20s ease-in-out;
+}
+
+.tile:hover>.social-buttons {
+    opacity: 1;
 }
 
 .social-buttons>span {
@@ -277,6 +284,11 @@ div.loading {
     #discovery-area {
         width: 255px;
     }
+
+    .tile.wide.youtube div.thumbnail:before {
+        top: 50%;
+    }
+
     .tile.wide.youtube div.thumbnail {
         height: 141px;
     }
@@ -286,7 +298,7 @@ div.loading {
 }
 @media (min-width: 480px) and (max-width: 510px) {
     #discovery-area {
-        width: 255px;
+        width: 380px;
     }
 }
 @media (max-width: 600px) {
@@ -327,6 +339,7 @@ div.loading {
     }
     #discovery-area {
         width: 765px;
+        margin-left: 10;
     }
 }
 @media (min-width: 1024px) { /* formal desktops */
@@ -524,6 +537,10 @@ div.loading {
 .touch-enabled .discovery-area .wide .tap_indicator {
     /* should contain a '+' symbol, and
        another div with the hint text */
+    opacity: 0;
+    transition: opacity .80s ease-in-out;
+    -moz-transition: opacity .80s ease-in-out;
+    -webkit-transition: opacity .80s ease-in-out;
     display: block;
     position:absolute;
     width: 100px;
@@ -544,21 +561,116 @@ div.loading {
     line-height: 85px;
 }
 
+.touch-enabled .discovery-area .wide .opaque {
+    opacity: 1!important;
+}
+
 .touch-enabled .discovery-area .wide .tap_indicator > div {
     font-size:10px;
     margin: -54px -1px 0 -1px;
 }
 
-/* iPad */
-@media screen {
+/* Salvattore */
 
-    @media (max-width: 768px) {
-        .ipad .previewContainer .content {
-            position: fixed!important;
-            bottom: 16%!important;
-        }
+/* We have a lot of media queries because unlike Masonry, you need to tell
+ * Salvatore what size things need to be, so you have to tell it to make things
+ * a little bigger on a larger screen.
+ * */
+
+/* fallback */
+#discovery-area[data-columns]::before {
+    display: none;
+    content: '1 .columnsize-1of1';
+
+}
+
+.column {
+    float: left;
+}
+
+.column .tile {
+    width: 45%;
+    overflow-y: hidden;
+}
+
+.column .tile.wide {
+    width: 100%!important;
+}
+
+/* restrict column width to discovery area width so we don't end up with two
+ * columns stacked one on top of the other
+ * */
+
+.column.size-1of1 {
+    max-width: 100%;
+}
+
+.column.size-1of2 {
+    max-width: 50%;
+}
+
+.column.size-1of3 {
+    max-width: 33.3%;
+}
+
+/* No wide tiles unless it's a formal desktop */
+@media (max-width: 1024px) {
+
+    /* Regular and wide tiles are intentionally the same size.
+     * (No room on a small screen)
+     * */
+    .column .tile {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+    }
+    .column .tile.wide {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+    }
+}
+
+@media (max-width: 399px) {
+    #discovery-area[data-columns]::before {
+        content: '1 .column.size-1of1';
+    }
+}
+
+@media (min-width: 400px) and (max-width: 510px) {
+    #discovery-area[data-columns]::before {
+        content: '1 .column.size-1of1';
     }
 
+}
+
+@media (min-width: 510px) and (max-width: 767px) {
+    #discovery-area[data-columns]::before {
+        content: '2 .column.size-1of2';
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    #discovery-area[data-columns]::before {
+        content: '3 .column.size-1of3';
+    }
+}
+
+@media (min-width: 1024px) {
+    #discovery-area[data-columns]::before {
+        content: '2 .column.size-1of2';
+    }
+}
+
+/* iPad */
+@media screen and (max-width: 768px) {
+    .ipad .previewContainer .content {
+        position: fixed!important;
+        bottom: 16%!important;
+    }
+}
+
+@media screen {
     .ipad .previewContainer .mask {
         display: block!important;
     }
