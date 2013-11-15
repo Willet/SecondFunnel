@@ -9,6 +9,9 @@ api.register(UserResource())
 
 urlpatterns = api.urls
 
-urlpatterns += patterns('apps.api.views',
+# TODO: non-api URLS don't belong here
+
+# Sink function; if all else fails, proxy
+urlpatterns += patterns('apps.contentgraph.views',
     url(r'^%s/(?P<path>.*)$' % prefix, 'proxy', name='proxy')
 )
