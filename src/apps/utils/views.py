@@ -1,3 +1,4 @@
+import json
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
@@ -58,3 +59,47 @@ def proxy(request, path, base_url=None, raw=False):
             status=response['status'],
             content_type=response['content-type']
         )
+
+
+def json_response(data, callback=None, status=200):
+    """
+    This function now serves JSON as well as JSONP, when callback_name is None.
+
+    @param result   a json-serializable object, or an object that
+                    has a json() method.
+    @param callback_name  a callback. if omitted, json.
+                                      if '', 'callback'.
+    """
+    def serialize(result):
+        response_text = ''
+
+        if isinstance(result, (bool, int, float, str, basestring)):
+            response_text = json.dumps(result)
+        elif isinstance(result, (tuple, list)):
+            result_list = []
+            for r in result:
+                result_list.append(json.loads(serialize(r)))
+            response_text = json.dumps(result_list)
+        elif isinstance(result, dict):
+            result_list = {}
+            for r in result:
+                result_list[r] = json.loads(serialize(result[r]))
+            response_text = json.dumps(result_list)
+        else:
+            try:
+                response_text = json.dumps(result)
+            except TypeError:
+                raise # no serialization method worked
+        return response_text
+
+    response_text = serialize(data)
+
+    if callback == '':
+        callback = 'callback'
+
+    if callback:
+        return HttpResponse("{0}({1});".format(callback, response_text),
+                            mimetype='application/javascript', status=status)
+    else:
+        return HttpResponse(response_text,
+                            mimetype='application/json', status=status)

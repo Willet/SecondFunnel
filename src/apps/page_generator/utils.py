@@ -19,6 +19,8 @@ ACQUIRE_LOCK = lambda: cache.add(
 RELEASE_LOCK = lambda: cache.delete(ROUTE_53_LOCK)
 
 def get_or_create_bucket(store):
+    # Warning: This code used to rely on Celery in case of failure
+    # TODO: Verify that this code works without Celery
     ACQUIRE_LOCK()
 
     store_url = ''
@@ -55,9 +57,9 @@ def generate_page(request, store, page):
         store_url = url
 
     dns_name = get_bucket_name(store.slug)
-    bucket_name =  store_url or dns_name
+    bucket_name = store_url or dns_name
 
-    # check for dev/test prefix. This allows campaign.url from campaign maanger
+    # check for dev/test prefix. This allows campaign.url from campaign manager
     # to be a full secondfunnel.com url.
     if settings.ENVIRONMENT in ["test", "dev"]:
         if not bucket_name[:len(settings.ENVIRONMENT)] == settings.ENVIRONMENT:
@@ -82,71 +84,34 @@ def generate_page(request, store, page):
         'bytes_written': bytes_written,
     }
 
+
 def render_page(request, store, page):
-    def repl(match):
-        """Returns a replaced tag content for a tag, or
-        the original tag if we have no data for that tag.
-        """
-        match_str = match.group(1)  # just the field: e.g. 'desktop_content'
+    request_context = generate_page_variables(request, store, page)
 
-        if sub_values.has_key(match_str):
-            return ''.join(sub_values[match_str])
-        else:
-            return match.group(0)  # leave unchanged
+    page_template = generate_page_theme(request_context)
 
-    def json_postprocessor(product_dict):
-        """given a product dict, output a product string that can be printed
-        with the "|safe" filter.
-        """
-        if product_dict:
-            if not product_dict.get('content-id', False):
-                product_dict['content-id'] = product_dict.get('id', -1)
+    # Page content
+    page = Template(page_template)
 
-            if not product_dict.get('db-id', False):
-                product_dict['db-id'] = product_dict.get(
-                    'db_id', product_dict.get('db-id', None))
+    # Render response
+    rendered_page = page.render(request_context)
+    if isinstance(rendered_page, unicode):
+        # TODO: Doesn't make sense but is required; why?
+        rendered_page = rendered_page.encode('utf-8')
 
-            if not product_dict.get('title', False):
-                product_dict['title'] = product_dict.get('name', '')
+    rendered_page = unicode(rendered_page, 'utf-8')
 
-            if not product_dict.get('template', False):
-                product_dict['template'] = 'product'
+    return rendered_page
 
-            if not product_dict.get('provider', False):
-                product_dict['provider'] = 'youtube'
 
-            # process related_products field, which is a list of products
-            if product_dict.get('related_products', False):
-                rel_products = []
-                for rel_product in product_dict['related_products']:
-                    rel_products.append(json.loads(json_postprocessor(rel_product)))
-                product_dict['related_products'] = rel_products
-
-            escaped_product_dict = {}
-            for key in product_dict:
-                if isinstance(product_dict[key], (str, basestring)):
-                    escaped_product_dict[key] = product_dict[key]\
-                        .replace('\r', r'\r')\
-                        .replace('\n', r'\n')\
-                        .replace('"', r'\"')
-                else:
-                    escaped_product_dict[key] = product_dict[key]
-
-            return mark_safe(json.dumps(escaped_product_dict))
-        else:
-            return 'null'
-
+def generate_page_variables(request, store, page):
     store_id = store.get('id')
+
     product_id = store.get('featured-product-id') or \
-        store.get('product-ids', [0])[0]
+                 store.get('product-ids', [0])[0]
 
     product_json = proxy_product(request, store_id, product_id)
     product = json.loads(product_json)
-
-    page.description = page.get(
-        'shareText', page.get('featured-product-description', '')
-    )
-    page.template = page.get('template', 'hero') # TODO: hero? hero-image?
 
     intentrank_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
 
@@ -162,6 +127,11 @@ def render_page(request, store, page):
     #     # if there are backup results, serve the first 4.
     #     initial_results = backup_results[:4]
 
+    page['description'] = page.get(
+        'shareText', page.get('featured-product-description', '')
+    )
+    page['template'] = page.get('template', 'hero') # TODO: hero? hero-image?
+
     attributes = {
         "campaign": page,
         "store": store,
@@ -175,11 +145,25 @@ def render_page(request, store, page):
         "desktop_hero_image": page.get('heroImageDesktop', ''),
         "ir_base_url": intentrank_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
-    }
+        }
 
     context = RequestContext(request, attributes)
+    return context
 
-    # TODO: Fix theme problems
+
+def generate_page_theme(variables):
+    # TODO: This is hella busted because theming doesn't exist yet.
+    def repl(match):
+        """Returns a replaced tag content for a tag, or
+        the original tag if we have no data for that tag.
+        """
+        match_str = match.group(1)  # just the field: e.g. 'desktop_content'
+
+        if sub_values.has_key(match_str):
+            return ''.join(sub_values[match_str])
+        else:
+            return match.group(0)  # leave unchanged
+
     page_str = ''
     theme = ''
     # # theme is a temporary StoreTheme object
@@ -218,7 +202,7 @@ def render_page(request, store, page):
                 continue
 
             if isinstance(result, Template):
-                result = result.render(context)
+                result = result.render(variables)
             else:
                 result = result.encode('unicode-escape')
 
@@ -228,16 +212,48 @@ def render_page(request, store, page):
                 sub_values[field].append(result)
 
     page_str = regex.sub(repl, page_str)
+    return page_str
 
-    # Page content
-    page = Template(page_str)
 
-    # Render response
-    rendered_page = page.render(context)
-    if isinstance(rendered_page, unicode):
-        # TODO: Doesn't make sense but is required; why?
-        rendered_page = rendered_page.encode('utf-8')
+# TODO: Can this be generalized to be used anywhere?
+def json_postprocessor(product_dict):
+    """given a product dict, output a product string that can be printed
+    with the "|safe" filter.
+    """
+    if product_dict:
+        if not product_dict.get('content-id', False):
+            product_dict['content-id'] = product_dict.get('id', -1)
 
-    rendered_page = unicode(rendered_page, 'utf-8')
+        if not product_dict.get('db-id', False):
+            product_dict['db-id'] = product_dict.get(
+                'db_id', product_dict.get('db-id', None))
 
-    return rendered_page
+        if not product_dict.get('title', False):
+            product_dict['title'] = product_dict.get('name', '')
+
+        if not product_dict.get('template', False):
+            product_dict['template'] = 'product'
+
+        if not product_dict.get('provider', False):
+            product_dict['provider'] = 'youtube'
+
+        # process related_products field, which is a list of products
+        if product_dict.get('related_products', False):
+            rel_products = []
+            for rel_product in product_dict['related_products']:
+                rel_products.append(json.loads(json_postprocessor(rel_product)))
+            product_dict['related_products'] = rel_products
+
+        escaped_product_dict = {}
+        for key in product_dict:
+            if isinstance(product_dict[key], (str, basestring)):
+                escaped_product_dict[key] = product_dict[key] \
+                    .replace('\r', r'\r') \
+                    .replace('\n', r'\n') \
+                    .replace('"', r'\"')
+            else:
+                escaped_product_dict[key] = product_dict[key]
+
+        return mark_safe(json.dumps(escaped_product_dict))
+    else:
+        return 'null'

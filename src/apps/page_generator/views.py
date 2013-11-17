@@ -1,14 +1,10 @@
-from django.http import HttpResponse
 import json
 from apps.contentgraph.views import proxy_store, proxy_page
 from apps.page_generator.utils import get_or_create_bucket, generate_page
+from apps.utils.views import json_response
 
 
 def generate(request, store_id, page_id):
-    # Create a bucket, if it doesn't exist
-    # Generate the page if it exists
-    # Handle all errors
-
     store_json, _ = proxy_store(request, store_id, raw=True)
     store = json.loads(store_json)
 
@@ -18,6 +14,9 @@ def generate(request, store_id, page_id):
     get_or_create_bucket(store)
 
     generate_page(request, store, page)
+
+    # What to return?
+    return json_response()
 
 
     # (result, status) = (None, 200)
