@@ -10,6 +10,7 @@ from django.utils.safestring import mark_safe
 from apps.contentgraph.views import proxy_product
 from apps.intentrank.views import proxy_get_results
 from apps.utils.s3 import create_bucket_website_alias, get_bucket_name, upload_to_bucket
+from apps.utils.views import proxy
 
 ROUTE_53_LOCK_EXPIRE = 60 * 5
 ROUTE_53_LOCK = "r53-lock"
@@ -88,7 +89,7 @@ def generate_page(request, store, page):
 def render_page(request, store, page):
     request_context = generate_page_variables(request, store, page)
 
-    page_template = generate_page_theme(request_context)
+    page_template = generate_page_theme(request, page, request_context)
 
     # Page content
     page = Template(page_template)
@@ -145,13 +146,13 @@ def generate_page_variables(request, store, page):
         "desktop_hero_image": page.get('heroImageDesktop', ''),
         "ir_base_url": intentrank_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
-        }
+    }
 
     context = RequestContext(request, attributes)
     return context
 
 
-def generate_page_theme(variables):
+def generate_page_theme(request, page, variables):
     # TODO: This is hella busted because theming doesn't exist yet.
     def repl(match):
         """Returns a replaced tag content for a tag, or
@@ -165,19 +166,31 @@ def generate_page_theme(variables):
             return match.group(0)  # leave unchanged
 
     page_str = ''
-    theme = ''
-    # # theme is a temporary StoreTheme object
-    # theme = campaign.theme
-    # if not theme:
-    #     raise ValueError('campaign has no theme when campaign manager saved it')
-    #
-    # # check if the theme is actually a contentgraph resource
-    # try:
-    #     theme_url = theme.url
-    #     # 'template' is a key proposed by alex
-    #     page_str = get_contentgraph_data(theme_url)['template']['results']
-    # except (TypeError, ValueError):
-    #     page_str = theme.page  # it's fine, this theme is a string
+
+    # TODO: Need a proper theming backend; likely a separate theming app or part of api
+    # Options:
+    #   page.get('theme') is...
+    #   ... a string:
+    #   ... a content graph URL
+    #   ... TBD (An API Url? Need some way to get themes assoc with a store; maybe just a theme name?)
+
+    theme = page.get('theme')
+
+    try:
+        # This is a content graph URL
+        # Alternatively, check if theme starts with `http`?
+        theme_url = theme.get('url')
+        theme_json = proxy(request, theme_url, raw=True)
+        theme_obj = json.loads(theme_json)
+        page_str = theme_obj.get('template').get('results')
+    except Exception:
+        # This is a string
+        # Alternatively, check that theme starts with `<`
+        page_str = theme
+
+    if not page_str:
+        # We don't have a theme: What do?
+        pass
 
     # Replace necessary tags
     sub_values = defaultdict(list)
