@@ -10,9 +10,12 @@ import httplib2
 # He does, however, recommend we read up security policy to see if using
 # CORS is sufficient to prevent against CSRF, because he is having a hard time
 # handling that...
+from urllib import urlencode
+
+
 @never_cache
 @csrf_exempt
-def proxy(request, path, base_url=None, raw=False):
+def proxy(request, path, base_url=None, query_params=None, raw=False):
     # Normally, we would use the login_required decorator, but it will
     # redirect on fail. Instead, just do the check manually; side benefit: we
     # can also return something more useful
@@ -28,8 +31,9 @@ def proxy(request, path, base_url=None, raw=False):
     else:
         url = '%s/%s' % (base_url, path)
 
-    if request.META.get('QUERY_STRING', False):
-        url += '?' + request.META['QUERY_STRING']
+    params = urlencode(query_params) or request.META.get('QUERY_STRING', False)
+    if params:
+        url += '?' + params
 
     # There's probably a more pythonic way to do this, but I feel like it would
     # be ugly

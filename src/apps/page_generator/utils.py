@@ -19,6 +19,7 @@ ACQUIRE_LOCK = lambda: cache.add(
     ROUTE_53_LOCK, "true", ROUTE_53_LOCK_EXPIRE)
 RELEASE_LOCK = lambda: cache.delete(ROUTE_53_LOCK)
 
+
 def get_or_create_bucket(store):
     # Warning: This code used to rely on Celery in case of failure
     # TODO: Verify that this code works without Celery
@@ -42,6 +43,7 @@ def get_or_create_bucket(store):
     _, change_status, change_id = create_bucket_website_alias(dns_name, bucket_name)
 
     RELEASE_LOCK()
+
 
 def generate_page(request, store, page):
     page_content = render_page(store, page)
@@ -116,17 +118,23 @@ def generate_page_variables(request, store, page):
 
     intentrank_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
 
-    # TODO: Restrict to 4 results
-    initial_results_json = proxy_get_results(page.get('id'), raw=True)
+    initial_results_json = proxy_get_results(
+        page.get('id'),
+        query_params={'results': 4},
+        raw=True
+    )
     initial_results = json.loads(initial_results_json)
 
-    # TODO: Restrict to 100 results
-    backup_results_json = proxy_get_results(page.get('id'), raw=True)
+    backup_results_json = proxy_get_results(
+        page.get('id'),
+        query_params={'results': 100},
+        raw=True
+    )
     backup_results = json.loads(backup_results_json)
 
-    # if not initial_results:
-    #     # if there are backup results, serve the first 4.
-    #     initial_results = backup_results[:4]
+    if not initial_results:
+        # if there are backup results, serve the first 4.
+        initial_results = backup_results[:4]
 
     page['description'] = page.get(
         'shareText', page.get('featured-product-description', '')

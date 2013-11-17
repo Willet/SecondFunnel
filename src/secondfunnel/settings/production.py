@@ -2,6 +2,9 @@ from .common import *
 
 # TODO: What files belong in production vs. common vs. dev?
 
+# Environment - Internal Use Only
+ENVIRONMENT = 'production'
+
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 

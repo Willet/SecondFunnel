@@ -3,6 +3,10 @@ from .common import *
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+# Environment - Internal Use Only
+ENVIRONMENT = 'dev'
+
+
 # CORS settings
 # https://github.com/ottoyiu/django-cors-headers
 
