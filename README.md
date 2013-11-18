@@ -8,6 +8,7 @@ Setup
 2. `pip install -r requirements/dev.txt`
 3. `python src/manage.py syncdb`
 4. `python src/manage.py runserver`
+5. (optional) `python src/manage.py makedocs` to generate documentation
 
 Structure
 ---------  
