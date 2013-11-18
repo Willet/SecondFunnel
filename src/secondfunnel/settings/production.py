@@ -1,4 +1,4 @@
-from .common import *
+from secondfunnel.settings.common import *
 
 # TODO: What files belong in production vs. common vs. dev?
 

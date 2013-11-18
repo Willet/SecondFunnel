@@ -1,4 +1,4 @@
-from .common import *
+from secondfunnel.settings.common import *
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -6,6 +6,11 @@ TEMPLATE_DEBUG = DEBUG
 # Environment - Internal Use Only
 ENVIRONMENT = 'dev'
 
+# Application definition
+
+INSTALLED_APPS += (
+    'apps.utils',
+)
 
 # CORS settings
 # https://github.com/ottoyiu/django-cors-headers
