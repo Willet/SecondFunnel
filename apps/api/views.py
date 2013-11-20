@@ -1,3 +1,4 @@
+import json
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
@@ -54,3 +55,49 @@ def proxy_view(request, path):
         status=response['status'],
         content_type=response['content-type']
     )
+
+# login_required decorator?
+@never_cache
+@csrf_exempt
+def proxy_content(request, store_id, page_id, content_id):
+    # http://stackoverflow.com/questions/18930234/django-modifying-the-request-object
+    # Also, need to do a check for method type
+    request_body = json.loads(request.body or '{}')
+
+    def post():
+        # Can we get this changed to POST?
+        request.method = 'PUT'
+        path_url = 'store/{store_id}/page/{page_id}/content/{content_id}'.format(
+            store_id=store_id,
+            page_id=page_id,
+            content_id=content_id
+        )
+        response = proxy_view(request, path_url)
+
+        if not (200 <= response.status_code < 300):
+            return response
+
+        request.method = 'POST'
+        request.body = json.dumps({
+            'template': request_body.get('template', 'image'),
+            'content-ids': [content_id]
+        })
+        path_url = 'page/{page_id}/tile-config'.format(
+            page_id=page_id,
+        )
+        response = proxy_view(request, path_url)
+
+        # Should we do some amalgamated response?
+        # I don't think the response is used, so just return for now
+        return response
+
+    DEFAULT_RESPONSE = lambda: HttpResponse(
+        json.dumps({
+            'error': 'Unsupported Method'
+        }),
+        status=405
+    )
+
+    return {
+        'POST': post,
+    }.get(request.method, DEFAULT_RESPONSE)()
