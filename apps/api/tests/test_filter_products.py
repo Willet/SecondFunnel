@@ -20,13 +20,13 @@ class ProductListProxyTestCase(TestCase):
 
         resp, content = http.request(self.api_url, 'GET', headers=self.headers)
 
-        products = json.loads(content)
+        products = json.loads(content)['results']
         unfiltered_len = len(products)
 
         resp, content = http.request(self.api_url + '?results=1', 'GET',
                                      headers=self.headers)
 
-        products = json.loads(content)
+        products = json.loads(content)['results']
         filtered_len = len(products)
 
         self.assertGreaterEqual(unfiltered_len, filtered_len)
@@ -45,13 +45,13 @@ class ProductListProxyTestCase(TestCase):
 
         resp, content = http.request(self.api_url, 'GET', headers=self.headers)
 
-        products = json.loads(content)
+        products = json.loads(content)['results']
         unfiltered_len = len(products)
 
         resp, content = http.request(self.api_url + '?url=blah', 'GET',
                                      headers=self.headers)
 
-        products = json.loads(content)
+        products = json.loads(content)['results']
         filtered_len = len(products)
 
         # test for zero products on invalid url
@@ -60,7 +60,7 @@ class ProductListProxyTestCase(TestCase):
         resp, content = http.request(self.api_url + '?url=http://www.gap.com/products/P351401.jsp', 'GET',
                                      headers=self.headers)
 
-        products = json.loads(content)
+        products = json.loads(content)['results']
         filtered_len = len(products)
 
         # test for one product on valid url
@@ -69,7 +69,7 @@ class ProductListProxyTestCase(TestCase):
         resp, content = http.request(self.api_url + '?rescrape=false', 'GET',
                                      headers=self.headers)
 
-        products = json.loads(content)
+        products = json.loads(content)['results']
         filtered_len = len(products)
 
         # products not needing rescrape are strictly fewer than all products
@@ -78,7 +78,7 @@ class ProductListProxyTestCase(TestCase):
         resp, content = http.request(self.api_url + '?sku=351401', 'GET',
                                      headers=self.headers)
 
-        products = json.loads(content)
+        products = json.loads(content)['results']
         filtered_len = len(products)
 
         # test for one product on valid sku
