@@ -60,6 +60,17 @@ def proxy_view(request, path):
 @never_cache
 @csrf_exempt
 def proxy_content(request, store_id, page_id, content_id):
+    # TODO: Remove duplication
+    # Normally, we would use the login_required decorator, but it will
+    # redirect on fail. Instead, just do the check manually; side benefit: we
+    # can also return something more useful
+    if not request.user or (request.user and not request.user.is_authenticated()):
+        return HttpResponse(
+            content='{"error": "Not logged in"}',
+            mimetype='application/json',
+            status=401
+        )
+
     # http://stackoverflow.com/questions/18930234/django-modifying-the-request-object
     # Also, need to do a check for method type
     request_body = json.loads(request.body or '{}')
