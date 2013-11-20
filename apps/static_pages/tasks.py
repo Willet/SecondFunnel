@@ -2,6 +2,8 @@
 Static pages celery tasks
 """
 
+import os
+
 from urlparse import urlparse
 
 from celery import Celery, group
@@ -9,6 +11,7 @@ from celery.utils.log import get_task_logger
 
 from django.conf import settings
 from django.core.cache import cache
+from django.utils.encoding import smart_str
 
 from apps.assets.models import Store
 from apps.contentgraph.views import get_page, get_store, get_stores
@@ -147,6 +150,27 @@ def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
                                         ignore_static_logs)
 
 
+def generate_local_campaign(store_id, campaign_id, page_content):
+    root = os.getcwd()
+    pinpoint_static = os.path.join(root, 'apps', 'pinpoint', 'static')
+    campaign_path = os.path.join(pinpoint_static, 'campaigns')
+
+    if not os.path.exists(campaign_path):
+        os.mkdir(campaign_path)
+
+    store_path = os.path.join(campaign_path, str(store_id))
+
+    if not os.path.exists(store_path):
+        os.mkdir(store_path)
+
+    html_path = os.path.join(store_path, '%s.html' % campaign_id)
+
+    with open(html_path, 'wb') as html_file:
+        try:
+            html_file.write(smart_str(page_content))
+        except Exception as e:
+            pass #Fail gracefully
+
 def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False):
     """Renders individual campaign and saves it to S3."""
 
@@ -218,6 +242,8 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
         # write a new log entry for this static campaign
         save_static_log(Campaign, campaign.id, log_key)
 
+        if settings.ENVIRONMENT == "dev":
+            generate_local_campaign(store_id, campaign_id, page_content)
     # boto claims it didn't write anything to S3
     else:
         logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
