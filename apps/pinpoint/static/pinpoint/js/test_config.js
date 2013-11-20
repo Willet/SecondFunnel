@@ -29,9 +29,7 @@ window.PAGES_INFO = {
             'id': 99
         }
     ],
-    'columnWidth': function($element) {
-        return 240 + 15;
-    },
+    'columnWidth': 255,
     'events': undefined,  // page event bindings (optional)
     'socialButtons': [
         "facebook",
@@ -58,7 +56,7 @@ window.PAGES_INFO = {
     'previewAnimationDuration': 100,  // in ms
     'previewMobileAnimationDuration': 0,
     'masonry': {  // passed to masonry
-        'animationDuration': 0.4  // in seconds
+        'transitionDuration': '0'  // in seconds
     },
     'featured': { // the featured product
         "tile-id": 19325,
@@ -126,10 +124,10 @@ window.PAGES_INFO = {
     'gaAccountNumber': 'UA-65432-1',  // UA-65432-1 is not a real account
 
     // number of viewports worth of results to keep below the page.
-    // 0 is not an acceptable value, but 0.0001 is. default is 1,
+    // 0 is not an acceptable value, but 0.0001 is. default is 1.5,
     // i.e. there will always be one page worth of results
     // underneath, no matter how fast you scroll.
-    'prefetchHeight': 1,
+    'prefetchHeight': undefined,
 
     'lockWidth': true,  // must be true (not 1, {}, ...) or a function that returns true
     'desiredWidth': 1024,

@@ -131,7 +131,7 @@ describe("SecondFunnel", function () {
                 "mouse pointer", function () {
                 if (!app.support.touch() && window.getComputedStyle) {
                     var tile = new SecondFunnel.core.Tile(window.PAGES_INFO.featured),
-                        view = tile.createView();  // trigger tile creation
+                        view = new SecondFunnel.core.TileView({model: tile});  // trigger tile creation
                     if (view) {  // 'no template' is a reason why this check is needed
                         expect($('html').hasClass('touch-enabled')).toEqual(false);
                     }
@@ -179,6 +179,7 @@ describe("SecondFunnel", function () {
 
                 spyOn(Masonry.prototype, 'layout');
 
+
                 // remove one tile (removing model also triggers view removal)
                 app.discovery.collection.models.shift();
 
@@ -222,10 +223,12 @@ describe("SecondFunnel", function () {
                 expect(hasAtLeastOneKeyWithTheWordAnimationInIt).toEqual(true);
             });
 
-            it("should be possible to configure the default " +
-                "column width", function () {
+            it("should be possible to configure the default column width", function () {
                 // how to test the config does anything?
-                app.layoutEngine.initialize({columnWidth: 999});
+                app.layoutEngine.initialize(
+                    app.discoveryArea,
+                    {columnWidth: 999}
+                );
                 expect(app.layoutEngine._opts().columnWidth).toEqual(999);
             });
 
@@ -320,7 +323,7 @@ describe("SecondFunnel", function () {
 
                 runs(function () {
                     // screw with the url
-                    promise = app.intentRank.getResultsOnline({
+                    promise = app.intentRank.getResults({
                         'url': 'http://ohai.ca/h/err/404?'
                     });
                     $.when(promise).always(function (data) {

@@ -79,19 +79,19 @@ describe("viewport", function () {
             $.browser.mobile = true;
             window.devicePixelRatio = 2;
 
-            var ratio = parseFloat(Math.round($(window).width() / 1024.0 * 100) / 100).toFixed(2);
+            var ratio = parseFloat(Math.round($(window).width() / 511.0 * 100) / 100).toFixed(2);
             app.viewport.scale(1024);
-            expect(meta.attr('content')).toEqual('user-scalable=no,width=1024,initial-scale=' +
+            expect(meta.attr('content')).toEqual('user-scalable=no,width=511,initial-scale=' +
                 ratio + ',minimum-scale=' + ratio + ',maximum-scale=' + ratio);
 
-            ratio = parseFloat(Math.round($(window).width() / 768.0 * 100) / 100).toFixed(2);
+            ratio = parseFloat(Math.round($(window).width() / 511.0 * 100) / 100).toFixed(2);
             app.viewport.scale(768);
-            expect(meta.attr('content')).toEqual('user-scalable=no,width=768,initial-scale=' +
+            expect(meta.attr('content')).toEqual('user-scalable=no,width=511,initial-scale=' +
                 ratio + ',minimum-scale=' + ratio + ',maximum-scale=' + ratio);
 
-            ratio = parseFloat(Math.round($(window).width() / 2048.0 * 100) / 100).toFixed(2);
+            ratio = parseFloat(Math.round($(window).width() / 511.0 * 100) / 100).toFixed(2);
             app.viewport.scale(2048);
-            expect(meta.attr('content')).toEqual('user-scalable=no,width=2048,initial-scale=' +
+            expect(meta.attr('content')).toEqual('user-scalable=no,width=511,initial-scale=' +
                 ratio + ',minimum-scale=' + ratio + ',maximum-scale=' + ratio);
         });
 
@@ -113,7 +113,7 @@ describe("viewport", function () {
 
             resetMeta();
             app.viewport.scale(1);
-            expect(meta.attr('content')).not.toEqual(originalContent);
+            expect(meta.attr('content')).toEqual(originalContent);
 
             resetMeta();
             app.viewport.scale(1500);

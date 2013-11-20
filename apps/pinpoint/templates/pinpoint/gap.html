@@ -88,17 +88,29 @@
     </header>
     <div class="container">
         <!-- .container is bootstrap magic, and has a viewport-dependent width. -->
-        <!-- remove contents of hero-area if it is dynamically generated -->
-        <div id="hero-area" class="featured">
-            <div class="visible-xs jumbotron"><!-- hero unit (mobile 1) -->
+        <div id="hero-area"></div>
+        <div id="discovery-area" class="discovery-area"></div>
+        <div class="no-noscript loading"></div>
+        <noscript>
+            <!-- promotions to show when user does not have javascript.
+             this is a 'we need javascript' message by default.
+             -->
+            <div class="alert alert-danger">
+                <b>Oh no!</b> We need JavaScript enabled to show you this page.
+            </div>
+        </noscript>
+    </div>
 
-            </div>
-            <div class="visible-sm jumbotron"><!-- hero unit (mobile 2) -->
 
-            </div>
-            <div class="visible-md visible-lg jumbotron">
-                <!-- hero unit (desktop) -->
-            </div>
+    <div>
+        <!-- generic templates -->
+        {{ js_templates }}
+
+        <!-- custom templates -->
+        <script type="text/template" id="gap_hero_template">
+            <div class="visible-xs jumbotron"></div>
+            <div class="visible-sm jumbotron"></div>
+            <div class="visible-md visible-lg jumbotron"></div>
             <div class="legal us">
                 {% if legal_copy %}
                     {{ legal_copy }}
@@ -119,27 +131,7 @@
                     register.
                 {% endif %}
             </div>
-        </div>
-        <div id="discovery-area" class="discovery-area">
-            <!-- paste pre-rendered tiles here (TODO... event handling for them) -->
-        </div>
-        <div class="no-noscript loading"></div>
-        <noscript>
-            <!-- promotions to show when user does not have javascript.
-             this is a 'we need javascript' message by default.
-             -->
-            <div class="alert alert-danger">
-                <b>Oh no!</b> We need JavaScript enabled to show you this page.
-            </div>
-        </noscript>
-    </div>
-
-
-    <div>
-        <!-- generic templates -->
-        {{ js_templates }}
-
-        <!-- custom templates -->
+        </script>
         <script type="text/template" id="gap_product_preview_template">
             <!-- any (store.name)_(type)_... templates will be used in place
              of default templates if they exist. -->
@@ -147,7 +139,7 @@
                 <div class='image-div col-sm-6 col-md-6'>
                     <div class='image'>
                         <img class='img-rounded'
-                             src='<%= sizeImage(obj.defaultImage.url, 400) %>'/>
+                             src='<%= obj.image.url %>'/>
                     </div>
                 </div>
                 <div class='info col-sm-6 col-md-6'>
@@ -194,7 +186,7 @@
                 <div class="row">
                     <div class="image col-sm-6 col-md-6">
                         <img class='img-rounded'
-                             src="<%= sizeImage(obj.defaultImage.url, 400) %>"
+                             src="<%= obj.defaultImage.url %>"
                              alt="image"/>
                     </div>
                     <div class="col-sm-6 col-md-6">
@@ -202,7 +194,7 @@
                         <div class='title'><%= product.title %></div>
                         <div class='price'><%= product.price %></div>
                         <img class="main-image"
-                             src="<%= sizeImage(product.defaultImage.url, 150) %>"
+                             src="<%= product.image.url %>"
                              alt="related product"/>
 
                         <div class='description'>
@@ -240,7 +232,7 @@
             </div>
             <% } else { %>
             <div class="image-without-related-products">
-                <img src="<%= sizeImage(obj.defaultImage.url, 400) %>" alt="image"/>
+                <img src="<%= obj.defaultImage.url %>" alt="image"/>
 
                 <div class="info">
                     <%= SecondFunnel.utils.safeString(obj.caption) %>
