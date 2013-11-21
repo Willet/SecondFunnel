@@ -36,14 +36,14 @@ class UserResource(ModelResource):
     def prepend_urls(self):
         """Adds URLs for login and logout"""
         login = url(
-            r'^(?P<resource_name>%s)/login%s$' % (
-                self._meta.resource_name, trailing_slash()),
+            r'^(?P<resource_name>%s)/login/?$' % (
+                self._meta.resource_name),
             self.wrap_view('login'),
             name='api_login'
         )
         logout = url(
-            r'^(?P<resource_name>%s)/logout%s$' % (
-                self._meta.resource_name, trailing_slash()),
+            r'^(?P<resource_name>%s)/logout/?$' % (
+                self._meta.resource_name),
             self.wrap_view('logout'),
             name='api_logout'
         )
