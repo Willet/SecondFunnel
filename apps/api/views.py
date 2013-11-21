@@ -103,6 +103,7 @@ def proxy_content(request, store_id, page_id, content_id):
         )
 
         if not (200 <= response.status_code < 300):
+            response.status_code = 500
             return response
 
         path_url = 'page/{page_id}/tile-config'.format(
@@ -119,6 +120,9 @@ def proxy_content(request, store_id, page_id, content_id):
 
         # Should we do some amalgamated response?
         # I don't think the response is used, so just return for now
+        if not (200 <= response.status_code < 300):
+            response.status_code = 500
+
         return response
 
     DEFAULT_RESPONSE = lambda: HttpResponse(

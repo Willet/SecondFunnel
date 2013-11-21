@@ -2,6 +2,7 @@ import json
 import re
 import mock
 from tastypie.test import ResourceTestCase
+from apps.api.tests.utils import configure_mock_request
 
 
 class UnauthenticatedContentProxyTest(ResourceTestCase):
@@ -43,10 +44,9 @@ class ContentProxyTest(ResourceTestCase):
             format='json'
         )
 
-    #@mock.patch('httplib2.Response')
     @mock.patch('httplib2.Http.request')
     def test_regular_success(self, mock_request):
-        returns = {
+        mock_request = configure_mock_request(mock_request, {
             r'store/\d+/page/\d+/content/\d+': (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
@@ -55,23 +55,47 @@ class ContentProxyTest(ResourceTestCase):
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
             ),
-        }
-
-        # http://www.voidspace.org.uk/python/mock/examples.html#multiple-calls-with-different-effects
-        def response(url, method, body, headers):
-            # Pick the right response to return
-            for key, value in returns.iteritems():
-                if re.search(key, url):
-                    return value
-
-            # return some default?
-            # fail test case?
-            return (None, None)
-
-        mock_request.side_effect = response
+        })
 
         response = self.api_client.post(
             '/graph/v1/store/1/page/1/content/1',
             format='json'
         )
+
         self.assertHttpOK(response)
+
+    @mock.patch('httplib2.Http.request')
+    def test_first_request_failure(self, mock_request):
+        mock_request = configure_mock_request(mock_request, {
+            r'store/\d+/page/\d+/content/\d+': (
+                {'status': 400, 'content-type': 'application/json'},
+                json.dumps({})
+            )
+        })
+
+        response = self.api_client.post(
+            '/graph/v1/store/1/page/1/content/1',
+            format='json'
+        )
+
+        self.assertHttpApplicationError(response)
+
+    @mock.patch('httplib2.Http.request')
+    def test_first_request_failure(self, mock_request):
+        mock_request = configure_mock_request(mock_request, {
+            r'store/\d+/page/\d+/content/\d+': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
+            r'page/\d+/tile-config': (
+                {'status': 400, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
+        })
+
+        response = self.api_client.post(
+            '/graph/v1/store/1/page/1/content/1',
+            format='json'
+        )
+
+        self.assertHttpApplicationError(response)
