@@ -9,6 +9,19 @@ var SecondFunnel = new Marionette.Application(),
 
 SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
+(function (details) {
+    var pubDate;
+    if (details && details.page && details.page.pubDate) {
+        pubDate = details.page.pubDate;
+    }
+
+    // feature, not a bug
+    if (window.console && console.log) {
+        console.log("%cSecondFunnel", "font-family:sans-serif; font-size:72pt;");
+        console.log('Published ' + pubDate);
+    }
+}(SecondFunnel.options));
+
 // A ?debug value of > 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 (function (console, level, hash) {
@@ -59,16 +72,6 @@ SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 }(window.console = window.console || {},
   SecondFunnel.options.debug,
   window.location.hash + window.location.search));
-
-// pre-fetch images for the initial results. (shaves off a second for imagesLoaded)
-(function () {
-    _.each(_.pluck(SecondFunnel.options.initialResults, 'image'), function (src) {
-        if (typeof src === 'string') {
-            (new Image()).src = src.replace('master.jpg', 'grande.jpg');
-            (new Image()).src = src.replace('master.jpg', 'large.jpg');
-        }
-    });
-}());
 
 // http://stackoverflow.com/questions/1199352/
 String.prototype.truncate = function (n, useSentenceBoundary, addEllipses) {
@@ -133,17 +136,6 @@ $.fn.getClasses = $.fn.getClasses || function () {
     return _.compact(_.map($(this).attr('class').split(' '), $.trim));
 };
 
-$.fn.scaleImages = $.fn.scaleImages || function () {
-    // looks for .auto-scale elements and replace them with an image.
-    $(this).find('img.auto-scale').each(function () {
-        var $el = $(this),
-            data = $el.data();
-        if (data.src && data.size) {
-            $el.attr('src', SecondFunnel.utils.pickImageSize(data.src, data.size));
-        }
-    });
-};
-
 $.getScripts = function (urls, callback, options) {
     // batch getScript with caching
     // callback receives as many ajax xhr objects as the number of urls.
@@ -164,6 +156,46 @@ $.getScripts = function (urls, callback, options) {
     });
 };
 
+// http://www.foliotek.com/devblog/getting-the-width-of-a-hidden-element-with-jquery-using-width/
+// get element sizes while they are hidden / being they are appended
+$.fn.getHiddenDimensions = function (includeMargin) {
+    /*ignore jslint start*/
+    var $item = this,
+        props = { position: 'absolute', visibility: 'hidden', display: 'block' },
+        dim = { width: 0, height: 0, innerWidth: 0, innerHeight: 0, outerWidth: 0, outerHeight: 0 },
+        $hiddenParents = $item.parents().andSelf().not(':visible'),
+        includeMargin = (includeMargin == null) ? false : includeMargin;
+
+    var oldProps = [];
+    $hiddenParents.each(function () {
+        var old = {};
+
+        for (var prop in props) {
+            old[prop] = this.style[prop];
+            this.style[prop] = props[prop];
+        }
+
+        oldProps.push(old);
+    });
+
+    dim.width = $item.width();
+    dim.outerWidth = $item.outerWidth(includeMargin);
+    dim.innerWidth = $item.innerWidth();
+    dim.height = $item.height();
+    dim.innerHeight = $item.innerHeight();
+    dim.outerHeight = $item.outerHeight(includeMargin);
+
+    $hiddenParents.each(function (i) {
+        var old = oldProps[i];
+        for (var name in props) {
+            this.style[name] = old[name];
+        }
+    });
+
+    return dim;
+    /*ignore jslint end*/
+};
+
 // underscore's fancy pants capitalize()
 _.mixin({
     'capitalize': function (string) {
@@ -181,19 +213,36 @@ _.mixin({
             // default
         }
         return defaultValue;
+    },
+    'getKeyByValue': function (obj, value) {
+        // reverse key search. There is no native function for this.
+        var prop;
+        for(prop in obj) {
+            if(obj.hasOwnProperty(prop)) {
+                 if(obj[prop] === value) {
+                     return prop;
+                 }
+            }
+        }
+    },
+    'sortByAssoc': function (obj, attrib) {
+        // see sortBy; returns a list
     }
 });
 
 (function (views) {
-    // View's render() is a noop. It won't trigger a NoTemplateError
-    // like other views do. Here's a patch.
+    /**
+     * View's render() is a noop. It won't trigger a NoTemplateError
+     * like other Views do. Here's a patch.
+     * @returns {*}
+     */
     Marionette.View.prototype.render = function () {
+        function throwError(message, name) {
+            var error = new Error(message);
+            error.name = name || 'Error';
+            throw error;
+        }
         if (!$(this.template).length) {
-            function throwError(message, name) {
-                var error = new Error(message);
-                error.name = name || 'Error';
-                throw error;
-            }
             throwError(this.template, "NoTemplateError");
         }
 
@@ -277,52 +326,3 @@ receive = function (eventName) {
 debugOp = function () {
     console.debug('%O, %O', this, arguments);
 };
-
-// allow jasmine to run on the campaign page if the url contains "specrunner".
-(function () {
-    /**
-     * Sequential script getter. ($.fn.getScripts is parallel)
-     * @param urls {String}: array of script urls
-     * @param callback {Function}: what to do afterwards.
-     */
-    var getScripts = function (urls, callback) {
-            var script = urls.shift();
-            $.getScript(script, function () {
-                if (urls.length + 1 <= 0) {
-                    if (typeof callback === 'function') {
-                        callback();
-                    }
-                } else {
-                    getScripts(urls, callback);
-                }
-            });
-        },
-        runTest = function () {
-            var protoSrcMaps = [
-                    "/static/js/jasmine.js",
-                    "/static/js/jasmine-html.js",
-                    "/static/js/jasmine-console.js",
-                    "/static/pinpoint/js/pages.preinit.spec.js",
-                    "/static/pinpoint/js/pages.spec.js",
-                    "/static/pinpoint/js/pages.support.spec.js",
-                    "/static/pinpoint/js/pages.utils.spec.js",
-                    "/static/pinpoint/js/pages.layoutengine.spec.js",
-                    "/static/pinpoint/js/pages.viewport.spec.js"
-                ],
-                href = window.location.href.toLowerCase();
-
-            if (href.indexOf('specrunner.html') > 0) {
-                protoSrcMaps.push("/static/js/jasmine.specrunner.html.js");
-            } else if (href.indexOf('specrunner') > 0) {
-                protoSrcMaps.push("/static/js/jasmine.specrunner.console.js");
-            } else {
-                return;
-            }
-
-            protoSrcMaps = SecondFunnel.option('protoSrcMaps') || protoSrcMaps;
-
-            getScripts(protoSrcMaps);
-        };
-
-    SecondFunnel.vent.on('finished', runTest);
-}());

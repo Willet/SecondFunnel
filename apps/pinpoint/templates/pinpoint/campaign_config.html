@@ -22,6 +22,8 @@
 
             , 'name': '{{ campaign.name|default:"" }}'  // provided by campaign manager
 
+            , 'layout': '{{ campaign.layout|default:"hero" }}'  // provided by campaign manager
+
             // you will still need to make elements with data-category="96" on the page.
             , 'categories': {{ campaign.categories|safe|default:"[]" }}  // string representation of [{id: 123, name: 'gap'}, ...]
 
@@ -60,7 +62,7 @@
         , 'previewAnimationDuration': 100  // in ms
         , 'previewMobileAnimationDuration': 0
         , 'masonry': {  // passed to masonry
-            'animationDuration': 0.4  // in seconds
+            'transitionDuration': 0.4  // in seconds
         }
         , 'featured': {{ product }}
         // stuff that loads when page loads, even if IR is available
@@ -71,10 +73,10 @@
         , 'gaAccountNumber': '{{ ga_account_number }}'  // required
 
         // number of viewports worth of results to keep below the page.
-        // 0 is not an acceptable value, but 0.0001 is. default is 1,
+        // 0 is not an acceptable value, but 0.0001 is. default is 1.5,
         // i.e. there will always be one page worth of results
         // underneath, no matter how fast you scroll.
-        // , 'prefetchHeight': 1
+        // , 'prefetchHeight': undefined
 
         // , 'lockWidth': undefined  // must be true (not 1, {}, ...) or a function that returns true. undefined means auto.
         // , 'desiredWidth': 0,  // number, or a function that returns a number. 0 means auto.

@@ -325,7 +325,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
 
         'events': {
             'click .close, .mask': function (ev) {
-                this.$el.fadeOut(100).remove();
+                this.$el.cssFadeOut(100).remove();
                 this.unbind();  // Removes all callbacks on `this`.
                 this.views = [];
             }
@@ -335,7 +335,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             var self = this;
 
             this.$el.css({'display': "table"});
-            $('body').append(this.$el.fadeIn(100));
+            $('body').append(this.$el.cssFadeIn(100));
 
             // this.buttons = ["facebook", "twitter", "tumblr", ...]
             if (!(this.buttons && this.buttons.length)) {

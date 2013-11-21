@@ -66,7 +66,17 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
         if (typeof desiredWidth === 'function') {
             desiredWidth = desiredWidth();
         }
-        
+
+        if (typeof desiredWidth !== 'number') {
+            console.warn('viewport agent not called with number.');
+            return [false, undefined, undefined, 'width NaN'];
+        }
+
+        if (!desiredWidth || desiredWidth <= 100 || desiredWidth > 2048) {
+            console.warn('viewport agent called with invalid width.');
+            return [false, undefined, undefined, 'width invalid'];
+        }
+
         // pick the lowest of: - window width
         //                     - desired width
         //                     - max mobile width (if mobile)
@@ -77,16 +87,6 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
             desiredWidth = Math.min(maxTabletWidth, desiredWidth, window.outerWidth);
         } else {
             desiredWidth = Math.min(desiredWidth, window.outerWidth);
-        }
-
-        if (typeof desiredWidth !== 'number') {
-            console.warn('viewport agent not called with number.');
-            return [false, undefined, undefined, 'width NaN'];
-        }
-
-        if (!desiredWidth || desiredWidth <= 100 || desiredWidth > 2048) {
-            console.warn('viewport agent called with invalid width.');
-            return [false, undefined, undefined, 'width invalid'];
         }
 
         // http://stackoverflow.com/a/6134070/1558430
@@ -115,9 +115,11 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
      * @returns undefined
      */
     this.scale = function (desiredWidth) {
+        desiredWidth = desiredWidth || 1024;  // screen defaults to full width.
         var analysis = viewport.determine(desiredWidth),
             metaTag = getMeta(),
             proposedMeta = '';
+        //  allowed to scale,       found a meta tag
         if (analysis[0] === true && metaTag.length >= 1) {
             // if both tag and condition exist
             proposedMeta = analysis[3];
