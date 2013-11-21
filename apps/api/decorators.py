@@ -12,7 +12,7 @@ def check_login(fn):
         # Normally, we would use the login_required decorator, but it will
         # redirect on fail. Instead, just do the check manually; side benefit: we
         # can also return something more useful
-        if not request.user or (request.user and not request.user.is_authenticated()):
+        if not (request.user and request.user.is_authenticated()):
             return HttpResponse(
                 content='{"error": "Not logged in"}',
                 mimetype='application/json',

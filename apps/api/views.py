@@ -10,13 +10,17 @@ from apps.intentrank.utils import ajax_jsonp
 
 
 def get_proxy_results(request, url, body=None):
-    """small wrapper around all api requests to content graph."""
+    """small wrapper around all api requests to content graph.
+
+    :returns tuple
+    :raises (ValueError, IndexError)
+    """
     h = httplib2.Http()
     response, content = h.request(url, method=request.method, body=body,
                                   headers=request.NEW_HEADERS or request.META)
 
-    # no point returning anything if proxy return is not of form {results: ...}
-    return json.loads(content)['results']
+    resp_obj = json.loads(content)
+    return (resp_obj['results'], resp_obj['meta'])
 
 
 @check_login
@@ -63,12 +67,12 @@ def get_page_content_by_product(request, store_id, page_id):
 
     results = defaultdict(list)
 
-    product_ids = get_proxy_results(request=request, url=product_url)
+    product_ids, meta = get_proxy_results(request=request, url=product_url)
     for product_id in product_ids:
-        product_contents = get_proxy_results(request=request,
+        content, _ = get_proxy_results(request=request,
             url=content_url % (settings.CONTENTGRAPH_BASE_URL, store_id,
                                product_id))
-        results[u'%s' % product_id].append(product_contents)
+        results[u'%s' % product_id].append(content)
 
     return ajax_jsonp({'results': results,
-                       'meta': {}})
+                       'meta': meta})
