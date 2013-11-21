@@ -5,6 +5,8 @@
 <link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/pages2.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/5col.css' %}">
 
+{% load compress %}
+{% compress js %}
 <script type="text/javascript" src="{% static 'js/respond.min.js' %}"></script><!-- "as early after the css as possible" -->
 <script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/jquery.xdr.js' %}"></script>
@@ -32,7 +34,7 @@
 <script type="text/javascript" src="{% static 'pinpoint/js/pages.viewport.js' %}"></script><!-- after pages -->
 <script type="text/javascript" src="{% static 'pinpoint/js/pages.init.js' %}"></script><!-- after pages -->
 <script type="text/javascript" src="{% static 'pinpoint/js/pages.widget.gallery.js' %}"></script>
-
+{% endcompress %}
 <!-- End CSS -->
 <meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><!-- required by bootstrap -->
 <meta http-equiv="X-UA-Compatible" content="IE=edge"><!-- required by bootstrap, IE -->
