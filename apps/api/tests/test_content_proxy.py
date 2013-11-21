@@ -1,3 +1,5 @@
+import json
+import re
 import mock
 from tastypie.test import ResourceTestCase
 
@@ -41,14 +43,32 @@ class ContentProxyTest(ResourceTestCase):
             format='json'
         )
 
-    @mock.patch('httplib2.Response')
+    #@mock.patch('httplib2.Response')
     @mock.patch('httplib2.Http.request')
-    def test_regular_success(self, mock_request, mock_response):
-        mock_response.return_value = {
-            'status': 200,
-            'content-type': 'application/json'
+    def test_regular_success(self, mock_request):
+        returns = {
+            r'store/\d+/page/\d+/content/\d+': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
+            r'page/\d+/tile-config': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
         }
-        mock_request.return_value = (mock_response(), 'OK')
+
+        # http://www.voidspace.org.uk/python/mock/examples.html#multiple-calls-with-different-effects
+        def response(url, method, body, headers):
+            # Pick the right response to return
+            for key, value in returns.iteritems():
+                if re.search(key, url):
+                    return value
+
+            # return some default?
+            # fail test case?
+            return (None, None)
+
+        mock_request.side_effect = response
 
         response = self.api_client.post(
             '/graph/v1/store/1/page/1/content/1',
