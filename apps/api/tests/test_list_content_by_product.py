@@ -12,7 +12,7 @@ class ProductListProxyTestCase(ApiTestCase):
 
     def setUp(self):
         super(ProductListProxyTestCase, self).setUp()
-        self.api_url = config.base_url + '/store/38/product/live'
+        self.api_url = config.base_url + '/store/38/page/97/content/by-id'
 
     def test_api_url_returns_200(self):
         """Test for proxy URL returning something."""
@@ -34,3 +34,15 @@ class ProductListProxyTestCase(ApiTestCase):
             products = json.loads(resp.content)
         except ValueError as err:
             self.assertEqual('is json', 'is not json')
+
+    def test_api_url_has_product_keys(self):
+        """Test for proxy URL returning valid json format."""
+        resp = self.api_client.get(self.api_url, format='json',
+                                   authentication=self.get_credentials(),
+                                   headers=self.headers)
+
+        # "all keys are numeric, but are kept as strings because json"
+        is_valid = all([str(int(x)) == x for x in \
+                        json.loads(resp.content)['results'].keys()])
+
+        self.assertTrue(is_valid)
