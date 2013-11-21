@@ -88,7 +88,7 @@ def proxy_view(request, path):
 
 
 @check_login
-def get_page_content_by_product(request, store_id, page_id):
+def get_suggested_content_by_page(request, store_id, page_id):
     """Returns a multiple lists of product content grouped by
     their product id.
     """
@@ -99,14 +99,16 @@ def get_page_content_by_product(request, store_id, page_id):
         settings.CONTENTGRAPH_BASE_URL, store_id, page_id)
     content_url = "%s/store/%s/content?tagged-products=%s"
 
-    results = defaultdict(list)
+    results = []
 
     product_ids, meta = get_proxy_results(request=request, url=product_url)
     for product_id in product_ids:
-        content, _ = get_proxy_results(request=request,
+        contents, _ = get_proxy_results(request=request,
             url=content_url % (settings.CONTENTGRAPH_BASE_URL, store_id,
                                product_id))
-        results[u'%s' % product_id].append(content)
+        for content in contents:
+            if not content in results:  # this works because __hash__
+                results.append(content)
 
     return ajax_jsonp({'results': results,
                        'meta': meta})

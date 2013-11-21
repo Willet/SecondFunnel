@@ -19,8 +19,8 @@ urlpatterns += patterns('apps.api.views',
     ),
     url(r'^%s/store/(?P<store_id>[^\/]*)'
         r'/page/(?P<page_id>[^\/]*)'
-        r'/content/by-id?$' % prefix,
-        'get_page_content_by_product',
-        name='get_page_content_by_product'),
+        r'/content/suggested/?$' % prefix,
+        'get_suggested_content_by_page',
+        name='get_suggested_content_by_page'),
     url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
 )
