@@ -10,4 +10,5 @@ proxy_url = base_url
 
 # We will assume gap/gap is a valid user for now as I don't have fixtures yet
 # TODO Replace when we have a fixture with test data
-valid_login = {'username': 'gap', 'password': 'gap'}
+valid_login = {'username': 'gap', 'email': 'gap@gap.secondfunnel.com',
+               'password': 'gap'}
