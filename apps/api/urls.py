@@ -10,7 +10,16 @@ api.register(UserResource())
 urlpatterns = api.urls
 
 urlpatterns += patterns('apps.api.views',
-    url(r'^%s/store/(?P<store_id>[^\/]*)/page/(?P<page_id>[^\/]*)/content/by-id?$' % prefix,
+    url(
+        r'^%s/store/(?P<store_id>\d+)'
+        r'/page/(?P<page_id>\d+)'
+        r'/content/(?P<content_id>\d+)/?$' % prefix,
+        'proxy_content',
+        name='proxy_content'
+    ),
+    url(r'^%s/store/(?P<store_id>[^\/]*)'
+        r'/page/(?P<page_id>[^\/]*)'
+        r'/content/by-id?$' % prefix,
         'get_page_content_by_product',
         name='get_page_content_by_product'),
     url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
