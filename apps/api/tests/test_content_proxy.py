@@ -1,3 +1,4 @@
+import mock
 from tastypie.test import ResourceTestCase
 
 
@@ -40,7 +41,15 @@ class ContentProxyTest(ResourceTestCase):
             format='json'
         )
 
-    def test_authorized(self):
+    @mock.patch('httplib2.Response')
+    @mock.patch('httplib2.Http.request')
+    def test_regular_success(self, mock_request, mock_response):
+        mock_response.return_value = {
+            'status': 200,
+            'content-type': 'application/json'
+        }
+        mock_request.return_value = (mock_response(), 'OK')
+
         response = self.api_client.post(
             '/graph/v1/store/1/page/1/content/1',
             format='json'
