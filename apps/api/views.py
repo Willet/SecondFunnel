@@ -168,3 +168,37 @@ def reject_content(request, store_id, content_id):
         status=int(response['status']),
         content_type=response['content-type']
     )
+
+#TODO: almost exactly the same as reject content. Consider refactoring
+@never_cache
+@csrf_exempt
+def undecide_content(request, store_id, content_id):
+    if request.method != 'PATCH':
+        return HttpResponse(json.dumps({
+            'error': 'Unsupported Method'
+        }), content_type='application/json', status = 405)
+
+    if not request.user or (request.user and not request.user.is_authenticated()):
+        return HttpResponse(json.dumps({
+            'error': 'Not logged in'
+        }), content_type = 'application/json', status = 401)
+
+    url = 'store/%s/content/%s' % (store_id, content_id)
+    h = httplib2.Http()
+    response, content = h.request(
+            url,
+            method = 'PATCH',
+            body = json.dumps({
+                'active': True,
+                'approved': False
+            }),
+            headers = {
+                'ApiKey': 'secretword'
+            }
+        )
+
+    return HttpResponse(
+        content = content,
+        status=int(response['status']),
+        content_type=response['content-type']
+    )
