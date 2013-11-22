@@ -135,3 +135,36 @@ def proxy_content(request, store_id, page_id, content_id):
     return {
         'POST': post,
     }.get(request.method, DEFAULT_RESPONSE)()
+
+@never_cache
+@csrf_exempt
+def reject_content(request, store_id, content_id):
+    if request.method != 'PATCH':
+        return HttpResponse(json.dumps({
+            'error': 'Unsupported Method'
+        }), content_type='application/json', status = 405)
+
+    if not request.user or (request.user and not request.user.is_authenticated()):
+        return HttpResponse(json.dumps({
+            'error': 'Not logged in'
+        }), content_type = 'application/json', status = 401)
+
+    url = 'store/%s/content/%s' % (store_id, content_id)
+    h = httplib2.Http()
+    response, content = h.request(
+            url,
+            method = 'PATCH',
+            body = json.dumps({
+                'active': False,
+                'approved': False
+            }),
+            headers = {
+                'ApiKey': 'secretword'
+            }
+        )
+
+    return HttpResponse(
+        content = content,
+        status=int(response['status']),
+        content_type=response['content-type']
+    )
