@@ -9,6 +9,8 @@ from django.conf import settings
 from apps.api.decorators import check_login, append_headers
 from apps.intentrank.utils import ajax_jsonp
 
+from resources import ContentGraphClient
+
 
 # http://stackoverflow.com/questions/2217445/django-ajax-proxy-view
 def proxy_request(path, verb='GET', query_string=None, body=None, headers={}):
@@ -88,8 +90,8 @@ def proxy_view(request, path):
     """Nick is not a security expert.
 
     He does, however, recommend we read up security policy to see if using
-    CORS is sufficient to prevent against CSRF, because he is having a hard time
-    handling that...
+    CORS is sufficient to prevent against CSRF, because he is having a hard
+    time handling that...
     """
 
     target_url = settings.CONTENTGRAPH_BASE_URL
@@ -131,9 +133,9 @@ def get_suggested_content_by_page(request, store_id, page_id):
 
     product_ids, meta = get_proxy_results(request=request, url=product_url)
     for product_id in product_ids:
-        contents, _ = get_proxy_results(request=request,
-            url=content_url % (settings.CONTENTGRAPH_BASE_URL, store_id,
-                               product_id))
+        contents, _ = get_proxy_results(
+            request=request,
+            url=content_url % (settings.CONTENTGRAPH_BASE_URL, store_id, product_id))
         for content in contents:
             if not content in results:  # this works because __hash__
                 results.append(content)
@@ -145,19 +147,15 @@ def get_suggested_content_by_page(request, store_id, page_id):
 # login_required decorator?
 @never_cache
 @csrf_exempt
+# not the complete http verb list -- just the ones we know for sure
+# we support.
+@request_methods('GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH')
 def proxy_content(request, store_id, page_id, content_id):
-    """Normally, we would use the login_required decorator, but it will
-    redirect on fail. Instead, just do the check manually;
-
-    side benefit: we can also return something more useful
-    """
-
-    # not the complete http verb list -- just the ones we know for sure
-    # we support.
-    # TODO: probably material for alex's decorator
-    allowed_methods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
-
-    if not request.user or (request.user and not request.user.is_authenticated()):
+    # TODO: Remove duplication
+    # Normally, we would use the login_required decorator, but it will
+    # redirect on fail. Instead, just do the check manually; side benefit: we
+    # can also return something more useful
+    if not request.user or not request.user.is_authenticated():
         return HttpResponse(
             content='{"error": "Not logged in"}',
             mimetype='application/json',
@@ -175,10 +173,6 @@ def proxy_content(request, store_id, page_id, content_id):
     tile_config_url = 'page/{page_id}/tile-config'.format(
         page_id=page_id,
     )
-
-    # not in the list of verbs we explicitly handle
-    if not request.method in allowed_methods:
-        return HttpResponseNotAllowed(allowed_methods)
 
     response = content_request(content_url, method=request.method)
 
@@ -205,29 +199,29 @@ def reject_content(request, store_id, content_id):
     if request.method != 'PATCH':
         return HttpResponse(json.dumps({
             'error': 'Unsupported Method'
-        }), content_type='application/json', status = 405)
+        }), content_type='application/json', status=405)
 
-    if not request.user or (request.user and not request.user.is_authenticated()):
+    if not request.user or (not request.user.is_authenticated()):
         return HttpResponse(json.dumps({
             'error': 'Not logged in'
-        }), content_type = 'application/json', status = 401)
+        }), content_type='application/json', status=401)
 
     url = 'store/%s/content/%s' % (store_id, content_id)
     h = httplib2.Http()
     response, content = h.request(
-            url,
-            method = 'PATCH',
-            body = json.dumps({
-                'active': False,
-                'approved': False
-            }),
-            headers = {
-                'ApiKey': 'secretword'
-            }
-        )
+        url,
+        method='PATCH',
+        body=json.dumps({
+            'active': False,
+            'approved': False
+        }),
+        headers={
+            'ApiKey': 'secretword'
+        }
+    )
 
     return HttpResponse(
-        content = content,
+        content=content,
         status=int(response['status']),
         content_type=response['content-type']
     )
@@ -240,29 +234,52 @@ def undecide_content(request, store_id, content_id):
     if request.method != 'PATCH':
         return HttpResponse(json.dumps({
             'error': 'Unsupported Method'
-        }), content_type='application/json', status = 405)
+        }), content_type='application/json', status=405)
 
-    if not request.user or (request.user and not request.user.is_authenticated()):
+    if not request.user or (not request.user.is_authenticated()):
         return HttpResponse(json.dumps({
             'error': 'Not logged in'
-        }), content_type = 'application/json', status = 401)
+        }), content_type='application/json', status=401)
 
     url = 'store/%s/content/%s' % (store_id, content_id)
     h = httplib2.Http()
     response, content = h.request(
-            url,
-            method = 'PATCH',
-            body = json.dumps({
-                'active': True,
-                'approved': False
-            }),
-            headers = {
-                'ApiKey': 'secretword'
-            }
-        )
+        url,
+        method='PATCH',
+        body=json.dumps({
+            'active': True,
+            'approved': False
+        }),
+        headers={
+            'ApiKey': 'secretword'
+        }
+    )
 
     return HttpResponse(
-        content = content,
+        content=content,
         status=int(response['status']),
         content_type=response['content-type']
     )
+
+
+def copy_headers_to_response(headers, response):
+    for k, v in headers.items():
+        if k != 'connection':
+            response[k] = v
+    return response
+
+
+def mimic_response(client_response, server_response):
+    copy_headers_to_response(client_response.headers, server_response)
+    return server_response
+
+
+@csrf_exempt
+def approve_content(request, store_id, content_id):
+    payload = json.dumps({'active': True, 'approved': True})
+
+    r = ContentGraphClient.store(store_id).content(content_id).PATCH(payload)
+
+    response = HttpResponse(content=r.content, status=r.status_code)
+
+    return mimic_response(r, response)
