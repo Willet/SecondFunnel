@@ -29,7 +29,6 @@ class LoginTest(TestCase):
         self.assertEqual(401, response.status_code, 'Invalid password test failed')
 
     # Should return 200 if valid credentials
-    # TODO figure out this mocking situation
     def test_valid_credentials(self):
         client = TestApiClient()
         response = client.post(login_url, format='json', data=valid_login)
@@ -40,7 +39,7 @@ class LoginTest(TestCase):
     def test_access_after_login(self):
         client = TestApiClient()
         response = client.post(login_url, format='json', data=valid_login)
-        response = client.get(slashed(restricted_url))
+        response = client.get(append_slash(restricted_url))
         self.assertEqual(200, response.status_code, 'We don\'t have access to resources after login')
 
     # Should revoke existing credentials if invalid credentials supplied
@@ -52,12 +51,12 @@ class LoginTest(TestCase):
         '''
         Test that we receive a JSON object
         '''
+        # TODO mock
         client = TestApiClient()
         response = client.post(login_url, format='json', data=valid_login)
         decoded_json = False
         valid_json = True
 
-        # TODO is there a better way
         try:
             global decoded_json
             decoded_json = read_json(response.content)
@@ -91,5 +90,5 @@ class LogoutTest(TestCase):
     def test_revokes_credentials(self):
         client = TestApiClient()
         response = client.post(login_url,format='json', data=valid_login)
-        response = client.post(slashed(restricted_url))
+        response = client.post(append_slash(restricted_url))
         self.assertEqual(401, response.status_code, 'Revoking credentials did not work')
