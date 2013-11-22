@@ -125,6 +125,41 @@ def proxy_content(request, store_id, page_id, content_id):
 
         return response
 
+    def delete():
+        path_url = 'store/{store_id}/page/{page_id}/content/{content_id}'.format(
+            store_id=store_id,
+            page_id=page_id,
+            content_id=content_id
+        )
+        # Can we get this changed to POST?
+        response = proxy_request(
+            path_url,
+            verb='DELETE'
+        )
+
+        if not (200 <= response.status_code < 300):
+            response.status_code = 500
+            return response
+
+        path_url = 'page/{page_id}/tile-config'.format(
+            page_id=page_id,
+        )
+        response = proxy_request(
+            path_url,
+            verb='DELETE',
+            body=json.dumps({
+                'template': request_body.get('template', 'image'),
+                'content-ids': [content_id]
+            })
+        )
+
+        # Should we do some amalgamated response?
+        # I don't think the response is used, so just return for now
+        if not (200 <= response.status_code < 300):
+            response.status_code = 500
+
+        return response
+
     DEFAULT_RESPONSE = lambda: HttpResponse(
         json.dumps({
             'error': 'Unsupported Method'
@@ -134,4 +169,5 @@ def proxy_content(request, store_id, page_id, content_id):
 
     return {
         'POST': post,
+        'DELETE': delete
     }.get(request.method, DEFAULT_RESPONSE)()

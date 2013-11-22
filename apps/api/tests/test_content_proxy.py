@@ -38,14 +38,13 @@ class ContentProxyTest(ResourceTestCase):
         )
 
     def tearDown(self):
-        # TODO: Why is trailing slash required?
         self.api_client.post(
             '/graph/v1/user/logout/',
             format='json'
         )
 
     @mock.patch('httplib2.Http.request')
-    def test_regular_success(self, mock_request):
+    def test_add_content_success(self, mock_request):
         mock_request = configure_mock_request(mock_request, {
             r'store/\d+/page/\d+/content/\d+': (
                 {'status': 200, 'content-type': 'application/json'},
@@ -65,7 +64,7 @@ class ContentProxyTest(ResourceTestCase):
         self.assertHttpOK(response)
 
     @mock.patch('httplib2.Http.request')
-    def test_first_request_failure(self, mock_request):
+    def test_add_content_proxy_add_fail(self, mock_request):
         mock_request = configure_mock_request(mock_request, {
             r'store/\d+/page/\d+/content/\d+': (
                 {'status': 400, 'content-type': 'application/json'},
@@ -81,7 +80,7 @@ class ContentProxyTest(ResourceTestCase):
         self.assertHttpApplicationError(response)
 
     @mock.patch('httplib2.Http.request')
-    def test_first_request_failure(self, mock_request):
+    def test_add_content_tileconfig_add_fail(self, mock_request):
         mock_request = configure_mock_request(mock_request, {
             r'store/\d+/page/\d+/content/\d+': (
                 {'status': 200, 'content-type': 'application/json'},
@@ -99,3 +98,23 @@ class ContentProxyTest(ResourceTestCase):
         )
 
         self.assertHttpApplicationError(response)
+
+    @mock.patch('httplib2.Http.request')
+    def test_remove_content_success(self, mock_request):
+        mock_request = configure_mock_request(mock_request, {
+            r'store/\d+/page/\d+/content/\d+': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
+            r'page/\d+/tile-config': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
+        })
+
+        response = self.api_client.delete(
+            '/graph/v1/store/1/page/1/content/1',
+            format='json'
+        )
+
+        self.assertHttpOK(response)
