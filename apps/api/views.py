@@ -95,8 +95,9 @@ def get_suggested_content_by_page(request, store_id, page_id):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
 
-    product_url = "%s/store/%s/page/%s/product/ids" % (
-        settings.CONTENTGRAPH_BASE_URL, store_id, page_id)
+    product_url = "%s/store/%s/page/%s/product/ids?%s" % (
+        settings.CONTENTGRAPH_BASE_URL, store_id, page_id,
+        request.META.get('QUERY_STRING', ''))
     content_url = "%s/store/%s/content?tagged-products=%s"
 
     results = []
