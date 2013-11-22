@@ -17,12 +17,17 @@ class ProductListProxyTestCase(AuthenticatedTestCase):
         super(ProductListProxyTestCase, self).setUp()
         self.api_url = config.base_url + '/store/38/page/97/content/suggested'
 
-        req_factory = RequestFactory()
-        req = req_factory.get(self.api_url)
-        req.user = User.objects.get(username='gap')
+        if not getattr(self, 'mock_resp', None):
+            req_factory = RequestFactory()
+            req = req_factory.get(self.api_url)
+            req.user = User.objects.get(username='gap')
 
-        self.mock_resp = json.loads(get_suggested_content_by_page(
-            req, 38, 97).content)
+            self.mock_resp = get_suggested_content_by_page(
+                req, 38, 97).content
+            self.mock_ids = json.dumps({"results":[
+                "65","64","63","62","61","60","59","58","57","56",
+                "55","53","52","51","50","49","48","47","46","45",
+                "44","43","42","41","40"],"meta": {}})
 
     @mock.patch('httplib2.Http.request')
     def test_api_url_returns_200(self, mock_request):
@@ -31,6 +36,17 @@ class ProductListProxyTestCase(AuthenticatedTestCase):
             r'store/\d+/page/\d+/content/suggested/?': (
                 {'status': 200, 'content-type': 'application/json'},
                 self.mock_resp
+            ),
+            r'/store/\d+/page/\d+/product/ids/?': (
+                {'status': 200, 'content-type': 'application/json'},
+                self.mock_ids
+            ),
+            r'/store/\d+/content/?\?tagged-products=\d+': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({  # fake one-product response
+                    'results': [json.loads(self.mock_resp)['results'][0]],
+                    'meta': {}
+                })
             ),
         })
 
@@ -48,6 +64,17 @@ class ProductListProxyTestCase(AuthenticatedTestCase):
                 {'status': 200, 'content-type': 'application/json'},
                 self.mock_resp
             ),
+            r'/store/\d+/page/\d+/product/ids/?': (
+                {'status': 200, 'content-type': 'application/json'},
+                self.mock_ids
+            ),
+            r'/store/\d+/content/?\?tagged-products=\d+': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({  # fake one-product response
+                    'results': [json.loads(self.mock_resp)['results'][0]],
+                    'meta': {}
+                })
+            ),
         })
 
         resp = self.api_client.get(self.api_url, format='json',
@@ -62,12 +89,24 @@ class ProductListProxyTestCase(AuthenticatedTestCase):
             self.assertEqual('is json', 'is not json')
 
     @mock.patch('httplib2.Http.request')
-    def test_api_url_has_product_keys(self, mock_request):
+    def test_api_url_has_products(self, mock_request):
         """Test for proxy URL returning valid json format."""
+
         mock_request = configure_mock_request(mock_request, {
             r'store/\d+/page/\d+/content/suggested/?': (
                 {'status': 200, 'content-type': 'application/json'},
                 self.mock_resp
+            ),
+            r'/store/\d+/page/\d+/product/ids/?': (
+                {'status': 200, 'content-type': 'application/json'},
+                self.mock_ids
+            ),
+            r'/store/\d+/content/?\?tagged-products=\d+': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({  # fake one-product response
+                    'results': [json.loads(self.mock_resp)['results'][0]],
+                    'meta': {}
+                })
             ),
         })
 
@@ -75,8 +114,6 @@ class ProductListProxyTestCase(AuthenticatedTestCase):
                                    authentication=self.get_credentials(),
                                    headers=self.headers)
 
-        # "all keys are numeric, but are kept as strings because json"
-        is_valid = all([str(int(x)) == x for x in \
-                        json.loads(resp.content)['results'].keys()])
+        is_valid = len(json.loads(resp.content)['results']) > 0
 
         self.assertTrue(is_valid)

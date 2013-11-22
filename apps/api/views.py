@@ -47,7 +47,11 @@ def get_proxy_results(request, url, body=None):
     response, content = h.request(url, method=request.method, body=body,
                                   headers=request.NEW_HEADERS or request.META)
 
-    resp_obj = json.loads(content)
+    try:
+        resp_obj = json.loads(content)
+    except:
+        pass
+
     return (resp_obj['results'], resp_obj['meta'])
 
 

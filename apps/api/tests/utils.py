@@ -1,5 +1,7 @@
 import re
 
+from collections import namedtuple
+
 from tastypie.test import ResourceTestCase
 
 from apps.api.tests import test_config as config
@@ -7,13 +9,15 @@ from apps.api.tests import test_config as config
 
 def configure_mock_request(mock_request, returns):
     # http://www.voidspace.org.uk/python/mock/examples.html#multiple-calls-with-different-effects
-    def response(url, method, body, headers):
+    def response(url, method='GET', body=None, headers=None):
         for key, value in returns.iteritems():
             if re.search(key, url):
                 return value
 
-        return (None, None)
+        RequestNotMocked = namedtuple('RequestNotMocked', 'status, response')
+        return RequestNotMocked(None, None)
 
+    # side_effect: A function to be called whenever the Mock is called
     mock_request.side_effect = response
 
     return mock_request
