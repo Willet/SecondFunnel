@@ -19,6 +19,17 @@ def check_login(fn):
                 status=401
             )
 
+        return fn(*args, **kwargs)
+    return wrapped
+
+
+def append_headers(fn):
+    """Provide the function's request object with a new NEW_HEADERS
+    that the proxy can use to relay.
+    """
+    def wrapped(*args, **kwargs):
+        request = args[0]
+
         # add custom header values
         headers = {}
         for key, value in request.META.iteritems():

@@ -1,18 +1,12 @@
-from collections import defaultdict
-
-import json
-from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
-from django.conf import settings
-
 import httplib2
 import json
 
-from django.conf import settings
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseNotAllowed
+from django.conf import settings
 
-from apps.api.decorators import check_login
+from apps.api.decorators import check_login, append_headers
 from apps.intentrank.utils import ajax_jsonp
 
 
@@ -57,6 +51,7 @@ def get_proxy_results(request, url, body=None):
     return (resp_obj['results'], resp_obj['meta'])
 
 
+@append_headers
 @check_login
 def proxy_view(request, path):
     """Nick is not a security expert.
@@ -87,6 +82,7 @@ def proxy_view(request, path):
     )
 
 
+@append_headers
 @check_login
 def get_suggested_content_by_page(request, store_id, page_id):
     """Returns a multiple lists of product content grouped by
