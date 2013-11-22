@@ -118,3 +118,39 @@ class ContentProxyTest(ResourceTestCase):
         )
 
         self.assertHttpOK(response)
+
+    @mock.patch('httplib2.Http.request')
+    def test_remove_content_proxy_remove_fail(self, mock_request):
+        mock_request = configure_mock_request(mock_request, {
+            r'store/\d+/page/\d+/content/\d+': (
+                {'status': 400, 'content-type': 'application/json'},
+                json.dumps({})
+            )
+        })
+
+        response = self.api_client.delete(
+            '/graph/v1/store/1/page/1/content/1',
+            format='json'
+        )
+
+        self.assertHttpApplicationError(response)
+
+    @mock.patch('httplib2.Http.request')
+    def test_remove_content_proxy_remove_fail(self, mock_request):
+        mock_request = configure_mock_request(mock_request, {
+            r'store/\d+/page/\d+/content/\d+': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
+            r'page/\d+/tile-config': (
+                {'status': 400, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
+        })
+
+        response = self.api_client.delete(
+            '/graph/v1/store/1/page/1/content/1',
+            format='json'
+        )
+
+        self.assertHttpApplicationError(response)
