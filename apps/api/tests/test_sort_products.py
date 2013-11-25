@@ -1,13 +1,12 @@
 import json
 
-from api_utils import ApiTestCase
+from apps.api.tests.utils import AuthenticatedTestCase
 
 import test_config as config
 
 
-class ProductListProxyTestCase(ApiTestCase):
+class ProductListProxyTestCase(AuthenticatedTestCase):
     """Test runner needs to be "logged in"."""
-
     def setUp(self):
         super(ProductListProxyTestCase, self).setUp()
         self.api_url = config.base_url + '/store/38/product/live'
