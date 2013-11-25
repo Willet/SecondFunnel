@@ -6,10 +6,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.conf import settings
 
-from apps.api.decorators import check_login, append_headers
+from apps.api.decorators import check_login, append_headers, request_methods
 from apps.intentrank.utils import ajax_jsonp
 
 from resources import ContentGraphClient
+from utils import mimic_response
 
 
 # http://stackoverflow.com/questions/2217445/django-ajax-proxy-view
@@ -193,19 +194,11 @@ def proxy_content(request, store_id, page_id, content_id):
     return response
 
 
+@request_methods('POST')
+@check_login
 @never_cache
 @csrf_exempt
 def reject_content(request, store_id, content_id):
-    if request.method != 'PATCH':
-        return HttpResponse(json.dumps({
-            'error': 'Unsupported Method'
-        }), content_type='application/json', status=405)
-
-    if not request.user or (not request.user.is_authenticated()):
-        return HttpResponse(json.dumps({
-            'error': 'Not logged in'
-        }), content_type='application/json', status=401)
-
     url = 'store/%s/content/%s' % (store_id, content_id)
     h = httplib2.Http()
     response, content = h.request(
@@ -228,19 +221,11 @@ def reject_content(request, store_id, content_id):
 
 
 #TODO: almost exactly the same as reject content. Consider refactoring
+@request_methods('POST')
+@check_login
 @never_cache
 @csrf_exempt
 def undecide_content(request, store_id, content_id):
-    if request.method != 'PATCH':
-        return HttpResponse(json.dumps({
-            'error': 'Unsupported Method'
-        }), content_type='application/json', status=405)
-
-    if not request.user or (not request.user.is_authenticated()):
-        return HttpResponse(json.dumps({
-            'error': 'Not logged in'
-        }), content_type='application/json', status=401)
-
     url = 'store/%s/content/%s' % (store_id, content_id)
     h = httplib2.Http()
     response, content = h.request(
@@ -262,18 +247,9 @@ def undecide_content(request, store_id, content_id):
     )
 
 
-def copy_headers_to_response(headers, response):
-    for k, v in headers.items():
-        if k != 'connection':
-            response[k] = v
-    return response
-
-
-def mimic_response(client_response, server_response):
-    copy_headers_to_response(client_response.headers, server_response)
-    return server_response
-
-
+@request_methods('POST')
+@check_login
+@never_cache
 @csrf_exempt
 def approve_content(request, store_id, content_id):
     payload = json.dumps({'active': True, 'approved': True})

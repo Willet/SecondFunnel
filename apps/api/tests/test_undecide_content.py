@@ -5,6 +5,7 @@ import json
 import random
 import string
 
+
 #TODO: This is almost an exact copy of the rejected tests consider refactoring
 class UndecideContentTests(TestCase):
     fixtures = ['users.json']
@@ -15,7 +16,7 @@ class UndecideContentTests(TestCase):
         self.content_id = 1077
         self.url = '/graph/v1/store/%s/content/%s/undecide' % (self.store_id, self.content_id)
 
-        resp = self.client.post('/graph/v1/user/login/', format='json', data = {
+        resp = self.client.post('/graph/v1/user/login/', format='json', data={
             'username': 'test',
             'password': 'asdf'
         })
@@ -73,7 +74,7 @@ class UndecideContentTests(TestCase):
     def test_uses_proxy(self):
         from apps.api.views import httplib2
         with patch.object(httplib2, 'Http', self.mockHttp):
-            response = self.client.patch(self.url, data={})
+            response = self.client.post(self.url, data={})
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response._headers['content-type'][1], 'application/json')
             self.assertEqual(response.content, self.response_json)
@@ -85,7 +86,7 @@ class UndecideContentTests(TestCase):
 
         from apps.api.views import httplib2
         with patch.object(httplib2, 'Http', self.mockHttp):
-            response = client.patch(self.url, data={})
+            response = client.post(self.url, data={})
             self.assertEqual(response.status_code, 401)
             self.assertEqual(response._headers['content-type'][1], 'application/json')
             self.assertEqual(response.content, self.not_logged_in_json)
@@ -100,7 +101,7 @@ class UndecideContentTests(TestCase):
             self.assertEqual(response._headers['content-type'][1], 'application/json')
             self.assertEqual(response.content, self.bad_method_json)
 
-            response = self.client.post(self.url, data={})
+            response = self.client.patch(self.url, data={})
             self.assertEqual(response.status_code, 405)
             self.assertEqual(response._headers['content-type'][1], 'application/json')
             self.assertEqual(response.content, self.bad_method_json)
