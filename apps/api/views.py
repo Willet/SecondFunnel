@@ -37,6 +37,37 @@ def proxy_request(path, verb='GET', query_string=None, body=None, headers={}):
     )
 
 
+def content_request(content_url, method='GET'):
+    # Can we get this changed to POST?
+    response = proxy_request(
+        content_url,
+        verb=method
+    )
+
+    if not (200 <= response.status_code < 300):
+        response.status_code = 500
+
+    return response
+
+
+def tile_config_request(tile_config_url, content_id, data=None, method='GET'):
+    response = proxy_request(
+        tile_config_url,
+        verb=method,
+        body=json.dumps({
+            'template': data.get('template', 'image'),
+            'content-ids': [content_id]
+        })
+    )
+
+    # Should we do some amalgamated response?
+    # I don't think the response is used, so just return for now
+    if not (200 <= response.status_code < 300):
+        response.status_code = 500
+
+    return response
+
+
 def get_proxy_results(request, url, body=None):
     """small wrapper around all api requests to content graph.
 
@@ -47,10 +78,7 @@ def get_proxy_results(request, url, body=None):
     response, content = h.request(url, method=request.method, body=body,
                                   headers=request.NEW_HEADERS or request.META)
 
-    try:
-        resp_obj = json.loads(content)
-    except:
-        pass
+    resp_obj = json.loads(content)
 
     return (resp_obj['results'], resp_obj['meta'])
 
@@ -130,44 +158,46 @@ def proxy_content(request, store_id, page_id, content_id):
             status=401
         )
 
-    # http://stackoverflow.com/questions/18930234/django-modifying-the-request-object
-    # Also, need to do a check for method type
     request_body = json.loads(request.body or '{}')
 
-    # Should create a new request instead of leveraging the existing one
-    # Especially because can't modify request.body
-    def post():
-        path_url = 'store/{store_id}/page/{page_id}/content/{content_id}'.format(
-            store_id=store_id,
-            page_id=page_id,
-            content_id=content_id
-        )
-        # Can we get this changed to POST?
-        response = proxy_request(
-            path_url,
-            verb='PUT'
-        )
+    content_url = 'store/{store_id}/page/{page_id}/content/{content_id}'.format(
+        store_id=store_id,
+        page_id=page_id,
+        content_id=content_id
+    )
 
-        if not (200 <= response.status_code < 300):
-            response.status_code = 500
+    tile_config_url = 'page/{page_id}/tile-config'.format(
+        page_id=page_id,
+    )
+
+    def post():
+        # Can we get this changed to POST?
+        response = content_request(content_url, method='PUT')
+
+        if response.status_code == 500:
             return response
 
-        path_url = 'page/{page_id}/tile-config'.format(
-            page_id=page_id,
-        )
-        response = proxy_request(
-            path_url,
-            verb='POST',
-            body=json.dumps({
-                'template': request_body.get('template', 'image'),
-                'content-ids': [content_id]
-            })
+        response = tile_config_request(
+            tile_config_url,
+            content_id,
+            data=request_body,
+            method='POST'
         )
 
-        # Should we do some amalgamated response?
-        # I don't think the response is used, so just return for now
-        if not (200 <= response.status_code < 300):
-            response.status_code = 500
+        return response
+
+    def delete():
+        response = content_request(content_url, method='DELETE')
+
+        if response.status_code == 500:
+            return response
+
+        response = tile_config_request(
+            tile_config_url,
+            content_id,
+            data=request_body,
+            method='DELETE'
+        )
 
         return response
 
@@ -180,4 +210,74 @@ def proxy_content(request, store_id, page_id, content_id):
 
     return {
         'POST': post,
+        'DELETE': delete,
     }.get(request.method, DEFAULT_RESPONSE)()
+
+
+@never_cache
+@csrf_exempt
+def reject_content(request, store_id, content_id):
+    if request.method != 'PATCH':
+        return HttpResponse(json.dumps({
+            'error': 'Unsupported Method'
+        }), content_type='application/json', status = 405)
+
+    if not request.user or (request.user and not request.user.is_authenticated()):
+        return HttpResponse(json.dumps({
+            'error': 'Not logged in'
+        }), content_type = 'application/json', status = 401)
+
+    url = 'store/%s/content/%s' % (store_id, content_id)
+    h = httplib2.Http()
+    response, content = h.request(
+            url,
+            method = 'PATCH',
+            body = json.dumps({
+                'active': False,
+                'approved': False
+            }),
+            headers = {
+                'ApiKey': 'secretword'
+            }
+        )
+
+    return HttpResponse(
+        content = content,
+        status=int(response['status']),
+        content_type=response['content-type']
+    )
+
+
+#TODO: almost exactly the same as reject content. Consider refactoring
+@never_cache
+@csrf_exempt
+def undecide_content(request, store_id, content_id):
+    if request.method != 'PATCH':
+        return HttpResponse(json.dumps({
+            'error': 'Unsupported Method'
+        }), content_type='application/json', status = 405)
+
+    if not request.user or (request.user and not request.user.is_authenticated()):
+        return HttpResponse(json.dumps({
+            'error': 'Not logged in'
+        }), content_type = 'application/json', status = 401)
+
+    url = 'store/%s/content/%s' % (store_id, content_id)
+    h = httplib2.Http()
+    response, content = h.request(
+            url,
+            method = 'PATCH',
+            body = json.dumps({
+                'active': True,
+                'approved': False
+            }),
+            headers = {
+                'ApiKey': 'secretword'
+            }
+        )
+
+    return HttpResponse(
+        content = content,
+        status=int(response['status']),
+        content_type=response['content-type']
+    )
