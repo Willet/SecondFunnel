@@ -1,7 +1,6 @@
 import functools
-import json
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
@@ -55,13 +54,11 @@ def append_headers(fn):
 def request_methods(*request_methods):
     def wrap(func):
         @functools.wraps(func)
-        def apply(request, *args, **kwargs):
+        def wrapped_func(request, *args, **kwargs):
             if not request.method in request_methods:
-                return HttpResponse(json.dumps({
-                    'error': 'Unsupported Method'
-                }), content_type='application/json', status=405)
+                return HttpResponseNotAllowed(request_methods)
             return func(request, *args, **kwargs)
         # this is returning the decorated function
-        return apply
+        return wrapped_func
     # this is returning the decorator
     return wrap
