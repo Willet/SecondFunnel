@@ -1,0 +1,18 @@
+[
+    {
+        "pk": 38,
+        "model": "assets.store",
+        "fields": {
+            "description": "",
+            "created": "2013-10-17T15:05:18.469Z",
+            "public_base_url": "http://gap.secondfunnel.com/",
+            "social_auth": [],
+            "theme": null,
+            "last_modified": "2013-10-18T02:17:38.816Z",
+            "features": [],
+            "staff": [1, 2, 3],
+            "slug": "gap",
+            "name": "Gap"
+        }
+    }
+]
