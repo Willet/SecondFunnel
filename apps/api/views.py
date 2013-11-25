@@ -199,52 +199,27 @@ def proxy_content(request, store_id, page_id, content_id):
 @never_cache
 @csrf_exempt
 def reject_content(request, store_id, content_id):
-    url = 'store/%s/content/%s' % (store_id, content_id)
-    h = httplib2.Http()
-    response, content = h.request(
-        url,
-        method='PATCH',
-        body=json.dumps({
-            'active': False,
-            'approved': False
-        }),
-        headers={
-            'ApiKey': 'secretword'
-        }
-    )
+    payload = json.dumps({'status': 'rejected'})
 
-    return HttpResponse(
-        content=content,
-        status=int(response['status']),
-        content_type=response['content-type']
-    )
+    r = ContentGraphClient.store(store_id).content(content_id).PATCH(payload)
+
+    response = HttpResponse(content=r.content, status=r.status_code)
+
+    return mimic_response(r, response)
 
 
-#TODO: almost exactly the same as reject content. Consider refactoring
 @request_methods('POST')
 @check_login
 @never_cache
 @csrf_exempt
 def undecide_content(request, store_id, content_id):
-    url = 'store/%s/content/%s' % (store_id, content_id)
-    h = httplib2.Http()
-    response, content = h.request(
-        url,
-        method='PATCH',
-        body=json.dumps({
-            'active': True,
-            'approved': False
-        }),
-        headers={
-            'ApiKey': 'secretword'
-        }
-    )
+    payload = json.dumps({'status': 'needs-review'})
 
-    return HttpResponse(
-        content=content,
-        status=int(response['status']),
-        content_type=response['content-type']
-    )
+    r = ContentGraphClient.store(store_id).content(content_id).PATCH(payload)
+
+    response = HttpResponse(content=r.content, status=r.status_code)
+
+    return mimic_response(r, response)
 
 
 @request_methods('POST')
@@ -252,7 +227,7 @@ def undecide_content(request, store_id, content_id):
 @never_cache
 @csrf_exempt
 def approve_content(request, store_id, content_id):
-    payload = json.dumps({'active': True, 'approved': True})
+    payload = json.dumps({'status': 'approved'})
 
     r = ContentGraphClient.store(store_id).content(content_id).PATCH(payload)
 
