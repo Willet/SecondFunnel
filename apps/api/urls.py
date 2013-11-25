@@ -17,6 +17,14 @@ urlpatterns += patterns('apps.api.views',
         'proxy_content',
         name='proxy_content'
     ),
+    url(
+        r'^%s/store/(?P<store_id>\d+)'          # store
+        r'/page/(?P<page_id>\d+)'               # page
+        r'/(?P<object_type>\w+)'                # type
+        r'/(?P<object_id>\d+)/?$' % prefix,     # id
+        'proxy_tile',
+        name='proxy_tile'
+    ),
     url(r'^%s/store/(?P<store_id>[^\/]*)'
         r'/page/(?P<page_id>[^\/]*)'
         r'/content/suggested/?$' % prefix,
