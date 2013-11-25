@@ -17,5 +17,7 @@ urlpatterns += patterns('apps.api.views',
         'proxy_content',
         name='proxy_content'
     ),
+    url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/reject' % prefix, 'reject_content', name='reject_content'),
+    url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/undecide' % prefix, 'undecide_content', name='undecide_content'),
     url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view')
 )
