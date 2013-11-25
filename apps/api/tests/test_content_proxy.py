@@ -1,6 +1,6 @@
 import json
-import re
 import mock
+
 from tastypie.test import ResourceTestCase
 from apps.api.tests.utils import configure_mock_request
 
