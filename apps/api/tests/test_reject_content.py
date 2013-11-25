@@ -5,7 +5,7 @@ import json
 import random
 import string
 
-class rejectContentTests(TestCase):
+class RejectContentTests(TestCase):
     fixtures = ['users.json']
 
     def setUp(self):
@@ -37,7 +37,7 @@ class rejectContentTests(TestCase):
         that = self
 
         from apps.api.views import httplib2
-        class testHttp(httplib2.Http):
+        class TestHttp(httplib2.Http):
             def request(self, uri, method='GET', body=None, headers=None):
                 that.call_checks['http_called'] = True
                 that.assertEqual(method, 'PATCH')
@@ -64,7 +64,7 @@ class rejectContentTests(TestCase):
                     that.response_json
                 ]
 
-        self.mockHttp = testHttp
+        self.mockHttp = TestHttp
 
     def tearDown(self):
         self.call_checks = {}
