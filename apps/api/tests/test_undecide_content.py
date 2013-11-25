@@ -6,7 +6,7 @@ import random
 import string
 
 #TODO: This is almost an exact copy of the rejected tests consider refactoring
-class undecideContentTests(TestCase):
+class UndecideContentTests(TestCase):
     fixtures = ['users.json']
 
     def setUp(self):
@@ -38,7 +38,7 @@ class undecideContentTests(TestCase):
         that = self
 
         from apps.api.views import httplib2
-        class testHttp(httplib2.Http):
+        class TestHttp(httplib2.Http):
             def request(self, uri, method='GET', body=None, headers=None):
                 that.call_checks['http_called'] = True
                 that.assertEqual(method, 'PATCH')
@@ -65,7 +65,7 @@ class undecideContentTests(TestCase):
                     that.response_json
                 ]
 
-        self.mockHttp = testHttp
+        self.mockHttp = TestHttp
 
     def tearDown(self):
         self.call_checks = {}
