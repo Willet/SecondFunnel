@@ -38,7 +38,6 @@ def proxy_request(path, verb='GET', query_string=None, body=None, headers={}):
 
 
 def content_request(content_url, method='GET'):
-    # Can we get this changed to POST?
     response = proxy_request(
         content_url,
         verb=method
@@ -147,10 +146,17 @@ def get_suggested_content_by_page(request, store_id, page_id):
 @never_cache
 @csrf_exempt
 def proxy_content(request, store_id, page_id, content_id):
-    # TODO: Remove duplication
-    # Normally, we would use the login_required decorator, but it will
-    # redirect on fail. Instead, just do the check manually; side benefit: we
-    # can also return something more useful
+    """Normally, we would use the login_required decorator, but it will
+    redirect on fail. Instead, just do the check manually;
+
+    side benefit: we can also return something more useful
+    """
+
+    # not the complete http verb list -- just the ones we know for sure
+    # we support.
+    # TODO: probably material for alex's decorator
+    allowed_methods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
+
     if not request.user or (request.user and not request.user.is_authenticated()):
         return HttpResponse(
             content='{"error": "Not logged in"}',
@@ -170,48 +176,27 @@ def proxy_content(request, store_id, page_id, content_id):
         page_id=page_id,
     )
 
-    def post():
-        # Can we get this changed to POST?
-        response = content_request(content_url, method='PUT')
+    # not in the list of verbs we explicitly handle
+    if not request.method in allowed_methods:
+        return HttpResponseNotAllowed(allowed_methods)
 
-        if response.status_code == 500:
-            return response
+    response = content_request(content_url, method=request.method)
 
-        response = tile_config_request(
-            tile_config_url,
-            content_id,
-            data=request_body,
-            method='POST'
-        )
-
+    # assume this relays CG error to user.
+    if response.status_code == 500:
         return response
 
-    def delete():
-        response = content_request(content_url, method='DELETE')
+    if request.method == 'PUT':
+        request.method = 'POST'  # tileconfig doesn't accept PUTs right now
 
-        if response.status_code == 500:
-            return response
-
-        response = tile_config_request(
-            tile_config_url,
-            content_id,
-            data=request_body,
-            method='DELETE'
-        )
-
-        return response
-
-    DEFAULT_RESPONSE = lambda: HttpResponse(
-        json.dumps({
-            'error': 'Unsupported Method'
-        }),
-        status=405
+    response = tile_config_request(
+        tile_config_url,
+        content_id,
+        data=request_body,
+        method=request.method
     )
 
-    return {
-        'POST': post,
-        'DELETE': delete,
-    }.get(request.method, DEFAULT_RESPONSE)()
+    return response
 
 
 @never_cache
