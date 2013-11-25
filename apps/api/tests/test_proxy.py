@@ -68,9 +68,9 @@ class ProxyTest(ResourceTestCase):
 
     # Should return resource if resource exists
     @mock.patch('httplib2.Http.request')
-    def test_fetch_resource(self, mock_request, client = logged_in_client()):
+    def test_fetch_resource(self, mock_request, client=logged_in_client()):
         configure_mock_request(mock_request,{
-            re.compile(CONTENTGRAPH_BASE_URL + CONTENTGRAPH_BASE_URL + restricted_path): (
+            re.compile(CONTENTGRAPH_BASE_URL + restricted_path): (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps(mocks.store_list)
             )
