@@ -50,11 +50,9 @@ class RejectContentTests(TestCase):
                 except:
                     that.fail('Body is not valid json')
 
-                that.assertEqual(len(body), 2)
-                that.assertTrue('active' in body)
-                that.assertEqual(body['active'], False)
-                that.assertTrue('approved' in body)
-                that.assertEqual(body['approved'], False)
+                that.assertEqual(len(body), 1)
+                that.assertTrue('status' in body)
+                that.assertEqual(body['status'], 'rejected')
 
                 return [
                     {

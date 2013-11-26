@@ -218,8 +218,7 @@ def reject_content(request, store_id, content_id):
             url,
             method = 'PATCH',
             body = json.dumps({
-                'active': False,
-                'approved': False
+                'status': 'rejected'
             }),
             headers = {
                 'ApiKey': 'secretword'
@@ -253,8 +252,7 @@ def undecide_content(request, store_id, content_id):
             url,
             method = 'PATCH',
             body = json.dumps({
-                'active': True,
-                'approved': False
+                'status': 'needs-review'
             }),
             headers = {
                 'ApiKey': 'secretword'
