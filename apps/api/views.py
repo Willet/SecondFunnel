@@ -145,6 +145,43 @@ def get_suggested_content_by_page(request, store_id, page_id):
                        'meta': meta})
 
 
+@append_headers
+@check_login
+def tag_product(request, store_id, product_id, content_id=0):
+    """Handles composite actions that control which product(s) get
+    what content. Results are not paginated.
+
+    GET: returns a list of content attached to the product.
+    POST: overwrites the list of content attached to this product to
+          only the ones you specify in the request body, as a json id array
+          of type string, e.g. ["1", "2", "3"]
+    PUT: appends the content id to the list of content ids for the product,
+         or do no nothing if the id is already in the list.
+    DELETE: if content id is 0, clear the entire list.
+            if content id is not 0, clear the given id from the list.
+
+    All other verbs: get a 405.
+    This method is slower than tag_content.
+    """
+    def get_content_by_product(product_id):
+        content, _ = get_proxy_results(request,
+            '{url}/store/{store_id}/content'
+            '?tagged-products={product_id}&results=10000'.format(
+                url=settings.CONTENTGRAPH_BASE_URL,
+                store_id=store_id,
+                product_id=product_id))
+        return iter(content['results'])
+
+    if request.method == 'GET':
+        return ajax_jsonp(get_content_by_product(product_id))
+    # TODO
+
+
+@append_headers
+@check_login
+def tag_product(request, store_id, product_id, content_id=0):
+
+
 # login_required decorator?
 @never_cache
 @csrf_exempt
