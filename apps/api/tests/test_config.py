@@ -1,6 +1,5 @@
 from tastypie.test import TestApiClient
 from . import mocks
-from .utils import configure_mock_request
 from django.conf import settings
 
 CONTENTGRAPH_BASE_URL = settings.CONTENTGRAPH_BASE_URL
