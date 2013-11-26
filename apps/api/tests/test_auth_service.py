@@ -37,8 +37,7 @@ class LoginTest(ResourceTestCase):
     # I'm not sure where this should go but initially this is a good place for it to sit
     # Should give you access to restricted areas if you're logged in
     def test_access_after_login(self):
-        client = TestApiClient()
-        client.post(login_url, format='json', data=valid_login)
+        client = logged_in_client()
         response = client.get(append_slash(restricted_url))
         self.assertHttpOK(response)
 
@@ -89,8 +88,7 @@ class LogoutTest(ResourceTestCase):
 
     # Should return 200 if logged in
     def test_logged_in(self):
-        client = TestApiClient()
-        client.post(login_url, format='json', data=valid_login)
+        client = logged_in_client()
         response = client.post(logout_url)
         self.assertHttpOK(response)
 
