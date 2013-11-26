@@ -1,11 +1,8 @@
 import re
-
 from collections import namedtuple
-
 from tastypie.test import ResourceTestCase
 
-from apps.api.tests import test_config as config
-
+MockResponse = namedtuple('MockResponse', ['status_code', 'content', 'headers'])
 
 def configure_mock_request(mock_request, returns):
     # http://www.voidspace.org.uk/python/mock/examples.html#multiple-calls-with-different-effects
@@ -22,27 +19,52 @@ def configure_mock_request(mock_request, returns):
 
     return mock_request
 
+def configure_hammock_request(mock_request, returns):
+    def response(method, url):
+        for key, value in returns.iteritems():
+            if re.search(key, url):
+                resp = value[0]
+                content = value[1]
+                return MockResponse(
+                    status_code=resp['status'],
+                    content=content,
+                    headers={}
+                )
 
-class AuthenticatedTestCase(ResourceTestCase):
+        RequestNotMocked = namedtuple('RequestNotMocked', 'status, response')
+        return RequestNotMocked(None, None)
+
+    # side_effect: A function to be called whenever the Mock is called
+    mock_request.side_effect = response
+
+    return mock_request
+
+
+class AuthenticatedResourceTestCase(ResourceTestCase):
     """Logs in the proxy for subclassed test cases."""
-    fixtures = ['dev_user_data.json', 'dev_store_data.json']
+    fixtures = ['users.json']
 
     def setUp(self):
-        super(AuthenticatedTestCase, self).setUp()
+        super(AuthenticatedResourceTestCase, self).setUp()
 
-        # self.api_url = config.base_url + '/store/38/product/live'
-        self.headers = {'cache-control': 'no-cache',
-                        'ApiKey': 'secretword',
-                        'Content-type': 'application/json',
-                        }
+        # TODO: Make this a 'constant' somewhere relevant
+        login_url = '/graph/v1/user/login/'
+        login_credentials = {
+            'username': 'test',
+            'password': 'asdf'
+        }
 
-        self.api_client.post(config.login_url, data=config.valid_login)
+        self.api_client.post(
+            login_url,
+            data=login_credentials,
+            format='json'
+        )
 
     def tearDown(self):
-        self.api_client.post(config.logout_url, data={})
+        super(AuthenticatedResourceTestCase, self).tearDown()
 
-        super(AuthenticatedTestCase, self).tearDown()
+        # TODO: Make this a 'constant' somewhere relevant
+        logout_url = '/graph/v1/user/logout/'
+        self.api_client.post(logout_url, data={})
 
-    def get_credentials(self):
-        return self.create_basic(username=config.valid_login['username'],
-                                 password=config.valid_login['password'])
+
