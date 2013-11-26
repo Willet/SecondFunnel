@@ -3,6 +3,7 @@ from .test_config import *
 import mock
 import re
 import json
+from .utils import configure_mock_request
 
 class ProxyTest(ResourceTestCase):
     fixtures = default_fixtures
