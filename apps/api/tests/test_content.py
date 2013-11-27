@@ -204,7 +204,7 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
     @mock.patch.object(requests.Session, 'request')
     def test_valid_rejections(self, mock_request):
         mock_request = configure_hammock_request(mock_request, {
-            r'store/\d+/content/\d+/?': (
+            r'store/\d+/content/\d+/reject': (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
             ),
@@ -219,7 +219,7 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
     @mock.patch.object(requests.Session, 'request')
     def test_invalid_rejections(self, mock_request):
         mock_request = configure_hammock_request(mock_request, {
-            r'store/\d+/content/\d+/?': (
+            r'store/\d+/content/\d+/reject': (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
             ),
@@ -234,6 +234,43 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
 
         response = self.api_client.patch(
             '/graph/v1/store/38/content/1077/reject',
+            data={}
+        )
+        self.assertHttpMethodNotAllowed(response)
+
+    @mock.patch.object(requests.Session, 'request')
+    def test_valid_undecide(self, mock_request):
+        mock_request = configure_hammock_request(mock_request, {
+            r'store/\d+/content/\d+/undecide': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
+        })
+
+        response = self.api_client.post(
+            '/graph/v1/store/38/content/1077/undecide',
+            data={}
+        )
+        self.assertHttpOK(response)
+
+    @mock.patch.object(requests.Session, 'request')
+    def test_invalid_undecide(self, mock_request):
+        mock_request = configure_hammock_request(mock_request, {
+            r'store/\d+/content/\d+/undecide': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
+        })
+
+        response = self.api_client.get(
+            '/graph/v1/store/38/content/1077/undecide',
+            data={}
+        )
+        self.assertHttpMethodNotAllowed(response)
+        # If we want, we can verify JSON response as well
+
+        response = self.api_client.patch(
+            '/graph/v1/store/38/content/1077/undecide',
             data={}
         )
         self.assertHttpMethodNotAllowed(response)
