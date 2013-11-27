@@ -3,7 +3,8 @@ import json
 
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, HttpResponseNotAllowed
+from django.http import (HttpResponse, HttpResponseBadRequest,
+                         HttpResponseNotAllowed)
 from django.conf import settings
 
 from apps.api.decorators import check_login, append_headers, request_methods
@@ -70,18 +71,27 @@ def tile_config_request(tile_config_url, content_id, data=None, method='GET'):
     return response
 
 
-def get_proxy_results(request, url, body=None):
+def get_proxy_results(request, url, body=None, raw=False, method=None):
     """small wrapper around all api requests to content graph.
+
+    :param raw if True, returns the entire http tuple.
+    :type raw bool
+
+    :param method if given, overrides the one in request.
+    :type method str
 
     :returns tuple
     :raises (ValueError, IndexError)
     """
     h = httplib2.Http()
-    response, content = h.request(url, method=request.method, body=body,
-                                  headers=request.NEW_HEADERS or request.META)
+    response, content = h.request(uri=url, method=method or request.method,
+        body=body, headers=request.NEW_HEADERS or request.META)
+
+    if raw:
+        # return tuple_from_kwargs(response=response, content=content)
+        return (response, content)
 
     resp_obj = json.loads(content)
-
     return (resp_obj['results'], resp_obj['meta'])
 
 
@@ -147,39 +157,78 @@ def get_suggested_content_by_page(request, store_id, page_id):
 
 @append_headers
 @check_login
-def tag_product(request, store_id, product_id, content_id=0):
-    """Handles composite actions that control which product(s) get
-    what content. Results are not paginated.
+def tag_content(request, store_id, page_id, content_id, product_id=0):
+    """Add a API endpoint to the backend for tagging content with products.
 
-    GET: returns a list of content attached to the product.
-    POST: overwrites the list of content attached to this product to
-          only the ones you specify in the request body, as a json id array
-          of type string, e.g. ["1", "2", "3"]
-    PUT: appends the content id to the list of content ids for the product,
-         or do no nothing if the id is already in the list.
-    DELETE: if content id is 0, clear the entire list.
-            if content id is not 0, clear the given id from the list.
+    Tag content with a product
+    POST /page/:page_id/content/:content_id/tag
+    <product-id>
+    "Post adds a new tag to the set of existing tags stored in tagged-products."
 
-    All other verbs: get a 405.
-    This method is slower than tag_content.
+    List tags
+    GET /page/:page_id/content/:content_id/tag
+    Tags are all strings.
+
+    Delete a tag
+    DELETE /page/:page_id/content/:content_id/tag/<product-id>
+
+    As far as the spec is concerned, product_id is a query parameter
+    for the DELETE case, and from content body for the POST case.
+
+    :raises (ValueError, TypeError)
     """
-    def get_content_by_product(product_id):
-        content, _ = get_proxy_results(request,
-            '{url}/store/{store_id}/content'
-            '?tagged-products={product_id}&results=10000'.format(
-                url=settings.CONTENTGRAPH_BASE_URL,
-                store_id=store_id,
-                product_id=product_id))
-        return iter(content['results'])
+    store_content_url = '{url}/store/{store_id}/content/{content_id}'.format(
+        url=settings.CONTENTGRAPH_BASE_URL, store_id=store_id,
+        content_id=content_id)
+    page_content_url = '{url}/store/{store_id}/page/{page_id}/content/{content_id}'.format(
+        url=settings.CONTENTGRAPH_BASE_URL, store_id=store_id, page_id=page_id,
+        content_id=content_id)
+
+    # get the content (it's a json string)
+    resp, cont = get_proxy_results(request=request, url=store_content_url,
+                                   raw=True, method='GET')
+    content = json.loads(cont)  # raises ValueError here if fetching failed
 
     if request.method == 'GET':
-        return ajax_jsonp(get_content_by_product(product_id))
-    # TODO
+        # return the list of tags on this product
+        return ajax_jsonp({
+            'results': content.get('tagged-products', [])
+        })
 
+    tagged_products = content.get('tagged-products', []) # :type list
+    if not product_id:
+        product_id = (request.body or '')
 
-@append_headers
-@check_login
-def tag_product(request, store_id, product_id, content_id=0):
+    # add one tag to the list of tags (if it doesn't already exist)
+    if request.method == 'POST':
+        if not str(product_id) in tagged_products:
+            tagged_products.append(str(product_id))
+            # new product not in list? patch the content with new list
+            resp, cont = get_proxy_results(request=request, url=store_content_url,
+                body=json.dumps({"tagged-products": tagged_products}),
+                method='PATCH', raw=True)
+
+            # return an ajax response instead of just the text
+            return ajax_jsonp(result=json.loads(cont), status=resp.status)
+
+        else:  # already in the list
+            return HttpResponse(status=200)
+
+    # remove one tag from the list of tags
+    if product_id and request.method == 'DELETE':
+        if not str(product_id) in tagged_products:
+            return HttpResponse(status=200)  # already out of the list
+
+        tagged_products.remove(str(product_id))
+        # new product in list? patch the content with new list
+        resp, cont = get_proxy_results(request=request, url=store_content_url,
+            body=json.dumps({"tagged-products": tagged_products}),
+            method='PATCH', raw=True)
+
+        # return an ajax response instead of just the text
+        return ajax_jsonp(result=json.loads(cont), status=resp.status)
+
+    return HttpResponseBadRequest()  # missing something (say, product id)
 
 
 # login_required decorator?
