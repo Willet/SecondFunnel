@@ -88,7 +88,6 @@ def get_proxy_results(request, url, body=None, raw=False, method=None):
         body=body, headers=request.NEW_HEADERS or request.META)
 
     if raw:
-        # return tuple_from_kwargs(response=response, content=content)
         return (response, content)
 
     resp_obj = json.loads(content)
