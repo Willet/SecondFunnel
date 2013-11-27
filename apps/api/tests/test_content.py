@@ -30,6 +30,10 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
             ),
+            r'page/\d+/tile': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
         })
 
         # TODO: Make URL pattern a 'constant' in somewhere relevant
@@ -67,6 +71,10 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
                 {'status': 400, 'content-type': 'application/json'},
                 json.dumps({})
             ),
+            r'page/\d+/tile': (
+                {'status': 500, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
         })
 
         response = self.api_client.post(
@@ -84,6 +92,10 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
                 json.dumps({})
             ),
             r'page/\d+/tile-config': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
+            r'page/\d+/tile': (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
             ),
@@ -120,6 +132,10 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
                 json.dumps({})
             ),
             r'page/\d+/tile-config': (
+                {'status': 400, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
+            r'page/\d+/tile': (
                 {'status': 400, 'content-type': 'application/json'},
                 json.dumps({})
             ),

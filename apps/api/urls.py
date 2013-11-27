@@ -11,11 +11,12 @@ urlpatterns = api.urls
 
 urlpatterns += patterns('apps.api.views',
     url(
-        r'^%s/store/(?P<store_id>\d+)'
-        r'/page/(?P<page_id>\d+)'
-        r'/content/(?P<content_id>\d+)/?$' % prefix,
-        'proxy_content',
-        name='proxy_content'
+        r'^%s/store/(?P<store_id>\d+)'          # store
+        r'/page/(?P<page_id>\d+)'               # page
+        r'/(?P<object_type>\w+)'                # type
+        r'/(?P<object_id>\d+)/?$' % prefix,     # id
+        'proxy_tile',
+        name='proxy_tile'
     ),
     url(r'^%s/store/(?P<store_id>[^\/]*)'
         r'/page/(?P<page_id>[^\/]*)'

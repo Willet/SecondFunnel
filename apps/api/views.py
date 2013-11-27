@@ -15,7 +15,10 @@ from utils import mimic_response
 
 
 # http://stackoverflow.com/questions/2217445/django-ajax-proxy-view
-def proxy_request(path, verb='GET', query_string=None, body=None, headers={}):
+def proxy_request(path, verb='GET', query_string=None, body=None, headers=None):
+    if not headers:
+        headers = {}
+
     target_url = settings.CONTENTGRAPH_BASE_URL
 
     url = '%s/%s' % (target_url, path)
@@ -53,14 +56,44 @@ def content_request(content_url, method='GET'):
     return response
 
 
-def tile_config_request(tile_config_url, content_id, data=None, method='GET'):
+def tile_config_request(url, object_id, object_type='product',
+                        method='POST', data=None):
+    """By default (POST), creates a tile config for a product, or
+    a piece of content.
+    """
+
+    object_template = object_type  # i.e. products use the product template
+    if object_type == 'content':
+        object_template = 'image'  # but content uses the image template
+
     response = proxy_request(
-        tile_config_url,
+        url,
         verb=method,
         body=json.dumps({
-            'template': data.get('template', 'image'),
-            'content-ids': [content_id]
+            'template': data.get('template', object_template),
+            '%s-ids' % object_type: [object_id]
         })
+    )
+
+    # Should we do some amalgamated response?
+    # I don't think the response is used, so just return for now
+    if not (200 <= response.status_code < 300):
+        response.status_code = 500
+
+    return response
+
+
+def tile_request(url, method='POST', data=None):
+    """By default, POSTs a tile to the page's tile url.
+
+    :param data the json tile as a string.
+    :type data str
+    """
+
+    response = proxy_request(
+        url,
+        verb=method,
+        body=data
     )
 
     # Should we do some amalgamated response?
@@ -233,14 +266,16 @@ def tag_content(request, store_id, page_id, content_id, product_id=0):
 # login_required decorator?
 @never_cache
 @csrf_exempt
-# not the complete http verb list -- just the ones we know for sure
-# we support.
 @request_methods('GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH')
-def proxy_content(request, store_id, page_id, content_id):
-    # TODO: Remove duplication
-    # Normally, we would use the login_required decorator, but it will
-    # redirect on fail. Instead, just do the check manually; side benefit: we
-    # can also return something more useful
+def proxy_tile(request, store_id, page_id, object_type='product', object_id=''):
+    """generates or deletes tiles and tileconfigs for either the
+    product or content that is being passed into this function.
+    """
+
+    # not the complete http verb list -- just the ones we know for sure
+    # we support.
+    allowed_object_types = ['product', 'content']
+
     if not request.user or not request.user.is_authenticated():
         return HttpResponse(
             content='{"error": "Not logged in"}',
@@ -248,33 +283,49 @@ def proxy_content(request, store_id, page_id, content_id):
             status=401
         )
 
+    if not object_id or not object_type in allowed_object_types:
+        # we only support product or content right now, and it requires an id
+        return HttpResponseBadRequest()
+
     request_body = json.loads(request.body or '{}')
 
-    content_url = 'store/{store_id}/page/{page_id}/content/{content_id}'.format(
+    object_url = 'store/{store_id}' \
+                 '/page/{page_id}' \
+                 '/{object_type}/{object_id}'.format(
         store_id=store_id,
         page_id=page_id,
-        content_id=content_id
-    )
+        object_type=object_type,
+        object_id=object_id)
 
     tile_config_url = 'page/{page_id}/tile-config'.format(
         page_id=page_id,
     )
 
-    response = content_request(content_url, method=request.method)
+    tile_url = 'page/{page_id}/tile'.format(
+        page_id=page_id,
+    )
 
-    # assume this relays CG error to user.
+    response = content_request(object_url, method=request.method)
+
+    # could not get the object itself.
     if response.status_code == 500:
         return response
 
     if request.method == 'PUT':
         request.method = 'POST'  # tileconfig doesn't accept PUTs right now
 
-    response = tile_config_request(
-        tile_config_url,
-        content_id,
-        data=request_body,
-        method=request.method
-    )
+    # create corresponding tile config
+    response = tile_config_request(url=tile_config_url,
+        object_type=object_type, object_id=object_id,
+        method=request.method, data=request_body)
+
+    # could not (verb|create) a tile config for this object.
+    if response.status_code == 500:
+        return response
+
+    # tileconfig request returns a tile. create corresponding tile
+    response = tile_request(url=tile_url,
+        method=request.method, data=response.content)
 
     return response
 
