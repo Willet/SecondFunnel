@@ -20,7 +20,7 @@ def configure_mock_request(mock_request, returns):
     return mock_request
 
 def configure_hammock_request(mock_request, returns):
-    def response(method, url):
+    def response(method, url, **kwargs):
         for key, value in returns.iteritems():
             if re.search(key, url):
                 resp = value[0]
