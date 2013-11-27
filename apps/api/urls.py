@@ -39,7 +39,7 @@ urlpatterns += patterns('apps.api.views',
         name='delete_tagged_content'),
 
     url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/approve/?$' % prefix, 'approve_content', name='approve_content'),
-    url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/reject' % prefix, 'reject_content', name='reject_content'),
-    url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/undecide' % prefix, 'undecide_content', name='undecide_content'),
+    url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/reject/?$' % prefix, 'reject_content', name='reject_content'),
+    url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/undecide/?$' % prefix, 'undecide_content', name='undecide_content'),
     url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
 )
