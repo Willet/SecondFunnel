@@ -12,10 +12,18 @@ class AuthenticatedProductTestSuite(AuthenticatedResourceTestCase):
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
             ),
+            r'page/\d+/tile-config': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
+            r'page/\d+/tile': (
+                {'status': 200, 'content-type': 'application/json'},
+                json.dumps({})
+            ),
         })
 
         # TODO: Make URL pattern a 'constant' in somewhere relevant
-        response = self.api_client.post(
+        response = self.api_client.delete(
             '/graph/v1/store/1/page/1/product/1',
             format='json'
         )
