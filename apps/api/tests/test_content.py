@@ -204,7 +204,7 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
     @mock.patch.object(requests.Session, 'request')
     def test_valid_rejections(self, mock_request):
         mock_request = configure_hammock_request(mock_request, {
-            r'store/\d+/content/\d+/reject': (
+            r'store/\d+/content/\d+': (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
             ),
@@ -219,7 +219,7 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
     @mock.patch.object(requests.Session, 'request')
     def test_invalid_rejections(self, mock_request):
         mock_request = configure_hammock_request(mock_request, {
-            r'store/\d+/content/\d+/reject': (
+            r'store/\d+/content/\d+': (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
             ),
@@ -241,7 +241,7 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
     @mock.patch.object(requests.Session, 'request')
     def test_valid_undecide(self, mock_request):
         mock_request = configure_hammock_request(mock_request, {
-            r'store/\d+/content/\d+/undecide': (
+            r'store/\d+/content/\d+': (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
             ),
@@ -256,7 +256,7 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
     @mock.patch.object(requests.Session, 'request')
     def test_invalid_undecide(self, mock_request):
         mock_request = configure_hammock_request(mock_request, {
-            r'store/\d+/content/\d+/undecide': (
+            r'store/\d+/content/\d+': (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
             ),

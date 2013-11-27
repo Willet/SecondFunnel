@@ -60,11 +60,4 @@ class AuthenticatedResourceTestCase(ResourceTestCase):
             format='json'
         )
 
-    def tearDown(self):
-        super(AuthenticatedResourceTestCase, self).tearDown()
-
-        # TODO: Make this a 'constant' somewhere relevant
-        logout_url = '/graph/v1/user/logout/'
-        self.api_client.post(logout_url, data={})
-
 
