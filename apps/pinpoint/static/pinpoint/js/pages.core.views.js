@@ -177,6 +177,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             var tile = this.model,
                 preview;
 
+            // Tile is a banner tile
+            if (tile.get('redirect-url')) {
+                window.open(tile.get('redirect-url'), '_blank');
+                return;
+            }
+
             // clicking on social buttons is not clicking on the tile.
             if (!$(ev.target).parents('.button').length) {
                 preview = new module.PreviewWindow({

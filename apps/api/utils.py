@@ -16,3 +16,15 @@ class UserObjectsReadOnlyAuthorization(ReadOnlyAuthorization):
             return (bundle.obj.id == bundle.request.user.id)
         except:
             raise Unauthorized()
+
+
+def copy_headers_to_response(headers, response):
+    for k, v in headers.items():
+        if k != 'connection':
+            response[k] = v
+    return response
+
+
+def mimic_response(client_response, server_response):
+    copy_headers_to_response(client_response.headers, server_response)
+    return server_response
