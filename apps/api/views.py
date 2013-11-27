@@ -287,7 +287,7 @@ def proxy_content(request, store_id, page_id, content_id):
 def reject_content(request, store_id, content_id):
     payload = json.dumps({'status': 'rejected'})
 
-    r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=payload)
+    r = ContentGraphClient.store(store_id).content(content_id).PATCH(payload)
 
     response = HttpResponse(content=r.content, status=r.status_code)
 
@@ -301,7 +301,7 @@ def reject_content(request, store_id, content_id):
 def undecide_content(request, store_id, content_id):
     payload = json.dumps({'status': 'needs-review'})
 
-    r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=payload)
+    r = ContentGraphClient.store(store_id).content(content_id).PATCH(payload)
 
     response = HttpResponse(content=r.content, status=r.status_code)
 
@@ -315,7 +315,7 @@ def undecide_content(request, store_id, content_id):
 def approve_content(request, store_id, content_id):
     payload = json.dumps({'status': 'approved'})
 
-    r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=payload)
+    r = ContentGraphClient.store(store_id).content(content_id).PATCH(payload)
 
     response = HttpResponse(content=r.content, status=r.status_code)
 

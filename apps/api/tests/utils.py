@@ -6,9 +6,9 @@ MockResponse = namedtuple('MockResponse', ['status_code', 'content', 'headers'])
 
 def configure_mock_request(mock_request, returns):
     # http://www.voidspace.org.uk/python/mock/examples.html#multiple-calls-with-different-effects
-    def response(url, method='GET', body=None, headers=None):
+    def response(uri, method='GET', body=None, headers=None):
         for key, value in returns.iteritems():
-            if re.search(key, url):
+            if re.search(key, uri):
                 return value
 
         RequestNotMocked = namedtuple('RequestNotMocked', 'status, response')
