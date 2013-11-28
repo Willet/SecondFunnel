@@ -14,7 +14,7 @@ if [ "$1" = "test" ]; then
     echo "TEST"
     export DJANGO_SETTINGS_MODULE="secondfunnel.settings.test"
     export RDS_PASSWORD="secretpassword"
-    export RDS_HOSTNAME="aa1mr586bysjnlf.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com"
+    export RDS_HOSTNAME="aa1kcxy3wpwujmq.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com"
 
 elif [ "$1" = "production" ]; then
     echo "PROD"
