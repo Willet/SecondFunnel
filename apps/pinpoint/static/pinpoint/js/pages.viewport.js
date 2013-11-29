@@ -43,24 +43,24 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
                 console.warn('viewport agent disabled for the iPad.');
                 return [false, undefined, undefined, 'disabled'];
             }
-        } else {
-            enabled = SecondFunnel.option('lockWidth', function () {
-                return true;
-            });
+        }
 
-            if (typeof enabled === 'function') {
-                enabled = enabled();
-            }
+        enabled = SecondFunnel.option('lockWidth', function () {
+            return true;
+        });
 
-            if (enabled !== true) {
-                console.warn('viewport agent disabled.');
-                return [false, undefined, undefined, 'disabled'];
-            }
+        if (typeof enabled === 'function') {
+            enabled = enabled();
+        }
 
-            if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
-                console.warn('viewport agent called on device with unsupported ppi.');
-                return [false, undefined, undefined, 'unsupported ppi'];
-            }
+        if (enabled !== true) {
+            console.warn('viewport agent disabled.');
+            return [false, undefined, undefined, 'disabled'];
+        }
+
+        if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
+            console.warn('viewport agent called on device with unsupported ppi.');
+            return [false, undefined, undefined, 'unsupported ppi'];
         }
 
         if (typeof desiredWidth === 'function') {
@@ -82,11 +82,14 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
         //                     - max mobile width (if mobile)
         //                     - max tablet width (if tablet)
         if ($.browser.mobile && !$.browser.tablet) {
-            desiredWidth = Math.min(maxMobileWidth, desiredWidth, window.outerWidth);
+            desiredWidth = Math.min($window.width(), maxMobileWidth,
+                desiredWidth, window.outerWidth);
         } else if ($.browser.tablet) {
-            desiredWidth = Math.min(maxTabletWidth, desiredWidth, window.outerWidth);
+            desiredWidth = Math.min($window.width(), maxTabletWidth,
+                desiredWidth, window.outerWidth);
         } else {
-            desiredWidth = Math.min(desiredWidth, window.outerWidth);
+            desiredWidth = Math.min($window.width(), desiredWidth,
+                window.outerWidth);
         }
 
         // http://stackoverflow.com/a/6134070/1558430
