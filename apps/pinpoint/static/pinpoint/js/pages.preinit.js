@@ -17,7 +17,7 @@ SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
     // feature, not a bug
     if (window.console && console.log) {
-        console.log("%cSecondFunnel", "font-family:sans-serif; font-size:72pt;");
+        console.log("%cSecondFunnel", "font-family:sans-serif; font-size:32pt;");
         console.log('Published ' + pubDate);
     }
 }(SecondFunnel.options));
