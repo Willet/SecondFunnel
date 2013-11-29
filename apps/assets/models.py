@@ -124,6 +124,8 @@ class Store(BaseModelNamed):
         if isinstance(theme, basestring):
             # read the theme as if it were a file name.
             # if that fails, default to the theme as if it were theme content.
+            if not theme:
+                theme = StoreTheme.DEFAULT_PAGE
             theme = read_a_file(theme, theme)
             json_data['theme'] = StoreTheme(page=theme)
 

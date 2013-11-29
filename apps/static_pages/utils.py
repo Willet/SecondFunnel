@@ -253,7 +253,10 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
             except UnicodeDecodeError:  # who knows
                 sub_values[field].append(result)
 
-    page_str = regex.sub(repl, page_str)
+    try:
+        page_str = regex.sub(repl, page_str)
+    except UnicodeDecodeError as err:
+        page_str = regex.sub(repl, page_str.decode('utf-8'))
 
     # Page content
     page = Template(page_str)
