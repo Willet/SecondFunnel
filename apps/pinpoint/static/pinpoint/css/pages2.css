@@ -272,7 +272,7 @@ div.loading {
 
 .social-buttons .pinterest {
     /* fix odd "propped up" bug */
-    height: 20px;
+    height: 35px;
     vertical-align: middle;
 }
 
@@ -554,14 +554,15 @@ div.loading {
 
 /* iPad */
 @media screen {
+
+    @media (max-width: 768px) {
+        .ipad .previewContainer .content {
+            position: fixed!important;
+            bottom: 16%!important;
+        }
+    }
+
     .ipad .previewContainer .mask {
         display: block!important;
-    }
-}
-
-@media screen and (max-width: 768px) {
-    .ipad .previewContainer .content {
-        position: fixed!important;
-        bottom: 16%!important;
     }
 }

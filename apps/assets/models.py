@@ -10,6 +10,7 @@ from django.utils.html import escape
 from social_auth.db.django_models import UserSocialAuth
 
 from apps.contentgraph.models import ContentGraphObject
+from apps.pinpoint.utils import read_a_file
 
 
 class BaseModel(models.Model):
@@ -121,6 +122,9 @@ class Store(BaseModelNamed):
         # automatically defaults to DEFAULT_PAGE
         theme = json_data.get('theme', '')
         if isinstance(theme, basestring):
+            # read the theme as if it were a file name.
+            # if that fails, default to the theme as if it were theme content.
+            theme = read_a_file(theme, theme)
             json_data['theme'] = StoreTheme(page=theme)
 
         return cls(**json_data)

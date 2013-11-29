@@ -569,7 +569,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 documentBottomPos = $document.height(),
                 viewportHeights = pageHeight * (SecondFunnel.option('prefetchHeight', 1.5));
 
-            if (!this.loading && $('html').css('overflow') !== 'hidden' &&
+            if (!this.loading && $('.previewContainer').length === 0 &&
                 pageBottomPos >= documentBottomPos - viewportHeights) {
                 // get more tiles to fill the screen.
                 this.getTiles();
