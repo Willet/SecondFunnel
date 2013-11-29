@@ -17,7 +17,6 @@ class StoreTheme(BaseModelNamed):
     """
 
     DEFAULT_PAGE = read_a_file('apps/pinpoint/templates/pinpoint/gap.html')
-    # DEFAULT_PAGE = read_a_file('apps/pinpoint/templates/pinpoint/newegg-holidaygiftguide.html')
 
     # Django templates
     page = models.TextField(verbose_name='Page', default=DEFAULT_PAGE)

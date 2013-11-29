@@ -1,3 +1,4 @@
+import httplib2
 import json
 
 from django.contrib.auth.models import User
@@ -122,10 +123,22 @@ class Store(BaseModelNamed):
         # automatically defaults to DEFAULT_PAGE
         theme = json_data.get('theme', '')
         if isinstance(theme, basestring):
-            # read the theme as if it were a file name.
-            # if that fails, default to the theme as if it were theme content.
             if not theme:
                 theme = StoreTheme.DEFAULT_PAGE
+
+            # try and load a local theme file.
+            try:
+                h = httplib2.Http()
+                response, content = h.request(theme)
+                if str(response.status) != '200':
+                    raise ValueError('remote theme retrieval failed')
+
+                theme = content
+            except (ValueError, httplib2.RelativeURIError) as err:
+                pass  # theme is not a URL
+
+            # try to load a local theme file.
+            # if that fails, default to the theme as if it were theme content.
             theme = read_a_file(theme, theme)
             json_data['theme'] = StoreTheme(page=theme)
 

@@ -69,8 +69,8 @@
         , 'IRResultsCount': 10
         , 'IRTimeout': 5000
         // , 'IRFailuresAllowed': undefined  // optional. defaults to 5
-        , 'IRSource': "{{ ir_base_url }}"  // optional, defaults to intentrank-test
-        , 'gaAccountNumber': '{{ ga_account_number }}'  // required
+        , 'IRSource': "{{ campaign.ir_base_url|default:ir_base_url }}"  // optional, defaults to intentrank-test
+        , 'gaAccountNumber': '{{ campaign.ga_account_number|default:ga_account_number }}'  // required
 
         // number of viewports worth of results to keep below the page.
         // 0 is not an acceptable value, but 0.0001 is. default is 1.5,
