@@ -11,7 +11,7 @@ from django.utils.html import escape
 from social_auth.db.django_models import UserSocialAuth
 
 from apps.contentgraph.models import ContentGraphObject
-from apps.pinpoint.utils import read_a_file
+from apps.pinpoint.utils import read_a_file, read_remote_file
 
 
 class BaseModel(models.Model):
@@ -126,16 +126,8 @@ class Store(BaseModelNamed):
             if not theme:
                 theme = StoreTheme.DEFAULT_PAGE
 
-            # try and load a local theme file.
-            try:
-                h = httplib2.Http()
-                response, content = h.request(theme)
-                if str(response.status) != '200':
-                    raise ValueError('remote theme retrieval failed')
-
-                theme = content
-            except (ValueError, httplib2.RelativeURIError) as err:
-                pass  # theme is not a URL
+            # try and load a remote theme file. if it fails, pass.
+            theme = read_remote_file(theme, theme)
 
             # try to load a local theme file.
             # if that fails, default to the theme as if it were theme content.

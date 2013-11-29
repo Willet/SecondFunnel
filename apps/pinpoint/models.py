@@ -1,6 +1,6 @@
 from django.db import models
 
-from apps.pinpoint.utils import read_a_file
+from apps.pinpoint.utils import read_remote_file
 from apps.assets.models import BaseModelNamed, Store
 
 
@@ -16,7 +16,8 @@ class StoreTheme(BaseModelNamed):
     @ivar page: The template for the entire page. Css is also usually put here.
     """
 
-    DEFAULT_PAGE = read_a_file('apps/pinpoint/templates/pinpoint/gap.html')
+    DEFAULT_PAGE = read_remote_file('https://s3-us-west-2.amazonaws.com/'
+                                    'static-misc-secondfunnel/themes/gap.html')
 
     # Django templates
     page = models.TextField(verbose_name='Page', default=DEFAULT_PAGE)
