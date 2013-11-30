@@ -774,7 +774,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // cannot declare display:table in marionette class.
             this.$el.css({'display': "table"});
 
-            $('body').append(this.$el.cssFadeIn(SecondFunnel.option('previewAnimationDuration')));
+            $('body').append(this.$el);
         }
     });
 
