@@ -84,6 +84,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
         var FoundClass,
             targetClassName = _.capitalize(prefix || '') +
                               _.capitalize(typeName || '');
+
         if (SecondFunnel.core[targetClassName] !== undefined) {
             // if designers want to define a new tile view, they must
             // let SecondFunnel know of its existence.

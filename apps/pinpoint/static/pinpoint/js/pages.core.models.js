@@ -62,11 +62,28 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         'initialize': function (attributes, options) {
             // turn image json into image objects for easier access.
-            var defaultImage = this.getDefaultImage(),
+            var self = this,
+                defaultImage = this.getDefaultImage(),
                 imgInstances = [];
 
             // replace all image json with their objects.
             _.each(this.get('images'), function (image) {
+                if (typeof image === 'string') {
+                    // patch old IR image response with this new dummy format,
+                    // wild guessing every attribute in the process.
+                    image = {
+                        'format': "jpg",
+                        'dominant-colour': "transparent",
+                        'url': image,
+                        'id': self.getDefaultImageId() || 0,
+                        'sizes': {
+                            'master': {
+                                'width': 2048,
+                                'height': 2048
+                            }
+                        }
+                    };
+                }
                 imgInstances.push(new module.Image(image));
             });
 

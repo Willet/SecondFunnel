@@ -227,7 +227,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // the View/Model to free memory
             this.$el.on('remove', function (ev) {
                 if (ev.target === self.el) {
-                    console.debug('Model being destroyed', this);
+                    console.warn('Model being destroyed', this);
                     self.model.destroy();
                 }
             });
@@ -236,7 +236,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'onMissingTemplate': function () {
             // If a tile fails to load, destroy the model
             // and subsequently this tile.
-            console.debug('Missing template - this view is closing.', this);
+            console.warn('Missing template - this view is closing.', this);
             this.model.destroy();
             this.close();
         },
@@ -338,6 +338,14 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'template': function () {
 
         },
+        'onInitialize': function () {
+            // Add here additional things to do when loading a YoutubeTile
+            this.$el.addClass('wide');
+
+            this.model.set("thumbnail", 'http://i.ytimg.com/vi/' +
+                                        this.model.get('original-id') +
+                                        '/hqdefault.jpg');
+        },
         /**
          * Renders a YouTube video in the tile.
          *
@@ -405,7 +413,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          */
         'getItemView': function (item) {
             return SecondFunnel.utils.findClass('TileView',
-                    item.get('template') || item.get('type'), module.TileView);
+                SecondFunnel.core.getModifiedTemplateName(
+                    item.get('template') || item.get('type')),
+                module.TileView);
         },
 
         // buildItemView (marionette.collectionview.md#collectionviews-builditemview)
