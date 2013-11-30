@@ -61,6 +61,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'initialize': function (attributes, options) {
+            // turn image json into image objects for easier access.
             var defaultImage = this.getDefaultImage(),
                 imgInstances = [];
 

@@ -69,15 +69,16 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         var collection = this,
             deferred = new $.Deferred(),
             online = !SecondFunnel.option('page:offline', false),
+            data = (resultsAlreadyRequested.length ? {
+                'shown': resultsAlreadyRequested.join(',')
+            } : undefined),
             opts = $.extend({}, {
                 'results': 10,
                 'add': true,
                 'merge': true,
                 'remove': false,
                 'crossDomain': true,
-                'data': {
-                    'shown': resultsAlreadyRequested.join(',')
-                }
+                'data': data
             }, this.config, intentRank.options, options),
             backupResults = _.chain(intentRank.options.backupResults)
                 .filter(intentRank.filter)
@@ -97,7 +98,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
                 collection.ajaxFailCount = 0;
 
                 deferred.resolve(_.shuffle(results));
-                resultsAlreadyRequested = intentRank.getTileIds(results);
+                resultsAlreadyRequested = _.compact(intentRank.getTileIds(results));
             })
             .fail(function () {
                 // reset fail counter

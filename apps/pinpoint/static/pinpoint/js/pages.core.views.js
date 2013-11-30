@@ -315,11 +315,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // Add here additional things to do when loading a VideoTile
             this.$el.addClass('wide');
 
-            if (this.model.is('youtube')) {
+            /* if (this.model.is('youtube')) {
                 this.model.set("thumbnail", 'http://i.ytimg.com/vi/' +
                                             this.model.get('original-id') +
                                             '/hqdefault.jpg');
-            }
+            } */
         },
 
         'onClick': function () {
