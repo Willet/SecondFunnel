@@ -168,7 +168,6 @@ $.fn.tile = $.fn.tile || function () {
         // these can be undefined.
         props.type = props.model.get('type');
         props.template = props.model.get('template');
-        props.contentType = props.model.get('content-type');
     } catch (err) { }
 
     return props;

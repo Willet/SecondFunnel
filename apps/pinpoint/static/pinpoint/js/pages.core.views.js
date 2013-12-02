@@ -122,14 +122,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 self = this;
 
             // expose tile "types" as classes on the dom
-            _.each(data['content-type'].toLowerCase().split(),
+            _.each(data.type.toLowerCase().split(),
                 function (cName) {
                     self.className += " " + cName;
                 });
-
-            if (data.type) {
-                self.className += " " + data.type;
-            }
 
             if (data.template) {
                 self.className += " " + data.template;

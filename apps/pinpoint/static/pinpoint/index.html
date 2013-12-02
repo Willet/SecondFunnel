@@ -125,7 +125,7 @@
                      style="background-color:<%= obj.image.color %>;"
                      alt="<%= obj.caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
-                    <span class="type"><%= obj['content-type'] %></span>
+                    <span class="type"><%= obj['type'] %></span>
                 <% } %>
                 <div class="social-buttons"></div>
             </script>
@@ -136,7 +136,7 @@
                      style="background-color:<%= obj.image.color %>;"
                      width="<%= obj.image.width %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
-                    <span class="type"><%= obj['content-type'] %></span>
+                    <span class="type"><%= obj['type'] %></span>
                 <% } %>
                 <% if (obj.name) { %>
                     <div class="caption">
@@ -152,7 +152,7 @@
                      style="background-color:<%= obj.image.color %>;"
                      width="<%= obj.image.width %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
-                    <span class="type"><%= obj['content-type'] %></span>
+                    <span class="type"><%= obj['type'] %></span>
                 <% } %>
                 <div class="social-buttons"></div>
             </script>

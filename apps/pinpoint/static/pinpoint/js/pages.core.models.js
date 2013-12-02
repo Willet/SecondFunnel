@@ -45,8 +45,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // come specifying a type or caption
             'caption': "Shop product",
             'tile-id': 0,
-            'tile-class': 'tile',
-            'content-type': "",
+            // 'tile-class': 'tile',  // what used tile-class?
+            // 'content-type': ''  // where did content-type go?
             'related-products': [],
             'dominant-colour': "transparent"
         },
@@ -137,6 +137,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 // timing: attributes.images already coverted to Images
                 return defImg;
             }
+
+            if (!defImg) {
+                console.warn('getImage is going to return an Image stub.');
+            }
+
             return new module.Image(defImg);
         },
 
@@ -195,7 +200,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'name': 'master',  // easier to know what this is as an obj
                     'dominant-colour': 'transparent',
                     'width': 2048,
-                    'height': 2048
+                    'height': 2048,
+                    'I am': 'an idiot'
                 }
             }
         },
@@ -203,14 +209,17 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'initialize': function (data) {
             // add a name, colour, and a sized url to each size datum
             var self = this,
-                color = this.get('dominant-colour');
-            _.map(this.get('sizes'), function (size, sizeName) {
-                self.get('sizes')[sizeName].url =
+                color = this.get('dominant-colour'),
+                mySizes = this.get('sizes');
+            _.map(mySizes, function (size, sizeName) {
+                mySizes[sizeName].url =
                     self.get('url').replace(/master\./, sizeName + '.');
 
-                self.get('sizes')[sizeName].name = sizeName;
-                self.get('sizes')[sizeName]['dominant-colour'] = color;
+                mySizes[sizeName].name = sizeName;
+                mySizes[sizeName]['dominant-colour'] = color;
             });
+
+            self.set('sizes', mySizes);  // theoretically unnecessary
 
             // the template needs something simpler.
             this.color = color;
@@ -287,8 +296,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      */
     this.ImageTile = this.Tile.extend({
         'defaults': {
-            'tile-class': 'image',
-            'content-type': 'image'
+            // 'tile-class': 'image',  // what used tile-class?
+            // 'content-type': 'image'  // where did content-type go?
         },
         /**
          * An ImageTile  *is* an image JSON, so we need to allocate all of its
@@ -312,16 +321,16 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      */
     this.VideoTile = this.Tile.extend({
         'defaults': {
-            'tile-class': 'video',
-            'content-type': 'video',
+            // 'tile-class': 'video',  // what used tile-class?
+            // 'content-type': 'video',  // where did content-type go?
             'type': 'video'
         }
     });
 
     this.YoutubeTile = this.VideoTile.extend({
         'defaults': {
-            'tile-class': 'youtube',
-            'content-type': 'youtube',
+            // 'tile-class': 'youtube',  // what used tile-class?
+            // 'content-type': 'youtube',  // where did content-type go?
             'type': 'video'
         }
     });
