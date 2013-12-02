@@ -378,12 +378,25 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          */
         'setup': function (apiUrl, campaign, results) {
             // apply new parameters, or default to existing ones
+            /*
             this.config.apiUrl = apiUrl || this.config.apiUrl ||
                 SecondFunnel.option('IRSource');
             this.config.campaign = campaign || this.config.campaign ||
                 SecondFunnel.option('campaign');
             this.config.results = results || this.config.results ||
                 SecondFunnel.option('IRResultsCount');
+
+            changing the order. not sure what the impact would be.
+            */
+            this.config.apiUrl = apiUrl ||
+                SecondFunnel.option('IRSource') ||
+                this.config.apiUrl;
+            this.config.campaign = campaign ||
+                SecondFunnel.option('campaign') ||
+                this.config.campaign;
+            this.config.results = results ||
+                SecondFunnel.option('IRResultsCount') ||
+                this.config.results;
         }
     });
 

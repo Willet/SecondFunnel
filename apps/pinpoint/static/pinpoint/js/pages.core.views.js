@@ -127,6 +127,14 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     self.className += " " + cName;
                 });
 
+            if (data.type) {
+                self.className += " " + data.type;
+            }
+
+            if (data.template) {
+                self.className += " " + data.template;
+            }
+
             // expose model reference in form of id
             this.$el.attr({
                 'class': this.className,
@@ -213,8 +221,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.model.set('image',
                 this.model.get('defaultImage').width(normalTileWidth, true));
 
-            // 0.500 is an arbitrary 'lets make this tile wide' factor
-            if (Math.random() > 0.500) {
+            // 0.5 is an arbitrary 'lets make this tile wide' factor
+            if (Math.random() > SecondFunnel.option('imageTileWide', 0.5)) {
                 // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
                 this.$el.addClass('wide');
                 this.model.set({
@@ -414,7 +422,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'getItemView': function (item) {
             return SecondFunnel.utils.findClass('TileView',
                 SecondFunnel.core.getModifiedTemplateName(
-                    item.get('template') || item.get('type')),
+                    item.get('type') || item.get('template')),
                 module.TileView);
         },
 

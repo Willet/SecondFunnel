@@ -50,7 +50,7 @@ window.PAGES_INFO = {
     'enableTracking': true, // optional; default: true
     'eventMap': undefined,  // optional
     'tileElement': undefined,  // optional. alters the type of tag used by tiles.
-    'imageTileWide': 0.25,
+    'imageTileWide': 0.50,
     'imageSizes': undefined,  // optional, overrides built-in size map
     'tapIndicatorText': undefined,  // optional
     'previewAnimationDuration': 100,  // in ms
