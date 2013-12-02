@@ -245,13 +245,19 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @returns {*}
          */
         'dimens': function (width, height, obj) {
-            var first, sizes = this.get('sizes');
+            var first,
+                sizes = this.get('sizes'),
+                sortedImages;
             try {
-                first = _.first(_(sizes)
+                sortedImages = _(sizes)
                     .sortBy('width')
                     .filter(function (size) {
                         return size.width >= width && size.height >= height;
-                    }));
+                    });
+
+                first = _.first(sortedImages) ||  // if one image is large enough
+                    // the largest one if none of the images are large enough
+                    _(sizes).sortBy('width').reverse()[0];
 
                 if (obj) {
                     return first;
