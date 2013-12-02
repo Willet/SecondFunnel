@@ -211,6 +211,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 normalTileWidth = SecondFunnel.option('columnWidth', 255),
                 wideTileWidth = normalTileWidth * 2,
                 fullTileWidth = normalTileWidth * 4,  // 4col (standby)
+                normalImageInfo = this.model.get('defaultImage')
+                    .width(normalTileWidth, true),  // undefined if not found
+                wideImageInfo = this.model.get('defaultImage')
+                    .width(wideTileWidth, true),  // undefined if not found
                 sizes = {
                     'normal': normalTileWidth,
                     'wide': wideTileWidth,
@@ -222,13 +226,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 this.model.get('defaultImage').width(normalTileWidth, true));
 
             // 0.5 is an arbitrary 'lets make this tile wide' factor
-            if (Math.random() > SecondFunnel.option('imageTileWide', 0.5)) {
+            if (Math.random() > SecondFunnel.option('imageTileWide', 0.5) &&
+                wideImageInfo) {
                 // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
                 this.$el.addClass('wide');
-                this.model.set({
-                    'image': this.model.get('defaultImage')
-                                 .width(wideTileWidth, true)
-                });
+                this.model.set({'image': wideImageInfo});
             }
 
             // Listen for the image being removed from the DOM, if it is, remove
