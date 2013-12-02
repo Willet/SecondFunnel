@@ -216,7 +216,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // add a name, colour, and a sized url to each size datum
             var self = this,
                 color = this.get('dominant-colour'),
-                mySizes = this.get('sizes');
+
+                // this might be the 36-hour line
+                mySizes = $.extend(true, {}, this.get('sizes'));
+
             _.map(mySizes, function (size, sizeName) {
                 mySizes[sizeName].url =
                     self.get('url').replace(/master\./, sizeName + '.');
@@ -225,7 +228,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 mySizes[sizeName]['dominant-colour'] = color;
             });
 
-            self.set('sizes', mySizes);  // theoretically unnecessary
+            self.set('sizes', mySizes);
 
             // the template needs something simpler.
             this.color = color;
