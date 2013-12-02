@@ -7,7 +7,7 @@ def read_a_file(file_name, default_value=''):
     try:
         with open(path.abspath(file_name)) as f:
             return f.read()
-    except IOError:
+    except (IOError, TypeError):
         return default_value
 
 
