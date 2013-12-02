@@ -108,17 +108,23 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         /**
          *
-         * @param imgId   if omitted, the default image id
+         * @param byImgId   if omitted, the default image id
          * @returns {Image}
          */
-        'getImage': function (imgId) {
-            var self = this, defImg;
+        'getImage': function (byImgId) {
+            var self = this,
+                imgId = parseInt(byImgId || self.getDefaultImageId(), 10),
+                defImg;
 
-            imgId = imgId || self.getDefaultImageId();
-
-            defImg = _.findWhere(this.get('images'), {
-                'id': imgId
-            });
+            defImg =
+                // find default image for image-child tiles (e.g. product tile)
+                _.findWhere(this.get('images'), {
+                    'id': imgId
+                }) ||
+                // find default image for image-root tiles
+                _.findWhere(this.get('images'), {
+                    'tile-id': imgId
+                });
 
             if (!defImg) {
                 try {
@@ -266,6 +272,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
                 first = _.first(sortedImages) ||  // if one image is large enough
                     // the largest one if none of the images are large enough
+                    // (unstable sort if widths equal for any two sizes)
                     _(sizes).sortBy('width').reverse()[0];
 
                 if (obj) {
@@ -310,7 +317,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'parse': function (resp, options) {
             // create tile-like attributes
             resp['default-image'] = 0;
-            resp.images = [$.extend(true, {}, resp)];  // image tile containing one copy of itself
+
+            // image tile contains image:[one copy of itself]
+            resp.images = [$.extend(true, {}, resp)];
             return resp;
         }
     });

@@ -223,7 +223,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // 0.5 is an arbitrary 'lets make this tile wide' factor
             if (Math.random() > SecondFunnel.option('imageTileWide', 0.5) &&
-                wideImageInfo) {
+                wideImageInfo && wideImageInfo.width >= wideTileWidth) {
                 // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
                 this.$el.addClass('wide');
                 this.model.set({'image': wideImageInfo});
