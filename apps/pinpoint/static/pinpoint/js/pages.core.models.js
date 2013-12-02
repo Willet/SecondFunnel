@@ -68,10 +68,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // replace all image json with their objects.
             _.each(this.get('images'), function (image) {
+                var localImageVariable;
                 if (typeof image === 'string') {
                     // patch old IR image response with this new dummy format,
                     // wild guessing every attribute in the process.
-                    image = {
+                    localImageVariable = {
                         'format': "jpg",
                         'dominant-colour': "transparent",
                         'url': image,
@@ -83,8 +84,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                             }
                         }
                     };
+                } else {
+                    // make a copy...
+                    localImageVariable = $.extend(true, {}, image);
                 }
-                imgInstances.push(new module.Image(image));
+                imgInstances.push(new module.Image(localImageVariable));
             });
 
             // this tile has no images, or can be an image itself
@@ -138,9 +142,26 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         'getDefaultImageId': function () {
             try {
-                return this.get('default-image') ||
-                    this.get('images')[0]['tile-id'] ||
-                    this.get('images')[0].get('tile-id');
+                // product tiles
+                if (this.get('default-image')) {
+                    return this.get('default-image');
+                }
+                // product tiles without a default-image attr, guess it
+                if (this.get('images') && this.get('images').length) {
+                    // product tiles (or tiles with images:[...])
+                    var guess = this.get('images')[0]['tile-id'] ||
+                                this.get('images')[0].get('tile-id') ||
+                                // just going to try everything
+                                this.get('images')[0].id ||
+                                this.get('images')[0].get('id');
+                    if (guess) {
+                        return guess;
+                    }
+                }
+
+                // image tiles (or tiles that are root-level images)
+                // note: might be wrong if product tiles still fall through
+                return this.get('tile-id').toString();
             } catch (e) {  // no images
                 console.warn('This object does not have a default image.', this);
                 return undefined;
@@ -274,7 +295,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'parse': function (resp, options) {
             // create tile-like attributes
             resp['default-image'] = 0;
-            resp.images = [resp];  // image tile containing one pointer to itself
+            resp.images = [$.extend(true, {}, resp)];  // image tile containing one copy of itself
             return resp;
         }
     });
@@ -314,7 +335,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          */
         'model': function (item) {
             var TileClass = SecondFunnel.utils.findClass('Tile',
-                    item.template, module.Tile);
+                    item.type || item.template, module.Tile);
 
             return new TileClass(item);
         },
@@ -339,7 +360,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             return _.map(resp, function (jsonEntry) {
                 var TileClass = SecondFunnel.utils.findClass('Tile',
-                    jsonEntry.template, module.Tile);
+                    jsonEntry.type || jsonEntry.template, module.Tile);
                 return TileClass.prototype.parse.call(self, jsonEntry);
             });
         },

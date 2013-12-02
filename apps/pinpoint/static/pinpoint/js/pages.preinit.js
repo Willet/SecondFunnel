@@ -148,10 +148,7 @@ $.fn.getClasses = $.fn.getClasses || function () {
  * @type {Function}
  */
 $.fn.tile = $.fn.tile || function () {
-    var props = {
-            'model': undefined,
-            'view': undefined
-        },
+    var props = {},
         cid = this.attr('id');
 
     if (!(this.hasClass('tile') && cid)) {
@@ -167,6 +164,11 @@ $.fn.tile = $.fn.tile || function () {
     try {
         props.model = _.findWhere(SecondFunnel.discovery.collection.models,
             {'cid': cid});
+
+        // these can be undefined.
+        props.type = props.model.get('type');
+        props.template = props.model.get('template');
+        props.contentType = props.model.get('content-type');
     } catch (err) { }
 
     return props;
