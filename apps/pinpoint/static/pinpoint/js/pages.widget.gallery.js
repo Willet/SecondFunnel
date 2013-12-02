@@ -21,7 +21,8 @@ SecondFunnel.utils.registerWidget(
         _.each(images, function (image) {
             var $img = $('<img />')
                 .attr({
-                    'src': image.get('url')
+                    'src': image.wide
+                    // 'src': image.width(300)  // 300 = max logical width of the image
                 })
                 .click(function (ev) {
                     // show a larger image on the left when a thumbnail is clicked.

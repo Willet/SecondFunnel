@@ -193,7 +193,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'model': tile,
                     'caller': ev.currentTarget
                 });
-                SecondFunnel.vent.trigger("click:tile", ev, this);
+                // SecondFunnel.vent.trigger("click:tile", ev, this);
             }
         },
 
@@ -210,7 +210,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 normalImageInfo = this.model.get('defaultImage')
                     .width(normalTileWidth, true),  // undefined if not found
                 wideImageInfo = this.model.get('defaultImage')
-                    .width(wideTileWidth, true),  // undefined if not found
+                    /*.width(wideTileWidth, true)*/,  // undefined if not found
                 sizes = {
                     'normal': normalTileWidth,
                     'wide': wideTileWidth,
@@ -219,7 +219,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // templates use this as obj.image.url
             this.model.set('image',
-                this.model.get('defaultImage').width(normalTileWidth, true));
+                this.model.get('defaultImage')/*.width(normalTileWidth, true)*/);
 
             // 0.5 is an arbitrary 'lets make this tile wide' factor
             if (Math.random() > SecondFunnel.option('imageTileWide', 0.5) &&

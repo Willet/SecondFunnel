@@ -212,7 +212,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
         },
 
-        'initialize': function (data) {
+        'initialize': function () {
             // add a name, colour, and a sized url to each size datum
             var self = this,
                 color = this.get('dominant-colour'),
@@ -264,12 +264,14 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 sizes = this.get('sizes'),
                 sortedImages;
             try {
+                // [{master}] if mocked
                 sortedImages = _(sizes)
                     .sortBy('width')
                     .filter(function (size) {
                         return size.width >= width && size.height >= height;
                     });
 
+                // {master} if mocked
                 first = _.first(sortedImages) ||  // if one image is large enough
                     // the largest one if none of the images are large enough
                     // (unstable sort if widths equal for any two sizes)
@@ -423,16 +425,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          */
         'setup': function (apiUrl, campaign, results) {
             // apply new parameters, or default to existing ones
-            /*
-            this.config.apiUrl = apiUrl || this.config.apiUrl ||
-                SecondFunnel.option('IRSource');
-            this.config.campaign = campaign || this.config.campaign ||
-                SecondFunnel.option('campaign');
-            this.config.results = results || this.config.results ||
-                SecondFunnel.option('IRResultsCount');
-
-            changing the order. not sure what the impact would be.
-            */
             this.config.apiUrl = apiUrl ||
                 SecondFunnel.option('IRSource') ||
                 this.config.apiUrl;
