@@ -223,6 +223,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // 0.5 is an arbitrary 'lets make this tile wide' factor
             if (Math.random() > SecondFunnel.option('imageTileWide', 0.5) &&
+                // "only if it is not a banner url"
                 wideImageInfo && !self.model.get('redirect-url')) {
                 // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
                 this.$el.addClass('wide');
