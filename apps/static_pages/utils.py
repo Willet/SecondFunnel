@@ -209,7 +209,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     context = RequestContext(request, attributes)
 
     # theme is a temporary StoreTheme object
-    theme = campaign.theme
+    theme = store.theme or campaign.theme
     if not theme.page:
         raise ValueError('campaign has no theme when campaign manager saved it')
 
@@ -253,7 +253,10 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
             except UnicodeDecodeError:  # who knows
                 sub_values[field].append(result)
 
-    page_str = regex.sub(repl, page_str)
+    try:
+        page_str = regex.sub(repl, page_str)
+    except UnicodeDecodeError as err:
+        page_str = regex.sub(repl, page_str.decode('utf-8'))
 
     # Page content
     page = Template(page_str)

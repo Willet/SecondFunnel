@@ -16,24 +16,9 @@
     <body>
         <header>
             <nav class="navbar navbar-fixed-top navbar-static-top" role="navigation">
-                <!-- collapsible -->
-                <!-- div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="sf-collapse" data-target=".navbar-ex1-collapse">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand brand-label" href="#"></a>
-                </div>
-
-                <div class="collapse navbar-collapse navbar-ex1-collapse" -->
-
-                <!-- non-collapsible -->
                 <div class="container">
-                    <ul class="nav navbar-nav"><!-- RHS: .navbar-right -->
+                    <ul class="nav navbar-nav">
                         <li><a class="navbar-brand brand-label" href="#"></a></li>
-                        <!-- li class="active"><a href="#">Home</a></li -->
                         <li class="dropdown  hidden-xxs">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Other brands <b class="caret"></b></a>
                             <ul class="related-products dropdown-menu">
@@ -95,26 +80,14 @@
                             </ul>
                         </li>
                     </ul>
-                </div><!-- /.navbar-collapse -->
+                </div>
             </nav>
         </header>
-        <div class="container"><!-- .container is bootstrap magic, and has a viewport-dependent width. -->
-            <!-- remove contents of hero-area if it is dynamically generated -->
-            <div id="hero-area" class="featured">
-                <div class="visible-xs jumbotron"><!-- hero unit (mobile 1) -->
-                    <!-- configure hero images by overriding its background -->
-                </div>
-                <div class="visible-sm jumbotron"><!-- hero unit (mobile 2) -->
-                    <!-- configure hero images by overriding its background -->
-                </div>
-                <div class="visible-md visible-lg jumbotron"><!-- hero unit (desktop) -->
-                    <!-- configure hero images by overriding its background -->
-                </div>
-            </div>
-            <div id="discovery-area" class="discovery-area">
-                <!-- paste pre-rendered tiles here (TODO... event handling for them) -->
-            </div>
+        <div class="waterfall container"><!-- .container is bootstrap magic, and has a viewport-dependent width. -->
+            <div id="hero-area"></div>
+            <div id="discovery-area" class="discovery-area"></div>
             <div class="no-noscript loading"></div>
+            <div id='preview'></div>
             <noscript>
                 <!-- promotions to show when user does not have javascript.
                      this is a 'we need javascript' message by default.
@@ -125,13 +98,12 @@
             </noscript>
         </div>
 
-
         <!-- Templates -->
         <div>
             <script type="text/template" id="disabled_featured_template">
                 <div class='featured product'>
                     <!-- Main Display Area -->
-                    <img class='img-responsive pull-left' src='<%= obj.image %>' />
+                    <img class='img-responsive pull-left' src='<%= obj.image.url %>' />
                     <div class='pull-right'><%= obj.title %></div>
                         <div class='price'><%= obj.price %></div>
                         <div>
@@ -141,19 +113,30 @@
 
                 <div class='spacer'></div>
             </script>
+            <script type="text/template" id="hero_template">
+                <div class="visible-xs jumbotron"></div>
+                <div class="visible-sm jumbotron"></div>
+                <div class="visible-md visible-lg jumbotron"></div>
+            </script>
             <script type="text/template" id="product_tile_template">
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
+                <img class="focus"
+                     src="<%= obj.image.url %>"
+                     style="background-color:<%= obj.image.color %>;"
+                     alt="<%= obj.caption %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
-                    <span class="type"><%= obj['content-type'] %></span>
+                    <span class="type"><%= obj['type'] %></span>
                 <% } %>
                 <div class="social-buttons"></div>
             </script>
             <script type="text/template" id="product_mobile_tile_template">
                 <div class="tap-indicator-target"></div>
-                <img class="focus" src="<%= obj.image %>" alt="<%= caption %>" />
+                <img class="focus" src="<%= obj.image.url %>"
+                     alt="<%= obj.caption %>"
+                     style="background-color:<%= obj.image.color %>;"
+                     width="<%= obj.image.width %>" />
                 <% if (SecondFunnel.option('debug', 0) > 1) { %>
-                    <span class="type"><%= obj['content-type'] %></span>
+                    <span class="type"><%= obj['type'] %></span>
                 <% } %>
                 <% if (obj.name) { %>
                     <div class="caption">
@@ -162,9 +145,20 @@
                 <% } %>
                 <div class="social-buttons"></div>
             </script>
+            <script type="text/template" id="image_tile_template">
+                <div class="tap-indicator-target"></div>
+                <img class="focus" src="<%= obj.image.url %>"
+                     alt="<%= caption %>"
+                     style="background-color:<%= obj.image.color %>;"
+                     width="<%= obj.image.width %>" />
+                <% if (SecondFunnel.option('debug', 0) > 1) { %>
+                    <span class="type"><%= obj['type'] %></span>
+                <% } %>
+                <div class="social-buttons"></div>
+            </script>
             <script type="text/template" id="youtube_tile_template">
                 <div class="img-responsive thumbnail"
-                     style="background-image: url('<%= obj.thumbnail || obj.image %>');">
+                     style="background-image: url('<%= obj.image.url %>');">
                   &nbsp;
                   <img src="" alt="this img tag intentionally left blank" style="visibility:hidden"/>
                 </div>
@@ -267,7 +261,7 @@
                 </a>
             </script>
             <script type="text/template" id="product_preview_template">
-                <img src="<%= obj.image %>" alt=""/>
+                <img src="<%= obj.defaultImage.size('large') %>" alt=""/>
                 <%= obj.price %>
                 <div class="social-buttons"></div>
             </script>
@@ -277,10 +271,9 @@
                     <%= obj.caption || obj.title || obj.name %>
                     <!-- in that order (it may still have none of those) -->
                 </h4>
-                <img src="<%= obj.image %>" alt=""/>
+                <img src="<%= obj.defaultImage.get('url') %>" alt=""/>
                 <div class="social-buttons"></div>
             </script>
-
 
 
 
@@ -291,11 +284,11 @@
                 <div class='content-wrapper row'>
                     <div class='image-div col-sm-6 col-md-6'>
                         <div class='image'>
-                            <img class='img-rounded' src='<%= sizeImage(obj.image, 400) %>'/>
+                            <img class='img-rounded' src='<%= obj.defaultImage.get("url") %>'/>
                         </div>
                     </div>
                     <div class='info col-sm-6 col-md-6'>
-                        <div class='title'><%= obj.title %></div>
+                        <div class='title'><%= obj.name %></div>
                         <div class='red marker price'><%= obj.price %></div>
                     <ul class="nav nav-tabs">
                         <li class="active"><a data-toggle="tab" data-target=".overview">Overview</a></li>
@@ -324,43 +317,16 @@
                         <% } %>
                     </div>
             </script>
-            </div>
             <script type="text/template" id="gap_image_preview_template">
                 <!-- any (store.name)_(type)_... templates will be used in place
                      of default templates if they exist. -->
-            <% var product = obj['related-products'][0]; %>
-
-                <%
-                    // > console.log(obj);
-                    // caption: " "
-                    // content-id: 562949953426705
-                    // content-type: "Instagram"
-                    // db-id: 5393
-                    // image: "http://images.secondfunnel.com/store/gap/lifestyle/b127ff7bd36c348c8de82c8951f30ff1/master.gif"
-                    // original-id: "tumblr_mra6qu7uh11s6ofheo1_500"
-                    // related-products: [{
-                    //     "product-id": 19387,
-                    //     "description": "Long sleeves with button cuffs. Collar. Button front. Button patch pockets, buttonhole pen slot.",
-                    //     "title": "1969 chambray shirt",
-                    //     "url": "http://www.gap.com/browse/product.do?pid=350489002",
-                    //     "price": "$59.95",
-                    //     "tags": {
-                    //         "campaign": "99"
-                    //     },
-                    //     "db-id": 19387,
-                    //     "template": "product",
-                    //     "images": ["http://images.secondfunnel.com/store/gap/product/19387/image/0eaa9c2e36ade25c6c6985f50c54fe09/master.jpg"],
-                    //     "image": "http://images.secondfunnel.com/store/gap/product/19387/image/0eaa9c2e36ade25c6c6985f50c54fe09/master.jpg"
-                    // }]
-                    // template: "instagram"
-                    // tile-id: 562949953426705
-                %>
+                <% var product = obj['related-products'][0]; %>
                 <% if (obj['related-products'].length) { %>
                     <div class="image-with-related-products">
                         <div class="row">
                     <div class="col-sm-6 col-md-6">
                         <div class="image">
-                                <img class='img-rounded' src="<%= sizeImage(obj.image, 400) %>" alt="image" />
+                                <img class='img-rounded' src="<%= obj.defaultImage.get('url') %>" alt="image" />
                             </div>
 
                         <div class="buttons-container">
@@ -369,16 +335,15 @@
                         </div>
 
                         <% if (product.images.length > 1) { %>
-                        <div class='gallery'></div>
+                            <div class='gallery'></div>
                         <% } %>
-
                     </div>
-                            <div class="col-sm-6 col-md-6">
-                                <div class='title'><%= product.title %></div>
-                                <div class='price'><%= product.price %></div>
+                    <div class="col-sm-6 col-md-6">
+                        <div class='title'><%= product.title %></div>
+                        <div class='price'><%= product.price %></div>
                         <div class="row">
                             <div class="col-lg-4 col-md-4 col-sm-4 main-image-container">
-                                <img class="main-image" src="<%= sizeImage(product.image, 150) %>" alt="related product" />
+                                <img class="main-image" src="<%= product.defaultImage.get('url') %>" alt="related product" />
                             </div>
                             <div class="accordion-container col-lg-8 col-md-8 col-sm-8">
                                 <div class="panel-group" id="accordion-gapimage">
@@ -444,13 +409,12 @@
                             </div>
                         </div>
                     </div>
-            </div>
                 <% } else { %>
                     <div class="image-without-related-products">
-                        <img src="<%= sizeImage(obj.image, 400) %>" alt="image" />
+                        <img src="<%= obj.defaultImage.get('url') %>" alt="image" />
                         <div class="info">
                             <%= SecondFunnel.utils.safeString(obj.caption) %>
-                            <span class="label label-info pull-right"><%= obj.template %></span>
+                            <span class="label label-info pull-right">Gap <%= obj.template %></span>
                         </div>
                     </div>
                 <% } %>
@@ -466,26 +430,28 @@
         <script type="text/javascript" src="js/test_config.js"></script>
         <script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
         <script type="text/javascript" src="/static/js/respond.min.js"></script><!-- "as early after the css as possible" -->
-        <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery-1.8.3.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.xdr.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.animate-enhanced.js"></script>
         <script type="text/javascript" src="/static/js/jquery.mobile.swipeonly.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.viewport.min.js"></script><!-- after jquery -->
         <script type="text/javascript" src="/static/js/json2.js"></script>
         <script type="text/javascript" src="/static/js/underscore.js"></script>
         <script type="text/javascript" src="/static/js/backbone.js"></script>
-        <script type="text/javascript" src="/static/js/backbone.marionette.min.js"></script><!-- after backbone -->
-        <script type="text/javascript" src="/static/js/imagesloaded.pkgd.min.js"></script>
-        <script type="text/javascript" src="/static/js/jquery.masonry.pkgd.min.js"></script>
-        <script type="text/javascript" src="js/jquery.masonry.extensions.js"></script>
+        <script type="text/javascript" src="/static/js/backbone.marionette.js"></script><!-- after backbone -->
+        <script type="text/javascript" src="/static/js/masonry.pkgd.js"></script>
         <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="/static/js/jquery.browser.mobile.js"></script>
         <script type="text/javascript" src="js/pages.preinit.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.utils.js"></script>
-        <script type="text/javascript" src="js/pages.js"></script><!-- after preinit -->
+        <script type="text/javascript" src="js/pages.core.js"></script><!-- after preinit -->
+        <script type="text/javascript" src="js/pages.ir.js"></script><!-- after marionette -->
+        <script type="text/javascript" src="js/pages.core.models.js"></script><!-- after preinit -->
+        <script type="text/javascript" src="js/pages.core.views.js"></script><!-- after preinit -->
         <script type="text/javascript" src="js/pages.support.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.tracker.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.layoutengine.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.sharing.js"></script><!-- after marionette -->
-        <script type="text/javascript" src="js/pages.ir.js"></script><!-- after marionette -->
         <script type="text/javascript" src="js/pages.viewport.js"></script><!-- after pages -->
         <script type="text/javascript" src="js/pages.init.js"></script><!-- after pages -->
         <script type="text/javascript" src="js/pages.widget.gallery.js"></script>
@@ -494,31 +460,7 @@
             if (window.SecondFunnel) {
                 // Start the SecondFunnel app
                 SecondFunnel.start();
-                window.sizeImage = SecondFunnel.utils.pickImageSize;  // export for designers
-
-                // Example: add UI events
-                new SecondFunnel.tracker.EventManager({
-                    'click .navbar-brand': function (ev) {
-                        console.log('bur... custom event triggered');
-                    }
-                });
-
-                // Example: handle right hand side link clicks
-                new SecondFunnel.tracker.EventManager({
-                    'click .navbar-right a': function (ev) {
-                        var $ev = $(ev.currentTarget);
-
-                        console.log('Click detected! ' + $ev.attr('href'));
-                    }
-                });
-
-
-                // Example: receive event notifications
-                receive({
-                    'previewRendered': function () {
-                        console.log('doh! preview rendered');
-                    }
-                });
+                window.sizeImage = SecondFunnel.utils.pickImageSize;  // deprecated
             }
         </script>
         <!-- End Javascript -->

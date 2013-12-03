@@ -11,9 +11,12 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     this.options = {
         'baseUrl': "http://intentrank-test.elasticbeanstalk.com/intentrank",
         'urlTemplates': {
-            'campaign': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/getresults",
-            'content': "<%=url%>/store/<%=store.name%>/campaign/<%=campaign%>/content/<%=id%>/getresults"
+            'campaign': "<%=url%>/page/<%=campaign%>/getresults",
+            'content': "<%=url%>/page/<%=campaign%>/content/<%=id%>/getresults"
         },
+        'add': true,
+        'merge': true,
+        'remove': false,
         'categories': {},
         'backupResults': [],
         'IRResultsCount': 10,
@@ -54,6 +57,71 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     };
 
     /**
+     * This function is a bridge between our IntentRank module and our
+     * Discovery area.
+     * It must be executed with a Backbone.Collection as context.
+     *
+     * @param options
+     * @returns {promise}
+     */
+    this.fetch = function (options) {
+        // 'this' IS NOT INTENTRANK
+        var collection = this,
+            deferred = new $.Deferred(),
+            online = !SecondFunnel.option('page:offline', false),
+            data = (resultsAlreadyRequested.length ? {
+                'shown': resultsAlreadyRequested.join(',')
+            } : undefined),
+            opts = $.extend({}, {
+                'results': 10,
+                'add': true,
+                'merge': true,
+                'remove': false,
+                'crossDomain': true,
+                'data': data
+            }, this.config, intentRank.options, options),
+            backupResults = _.chain(intentRank.options.backupResults)
+                .filter(intentRank.filter)
+                .shuffle()
+                .first(intentRank.options.IRResultsCount)
+                .value();
+
+        // if offline, return a backup list
+        if (!online || collection.ajaxFailCount > 5) {
+            return $.when(backupResults);
+        }
+
+        // if online, return the result, or a backup list if it fails.
+        Backbone.Collection.prototype.fetch.call(this, opts)
+            .done(function (results) {
+                // reset fail counter
+                collection.ajaxFailCount = 0;
+
+                deferred.resolve(_.shuffle(results));
+                resultsAlreadyRequested = _.compact(intentRank.getTileIds(results));
+
+                // restrict shown list to last 10 items max
+                // (it was specified before?)
+                if (resultsAlreadyRequested.length > intentRank.options.IRResultsCount) {
+                    resultsAlreadyRequested = resultsAlreadyRequested.slice(-10);
+                }
+            })
+            .fail(function () {
+                // reset fail counter
+                if (collection.ajaxFailCount) {
+                    collection.ajaxFailCount++;
+                } else {
+                    collection.ajaxFailCount = 1;
+                }
+
+                deferred.resolve(backupResults);
+                resultsAlreadyRequested = intentRank.getTileIds(backupResults);
+            });
+
+        return deferred.promise();
+    };
+
+    /**
      * Filter the content based on the selector
      * passed and the criteria/filters defined in the SecondFunnel options.
      *
@@ -88,102 +156,47 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
     /**
      * general implementation
+     *
+     * @deprecated
      */
     this.getResults = function () {
+        var args = Array.prototype.slice.apply(arguments);
+        return this.fetch.apply(SecondFunnel.discovery.collection, args);
+    };
+
+    /**
+     * A unique list of all tiles shown on the page.
+     * @returns {array}
+     */
+    this.getAllResultsShown = function () {
         try {
-            var online = !SecondFunnel.option('page:offline', false);
-            if (online) {
-                return intentRank.getResultsOnline.apply(intentRank, arguments);
-            }
-        } catch (e) {}
-        return intentRank.getResultsOffline.apply(intentRank, arguments);
-    };
-
-    /**
-     * @param overrides (unused)
-     * @returns something $.when() accepts
-     */
-    this.getResultsOffline = function (overrides) {
-        // instantly mark the deferral as complete.
-        return $.when(
-            _.chain(intentRank.options.backupResults)
-            .filter(intentRank.filter)
-            .shuffle()
-            .first(intentRank.options.IRResultsCount)
-            .value());
-    };
-
-    /**
-     * @param overrides
-     * @returns $.Deferred()
-     */
-    this.getResultsOnline = function (overrides) {
-        var ajax, deferred, opts, uri, backupResults,
-            irFailuresAllowed = SecondFunnel.option('IRFailuresAllowed', 5);
-
-        // build a one-off options object for the request.
-        opts = $.extend(true, {}, intentRank.options, {
-            'url': intentRank.options.baseUrl
-        });
-        $.extend(opts, overrides);
-
-        uri = _.template(opts.urlTemplates[opts.type || 'campaign'], opts);
-        backupResults = _.chain(opts.backupResults)
-            .filter(intentRank.filter)
-            .shuffle()
-            .first(opts.IRResultsCount)
-            .value();
-
-        // http://stackoverflow.com/a/18986305/1558430
-        deferred = new $.Deferred();
-
-        if (consecutiveFailures > irFailuresAllowed) {
-            // API is dead. serve backup results instantly
-            deferred.resolve([]);  // deferred.resolve([backupResults]); // TODO: remove
-        } else {
-            ajax = ($.jsonp || $.ajax)({
-                'url': uri,
-                'data': {
-                    'results': opts.IRResultsCount
-                },
-                'contentType': "application/javascript",
-                'dataType': 'jsonp',
-                'callbackParameter': 'callback',  // $.jsonp only; $.ajax uses 'jsonpCallback'
-                'timeout': opts.IRTimeout
-            });
-            ajax.done(function (results) {
-                consecutiveFailures = 0;  // reset
-
-                return deferred.resolve(
-                    // => list of n qualifying products
-                    _.chain(results || opts.backupResults)
-                        .filter(intentRank.filter)
-                        .shuffle()
-                        // trim the number of results if IR returns too many
-                        .first(opts.IRResultsCount)
-                        .value()
-                );
-            });
-            ajax.fail(function (jqXHR, textStatus, errorThrown) {
-                // $.jsonp calls this func as function (jqXHR, textStatus)
-                console.error('AJAX / JSONP ' + textStatus + ': ' +
-                    (errorThrown || jqXHR.url));
-
-                consecutiveFailures++;
-
-                if (consecutiveFailures > irFailuresAllowed) {
-                    console.error(
-                        'Too many consecutive endpoint failures. ' +
-                        'All subsequent results will be backup results.');
-                }
-
-                return deferred.resolve(backupResults);
-            });
+            return SecondFunnel.discovery.collection.models;
+        } catch (err) {
+            // first call, SecondFunnel.discovery is not a var yet
+            return SecondFunnel.option('initialResults') || [];
         }
+    };
 
-        // promises are shared w/ other objects, while deferred should be
-        // kept private, says the internet
-        return deferred.promise();
+    /**
+     * append a list of json results shown.
+     */
+    this.addResultsShown = function (results) {
+        resultsAlreadyRequested = resultsAlreadyRequested.concat(
+            intentRank.getTileIds(results));
+    };
+
+    /**
+     * @oaram {Tile} tiles
+     * @return {Array} unique list of tile ids
+     */
+    this.getTileIds = function (tiles) {
+        return _.uniq(_.map(tiles, function (model) {
+            try {  // Tile
+                return model.get('tile-id');
+            } catch (err) {  // object
+                return model['tile-id'];
+            }
+        }));
     };
 
     this.changeCategory = function (category) {

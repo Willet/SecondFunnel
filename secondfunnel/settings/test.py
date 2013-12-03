@@ -55,7 +55,7 @@ INSTALLED_APPS = (
     'apps.utils'
 )
 
-WEBSITE_BASE_URL = 'http://secondfunnel-test.elasticbeanstalk.com'
+WEBSITE_BASE_URL = 'http://test.secondfunnel.com'
 INTENTRANK_BASE_URL = 'http://intentrank-test.elasticbeanstalk.com'
 CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'

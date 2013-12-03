@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os, sys
+
 import hipchat
 
 
@@ -11,9 +13,12 @@ def hipchat_broadcast(by='HipChat', message='Hello, World!', room_id=115122):
                            "message": message, "message_format": "text"})
 
 
-import os
 where = os.getenv('PARAM1')
-if where == 'TEST':
-    hipchat_broadcast(by="Philip", message="(notsureif) New version on %s?" % (where))
+if len(sys.argv) > 2:
+    hipchat_broadcast(by=sys.argv[1], message=sys.argv[2])
+elif where == 'TEST':
+    # hipchat_broadcast(by="Philip", message="(notsureif) New version on %s?" % (where))
+    pass
 else:
-    hipchat_broadcast(by="Hubert", message="(goodnews) New version on %s!" % (where if where else "PRODUCTION"))
+    # hipchat_broadcast(by="Hubert", message="(goodnews) New version on %s!" % (where if where else "PRODUCTION"))
+    pass

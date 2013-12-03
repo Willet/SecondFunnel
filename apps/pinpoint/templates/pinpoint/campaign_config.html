@@ -15,12 +15,14 @@
             'displayName': '{{ store.display_name|default:'' }}'  // leave blank to use "Gap"
         }
         , 'page': {  // required
-            'id': '97'  // '{{ campaign.intentrank_id|default:campaign.id }}'  // required (mocked out for 2013-10-18)
+            'id': '{{ campaign.intentrank_id|default:campaign.id }}'  // required
             , 'product': {{ product }}
             , 'pubDate': '{{ pub_date }}'  // for verifying the original upload date of a static campaign. for human use only
             , 'offline': false  // optional (if true, loads .content immediately)
 
             , 'name': '{{ campaign.name|default:"" }}'  // provided by campaign manager
+
+            , 'layout': '{{ campaign.layout|default:"hero" }}'  // provided by campaign manager
 
             // you will still need to make elements with data-category="96" on the page.
             , 'categories': {{ campaign.categories|safe|default:"[]" }}  // string representation of [{id: 123, name: 'gap'}, ...]
@@ -31,7 +33,7 @@
             // 'featured-image': '{{ campaign.featured_image }}',  // DEPRECATED
             // 'description': '{{ campaign.description|escapejs }}'  // DEPRECATED
         }
-        , 'campaign': '97'  //  '{{ campaign.intentrank_id|default:campaign.id }}' // (mocked out for 2013-10-18)
+        , 'campaign': '{{ campaign.intentrank_id|default:campaign.id }}' // required
         , 'columnWidth': undefined  // optional (defaults to 255, pixels)
         , 'maxColumnCount': {{ campaign.column_count|default:4 }}  // optional (default: 4)
         // , 'events': undefined  // page event bindings (optional)
@@ -54,27 +56,27 @@
         // , 'enableTracking': true  // optional; default: true
         // , 'eventMap': undefined  // optional
         // , 'tileElement': undefined  // optional. alters the type of tag used by tiles.
-        , 'imageTileWide': 0.25
+        , 'imageTileWide': {{ campaign.image_tile_wide|default:0.5 }}  // optional. controls how often tiles are wide.
         // , 'imageSizes': undefined  // optional, overrides built-in size map
         // , 'tapIndicatorText': undefined,  // optional
         , 'previewAnimationDuration': 100  // in ms
         , 'previewMobileAnimationDuration': 0
         , 'masonry': {  // passed to masonry
-            'animationDuration': 0.4  // in seconds
+            'transitionDuration': 0.4  // in seconds
         }
         , 'featured': {{ product }}
         // stuff that loads when page loads, even if IR is available
         , 'IRResultsCount': 10
         , 'IRTimeout': 5000
         // , 'IRFailuresAllowed': undefined  // optional. defaults to 5
-        , 'IRSource': "{{ ir_base_url }}"  // optional, defaults to intentrank-test
-        , 'gaAccountNumber': '{{ ga_account_number }}'  // required
+        , 'IRSource': "{{ campaign.ir_base_url|default:ir_base_url }}"  // optional, defaults to intentrank-test
+        , 'gaAccountNumber': '{{ campaign.ga_account_number|default:ga_account_number }}'  // required
 
         // number of viewports worth of results to keep below the page.
-        // 0 is not an acceptable value, but 0.0001 is. default is 1,
+        // 0 is not an acceptable value, but 0.0001 is. default is 1.5,
         // i.e. there will always be one page worth of results
         // underneath, no matter how fast you scroll.
-        // , 'prefetchHeight': 1
+        // , 'prefetchHeight': undefined
 
         // , 'lockWidth': undefined  // must be true (not 1, {}, ...) or a function that returns true. undefined means auto.
         // , 'desiredWidth': 0,  // number, or a function that returns a number. 0 means auto.

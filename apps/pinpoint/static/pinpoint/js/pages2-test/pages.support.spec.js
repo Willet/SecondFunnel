@@ -5,8 +5,6 @@ describe("support", function () {
         moduleName;
 
     beforeEach(function () {
-        $('html').removeClass('touch-enabled');  // if present
-
         app = SecondFunnel;
         module = app.support;
     });
@@ -20,6 +18,7 @@ describe("support", function () {
     describe('touch', function () {
         it("should be overwritten", function () {
             // initial state is device-dependent
+            $('html').removeClass('touch-enabled');  // if present
             expect(module.touch()).toEqual(document.documentElement.ontouchstart !== undefined);
         });
 

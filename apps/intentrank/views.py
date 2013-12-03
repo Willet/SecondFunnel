@@ -255,17 +255,17 @@ def get_seeds(request, **kwargs):
     store_slug = kwargs.get('store_slug', request.GET.get('store_slug',
                                                           'store_slug'))
     campaign = kwargs.get('campaign', request.GET.get('campaign', '-1'))
+
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
     base_url = kwargs.get('base_url', request.GET.get(
         'base_url',
         settings.INTENTRANK_BASE_URL + '/intentrank'
     ))
 
-    url = '{0}/store/{1}/campaign/{2}/getresults'.format(base_url, store_slug,
-                                                      campaign)
+    url = '{0}/page/{1}/getresults'.format(base_url, campaign)
 
     # Add required get parameters
-    url += "?callback={0}&results={1}".format(callback, num_results)
+    url += "?results={0}".format(num_results)
 
     # Fetch results
     try:
@@ -305,6 +305,7 @@ def get_seeds(request, **kwargs):
     for result in results:
         new_result = {}
         for attrib in result:
+            new_result[attrib] = result[attrib]
             new_result[attrib.replace('-', '_')] = result[attrib]
         new_results.append(new_result)
 

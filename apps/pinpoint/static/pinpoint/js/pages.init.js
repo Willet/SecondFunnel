@@ -1,18 +1,28 @@
-/*global $, _, SecondFunnel, broadcast*/
-// SecondFunnel initializers.
+/*global $, _, SecondFunnel, Backbone, broadcast*/
 
 /**
  * Given an instance of  Marionette Application, add initializers to it.
  * @param app
  */
-function reInitialize(app) {
+function reinitialize(app) {
     "use strict";
 
-    if (app === undefined) {
-        return;
-    }
+    app.addRegions({
+        'heroArea': '#hero-area',
+        'discoveryArea': '#discovery-area',
+        'previewArea': '#preview'
+    });
 
-    broadcast('beforeInit', app.options, app);
+    // from davidsulc/marionette-gentle-introduction
+    app.navigate = function (route, options) {
+        options = options || {};
+        Backbone.history.navigate(route, options);
+    };
+
+    // from davidsulc/marionette-gentle-introduction
+    app.getCurrentRoute = function () {
+        return Backbone.history.fragment;
+    };
 
     app.addInitializer(function () {
         // set its width to whatever it began with.
@@ -36,49 +46,10 @@ function reInitialize(app) {
     });
 
     app.addInitializer(function () {
-        try {
-            var fa = new app.core.HeroAreaView();
-            fa.render();
-            broadcast('heroAreaRendered', fa);
-        } catch (err) {
-            // marionette throws an error if no hero templates are found or needed.
-            // it is safe to ignore it.
-            broadcast('heroAreaNotRendered');
-        }
-    });
+        var fa = new app.core.HeroAreaView();
+        app.heroArea.show(fa);
 
-    app.addInitializer(function () {
-        if (window.console) {
-            app.vent.on('log', function () {
-                try {  // console.log is an object in IE...?
-                    console.log.apply(console, arguments);
-                } catch (e) {}
-            });
-            app.vent.on('warn', function () {
-                try {
-                    console.warn.apply(console, arguments);
-                } catch (e) {}
-            });
-            app.vent.on('error', function () {
-                try {
-                    console.error.apply(console, arguments);
-                } catch (e) {}
-            });
-
-            app.vent.on('beforeInit', function (details) {
-                var pubDate;
-                if (details && details.page && details.page.pubDate) {
-                    pubDate = details.page.pubDate;
-                }
-                console.log(  // feature, not a bug
-                    '____ ____ ____ ____ _  _ ___     ____ _  _ ' +
-                    '_  _ _  _ ____ _    \n[__  |___ |    |  | |' +
-                    '\\ | |  \\    |___ |  | |\\ | |\\ | |___ | ' +
-                    '   \n___] |___ |___ |__| | \\| |__/    |   ' +
-                    ' |__| | \\| | \\| |___ |___ \n' +
-                    '           Published ' + pubDate);
-            });
-        }
+        broadcast('heroAreaRendered', fa);
     });
 
     app.addInitializer(function () {
@@ -92,13 +63,32 @@ function reInitialize(app) {
         $(document).ajaxError(function (event, request, settings) {
             broadcast('ajaxError', settings.url, app);
         });
+    });
 
-        app.discovery = new SecondFunnel.core.Discovery(app.options);
+    // from davidsulc/marionette-gentle-introduction
+    app.addInitializer(function () {
+        // create a discovery area with tiles in it
+        broadcast('beforeInit', app.options, app);
+
+        app.store = new SecondFunnel.core.Store(app.options.store);
+
+        app.discovery = new SecondFunnel.core.Feed({
+            options: app.options
+        });
+        SecondFunnel.discoveryArea.show(app.discovery);
 
         broadcast('finished', app.options, app);
     });
 
+    app.vent.on('finished', function () {
+        if (SecondFunnel.support.isAniPad()) {
+            $('html').addClass('ipad');
+        }
+        if ($.mobile && !SecondFunnel.support.isAniPad()) {
+            $('html').addClass('mobile-phone');
+        }
+    });
 }
 
 // auto-initialise existing instance on script inclusion
-reInitialize(window.SecondFunnel);
+reinitialize(window.SecondFunnel);

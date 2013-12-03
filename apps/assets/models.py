@@ -1,3 +1,4 @@
+import httplib2
 import json
 
 from django.contrib.auth.models import User
@@ -10,6 +11,7 @@ from django.utils.html import escape
 from social_auth.db.django_models import UserSocialAuth
 
 from apps.contentgraph.models import ContentGraphObject
+from apps.pinpoint.utils import read_a_file, read_remote_file
 
 
 class BaseModel(models.Model):
@@ -121,6 +123,15 @@ class Store(BaseModelNamed):
         # automatically defaults to DEFAULT_PAGE
         theme = json_data.get('theme', '')
         if isinstance(theme, basestring):
+            if not theme:
+                theme = StoreTheme.DEFAULT_PAGE
+
+            # try and load a remote theme file. if it fails, pass.
+            theme = read_remote_file(theme, theme)
+
+            # try to load a local theme file.
+            # if that fails, default to the theme as if it were theme content.
+            theme = read_a_file(theme, theme)
             json_data['theme'] = StoreTheme(page=theme)
 
         return cls(**json_data)

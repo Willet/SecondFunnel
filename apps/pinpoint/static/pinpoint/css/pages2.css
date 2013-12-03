@@ -115,6 +115,7 @@ div.loading {
     border-radius: 3px;
     box-shadow: 0 1px 3px 0 #999;
     vertical-align: top;
+    position: relative;
 
     width: 240px;
     max-width: 93%; /* empirical (padding and all) */
@@ -124,6 +125,8 @@ div.loading {
     color: #b5b5b5;
 
     float: left;
+
+    -webkit-transform: transform3d(0, 0, 0);
 
     cursor: pointer;
     cursor: -webkit-zoom-in;
@@ -269,7 +272,7 @@ div.loading {
 
 .social-buttons .pinterest {
     /* fix odd "propped up" bug */
-    height: 20px;
+    height: 35px;
     vertical-align: middle;
 }
 
@@ -547,4 +550,31 @@ div.loading {
 .touch-enabled .discovery-area .wide .tap_indicator > div {
     font-size:10px;
     margin: -54px -1px 0 -1px;
+}
+
+/* iPad */
+@media screen {
+
+    @media (max-width: 768px) {
+        .ipad .previewContainer .content {
+            position: fixed!important;
+            bottom: 16%!important;
+        }
+    }
+
+    .ipad .previewContainer .mask {
+        display: block!important;
+    }
+}
+
+
+/* Mobile */
+@media (max-width: 768px) {
+    .mobile-phone .tile {
+        width: 100%!important;
+    }
+
+    #discovery-area {
+        width: 100%!important;
+    }
 }
