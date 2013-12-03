@@ -566,3 +566,15 @@ div.loading {
         display: block!important;
     }
 }
+
+
+/* Mobile */
+@media (max-width: 768px) {
+    .mobile-phone .tile {
+        width: 100%!important;
+    }
+
+    #discovery-area {
+        width: 100%!important;
+    }
+}
