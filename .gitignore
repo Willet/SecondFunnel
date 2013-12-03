@@ -16,6 +16,7 @@ log/
 runserver
 libpeerconnection.log
 MySQL-python-1.2.3
+apps/pinpoint/static/campaigns
 
 # Testing directories
 apps/testing/resources
