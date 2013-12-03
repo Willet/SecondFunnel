@@ -78,6 +78,9 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
                 'merge': true,
                 'remove': false,
                 'crossDomain': true,
+                'xhrFields': {
+                    'withCredentials': true
+                },
                 'data': data
             }, this.config, intentRank.options, options),
             backupResults = _.chain(intentRank.options.backupResults)

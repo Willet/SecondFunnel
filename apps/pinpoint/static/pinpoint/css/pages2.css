@@ -574,7 +574,7 @@ div.loading {
         width: 100%!important;
     }
 
-    #discovery-area {
+    .mobile #discovery-area {
         width: 100%!important;
     }
 }
