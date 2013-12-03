@@ -122,10 +122,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 self = this;
 
             // expose tile "types" as classes on the dom
-            _.each(data.type.toLowerCase().split(),
-                function (cName) {
-                    self.className += " " + cName;
-                });
+            if (data.type) {
+                _.each(data.type.toLowerCase().split(),
+                    function (cName) {
+                        self.className += " " + cName;
+                    });
+            }
 
             if (data.template) {
                 self.className += " " + data.template;
@@ -427,8 +429,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         // buildItemView (marionette.collectionview.md#collectionviews-builditemview)
 
-        'initialize': function (options) {
-            var self = this;
+        'initialize': function (opts) {
+            var self = this,
+                options = opts.options;  // someone came up with this idea
 
             _.bindAll(this, 'pageScroll', 'toggleLoading');
 
