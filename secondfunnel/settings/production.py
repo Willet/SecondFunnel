@@ -57,7 +57,7 @@ INSTALLED_APPS = (
 
 # contentgraph.el... contains nothing. fetch objects from the test db.
 # uncomment if necessary.
-# CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
+CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"

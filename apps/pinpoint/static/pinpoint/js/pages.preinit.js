@@ -136,6 +136,43 @@ $.fn.getClasses = $.fn.getClasses || function () {
     return _.compact(_.map($(this).attr('class').split(' '), $.trim));
 };
 
+/**
+ * Retrieve the first selected element's TileView and Tile, if applicable.
+ * Applicability largely depends on whether or not you had selected a tile.
+ *
+ * Due to aggressive garbage collection, these two calls may not succeed.
+ * If selector did not find a tile, returns an object with undefined values.
+ *
+ * @return {Object}
+ *
+ * @type {Function}
+ */
+$.fn.tile = $.fn.tile || function () {
+    var props = {},
+        cid = this.attr('id');
+
+    if (!(this.hasClass('tile') && cid)) {
+        return props;
+    }
+
+    try {
+        props.view = SecondFunnel.discoveryArea.currentView.children
+            .findByModelCid(cid);
+        // props.model = props.view.model;  // not always
+    } catch (err) { }
+
+    try {
+        props.model = _.findWhere(SecondFunnel.discovery.collection.models,
+            {'cid': cid});
+
+        // these can be undefined.
+        props.type = props.model.get('type');
+        props.template = props.model.get('template');
+    } catch (err) { }
+
+    return props;
+};
+
 $.getScripts = function (urls, callback, options) {
     // batch getScript with caching
     // callback receives as many ajax xhr objects as the number of urls.

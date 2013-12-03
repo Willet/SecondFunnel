@@ -45,8 +45,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // come specifying a type or caption
             'caption': "Shop product",
             'tile-id': 0,
-            'tile-class': 'tile',
-            'content-type': "",
+            // 'tile-class': 'tile',  // what used tile-class?
+            // 'content-type': ''  // where did content-type go?
             'related-products': [],
             'dominant-colour': "transparent"
         },
@@ -61,12 +61,34 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         },
 
         'initialize': function (attributes, options) {
-            var defaultImage = this.getDefaultImage(),
+            // turn image json into image objects for easier access.
+            var self = this,
+                defaultImage = this.getDefaultImage(),
                 imgInstances = [];
 
             // replace all image json with their objects.
             _.each(this.get('images'), function (image) {
-                imgInstances.push(new module.Image(image));
+                var localImageVariable;
+                if (typeof image === 'string') {
+                    // patch old IR image response with this new dummy format,
+                    // wild guessing every attribute in the process.
+                    localImageVariable = {
+                        'format': "jpg",
+                        'dominant-colour': "transparent",
+                        'url': image,
+                        'id': self.getDefaultImageId() || 0,
+                        'sizes': {
+                            'master': {
+                                'width': 2048,
+                                'height': 2048
+                            }
+                        }
+                    };
+                } else {
+                    // make a copy...
+                    localImageVariable = $.extend(true, {}, image);
+                }
+                imgInstances.push(new module.Image(localImageVariable));
             });
 
             // this tile has no images, or can be an image itself
@@ -86,17 +108,23 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         /**
          *
-         * @param imgId   if omitted, the default image id
+         * @param byImgId   if omitted, the default image id
          * @returns {Image}
          */
-        'getImage': function (imgId) {
-            var self = this, defImg;
+        'getImage': function (byImgId) {
+            var self = this,
+                imgId = parseInt(byImgId || self.getDefaultImageId(), 10),
+                defImg;
 
-            imgId = imgId || self.getDefaultImageId();
-
-            defImg = _.findWhere(this.get('images'), {
-                'id': imgId
-            });
+            defImg =
+                // find default image for image-child tiles (e.g. product tile)
+                _.findWhere(this.get('images'), {
+                    'id': imgId
+                }) ||
+                // find default image for image-root tiles
+                _.findWhere(this.get('images'), {
+                    'tile-id': imgId
+                });
 
             if (!defImg) {
                 try {
@@ -115,14 +143,36 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 // timing: attributes.images already coverted to Images
                 return defImg;
             }
+
+            if (!defImg) {
+                console.warn('getImage is going to return an Image stub.');
+            }
+
             return new module.Image(defImg);
         },
 
         'getDefaultImageId': function () {
             try {
-                return this.get('default-image') ||
-                    this.get('images')[0]['tile-id'] ||
-                    this.get('images')[0].get('tile-id');
+                // product tiles
+                if (this.get('default-image')) {
+                    return this.get('default-image');
+                }
+                // product tiles without a default-image attr, guess it
+                if (this.get('images') && this.get('images').length) {
+                    // product tiles (or tiles with images:[...])
+                    var guess = this.get('images')[0]['tile-id'] ||
+                                this.get('images')[0].get('tile-id') ||
+                                // just going to try everything
+                                this.get('images')[0].id ||
+                                this.get('images')[0].get('id');
+                    if (guess) {
+                        return guess;
+                    }
+                }
+
+                // image tiles (or tiles that are root-level images)
+                // note: might be wrong if product tiles still fall through
+                return this.get('tile-id').toString();
             } catch (e) {  // no images
                 console.warn('This object does not have a default image.', this);
                 return undefined;
@@ -156,22 +206,29 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'name': 'master',  // easier to know what this is as an obj
                     'dominant-colour': 'transparent',
                     'width': 2048,
-                    'height': 2048
+                    'height': 2048,
+                    'I am': 'an idiot'
                 }
             }
         },
 
-        'initialize': function (data) {
+        'initialize': function () {
             // add a name, colour, and a sized url to each size datum
             var self = this,
-                color = this.get('dominant-colour');
-            _.map(this.get('sizes'), function (size, sizeName) {
-                self.get('sizes')[sizeName].url =
+                color = this.get('dominant-colour'),
+
+                // this might be the 36-hour line
+                mySizes = $.extend(true, {}, this.get('sizes'));
+
+            _.map(mySizes, function (size, sizeName) {
+                mySizes[sizeName].url =
                     self.get('url').replace(/master\./, sizeName + '.');
 
-                self.get('sizes')[sizeName].name = sizeName;
-                self.get('sizes')[sizeName]['dominant-colour'] = color;
+                mySizes[sizeName].name = sizeName;
+                mySizes[sizeName]['dominant-colour'] = color;
             });
+
+            self.set('sizes', mySizes);
 
             // the template needs something simpler.
             this.color = color;
@@ -206,13 +263,22 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @returns {*}
          */
         'dimens': function (width, height, obj) {
-            var first, sizes = this.get('sizes');
+            var first,
+                sizes = this.get('sizes'),
+                sortedImages;
             try {
-                first = _.first(_(sizes)
+                // [{master}] if mocked
+                sortedImages = _(sizes)
                     .sortBy('width')
                     .filter(function (size) {
                         return size.width >= width && size.height >= height;
-                    }));
+                    });
+
+                // {master} if mocked
+                first = _.first(sortedImages) ||  // if one image is large enough
+                    // the largest one if none of the images are large enough
+                    // (unstable sort if widths equal for any two sizes)
+                    _(sizes).sortBy('width').reverse()[0];
 
                 if (obj) {
                     return first;
@@ -242,8 +308,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      */
     this.ImageTile = this.Tile.extend({
         'defaults': {
-            'tile-class': 'image',
-            'content-type': 'image'
+            // 'tile-class': 'image',  // what used tile-class?
+            // 'content-type': 'image'  // where did content-type go?
         },
         /**
          * An ImageTile  *is* an image JSON, so we need to allocate all of its
@@ -256,7 +322,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'parse': function (resp, options) {
             // create tile-like attributes
             resp['default-image'] = 0;
-            resp.images = [resp];  // image tile containing one pointer to itself
+
+            // image tile contains image:[one copy of itself]
+            resp.images = [$.extend(true, {}, resp)];
             return resp;
         }
     });
@@ -267,16 +335,16 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      */
     this.VideoTile = this.Tile.extend({
         'defaults': {
-            'tile-class': 'video',
-            'content-type': 'video',
+            // 'tile-class': 'video',  // what used tile-class?
+            // 'content-type': 'video',  // where did content-type go?
             'type': 'video'
         }
     });
 
     this.YoutubeTile = this.VideoTile.extend({
         'defaults': {
-            'tile-class': 'youtube',
-            'content-type': 'youtube',
+            // 'tile-class': 'youtube',  // what used tile-class?
+            // 'content-type': 'youtube',  // where did content-type go?
             'type': 'video'
         }
     });
@@ -296,7 +364,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          */
         'model': function (item) {
             var TileClass = SecondFunnel.utils.findClass('Tile',
-                    item.template, module.Tile);
+                    item.type || item.template, module.Tile);
 
             return new TileClass(item);
         },
@@ -321,7 +389,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             return _.map(resp, function (jsonEntry) {
                 var TileClass = SecondFunnel.utils.findClass('Tile',
-                    jsonEntry.template, module.Tile);
+                    jsonEntry.type || jsonEntry.template, module.Tile);
                 return TileClass.prototype.parse.call(self, jsonEntry);
             });
         },
@@ -360,12 +428,15 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          */
         'setup': function (apiUrl, campaign, results) {
             // apply new parameters, or default to existing ones
-            this.config.apiUrl = apiUrl || this.config.apiUrl ||
-                SecondFunnel.option('IRSource');
-            this.config.campaign = campaign || this.config.campaign ||
-                SecondFunnel.option('campaign');
-            this.config.results = results || this.config.results ||
-                SecondFunnel.option('IRResultsCount');
+            this.config.apiUrl = apiUrl ||
+                SecondFunnel.option('IRSource') ||
+                this.config.apiUrl;
+            this.config.campaign = campaign ||
+                SecondFunnel.option('campaign') ||
+                this.config.campaign;
+            this.config.results = results ||
+                SecondFunnel.option('IRResultsCount') ||
+                this.config.results;
         }
     });
 

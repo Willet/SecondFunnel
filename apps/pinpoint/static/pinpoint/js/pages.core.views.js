@@ -122,10 +122,16 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 self = this;
 
             // expose tile "types" as classes on the dom
-            _.each(data['content-type'].toLowerCase().split(),
-                function (cName) {
-                    self.className += " " + cName;
-                });
+            if (data.type) {
+                _.each(data.type.toLowerCase().split(),
+                    function (cName) {
+                        self.className += " " + cName;
+                    });
+            }
+
+            if (data.template) {
+                self.className += " " + data.template;
+            }
 
             // expose model reference in form of id
             this.$el.attr({
@@ -189,7 +195,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'model': tile,
                     'caller': ev.currentTarget
                 });
-                SecondFunnel.vent.trigger("click:tile", ev, this);
+                // SecondFunnel.vent.trigger("click:tile", ev, this);
             }
         },
 
@@ -203,6 +209,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 normalTileWidth = SecondFunnel.option('columnWidth', 255),
                 wideTileWidth = normalTileWidth * 2,
                 fullTileWidth = normalTileWidth * 4,  // 4col (standby)
+                normalImageInfo = this.model.get('defaultImage')
+                    .width(normalTileWidth, true),  // undefined if not found
+                wideImageInfo = this.model.get('defaultImage')
+                    /*.width(wideTileWidth, true)*/,  // undefined if not found
                 sizes = {
                     'normal': normalTileWidth,
                     'wide': wideTileWidth,
@@ -211,23 +221,22 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // templates use this as obj.image.url
             this.model.set('image',
-                this.model.get('defaultImage').width(normalTileWidth, true));
+                this.model.get('defaultImage')/*.width(normalTileWidth, true)*/);
 
-            // 0.500 is an arbitrary 'lets make this tile wide' factor
-            if (Math.random() > 0.500) {
+            // 0.5 is an arbitrary 'lets make this tile wide' factor
+            if (Math.random() > SecondFunnel.option('imageTileWide', 0.5) &&
+                // "only if it is not a banner url"
+                wideImageInfo && !self.model.get('redirect-url')) {
                 // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
                 this.$el.addClass('wide');
-                this.model.set({
-                    'image': this.model.get('defaultImage')
-                                 .width(wideTileWidth, true)
-                });
+                this.model.set({'image': wideImageInfo});
             }
 
             // Listen for the image being removed from the DOM, if it is, remove
             // the View/Model to free memory
             this.$el.on('remove', function (ev) {
                 if (ev.target === self.el) {
-                    console.debug('Model being destroyed', this);
+                    console.warn('Model being destroyed', this);
                     self.model.destroy();
                 }
             });
@@ -236,7 +245,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'onMissingTemplate': function () {
             // If a tile fails to load, destroy the model
             // and subsequently this tile.
-            console.debug('Missing template - this view is closing.', this);
+            console.warn('Missing template - this view is closing.', this);
             this.model.destroy();
             this.close();
         },
@@ -314,12 +323,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'onInitialize': function () {
             // Add here additional things to do when loading a VideoTile
             this.$el.addClass('wide');
-
-            if (this.model.is('youtube')) {
-                this.model.set("thumbnail", 'http://i.ytimg.com/vi/' +
-                                            this.model.get('original-id') +
-                                            '/hqdefault.jpg');
-            }
         },
 
         'onClick': function () {
@@ -336,8 +339,15 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     this.YoutubeTileView = this.VideoTileView.extend({
         'model': module.YoutubeTile,
         'template': function () {
-
         },
+        'onInitialize': function () {
+            // Add here additional things to do when loading a YoutubeTile
+            this.$el.addClass('wide');
+            this.model.set("thumbnail", 'http://i.ytimg.com/vi/' +
+                            this.model.get('original-id') +
+                            '/hqdefault.jpg');
+        },
+
         /**
          * Renders a YouTube video in the tile.
          *
@@ -404,14 +414,22 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @return {TileView}
          */
         'getItemView': function (item) {
+            //TODO: hack for newegg, provide better way
+            if (item.get('type') === 'video') {
+                item.set('type', item.get('template'));
+            }
+
             return SecondFunnel.utils.findClass('TileView',
-                    item.get('template') || item.get('type'), module.TileView);
+                SecondFunnel.core.getModifiedTemplateName(
+                    item.get('type') || item.get('template')),
+                module.TileView);
         },
 
         // buildItemView (marionette.collectionview.md#collectionviews-builditemview)
 
-        'initialize': function (options) {
-            var self = this;
+        'initialize': function (opts) {
+            var self = this,
+                options = opts.options;  // someone came up with this idea
 
             _.bindAll(this, 'pageScroll', 'toggleLoading');
 
@@ -427,6 +445,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             if (options.initialResults && options.initialResults.length > 0) {
                 console.log('laying out initial results');
                 this.collection.add(options.initialResults);
+                SecondFunnel.intentRank.addResultsShown(options.initialResults);
             }
 
             // ... then fetch more products from IR
@@ -774,7 +793,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // cannot declare display:table in marionette class.
             this.$el.css({'display': "table"});
 
-            $('body').append(this.$el.cssFadeIn(SecondFunnel.option('previewAnimationDuration')));
+            $('body').append(this.$el);
         }
     });
 
