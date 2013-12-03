@@ -99,6 +99,12 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
                 deferred.resolve(_.shuffle(results));
                 resultsAlreadyRequested = _.compact(intentRank.getTileIds(results));
+
+                // restrict shown list to last 10 items max
+                // (it was specified before?)
+                if (resultsAlreadyRequested.length > intentRank.options.IRResultsCount) {
+                    resultsAlreadyRequested = resultsAlreadyRequested.slice(-10);
+                }
             })
             .fail(function () {
                 // reset fail counter
@@ -169,6 +175,14 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             // first call, SecondFunnel.discovery is not a var yet
             return SecondFunnel.option('initialResults') || [];
         }
+    };
+
+    /**
+     * append a list of json results shown.
+     */
+    this.addResultsShown = function (results) {
+        resultsAlreadyRequested = resultsAlreadyRequested.concat(
+            intentRank.getTileIds(results));
     };
 
     /**

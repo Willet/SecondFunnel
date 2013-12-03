@@ -122,10 +122,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 self = this;
 
             // expose tile "types" as classes on the dom
-            _.each(data.type.toLowerCase().split(),
-                function (cName) {
-                    self.className += " " + cName;
-                });
+            if (data.type) {
+                _.each(data.type.toLowerCase().split(),
+                    function (cName) {
+                        self.className += " " + cName;
+                    });
+            }
 
             if (data.template) {
                 self.className += " " + data.template;
@@ -321,12 +323,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'onInitialize': function () {
             // Add here additional things to do when loading a VideoTile
             this.$el.addClass('wide');
-
-            /* if (this.model.is('youtube')) {
-                this.model.set("thumbnail", 'http://i.ytimg.com/vi/' +
-                                            this.model.get('original-id') +
-                                            '/hqdefault.jpg');
-            } */
         },
 
         'onClick': function () {
@@ -343,16 +339,15 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     this.YoutubeTileView = this.VideoTileView.extend({
         'model': module.YoutubeTile,
         'template': function () {
-
         },
         'onInitialize': function () {
             // Add here additional things to do when loading a YoutubeTile
             this.$el.addClass('wide');
-
             this.model.set("thumbnail", 'http://i.ytimg.com/vi/' +
-                                        this.model.get('original-id') +
-                                        '/hqdefault.jpg');
+                            this.model.get('original-id') +
+                            '/hqdefault.jpg');
         },
+
         /**
          * Renders a YouTube video in the tile.
          *
@@ -419,6 +414,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @return {TileView}
          */
         'getItemView': function (item) {
+            //TODO: hack for newegg, provide better way
+            if (item.get('type') === 'video') {
+                item.set('type', item.get('template'));
+            }
+
             return SecondFunnel.utils.findClass('TileView',
                 SecondFunnel.core.getModifiedTemplateName(
                     item.get('type') || item.get('template')),
@@ -427,8 +427,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         // buildItemView (marionette.collectionview.md#collectionviews-builditemview)
 
-        'initialize': function (options) {
-            var self = this;
+        'initialize': function (opts) {
+            var self = this,
+                options = opts.options;  // someone came up with this idea
 
             _.bindAll(this, 'pageScroll', 'toggleLoading');
 
@@ -444,6 +445,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             if (options.initialResults && options.initialResults.length > 0) {
                 console.log('laying out initial results');
                 this.collection.add(options.initialResults);
+                SecondFunnel.intentRank.addResultsShown(options.initialResults);
             }
 
             // ... then fetch more products from IR

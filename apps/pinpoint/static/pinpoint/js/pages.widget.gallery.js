@@ -66,9 +66,9 @@ SecondFunnel.utils.registerWidget(
             })
         .on('click', '.image, .image img', function (ev) {
             var $pseudo = $(ev.target);
-            if (ev.offsetX >= 0 && ev.offsetX <= 50) {   // left (which is swiping right)
+            if (ev.offsetX >= 0 && ev.offsetX <= 100) {   // left (which is swiping right)
                 $pseudo.swiperight();
-            } else if (ev.offsetX >= $pseudo.width() - 50 &&  // right
+            } else if (ev.offsetX >= $pseudo.width() - 100 &&  // right
                 ev.offsetY > 150) {  // prevent interference with close button
                 $pseudo.swipeleft();
             }
