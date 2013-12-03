@@ -445,6 +445,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             if (options.initialResults && options.initialResults.length > 0) {
                 console.log('laying out initial results');
                 this.collection.add(options.initialResults);
+                SecondFunnel.intentRank.addResultsShown(options.initialResults);
             }
 
             // ... then fetch more products from IR
