@@ -254,9 +254,7 @@ def get_seeds(request, **kwargs):
     # store now needs to be a slug
     store_slug = kwargs.get('store_slug', request.GET.get('store_slug',
                                                           'store_slug'))
-    # TODO: hardcoded
-    # campaign = kwargs.get('campaign', request.GET.get('campaign', '-1'))
-    campaign = 97
+    campaign = kwargs.get('campaign', request.GET.get('campaign', '-1'))
 
     callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
     base_url = kwargs.get('base_url', request.GET.get(
@@ -307,6 +305,7 @@ def get_seeds(request, **kwargs):
     for result in results:
         new_result = {}
         for attrib in result:
+            new_result[attrib] = result[attrib]
             new_result[attrib.replace('-', '_')] = result[attrib]
         new_results.append(new_result)
 

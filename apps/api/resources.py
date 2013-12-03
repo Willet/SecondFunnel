@@ -1,13 +1,18 @@
 import django
+from django.conf import settings
 from django.conf.urls import url
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from tastypie import http, fields
-from tastypie.exceptions import Unauthorized, ImmediateHttpResponse
+from tastypie.exceptions import ImmediateHttpResponse
 from tastypie.resources import ModelResource
 from tastypie.utils import trailing_slash
 from apps.api.utils import UserObjectsReadOnlyAuthorization
 from apps.assets.models import Store
+
+import hammock
+
+ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL, headers={'ApiKey': 'secretword'})
 
 
 class StoreResource(ModelResource):
@@ -23,7 +28,7 @@ class UserResource(ModelResource):
         'stores',  # Store::related_name(.staff)
         null=True,
         blank=True,
-        full=True # There is a way to pick specific fields, but I don't recall.
+        full=True  # There is a way to pick specific fields, but I don't recall.
     )
 
     class Meta:
@@ -36,14 +41,14 @@ class UserResource(ModelResource):
     def prepend_urls(self):
         """Adds URLs for login and logout"""
         login = url(
-            r'^(?P<resource_name>%s)/login%s$' % (
-                self._meta.resource_name, trailing_slash()),
+            r'^(?P<resource_name>%s)/login/?$' % (
+                self._meta.resource_name),
             self.wrap_view('login'),
             name='api_login'
         )
         logout = url(
-            r'^(?P<resource_name>%s)/logout%s$' % (
-                self._meta.resource_name, trailing_slash()),
+            r'^(?P<resource_name>%s)/logout/?$' % (
+                self._meta.resource_name),
             self.wrap_view('logout'),
             name='api_logout'
         )

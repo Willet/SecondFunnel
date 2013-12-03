@@ -124,7 +124,7 @@
 
 <script type="text/template" id="pinterest_social_button_template">
     <div class='button pinterest'>
-        <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image %>&description={{ campaign.description|default:'' }}"
+        <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image.url %>&description={{ campaign.description|default:'' }}"
            target="_blank"><img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/></a>
     </div>
 </script>
