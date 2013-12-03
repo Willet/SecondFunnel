@@ -321,12 +321,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'onInitialize': function () {
             // Add here additional things to do when loading a VideoTile
             this.$el.addClass('wide');
-
-            /* if (this.model.is('youtube')) {
-                this.model.set("thumbnail", 'http://i.ytimg.com/vi/' +
-                                            this.model.get('original-id') +
-                                            '/hqdefault.jpg');
-            } */
         },
 
         'onClick': function () {
@@ -343,16 +337,15 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     this.YoutubeTileView = this.VideoTileView.extend({
         'model': module.YoutubeTile,
         'template': function () {
-
         },
         'onInitialize': function () {
             // Add here additional things to do when loading a YoutubeTile
             this.$el.addClass('wide');
-
             this.model.set("thumbnail", 'http://i.ytimg.com/vi/' +
-                                        this.model.get('original-id') +
-                                        '/hqdefault.jpg');
+                            this.model.get('original-id') +
+                            '/hqdefault.jpg');
         },
+
         /**
          * Renders a YouTube video in the tile.
          *
@@ -419,6 +412,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @return {TileView}
          */
         'getItemView': function (item) {
+            //TODO: hack for newegg, provide better way
+            if (item.get('type') === 'video') {
+                item.set('type', item.get('template'));
+            }
+
             return SecondFunnel.utils.findClass('TileView',
                 SecondFunnel.core.getModifiedTemplateName(
                     item.get('type') || item.get('template')),
