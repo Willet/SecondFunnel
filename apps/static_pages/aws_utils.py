@@ -9,6 +9,8 @@ import gzip
 
 from django.conf import settings
 
+from boto import sns
+
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
@@ -186,3 +188,23 @@ def create_bucket_website_alias(dns_name, bucket_name=None):
 
         else:
             return bucket, "INSYNC", 0
+
+
+def sns_notify(region_name='us-west-2', topic_name='page_generator',
+               message='page_generation_complete'):
+    # get region object by name (@raises IndexError)
+    region = filter(lambda x: x.name == region_name, sns.regions())[0]
+    if not region:
+        raise IndexError('no such region: %s' % region_name)
+
+    connection = sns.SNSConnection(
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region=region)
+
+    try:
+        connection.create_topic(topic_name)
+    except:
+        raise  # TODO: get exception class
+
+    # Create Topic
