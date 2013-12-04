@@ -468,21 +468,26 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // loads masonry on this view
             SecondFunnel.layoutEngine.initialize(this, SecondFunnel.options);
 
+            // unbind window.scroll and resize before init binds them again.
+            (function (globals) {
+                if (!globals) {
+                    return;
+                }
+                globals.scrollHandler = globals.scrollHandler ||
+                    _.throttle(self.pageScroll, 500);
+                globals.resizeHandler = globals.resizeHandler ||
+                    _.throttle(function () {
+                        $('.resizable', document).trigger('resize');
+                        SecondFunnel.vent.trigger('windowResize');
+                    }, 1000);
+                $window
+                    .unbind('scroll', globals.scrollHandler)
+                    .unbind('resize', globals.resizeHandler)
+                    .scroll(globals.scrollHandler)
+                    .resize(globals.resizeHandler);
+            }(SecondFunnel._globals));
+
             $window
-                .scroll(_.throttle(this.pageScroll, 500))
-                .resize(_.throttle(function () {
-                    // did you know any DOM element without resize events
-                    // can still react to potential resizes by having its
-                    // own .bind('resize', function () {})?
-                    $('.resizable', document).trigger('resize');
-
-                    // automatically redraw tiles already added to the page
-                    // to fit the current page mode if it changes
-                    // (mobile/desktop)
-                    // SecondFunnel.discovery.render();
-
-                    SecondFunnel.vent.trigger('windowResize');
-                }, 1000))
                 .scrollStopped(function () {
                     // deal with tap indicator fade in/outs
                     SecondFunnel.vent.trigger('scrollStopped', self);

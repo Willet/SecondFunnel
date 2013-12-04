@@ -7,6 +7,11 @@ var SecondFunnel = new Marionette.Application(),
     ev = new $.Event('remove'),
     orig = $.fn.remove;
 
+// _globals stores things that survive application reinitialization.
+// it is currently used to keep reference to window's scroll and
+// resize handlers so we can unbind them later.
+SecondFunnel._globals = SecondFunnel._globals || {};
+
 SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
 (function (details) {
