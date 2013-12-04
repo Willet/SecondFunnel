@@ -403,8 +403,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 // decrement the allowed displays of each shown tile.
                 if (self.resultsThreshold[tileId] !== undefined &&
                     --self.resultsThreshold[tileId] < 0) {
-                    console.error('tile ' + tileId +
-                        ' has been disabled by its per-page threshold.');
+                    // tile has been disabled by its per-page threshold
                     continue;
                 }
                 respBuilder.push(tileJson);  // this tile passes

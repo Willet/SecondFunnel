@@ -444,6 +444,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
                 console.log('laying out initial results');
+
+                // unique-by-id the list of initial results.
+                options.initialResults = _.uniq(options.initialResults,
+                    false, function (result) { return result['tile-id']; });
+
                 this.collection.add(options.initialResults);
                 SecondFunnel.intentRank.addResultsShown(options.initialResults);
             }
