@@ -206,8 +206,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'name': 'master',  // easier to know what this is as an obj
                     'dominant-colour': 'transparent',
                     'width': 2048,
-                    'height': 2048,
-                    'I am': 'an idiot'
+                    'height': 2048
                 }
             }
         },

@@ -53,6 +53,14 @@ function reinitialize(app) {
     });
 
     app.addInitializer(function () {
+        // there isn't an "view.isOpen", so this checks if the feed element
+        // exists, and if it does, close the view.
+        if(app.discoveryArea.$el) {
+            app.discoveryArea.close();
+        }
+    });
+
+    app.addInitializer(function () {
         // Add our initializer, this allows us to pass a series of tiles
         // to be displayed immediately (and first) on the landing page.
 

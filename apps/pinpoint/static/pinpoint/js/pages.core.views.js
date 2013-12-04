@@ -470,9 +470,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // unbind window.scroll and resize before init binds them again.
             (function (globals) {
-                if (!globals) {
-                    return;
-                }
                 globals.scrollHandler = globals.scrollHandler ||
                     _.throttle(self.pageScroll, 500);
                 globals.resizeHandler = globals.resizeHandler ||
@@ -480,11 +477,20 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                         $('.resizable', document).trigger('resize');
                         SecondFunnel.vent.trigger('windowResize');
                     }, 1000);
+                globals.orientationChangeHandler = globals.orientationChangeHandler ||
+                    function () {
+                        SecondFunnel.vent.trigger("rotate");
+                    };
+
                 $window
-                    .unbind('scroll', globals.scrollHandler)
-                    .unbind('resize', globals.resizeHandler)
                     .scroll(globals.scrollHandler)
                     .resize(globals.resizeHandler);
+
+                // serve orientation change event via vent
+                if (window.addEventListener) {  // IE 8
+                    window.addEventListener("orientationchange",
+                        globals.orientationChangeHandler, false);
+                }
             }(SecondFunnel._globals));
 
             $window
@@ -492,13 +498,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     // deal with tap indicator fade in/outs
                     SecondFunnel.vent.trigger('scrollStopped', self);
                 });
-
-            // serve orientation change event via vent
-            if (window.addEventListener) {  // IE 8
-                window.addEventListener("orientationchange", function () {
-                    SecondFunnel.vent.trigger("rotate");
-                }, false);
-            }
 
             // Vent Listeners
             SecondFunnel.vent.on("click:tile", this.updateContentStream, this);
@@ -509,6 +508,32 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 SecondFunnel.layoutEngine.layout(self);
             }));
             return this;
+        },
+
+        /**
+         * remove events bound in attachListeners.
+         */
+        'detachListeners': function () {
+            (function (globals) {
+                $window
+                    .unbind('scroll', globals.scrollHandler)
+                    .unbind('resize', globals.resizeHandler);
+
+                if (window.removeEventListener) {
+                    window.removeEventListener("orientationchange",
+                        globals.orientationChangeHandler, false);
+                }
+            }(SecondFunnel._globals));
+
+            SecondFunnel.vent.off("click:tile");
+            SecondFunnel.vent.off('change:campaign');
+            SecondFunnel.vent.off("finished");
+
+            SecondFunnel.vent.off('windowResize');  // in layoutEngine
+        },
+
+        'onClose': function () {
+            return this.detachListeners();
         },
 
         /**
