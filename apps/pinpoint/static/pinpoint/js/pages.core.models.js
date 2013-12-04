@@ -63,7 +63,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'initialize': function (attributes, options) {
             // turn image json into image objects for easier access.
             var self = this,
-                defaultImage = this.getDefaultImage(),
+                defaultImage,
                 imgInstances = [];
 
             // replace all image json with their objects.
@@ -97,6 +97,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'url': this.get('url')
                 }));
             }
+
+            defaultImage = this.getDefaultImage();
+
             this.set({
                 'images': imgInstances,
                 'defaultImage': defaultImage,
