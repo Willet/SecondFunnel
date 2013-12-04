@@ -374,6 +374,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         // {[tileId: maxShow,]}
         // if tileId is in initial results and you want it shown only once,
         // set maxShow to 0.
+        // TILES THAT LOOK THE SAME FOR TWO PAGES CAN HAVE DIFFERENT TILE IDS
         'resultsThreshold': SecondFunnel.option('resultsThreshold', {}),
 
         /**
@@ -399,12 +400,32 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     continue;  // is this a tile...?
                 }
 
+                // (hopefully) temporary method for newegg pages to restrict
+                // the appearance of each "banner" tile to "once".
+                if (tileJson.template === 'banner') {
+                    if (self.resultsThreshold[tileId] === undefined) {
+                        // give each tile ONE chance to appear,
+                        // whatever its tile id is
+                        self.resultsThreshold[tileId] = 1;
+                    }
+                }
+
+                // (hopefully) temporary method for newegg pages to restrict
+                // the appearance of a particular youtube video to
+                // "once, including the one in initial results".
+                if (tileJson.template === 'youtube' &&
+                    tileJson['original-id'] === "YICKow4ckUA") {
+                    continue;
+                }
+
                 // decrement the allowed displays of each shown tile.
                 if (self.resultsThreshold[tileId] !== undefined &&
                     --self.resultsThreshold[tileId] < 0) {
                     // tile has been disabled by its per-page threshold
                     continue;
                 }
+
+                console.error('adding tile ' + tileId);
                 respBuilder.push(tileJson);  // this tile passes
             }
 
