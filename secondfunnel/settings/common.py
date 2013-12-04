@@ -9,6 +9,7 @@ import sys
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
+MOCK_IR_SERVER = False
 
 DEFAULT_CHARSET = 'utf-8'
 FILE_CHARSET = 'utf-8'  # apparently something we need to enforce for File()
