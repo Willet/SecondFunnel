@@ -470,17 +470,14 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // unbind window.scroll and resize before init binds them again.
             (function (globals) {
-                globals.scrollHandler = globals.scrollHandler ||
-                    _.throttle(self.pageScroll, 500);
-                globals.resizeHandler = globals.resizeHandler ||
-                    _.throttle(function () {
-                        $('.resizable', document).trigger('resize');
-                        SecondFunnel.vent.trigger('windowResize');
-                    }, 1000);
-                globals.orientationChangeHandler = globals.orientationChangeHandler ||
-                    function () {
-                        SecondFunnel.vent.trigger("rotate");
-                    };
+                globals.scrollHandler = _.throttle(self.pageScroll, 500);
+                globals.resizeHandler = _.throttle(function () {
+                    $('.resizable', document).trigger('resize');
+                    SecondFunnel.vent.trigger('windowResize');
+                }, 1000);
+                globals.orientationChangeHandler = function () {
+                    SecondFunnel.vent.trigger("rotate");
+                };
 
                 $window
                     .scroll(globals.scrollHandler)
