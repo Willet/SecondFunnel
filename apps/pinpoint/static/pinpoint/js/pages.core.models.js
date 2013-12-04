@@ -425,7 +425,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     continue;
                 }
 
-                console.error('adding tile ' + tileId);
                 respBuilder.push(tileJson);  // this tile passes
             }
 
