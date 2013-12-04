@@ -372,6 +372,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'config': {},
         'loading' : false,
 
+        // {[tileId: maxShow,]}
+        // if tileId is in initial results and you want it shown only once,
+        // set maxShow to 0.
+        'resultsThreshold': SecondFunnel.option('resultsThreshold', {}),
+
         /**
          * process common attributes, then delegate the collection's parsing
          * method to their individual tiles.
@@ -382,12 +387,33 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          */
         'parse': function (resp, options) {
             // this = the instance
-            var self = this;
+            var self = this,
+                i = 0,
+                tileJson,
+                tileId,
+                respBuilder = [];  // new resp after filter(s)
+
+            for (i = 0; i < resp.length; i++) {
+                tileJson = resp[i];
+                tileId = tileJson['tile-id'];
+                if (!tileId) {
+                    continue;  // is this a tile...?
+                }
+
+                // decrement the allowed displays of each shown tile.
+                if (self.resultsThreshold[tileId] !== undefined &&
+                    --self.resultsThreshold[tileId] < 0) {
+                    console.error('tile ' + tileId +
+                        ' has been disabled by its per-page threshold.');
+                    continue;
+                }
+                respBuilder.push(tileJson);  // this tile passes
+            }
 
             // SHUFFLE_RESULTS is always true
-            resp = _.shuffle(resp);
+            respBuilder = _.shuffle(respBuilder);
 
-            return _.map(resp, function (jsonEntry) {
+            return _.map(respBuilder, function (jsonEntry) {
                 var TileClass = SecondFunnel.utils.findClass('Tile',
                     jsonEntry.type || jsonEntry.template, module.Tile);
                 return TileClass.prototype.parse.call(self, jsonEntry);
