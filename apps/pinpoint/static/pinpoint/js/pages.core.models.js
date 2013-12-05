@@ -137,7 +137,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                         return new module.Image(this.get('images')[0]);
                     }
                 } catch (err) {
-                    // zero images
+                    // fuck this shit (wild guess)
+                    return new module.Image({
+                        'url': this.get('url')
+                    });
                 }
             }
 
