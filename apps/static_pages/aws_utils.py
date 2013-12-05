@@ -198,8 +198,6 @@ def sns_connection(region_name=settings.AWS_SNS_REGION_NAME):
     @raises IndexError
     """
     region = filter(lambda x: x.name == region_name, sns.regions())[0]
-    if not region:
-        raise IndexError('no such region: %s' % region_name)
 
     return sns.SNSConnection(
         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
@@ -220,6 +218,9 @@ class SNSTopic(object):
         if not connection:
             connection = sns_connection()
 
+        self.connection = connection
+        self.topic_name = topic_name
+
         topics_resp = connection.get_all_topics()
         arns = [topic['TopicArn'] for topic in
                 topics_resp['ListTopicsResponse']['ListTopicsResult']['Topics']]
@@ -232,9 +233,6 @@ class SNSTopic(object):
             myself = self.create()
             self.arn = myself['CreateTopicResponse']['CreateTopicResult']\
                 ['TopicArn']
-
-        self.connection = connection
-        self.topic_name = topic_name
 
     def publish(self, subject='', message=''):
         """Sends a message to the SNS topic.
@@ -275,13 +273,22 @@ class SNSTopic(object):
 
 def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
                topic_name=settings.AWS_SNS_TOPIC_NAME,
-               subject=None, message=''):
+               subject=None, message='', dev_suffix=True):
     """Sends a message to an SNS board.
 
     The SQS queue should subscribe to the SNS topic: http://i.imgur.com/fLOdNyD.png
 
-    @raises all sorts of Exceptions
+    @param dev_suffix {bool} whether '_dev' or '_test' will be added to the
+    topic name depending on the current environment.
+
+    @raises {IndexError|TypeError|ValueError}
     """
+
+    # ENVIRONMENT is "production" in production
+    if dev_suffix and settings.ENVIRONMENT in ['dev', 'test']:
+        topic_name = '{topic_name}_{env}'.format(topic_name=topic_name,
+                                                 env=settings.ENVIRONMENT)
+
     connection = sns_connection(region_name)
     topic = SNSTopic(topic_name=topic_name, connection=connection)
     topic.publish(subject=subject, message=message)
