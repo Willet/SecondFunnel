@@ -190,21 +190,98 @@ def create_bucket_website_alias(dns_name, bucket_name=None):
             return bucket, "INSYNC", 0
 
 
-def sns_notify(region_name='us-west-2', topic_name='page_generator',
-               message='page_generation_complete'):
-    # get region object by name (@raises IndexError)
+def sns_connection(region_name=settings.AWS_SNS_REGION_NAME):
+    """Returns an SNSConnection that is already authenticated.
+
+    us-west-2 is oregon, the region we use by default.
+
+    @raises IndexError
+    """
     region = filter(lambda x: x.name == region_name, sns.regions())[0]
     if not region:
         raise IndexError('no such region: %s' % region_name)
 
-    connection = sns.SNSConnection(
+    return sns.SNSConnection(
         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         region=region)
 
-    try:
-        connection.create_topic(topic_name)
-    except:
-        raise  # TODO: get exception class
 
-    # Create Topic
+class SNSTopic(object):
+    """Object related to an Amazon SNS topic."""
+
+    connection = None
+    topic_name = ''
+    arn = None  # topics have "ARNs"
+
+    def __init__(self, topic_name=settings.AWS_SNS_TOPIC_NAME,
+                 connection=None):
+        """@raises IndexError"""
+        if not connection:
+            connection = sns_connection()
+
+        topics_resp = connection.get_all_topics()
+        arns = [topic['TopicArn'] for topic in
+                topics_resp['ListTopicsResponse']['ListTopicsResult']['Topics']]
+        try:
+            # the correct ARN is the ARN with the topic name at the end of it
+            self.arn = filter(lambda arn: topic_name in arn[-len(topic_name):],
+                              arns)[0]
+        except IndexError as err:
+            # topic doesn't exist. make one, then get its ARN
+            myself = self.create()
+            self.arn = myself['CreateTopicResponse']['CreateTopicResult']\
+                ['TopicArn']
+
+        self.connection = connection
+        self.topic_name = topic_name
+
+    def publish(self, subject='', message=''):
+        """Sends a message to the SNS topic.
+
+        message may be in json form, but this function only accepts a string.
+        """
+        if subject is None:
+            subject = ''
+
+        if len(subject) > 100:  # max length is 100 - raise
+            raise ValueError('SNS subject too long')
+
+        if len(message) > 1024 * 256:  # max length is 256kB - raise
+            raise ValueError('SNS message too long')
+
+        self.connection.publish(topic=self.arn, message=message,
+                                subject=subject)
+
+    def create(self):
+        """Creates the topic if it hasn't been created already.
+        It is safe to create a topic that already exists.
+
+        @returns {dict}
+
+        Example return: {
+            'CreateTopicResponse': {
+                'ResponseMetadata': {
+                    'RequestId': '4f4be027-252d-50e1-89b6-ab3dfc05fcf3'
+                },
+                'CreateTopicResult': {
+                    'TopicArn': 'arn:aws:sns:us-west-2:056265713214:page_generator'
+                }
+            }
+        }
+        """
+        return self.connection.create_topic(self.topic_name)
+
+
+def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
+               topic_name=settings.AWS_SNS_TOPIC_NAME,
+               subject=None, message=''):
+    """Sends a message to an SNS board.
+
+    The SQS queue should subscribe to the SNS topic: http://i.imgur.com/fLOdNyD.png
+
+    @raises all sorts of Exceptions
+    """
+    connection = sns_connection(region_name)
+    topic = SNSTopic(topic_name=topic_name, connection=connection)
+    topic.publish(subject=subject, message=message)
