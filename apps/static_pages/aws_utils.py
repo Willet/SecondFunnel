@@ -248,8 +248,8 @@ class SNSTopic(object):
         if len(message) > 1024 * 256:  # max length is 256kB - raise
             raise ValueError('SNS message too long')
 
-        self.connection.publish(topic=self.arn, message=message,
-                                subject=subject)
+        return self.connection.publish(topic=self.arn, message=message,
+                                       subject=subject)
 
     def create(self):
         """Creates the topic if it hasn't been created already.
@@ -291,4 +291,4 @@ def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
 
     connection = sns_connection(region_name)
     topic = SNSTopic(topic_name=topic_name, connection=connection)
-    topic.publish(subject=subject, message=message)
+    return topic.publish(subject=subject, message=message)
