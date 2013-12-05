@@ -56,6 +56,8 @@ function reinitialize(app) {
         // there isn't an "view.isOpen", so this checks if the feed element
         // exists, and if it does, close the view.
         if(app.discovery && app.discovery.$el) {
+            // Why is this necessary?
+            app.discovery.$el.empty();
             app.discovery.close();
             delete app.discovery;
         }
