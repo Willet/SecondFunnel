@@ -211,8 +211,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 fullTileWidth = normalTileWidth * 4,  // 4col (standby)
                 normalImageInfo = this.model.get('defaultImage')
                     .width(normalTileWidth, true),  // undefined if not found
-                wideImageInfo = this.model.get('defaultImage')
-                    /*.width(wideTileWidth, true)*/,  // undefined if not found
+                wideImageInfo = this.model.get('defaultImage'),
+                    /*.width(wideTileWidth, true)*/  // undefined if not found
                 sizes = {
                     'normal': normalTileWidth,
                     'wide': wideTileWidth,
@@ -434,16 +434,25 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             _.bindAll(this, 'pageScroll', 'toggleLoading');
 
             this.collection = new SecondFunnel.core.TileCollection();
-            this.categories = new module.CategorySelector(  // v-- options.categories is deprecated
+            /* this.categories = new module.CategorySelector(  // v-- options.categories is deprecated
                 SecondFunnel.option("page:categories") ||
                 SecondFunnel.option("categories") || []
-            );
+            ); */
 
             this.attachListeners();
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
                 console.log('laying out initial results');
+
+                // unique-by-id the list of initial results.
+                options.initialResults = _.uniq(options.initialResults,
+                    false, function (result) { return result['tile-id']; });
+
+                // unique-by-original-url youtube videos
+                options.initialResults = _.uniq(options.initialResults,
+                    false, function (result) { return result['original-url']; });
+
                 this.collection.add(options.initialResults);
                 SecondFunnel.intentRank.addResultsShown(options.initialResults);
             }
@@ -463,42 +472,69 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // loads masonry on this view
             SecondFunnel.layoutEngine.initialize(this, SecondFunnel.options);
 
-            $window
-                .scroll(_.throttle(this.pageScroll, 500))
-                .resize(_.throttle(function () {
-                    // did you know any DOM element without resize events
-                    // can still react to potential resizes by having its
-                    // own .bind('resize', function () {})?
+            // unbind window.scroll and resize before init binds them again.
+            (function (globals) {
+                globals.scrollHandler = _.throttle(self.pageScroll, 500);
+                globals.resizeHandler = _.throttle(function () {
                     $('.resizable', document).trigger('resize');
-
-                    // automatically redraw tiles already added to the page
-                    // to fit the current page mode if it changes
-                    // (mobile/desktop)
-                    // SecondFunnel.discovery.render();
-
                     SecondFunnel.vent.trigger('windowResize');
-                }, 1000))
+                }, 1000);
+                globals.orientationChangeHandler = function () {
+                    SecondFunnel.vent.trigger("rotate");
+                };
+
+                $window
+                    .scroll(globals.scrollHandler)
+                    .resize(globals.resizeHandler);
+
+                // serve orientation change event via vent
+                if (window.addEventListener) {  // IE 8
+                    window.addEventListener("orientationchange",
+                        globals.orientationChangeHandler, false);
+                }
+            }(SecondFunnel._globals));
+
+            $window
                 .scrollStopped(function () {
                     // deal with tap indicator fade in/outs
                     SecondFunnel.vent.trigger('scrollStopped', self);
                 });
 
-            // serve orientation change event via vent
-            if (window.addEventListener) {  // IE 8
-                window.addEventListener("orientationchange", function () {
-                    SecondFunnel.vent.trigger("rotate");
-                }, false);
-            }
-
             // Vent Listeners
             SecondFunnel.vent.on("click:tile", this.updateContentStream, this);
-            SecondFunnel.vent.on('change:campaign', this.categoryChanged, this);
+            // SecondFunnel.vent.on('change:campaign', this.categoryChanged, this);
 
             SecondFunnel.vent.on("finished", _.once(function () {
                 // the first batch of results need to layout themselves
                 SecondFunnel.layoutEngine.layout(self);
             }));
             return this;
+        },
+
+        /**
+         * remove events bound in attachListeners.
+         */
+        'detachListeners': function () {
+            (function (globals) {
+                $window
+                    .unbind('scroll', globals.scrollHandler)
+                    .unbind('resize', globals.resizeHandler);
+
+                if (window.removeEventListener) {
+                    window.removeEventListener("orientationchange",
+                        globals.orientationChangeHandler, false);
+                }
+            }(SecondFunnel._globals));
+
+            SecondFunnel.vent.off("click:tile");
+            // SecondFunnel.vent.off('change:campaign');
+            SecondFunnel.vent.off("finished");
+
+            SecondFunnel.vent.off('windowResize');  // in layoutEngine
+        },
+
+        'onClose': function () {
+            return this.detachListeners();
         },
 
         /**
@@ -611,7 +647,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @constructor
      * @type {*}
      */
-    this.CategoryView = Marionette.ItemView.extend({
+    /*this.CategoryView = Marionette.ItemView.extend({
         'events': {
             'click': function (ev) {
                 ev.preventDefault();
@@ -626,7 +662,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             delete options.$el;
             this.model = new module.Category(options);
         }
-    });
+    });*/
 
     /**
      * Computes the number of categories the page is allowed to display.
@@ -636,7 +672,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @constructor
      * @type {CompositeView}
      */
-    this.CategorySelector = Marionette.CompositeView.extend({
+    /*this.CategorySelector = Marionette.CompositeView.extend({
         'itemView': module.CategoryView,
 
         'initialize': function (categories) {
@@ -655,7 +691,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             });
             this.views = views;
         }
-    });
+    });*/
 
     /**
      * Contents inside a PreviewWindow.

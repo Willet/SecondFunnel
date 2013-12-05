@@ -100,6 +100,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
                 // reset fail counter
                 collection.ajaxFailCount = 0;
 
+                // SHUFFLE_RESULTS is always true
                 deferred.resolve(_.shuffle(results));
                 resultsAlreadyRequested = _.compact(intentRank.getTileIds(results));
 

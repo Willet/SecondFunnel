@@ -81,6 +81,8 @@
         // , 'lockWidth': undefined  // must be true (not 1, {}, ...) or a function that returns true. undefined means auto.
         // , 'desiredWidth': 0,  // number, or a function that returns a number. 0 means auto.
 
+        , 'resultsThreshold': {{ campaign.results_threshold|safe|default:"undefined" }}  // {[tileId: num,]}
+
         , 'initialResults': [
             {% for result in initial_results %}
                 {{ result }}

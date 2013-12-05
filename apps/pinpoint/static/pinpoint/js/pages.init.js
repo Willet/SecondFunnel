@@ -7,20 +7,23 @@
 function reinitialize(app) {
     "use strict";
 
-    app.addRegions({
-        'heroArea': '#hero-area',
-        'discoveryArea': '#discovery-area',
-        'previewArea': '#preview'
-    });
+    // setup regions if not already
+    if (!app.heroArea) {
+        app.addRegions({
+            'heroArea': '#hero-area',
+            'discoveryArea': '#discovery-area',
+            'previewArea': '#preview'
+        });
+    }
 
     // from davidsulc/marionette-gentle-introduction
-    app.navigate = function (route, options) {
+    app.navigate = app.navigate || function (route, options) {
         options = options || {};
         Backbone.history.navigate(route, options);
     };
 
     // from davidsulc/marionette-gentle-introduction
-    app.getCurrentRoute = function () {
+    app.getCurrentRoute = app.getCurrentRoute || function () {
         return Backbone.history.fragment;
     };
 
@@ -50,6 +53,17 @@ function reinitialize(app) {
         app.heroArea.show(fa);
 
         broadcast('heroAreaRendered', fa);
+    });
+
+    app.addInitializer(function () {
+        // there isn't an "view.isOpen", so this checks if the feed element
+        // exists, and if it does, close the view.
+        if(app.discovery && app.discovery.$el) {
+            // Why is this necessary?
+            app.discovery.$el.empty();
+            app.discovery.close();
+            delete app.discovery;
+        }
     });
 
     app.addInitializer(function () {
