@@ -7,20 +7,23 @@
 function reinitialize(app) {
     "use strict";
 
-    app.addRegions({
-        'heroArea': '#hero-area',
-        'discoveryArea': '#discovery-area',
-        'previewArea': '#preview'
-    });
+    // setup regions if not already
+    if (!app.heroArea) {
+        app.addRegions({
+            'heroArea': '#hero-area',
+            'discoveryArea': '#discovery-area',
+            'previewArea': '#preview'
+        });
+    }
 
     // from davidsulc/marionette-gentle-introduction
-    app.navigate = function (route, options) {
+    app.navigate = app.navigate || function (route, options) {
         options = options || {};
         Backbone.history.navigate(route, options);
     };
 
     // from davidsulc/marionette-gentle-introduction
-    app.getCurrentRoute = function () {
+    app.getCurrentRoute = app.getCurrentRoute || function () {
         return Backbone.history.fragment;
     };
 

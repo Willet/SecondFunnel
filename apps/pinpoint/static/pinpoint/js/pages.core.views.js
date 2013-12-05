@@ -211,8 +211,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 fullTileWidth = normalTileWidth * 4,  // 4col (standby)
                 normalImageInfo = this.model.get('defaultImage')
                     .width(normalTileWidth, true),  // undefined if not found
-                wideImageInfo = this.model.get('defaultImage')
-                    /*.width(wideTileWidth, true)*/,  // undefined if not found
+                wideImageInfo = this.model.get('defaultImage'),
+                    /*.width(wideTileWidth, true)*/  // undefined if not found
                 sizes = {
                     'normal': normalTileWidth,
                     'wide': wideTileWidth,
@@ -434,10 +434,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             _.bindAll(this, 'pageScroll', 'toggleLoading');
 
             this.collection = new SecondFunnel.core.TileCollection();
-            this.categories = new module.CategorySelector(  // v-- options.categories is deprecated
+            /* this.categories = new module.CategorySelector(  // v-- options.categories is deprecated
                 SecondFunnel.option("page:categories") ||
                 SecondFunnel.option("categories") || []
-            );
+            ); */
 
             this.attachListeners();
 
@@ -448,6 +448,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 // unique-by-id the list of initial results.
                 options.initialResults = _.uniq(options.initialResults,
                     false, function (result) { return result['tile-id']; });
+
+                // unique-by-original-url youtube videos
+                options.initialResults = _.uniq(options.initialResults,
+                    false, function (result) { return result['original-url']; });
 
                 this.collection.add(options.initialResults);
                 SecondFunnel.intentRank.addResultsShown(options.initialResults);
@@ -498,7 +502,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             // Vent Listeners
             SecondFunnel.vent.on("click:tile", this.updateContentStream, this);
-            SecondFunnel.vent.on('change:campaign', this.categoryChanged, this);
+            // SecondFunnel.vent.on('change:campaign', this.categoryChanged, this);
 
             SecondFunnel.vent.on("finished", _.once(function () {
                 // the first batch of results need to layout themselves
@@ -523,7 +527,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }(SecondFunnel._globals));
 
             SecondFunnel.vent.off("click:tile");
-            SecondFunnel.vent.off('change:campaign');
+            // SecondFunnel.vent.off('change:campaign');
             SecondFunnel.vent.off("finished");
 
             SecondFunnel.vent.off('windowResize');  // in layoutEngine
@@ -643,7 +647,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @constructor
      * @type {*}
      */
-    this.CategoryView = Marionette.ItemView.extend({
+    /*this.CategoryView = Marionette.ItemView.extend({
         'events': {
             'click': function (ev) {
                 ev.preventDefault();
@@ -658,7 +662,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             delete options.$el;
             this.model = new module.Category(options);
         }
-    });
+    });*/
 
     /**
      * Computes the number of categories the page is allowed to display.
@@ -668,7 +672,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @constructor
      * @type {CompositeView}
      */
-    this.CategorySelector = Marionette.CompositeView.extend({
+    /*this.CategorySelector = Marionette.CompositeView.extend({
         'itemView': module.CategoryView,
 
         'initialize': function (categories) {
@@ -687,7 +691,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             });
             this.views = views;
         }
-    });
+    });*/
 
     /**
      * Contents inside a PreviewWindow.
