@@ -78,6 +78,9 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
                 'merge': true,
                 'remove': false,
                 'crossDomain': true,
+                'xhrFields': {
+                    'withCredentials': true
+                },
                 'data': data
             }, this.config, intentRank.options, options),
             backupResults = _.chain(intentRank.options.backupResults)
@@ -97,6 +100,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
                 // reset fail counter
                 collection.ajaxFailCount = 0;
 
+                // SHUFFLE_RESULTS is always true
                 deferred.resolve(_.shuffle(results));
                 resultsAlreadyRequested = _.compact(intentRank.getTileIds(results));
 
