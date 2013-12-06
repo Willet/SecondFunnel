@@ -109,6 +109,8 @@ STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 # http://django_compressor.readthedocs.org/en/latest/remote-storages/
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
+AWS_SNS_REGION_NAME = 'us-west-2'
+AWS_SNS_TOPIC_NAME = 'page_generator'
 
 # Disable signature/accesskey/expire attrs being appended to s3 links
 AWS_QUERYSTRING_AUTH = False
