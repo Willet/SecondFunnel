@@ -145,7 +145,7 @@ def generate_static_campaigns():
 
 
 @celery.task
-def on_page_generation_complete():
+def poll_page_generation_completion():
     """Run something if the poll detects any messages in the queue."""
 
     def foreach_message(messages):

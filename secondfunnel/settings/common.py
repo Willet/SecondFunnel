@@ -377,5 +377,15 @@ JENKINS_TASKS = (
 IMAGE_SERVICE_API = "http://imageservice.elasticbeanstalk.com"
 IMAGE_SERVICE_STORE = "http://images.secondfunnel.com"
 
+# only celery workers use this setting.
+# run a celery worker with manage.py.
+CELERYBEAT_SCHEDULE = {
+    'poll page generation completion': {
+        'task': 'apps.static_pages.tasks.poll_page_generation_completion',
+        'schedule': timedelta(seconds=10),
+        'args': ()
+    },
+}
+
 djcelery.setup_loader()
 
