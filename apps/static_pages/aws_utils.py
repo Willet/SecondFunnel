@@ -10,6 +10,8 @@ import gzip
 from django.conf import settings
 
 from boto import sns
+from boto import sqs
+from boto.sqs.connection import SQSConnection
 
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
@@ -205,6 +207,21 @@ def sns_connection(region_name=settings.AWS_SNS_REGION_NAME):
         region=region)
 
 
+def sqs_connection(region_name=settings.AWS_SQS_REGION_NAME):
+    """Returns an SQSConnection that is already authenticated.
+
+    us-west-2 is oregon, the region we use by default.
+
+    @raises IndexError
+    """
+    region = filter(lambda x: x.name == region_name, sqs.regions())[0]
+
+    return sqs.connect_to_region(
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region_name=region_name)
+
+
 class SNSTopic(object):
     """Object related to an Amazon SNS topic."""
 
@@ -271,6 +288,34 @@ class SNSTopic(object):
         return self.connection.create_topic(self.topic_name)
 
 
+class SQSQueue(object):
+    """Object related to an Amazon SQS queue."""
+
+    connection = None
+
+    def __init__(self, queue_name=settings.AWS_SQS_QUEUE_NAME,
+                 connection=None):
+        """."""
+        if not connection:
+            connection = sqs_connection()
+
+        self.connection = connection
+        # @type {boto.sqs.queue.Queue}
+        self.queue = connection.get_queue(queue_name=queue_name)
+
+    def receive(self, num_messages=1):
+        """Retrieve one message from the SQS queue.
+
+        SQS Queues have visibility timeouts.
+        Repeated calls may receive different messages.
+
+        @returns {list}  [<boto.sqs.message.Message instance]
+        """
+        return self.queue.get_messages(num_messages=num_messages)
+        # return self.connection.receive_message(self.queue,
+        #                                        number_messages=num_messages)
+
+
 def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
                topic_name=settings.AWS_SNS_TOPIC_NAME,
                subject=None, message='', dev_suffix=True):
@@ -292,3 +337,19 @@ def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
     connection = sns_connection(region_name)
     topic = SNSTopic(topic_name=topic_name, connection=connection)
     return topic.publish(subject=subject, message=message)
+
+
+def sqs_poll(callback, region_name=settings.AWS_SQS_REGION_NAME,
+             queue_name=settings.AWS_SQS_QUEUE_NAME, dev_suffix=True):
+    """accept messages from a sqs queue, then pass it into callback."""
+
+    # ENVIRONMENT is "production" in production
+    if dev_suffix and settings.ENVIRONMENT in ['dev', 'test']:
+        queue_name = '{queue_name}_{env}'.format(queue_name=queue_name,
+                                                 env=settings.ENVIRONMENT)
+
+    connection = sqs_connection(region_name=region_name)
+
+    messages = SQSQueue(queue_name=queue_name, connection=connection).receive()
+    # return callback(messages)
+    return messages
