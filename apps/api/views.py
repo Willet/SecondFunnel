@@ -385,6 +385,13 @@ def add_all_content(request, store_id, page_id):
         return HttpResponse(status=500)
 
     for content_id in content_ids:
+        if type(content_id) != type(1):
+            return HttpResponse(status=500)
+
         r = ContentGraphClient.store(store_id).page(page_id).content(content_id).PUT('')
+
+        print r
+        if r.status_code != 200:
+            return HttpResponse(status=500)
 
     return HttpResponse()

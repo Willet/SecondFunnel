@@ -3,6 +3,7 @@ import mock
 import requests
 import random
 from apps.api.tests.utils import AuthenticatedResourceTestCase, configure_mock_request, configure_hammock_request
+from collections import namedtuple
 from django.conf import settings
 from tastypie.test import TestApiClient
 
@@ -71,7 +72,7 @@ class AuthenticatedPageAddAllContentTests(AuthenticatedResourceTestCase):
 
     @mock.patch.object(requests.Session, 'request')
     def test_all_good(self, mock_request):
-        mock_request = configure_mock_request(mock_request, {
+        mock_request = configure_hammock_request(mock_request, {
             self.mock_url_pattern: (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
@@ -91,7 +92,7 @@ class AuthenticatedPageAddAllContentTests(AuthenticatedResourceTestCase):
 
     @mock.patch.object(requests.Session, 'request')
     def test_not_authenticated(self, mock_request):
-        mock_request = configure_mock_request(mock_request, {
+        mock_request = configure_hammock_request(mock_request, {
             self.mock_url_pattern: (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
@@ -112,7 +113,7 @@ class AuthenticatedPageAddAllContentTests(AuthenticatedResourceTestCase):
 
     @mock.patch.object(requests.Session, 'request')
     def test_bad_request_method(self, mock_request):
-        mock_request = configure_mock_request(mock_request, {
+        mock_request = configure_hammock_request(mock_request, {
             self.mock_url_pattern: (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
@@ -141,16 +142,16 @@ class AuthenticatedPageAddAllContentTests(AuthenticatedResourceTestCase):
 
     @mock.patch.object(requests.Session, 'request')
     def test_bad_json(self, mock_request):
-        mock_request = configure_mock_request(mock_request, {
+        mock_request = configure_hammock_request(mock_request, {
             self.mock_url_pattern: (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
             )
         })
 
-        response = self.api_client.put(self.url, format='json', data=json.dumps({
+        response = self.api_client.put(self.url, format='json', data={
             "abc": "def"
-        }))
+        })
 
         self.assertFalse(mock_request.called, 'Mock request was still called when bad json data was provided')
         self.assertHttpApplicationError(response)
@@ -160,29 +161,53 @@ class AuthenticatedPageAddAllContentTests(AuthenticatedResourceTestCase):
         self.assertFalse(mock_request.called, 'Mock request was still called when bad json data was provided')
         self.assertHttpApplicationError(response)
 
-        response = self.api_client.put(self.url, format='json', data=json.dumps([
+        response = self.api_client.put(self.url, format='json', data=[
             {
                 "abc": "def"
             },
             {
                 "ghi": "jkl"
             }
-        ]))
+        ])
 
-        #TODO: This should fail with the current implementation, but for some reason the decoded json type
-        #      resolves as type 'unicode' instead of type 'list' which gets caught by the code to handle
-        #      the first request in this test case
         self.assertFalse(mock_request.called, 'Mock request was still called when bad json data was provided')
         self.assertHttpApplicationError(response)
-        self.fail()
 
     @mock.patch.object(requests.Session, 'request')
     def test_remote_errors(self, mock_request):
-        mock_request = configure_mock_request(mock_request, {
-            self.mock_url_pattern: (
-                {'status': 200, 'content-type': 'application/json'},
-                json.dumps({})
-            )
-        })
+        MockResponse = namedtuple('MockResponse', ['status_code', 'content', 'headers'])
+        inject_variables = {
+            'calls': 0
+        }
 
-        #TODO
+        def side_effect(*args, **kwargs):
+            if inject_variables['calls'] == 0:
+                inject_variables['calls'] += 1
+                return MockResponse(
+                    status_code = 200,
+                    content = '',
+                    headers = {}
+                )
+            elif inject_variables['calls'] == 1:
+                inject_variables['calls'] += 1
+                return MockResponse(
+                    status_code = 500,
+                    content = '',
+                    headers = {}
+                )
+            elif inject_variables['calls'] == 2:
+                self.fail('Mock called too many times')
+        
+        mock_request.side_effect = side_effect
+
+        response = self.api_client.put(self.url, format='json', data=self.content_data)
+
+        self.assertTrue(mock_request.called, 'Mock request was never made')
+        self.assertEqual(mock_request.call_count, 2, 'Mock was not called the correct number of times')
+
+        self.assertEqual(mock_request.call_args_list[0][0], 
+                ('put', settings.CONTENTGRAPH_BASE_URL + '/store/%s/page/%s/content/%s' % (self.store_id, self.page_id, self.content_data[0])))
+        self.assertEqual(mock_request.call_args_list[1][0], 
+                ('put', settings.CONTENTGRAPH_BASE_URL + '/store/%s/page/%s/content/%s' % (self.store_id, self.page_id, self.content_data[1])))
+
+        self.assertHttpApplicationError(response)
