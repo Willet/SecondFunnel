@@ -370,3 +370,21 @@ def approve_content(request, store_id, content_id):
     response = HttpResponse(content=r.content, status=r.status_code)
 
     return mimic_response(r, response)
+
+@request_methods('PUT')
+@check_login
+@never_cache
+@csrf_exempt
+def add_all_content(request, store_id, page_id):
+    try:
+        content_ids = json.loads(request.body)
+    except ValueError:
+        return HttpResponse(status=500)
+
+    if type(content_ids) != type([]):
+        return HttpResponse(status=500)
+
+    for content_id in content_ids:
+        r = ContentGraphClient.store(store_id).page(page_id).content(content_id).PUT('')
+
+    return HttpResponse()
