@@ -7,6 +7,7 @@ import os
 from urlparse import urlparse
 
 from celery import Celery, group
+from celery.utils import noop
 from celery.utils.log import get_task_logger
 
 from django.conf import settings
@@ -20,7 +21,7 @@ from apps.pinpoint.models import Campaign
 from apps.static_pages.models import StaticLog
 
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
-    get_route53_change_status, upload_to_bucket)
+    get_route53_change_status, sqs_poll, SQSQueue, upload_to_bucket)
 from apps.static_pages.utils import (save_static_log, remove_static_log,
     get_bucket_name, create_dummy_request, render_campaign)
 
@@ -141,6 +142,17 @@ def generate_static_campaigns():
         for c in campaigns)
 
     task_group.apply_async()
+
+
+@celery.task
+def poll_page_generation_completion():
+    """Run something if the poll detects any messages in the queue."""
+
+    def foreach_message(messages):
+        """do (currently) nothing with any messages."""
+        return map(noop, messages)
+
+    return sqs_poll(foreach_message)
 
 
 @celery.task

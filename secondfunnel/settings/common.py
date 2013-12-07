@@ -110,7 +110,9 @@ STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_SNS_REGION_NAME = 'us-west-2'
+AWS_SQS_REGION_NAME = AWS_SNS_REGION_NAME  # by default, both oregon
 AWS_SNS_TOPIC_NAME = 'page_generator'
+AWS_SQS_QUEUE_NAME = AWS_SNS_TOPIC_NAME  # by default, same as the sns name
 
 # Disable signature/accesskey/expire attrs being appended to s3 links
 AWS_QUERYSTRING_AUTH = False
@@ -374,6 +376,16 @@ JENKINS_TASKS = (
 
 IMAGE_SERVICE_API = "http://imageservice.elasticbeanstalk.com"
 IMAGE_SERVICE_STORE = "http://images.secondfunnel.com"
+
+# only celery workers use this setting.
+# run a celery worker with manage.py.
+CELERYBEAT_SCHEDULE = {
+    'poll page generation completion': {
+        'task': 'apps.static_pages.tasks.poll_page_generation_completion',
+        'schedule': timedelta(seconds=10),
+        'args': ()
+    },
+}
 
 djcelery.setup_loader()
 
