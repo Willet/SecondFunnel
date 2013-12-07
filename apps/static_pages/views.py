@@ -1,6 +1,9 @@
-import sys, traceback
+import json
+import sys
+import traceback
 
 from apps.intentrank.utils import ajax_jsonp
+from apps.static_pages.aws_utils import sns_notify
 from apps.static_pages.tasks import (create_bucket_for_store_now,
                                      generate_static_campaign_now)
 
@@ -34,6 +37,12 @@ def regenerate_static_campaign(request, store_id, campaign_id):
             }
         }
         status = 404
+
+        # send a 'task incomplete' message to SNS.
+        sns_notify(message=json.dumps({
+           "page-id": "-1",
+           "status": "failed",
+        }))
     except (Exception, BaseException), err:  # for other reasons... failed
         _, exception, _ = sys.exc_info()
         stack = traceback.format_exc().splitlines()
@@ -46,6 +55,12 @@ def regenerate_static_campaign(request, store_id, campaign_id):
             }
         }
         status = 500
+
+        # send a 'task incomplete' message to SNS.
+        sns_notify(message=json.dumps({
+           "page-id": "-1",
+           "status": "failed",
+        }))
     else:  # succeeded
         result = {
             'result': {
@@ -62,6 +77,13 @@ def regenerate_static_campaign(request, store_id, campaign_id):
                 'bytes_written': campaign_returns.get('bytes_written', 0),
             }
         }
+
+        # send a 'task complete' message to SNS.
+        sns_notify(message=json.dumps({
+           "page-id": campaign_returns['campaign'].get('id', -1),
+           "status": "successful",
+        }))
+
 
     return ajax_jsonp(result, request.GET.get('callback', 'callback'),
                       status=status)

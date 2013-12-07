@@ -44,6 +44,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // Default product tile settings, some tiles don't
             // come specifying a type or caption
             'caption': "Shop product",
+            'description': '',
             'tile-id': 0,
             // 'tile-class': 'tile',  // what used tile-class?
             // 'content-type': ''  // where did content-type go?
@@ -63,7 +64,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'initialize': function (attributes, options) {
             // turn image json into image objects for easier access.
             var self = this,
-                defaultImage = this.getDefaultImage(),
+                defaultImage,
                 imgInstances = [];
 
             // replace all image json with their objects.
@@ -97,6 +98,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'url': this.get('url')
                 }));
             }
+
+            defaultImage = this.getDefaultImage();
+
             this.set({
                 'images': imgInstances,
                 'defaultImage': defaultImage,
@@ -134,7 +138,10 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                         return new module.Image(this.get('images')[0]);
                     }
                 } catch (err) {
-                    // zero images
+                    // fuck this shit (wild guess)
+                    return new module.Image({
+                        'url': this.get('url')
+                    });
                 }
             }
 
@@ -206,8 +213,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     'name': 'master',  // easier to know what this is as an obj
                     'dominant-colour': 'transparent',
                     'width': 2048,
-                    'height': 2048,
-                    'I am': 'an idiot'
+                    'height': 2048
                 }
             }
         },
@@ -372,6 +378,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'config': {},
         'loading' : false,
 
+        // {[tileId: maxShow,]}
+        // if tileId is in initial results and you want it shown only once,
+        // set maxShow to 0.
+        // TILES THAT LOOK THE SAME FOR TWO PAGES CAN HAVE DIFFERENT TILE IDS
+        'resultsThreshold': SecondFunnel.option('resultsThreshold', {}),
+
         /**
          * process common attributes, then delegate the collection's parsing
          * method to their individual tiles.
@@ -382,12 +394,51 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          */
         'parse': function (resp, options) {
             // this = the instance
-            var self = this;
+            var self = this,
+                i = 0,
+                tileJson,
+                tileId,
+                respBuilder = [];  // new resp after filter(s)
+
+            for (i = 0; i < resp.length; i++) {
+                tileJson = resp[i];
+                tileId = tileJson['tile-id'];
+                if (!tileId) {
+                    continue;  // is this a tile...?
+                }
+
+                // (hopefully) temporary method for newegg pages to restrict
+                // the appearance of each "banner" tile to "once".
+                if (tileJson.template === 'banner') {
+                    if (self.resultsThreshold[tileId] === undefined) {
+                        // give each tile ONE chance to appear,
+                        // whatever its tile id is
+                        self.resultsThreshold[tileId] = 1;
+                    }
+                }
+
+                // (hopefully) temporary method for newegg pages to restrict
+                // the appearance of a particular youtube video to
+                // "once, including the one in initial results".
+                if (tileJson.template === 'youtube' &&
+                    tileJson['original-id'] === "YICKow4ckUA") {
+                    continue;
+                }
+
+                // decrement the allowed displays of each shown tile.
+                if (self.resultsThreshold[tileId] !== undefined &&
+                    --self.resultsThreshold[tileId] < 0) {
+                    // tile has been disabled by its per-page threshold
+                    continue;
+                }
+
+                respBuilder.push(tileJson);  // this tile passes
+            }
 
             // SHUFFLE_RESULTS is always true
-            resp = _.shuffle(resp);
+            respBuilder = _.shuffle(respBuilder);
 
-            return _.map(resp, function (jsonEntry) {
+            return _.map(respBuilder, function (jsonEntry) {
                 var TileClass = SecondFunnel.utils.findClass('Tile',
                     jsonEntry.type || jsonEntry.template, module.Tile);
                 return TileClass.prototype.parse.call(self, jsonEntry);
