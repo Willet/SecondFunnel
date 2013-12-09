@@ -124,10 +124,13 @@ AWS_SQS_POLLING_QUEUES = [
      'handler': 'handle_assets_queue_items'},
     # https://willet.atlassian.net/browse/CM-127
     {'queue_name': 'tile-generator-notification-queue',
-     'handler': 'handle_tile_generator_queue_items',},
+     'handler': 'handle_tile_generator_queue_items'},
     # https://willet.atlassian.net/browse/CM-128
     {'queue_name': 'ir-config-generator-notification-queue',
      'handler': 'handle_ir_config_queue_items'},
+
+    {'queue_name': 'page_generator',
+     'handler': 'handle_page_generator_queue_items'},
 ]
 
 

@@ -14,18 +14,7 @@ def where(lst, **kwargs):
     are the same as the key-val pairs you specify.
 
     """
-    items = []
-    this_object_is_bad = False
+    def check_keys(dct):
+        return all(item in dct.iteritems() for item in kwargs.iteritems())
 
-    for dct in lst:
-        for key, val in kwargs.iteritems():
-            try:
-                if dct[key] != val:
-                    this_object_is_bad = True
-                    break  # not a qualifying dict
-            except KeyError as err:
-                this_object_is_bad = True
-        if not this_object_is_bad:
-            items.append(dct)
-
-    return items
+    return filter(check_keys, lst)

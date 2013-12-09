@@ -23,8 +23,18 @@ def fetch_queue(queue=None):
         handle_ir_config_queue_items
     from apps.pinpoint.tasks import handle_queue_items as \
         handle_tile_generator_queue_items
+    from apps.static_pages.tasks import handle_queue_items as \
+        handle_page_generator_queue_items
 
     results = {}
+
+    handlers = {
+        'handle_content_queue_items': handle_content_queue_items,
+        'handle_product_queue_items': handle_product_queue_items,
+        'handle_ir_config_queue_items': handle_ir_config_queue_items,
+        'handle_tile_generator_queue_items': handle_tile_generator_queue_items,
+        'handle_page_generator_queue_items': handle_page_generator_queue_items,
+    }
 
     if queue:  # fetch one queue
         queues = [queue]
@@ -43,7 +53,7 @@ def fetch_queue(queue=None):
 
         handler_name = queue['handler']  # e.g. handle_items
 
-        handler = locals().get(handler_name, noop)  # e.g. <function handle_items>
+        handler = handlers.get(handler_name, noop)  # e.g. <function handle_items>
         try:
             queue_results.append(sqs_poll(callback=handler,
                 region_name=region_name, queue_name=queue_name))
