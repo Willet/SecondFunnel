@@ -376,7 +376,7 @@ def approve_content(request, store_id, content_id):
 @check_login
 @never_cache
 @csrf_exempt
-def scraper(request, store_id, scraper_name):
+def delete_scraper(request, store_id, scraper_name):
     r = ContentGraphClient.scraper.store(store_id, scraper_name).DELETE()
 
     response = HttpResponse(content=r.content, status=r.status_code)
