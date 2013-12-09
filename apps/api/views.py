@@ -129,6 +129,8 @@ def get_proxy_results(request, url, body=None, raw=False, method=None):
 
 @append_headers
 @check_login
+@never_cache
+@csrf_exempt
 def proxy_view(request, path):
     """Nick is not a security expert.
 
@@ -160,6 +162,8 @@ def proxy_view(request, path):
 
 @append_headers
 @check_login
+@never_cache
+@csrf_exempt
 def get_suggested_content_by_page(request, store_id, page_id):
     """Returns a multiple lists of product content grouped by
     their product id.
@@ -189,6 +193,8 @@ def get_suggested_content_by_page(request, store_id, page_id):
 
 @append_headers
 @check_login
+@never_cache
+@csrf_exempt
 def tag_content(request, store_id, page_id, content_id, product_id=0):
     """Add a API endpoint to the backend for tagging content with products.
 

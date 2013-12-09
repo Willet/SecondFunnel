@@ -7,8 +7,6 @@ from django.views.decorators.csrf import csrf_exempt
 
 def check_login(fn):
     """wrap the function around three wrappers that check for custom login."""
-    @never_cache
-    @csrf_exempt
     @functools.wraps(fn)
     def wrapped(*args, **kwargs):
         request = args[0]
