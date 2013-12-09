@@ -116,16 +116,18 @@ AWS_SQS_QUEUE_NAME = AWS_SNS_TOPIC_NAME  # by default, same as the sns name
 
 # list of queues to poll regularly, using celery beat
 AWS_SQS_POLLING_QUEUES = [
-    {'queue_name': 'page_generator',
-     'handler': 'handle_pinpoint_queue_items'},
-    {'queue_name': 'scraper-test-queue',
-     'handler': 'handle_scraper_queue_items'},
     # https://willet.atlassian.net/browse/CM-125
     {'queue_name': 'product-update-notification-queue',
      'handler': 'handle_assets_queue_items'},
     # https://willet.atlassian.net/browse/CM-126
     {'queue_name': 'content-update-notification-queue',
      'handler': 'handle_assets_queue_items'},
+    # https://willet.atlassian.net/browse/CM-127
+    {'queue_name': 'tile-generator-notification-queue',
+     'handler': 'handle_tile_generator_queue_items',},
+    # https://willet.atlassian.net/browse/CM-128
+    {'queue_name': 'ir-config-generator-notification-queue',
+     'handler': 'handle_ir_config_queue_items'},
 ]
 
 

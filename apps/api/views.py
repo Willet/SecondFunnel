@@ -390,10 +390,13 @@ def check_queue(request, queue_name):
             if queue.get('queue_name', None):
                 if queue['queue_name'] != name:
                     continue
-            return queue
+            if queue:
+                return queue
         raise ValueError('Queue by that name ({0}) is missing'.format(name))
 
-    if queue_name:
+    try:
         queue = get_default_queue_by_name(queue_name)
-
-    return ajax_jsonp(fetch_queue(queue))
+        return ajax_jsonp(fetch_queue(queue))
+    except (AttributeError, ValueError) as err:
+        # no queue or none queue
+        return ajax_jsonp({err.__class__.__name__: err.message})

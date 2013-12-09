@@ -302,6 +302,8 @@ class SQSQueue(object):
         self.connection = connection
         # @type {boto.sqs.queue.Queue}
         self.queue = connection.get_queue(queue_name=queue_name)
+        if not self.queue:
+            raise ValueError('Error retrieving queue {0}'.format(queue_name))
 
     def receive(self, num_messages=1):
         """Retrieve one message from the SQS queue.
@@ -320,7 +322,7 @@ class SQSQueue(object):
 
 def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
                topic_name=settings.AWS_SNS_TOPIC_NAME,
-               subject=None, message='', dev_suffix=True):
+               subject=None, message='', dev_suffix=False):
     """Sends a message to an SNS board.
 
     The SQS queue should subscribe to the SNS topic: http://i.imgur.com/fLOdNyD.png
@@ -342,7 +344,7 @@ def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
 
 
 def sqs_poll(callback, region_name=settings.AWS_SQS_REGION_NAME,
-             queue_name=settings.AWS_SQS_QUEUE_NAME, dev_suffix=True):
+             queue_name=settings.AWS_SQS_QUEUE_NAME, dev_suffix=False):
     """accept messages from a sqs queue, then pass it into callback."""
 
     # ENVIRONMENT is "production" in production

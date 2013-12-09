@@ -17,9 +17,12 @@ def fetch_queue(queue=None):
 
     """
     # these methods are locally imported for use as SQS callbacks
-    from apps.assets.tasks import handle_queue_items as handle_assets_queue_items
-    from apps.pinpoint.tasks import handle_queue_items as handle_pinpoint_queue_items
-    from apps.scraper.tasks import handle_queue_items as handle_scraper_queue_items
+    from apps.assets.tasks import (handle_content_queue_items,
+                                   handle_product_queue_items)
+    from apps.intentrank.tasks import handle_queue_items as \
+        handle_ir_config_queue_items
+    from apps.pinpoint.tasks import handle_queue_items as \
+        handle_tile_generator_queue_items
 
     results = {}
 
