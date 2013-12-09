@@ -67,7 +67,6 @@ class AuthenticatedPageAddAllContentTests(AuthenticatedResourceTestCase):
         self.store_id = 1
         self.page_id = 1
         self.content_data = [15, 12, random.randint(16, 1000)]
-        self.mock_url_pattern = r'store/\d+/page/\d+/content/\d+/?'
         self.url = '/graph/v1/store/%s/page/%s/content/add_all' % (self.store_id, self.page_id)
 
         #Seting up mocks
