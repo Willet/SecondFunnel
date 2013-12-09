@@ -370,3 +370,31 @@ def approve_content(request, store_id, content_id):
     response = HttpResponse(content=r.content, status=r.status_code)
 
     return mimic_response(r, response)
+
+
+# Task?
+# When does IR update?
+# It updates when tiles are regenerated
+@request_methods('POST')
+@check_login
+@never_cache
+@csrf_exempt
+def generate_ir_config(request, store_id, ir_id):
+    # generate necessary JSON
+    # Yes, it is weird that we have json dumps inside a payload
+    # that will also be dumped, but this is how it is implemented.
+    # payload = {
+    #   'classname': 'com.willetinc.intentrank.engine.config.worker.ConfigWriterTask',
+    #   'conf': json.dumps({
+    #       'storeId': store_id,
+    #       'pageId': ir_id
+    #   })
+    # }
+    #
+    # Post to SQS Queue
+    # queue = SQSQueue()
+    # Alt. create `send` method?
+    # Do we need to create a message object?
+    # queue.queue.send_message(message_content=json.dumps(payload))
+    # Why do we wrap?
+    return HttpResponse(status=200, content='OK')
