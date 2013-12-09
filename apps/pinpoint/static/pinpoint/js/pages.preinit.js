@@ -369,7 +369,7 @@ debugOp = function () {
     var body = document.body,
         timer;
 
-    window.addEventListener('scroll', function() {
+    $(window).scroll(function() {
         clearTimeout(timer);
         if(!body.classList.contains('disable-hover')) {
             body.classList.add('disable-hover')
@@ -378,5 +378,5 @@ debugOp = function () {
         timer = setTimeout(function(){
             body.classList.remove('disable-hover')
         },250);
-    }, false);
+    });
 }());
