@@ -5,7 +5,6 @@ from datetime import timedelta, datetime
 import django.conf.global_settings as DEFAULT_SETTINGS
 
 # Django settings for secondfunnel project.
-import sys
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -114,6 +113,21 @@ AWS_SNS_REGION_NAME = 'us-west-2'
 AWS_SQS_REGION_NAME = AWS_SNS_REGION_NAME  # by default, both oregon
 AWS_SNS_TOPIC_NAME = 'page_generator'
 AWS_SQS_QUEUE_NAME = AWS_SNS_TOPIC_NAME  # by default, same as the sns name
+
+# list of queues to poll regularly, using celery beat
+AWS_SQS_POLLING_QUEUES = [
+    {'queue_name': 'page_generator',
+     'handler': 'handle_pinpoint_queue_items'},
+    {'queue_name': 'scraper-test-queue',
+     'handler': 'handle_scraper_queue_items'},
+    # https://willet.atlassian.net/browse/CM-125
+    {'queue_name': 'product-update-notification-queue',
+     'handler': 'handle_assets_queue_items'},
+    # https://willet.atlassian.net/browse/CM-126
+    {'queue_name': 'content-update-notification-queue',
+     'handler': 'handle_assets_queue_items'},
+]
+
 
 # Disable signature/accesskey/expire attrs being appended to s3 links
 AWS_QUERYSTRING_AUTH = False
@@ -382,11 +396,10 @@ IMAGE_SERVICE_STORE = "http://images.secondfunnel.com"
 # run a celery worker with manage.py.
 CELERYBEAT_SCHEDULE = {
     'poll page generation completion': {
-        'task': 'apps.static_pages.tasks.poll_page_generation_completion',
-        'schedule': timedelta(seconds=10),
+        'task': 'apps.api.tasks.poll_queues',
+        'schedule': timedelta(seconds=60),
         'args': ()
     },
 }
 
 djcelery.setup_loader()
-

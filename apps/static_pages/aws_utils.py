@@ -311,9 +311,11 @@ class SQSQueue(object):
 
         @returns {list}  [<boto.sqs.message.Message instance]
         """
-        return self.queue.get_messages(num_messages=num_messages)
-        # return self.connection.receive_message(self.queue,
-        #                                        number_messages=num_messages)
+        try:
+            return self.queue.get_messages(num_messages=num_messages)
+        except:  # both appear to work the same, so if one fails, do the other
+            return self.connection.receive_message(self.queue,
+                                                   number_messages=num_messages)
 
 
 def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
@@ -351,5 +353,8 @@ def sqs_poll(callback, region_name=settings.AWS_SQS_REGION_NAME,
     connection = sqs_connection(region_name=region_name)
 
     messages = SQSQueue(queue_name=queue_name, connection=connection).receive()
-    # return callback(messages)
-    return messages
+
+    if not messages:
+        messages = []  # default to 0 messages instead of None messages
+
+    return callback(messages)

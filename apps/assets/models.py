@@ -292,32 +292,3 @@ class Product(BaseModelNamed):
                 data = data + " %s='%s'" % (field, fields[field])
 
         return data
-
-
-class YoutubeVideo(BaseModel):
-    """
-    Youtube videos that relate to a store.
-
-    @ivar video_id: The youtube id of the video.
-    @ivar store: The store this video is for.
-    """
-    video_id = models.CharField(max_length=11)
-    store = models.ForeignKey(Store, null=True, related_name="videos")
-    categories = models.ManyToManyField(
-        get_model('pinpoint', 'IntentRankCampaign'),
-        blank=True,
-        null=True,
-        related_name='videos'
-    )
-
-
-class PinpointIrCampaignProducts(models.Model):
-    campaign = models.ForeignKey(get_model('pinpoint', 'Campaign'),)
-    product = models.ForeignKey(Product)
-    class Meta:
-        db_table = u'pinpoint_ir_campaign_products'
-        managed = False
-
-    def __init__(self, *args, **kwargs):
-        super(PinpointIrCampaignProducts, self).__init__(*args, **kwargs)
-        raise PendingDeprecationWarning('what is this?')
