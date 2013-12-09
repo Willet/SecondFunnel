@@ -2,7 +2,7 @@ import json
 import mock
 import requests
 import random
-from apps.api.tests.utils import AuthenticatedResourceTestCase, configure_mock_request, configure_hammock_request
+from apps.api.tests.utils import AuthenticatedResourceTestCase, configure_mock_request, MockResponse
 from collections import namedtuple
 from django.conf import settings
 from tastypie.test import TestApiClient
@@ -71,9 +71,8 @@ class AuthenticatedPageAddAllContentTests(AuthenticatedResourceTestCase):
         self.url = '/graph/v1/store/%s/page/%s/content/add_all' % (self.store_id, self.page_id)
 
         #Seting up mocks
-        self.MockResponse = namedtuple('MockResponse', ['status_code', 'content', 'headers'])
         def side_effect(*args, **kwargs):
-            return self.MockResponse(status_code=200, content='', headers={})
+            return MockResponse(status_code=200, content='', headers={})
         
         self.mock_request = mock.Mock(side_effect=side_effect)
         self.mocks = mock.patch.object(requests.Session, 'request', self.mock_request)
@@ -105,29 +104,15 @@ class AuthenticatedPageAddAllContentTests(AuthenticatedResourceTestCase):
         }), response.content)
 
     def test_bad_request_method(self):
-        verbs = [
-            {
-                'verb': 'get'
-            },
-            {
-                'verb': 'post',
-                'data': True
-            },
-            {
-                'verb': 'patch',
-                'data': True
-            },
-            {
-                'verb': 'delete'
-            }
-        ]
+        verbs = {
+            'get': None,
+            'post': self.content_data,
+            'patch': self.content_data,
+            'delete': None
+        }
 
         for verb in verbs:
-            data = None
-            if 'data' in verb:
-                data = self.content_data
-            
-            response = getattr(self.api_client, verb['verb'])(self.url, format='json', data=data)
+            response = getattr(self.api_client, verb)(self.url, format='json', data=verbs[verb])
             self.assertFalse(self.mock_request.called, 'Mock request was still called when user was not logged in')
             self.assertEqual(self.mock_request.call_count, 0)
             self.assertHttpMethodNotAllowed(response)
@@ -162,10 +147,10 @@ class AuthenticatedPageAddAllContentTests(AuthenticatedResourceTestCase):
         def side_effect(*args, **kwargs):
             if inject_variables['calls'] == 0:
                 inject_variables['calls'] += 1
-                return self.MockResponse(status_code = 200, content = '', headers = {})
+                return MockResponse(status_code = 200, content = '', headers = {})
             elif inject_variables['calls'] == 1:
                 inject_variables['calls'] += 1
-                return self.MockResponse(status_code = 500, content = '', headers = {})
+                return MockResponse(status_code = 500, content = '', headers = {})
             elif inject_variables['calls'] == 2:
                 self.fail('Mock called too many times')
         
