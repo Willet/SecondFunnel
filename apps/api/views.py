@@ -1,3 +1,4 @@
+from boto.sqs.jsonmessage import JSONMessage
 import httplib2
 import json
 
@@ -9,6 +10,7 @@ from django.conf import settings
 
 from apps.api.decorators import check_login, append_headers, request_methods
 from apps.intentrank.utils import ajax_jsonp
+from apps.static_pages.aws_utils import SQSQueue
 
 from resources import ContentGraphClient
 from utils import mimic_response
@@ -380,21 +382,21 @@ def approve_content(request, store_id, content_id):
 @never_cache
 @csrf_exempt
 def generate_ir_config(request, store_id, ir_id):
-    # generate necessary JSON
     # Yes, it is weird that we have json dumps inside a payload
     # that will also be dumped, but this is how it is implemented.
-    # payload = {
-    #   'classname': 'com.willetinc.intentrank.engine.config.worker.ConfigWriterTask',
-    #   'conf': json.dumps({
-    #       'storeId': store_id,
-    #       'pageId': ir_id
-    #   })
-    # }
-    #
+    payload = {
+        'classname': 'com.willetinc.intentrank.engine.config.worker.ConfigWriterTask',
+        'conf': json.dumps({
+            'storeId': store_id,
+            'pageId': ir_id
+        })
+    }
+
     # Post to SQS Queue
-    # queue = SQSQueue()
-    # Alt. create `send` method?
-    # Do we need to create a message object?
-    # queue.queue.send_message(message_content=json.dumps(payload))
-    # Why do we wrap?
+    message = JSONMessage()
+    message.set_body(payload)
+
+    queue = SQSQueue()
+    queue.queue.set_message_class(JSONMessage)
+    queue.queue.write(message)
     return HttpResponse(status=200, content='OK')
