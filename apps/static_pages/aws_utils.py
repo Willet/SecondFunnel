@@ -313,7 +313,7 @@ class SQSQueue(object):
         """
         try:
             return self.queue.get_messages(num_messages=num_messages)
-        except:  # both appear to work the same, so if one fails, do the other
+        except BaseException as err:  # both appear to work the same, so if one fails, do the other
             return self.connection.receive_message(self.queue,
                                                    number_messages=num_messages)
 
@@ -352,7 +352,11 @@ def sqs_poll(callback, region_name=settings.AWS_SQS_REGION_NAME,
 
     connection = sqs_connection(region_name=region_name)
 
-    messages = SQSQueue(queue_name=queue_name, connection=connection).receive()
+    queue = SQSQueue(queue_name=queue_name, connection=connection)
+    if not queue:
+        raise ValueError('No such queue found: {0}'.format(queue_name))
+
+    messages = queue.receive()
 
     if not messages:
         messages = []  # default to 0 messages instead of None messages
