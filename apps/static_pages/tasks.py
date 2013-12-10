@@ -184,6 +184,7 @@ def generate_local_campaign(store_id, campaign_id, page_content):
         except Exception as e:
             pass #Fail gracefully
 
+
 def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False):
     """Renders individual campaign and saves it to S3."""
 
