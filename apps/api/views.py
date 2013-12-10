@@ -396,7 +396,13 @@ def generate_ir_config(request, store_id, ir_id):
     message = JSONMessage()
     message.set_body(payload)
 
-    queue = SQSQueue()
+    queue_name = 'intentrank-configwriter-worker-queue'
+    if settings.ENVIRONMENT in ['dev', 'test']:
+        queue_name = '{queue}-{env}'.format(queue=queue_name,
+                                            env=settings.ENVIRONMENT)
+
+
+    queue = SQSQueue(queue_name=queue_name)
     queue.queue.set_message_class(JSONMessage)
     queue.queue.write(message)
     return HttpResponse(status=200, content='OK')

@@ -3,7 +3,7 @@ import mock
 from apps.api.tests.utils import AuthenticatedResourceTestCase, configure_mock_request
 
 
-class AuthenticatedPageTestSuite(AuthenticatedResourceTestCase):
+class AuthenticatedIrConfigTestSuite(AuthenticatedResourceTestCase):
 
     @mock.patch('boto.sqs.queue.Queue.write')
     def test_generate_ir_config(self, mock_write):
@@ -23,6 +23,8 @@ class AuthenticatedPageTestSuite(AuthenticatedResourceTestCase):
         all_args = mock_write.call_args
         args, kwargs = all_args
         message = args[0]
+
+        # TODO Verify SQS queue is correct?
 
         self.assertDictEqual(
             message.get_body(),
