@@ -292,6 +292,7 @@ class SQSQueue(object):
     """Object related to an Amazon SQS queue."""
 
     connection = None
+    queue = None
 
     def __init__(self, queue_name=settings.AWS_SQS_QUEUE_NAME,
                  connection=None):
@@ -318,6 +319,9 @@ class SQSQueue(object):
         except BaseException as err:  # both appear to work the same, so if one fails, do the other
             return self.connection.receive_message(self.queue,
                                                    number_messages=num_messages)
+
+    def delete_message(self, message):
+        return self.queue.delete_message(message=message)
 
 
 def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,

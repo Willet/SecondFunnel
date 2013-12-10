@@ -396,7 +396,9 @@ def check_queue(request, queue_name):
 
     try:
         queue = get_default_queue_by_name(queue_name)
-        return ajax_jsonp(fetch_queue(queue))
+        queue_results = fetch_queue(queue)
+        return ajax_jsonp(queue_results)
+
     except (AttributeError, ValueError) as err:
         # no queue or none queue
         return ajax_jsonp({err.__class__.__name__: err.message})
