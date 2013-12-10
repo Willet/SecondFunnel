@@ -1,9 +1,7 @@
 import json
-from mock import MagicMock
 
 
-# one day
-TileGenerator = MagicMock()
+from apps.contentgraph.models import TileConfigGenerator
 
 
 def handle_product_queue_items(messages):
@@ -54,7 +52,7 @@ def handle_product_queue_items(messages):
         # if 'updated-fields' in message: else:
 
         # run the TileGenerator to update the changed tiles
-        TileGenerator.update_tiles(product_id=message['product-id'])
+        TileConfigGenerator.update_tiles(product_id=message['product-id'])
         results.append({'scheduled-tiles-for-product': message['product-id']})
 
     return results
@@ -102,7 +100,7 @@ def handle_content_queue_items(messages):
         # if 'updated-fields' in message: else:
 
         # run the TileGenerator to update the changed tiles
-        TileGenerator.update_tiles(content_id=message['content-id'])
+        TileConfigGenerator.update_tiles(content_id=message['content-id'])
         results.append({'scheduled-tiles-for-content': message['content-id']})
 
     return results

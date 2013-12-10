@@ -1,10 +1,6 @@
 import json
-from mock import MagicMock
 
 from apps.static_pages.tasks import generate_static_campaign_now
-
-# one day
-IRConfigGenerator = MagicMock()
 
 
 def handle_ir_config_queue_items(messages):
