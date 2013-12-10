@@ -39,6 +39,11 @@ urlpatterns += patterns('apps.api.views',
         'tag_content',
         name='delete_tagged_content'),
 
+    url(r'^%s/store/(?P<store_id>\d+)'
+        r'/page/(?P<page_id>\d+)'
+        r'/content/add_all/?$' % prefix,
+        'add_all_content', name='add_all_content'),
+
     url(r'^%s/check_queue/(?P<queue_name>[^\/]*)/?$' % prefix,
         'check_queue',
         name='check_queue'),
