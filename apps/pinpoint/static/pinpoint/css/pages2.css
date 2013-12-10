@@ -581,5 +581,34 @@ div.loading {
 
 /* Disable hover events (enabled when scrolling) */
 .disable-hover {
-  pointer-events: none;
+    pointer-events: none;
+}
+
+/* Fuck_it.css */
+.previewContainer .tablecell {
+    display: table-cell;
+    vertical-align: middle;
+    position: static;
+}
+
+.previewContainer .content {
+    display: block;
+    position: relative;
+    z-index: 1002;
+
+    margin: auto;
+    padding: 20px;
+
+    width: 768px;
+    min-height: 240px;
+    max-height: 666px;
+
+    background: #fff;
+    border: 1px solid #CECECE;
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -ms-border-radius: 4px;
+    -o-border-radius: 4px;
+    box-shadow: 0px 10px 30px 0px #CECECE;
 }
