@@ -7,8 +7,6 @@ from django.views.decorators.csrf import csrf_exempt
 
 def check_login(fn):
     """wrap the function around three wrappers that check for custom login."""
-    @never_cache
-    @csrf_exempt
     @functools.wraps(fn)
     def wrapped(*args, **kwargs):
         request = args[0]
@@ -52,6 +50,11 @@ def append_headers(fn):
 
 
 def request_methods(*request_methods):
+    """Returns a decorator that returns HTTP 405 if the current request
+    was not made with one of the methods specified in request_methods.
+
+    Example: @request_methods('GET')  # raises on anything but GET
+    """
     def wrap(func):
         @functools.wraps(func)
         def wrapped_func(request, *args, **kwargs):

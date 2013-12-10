@@ -5,10 +5,10 @@ from datetime import timedelta, datetime
 import django.conf.global_settings as DEFAULT_SETTINGS
 
 # Django settings for secondfunnel project.
-import sys
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
+MOCK_IR_SERVER = False
 
 DEFAULT_CHARSET = 'utf-8'
 FILE_CHARSET = 'utf-8'  # apparently something we need to enforce for File()
@@ -109,6 +109,32 @@ STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 # http://django_compressor.readthedocs.org/en/latest/remote-storages/
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
+AWS_SNS_REGION_NAME = 'us-west-2'
+AWS_SQS_REGION_NAME = AWS_SNS_REGION_NAME  # by default, both oregon
+AWS_SNS_TOPIC_NAME = 'page_generator'
+AWS_SQS_QUEUE_NAME = AWS_SNS_TOPIC_NAME  # by default, same as the sns name
+
+# list of queues to poll regularly, using celery beat.
+# corresponding handlers need to be imported in apps.api.tasks
+AWS_SQS_POLLING_QUEUES = [
+    # https://willet.atlassian.net/browse/CM-125
+    {'queue_name': 'product-update-notification-queue',
+     'handler': 'handle_assets_queue_items',
+     'interval': 300},
+    # https://willet.atlassian.net/browse/CM-126
+    {'queue_name': 'content-update-notification-queue',
+     'handler': 'handle_assets_queue_items'},
+    # https://willet.atlassian.net/browse/CM-127
+    {'queue_name': 'tile-generator-notification-queue',
+     'handler': 'handle_tile_generator_queue_items'},
+    # https://willet.atlassian.net/browse/CM-128
+    {'queue_name': 'ir-config-generator-notification-queue',
+     'handler': 'handle_ir_config_queue_items'},
+
+    {'queue_name': 'page_generator',
+     'handler': 'handle_page_generator_queue_items'},
+]
+
 
 # Disable signature/accesskey/expire attrs being appended to s3 links
 AWS_QUERYSTRING_AUTH = False
@@ -373,5 +399,21 @@ JENKINS_TASKS = (
 IMAGE_SERVICE_API = "http://imageservice.elasticbeanstalk.com"
 IMAGE_SERVICE_STORE = "http://images.secondfunnel.com"
 
-djcelery.setup_loader()
+CELERYBEAT_POLL_INTERVAL = 60  # default beat is 60 seconds
 
+# only celery workers use this setting.
+# run a celery worker with manage.py.
+CELERYBEAT_SCHEDULE = {
+    'poll 60-second queues': {
+        'task': 'apps.api.tasks.poll_queues',
+        'schedule': timedelta(seconds=CELERYBEAT_POLL_INTERVAL),
+        'args': (CELERYBEAT_POLL_INTERVAL)
+    },
+    'poll 300-second queues': {
+        'task': 'apps.api.tasks.poll_queues',
+        'schedule': timedelta(seconds=300),
+        'args': (300)
+    },
+}
+
+djcelery.setup_loader()
