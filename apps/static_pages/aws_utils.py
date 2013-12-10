@@ -302,6 +302,8 @@ class SQSQueue(object):
         self.connection = connection
         # @type {boto.sqs.queue.Queue}
         self.queue = connection.get_queue(queue_name=queue_name)
+        if not self.queue:
+            raise ValueError('Error retrieving queue {0}'.format(queue_name))
 
     def receive(self, num_messages=1):
         """Retrieve one message from the SQS queue.
@@ -311,14 +313,16 @@ class SQSQueue(object):
 
         @returns {list}  [<boto.sqs.message.Message instance]
         """
-        return self.queue.get_messages(num_messages=num_messages)
-        # return self.connection.receive_message(self.queue,
-        #                                        number_messages=num_messages)
+        try:
+            return self.queue.get_messages(num_messages=num_messages)
+        except BaseException as err:  # both appear to work the same, so if one fails, do the other
+            return self.connection.receive_message(self.queue,
+                                                   number_messages=num_messages)
 
 
 def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
                topic_name=settings.AWS_SNS_TOPIC_NAME,
-               subject=None, message='', dev_suffix=True):
+               subject=None, message='', dev_suffix=False):
     """Sends a message to an SNS board.
 
     The SQS queue should subscribe to the SNS topic: http://i.imgur.com/fLOdNyD.png
@@ -340,7 +344,7 @@ def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
 
 
 def sqs_poll(callback, region_name=settings.AWS_SQS_REGION_NAME,
-             queue_name=settings.AWS_SQS_QUEUE_NAME, dev_suffix=True):
+             queue_name=settings.AWS_SQS_QUEUE_NAME, dev_suffix=False):
     """accept messages from a sqs queue, then pass it into callback."""
 
     # ENVIRONMENT is "production" in production
@@ -350,6 +354,13 @@ def sqs_poll(callback, region_name=settings.AWS_SQS_REGION_NAME,
 
     connection = sqs_connection(region_name=region_name)
 
-    messages = SQSQueue(queue_name=queue_name, connection=connection).receive()
-    # return callback(messages)
-    return messages
+    queue = SQSQueue(queue_name=queue_name, connection=connection)
+    if not queue:
+        raise ValueError('No such queue found: {0}'.format(queue_name))
+
+    messages = queue.receive()
+
+    if not messages:
+        messages = []  # default to 0 messages instead of None messages
+
+    return callback(messages)

@@ -50,6 +50,11 @@ def append_headers(fn):
 
 
 def request_methods(*request_methods):
+    """Returns a decorator that returns HTTP 405 if the current request
+    was not made with one of the methods specified in request_methods.
+
+    Example: @request_methods('GET')  # raises on anything but GET
+    """
     def wrap(func):
         @functools.wraps(func)
         def wrapped_func(request, *args, **kwargs):
