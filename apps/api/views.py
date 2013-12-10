@@ -378,6 +378,31 @@ def approve_content(request, store_id, content_id):
 
     return mimic_response(r, response)
 
+
+@request_methods('DELETE')
+@check_login
+@never_cache
+@csrf_exempt
+def delete_scraper(request, store_id, scraper_name):
+    r = ContentGraphClient.scraper.store(store_id, scraper_name).DELETE()
+
+    response = HttpResponse(content=r.content, status=r.status_code)
+
+    return mimic_response(r, response)
+
+
+@request_methods('GET')
+@check_login
+@never_cache
+@csrf_exempt
+def list_scrapers(request, store_id):
+    r = ContentGraphClient.scraper.store(store_id).GET()
+
+    response = HttpResponse(content=r.content, status=r.status_code)
+
+    return mimic_response(r, response)
+
+
 @request_methods('PUT')
 @check_login
 @never_cache
