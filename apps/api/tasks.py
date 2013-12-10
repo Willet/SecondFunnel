@@ -11,10 +11,11 @@ celery = Celery()
 logger = get_task_logger(__name__)
 
 
-def fetch_queue(queue=None):
+def fetch_queue(queue=None, interval=None):
     """Run something if the poll detects any messages in any queues
     that are managed by the Campaign Manager.
 
+    @param interval {int} number of seconds that this poll is being made.
     """
     # these methods are locally imported for use as SQS callbacks
     from apps.assets.tasks import (handle_content_queue_items,
@@ -28,6 +29,7 @@ def fetch_queue(queue=None):
 
     results = {}
 
+    # corresponding queues need to be defined in settings.AWS_SQS_POLLING_QUEUES
     handlers = {
         'handle_content_queue_items': handle_content_queue_items,
         'handle_product_queue_items': handle_product_queue_items,
@@ -43,6 +45,10 @@ def fetch_queue(queue=None):
 
     for queue in queues:
         if not queue:  # so, a None queue can exist
+            continue
+
+        # not a queue that this poll should run.
+        if interval and interval != queue.get('interval', 60):
             continue
 
         region_name = queue.get('region_name', settings.AWS_SQS_REGION_NAME)
@@ -66,6 +72,9 @@ def fetch_queue(queue=None):
 
 
 @celery.task
-def poll_queues():
-    """periodic task for fetch_queue."""
-    return ajax_jsonp(fetch_queue())
+def poll_queues(interval=60):
+    """periodic task for fetch_queue.
+
+    @param interval {int} number of seconds that this poll is being made.
+    """
+    return ajax_jsonp(fetch_queue(interval=interval))

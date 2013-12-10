@@ -114,11 +114,13 @@ AWS_SQS_REGION_NAME = AWS_SNS_REGION_NAME  # by default, both oregon
 AWS_SNS_TOPIC_NAME = 'page_generator'
 AWS_SQS_QUEUE_NAME = AWS_SNS_TOPIC_NAME  # by default, same as the sns name
 
-# list of queues to poll regularly, using celery beat
+# list of queues to poll regularly, using celery beat.
+# corresponding handlers need to be imported in apps.api.tasks
 AWS_SQS_POLLING_QUEUES = [
     # https://willet.atlassian.net/browse/CM-125
     {'queue_name': 'product-update-notification-queue',
-     'handler': 'handle_assets_queue_items'},
+     'handler': 'handle_assets_queue_items',
+     'interval': 300},
     # https://willet.atlassian.net/browse/CM-126
     {'queue_name': 'content-update-notification-queue',
      'handler': 'handle_assets_queue_items'},
@@ -397,13 +399,20 @@ JENKINS_TASKS = (
 IMAGE_SERVICE_API = "http://imageservice.elasticbeanstalk.com"
 IMAGE_SERVICE_STORE = "http://images.secondfunnel.com"
 
+CELERYBEAT_POLL_INTERVAL = 60  # default beat is 60 seconds
+
 # only celery workers use this setting.
 # run a celery worker with manage.py.
 CELERYBEAT_SCHEDULE = {
-    'poll page generation completion': {
+    'poll 60-second queues': {
         'task': 'apps.api.tasks.poll_queues',
-        'schedule': timedelta(seconds=60),
-        'args': ()
+        'schedule': timedelta(seconds=CELERYBEAT_POLL_INTERVAL),
+        'args': (CELERYBEAT_POLL_INTERVAL)
+    },
+    'poll 300-second queues': {
+        'task': 'apps.api.tasks.poll_queues',
+        'schedule': timedelta(seconds=300),
+        'args': (300)
     },
 }
 
