@@ -1,4 +1,4 @@
-from boto.sqs.jsonmessage import JSONMessage
+from boto.sqs.message import RawMessage
 import httplib2
 import json
 
@@ -400,7 +400,7 @@ def generate_ir_config(request, store_id, ir_id):
     }
 
     # Post to SQS Queue
-    message = JSONMessage()
+    message = RawMessage()
     message.set_body(payload)
 
     queue_name = 'intentrank-configwriter-worker-queue'
@@ -413,7 +413,7 @@ def generate_ir_config(request, store_id, ir_id):
 
     # TODO: Check that queue exists
 
-    queue.queue.set_message_class(JSONMessage)
+    queue.queue.set_message_class(RawMessage)
     queue.queue.write(message)
     return HttpResponse(status=200, content='OK')
 
