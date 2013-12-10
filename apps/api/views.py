@@ -647,11 +647,21 @@ def get_page_tile_config(request, store_id, page_id, tileconfig_id):
 @never_cache
 @csrf_exempt
 def add_product_to_page(request, store_id, page_id, product_id):
+    # verify the tile config does not already exist
+    tile_check_params = {'template': 'product', 'product-ids': product_id}
+    tile_check = ContentGraphClient.page(page_id)('tile-config').POST(params=tile_check_params)
+    if tile_check.status_code == 200 and len(tile_check.json.results) != 0:
+        # TODO: note this does not handle the case where CONTENT GRAPH returns zero results
+        #       even though there is RESULTS to be had...
+        # NOTE: search endpoint does not return 404 on NO RESULTS
+        response = HttpResponse(content=json.dumps(tile_check.json.results[0]), status=tile_check.status_code)
+        return mimic_response(tile_check, response)
+
     payload = json.dumps({
         'template': 'product',
         'product-ids': [product_id]
         })
-    r = ContentGraphClient.page(page_id).__getattr__('tile-config')().POST(data=payload)
+    r = ContentGraphClient.page(page_id)('tile-config')().POST(data=payload)
     response = HttpResponse(content=r.content, status=r.status_code)
     return mimic_response(r, response)
 
@@ -661,10 +671,21 @@ def add_product_to_page(request, store_id, page_id, product_id):
 @never_cache
 @csrf_exempt
 def add_content_to_page(request, store_id, page_id, content_id):
+    # verify the tile config does not already exist
+    tile_check_params = {'template': 'content', 'content-ids': content_id}
+    tile_check = ContentGraphClient.page(page_id)('tile-config').POST(params=tile_check_params)
+    if tile_check.status_code == 200 and len(tile_check.json.results) != 0:
+        # TODO: note this does not handle the case where CONTENT GRAPH returns zero results
+        #       even though there is RESULTS to be had...
+        # NOTE: search endpoint does not return 404 on NO RESULTS
+        response = HttpResponse(content=json.dumps(tile_check.json.results[0]), status=tile_check.status_code)
+        return mimic_response(tile_check, response)
+
+    # create the tile config
     payload = json.dumps({
         'template': 'content',
         'content-ids': [content_id]
         })
-    r = ContentGraphClient.page(page_id).__getattr__('tile-config')().POST(data=payload)
+    r = ContentGraphClient.page(page_id)('tile-config')().POST(data=payload)
     response = HttpResponse(content=r.content, status=r.status_code)
     return mimic_response(r, response)
