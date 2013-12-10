@@ -44,6 +44,10 @@ urlpatterns += patterns('apps.api.views',
         r'/content/add_all/?$' % prefix,
         'add_all_content', name='add_all_content'),
 
+    url(r'^%s/check_queue/(?P<queue_name>[^\/]*)/?$' % prefix,
+        'check_queue',
+        name='check_queue'),
+
     url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/approve/?$' % prefix, 'approve_content', name='approve_content'),
     url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/reject/?$' % prefix, 'reject_content', name='reject_content'),
     url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/undecide/?$' % prefix, 'undecide_content', name='undecide_content'),

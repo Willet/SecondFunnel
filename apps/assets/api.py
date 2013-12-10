@@ -9,7 +9,7 @@ from tastypie.authentication import Authentication, ApiKeyAuthentication, MultiA
 from tastypie.authorization import Authorization
 from django.db.models import Q
 
-from apps.assets.models import (Product, Store, YoutubeVideo)
+from apps.assets.models import (Product, Store)
 
 from apps.pinpoint.models import Campaign, StoreTheme
 
@@ -153,19 +153,6 @@ class CampaignResource(ModelResource):
 
         filtering = {
             'store': ALL,
-        }
-
-
-class YoutubeVideoResource(ModelResource):
-    """Access to youtube video model"""
-
-    class Meta:
-        queryset = YoutubeVideo.objects.all()
-        authentication = UserAuthentication()
-        resource_name = 'youtube_video'
-
-        filtering = {
-            'id': ('exact',)
         }
 
 
