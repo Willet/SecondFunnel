@@ -12,6 +12,7 @@ from django.conf import settings
 from boto import sns
 from boto import sqs
 from boto.sqs.connection import SQSConnection
+from boto.sqs.jsonmessage import JSONMessage
 
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
@@ -319,6 +320,14 @@ class SQSQueue(object):
         except BaseException as err:  # both appear to work the same, so if one fails, do the other
             return self.connection.receive_message(self.queue,
                                                    number_messages=num_messages)
+
+    def write_message(self, data):
+        """Writes a JSON-encoded string to the queue."""
+        message = JSONMessage()
+        message.set_body(data)
+        self.queue.set_message_class(JSONMessage)
+
+        return self.queue.write(message)
 
     def delete_message(self, message):
         return self.queue.delete_message(message=message)

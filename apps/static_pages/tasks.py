@@ -144,6 +144,7 @@ def generate_static_campaigns():
     task_group.apply_async()
 
 
+
 def handle_queue_items(messages):
     """
     Messages are fetched from an SQS queue and processed by this function.
@@ -183,7 +184,6 @@ def generate_local_campaign(store_id, campaign_id, page_content):
             html_file.write(smart_str(page_content))
         except Exception as e:
             pass #Fail gracefully
-
 
 def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False):
     """Renders individual campaign and saves it to S3."""
