@@ -9,6 +9,7 @@ from django.http import (HttpResponse, HttpResponseBadRequest,
 from django.conf import settings
 
 from apps.api.decorators import check_login, append_headers, request_methods
+from apps.api.tasks import fetch_queue
 from apps.intentrank.utils import ajax_jsonp
 from apps.static_pages.aws_utils import SQSQueue
 
@@ -131,6 +132,8 @@ def get_proxy_results(request, url, body=None, raw=False, method=None):
 
 @append_headers
 @check_login
+@never_cache
+@csrf_exempt
 def proxy_view(request, path):
     """Nick is not a security expert.
 
@@ -162,6 +165,8 @@ def proxy_view(request, path):
 
 @append_headers
 @check_login
+@never_cache
+@csrf_exempt
 def get_suggested_content_by_page(request, store_id, page_id):
     """Returns a multiple lists of product content grouped by
     their product id.
@@ -191,6 +196,8 @@ def get_suggested_content_by_page(request, store_id, page_id):
 
 @append_headers
 @check_login
+@never_cache
+@csrf_exempt
 def tag_content(request, store_id, page_id, content_id, product_id=0):
     """Add a API endpoint to the backend for tagging content with products.
 
@@ -409,3 +416,57 @@ def generate_ir_config(request, store_id, ir_id):
     queue.queue.set_message_class(JSONMessage)
     queue.queue.write(message)
     return HttpResponse(status=200, content='OK')
+
+
+@request_methods('PUT')
+@check_login
+@never_cache
+@csrf_exempt
+def add_all_content(request, store_id, page_id):
+    try:
+        content_ids = json.loads(request.body)
+    except ValueError:
+        return HttpResponse(status=500)
+
+    if type(content_ids) != type([]):
+        return HttpResponse(status=500)
+
+    for content_id in content_ids:
+        if type(content_id) != type(1):
+            return HttpResponse(status=500)
+
+        r = ContentGraphClient.store(store_id).page(page_id).content(content_id).PUT('')
+
+        if r.status_code != 200:
+            return HttpResponse(status=500)
+
+    return HttpResponse()
+
+
+@check_login
+def check_queue(request, queue_name):
+    """Provides a URL to instantly poll an SQS queue, and, if a message is
+    found, process it.
+    """
+    queue = None
+
+    def get_default_queue_by_name(name, region=settings.AWS_SQS_REGION_NAME):
+        """maybe this should be somewhere else if it is useful."""
+        queues = settings.AWS_SQS_POLLING_QUEUES
+        for queue in queues:
+            if queue.get('region_name', None):
+                if queue['region_name'] != region:
+                    continue
+            if queue.get('queue_name', None):
+                if queue['queue_name'] != name:
+                    continue
+            if queue:
+                return queue
+        raise ValueError('Queue by that name ({0}) is missing'.format(name))
+
+    try:
+        queue = get_default_queue_by_name(queue_name)
+        return ajax_jsonp(fetch_queue(queue))
+    except (AttributeError, ValueError) as err:
+        # no queue or none queue
+        return ajax_jsonp({err.__class__.__name__: err.message})

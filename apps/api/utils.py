@@ -19,7 +19,7 @@ class UserObjectsReadOnlyAuthorization(ReadOnlyAuthorization):
 
 
 def copy_headers_to_response(headers, response):
-    for k, v in headers.items():
+    for k, v in headers.iteritems():
         if k != 'connection':
             response[k] = v
     return response

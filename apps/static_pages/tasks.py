@@ -144,15 +144,16 @@ def generate_static_campaigns():
     task_group.apply_async()
 
 
-@celery.task
-def poll_page_generation_completion():
-    """Run something if the poll detects any messages in the queue."""
+def handle_queue_items(messages):
+    """
+    Messages are fetched from an SQS queue and processed by this function.
 
-    def foreach_message(messages):
-        """do (currently) nothing with any messages."""
-        return map(noop, messages)
-
-    return sqs_poll(foreach_message)
+    @type messages {List} <boto.sqs.message.Message instance>
+    @returns any JSON-serializable
+    """
+    for message in messages:
+        pass
+    return {}
 
 
 @celery.task
