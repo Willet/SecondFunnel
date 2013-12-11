@@ -8,10 +8,13 @@ from apps.static_pages.tasks import (create_bucket_for_store_now,
                                      generate_static_campaign_now)
 
 
-def regenerate_static_campaign(request, store_id, campaign_id):
+def generate_static_campaign(request, store_id, campaign_id):
     """Manual stimulation handler: re-save a campaign.
 
     Campaign *will* be regenerated despite having a static log entry.
+
+    This calls generate_static_campaign_now, the function-equivalent.
+    A celery task for this function is also available in tasks.py.
 
     @param [{string}] callback: jsonp callback (defaults to "callback")
     @returns {jsonp} the result key is true if succeeded, false if failed
