@@ -145,14 +145,14 @@ def generate_static_campaigns():
 
 
 
-def handle_page_generator_notification_messages(messages):
+def handle_page_generator_notification_message(message):
     """
     Messages are fetched from an SQS queue and processed by this function.
 
     The Campaign Manager currently does nothing when page generation
     is complete.
 
-    @type messages {List} <boto.sqs.message.Message instance>
+    @type message {boto.sqs.message.Message}
     @returns None
     """
     pass

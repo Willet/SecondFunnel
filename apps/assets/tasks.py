@@ -6,7 +6,9 @@ from apps.api.decorators import (validate_json_deserializable,
 from apps.contentgraph.models import TileConfigObject
 
 
-def handle_product_update_notification_messages(messages):
+@validate_json_deserializable
+@require_keys_for_message('product-id')
+def handle_product_update_notification_message(message):
     """
     Messages are fetched from an SQS queue and processed by this function.
 
@@ -31,28 +33,23 @@ def handle_product_update_notification_messages(messages):
     any tiles to be updated (...) I'm still debating whether to include
     the updated-fields field. (...)
 
-    @type messages {List} <boto.sqs.message.Message instance>
+    @type messages {boto.sqs.message.Message}
     @returns any JSON-serializable
     """
-    @validate_json_deserializable
-    @require_keys_for_message('product-id')
-    def handle_message(message):
-        message = json.loads(message)
-        # whether or not updated-fields exists to tell us which tiles
-        # -really- need updating is currently inconsequential
-        # if 'updated-fields' in message: else:
+    message = json.loads(message)
+    # whether or not updated-fields exists to tell us which tiles
+    # -really- need updating is currently inconsequential
+    # if 'updated-fields' in message: else:
 
-        # add an item to the TileGenerator's queue to have it updated
-        tco = TileConfigObject(message['page-id'])
-        tco.mark_tile_for_regeneration(product_id=message['product-id'])
-        return {'scheduled-tiles-for-product': message['product-id']}
-
-    messages = [msg.get_body() for msg in messages]
-
-    return map(handle_message, messages)
+    # add an item to the TileGenerator's queue to have it updated
+    tco = TileConfigObject(message['page-id'])
+    tco.mark_tile_for_regeneration(product_id=message['product-id'])
+    return {'scheduled-tiles-for-product': message['product-id']}
 
 
-def handle_content_update_notification_messages(messages):
+@validate_json_deserializable
+@require_keys_for_message('content-id')
+def handle_content_update_notification_message(message):
     """
     CM-126: When a scraper updates a content record. When the scraper add
     a new piece of content an event will be queued.
@@ -74,20 +71,13 @@ def handle_content_update_notification_messages(messages):
     @type messages {List} <boto.sqs.message.Message instance>
     @returns any JSON-serializable
     """
-    @validate_json_deserializable
-    @require_keys_for_message('content-id')
-    def handle_message(message):
-        message = json.loads(message)
+    message = json.loads(message)
 
-        # whether or not updated-fields exists to tell us which tiles
-        # -really- need updating is currently inconsequential
-        # if 'updated-fields' in message: else:
+    # whether or not updated-fields exists to tell us which tiles
+    # -really- need updating is currently inconsequential
+    # if 'updated-fields' in message: else:
 
-        # add an item to the TileGenerator's queue to have it updated
-        tco = TileConfigObject(message['page-id'])
-        tco.mark_tile_for_regeneration(content_id=message['content-id'])
-        return {'scheduled-tiles-for-content': message['content-id']}
-
-    messages = [msg.get_body() for msg in messages]
-
-    return map(handle_message, messages)
+    # add an item to the TileGenerator's queue to have it updated
+    tco = TileConfigObject(message['page-id'])
+    tco.mark_tile_for_regeneration(content_id=message['content-id'])
+    return {'scheduled-tiles-for-content': message['content-id']}

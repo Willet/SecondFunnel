@@ -119,21 +119,21 @@ AWS_SQS_QUEUE_NAME = AWS_SNS_TOPIC_NAME  # by default, same as the sns name
 AWS_SQS_POLLING_QUEUES = [
     # https://willet.atlassian.net/browse/CM-125
     {'queue_name': 'product-update-notification-queue',
-     'handler': 'handle_product_update_notification_messages',
+     'handler': 'handle_product_update_notification_message',
      'interval': 300},
     # https://willet.atlassian.net/browse/CM-126
     {'queue_name': 'content-update-notification-queue',
-     'handler': 'handle_content_update_notification_messages',
+     'handler': 'handle_content_update_notification_message',
      'interval': 300},
     # https://willet.atlassian.net/browse/CM-127
     {'queue_name': 'tile-generator-notification-queue',
-     'handler': 'handle_tile_generator_update_notification_messages'},
+     'handler': 'handle_tile_generator_update_notification_message'},
     # https://willet.atlassian.net/browse/CM-128
     {'queue_name': 'ir-config-generator-notification-queue',
-     'handler': 'handle_ir_config_update_notification_messages'},
+     'handler': 'handle_ir_config_update_notification_message'},
 
     {'queue_name': 'page_generator',
-     'handler': 'handle_page_generator_notification_messages'},
+     'handler': 'handle_page_generator_notification_message'},
 ]
 
 

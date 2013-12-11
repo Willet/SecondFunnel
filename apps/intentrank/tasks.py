@@ -5,7 +5,9 @@ from apps.api.decorators import (require_keys_for_message,
 from apps.static_pages.tasks import generate_static_campaign_now
 
 
-def handle_ir_config_update_notification_messages(messages):
+@validate_json_deserializable
+@require_keys_for_message('store-id', 'page-id')
+def handle_ir_config_update_notification_message(message):
     """
     Messages are fetched from an SQS queue and processed by this function.
 
@@ -25,26 +27,19 @@ def handle_ir_config_update_notification_messages(messages):
     frequently. In the future we may want to use this event to push the
     configuration to individual IR instances.
 
-    @type messages {List} <boto.sqs.message.Message instance>
+    @type message {boto.sqs.message.Message}
     @returns any JSON-serializable
     """
-    @validate_json_deserializable
-    @require_keys_for_message('store-id', 'page-id')
-    def handle_message(message):
-        message = json.loads(message)
+    message = json.loads(message)
 
-        store_id = message.get('store-id')
-        page_id = message.get('page-id')
+    store_id = message.get('store-id')
+    page_id = message.get('page-id')
 
-        try:
-            generate_static_campaign_now(store_id=store_id,
-                campaign_id=page_id, ignore_static_logs=True)
+    try:
+        generate_static_campaign_now(store_id=store_id,
+            campaign_id=page_id, ignore_static_logs=True)
 
-            return {'generated-page': page_id}
-        except BaseException as err:
-            # fails for whatever reason, work on the next page
-            return {err.__class__.__name__: err.message}
-
-    messages = [msg.get_body() for msg in messages]
-
-    return map(handle_message, messages)
+        return {'generated-page': page_id}
+    except BaseException as err:
+        # fails for whatever reason, work on the next page
+        return {err.__class__.__name__: err.message}

@@ -353,9 +353,14 @@ def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
     return topic.publish(subject=subject, message=message)
 
 
-def sqs_poll(callback, region_name=settings.AWS_SQS_REGION_NAME,
+def sqs_poll(callback=None, region_name=settings.AWS_SQS_REGION_NAME,
              queue_name=settings.AWS_SQS_QUEUE_NAME, dev_suffix=False):
-    """accept messages from a sqs queue, then pass it into callback."""
+    """accept messages from a sqs queue, then pass it into callback.
+
+    If callback is given, run callback on messages. Otherwise, return messages.
+
+    @returns {list}
+    """
 
     # ENVIRONMENT is "production" in production
     if dev_suffix and settings.ENVIRONMENT in ['dev', 'test']:
@@ -373,4 +378,7 @@ def sqs_poll(callback, region_name=settings.AWS_SQS_REGION_NAME,
     if not messages:
         messages = []  # default to 0 messages instead of None messages
 
-    return callback(messages)
+    if callback:
+        return callback(messages)
+
+    return messages
