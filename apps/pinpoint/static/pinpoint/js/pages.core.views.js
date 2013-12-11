@@ -760,6 +760,15 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             this.$el.attr({
                 'id': 'preview-' + this.model.cid
             });
+        },
+
+        // Disable scrolling body when preview is shown
+        'onShow': function() {
+            $(document.body).addClass('no-scroll')
+        },
+
+        'close': function() {
+            $(document.body).removeClass('no-scroll')
         }
     });
 
