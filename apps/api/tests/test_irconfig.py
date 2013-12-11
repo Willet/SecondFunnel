@@ -5,8 +5,8 @@ from apps.api.tests.utils import AuthenticatedResourceTestCase, configure_mock_r
 
 class AuthenticatedIrConfigTestSuite(AuthenticatedResourceTestCase):
 
-    @mock.patch('boto.sqs.queue.Queue.write')
-    def test_generate_ir_config(self, mock_write):
+    @mock.patch('boto.sqs.connection.SQSConnection.get_queue')
+    def test_generate_ir_config(self, mock_queue):
         store_id = "1"
         ir_id = "1"
 
@@ -18,9 +18,9 @@ class AuthenticatedIrConfigTestSuite(AuthenticatedResourceTestCase):
         self.assertHttpOK(response)
 
         # Verify mock
-        self.assertTrue(mock_write.called)
+        self.assertTrue(mock_queue.return_value.write.called)
 
-        all_args = mock_write.call_args
+        all_args = mock_queue.return_value.write.call_args
         args, kwargs = all_args
         message = args[0]
 
