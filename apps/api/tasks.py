@@ -1,4 +1,4 @@
-from celery import Celery, group
+from celery import Celery
 from celery.utils import noop
 from celery.utils.log import get_task_logger
 
@@ -18,24 +18,26 @@ def fetch_queue(queue=None, interval=None):
     @param interval {int} number of seconds that this poll is being made.
     """
     # these methods are locally imported for use as SQS callbacks
-    from apps.assets.tasks import (handle_content_queue_items,
-                                   handle_product_queue_items)
-    from apps.intentrank.tasks import handle_queue_items as \
-        handle_ir_config_queue_items
-    from apps.pinpoint.tasks import handle_queue_items as \
-        handle_tile_generator_queue_items
-    from apps.static_pages.tasks import handle_queue_items as \
-        handle_page_generator_queue_items
+    from apps.assets.tasks import (handle_content_update_notification_message,
+                                   handle_product_update_notification_message)
+    from apps.intentrank.tasks import handle_ir_config_update_notification_message
+    from apps.pinpoint.tasks import handle_tile_generator_update_notification_message
+    from apps.static_pages.tasks import handle_page_generator_notification_message
 
     results = {}
 
     # corresponding queues need to be defined in settings.AWS_SQS_POLLING_QUEUES
     handlers = {
-        'handle_content_queue_items': handle_content_queue_items,
-        'handle_product_queue_items': handle_product_queue_items,
-        'handle_ir_config_queue_items': handle_ir_config_queue_items,
-        'handle_tile_generator_queue_items': handle_tile_generator_queue_items,
-        'handle_page_generator_queue_items': handle_page_generator_queue_items,
+        'handle_content_update_notification_message':
+            handle_content_update_notification_message,
+        'handle_product_update_notification_message':
+            handle_product_update_notification_message,
+        'handle_ir_config_update_notification_message':
+            handle_ir_config_update_notification_message,
+        'handle_tile_generator_update_notification_message':
+            handle_tile_generator_update_notification_message,
+        'handle_page_generator_notification_message':
+            handle_page_generator_notification_message,
     }
 
     if queue:  # fetch one queue
@@ -61,8 +63,12 @@ def fetch_queue(queue=None, interval=None):
 
         handler = handlers.get(handler_name, noop)  # e.g. <function handle_items>
         try:
-            queue_results.append(sqs_poll(callback=handler,
-                region_name=region_name, queue_name=queue_name))
+            messages = sqs_poll(region_name=region_name, queue_name=queue_name)
+            # convert to their bodies, which may be json, or may not
+            messages = [message.get_body() for message in messages]
+
+            # call handler on each message, and save their results
+            queue_results.extend(map(handler, messages))
         except (AttributeError, ValueError) as err:  # (no such queue)
             queue_results.append({err.__class__.__name__: err.message})
 

@@ -55,5 +55,10 @@ urlpatterns += patterns('apps.api.views',
     # Intentrank Config
     url(r'^%s/store/(?P<store_id>\d+)/intentrank/(?P<ir_id>\d+)/?$' % prefix, 'generate_ir_config', name='generate_ir_config'),
 
+    # Scraper
+    url(r'^%s/scraper/store/(?P<store_id>\d+)/?$' % prefix, 'list_scrapers', name='list_scrapers'),
+    url(r'^%s/scraper/store/(?P<store_id>\d+)/(?P<scraper_name>.*?)/?$' % prefix, 'delete_scraper', name='delete_scraper'),
+
+    # If all else fails, proxy
     url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
 )
