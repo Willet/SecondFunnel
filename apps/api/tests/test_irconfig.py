@@ -22,7 +22,7 @@ class AuthenticatedIrConfigTestSuite(AuthenticatedResourceTestCase):
         self.assertTrue(mock_queue.write.called)
 
         # TODO: Is there a way to check call args without caring about args vs. kwargs?
-        mock_get_queue.assert_called_once_with(queue_name='intentrank-configwriter-worker-queue')
+        mock_get_queue.assert_called_once_with(queue_name='intentrank-configwriter-worker-queue-test')
 
         write_args = mock_queue.write.call_args
         args, kwargs = write_args
@@ -38,3 +38,26 @@ class AuthenticatedIrConfigTestSuite(AuthenticatedResourceTestCase):
                 })
             }
         )
+
+    @mock.patch('boto.sqs.connection.SQSConnection.get_queue')
+    def test_generate_ir_config_bad_queue(self, mock_get_queue):
+        store_id = "1"
+        ir_id = "1"
+
+        mock_get_queue.return_value = None
+
+        try:
+            response = self.api_client.post(
+                '/graph/v1/store/{0}/intentrank/{1}'.format(store_id, ir_id),
+                format='json',
+                data={}
+            )
+        except:
+            self.fail('Should not throw an exception when queue not found')
+
+        content = json.loads(response.content)
+
+        self.assertHttpApplicationError(response)
+        self.assertDictEqual(content, {
+            'error': 'No queue found with name intentrank-configwriter-worker-queue-test'
+        })

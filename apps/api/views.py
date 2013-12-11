@@ -409,9 +409,12 @@ def generate_ir_config(request, store_id, ir_id):
                                             env='test')
 
 
-    queue = SQSQueue(queue_name=queue_name)
-
-    # TODO: Check that queue exists
+    try:
+        queue = SQSQueue(queue_name=queue_name)
+    except ValueError, e:
+        return HttpResponse(status=500, content=json.dumps({
+            'error': 'No queue found with name {name}'.format(name=queue_name)
+        }))
 
     queue.queue.set_message_class(RawMessage)
     queue.queue.write(message)
