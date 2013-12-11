@@ -6,9 +6,10 @@ from apps.api.tests.utils import AuthenticatedResourceTestCase, configure_mock_r
 class AuthenticatedIrConfigTestSuite(AuthenticatedResourceTestCase):
 
     @mock.patch('boto.sqs.connection.SQSConnection.get_queue')
-    def test_generate_ir_config(self, mock_queue):
+    def test_generate_ir_config(self, mock_get_queue):
         store_id = "1"
         ir_id = "1"
+        mock_queue = mock_get_queue.return_value
 
         response = self.api_client.post(
             '/graph/v1/store/{0}/intentrank/{1}'.format(store_id, ir_id),
@@ -18,13 +19,14 @@ class AuthenticatedIrConfigTestSuite(AuthenticatedResourceTestCase):
         self.assertHttpOK(response)
 
         # Verify mock
-        self.assertTrue(mock_queue.return_value.write.called)
+        self.assertTrue(mock_queue.write.called)
 
-        all_args = mock_queue.return_value.write.call_args
-        args, kwargs = all_args
-        message = args[0]
+        # TODO: Is there a way to check call args without caring about args vs. kwargs?
+        mock_get_queue.assert_called_once_with(queue_name='intentrank-configwriter-worker-queue')
 
-        # TODO Verify SQS queue is correct?
+        write_args = mock_queue.write.call_args
+        args, kwargs = write_args
+        message = args[0] # Message is the first arg to `write`
 
         self.assertDictEqual(
             message.get_body(),
