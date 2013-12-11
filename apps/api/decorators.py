@@ -94,7 +94,7 @@ def validate_json_deserializable(fn):
             # def json_err(*args, **kwargs):
             #     return {err.__class__.name: err.message}
             # return json_err
-            return {err.__class__.name: err.message}
+            return {err.__class__.__name__: err.message}
     return wrap
 
 
