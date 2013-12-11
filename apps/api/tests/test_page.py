@@ -2,7 +2,7 @@ import json
 import mock
 import requests
 import random
-from apps.api.tests.utils import AuthenticatedResourceTestCase, configure_mock_request, MockResponse
+from apps.api.tests.utils import AuthenticatedResourceTestCase, configure_mock_request, MockedHammockRequestsTestCase
 from collections import namedtuple
 from django.conf import settings
 from tastypie.test import TestApiClient
@@ -61,22 +61,13 @@ class AuthenticatedPageTestSuite(AuthenticatedResourceTestCase):
         )
         self.assertHttpOK(response)
 
-class AuthenticatedPageAddAllContentTests(AuthenticatedResourceTestCase):
+class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase):
     def setUp(self):
         super(AuthenticatedPageAddAllContentTests, self).setUp()
         self.store_id = 1
         self.page_id = 1
         self.content_data = [15, 12, random.randint(16, 1000)]
         self.url = '/graph/v1/store/%s/page/%s/content/add_all' % (self.store_id, self.page_id)
-
-        #Seting up mocks
-        def side_effect(*args, **kwargs):
-            return MockResponse(status_code=200, content='', headers={})
-        
-        self.mock_request = mock.Mock(side_effect=side_effect)
-        self.mocks = mock.patch.object(requests.Session, 'request', self.mock_request)
-        self.mocks.start()
-        self.addCleanup(self.mocks.stop)
 
     def test_all_good(self):
         response = self.api_client.put(self.url, format='json', data=self.content_data)
@@ -112,7 +103,7 @@ class AuthenticatedPageAddAllContentTests(AuthenticatedResourceTestCase):
 
         for verb in verbs:
             response = getattr(self.api_client, verb)(self.url, format='json', data=verbs[verb])
-            self.assertFalse(self.mock_request.called, 'Mock request was still called when user was not logged in')
+            self.assertFalse(self.mock_request.called, 'Mock request was still called when base method was used')
             self.assertEqual(self.mock_request.call_count, 0)
             self.assertHttpMethodNotAllowed(response)
 
@@ -139,21 +130,7 @@ class AuthenticatedPageAddAllContentTests(AuthenticatedResourceTestCase):
         self.assertHttpApplicationError(response)
 
     def test_remote_errors(self):
-        inject_variables = {
-            'calls': 0
-        }
-
-        def side_effect(*args, **kwargs):
-            if inject_variables['calls'] == 0:
-                inject_variables['calls'] += 1
-                return MockResponse(status_code = 200, content = '', headers = {})
-            elif inject_variables['calls'] == 1:
-                inject_variables['calls'] += 1
-                return MockResponse(status_code = 500, content = '', headers = {})
-            elif inject_variables['calls'] == 2:
-                self.fail('Mock called too many times')
-        
-        self.mock_request.side_effect = side_effect
+        self.mock_status_list = [200, 500]
 
         response = self.api_client.put(self.url, format='json', data=self.content_data)
         self.assertTrue(self.mock_request.called, 'Mock request was never made')
