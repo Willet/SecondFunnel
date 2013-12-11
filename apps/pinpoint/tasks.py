@@ -1,12 +1,13 @@
 import json
 from mock import MagicMock
 
+from apps.api.decorators import validate_json_deserializable
 
 # one day
 IRConfigGenerator = MagicMock()
 
 
-def handle_tile_generator_queue_items(messages):
+def handle_tile_generator_update_notification_messages(messages):
     """
     Messages are fetched from an SQS queue and processed by this function.
 
@@ -32,22 +33,18 @@ def handle_tile_generator_queue_items(messages):
     @type messages {List} <boto.sqs.message.Message instance>
     @returns any JSON-serializable
     """
-    results = []
-
-    for msg in messages:
-        try:
-            message = json.loads(msg.get_body())
-        except (TypeError, ValueError) as err:
-            # safeguard for "No JSON object could be decoded"
-            results.append({err.__class__.name: err.message})
-            continue
+    @validate_json_deserializable
+    def handle_message(message):
+        message = json.loads(message)
 
         if 'tile-id' in message:
             IRConfigGenerator.update_tile(tile_id=message['tile-id'])
-            results.append({'scheduled-tile': message['tile-id']})
+            return {'scheduled-tile': message['tile-id']}
 
         if 'page-id' in message:
             IRConfigGenerator.update_page(tile_id=message['page-id'])
-            results.append({'scheduled-page': message['page-id']})
+            return {'scheduled-page': message['page-id']}
 
-    return results
+    messages = [msg.get_body() for msg in messages]
+
+    return map(handle_message, messages)

@@ -18,22 +18,26 @@ def fetch_queue(queue=None, interval=None):
     @param interval {int} number of seconds that this poll is being made.
     """
     # these methods are locally imported for use as SQS callbacks
-    from apps.assets.tasks import (handle_content_queue_items,
-                                   handle_product_queue_items)
-    from apps.intentrank.tasks import handle_ir_config_queue_items
-    from apps.pinpoint.tasks import handle_tile_generator_queue_items
-    from apps.static_pages.tasks import handle_queue_items as \
-        handle_page_generator_queue_items
+    from apps.assets.tasks import (handle_content_update_notification_messages,
+                                   handle_product_update_notification_messages)
+    from apps.intentrank.tasks import handle_ir_config_update_notification_messages
+    from apps.pinpoint.tasks import handle_tile_generator_update_notification_messages
+    from apps.static_pages.tasks import handle_page_generator_notification_messages
 
     results = {}
 
     # corresponding queues need to be defined in settings.AWS_SQS_POLLING_QUEUES
     handlers = {
-        'handle_content_queue_items': handle_content_queue_items,
-        'handle_product_queue_items': handle_product_queue_items,
-        'handle_ir_config_queue_items': handle_ir_config_queue_items,
-        'handle_tile_generator_queue_items': handle_tile_generator_queue_items,
-        'handle_page_generator_queue_items': handle_page_generator_queue_items,
+        'handle_content_update_notification_messages':
+            handle_content_update_notification_messages,
+        'handle_product_update_notification_messages':
+            handle_product_update_notification_messages,
+        'handle_ir_config_update_notification_messages':
+            handle_ir_config_update_notification_messages,
+        'handle_tile_generator_update_notification_messages':
+            handle_tile_generator_update_notification_messages,
+        'handle_page_generator_notification_messages':
+            handle_page_generator_notification_messages,
     }
 
     if queue:  # fetch one queue

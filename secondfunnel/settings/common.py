@@ -123,16 +123,16 @@ AWS_SQS_POLLING_QUEUES = [
      'interval': 300},
     # https://willet.atlassian.net/browse/CM-126
     {'queue_name': 'content-update-notification-queue',
-     'handler': 'handle_content_queue_items'},
+     'handler': 'handle_content_update_notification_messages'},
     # https://willet.atlassian.net/browse/CM-127
     {'queue_name': 'tile-generator-notification-queue',
-     'handler': 'handle_tile_generator_queue_items'},
+     'handler': 'handle_tile_generator_update_notification_messages'},
     # https://willet.atlassian.net/browse/CM-128
     {'queue_name': 'ir-config-generator-notification-queue',
-     'handler': 'handle_ir_config_queue_items'},
+     'handler': 'handle_ir_config_update_notification_messages'},
 
     {'queue_name': 'page_generator',
-     'handler': 'handle_page_generator_queue_items'},
+     'handler': 'handle_page_generator_notification_messages'},
 ]
 
 

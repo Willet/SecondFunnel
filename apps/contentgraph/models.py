@@ -135,24 +135,26 @@ class TileConfigObject(object):
         """merges a dict given with the existing tile config."""
         return self.client(config_id).PATCH(data=json.dumps(new_props)).json()
 
-    def regenerate_product_tiles(self, product_id):
-        """Mark all tile configs for this product for regeneration."""
+    def mark_tile_for_regeneration(self, content_id=None, product_id=None):
+        """Mark all tile configs for this product/content for regeneration.
+
+        If content_id is given, processes that content's tile config.
+        If product_id is given, processes that product's tile config.
+        """
+        if content_id:
+            query_key = 'content-ids'
+        else:
+            query_key = 'product-ids'
+
         # list
-        tile_configs = self.client.GET(params={'product-ids': product_id})\
-            .json()['results']
+        tile_configs = self.client.GET(
+            params={query_key: content_id or product_id}).json()['results']
 
         # dicts
         for tile_config in tile_configs:
             # yes, a string 'true'
-            self.client(tile_config['id']).PATCH(data={'regenerate': 'true'})
-
-    def regenerate_content_tiles(self, content_id):
-        """Mark all tile configs for this content for regeneration."""
-        # list
-        tile_configs = self.client.GET(params={'content-ids': content_id})\
-            .json()['results']
-
-        # dicts
-        for tile_config in tile_configs:
-            # yes, a string 'true'
-            self.client(tile_config['id']).PATCH(data={'regenerate': 'true'})
+            self.client(tile_config['id']).PATCH(
+                # TODO: might need concurrency checking
+                params={'version': tile_config['last-modified']},
+                data={'stale': 'true'})
+            # TODO: version/last-modified

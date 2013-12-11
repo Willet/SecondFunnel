@@ -2,22 +2,19 @@
 S3 and Route53 helpers
 """
 
-import re
-import functools
-import StringIO
 import gzip
+import json
+import re
+import StringIO
 
 from django.conf import settings
 
 from boto import sns
 from boto import sqs
-from boto.sqs.connection import SQSConnection
-from boto.sqs.jsonmessage import JSONMessage
+from boto.sqs.message import RawMessage
 
-from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
-from boto.route53.connection import Route53Connection
 from boto.route53.record import ResourceRecordSets
 from boto.route53.exception import DNSServerError
 
@@ -323,9 +320,9 @@ class SQSQueue(object):
 
     def write_message(self, data):
         """Writes a JSON-encoded string to the queue."""
-        message = JSONMessage()
-        message.set_body(data)
-        self.queue.set_message_class(JSONMessage)
+        message = RawMessage()
+        message.set_body(json.dumps(data))
+        self.queue.set_message_class(RawMessage)
 
         return self.queue.write(message)
 

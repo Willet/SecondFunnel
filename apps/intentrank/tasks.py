@@ -1,9 +1,11 @@
 import json
 
+from apps.api.decorators import (require_keys_for_message,
+                                 validate_json_deserializable)
 from apps.static_pages.tasks import generate_static_campaign_now
 
 
-def handle_ir_config_queue_items(messages):
+def handle_ir_config_update_notification_messages(messages):
     """
     Messages are fetched from an SQS queue and processed by this function.
 
@@ -26,33 +28,23 @@ def handle_ir_config_queue_items(messages):
     @type messages {List} <boto.sqs.message.Message instance>
     @returns any JSON-serializable
     """
-    results = []
-
-    for msg in messages:
-        try:
-            # each message is a page id
-            message = json.loads(msg.get_body())
-        except (TypeError, ValueError) as err:
-            # safeguard for "No JSON object could be decoded"
-            results.append({err.__class__.name: err.message})
-            continue
-
-        if not ('store-id' in message and 'page-id' in message):
-            # don't know what to generate
-            results.append({'malformed-message': 'missing page-id'})
-            continue
+    @validate_json_deserializable
+    @require_keys_for_message('store-id', 'page-id')
+    def handle_message(message):
+        message = json.loads(message)
 
         store_id = message.get('store-id')
         page_id = message.get('page-id')
 
         try:
             generate_static_campaign_now(store_id=store_id,
-                                         campaign_id=page_id,
-                                         ignore_static_logs=True)
+                campaign_id=page_id, ignore_static_logs=True)
 
-            results.append({'generated-page': page_id})
+            return {'generated-page': page_id}
         except BaseException as err:
             # fails for whatever reason, work on the next page
-            results.append({err.__class__.__name__: err.message})
+            return {err.__class__.__name__: err.message}
 
-    return results
+    messages = [msg.get_body() for msg in messages]
+
+    return map(handle_message, messages)

@@ -145,16 +145,17 @@ def generate_static_campaigns():
 
 
 
-def handle_queue_items(messages):
+def handle_page_generator_notification_messages(messages):
     """
     Messages are fetched from an SQS queue and processed by this function.
 
+    The Campaign Manager currently does nothing when page generation
+    is complete.
+
     @type messages {List} <boto.sqs.message.Message instance>
-    @returns any JSON-serializable
+    @returns None
     """
-    for message in messages:
-        pass
-    return {}
+    pass
 
 
 @celery.task
