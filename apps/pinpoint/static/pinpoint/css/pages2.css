@@ -445,38 +445,6 @@ div.loading {
     background: url('https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -163px 0;
 }
 
-/* This is a hack because media queries are not working the way they should
- * on IE8
- */
-.previewContainer .tablecell {
-    display: table-cell;
-    vertical-align: middle;
-    position: static;
-}
-
-.previewContainer .content {
-    display: block;
-    position: relative;
-    z-index: 1002;
-
-    margin: auto;
-    padding: 20px;
-
-    width: 768px;
-    min-height: 240px;
-    max-height: 666px;
-
-    background: #fff;
-    border: 1px solid #CECECE;
-    border-radius: 4px;
-    -moz-border-radius: 4px;
-    -webkit-border-radius: 4px;
-    -ms-border-radius: 4px;
-    -o-border-radius: 4px;
-    box-shadow: 0px 10px 30px 0px #CECECE;
-}
-/* END HACK */
-
 /* mobile-grade preview container styles */
 @media screen and (max-width: 768px) {
     .previewContainer {
@@ -491,29 +459,24 @@ div.loading {
     }
     .previewContainer .tablecell {
         /* since mobile previews are not floating, this class is cancelled */
-        display: block!important;
+        display: block;
         width: auto;
         height: auto;
         overflow-y: auto;
-
-        /* Added along with IE8 hack */
-        vertical-align: inherit!important;
-        position: relative!important;
-
     }
     .previewContainer .content {
-        display: block!important;
-        position: relative!important;
-        z-index: 0!important;
+        display: block;
+        position: relative;
+        z-index: 0;
 
-        margin: 0!important;
-        padding: 20px!important;
+        margin: 0;
+        padding: 20px;
 
-        width: 100%!important;
+        width: 100%;
 
         background: #fff;
-        border: 0!important;
-        box-shadow: none!important;
+        border: 0;
+        box-shadow: none;
     }
 
     .previewContainer .gallery {
@@ -620,3 +583,6 @@ div.loading {
     pointer-events: none;
 }
 
+.no-scroll {
+    overflow: hidden;
+}

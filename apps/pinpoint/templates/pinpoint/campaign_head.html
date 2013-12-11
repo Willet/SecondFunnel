@@ -9,6 +9,12 @@
 <link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/5col.css' %}">
 {% endcompress css %}
 
+<!--[if IE 8]>
+{% compress css %}
+<link rel="stylesheet" type="text/css" href= {% static 'pinpoint/css/ie8.css' %}
+{% endcompress css %}
+<![endif]-->
+
 {% compress js %}
 <script type="text/javascript" src="{% static 'js/respond.min.js' %}"></script><!-- "as early after the css as possible" -->
 <script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
