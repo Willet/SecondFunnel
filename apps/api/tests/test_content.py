@@ -33,9 +33,9 @@ class RejectContentTests(MockedHammockRequestsTestCase):
 
         self.assertTrue(self.mock_request.called, 'Mock request was never made')
         self.assertEqual(self.mock_request.call_count, 1, 'Mock was not called the correct number of times')
-        self.assertEqual(self.mock_request.call_args_list[0][0],
-            ('patch', settings.CONTENTGRAPH_BASE_URL + '/store/%s/content/%s' % (self.store_id, self.content_id)))
-        self.assertEqual(self.mock_request.call_args_list[0][1], self.expected_data)
+        args, kwargs = self.mock_request.call_args_list[0]
+        self.assertEqual(args, ('patch', settings.CONTENTGRAPH_BASE_URL + '/store/%s/content/%s' % (self.store_id, self.content_id)))
+        self.assertEqual(kwargs, self.expected_data)
         self.assertHttpOK(response)
         self.assertEqual(self.mock_content_default, json.loads(response.content))
 
@@ -47,9 +47,9 @@ class RejectContentTests(MockedHammockRequestsTestCase):
 
         self.assertTrue(self.mock_request.called, 'Mock request was never made')
         self.assertEqual(self.mock_request.call_count, 1, 'Mock was not called the correct number of times')
-        self.assertEqual(self.mock_request.call_args_list[0][0],
-            ('patch', settings.CONTENTGRAPH_BASE_URL + '/store/%s/content/%s' % (self.store_id, self.content_id)))
-        self.assertEqual(self.mock_request.call_args_list[0][1], self.expected_data)
+        args, kwargs = self.mock_request.call_args_list[0]
+        self.assertEqual(args, ('patch', settings.CONTENTGRAPH_BASE_URL + '/store/%s/content/%s' % (self.store_id, self.content_id)))
+        self.assertEqual(kwargs, self.expected_data)
         self.assertHttpApplicationError(response)
         self.assertEqual(self.mock_content_default, json.loads(response.content))
 

@@ -75,8 +75,8 @@ class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase):
         self.assertEqual(self.mock_request.call_count, len(self.content_data), 'Mock was not called the correct number of times')
         
         for i in range(len(self.content_data)):
-            self.assertEqual(self.mock_request.call_args_list[i][0], 
-                ('put', settings.CONTENTGRAPH_BASE_URL + '/store/%s/page/%s/content/%s' % (self.store_id, self.page_id, self.content_data[i])))
+            args = self.mock_request.call_args_list[i][0]
+            self.assertEqual(args, ('put', settings.CONTENTGRAPH_BASE_URL + '/store/%s/page/%s/content/%s' % (self.store_id, self.page_id, self.content_data[i])))
 
         self.assertHttpOK(response)
 
@@ -135,8 +135,10 @@ class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase):
         response = self.api_client.put(self.url, format='json', data=self.content_data)
         self.assertTrue(self.mock_request.called, 'Mock request was never made')
         self.assertEqual(self.mock_request.call_count, 2, 'Mock was not called the correct number of times')
-        self.assertEqual(self.mock_request.call_args_list[0][0], 
-                ('put', settings.CONTENTGRAPH_BASE_URL + '/store/%s/page/%s/content/%s' % (self.store_id, self.page_id, self.content_data[0])))
-        self.assertEqual(self.mock_request.call_args_list[1][0], 
-                ('put', settings.CONTENTGRAPH_BASE_URL + '/store/%s/page/%s/content/%s' % (self.store_id, self.page_id, self.content_data[1])))
+        
+        args = self.mock_request.call_args_list[0][0]
+        self.assertEqual(args, ('put', settings.CONTENTGRAPH_BASE_URL + '/store/%s/page/%s/content/%s' % (self.store_id, self.page_id, self.content_data[0])))
+        
+        args = self.mock_request.call_args_list[1][0]
+        self.assertEqual(args, ('put', settings.CONTENTGRAPH_BASE_URL + '/store/%s/page/%s/content/%s' % (self.store_id, self.page_id, self.content_data[1])))
         self.assertHttpApplicationError(response)
