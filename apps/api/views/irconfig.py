@@ -15,7 +15,13 @@ from apps.static_pages.aws_utils import SQSQueue
 @check_login
 @never_cache
 @csrf_exempt
-def generate_ir_config(request, store_id, ir_id):
+def generate_ir_config_view(request, store_id, ir_id):
+    """view for generating an IR config."""
+    generate_ir_config(store_id=store_id, ir_id=ir_id)
+    return HttpResponse(status=200, content='OK')
+
+
+def generate_ir_config(store_id, ir_id):
     # Yes, it is weird that we have json dumps inside a payload
     # that will also be dumped, but this is how it is implemented.
     payload = {
@@ -45,4 +51,3 @@ def generate_ir_config(request, store_id, ir_id):
 
     queue.queue.set_message_class(RawMessage)
     queue.queue.write(message)
-    return HttpResponse(status=200, content='OK')

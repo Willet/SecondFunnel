@@ -55,6 +55,9 @@ class AuthenticatedIrConfigTestSuite(AuthenticatedResourceTestCase):
         except:
             self.fail('Should not throw an exception when queue not found')
 
+
+        self.assertTrue(mock_get_queue.called)
+
         content = json.loads(response.content)
 
         self.assertHttpApplicationError(response)

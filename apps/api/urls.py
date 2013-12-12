@@ -53,7 +53,7 @@ urlpatterns += patterns('apps.api.views',
     url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/undecide/?$' % prefix, 'undecide_content', name='undecide_content'),
 
     # Intentrank Config
-    url(r'^%s/store/(?P<store_id>\d+)/intentrank/(?P<ir_id>\d+)/?$' % prefix, 'generate_ir_config', name='generate_ir_config'),
+    url(r'^%s/store/(?P<store_id>\d+)/intentrank/(?P<ir_id>\d+)/?$' % prefix, 'generate_ir_config_view', name='generate_ir_config_view'),
 
     # Scraper
     url(r'^%s/scraper/store/(?P<store_id>\d+)/?$' % prefix, 'list_scrapers', name='list_scrapers'),
