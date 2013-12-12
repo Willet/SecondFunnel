@@ -4,8 +4,8 @@ import requests
 from tastypie.test import ResourceTestCase, TestApiClient
 from apps.api.tests.utils import (AuthenticatedResourceTestCase,
                                   configure_mock_request,
-                                  configure_hammock_request,
-                                  MockedHammockRequestsTestCase)
+                                  MockedHammockRequestsTestCase,
+                                  BaseNotAuthenticatedTests)
 from django.conf import settings
 
 class UnauthenticatedContentTestSuite(ResourceTestCase):
@@ -16,19 +16,8 @@ class UnauthenticatedContentTestSuite(ResourceTestCase):
         )
         self.assertHttpUnauthorized(response)
 
-class RejectContentTests(MockedHammockRequestsTestCase):
-    def setUp(self):
-        super(RejectContentTests, self).setUp()
-        self.store_id = 38
-        self.content_id = 1077
-        self.url = '/graph/v1/store/%s/content/%s/reject' % (self.store_id, self.content_id)
-        self.expected_data = {
-            'data': json.dumps({
-                'status': 'rejected'
-            })
-        }
-
-    def test_valid_rejections(self):
+class BaseContentTests(BaseNotAuthenticatedTests):
+    def test_valid_calls(self):
         response = self.api_client.post(self.url, data={})
 
         self.assertTrue(self.mock_request.called, 'Mock request was never made')
@@ -53,19 +42,6 @@ class RejectContentTests(MockedHammockRequestsTestCase):
         self.assertHttpApplicationError(response)
         self.assertEqual(self.mock_content_default, json.loads(response.content))
 
-    def test_not_authenticated(self):
-        client = TestApiClient()
-        response = client.post(self.url, format='json', data={})
-
-        self.assertFalse(self.mock_request.called, 'Mock request was still called when user was not logged in')
-        self.assertEqual(self.mock_request.call_count, 0)
-
-        self.assertHttpUnauthorized(response)
-        self.assertEqual(response._headers['content-type'][1], 'application/json')
-        self.assertEqual(json.dumps({
-            'error': 'Not logged in'
-        }), response.content)
-
     def test_bad_method(self):
         verbs = {
             'get': None,
@@ -79,6 +55,45 @@ class RejectContentTests(MockedHammockRequestsTestCase):
             self.assertFalse(self.mock_request.called, 'Mock request was still called when bad method was used')
             self.assertEqual(self.mock_request.call_count, 0)
             self.assertHttpMethodNotAllowed(response)
+
+class RejectContentTests(MockedHammockRequestsTestCase, BaseContentTests):
+    def setUp(self):
+        super(RejectContentTests, self).setUp()
+        self.store_id = 38
+        self.content_id = 1077
+        self.url = '/graph/v1/store/%s/content/%s/reject' % (self.store_id, self.content_id)
+        self.expected_data = {
+            'data': json.dumps({
+                'status': 'rejected'
+            })
+        }
+        self.good_method = 'post'
+
+class UndecideContentTests(MockedHammockRequestsTestCase, BaseContentTests):
+    def setUp(self):
+        super(UndecideContentTests, self).setUp()
+        self.store_id = 38
+        self.content_id = 1077
+        self.url = '/graph/v1/store/%s/content/%s/undecide' % (self.store_id, self.content_id)
+        self.expected_data = {
+            'data': json.dumps({
+                'status': 'needs-review'
+            })
+        }
+        self.good_method = 'post'
+
+class ApproveContentTests(MockedHammockRequestsTestCase, BaseContentTests):
+    def setUp(self):
+        super(ApproveContentTests, self).setUp()
+        self.store_id = 38
+        self.content_id = 1077
+        self.url = '/graph/v1/store/%s/content/%s/approve' % (self.store_id, self.content_id)
+        self.expected_data = {
+            'data': json.dumps({
+                'status': 'approved'
+            })
+        }
+        self.good_method = 'post'
 
 # TODO: How can we better name these test methods?
 # TODO: Should we have separate test folders for different cases instead?
@@ -283,44 +298,6 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
         self.assertValidJSONResponse(response)
         # TODO: Verify that data is correct?
         # Previously: is_valid = len(json.loads(resp.content)['results']) > 0
-
-    @mock.patch.object(requests.Session, 'request')
-    def test_valid_undecide(self, mock_request):
-        mock_request = configure_hammock_request(mock_request, {
-            r'store/\d+/content/\d+': (
-                {'status': 200, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-        })
-
-        response = self.api_client.post(
-            '/graph/v1/store/38/content/1077/undecide',
-            data={}
-        )
-        self.assertHttpOK(response)
-
-    @mock.patch.object(requests.Session, 'request')
-    def test_invalid_undecide(self, mock_request):
-        mock_request = configure_hammock_request(mock_request, {
-            r'store/\d+/content/\d+': (
-                {'status': 200, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-        })
-
-        response = self.api_client.get(
-            '/graph/v1/store/38/content/1077/undecide',
-            data={}
-        )
-        self.assertHttpMethodNotAllowed(response)
-        # If we want, we can verify JSON response as well
-
-        response = self.api_client.patch(
-            '/graph/v1/store/38/content/1077/undecide',
-            data={}
-        )
-        self.assertHttpMethodNotAllowed(response)
-
 
 class AuthenticatedContentTagTestSuite(AuthenticatedResourceTestCase):
 

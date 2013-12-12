@@ -2,7 +2,7 @@ import json
 import mock
 import requests
 import random
-from apps.api.tests.utils import AuthenticatedResourceTestCase, configure_mock_request, MockedHammockRequestsTestCase
+from apps.api.tests.utils import AuthenticatedResourceTestCase, configure_mock_request, MockedHammockRequestsTestCase, BaseNotAuthenticatedTests
 from collections import namedtuple
 from django.conf import settings
 from tastypie.test import TestApiClient
@@ -61,13 +61,14 @@ class AuthenticatedPageTestSuite(AuthenticatedResourceTestCase):
         )
         self.assertHttpOK(response)
 
-class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase):
+class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase, BaseNotAuthenticatedTests):
     def setUp(self):
         super(AuthenticatedPageAddAllContentTests, self).setUp()
         self.store_id = 1
         self.page_id = 1
         self.content_data = [15, 12, random.randint(16, 1000)]
         self.url = '/graph/v1/store/%s/page/%s/content/add_all' % (self.store_id, self.page_id)
+        self.good_method = 'put'
 
     def test_all_good(self):
         response = self.api_client.put(self.url, format='json', data=self.content_data)
@@ -79,19 +80,6 @@ class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase):
             self.assertEqual(args, ('put', settings.CONTENTGRAPH_BASE_URL + '/store/%s/page/%s/content/%s' % (self.store_id, self.page_id, self.content_data[i])))
 
         self.assertHttpOK(response)
-
-    def test_not_authenticated(self):
-        client = TestApiClient()
-        response = client.put(self.url, format='json', data=self.content_data)
-
-        self.assertFalse(self.mock_request.called, 'Mock request was still called when user was not logged in')
-        self.assertEqual(self.mock_request.call_count, 0)
-
-        self.assertHttpUnauthorized(response)
-        self.assertEqual(response._headers['content-type'][1], 'application/json')
-        self.assertEqual(json.dumps({
-            'error': 'Not logged in'
-        }), response.content)
 
     def test_bad_request_method(self):
         verbs = {

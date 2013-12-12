@@ -5,7 +5,7 @@ import re
 import requests
 import string
 from collections import namedtuple
-from tastypie.test import ResourceTestCase
+from tastypie.test import ResourceTestCase, TestApiClient
 
 MockResponse = namedtuple('MockResponse', ['status_code', 'content', 'headers'])
 
@@ -106,3 +106,22 @@ class MockedHammockRequestsTestCase(AuthenticatedResourceTestCase):
         self.mocks = mock.patch.object(requests.Session, 'request', self.mock_request)
         self.mocks.start()
         self.addCleanup(self.mocks.stop)
+
+class BaseNotAuthenticatedTests(object):
+    '''Test method assumes that the subclass will have the following properties
+          self.url - String url to be called
+          self.mock_request - Mock() instance
+          self.good_method - String of a method that will 200 under normal circumstances
+    '''
+    def test_not_authenticated(self):
+        client = TestApiClient()
+        response = getattr(client, self.good_method)(self.url, format='json', data={})
+
+        self.assertFalse(self.mock_request.called, 'Mock request was still called when user was not logged in')
+        self.assertEqual(self.mock_request.call_count, 0)
+
+        self.assertHttpUnauthorized(response)
+        self.assertEqual(response._headers['content-type'][1], 'application/json')
+        self.assertEqual(json.dumps({
+            'error': 'Not logged in'
+        }), response.content)
