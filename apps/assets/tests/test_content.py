@@ -7,7 +7,7 @@ from django.utils.unittest.case import TestCase
 from apps.api.tasks import fetch_queue
 
 
-class ProductNotificationQueueTestSuite(TestCase):
+class ContentNotificationQueueTestSuite(TestCase):
     """Running these two tests from PyCharm might cause "False is not True"
     and "True is not False" mix-ups. (It might have been an isolated case?)
     """
