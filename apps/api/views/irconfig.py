@@ -17,8 +17,11 @@ from apps.static_pages.aws_utils import SQSQueue
 @csrf_exempt
 def generate_ir_config_view(request, store_id, ir_id):
     """view for generating an IR config."""
-    generate_ir_config(store_id=store_id, ir_id=ir_id)
-    return HttpResponse(status=200, content='OK')
+    try:
+        generate_ir_config(store_id=store_id, ir_id=ir_id)
+        return HttpResponse(status=200, content='OK')
+    except ValueError as err:
+        return HttpResponse(status=500, content=err.message)
 
 
 def generate_ir_config(store_id, ir_id):
@@ -45,7 +48,7 @@ def generate_ir_config(store_id, ir_id):
     try:
         queue = SQSQueue(queue_name=queue_name)
     except ValueError, e:
-        return HttpResponse(status=500, content=json.dumps({
+        raise e.__class__(json.dumps({
             'error': 'No queue found with name {name}'.format(name=queue_name)
         }))
 
