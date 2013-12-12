@@ -493,7 +493,7 @@ def deprioritize_tile(request, store_id, page_id, tileconfig_id):
 @never_cache
 @csrf_exempt
 def list_page_tile_configs(request, store_id, page_id):
-    r = ContentGraphClient.page(page_id).__getattr__('tile-config').GET(params=request.GET)
+    r = ContentGraphClient.page(page_id)['tile-config'].GET(params=request.GET)
     response = HttpResponse(content=r.content, status=r.status_code)
     if r.status_code == 200:
         tiles_json = r.json()
@@ -508,7 +508,7 @@ def expand_products(store_id, page_id, products):
         params = {'product-ids': product_id}  # DEFER: , 'template': 'product'}
         tiles = []
         while True:
-            r = ContentGraphClient.page(page_id).__getattr__('tile-config').GET(params=params)
+            r = ContentGraphClient.page(page_id)['tile-config'].GET(params=params)
             result_json = r.json()
             tiles += result_json['results']
 
@@ -564,7 +564,7 @@ def expand_contents(store_id, page_id, contents):
         params = {'content-ids': content_id}
         tiles = []
         while True:
-            r = ContentGraphClient.page(page_id).__getattr__('tile-config').GET(params=params)
+            r = ContentGraphClient.page(page_id)['tile-config'].GET(params=params)
             result_json = r.json()
             tiles += result_json['results']
 
@@ -598,7 +598,7 @@ def list_page_all_content(request, store_id, page_id):
         params = {'content-ids': content_id}  # DEFER: , 'template': 'product'}
         tiles = []
         while True:
-            r = ContentGraphClient.page(page_id).__getattr__('tile-config').GET(params=params)
+            r = ContentGraphClient.page(page_id)['tile-config'].GET(params=params)
             result_json = r.json()
             tiles += result_json['results']
 
@@ -632,7 +632,7 @@ def fetch_products(store_id, product_ids):
 @never_cache
 @csrf_exempt
 def get_page_tile_config(request, store_id, page_id, tileconfig_id):
-    r = ContentGraphClient.page(page_id).__getattr__('tile-config')(tileconfig_id).GET()
+    r = ContentGraphClient.page(page_id)['tile-config'](tileconfig_id).GET()
     response = HttpResponse(content=r.content, status=r.status_code)
     if r.status_code == 200:
         record = expand_tile_config(store_id, r.json())
