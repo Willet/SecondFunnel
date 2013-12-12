@@ -445,7 +445,6 @@ div.loading {
     background: url('https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -163px 0;
 }
 
-
 /* mobile-grade preview container styles */
 @media screen and (max-width: 768px) {
     .previewContainer {
@@ -581,5 +580,9 @@ div.loading {
 
 /* Disable hover events (enabled when scrolling) */
 .disable-hover {
-  pointer-events: none;
+    pointer-events: none;
+}
+
+.no-scroll {
+    overflow: hidden;
 }

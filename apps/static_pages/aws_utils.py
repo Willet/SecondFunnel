@@ -303,6 +303,7 @@ class SQSQueue(object):
         self.queue = connection.get_queue(queue_name=queue_name)
         if not self.queue:
             raise ValueError('Error retrieving queue {0}'.format(queue_name))
+        self.queue.set_message_class(RawMessage)
 
     def receive(self, num_messages=1):
         """Retrieve one message from the SQS queue.
@@ -322,7 +323,6 @@ class SQSQueue(object):
         """Writes a JSON-encoded string to the queue."""
         message = RawMessage()
         message.set_body(json.dumps(data))
-        self.queue.set_message_class(RawMessage)
 
         return self.queue.write(message)
 

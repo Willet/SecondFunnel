@@ -15,7 +15,9 @@ def fetch_queue(queue=None, interval=None):
     """Run something if the poll detects any messages in any queues
     that are managed by the Campaign Manager.
 
+    @param queue {dict|None}  a queue from AWS_SQS_POLLING_QUEUES.
     @param interval {int} number of seconds that this poll is being made.
+                          -1 means "fetch regardless".
     """
     # these methods are locally imported for use as SQS callbacks
     from apps.assets.tasks import (handle_content_update_notification_message,
@@ -24,6 +26,7 @@ def fetch_queue(queue=None, interval=None):
     from apps.pinpoint.tasks import handle_tile_generator_update_notification_message
     from apps.static_pages.tasks import handle_page_generator_notification_message
 
+    queue_to_fetch = queue
     results = {}
 
     # corresponding queues need to be defined in settings.AWS_SQS_POLLING_QUEUES
@@ -40,40 +43,37 @@ def fetch_queue(queue=None, interval=None):
             handle_page_generator_notification_message,
     }
 
-    if queue:  # fetch one queue
-        queues = [queue]
-    else:  # fetch all queues
-        queues = settings.AWS_SQS_POLLING_QUEUES
-
-    for queue in queues:
-        if not queue:  # so, a None queue can exist
-            continue
-
-        # not a queue that this poll should run.
-        if interval and interval != queue.get('interval', 60):
-            continue
-
-        region_name = queue.get('region_name', settings.AWS_SQS_REGION_NAME)
+    regions = settings.AWS_SQS_POLLING_QUEUES
+    for region_name, queues in regions.iteritems():
         results[region_name] = results.get(region_name, {})
 
-        queue_name = queue.get('queue_name', settings.AWS_SQS_QUEUE_NAME)
-        queue_results = results[region_name].get(queue_name, [])
+        # queues be <list>
+        for queue_name, queue in queues.iteritems():
+            results[region_name][queue_name] = []
 
-        handler_name = queue['handler']  # e.g. handle_items
+            if queue_to_fetch and queue_name != queue_to_fetch['queue_name']:
+                continue  # fetch one queue, name mismatch, skip this queue
 
-        handler = handlers.get(handler_name, noop)  # e.g. <function handle_items>
-        try:
-            messages = sqs_poll(region_name=region_name, queue_name=queue_name)
-            # convert to their bodies, which may be json, or may not
-            messages = [message.get_body() for message in messages]
+            # not a queue that this poll should run.
+            if interval and interval != -1 and interval != queue.get('interval', 60):
+                continue
 
-            # call handler on each message, and save their results
-            queue_results.extend(map(handler, messages))
-        except (AttributeError, ValueError) as err:  # (no such queue)
-            queue_results.append({err.__class__.__name__: err.message})
 
-        # queue finished, here are the results
-        results[region_name][queue_name] = queue_results
+            handler_name = queue['handler']  # e.g. handle_items
+            handler = handlers.get(handler_name, noop)  # e.g. <function handle_items>
+
+            try:
+                messages = sqs_poll(region_name=region_name,
+                                    queue_name=queue_name)
+                # convert to their bodies, which may be json, or may not
+                messages = [message.get_body() for message in messages]
+
+                # call handler on each message, and save their results
+                results[region_name][queue_name].extend(map(handler, messages))
+            except BaseException as err:  # something went wrong
+                results[region_name][queue_name].append(
+                    {err.__class__.__name__: err.message})
+
     return results
 
 
