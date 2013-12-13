@@ -65,14 +65,26 @@ def fetch_queue(queue=None, interval=None):
             try:
                 messages = sqs_poll(region_name=region_name,
                                     queue_name=queue_name)
-                # convert to their bodies, which may be json, or may not
-                messages = [message.get_body() for message in messages]
-
-                # call handler on each message, and save their results
-                results[region_name][queue_name].extend(map(handler, messages))
             except BaseException as err:  # something went wrong
                 results[region_name][queue_name].append(
                     {err.__class__.__name__: err.message})
+                continue
+
+            # call handler on each message, and save their results
+            for message in messages:
+                try:
+                    results[region_name][queue_name].append(
+                        handler(message.get_body()))
+
+                    # you have handled the message. dequeue the message.
+                    message.delete()
+
+                except BaseException as err:
+                    # message failed, leave message in queue so someone else
+                    # can try it again
+                    results[region_name][queue_name].append(
+                        {err.__class__.__name__: err.message,
+                         'message': message.get_body()})
 
     return results
 
