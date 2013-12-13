@@ -108,11 +108,11 @@ class MockedHammockRequestsTestCase(AuthenticatedResourceTestCase):
         self.addCleanup(self.mocks.stop)
 
 class BaseNotAuthenticatedTests(object):
-    '''Test method assumes that the subclass will have the following properties
+    """Test method assumes that the subclass will have the following properties
           self.url - String url to be called
           self.mock_request - Mock() instance
           self.good_method - String of a method that will 200 under normal circumstances
-    '''
+    """
     def test_not_authenticated(self):
         client = TestApiClient()
         response = getattr(client, self.good_method)(self.url, format='json', data={})
