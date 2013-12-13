@@ -98,7 +98,7 @@ function reinitialize(app) {
         if (SecondFunnel.support.isAniPad()) {
             $('html').addClass('ipad');
         }
-        if ($.mobile && !SecondFunnel.support.isAniPad()) {
+        if ($.browser.mobile && !SecondFunnel.support.isAniPad()) {
             $('html').addClass('mobile-phone');
         }
     });

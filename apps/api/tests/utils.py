@@ -111,11 +111,12 @@ class BaseNotAuthenticatedTests(object):
     """Test method assumes that the subclass will have the following properties
           self.url - String url to be called
           self.mock_request - Mock() instance
-          self.good_method - String of a method that will 200 under normal circumstances
+          self.allowed_methods - list of methods that will 200 under normal circumstances
+                                 must be of length > 0
     """
     def test_not_authenticated(self):
         client = TestApiClient()
-        response = getattr(client, self.good_method)(self.url, format='json', data={})
+        response = getattr(client, self.allowed_methods[0])(self.url, format='json', data={})
 
         self.assertFalse(self.mock_request.called, 'Mock request was still called when user was not logged in')
         self.assertEqual(self.mock_request.call_count, 0)
@@ -125,3 +126,27 @@ class BaseNotAuthenticatedTests(object):
         self.assertEqual(json.dumps({
             'error': 'Not logged in'
         }), response.content)
+
+class BaseMethodNotAllowedTests(object):
+    """Test method assumes that the subclass will have the following properties
+          self.url - String url to be called
+          self.mock_request - Mock() instance
+          self.allowed_methods - list of methods that will 200 under normal circumstances
+    """
+    def test_bad_method(self):
+        verbs = {
+            'get': None,
+            'post': {},
+            'put': {},
+            'patch': {},
+            'delete': None
+        }
+
+        for verb in verbs:
+            if verb in self.allowed_methods:
+                continue
+
+            response = getattr(self.api_client, verb)(self.url, format='json', data=verbs[verb])
+            self.assertFalse(self.mock_request.called, 'Mock request was still called when bad method was used')
+            self.assertEqual(self.mock_request.call_count, 0)
+            self.assertHttpMethodNotAllowed(response)

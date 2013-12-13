@@ -2,6 +2,7 @@ import json
 import mock
 import random
 import requests
+from apps.api.tests.utils import BaseMethodNotAllowedTests
 from collections import namedtuple
 
 from django.conf import settings
@@ -67,14 +68,14 @@ class AuthenticatedPageTestSuite(AuthenticatedResourceTestCase):
         )
         self.assertHttpOK(response)
 
-class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase, BaseNotAuthenticatedTests):
+class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase, BaseNotAuthenticatedTests, BaseMethodNotAllowedTests):
     def setUp(self):
         super(AuthenticatedPageAddAllContentTests, self).setUp()
         self.store_id = 1
         self.page_id = 1
         self.content_data = [15, 12, random.randint(16, 1000)]
         self.url = '/graph/v1/store/%s/page/%s/content/add_all' % (self.store_id, self.page_id)
-        self.good_method = 'put'
+        self.allowed_methods = ['put']
 
     def test_all_good(self):
         response = self.api_client.put(self.url, format='json', data=self.content_data)
@@ -86,20 +87,6 @@ class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase, BaseNot
             self.assertEqual(args, ('put', settings.CONTENTGRAPH_BASE_URL + '/store/%s/page/%s/content/%s' % (self.store_id, self.page_id, self.content_data[i])))
 
         self.assertHttpOK(response)
-
-    def test_bad_request_method(self):
-        verbs = {
-            'get': None,
-            'post': self.content_data,
-            'patch': self.content_data,
-            'delete': None
-        }
-
-        for verb in verbs:
-            response = getattr(self.api_client, verb)(self.url, format='json', data=verbs[verb])
-            self.assertFalse(self.mock_request.called, 'Mock request was still called when base method was used')
-            self.assertEqual(self.mock_request.call_count, 0)
-            self.assertHttpMethodNotAllowed(response)
 
     def test_bad_json(self):
         response = self.api_client.put(self.url, format='json', data={

@@ -5,7 +5,8 @@ from tastypie.test import ResourceTestCase, TestApiClient
 from apps.api.tests.utils import (AuthenticatedResourceTestCase,
                                   configure_mock_request,
                                   MockedHammockRequestsTestCase,
-                                  BaseNotAuthenticatedTests)
+                                  BaseNotAuthenticatedTests,
+                                  BaseMethodNotAllowedTests)
 from django.conf import settings
 
 class UnauthenticatedContentTestSuite(ResourceTestCase):
@@ -16,7 +17,7 @@ class UnauthenticatedContentTestSuite(ResourceTestCase):
         )
         self.assertHttpUnauthorized(response)
 
-class BaseContentTests(BaseNotAuthenticatedTests):
+class BaseContentTests(BaseNotAuthenticatedTests, BaseMethodNotAllowedTests):
     def test_valid_calls(self):
         response = self.api_client.post(self.url, data={})
 
@@ -42,20 +43,6 @@ class BaseContentTests(BaseNotAuthenticatedTests):
         self.assertHttpApplicationError(response)
         self.assertEqual(self.mock_content_default, json.loads(response.content))
 
-    def test_bad_method(self):
-        verbs = {
-            'get': None,
-            'put': {},
-            'patch': {},
-            'delete': None
-        }
-
-        for verb in verbs:
-            response = getattr(self.api_client, verb)(self.url, format='json', data=verbs[verb])
-            self.assertFalse(self.mock_request.called, 'Mock request was still called when bad method was used')
-            self.assertEqual(self.mock_request.call_count, 0)
-            self.assertHttpMethodNotAllowed(response)
-
 class RejectContentTests(MockedHammockRequestsTestCase, BaseContentTests):
     def setUp(self):
         super(RejectContentTests, self).setUp()
@@ -67,7 +54,7 @@ class RejectContentTests(MockedHammockRequestsTestCase, BaseContentTests):
                 'status': 'rejected'
             })
         }
-        self.good_method = 'post'
+        self.allowed_methods = ['post']
 
 class UndecideContentTests(MockedHammockRequestsTestCase, BaseContentTests):
     def setUp(self):
@@ -80,7 +67,7 @@ class UndecideContentTests(MockedHammockRequestsTestCase, BaseContentTests):
                 'status': 'needs-review'
             })
         }
-        self.good_method = 'post'
+        self.allowed_methods = ['post']
 
 class ApproveContentTests(MockedHammockRequestsTestCase, BaseContentTests):
     def setUp(self):
@@ -93,7 +80,7 @@ class ApproveContentTests(MockedHammockRequestsTestCase, BaseContentTests):
                 'status': 'approved'
             })
         }
-        self.good_method = 'post'
+        self.allowed_methods = ['post']
 
 # TODO: How can we better name these test methods?
 # TODO: Should we have separate test folders for different cases instead?
