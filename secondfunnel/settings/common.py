@@ -140,6 +140,11 @@ AWS_SQS_POLLING_QUEUES = {
             {'queue_name': 'ir-config-generator-notification-queue',
              'handler': 'handle_ir_config_update_notification_message'},
 
+        # https://willet.atlassian.net/browse/CM-124
+        'scraper-notification-queue':
+            {'queue_name': 'scraper-notification-queue',
+             'handler': 'handle_scraper_notification_message'},
+
         'page_generator':
             {'queue_name': 'page_generator',
              'handler': 'handle_page_generator_notification_message'},

@@ -25,6 +25,7 @@ def fetch_queue(queue=None, interval=None):
     from apps.intentrank.tasks import handle_ir_config_update_notification_message
     from apps.pinpoint.tasks import handle_tile_generator_update_notification_message
     from apps.static_pages.tasks import handle_page_generator_notification_message
+    from apps.scraper.tasks import handle_scraper_notification_message
 
     queue_to_fetch = queue
     results = {}
@@ -41,6 +42,8 @@ def fetch_queue(queue=None, interval=None):
             handle_tile_generator_update_notification_message,
         'handle_page_generator_notification_message':
             handle_page_generator_notification_message,
+        'handle_scraper_notification_message':
+            handle_scraper_notification_message
     }
 
     regions = settings.AWS_SQS_POLLING_QUEUES
