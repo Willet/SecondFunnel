@@ -2,13 +2,17 @@
 Static pages celery tasks
 """
 
+import os
+
 from urlparse import urlparse
 
 from celery import Celery, group
+from celery.utils import noop
 from celery.utils.log import get_task_logger
 
 from django.conf import settings
 from django.core.cache import cache
+from django.utils.encoding import smart_str
 
 from apps.assets.models import Store
 from apps.contentgraph.views import get_page, get_store, get_stores
@@ -17,7 +21,7 @@ from apps.pinpoint.models import Campaign
 from apps.static_pages.models import StaticLog
 
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
-    get_route53_change_status, upload_to_bucket)
+    get_route53_change_status, sqs_poll, SQSQueue, upload_to_bucket)
 from apps.static_pages.utils import (save_static_log, remove_static_log,
     get_bucket_name, create_dummy_request, render_campaign)
 
@@ -140,12 +144,47 @@ def generate_static_campaigns():
     task_group.apply_async()
 
 
+
+def handle_page_generator_notification_message(message):
+    """
+    Messages are fetched from an SQS queue and processed by this function.
+
+    The Campaign Manager currently does nothing when page generation
+    is complete.
+
+    @type message {boto.sqs.message.Message}
+    @returns None
+    """
+    pass
+
+
 @celery.task
 def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
     """The task version of the synchronous operation."""
     return generate_static_campaign_now(store_id, campaign_id,
                                         ignore_static_logs)
 
+
+def generate_local_campaign(store_id, campaign_id, page_content):
+    root = os.getcwd()
+    pinpoint_static = os.path.join(root, 'apps', 'pinpoint', 'static')
+    campaign_path = os.path.join(pinpoint_static, 'campaigns')
+
+    if not os.path.exists(campaign_path):
+        os.mkdir(campaign_path)
+
+    store_path = os.path.join(campaign_path, str(store_id))
+
+    if not os.path.exists(store_path):
+        os.mkdir(store_path)
+
+    html_path = os.path.join(store_path, '%s.html' % campaign_id)
+
+    with open(html_path, 'wb') as html_file:
+        try:
+            html_file.write(smart_str(page_content))
+        except Exception as e:
+            pass #Fail gracefully
 
 def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False):
     """Renders individual campaign and saves it to S3."""
@@ -218,6 +257,8 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
         # write a new log entry for this static campaign
         save_static_log(Campaign, campaign.id, log_key)
 
+        if settings.ENVIRONMENT == "dev":
+            generate_local_campaign(store_id, campaign_id, page_content)
     # boto claims it didn't write anything to S3
     else:
         logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(

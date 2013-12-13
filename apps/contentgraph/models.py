@@ -1,7 +1,13 @@
+import hammock
 import json
 import httplib2
 
 from django.conf import settings
+
+
+# this is a copy
+ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL,
+                                     headers={'ApiKey': 'secretword'})
 
 
 def get_contentgraph_data(endpoint_path, headers=None, method="GET", body=""):
@@ -97,3 +103,58 @@ class ContentGraphObject(object):
             return json.dumps(self.cached_data)
         else:
             return self.cached_data
+
+
+class TileConfigObject(object):
+    """Suppose the tile config generator does something. This object
+    is a pseudo-controller that tells the real generator to do stuff.
+    """
+
+    client = None
+
+    def __init__(self, page_id=-1):
+        self.client = ContentGraphClient.page(page_id)('tile-config')
+
+    def get_all(self):
+        """Get all configs for this page.
+
+        @returns {list}
+        @raises IndexError
+        """
+        return self.client.GET().json()['results']
+
+    def get(self, config_id):
+        """Get one config.
+
+        @returns {dict}
+        @raises IndexError
+        """
+        return self.client(config_id).GET().json()
+
+    def update_config(self, config_id, new_props):
+        """merges a dict given with the existing tile config."""
+        return self.client(config_id).PATCH(data=json.dumps(new_props)).json()
+
+    def mark_tile_for_regeneration(self, content_id=None, product_id=None):
+        """Mark all tile configs for this product/content for regeneration.
+
+        If content_id is given, processes that content's tile config.
+        If product_id is given, processes that product's tile config.
+        """
+        if content_id:
+            query_key = 'content-ids'
+        else:
+            query_key = 'product-ids'
+
+        # list
+        tile_configs = self.client.GET(
+            params={query_key: content_id or product_id}).json()['results']
+
+        # dicts
+        for tile_config in tile_configs:
+            # yes, a string 'true'
+            self.client(tile_config['id']).PATCH(
+                # TODO: might need concurrency checking
+                params={'version': tile_config['last-modified']},
+                data={'stale': 'true'})
+            # TODO: version/last-modified

@@ -1,14 +1,15 @@
 import functools
+import json
 
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
+from apps.utils import check_keys_exist
+
 
 def check_login(fn):
     """wrap the function around three wrappers that check for custom login."""
-    @never_cache
-    @csrf_exempt
     @functools.wraps(fn)
     def wrapped(*args, **kwargs):
         request = args[0]
@@ -52,6 +53,11 @@ def append_headers(fn):
 
 
 def request_methods(*request_methods):
+    """Returns a decorator that returns HTTP 405 if the current request
+    was not made with one of the methods specified in request_methods.
+
+    Example: @request_methods('GET')  # raises on anything but GET
+    """
     def wrap(func):
         @functools.wraps(func)
         def wrapped_func(request, *args, **kwargs):
@@ -61,4 +67,56 @@ def request_methods(*request_methods):
         # this is returning the decorated function
         return wrapped_func
     # this is returning the decorator
+    return wrap
+
+
+def validate_json_deserializable(fn):
+    """Returns a malformed-json error if the message is not
+    json-deserializable.
+
+    This decorator decorator targets SQS queue-processing functions that
+    accept one SQS queue message.
+
+    Example:
+    # returns error dict if *args[0]['a'] doesn't exist
+    @require_keys_for_message('a')
+    """
+    @functools.wraps(fn)
+    def wrap(*args, **kwargs):
+        msg = args[0]
+
+        try:
+            # each message is a page id
+            message = json.loads(msg)
+            return fn(*args, **kwargs)
+        except (TypeError, ValueError) as err:
+            # safeguard for "No JSON object could be decoded"
+            # def json_err(*args, **kwargs):
+            #     return {err.__class__.name: err.message}
+            # return json_err
+            return {err.__class__.__name__: err.message}
+    return wrap
+
+
+def require_keys_for_message(*keys):
+    """Returns a decorator that returns a malformed-message dict and
+    the dict at fault, or the function that was meant to be run.
+
+    This decorator decorator targets SQS queue-processing functions that
+    accept one SQS queue message.
+
+    Example:
+    # returns error dict if *args[0]['a'] doesn't exist
+    @require_keys_for_message('a')
+    """
+    def wrap(fn):
+        @functools.wraps(fn)
+        def wrapped_fn(dct, *args, **kwargs):
+            print (dct, keys)
+            if not check_keys_exist(dct, keys=keys):
+                return {'malformed-data': 'missing one or more keys '
+                                          'in {keys}'.format(
+                    keys=', '.join(keys)), 'data': dct}
+            return fn(*((dct, ) + args), **kwargs)
+        return wrapped_fn
     return wrap

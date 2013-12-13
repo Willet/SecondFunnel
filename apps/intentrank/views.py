@@ -80,39 +80,6 @@ def send_request(request, url, method='GET', headers=None):
     return response, content
 
 
-def process_intentrank_request(request, store, page, function_name,
-                               param_dict):
-    """does NOT initiate a real IntentRank request if debug is set to True.
-
-    Returns the exact number of products requested only when debug is True.
-
-    @param request: The request to the django intentrank api.
-    @param store: The store this request is for.
-    @param page: The page this request is for.
-    @param function_name: The intentrank api function to call.
-    @param param_dict: The query parameters to send to intentrank.
-
-    @return: A tuple with QuerySet of products and a response status.
-    """
-
-    # Just return random results from `pinpoint_ir_campaign_products`
-    from apps.assets.models import PinpointIrCampaignProducts
-
-    product_ids = PinpointIrCampaignProducts.objects.filter(campaign_id=page)\
-        .values_list('product', flat=True)
-
-    if param_dict.get('results'):
-        product_ids = random.sample(product_ids, int(param_dict.get(
-            'results')))
-
-    # if too few products are returned, check the difference
-    # between results (ids) and products (objects).
-    products = Product.objects.filter(
-        pk__in=product_ids, available=True).exclude(media=None)
-
-    return products, SUCCESS
-
-
 def get_product_json_data(product, products_with_images_only=True):
     """Enforce common product json structures across both
     live and static IR.
