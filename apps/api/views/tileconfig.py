@@ -50,7 +50,7 @@ def list_page_tile_configs(request, store_id, page_id):
     if r.status_code == 200:
         tiles_json = r.json()
         if 'results' in tiles_json:
-          tiles_json['results'] = expand_tile_configs(store_id, tiles_json['results'])
+            tiles_json['results'] = expand_tile_configs(store_id, tiles_json['results'])
         response = HttpResponse(content=json.dumps(tiles_json), status=r.status_code)
     return mimic_response(r, response)
 
@@ -121,7 +121,7 @@ def expand_contents(store_id, page_id, contents):
             r = ContentGraphClient.page(page_id)('tile-config').GET(params=params)
             result_json = r.json()
             if 'results' in result_json:
-              tiles += result_json['results']
+                tiles += result_json['results']
 
             # fetch all the results
             if 'meta' in result_json and 'cursors' in result_json['meta'] and 'next' in result_json['meta']['cursors']:
@@ -171,15 +171,6 @@ def list_page_all_content(request, store_id, page_id):
         result_json['results'] = expand_contents(store_id, page_id, result_json['results'])
         response = HttpResponse(content=json.dumps(result_json), status=r.status_code)
     return mimic_response(r, response)
-
-
-def fetch_products(store_id, product_ids):
-    try:
-        params = {'ids': product_ids}
-        json = ContentGraphClient.store(store_id).product().GET(params=params).json()
-        return json
-    except:
-        return None
 
 
 @request_methods('GET')
