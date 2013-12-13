@@ -8,7 +8,7 @@ from django.utils.unittest.case import TestCase
 from apps.api.tasks import fetch_queue
 
 
-class ProductNotificationQueueTestSuite(TestCase):
+class ContentNotificationQueueTestSuite(TestCase):
     """Running these two tests from PyCharm might cause "False is not True"
     and "True is not False" mix-ups. (It might have been an isolated case?)
     """
@@ -30,9 +30,9 @@ class ProductNotificationQueueTestSuite(TestCase):
         mock_get_body.side_effect = mock_get_body_side_effect
 
         queues = settings.AWS_SQS_POLLING_QUEUES[settings.AWS_SQS_REGION_NAME]
-        product_update_queue = queues['product-update-notification-queue']
+        content_update_queue = queues['content-update-notification-queue']
 
-        fetch_queue(product_update_queue, interval=-1)
+        fetch_queue(content_update_queue, interval=-1)
 
         # nothing in the 'queue' to process
         self.assertTrue(mock_receive_message.called)
@@ -47,7 +47,7 @@ class ProductNotificationQueueTestSuite(TestCase):
                                        mock_receive_message,
                                        mock_get_body):
         """checks if a fake queue item calls the regeneration initiator."""
-        raw_body = '{"page-id": 1, "product-id": 2}'
+        raw_body = '{"page-id": 1, "content-id": 2}'
         def mock_receive_message_side_effect(*args, **kwargs):
             return [RawMessage(body=raw_body)]
 
@@ -58,9 +58,9 @@ class ProductNotificationQueueTestSuite(TestCase):
         mock_get_body.side_effect = mock_get_body_side_effect
 
         queues = settings.AWS_SQS_POLLING_QUEUES[settings.AWS_SQS_REGION_NAME]
-        product_update_queue = queues['product-update-notification-queue']
+        content_update_queue = queues['content-update-notification-queue']
 
-        fetch_queue(product_update_queue, interval=-1)
+        fetch_queue(content_update_queue, interval=-1)
 
         # one item in the 'queue' to process
         self.assertTrue(mock_receive_message.called)

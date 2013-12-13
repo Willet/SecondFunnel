@@ -4,10 +4,14 @@ import random
 import re
 import requests
 import string
+import types
+
 from collections import namedtuple
 from tastypie.test import ResourceTestCase, TestApiClient
 
+
 MockResponse = namedtuple('MockResponse', ['status_code', 'content', 'headers'])
+RequestNotMocked = namedtuple('RequestNotMocked', 'status, response')
 
 def configure_mock_request(mock_request, returns):
     # http://www.voidspace.org.uk/python/mock/examples.html#multiple-calls-with-different-effects
@@ -16,7 +20,6 @@ def configure_mock_request(mock_request, returns):
             if re.search(key, uri):
                 return value
 
-        RequestNotMocked = namedtuple('RequestNotMocked', 'status, response')
         return RequestNotMocked(None, None)
 
     # side_effect: A function to be called whenever the Mock is called
@@ -24,10 +27,22 @@ def configure_mock_request(mock_request, returns):
 
     return mock_request
 
+
 def configure_hammock_request(mock_request, returns):
+    """
+
+    :type returns dict
+    :returns {tuple}
+    """
     def response(method, url, **kwargs):
         for key, value in returns.iteritems():
             if re.search(key, url):
+                if type(value) == types.FunctionType:
+                    # each fn handler should accept (method, url)
+                    fn_result = key(method, url)
+                    # each fn handler should return {status_code, content, headers}
+                    return MockResponse(**fn_result)
+
                 resp = value[0]
                 content = value[1]
                 return MockResponse(
@@ -36,7 +51,6 @@ def configure_hammock_request(mock_request, returns):
                     headers=resp
                 )
 
-        RequestNotMocked = namedtuple('RequestNotMocked', 'status, response')
         return RequestNotMocked(None, None)
 
     # side_effect: A function to be called whenever the Mock is called
