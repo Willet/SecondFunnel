@@ -171,12 +171,18 @@ def generate_local_campaign(store_id, campaign_id, page_content):
     campaign_path = os.path.join(pinpoint_static, 'campaigns')
 
     if not os.path.exists(campaign_path):
-        os.mkdir(campaign_path)
+        try:
+            os.mkdir(campaign_path)
+        except OSError as err:  # you have no access to this directory.
+            return
 
     store_path = os.path.join(campaign_path, str(store_id))
 
     if not os.path.exists(store_path):
-        os.mkdir(store_path)
+        try:
+            os.mkdir(store_path)
+        except OSError as err:
+            return
 
     html_path = os.path.join(store_path, '%s.html' % campaign_id)
 
@@ -228,7 +234,8 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
 
     # e.g. "shorts3/index.html"
     s3_path = "{0}/index.html".format(
-        campaign.url or campaign.slug or campaign.id)
+        getattr(campaign, 'url', '') or getattr(campaign, 'slug', None) or \
+        getattr(campaign, 'id'))
 
     store_url = ''
     # this will err intentionally if a store has no public base url
