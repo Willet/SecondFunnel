@@ -49,7 +49,8 @@ def list_page_tile_configs(request, store_id, page_id):
     response = HttpResponse(content=r.content, status=r.status_code)
     if r.status_code == 200:
         tiles_json = r.json()
-        tiles_json['results'] = expand_tile_configs(store_id, tiles_json['results'])
+        if 'results' in tiles_json:
+          tiles_json['results'] = expand_tile_configs(store_id, tiles_json['results'])
         response = HttpResponse(content=json.dumps(tiles_json), status=r.status_code)
     return mimic_response(r, response)
 
@@ -72,7 +73,7 @@ def expand_products(store_id, page_id, products):
         return tiles
 
     # flatten lists
-    content_ids = list(itertools.chain.from_iterable([record['image-ids'] for record in products]))
+    content_ids = list(itertools.chain.from_iterable([record['image-ids'] for record in products if 'image-ids' in record]))
     content_ids += [record['default-image-id'] for record in products]
     content_list = ContentGraphClient.store(store_id).content().GET(params={'ids': content_ids}).json.results
     content_set = {}
@@ -84,7 +85,7 @@ def expand_products(store_id, page_id, products):
         if 'default-image-id' in record:
             record['default-image'] = content_set[record['default-image-id']]
         if 'image-ids' in record:
-            record['images'] = [content_set[content_id] for content_id in record['image-ids']]
+            record['images'] = [content_set[content_id] for content_id in record['image-ids'] if content_id in content_set]
 
     return products
 
@@ -119,7 +120,8 @@ def expand_contents(store_id, page_id, contents):
         while True:
             r = ContentGraphClient.page(page_id)('tile-config').GET(params=params)
             result_json = r.json()
-            tiles += result_json['results']
+            if 'results' in result_json:
+              tiles += result_json['results']
 
             # fetch all the results
             if 'meta' in result_json and 'cursors' in result_json['meta'] and 'next' in result_json['meta']['cursors']:
@@ -202,14 +204,23 @@ def expand_tile_configs(store_id, configs):
     # TODO: this assumes multi-id lookups always return all results
     #       I think... this is a valid assumption, I am not certain at this point in time
 
-    product_ids = list(itertools.chain.from_iterable([config['product-ids'] for config in configs]))
-    product_list = ContentGraphClient.store(store_id).product().GET(params={'ids': product_ids}).json.results
+    product_ids = list(itertools.chain.from_iterable([config['product-ids'] for config in configs if 'product-ids' in config]))
+    product_lookup = ContentGraphClient.store(store_id).product().GET(params={'ids': product_ids})
+    if product_lookup.status_code == 200 and 'results' in product_lookup.json():
+        product_list = product_lookup.json()['results']
+    else:
+        product_list = []
+
     product_set = {}
     for product in product_list:
         product_set[product['id']] = product
 
-    content_ids = list(itertools.chain.from_iterable([config['content-ids'] for config in configs]))
-    content_list = ContentGraphClient.store(store_id).content().GET(params={'ids': content_ids}).json.results
+    content_ids = list(itertools.chain.from_iterable([config['content-ids'] for config in configs if 'content-ids' in config]))
+    content_lookup = ContentGraphClient.store(store_id).content().GET(params={'ids': content_ids})
+    if content_lookup.status_code == 200 and 'results' in content_lookup.json():
+        content_list = content_lookup.json()['results']
+    else:
+        content_list = []
     content_set = {}
     for content in content_list:
         content_set[content['id']] = content
@@ -217,10 +228,10 @@ def expand_tile_configs(store_id, configs):
     for record in configs:
         # convert product ids to json representation
         if 'product-ids' in record:
-            record['products'] = [product_set[product_id] for product_id in record['product-ids']]
+            record['products'] = [product_set[product_id] for product_id in record['product-ids'] if product_id in product_set]
         # convert contents ids to json representation
         if 'content-ids' in record:
-            record['content'] = [content_set[content_id] for content_id in record['content-ids']]
+            record['content'] = [content_set[content_id] for content_id in record['content-ids'] if content_id in content_set]
 
     return configs
 
@@ -233,11 +244,11 @@ def add_product_to_page(request, store_id, page_id, product_id):
     # verify the tile config does not already exist
     tile_check_params = {'template': 'product', 'product-ids': product_id}
     tile_check = ContentGraphClient.page(page_id)('tile-config').POST(params=tile_check_params)
-    if tile_check.status_code == 200 and len(tile_check.json.results) != 0:
+    if tile_check.status_code == 200 and len(tile_check.json()['results']) != 0:
         # TODO: note this does not handle the case where CONTENT GRAPH returns zero results
         #       even though there is RESULTS to be had...
         # NOTE: search endpoint does not return 404 on NO RESULTS
-        response = HttpResponse(content=json.dumps(tile_check.json.results[0]), status=tile_check.status_code)
+        response = HttpResponse(content=json.dumps(tile_check.json()['results'][0]), status=tile_check.status_code)
         return mimic_response(tile_check, response)
 
     payload = json.dumps({
@@ -257,11 +268,11 @@ def add_content_to_page(request, store_id, page_id, content_id):
     # verify the tile config does not already exist
     tile_check_params = {'template': 'content', 'content-ids': content_id}
     tile_check = ContentGraphClient.page(page_id)('tile-config').POST(params=tile_check_params)
-    if tile_check.status_code == 200 and len(tile_check.json.results) != 0:
+    if tile_check.status_code == 200 and len(tile_check.json()['results']) != 0:
         # TODO: note this does not handle the case where CONTENT GRAPH returns zero results
         #       even though there is RESULTS to be had...
         # NOTE: search endpoint does not return 404 on NO RESULTS
-        response = HttpResponse(content=json.dumps(tile_check.json.results[0]), status=tile_check.status_code)
+        response = HttpResponse(content=json.dumps(tile_check.json()['results'][0]), status=tile_check.status_code)
         return mimic_response(tile_check, response)
 
     # create the tile config
