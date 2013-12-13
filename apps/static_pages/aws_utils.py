@@ -2,21 +2,19 @@
 S3 and Route53 helpers
 """
 
-import re
-import functools
-import StringIO
 import gzip
+import json
+import re
+import StringIO
 
 from django.conf import settings
 
 from boto import sns
 from boto import sqs
-from boto.sqs.connection import SQSConnection
+from boto.sqs.message import RawMessage
 
-from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
-from boto.route53.connection import Route53Connection
 from boto.route53.record import ResourceRecordSets
 from boto.route53.exception import DNSServerError
 
@@ -292,6 +290,7 @@ class SQSQueue(object):
     """Object related to an Amazon SQS queue."""
 
     connection = None
+    queue = None
 
     def __init__(self, queue_name=settings.AWS_SQS_QUEUE_NAME,
                  connection=None):
@@ -304,6 +303,7 @@ class SQSQueue(object):
         self.queue = connection.get_queue(queue_name=queue_name)
         if not self.queue:
             raise ValueError('Error retrieving queue {0}'.format(queue_name))
+        self.queue.set_message_class(RawMessage)
 
     def receive(self, num_messages=1):
         """Retrieve one message from the SQS queue.
@@ -318,6 +318,16 @@ class SQSQueue(object):
         except BaseException as err:  # both appear to work the same, so if one fails, do the other
             return self.connection.receive_message(self.queue,
                                                    number_messages=num_messages)
+
+    def write_message(self, data):
+        """Writes a JSON-encoded string to the queue."""
+        message = RawMessage()
+        message.set_body(json.dumps(data))
+
+        return self.queue.write(message)
+
+    def delete_message(self, message):
+        return self.queue.delete_message(message=message)
 
 
 def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
@@ -343,9 +353,14 @@ def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
     return topic.publish(subject=subject, message=message)
 
 
-def sqs_poll(callback, region_name=settings.AWS_SQS_REGION_NAME,
+def sqs_poll(callback=None, region_name=settings.AWS_SQS_REGION_NAME,
              queue_name=settings.AWS_SQS_QUEUE_NAME, dev_suffix=False):
-    """accept messages from a sqs queue, then pass it into callback."""
+    """accept messages from a sqs queue, then pass it into callback.
+
+    If callback is given, run callback on messages. Otherwise, return messages.
+
+    @returns {list}
+    """
 
     # ENVIRONMENT is "production" in production
     if dev_suffix and settings.ENVIRONMENT in ['dev', 'test']:
@@ -363,4 +378,7 @@ def sqs_poll(callback, region_name=settings.AWS_SQS_REGION_NAME,
     if not messages:
         messages = []  # default to 0 messages instead of None messages
 
-    return callback(messages)
+    if callback:
+        return callback(messages)
+
+    return messages

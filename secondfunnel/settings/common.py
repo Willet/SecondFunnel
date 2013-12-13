@@ -114,27 +114,37 @@ AWS_SQS_REGION_NAME = AWS_SNS_REGION_NAME  # by default, both oregon
 AWS_SNS_TOPIC_NAME = 'page_generator'
 AWS_SQS_QUEUE_NAME = AWS_SNS_TOPIC_NAME  # by default, same as the sns name
 
-# list of queues to poll regularly, using celery beat.
+# dict of queues by region to poll regularly, using celery beat.
 # corresponding handlers need to be imported in apps.api.tasks
-AWS_SQS_POLLING_QUEUES = [
-    # https://willet.atlassian.net/browse/CM-125
-    {'queue_name': 'product-update-notification-queue',
-     'handler': 'handle_assets_queue_items',
-     'interval': 300},
-    # https://willet.atlassian.net/browse/CM-126
-    {'queue_name': 'content-update-notification-queue',
-     'handler': 'handle_assets_queue_items'},
-    # https://willet.atlassian.net/browse/CM-127
-    {'queue_name': 'tile-generator-notification-queue',
-     'handler': 'handle_tile_generator_queue_items'},
-    # https://willet.atlassian.net/browse/CM-128
-    {'queue_name': 'ir-config-generator-notification-queue',
-     'handler': 'handle_ir_config_queue_items'},
+AWS_SQS_POLLING_QUEUES = {
+    'us-west-2': {
+        # https://willet.atlassian.net/browse/CM-125
+        'product-update-notification-queue':
+            {'queue_name': 'product-update-notification-queue',
+             'handler': 'handle_product_update_notification_message',
+             'interval': 300},
 
-    {'queue_name': 'page_generator',
-     'handler': 'handle_page_generator_queue_items'},
-]
+        # https://willet.atlassian.net/browse/CM-126
+        'content-update-notification-queue':
+            {'queue_name': 'content-update-notification-queue',
+             'handler': 'handle_content_update_notification_message',
+             'interval': 300},
 
+        # https://willet.atlassian.net/browse/CM-127
+        'tile-generator-notification-queue':
+            {'queue_name': 'tile-generator-notification-queue',
+             'handler': 'handle_tile_generator_update_notification_message'},
+
+        # https://willet.atlassian.net/browse/CM-128
+        'ir-config-generator-notification-queue':
+            {'queue_name': 'ir-config-generator-notification-queue',
+             'handler': 'handle_ir_config_update_notification_message'},
+
+        'page_generator':
+            {'queue_name': 'page_generator',
+             'handler': 'handle_page_generator_notification_message'},
+    }
+}
 
 # Disable signature/accesskey/expire attrs being appended to s3 links
 AWS_QUERYSTRING_AUTH = False
