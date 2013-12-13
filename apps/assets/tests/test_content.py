@@ -65,5 +65,13 @@ class ContentNotificationQueueTestSuite(TestCase):
         # one item in the 'queue' to process
         self.assertTrue(mock_receive_message.called)
         self.assertTrue(mock_get_body.called)
-        self.assertTrue(mock_request.called)
-        self.assertEqual(mock_request.call_args[0][0], 'get')
+
+        # determine if the right request(s) were made
+        args = mock_request.call_args[0]
+        method = args[0]
+        path = args[1]
+        item_retrieved = (method == 'get')
+        item_retrieved_was_tile_config = ('tile-config' in path)
+
+        self.assertTrue(item_retrieved)
+        self.assertTrue(item_retrieved_was_tile_config)

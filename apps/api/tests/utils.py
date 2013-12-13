@@ -4,6 +4,8 @@ import random
 import re
 import requests
 import string
+import types
+
 from collections import namedtuple
 from tastypie.test import ResourceTestCase, TestApiClient
 
@@ -27,9 +29,20 @@ def configure_mock_request(mock_request, returns):
 
 
 def configure_hammock_request(mock_request, returns):
+    """
+
+    :type returns dict
+    :returns {tuple}
+    """
     def response(method, url, **kwargs):
         for key, value in returns.iteritems():
             if re.search(key, url):
+                if type(value) == types.FunctionType:
+                    # each fn handler should accept (method, url)
+                    fn_result = key(method, url)
+                    # each fn handler should return {status_code, content, headers}
+                    return MockResponse(**fn_result)
+
                 resp = value[0]
                 content = value[1]
                 return MockResponse(
