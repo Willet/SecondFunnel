@@ -43,7 +43,7 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
 
         results = json.loads(response.content).get('results')
 
-        self.assertEquals(len(results), 2)
+        self.assertEqual(len(results), 2)
         # TODO: What else to test on a mock?
 
 
@@ -82,7 +82,7 @@ class ScraperNotificationQueueTestSuite(TestCase):
         results = fetch_queue(self.queue, interval=-1)
 
         self.assertFalse(mock_request.called)
-        self.assertEquals(0, len(results[self.region][self.queue_name]))
+        self.assertEqual(0, len(results[self.region][self.queue_name]))
 
 
     @mock.patch('boto.sqs.connection.SQSConnection.receive_message')
@@ -101,7 +101,7 @@ class ScraperNotificationQueueTestSuite(TestCase):
         results = fetch_queue(self.queue, interval=-1)
 
         self.assertFalse(mock_request.called)
-        self.assertEquals(2, len(results[self.region][self.queue_name]))
+        self.assertEqual(2, len(results[self.region][self.queue_name]))
 
         no_json = results[self.region][self.queue_name][0]
         self.assertDictContainsSubset({
@@ -131,7 +131,7 @@ class ScraperNotificationQueueTestSuite(TestCase):
         results = fetch_queue(self.queue, interval=-1)
 
         self.assertFalse(mock_request.called)
-        self.assertEquals(1, len(results[self.region][self.queue_name]))
+        self.assertEqual(1, len(results[self.region][self.queue_name]))
 
         result = results[self.region][self.queue_name][0]
-        self.assertEquals({}, result)
+        self.assertEqual({}, result)
