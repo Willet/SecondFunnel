@@ -233,9 +233,11 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
                                    request=dummy_request)
 
     # e.g. "shorts3/index.html"
-    s3_path = "{0}/index.html".format(
-        getattr(campaign, 'url', '') or getattr(campaign, 'slug', None) or \
-        getattr(campaign, 'id'))
+    identifier = getattr(campaign, 'url', '') or \
+                 getattr(campaign, 'slug', '') or \
+                 getattr(campaign, 'id')
+
+    s3_path = "{0}/index.html".format(identifier)
 
     store_url = ''
     # this will err intentionally if a store has no public base url
