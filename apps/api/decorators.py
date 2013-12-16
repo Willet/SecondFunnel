@@ -88,13 +88,14 @@ def validate_json_deserializable(fn):
         try:
             # each message is a page id
             message = json.loads(msg)
-            return fn(*args, **kwargs)
         except (TypeError, ValueError) as err:
             # safeguard for "No JSON object could be decoded"
             # def json_err(*args, **kwargs):
             #     return {err.__class__.name: err.message}
             # return json_err
             return {err.__class__.__name__: err.message}
+
+        return fn(*args, **kwargs)
     return wrap
 
 

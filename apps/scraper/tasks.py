@@ -1,12 +1,14 @@
+from apps.api.decorators import validate_json_deserializable, require_keys_for_message
 
 
-def handle_queue_items(messages):
+@validate_json_deserializable
+@require_keys_for_message('scraper-id', 'status', 'message')
+def handle_scraper_notification_message(message):
     """
     Messages are fetched from an SQS queue and processed by this function.
 
-    @type messages {List} <boto.sqs.message.Message instance>
+    @type message {boto.sqs.message.Message}
     @returns any JSON-serializable
     """
-    for message in messages:
-        pass
+
     return {}
