@@ -84,21 +84,40 @@ class ScraperNotificationQueueTestSuite(TestCase):
         self.assertFalse(mock_request.called)
         self.assertEquals(0, len(results[self.region][self.queue_name]))
 
-    # @mock.patch('boto.sqs.message.RawMessage.get_body')
-    # @mock.patch('boto.sqs.connection.SQSConnection.receive_message')
-    # @mock.patch.object(requests.Session, 'request')
-    # def test_bad_message(self, mock_request, mock_receive_message,
-    #                      mock_get_body):
-    #     results = fetch_queue(self.queue, interval=-1)
-    #
-    #     # Verify results are empty; shouldn't do anything if message is bad
-    #
-    @mock.patch('boto.sqs.message.RawMessage.get_body')
+
     @mock.patch('boto.sqs.connection.SQSConnection.receive_message')
     @mock.patch.object(requests.Session, 'request')
-    def test_good_message(self, mock_request, mock_receive_message,
-                         mock_get_body):
-        message = RawMessage(json.dumps({
+    def test_bad_message(self, mock_request, mock_receive_message):
+        no_json_msg = RawMessage(body="Bad message")
+        missing_keys_msg = RawMessage(body=json.dumps({
+            'scraper-id': 1
+        }))
+
+        def messages(*args, **kwargs):
+            return [no_json_msg, missing_keys_msg]
+
+        mock_receive_message.side_effect = messages
+
+        results = fetch_queue(self.queue, interval=-1)
+
+        self.assertFalse(mock_request.called)
+        self.assertEquals(2, len(results[self.region][self.queue_name]))
+
+        no_json = results[self.region][self.queue_name][0]
+        self.assertDictContainsSubset({
+            'ValueError': 'No JSON object could be decoded'
+        }, no_json)
+
+        missing_key = results[self.region][self.queue_name][1]
+        self.assertDictContainsSubset({
+            'malformed-data': 'missing one or more keys in scraper-id, status, message'
+        }, missing_key)
+
+
+    @mock.patch('boto.sqs.connection.SQSConnection.receive_message')
+    @mock.patch.object(requests.Session, 'request')
+    def test_good_message(self, mock_request, mock_receive_message):
+        message = RawMessage(body=json.dumps({
            "scraper-id": "1",
            "status": "finished",
            "message": "..."
