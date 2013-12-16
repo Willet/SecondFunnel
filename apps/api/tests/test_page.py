@@ -1,11 +1,18 @@
 import json
 import mock
-import requests
 import random
-from apps.api.tests.utils import AuthenticatedResourceTestCase, configure_mock_request, MockedHammockRequestsTestCase, BaseNotAuthenticatedTests, BaseMethodNotAllowedTests
+import requests
+from apps.api.tests.utils import BaseMethodNotAllowedTests
 from collections import namedtuple
+
 from django.conf import settings
 from tastypie.test import TestApiClient
+
+from apps.api.tests.utils import (AuthenticatedResourceTestCase,
+                                  configure_mock_request,
+                                  MockedHammockRequestsTestCase,
+                                  BaseNotAuthenticatedTests)
+
 
 class AuthenticatedPageTestSuite(AuthenticatedResourceTestCase):
 

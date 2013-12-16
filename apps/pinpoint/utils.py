@@ -16,9 +16,9 @@ def read_remote_file(url, default_value=''):
     try:
         h = httplib2.Http()
         response, content = h.request(url)
-        if not 200 <= int(response.status) <= 300:
+        if not 200 <= int(response['status']) <= 300:
             return default_value
 
         return content
-    except (ValueError, httplib2.RelativeURIError) as err:
+    except (TypeError, ValueError, httplib2.RelativeURIError) as err:
         return default_value

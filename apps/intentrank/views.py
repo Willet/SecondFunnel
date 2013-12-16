@@ -238,7 +238,7 @@ def get_seeds(request, **kwargs):
     try:
         response, content = send_request(request, url,
                                          headers={'Cookie': cookie})
-        status = response.status
+        status = response['status']
         cookie = response.get('set-cookie', '')
         content = unicode(content, 'windows-1252')
         if status >= 400:
