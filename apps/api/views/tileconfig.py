@@ -51,7 +51,7 @@ def list_page_tile_configs(request, store_id, page_id):
         tiles_json = r.json()
         if 'results' in tiles_json:
             tiles_json['results'] = expand_tile_configs(store_id, tiles_json['results'])
-        response = HttpResponse(content=json.dumps(tiles_json), status=r.status_code)
+        return HttpResponse(content=json.dumps(tiles_json), status=r.status_code)
     return mimic_response(r, response)
 
 
