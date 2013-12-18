@@ -638,8 +638,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             if ((windowTop / pageHeight) > pagesScrolled) {
                 SecondFunnel.vent.trigger('tracking:trackEvent', {
                     'category': 'visit',
-                    'action': 'noBounce',
-                    'label': 'scroll'
+                    'action': 'scroll',
+                    'label': pagesScrolled  // reports 1 if 1 page *scrolled*
                 });
 
                 pagesScrolled++;  // user scrolled down once more
