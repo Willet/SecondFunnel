@@ -4,6 +4,8 @@ import httplib2
 
 from django.conf import settings
 
+from apps.utils.mapper.utils import parallel_map
+
 
 # this is a copy
 ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL,
@@ -150,11 +152,12 @@ class TileConfigObject(object):
         tile_configs = self.client.GET(
             params={query_key: content_id or product_id}).json()['results']
 
-        # dicts
-        for tile_config in tile_configs:
+        def mark_tile(tile_config):
             # yes, a string 'true'
             self.client(tile_config['id']).PATCH(
                 # TODO: might need concurrency checking
                 params={'version': tile_config['last-modified']},
                 data={'stale': 'true'})
             # TODO: version/last-modified
+
+        parallel_map(mark_tile, tile_configs)

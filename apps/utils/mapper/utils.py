@@ -10,6 +10,9 @@ def parallel_map(function, iterable, max_workers=None, raise_on_exceptions=True,
     threads as the number of items in iterable, up to 20 (an arbitrary
     limit where threading has diminishing returns).
 
+    Differs from futures.Executor.map() in that this allows default values to
+    be set on undefined iterable items.
+
     Exception handling is the same as map(), where exception caused by
     one item will kill other operations.
 
@@ -30,7 +33,7 @@ def parallel_map(function, iterable, max_workers=None, raise_on_exceptions=True,
     """
     pool = futures.ThreadPoolExecutor
     item_count = len(iterable)
-    results = [None] * item_count
+    results = [default_value] * item_count
 
     if not max_workers:
         max_workers = item_count
