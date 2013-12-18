@@ -1,1 +1,1 @@
-from utils import parallel_map
+from utils import parallelize_lambdas, parallel_map
