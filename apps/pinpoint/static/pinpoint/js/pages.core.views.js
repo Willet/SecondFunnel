@@ -8,7 +8,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     "use strict";
     var $window = $(window),
         $document = $(document),
-        notABounce = false;
+        // specifically, pages scrolled downwards; pagesScrolled defaults
+        // to 1 because the user always sees the first page.
+        pagesScrolled = 1;
 
     /**
      * View responsible for the "Hero Area"
@@ -633,15 +635,14 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
 
             // "did user scroll down more than a page?"
-            if (windowTop > pageHeight && !notABounce) {
+            if ((windowTop / pageHeight) > pagesScrolled) {
                 SecondFunnel.vent.trigger('tracking:trackEvent', {
                     'category': 'visit',
                     'action': 'noBounce',
                     'label': 'scroll'
                 });
 
-                // just a local variable
-                notABounce = true;
+                pagesScrolled++;  // user scrolled down once more
             }
 
             // detect scrolling detection. not used for anything yet.
