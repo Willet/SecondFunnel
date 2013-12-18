@@ -1,5 +1,6 @@
 import json
 from django.utils.safestring import mark_safe
+from apps.utils.mapper.utils import parallelize_lambdas as parallelize
 import re
 
 from collections import defaultdict
@@ -141,15 +142,16 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
             return 'null'
 
     # these 4 lines will trigger ValueErrors if remote JSON is invalid.
-    campaign_data = get_page(store_id=store_id, page_id=campaign_id, as_dict=True)
+
+    campaign_data, store_data = parallelize([
+        lambda: get_page(store_id=store_id, page_id=campaign_id, as_dict=True),
+        lambda: get_store(store_id=store_id, as_dict=True)
+    ])
     campaign = Campaign.from_json(campaign_data)
-    store_data = get_store(store_id=store_id, as_dict=True)
     store = Store.from_json(store_data)
 
     # get the featured product from our DB.
     try:
-        # product = content_block.data.product
-        # based on Neal's description, this is what it will eventually be
         product = get_product(campaign_data.get('featured-product-id')) or\
                   get_product(campaign_data.get('product-ids', [0])[0])
     except:
