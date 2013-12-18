@@ -62,6 +62,9 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             // wrap _gaq.push to obey our tracking
             if (window._gaq && SecondFunnel.option('enableTracking', true)) {
                 _gaq.push.apply(_gaq, arguments);
+            } else {
+                console.warn('addItem was either disabled by the client ' +
+                             'or prevented by the browser. %o', arguments);
             }
         },
 

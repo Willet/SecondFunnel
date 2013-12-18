@@ -7,7 +7,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
     // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
     "use strict";
     var $window = $(window),
-        $document = $(document);
+        $document = $(document),
+        notABounce = false;
 
     /**
      * View responsible for the "Hero Area"
@@ -620,7 +621,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         'pageScroll': function () {
             var pageHeight = $window.innerHeight(),
-                pageBottomPos = pageHeight + $window.scrollTop(),
+                windowTop = $window.scrollTop(),
+                pageBottomPos = pageHeight + windowTop,
                 documentBottomPos = $document.height(),
                 viewportHeights = pageHeight * (SecondFunnel.option('prefetchHeight', 1.5));
 
@@ -628,6 +630,18 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 pageBottomPos >= documentBottomPos - viewportHeights) {
                 // get more tiles to fill the screen.
                 this.getTiles();
+            }
+
+            // "did user scroll down more than a page?"
+            if (windowTop > pageHeight && !notABounce) {
+                SecondFunnel.vent.trigger('tracking:trackEvent', {
+                    'category': 'visit',
+                    'action': 'noBounce',
+                    'label': 'scroll'
+                });
+
+                // just a local variable
+                notABounce = true;
             }
 
             // detect scrolling detection. not used for anything yet.
