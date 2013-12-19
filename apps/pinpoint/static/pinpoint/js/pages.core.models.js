@@ -432,6 +432,14 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     continue;
                 }
 
+                // decrement the allowed displays of each shown tile,
+                // but limit by its original-id attribute.
+                if (self.resultsThreshold[tileJson['original-id']] !== undefined &&
+                    --self.resultsThreshold[tileJson['original-id']] < 0) {
+                    // tile has been disabled by its per-page threshold
+                    continue;
+                }
+
                 respBuilder.push(tileJson);  // this tile passes
             }
 
