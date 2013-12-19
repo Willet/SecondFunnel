@@ -1,9 +1,2 @@
-__author__ = 'Nicholas Terwoord'
-
-
-def noop(*args, **kwargs):
-    return None
-
-
-def proxy(thingy):
-    return thingy
+# python.net/~goodger/projects/pycon/2007/idiomatic/handout.html#importing
+from functional import check_keys_exist, noop, proxy, where

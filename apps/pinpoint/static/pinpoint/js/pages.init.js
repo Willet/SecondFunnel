@@ -98,10 +98,22 @@ function reinitialize(app) {
         if (SecondFunnel.support.isAniPad()) {
             $('html').addClass('ipad');
         }
-        if ($.mobile && !SecondFunnel.support.isAniPad()) {
+        if ($.browser.mobile && !SecondFunnel.support.isAniPad()) {
             $('html').addClass('mobile-phone');
         }
     });
+    app.vent.on('finished',  function() {
+        $(window).scroll(function() {
+            var body = document.body;
+            if(!body.classList.contains('disable-hover')) {
+                body.classList.add('disable-hover')
+            }
+
+            app.vent.on('scrollStopped', function() {
+                body.classList.remove('disable-hover')
+            });
+        })
+    })
 }
 
 // auto-initialise existing instance on script inclusion

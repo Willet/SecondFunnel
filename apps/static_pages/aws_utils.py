@@ -2,17 +2,19 @@
 S3 and Route53 helpers
 """
 
-import re
-import functools
-import StringIO
 import gzip
+import json
+import re
+import StringIO
 
 from django.conf import settings
 
-from boto.s3.connection import S3Connection
+from boto import sns
+from boto import sqs
+from boto.sqs.message import RawMessage
+
 from boto.s3.key import Key
 
-from boto.route53.connection import Route53Connection
 from boto.route53.record import ResourceRecordSets
 from boto.route53.exception import DNSServerError
 
@@ -186,3 +188,197 @@ def create_bucket_website_alias(dns_name, bucket_name=None):
 
         else:
             return bucket, "INSYNC", 0
+
+
+def sns_connection(region_name=settings.AWS_SNS_REGION_NAME):
+    """Returns an SNSConnection that is already authenticated.
+
+    us-west-2 is oregon, the region we use by default.
+
+    @raises IndexError
+    """
+    region = filter(lambda x: x.name == region_name, sns.regions())[0]
+
+    return sns.SNSConnection(
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region=region)
+
+
+def sqs_connection(region_name=settings.AWS_SQS_REGION_NAME):
+    """Returns an SQSConnection that is already authenticated.
+
+    us-west-2 is oregon, the region we use by default.
+
+    @raises IndexError
+    """
+    region = filter(lambda x: x.name == region_name, sqs.regions())[0]
+
+    return sqs.connect_to_region(
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region_name=region_name)
+
+
+class SNSTopic(object):
+    """Object related to an Amazon SNS topic."""
+
+    connection = None
+    topic_name = ''
+    arn = None  # topics have "ARNs"
+
+    def __init__(self, topic_name=settings.AWS_SNS_TOPIC_NAME,
+                 connection=None):
+        """@raises IndexError"""
+        if not connection:
+            connection = sns_connection()
+
+        self.connection = connection
+        self.topic_name = topic_name
+
+        topics_resp = connection.get_all_topics()
+        arns = [topic['TopicArn'] for topic in
+                topics_resp['ListTopicsResponse']['ListTopicsResult']['Topics']]
+        try:
+            # the correct ARN is the ARN with the topic name at the end of it
+            self.arn = filter(lambda arn: topic_name in arn[-len(topic_name):],
+                              arns)[0]
+        except IndexError as err:
+            # topic doesn't exist. make one, then get its ARN
+            myself = self.create()
+            self.arn = myself['CreateTopicResponse']['CreateTopicResult']\
+                ['TopicArn']
+
+    def publish(self, subject='', message=''):
+        """Sends a message to the SNS topic.
+
+        message may be in json form, but this function only accepts a string.
+        """
+        if subject is None:
+            subject = ''
+
+        if len(subject) > 100:  # max length is 100 - raise
+            raise ValueError('SNS subject too long')
+
+        if len(message) > 1024 * 256:  # max length is 256kB - raise
+            raise ValueError('SNS message too long')
+
+        return self.connection.publish(topic=self.arn, message=message,
+                                       subject=subject)
+
+    def create(self):
+        """Creates the topic if it hasn't been created already.
+        It is safe to create a topic that already exists.
+
+        @returns {dict}
+
+        Example return: {
+            'CreateTopicResponse': {
+                'ResponseMetadata': {
+                    'RequestId': '4f4be027-252d-50e1-89b6-ab3dfc05fcf3'
+                },
+                'CreateTopicResult': {
+                    'TopicArn': 'arn:aws:sns:us-west-2:056265713214:page_generator'
+                }
+            }
+        }
+        """
+        return self.connection.create_topic(self.topic_name)
+
+
+class SQSQueue(object):
+    """Object related to an Amazon SQS queue."""
+
+    connection = None
+    queue = None
+
+    def __init__(self, queue_name=settings.AWS_SQS_QUEUE_NAME,
+                 connection=None):
+        """."""
+        if not connection:
+            connection = sqs_connection()
+
+        self.connection = connection
+        # @type {boto.sqs.queue.Queue}
+        self.queue = connection.get_queue(queue_name=queue_name)
+        if not self.queue:
+            raise ValueError('Error retrieving queue {0}'.format(queue_name))
+        self.queue.set_message_class(RawMessage)
+
+    def receive(self, num_messages=1):
+        """Retrieve one message from the SQS queue.
+
+        SQS Queues have visibility timeouts.
+        Repeated calls may receive different messages.
+
+        @returns {list}  [<boto.sqs.message.Message instance]
+        """
+        try:
+            return self.queue.get_messages(num_messages=num_messages)
+        except BaseException as err:  # both appear to work the same, so if one fails, do the other
+            return self.connection.receive_message(self.queue,
+                                                   number_messages=num_messages)
+
+    def write_message(self, data):
+        """Writes a JSON-encoded string to the queue."""
+        message = RawMessage()
+        message.set_body(json.dumps(data))
+
+        return self.queue.write(message)
+
+    def delete_message(self, message):
+        return self.queue.delete_message(message=message)
+
+
+def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
+               topic_name=settings.AWS_SNS_TOPIC_NAME,
+               subject=None, message='', dev_suffix=False):
+    """Sends a message to an SNS board.
+
+    The SQS queue should subscribe to the SNS topic: http://i.imgur.com/fLOdNyD.png
+
+    @param dev_suffix {bool} whether '_dev' or '_test' will be added to the
+    topic name depending on the current environment.
+
+    @raises {IndexError|TypeError|ValueError}
+    """
+
+    # ENVIRONMENT is "production" in production
+    if dev_suffix and settings.ENVIRONMENT in ['dev', 'test']:
+        topic_name = '{topic_name}_{env}'.format(topic_name=topic_name,
+                                                 env=settings.ENVIRONMENT)
+
+    connection = sns_connection(region_name)
+    topic = SNSTopic(topic_name=topic_name, connection=connection)
+    return topic.publish(subject=subject, message=message)
+
+
+def sqs_poll(callback=None, region_name=settings.AWS_SQS_REGION_NAME,
+             queue_name=settings.AWS_SQS_QUEUE_NAME, dev_suffix=False):
+    """accept messages from a sqs queue, then pass it into callback.
+
+    If callback is given, run callback on messages. Otherwise, return messages.
+
+    @returns {list}
+    """
+
+    # ENVIRONMENT is "production" in production
+    if dev_suffix and settings.ENVIRONMENT in ['dev', 'test']:
+        queue_name = '{queue_name}_{env}'.format(queue_name=queue_name,
+                                                 env=settings.ENVIRONMENT)
+
+    connection = sqs_connection(region_name=region_name)
+
+    queue = SQSQueue(queue_name=queue_name, connection=connection)
+    if not queue:
+        raise ValueError('No such queue found: {0}'.format(queue_name))
+
+    messages = queue.receive()
+
+    if not messages:
+        messages = []  # default to 0 messages instead of None messages
+
+    if callback:
+        return callback(messages)
+
+    return messages

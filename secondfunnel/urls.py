@@ -35,5 +35,8 @@ if settings.DEBUG:
         url(r'^static/(?P<path>.*)$', 'serve'),
     )
 
+if settings.MOCK_IR_SERVER:
+    urlpatterns += patterns('',
+        url(r'^mocks/', include('apps.mocks.urls')))
 
 handler500 = 'apps.pinpoint.views.app_exception_handler'

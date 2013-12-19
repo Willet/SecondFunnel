@@ -39,8 +39,26 @@ urlpatterns += patterns('apps.api.views',
         'tag_content',
         name='delete_tagged_content'),
 
+    url(r'^%s/store/(?P<store_id>\d+)'
+        r'/page/(?P<page_id>\d+)'
+        r'/content/add_all/?$' % prefix,
+        'add_all_content', name='add_all_content'),
+
+    url(r'^%s/check_queue/(?P<queue_name>[^\/]*)/?$' % prefix,
+        'check_queue',
+        name='check_queue'),
+
     url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/approve/?$' % prefix, 'approve_content', name='approve_content'),
     url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/reject/?$' % prefix, 'reject_content', name='reject_content'),
     url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/undecide/?$' % prefix, 'undecide_content', name='undecide_content'),
+
+    # Intentrank Config
+    url(r'^%s/store/(?P<store_id>\d+)/intentrank/(?P<ir_id>\d+)/?$' % prefix, 'generate_ir_config', name='generate_ir_config'),
+
+    # Scraper
+    url(r'^%s/scraper/store/(?P<store_id>\d+)/?$' % prefix, 'list_scrapers', name='list_scrapers'),
+    url(r'^%s/scraper/store/(?P<store_id>\d+)/(?P<scraper_name>.*?)/?$' % prefix, 'delete_scraper', name='delete_scraper'),
+
+    # If all else fails, proxy
     url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
 )

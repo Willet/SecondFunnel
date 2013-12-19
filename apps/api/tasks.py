@@ -1,0 +1,86 @@
+from celery import Celery
+from celery.utils import noop
+from celery.utils.log import get_task_logger
+
+from django.conf import settings
+from apps.intentrank.utils import ajax_jsonp
+
+from apps.static_pages.aws_utils import sqs_poll
+
+celery = Celery()
+logger = get_task_logger(__name__)
+
+
+def fetch_queue(queue=None, interval=None):
+    """Run something if the poll detects any messages in any queues
+    that are managed by the Campaign Manager.
+
+    @param queue {dict|None}  a queue from AWS_SQS_POLLING_QUEUES.
+    @param interval {int} number of seconds that this poll is being made.
+                          -1 means "fetch regardless".
+    """
+    # these methods are locally imported for use as SQS callbacks
+    from apps.assets.tasks import (handle_content_update_notification_message,
+                                   handle_product_update_notification_message)
+    from apps.intentrank.tasks import handle_ir_config_update_notification_message
+    from apps.pinpoint.tasks import handle_tile_generator_update_notification_message
+    from apps.static_pages.tasks import handle_page_generator_notification_message
+
+    queue_to_fetch = queue
+    results = {}
+
+    # corresponding queues need to be defined in settings.AWS_SQS_POLLING_QUEUES
+    handlers = {
+        'handle_content_update_notification_message':
+            handle_content_update_notification_message,
+        'handle_product_update_notification_message':
+            handle_product_update_notification_message,
+        'handle_ir_config_update_notification_message':
+            handle_ir_config_update_notification_message,
+        'handle_tile_generator_update_notification_message':
+            handle_tile_generator_update_notification_message,
+        'handle_page_generator_notification_message':
+            handle_page_generator_notification_message,
+    }
+
+    regions = settings.AWS_SQS_POLLING_QUEUES
+    for region_name, queues in regions.iteritems():
+        results[region_name] = results.get(region_name, {})
+
+        # queues be <list>
+        for queue_name, queue in queues.iteritems():
+            results[region_name][queue_name] = []
+
+            if queue_to_fetch and queue_name != queue_to_fetch['queue_name']:
+                continue  # fetch one queue, name mismatch, skip this queue
+
+            # not a queue that this poll should run.
+            if interval and interval != -1 and interval != queue.get('interval', 60):
+                continue
+
+
+            handler_name = queue['handler']  # e.g. handle_items
+            handler = handlers.get(handler_name, noop)  # e.g. <function handle_items>
+
+            try:
+                messages = sqs_poll(region_name=region_name,
+                                    queue_name=queue_name)
+                # convert to their bodies, which may be json, or may not
+                messages = [message.get_body() for message in messages]
+
+                # call handler on each message, and save their results
+                results[region_name][queue_name].extend(map(handler, messages))
+            except BaseException as err:  # something went wrong
+                results[region_name][queue_name].append(
+                    {err.__class__.__name__: err.message})
+
+    return results
+
+
+@celery.task
+def poll_queues(interval=60):
+    """periodic task for fetch_queue.
+
+    @param interval {int} number of seconds that this poll is being made.
+    """
+    return ajax_jsonp(fetch_queue(interval=interval))

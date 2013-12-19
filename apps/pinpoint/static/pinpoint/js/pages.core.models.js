@@ -44,6 +44,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // Default product tile settings, some tiles don't
             // come specifying a type or caption
             'caption': "Shop product",
+            'description': '',
             'tile-id': 0,
             // 'tile-class': 'tile',  // what used tile-class?
             // 'content-type': ''  // where did content-type go?

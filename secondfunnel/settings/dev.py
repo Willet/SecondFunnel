@@ -4,6 +4,7 @@ ENVIRONMENT = "dev"
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
+MOCK_IR_SERVER = True
 
 def internal_ip():
     """INTERNAL! TESTING ONLY!
