@@ -1,108 +1,212 @@
-# `pages.js`: How-to implement the features you want
+# Creating a SecondFunnel Theme: An Introduction
 
-## Edit the page's styles
+SecondFunnel landing pages are beautiful image palettes that try to get the user
+to interact.
 
-1. Create `styles.css` in the `css/` directory. Do not edit `pages2.css`.
-2. Override any styles you wish in `styles.css`. 
-3. Never use inline styles.
+This tutorial will give you an overview of SecondFunnel pages and show you how
+you can create a theme for your page.
 
-## Change a template
+## You will need
 
-There are many types of tiles available to you, all of which are suffixed with
-`_template` in `index.html`.
+To create a new theme, you will need
 
-To change the appearance of any template, *do not edit them*. Copy and paste
-the template with a new id, with your company name prefixed. For example,
+- a web browser
+- a text editor
+- basic knowledge of **HTML**, **CSS**, and **JavaScript**
+- [our example](example.html)
+- this tutorial
 
-* to edit `product_tile_template`, copy and paste the `product_tile_template`
-tag, and rename it to `yourStoreName_product_tile_template`.
-* To edit `image_preview_template`, copy and paste the `image_preview_template`
-tag, and rename it to `yourStoreName_image_preview_template`.
+## Step One: download the example, look around
 
-Your store name is case-sensitive.
+Use [the example](example.html) as the base for your theme. You will modify it
+and add styles until you're happy with it.
 
-## Create a template just for mobile devices
+Take a look at example.html. Click around, scroll, click around, click around
+some more.
 
-If `pages.js` thinks it is being viewed from a mobile device, it prefers
-`abc_xyz_mobile_template` to `abc_xyz_template`. To override a desktop
-template, create its mobile counterpart with a `_mobile` ID.
+Notice that the landing page has two main components:
 
-## Modify page behaviour
+- tiles: images that give visitors an idea about the products
+- previews: modal dialogs that contain details about the products
 
-There is a `window.PAGES_INFO` or `window.TEST_PAGE_DATA` object on the page.
-You can tweak values from there. *Never modify `pages.js`*.
+The region where the tiles are displayed is called the **discovery feed**.
 
-## Add page behaviour
+## Step Two: Look at the example source
 
-### Listen to events
+Use your editor to look at the source for example.html. Notice the body contains
+three main parts:
 
-`pages.js` notifies you of many events, all of which you can find by searching
-`broadcast(...)` in the code. To do something when events are fired, use this
-example code.
+- visible elements: your visitors will see this
+- templates: SecondFunnel uses templates to add tiles and previews to the page.
+  Look for the comment that says "Templates" to find this part.
+- JavaScript: The scripts SecondFunnel needs to run.
 
-    SecondFunnel.vent.on({
-        'previewRendered': function () {  // listen to the "previewRendered" event.
-            console.log('bur... preview rendered');  // do something about it.
-        }
-    });
+Take a quick look at the default stylesheet included in the example. If you
+would like to disable or modify any of the styles there, you will have to
+override them. (Instructions in the next step.)
 
-### Listen to events that `pages.js` doesn't broadcast
+## Step Three: modify the example
 
-If you want to do something that `pages.js` was not designed to notify, you can
-still write your own event handlers. For example, while `pages.js` does not
-tell you if a certain link is clicked, you can still add events for it.
+### 1. Modify the HTML and CSS
 
-    new SecondFunnel.classRegistry.EventManager({
-        'click .navbar-brand': function (ev) {  // (event) (selector)
-            console.log('bur... custom event triggered');
-        }
-    });
+Add a css/ directory, and inside it create styles.css. Include your styles in
+this file. You can override any of the default styles here. If the default style
+is still being loaded after you tried overriding, consider adding "!important"
+at the end of your style, but use it sparingly.
 
-### Add complex behaviour
+Modify the elements in the example as you please; however, ensure everything
+SecondFunnel requires stays on the page. SecondFunnel requires the following:
 
-Should you need to add more elaborate behaviour to your page, you can do so by
-adding *widgets*.
+- at least minimal templates
+- the discovery feed `<div id="discovery-area"></div>`
+- the stylesheets included in the example.
+- the scripts included in the example.
 
-    SecondFunnel.utils.addWidget(
-        'gallery',  // name (must be unique)
-        '.gallery',  // selector (scoped!)
-        function (view, $el, option) {
-            ...
-        }
-    );
+There are many things you can change about your page to make it represent your
+brand. Here are a few things to start off with:
 
-Widgets are only available in certain page elements. Experiment with the code
-to get an idea where it works and where it doesn't.
+- add a header that identifies your brand
+- add buttons that send users to your social media pages
+- change the color scheme
+- add banners (make sure they're not distracting)
 
-## Change the number of columns for the discovery area
+Now you have a landing page that makes visitors think of your brand. The next
+thing to do is customize tiles and previews.
 
-Normally, you cannot. However, you can experiment with overriding the width of
-`.container`, a style provided by `bootstrap.css`.
+### 2. Add your JavaScript files
 
-## Change the "hero image"
+If you would like to add JavaScript to your landing page, put the source files
+in a js/ folder, and add `script` tags in the JavaScript part (located at the
+end of `body`).
 
-Assign background images to one or more of these selectors:
-`.visible-xs.jumbotron, .visible-sm.jumbotron, .visible-md.jumbotron, .visible-lg.jumbotron`
+### 3. Add your templates
 
-## Add product information to the hero area
+If you have worked with Underscore templates before, this will be a refresher
+for you. If you've never worked with Underscore templates before, not to worry,
+we have enough material to get you started.
 
-Write a `text/template` with the id `featured_template`. If this template
-exists, it will replace the default `.jumbotron` area. Inside this template,
-an `obj` object is available to you, containing information you provided in
-`PAGES_INFO.featured` or `TEST_PAGE_DATA.featured`. An example featured
-template would look like this.
+#### What are templates?
 
-    <script type="text/template" id="featured_template">
-        <div class='featured product'>
-            <!-- Main Display Area -->
-            <img class='img-responsive pull-left' src='<%= obj.image %>' />
-            <div class='pull-right'><%= obj.title %></div>
-                <div class='price'><%= obj.price %></div>
-                <div>
-                    <a href='<%= obj.url %>' target='_blank'>BUY NOW</a>
-                </div>
-            </div>
-        </div>
+In SecondFunnel, templates are associated with products. When a viewer loads
+your landing page, they see tiles added to the discovery feed. Each of these
+tiles represents a product, and each of these tiles was created using a
+template. When a user clicks on a tile, a preview is loaded. That preview is
+created using a template.
 
-        <div class='spacer'></div>
-    </script>
+Templates can be thought of as relationships between products and elements
+on the page.
+
+`product` -&gt; `tile template` -&gt; `tile`
+
+`product` -&gt; `preview template` -&gt; `preview`
+
+#### Getting familiar with SecondFunnel templates
+
+The first thing you should do is take a look at the different templates we have.
+Some of them are tile templates; others are preview templates. You can tell
+which category a template belongs to by looking at its name. A template's name
+is stored in its `id` attribute.
+
+For example, the following template is named `product_tile_template`, so it's
+a tile template.
+
+```html
+<script type="text/template" id="product_tile_template"> </script>
+```
+
+Note that templates are added using the `<script type="text/template">` tag.
+
+Also note that the above template contains does not contain anything between its
+opening and closing tag, so if it's ever used, it will insert a blank.
+
+A preview template would have `preview` somewhere in its name. Example:
+
+```html
+<script type="text/template" id="product_preview_template"> </script>
+```
+
+#### Replacing templates
+
+You should **never delete any of the default templates**. If you want to replace
+the default templates, simply copy the template, and add `<yourStoreName>_` in
+in front of the template name.
+
+Let's say you want to replace the above templates. You would copy and paste
+them then modify their names so they look something like:
+
+```html
+<script type="text/template" id="storeName_product_tile_template"> </script>
+<script type="text/template" id="storeName_product_preview_template"> </script>
+```
+
+Now when someone visits your site, your templates will be used instead of the
+default ones.
+
+Note that there are also **mobile templates**. The same name rules apply to
+those and you would use the same procedure to replace them. They are used if a
+visitor is using a mobile device to view your page. If you want to replace them,
+follow the same procedure outlined above.
+
+#### Adding variables, scripts
+
+Templates are useful because they allow you to insert new items into the page
+after it's loaded. In SecondFunnel, since templates are associated with
+products, every template has access to an object called `obj`. This object will
+give you access to different fields related to the product. The following fields
+are supported by all campaigns:
+
+- title
+- price
+- caption
+- url
+- image
+- original-url
+- original-id
+- likes
+- template
+- content-type
+- categories
+- type
+- images
+
+So if we were to modify the above template and make it meaningful, we can have:
+
+```
+<script type="text/template" id="storeName_product_tile_template">
+    <%= obj.image %>
+</script>
+
+<script type="text/template" id="storeName_product_preview_template">
+    <div class="title"> <%= obj.title %> </div>
+    <div class="image"> <img src="<%= obj.image %>" /> </div>
+    <div class="price"> <%= obj.price %> </div>
+    <div class="url"> <a href="<%= obj.url %>"> buy </a> </div>
+</script>
+```
+
+Now our tile will include an image, and our preview will include a title, an
+image, and a price.
+
+Note that variables are added between `<%=` and `%>`.
+
+(META should we mention `<%-` or would that be information overload?)
+
+We have more material to guide you in creating beautiful templates at the end of
+this tutorial. Visit them when you are done reading.
+
+P.S. SecondFunnel widgets can make great additions to previews. They are
+customized to be easy to insert into a preview. Make sure you take a look at the
+widget document when you're done reading this tutorial. (link at the end)
+
+## Step Five: Upload your modified landing page
+
+(TODO add uploading instructions)
+
+## Further reading
+
+The following are references that will help you create a landing page that will
+impress your visitors:
+
+- [Customizing the Look of Your Page](style.md)
+- [Using templates with SecondFunnel](templates.md)
+- [Adding Widgets to Your Page](widgets.md)
