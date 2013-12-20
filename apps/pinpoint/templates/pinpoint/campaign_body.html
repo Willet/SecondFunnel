@@ -2,7 +2,9 @@
 {% load compress %}
 
 {% compress js %}
-    <script type="text/javascript" src="{% static 'js/respond.min.js' %}"></script><!-- "as early after the css as possible" -->
+    <script type="text/javascript" src="{% static 'js/css3-mediaqueries-custom.js' %}"></script><!-- IE8 -->
+    <!-- but doesn't css3-mediaqieries already do this? -->
+    <!-- script type="text/javascript" src="{ static 'js/respond.min.js' }"></script --><!-- "as early after the css as possible" -->
     <script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.xdr.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.animate-enhanced.js' %}"></script>
@@ -34,7 +36,6 @@
             App.start();
         }
     </script>
-    <script type="text/javascript" src="{% static 'js/css3-mediaqueries.js' %}"></script><!-- IE8 -->
 {% endcompress %}
 <script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
 <!-- End Javascript -->

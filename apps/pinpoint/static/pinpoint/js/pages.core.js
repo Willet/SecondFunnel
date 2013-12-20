@@ -27,7 +27,7 @@ App.module('core', function (module, App) {
             i,
             depth;
 
-        if (opt !== undefined && (keyNest.length === 1 && !_.isEmpty(opt))) {
+        if (opt !== undefined && keyNest.length === 1 && !_.isEmpty(opt)) {
             // getOption() returns a blank object when it thinks it is accessing
             // a nested option so we have to patch that up
             return opt;
