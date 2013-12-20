@@ -656,58 +656,6 @@ App.module('core', function (module, App) {
     });
 
     /**
-     * One instance of a category
-     *
-     * @constructor
-     * @type {*}
-     */
-    /*this.CategoryView = Marionette.ItemView.extend({
-        'events': {
-            'click': function (ev) {
-                ev.preventDefault();
-                App.vent.trigger('change:campaign', ev, this);
-            }
-        },
-
-        'initialize': function (options) {
-            // Initializes the category view, expects some el to use
-            this.el = options.el;
-            this.$el = $(this.el);
-            delete options.$el;
-            this.model = new module.Category(options);
-        }
-    });*/
-
-    /**
-     * Computes the number of categories the page is allowed to display.
-     * This CompositeView does not create an element, rather is passed
-     * the element that it will use for category selection. (?)
-     *
-     * @constructor
-     * @type {CompositeView}
-     */
-    /*this.CategorySelector = Marionette.CompositeView.extend({
-        'itemView': module.CategoryView,
-
-        'initialize': function (categories) {
-            // Initialize a category view for each object with a
-            // data-category option.
-            var views = [];
-            $('[data-category]').each(function () {
-                var id = $(this).attr('data-category');
-                if (_.findWhere(categories, {'id': Number(id)})) {
-                    // Make sure category is a valid one.
-                    views.push(new module.CategoryView({
-                        'id': id,
-                        'el': this
-                    }));
-                }
-            });
-            this.views = views;
-        }
-    });*/
-
-    /**
      * Contents inside a PreviewWindow.
      * Content is displayed using a cascading level of templates, which
      * increases in specificity.

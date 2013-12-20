@@ -29,7 +29,8 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 // A ?debug value of 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 (function (console, level, hash) {
-    var hashIdx;
+    var hashIdx,
+        debugLevel = level;
     // console logging thresholds
     App.QUIET = 0;
     App.ALL = 5;
@@ -47,13 +48,13 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {
-        level = App.options.debug = hash[hashIdx + 6];
+        debugLevel = App.options.debug = hash[hashIdx + 6];
     } else {
-        level = 0;
+        debugLevel = 0;
     }
 
     // remove console functions depending on desired debug threshold.
-    if (App.QUIET < level) {
+    if (App.QUIET < debugLevel) {
         console.log = $.noop;
         console.debug = $.noop;
     }
@@ -181,46 +182,6 @@ $.getScripts = function (urls, callback, options) {
     });
 };
 
-// http://www.foliotek.com/devblog/getting-the-width-of-a-hidden-element-with-jquery-using-width/
-// get element sizes while they are hidden / being they are appended
-$.fn.getHiddenDimensions = function (includeMargin) {
-    /*ignore jslint start*/
-    var $item = this,
-        props = { position: 'absolute', visibility: 'hidden', display: 'block' },
-        dim = { width: 0, height: 0, innerWidth: 0, innerHeight: 0, outerWidth: 0, outerHeight: 0 },
-        $hiddenParents = $item.parents().andSelf().not(':visible'),
-        includeMargin = (includeMargin == null) ? false : includeMargin;
-
-    var oldProps = [];
-    $hiddenParents.each(function () {
-        var old = {};
-
-        for (var prop in props) {
-            old[prop] = this.style[prop];
-            this.style[prop] = props[prop];
-        }
-
-        oldProps.push(old);
-    });
-
-    dim.width = $item.width();
-    dim.outerWidth = $item.outerWidth(includeMargin);
-    dim.innerWidth = $item.innerWidth();
-    dim.height = $item.height();
-    dim.innerHeight = $item.innerHeight();
-    dim.outerHeight = $item.outerHeight(includeMargin);
-
-    $hiddenParents.each(function (i) {
-        var old = oldProps[i];
-        for (var name in props) {
-            this.style[name] = old[name];
-        }
-    });
-
-    return dim;
-    /*ignore jslint end*/
-};
-
 // underscore's fancy pants capitalize()
 _.mixin({
     'capitalize': function (string) {
@@ -239,19 +200,12 @@ _.mixin({
         }
         return defaultValue;
     },
-    'getKeyByValue': function (obj, value) {
-        // reverse key search. There is no native function for this.
-        var prop;
-        for(prop in obj) {
-            if(obj.hasOwnProperty(prop)) {
-                 if(obj[prop] === value) {
-                     return prop;
-                 }
-            }
+    'myResult': function (obj, prop) {
+        // exactly _.result, but the function uses the parent object as context.
+        if (!_.isFunction(obj[prop])) {
+            return obj[prop];
         }
-    },
-    'sortByAssoc': function (obj, attrib) {
-        // see sortBy; returns a list
+        return obj[prop].apply(obj, [obj]);
     }
 });
 
@@ -319,4 +273,3 @@ _.mixin({
 debugOp = function () {
     console.debug('%O, %O', this, arguments);
 };
-
