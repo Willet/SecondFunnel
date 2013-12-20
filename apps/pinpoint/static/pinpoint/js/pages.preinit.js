@@ -26,6 +26,15 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     }
 }(App.options));
 
+(function (original) {
+    // make vent.trigger display debug messages.
+    App.vent.trigger = function (eventName) {
+        console.debug('App.vent.trigger(' + eventName + '): %o',
+            _.rest(arguments));
+        return original.apply(App.vent, arguments);
+    };
+}(App.vent.trigger));
+
 // A ?debug value of 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 (function (console, level, hash) {
@@ -40,12 +49,6 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
         console[method] = console[method] || $.noop;
     });
 
-    if (window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1') {
-        App.options.debug = App.ALL;
-        return;
-    }
-
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {
         debugLevel = App.options.debug = hash[hashIdx + 6];
@@ -54,7 +57,7 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     }
 
     // remove console functions depending on desired debug threshold.
-    if (App.QUIET < debugLevel) {
+    if (debugLevel < (App.QUIET + 1)) {
         console.log = $.noop;
         console.debug = $.noop;
     }
@@ -220,6 +223,11 @@ _.mixin({
             return obj[prop];
         }
         return obj[prop].apply(obj, [obj]);
+    },
+    'uniqBy': function (obj, key) {  // shorthand
+        return _.uniq(obj, false, function (x) {
+            return x[key];
+        });
     }
 });
 

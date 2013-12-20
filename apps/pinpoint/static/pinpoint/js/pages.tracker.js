@@ -131,9 +131,6 @@ App.module("tracker", function (tracker, App) {
             };
         };
 
-    this.socialShareType = undefined;
-    this.socialShareUrl = undefined;
-
     /**
      * Top-level event binding wrapper. all events bubble up to this level.
      *
@@ -155,20 +152,6 @@ App.module("tracker", function (tracker, App) {
             });
         }
     });
-
-    /**
-     * Sets socialShareUrl and socialShareType. (?)
-     * @param attrs {Object}    an object of {url, sType}
-     */
-    this.setSocialShareVars = function (attrs) {
-        if (attrs && attrs.url && attrs.sType) {
-            this.socialShareUrl = attrs.url;
-            this.socialShareType = attrs.sType;
-        } else {
-            this.socialShareUrl = App.option('featured:image', '');
-            this.socialShareType = "featured";
-        }
-    };
 
     /**
      * Registers facebook tracking events that are fired whenever a facebook
@@ -246,18 +229,6 @@ App.module("tracker", function (tracker, App) {
                     'label': trackingInfo.label
                 });
             });
-
-            // Do we care about click vs tweet?
-//            twttr.events.bind('click', function (event) {
-//                var sType;
-//                if (event.region === "tweet") {
-//                    sType = "clicked";
-//                } else if (event.region === "tweetcount") {
-//                    sType = "leftFor";
-//                } else {
-//                    sType = event.region;
-//                }
-//            });
         });
     };
 
@@ -335,8 +306,6 @@ App.module("tracker", function (tracker, App) {
             3
         ]);
         addItem(['_trackPageview']);
-
-        this.setSocialShareVars();
 
         // register event maps
         var defaults = new this.EventManager(this.defaultEventMap),
@@ -521,7 +490,6 @@ App.module("tracker", function (tracker, App) {
         "hover .featured": function () {
             // this = window because that's what $el is
             App.vent.trigger('featuredHover');
-            tracker.setSocialShareVars();
         },
 
         "hover .tile": function (ev) {
@@ -561,7 +529,6 @@ App.module("tracker", function (tracker, App) {
     // add mediator triggers if the module exists.
     App.vent.on({
         'tracking:trackEvent': trackEvent,
-        'tracking:setSocialShareVars': this.setSocialShareVars,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,
         'tracking:registerFacebookListeners': this.registerFacebookListeners,
         'tracking:videoStateChange': this.videoStateChange,

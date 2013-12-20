@@ -2,7 +2,7 @@
 /**
  * @module core
  */
-App.module('core', function (module, App) {
+App.module('core', function (core, App) {
     // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
     "use strict";
     var $window = $(window),
@@ -88,12 +88,12 @@ App.module('core', function (module, App) {
                     // make a copy...
                     localImageVariable = $.extend(true, {}, image);
                 }
-                imgInstances.push(new module.Image(localImageVariable));
+                imgInstances.push(new core.Image(localImageVariable));
             });
 
             // this tile has no images, or can be an image itself
             if (imgInstances.length === 0) {
-                imgInstances.push(new module.Image({
+                imgInstances.push(new core.Image({
                     'url': this.get('url')
                 }));
             }
@@ -112,7 +112,7 @@ App.module('core', function (module, App) {
         /**
          *
          * @param byImgId   if omitted, the default image id
-         * @returns {Image}
+         * @returns {core.Image}
          */
         'getImage': function (byImgId) {
             var self = this,
@@ -131,21 +131,20 @@ App.module('core', function (module, App) {
 
             if (!defImg) {
                 try {
-                    if (this.get('images')[0] instanceof module.Image) {
+                    if (this.get('images')[0] instanceof core.Image) {
                         return this.get('images')[0];
-                    } else {
-                        return new module.Image(this.get('images')[0]);
                     }
+                    return new core.Image(this.get('images')[0]);
                 } catch (err) {
                     // fuck this shit (wild guess)
-                    return new module.Image({
+                    return new core.Image({
                         'url': this.get('url')
                     });
                 }
             }
 
             // found default image or undefined
-            if (defImg instanceof module.Image) {
+            if (defImg instanceof core.Image) {
                 // timing: attributes.images already coverted to Images
                 return defImg;
             }
@@ -154,7 +153,7 @@ App.module('core', function (module, App) {
                 console.warn('getImage is going to return an Image stub.');
             }
 
-            return new module.Image(defImg);
+            return new core.Image(defImg);
         },
 
         'getDefaultImageId': function () {
@@ -312,10 +311,6 @@ App.module('core', function (module, App) {
      * @type {Tile}
      */
     this.ImageTile = this.Tile.extend({
-        'defaults': {
-            // 'tile-class': 'image',  // what used tile-class?
-            // 'content-type': 'image'  // where did content-type go?
-        },
         /**
          * An ImageTile  *is* an image JSON, so we need to allocate all of its
          * attributes inside an 'images' field.
@@ -340,16 +335,12 @@ App.module('core', function (module, App) {
      */
     this.VideoTile = this.Tile.extend({
         'defaults': {
-            // 'tile-class': 'video',  // what used tile-class?
-            // 'content-type': 'video',  // where did content-type go?
             'type': 'video'
         }
     });
 
     this.YoutubeTile = this.VideoTile.extend({
         'defaults': {
-            // 'tile-class': 'youtube',  // what used tile-class?
-            // 'content-type': 'youtube',  // where did content-type go?
             'type': 'video'
         }
     });
@@ -369,7 +360,7 @@ App.module('core', function (module, App) {
          */
         'model': function (item) {
             var TileClass = App.utils.findClass('Tile',
-                    item.type || item.template, module.Tile);
+                    item.type || item.template, core.Tile);
 
             return new TileClass(item);
         },
@@ -439,7 +430,7 @@ App.module('core', function (module, App) {
 
             return _.map(respBuilder, function (jsonEntry) {
                 var TileClass = App.utils.findClass('Tile',
-                    jsonEntry.type || jsonEntry.template, module.Tile);
+                    jsonEntry.type || jsonEntry.template, core.Tile);
                 return TileClass.prototype.parse.call(self, jsonEntry);
             });
         },

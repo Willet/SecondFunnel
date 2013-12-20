@@ -81,19 +81,8 @@ App.module("utils", function (utils, App) {
      * @returns {object}|defaultClass
      */
     this.findClass = function (typeName, prefix, defaultClass) {
-        var FoundClass,
-            targetClassName = _.capitalize(prefix || '') +
-                              _.capitalize(typeName || '');
-
-        if (App.core[targetClassName] !== undefined) {
-            // if designers want to define a new tile view, they must
-            // let App know of its existence.
-            FoundClass = App.core[targetClassName];
-        } else {
-            FoundClass = defaultClass;
-        }
-
-        return FoundClass;
+        var className = _.capitalize(prefix || '') + _.capitalize(typeName || '');
+        return App.core[className] || defaultClass;
     };
 
     /**

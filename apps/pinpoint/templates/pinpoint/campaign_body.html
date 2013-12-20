@@ -3,19 +3,15 @@
 
 {% compress js %}
     <script type="text/javascript" src="{% static 'js/css3-mediaqueries-custom.js' %}"></script><!-- IE8 -->
-    <!-- but doesn't css3-mediaqieries already do this? -->
-    <!-- script type="text/javascript" src="{ static 'js/respond.min.js' }"></script --><!-- "as early after the css as possible" -->
-    <script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery-1.10.2.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.xdr.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.animate-enhanced.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.mobile.swipeonly.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.browser.mobile.js' %}"></script><!-- after jquery -->
     <script type="text/javascript" src="{% static 'js/jquery.viewport.min.js' %}"></script><!-- after browser mobile -->
-    <script type="text/javascript" src="{% static 'js/json2.js' %}"></script><!-- before marionette -->
-    <script type="text/javascript" src="{% static 'js/underscore.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/backbone.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/underscore.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/backbone.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/backbone.marionette.min.js' %}"></script><!-- after backbone -->
-    <script type="text/javascript" src="{% static 'js/imagesloaded.pkgd.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.masonry.pkgd.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'pinpoint/js/pages.preinit.js' %}"></script><!-- after marionette -->

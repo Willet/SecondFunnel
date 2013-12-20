@@ -435,25 +435,20 @@ App.module('core', function (module, App) {
 
             _.bindAll(this, 'pageScroll', 'toggleLoading');
 
-            this.collection = new App.core.TileCollection();
-            /* this.categories = new module.CategorySelector(  // v-- options.categories is deprecated
-                App.option("page:categories") ||
-                App.option("categories") || []
-            ); */
+            this.collection = ;
 
             this.attachListeners();
 
             // If the collection has initial values, lay them out
             if (options.initialResults && options.initialResults.length > 0) {
-                console.log('laying out initial results');
+                console.debug('laying out initial results');
 
                 // unique-by-id the list of initial results.
                 options.initialResults = _.uniq(options.initialResults,
                     false, function (result) { return result['tile-id']; });
 
                 // unique-by-original-url youtube videos
-                options.initialResults = _.uniq(options.initialResults,
-                    false, function (result) { return result['original-url']; });
+                options.initialResults = _.uniqBy(options.initialResults, 'original-url');
 
                 this.collection.add(options.initialResults);
                 App.intentRank.addResultsShown(options.initialResults);

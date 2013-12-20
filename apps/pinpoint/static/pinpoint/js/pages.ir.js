@@ -159,16 +159,6 @@ App.module("intentRank", function (intentRank, App) {
     };
 
     /**
-     * general implementation
-     *
-     * @deprecated
-     */
-    this.getResults = function () {
-        var args = Array.prototype.slice.apply(arguments);
-        return this.fetch.apply(App.discovery.collection, args);
-    };
-
-    /**
      * A unique list of all tiles shown on the page.
      * @returns {array}
      */
