@@ -726,11 +726,11 @@ App.module('core', function (module, App) {
 
         // Disable scrolling body when preview is shown
         'onShow': function() {
-            $(document.body).addClass('no-scroll')
+            $(document.body).addClass('no-scroll');
         },
 
         'close': function() {
-            $(document.body).removeClass('no-scroll')
+            $(document.body).removeClass('no-scroll');
         }
     });
 
@@ -815,8 +815,8 @@ App.module('core', function (module, App) {
         'template': "#tap_indicator_template",
         'className': 'tap_indicator',
         'initialize': function () {
-            App.vent.on('scrollStopped',
-                                 _.bind(this.onScrollStopped, this));
+            _.bindAll(this, 'onScrollStopped');
+            App.vent.on('scrollStopped', this.onScrollStopped);
         },
         'onBeforeRender': function () {
             // http://jsperf.com/hasclass-vs-toggleclass

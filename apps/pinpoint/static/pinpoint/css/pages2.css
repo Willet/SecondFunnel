@@ -126,7 +126,10 @@ div.loading {
 
     float: left;
 
-    -webkit-transform: transform3d(0, 0, 0);
+    /* http://davidwalsh.name/translate3d */
+    -webkit-transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+	-webkit-perspective: 1000;
 
     cursor: pointer;
     cursor: -webkit-zoom-in;

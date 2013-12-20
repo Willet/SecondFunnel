@@ -35,6 +35,15 @@ App.module("support", function (module, App) {
     };
 
     /**
+     * (basically) tests for hardware css transform.
+     * @returns {boolean}
+     */
+    this.transform3d = function () {
+        //github.com/Modernizr/Modernizr/blob/master/feature-detects/css/transforms3d.js#L20
+        return (document.documentElement.webkitPerspective !== undefined);
+    };
+
+    /**
      * True if the device identifies itself as an iPad.
      *
      * @type {Function}

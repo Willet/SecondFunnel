@@ -14,15 +14,16 @@ App.module("layoutEngine", function (layoutEngine, App) {
         $window = $(window),
         defaults = {
             'columnWidth': 255,
-            'isAnimated': !App.support.mobile(),
+            'isAnimated': App.support.transform3d() &&  // only if it is fast
+                          !App.support.mobile(),  // & "phones don't animate"
             'transitionDuration': '0.4s',
             'isInitLayout': true,
             'isResizeBound': false,  // we are handling it ourselves
             'visibleStyle': {
                 'opacity': 1,
-                'transform': 'none',
-                '-webkit-transform': 'none',
-                '-moz-transform': 'none'
+                'transform': 'translate3d(0, 0, 0)',
+                '-webkit-transform': 'translate3d(0, 0, 0)',
+                '-moz-transform': 'translate3d(0, 0, 0)'
             },
             'hiddenStyle': {
                 'opacity': 0,
@@ -36,7 +37,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
 
     this.on('start', function () {  // this = layoutEngine
         if (App.discovery) {
-            return this.initialize(App.discovery, App.options);
+            this.initialize(App.discovery, App.options);
         }
     });
 

@@ -75,6 +75,20 @@ String.prototype.truncate = function (n, useSentenceBoundary, addEllipses) {
     return s;
 };
 
+/**
+ * https://gist.github.com/mrdoob/838785 (modified)
+ * Provides requestAnimationFrame in a cross browser way.
+ * @author paulirish / http://paulirish.com/
+ */
+if (!window.requestAnimationFrame) {
+    window.requestAnimationFrame = window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame || window.oRequestAnimationFrame ||
+        window.msRequestAnimationFrame || function (callback, element) {
+            // precomputed value for 60fps: 1000/60 = 16.6667
+            window.setTimeout(callback, 16.6667);
+        };
+}
+
 // JQuery Special event to listen to delete
 // stackoverflow.com/questions/2200494
 // does not work with jQuery UI
