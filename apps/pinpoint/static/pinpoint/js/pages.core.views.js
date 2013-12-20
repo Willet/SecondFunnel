@@ -435,7 +435,7 @@ App.module('core', function (module, App) {
 
             _.bindAll(this, 'pageScroll', 'toggleLoading');
 
-            this.collection = ;
+            this.collection = new App.core.TileCollection();
 
             this.attachListeners();
 
