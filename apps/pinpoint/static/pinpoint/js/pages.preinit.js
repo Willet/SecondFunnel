@@ -1,6 +1,7 @@
 /*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _,
 console */
 var App = new Marionette.Application(),
+    SecondFunnel = App,  // old alias
     debugOp,
     ev = new $.Event('remove'),
     orig = $.fn.remove;
@@ -25,52 +26,36 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     }
 }(App.options));
 
-// A ?debug value of > 1 will leak memory, and should not be used as reference
+// A ?debug value of 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 (function (console, level, hash) {
-    var hashIdx = hash.indexOf('debug=');
-    try {
-        // console logging thresholds
-        App.QUIET = 0;
-        App.ERROR = 1;
-        App.WARNING = 2;
-        App.LOG = 3;
-        App.VERBOSE = 4;
-        App.ALL = 5;
+    var hashIdx;
+    // console logging thresholds
+    App.QUIET = 0;
+    App.ALL = 5;
 
-        // patch all console methods individually.
-        console.debug = console.debug || $.noop;
-        console.log = console.log || $.noop;
-        console.warn = console.warn || $.noop;
-        console.error = console.error || $.noop;
+    // patch all console methods individually.
+    _(['debug', 'log', 'warn', 'error']).each(function (method) {
+        console[method] = console[method] || $.noop;
+    });
 
-        if (window.location.hostname === 'localhost' ||
-            window.location.hostname === '127.0.0.1') {
-            level = App.options.debug = App.ERROR;
-        }
+    if (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1') {
+        App.options.debug = App.ALL;
+        return;
+    }
 
-        if (hashIdx > -1) {
-            level = App.options.debug = hash[hashIdx + 6];
-        }
+    hashIdx = hash.indexOf('debug=');
+    if (hashIdx > -1) {
+        level = App.options.debug = hash[hashIdx + 6];
+    } else {
+        level = 0;
+    }
 
-        // remove console functions depending on desired debug threshold.
-        if (level < App.ERROR) {
-            console.error = $.noop;
-        }
-
-        if (level < App.WARNING) {
-            console.warn = $.noop;
-        }
-
-        if (level < App.LOG) {
-            console.log = $.noop;
-        }
-
-        if (level < App.VERBOSE) {
-            console.debug = $.noop;
-        }
-    } catch (e) {
-        // this is an optional operation. never let this stop the script.
+    // remove console functions depending on desired debug threshold.
+    if (App.QUIET < level) {
+        console.log = $.noop;
+        console.debug = $.noop;
     }
 }(window.console = window.console || {},
   App.options.debug,

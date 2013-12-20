@@ -24,7 +24,7 @@
 <script type="text/template" id="product_tile_template">
     <div class="tap-indicator-target"></div>
     <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
-    <% if (SecondFunnel.option('debug', 0) > 1) { %>
+    <% if (App.option('debug', 0) > 1) { %>
         <span class="type"><%= obj['content-type'] %></span>
     <% } %>
     <div class="social-buttons"></div>
@@ -33,7 +33,7 @@
 <script type="text/template" id="product_mobile_tile_template">
     <div class="tap-indicator-target"></div>
     <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
-    <% if (SecondFunnel.option('debug', 0) > 1) { %>
+    <% if (App.option('debug', 0) > 1) { %>
         <span class="type"><%= obj['content-type'] %></span>
     <% } %>
     <% if (obj.name) { %>
@@ -47,7 +47,7 @@
 <script type="text/template" id="image_tile_template">
     <div class="tap-indicator-target"></div>
     <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
-    <% if (SecondFunnel.option('debug', 0) > 1) { %>
+    <% if (App.option('debug', 0) > 1) { %>
         <span class="type"><%= obj['content-type'] %></span>
     <% } %>
     <div class="social-buttons"></div>
@@ -91,7 +91,7 @@
 <script type="text/template" id="tap_indicator_template">
     +
     <div>
-        <%= SecondFunnel.option('tapIndicatorText', 'tap to see more') %>
+        <%= App.option('tapIndicatorText', 'tap to see more') %>
     </div>
 </script>
 <script type="text/template" id="facebook_social_button_template">
