@@ -1,8 +1,8 @@
-/*global SecondFunnel, Backbone, Marionette, console, broadcast */
+/*global App, Backbone, Marionette, console */
 /**
  * @module tracker
  */
-SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
+App.module("tracker", function (tracker, App) {
     "use strict";
 
     var $document = $(document),
@@ -60,7 +60,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
 
         addItem = function () {
             // wrap _gaq.push to obey our tracking
-            if (window._gaq && SecondFunnel.option('enableTracking', true)) {
+            if (window._gaq && App.option('enableTracking', true)) {
                 _gaq.push.apply(_gaq, arguments);
             } else {
                 console.warn('addItem was either disabled by the client ' +
@@ -165,7 +165,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             this.socialShareUrl = attrs.url;
             this.socialShareType = attrs.sType;
         } else {
-            this.socialShareUrl = SecondFunnel.option('featured:image', '');
+            this.socialShareUrl = App.option('featured:image', '');
             this.socialShareType = "featured";
         }
     };
@@ -198,7 +198,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
                 modelId = $(this).parents('.tile').attr('id');
             }
 
-            model = SecondFunnel.discovery.collection.get(modelId);
+            model = App.discovery.collection.get(modelId);
             trackingInfo = getTrackingInformation(model, isPreview);
 
             trackEvent({
@@ -237,7 +237,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
                     modelId = $(this).parents('.tile').attr('id');
                 }
 
-                model = SecondFunnel.discovery.collection.get(modelId);
+                model = App.discovery.collection.get(modelId);
                 trackingInfo = getTrackingInformation(model, isPreview);
 
                 trackEvent({
@@ -272,7 +272,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
      * @returns undefined
      */
     this.videoStateChange = function (videoId, event) {
-        broadcast('videoStateChange', videoId, event, this);
+        App.vent.trigger('videoStateChange', videoId, event, this);
 
         // TODO: Do we only want to measure one event per video?
         if (videosPlayed.indexOf(videoId) !== -1) {
@@ -304,11 +304,11 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             'value': '' + campaignId
         });
 
-        broadcast('trackerChangeCampaign', campaignId, this);
+        App.vent.trigger('trackerChangeCampaign', campaignId, this);
     };
 
     this.on('start', function () {  // this = tracker
-        return this.initialize(SecondFunnel.options);
+        return this.initialize(App.options);
     });
 
     /**
@@ -318,20 +318,20 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
      * @alias tracker.start
      */
     this.initialize = function (options) {
-        if (SecondFunnel.option('debug', SecondFunnel.QUIET) > SecondFunnel.QUIET) {
+        if (App.option('debug', App.QUIET) > App.QUIET) {
             // debug mode.
             addItem(['_setDomainName', 'none']);
         }
 
-        addItem(['_setAccount', SecondFunnel.option('gaAccountNumber')]);
+        addItem(['_setAccount', App.option('gaAccountNumber')]);
         addItem(['_setCustomVar',
             1,                               // slot id
             'StoreID',                       // name
-            SecondFunnel.option('store:id'), // value
+            App.option('store:id'), // value
             3                                // scope: page-level
         ]);
         addItem(['_setCustomVar', 2, 'CampaignID',
-            SecondFunnel.option('campaign'),  // <int>
+            App.option('campaign'),  // <int>
             3
         ]);
         addItem(['_trackPageview']);
@@ -340,21 +340,21 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
 
         // register event maps
         var defaults = new this.EventManager(this.defaultEventMap),
-            customs = new this.EventManager(SecondFunnel.option('events'));
+            customs = new this.EventManager(App.option('events'));
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?
         setCustomVar({
             'slotId': 1,
             'name': 'Store',
-            'value': SecondFunnel.option('store:id'),
+            'value': App.option('store:id'),
             'scope': GA_CUSTOMVAR_SCOPE.PAGE
         });
 
         setCustomVar({
             'slotId': 2,
             'name': 'Page',
-            'value': SecondFunnel.option('page:id'),
+            'value': App.option('page:id'),
             'scope': GA_CUSTOMVAR_SCOPE.PAGE
         });
 
@@ -369,7 +369,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
 
         // referrer? domain?
 
-        broadcast('trackerInitialized', this);
+        App.vent.trigger('trackerInitialized', this);
         // setTrackingDomHooks() on $.ready
     };
 
@@ -378,8 +378,6 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
     // So, to avoid the performance penalty, we do most of our tracking via
     // delegated events.
 
-    // TODO: Of the events that we broadcast, which are actually used?
-
     // Backbone format: { '(event) (selectors)': function(ev), ...  }
     this.defaultEventMap = {
         // Events that we care about:
@@ -387,9 +385,9 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         // Product Preview
         'click .tile': function() {
             var modelId = $(this).attr('id'),
-                model = SecondFunnel.discovery.collection.get(modelId) ||
+                model = App.discovery.collection.get(modelId) ||
                         // {cXXX} models could be here instead, for some reason
-                        SecondFunnel.discovery.collection._byId[modelId],
+                        App.discovery.collection._byId[modelId],
                 trackingInfo = getTrackingInformation(model);
 
             trackEvent({
@@ -416,7 +414,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
                 modelId = $(this).parents('.tile').attr('id');
             }
 
-            model = SecondFunnel.discovery.collection.get(modelId);
+            model = App.discovery.collection.get(modelId);
             trackingInfo = getTrackingInformation(model);
 
             classes = $(this).getClasses();
@@ -437,7 +435,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         "click a.buy": function () {
             var modelId, model, trackingInfo, $previewContainer, isPreview;
 
-            broadcast('buyClick');
+            App.vent.trigger('buyClick');
 
             // A bit fragile, but should do
             $previewContainer = $(this).parents('.template.target > div');
@@ -450,7 +448,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
                 modelId = $(this).parents('.tile').attr('id');
             }
 
-            model = SecondFunnel.discovery.collection.get(modelId);
+            model = App.discovery.collection.get(modelId);
             trackingInfo = getTrackingInformation(model, isPreview);
 
             trackEvent({
@@ -472,18 +470,18 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             //      'Find in Store'
             //      'Shop on GAP.com'
             if (isFindStore) {
-                broadcast('findStoreClick', $button);
+                App.vent.trigger('findStoreClick', $button);
                 action = 'Find in Store';
             }
             if (isInStore) {
-                broadcast('inStoreClick', $button);
+                App.vent.trigger('inStoreClick', $button);
                 action = 'Purchase';
             }
 
             $previewContainer = $(this).parents('.template.target > div');
             modelId = $previewContainer.attr('id') || "";
             modelId = modelId.replace('preview-', ''); // Remove prefix, if present
-            model = SecondFunnel.discovery.collection.get(modelId);
+            model = App.discovery.collection.get(modelId);
             trackingInfo = getTrackingInformation(model, true);
 
             trackEvent({
@@ -522,28 +520,28 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         // reset tracking scope: hover into featured product area
         "hover .featured": function () {
             // this = window because that's what $el is
-            broadcast('featuredHover');
+            App.vent.trigger('featuredHover');
             tracker.setSocialShareVars();
         },
 
         "hover .tile": function (ev) {
             // this = window because that's what $el is
-            broadcast('tileHover', ev.currentTarget);
+            App.vent.trigger('tileHover', ev.currentTarget);
         },
 
         "click .previewContainer .close": function () {
-            broadcast('popupClosed');
+            App.vent.trigger('popupClosed');
         },
 
         "hover .social-buttons .button": function (e) {
             var $button = $(e.currentTarget);
-            broadcast('socialButtonHover', $button);
+            App.vent.trigger('socialButtonHover', $button);
         }
     };
 
     // more events can be declared by the theme without EventManager instances
     $.extend(true, this.defaultEventMap,
-             SecondFunnel.option('eventMap', {}));
+             App.option('eventMap', {}));
 
     parseUri.options = {
         'strictMode': false,
@@ -561,7 +559,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
     };
 
     // add mediator triggers if the module exists.
-    SecondFunnel.vent.on({
+    App.vent.on({
         'tracking:trackEvent': trackEvent,
         'tracking:setSocialShareVars': this.setSocialShareVars,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,

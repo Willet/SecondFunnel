@@ -1,8 +1,6 @@
 /*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _,
 console */
-var SecondFunnel = new Marionette.Application(),
-    broadcast,
-    receive,
+var App = new Marionette.Application(),
     debugOp,
     ev = new $.Event('remove'),
     orig = $.fn.remove;
@@ -10,9 +8,9 @@ var SecondFunnel = new Marionette.Application(),
 // _globals stores things that survive application reinitialization.
 // it is currently used to keep reference to window's scroll and
 // resize handlers so we can unbind them later.
-SecondFunnel._globals = SecondFunnel._globals || {};
+App._globals = App._globals || {};
 
-SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
+App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
 (function (details) {
     var pubDate;
@@ -25,7 +23,7 @@ SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
         console.log("%cSecondFunnel", "font-family:sans-serif; font-size:32pt;");
         console.log('Published ' + pubDate);
     }
-}(SecondFunnel.options));
+}(App.options));
 
 // A ?debug value of > 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
@@ -33,12 +31,12 @@ SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     var hashIdx = hash.indexOf('debug=');
     try {
         // console logging thresholds
-        SecondFunnel.QUIET = 0;
-        SecondFunnel.ERROR = 1;
-        SecondFunnel.WARNING = 2;
-        SecondFunnel.LOG = 3;
-        SecondFunnel.VERBOSE = 4;
-        SecondFunnel.ALL = 5;
+        App.QUIET = 0;
+        App.ERROR = 1;
+        App.WARNING = 2;
+        App.LOG = 3;
+        App.VERBOSE = 4;
+        App.ALL = 5;
 
         // patch all console methods individually.
         console.debug = console.debug || $.noop;
@@ -48,34 +46,34 @@ SecondFunnel.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
         if (window.location.hostname === 'localhost' ||
             window.location.hostname === '127.0.0.1') {
-            level = SecondFunnel.options.debug = SecondFunnel.ERROR;
+            level = App.options.debug = App.ERROR;
         }
 
         if (hashIdx > -1) {
-            level = SecondFunnel.options.debug = hash[hashIdx + 6];
+            level = App.options.debug = hash[hashIdx + 6];
         }
 
         // remove console functions depending on desired debug threshold.
-        if (level < SecondFunnel.ERROR) {
+        if (level < App.ERROR) {
             console.error = $.noop;
         }
 
-        if (level < SecondFunnel.WARNING) {
+        if (level < App.WARNING) {
             console.warn = $.noop;
         }
 
-        if (level < SecondFunnel.LOG) {
+        if (level < App.LOG) {
             console.log = $.noop;
         }
 
-        if (level < SecondFunnel.VERBOSE) {
+        if (level < App.VERBOSE) {
             console.debug = $.noop;
         }
     } catch (e) {
         // this is an optional operation. never let this stop the script.
     }
 }(window.console = window.console || {},
-  SecondFunnel.options.debug,
+  App.options.debug,
   window.location.hash + window.location.search));
 
 // http://stackoverflow.com/questions/1199352/
@@ -161,13 +159,13 @@ $.fn.tile = $.fn.tile || function () {
     }
 
     try {
-        props.view = SecondFunnel.discoveryArea.currentView.children
+        props.view = App.discoveryArea.currentView.children
             .findByModelCid(cid);
         // props.model = props.view.model;  // not always
     } catch (err) { }
 
     try {
-        props.model = _.findWhere(SecondFunnel.discovery.collection.models,
+        props.model = _.findWhere(App.discovery.collection.models,
             {'cid': cid});
 
         // these can be undefined.
@@ -194,7 +192,7 @@ $.getScripts = function (urls, callback, options) {
         return $.ajax(options);
     });
     $.when.apply($, calls).done(callback, function () {
-        broadcast('deferredScriptsLoaded', urls);
+        App.vent.trigger('deferredScriptsLoaded', urls);
     });
 };
 
@@ -303,11 +301,11 @@ _.mixin({
                 result = oldRender.apply(this, arguments);  // usually 'this'
 
                 // do something else
-                SecondFunnel.utils.runWidgets(this);
+                App.utils.runWidgets(this);
 
             } catch (err) {
                 // failed... close the view
-                broadcast('viewRenderError', err, this);
+                App.vent.trigger('viewRenderError', err, this);
 
                 // If template not found signal error in rendering view.
                 if (err.name &&  err.name === "NoTemplateError") {
@@ -329,38 +327,6 @@ _.mixin({
         };
     });
 }([Marionette.View, Marionette.CompositeView, Marionette.ItemView]));
-
-broadcast = function (eventName) {
-    // alias for vent.trigger with a clear intent that the event triggered
-    // is NOT used by internal code (pages.js).
-    // calling method: (eventName, other stuff)
-    var pArgs = Array.prototype.slice.call(arguments, 1);
-    if (!window.SecondFunnel) {
-        return;  // SecondFunnel not initialized yet
-    }
-    console.debug('Broadcasting "' + eventName + '" with args=%O', pArgs);
-    SecondFunnel.vent.trigger.apply(SecondFunnel.vent, arguments);
-    if (window.Willet && window.Willet.mediator) {  // to each his own
-        Willet.mediator.fire(eventName, pArgs);
-    }
-};
-
-/**
- * alias for vent.on with a clear intent that the event triggered
- * is NOT used by internal code (pages.js).
- * calling method: (eventName, other stuff)
- */
-receive = function (eventName) {
-    var pArgs = Array.prototype.slice.call(arguments, 1);
-    if (!window.SecondFunnel) {
-        return;  // SecondFunnel not initialized yet
-    }
-    console.debug('Received "' + eventName + '" with args=%O', pArgs);
-    SecondFunnel.vent.on.apply(SecondFunnel.vent, arguments);
-    if (window.Willet && window.Willet.mediator) {  // to each his own
-        Willet.mediator.on(eventName, pArgs);
-    }
-};
 
 /**
  * similar usage as $.noop

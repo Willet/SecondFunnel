@@ -1,8 +1,8 @@
-/*global $, _, SecondFunnel, sizeImage*/
+/*global $, _, App, sizeImage*/
 
 // Gallery widget. loads inside a .gallery container.
 // TODO: lazy load widgets
-SecondFunnel.utils.registerWidget(
+App.utils.registerWidget(
     'gallery',  // name (must be unique)
     '.gallery',  // selector (scoped!)
     function (view, $el, option) {

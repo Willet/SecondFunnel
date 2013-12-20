@@ -1,9 +1,8 @@
-/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _,
-  Willet, broadcast, console, SecondFunnel */
+/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _, console, App */
 /**
  * @module core
  */
-SecondFunnel.module('core', function (module, SecondFunnel) {
+App.module('core', function (module, App) {
     // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
     "use strict";
     var $window = $(window),
@@ -56,7 +55,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             if (!resp.type) {
                 resp.type = resp.template;
             }
-            resp.caption = SecondFunnel.utils.safeString(resp.caption || '');
+            resp.caption = App.utils.safeString(resp.caption || '');
 
             return resp;
         },
@@ -107,7 +106,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 'dominant-colour': defaultImage.get('dominant-colour')
             });
 
-            broadcast('tileModelInitialized', this);
+            App.vent.trigger('tileModelInitialized', this);
         },
 
         /**
@@ -369,7 +368,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @returns {Tile}   or an extension of it
          */
         'model': function (item) {
-            var TileClass = SecondFunnel.utils.findClass('Tile',
+            var TileClass = App.utils.findClass('Tile',
                     item.type || item.template, module.Tile);
 
             return new TileClass(item);
@@ -382,7 +381,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         // if tileId is in initial results and you want it shown only once,
         // set maxShow to 0.
         // TILES THAT LOOK THE SAME FOR TWO PAGES CAN HAVE DIFFERENT TILE IDS
-        'resultsThreshold': SecondFunnel.option('resultsThreshold', {}),
+        'resultsThreshold': App.option('resultsThreshold', {}),
 
         /**
          * process common attributes, then delegate the collection's parsing
@@ -439,7 +438,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             respBuilder = _.shuffle(respBuilder);
 
             return _.map(respBuilder, function (jsonEntry) {
-                var TileClass = SecondFunnel.utils.findClass('Tile',
+                var TileClass = App.utils.findClass('Tile',
                     jsonEntry.type || jsonEntry.template, module.Tile);
                 return TileClass.prototype.parse.call(self, jsonEntry);
             });
@@ -451,7 +450,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @param options
          * @returns {*}
          */
-        fetch: SecondFunnel.intentRank.fetch,
+        fetch: App.intentRank.fetch,
 
         /**
          * Interact with IR using the built-in Backbone thingy.
@@ -467,7 +466,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         'initialize': function (arrayOfData, url, campaign, results) {
             this.setup(url, campaign, results);  // if necessary
-            broadcast('tileCollectionInitialized', this);
+            App.vent.trigger('tileCollectionInitialized', this);
         },
 
         /**
@@ -480,13 +479,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'setup': function (apiUrl, campaign, results) {
             // apply new parameters, or default to existing ones
             this.config.apiUrl = apiUrl ||
-                SecondFunnel.option('IRSource') ||
+                App.option('IRSource') ||
                 this.config.apiUrl;
             this.config.campaign = campaign ||
-                SecondFunnel.option('campaign') ||
+                App.option('campaign') ||
                 this.config.campaign;
             this.config.results = results ||
-                SecondFunnel.option('IRResultsCount') ||
+                App.option('IRResultsCount') ||
                 this.config.results;
         }
     });

@@ -29,15 +29,12 @@
     <script type="text/javascript" src="{% static 'pinpoint/js/pages.viewport.js' %}"></script><!-- after pages -->
     <script type="text/javascript" src="{% static 'pinpoint/js/pages.init.js' %}"></script><!-- after pages -->
     <script type="text/javascript" src="{% static 'pinpoint/js/pages.widget.gallery.js' %}"></script>
-
-<script type="text/javascript">
-    if (window.SecondFunnel) {
-        // Start the SecondFunnel app
-        SecondFunnel.start();
-        window.sizeImage = SecondFunnel.utils.pickImageSize;  // deprecated
-    }
-</script>
-<script type="text/javascript" src="{% static 'js/css3-mediaqueries.js' %}"></script><!-- IE8 -->
+    <script type="text/javascript">
+        if (window.App) {
+            App.start();
+        }
+    </script>
+    <script type="text/javascript" src="{% static 'js/css3-mediaqueries.js' %}"></script><!-- IE8 -->
 {% endcompress %}
 <script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
 <!-- End Javascript -->

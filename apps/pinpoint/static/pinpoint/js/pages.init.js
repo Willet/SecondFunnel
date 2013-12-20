@@ -1,4 +1,4 @@
-/*global $, _, SecondFunnel, Backbone, broadcast*/
+/*global $, _, Backbone */
 
 /**
  * Given an instance of  Marionette Application, add initializers to it.
@@ -33,26 +33,10 @@ function reinitialize(app) {
     });
 
     app.addInitializer(function () {
-        if (app.option('debug', false) >= app.ALL) {
-            $(document).ready(function () {
-                // don't use getScript, firebug needs to know its src path
-                // and getScript removes the tag so firebug doesn't know what to do
-                var tag = document.createElement('script'),
-                    firstScriptTag;
-                tag.src = "https://getfirebug.com/firebug-lite.js";
-
-                firstScriptTag = document.getElementsByTagName('script')[0];
-                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-                broadcast('firebugLoaded');
-            });
-        }
-    });
-
-    app.addInitializer(function () {
         var fa = new app.core.HeroAreaView();
         app.heroArea.show(fa);
 
-        broadcast('heroAreaRendered', fa);
+        app.vent.trigger('heroAreaRendered', fa);
     });
 
     app.addInitializer(function () {
@@ -75,30 +59,31 @@ function reinitialize(app) {
                                'Brand Name');
 
         $(document).ajaxError(function (event, request, settings) {
-            broadcast('ajaxError', settings.url, app);
+            app.vent.trigger('ajaxError', settings.url, app);
         });
     });
 
     // from davidsulc/marionette-gentle-introduction
     app.addInitializer(function () {
         // create a discovery area with tiles in it
-        broadcast('beforeInit', app.options, app);
+        app.vent.trigger('beforeInit', app.options, app);
 
-        app.store = new SecondFunnel.core.Store(app.options.store);
+        app.store = new app.core.Store(app.options.store);
 
-        app.discovery = new SecondFunnel.core.Feed({
+        app.discovery = new app.core.Feed({
             options: app.options
         });
-        SecondFunnel.discoveryArea.show(app.discovery);
+        app.discoveryArea.show(app.discovery);
 
-        broadcast('finished', app.options, app);
+        app.vent.trigger('finished', app.options, app);
     });
 
-    app.vent.on('finished', function () {
-        if (SecondFunnel.support.isAniPad()) {
+    app.vent.on('finished', function (data) {
+
+        if (app.support.isAniPad()) {
             $('html').addClass('ipad');
         }
-        if ($.browser.mobile && !SecondFunnel.support.isAniPad()) {
+        if ($.browser.mobile && !app.support.isAniPad()) {
             $('html').addClass('mobile-phone');
         }
     });
@@ -118,4 +103,4 @@ function reinitialize(app) {
 }
 
 // auto-initialise existing instance on script inclusion
-reinitialize(window.SecondFunnel);
+reinitialize(window.App);

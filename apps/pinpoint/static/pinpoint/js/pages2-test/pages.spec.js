@@ -1,6 +1,6 @@
 /*global describe, jasmine, it, beforeEach, afterEach, expect, spyOn */
 describe("SecondFunnel", function () {
-    var app = SecondFunnel;
+    var app = App;
 
     beforeEach(function () {
         jasmine.Clock.installMock();
@@ -98,7 +98,7 @@ describe("SecondFunnel", function () {
 
             if (isInMobileMode) {
                 // if in mobile mode, expect to stay in mobile mode
-                SecondFunnel.vent.trigger("rotate");
+                App.vent.trigger("rotate");
                 expect($(window).width()).toBeLessThan(768);
             }
         });
@@ -111,7 +111,7 @@ describe("SecondFunnel", function () {
                 // if in mobile mode, expect width to be locked below 768px
                 // by the viewport agent.
                 expect($(window).width()).toBeLessThan(768);
-                SecondFunnel.vent.trigger("rotate");
+                App.vent.trigger("rotate");
                 expect($(window).width()).toBeLessThan(768);
             }
         });
@@ -121,7 +121,7 @@ describe("SecondFunnel", function () {
             it("For non-mouse enabled devices, this indicator " +
                 "should be an element overlayed on the tile.", function () {
                 if (app.support.touch()) {
-                    var tile = new SecondFunnel.core.Tile({});
+                    var tile = new App.core.Tile({});
                     tile.createView();  // trigger tap indicator
                     expect($('html').hasClass('touch-enabled')).toEqual(true);
                 }
@@ -130,8 +130,8 @@ describe("SecondFunnel", function () {
             it("For mouse enabled devices, this indicator should be a " +
                 "mouse pointer", function () {
                 if (!app.support.touch() && window.getComputedStyle) {
-                    var tile = new SecondFunnel.core.Tile(window.PAGES_INFO.featured),
-                        view = new SecondFunnel.core.TileView({model: tile});  // trigger tile creation
+                    var tile = new App.core.Tile(window.PAGES_INFO.featured),
+                        view = new App.core.TileView({model: tile});  // trigger tile creation
                     if (view) {  // 'no template' is a reason why this check is needed
                         expect($('html').hasClass('touch-enabled')).toEqual(false);
                     }

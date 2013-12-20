@@ -1,8 +1,8 @@
-/*global $, _, SecondFunnel, Marionette, console, broadcast*/
+/*global $, _, App, Marionette, console */
 /**
  * @module viewport
  */
-SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
+App.module('viewport', function (viewport, App) {
     "use strict";
     var $window = $(window),
         $document = $(document),
@@ -39,13 +39,13 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
         if ($.browser.mobile) {
             // enabled by default, except...
 
-            if (SecondFunnel.support.isAniPad()) {
+            if (App.support.isAniPad()) {
                 console.warn('viewport agent disabled for the iPad.');
                 return [false, undefined, undefined, 'disabled'];
             }
         }
 
-        enabled = SecondFunnel.option('lockWidth', function () {
+        enabled = App.option('lockWidth', function () {
             return true;
         });
 
@@ -129,20 +129,20 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
             if (metaTag.prop('content') !== proposedMeta) {
                 // avoid re-rendering: edit tag only if it needs to change
                 metaTag.prop('content', proposedMeta);
-                broadcast('viewportResized', desiredWidth);
+                App.vent.trigger('viewportResized', desiredWidth);
             }
         } else {
-            broadcast('viewportNotResized', analysis[3]);
+            App.vent.trigger('viewportNotResized', analysis[3]);
         }
     };
 
-    SecondFunnel.vent.on('beforeInit', function () {
+    App.vent.on('beforeInit', function () {
         // single call func removes args
         viewport.scale();
     });
-    SecondFunnel.vent.on('finished', function () {
+    App.vent.on('finished', function () {
         // single call func removes args
         viewport.scale();
     });
-    SecondFunnel.vent.on('rotate', viewport.scale);
+    App.vent.on('rotate', viewport.scale);
 });

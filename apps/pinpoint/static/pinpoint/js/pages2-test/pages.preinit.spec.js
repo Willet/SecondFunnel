@@ -12,7 +12,7 @@ describe("preinit", function () {
         };
 
     beforeEach(function () {
-        app = SecondFunnel;
+        app = App;
         jasmine.Clock.installMock();
     });
 

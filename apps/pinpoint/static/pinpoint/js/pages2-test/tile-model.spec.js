@@ -1,5 +1,5 @@
 xdescribe("Tile Model:", function () {
-    var Tile = SecondFunnel.core.Tile;
+    var Tile = App.core.Tile;
 
     describe("Initialization:", function() {
         it("should exist", function() {

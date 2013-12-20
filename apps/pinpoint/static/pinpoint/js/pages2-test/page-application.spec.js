@@ -1,6 +1,6 @@
 xdescribe("Page Application:", function () {
     beforeEach(function() {
-        this.app = SecondFunnel;
+        this.app = App;
     });
 
     afterEach(function() {

@@ -1,8 +1,8 @@
-/*global SecondFunnel, Backbone, Marionette, console, broadcast */
+/*global App, Backbone, Marionette, console */
 /**
  * @module support
  */
-SecondFunnel.module("support", function (module, SecondFunnel) {
+App.module("support", function (module, App) {
     // make new module full of transient utilities
     "use strict";
 

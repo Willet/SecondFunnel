@@ -1,9 +1,8 @@
-/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _,
-  Willet, broadcast, console, SecondFunnel */
+/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _, console, App */
 /**
  * @module core
  */
-SecondFunnel.module('core', function (module, SecondFunnel) {
+App.module('core', function (module, App) {
     // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
     "use strict";
     var $window = $(window),
@@ -20,11 +19,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @param {*} defaultValue
      * @returns {*}
      */
-    SecondFunnel.option = function (name, defaultValue) {
-        var opt = Marionette.getOption(SecondFunnel, name),
+    App.option = function (name, defaultValue) {
+        var opt = Marionette.getOption(App, name),
             keyNest = _.compact(name.split(/[:.]/)),
             keyName,
-            cursor = SecondFunnel.options,
+            cursor = App.options,
             i,
             depth;
 
@@ -117,7 +116,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
 
             temp = _.template(templateIDs[i], {
-                'options': SecondFunnel.options,
+                'options': App.options,
                 'data': data
             });
             templateExists = Marionette.TemplateCache._exists(temp);
