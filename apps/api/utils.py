@@ -2,6 +2,7 @@ import httplib2
 import json
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.exceptions import Unauthorized
+from django.http import HttpResponse
 
 
 class UserObjectsReadOnlyAuthorization(ReadOnlyAuthorization):
@@ -27,10 +28,15 @@ def copy_headers_to_response(headers, response):
     return response
 
 
-def mimic_response(client_response, server_response):
-    copy_headers_to_response(client_response.headers, server_response)
-    return server_response
-
+def mimic_response(client_response, **overrides):
+    options = {
+      'content': client_response.content,
+      'status': client_response.status_code
+    }
+    if not overrides is None:
+      options.update(overrides)
+    server_response = HttpResponse(**options)
+    return copy_headers_to_response(client_response.headers, server_response)
 
 def get_proxy_results(request, url, body=None, raw=False, method=None):
     """small wrapper around all api requests to content graph.

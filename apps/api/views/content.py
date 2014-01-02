@@ -22,9 +22,7 @@ def reject_content(request, store_id, content_id):
 
     r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=payload)
 
-    response = HttpResponse(content=r.content, status=r.status_code)
-
-    return mimic_response(r, response)
+    return mimic_response(r)
 
 
 @request_methods('POST')
@@ -36,9 +34,7 @@ def undecide_content(request, store_id, content_id):
 
     r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=payload)
 
-    response = HttpResponse(content=r.content, status=r.status_code)
-
-    return mimic_response(r, response)
+    return mimic_response(r)
 
 
 @request_methods('POST')
@@ -50,9 +46,7 @@ def approve_content(request, store_id, content_id):
 
     r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=payload)
 
-    response = HttpResponse(content=r.content, status=r.status_code)
-
-    return mimic_response(r, response)
+    return mimic_response(r)
 
 
 @request_methods('PUT')

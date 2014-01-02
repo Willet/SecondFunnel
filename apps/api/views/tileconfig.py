@@ -11,6 +11,13 @@ from apps.api.resources import ContentGraphClient
 from apps.api.utils import mimic_response
 
 
+def is_empty(request):
+    # TODO: note this does not handle the case where CONTENT GRAPH returns zero results
+    #       even though there is RESULTS to be had...
+    # NOTE: search endpoint does not return 404 on NO RESULTS
+    return (request.status_code == 404) or (request.status_code == 200 and len(request.json()['results']) == 0)
+
+
 @request_methods('POST')
 @check_login
 @never_cache
@@ -21,8 +28,7 @@ def prioritize_tile(request, store_id, page_id, tileconfig_id):
 
     r = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).PATCH(data=payload)
 
-    response = HttpResponse(content=r.content, status=r.status_code)
-    return mimic_response(r, response)
+    return mimic_response(r)
 
 
 @request_methods('POST')
@@ -36,8 +42,7 @@ def deprioritize_tile(request, store_id, page_id, tileconfig_id):
 
     r = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).PATCH(data=payload)
 
-    response = HttpResponse(content=r.content, status=r.status_code)
-    return mimic_response(r, response)
+    return mimic_response(r)
 
 
 @request_methods('GET')
@@ -46,13 +51,12 @@ def deprioritize_tile(request, store_id, page_id, tileconfig_id):
 @csrf_exempt
 def list_page_tile_configs(request, store_id, page_id):
     r = ContentGraphClient.page(page_id)('tile-config').GET(params=request.GET)
-    response = HttpResponse(content=r.content, status=r.status_code)
     if r.status_code == 200:
         tiles_json = r.json()
         if 'results' in tiles_json:
             tiles_json['results'] = expand_tile_configs(store_id, tiles_json['results'])
-        return HttpResponse(content=json.dumps(tiles_json), status=r.status_code)
-    return mimic_response(r, response)
+        return mimic_response(r, content=json.dumps(tiles_json))
+    return mimic_response(r)
 
 
 @request_methods('GET')
@@ -63,7 +67,6 @@ def list_page_content(request, store_id, page_id):
     params = request.GET.dict()
     params['template'] = 'image'
     r = ContentGraphClient.page(page_id)('tile-config').GET(params=params)
-    response = HttpResponse(content=r.content, status=r.status_code)
     if r.status_code == 200:
         tiles_json = r.json()
         if 'results' in tiles_json:
@@ -74,8 +77,8 @@ def list_page_content(request, store_id, page_id):
             content_json['results'] = content_list
         else:
             content_json = tiles_json
-        return HttpResponse(content=json.dumps(content_json), status=r.status_code)
-    return mimic_response(r, response)
+        return mimic_response(r, content=json.dumps(content_json))
+    return mimic_response(r)
 
 
 def tileconfig_to_content(tileconfig):
@@ -96,7 +99,6 @@ def list_page_products(request, store_id, page_id):
     params = request.GET.dict()
     params['template'] = 'product'
     r = ContentGraphClient.page(page_id)('tile-config').GET(params=params)
-    response = HttpResponse(content=r.content, status=r.status_code)
     if r.status_code == 200:
         tiles_json = r.json()
         if 'results' in tiles_json:
@@ -107,8 +109,8 @@ def list_page_products(request, store_id, page_id):
             product_json['results'] = product_list
         else:
             product_json = tiles_json
-        return HttpResponse(content=json.dumps(product_json), status=r.status_code)
-    return mimic_response(r, response)
+        return mimic_response(r, content=json.dumps(product_json))
+    return mimic_response(r)
 
 
 def tileconfig_to_product(tileconfig):
@@ -163,43 +165,11 @@ def expand_products(store_id, page_id, products):
 def list_page_all_products(request, store_id, page_id):
     r = ContentGraphClient.store(store_id).product().GET(params=request.GET)
 
-    def get_content(store_id, content_id):
-        try:
-            return ContentGraphClient.store(store_id).content(content_id).GET().json()
-        except:
-            return None
-
-    response = HttpResponse(content=r.content, status=r.status_code)
     if r.status_code == 200:
         result_json = r.json()
-        # get related tiles if they exist
         result_json['results'] = expand_products(store_id, page_id, result_json['results'])
-        response = HttpResponse(content=json.dumps(result_json), status=r.status_code)
-    return mimic_response(r, response)
-
-
-def expand_contents(store_id, page_id, contents):
-
-    def get_content_tiles(store_id, content_id):
-        params = {'content-ids': content_id}
-        tiles = []
-        while True:
-            r = ContentGraphClient.page(page_id)('tile-config').GET(params=params)
-            result_json = r.json()
-            if 'results' in result_json:
-                tiles += result_json['results']
-
-            # fetch all the results
-            if 'meta' in result_json and 'cursors' in result_json['meta'] and 'next' in result_json['meta']['cursors']:
-                params['offset'] = result_json['meta']['cursors']['next']
-            else:
-                break
-        return tiles
-
-    for record in contents:
-        record['tile-configs'] = get_content_tiles(store_id, record['id'])
-
-    return contents
+        return mimic_response(r, content=json.dumps(result_json))
+    return mimic_response(r)
 
 
 @request_methods('GET')
@@ -230,13 +200,36 @@ def list_page_all_content(request, store_id, page_id):
                 break
         return tiles
 
-    response = HttpResponse(content=r.content, status=r.status_code)
     if r.status_code == 200:
         result_json = r.json()
         # get related tiles if they exist
         result_json['results'] = expand_contents(store_id, page_id, result_json['results'])
-        response = HttpResponse(content=json.dumps(result_json), status=r.status_code)
-    return mimic_response(r, response)
+        return mimic_response(r, content=json.dumps(result_json))
+    return mimic_response(r)
+
+
+def expand_contents(store_id, page_id, contents):
+
+    def get_content_tiles(store_id, content_id):
+        params = {'content-ids': content_id}
+        tiles = []
+        while True:
+            r = ContentGraphClient.page(page_id)('tile-config').GET(params=params)
+            result_json = r.json()
+            if 'results' in result_json:
+                tiles += result_json['results']
+
+            # fetch all the results
+            if 'meta' in result_json and 'cursors' in result_json['meta'] and 'next' in result_json['meta']['cursors']:
+                params['offset'] = result_json['meta']['cursors']['next']
+            else:
+                break
+        return tiles
+
+    for record in contents:
+        record['tile-configs'] = get_content_tiles(store_id, record['id'])
+
+    return contents
 
 
 @request_methods('GET')
@@ -245,11 +238,10 @@ def list_page_all_content(request, store_id, page_id):
 @csrf_exempt
 def get_page_tile_config(request, store_id, page_id, tileconfig_id):
     r = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).GET()
-    response = HttpResponse(content=r.content, status=r.status_code)
     if r.status_code == 200:
         record = expand_tile_config(store_id, r.json())
-        response = HttpResponse(content=json.dumps(record), status=r.status_code)
-    return mimic_response(r, response)
+        return mimic_response(r, content=json.dumps(record))
+    return mimic_response(r)
 
 
 def expand_tile_config(store_id, record):
@@ -306,36 +298,27 @@ def add_remove_product_from_page(request, store_id, page_id, product_id):
 
 @request_methods('PUT')
 def add_product_to_page(request, store_id, page_id, product_id):
-    # verify the tile config does not already exist
     tile_check_params = {'template': 'product', 'product-ids': product_id}
     tile_check = ContentGraphClient.page(page_id)('tile-config').GET(params=tile_check_params)
-    if tile_check.status_code == 200 and len(tile_check.json()['results']) != 0:
-        # TODO: note this does not handle the case where CONTENT GRAPH returns zero results
-        #       even though there is RESULTS to be had...
-        # NOTE: search endpoint does not return 404 on NO RESULTS
-        response = HttpResponse(content=json.dumps(tile_check.json()['results'][0]), status=tile_check.status_code)
-        return mimic_response(tile_check, response)
+    if not is_empty(tile_check):
+        return mimic_response(tile_check, content=json.dumps(tile_check.json()['results'][0]))
 
     payload = json.dumps({
         'template': 'product',
         'product-ids': [product_id]
         })
     r = ContentGraphClient.page(page_id)('tile-config').POST(data=payload)
-    response = HttpResponse(content=r.content, status=r.status_code)
-    return mimic_response(r, response)
+    return mimic_response(r)
 
 
 @request_methods('DELETE')
 def remove_product_from_page(request, store_id, page_id, product_id):
-    # verify the tile config does not already exist
     tile_check_params = {'template': 'product', 'product-ids': product_id}
     tile_check = ContentGraphClient.page(page_id)('tile-config').GET(params=tile_check_params)
-    if tile_check.status_code == 200 and len(tile_check.json()['results']) != 0:
-        # NOTE: search endpoint does not return 404 on NO RESULTS
+    if not is_empty(tile_check):
         tile_id = tile_check.json()['results'][0]['id']
         tile_delete = ContentGraphClient.page(page_id)('tile-config')(tile_id).DELETE()
-        response = HttpResponse(status=tile_delete.status_code)
-        return mimic_response(tile_delete, response)
+        return mimic_response(tile_delete)
     else:
         return HttpResponse(status=200)
 
@@ -354,14 +337,10 @@ def add_remove_content_from_page(request, store_id, page_id, content_id):
 @request_methods('PUT')
 def add_content_to_page(request, store_id, page_id, content_id):
     # verify the tile config does not already exist
-    tile_check_params = {'template': 'image', 'content-ids': content_id}
-    tile_check = ContentGraphClient.page(page_id)('tile-config').GET(params=tile_check_params)
-    if tile_check.status_code == 200 and len(tile_check.json()['results']) != 0:
-        # TODO: note this does not handle the case where CONTENT GRAPH returns zero results
-        #       even though there is RESULTS to be had...
-        # NOTE: search endpoint does not return 404 on NO RESULTS
-        response = HttpResponse(content=json.dumps(tile_check.json()['results'][0]), status=tile_check.status_code)
-        return mimic_response(tile_check, response)
+    tileconfig_params = {'template': 'image', 'content-ids': content_id}
+    tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
+    if not is_empty(tileconfigs):
+        return mimic_response(tileconfigs, content=json.dumps(tileconfigs.json()['results'][0]))
 
     # create the tile config
     payload = json.dumps({
@@ -369,20 +348,17 @@ def add_content_to_page(request, store_id, page_id, content_id):
         'content-ids': [content_id]
         })
     r = ContentGraphClient.page(page_id)('tile-config').POST(data=payload)
-    response = HttpResponse(content=r.content, status=r.status_code)
-    return mimic_response(r, response)
+    return mimic_response(r)
 
 
 @request_methods('DELETE')
 def remove_content_from_page(request, store_id, page_id, content_id):
     # verify the tile config does not already exist
-    tile_check_params = {'template': 'image', 'content-ids': content_id}
-    tile_check = ContentGraphClient.page(page_id)('tile-config').GET(params=tile_check_params)
-    if tile_check.status_code == 200 and len(tile_check.json()['results']) != 0:
-        # NOTE: search endpoint does not return 404 on NO RESULTS
-        tile_id = tile_check.json()['results'][0]['id']
-        tile_delete = ContentGraphClient.page(page_id)('tile-config')(tile_id).DELETE()
-        response = HttpResponse(status=tile_delete.status_code)
-        return mimic_response(tile_delete, response)
+    tileconfig_params = {'template': 'image', 'content-ids': content_id}
+    tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
+    if not is_empty(tileconfigs):
+        tileconfig_id = tileconfigs.json()['results'][0]['id']
+        delete_tileconfig_request = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).DELETE()
+        return mimic_response(delete_tileconfig_request)
     else:
         return HttpResponse(status=200)

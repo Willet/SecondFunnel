@@ -55,7 +55,7 @@ urlpatterns += patterns('apps.api.views',
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, 'add_remove_content_from_page', name='add_remove_content_from_page'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/all/?$' % prefix, 'list_page_all_content', name='list_page_all_content'),
 
-    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/?$' % prefix, 'list_page_product', name='list_page_product'),
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/?$' % prefix, 'list_page_products', name='list_page_products'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/?$' % prefix, 'add_remove_product_from_page', name='add_remove_product_from_page'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/all/?$' % prefix, 'list_page_all_products', name='list_page_all_products'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/?$' % prefix, 'list_page_tile_configs', name='list_page_tile_configs'),
