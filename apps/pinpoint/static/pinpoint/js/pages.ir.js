@@ -1,8 +1,8 @@
-/*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast */
+/*global App, Backbone, Marionette, imagesLoaded, console */
 /**
  * @module intentRank
  */
-SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
+App.module("intentRank", function (intentRank, App) {
     "use strict";
 
     var consecutiveFailures = 0,
@@ -26,7 +26,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     };
 
     this.on('start', function () {
-        return this.initialize(SecondFunnel.options);
+        return this.initialize(App.options);
     });
 
     /**
@@ -52,7 +52,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             'filters': options.filters || []
         });
 
-        broadcast('intentRankInitialized', intentRank);
+        App.vent.trigger('intentRankInitialized', intentRank);
         return this;
     };
 
@@ -68,7 +68,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         // 'this' IS NOT INTENTRANK
         var collection = this,
             deferred = new $.Deferred(),
-            online = !SecondFunnel.option('page:offline', false),
+            online = !App.option('page:offline', false),
             data = (resultsAlreadyRequested.length ? {
                 'shown': resultsAlreadyRequested.join(',')
             } : undefined),
@@ -127,7 +127,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
     /**
      * Filter the content based on the selector
-     * passed and the criteria/filters defined in the SecondFunnel options.
+     * passed and the criteria/filters defined in the App options.
      *
      * @param {Array} content
      * @param selector {string}: (optional) no idea what this is.
@@ -159,25 +159,15 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     };
 
     /**
-     * general implementation
-     *
-     * @deprecated
-     */
-    this.getResults = function () {
-        var args = Array.prototype.slice.apply(arguments);
-        return this.fetch.apply(SecondFunnel.discovery.collection, args);
-    };
-
-    /**
      * A unique list of all tiles shown on the page.
      * @returns {array}
      */
     this.getAllResultsShown = function () {
         try {
-            return SecondFunnel.discovery.collection.models;
+            return App.discovery.collection.models;
         } catch (err) {
-            // first call, SecondFunnel.discovery is not a var yet
-            return SecondFunnel.option('initialResults') || [];
+            // first call, App.discovery is not a var yet
+            return App.option('initialResults') || [];
         }
     };
 
@@ -212,7 +202,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             return intentRank;
         }
 
-        broadcast('intentRankChangeCategory', category, intentRank);
+        App.vent.trigger('intentRankChangeCategory', category, intentRank);
 
         intentRank.options.campaign = category;
         return intentRank;

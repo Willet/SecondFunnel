@@ -5,7 +5,7 @@ describe("support", function () {
         moduleName;
 
     beforeEach(function () {
-        app = SecondFunnel;
+        app = App;
         module = app.support;
     });
 

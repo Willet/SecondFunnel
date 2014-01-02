@@ -1,4 +1,4 @@
-/*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast */
+/*global App, Backbone, Marionette, imagesLoaded, console*/
 /**
  * Masonry wrapper
  *
@@ -7,22 +7,23 @@
  *
  * @module layoutEngine
  */
-SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
+App.module("layoutEngine", function (layoutEngine, App) {
     "use strict";
 
     var $document = $(document),
         $window = $(window),
         defaults = {
             'columnWidth': 255,
-            'isAnimated': !SecondFunnel.support.mobile(),
+            'isAnimated': App.support.transform3d() &&  // only if it is fast
+                          !App.support.mobile(),  // & "phones don't animate"
             'transitionDuration': '0.4s',
             'isInitLayout': true,
             'isResizeBound': false,  // we are handling it ourselves
             'visibleStyle': {
                 'opacity': 1,
-                'transform': 'none',
-                '-webkit-transform': 'none',
-                '-moz-transform': 'none'
+                'transform': 'translate3d(0, 0, 0)',
+                '-webkit-transform': 'translate3d(0, 0, 0)',
+                '-moz-transform': 'translate3d(0, 0, 0)'
             },
             'hiddenStyle': {
                 'opacity': 0,
@@ -35,8 +36,8 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         opts;  // last-used options (used by clear())
 
     this.on('start', function () {  // this = layoutEngine
-        if (SecondFunnel.discovery) {
-            return this.initialize(SecondFunnel.discovery, SecondFunnel.options);
+        if (App.discovery) {
+            this.initialize(App.discovery, App.options);
         }
     });
 
@@ -53,11 +54,11 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
         view.$el.masonry(opts);
 
-        SecondFunnel.vent.on('windowResize', function () {
+        App.vent.on('windowResize', function () {
             self.layout(view);
         });
 
-        broadcast('layoutEngineInitialized', this, opts);
+        App.vent.trigger('layoutEngineInitialized', this, opts);
         return this;
     };
 
@@ -112,7 +113,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
         // collect fragments, append in batch
         frags = frags.concat(fragment);
-        if (frags.length >= SecondFunnel.option('IRResultsCount', 10)) {
+        if (frags.length >= App.option('IRResultsCount', 10)) {
             fragment = frags;
             frags = [];
         } else {

@@ -1,8 +1,8 @@
-/*global SecondFunnel, Backbone, Marionette, console, broadcast */
+/*global App, Backbone, Marionette, console */
 /**
  * @module utils
  */
-SecondFunnel.module("utils", function (utils, SecondFunnel) {
+App.module("utils", function (utils, App) {
     "use strict";
 
     var $document = $(document),
@@ -51,7 +51,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
     this.registerWidget = function (name, selector, functionality) {
         regions[name] = selector;
         regionWidgets[name] = functionality;
-        broadcast('widgetRegistered', name, selector, functionality,
+        App.vent.trigger('widgetRegistered', name, selector, functionality,
             regions, regionWidgets);
         return true;  // success
     };
@@ -65,8 +65,8 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @returns defn
      */
     this.addClass = function (name, defn) {
-        SecondFunnel.core[_.capitalize(name)] = defn;
-        broadcast('classAdded', name, defn);
+        App.core[_.capitalize(name)] = defn;
+        App.vent.trigger('classAdded', name, defn);
         return defn;
     };
 
@@ -81,19 +81,8 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @returns {object}|defaultClass
      */
     this.findClass = function (typeName, prefix, defaultClass) {
-        var FoundClass,
-            targetClassName = _.capitalize(prefix || '') +
-                              _.capitalize(typeName || '');
-
-        if (SecondFunnel.core[targetClassName] !== undefined) {
-            // if designers want to define a new tile view, they must
-            // let SecondFunnel know of its existence.
-            FoundClass = SecondFunnel.core[targetClassName];
-        } else {
-            FoundClass = defaultClass;
-        }
-
-        return FoundClass;
+        var className = _.capitalize(prefix || '') + _.capitalize(typeName || '');
+        return App.core[className] || defaultClass;
     };
 
     /**
@@ -110,7 +99,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
         _.each(regions, function (selector, name, list) {
             var widgetFunc = regionWidgets[name];
             self.$(selector).each(function (idx, el) {
-                return widgetFunc(self, $(el), SecondFunnel.option);
+                return widgetFunc(self, $(el), App.option);
             });
         });
 
@@ -120,7 +109,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
                 widgetFunc = (regionWidgets || {})[name];
             if (isWidget && widgetFunc) {
                 self.$(selector).each(function (idx, el) {
-                    return widgetFunc(self, $(el), SecondFunnel.option);
+                    return widgetFunc(self, $(el), App.option);
                 });
             }
         });

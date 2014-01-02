@@ -1,8 +1,8 @@
-/*global SecondFunnel, Backbone, Marionette, console, broadcast */
+/*global App, Backbone, Marionette, console */
 /**
  * @module support
  */
-SecondFunnel.module("support", function (module, SecondFunnel) {
+App.module("support", function (module, App) {
     // make new module full of transient utilities
     "use strict";
 
@@ -32,6 +32,15 @@ SecondFunnel.module("support", function (module, SecondFunnel) {
     this.touch = function () {
         return ('ontouchstart' in document.documentElement) ||
             $('html').hasClass('touch-enabled');
+    };
+
+    /**
+     * (basically) tests for hardware css transform.
+     * @returns {boolean}
+     */
+    this.transform3d = function () {
+        //github.com/Modernizr/Modernizr/blob/master/feature-detects/css/transforms3d.js#L20
+        return (document.documentElement.webkitPerspective !== undefined);
     };
 
     /**

@@ -2,7 +2,6 @@
 <html lang="en">
     <head>
         {{ opengraph_tags }}
-        {{ campaign_config }}
         {{ head_content }}
     </head>
 
@@ -17,7 +16,11 @@
                 </div>
             </noscript>
         </div>
+
+        <!-- remove this line if you have replaced all default templates -->
         {{ js_templates }}
+
+        {{ campaign_config }}
         {{ body_content }}
     </body>
 </html>
