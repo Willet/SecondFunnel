@@ -90,7 +90,7 @@ App.module('core', function (module, App) {
      * @returns {*}
      */
     Marionette.View.prototype.getTemplate = function () {
-        var i, templateIDs = _.myResult(this, 'templates'),
+        var i, templateIDs = _.result(this, 'templates'),
             template = this.template,
             temp, templateExists, data;
 

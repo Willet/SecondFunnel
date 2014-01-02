@@ -217,13 +217,6 @@ _.mixin({
         }
         return defaultValue;
     },
-    'myResult': function (obj, prop) {
-        // exactly _.result, but the function uses the parent object as context.
-        if (!_.isFunction(obj[prop])) {
-            return obj[prop];
-        }
-        return obj[prop].apply(obj, [obj]);
-    },
     'uniqBy': function (obj, key) {  // shorthand
         return _.uniq(obj, false, function (x) {
             return x[key];

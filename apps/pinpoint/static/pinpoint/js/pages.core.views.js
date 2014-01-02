@@ -23,7 +23,7 @@ App.module('core', function (module, App) {
         // so featured will be used only if stl is not found.
         'model': module.Tile,
         'template': "#shopthelook_template, #featured_template, #hero_template",
-        'templates': function (currentView) {
+        'templates': function () {
             return [
                 "#<%= options.store.slug %>_<%= options.page.layout %>_template",
                 "#<%= options.store.slug %>_shopthelook_template",
@@ -71,7 +71,7 @@ App.module('core', function (module, App) {
     this.TileView = Marionette.Layout.extend({
         'tagName': App.option('tileElement', "div"),
         'template': "#product_tile_template",
-        'templates': function (currentView) {
+        'templates': function () {
             var templateRules = [
                 "#<%= options.store.slug %>_<%= data.source %>_<%= data.template %>_mobile_tile_template",  // gap_instagram_image_mobile_tile_template
                 "#<%= data.source %>_<%= data.template %>_mobile_tile_template",                            // instagram_image_mobile_tile_template
@@ -660,7 +660,7 @@ App.module('core', function (module, App) {
      */
     this.PreviewContent = Marionette.ItemView.extend({
         'template': '#tile_preview_template',
-        'templates': function (currentView) {
+        'templates': function () {
             var templateRules = [
                 // supported contexts: options, data
                 '#<%= options.store.slug %>_<%= data.template %>_mobile_preview_template',
@@ -681,9 +681,6 @@ App.module('core', function (module, App) {
                         return t.indexOf('mobile') >= 0;
                     });
             }
-
-            console.debug('Template search tree for view %O: %O', currentView,
-                templateRules);
             return templateRules;
         },
         'onBeforeRender': function () {
