@@ -11,7 +11,7 @@ from apps.api.resources import ContentGraphClient
 from apps.api.utils import mimic_response
 
 
-def is_empty(request):
+def response_contains_results(request):
     # TODO: note this does not handle the case where CONTENT GRAPH returns zero results
     #       even though there is RESULTS to be had...
     # NOTE: search endpoint does not return 404 on NO RESULTS
@@ -300,7 +300,7 @@ def add_remove_product_from_page(request, store_id, page_id, product_id):
 def add_product_to_page(request, store_id, page_id, product_id):
     tile_check_params = {'template': 'product', 'product-ids': product_id}
     tile_check = ContentGraphClient.page(page_id)('tile-config').GET(params=tile_check_params)
-    if not is_empty(tile_check):
+    if not response_contains_results(tile_check):
         return mimic_response(tile_check, content=json.dumps(tile_check.json()['results'][0]))
 
     payload = json.dumps({
@@ -315,7 +315,7 @@ def add_product_to_page(request, store_id, page_id, product_id):
 def remove_product_from_page(request, store_id, page_id, product_id):
     tile_check_params = {'template': 'product', 'product-ids': product_id}
     tile_check = ContentGraphClient.page(page_id)('tile-config').GET(params=tile_check_params)
-    if not is_empty(tile_check):
+    if not response_contains_results(tile_check):
         tile_id = tile_check.json()['results'][0]['id']
         tile_delete = ContentGraphClient.page(page_id)('tile-config')(tile_id).DELETE()
         return mimic_response(tile_delete)
@@ -329,17 +329,16 @@ def remove_product_from_page(request, store_id, page_id, product_id):
 @csrf_exempt
 def add_remove_content_from_page(request, store_id, page_id, content_id):
     if request.method == 'PUT':
-        return add_content_to_page(request, store_id, page_id, content_id)
-    else:
-        return remove_content_from_page(request, store_id, page_id, content_id)
+        return add_content_to_page(store_id, page_id, content_id)
+    elif request.method == 'DELETE':
+        return remove_content_from_page(store_id, page_id, content_id)
 
 
-@request_methods('PUT')
-def add_content_to_page(request, store_id, page_id, content_id):
+def add_content_to_page(store_id, page_id, content_id):
     # verify the tile config does not already exist
     tileconfig_params = {'template': 'image', 'content-ids': content_id}
     tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
-    if not is_empty(tileconfigs):
+    if not response_contains_results(tileconfigs):
         return mimic_response(tileconfigs, content=json.dumps(tileconfigs.json()['results'][0]))
 
     # create the tile config
@@ -351,12 +350,11 @@ def add_content_to_page(request, store_id, page_id, content_id):
     return mimic_response(r)
 
 
-@request_methods('DELETE')
-def remove_content_from_page(request, store_id, page_id, content_id):
+def remove_content_from_page(store_id, page_id, content_id):
     # verify the tile config does not already exist
     tileconfig_params = {'template': 'image', 'content-ids': content_id}
     tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
-    if not is_empty(tileconfigs):
+    if not response_contains_results(tileconfigs):
         tileconfig_id = tileconfigs.json()['results'][0]['id']
         delete_tileconfig_request = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).DELETE()
         return mimic_response(delete_tileconfig_request)
