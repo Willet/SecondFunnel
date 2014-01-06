@@ -11,7 +11,7 @@ from apps.api.resources import ContentGraphClient
 from apps.api.utils import mimic_response
 
 
-def response_contains_results(request):
+def cg_response_contains_results(request):
     # TODO: note this does not handle the case where CONTENT GRAPH returns zero results
     #       even though there is RESULTS to be had...
     # NOTE: search endpoint does not return 404 on NO RESULTS
@@ -23,12 +23,15 @@ def response_contains_results(request):
 @never_cache
 @csrf_exempt
 def prioritize_tile(request, store_id, page_id, tileconfig_id):
+    tileconfig = tileconfig_prioritize(store_id, page_id, tileconfig_id)
+    return HttpResponse(content=json.dumps(tileconfig))
+
+
+def tileconfig_prioritize(store_id, page_id, tileconfig_id):
     # DEFER: may need to mark TileConfig as 'stale'
     payload = json.dumps({'prioritized': 'true'})
-
     r = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).PATCH(data=payload)
-
-    return mimic_response(r)
+    return r.json()
 
 
 @request_methods('POST')
@@ -36,13 +39,45 @@ def prioritize_tile(request, store_id, page_id, tileconfig_id):
 @never_cache
 @csrf_exempt
 def deprioritize_tile(request, store_id, page_id, tileconfig_id):
-    # DEFER: may need to issue something due to the change?
-    # e.g. update generated tiles for this tile-config
+    return mimic_response(tileconfig_deprioritize(store_id, page_id, tileconfig_id))
+
+
+def tileconfig_deprioritize(store_id, page_id, tileconfig_id):
+    # DEFER: may need to mark TileConfig as 'stale'
     payload = json.dumps({'prioritized': 'false'})
+    return ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).PATCH(data=payload)
 
-    r = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).PATCH(data=payload)
 
-    return mimic_response(r)
+@request_methods('POST')
+@check_login
+@never_cache
+@csrf_exempt
+def prioritize_content(request, store_id, page_id, content_id):
+    tileconfig = content_prioritize(store_id, page_id, content_id)
+    return HttpResponse(content=json.dumps(tileconfig))
+
+
+def content_prioritize(store_id, page_id, content_id):
+    tileconfig = add_content_to_page(store_id, page_id, content_id, prioritized=True)
+    if not tileconfig.prioritized == 'true':
+        tileconfig = tileconfig_prioritize(store_id, page_id, tileconfig['id'])
+    return tileconfig
+
+
+@request_methods('POST')
+@check_login
+@never_cache
+@csrf_exempt
+def prioritize_product(request, store_id, page_id, product_id):
+    tileconfig = product_prioritize(store_id, page_id, product_id)
+    return HttpResponse(content=json.dumps(tileconfig))
+
+
+def product_prioritize(store_id, page_id, product_id):
+    tileconfig = page_add_product(store_id, page_id, product_id, prioritized=True)
+    if not tileconfig.prioritized == 'true':
+        tileconfig = tileconfig_prioritize(store_id, page_id, tileconfig['id'])
+    return tileconfig
 
 
 @request_methods('GET')
@@ -291,16 +326,16 @@ def expand_tile_configs(store_id, configs):
 @csrf_exempt
 def add_remove_product_from_page(request, store_id, page_id, product_id):
     if request.method == 'PUT':
-        return add_product_to_page(request, store_id, page_id, product_id)
+        return page_add_product(request, store_id, page_id, product_id)
     else:
-        return remove_product_from_page(request, store_id, page_id, product_id)
+        return page_remove_product(request, store_id, page_id, product_id)
 
 
 @request_methods('PUT')
-def add_product_to_page(request, store_id, page_id, product_id):
-    tile_check_params = {'template': 'product', 'product-ids': product_id}
+def page_add_product(request, store_id, page_id, product_id, prioritized=False):
+    tile_check_params = {'template': 'product', 'product-ids': product_id, 'prioritized': prioritized}
     tile_check = ContentGraphClient.page(page_id)('tile-config').GET(params=tile_check_params)
-    if not response_contains_results(tile_check):
+    if not cg_response_contains_results(tile_check):
         return mimic_response(tile_check, content=json.dumps(tile_check.json()['results'][0]))
 
     payload = json.dumps({
@@ -312,10 +347,10 @@ def add_product_to_page(request, store_id, page_id, product_id):
 
 
 @request_methods('DELETE')
-def remove_product_from_page(request, store_id, page_id, product_id):
+def page_remove_product(request, store_id, page_id, product_id):
     tile_check_params = {'template': 'product', 'product-ids': product_id}
     tile_check = ContentGraphClient.page(page_id)('tile-config').GET(params=tile_check_params)
-    if not response_contains_results(tile_check):
+    if not cg_response_contains_results(tile_check):
         tile_id = tile_check.json()['results'][0]['id']
         tile_delete = ContentGraphClient.page(page_id)('tile-config')(tile_id).DELETE()
         return mimic_response(tile_delete)
@@ -329,17 +364,20 @@ def remove_product_from_page(request, store_id, page_id, product_id):
 @csrf_exempt
 def add_remove_content_from_page(request, store_id, page_id, content_id):
     if request.method == 'PUT':
-        return add_content_to_page(store_id, page_id, content_id)
+        tileconfig = add_content_to_page(store_id, page_id, content_id)
+        return HttpResponse(content=json.dumps(tileconfig))
     elif request.method == 'DELETE':
-        return remove_content_from_page(store_id, page_id, content_id)
+        remove_content_from_page(store_id, page_id, content_id)
+        return HttpResponse()
 
 
-def add_content_to_page(store_id, page_id, content_id):
+def add_content_to_page(store_id, page_id, content_id, prioritized=False):
     # verify the tile config does not already exist
     tileconfig_params = {'template': 'image', 'content-ids': content_id}
     tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
-    if not response_contains_results(tileconfigs):
-        return mimic_response(tileconfigs, content=json.dumps(tileconfigs.json()['results'][0]))
+    if not cg_response_contains_results(tileconfigs):
+        tileconfig = tileconfigs.json()['results'][0]
+        return tileconfig
 
     # create the tile config
     payload = json.dumps({
@@ -347,16 +385,16 @@ def add_content_to_page(store_id, page_id, content_id):
         'content-ids': [content_id]
         })
     r = ContentGraphClient.page(page_id)('tile-config').POST(data=payload)
-    return mimic_response(r)
+    return r.json()
 
 
 def remove_content_from_page(store_id, page_id, content_id):
     # verify the tile config does not already exist
     tileconfig_params = {'template': 'image', 'content-ids': content_id}
     tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
-    if not response_contains_results(tileconfigs):
+    if not cg_response_contains_results(tileconfigs):
         tileconfig_id = tileconfigs.json()['results'][0]['id']
         delete_tileconfig_request = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).DELETE()
-        return mimic_response(delete_tileconfig_request)
+        return delete_tileconfig_request.status_code == 200
     else:
-        return HttpResponse(status=200)
+        return True
