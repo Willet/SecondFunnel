@@ -52,26 +52,22 @@ App.utils.registerWidget(
                 images.removeClass('selected');
 
                 if (type === 'swipeleft') {
-                    selIdx++;  // advance
-                    if (selIdx >= images.length) {
-                        selIdx = images.length - 1;
-                    }
+					selIdx++;  // advance
                 } else {  // can only be swiperight, based on available events
                     selIdx--;  // not retreat
-                    if (selIdx < 0) {
-                        selIdx = 0;
-                    }
                 }
+				selIdx = selIdx >= images.length? selIdx - 1:
+					selIdx <= 0? 0 : selIdx;
                 images.eq(selIdx).addClass('selected').click();
             })
         .on('click', '.image, .image img', function (ev) {
             var $pseudo = $(ev.target);
-            if (ev.offsetX >= 0 && ev.offsetX <= 100) {   // left (which is swiping right)
-                $pseudo.swiperight();
-            } else if (ev.offsetX >= $pseudo.width() - 100 &&  // right
-                ev.offsetY > 150) {  // prevent interference with close button
-                $pseudo.swipeleft();
-            }
+			if (ev.offsetX >= -15 && ev.offsetX <= 100) {   // left (which is swiping right)
+				$pseudo.swiperight();
+			} else if (ev.offsetX >= $pseudo.width() - 100 &&  // right
+					   ev.offsetY > 150) {  // prevent interference with close button
+				$pseudo.swipeleft();
+			}
         });
     }
 );
