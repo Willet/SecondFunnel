@@ -59,7 +59,7 @@ def prioritize_content(request, store_id, page_id, content_id):
 
 def content_prioritize(store_id, page_id, content_id):
     tileconfig = add_content_to_page(store_id, page_id, content_id, prioritized=True)
-    if not tileconfig.prioritized == 'true':
+    if not tileconfig.get('prioritized', 'false') == 'true':
         tileconfig = tileconfig_prioritize(store_id, page_id, tileconfig['id'])
     return tileconfig
 
@@ -75,7 +75,7 @@ def prioritize_product(request, store_id, page_id, product_id):
 
 def product_prioritize(store_id, page_id, product_id):
     tileconfig = page_add_product(store_id, page_id, product_id, prioritized=True)
-    if not tileconfig.prioritized == 'true':
+    if not tileconfig.get('prioritized', 'false') == 'true':
         tileconfig = tileconfig_prioritize(store_id, page_id, tileconfig['id'])
     return tileconfig
 
@@ -340,7 +340,8 @@ def page_add_product(request, store_id, page_id, product_id, prioritized=False):
 
     payload = json.dumps({
         'template': 'product',
-        'product-ids': [product_id]
+        'product-ids': [product_id],
+        'prioritized': prioritized
         })
     r = ContentGraphClient.page(page_id)('tile-config').POST(data=payload)
     return mimic_response(r)
@@ -382,7 +383,8 @@ def add_content_to_page(store_id, page_id, content_id, prioritized=False):
     # create the tile config
     payload = json.dumps({
         'template': 'image',
-        'content-ids': [content_id]
+        'content-ids': [content_id],
+        'prioritized': prioritized
         })
     r = ContentGraphClient.page(page_id)('tile-config').POST(data=payload)
     return r.json()
