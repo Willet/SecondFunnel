@@ -30,13 +30,14 @@ def copy_headers_to_response(headers, response):
 
 def mimic_response(client_response, **overrides):
     options = {
-      'content': client_response.content,
-      'status': client_response.status_code
+        'content': client_response.content,
+        'status': client_response.status_code
     }
-    if not overrides is None:
-      options.update(overrides)
+    if overrides:
+        options.update(overrides)
     server_response = HttpResponse(**options)
     return copy_headers_to_response(client_response.headers, server_response)
+
 
 def get_proxy_results(request, url, body=None, raw=False, method=None):
     """small wrapper around all api requests to content graph.
@@ -52,7 +53,7 @@ def get_proxy_results(request, url, body=None, raw=False, method=None):
     """
     h = httplib2.Http()
     response, content = h.request(uri=url, method=method or request.method,
-        body=body, headers=request.NEW_HEADERS or request.META)
+                                  body=body, headers=request.NEW_HEADERS or request.META)
 
     if raw:
         return (response, content)
