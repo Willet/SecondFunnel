@@ -92,18 +92,26 @@ def get_suggested_content_by_page(request, store_id, page_id):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
 
-    product_url = "%s/store/%s/page/%s/product/ids?%s" % (
-        settings.CONTENTGRAPH_BASE_URL, store_id, page_id,
+    tile_config_url = "%s/page/%s/tile-config?template=product&%s" % (
+        settings.CONTENTGRAPH_BASE_URL, page_id,
         request.META.get('QUERY_STRING', ''))
     content_url = "%s/store/%s/content?tagged-products=%s"
 
     results = []
 
-    product_ids, meta = get_proxy_results(request=request, url=product_url)
+    tile_configs, meta = get_proxy_results(request=request,
+                                           url=tile_config_url)
+
+    # this makes a flat (chain), unique (set) list of
+    # attributes (product-ids) from a list of objects' (tile configs)
+    # http://stackoverflow.com/a/952946/1558430
+    product_ids = list(set(sum(
+        [x.get('product-ids', []) for x in tile_configs], [])))
+
     for product_id in product_ids:
-        contents, _ = get_proxy_results(
-            request=request,
-            url=content_url % (settings.CONTENTGRAPH_BASE_URL, store_id, product_id))
+        contents, _ = get_proxy_results(request=request,
+            url=content_url % (settings.CONTENTGRAPH_BASE_URL,
+                               store_id, product_id))
         for content in contents:
             if not content in results:  # this works because __hash__
                 results.append(content)
