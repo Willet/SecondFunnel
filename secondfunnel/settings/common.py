@@ -429,6 +429,10 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(seconds=300),
         'args': (300)
     },
+    'poll 600-second stale tiles': {
+        'task': 'apps.api.tasks.check_for_stale_tiles',
+        'schedule': timedelta(seconds=600),
+    }
 }
 
 djcelery.setup_loader()

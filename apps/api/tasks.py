@@ -4,8 +4,9 @@ from celery.utils.log import get_task_logger
 
 from django.conf import settings
 from apps.intentrank.utils import ajax_jsonp
+from apps.contentgraph.models import get_contentgraph_data
 
-from apps.static_pages.aws_utils import sqs_poll
+from apps.static_pages.aws_utils import sqs_poll, SQSQueue
 
 celery = Celery()
 logger = get_task_logger(__name__)
@@ -99,3 +100,37 @@ def poll_queues(interval=60):
     @param interval {int} number of seconds that this poll is being made.
     """
     return ajax_jsonp(fetch_queue(interval=interval))
+
+#Common.py has the config for how often this task should run
+@celery.task
+def check_for_stale_tiles():
+    #results
+    stores = get_contentgraph_data('/store?results=100000')['results']
+    store_ids = []
+
+    for store in stores:
+        store_ids.append(store['id'])
+
+    page_ids = []
+
+    for store_id in store_ids:
+        store_pages = get_contentgraph_data('/store/%s/page?results=100000' % store_id)['results']
+
+        for store_page in store_pages:
+            #stored in a tuple as the queue needs the store_id for some reason
+            page_ids.append((store_page['id'], store_id))
+
+    ouput_queue = SQSQueue(queue_name='tileservice-worker-queue')
+
+    for page_id in page_ids:
+        stale_content = get_contentgraph_data('/page/%s/tile-config?stale=true' % page_id[0])['results']
+
+        if len(stale_content) > 0:
+            ouput_queue.write_message({
+                'classname': 'com.willetinc.tiles.worker.GenerateTilesWorkerTask',
+                'conf': '''{
+                    "pageId": %s,
+                    "storeId": %s
+                }''' % page_id
+            })
+            print 'Page: %s has stale content' % page_id[0]
