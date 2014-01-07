@@ -1,3 +1,5 @@
+import json
+
 from celery import Celery
 from celery.utils import noop
 from celery.utils.log import get_task_logger
@@ -128,9 +130,9 @@ def check_for_stale_tiles():
         if len(stale_content) > 0:
             ouput_queue.write_message({
                 'classname': 'com.willetinc.tiles.worker.GenerateTilesWorkerTask',
-                'conf': '''{
-                    "pageId": %s,
-                    "storeId": %s
-                }''' % page_id
+                'conf': json.dumps({
+                    'pageId': page_id[0],
+                    'storeId': page_id[1]
+                })
             })
             print 'Page: %s has stale content' % page_id[0]
