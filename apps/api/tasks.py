@@ -113,26 +113,22 @@ def check_for_stale_tiles():
     for store in stores:
         store_ids.append(store['id'])
 
-    page_ids = []
+    pages = []
 
     for store_id in store_ids:
-        store_pages = get_contentgraph_data('/store/%s/page?results=100000' % store_id)['results']
-
-        for store_page in store_pages:
-            #stored in a tuple as the queue needs the store_id for some reason
-            page_ids.append((store_page['id'], store_id))
+        pages += get_contentgraph_data('/store/%s/page?results=100000' % store_id)['results']
 
     ouput_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
 
-    for page_id in page_ids:
-        stale_content = get_contentgraph_data('/page/%s/tile-config?stale=true' % page_id[0])['results']
+    for page in pages:
+        stale_content = get_contentgraph_data('/page/%s/tile-config?stale=true' % page['id'])['results']
 
         if len(stale_content) > 0:
             ouput_queue.write_message({
                 'classname': 'com.willetinc.tiles.worker.GenerateTilesWorkerTask',
                 'conf': json.dumps({
-                    'pageId': page_id[0],
-                    'storeId': page_id[1]
+                    'pageId': page['id'],
+                    'storeId': page['store-id']
                 })
             })
-            print 'Page: %s has stale content' % page_id[0]
+            print 'Page: %s has stale content' % page['id']
