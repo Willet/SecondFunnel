@@ -112,10 +112,10 @@ def queue_stale_tile_check():
     for store in stores:
         pages += get_contentgraph_data('/store/%s/page?results=100000' % store['id'])['results']
 
-    ouput_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
+    output_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
 
     for page in pages:
-        ouput_queue.write_message({
+        output_queue.write_message({
             'classname': 'com.willetinc.contentgraph.tiles.worker.GenerateStaleTilesWorkerTask',
             'conf': json.dumps({
                 'pageId': page['id'],
