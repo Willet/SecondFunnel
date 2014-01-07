@@ -177,8 +177,8 @@ def expand_products(store_id, page_id, products):
 
     # flatten lists
     content_ids = list(itertools.chain.from_iterable([record['image-ids'] for record in products if 'image-ids' in record]))
-    content_ids += [record['default-image-id'] for record in products]
-    content_list = ContentGraphClient.store(store_id).content().GET(params={'ids': content_ids}).json.results
+    content_ids += [record['default-image-id'] for record in products if 'default-image-id' in record]
+    content_list = ContentGraphClient.store(store_id).content().GET(params={'ids': content_ids}).json()['results']
     content_set = {}
     for content in content_list:
         content_set[content['id']] = content
@@ -186,7 +186,8 @@ def expand_products(store_id, page_id, products):
     for record in products:
         record['tile-configs'] = get_product_tiles(store_id, record['id'])
         if 'default-image-id' in record:
-            record['default-image'] = content_set[record['default-image-id']]
+            if record['default-image-id'] in content_set:
+                record['default-image'] = content_set[record['default-image-id']]
         if 'image-ids' in record:
             record['images'] = [content_set[content_id] for content_id in record['image-ids'] if content_id in content_set]
 
@@ -326,17 +327,18 @@ def expand_tile_configs(store_id, configs):
 @csrf_exempt
 def add_remove_product_from_page(request, store_id, page_id, product_id):
     if request.method == 'PUT':
-        return page_add_product(request, store_id, page_id, product_id)
+        tileconfig = page_add_product(store_id, page_id, product_id)
+        return HttpResponse(content=json.dumps(tileconfig))
     else:
-        return page_remove_product(request, store_id, page_id, product_id)
+        page_remove_product(store_id, page_id, product_id)
+        return HttpResponse()
 
 
-@request_methods('PUT')
-def page_add_product(request, store_id, page_id, product_id, prioritized=False):
+def page_add_product(store_id, page_id, product_id, prioritized=False):
     tile_check_params = {'template': 'product', 'product-ids': product_id, 'prioritized': prioritized}
     tile_check = ContentGraphClient.page(page_id)('tile-config').GET(params=tile_check_params)
-    if not cg_response_contains_results(tile_check):
-        return mimic_response(tile_check, content=json.dumps(tile_check.json()['results'][0]))
+    if cg_response_contains_results(tile_check):
+        return tile_check.json()['results'][0]
 
     payload = json.dumps({
         'template': 'product',
@@ -344,14 +346,13 @@ def page_add_product(request, store_id, page_id, product_id, prioritized=False):
         'prioritized': prioritized
         })
     r = ContentGraphClient.page(page_id)('tile-config').POST(data=payload)
-    return mimic_response(r)
+    return r.json()
 
 
-@request_methods('DELETE')
-def page_remove_product(request, store_id, page_id, product_id):
+def page_remove_product(store_id, page_id, product_id):
     tile_check_params = {'template': 'product', 'product-ids': product_id}
     tile_check = ContentGraphClient.page(page_id)('tile-config').GET(params=tile_check_params)
-    if not cg_response_contains_results(tile_check):
+    if cg_response_contains_results(tile_check):
         tile_id = tile_check.json()['results'][0]['id']
         tile_delete = ContentGraphClient.page(page_id)('tile-config')(tile_id).DELETE()
         return mimic_response(tile_delete)
@@ -376,7 +377,7 @@ def add_content_to_page(store_id, page_id, content_id, prioritized=False):
     # verify the tile config does not already exist
     tileconfig_params = {'template': 'image', 'content-ids': content_id}
     tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
-    if not cg_response_contains_results(tileconfigs):
+    if cg_response_contains_results(tileconfigs):
         tileconfig = tileconfigs.json()['results'][0]
         return tileconfig
 
@@ -394,7 +395,7 @@ def remove_content_from_page(store_id, page_id, content_id):
     # verify the tile config does not already exist
     tileconfig_params = {'template': 'image', 'content-ids': content_id}
     tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
-    if not cg_response_contains_results(tileconfigs):
+    if cg_response_contains_results(tileconfigs):
         tileconfig_id = tileconfigs.json()['results'][0]['id']
         delete_tileconfig_request = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).DELETE()
         return delete_tileconfig_request.status_code == 200
