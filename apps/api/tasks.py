@@ -105,7 +105,7 @@ def poll_queues(interval=60):
 
 #Common.py has the config for how often this task should run
 @celery.task
-def check_for_stale_tiles():
+def queue_stale_tile_check():
     #results
     stores = get_contentgraph_data('/store?results=100000')['results']
     store_ids = []
@@ -121,14 +121,10 @@ def check_for_stale_tiles():
     ouput_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
 
     for page in pages:
-        stale_content = get_contentgraph_data('/page/%s/tile-config?stale=true' % page['id'])['results']
-
-        if len(stale_content) > 0:
-            ouput_queue.write_message({
-                'classname': 'com.willetinc.contentgraph.tiles.worker.GenerateStaleTilesWorkerTask',
-                'conf': json.dumps({
-                    'pageId': page['id'],
-                    'storeId': page['store-id']
-                })
+        ouput_queue.write_message({
+            'classname': 'com.willetinc.contentgraph.tiles.worker.GenerateStaleTilesWorkerTask',
+            'conf': json.dumps({
+                'pageId': page['id'],
+                'storeId': page['store-id']
             })
-            print 'Page: %s has stale content' % page['id']
+        })
