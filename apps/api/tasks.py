@@ -107,15 +107,10 @@ def poll_queues(interval=60):
 @celery.task
 def queue_stale_tile_check():
     stores = get_contentgraph_data('/store?results=100000')['results']
-    store_ids = []
-
-    for store in stores:
-        store_ids.append(store['id'])
-
     pages = []
 
-    for store_id in store_ids:
-        pages += get_contentgraph_data('/store/%s/page?results=100000' % store_id)['results']
+    for store in stores:
+        pages += get_contentgraph_data('/store/%s/page?results=100000' % store['id'])['results']
 
     ouput_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
 
