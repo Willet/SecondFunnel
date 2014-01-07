@@ -1,11 +1,14 @@
+import json
+
 from celery import Celery
 from celery.utils import noop
 from celery.utils.log import get_task_logger
 
 from django.conf import settings
 from apps.intentrank.utils import ajax_jsonp
+from apps.contentgraph.models import get_contentgraph_data
 
-from apps.static_pages.aws_utils import sqs_poll
+from apps.static_pages.aws_utils import sqs_poll, SQSQueue
 
 celery = Celery()
 logger = get_task_logger(__name__)
@@ -99,3 +102,23 @@ def poll_queues(interval=60):
     @param interval {int} number of seconds that this poll is being made.
     """
     return ajax_jsonp(fetch_queue(interval=interval))
+
+#Common.py has the config for how often this task should run
+@celery.task
+def queue_stale_tile_check():
+    stores = get_contentgraph_data('/store?results=100000')['results']
+    pages = []
+
+    for store in stores:
+        pages += get_contentgraph_data('/store/%s/page?results=100000' % store['id'])['results']
+
+    output_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
+
+    for page in pages:
+        output_queue.write_message({
+            'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
+            'conf': json.dumps({
+                'pageId': page['id'],
+                'storeId': page['store-id']
+            })
+        })

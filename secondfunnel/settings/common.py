@@ -414,6 +414,8 @@ JENKINS_TASKS = (
 IMAGE_SERVICE_API = "http://imageservice.elasticbeanstalk.com"
 IMAGE_SERVICE_STORE = "http://images.secondfunnel.com"
 
+STALE_TILE_QUEUE_NAME = 'tiles-worker-test-queue'
+
 CELERYBEAT_POLL_INTERVAL = 60  # default beat is 60 seconds
 
 # only celery workers use this setting.
@@ -429,6 +431,10 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(seconds=300),
         'args': (300)
     },
+    'poll 60-second stale tiles': {
+        'task': 'apps.api.tasks.queue_stale_tile_check',
+        'schedule': timedelta(seconds=60),
+    }
 }
 
 djcelery.setup_loader()
