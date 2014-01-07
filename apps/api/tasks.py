@@ -120,7 +120,7 @@ def check_for_stale_tiles():
             #stored in a tuple as the queue needs the store_id for some reason
             page_ids.append((store_page['id'], store_id))
 
-    ouput_queue = SQSQueue(queue_name='tileservice-worker-queue')
+    ouput_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
 
     for page_id in page_ids:
         stale_content = get_contentgraph_data('/page/%s/tile-config?stale=true' % page_id[0])['results']
