@@ -10,14 +10,6 @@ api.register(UserResource())
 urlpatterns = api.urls
 
 urlpatterns += patterns('apps.api.views',
-    url(
-        r'^%s/store/(?P<store_id>\d+)'          # store
-        r'/page/(?P<page_id>\d+)'               # page
-        r'/(?P<object_type>\w+)'                # type
-        r'/(?P<object_id>\d+)/?$' % prefix,     # id
-        'proxy_tile',
-        name='proxy_tile'
-    ),
     url(r'^%s/store/(?P<store_id>[^\/]*)'
         r'/page/(?P<page_id>[^\/]*)'
         r'/content/suggested/?$' % prefix,
@@ -59,12 +51,28 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/scraper/store/(?P<store_id>\d+)/?$' % prefix, 'list_scrapers', name='list_scrapers'),
     url(r'^%s/scraper/store/(?P<store_id>\d+)/(?P<scraper_name>.*?)/?$' % prefix, 'delete_scraper', name='delete_scraper'),
 
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/?$' % prefix, 'list_page_content', name='list_page_content'),
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, 'add_remove_content_from_page', name='add_remove_content_from_page'),
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/prioritize/?$' % prefix, 'prioritize_content', name='prioritize_content'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/all/?$' % prefix, 'list_page_all_content', name='list_page_all_content'),
+
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/?$' % prefix, 'list_page_products', name='list_page_products'),
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/?$' % prefix, 'add_remove_product_from_page', name='add_remove_product_from_page'),
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/prioritize/?$' % prefix, 'prioritize_product', name='prioritize_product'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/all/?$' % prefix, 'list_page_all_products', name='list_page_all_products'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/?$' % prefix, 'list_page_tile_configs', name='list_page_tile_configs'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/(?P<tileconfig_id>\d+)/?$' % prefix, 'get_page_tile_config', name='get_page_tile_config'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/(?P<tileconfig_id>\d+)/prioritize/?$' % prefix, 'prioritize_tile', name='prioritize_tile'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/(?P<tileconfig_id>\d+)/deprioritize/?$' % prefix, 'deprioritize_tile', name='deprioritize_tile'),
+
+    url(
+        r'^%s/store/(?P<store_id>\d+)'          # store
+        r'/page/(?P<page_id>\d+)'               # page
+        r'/(?P<object_type>\w+)'                # type
+        r'/(?P<object_id>\d+)/?$' % prefix,     # id
+        'proxy_tile',
+        name='proxy_tile'
+    ),
 
     # If all else fails, proxy
     url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
