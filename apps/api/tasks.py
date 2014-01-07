@@ -116,7 +116,7 @@ def queue_stale_tile_check():
 
     for page in pages:
         output_queue.write_message({
-            'classname': 'com.willetinc.contentgraph.tiles.worker.GenerateStaleTilesWorkerTask',
+            'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
             'conf': json.dumps({
                 'pageId': page['id'],
                 'storeId': page['store-id']
