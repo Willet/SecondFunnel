@@ -125,7 +125,7 @@ def check_for_stale_tiles():
 
         if len(stale_content) > 0:
             ouput_queue.write_message({
-                'classname': 'com.willetinc.tiles.worker.GenerateTilesWorkerTask',
+                'classname': 'com.willetinc.contentgraph.tiles.worker.GenerateStaleTilesWorkerTask',
                 'conf': json.dumps({
                     'pageId': page['id'],
                     'storeId': page['store-id']
