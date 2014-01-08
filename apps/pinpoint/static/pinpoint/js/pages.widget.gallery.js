@@ -6,7 +6,8 @@ App.utils.registerWidget(
     'gallery',  // name (must be unique)
     '.gallery',  // selector (scoped!)
     function (view, $el, option) {
-        var images,
+        var images, startX,
+            threshold = $(this).width() / 5, // displacement needed to be considered a swipe
             changeImage = function ($el, url) {
                 $el.attr('src', url);
             };
@@ -41,37 +42,59 @@ App.utils.registerWidget(
             $el.append($img);  // add each image into the carousel
         });
 
+        $.event.special.swipe.handleSwipe = $.noop; // JQuery's default swipes fire on fixed start/stop
+        view.$('.gallery img').eq(0).click(); // ensure first image selected
+
         // swipeleft is "from right to left"
         view.$el
-            .on('swipeleft swiperight', '.image, .image img', function (ev) {
+            .on('swipeleft swiperight', '.image', function (ev) {
                 // select an image one to the left or right and select it
                 var type = ev.type,  // swipeleft or swiperight
                     sel = view.$('.gallery .selected'),
                     selIdx = sel.index(),
                     images = $('.gallery img');
-                images.removeClass('selected');
 
                 if (type === 'swipeleft') {
-                    selIdx++;  // advance
+                    selIdx++; // advance to next image in gallery
                     if (selIdx >= images.length) {
-                        selIdx = images.length - 1;
+                        selIdx--;
                     }
                 } else {  // can only be swiperight, based on available events
-                    selIdx--;  // not retreat
+                    selIdx--; // retreat
                     if (selIdx < 0) {
-                        selIdx = 0;
+                        selIdx++;
                     }
                 }
-                images.eq(selIdx).addClass('selected').click();
+                images.eq(selIdx).click();
             })
-        .on('click', '.image, .image img', function (ev) {
-            var $pseudo = $(ev.target);
-            if (ev.offsetX >= 0 && ev.offsetX <= 100) {   // left (which is swiping right)
-                $pseudo.swiperight();
-            } else if (ev.offsetX >= $pseudo.width() - 100 &&  // right
-                ev.offsetY > 150) {  // prevent interference with close button
-                $pseudo.swipeleft();
-            }
-        });
+            .on('click', '.image', function (ev) {
+                var $pseudo = $(ev.target);
+                startX = ev.offsetX;
+                if (ev.offsetX >= -15 && ev.offsetX <= 100) {   // left (which is swiping right)
+                    $pseudo.swiperight();
+                } else if (ev.offsetX >= $pseudo.width() - 100 &&  // right
+                           ev.offsetY > 150) {  // prevent interference with close button
+                    $pseudo.swipeleft();
+                }
+            });
+
+
+        if (App.support.mobile()) { // enable continous swipe on mobile
+            view.$el.on('touchmove', '.image', function (ev) {
+                ev = ev.originalEvent;
+                var newX = ev.touches[ev.touches.length - 1].clientX;
+                startX = startX? startX : newX;
+                var dist = newX - startX,
+                    $pseudo = $(ev.target);
+                if (Math.abs(dist) >= threshold) { // swipe only if passes certain threshold
+                    startX = newX;
+                    if (dist < 0) {
+                        $pseudo.swipeleft();
+                    } else {
+                        $pseudo.swiperight();
+                    }
+                }
+            });
+        }
     }
 );
