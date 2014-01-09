@@ -21,10 +21,6 @@ class StoreResource(ModelResource):
         resource_name = 'internal_store'
         queryset = Store.objects.all()
 
-def get_tileconfigs_for_page(page_id):
-    r = ContentGraphClient.page(page_id, 'tile-config').GET()
-    tile_configs = json.loads(r.content)['results']
-    return tile_configs
 
 # http://stackoverflow.com/questions/11770501/how-can-i-login-to-django-using-tastypie
 class UserResource(ModelResource):

@@ -10,7 +10,7 @@ from collections import namedtuple
 from tastypie.test import ResourceTestCase, TestApiClient
 
 
-MockResponse = namedtuple('MockResponse', ['status_code', 'content', 'headers'])
+MockResponse = namedtuple('MockResponse', ['status_code', 'content', 'headers', 'json'])
 RequestNotMocked = namedtuple('RequestNotMocked', 'status, response')
 
 def configure_mock_request(mock_request, returns):
@@ -113,7 +113,8 @@ class MockedHammockRequestsTestCase(AuthenticatedResourceTestCase):
             return MockResponse(
                 status_code=mock_status,
                 content=json.dumps(mock_content),
-                headers={'content-type': 'application/json'}
+                headers={'content-type': 'application/json'},
+                json=lambda: mock_content
             )
 
         self.mock_request = mock.Mock(side_effect=side_effect)
