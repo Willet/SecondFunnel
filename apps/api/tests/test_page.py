@@ -71,20 +71,44 @@ class AuthenticatedPageTestSuite(AuthenticatedResourceTestCase):
 class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase, BaseNotAuthenticatedTests, BaseMethodNotAllowedTests):
     def setUp(self):
         super(AuthenticatedPageAddAllContentTests, self).setUp()
-        self.store_id = 1
         self.page_id = 1
         self.content_data = [15, 12, random.randint(16, 1000)]
-        self.url = '/graph/v1/store/%s/page/%s/content/add_all' % (self.store_id, self.page_id)
+        self.url = '/graph/v1/store/1/page/%s/content/add_all' % (self.page_id)
         self.allowed_methods = ['put']
+        self.mock_content_list = [{
+            'results': [
+                {
+                    'content-ids': [12]
+                }
+            ]
+        }]
 
     def test_all_good(self):
         response = self.api_client.put(self.url, format='json', data=self.content_data)
         self.assertTrue(self.mock_request.called, 'Mock request was never made')
         self.assertEqual(self.mock_request.call_count, len(self.content_data), 'Mock was not called the correct number of times')
         
-        for i in range(len(self.content_data)):
-            args = self.mock_request.call_args_list[i][0]
-            self.assertEqual(args, ('put', settings.CONTENTGRAPH_BASE_URL + '/store/%s/page/%s/content/%s' % (self.store_id, self.page_id, self.content_data[i])))
+        args, kwargs = self.mock_request.call_args_list[0]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
+        self.assertEqual(kwargs, {})
+
+        args, kwargs = self.mock_request.call_args_list[1]
+        self.assertEqual(args, ('post', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
+        self.assertEqual(kwargs, {
+            'data': json.dumps({
+                'content-ids': [self.content_data[0]],
+                'template': 'image'
+            })
+        })
+
+        args, kwargs = self.mock_request.call_args_list[2]
+        self.assertEqual(args, ('post', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
+        self.assertEqual(kwargs, {
+            'data': json.dumps({
+                'content-ids': [self.content_data[2]],
+                'template': 'image'
+            })
+        })
 
         self.assertHttpOK(response)
 
@@ -107,7 +131,7 @@ class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase, BaseNot
                 "ghi": "jkl"
             }
         ])
-        self.assertFalse(self.mock_request.called, 'Mock request was still called when bad json data was provided')
+        self.assertEqual(self.mock_request.call_count, 1, 'Mock request was still called when bad json data was provided')
         self.assertHttpApplicationError(response)
 
     def test_remote_errors(self):
@@ -118,8 +142,14 @@ class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase, BaseNot
         self.assertEqual(self.mock_request.call_count, 2, 'Mock was not called the correct number of times')
         
         args = self.mock_request.call_args_list[0][0]
-        self.assertEqual(args, ('put', settings.CONTENTGRAPH_BASE_URL + '/store/%s/page/%s/content/%s' % (self.store_id, self.page_id, self.content_data[0])))
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
         
-        args = self.mock_request.call_args_list[1][0]
-        self.assertEqual(args, ('put', settings.CONTENTGRAPH_BASE_URL + '/store/%s/page/%s/content/%s' % (self.store_id, self.page_id, self.content_data[1])))
+        args, kwargs = self.mock_request.call_args_list[1]
+        self.assertEqual(args, ('post', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
+        self.assertEqual(kwargs, {
+            'data': json.dumps({
+                'content-ids': [self.content_data[0]],
+                'template': 'image'
+            })
+        })
         self.assertHttpApplicationError(response)

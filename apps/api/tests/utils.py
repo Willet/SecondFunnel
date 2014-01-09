@@ -89,7 +89,7 @@ class MockedHammockRequestsTestCase(AuthenticatedResourceTestCase):
 
         self.mock_content_default = {
             'test': 'data',
-            'random': ''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) #TODO make a random string
+            'random': ''.join(random.choice(string.ascii_letters + string.digits) for x in range(32))
         }
         self.mock_content_list = []
 
@@ -107,7 +107,7 @@ class MockedHammockRequestsTestCase(AuthenticatedResourceTestCase):
 
             mock_content = self.mock_content_default
             if len(self.mock_content_list) > calls:
-                mock_content = self.mock_status_list[calls]
+                mock_content = self.mock_content_list[calls]
 
             inject_variables['calls'] += 1
             return MockResponse(
@@ -163,4 +163,4 @@ class BaseMethodNotAllowedTests(object):
             response = getattr(self.api_client, verb)(self.url, format='json', data=verbs[verb])
             self.assertFalse(self.mock_request.called, 'Mock request was still called when bad method was used')
             self.assertEqual(self.mock_request.call_count, 0)
-            self.assertHttpMethodNotAllowed(response)
+            self.assertEqual(response.status_code, 405, '%s != 405; Verb used: %s' % (response.status_code, verb))

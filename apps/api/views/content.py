@@ -9,7 +9,7 @@ from django.conf import settings
 from apps.api.decorators import check_login, append_headers, request_methods
 from apps.intentrank.utils import ajax_jsonp
 
-from apps.api.resources import ContentGraphClient
+from apps.api.resources import ContentGraphClient, get_tileconfigs_for_page
 from apps.api.utils import mimic_response, get_proxy_results
 
 
@@ -48,7 +48,6 @@ def approve_content(request, store_id, content_id):
 
     return mimic_response(r)
 
-
 @request_methods('PUT')
 @check_login
 @never_cache
@@ -62,12 +61,29 @@ def add_all_content(request, store_id, page_id):
     if type(content_ids) != type([]):
         return HttpResponse(status=500)
 
+    tile_configs = get_tileconfigs_for_page(page_id)
+
     for content_id in content_ids:
         if type(content_id) != type(1):
             return HttpResponse(status=500)
 
-        r = ContentGraphClient.store(store_id).page(
-            page_id).content(content_id).PUT('')
+        #Hopefully we can get an idempotent endpoint so we don't have to do this sillyness
+        tile_config_already_exists = False
+        for tile_config in tile_configs:
+            if len(tile_config['content-ids']) == 1 and tile_config['content-ids'][0] == content_id:
+                tile_config_already_exists = True
+                break
+
+        #No-op content has already been added
+        if tile_config_already_exists:
+            continue
+
+        payload = json.dumps({
+            'content-ids': [content_id],
+            'template': 'image'
+        })
+
+        r = ContentGraphClient.page(page_id, 'tile-config').POST(data=payload)
 
         if r.status_code != 200:
             return HttpResponse(status=500)
