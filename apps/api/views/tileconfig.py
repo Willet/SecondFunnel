@@ -57,8 +57,8 @@ def tileconfig_deprioritize(store_id, page_id, tileconfig_id):
 @never_cache
 @csrf_exempt
 def prioritize_content(request, store_id, page_id, content_id):
-    tileconfig = content_prioritize(store_id, page_id, content_id)
-    return HttpResponse(content=json.dumps(tileconfig))
+    content_prioritize(store_id, page_id, content_id)
+    return get_page_content(store_id, page_id, content_id)
 
 
 def content_prioritize(store_id, page_id, content_id):
@@ -72,15 +72,47 @@ def content_prioritize(store_id, page_id, content_id):
 @check_login
 @never_cache
 @csrf_exempt
+def deprioritize_content(request, store_id, page_id, content_id):
+    content_deprioritize(store_id, page_id, content_id)
+    return get_page_content(store_id, page_id, content_id)
+
+
+def content_deprioritize(store_id, page_id, content_id):
+    tileconfig = add_content_to_page(store_id, page_id, content_id, prioritized=True)
+    if not tileconfig.get('prioritized', 'false') == 'false':
+        tileconfig = tileconfig_deprioritize(store_id, page_id, tileconfig['id'])
+    return tileconfig
+
+
+@request_methods('POST')
+@check_login
+@never_cache
+@csrf_exempt
 def prioritize_product(request, store_id, page_id, product_id):
-    tileconfig = product_prioritize(store_id, page_id, product_id)
-    return HttpResponse(content=json.dumps(tileconfig))
+    product_prioritize(store_id, page_id, product_id)
+    return get_page_product(store_id, page_id, product_id)
 
 
 def product_prioritize(store_id, page_id, product_id):
     tileconfig = page_add_product(store_id, page_id, product_id, prioritized=True)
     if not tileconfig.get('prioritized', 'false') == 'true':
         tileconfig = tileconfig_prioritize(store_id, page_id, tileconfig['id'])
+    return tileconfig
+
+
+@request_methods('POST')
+@check_login
+@never_cache
+@csrf_exempt
+def deprioritize_product(request, store_id, page_id, product_id):
+    product_deprioritize(store_id, page_id, product_id)
+    return get_page_product(store_id, page_id, product_id)
+
+
+def product_deprioritize(store_id, page_id, product_id):
+    tileconfig = page_add_product(store_id, page_id, product_id, prioritized=True)
+    if not tileconfig.get('prioritized', 'false') == 'false':
+        tileconfig = tileconfig_deprioritize(store_id, page_id, tileconfig['id'])
     return tileconfig
 
 
@@ -103,7 +135,7 @@ def get_page_content(store_id, page_id, content_id):
     if r.status_code != 200:
         return HttpResponse(status=r.status_code)
     content = expand_contents(store_id, page_id, [r.json()])[0]
-    return HttpResponse(content=json.dumps(content))
+    return HttpResponse(mimetype='application/json', content=json.dumps(content))
 
 
 @request_methods('GET')
@@ -119,6 +151,7 @@ def list_page_content(request, store_id, page_id):
         if 'results' in tiles_json:
             tiles_json['results'] = expand_tile_configs(store_id, tiles_json['results'])
             content_list = [tileconfig_to_content(x) for x in tiles_json['results']]
+            content_list = [x for x in content_list if x is not None]
             content_json = {}
             content_json['meta'] = tiles_json['meta']
             content_json['results'] = content_list
@@ -159,6 +192,7 @@ def list_page_products(request, store_id, page_id):
         if 'results' in tiles_json:
             tiles_json['results'] = expand_tile_configs(store_id, tiles_json['results'])
             product_list = [tileconfig_to_product(x) for x in tiles_json['results']]
+            product_list = [x for x in product_list if x is not None]
             product_json = {}
             product_json['meta'] = tiles_json['meta']
             product_json['results'] = product_list
@@ -198,8 +232,11 @@ def expand_products(store_id, page_id, products):
     # flatten lists
     content_ids = list(itertools.chain.from_iterable([record['image-ids'] for record in products if 'image-ids' in record]))
     content_ids += [record['default-image-id'] for record in products if 'default-image-id' in record]
-    content_ids_csv = ",".join([str(x) for x in content_ids])
-    content_list = ContentGraphClient.store(store_id).content().GET(params={'id': content_ids_csv}).json()['results']
+    content_ids = list(set(content_ids))
+    content_list = []
+    if len(content_ids) > 1:
+        content_ids_csv = ",".join([str(x) for x in content_ids])
+        content_list = ContentGraphClient.store(store_id).content().GET(params={'id': content_ids_csv}).json()['results']
     content_set = {}
     for content in content_list:
         content_set[content['id']] = content
@@ -311,6 +348,7 @@ def expand_tile_configs(store_id, configs):
     #       I think... this is a valid assumption, I am not certain at this point in time
 
     product_ids = list(itertools.chain.from_iterable([config['product-ids'] for config in configs if 'product-ids' in config]))
+    product_ids = list(set(product_ids))
     product_ids_csv = ",".join([str(x) for x in product_ids])
     product_lookup = ContentGraphClient.store(store_id).product().GET(params={'id': product_ids_csv})
     if product_lookup.status_code == 200 and 'results' in product_lookup.json():
@@ -323,6 +361,7 @@ def expand_tile_configs(store_id, configs):
         product_set[product['id']] = product
 
     content_ids = list(itertools.chain.from_iterable([config['content-ids'] for config in configs if 'content-ids' in config]))
+    content_ids = list(set(content_ids))
     content_ids_csv = ",".join([str(x) for x in content_ids])
     content_lookup = ContentGraphClient.store(store_id).content().GET(params={'id': content_ids_csv})
     if content_lookup.status_code == 200 and 'results' in content_lookup.json():
@@ -357,7 +396,7 @@ def product_operations(request, store_id, page_id, product_id):
 
 
 def page_add_product(store_id, page_id, product_id, prioritized=False):
-    tile_check_params = {'template': 'product', 'product-ids': product_id, 'prioritized': prioritized}
+    tile_check_params = {'template': 'product', 'product-ids': product_id}
     tile_check = ContentGraphClient.page(page_id)('tile-config').GET(params=tile_check_params)
     if cg_response_contains_results(tile_check):
         return tile_check.json()['results'][0]
