@@ -57,7 +57,7 @@ urlpatterns += patterns('apps.api.views',
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/all/?$' % prefix, 'list_page_all_content', name='list_page_all_content'),
 
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/?$' % prefix, 'list_page_products', name='list_page_products'),
-    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/?$' % prefix, 'product_operations', name='product_operations')
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/?$' % prefix, 'product_operations', name='product_operations'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/(?P<product_id>\d+)/prioritize/?$' % prefix, 'prioritize_product', name='prioritize_product'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/product/all/?$' % prefix, 'list_page_all_products', name='list_page_all_products'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/?$' % prefix, 'list_page_tile_configs', name='list_page_tile_configs'),
