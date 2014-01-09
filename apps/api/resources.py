@@ -11,7 +11,6 @@ from apps.api.utils import UserObjectsReadOnlyAuthorization
 from apps.assets.models import Store
 
 import hammock
-import json
 
 ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL, headers={'ApiKey': 'secretword'})
 
