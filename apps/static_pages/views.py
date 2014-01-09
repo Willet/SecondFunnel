@@ -16,6 +16,9 @@ def generate_static_campaign(request, store_id, campaign_id):
     This calls generate_static_campaign_now, the function-equivalent.
     A celery task for this function is also available in tasks.py.
 
+    @deprecated: once all code is transitioned to the /graph/v1/ URL,
+                 this one will no longer exist.
+
     @param [{string}] callback: jsonp callback (defaults to "callback")
     @returns {jsonp} the result key is true if succeeded, false if failed
     """
@@ -88,5 +91,5 @@ def generate_static_campaign(request, store_id, campaign_id):
         }))
 
 
-    return ajax_jsonp(result, request.GET.get('callback', 'callback'),
+    return ajax_jsonp(result, request.GET.get('callback', None),
                       status=status)
