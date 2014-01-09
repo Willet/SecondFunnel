@@ -67,7 +67,7 @@ def add_all_content(request, store_id, page_id):
 
         try:
             add_content_to_page(store_id, page_id, content_id)
-        except:
+        except ValueError:
             return HttpResponse(status=500)
 
     return HttpResponse()
