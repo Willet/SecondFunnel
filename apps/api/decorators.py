@@ -2,8 +2,6 @@ import functools
 import json
 
 from django.http import HttpResponse, HttpResponseNotAllowed
-from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_exempt
 
 from apps.utils import check_keys_exist
 
