@@ -96,7 +96,8 @@ class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase, BaseNot
     def test_all_good(self):
         response = self.api_client.put(self.url, format='json', data=self.content_data)
         self.assertTrue(self.mock_request.called, 'Mock request was never made')
-        self.assertEqual(self.mock_request.call_count, 5, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, 5))
+        expected_mock_calls = 5
+        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
         
         args, kwargs = self.mock_request.call_args_list[0]
         self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))

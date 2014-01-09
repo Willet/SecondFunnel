@@ -15,7 +15,7 @@ def cg_response_contains_results(request):
     # TODO: note this does not handle the case where CONTENT GRAPH returns zero results
     #       even though there is RESULTS to be had...
     # NOTE: search endpoint does not return 404 on NO RESULTS
-    if request.status_code != 404 and request.status_code != 200:
+    if request.status_code not in [200, 404]:
         raise ValueError('ContentGraph Error')
 
     has_no_results = (request.status_code == 404) or (request.status_code == 200 and len(request.json()['results']) == 0)
