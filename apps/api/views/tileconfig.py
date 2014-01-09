@@ -95,6 +95,14 @@ def list_page_tile_configs(request, store_id, page_id):
     return mimic_response(r)
 
 
+def get_page_content(store_id, page_id, content_id):
+    r = ContentGraphClient.store(store_id).content(content_id).GET()
+    if r.status_code != 200:
+        return HttpResponse(status=r.status_code)
+    content = expand_contents(store_id, page_id, [r.json()])[0]
+    return HttpResponse(content=json.dumps(content))
+
+
 @request_methods('GET')
 @check_login
 @never_cache
@@ -125,6 +133,14 @@ def tileconfig_to_content(tileconfig):
         return content
     else:
         return None
+
+
+def get_page_product(store_id, page_id, product_id):
+    r = ContentGraphClient.store(store_id).product(product_id).GET()
+    if r.status_code != 200:
+        return HttpResponse(status=r.status_code)
+    product = expand_products(store_id, page_id, [r.json()])[0]
+    return HttpResponse(content=json.dumps(product))
 
 
 @request_methods('GET')
@@ -322,17 +338,16 @@ def expand_tile_configs(store_id, configs):
     return configs
 
 
-@request_methods('PUT', 'DELETE')
+@request_methods('GET', 'PUT', 'DELETE')
 @check_login
 @never_cache
 @csrf_exempt
-def add_remove_product_from_page(request, store_id, page_id, product_id):
+def product_operations(request, store_id, page_id, product_id):
     if request.method == 'PUT':
-        tileconfig = page_add_product(store_id, page_id, product_id)
-        return HttpResponse(content=json.dumps(tileconfig))
-    else:
+        page_add_product(store_id, page_id, product_id)
+    elif request.method == 'DELETE':
         page_remove_product(store_id, page_id, product_id)
-        return HttpResponse()
+    return get_page_product(store_id, page_id, product_id)
 
 
 def page_add_product(store_id, page_id, product_id, prioritized=False):
@@ -361,17 +376,16 @@ def page_remove_product(store_id, page_id, product_id):
         return HttpResponse(status=200)
 
 
-@request_methods('PUT', 'DELETE')
+@request_methods('GET', 'PUT', 'DELETE')
 @check_login
 @never_cache
 @csrf_exempt
-def add_remove_content_from_page(request, store_id, page_id, content_id):
+def content_operations(request, store_id, page_id, content_id):
     if request.method == 'PUT':
-        tileconfig = add_content_to_page(store_id, page_id, content_id)
-        return HttpResponse(content=json.dumps(tileconfig))
+        add_content_to_page(store_id, page_id, content_id)
     elif request.method == 'DELETE':
         remove_content_from_page(store_id, page_id, content_id)
-        return HttpResponse()
+    return get_page_content(store_id, page_id, content_id)
 
 
 def add_content_to_page(store_id, page_id, content_id, prioritized=False):
