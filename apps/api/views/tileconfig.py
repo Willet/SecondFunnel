@@ -166,9 +166,9 @@ def list_page_products(request, store_id, page_id):
 
 
 def tileconfig_to_product(tileconfig):
-    if 'product' in tileconfig and len(tileconfig['product']) > 0:
-        product = tileconfig['product'][0]
-        del tileconfig['product']
+    if 'products' in tileconfig and len(tileconfig['products']) > 0:
+        product = tileconfig['products'][0]
+        del tileconfig['products']
         product['tile-configs'] = [tileconfig]
         return product
     else:
@@ -195,7 +195,8 @@ def expand_products(store_id, page_id, products):
     # flatten lists
     content_ids = list(itertools.chain.from_iterable([record['image-ids'] for record in products if 'image-ids' in record]))
     content_ids += [record['default-image-id'] for record in products if 'default-image-id' in record]
-    content_list = ContentGraphClient.store(store_id).content().GET(params={'ids': content_ids}).json()['results']
+    content_ids_csv = ",".join([str(x) for x in content_ids])
+    content_list = ContentGraphClient.store(store_id).content().GET(params={'id': content_ids_csv}).json()['results']
     content_set = {}
     for content in content_list:
         content_set[content['id']] = content
@@ -307,7 +308,8 @@ def expand_tile_configs(store_id, configs):
     #       I think... this is a valid assumption, I am not certain at this point in time
 
     product_ids = list(itertools.chain.from_iterable([config['product-ids'] for config in configs if 'product-ids' in config]))
-    product_lookup = ContentGraphClient.store(store_id).product().GET(params={'ids': product_ids})
+    product_ids_csv = ",".join([str(x) for x in product_ids])
+    product_lookup = ContentGraphClient.store(store_id).product().GET(params={'id': product_ids_csv})
     if product_lookup.status_code == 200 and 'results' in product_lookup.json():
         product_list = product_lookup.json()['results']
     else:
@@ -318,7 +320,8 @@ def expand_tile_configs(store_id, configs):
         product_set[product['id']] = product
 
     content_ids = list(itertools.chain.from_iterable([config['content-ids'] for config in configs if 'content-ids' in config]))
-    content_lookup = ContentGraphClient.store(store_id).content().GET(params={'ids': content_ids})
+    content_ids_csv = ",".join([str(x) for x in content_ids])
+    content_lookup = ContentGraphClient.store(store_id).content().GET(params={'id': content_ids_csv})
     if content_lookup.status_code == 200 and 'results' in content_lookup.json():
         content_list = content_lookup.json()['results']
     else:
