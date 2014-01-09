@@ -15,6 +15,9 @@ def cg_response_contains_results(request):
     # TODO: note this does not handle the case where CONTENT GRAPH returns zero results
     #       even though there is RESULTS to be had...
     # NOTE: search endpoint does not return 404 on NO RESULTS
+    if request.status_code not in [200, 404]:
+        raise ValueError('ContentGraph Error')
+
     has_no_results = (request.status_code == 404) or (request.status_code == 200 and len(request.json()['results']) == 0)
     return not has_no_results
 
@@ -406,6 +409,9 @@ def add_content_to_page(store_id, page_id, content_id, prioritized=False):
         'prioritized': prioritized
         })
     r = ContentGraphClient.page(page_id)('tile-config').POST(data=payload)
+    if r.status_code != 200:
+        raise ValueError('ContentGraph Error')
+
     return r.json()
 
 
