@@ -39,31 +39,3 @@ def queue_processing(image_url,
             settings.IMAGE_SERVICE_STORE, res['imageFolder'], res['imageId'])
 
         return master_image
-
-
-def queue_upload(file, store_slug='generic', image_type='generic',
-                 product_id=0):
-
-    base_api_url = '{0}/images/{1}'.format(settings.IMAGE_SERVICE_API, store_slug)
-    if product_id == 0:
-        api_url = '{0}/{1}/queue'.format(base_api_url, image_type)
-    else:
-        api_url = '{0}/product/{1}/{2}/queue'.format(
-            base_api_url, product_id, image_type
-        )
-
-    try:
-        opener = urllib2.build_opener(MultipartPostHandler)
-        json_result = opener.open(api_url, {
-            'file': open(file.name, 'rb')
-        })
-        result = json.load(json_result)
-    except (urllib2.URLError, urllib2.HTTPError, ValueError), e:
-        return None
-
-    else:
-        master_image = "{0}/{1}/{2}/master.jpg".format(
-            settings.IMAGE_SERVICE_STORE, result['imageFolder'],
-            result['imageId'])
-
-        return master_image

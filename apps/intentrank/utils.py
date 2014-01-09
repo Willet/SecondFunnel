@@ -1,7 +1,7 @@
 import math
 import json
 
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.http import HttpResponse
 
 from apps.assets.models import Product, Store, BaseModelNamed

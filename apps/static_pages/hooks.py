@@ -10,6 +10,7 @@ from apps.static_pages.tasks import (generate_static_campaign,
     generate_static_campaign_now, create_bucket_for_store,
     create_bucket_for_store_now)
 
+
 def campaign_saved(sender, instance, created, **kwargs):
     """
     Uploads saved campaign to S3

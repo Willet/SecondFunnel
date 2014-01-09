@@ -142,8 +142,6 @@ class ProductResource(ModelResource):
 
 class CampaignResource(ModelResource):
     """Returns "a campaign".
-
-    Campaign definitions are saved in apps/pinpoint/models.py.
     """
     store = fields.ForeignKey(StoreResource, 'store', full=True)
 

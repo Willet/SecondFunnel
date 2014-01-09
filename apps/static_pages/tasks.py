@@ -7,7 +7,6 @@ import os
 from urlparse import urlparse
 
 from celery import Celery, group
-from celery.utils import noop
 from celery.utils.log import get_task_logger
 
 from django.conf import settings
@@ -18,12 +17,11 @@ from apps.assets.models import Store
 from apps.contentgraph.views import get_page, get_store, get_stores
 from apps.intentrank.views import get_seeds
 from apps.pinpoint.models import Campaign
-from apps.static_pages.models import StaticLog
 
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
-    get_route53_change_status, sqs_poll, SQSQueue, upload_to_bucket)
-from apps.static_pages.utils import (save_static_log, remove_static_log,
-    get_bucket_name, create_dummy_request, render_campaign)
+    get_route53_change_status, upload_to_bucket)
+from apps.static_pages.utils import (get_bucket_name, create_dummy_request,
+                                     render_campaign)
 
 celery = Celery()
 logger = get_task_logger(__name__)
@@ -38,16 +36,6 @@ RELEASE_LOCK = lambda: cache.delete(ROUTE_53_LOCK)
 
 
 def change_complete(store_id):
-    try:
-        store = Store.objects.get(id=store_id)
-
-    except Store.DoesNotExist:
-        logger.error("Store #{0} does not exist".format(store_id))
-        return
-
-    save_static_log(Store, store.id, "BU")
-    remove_static_log(Store, store.id, "PE")
-
     RELEASE_LOCK()
 
 
@@ -74,8 +62,6 @@ def create_bucket_for_store_now(store_id, force=False):
         except ValueError:
             logger.error("Store #{0} does not exist".format(store_id))
             return
-
-        save_static_log(Store, store.get('id'), "PE")
 
         store_url = ''
         if store.get('public-base-url', False):
@@ -159,10 +145,9 @@ def handle_page_generator_notification_message(message):
 
 
 @celery.task
-def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
+def generate_static_campaign(store_id, campaign_id):
     """The task version of the synchronous operation."""
-    return generate_static_campaign_now(store_id, campaign_id,
-                                        ignore_static_logs)
+    return generate_static_campaign_now(store_id, campaign_id)
 
 
 def generate_local_campaign(store_id, campaign_id, page_content):
@@ -192,7 +177,7 @@ def generate_local_campaign(store_id, campaign_id, page_content):
         except Exception as e:
             pass #Fail gracefully
 
-def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False):
+def generate_static_campaign_now(store_id, campaign_id):
     """Renders individual campaign and saves it to S3."""
 
     try:
@@ -210,23 +195,6 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
         raise  # someone catch it
 
     dummy_request = create_dummy_request()
-
-    # prepare the file name, static log, and the actual page
-    log_key = "CD"
-
-    # if we think this static page already exists, finish task
-    try:
-        log_entry = StaticLog.objects.get(
-            object_id=campaign.id, key=log_key)
-
-        if log_entry and ignore_static_logs:
-            raise StaticLog.DoesNotExist('force-regeneration override')
-
-    except StaticLog.DoesNotExist:
-        pass
-    else:
-        logger.error("Not generating campaign #{0}".format(campaign_id))
-        return {}  # no error = don't generate
 
     page_content = render_campaign(store_id, campaign_id,
                                    get_seeds_func=get_seeds,
@@ -260,12 +228,6 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
         bucket_name, s3_path, page_content, public=True)
 
     if bytes_written > 0:
-        # remove any old entries
-        remove_static_log(Campaign, campaign.id, log_key)
-
-        # write a new log entry for this static campaign
-        save_static_log(Campaign, campaign.id, log_key)
-
         if settings.ENVIRONMENT == "dev":
             generate_local_campaign(store_id, campaign_id, page_content)
     # boto claims it didn't write anything to S3

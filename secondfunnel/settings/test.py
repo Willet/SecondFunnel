@@ -7,7 +7,6 @@ if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
 ENVIRONMENT = "test"
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-MAINTENANCE_MODE = False
 
 # Enable GZIP and Minification
 COMPRESS = True
@@ -39,7 +38,6 @@ INSTALLED_APPS = (
     'django_extensions',
     'tastypie',
     'ajax_forms',
-    "maintenancemode",
     "compressor",
     'social_auth',
     'corsheaders',

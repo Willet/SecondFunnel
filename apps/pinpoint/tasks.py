@@ -1,5 +1,4 @@
 import json
-from mock import MagicMock
 
 from apps.api.decorators import (require_keys_for_message,
                                  validate_json_deserializable)
