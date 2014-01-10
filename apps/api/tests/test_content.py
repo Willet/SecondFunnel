@@ -1,6 +1,7 @@
 import json
 import mock
 import requests
+import random
 from tastypie.test import ResourceTestCase, TestApiClient
 from apps.api.tests.utils import (AuthenticatedResourceTestCase,
                                   configure_mock_request,
@@ -82,139 +83,268 @@ class ApproveContentTests(MockedHammockRequestsTestCase, BaseContentTests):
         }
         self.allowed_methods = ['post']
 
+class ContentOperationsTests(MockedHammockRequestsTestCase, BaseNotAuthenticatedTests, BaseMethodNotAllowedTests):
+    def setUp(self):
+        super(ContentOperationsTests, self).setUp()
+        self.page_id = 1
+        self.content_id = 1077
+        self.url_pattern = '/graph/v1/store/1/page/%s/content/' % self.page_id
+        self.url = '%s%s' % (self.url_pattern, self.content_id)
+        self.allowed_methods = ['get', 'put', 'delete']
+        self.content_data = [
+            self.content_id,
+            random.randint(1, 1000)
+        ]
+
+    def test_put_all_good(self):
+        self.mock_content_default = {
+            'results': []
+        }
+
+        self.mock_content_list = [
+            self.mock_content_default,
+            self.mock_content_default,
+            {
+                'id': 4
+            },
+            {
+                'results': [
+                    {
+                        'id': 4,
+                        'template': 'image',
+                        'content-ids': [self.content_data[0]]
+                    }
+                ]
+            },
+            {
+                'results': [
+                    {
+                        'id': 67,
+                        'template': 'image',
+                        'content-ids': [self.content_data[1]]
+                    }
+                ]
+            },
+            {
+                'id': 67
+            },
+            {
+                'results': [
+                    {
+                        'id': 67,
+                        'template': 'image',
+                        'content-ids': [self.content_data[1]]
+                    }
+                ]
+            },
+        ]
+
+        response = self.api_client.put(self.url, format='json')
+        self.assertTrue(self.mock_request.called, 'Mock request was never made')
+        expected_mock_calls = 4
+        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+
+        args, kwargs = self.mock_request.call_args_list[0]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
+        self.assertEqual(kwargs, {
+            'params': {
+                'content-ids': str(self.content_data[0]),
+                'template': 'image'
+            }
+        })
+        args, kwargs = self.mock_request.call_args_list[1]
+        self.assertEqual(args, ('post', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
+        self.assertEqual(kwargs, {
+            'data': json.dumps({
+                'content-ids': [str(self.content_data[0])],
+                'template': 'image',
+                'prioritized': False
+            })
+        })
+        args, kwargs = self.mock_request.call_args_list[2]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/store/1/content/%s' % (self.content_data[0])))
+        self.assertEqual(kwargs, {})
+        args, kwargs = self.mock_request.call_args_list[3]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
+        self.assertEqual(kwargs, {
+            'params': {
+                'content-ids': 4
+            }
+        })
+
+        self.assertHttpOK(response)
+
+        response = self.api_client.put('%s%s' % (self.url_pattern, self.content_data[1]), format='json')
+        self.assertTrue(self.mock_request.called, 'Mock request was never made')
+        expected_mock_calls = 7
+        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+
+        args, kwargs = self.mock_request.call_args_list[4]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
+        self.assertEqual(kwargs, {
+            'params': {
+                'content-ids': str(self.content_data[1]),
+                'template': 'image'
+            }
+        })
+        args, kwargs = self.mock_request.call_args_list[5]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/store/1/content/%s' % (self.content_data[1])))
+        self.assertEqual(kwargs, {})
+        args, kwargs = self.mock_request.call_args_list[6]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
+        self.assertEqual(kwargs, {
+            'params': {
+                'content-ids': 67
+            }
+        })
+
+        self.assertHttpOK(response)
+
+    def test_delete_all_good(self):
+        self.mock_content_default = {
+            'results': []
+        }
+
+        self.mock_status_list = [200, 404, 200, 200, 404]
+
+        self.mock_content_list = [
+            self.mock_content_default,
+            self.mock_content_default,
+            {
+                'results': [
+                    {
+                        'id': 67,
+                        'template': 'image',
+                        'content-ids': [self.content_data[1]]
+                    }
+                ]
+            },
+            self.mock_content_default,
+            self.mock_content_default
+        ]
+
+        response = self.api_client.delete(self.url, format='json')
+        self.assertTrue(self.mock_request.called, 'Mock request was never made')
+        expected_mock_calls = 2
+        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+
+        args, kwargs = self.mock_request.call_args_list[0]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
+        self.assertEqual(kwargs, {
+            'params': {
+                'content-ids': str(self.content_data[0]),
+                'template': 'image'
+            }
+        })
+        args, kwargs = self.mock_request.call_args_list[1]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/store/1/content/%s' % (self.content_data[0])))
+        self.assertEqual(kwargs, {})
+
+        self.assertHttpNotFound(response)
+
+        response = self.api_client.delete('%s%s' % (self.url_pattern, self.content_data[1]), format='json')
+        self.assertTrue(self.mock_request.called, 'Mock request was never made')
+        expected_mock_calls = 5
+        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+
+        args, kwargs = self.mock_request.call_args_list[2]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
+        self.assertEqual(kwargs, {
+            'params': {
+                'content-ids': str(self.content_data[1]),
+                'template': 'image'
+            }
+        })
+        args, kwargs = self.mock_request.call_args_list[3]
+        self.assertEqual(args, ('delete', settings.CONTENTGRAPH_BASE_URL +  '/page/%s/tile-config/%s' % (self.page_id, 67)))
+        self.assertEqual(kwargs, {})
+        args, kwargs = self.mock_request.call_args_list[4]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/store/1/content/%s' % (self.content_data[1])))
+        self.assertEqual(kwargs, {})
+
+        self.assertHttpNotFound(response)
+
+    def test_get_all_good(self):
+        self.mock_content_default = {
+            'results': []
+        }
+
+        self.mock_status_list = [404]
+
+        self.mock_content_list = [
+            self.mock_content_default,
+            {
+                'id': 67
+            },
+            {
+                'results': [
+                    {
+                        'id': 67,
+                        'template': 'image',
+                        'content-ids': [self.content_data[1]]
+                    }
+                ]
+            }
+        ]
+
+        response = self.api_client.get(self.url, format='json')
+        self.assertTrue(self.mock_request.called, 'Mock request was never made')
+        expected_mock_calls = 1
+        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+
+        args, kwargs = self.mock_request.call_args_list[0]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/store/1/content/%s' % (self.content_data[0])))
+        self.assertEqual(kwargs, {})
+
+        self.assertHttpNotFound(response)
+
+        response = self.api_client.get('%s%s' % (self.url_pattern, self.content_data[1]), format='json')
+        self.assertTrue(self.mock_request.called, 'Mock request was never made')
+        expected_mock_calls = 3
+        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+
+        args, kwargs = self.mock_request.call_args_list[1]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/store/1/content/%s' % (self.content_data[1])))
+        self.assertEqual(kwargs, {})
+
+        args, kwargs = self.mock_request.call_args_list[2]
+        self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
+        self.assertEqual(kwargs, {
+            'params': {
+                'content-ids': 67
+            }
+        })
+
+        self.assertHttpOK(response)
+
+    def test_put_remote_failures(self):
+        self.mock_status_default = 500
+
+        response = self.api_client.put(self.url, format='json')
+        expected_mock_calls = 1
+        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+        self.assertHttpApplicationError(response)
+
+    def test_delete_remote_failures(self):
+        self.mock_status_default = 500
+
+        response = self.api_client.delete(self.url, format='json')
+        expected_mock_calls = 1
+        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+        self.assertHttpApplicationError(response)
+
+    def test_get_remote_failires(self):
+        self.mock_status_default = 500
+
+        response = self.api_client.get(self.url, format='json')
+        expected_mock_calls = 1
+        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+        self.assertHttpApplicationError(response)
+
 # TODO: How can we better name these test methods?
 # TODO: Should we have separate test folders for different cases instead?
 # TODO: Move mock_request dictionaries somewhere else.
 class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
-    @mock.patch('httplib2.Http.request')
-    def test_add_content_success(self, mock_request):
-        mock_request = configure_mock_request(mock_request, {
-            r'store/\d+/page/\d+/content/\d+': (
-                {'status': 200, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-            r'page/\d+/tile-config': (
-                {'status': 200, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-            r'page/\d+/tile': (
-                {'status': 200, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-        })
-
-        # TODO: Make URL pattern a 'constant' in somewhere relevant
-        response = self.api_client.post(
-            '/graph/v1/store/1/page/1/content/1',
-            format='json'
-        )
-
-        self.assertHttpOK(response)
-
-    @mock.patch('httplib2.Http.request')
-    def test_add_content_proxy_add_fail(self, mock_request):
-        mock_request = configure_mock_request(mock_request, {
-            r'store/\d+/page/\d+/content/\d+': (
-                {'status': 400, 'content-type': 'application/json'},
-                json.dumps({})
-            )
-        })
-
-        response = self.api_client.post(
-            '/graph/v1/store/1/page/1/content/1',
-            format='json'
-        )
-
-        self.assertHttpApplicationError(response)
-
-    @mock.patch('httplib2.Http.request')
-    def test_add_content_tileconfig_add_fail(self, mock_request):
-        mock_request = configure_mock_request(mock_request, {
-            r'store/\d+/page/\d+/content/\d+': (
-                {'status': 200, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-            r'page/\d+/tile-config': (
-                {'status': 400, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-            r'page/\d+/tile': (
-                {'status': 500, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-        })
-
-        response = self.api_client.post(
-            '/graph/v1/store/1/page/1/content/1',
-            format='json'
-        )
-
-        self.assertHttpApplicationError(response)
-
-    @mock.patch('httplib2.Http.request')
-    def test_remove_content_success(self, mock_request):
-        mock_request = configure_mock_request(mock_request, {
-            r'store/\d+/page/\d+/content/\d+': (
-                {'status': 200, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-            r'page/\d+/tile-config': (
-                {'status': 200, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-            r'page/\d+/tile': (
-                {'status': 200, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-        })
-
-        response = self.api_client.delete(
-            '/graph/v1/store/1/page/1/content/1',
-            format='json'
-        )
-
-        self.assertHttpOK(response)
-
-    @mock.patch('httplib2.Http.request')
-    def test_remove_content_proxy_fail(self, mock_request):
-        mock_request = configure_mock_request(mock_request, {
-            r'store/\d+/page/\d+/content/\d+': (
-                {'status': 400, 'content-type': 'application/json'},
-                json.dumps({})
-            )
-        })
-
-        response = self.api_client.delete(
-            '/graph/v1/store/1/page/1/content/1',
-            format='json'
-        )
-
-        self.assertHttpApplicationError(response)
-
-    @mock.patch('httplib2.Http.request')
-    def test_remove_content_tile_config_fail(self, mock_request):
-        mock_request = configure_mock_request(mock_request, {
-            r'store/\d+/page/\d+/content/\d+': (
-                {'status': 200, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-            r'page/\d+/tile-config': (
-                {'status': 400, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-            r'page/\d+/tile': (
-                {'status': 400, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-        })
-
-        response = self.api_client.delete(
-            '/graph/v1/store/1/page/1/content/1',
-            format='json'
-        )
-
-        self.assertHttpApplicationError(response)
-
     @mock.patch('httplib2.Http.request')
     def test_get_all_content(self, mock_request):
         """tests the response when attempting to retrieve all content
@@ -231,31 +361,6 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
         response = self.api_client.get('/graph/v1/store/1/page/1/content',
             format='json')
 
-        self.assertHttpOK(response)
-
-    @mock.patch('httplib2.Http.request')
-    def test_get_single_content(self, mock_request):
-        """tests the response when attempting to retrieve all content
-        from a page.
-
-        """
-        mock_request = configure_mock_request(mock_request, {
-            r'store/\d+/page/\d+/content/?': (
-                {'status': 200, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-            r'store/\d+/content/\d+/?': (
-                {'status': 200, 'content-type': 'application/json'},
-                json.dumps({})
-            ),
-        })
-
-        response = self.api_client.get('/graph/v1/store/1/page/1/content',
-            format='json')
-        self.assertHttpOK(response)
-
-        response = self.api_client.get('/graph/v1/store/1/content/915',
-            format='json')
         self.assertHttpOK(response)
 
     @mock.patch('httplib2.Http.request')

@@ -387,10 +387,13 @@ def page_remove_product(store_id, page_id, product_id):
 @never_cache
 @csrf_exempt
 def content_operations(request, store_id, page_id, content_id):
-    if request.method == 'PUT':
-        add_content_to_page(store_id, page_id, content_id)
-    elif request.method == 'DELETE':
-        remove_content_from_page(store_id, page_id, content_id)
+    try:
+        if request.method == 'PUT':
+            add_content_to_page(store_id, page_id, content_id)
+        elif request.method == 'DELETE':
+            remove_content_from_page(store_id, page_id, content_id)
+    except ValueError:
+        return HttpResponse(status=500)
     return get_page_content(store_id, page_id, content_id)
 
 

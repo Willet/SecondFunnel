@@ -48,7 +48,8 @@ def configure_hammock_request(mock_request, returns):
                 return MockResponse(
                     status_code=resp['status'],
                     content=content,
-                    headers=resp
+                    headers=resp,
+                    json=lambda:content
                 )
 
         return RequestNotMocked(None, None)
