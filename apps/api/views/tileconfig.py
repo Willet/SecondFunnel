@@ -233,10 +233,13 @@ def expand_products(store_id, page_id, products):
     content_ids = list(itertools.chain.from_iterable([record['image-ids'] for record in products if 'image-ids' in record]))
     content_ids += [record['default-image-id'] for record in products if 'default-image-id' in record]
     content_ids = list(set(content_ids))
+
     content_list = []
-    if len(content_ids) > 1:
-        content_ids_csv = ",".join([str(x) for x in content_ids])
-        content_list = ContentGraphClient.store(store_id).content().GET(params={'id': content_ids_csv}).json()['results']
+    content_id_sublists = [content_ids[i:i+25] for i in range(0,len(content_ids),25)]
+    for content_id_sublist in content_id_sublists:
+        content_ids_csv = ",".join([str(x) for x in content_id_sublist])
+        content_list.extend(ContentGraphClient.store(store_id).content().GET(params={'id': content_ids_csv}).json()['results'])
+
     content_set = {}
     for content in content_list:
         content_set[content['id']] = content
