@@ -95,9 +95,7 @@ class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase, BaseNot
 
     def test_all_good(self):
         response = self.api_client.put(self.url, format='json', data=self.content_data)
-        self.assertTrue(self.mock_request.called, 'Mock request was never made')
-        expected_mock_calls = 5
-        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+        self.assertMockRequestCallCount(5)
         
         args, kwargs = self.mock_request.call_args_list[0]
         self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
@@ -150,11 +148,11 @@ class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase, BaseNot
         response = self.api_client.put(self.url, format='json', data={
             "abc": "def"
         })
-        self.assertFalse(self.mock_request.called, 'Mock request was still called when bad json data was provided')
+        self.assertMockRequestCallCount(0)
         self.assertHttpApplicationError(response)
 
         response = self.api_client.put(self.url, format='xml', data='&$dsadsad""rfwefsf{}[]dffds')
-        self.assertFalse(self.mock_request.called, 'Mock request was still called when bad json data was provided')
+        self.assertMockRequestCallCount(0)
         self.assertHttpApplicationError(response)
 
         response = self.api_client.put(self.url, format='json', data=[
@@ -172,8 +170,7 @@ class AuthenticatedPageAddAllContentTests(MockedHammockRequestsTestCase, BaseNot
         self.mock_status_list = [200, 500]
 
         response = self.api_client.put(self.url, format='json', data=self.content_data)
-        self.assertTrue(self.mock_request.called, 'Mock request was never made')
-        self.assertEqual(self.mock_request.call_count, 2, 'Mock was not called the correct number of times')
+        self.assertMockRequestCallCount(2)
         
         args, kwargs = self.mock_request.call_args_list[0]
         self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))

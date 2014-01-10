@@ -123,6 +123,9 @@ class MockedHammockRequestsTestCase(AuthenticatedResourceTestCase):
         self.mocks.start()
         self.addCleanup(self.mocks.stop)
 
+    def assertMockRequestCallCount(self, expected_mock_calls):
+        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+
 class BaseNotAuthenticatedTests(object):
     """Test method assumes that the subclass will have the following properties
           self.url - String url to be called

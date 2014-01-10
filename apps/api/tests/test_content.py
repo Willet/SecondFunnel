@@ -22,8 +22,7 @@ class BaseContentTests(BaseNotAuthenticatedTests, BaseMethodNotAllowedTests):
     def test_valid_calls(self):
         response = self.api_client.post(self.url, data={})
 
-        self.assertTrue(self.mock_request.called, 'Mock request was never made')
-        self.assertEqual(self.mock_request.call_count, 1, 'Mock was not called the correct number of times')
+        self.assertMockRequestCallCount(1)
         args, kwargs = self.mock_request.call_args_list[0]
         self.assertEqual(args, ('patch', settings.CONTENTGRAPH_BASE_URL + '/store/%s/content/%s' % (self.store_id, self.content_id)))
         self.assertEqual(kwargs, self.expected_data)
@@ -36,8 +35,7 @@ class BaseContentTests(BaseNotAuthenticatedTests, BaseMethodNotAllowedTests):
 
         response = self.api_client.post(self.url, data={})
 
-        self.assertTrue(self.mock_request.called, 'Mock request was never made')
-        self.assertEqual(self.mock_request.call_count, 1, 'Mock was not called the correct number of times')
+        self.assertMockRequestCallCount(1)
         args, kwargs = self.mock_request.call_args_list[0]
         self.assertEqual(args, ('patch', settings.CONTENTGRAPH_BASE_URL + '/store/%s/content/%s' % (self.store_id, self.content_id)))
         self.assertEqual(kwargs, self.expected_data)
@@ -140,9 +138,7 @@ class ContentOperationsTests(MockedHammockRequestsTestCase, BaseNotAuthenticated
         ]
 
         response = self.api_client.put(self.url, format='json')
-        self.assertTrue(self.mock_request.called, 'Mock request was never made')
-        expected_mock_calls = 4
-        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+        self.assertMockRequestCallCount(4)
 
         args, kwargs = self.mock_request.call_args_list[0]
         self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
@@ -175,9 +171,7 @@ class ContentOperationsTests(MockedHammockRequestsTestCase, BaseNotAuthenticated
         self.assertHttpOK(response)
 
         response = self.api_client.put('%s%s' % (self.url_pattern, self.content_data[1]), format='json')
-        self.assertTrue(self.mock_request.called, 'Mock request was never made')
-        expected_mock_calls = 7
-        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+        self.assertMockRequestCallCount(7)
 
         args, kwargs = self.mock_request.call_args_list[4]
         self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
@@ -224,9 +218,7 @@ class ContentOperationsTests(MockedHammockRequestsTestCase, BaseNotAuthenticated
         ]
 
         response = self.api_client.delete(self.url, format='json')
-        self.assertTrue(self.mock_request.called, 'Mock request was never made')
-        expected_mock_calls = 2
-        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+        self.assertMockRequestCallCount(2)
 
         args, kwargs = self.mock_request.call_args_list[0]
         self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
@@ -243,9 +235,7 @@ class ContentOperationsTests(MockedHammockRequestsTestCase, BaseNotAuthenticated
         self.assertHttpNotFound(response)
 
         response = self.api_client.delete('%s%s' % (self.url_pattern, self.content_data[1]), format='json')
-        self.assertTrue(self.mock_request.called, 'Mock request was never made')
-        expected_mock_calls = 5
-        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+        self.assertMockRequestCallCount(5)
 
         args, kwargs = self.mock_request.call_args_list[2]
         self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/page/%s/tile-config' % (self.page_id)))
@@ -288,9 +278,7 @@ class ContentOperationsTests(MockedHammockRequestsTestCase, BaseNotAuthenticated
         ]
 
         response = self.api_client.get(self.url, format='json')
-        self.assertTrue(self.mock_request.called, 'Mock request was never made')
-        expected_mock_calls = 1
-        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+        self.assertMockRequestCallCount(1)
 
         args, kwargs = self.mock_request.call_args_list[0]
         self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/store/1/content/%s' % (self.content_data[0])))
@@ -299,9 +287,7 @@ class ContentOperationsTests(MockedHammockRequestsTestCase, BaseNotAuthenticated
         self.assertHttpNotFound(response)
 
         response = self.api_client.get('%s%s' % (self.url_pattern, self.content_data[1]), format='json')
-        self.assertTrue(self.mock_request.called, 'Mock request was never made')
-        expected_mock_calls = 3
-        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+        self.assertMockRequestCallCount(3)
 
         args, kwargs = self.mock_request.call_args_list[1]
         self.assertEqual(args, ('get', settings.CONTENTGRAPH_BASE_URL + '/store/1/content/%s' % (self.content_data[1])))
@@ -321,24 +307,21 @@ class ContentOperationsTests(MockedHammockRequestsTestCase, BaseNotAuthenticated
         self.mock_status_default = 500
 
         response = self.api_client.put(self.url, format='json')
-        expected_mock_calls = 1
-        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+        self.assertMockRequestCallCount(1)
         self.assertHttpApplicationError(response)
 
     def test_delete_remote_failures(self):
         self.mock_status_default = 500
 
         response = self.api_client.delete(self.url, format='json')
-        expected_mock_calls = 1
-        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+        self.assertMockRequestCallCount(1)
         self.assertHttpApplicationError(response)
 
     def test_get_remote_failires(self):
         self.mock_status_default = 500
 
         response = self.api_client.get(self.url, format='json')
-        expected_mock_calls = 1
-        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+        self.assertMockRequestCallCount(1)
         self.assertHttpApplicationError(response)
 
 # TODO: How can we better name these test methods?
