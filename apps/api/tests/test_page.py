@@ -47,13 +47,6 @@ class AuthenticatedPageTestSuite(AuthenticatedResourceTestCase):
         )
         self.assertHttpOK(response)
 
-        # handles content
-        response = self.api_client.put(
-            '/graph/v1/store/1/page/1/content/1',
-            format='json'
-        )
-        self.assertHttpOK(response)
-
         # hits /tile-config
         response = self.api_client.put(
             '/graph/v1/page/1/tile-config',

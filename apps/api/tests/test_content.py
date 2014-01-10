@@ -350,13 +350,25 @@ class AuthenticatedContentTestSuite(AuthenticatedResourceTestCase):
     def test_get_by_product_id(self, mock_request):
         """Test for proxy URL returning something."""
         mock_request = configure_mock_request(mock_request, {
-            r'store/\d+/page/\d+/content/suggested/?': (
+            r'/store/\d+/page/\d+/content/suggested/?': (
                 {'status': 200, 'content-type': 'application/json'},
                 json.dumps({})
             ),
-            r'/store/\d+/page/\d+/product/ids/?': (
+            r'/page/\d+/tile-config/?': (
                 {'status': 200, 'content-type': 'application/json'},
-                json.dumps({"results": ["65", "64", "63"], "meta": {}})
+                json.dumps({"results": [
+                    {
+                        'id': "65",
+                        'content-ids': [32]
+                    },
+                    {
+                        'id': "64",
+                        'content-ids': [22]
+                    },
+                    {
+                        'id': "63",
+                        'content-ids': [9998]
+                    }], "meta": {}})
             ),
             r'/store/\d+/content/?\?tagged-products=\d+': (
                 {'status': 200, 'content-type': 'application/json'},
