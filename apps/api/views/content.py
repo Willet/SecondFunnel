@@ -112,12 +112,19 @@ def get_suggested_content_by_page(request, store_id, page_id):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
 
+    # {'key': ['val']}
+    params = parse_qs(request.META.get('QUERY_STRING', ''))
+    for key in params:
+        # {'key': 'val'}
+        params[key] = params[key][0]
+
     tile_config_url = "%s/page/%s/tile-config?template=product" % (
         settings.CONTENTGRAPH_BASE_URL, page_id)
     content_url = "%s/store/%s/content?tagged-products=%s"
 
     results = []
 
+    # { "template": "product", "page": this page, "product-ids": ["123"]}
     tile_configs, meta = get_proxy_results(request=request,
                                            url=tile_config_url)
 
@@ -127,23 +134,24 @@ def get_suggested_content_by_page(request, store_id, page_id):
     product_ids = list(set(sum(
         [x.get('product-ids', []) for x in tile_configs], [])))
 
-    for product_id in product_ids:
+    for product_id in product_ids:  # ["123", "124, ...]
         contents, _ = get_proxy_results(request=request,
             url=content_url % (settings.CONTENTGRAPH_BASE_URL,
                                store_id, product_id))
-        content_filter = parse_qs(request.META.get('QUERY_STRING', ''))
         for content in contents:
-            if content in results:  # this works because __hash__
+            if content.get('status', 'needs-review') != 'approved':
                 continue
 
-            for key in content_filter:
-                if not key in ['type', 'source']:
+            # if filter exists and content attribute exists, then filter on it
+            if content.get('source', None) and params.get('source', None):
+                if content.get('source') != params.get('source'):
                     continue
 
-                if content.get(key, None) != content_filter.get(key, [None])[0]:
-                    break
-            else:
-                results.append(content)
+            if content.get('type', None) and params.get('type', None):
+                if content.get('type') != params.get('type'):
+                    continue
+
+            results.append(content)
 
     return ajax_jsonp({'results': results,
                        'meta': meta})
