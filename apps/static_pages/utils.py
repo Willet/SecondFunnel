@@ -209,7 +209,10 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     context = RequestContext(request, attributes)
 
     # theme is a temporary StoreTheme object
-    theme = store.theme or campaign.theme
+    theme = campaign.theme
+    if not theme.page:
+        theme = store.theme  # page-level theme not found, use store-level theme
+
     if not theme.page:
         raise ValueError('campaign has no theme when campaign manager saved it')
 

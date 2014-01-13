@@ -32,8 +32,10 @@ def prioritize_tile(request, store_id, page_id, tileconfig_id):
 
 
 def tileconfig_prioritize(store_id, page_id, tileconfig_id):
-    # DEFER: may need to mark TileConfig as 'stale'
-    payload = json.dumps({'prioritized': 'true'})
+    payload = json.dumps({
+        'prioritized': 'true',
+        'stale': 'true'
+    })
     r = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).PATCH(data=payload)
     return r.json()
 
@@ -47,8 +49,10 @@ def deprioritize_tile(request, store_id, page_id, tileconfig_id):
 
 
 def tileconfig_deprioritize(store_id, page_id, tileconfig_id):
-    # DEFER: may need to mark TileConfig as 'stale'
-    payload = json.dumps({'prioritized': 'false'})
+    payload = json.dumps({
+        'prioritized': 'false',
+        'stale': 'true'
+    })
     return ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).PATCH(data=payload)
 
 
@@ -407,8 +411,9 @@ def page_add_product(store_id, page_id, product_id, prioritized=False):
     payload = json.dumps({
         'template': 'product',
         'product-ids': [product_id],
-        'prioritized': prioritized
-        })
+        'prioritized': prioritized,
+        'stale': 'true'
+    })
     r = ContentGraphClient.page(page_id)('tile-config').POST(data=payload)
     return r.json()
 
@@ -429,10 +434,13 @@ def page_remove_product(store_id, page_id, product_id):
 @never_cache
 @csrf_exempt
 def content_operations(request, store_id, page_id, content_id):
-    if request.method == 'PUT':
-        add_content_to_page(store_id, page_id, content_id)
-    elif request.method == 'DELETE':
-        remove_content_from_page(store_id, page_id, content_id)
+    try:
+        if request.method == 'PUT':
+            add_content_to_page(store_id, page_id, content_id)
+        elif request.method == 'DELETE':
+            remove_content_from_page(store_id, page_id, content_id)
+    except ValueError:
+        return HttpResponse(status=500)
     return get_page_content(store_id, page_id, content_id)
 
 
@@ -448,8 +456,9 @@ def add_content_to_page(store_id, page_id, content_id, prioritized=False):
     payload = json.dumps({
         'template': 'image',
         'content-ids': [content_id],
-        'prioritized': prioritized
-        })
+        'prioritized': prioritized,
+        'stale': 'true'
+    })
     r = ContentGraphClient.page(page_id)('tile-config').POST(data=payload)
     if r.status_code != 200:
         raise ValueError('ContentGraph Error')
