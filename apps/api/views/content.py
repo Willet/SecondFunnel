@@ -1,4 +1,5 @@
 import json
+from urlparse import parse_qs
 
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
@@ -84,9 +85,8 @@ def get_suggested_content_by_page(request, store_id, page_id):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
 
-    tile_config_url = "%s/page/%s/tile-config?template=product&%s" % (
-        settings.CONTENTGRAPH_BASE_URL, page_id,
-        request.META.get('QUERY_STRING', ''))
+    tile_config_url = "%s/page/%s/tile-config?template=product" % (
+        settings.CONTENTGRAPH_BASE_URL, page_id)
     content_url = "%s/store/%s/content?tagged-products=%s"
 
     results = []
@@ -104,8 +104,18 @@ def get_suggested_content_by_page(request, store_id, page_id):
         contents, _ = get_proxy_results(request=request,
             url=content_url % (settings.CONTENTGRAPH_BASE_URL,
                                store_id, product_id))
+        content_filter = parse_qs(request.META.get('QUERY_STRING', ''))
         for content in contents:
-            if not content in results:  # this works because __hash__
+            if content in results:  # this works because __hash__
+                continue
+
+            for key in content_filter:
+                if not key in ['type', 'source']:
+                    continue
+
+                if content.get(key, None) != content_filter.get(key, [None])[0]:
+                    break
+            else:
                 results.append(content)
 
     return ajax_jsonp({'results': results,
