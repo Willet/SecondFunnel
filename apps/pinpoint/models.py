@@ -1,6 +1,6 @@
 from django.db import models
 
-from apps.pinpoint.utils import read_remote_file
+from apps.pinpoint.utils import read_a_file, read_remote_file
 from apps.assets.models import BaseModelNamed, Store
 
 
@@ -173,18 +173,19 @@ class Campaign(BaseModelNamed):
 
     @classmethod
     def from_json(cls, json_data):
-        try:
-            # special case... the theme needs to become an instance beforehand
-            # automatically defaults to DEFAULT_PAGE
-            theme = json_data.get('theme', None)
-            if isinstance(theme, basestring):
-                if theme:
-                    json_data['theme'] = StoreTheme(page=theme)
-                else:
-                    json_data['theme'] = StoreTheme()  # fallback to default theme
-            if theme is None:
-                raise AttributeError('')
-        except:
-            json_data['theme'] = StoreTheme()  # fallback to default theme
+        # special case... the theme needs to become an instance beforehand
+        # automatically defaults to DEFAULT_PAGE
+        theme = json_data.get('theme', '')
+        if isinstance(theme, basestring):
+            if not theme:
+                theme = StoreTheme.DEFAULT_PAGE
+
+            # try and load a remote theme file. if it fails, pass.
+            theme = read_remote_file(theme, theme)
+
+            # try to load a local theme file.
+            # if that fails, default to the theme as if it were theme content.
+            theme = read_a_file(theme, theme)
+            json_data['theme'] = StoreTheme(page=theme)
 
         return cls(**json_data)
