@@ -11,7 +11,7 @@ from apps.intentrank.utils import ajax_jsonp
 
 from apps.api.resources import ContentGraphClient
 from apps.api.utils import mimic_response, get_proxy_results
-from apps.api.views.tileconfig import add_content_to_page, add_product_to_page
+from apps.api.views.tileconfig import add_content_to_page, page_add_product
 
 
 @request_methods('POST')
@@ -93,7 +93,7 @@ def add_all_products(request, store_id, page_id):
             return HttpResponse(status=500)
 
         try:
-            add_product_to_page(store_id, page_id, product_id)
+            page_add_product(store_id, page_id, product_id)
         except ValueError:
             return HttpResponse(status=500)
 
