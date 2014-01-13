@@ -139,6 +139,10 @@ def get_suggested_content_by_page(request, store_id, page_id):
             url=content_url % (settings.CONTENTGRAPH_BASE_URL,
                                store_id, product_id))
         for content in contents:
+            if content in results:  # this works because __hash__
+                continue
+
+            # do not recommended content that hasn't been approved
             if content.get('status', 'needs-review') != 'approved':
                 continue
 
