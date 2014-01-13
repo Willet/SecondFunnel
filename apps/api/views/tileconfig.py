@@ -460,6 +460,27 @@ def add_content_to_page(store_id, page_id, content_id, prioritized=False):
     return r.json()
 
 
+def add_product_to_page(store_id, page_id, product_id, prioritized=False):
+    # verify the tile config does not already exist
+    tileconfig_params = {'template': 'product', 'product-ids': product_id}
+    tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
+    if cg_response_contains_results(tileconfigs):
+        tileconfig = tileconfigs.json()['results'][0]
+        return tileconfig
+
+    # create the tile config
+    payload = json.dumps({
+        'template': 'product',
+        'product-ids': [product_id],
+        'prioritized': prioritized
+        })
+    r = ContentGraphClient.page(page_id)('tile-config').POST(data=payload)
+    if r.status_code != 200:
+        raise ValueError('ContentGraph Error')
+
+    return r.json()
+
+
 def remove_content_from_page(store_id, page_id, content_id):
     # verify the tile config does not already exist
     tileconfig_params = {'template': 'image', 'content-ids': content_id}

@@ -33,6 +33,11 @@ urlpatterns += patterns('apps.api.views',
 
     url(r'^%s/store/(?P<store_id>\d+)'
         r'/page/(?P<page_id>\d+)'
+        r'/product/add_all/?$' % prefix,
+        'add_all_products', name='add_all_products'),
+
+    url(r'^%s/store/(?P<store_id>\d+)'
+        r'/page/(?P<page_id>\d+)'
         r'/content/add_all/?$' % prefix,
         'add_all_content', name='add_all_content'),
 
