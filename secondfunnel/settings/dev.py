@@ -54,7 +54,7 @@ CACHES = {
     }
 }
 
-INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
+INTENTRANK_BASE_URL = 'http://intentrank-test.elasticbeanstalk.com'
 CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
 
 CORS_ORIGIN_REGEX_WHITELIST = (
