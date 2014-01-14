@@ -418,6 +418,8 @@ STALE_TILE_QUEUE_NAME = 'tiles-worker-test-queue'
 
 CELERYBEAT_POLL_INTERVAL = 60  # default beat is 60 seconds
 
+CELERY_IMPORTS = ('apps.utils.tasks', )
+
 # only celery workers use this setting.
 # run a celery worker with manage.py.
 CELERYBEAT_SCHEDULE = {
