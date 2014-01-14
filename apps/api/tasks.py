@@ -105,7 +105,7 @@ def poll_queues(interval=60):
 
 #Common.py has the config for how often this task should run
 @celery.task
-def queue_stale_tile_check():
+def queue_stale_tile_check(*args):
     stores = get_contentgraph_data('/store?results=100000')['results']
     pages = []
 

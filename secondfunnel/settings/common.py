@@ -423,11 +423,6 @@ CELERY_IMPORTS = ('apps.utils.tasks', )
 # only celery workers use this setting.
 # run a celery worker with manage.py.
 CELERYBEAT_SCHEDULE = {
-    'debug': {
-        'task': 'apps.api.tasks.poll_queues',
-        'schedule': timedelta(seconds=2),
-        'args': (CELERYBEAT_POLL_INTERVAL,)
-    },
     'poll 60-second queues': {
         'task': 'apps.api.tasks.poll_queues',
         'schedule': timedelta(seconds=CELERYBEAT_POLL_INTERVAL),
