@@ -1,4 +1,5 @@
 import json
+import time
 from boto.sqs.message import RawMessage
 from django.conf import settings
 from django.http import HttpResponse
@@ -6,7 +7,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from apps.api.decorators import request_methods, check_login
 from apps.static_pages.aws_utils import SQSQueue
-
+from apps.contentgraph.models import get_contentgraph_data
 
 # Task?
 # When does IR update?
@@ -19,6 +20,10 @@ def generate_ir_config_view(request, store_id, ir_id):
     """view for generating an IR config."""
     try:
         generate_ir_config(store_id=store_id, ir_id=ir_id)
+        get_contentgraph_data('/store/%s/page/%s' %(store_id, ir_id), method="PATCH", body=json.dumps({
+            'ir-last-generated': int(time.time() * 1000)
+        })
+
         return HttpResponse(status=200, content='OK')
     except ValueError as err:
         return HttpResponse(status=500, content=err.message)
