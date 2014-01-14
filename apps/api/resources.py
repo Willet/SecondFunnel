@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from tastypie import http, fields
 from tastypie.exceptions import ImmediateHttpResponse
 from tastypie.resources import ModelResource
-from tastypie.utils import trailing_slash
+
 from apps.api.utils import UserObjectsReadOnlyAuthorization
 from apps.assets.models import Store
 

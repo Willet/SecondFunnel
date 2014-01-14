@@ -10,6 +10,7 @@ from apps.contentgraph.models import get_contentgraph_data
 
 from apps.static_pages.aws_utils import sqs_poll, SQSQueue
 
+
 celery = Celery()
 logger = get_task_logger(__name__)
 
@@ -50,10 +51,10 @@ def fetch_queue(queue=None, interval=None):
     }
 
     regions = settings.AWS_SQS_POLLING_QUEUES
-    for region_name, queues in regions.iteritems():
+    for region_name, queues in regions.iteritems():  # {'us-west-2': KVs}
         results[region_name] = results.get(region_name, {})
 
-        # queues be <list>
+        # queues be <dict>
         for queue_name, queue in queues.iteritems():
             results[region_name][queue_name] = []
 
@@ -64,7 +65,7 @@ def fetch_queue(queue=None, interval=None):
             if interval and interval != -1 and interval != queue.get('interval', 60):
                 continue
 
-
+            # this queue should be polled now -- poll it.
             handler_name = queue['handler']  # e.g. handle_items
             handler = handlers.get(handler_name, noop)  # e.g. <function handle_items>
 
@@ -105,7 +106,10 @@ def poll_queues(interval=60):
 
 #Common.py has the config for how often this task should run
 @celery.task
-def queue_stale_tile_check():
+def queue_stale_tile_check(*args):
+    """Doesn't actually check for stale tiles.
+    Tile Generator checks for stale tiles.
+    """
     stores = get_contentgraph_data('/store?results=100000')['results']
     pages = []
 
@@ -115,6 +119,7 @@ def queue_stale_tile_check():
     output_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
 
     for page in pages:
+        logger.info('Pushing to tile service worker queue!')
         output_queue.write_message({
             'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
             'conf': json.dumps({

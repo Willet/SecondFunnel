@@ -1,9 +1,15 @@
 import json
 
+from celery import Celery
+from celery.utils.log import get_task_logger
+
 from apps.api.decorators import (require_keys_for_message,
                                  validate_json_deserializable)
 from apps.static_pages.tasks import generate_static_campaign_now
 
+
+celery = Celery()
+logger = get_task_logger(__name__)
 
 @validate_json_deserializable
 @require_keys_for_message('store-id', 'page-id')
@@ -36,6 +42,7 @@ def handle_ir_config_update_notification_message(message):
     page_id = message.get('page-id')
 
     try:
+        logger.info('Generating page {0} now!'.format(page_id))
         generate_static_campaign_now(store_id=store_id,
             campaign_id=page_id, ignore_static_logs=True)
 
