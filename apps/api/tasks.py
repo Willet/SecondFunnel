@@ -1,4 +1,5 @@
 import json
+import time
 
 from celery import Celery
 from celery.utils import noop
@@ -137,17 +138,25 @@ def queue_page_regeneration():
     # Local import to avoid issues with circular importation
     from apps.api.views import generate_ir_config
     stores = get_contentgraph_data('/store?results=100000')['results']
+    threshold = 60
 
     for store in stores:
         pages = get_contentgraph_data('/store/%s/page?results=1000000' % store['id'])['results']
         for page in pages:
             if page.get('ir-stale', 'false') == 'true':
                 data = get_contentgraph_data('/store/%s/page/%s' %(store['id'], page['id']))['results']
+                last_generated = int(time.time() * 10000)
                 payload = json.dumps({
                     'ir-stale': 'false',
+                    'ir-last-generated': last_generated,
                     'consistent': 'true',
                     'version': data['last-modified']
                 })
+                # Don't patch if versions don't sync.  If that is the case, tasker will pick
+                # it up on next poll.
                 r = get_contentgraph_data('/store/%s/page/%s' %(store['id'], page['id']), method="PATCH", body=payload)
                 if r.status_code == 200:
-                    generate_ir_config(store['id'], page['id'])
+                    # Ensure we aren't generating too often
+                    last_generated -= int(data['ir-last-generated'])
+                    if last_generated > threshold:
+                        generate_ir_config(store['id'], page['id'])
