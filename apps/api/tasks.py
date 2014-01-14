@@ -127,3 +127,27 @@ def queue_stale_tile_check(*args):
                 'storeId': page['store-id']
             })
         })
+
+@celery.task
+def queue_page_regeneration():
+    """periodic task that checks for pages that need to be regenerated and
+    queues them into IRConfigGenerator; a page needs to be regenerated if a
+    tile and tile-config were removed.
+    """
+    # Local import to avoid issues with circular importation
+    from apps.api.views import generate_ir_config
+    stores = get_contentgraph_data('/store?results=100000')['results']
+
+    for store in stores:
+        pages = get_contentgraph_data('/store/%s/page?results=1000000' % store['id'])['results']
+        for page in pages:
+            if page.get('ir-stale', 'false') == 'true':
+                data = get_contentgraph_data('/store/%s/page/%s' %(store['id'], page['id']))['results']
+                payload = json.dumps({
+                    'ir-stale': 'false',
+                    'consistent': 'true',
+                    'version': data['last-modified']
+                })
+                r = get_contentgraph_data('/store/%s/page/%s' %(store['id'], page['id']), method="PATCH", body=payload)
+                if r.status_code == 200:
+                    generate_ir_config(store['id'], page['id'])
