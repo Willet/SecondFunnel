@@ -421,6 +421,11 @@ CELERYBEAT_POLL_INTERVAL = 60  # default beat is 60 seconds
 # only celery workers use this setting.
 # run a celery worker with manage.py.
 CELERYBEAT_SCHEDULE = {
+    'debug': {
+        'task': 'apps.utils.tasks.poll',
+        'schedule': timedelta(seconds=2),
+        'args': (2)
+    },
     'poll 60-second queues': {
         'task': 'apps.api.tasks.poll_queues',
         'schedule': timedelta(seconds=CELERYBEAT_POLL_INTERVAL),
@@ -434,7 +439,7 @@ CELERYBEAT_SCHEDULE = {
     'poll 60-second stale tiles': {
         'task': 'apps.api.tasks.queue_stale_tile_check',
         'schedule': timedelta(seconds=60),
-    }
+    },
 }
 
 djcelery.setup_loader()
