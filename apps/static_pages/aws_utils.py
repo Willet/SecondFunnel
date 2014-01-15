@@ -373,7 +373,7 @@ def sqs_poll(callback=None, region_name=settings.AWS_SQS_REGION_NAME,
     if not queue:
         raise ValueError('No such queue found: {0}'.format(queue_name))
 
-    messages = queue.receive()
+    messages = queue.receive(num_messages=10)
 
     if not messages:
         messages = []  # default to 0 messages instead of None messages
