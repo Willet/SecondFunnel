@@ -133,7 +133,8 @@ AWS_SQS_POLLING_QUEUES = {
         # https://willet.atlassian.net/browse/CM-127
         'tile-generator-notification-queue':
             {'queue_name': 'tile-generator-notification-queue',
-             'handler': 'handle_tile_generator_update_notification_message'},
+             'handler': 'handle_tile_generator_update_notification_message',
+             'interval': 5},
 
         # https://willet.atlassian.net/browse/CM-128
         'ir-config-generator-notification-queue':
@@ -427,6 +428,11 @@ CELERYBEAT_SCHEDULE = {
         'task': 'apps.api.tasks.poll_queues',
         'schedule': timedelta(seconds=CELERYBEAT_POLL_INTERVAL),
         'args': (CELERYBEAT_POLL_INTERVAL,)
+    },
+    'poll 5-second queues': {
+        'task': 'apps.api.tasks.poll_queues',
+        'schedule': timedelta(seconds=5),
+        'args': (5,)
     },
     'poll 300-second queues': {
         'task': 'apps.api.tasks.poll_queues',

@@ -36,6 +36,9 @@ def fetch_queue(queue=None, interval=None):
     queue_to_fetch = queue
     results = {}
 
+    if interval:  # convert things like u'5' to 5
+        interval = int(interval)
+
     # corresponding queues need to be defined in settings.AWS_SQS_POLLING_QUEUES
     handlers = {
         'handle_content_update_notification_message':
@@ -72,6 +75,7 @@ def fetch_queue(queue=None, interval=None):
             handler = handlers.get(handler_name, noop)  # e.g. <function handle_items>
 
             try:
+                logger.info('Polling queue %s:%s!' % (region_name, queue_name))
                 messages = sqs_poll(region_name=region_name,
                                     queue_name=queue_name)
             except BaseException as err:  # something went wrong
@@ -116,7 +120,10 @@ def queue_stale_tile_check(*args):
     pages = []
 
     for store in stores:
-        pages += get_contentgraph_data('/store/%s/page?results=100000' % store['id'])['results']
+        try:
+           pages += get_contentgraph_data('/store/%s/page?results=100000' % store['id'])['results']
+        except TypeError:
+            logger.error('Store with id: %s failed to get pages from content graph.' % store['id'])
 
     output_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
 

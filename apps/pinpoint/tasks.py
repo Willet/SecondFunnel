@@ -13,7 +13,8 @@ celery = Celery()
 logger = get_task_logger(__name__)
 
 @validate_json_deserializable
-@require_keys_for_message('store-id', 'page-id')
+# key check removed (received message not to spec)
+# @require_keys_for_message('store-id', 'page-id')
 def handle_tile_generator_update_notification_message(message):
     """
     Messages are fetched from an SQS queue and processed by this function.
@@ -45,12 +46,13 @@ def handle_tile_generator_update_notification_message(message):
     """
     message = json.loads(message)
 
-    try:
-        logger.info('Queueing IRConfig {0} generation now!'.format(
-            message['page-id']))
-        generate_ir_config(store_id=message['store-id'],
-                           ir_id=message['page-id'])
+    store_id = message.get('store-id') or message.get('storeId')
+    page_id = message.get('page-id') or message.get('pageId')
 
-        return {'scheduled-page': message['page-id']}
+    try:
+        logger.info('Queueing IRConfig {0} generation now!'.format(page_id))
+        generate_ir_config(store_id=store_id, ir_id=page_id)
+
+        return {'scheduled-page': page_id}
     except BaseException as err:
         return {err.__class__.__name__: err.message}
