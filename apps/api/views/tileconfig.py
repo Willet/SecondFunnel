@@ -424,6 +424,7 @@ def page_remove_product(store_id, page_id, product_id):
     if cg_response_contains_results(tile_check):
         tile_id = tile_check.json()['results'][0]['id']
         tile_delete = ContentGraphClient.page(page_id)('tile-config')(tile_id).DELETE()
+        mark_page_for_regeneration(store_id, page_id)
         return mimic_response(tile_delete)
     else:
         return HttpResponse(status=200)
@@ -473,6 +474,31 @@ def remove_content_from_page(store_id, page_id, content_id):
     if cg_response_contains_results(tileconfigs):
         tileconfig_id = tileconfigs.json()['results'][0]['id']
         delete_tileconfig_request = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).DELETE()
+        mark_page_for_regeneration(store_id, page_id)
         return delete_tileconfig_request.status_code == 200
     else:
         return True
+
+
+def mark_page_for_regeneration(store_id, page_id):
+    """marks a page for regeneration.  When one of the periodic tasks see that
+    this page has been marked for regeneration, it will queue up irconfig fot
+    this page."""
+    attempts = 0 # In the event of a race condition
+    while attempts < 50:
+        # We put an upper limit of 50 as the number of times to attempt
+        # to update the page as being stale.  This *should* be enough.
+        page = ContentGraphClient.store(store_id).page(page_id).GET().json()
+        payload = json.dumps({
+            'ir-stale': 'true'
+        })
+        headers = {
+            'consistent': 'true',
+            'version': page['last-modified']
+        }
+        try:
+            get_contentgraph_data('/store/%s/page/%s' %(store_id, page_id),
+                                  headers=headers, method="PATCH", body=payload)
+            break
+        except:
+            attempts += 1

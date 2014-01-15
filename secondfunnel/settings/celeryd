@@ -1,3 +1,5 @@
+# http://ask.github.io/celery/cookbook/daemonizing.html#example-django-configuration-using-virtualenv
+
 # Name of nodes to start, here we have a single node
 export CELERYD_NODES="w1"
 

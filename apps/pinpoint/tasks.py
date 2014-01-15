@@ -1,10 +1,16 @@
 import json
 from mock import MagicMock
 
+from celery import Celery
+from celery.utils.log import get_task_logger
+
 from apps.api.decorators import (require_keys_for_message,
                                  validate_json_deserializable)
 from apps.api.views import generate_ir_config
 
+
+celery = Celery()
+logger = get_task_logger(__name__)
 
 @validate_json_deserializable
 @require_keys_for_message('store-id', 'page-id')
@@ -40,6 +46,8 @@ def handle_tile_generator_update_notification_message(message):
     message = json.loads(message)
 
     try:
+        logger.info('Queueing IRConfig {0} generation now!'.format(
+            message['page-id']))
         generate_ir_config(store_id=message['store-id'],
                            ir_id=message['page-id'])
 
