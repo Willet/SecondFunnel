@@ -115,10 +115,13 @@ def queue_stale_tile_check():
     output_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
 
     for page in pages:
-        output_queue.write_message({
-            'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
-            'conf': json.dumps({
-                'pageId': page['id'],
-                'storeId': page['store-id']
+        stale_content = get_contentgraph_data('/page/%s/tile-config?stale=true' % page['id'])['results']
+
+        if len(stale_content) > 0:
+            output_queue.write_message({
+                'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
+                'conf': json.dumps({
+                    'pageId': page['id'],
+                    'storeId': page['store-id']
+                })
             })
-        })
