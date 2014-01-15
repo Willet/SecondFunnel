@@ -486,13 +486,19 @@ def mark_page_for_regeneration(store_id, page_id):
     this page."""
     attempts = 0 # In the event of a race condition
     while attempts < 50:
+        # We put an upper limit of 50 as the number of times to attempt
+        # to update the page as being stale.  This *should* be enough.
         page = ContentGraphClient.store(store_id).page(page_id).GET().json()
         payload = json.dumps({
-            'ir-stale': 'true',
+            'ir-stale': 'true'
+        })
+        headers = {
             'consistent': 'true',
             'version': page['last-modified']
-        })
-        r = ContentGraphClient.store(store_id).page(page_id).PATCH(data=payload)
-        if r.status_code == 200:
+        }
+        try:
+            get_contentgraph_data('/store/%s/page/%s' %(store_id, page_id),
+                                  headers=headers, method="PATCH", body=payload)
             break
-        attempts += 1
+        except:
+            attempts += 1
