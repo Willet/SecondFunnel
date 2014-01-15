@@ -138,6 +138,8 @@ def queue_page_regeneration():
     """
     # Local import to avoid issues with circular importation
     from apps.api.views import generate_ir_config
+    # For now, 100000 is probably a safe value for the number of results, but ideally, we'd
+    # want the ContentGraph to return a generator to handle pagination.
     stores = get_contentgraph_data('/store?results=100000')['results']
     threshold = 60
 
@@ -147,7 +149,7 @@ def queue_page_regeneration():
         pages = get_contentgraph_data('/store/%s/page?results=100000&ir-stale=true' % store['id'])['results']
         for page in pages:
             data = get_contentgraph_data('/store/%s/page/%s' %(store['id'], page['id']))
-            last_generated = calendar.timegm(datetime.now().timetuple())
+            last_generated = calendar.timegm(datetime.utcnow().timetuple())
             payload = json.dumps({
                 'ir-stale': 'false',
                 'ir-last-generated': last_generated
@@ -166,4 +168,4 @@ def queue_page_regeneration():
                 if last_generated > threshold:
                     generate_ir_config(store['id'], page['id'])
             except Exception as e:
-                logger.log(e)
+                logger.info(e)
