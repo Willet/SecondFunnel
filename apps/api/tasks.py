@@ -121,14 +121,17 @@ def queue_stale_tile_check(*args):
     output_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
 
     for page in pages:
-        logger.info('Pushing to tile service worker queue!')
-        output_queue.write_message({
-            'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
-            'conf': json.dumps({
-                'pageId': page['id'],
-                'storeId': page['store-id']
+        stale_content = get_contentgraph_data('/page/%s/tile-config?stale=true&results=1' % page['id'])['results']
+
+        if len(stale_content) > 0:
+            logger.info('Pushing to tile service worker queue!')
+            output_queue.write_message({
+                'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
+                'conf': json.dumps({
+                    'pageId': page['id'],
+                    'storeId': page['store-id']
+                })
             })
-        })
 
 @celery.task
 def queue_page_regeneration():
