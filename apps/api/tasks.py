@@ -121,7 +121,7 @@ def queue_stale_tile_check(*args):
     output_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
 
     for page in pages:
-        stale_content = get_contentgraph_data('/page/%s/tile-config?stale=true' % page['id'])['results']
+        stale_content = get_contentgraph_data('/page/%s/tile-config?stale=true&results=1' % page['id'])['results']
 
         if len(stale_content) > 0:
             logger.info('Pushing to tile service worker queue!')
