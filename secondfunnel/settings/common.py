@@ -438,6 +438,11 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(seconds=60),
         'args': tuple()
     },
+    'poll 60-second regenerate pages': {
+        'task': 'apps.api.tasks.queue_page_regeneration',
+        'schedule': timedelta(seconds=60),
+        'args': tuple()
+    }
 }
 
 djcelery.setup_loader()

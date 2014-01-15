@@ -1,4 +1,6 @@
 import json
+import calendar
+from datetime import datetime
 
 from celery import Celery
 from celery.utils import noop
@@ -127,3 +129,43 @@ def queue_stale_tile_check(*args):
                 'storeId': page['store-id']
             })
         })
+
+@celery.task
+def queue_page_regeneration():
+    """periodic task that checks for pages that need to be regenerated and
+    queues them into IRConfigGenerator; a page needs to be regenerated if a
+    tile and tile-config were removed.
+    """
+    # Local import to avoid issues with circular importation
+    from apps.api.views import generate_ir_config
+    # For now, 100000 is probably a safe value for the number of results, but ideally, we'd
+    # want the ContentGraph to return a generator to handle pagination.
+    stores = get_contentgraph_data('/store?results=100000')['results']
+    threshold = 60
+
+    for store in stores:
+        # Get only the stale pages from the store, eventually this will be phased
+        # to not need to iterate over stores.
+        pages = get_contentgraph_data('/store/%s/page?results=100000&ir-stale=true' % store['id'])['results']
+        for page in pages:
+            data = get_contentgraph_data('/store/%s/page/%s' %(store['id'], page['id']))
+            last_generated = calendar.timegm(datetime.utcnow().timetuple())
+            payload = json.dumps({
+                'ir-stale': 'false',
+                'ir-last-generated': last_generated
+            })
+            # Don't patch if versions don't sync.  If that is the case, tasker will pick
+            # it up on next poll.
+            headers = {
+                'consistent': 'true',
+                'version': data['last-modified']
+            }
+            try:
+                get_contentgraph_data('/store/%s/page/%s' %(store['id'], page['id']),
+                                      headers=headers, method="PATCH", body=payload)
+                # Ensure we aren't generating too often
+                last_generated -= int(data['ir-last-generated'])
+                if last_generated > threshold:
+                    generate_ir_config(store['id'], page['id'])
+            except Exception as e:
+                logger.info(e)
