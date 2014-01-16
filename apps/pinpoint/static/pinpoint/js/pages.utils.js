@@ -26,6 +26,32 @@ App.module("utils", function (utils, App) {
         return str;
     };
 
+    $window.on('message', function (event) {
+        var original_event = event.originalEvent,
+            data = original_event.data;
+
+        try {
+            data = JSON.parse(data);
+        } catch (error) {
+            console.error('Message format not supported.');
+            return;
+        }
+
+        if (!data.target || data.target !== 'second_funnel') {
+            console.error('Message is not for second funnel');
+            return;
+        }
+
+        if (!data.type) {
+            console.error('Message has no type');
+            return;
+        }
+
+        if (data.type === 'load_content') {
+            App.discoveryArea.currentView.pageScroll();
+        }
+    });
+
     /**
      * Does minimal URL checking (stackoverflow.com/a/1305082/1558430)
      *
