@@ -1,4 +1,6 @@
 import json
+import calendar
+from datetime import datetime
 
 from celery import Celery
 from celery.utils import noop
@@ -9,6 +11,7 @@ from apps.intentrank.utils import ajax_jsonp
 from apps.contentgraph.models import get_contentgraph_data
 
 from apps.static_pages.aws_utils import sqs_poll, SQSQueue
+
 
 celery = Celery()
 logger = get_task_logger(__name__)
@@ -33,6 +36,9 @@ def fetch_queue(queue=None, interval=None):
     queue_to_fetch = queue
     results = {}
 
+    if interval:  # convert things like u'5' to 5
+        interval = int(interval)
+
     # corresponding queues need to be defined in settings.AWS_SQS_POLLING_QUEUES
     handlers = {
         'handle_content_update_notification_message':
@@ -50,10 +56,10 @@ def fetch_queue(queue=None, interval=None):
     }
 
     regions = settings.AWS_SQS_POLLING_QUEUES
-    for region_name, queues in regions.iteritems():
+    for region_name, queues in regions.iteritems():  # {'us-west-2': KVs}
         results[region_name] = results.get(region_name, {})
 
-        # queues be <list>
+        # queues be <dict>
         for queue_name, queue in queues.iteritems():
             results[region_name][queue_name] = []
 
@@ -64,11 +70,12 @@ def fetch_queue(queue=None, interval=None):
             if interval and interval != -1 and interval != queue.get('interval', 60):
                 continue
 
-
+            # this queue should be polled now -- poll it.
             handler_name = queue['handler']  # e.g. handle_items
             handler = handlers.get(handler_name, noop)  # e.g. <function handle_items>
 
             try:
+                logger.info('Polling queue %s:%s!' % (region_name, queue_name))
                 messages = sqs_poll(region_name=region_name,
                                     queue_name=queue_name)
             except BaseException as err:  # something went wrong
@@ -105,20 +112,70 @@ def poll_queues(interval=60):
 
 #Common.py has the config for how often this task should run
 @celery.task
-def queue_stale_tile_check():
+def queue_stale_tile_check(*args):
+    """Doesn't actually check for stale tiles.
+    Tile Generator checks for stale tiles.
+    """
     stores = get_contentgraph_data('/store?results=100000')['results']
     pages = []
 
     for store in stores:
-        pages += get_contentgraph_data('/store/%s/page?results=100000' % store['id'])['results']
+        try:
+           pages += get_contentgraph_data('/store/%s/page?results=100000' % store['id'])['results']
+        except TypeError:
+            logger.error('Store with id: %s failed to get pages from content graph.' % store['id'])
 
     output_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
 
     for page in pages:
-        output_queue.write_message({
-            'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
-            'conf': json.dumps({
-                'pageId': page['id'],
-                'storeId': page['store-id']
+        stale_content = get_contentgraph_data('/page/%s/tile-config?stale=true&results=1' % page['id'])['results']
+
+        if len(stale_content) > 0:
+            logger.info('Pushing to tile service worker queue!')
+            output_queue.write_message({
+                'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
+                'conf': json.dumps({
+                    'pageId': page['id'],
+                    'storeId': page['store-id']
+                })
             })
-        })
+
+@celery.task
+def queue_page_regeneration():
+    """periodic task that checks for pages that need to be regenerated and
+    queues them into IRConfigGenerator; a page needs to be regenerated if a
+    tile and tile-config were removed.
+    """
+    # Local import to avoid issues with circular importation
+    from apps.api.views import generate_ir_config
+    # For now, 100000 is probably a safe value for the number of results, but ideally, we'd
+    # want the ContentGraph to return a generator to handle pagination.
+    stores = get_contentgraph_data('/store?results=100000')['results']
+    threshold = 60
+
+    for store in stores:
+        # Get only the stale pages from the store, eventually this will be phased
+        # to not need to iterate over stores.
+        pages = get_contentgraph_data('/store/%s/page?results=100000&ir-stale=true' % store['id'])['results']
+        for page in pages:
+            data = get_contentgraph_data('/store/%s/page/%s' %(store['id'], page['id']))
+            last_generated = calendar.timegm(datetime.utcnow().timetuple())
+            payload = json.dumps({
+                'ir-stale': 'false',
+                'ir-last-generated': last_generated
+            })
+            # Don't patch if versions don't sync.  If that is the case, tasker will pick
+            # it up on next poll.
+            headers = {
+                'consistent': 'true',
+                'version': data['last-modified']
+            }
+            try:
+                get_contentgraph_data('/store/%s/page/%s' %(store['id'], page['id']),
+                                      headers=headers, method="PATCH", body=payload)
+                # Ensure we aren't generating too often
+                last_generated -= int(data['ir-last-generated'])
+                if last_generated > threshold:
+                    generate_ir_config(store['id'], page['id'])
+            except Exception as e:
+                logger.info(e)

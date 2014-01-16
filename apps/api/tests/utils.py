@@ -48,7 +48,8 @@ def configure_hammock_request(mock_request, returns):
                 return MockResponse(
                     status_code=resp['status'],
                     content=content,
-                    headers=resp
+                    headers=resp,
+                    json=lambda:content
                 )
 
         return RequestNotMocked(None, None)
@@ -121,6 +122,9 @@ class MockedHammockRequestsTestCase(AuthenticatedResourceTestCase):
         self.mocks = mock.patch.object(requests.Session, 'request', self.mock_request)
         self.mocks.start()
         self.addCleanup(self.mocks.stop)
+
+    def assertMockRequestCallCount(self, expected_mock_calls):
+        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
 
 class BaseNotAuthenticatedTests(object):
     """Test method assumes that the subclass will have the following properties

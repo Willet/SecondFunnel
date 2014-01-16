@@ -5,6 +5,8 @@
 # processname: supervisord
 # pidfile: /var/run/supervisord.pid
 
+# This is the file that fabfile.py copies to /etc/init.d/supervisord.
+
 SUPERVISORD=/usr/bin/supervisord
 SUPERVISORCTL=/usr/bin/supervisorctl
 CONFIG=/home/ec2-user/pinpoint/env/SecondFunnel/scripts/celeryconf/supervisord.conf

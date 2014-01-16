@@ -194,6 +194,6 @@ def proxy_view(request, path):
 
     return HttpResponse(
         content=content,
-        status=response['status'],
+        status=int(response['status']),
         content_type=response['content-type']
     )

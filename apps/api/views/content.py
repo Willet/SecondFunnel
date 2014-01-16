@@ -1,4 +1,5 @@
 import json
+from urlparse import parse_qs
 
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
@@ -11,7 +12,8 @@ from apps.intentrank.utils import ajax_jsonp
 
 from apps.api.resources import ContentGraphClient
 from apps.api.utils import mimic_response, get_proxy_results
-from apps.api.views.tileconfig import add_content_to_page
+from apps.api.views.tileconfig import add_content_to_page, page_add_product
+
 
 @request_methods('POST')
 @check_login
@@ -73,6 +75,32 @@ def add_all_content(request, store_id, page_id):
     return HttpResponse()
 
 
+@request_methods('PUT')
+@check_login
+@never_cache
+@csrf_exempt
+def add_all_products(request, store_id, page_id):
+    """Mirror of add_all_content."""
+    try:
+        product_ids = json.loads(request.body)
+    except ValueError:
+        return HttpResponse(status=500)
+
+    if type(product_ids) != type([]):
+        return HttpResponse(status=500)
+
+    for product_id in product_ids:
+        if type(product_id) != type(1):
+            return HttpResponse(status=500)
+
+        try:
+            page_add_product(store_id, page_id, product_id)
+        except ValueError:
+            return HttpResponse(status=500)
+
+    return HttpResponse()
+
+
 @append_headers
 @check_login
 @never_cache
@@ -84,13 +112,19 @@ def get_suggested_content_by_page(request, store_id, page_id):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
 
-    tile_config_url = "%s/page/%s/tile-config?template=product&%s" % (
-        settings.CONTENTGRAPH_BASE_URL, page_id,
-        request.META.get('QUERY_STRING', ''))
+    # {'key': ['val']}
+    params = parse_qs(request.META.get('QUERY_STRING', ''))
+    for key in params:
+        # {'key': 'val'}
+        params[key] = params[key][0]
+
+    tile_config_url = "%s/page/%s/tile-config?template=product" % (
+        settings.CONTENTGRAPH_BASE_URL, page_id)
     content_url = "%s/store/%s/content?tagged-products=%s"
 
     results = []
 
+    # { "template": "product", "page": this page, "product-ids": ["123"]}
     tile_configs, meta = get_proxy_results(request=request,
                                            url=tile_config_url)
 
@@ -100,13 +134,26 @@ def get_suggested_content_by_page(request, store_id, page_id):
     product_ids = list(set(sum(
         [x.get('product-ids', []) for x in tile_configs], [])))
 
-    for product_id in product_ids:
+    for product_id in product_ids:  # ["123", "124, ...]
         contents, _ = get_proxy_results(request=request,
             url=content_url % (settings.CONTENTGRAPH_BASE_URL,
                                store_id, product_id))
         for content in contents:
-            if not content in results:  # this works because __hash__
-                results.append(content)
+            if content in results:  # this works because __hash__
+                continue
+
+            # do not recommended content that hasn't been approved
+            if content.get('status', 'needs-review') != 'approved':
+                continue
+
+            # if filter exists and content attribute exists, then filter on it
+            if content.get('source') != params.get('source'):
+                continue
+
+            if content.get('type') != params.get('type'):
+                continue
+
+            results.append(content)
 
     return ajax_jsonp({'results': results,
                        'meta': meta})

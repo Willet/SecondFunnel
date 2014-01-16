@@ -133,7 +133,8 @@ AWS_SQS_POLLING_QUEUES = {
         # https://willet.atlassian.net/browse/CM-127
         'tile-generator-notification-queue':
             {'queue_name': 'tile-generator-notification-queue',
-             'handler': 'handle_tile_generator_update_notification_message'},
+             'handler': 'handle_tile_generator_update_notification_message',
+             'interval': 5},
 
         # https://willet.atlassian.net/browse/CM-128
         'ir-config-generator-notification-queue':
@@ -410,22 +411,35 @@ STALE_TILE_QUEUE_NAME = 'tiles-worker-test-queue'
 
 CELERYBEAT_POLL_INTERVAL = 60  # default beat is 60 seconds
 
+CELERY_IMPORTS = ('apps.utils.tasks', )
+
 # only celery workers use this setting.
 # run a celery worker with manage.py.
 CELERYBEAT_SCHEDULE = {
     'poll 60-second queues': {
         'task': 'apps.api.tasks.poll_queues',
         'schedule': timedelta(seconds=CELERYBEAT_POLL_INTERVAL),
-        'args': (CELERYBEAT_POLL_INTERVAL)
+        'args': (CELERYBEAT_POLL_INTERVAL,)
+    },
+    'poll 5-second queues': {
+        'task': 'apps.api.tasks.poll_queues',
+        'schedule': timedelta(seconds=5),
+        'args': (5,)
     },
     'poll 300-second queues': {
         'task': 'apps.api.tasks.poll_queues',
         'schedule': timedelta(seconds=300),
-        'args': (300)
+        'args': (300,)
     },
     'poll 60-second stale tiles': {
         'task': 'apps.api.tasks.queue_stale_tile_check',
         'schedule': timedelta(seconds=60),
+        'args': tuple()
+    },
+    'poll 60-second regenerate pages': {
+        'task': 'apps.api.tasks.queue_page_regeneration',
+        'schedule': timedelta(seconds=60),
+        'args': tuple()
     }
 }
 
