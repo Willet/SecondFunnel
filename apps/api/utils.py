@@ -31,12 +31,12 @@ def copy_headers_to_response(headers, response):
 def mimic_response(client_response, **overrides):
     options = {
         'content': client_response.content,
-        'status': client_response.status_code,
-        'content_type': 'application/json'
+        'status': client_response.status_code
     }
     if overrides:
         options.update(overrides)
-    return HttpResponse(**options)
+    server_response = HttpResponse(**options)
+    return copy_headers_to_response(client_response.headers, server_response)
 
 
 def get_proxy_results(request, url, body=None, raw=False, method=None):
