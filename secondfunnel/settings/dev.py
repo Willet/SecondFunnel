@@ -54,6 +54,44 @@ CACHES = {
     }
 }
 
+# dict of queues by region to poll regularly, using celery beat.
+# corresponding handlers need to be imported in apps.api.tasks
+AWS_SQS_POLLING_QUEUES = {
+    'us-west-2': {
+        # https://willet.atlassian.net/browse/CM-125
+        'product-update-notification-queue-dev':
+            {'queue_name': 'product-update-notification-queue-dev',
+             'handler': 'handle_product_update_notification_message',
+             'interval': 300},
+
+        # https://willet.atlassian.net/browse/CM-126
+        'content-update-notification-queue-dev':
+            {'queue_name': 'content-update-notification-queue-dev',
+             'handler': 'handle_content_update_notification_message',
+             'interval': 300},
+
+        # https://willet.atlassian.net/browse/CM-127
+        'tile-generator-notification-queue-dev':
+            {'queue_name': 'tile-generator-notification-queue-dev',
+             'handler': 'handle_tile_generator_update_notification_message',
+             'interval': 5},
+
+        # https://willet.atlassian.net/browse/CM-128
+        'ir-config-generator-notification-queue-dev':
+            {'queue_name': 'ir-config-generator-notification-queue-dev',
+             'handler': 'handle_ir_config_update_notification_message'},
+
+        # https://willet.atlassian.net/browse/CM-124
+        'scraper-notification-queue-dev':
+            {'queue_name': 'scraper-notification-queue-dev',
+             'handler': 'handle_scraper_notification_message'},
+
+        'page-generator-dev':
+            {'queue_name': 'page-generator-dev',
+             'handler': 'handle_page_generator_notification_message'},
+    }
+}
+
 INTENTRANK_BASE_URL = 'http://intentrank-test.elasticbeanstalk.com'
 CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
 

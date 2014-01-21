@@ -178,7 +178,7 @@ class Campaign(BaseModelNamed):
         theme = json_data.get('theme', '')
         if isinstance(theme, basestring):
             if not theme:
-                theme = StoreTheme.DEFAULT_PAGE
+                theme = ''  # blank
 
             # try and load a remote theme file. if it fails, pass.
             theme = read_remote_file(theme, theme)
