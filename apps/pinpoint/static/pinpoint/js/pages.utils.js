@@ -1,4 +1,4 @@
-/*global App, Backbone, Marionette, console */
+/*global App, Backbone, Marionette, window, document, console, $ */
 /**
  * @module utils
  */
@@ -18,7 +18,7 @@ App.module("utils", function (utils, App) {
      * @returns {string}
      */
     this.safeString = function (str, opts) {
-        var regex =/^(None|undefined|[Ff]alse|0)$/,
+        var regex = /^(None|undefined|[Ff]alse|0)$/,
             trimmed = $.trim(str);
         if (regex.test(trimmed)) {
             return trimmed.replace(regex, '');
@@ -27,8 +27,8 @@ App.module("utils", function (utils, App) {
     };
 
     $window.on('message', function (event) {
-        var original_event = event.originalEvent,
-            data = original_event.data;
+        var originalEvent = event.originalEvent,
+            data = originalEvent.data;
 
         try {
             data = JSON.parse(data);
