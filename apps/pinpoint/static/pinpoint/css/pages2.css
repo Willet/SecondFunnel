@@ -21,6 +21,9 @@
 html, body {
     font-family: "helvetica neue", helvetica, arial, sans-serif;
 }
+body {
+    position: relative;
+}
 header .container {
     /* null set */
 }
@@ -345,8 +348,7 @@ div.loading {
 }
 
 .previewContainer {
-    overflow: hidden;
-    position: fixed;
+    position: absolute;
     display: table;
     width: 100%;
     height: 100%;

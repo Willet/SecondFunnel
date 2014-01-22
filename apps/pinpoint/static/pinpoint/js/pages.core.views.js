@@ -690,7 +690,7 @@ App.module('core', function (module, App) {
         },
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
-            var buttons, width;
+            var buttons, width, parent, top;
             if (!(App.support.touch() || App.support.mobile())) {
                 buttons = new App.sharing.SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
@@ -699,6 +699,11 @@ App.module('core', function (module, App) {
             if (width) {
                 this.$('.content').css('width', width + 'px');
             }
+
+            parent = $('#' + this.model.cid);
+            top = parseInt(parent.css('top').split('px')[0], 10);
+
+            $('.previewContainer').css('top', $('#discovery-area').offset().top + top);
 
             // hide discovery, then show this window as a page.
             if (App.support.mobile()) {
