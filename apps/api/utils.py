@@ -35,6 +35,11 @@ def mimic_response(client_response, **overrides):
     }
     if overrides:
         options.update(overrides)
+    if 'content' in options:
+        # update content length cause does not match CG
+        client_response.headers.update({
+            'Content-Length': len(options['content'])
+        })
     server_response = HttpResponse(**options)
     return copy_headers_to_response(client_response.headers, server_response)
 
