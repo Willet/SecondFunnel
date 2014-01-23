@@ -4,8 +4,7 @@ from mock import MagicMock
 from celery import Celery
 from celery.utils.log import get_task_logger
 
-from apps.api.decorators import (require_keys_for_message,
-                                 validate_json_deserializable)
+from apps.api.decorators import validate_json_deserializable
 from apps.api.views import generate_ir_config
 
 
@@ -49,10 +48,8 @@ def handle_tile_generator_update_notification_message(message):
     store_id = message.get('store-id') or message.get('storeId')
     page_id = message.get('page-id') or message.get('pageId')
 
-    try:
-        logger.info('Queueing IRConfig {0} generation now!'.format(page_id))
-        generate_ir_config(store_id=store_id, ir_id=page_id)
+    logger.info('Queueing IRConfig {0} generation now!'.format(page_id))
+    # caller handles error
+    generate_ir_config(store_id=store_id, ir_id=page_id)
 
-        return {'scheduled-page': page_id}
-    except BaseException as err:
-        return {err.__class__.__name__: err.message}
+    return {'scheduled-page': page_id}

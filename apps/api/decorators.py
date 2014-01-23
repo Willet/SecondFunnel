@@ -6,6 +6,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.utils import check_keys_exist
+from secondfunnel.errors import MissingRequiredKeysError
 
 
 def check_login(fn):
@@ -115,9 +116,7 @@ def require_keys_for_message(*keys):
         def wrapped_fn(dct, *args, **kwargs):
             print (dct, keys)
             if not check_keys_exist(dct, keys=keys):
-                return {'malformed-data': 'missing one or more keys '
-                                          'in {keys}'.format(
-                    keys=', '.join(keys)), 'data': dct}
+                raise MissingRequiredKeysError(keys)
             return fn(*((dct, ) + args), **kwargs)
         return wrapped_fn
     return wrap
