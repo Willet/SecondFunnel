@@ -51,7 +51,9 @@ def handle_product_update_notification_message(message):
     tco = TileConfigObject(message['page-id'])
     logger.info('Marking tiles for product {0} as stale!'.format(
         message['page-id']))
+    # caller handles error
     tco.mark_tile_for_regeneration(product_id=message['product-id'])
+
     return {'scheduled-tiles-for-product': message['product-id']}
 
 
@@ -89,5 +91,7 @@ def handle_content_update_notification_message(message):
     tco = TileConfigObject(message['page-id'])
     logger.info('Marking tiles for content {0} as stale!'.format(
         message['page-id']))
+    # caller handles error
     tco.mark_tile_for_regeneration(content_id=message['content-id'])
+
     return {'scheduled-tiles-for-content': message['content-id']}
