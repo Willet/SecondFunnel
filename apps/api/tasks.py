@@ -128,7 +128,6 @@ def queue_stale_tile_check(*args):
     """Queue's a Command for each page with stale tiles;
     for the Tile Generator to process.
     """
-    QUEUE_TIMEOUT = 120  # seconds
     stores = get_contentgraph_data('/store?results=100000')['results']
     pages = []
 
@@ -143,7 +142,7 @@ def queue_stale_tile_check(*args):
     for page in pages:
         stale_content = get_contentgraph_data('/page/%s/tile-config?stale=true&results=1' % page['id'])['results']
 
-        if len(stale_content) > 0 and did_timeout_occur(page, 'last-queued-stale-tile', QUEUE_TIMEOUT):
+        if len(stale_content) > 0 and did_timeout_occur(page, 'last-queued-stale-tile', settings.STALE_TILE_RETRY_THRESHOLD):
             payload = json.dumps({'last-queued-stale-tile': str(int(time.time()))})
             r = ContentGraphClient.store(page['store-id']).page(page['id']).PATCH(data=payload)
             if not r.status_code == 200:
@@ -170,7 +169,6 @@ def queue_page_regeneration():
     # For now, 100000 is probably a safe value for the number of results, but ideally, we'd
     # want the ContentGraph to return a generator to handle pagination.
     stores = get_contentgraph_data('/store?results=100000')['results']
-    threshold = 60
 
     for store in stores:
         # Get only the stale pages from the store, eventually this will be phased
@@ -194,7 +192,7 @@ def queue_page_regeneration():
                                       headers=headers, method="PATCH", body=payload)
                 # Ensure we aren't generating too often
                 last_generated -= int(data['ir-last-generated'])
-                if last_generated > threshold:
+                if last_generated > settings.IRCONFIG_RETRY_THRESHOLD:
                     generate_ir_config(store['id'], page['id'])
             except Exception as e:
                 logger.info(e)

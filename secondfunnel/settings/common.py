@@ -27,6 +27,7 @@ MANAGERS = ADMINS
 
 BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(days=30)).strftime("%a, %d %b %Y %H:%M:%S GMT")
 
+
 def from_project_root(path):
     """returns the path prepended by the project root."""
     return os.path.join(
@@ -128,7 +129,7 @@ COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
 
 COMPRESS_JS_FILTERS = ['compressor.filters.template.TemplateFilter',
                        'compressor.filters.jsmin.JSMinFilter']
-                       
+
 COMPRESS_REBUILD_TIMEOUT = 2592000 # Rebuilds compressed files after 30 days (in seconds)
 
 COMPRESS_STORAGE = STATICFILES_STORAGE
@@ -153,7 +154,7 @@ GZIP_CONTENT_TYPES = (
     'application/javascript',
     'application/x-javascript',
 )
-    
+
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -187,9 +188,9 @@ TEMPLATE_LOADERS = (
     )
 
 MIDDLEWARE_CLASSES = (
-    'django.middleware.gzip.GZipMiddleware', # NOTE: Must be the first in this tuple
-    'htmlmin.middleware.HtmlMinifyMiddleware', # Enables compression of HTML
-    'django.middleware.cache.CacheMiddleware', # Manages caching
+    'django.middleware.gzip.GZipMiddleware',  # NOTE: Must be the first in this tuple
+    'htmlmin.middleware.HtmlMinifyMiddleware',  # Enables compression of HTML
+    'django.middleware.cache.CacheMiddleware',  # Manages caching
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -241,7 +242,7 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
-    'django_nose', # Must be included after 'south'
+    'django_nose',  # Must be included after 'south'
     'lettuce.django',
     'adminlettuce',
     'ajax_forms',
@@ -418,5 +419,8 @@ CELERYBEAT_SCHEDULE = {
         'args': tuple()
     }
 }
+
+STALE_TILE_RETRY_THRESHOLD = 240  # seconds
+IRCONFIG_RETRY_THRESHOLD = 240  # seconds
 
 djcelery.setup_loader()
