@@ -1,5 +1,6 @@
 import json
 import calendar
+import time
 from datetime import datetime
 
 from celery import Celery
@@ -7,6 +8,7 @@ from celery.utils import noop
 from celery.utils.log import get_task_logger
 
 from django.conf import settings
+from apps.api.resources import ContentGraphClient
 from apps.intentrank.utils import ajax_jsonp
 from apps.contentgraph.models import get_contentgraph_data
 
@@ -111,12 +113,22 @@ def poll_queues(interval=60):
     return ajax_jsonp(fetch_queue(interval=interval))
 
 
+def did_timeout_occur(obj, attr, timeout=120):
+    current_epoch_time = int(time.time())
+    if attr in obj:
+        last_queued_time = int(obj[attr])
+        if current_epoch_time - last_queued_time <= timeout:
+            return False
+    return True
+
+
 #Common.py has the config for how often this task should run
 @celery.task
 def queue_stale_tile_check(*args):
-    """Doesn't actually check for stale tiles.
-    Tile Generator checks for stale tiles.
+    """Queue's a Command for each page with stale tiles;
+    for the Tile Generator to process.
     """
+    QUEUE_TIMEOUT = 120  # seconds
     stores = get_contentgraph_data('/store?results=100000')['results']
     pages = []
 
@@ -131,15 +143,20 @@ def queue_stale_tile_check(*args):
     for page in pages:
         stale_content = get_contentgraph_data('/page/%s/tile-config?stale=true&results=1' % page['id'])['results']
 
-        if len(stale_content) > 0:
-            logger.info('Pushing to tile service worker queue!')
-            output_queue.write_message({
-                'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
-                'conf': json.dumps({
-                    'pageId': page['id'],
-                    'storeId': page['store-id']
+        if len(stale_content) > 0 and did_timeout_occur(page, 'last-queued-stale-tile', QUEUE_TIMEOUT):
+            payload = json.dumps({'last-queued-stale-tile': str(int(time.time()))})
+            r = ContentGraphClient.store(page['store-id']).page(page['id']).PATCH(data=payload)
+            if not r.status_code == 200:
+                logger.info('CG Error: could not update page object last-queued time')
+            else:
+                logger.info('Pushing to tile service worker queue!')
+                output_queue.write_message({
+                    'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
+                    'conf': json.dumps({
+                        'pageId': page['id'],
+                        'storeId': page['store-id']
+                    })
                 })
-            })
 
 
 @celery.task
