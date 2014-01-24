@@ -37,13 +37,18 @@
         , 'columnWidth': undefined  // optional (defaults to 255, pixels)
         , 'maxColumnCount': {{ campaign.column_count|default:4 }}  // optional (default: 4)
         // , 'events': undefined  // page event bindings (optional)
-        // , 'socialButtons': [  // optional
-        //     "facebook",
-        //     "twitter",
-        //     "pinterest",
-        //     "tumblr",
-        //     "share"  // who requested this feature?
-        //   ]
+        , 'socialButtons':
+            {% if social_buttons %}
+                {{ social_buttons|safe }}{# social-buttons must be a json array of strings -- see below #}
+            {% else %}
+                [
+                    "facebook",
+                    "twitter",
+                    "pinterest",
+                    "tumblr",
+                    "share"  // who requested this feature?
+                ]
+            {% endif %}
         // , 'shareSocialButtons': []  // optional; default: all
         // , 'shareSources': {}  // optional: default: see sharing module
         , 'socialButtonsEnableCondition': function (button) {

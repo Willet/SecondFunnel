@@ -198,6 +198,8 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         "product": json_postprocessor(product),
         "initial_results": map(json_postprocessor, initial_results),
         "backup_results": map(json_postprocessor, backup_results),
+        "social_buttons": getattr(campaign, 'social-buttons',
+                                  getattr(store, 'social-buttons', '')),
         "pub_date": datetime.now(),
         "legal_copy": getattr(campaign, 'legalCopy', ''),
         "mobile_hero_image": getattr(campaign, 'heroImageMobile', ''),
