@@ -42,17 +42,17 @@ def fetch_queue(queue=None, interval=None):
     # corresponding queues need to be defined in settings.AWS_SQS_POLLING_QUEUES
     handlers = {
         'handle_content_update_notification_message':
-            handle_content_update_notification_message,
+        handle_content_update_notification_message,
         'handle_product_update_notification_message':
-            handle_product_update_notification_message,
+        handle_product_update_notification_message,
         'handle_ir_config_update_notification_message':
-            handle_ir_config_update_notification_message,
+        handle_ir_config_update_notification_message,
         'handle_tile_generator_update_notification_message':
-            handle_tile_generator_update_notification_message,
+        handle_tile_generator_update_notification_message,
         'handle_page_generator_notification_message':
-            handle_page_generator_notification_message,
+        handle_page_generator_notification_message,
         'handle_scraper_notification_message':
-            handle_scraper_notification_message
+        handle_scraper_notification_message
     }
 
     regions = settings.AWS_SQS_POLLING_QUEUES
@@ -110,6 +110,7 @@ def poll_queues(interval=60):
     """
     return ajax_jsonp(fetch_queue(interval=interval))
 
+
 #Common.py has the config for how often this task should run
 @celery.task
 def queue_stale_tile_check(*args):
@@ -121,7 +122,7 @@ def queue_stale_tile_check(*args):
 
     for store in stores:
         try:
-           pages += get_contentgraph_data('/store/%s/page?results=100000' % store['id'])['results']
+            pages += get_contentgraph_data('/store/%s/page?results=100000' % store['id'])['results']
         except TypeError:
             logger.error('Store with id: %s failed to get pages from content graph.' % store['id'])
 
@@ -139,6 +140,7 @@ def queue_stale_tile_check(*args):
                     'storeId': page['store-id']
                 })
             })
+
 
 @celery.task
 def queue_page_regeneration():
@@ -158,7 +160,7 @@ def queue_page_regeneration():
         # to not need to iterate over stores.
         pages = get_contentgraph_data('/store/%s/page?results=100000&ir-stale=true' % store['id'])['results']
         for page in pages:
-            data = get_contentgraph_data('/store/%s/page/%s' %(store['id'], page['id']))
+            data = get_contentgraph_data('/store/%s/page/%s' % (store['id'], page['id']))
             last_generated = calendar.timegm(datetime.utcnow().timetuple())
             payload = json.dumps({
                 'ir-stale': 'false',
@@ -171,7 +173,7 @@ def queue_page_regeneration():
                 'version': data['last-modified']
             }
             try:
-                get_contentgraph_data('/store/%s/page/%s' %(store['id'], page['id']),
+                get_contentgraph_data('/store/%s/page/%s' % (store['id'], page['id']),
                                       headers=headers, method="PATCH", body=payload)
                 # Ensure we aren't generating too often
                 last_generated -= int(data['ir-last-generated'])
