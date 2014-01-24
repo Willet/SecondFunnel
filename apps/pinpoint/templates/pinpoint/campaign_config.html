@@ -34,7 +34,7 @@
             // 'description': '{{ campaign.description|escapejs }}'  // DEPRECATED
         }
         , 'campaign': '{{ campaign.intentrank_id|default:campaign.id }}' // required
-        , 'columnWidth': undefined  // optional (defaults to 255, pixels)
+        , 'columnWidth': {{ column_width|default:'undefined' }}  // optional. controls how often tiles are wide.  // optional (defaults to 255, pixels)
         , 'maxColumnCount': {{ campaign.column_count|default:4 }}  // optional (default: 4)
         // , 'events': undefined  // page event bindings (optional)
         , 'socialButtons':
