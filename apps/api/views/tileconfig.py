@@ -7,6 +7,7 @@ from django.http import HttpResponse
 
 from apps.api.decorators import check_login, request_methods
 
+from apps.intentrank.utils import ajax_jsonp
 from apps.api.resources import ContentGraphClient
 from apps.api.utils import mimic_response
 
@@ -28,7 +29,7 @@ def cg_response_contains_results(request):
 @csrf_exempt
 def prioritize_tile(request, store_id, page_id, tileconfig_id):
     tileconfig = tileconfig_prioritize(store_id, page_id, tileconfig_id)
-    return HttpResponse(content=json.dumps(tileconfig))
+    return ajax_jsonp(tileconfig)
 
 
 def tileconfig_prioritize(store_id, page_id, tileconfig_id):
@@ -45,7 +46,7 @@ def tileconfig_prioritize(store_id, page_id, tileconfig_id):
 @never_cache
 @csrf_exempt
 def deprioritize_tile(request, store_id, page_id, tileconfig_id):
-    return mimic_response(tileconfig_deprioritize(store_id, page_id, tileconfig_id))
+    return ajax_jsonp(tileconfig_deprioritize(store_id, page_id, tileconfig_id))
 
 
 def tileconfig_deprioritize(store_id, page_id, tileconfig_id):
@@ -139,7 +140,7 @@ def get_page_content(store_id, page_id, content_id):
     if r.status_code != 200:
         return HttpResponse(status=r.status_code)
     content = expand_contents(store_id, page_id, [r.json()])[0]
-    return HttpResponse(mimetype='application/json', content=json.dumps(content))
+    return ajax_jsonp(content)
 
 
 @request_methods('GET')
@@ -180,7 +181,7 @@ def get_page_product(store_id, page_id, product_id):
     if r.status_code != 200:
         return HttpResponse(status=r.status_code)
     product = expand_products(store_id, page_id, [r.json()])[0]
-    return HttpResponse(content=json.dumps(product))
+    return ajax_jsonp(product)
 
 
 @request_methods('GET')
