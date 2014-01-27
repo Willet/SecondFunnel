@@ -114,7 +114,8 @@ def require_keys_for_message(*keys):
     def wrap(fn):
         @functools.wraps(fn)
         def wrapped_fn(dct, *args, **kwargs):
-            print (dct, keys)
+            print (dct, keys)  # dct is still a string at this point
+                               # (converted to dict next line)
             if not check_keys_exist(dct, keys=keys):
                 raise MissingRequiredKeysError(keys)
             return fn(*((dct, ) + args), **kwargs)

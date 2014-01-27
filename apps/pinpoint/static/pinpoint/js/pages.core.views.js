@@ -691,7 +691,7 @@ App.module('core', function (module, App) {
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
             var buttons, width;
-            if (!(App.support.touch() || App.support.mobile())) {
+            if (this.$('.social-buttons').length >= 1) {
                 buttons = new App.sharing.SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
             }
