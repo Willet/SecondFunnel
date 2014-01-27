@@ -93,8 +93,10 @@ App.module('core', function (core, App) {
                 imgInstances.push(new core.Image(localImageVariable));
             });
 
-            // check if url exists and that we have search params
+            // check that we have search params
             if (App.URL_PARAMS.length > 0) {
+                // Add query parameters for url and redirect-url provided
+                // they exist
                 if (uri) {
                     uri += (uri.indexOf('?') > -1 ? '&' : '?') +
                         App.URL_PARAMS.substr(1);
@@ -102,7 +104,7 @@ App.module('core', function (core, App) {
                 if (redirect_uri) {
                     this.set({
                       'redirect-url': redirect_uri + (redirect_uri.indexOf('?') > -1 ? '&' : '?') +
-                        App.URL_PARAMS.substr(1)
+                          App.URL_PARAMS.substr(1)
                     });
                 }
             }
