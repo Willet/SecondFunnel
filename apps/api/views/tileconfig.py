@@ -278,7 +278,9 @@ def list_page_all_products(request, store_id, page_id):
 @never_cache
 @csrf_exempt
 def list_page_all_content(request, store_id, page_id):
-    r = ContentGraphClient.store(store_id).content().GET(params=request.GET)
+    params = request.GET.dict()
+    params['is-content'] = 'true'
+    r = ContentGraphClient.store(store_id).content().GET(params=params)
 
     def get_product(store_id, product_id):
         try:
