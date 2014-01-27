@@ -16,24 +16,6 @@ from apps.assets.models import Store
 from apps.contentgraph.models import get_contentgraph_data
 from apps.contentgraph.views import get_page, get_product, get_store
 from apps.pinpoint.models import Campaign
-from apps.static_pages.models import StaticLog
-
-
-def save_static_log(object_class, object_id, key):
-    # object_type = ContentType.objects.get_for_model(object_class)
-    log_record = StaticLog(
-        # content_type=object_type,
-        object_id=object_id,
-        key=key)
-    log_record.save()
-
-
-def remove_static_log(object_class, object_id, key):
-    # object_type = ContentType.objects.get_for_model(object_class)
-    log_records = StaticLog.objects.filter(
-        # content_type=object_type,
-        object_id=object_id,
-        key=key).delete()
 
 
 def get_bucket_name(bucket_name):
