@@ -279,7 +279,7 @@ def list_page_all_products(request, store_id, page_id):
 @csrf_exempt
 def list_page_all_content(request, store_id, page_id):
     params = request.GET.dict()
-    params['is_content'] = 'true'
+    params['is-content'] = 'true'
     r = ContentGraphClient.store(store_id).content().GET(params=params)
 
     def get_product(store_id, product_id):

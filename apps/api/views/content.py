@@ -121,7 +121,7 @@ def get_suggested_content_by_page(request, store_id, page_id):
 
     tile_config_url = "%s/page/%s/tile-config?template=product" % (
         settings.CONTENTGRAPH_BASE_URL, page_id)
-    content_url = "%s/store/%s/content?is_content=true&tagged-products=%s"
+    content_url = "%s/store/%s/content?is-content=true&tagged-products=%s"
 
     results = []
 
