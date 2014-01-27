@@ -50,6 +50,7 @@ def approve_content(request, store_id, content_id):
 
     return mimic_response(r)
 
+
 @request_methods('PUT')
 @check_login
 @never_cache
@@ -120,7 +121,7 @@ def get_suggested_content_by_page(request, store_id, page_id):
 
     tile_config_url = "%s/page/%s/tile-config?template=product" % (
         settings.CONTENTGRAPH_BASE_URL, page_id)
-    content_url = "%s/store/%s/content?tagged-products=%s"
+    content_url = "%s/store/%s/content?is_content=true&tagged-products=%s"
 
     results = []
 
