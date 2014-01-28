@@ -13,7 +13,7 @@ App._globals = App._globals || {};
 
 App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
-App.URL_PARAMS = location.search;
+App.URL_PARAMS = window.location.search;
 
 (function (details) {
     var pubDate;
