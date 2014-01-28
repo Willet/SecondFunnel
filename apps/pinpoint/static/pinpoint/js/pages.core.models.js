@@ -65,6 +65,7 @@ App.module('core', function (core, App) {
             var self = this,
                 defaultImage,
                 imgInstances = [],
+                relatedProducts,
                 uri = this.get('url'),
                 redirect_uri = this.get('redirect-url');
 
@@ -118,9 +119,25 @@ App.module('core', function (core, App) {
 
             defaultImage = this.getDefaultImage();
 
+            // Transform related-product image, if necessary
+            relatedProducts = this.get('related-products');
+            if(!_.isEmpty(relatedProducts)) {
+                relatedProducts = _.map(relatedProducts, function(product) {
+                    var originalImages = product.images || [];
+                    var newImages = [];
+                    _.each(originalImages, function(image) {
+                        var imgObj = $.extend(true, {}, image);
+                        newImages.push(new core.Image(imgObj));
+                    });
+                    product.images = newImages;
+                    return product;
+                });
+            }
+
             this.set({
                 'images': imgInstances,
                 'defaultImage': defaultImage,
+                'related-products': relatedProducts,
                 'dominant-colour': defaultImage.get('dominant-colour'),
                 'url': uri
             });
