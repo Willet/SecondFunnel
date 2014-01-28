@@ -12,8 +12,6 @@ celery = Celery()
 logger = get_task_logger(__name__)
 
 @validate_json_deserializable
-# key check removed (received message not to spec)
-# @require_keys_for_message('store-id', 'page-id')
 def handle_tile_generator_update_notification_message(message):
     """
     Messages are fetched from an SQS queue and processed by this function.

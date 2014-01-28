@@ -16,7 +16,7 @@ def check_queue(request, queue_name=None, region=settings.AWS_SQS_REGION_NAME):
         queue = settings.AWS_SQS_POLLING_QUEUES[region][queue_name]
     except KeyError as err:
         if queue_name:  # None queue is fine -- it then checks all queues
-            raise ValueError('Queue by that name ({0}) is missing'.format(
+            raise ValueError('Queue by that name ({0}) is not defined in settings'.format(
                 queue_name))
 
     try:

@@ -3,8 +3,7 @@ import json
 from celery import Celery
 from celery.utils.log import get_task_logger
 
-from apps.api.decorators import (validate_json_deserializable,
-                                 require_keys_for_message)
+from apps.api.decorators import validate_json_deserializable
 
 from apps.contentgraph.models import TileConfigObject
 
@@ -13,8 +12,6 @@ celery = Celery()
 logger = get_task_logger(__name__)
 
 @validate_json_deserializable
-# key check removed (received message not to spec)
-# @require_keys_for_message('product-id')
 def handle_product_update_notification_message(message):
     """
     Messages are fetched from an SQS queue and processed by this function.
@@ -54,17 +51,15 @@ def handle_product_update_notification_message(message):
     content_id = message.get('content-id') or message.get('contentId')
 
     # add an item to the TileGenerator's queue to have it updated
-    tco = TileConfigObject(store_id=store_id, page_id=page_id)
+    tile_config_object = TileConfigObject(store_id=store_id, page_id=page_id)
     logger.info('Marking tiles for product {0} as stale!'.format(page_id))
     # caller handles error
-    tco.mark_tile_for_regeneration(product_id=product_id)
+    tile_config_object.mark_tile_for_regeneration(product_id=product_id)
 
     return {'scheduled-tiles-for-product': product_id}
 
 
 @validate_json_deserializable
-# key check removed (received message not to spec)
-# @require_keys_for_message('content-id')
 def handle_content_update_notification_message(message):
     """
     CM-126: When a scraper updates a content record. When the scraper add
@@ -99,9 +94,9 @@ def handle_content_update_notification_message(message):
     content_id = message.get('content-id') or message.get('contentId')
 
     # add an item to the TileGenerator's queue to have it updated
-    tco = TileConfigObject(store_id=store_id, page_id=page_id)
+    tile_config_object = TileConfigObject(store_id=store_id, page_id=page_id)
     logger.info('Marking tiles for content {0} as stale!'.format(page_id))
     # caller handles error
-    tco.mark_tile_for_regeneration(content_id=content_id)
+    tile_config_object.mark_tile_for_regeneration(content_id=content_id)
 
     return {'scheduled-tiles-for-content': content_id}
