@@ -691,7 +691,7 @@ App.module('core', function (module, App) {
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
             var buttons, width;
-            if (!(App.support.touch() || App.support.mobile())) {
+            if (this.$('.social-buttons').length >= 1) {
                 buttons = new App.sharing.SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
             }
@@ -736,6 +736,29 @@ App.module('core', function (module, App) {
         'tagName': "div",
         'className': "previewContainer",
         'template': "#preview_container_template",
+        'templates': function () {
+            var templateRules = [
+                // supported contexts: options, data
+                '#<%= options.store.slug %>_<%= data.template %>_mobile_preview_container_template',
+                '#<%= data.template %>_mobile_preview_container_template',
+                '#<%= options.store.slug %>_<%= data.template %>_preview_container_template',
+                '#<%= data.template %>_preview_container_template',
+                '#product_mobile_preview_container_template',
+                '#product_preview_container_template',
+                '#mobile_preview_container_template', // fallback
+                '#preview_container_template' // fallback
+            ];
+
+            if (!App.support.mobile()) {
+                // remove mobile templates if it isn't mobile, since they take
+                // higher precedence by default
+                templateRules = _.reject(templateRules,
+                    function (t) {
+                        return t.indexOf('mobile') >= 0;
+                    });
+            }
+            return templateRules;
+        },
         'events': {
             'click .close, .mask': function () {
                 // hide this, then restore discovery.
