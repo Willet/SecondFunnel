@@ -9,6 +9,7 @@ from apps.api.decorators import check_login, request_methods
 
 from apps.intentrank.utils import ajax_jsonp
 from apps.api.resources import ContentGraphClient
+from apps.contentgraph.models import get_contentgraph_data
 from apps.api.utils import mimic_response
 
 
@@ -487,21 +488,8 @@ def mark_page_for_regeneration(store_id, page_id):
     """marks a page for regeneration.  When one of the periodic tasks see that
     this page has been marked for regeneration, it will queue up irconfig fot
     this page."""
-    attempts = 0 # In the event of a race condition
-    while attempts < 50:
-        # We put an upper limit of 50 as the number of times to attempt
-        # to update the page as being stale.  This *should* be enough.
-        page = ContentGraphClient.store(store_id).page(page_id).GET().json()
-        payload = json.dumps({
-            'ir-stale': 'true'
-        })
-        headers = {
-            'consistent': 'true',
-            'version': page['last-modified']
-        }
-        try:
-            get_contentgraph_data('/store/%s/page/%s' %(store_id, page_id),
-                                  headers=headers, method="PATCH", body=payload)
-            break
-        except:
-            attempts += 1
+    payload = json.dumps({
+        'ir-stale': 'true'
+    })
+    get_contentgraph_data('/store/%s/page/%s' %(store_id, page_id),
+                          method="PATCH", body=payload)
