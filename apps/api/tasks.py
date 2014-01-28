@@ -148,7 +148,7 @@ def queue_stale_tile_check(*args):
             if not r.status_code == 200:
                 logger.info('CG Error: could not update page object last-queued time')
             else:
-                logger.info('Pushing to tile service worker queue!')
+                logger.info('Pushing to tile service worker queue. pageId: %s storeId: %s' % (page['id'], page['store-id']))
                 output_queue.write_message({
                     'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
                     'conf': json.dumps({
