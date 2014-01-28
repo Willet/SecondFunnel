@@ -64,7 +64,8 @@ App.module('core', function (core, App) {
             // turn image json into image objects for easier access.
             var self = this,
                 defaultImage,
-                imgInstances = [];
+                imgInstances = [],
+                relatedProducts;
 
             // replace all image json with their objects.
             _.each(this.get('images'), function (image) {
@@ -100,9 +101,25 @@ App.module('core', function (core, App) {
 
             defaultImage = this.getDefaultImage();
 
+            // Transform related-product image, if necessary
+            relatedProducts = this.get('related-products');
+            if(!_.isEmpty(relatedProducts)) {
+                relatedProducts = _.map(relatedProducts, function(product) {
+                    var originalImages = product.images || [];
+                    var newImages = [];
+                    _.each(originalImages, function(image) {
+                        var imgObj = $.extend(true, {}, image);
+                        newImages.push(new core.Image(imgObj));
+                    });
+                    product.images = newImages;
+                    return product;
+                });
+            }
+
             this.set({
                 'images': imgInstances,
                 'defaultImage': defaultImage,
+                'related-products': relatedProducts,
                 'dominant-colour': defaultImage.get('dominant-colour')
             });
 
