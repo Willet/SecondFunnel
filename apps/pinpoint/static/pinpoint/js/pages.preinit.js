@@ -1,5 +1,5 @@
 /*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _,
-console */
+console, location */
 var App = new Marionette.Application(),
     SecondFunnel = App,  // old alias
     debugOp,
@@ -12,6 +12,8 @@ var App = new Marionette.Application(),
 App._globals = App._globals || {};
 
 App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
+
+App.URL_PARAMS = window.location.search;
 
 (function (details) {
     var pubDate;
@@ -52,6 +54,7 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {
         debugLevel = App.options.debug = hash[hashIdx + 6];
+        App.URL_PARAMS = App.URL_PARAMS.replace(App.URL_PARAMS.substr(hashIdx - 1, hashIdx + 6), '');
     } else {
         debugLevel = 0;
     }

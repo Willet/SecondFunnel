@@ -7,11 +7,13 @@ from celery import Celery
 from celery.utils import noop
 from celery.utils.log import get_task_logger
 
+from boto.exception import BotoServerError
 from django.conf import settings
 from apps.api.resources import ContentGraphClient
 from apps.intentrank.utils import ajax_jsonp
 from apps.contentgraph.models import get_contentgraph_data
 
+from apps.static_pages.aws_utils import logger as sns_logger
 from apps.static_pages.aws_utils import sqs_poll, SQSQueue
 
 
@@ -91,8 +93,9 @@ def fetch_queue(queue=None, interval=None):
                     results[region_name][queue_name].append(
                         handler(message.get_body()))
 
-                    # you have handled the message. dequeue the message.
-                    message.delete()
+                    # also log it to SNS
+                    sns_logger.info("Successfully processed message: {0}".format(
+                        message.get_body()))
 
                 except BaseException as err:
                     # message failed, leave message in queue so someone else
@@ -100,6 +103,17 @@ def fetch_queue(queue=None, interval=None):
                     results[region_name][queue_name].append(
                         {err.__class__.__name__: err.message,
                          'message': message.get_body()})
+
+                    # also log it to SNS
+                    sns_logger.error("{0}: {1}\n\n{2}".format(
+                        err.__class__.__name__, err.message,
+                        message.get_body()))
+
+                try:  # dequeue the message, whether or not it succeeded.
+                    message.delete()
+                except BotoServerError as err:
+                    sns_logger.warn("Could not dequeue this message\n\n{0}".format(
+                        message.get_body()))
 
     return results
 
@@ -146,9 +160,9 @@ def queue_stale_tile_check(*args):
             payload = json.dumps({'last-queued-stale-tile': str(int(time.time()))})
             r = ContentGraphClient.store(page['store-id']).page(page['id']).PATCH(data=payload)
             if not r.status_code == 200:
-                logger.info('CG Error: could not update page object last-queued time')
+                logger.error('CG Error: could not update page object last-queued time')
             else:
-                logger.info('Pushing to tile service worker queue!')
+                logger.info('Pushing to tile service worker queue. pageId: %s storeId: %s' % (page['id'], page['store-id']))
                 output_queue.write_message({
                     'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
                     'conf': json.dumps({

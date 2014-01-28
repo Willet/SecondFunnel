@@ -1,3 +1,4 @@
+/*global localStorage, $, _ */
 var Willet = Willet || {};
 
 Willet.cache = (function () {

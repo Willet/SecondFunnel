@@ -110,30 +110,57 @@ class TileConfigObject(object):
     is a pseudo-controller that tells the real generator to do stuff.
     """
 
-    client = None
+    clients = []
 
-    def __init__(self, page_id=-1):
-        self.client = ContentGraphClient.page(page_id)('tile-config')
+    def __init__(self, store_id=None, page_id=None):
+        """Supply either store_id or page_id, not both.
+
+        Supplying page_id is faster.
+        If store_id is given, performs actions on all pages for the store.
+        """
+        if page_id:
+            # this is only one page
+            self.clients = [ContentGraphClient.page(page_id)('tile-config')]
+        elif store_id:
+            # this is a store worth of pages; TODO actual pagination
+            store_pages = ContentGraphClient\
+                .store(store_id)\
+                .page.GET(params={'select': 'id', 'results': 100000})\
+                .json()
+            page_ids = [x['id'] for x in store_pages['results']]
+            self.clients = [ContentGraphClient.page(page_id)('tile-config')
+                            for page_id in page_ids]
+        else:  # given none of those
+            raise ValueError("Need store_id or page_id")
 
     def get_all(self):
-        """Get all configs for this page.
+        """Get all configs for all pages in this client.
 
-        @returns {list}
+        @returns list{list}
         @raises IndexError
         """
-        return self.client.GET().json()['results']
+        result = []
+        for client in self.clients:
+            result.append(client.GET().json()['results'])
+        return result
 
     def get(self, config_id):
         """Get one config.
 
-        @returns {dict}
+        @returns list{dict}
         @raises IndexError
         """
-        return self.client(config_id).GET().json()
+        result = []
+        for client in self.clients:
+            result.append(client(config_id).GET().json())
+        return result
 
     def update_config(self, config_id, new_props):
         """merges a dict given with the existing tile config."""
-        return self.client(config_id).PATCH(data=json.dumps(new_props)).json()
+        result = []
+        for client in self.clients:
+            result.append(client(config_id).PATCH(data=json.dumps(new_props)).json())
+        return result
 
     def mark_tile_for_regeneration(self, content_id=None, product_id=None):
         """Mark all tile configs for this product/content for regeneration.
@@ -147,14 +174,14 @@ class TileConfigObject(object):
             query_key = 'product-ids'
 
         # list
-        tile_configs = self.client.GET(
-            params={query_key: content_id or product_id}).json()['results']
+        for client in self.clients:
+            tile_configs = client.GET(
+                params={query_key: content_id or product_id}).json()['results']
 
-        # dicts
-        for tile_config in tile_configs:
-            # yes, a string 'true'
-            self.client(tile_config['id']).PATCH(
-                # TODO: might need concurrency checking
-                params={'version': tile_config['last-modified']},
-                data={'stale': 'true'})
-            # TODO: version/last-modified
+            # dicts
+            for tile_config in tile_configs:
+                client(tile_config['id']).PATCH(
+                    # TODO: might need concurrency checking
+                    params={'version': tile_config['last-modified']},
+                    data={'stale': 'true'})  # yes, a string 'true'
+                # TODO: version/last-modified
