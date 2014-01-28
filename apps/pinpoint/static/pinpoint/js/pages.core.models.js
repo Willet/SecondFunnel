@@ -64,7 +64,9 @@ App.module('core', function (core, App) {
             // turn image json into image objects for easier access.
             var self = this,
                 defaultImage,
-                imgInstances = [];
+                imgInstances = [],
+                uri = this.get('url'),
+                redirect_uri = this.get('redirect-url');
 
             // replace all image json with their objects.
             _.each(this.get('images'), function (image) {
@@ -91,10 +93,26 @@ App.module('core', function (core, App) {
                 imgInstances.push(new core.Image(localImageVariable));
             });
 
+            // check that we have search params
+            if (App.URL_PARAMS.length > 0) {
+                // Add query parameters for url and redirect-url provided
+                // they exist
+                if (uri) {
+                    uri += (uri.indexOf('?') > -1 ? '&' : '?') +
+                        App.URL_PARAMS.substr(1);
+                }
+                if (redirect_uri) {
+                    this.set({
+                      'redirect-url': redirect_uri + (redirect_uri.indexOf('?') > -1 ? '&' : '?') +
+                          App.URL_PARAMS.substr(1)
+                    });
+                }
+            }
+
             // this tile has no images, or can be an image itself
             if (imgInstances.length === 0) {
                 imgInstances.push(new core.Image({
-                    'url': this.get('url')
+                    'url': uri
                 }));
             }
 
@@ -103,7 +121,8 @@ App.module('core', function (core, App) {
             this.set({
                 'images': imgInstances,
                 'defaultImage': defaultImage,
-                'dominant-colour': defaultImage.get('dominant-colour')
+                'dominant-colour': defaultImage.get('dominant-colour'),
+                'url': uri
             });
 
             App.vent.trigger('tileModelInitialized', this);
