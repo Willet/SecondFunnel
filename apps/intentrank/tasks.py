@@ -3,7 +3,8 @@ import json
 from celery import Celery
 from celery.utils.log import get_task_logger
 
-from apps.api.decorators import validate_json_deserializable, require_keys_for_message
+from apps.api.decorators import (validate_json_deserializable,
+                                 require_keys_for_message)
 from apps.static_pages.tasks import generate_static_campaign_now
 
 
