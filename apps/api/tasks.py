@@ -12,6 +12,7 @@ from apps.api.resources import ContentGraphClient
 from apps.intentrank.utils import ajax_jsonp
 from apps.contentgraph.models import get_contentgraph_data
 
+from apps.static_pages.aws_utils import logger as sns_logger
 from apps.static_pages.aws_utils import sqs_poll, SQSQueue
 
 
@@ -91,6 +92,10 @@ def fetch_queue(queue=None, interval=None):
                     results[region_name][queue_name].append(
                         handler(message.get_body()))
 
+                    # also log it to SNS
+                    sns_logger.info("Message processed: {0}".format(
+                        message.get_body()))
+
                     # you have handled the message. dequeue the message.
                     message.delete()
 
@@ -100,6 +105,11 @@ def fetch_queue(queue=None, interval=None):
                     results[region_name][queue_name].append(
                         {err.__class__.__name__: err.message,
                          'message': message.get_body()})
+
+                    # also log it to SNS
+                    sns_logger.error("{0}: {1}\n\n{2}".format(
+                        err.__class__.__name__, err.message,
+                        message.get_body()))
 
     return results
 

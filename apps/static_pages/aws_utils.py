@@ -7,6 +7,7 @@ import json
 import re
 import StringIO
 
+from functools import partial
 from django.conf import settings
 
 from boto import sns
@@ -337,7 +338,7 @@ def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
 
     The SQS queue should subscribe to the SNS topic: http://i.imgur.com/fLOdNyD.png
 
-    @param dev_suffix {bool} whether '_dev' or '_test' will be added to the
+    @param dev_suffix {bool} whether '-dev' or '-test' will be added to the
     topic name depending on the current environment.
 
     @raises {IndexError|TypeError|ValueError}
@@ -345,7 +346,7 @@ def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
 
     # ENVIRONMENT is "production" in production
     if dev_suffix and settings.ENVIRONMENT in ['dev', 'test']:
-        topic_name = '{topic_name}_{env}'.format(topic_name=topic_name,
+        topic_name = '{topic_name}-{env}'.format(topic_name=topic_name,
                                                  env=settings.ENVIRONMENT)
 
     connection = sns_connection(region_name)
@@ -364,7 +365,7 @@ def sqs_poll(callback=None, region_name=settings.AWS_SQS_REGION_NAME,
 
     # ENVIRONMENT is "production" in production
     if dev_suffix and settings.ENVIRONMENT in ['dev', 'test']:
-        queue_name = '{queue_name}_{env}'.format(queue_name=queue_name,
+        queue_name = '{queue_name}-{env}'.format(queue_name=queue_name,
                                                  env=settings.ENVIRONMENT)
 
     connection = sqs_connection(region_name=region_name)
@@ -382,3 +383,49 @@ def sqs_poll(callback=None, region_name=settings.AWS_SQS_REGION_NAME,
         return callback(messages)
 
     return messages
+
+
+class SNSErrorLogger(object):
+    """Provides a logger object that posts logging messages to an SQS queue
+    predefined in the application's environment-dependent settings.
+
+    Available methods: log(), info(), warn(), error()
+    """
+    def __init__(self):
+        self.info = partial(self.log, log_level="info")
+        self.warn = self.warning = partial(self.log, log_level="warning")
+        self.error = partial(self.log, log_level="error")
+
+    def get_topic_name(self):
+        """e.g. page-generator-queue-log-test,
+                page-generator-queue-log-production
+        """
+        if settings.ENVIRONMENT in ['test', 'dev']:
+            return '{0}-{1}'.format(settings.AWS_SNS_LOGGING_TOPIC_NAME,
+                                    settings.ENVIRONMENT)
+        return settings.AWS_SNS_LOGGING_TOPIC_NAME
+
+    def get_topic_subject(self):
+        """e.g. page-generator-test,
+                page-generator-production
+        """
+        return '{0}-{1}'.format(settings.AWS_SNS_TOPIC_NAME,
+                                settings.ENVIRONMENT)
+
+    def log(self, msg, log_level="info"):
+        """Publishes a message to the predefined SNS topic.
+
+        :param log_level one of "info", "warning", and "error".
+        """
+
+        if not log_level in settings.AWS_SNS_LOGGING_LEVELS:
+            raise ValueError("log_level %s not defined" % log_level)
+
+        sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
+                   topic_name=self.get_topic_name(),
+                   subject='{0} {1}'.format(self.get_topic_subject(), log_level),
+                   message='{0}: {1}'.format(log_level.capitalize(), msg))
+
+
+# import this from other modules
+logger = SNSErrorLogger()

@@ -3,7 +3,7 @@ import json
 from celery import Celery
 from celery.utils.log import get_task_logger
 
-from apps.api.decorators import validate_json_deserializable
+from apps.api.decorators import validate_json_deserializable, require_keys_for_message
 from apps.static_pages.tasks import generate_static_campaign_now
 
 
@@ -11,8 +11,7 @@ celery = Celery()
 logger = get_task_logger(__name__)
 
 @validate_json_deserializable
-# key check removed (received message not to spec)
-# @require_keys_for_message('store-id', 'page-id')
+@require_keys_for_message('storeId', 'pageId')
 def handle_ir_config_update_notification_message(message):
     """
     Messages are fetched from an SQS queue and processed by this function.
@@ -38,8 +37,8 @@ def handle_ir_config_update_notification_message(message):
     """
     message = json.loads(message)
 
-    store_id = message.get('store-id') or message.get('storeId')
-    page_id = message.get('page-id') or message.get('pageId')
+    store_id = message['storeId']
+    page_id = message['pageId']
 
     logger.info('Generating page {0} now!'.format(page_id))
     # caller handles error
