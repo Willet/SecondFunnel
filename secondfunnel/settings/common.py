@@ -112,7 +112,10 @@ AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_SNS_REGION_NAME = 'us-west-2'
 AWS_SQS_REGION_NAME = AWS_SNS_REGION_NAME  # by default, both oregon
-AWS_SNS_TOPIC_NAME = 'page_generator'
+AWS_SNS_TOPIC_NAME = 'page-generator'
+AWS_SNS_LOGGING_TOPIC_NAME = 'page-generator-queue-log'
+# allowed logging levels (arbitarily restricted)
+AWS_SNS_LOGGING_LEVELS = ['info', 'warning', 'error']
 AWS_SQS_QUEUE_NAME = AWS_SNS_TOPIC_NAME  # by default, same as the sns name
 
 # dict of queues by region to poll regularly, using celery beat.

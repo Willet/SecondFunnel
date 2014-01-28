@@ -6,7 +6,8 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.utils import check_keys_exist
-from secondfunnel.errors import MissingRequiredKeysError
+from apps.utils.functional import check_other_keys_dont_exist
+from secondfunnel.errors import MissingRequiredKeysError, TooManyKeysError
 
 
 def check_login(fn):
@@ -77,10 +78,6 @@ def validate_json_deserializable(fn):
 
     This decorator decorator targets SQS queue-processing functions that
     accept one SQS queue message.
-
-    Example:
-    # returns error dict if *args[0]['a'] doesn't exist
-    @require_keys_for_message('a')
     """
     @functools.wraps(fn)
     def wrap(*args, **kwargs):
@@ -100,16 +97,19 @@ def validate_json_deserializable(fn):
     return wrap
 
 
-def require_keys_for_message(*keys):
+def require_keys_for_message(keys, only_those_keys=True):
     """Returns a decorator that returns a malformed-message dict and
     the dict at fault, or the function that was meant to be run.
 
     This decorator decorator targets SQS queue-processing functions that
     accept one SQS queue message.
 
+    :param only_those_keys: throw exception if the message
+    contains more keys than the ones you are expecting.
+
     Example:
     # returns error dict if *args[0]['a'] doesn't exist
-    @require_keys_for_message('a')
+    @require_keys_for_message(['a'])
     """
     def wrap(fn):
         @functools.wraps(fn)
@@ -118,6 +118,12 @@ def require_keys_for_message(*keys):
                                # (converted to dict next line)
             if not check_keys_exist(dct, keys=keys):
                 raise MissingRequiredKeysError(keys)
+
+            if only_those_keys and not check_other_keys_dont_exist(
+                    json.loads(dct), keys=keys):
+                raise TooManyKeysError(
+                    expected=json.loads(dct).keys(),
+                    got=keys)
             return fn(*((dct, ) + args), **kwargs)
         return wrapped_fn
     return wrap

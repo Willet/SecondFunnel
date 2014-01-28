@@ -17,3 +17,21 @@ class MissingRequiredKeysError(ValueError):
 
     def __str__(self):
         return self.msg + ', '.join(self.keys)
+
+
+class TooManyKeysError(ValueError):
+    msg = 'Too many keys in the object/dict'
+    expected = None
+    got = None
+
+    def __init__(self, expected, got):
+        if not expected:
+            expected = []
+        self.expected = expected
+
+        if not got:
+            got = []
+        self.got = got
+
+    def __str__(self):
+        return self.msg + '; expected %s, got %s' % (self.expected, self.got)
