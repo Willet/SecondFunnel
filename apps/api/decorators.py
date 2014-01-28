@@ -97,7 +97,7 @@ def validate_json_deserializable(fn):
     return wrap
 
 
-def require_keys_for_message(only_those_keys=True, *keys):
+def require_keys_for_message(keys, only_those_keys=True):
     """Returns a decorator that returns a malformed-message dict and
     the dict at fault, or the function that was meant to be run.
 
@@ -109,7 +109,7 @@ def require_keys_for_message(only_those_keys=True, *keys):
 
     Example:
     # returns error dict if *args[0]['a'] doesn't exist
-    @require_keys_for_message('a')
+    @require_keys_for_message(['a'])
     """
     def wrap(fn):
         @functools.wraps(fn)
@@ -118,9 +118,12 @@ def require_keys_for_message(only_those_keys=True, *keys):
                                # (converted to dict next line)
             if not check_keys_exist(dct, keys=keys):
                 raise MissingRequiredKeysError(keys)
+
             if only_those_keys and not check_other_keys_dont_exist(
-                    dct, keys=keys):
-                raise TooManyKeysError(keys)
+                    json.loads(dct), keys=keys):
+                raise TooManyKeysError(
+                    expected=json.loads(dct).keys(),
+                    got=keys)
             return fn(*((dct, ) + args), **kwargs)
         return wrapped_fn
     return wrap

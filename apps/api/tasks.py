@@ -7,6 +7,7 @@ from celery import Celery
 from celery.utils import noop
 from celery.utils.log import get_task_logger
 
+from boto.exception import BotoServerError
 from django.conf import settings
 from apps.api.resources import ContentGraphClient
 from apps.intentrank.utils import ajax_jsonp
@@ -93,11 +94,8 @@ def fetch_queue(queue=None, interval=None):
                         handler(message.get_body()))
 
                     # also log it to SNS
-                    sns_logger.info("Message processed: {0}".format(
+                    sns_logger.info("Successfully processed message: {0}".format(
                         message.get_body()))
-
-                    # you have handled the message. dequeue the message.
-                    message.delete()
 
                 except BaseException as err:
                     # message failed, leave message in queue so someone else
@@ -109,6 +107,12 @@ def fetch_queue(queue=None, interval=None):
                     # also log it to SNS
                     sns_logger.error("{0}: {1}\n\n{2}".format(
                         err.__class__.__name__, err.message,
+                        message.get_body()))
+
+                try:  # dequeue the message, whether or not it succeeded.
+                    message.delete()
+                except BotoServerError as err:
+                    sns_logger.warn("Could not dequeue this message\n\n{0}".format(
                         message.get_body()))
 
     return results

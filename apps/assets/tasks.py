@@ -13,7 +13,7 @@ celery = Celery()
 logger = get_task_logger(__name__)
 
 @validate_json_deserializable
-@require_keys_for_message('storeId', 'productId')
+@require_keys_for_message(['storeId', 'productId'])
 def handle_product_update_notification_message(message):
     """
     Messages are fetched from an SQS queue and processed by this function.
@@ -60,7 +60,7 @@ def handle_product_update_notification_message(message):
 
 
 @validate_json_deserializable
-@require_keys_for_message('storeId', 'contentId')
+@require_keys_for_message(['storeId', 'contentId'])
 def handle_content_update_notification_message(message):
     """
     CM-126: When a scraper updates a content record. When the scraper add

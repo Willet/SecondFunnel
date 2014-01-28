@@ -13,7 +13,7 @@ celery = Celery()
 logger = get_task_logger(__name__)
 
 @validate_json_deserializable
-@require_keys_for_message('storeId', 'pageId')
+@require_keys_for_message(['storeId', 'pageId'])
 def handle_tile_generator_update_notification_message(message):
     """
     Messages are fetched from an SQS queue and processed by this function.
