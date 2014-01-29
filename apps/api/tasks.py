@@ -11,7 +11,7 @@ from boto.exception import BotoServerError
 from django.conf import settings
 from apps.api.resources import ContentGraphClient
 from apps.intentrank.utils import ajax_jsonp
-from apps.contentgraph.models import get_contentgraph_data
+from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
 
 from apps.static_pages.aws_utils import logger as sns_logger
 from apps.static_pages.aws_utils import sqs_poll, SQSQueue
@@ -185,7 +185,7 @@ def queue_page_regeneration():
         # Get only the stale pages from the store, eventually this will be phased
         # to not need to iterate over stores.
         for page in get_contentgraph_data('/store/%s/page&ir-stale=true' % store['id']):
-            data = next(get_contentgraph_data('/store/%s/page/%s' % (store['id'], page['id'])))
+            data = call_contentgraph('/store/%s/page/%s' % (store['id'], page['id']))
             last_generated = calendar.timegm(datetime.utcnow().timetuple())
             payload = json.dumps({
                 'ir-last-generated': last_generated
@@ -197,9 +197,8 @@ def queue_page_regeneration():
                 'version': data['last-modified']
             }
             try:
-                next(get_contentgraph_data('/store/%s/page/%s' % (store['id'],
-                                                                  page['id']),
-                    headers=headers, method="PATCH", body=payload))
+                call_contentgraph('/store/%s/page/%s' % (store['id'], page['id']),
+                    headers=headers, method="PATCH", body=payload)
                 # Ensure we aren't generating too often
                 last_generated -= int(data['ir-last-generated'])
                 if last_generated > settings.IRCONFIG_RETRY_THRESHOLD:

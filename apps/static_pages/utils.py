@@ -4,6 +4,7 @@ import re
 
 from collections import defaultdict
 from datetime import datetime
+from requests import HTTPError
 
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
@@ -13,7 +14,7 @@ from django.test import RequestFactory
 from django.utils.importlib import import_module
 
 from apps.assets.models import Store
-from apps.contentgraph.models import get_contentgraph_data
+from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
 from apps.contentgraph.views import get_page, get_product, get_store
 from apps.pinpoint.models import Campaign
 
@@ -206,8 +207,8 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     try:
         theme_url = theme.page
         # 'template' is a key proposed by alex
-        page_str = next(get_contentgraph_data(theme_url))['template']['results']
-    except (TypeError, ValueError):
+        page_str = call_contentgraph(theme_url)['template']
+    except (TypeError, ValueError, HTTPError):
         page_str = theme.page  # it's fine, this theme is a string
 
     # Replace necessary tags

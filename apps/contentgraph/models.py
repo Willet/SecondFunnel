@@ -10,11 +10,8 @@ ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL,
                                      headers={'ApiKey': 'secretword'})
 
 
-def get_contentgraph_data(endpoint_path, headers=None, method="GET", body="",
-                          auto_paginate=True):
+def get_contentgraph_data(endpoint_path, headers=None, method="GET", body=""):
     """Wraps all contentgraph requests with the required api key.
-
-    Setting auto_paginate currently has no effect.
 
     return will be a json dict, or a string if deserialization fails.
     """
@@ -27,12 +24,12 @@ def get_contentgraph_data(endpoint_path, headers=None, method="GET", body="",
 
     # same as the ContentGraphClient above, with variable headers
     contentgraph_client = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL,
-                             headers=headers)
+        headers=headers)
 
     while True:
         # getattr used to retrieve GET/POST magic methods
-        response = getattr(contentgraph_client(endpoint_path),
-                           method)(params=params, payload=body)
+        method_handler = getattr(contentgraph_client(endpoint_path), method)
+        response = method_handler(params=params, data=body)
 
         # raise errors defined by the Requests library (400s, 500s, 600s)
         response.raise_for_status()
@@ -68,6 +65,14 @@ def get_contentgraph_data(endpoint_path, headers=None, method="GET", body="",
             break  # trigger StopIteration
 
 
+def call_contentgraph(*args, **kwargs):
+    """function-alias for the get_contentgraph_data generator.
+
+    Returns one result (the first one by the generator).
+    """
+    return next(get_contentgraph_data(*args, **kwargs))
+
+
 class ContentGraphObject(object):
     """object representation of any CG endpoint.
 
@@ -84,17 +89,16 @@ class ContentGraphObject(object):
         """
         self.endpoint_path = endpoint_path
         if auto_create:
-            next(get_contentgraph_data(endpoint_path=endpoint_path, method="PUT",
-                                  body=json.dumps({})))
+            call_contentgraph(endpoint_path=endpoint_path, method="PUT",
+                              body=json.dumps({}))
 
-        self.cached_data = next(get_contentgraph_data(
-            endpoint_path=self.endpoint_path))
+        self.cached_data = call_contentgraph(endpoint_path=self.endpoint_path)
 
     def data(self):
         if self.cached_data:
             result = self.cached_data
         else:
-            result = next(get_contentgraph_data(endpoint_path=self.endpoint_path))
+            result = call_contentgraph(endpoint_path=self.endpoint_path)
             self.cached_data = result
 
         return self.cached_data
@@ -111,8 +115,8 @@ class ContentGraphObject(object):
         setattr(self, key, value)
 
         # send it back to the server
-        return next(get_contentgraph_data(endpoint_path=self.endpoint_path,
-            method="PATCH", body=json.dumps({key: value})))
+        return call_contentgraph(endpoint_path=self.endpoint_path,
+            method="PATCH", body=json.dumps({key: value}))
 
     def json(self, serialized=True):
         if serialized:
