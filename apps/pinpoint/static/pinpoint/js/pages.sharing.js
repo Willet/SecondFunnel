@@ -268,7 +268,7 @@ App.module("sharing", function (sharing, App) {
      * @type {SocialButton}
      */
     this.TwitterSocialButton = sharing.SocialButton.extend({
-        'load': function () {
+        'onRender': function () {
             // Load the widget when called.
             try {
                 // mainly lets you show tweet count.
@@ -276,7 +276,6 @@ App.module("sharing", function (sharing, App) {
             } catch (err) {
                 console.warn('Could not load twitter');
             }
-            return this;
         }
     });
 
