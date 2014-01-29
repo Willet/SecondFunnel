@@ -10,47 +10,62 @@ ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL,
                                      headers={'ApiKey': 'secretword'})
 
 
-def get_contentgraph_data(endpoint_path, headers=None, method="GET", body=""):
+def get_contentgraph_data(endpoint_path, headers=None, method="GET", body="",
+                          auto_paginate=True):
     """Wraps all contentgraph requests with the required api key.
+
+    Setting auto_paginate currently has no effect.
 
     return will be a json dict, or a string if deserialization fails.
     """
-    def is_valid_response(status):
-        # wild guess (HTTP 200 series are usually valid)
-        return 200 <= int(status) < 300
+    params = {}
 
     if not headers:
         headers = {}
 
-    # it will get fancier over time
-    headers.update({'ApiKey' : 'secretword'})
+    headers.update({'ApiKey': 'secretword'})
 
-    http = httplib2.Http()
-    response, content = http.request(
-        settings.CONTENTGRAPH_BASE_URL + endpoint_path, method=method,
-        body=body, headers=headers)
+    # same as the ContentGraphClient above, with variable headers
+    contentgraph_client = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL,
+                             headers=headers)
 
-    # possible ValueError intentionally propagated
-    if is_valid_response(response['status']):
-        return json.loads(content)
+    while True:
+        # getattr used to retrieve GET/POST magic methods
+        response = getattr(contentgraph_client(endpoint_path),
+                           method)(params=params, payload=body)
 
-    if response['status'] == '401':
-        raise ValueError('401 Requested object requires authentication')
+        # raise errors defined by the Requests library (400s, 500s, 600s)
+        response.raise_for_status()
 
-    if response['status'] == '403':
-        raise ValueError('403 Requested object is not accessible')
+        content = response.json()
 
-    if response['status'] == '404':
-        raise ValueError('404 Requested object does not exist')
+        # - 'meta' is an object if the call is paginated
+        # - 'meta' cannot be an object if the object itself has an
+        #       attribute named 'meta' (dynamodb limitation)
+        if 'meta' in content:
+            if isinstance(content['meta'], dict):  # is CG meta
+                if 'cursors' in content['meta'] and 'next' in content['meta']['cursors']:
+                    if not isinstance(content['results'], list):
+                        # validate and raise, because we love that
+                        raise TypeError(
+                            'Paginated call expects [results] to be list; '
+                            'got [{0}] instead'.format(
+                                type(content['results'])))
 
-    if response['status'] == '405':
-        raise ValueError('405 Method does not work on request object')
+                    for result in content['results']:
+                        yield result
+                        params['offset'] = content['meta']['cursors']['next']
 
-    # try to return something in all other cases
-    try:
-        return json.loads(content)
-    except:
-        return None
+                else:  # end of page
+                    for result in content['results']:
+                        yield result
+                    break  # trigger StopIteration
+            else:  # is user-defined meta
+                yield content
+                break  # trigger StopIteration
+        else:  # not paginated call
+            yield content
+            break  # trigger StopIteration
 
 
 class ContentGraphObject(object):
@@ -69,16 +84,17 @@ class ContentGraphObject(object):
         """
         self.endpoint_path = endpoint_path
         if auto_create:
-            get_contentgraph_data(endpoint_path=endpoint_path, method="PUT",
-                                  body=json.dumps({}))
+            next(get_contentgraph_data(endpoint_path=endpoint_path, method="PUT",
+                                  body=json.dumps({})))
 
-        self.cached_data = get_contentgraph_data(endpoint_path=self.endpoint_path)
+        self.cached_data = next(get_contentgraph_data(
+            endpoint_path=self.endpoint_path))
 
     def data(self):
         if self.cached_data:
             result = self.cached_data
         else:
-            result = get_contentgraph_data(endpoint_path=self.endpoint_path)
+            result = next(get_contentgraph_data(endpoint_path=self.endpoint_path))
             self.cached_data = result
 
         return self.cached_data
@@ -95,8 +111,8 @@ class ContentGraphObject(object):
         setattr(self, key, value)
 
         # send it back to the server
-        return get_contentgraph_data(endpoint_path=self.endpoint_path,
-            method="PATCH", body=json.dumps({key: value}))
+        return next(get_contentgraph_data(endpoint_path=self.endpoint_path,
+            method="PATCH", body=json.dumps({key: value})))
 
     def json(self, serialized=True):
         if serialized:

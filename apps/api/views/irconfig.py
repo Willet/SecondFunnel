@@ -21,9 +21,10 @@ def generate_ir_config_view(request, store_id, ir_id):
     """view for generating an IR config."""
     try:
         generate_ir_config(store_id=store_id, ir_id=ir_id)
-        get_contentgraph_data('/store/%s/page/%s' %(store_id, ir_id), method="PATCH", body=json.dumps({
+        next(get_contentgraph_data('/store/%s/page/%s' %(store_id, ir_id),
+                                   method="PATCH", body=json.dumps({
             'ir-last-generated': calendar.timegm(datetime.utcnow().timetuple())
-        }))
+        })))
         return HttpResponse(status=200, content='OK')
     except ValueError as err:
         return HttpResponse(status=500, content=err.message)

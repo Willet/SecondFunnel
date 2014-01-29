@@ -491,5 +491,5 @@ def mark_page_for_regeneration(store_id, page_id):
     payload = json.dumps({
         'ir-stale': 'true'
     })
-    get_contentgraph_data('/store/%s/page/%s' %(store_id, page_id),
-                          method="PATCH", body=payload)
+    next(get_contentgraph_data('/store/%s/page/%s' %(store_id, page_id),
+                          method="PATCH", body=payload))

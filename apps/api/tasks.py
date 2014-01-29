@@ -142,19 +142,18 @@ def queue_stale_tile_check(*args):
     """Queue's a Command for each page with stale tiles;
     for the Tile Generator to process.
     """
-    stores = get_contentgraph_data('/store?results=100000')['results']
     pages = []
 
-    for store in stores:
+    for store in get_contentgraph_data('/store'):
         try:
-            pages += get_contentgraph_data('/store/%s/page?results=100000' % store['id'])['results']
+            pages += [page for page in get_contentgraph_data('/store/%s/page' % store['id'])]
         except TypeError:
             logger.error('Store with id: %s failed to get pages from content graph.' % store['id'])
 
     output_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
 
     for page in pages:
-        stale_content = get_contentgraph_data('/page/%s/tile-config?stale=true&results=1' % page['id'])['results']
+        stale_content = [content for content in ('/page/%s/tile-config?stale=true&results=1' % page['id'])]
 
         if len(stale_content) > 0 and did_timeout_occur(page, 'last-queued-stale-tile', settings.STALE_TILE_RETRY_THRESHOLD):
             payload = json.dumps({'last-queued-stale-tile': str(int(time.time()))})
@@ -182,14 +181,11 @@ def queue_page_regeneration():
     from apps.api.views import generate_ir_config
     # For now, 100000 is probably a safe value for the number of results, but ideally, we'd
     # want the ContentGraph to return a generator to handle pagination.
-    stores = get_contentgraph_data('/store?results=100000')['results']
-
-    for store in stores:
+    for store in get_contentgraph_data('/store'):
         # Get only the stale pages from the store, eventually this will be phased
         # to not need to iterate over stores.
-        pages = get_contentgraph_data('/store/%s/page?results=100000&ir-stale=true' % store['id'])['results']
-        for page in pages:
-            data = get_contentgraph_data('/store/%s/page/%s' % (store['id'], page['id']))
+        for page in get_contentgraph_data('/store/%s/page&ir-stale=true' % store['id']):
+            data = next(get_contentgraph_data('/store/%s/page/%s' % (store['id'], page['id'])))
             last_generated = calendar.timegm(datetime.utcnow().timetuple())
             payload = json.dumps({
                 'ir-last-generated': last_generated
@@ -201,8 +197,9 @@ def queue_page_regeneration():
                 'version': data['last-modified']
             }
             try:
-                get_contentgraph_data('/store/%s/page/%s' % (store['id'], page['id']),
-                                      headers=headers, method="PATCH", body=payload)
+                next(get_contentgraph_data('/store/%s/page/%s' % (store['id'],
+                                                                  page['id']),
+                    headers=headers, method="PATCH", body=payload))
                 # Ensure we aren't generating too often
                 last_generated -= int(data['ir-last-generated'])
                 if last_generated > settings.IRCONFIG_RETRY_THRESHOLD:

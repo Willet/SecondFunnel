@@ -206,7 +206,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     try:
         theme_url = theme.page
         # 'template' is a key proposed by alex
-        page_str = get_contentgraph_data(theme_url)['template']['results']
+        page_str = next(get_contentgraph_data(theme_url))['template']['results']
     except (TypeError, ValueError):
         page_str = theme.page  # it's fine, this theme is a string
 
