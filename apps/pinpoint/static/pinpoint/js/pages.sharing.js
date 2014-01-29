@@ -171,14 +171,15 @@ App.module("sharing", function (sharing, App) {
                 data = this.model.attributes,
                 page = App.option('page', {}),
                 product = data || page.product || {},
-                image = page['stl-image'] || page['featured-image'] || data.image || data.url;
+                image = page['stl-image'] || page['featured-image'] || data.image.url || data.url;
 
             helpers.url = encodeURIComponent(product.url || image);
             helpers.product = {
-                'url': product.url
+                'url': product.url,
+                'image': image
             };
             helpers.showCount = this.showCount;
-            helpers.image = image;
+            helpers.image = encodeURIComponent(image);
 
             // Call the after template handler to allow subclasses to modify this
             // data
@@ -251,7 +252,7 @@ App.module("sharing", function (sharing, App) {
 
         'onTemplateHelpers': function (helpers) {
             // Additional attributes to add to our template data.
-            var url = (helpers.product.url || helpers.image);
+            var url = (helpers.product.url || helpers.product.image);
             if (url && url.indexOf("facebook") > -1) {
                 url = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(url)[1];
             }
