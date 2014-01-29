@@ -48,8 +48,6 @@ def generate_ir_config(store_id, ir_id):
     if settings.ENVIRONMENT in ['dev', 'test']:
         queue_name = '{queue}-{env}'.format(queue=queue_name,
                                             env='test')
-
-
     try:
         queue = SQSQueue(queue_name=queue_name)
     except ValueError, e:
