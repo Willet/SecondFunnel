@@ -717,12 +717,16 @@ App.module('core', function (module, App) {
         },
 
         // Disable scrolling body when preview is shown
-        'onShow': function() {
-            $(document.body).addClass('no-scroll');
+        'onShow': function () {
+            if (App.support.touch()) {
+                $(document.body).addClass('no-scroll');
+            }
         },
 
-        'close': function() {
-            $(document.body).removeClass('no-scroll');
+        'close': function () {
+            if (App.support.touch()) {
+                $(document.body).removeClass('no-scroll');
+            }
         }
     });
 
