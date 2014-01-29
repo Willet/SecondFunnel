@@ -498,6 +498,20 @@ div.loading {
         vertical-align: middle;
         position: static;
     }
+
+    .previewContainer .content {
+        overflow: visible !important;
+        display: block;
+        margin: auto;
+    }
+
+    .previewContainer .content:after {
+        /* clearfix to allow preview to size to content */
+        content: "";
+        display: table;
+        clear: both;
+    }
+
     .previewContainer .content {
         display: block;
         position: relative;
