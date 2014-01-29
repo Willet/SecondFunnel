@@ -178,6 +178,7 @@ def queue_page_regeneration():
     queues them into IRConfigGenerator; a page needs to be regenerated if a
     tile and tile-config were removed.
     """
+    logger.info('queue_page_regeneration running')
     # Local import to avoid issues with circular importation
     from apps.api.views import generate_ir_config
     # For now, 100000 is probably a safe value for the number of results, but ideally, we'd
@@ -206,6 +207,7 @@ def queue_page_regeneration():
                 # Ensure we aren't generating too often
                 last_generated -= int(data['ir-last-generated'])
                 if last_generated > settings.IRCONFIG_RETRY_THRESHOLD:
+                    logger.info('Generating ir config. storeId: %s pageId: %s' % (store['id'], page['id']))
                     generate_ir_config(store['id'], page['id'])
             except Exception as e:
                 logger.info(e)
