@@ -179,8 +179,6 @@ def queue_page_regeneration():
     """
     # Local import to avoid issues with circular importation
     from apps.api.views import generate_ir_config
-    # For now, 100000 is probably a safe value for the number of results, but ideally, we'd
-    # want the ContentGraph to return a generator to handle pagination.
     for store in get_contentgraph_data('/store'):
         # Get only the stale pages from the store, eventually this will be phased
         # to not need to iterate over stores.

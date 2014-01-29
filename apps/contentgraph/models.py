@@ -10,12 +10,14 @@ ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL,
                                      headers={'ApiKey': 'secretword'})
 
 
-def get_contentgraph_data(endpoint_path, headers=None, method="GET", body=""):
+def get_contentgraph_data(endpoint_path, headers=None, method="GET",
+                          params=None, body=""):
     """Wraps all contentgraph requests with the required api key.
 
     return will be a json dict, or a string if deserialization fails.
     """
-    params = {}
+    if not params:
+        params = {}
 
     if not headers:
         headers = {}
@@ -143,11 +145,7 @@ class TileConfigObject(object):
             self.clients = [ContentGraphClient.page(page_id)('tile-config')]
         elif store_id:
             # this is a store worth of pages; TODO actual pagination
-            store_pages = ContentGraphClient\
-                .store(store_id)\
-                .page.GET(params={'select': 'id', 'results': 100000})\
-                .json()
-            page_ids = [x['id'] for x in store_pages['results']]
+            page_ids = [x['id'] for x in get_contentgraph_data('/store/{0}/page'.format(store_id))]
             self.clients = [ContentGraphClient.page(page_id)('tile-config')
                             for page_id in page_ids]
         else:  # given none of those
