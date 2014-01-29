@@ -192,7 +192,6 @@ def queue_page_regeneration():
             data = get_contentgraph_data('/store/%s/page/%s' % (store['id'], page['id']))
             last_generated = calendar.timegm(datetime.utcnow().timetuple())
             payload = json.dumps({
-                'ir-stale': 'false',
                 'ir-last-generated': last_generated
             })
             # Don't patch if versions don't sync.  If that is the case, tasker will pick
