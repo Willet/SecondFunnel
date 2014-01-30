@@ -70,6 +70,7 @@ def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
         zipr = StringIO.StringIO()
 
         # GzipFile doesn't support 'with', so we close it manually
+        # TODO: why is index.html specified?
         tmpf = gzip.GzipFile(filename='index.html', mode='wb', fileobj=zipr)
         tmpf.write(content)
         tmpf.close()
@@ -118,7 +119,10 @@ def copy_across_bucket(source_bucket_name, dest_bucket_name, filename,
     dest_bucket = conn.lookup(dest_bucket_name)
 
     if not source_bucket:
-        raise
+        raise ValueError("Bucket {0} does not exist".format(source_bucket_name))
+
+    if not dest_bucket:
+        raise ValueError("Bucket {0} does not exist".format(dest_bucket_name))
 
     key = source_bucket.get_key(filename)
 
@@ -127,6 +131,20 @@ def copy_across_bucket(source_bucket_name, dest_bucket_name, filename,
         print "Copy Success : %s" % filename
     else:
         raise IOError("Key Already Exists, will not overwrite.")
+
+
+@connection_required("s3")
+def s3_key_exists(bucket_name, filename, conn=None):
+    """:returns bool"""
+    bucket = conn.lookup(bucket_name)
+
+    if not bucket:
+        raise ValueError("Bucket {0} does not exist".format(bucket_name))
+
+    if bucket.get_key(filename):
+        return True
+
+    return False
 
 
 def get_bucket_zone_id(bucket):

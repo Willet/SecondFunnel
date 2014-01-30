@@ -1,15 +1,19 @@
 import StringIO
 import gzip
 import json
+import mimetypes
 import sys
 import traceback
+import uuid
 
-import BeautifulSoup
+from BeautifulSoup import BeautifulSoup
 import re
+from django.conf import settings
 from apps.contentgraph.models import get_contentgraph_data
 
 from apps.intentrank.utils import ajax_jsonp
-from apps.static_pages.aws_utils import sns_notify, download_from_bucket
+from apps.pinpoint.utils import read_remote_file
+from apps.static_pages.aws_utils import sns_notify, download_from_bucket, upload_to_bucket, s3_key_exists
 from apps.static_pages.tasks import (create_bucket_for_store_now,
                                      generate_static_campaign_now)
 
@@ -113,6 +117,9 @@ def transfer_static_campaign(store_id, page_id):
 
     :raises AttributeError, KeyError, IndexError, ValueError
     """
+    from secondfunnel.settings.test import INTENTRANK_BASE_URL as test_ir
+    from secondfunnel.settings.production import INTENTRANK_BASE_URL as prod_ir
+
     cg_page_data = get_contentgraph_data('/store/{0}/page/{1}'.format(
         store_id, page_id))
     if not cg_page_data and cg_page_data.get('store-id'):
@@ -153,8 +160,52 @@ def transfer_static_campaign(store_id, page_id):
         gzipper = gzip.GzipFile(fileobj=data)
         test_page = gzipper.read()
     except IOError:  # "Not a gzipped file"
-        pass
+        pass  # already unzipped
 
-    BeautifulSoup
+    # locate all script tags on the page
+    test_page_parsed = BeautifulSoup(test_page)
+    script_tags = [tag.extract() for tag in test_page_parsed.findAll('script')]
+    if not script_tags:
+        raise AttributeError("Cannot modify IRSource: no script tags on this page")
 
-    return test_page
+    # PAGES_INFO can either be inline, or in an external script
+    for script_tag in script_tags:
+        if 'template' in script_tag.get('type'):
+            continue  # skip processing underscore template script tags
+
+        if script_tag.get('src'):  # is external script
+            script_contents = read_remote_file(script_tag.get('src'))
+            script_is_external = True
+
+            if not script_contents:
+                continue  # blank external tag
+        else:  # is inline script, or is blank script (!script_tag.contents)
+            # if the script is inline, then replacing the page source
+            # will also replace this
+            continue
+
+        # why does a test page have a reference to the production ir?
+        # throw exception to be safe.
+        if prod_ir in script_contents:
+            raise ValueError("Found unexpected reference to IR production "
+                             "on test page")
+        elif not test_ir in script_contents:  # irrelevant script
+            continue
+
+        # script_contents definitely contains http://intentrank-test.elasticbeanstalk.com
+        script_contents = script_contents.replace(test_ir, prod_ir)
+        # script_contents definitely contains http://intentrank.elasticbeanstalk.com
+
+        # save the new script, calling it whatever we want, as long as
+        # it doesn't already exist
+        new_script_s3_key = ''  # bucket key always exists
+        while s3_key_exists(settings.AWS_STORAGE_BUCKET_NAME, new_script_s3_key):
+            new_script_s3_key = 'CACHE/{0}.js'.format(uuid.uuid4())
+
+        print upload_to_bucket(
+            bucket_name=settings.AWS_STORAGE_BUCKET_NAME,
+            filename=new_script_s3_key, content=script_contents,
+            content_type=mimetypes.MimeTypes().guess_type(new_script_s3_key)[0],
+            public=True, do_gzip=False), new_script_s3_key
+
+    return script_contents
