@@ -90,26 +90,41 @@ def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
 def download_from_bucket(bucket_name, filename, conn=None):
     """:return file contents
 
+    Example:
+    >>> download_from_bucket("gap.secondfunnel.com", "backtoblue/index.html")
+    '<!DOCTYPE HTML>\r\n<html>\r\n<head>\r\ ...'
+
+    >>> download_from_bucket("static-misc-secondfunnel", "images/cnet-logo.png")
+    '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR ...'
+    (It doesn't seem to care about being binary -- save it to a file
+     with mode 'wb')
     """
     bucket = conn.lookup(bucket_name)
     if not bucket:
         raise ValueError("Bucket {0} not found".format(bucket_name))
 
+    key = bucket.get_key(filename)
+    return key.get_contents_as_string()
+
 
 @connection_required("s3")
 def copy_across_bucket(source_bucket_name, dest_bucket_name, filename,
                        overwrite=False, conn=None):
-    source_bucket = conn.get_bucket(source_bucket_name)
-    dest_bucket = conn.get_bucket(dest_bucket_name)
+    """Modified form of kfarr/Python-Multithread-S3-Bucket-Copy/
+
+    :raises (IOError, StorageCopyError, ...)
+    """
+    source_bucket = conn.lookup(source_bucket_name)
+    dest_bucket = conn.lookup(dest_bucket_name)
+
+    if not source_bucket:
+        raise
 
     key = source_bucket.get_key(filename)
 
     if not dest_bucket.get_key(filename) or overwrite:
-        try:
-            key.copy(dest_bucket_name, filename)
-            print "Copy Success : %s" % filename
-        except:
-            print "Copy Error: %s" % sys.exc_info()
+        key.copy(dest_bucket_name, filename)  # will raise
+        print "Copy Success : %s" % filename
     else:
         raise IOError("Key Already Exists, will not overwrite.")
 
