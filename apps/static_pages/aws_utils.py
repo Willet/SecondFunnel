@@ -18,6 +18,7 @@ from boto.s3.key import Key
 
 from boto.route53.record import ResourceRecordSets
 from boto.route53.exception import DNSServerError
+import sys
 
 from apps.static_pages.decorators import connection_required, get_connection
 
@@ -85,27 +86,32 @@ def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
     return bytes_written
 
 
-def download_from_bucket(bucket_name, filename):
+@connection_required("s3")
+def download_from_bucket(bucket_name, filename, conn=None):
     """:return file contents
 
-    laurentluce.com/posts/upload-and-download-files-tofrom-amazon-s3-using-pythondjango/
     """
-    LOCAL_PATH = '/backup/s3/'
-    AWS_ACCESS_KEY_ID = '...'
-    AWS_SECRET_ACCESS_KEY = '...'
+    bucket = conn.lookup(bucket_name)
+    if not bucket:
+        raise ValueError("Bucket {0} not found".format(bucket_name))
 
-    bucket_name = 'bucket_name'
-    # connect to the bucket
-    conn = boto.connect_s3(AWS_ACCESS_KEY_ID,
-                    AWS_SECRET_ACCESS_KEY)
-    bucket = conn.get_bucket(bucket_name)
-    # go through the list of files
-    bucket_list = bucket.list()
-    for l in bucket_list:
-      keyString = str(l.key)
-      # check if file exists locally, if not: download it
-      if not os.path.exists(LOCAL_PATH+keyString):
-        l.get_contents_to_filename(LOCAL_PATH+keyString)
+
+@connection_required("s3")
+def copy_across_bucket(source_bucket_name, dest_bucket_name, filename,
+                       overwrite=False, conn=None):
+    source_bucket = conn.get_bucket(source_bucket_name)
+    dest_bucket = conn.get_bucket(dest_bucket_name)
+
+    key = source_bucket.get_key(filename)
+
+    if not dest_bucket.get_key(filename) or overwrite:
+        try:
+            key.copy(dest_bucket_name, filename)
+            print "Copy Success : %s" % filename
+        except:
+            print "Copy Error: %s" % sys.exc_info()
+    else:
+        raise IOError("Key Already Exists, will not overwrite.")
 
 
 def get_bucket_zone_id(bucket):
