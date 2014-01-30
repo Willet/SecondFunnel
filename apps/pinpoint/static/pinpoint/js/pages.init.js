@@ -88,18 +88,20 @@ function reinitialize(app) {
         }
     });
 
-    app.vent.on('finished',  function() {
-        $(window).scroll(function() {
+    app.vent.on('finished',  function () {
+        $(window).scroll(function () {
             var body = document.body;
 
             // IE
-            if (!body.classList) return;
+            if (!body.classList) {
+                return;
+            }
 
-            if(!body.classList.contains('disable-hover')) {
+            if (!body.classList.contains('disable-hover')) {
                 body.classList.add('disable-hover');
             }
 
-            app.vent.on('scrollStopped', function() {
+            app.vent.on('scrollStopped', function () {
                 body.classList.remove('disable-hover');
             });
         });
