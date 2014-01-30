@@ -219,16 +219,20 @@ App.module('core', function (module, App) {
                     'normal': normalTileWidth,
                     'wide': wideTileWidth,
                     'full': fullTileWidth
-                };
+                },
+                widable_templates = {
+                    'image': true,
+                    'youtube': true
+                }; //TODO: Make the configurable; perhaps a page property?
 
             // templates use this as obj.image.url
             this.model.set('image',
                 this.model.get('defaultImage')/*.width(normalTileWidth, true)*/);
 
             // 0.5 is an arbitrary 'lets make this tile wide' factor
-            if (Math.random() > App.option('imageTileWide', 0.5) &&
-                // "only if it is not a banner url"
-                wideImageInfo && !self.model.get('redirect-url')) {
+            if (widable_templates[self.model.get('template')] &&
+                wideImageInfo &&
+                Math.random() > App.option('imageTileWide', 0.5)) {
                 // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
                 this.$el.addClass('wide');
                 this.model.set({'image': wideImageInfo});
