@@ -150,7 +150,7 @@ def get_page_content(store_id, page_id, content_id):
 @csrf_exempt
 def list_page_content(request, store_id, page_id):
     params = request.GET.dict()
-    params['template'] = 'image'
+    params['is-content'] = 'true'
     r = ContentGraphClient.page(page_id)('tile-config').GET(params=params)
     if r.status_code == 200:
         tiles_json = r.json()
@@ -453,14 +453,21 @@ def content_operations(request, store_id, page_id, content_id):
     return get_page_content(store_id, page_id, content_id)
 
 
-def add_content_to_page(store_id, page_id, content_id, prioritized=False):
-    # get the appropriate content to determine the template type
+def get_content_template(store_id, page_id, content_id):
     r = ContentGraphClient.store(store_id).content(content_id).GET()
     if r.status_code != 200:
         raise ValueError('ContentGraph Error')
     content = expand_contents(store_id, page_id, [r.json()])[0]
-    template = 'youtube' if content['source'].lower() == 'youtube' else 'image'
+    templates = {
+        'youtube': 'youtube',
+        'video': 'video'
+    }
+    return templates.get(content['source'].lower(), 'image')
 
+
+def add_content_to_page(store_id, page_id, content_id, prioritized=False):
+    # get the appropriate content to determine the template type
+    template = get_content_template(store_id, page_id, content_id)
     # verify the tile config does not already exist
     tileconfig_params = {'template': template, 'content-ids': content_id}
     tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
@@ -483,8 +490,10 @@ def add_content_to_page(store_id, page_id, content_id, prioritized=False):
 
 
 def remove_content_from_page(store_id, page_id, content_id):
+    # get the appropriate content to determine the template type
+    template = get_content_template(store_id, page_id, content_id)
     # verify the tile config does not already exist
-    tileconfig_params = {'template': 'image', 'content-ids': content_id}
+    tileconfig_params = {'template': template, 'content-ids': content_id}
     tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
     if cg_response_contains_results(tileconfigs):
         tileconfig_id = tileconfigs.json()['results'][0]['id']
