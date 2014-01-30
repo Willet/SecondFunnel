@@ -171,7 +171,10 @@ App.module("sharing", function (sharing, App) {
                 data = this.model.attributes,
                 page = App.option('page', {}),
                 product = data || page.product || {},
-                image = page['stl-image'] || page['featured-image'] || data.image.url || data.url;
+                image;
+
+            data.image = data.image ? data.image : {};
+            image = page['stl-image'] || page['featured-image'] || data.image.url || data.url;
 
             helpers.url = encodeURIComponent(product.url || image);
             helpers.product = {
