@@ -241,7 +241,7 @@ def expand_products(store_id, page_id, products):
     content_ids = list(set(content_ids))
 
     content_list = []
-    content_id_sublists = [content_ids[i:i+25] for i in range(0,len(content_ids),25)]
+    content_id_sublists = [content_ids[i:i+25] for i in range(0, len(content_ids), 25)]
     for content_id_sublist in content_id_sublists:
         content_ids_csv = ",".join([str(x) for x in content_id_sublist])
         content_list.extend(ContentGraphClient.store(store_id).content().GET(params={'id': content_ids_csv}).json()['results'])
@@ -414,6 +414,7 @@ def page_add_product(store_id, page_id, product_id, prioritized=False):
 
     payload = json.dumps({
         'template': 'product',
+        'is-content': 'false',
         'product-ids': [product_id],
         'prioritized': prioritized,
         'stale': 'true'
@@ -478,6 +479,7 @@ def add_content_to_page(store_id, page_id, content_id, prioritized=False):
     # create the tile config
     payload = json.dumps({
         'template': template,
+        'is-content': 'true',
         'content-ids': [content_id],
         'prioritized': prioritized,
         'stale': 'true'
