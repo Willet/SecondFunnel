@@ -202,10 +202,11 @@ def transfer_static_campaign(store_id, page_id):
         while s3_key_exists(settings.AWS_STORAGE_BUCKET_NAME, new_script_s3_key):
             new_script_s3_key = 'CACHE/{0}.js'.format(uuid.uuid4())
 
-        print upload_to_bucket(
-            bucket_name=settings.AWS_STORAGE_BUCKET_NAME,
+        if not upload_to_bucket(bucket_name=settings.AWS_STORAGE_BUCKET_NAME,
             filename=new_script_s3_key, content=script_contents,
             content_type=mimetypes.MimeTypes().guess_type(new_script_s3_key)[0],
-            public=True, do_gzip=False), new_script_s3_key
+            public=True, do_gzip=False):  # if not == 0 bytes written
+            raise IOError("Could not write modified JS file to S3!")
+
 
     return script_contents
