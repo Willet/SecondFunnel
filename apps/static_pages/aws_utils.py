@@ -85,6 +85,29 @@ def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
     return bytes_written
 
 
+def download_from_bucket(bucket_name, filename):
+    """:return file contents
+
+    laurentluce.com/posts/upload-and-download-files-tofrom-amazon-s3-using-pythondjango/
+    """
+    LOCAL_PATH = '/backup/s3/'
+    AWS_ACCESS_KEY_ID = '...'
+    AWS_SECRET_ACCESS_KEY = '...'
+
+    bucket_name = 'bucket_name'
+    # connect to the bucket
+    conn = boto.connect_s3(AWS_ACCESS_KEY_ID,
+                    AWS_SECRET_ACCESS_KEY)
+    bucket = conn.get_bucket(bucket_name)
+    # go through the list of files
+    bucket_list = bucket.list()
+    for l in bucket_list:
+      keyString = str(l.key)
+      # check if file exists locally, if not: download it
+      if not os.path.exists(LOCAL_PATH+keyString):
+        l.get_contents_to_filename(LOCAL_PATH+keyString)
+
+
 def get_bucket_zone_id(bucket):
     """
     Returns HostedZone ID for a given S3 Bucket.
