@@ -230,9 +230,9 @@ App.module('core', function (module, App) {
                 this.model.get('defaultImage')/*.width(normalTileWidth, true)*/);
 
             // 0.5 is an arbitrary 'lets make this tile wide' factor
-            if (Math.random() > App.option('imageTileWide', 0.5) &&
-                widable_templates[self.model.get('template')] &&
-                wideImageInfo) {
+            if (widable_templates[self.model.get('template')] &&
+                wideImageInfo &&
+                Math.random() > App.option('imageTileWide', 0.5)) {
                 // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
                 this.$el.addClass('wide');
                 this.model.set({'image': wideImageInfo});
