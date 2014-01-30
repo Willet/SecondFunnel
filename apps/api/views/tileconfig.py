@@ -428,6 +428,10 @@ def page_remove_product(store_id, page_id, product_id):
     if cg_response_contains_results(tile_check):
         tile_id = tile_check.json()['results'][0]['id']
         tile_delete = ContentGraphClient.page(page_id)('tile-config')(tile_id).DELETE()
+
+        #Delete the tile if it exists
+        ContentGraphClient.page(page_id)('tile')(tile_id).DELETE()
+
         mark_page_for_regeneration(store_id, page_id)
         return mimic_response(tile_delete)
     else:
@@ -478,6 +482,10 @@ def remove_content_from_page(store_id, page_id, content_id):
     if cg_response_contains_results(tileconfigs):
         tileconfig_id = tileconfigs.json()['results'][0]['id']
         delete_tileconfig_request = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).DELETE()
+
+        #Delete the tile if it exists
+        ContentGraphClient.page(page_id)('tile')(tileconfig_id).DELETE()
+
         mark_page_for_regeneration(store_id, page_id)
         return delete_tileconfig_request.status_code == 200
     else:
