@@ -11,6 +11,7 @@ from apps.static_pages.tasks import generate_static_campaign_now
 celery = Celery()
 logger = get_task_logger(__name__)
 
+
 @validate_json_deserializable
 @require_keys_for_message(['storeId', 'pageId'])
 def handle_ir_config_update_notification_message(message):
@@ -36,14 +37,22 @@ def handle_ir_config_update_notification_message(message):
     @type message {boto.sqs.message.Message}
     @returns any JSON-serializable
     """
+    from apps.api.utils import ContentGraphClient  # circular loop
     message = json.loads(message)
 
     store_id = message['storeId']
     page_id = message['pageId']
 
+    r = ContentGraphClient.store(store_id).page(page_id)\
+        .PATCH(params=json.dumps({'ir-stale': 'false'}))
+    if r.status_code != 200:
+        logger.warn("Failed to make ir-stale for (store,page) = (%s,%s)" % (store_id, page_id))
+
     logger.info('Generating page {0} now!'.format(page_id))
     # caller handles error
-    generate_static_campaign_now(store_id=store_id,
-        campaign_id=page_id, ignore_static_logs=True)
+    generate_static_campaign_now(
+        store_id=store_id,
+        campaign_id=page_id,
+        ignore_static_logs=True)
 
     return {'generated-page': page_id}
