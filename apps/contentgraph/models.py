@@ -144,8 +144,9 @@ class TileConfigObject(object):
             # this is only one page
             self.clients = [ContentGraphClient.page(page_id)('tile-config')]
         elif store_id:
-            # this is a store worth of pages; TODO actual pagination
-            page_ids = [x['id'] for x in get_contentgraph_data('/store/{0}/page'.format(store_id))]
+            # this is a store worth of pages
+            page_ids = [x['id'] for x in get_contentgraph_data(
+                '/store/{0}/page?select=id'.format(store_id))]
             self.clients = [ContentGraphClient.page(page_id)('tile-config')
                             for page_id in page_ids]
         else:  # given none of those

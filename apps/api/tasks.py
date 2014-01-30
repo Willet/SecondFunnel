@@ -142,33 +142,36 @@ def queue_stale_tile_check(*args):
     """Queue's a Command for each page with stale tiles;
     for the Tile Generator to process.
     """
-    pages = []
+    output_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
 
     for store in get_contentgraph_data('/store'):
         try:
-            pages += [page for page in get_contentgraph_data('/store/%s/page' % store['id'])]
+            for page in get_contentgraph_data('/store/%s/page' % store['id']):
+                stale_content = [content for content in get_contentgraph_data(
+                    '/page/%s/tile-config?stale=true&results=1' % page['id'])]
+
+                if len(stale_content) > 0 and did_timeout_occur(page,
+                    'last-queued-stale-tile', settings.STALE_TILE_RETRY_THRESHOLD):
+                    payload = json.dumps({
+                        'last-queued-stale-tile': str(int(time.time()))
+                    })
+
+                    r = ContentGraphClient.store(page['store-id'])\
+                        .page(page['id']).PATCH(data=payload)
+                    if not r.status_code == 200:
+                        logger.error('CG Error: could not update page object last-queued time')
+                    else:
+                        logger.info('Pushing to tile service worker queue. '
+                                    'pageId: %s storeId: %s' % (page['id'], page['store-id']))
+                        output_queue.write_message({
+                            'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
+                            'conf': json.dumps({
+                                'pageId': page['id'],
+                                'storeId': page['store-id']
+                            })
+                        })
         except TypeError:
             logger.error('Store with id: %s failed to get pages from content graph.' % store['id'])
-
-    output_queue = SQSQueue(queue_name=settings.STALE_TILE_QUEUE_NAME)
-
-    for page in pages:
-        stale_content = [content for content in ('/page/%s/tile-config?stale=true&results=1' % page['id'])]
-
-        if len(stale_content) > 0 and did_timeout_occur(page, 'last-queued-stale-tile', settings.STALE_TILE_RETRY_THRESHOLD):
-            payload = json.dumps({'last-queued-stale-tile': str(int(time.time()))})
-            r = ContentGraphClient.store(page['store-id']).page(page['id']).PATCH(data=payload)
-            if not r.status_code == 200:
-                logger.error('CG Error: could not update page object last-queued time')
-            else:
-                logger.info('Pushing to tile service worker queue. pageId: %s storeId: %s' % (page['id'], page['store-id']))
-                output_queue.write_message({
-                    'classname': 'com.willetinc.tiles.worker.GenerateStaleTilesWorkerTask',
-                    'conf': json.dumps({
-                        'pageId': page['id'],
-                        'storeId': page['store-id']
-                    })
-                })
 
 
 @celery.task
@@ -182,7 +185,7 @@ def queue_page_regeneration():
     for store in get_contentgraph_data('/store'):
         # Get only the stale pages from the store, eventually this will be phased
         # to not need to iterate over stores.
-        for page in get_contentgraph_data('/store/%s/page&ir-stale=true' % store['id']):
+        for page in get_contentgraph_data('/store/%s/page?ir-stale=true' % store['id']):
             data = call_contentgraph('/store/%s/page/%s' % (store['id'], page['id']))
             last_generated = calendar.timegm(datetime.utcnow().timetuple())
             payload = json.dumps({
