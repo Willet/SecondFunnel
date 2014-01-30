@@ -454,8 +454,15 @@ def content_operations(request, store_id, page_id, content_id):
 
 
 def add_content_to_page(store_id, page_id, content_id, prioritized=False):
+    # get the appropriate content to determine the template type
+    r = ContentGraphClient.store(store_id).content(content_id).GET()
+    if r.status_code != 200:
+        raise ValueError('ContentGraph Error')
+    content = expand_contents(store_id, page_id, [r.json()])[0]
+    template = 'youtube' if content['source'].lower() == 'youtube' else 'image'
+
     # verify the tile config does not already exist
-    tileconfig_params = {'template': 'image', 'content-ids': content_id}
+    tileconfig_params = {'template': template, 'content-ids': content_id}
     tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
     if cg_response_contains_results(tileconfigs):
         tileconfig = tileconfigs.json()['results'][0]
@@ -463,7 +470,7 @@ def add_content_to_page(store_id, page_id, content_id, prioritized=False):
 
     # create the tile config
     payload = json.dumps({
-        'template': 'image',
+        'template': template,
         'content-ids': [content_id],
         'prioritized': prioritized,
         'stale': 'true'
