@@ -65,7 +65,7 @@ def generate_static_campaign(request, store_id, campaign_id):
         sns_notify(message=json.dumps({
            "page-id": "-1",
            "status": "failed",
-        }))
+        }), dev_suffix=True)
     except (Exception, BaseException), err:  # for other reasons... failed
         _, exception, _ = sys.exc_info()
         stack = traceback.format_exc().splitlines()
@@ -83,7 +83,7 @@ def generate_static_campaign(request, store_id, campaign_id):
         sns_notify(message=json.dumps({
            "page-id": "-1",
            "status": "failed",
-        }))
+        }), dev_suffix=True)
     else:  # succeeded
         result = {
             'result': {
@@ -105,7 +105,7 @@ def generate_static_campaign(request, store_id, campaign_id):
         sns_notify(message=json.dumps({
            "page-id": campaign_returns['campaign'].get('id', -1),
            "status": "successful",
-        }))
+        }), dev_suffix=True)
 
 
     return ajax_jsonp(result, request.GET.get('callback', None),
