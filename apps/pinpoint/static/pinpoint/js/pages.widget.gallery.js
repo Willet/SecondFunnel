@@ -29,8 +29,10 @@ App.utils.registerWidget(
                     // show a larger image on the left when a thumbnail is clicked.
                     var $ev = $(ev.currentTarget),
                         newURL = $ev.attr('src'),
+                        selector = $ev.parents('.previewContainer').find('.main-image').length ?
+                          '.main-image' : '.image img',
                         $focusImg = $ev.parents('.previewContainer')
-                            .find('.image img');
+                            .find(selector);
 
                     $ev
                         .parents('.previewContainer')
