@@ -174,7 +174,7 @@ App.module("sharing", function (sharing, App) {
                 image;
 
             data.image = data.image ? data.image : {};
-            image = page['stl-image'] || page['featured-image'] || data.image.url || data.url;
+            image = page['stl-image'] || page['featured-image'] || data.thumbnail || data.image.url || data.url;
 
             helpers.url = encodeURIComponent(product.url || image);
             helpers.product = {
