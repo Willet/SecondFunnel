@@ -130,7 +130,7 @@ def transfer_static_campaign(store_id, page_id):
 
     cg_page_data = get_contentgraph_data('/store/{0}/page/{1}'.format(
         store_id, page_id))
-    if not cg_page_data and cg_page_data.get('store-id'):
+    if not (cg_page_data and cg_page_data.get('store-id')):
         raise KeyError("Page {0} could not be retrieved")
     if not cg_page_data.get('url'):
         raise ValueError("Page {0} does not have a URL, and cannot be "
