@@ -124,6 +124,10 @@ def transfer_static_campaign(store_id, page_id):
 
     :raises AttributeError, KeyError, IndexError, ValueError
     """
+    results = {  # function return, for knowing what actually happened
+        'success': True, 'store_id': store_id, 'page_id': page_id
+    }
+
     cg_page_data = get_contentgraph_data('/store/{0}/page/{1}'.format(
         store_id, page_id))
     if not cg_page_data and cg_page_data.get('store-id'):
@@ -142,6 +146,7 @@ def transfer_static_campaign(store_id, page_id):
                          "for this store.")
 
     ir_config_filename = '{0}.config.gz'.format(page_id)
+    results['ir_config_filename'] = ir_config_filename
     if not s3_key_exists(bucket_name=test_irconfig_bucket_name,
                          filename=ir_config_filename):
         raise ValueError("Test IRConfig {0} does not exist "
@@ -150,8 +155,8 @@ def transfer_static_campaign(store_id, page_id):
     # public-base-url from content graph is always the production bucket name.
     # extract 'test-gap.secondfunnel.com' from http:// ... /
     # raises IndexError
-    prod_bucket_name = re.match("(?:https?://)?([^/]+)", cg_store_data.get(
-        'public-base-url')).group(1)
+    results['prod_bucket_name'] = prod_bucket_name = re.match(
+        "(?:https?://)?([^/]+)", cg_store_data.get('public-base-url')).group(1)
 
     if not prod_bucket_name:
         raise ValueError("prod_bucket_name invalid")
@@ -161,8 +166,10 @@ def transfer_static_campaign(store_id, page_id):
         raise ValueError("public-base-url for this store contains 'test-'!")
 
     # resolve production bucket name by removing the test prefix that we add
-    test_bucket_name = "test-{0}".format(prod_bucket_name)
-    test_s3_key = "{0}/index.html".format(cg_page_data['url'])
+    results['test_bucket_name'] = test_bucket_name = \
+        "test-{0}".format(prod_bucket_name)
+    results['test_s3_key'] = test_s3_key = \
+        "{0}/index.html".format(cg_page_data['url'])
 
     # check if test page exists
     test_page = download_from_bucket(test_bucket_name, test_s3_key)
@@ -189,7 +196,6 @@ def transfer_static_campaign(store_id, page_id):
 
         if script_tag.get('src'):  # is external script
             script_contents = read_remote_file(script_tag.get('src'))
-            script_is_external = True
 
             if not script_contents:
                 continue  # blank external tag
@@ -236,10 +242,11 @@ def transfer_static_campaign(store_id, page_id):
                        filename=ir_config_filename,
                        overwrite=True)
     # if line above didn't fail, overwrite production page
-    bytes_written = upload_to_bucket(bucket_name=prod_bucket_name,
-        filename=test_s3_key, content=prod_page_source,
-        content_type=mimetypes.MimeTypes().guess_type(test_s3_key)[0],
-        public=True, do_gzip=True)
+    results['bytes_written'] = bytes_written = \
+        upload_to_bucket(bucket_name=prod_bucket_name,
+            filename=test_s3_key, content=prod_page_source,
+            content_type=mimetypes.MimeTypes().guess_type(test_s3_key)[0],
+            public=True, do_gzip=True)
 
     try:  # if the bucket isn't in route53 already, make it so
         if 'secondfunnel.com' in prod_bucket_name:  # hosted solution
@@ -251,4 +258,4 @@ def transfer_static_campaign(store_id, page_id):
     if not bytes_written:
         raise IOError("Could not write modified JS file to S3!")
 
-    return bytes_written
+    return results

@@ -14,11 +14,16 @@ def generate_static_page(request, store_id, page_id):
     return generate_static_campaign(request, store_id, campaign_id=page_id)
 
 
-# @check_login
-# @csrf_exempt
-# @request_methods('POST', 'PUT', 'PATCH')
+@check_login
+@csrf_exempt
+@request_methods('POST')
 def transfer_static_page(request, store_id, page_id):
-    i = transfer_static_campaign(store_id, page_id)
-
-    # could have 500'd otherwise
-    return ajax_jsonp({"successful": i})
+    try:
+        results = transfer_static_campaign(store_id, page_id)
+        return ajax_jsonp(results)
+    except BaseException as err:
+        return ajax_jsonp({
+            'success': False,
+            'exception': err.__class__.__name__,
+            'reason': err.message
+        })
