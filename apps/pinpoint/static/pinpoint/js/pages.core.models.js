@@ -42,7 +42,7 @@ App.module('core', function (core, App) {
         'defaults': {
             // Default product tile settings, some tiles don't
             // come specifying a type or caption
-            'caption': "Shop product",
+            'caption': "",
             'description': '',
             'tile-id': 0,
             // 'tile-class': 'tile',  // what used tile-class?
