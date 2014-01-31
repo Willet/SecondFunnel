@@ -56,6 +56,18 @@ App.module("support", function (module, App) {
     };
 
     /**
+     * True if the device identifies itself as an Android.
+     *
+     * @type {Function}
+     * @returns {Boolean}
+     */
+    this.isAnAndroid = function () {
+        // use of this function is highly discouraged, but you know it
+        // will be used anyway
+        return testUA(/Android/i);
+    };
+
+    /**
      * The absolutely-no-errors-must-leave-this-function 'decorator'.
      * arguments after context will be passed to func.
      *
