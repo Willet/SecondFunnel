@@ -30,8 +30,10 @@ App.utils.registerWidget(
                     var $ev = $(ev.currentTarget),
                         $gallery = $ev.parents('.gallery'),
                         newURL = $ev.attr('src'),
+                        selector = $ev.parents('.previewContainer').find('.main-image').length ?
+                          '.main-image' : '.image img',
                         $focusImg = $ev.parents('.previewContainer')
-                            .find('.image img');
+                            .find(selector);
 
                     $ev
                         .parents('.previewContainer')
