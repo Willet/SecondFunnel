@@ -9,14 +9,21 @@ import uuid
 from BeautifulSoup import BeautifulSoup
 import re
 from django.conf import settings
+from django.utils.encoding import smart_unicode
 from apps.contentgraph.models import get_contentgraph_data
 
 from apps.intentrank.utils import ajax_jsonp
 from apps.pinpoint.utils import read_remote_file
-from apps.static_pages.aws_utils import sns_notify, download_from_bucket, upload_to_bucket, s3_key_exists
+from apps.static_pages.aws_utils import sns_notify, download_from_bucket, upload_to_bucket, s3_key_exists, copy_across_bucket, create_bucket_website_alias
 from apps.static_pages.tasks import (create_bucket_for_store_now,
                                      generate_static_campaign_now)
 
+from secondfunnel.settings.test import INTENTRANK_BASE_URL as test_ir, \
+    AWS_STORAGE_BUCKET_NAME as test_storage_bucket_name, \
+    INTENTRANK_CONFIG_BUCKET_NAME as test_irconfig_bucket_name
+from secondfunnel.settings.production import INTENTRANK_BASE_URL as prod_ir, \
+    AWS_STORAGE_BUCKET_NAME as prod_storage_bucket_name, \
+    INTENTRANK_CONFIG_BUCKET_NAME as prod_irconfig_bucket_name
 
 def generate_static_campaign(request, store_id, campaign_id):
     """Manual stimulation handler: re-save a campaign.
@@ -117,9 +124,6 @@ def transfer_static_campaign(store_id, page_id):
 
     :raises AttributeError, KeyError, IndexError, ValueError
     """
-    from secondfunnel.settings.test import INTENTRANK_BASE_URL as test_ir
-    from secondfunnel.settings.production import INTENTRANK_BASE_URL as prod_ir
-
     cg_page_data = get_contentgraph_data('/store/{0}/page/{1}'.format(
         store_id, page_id))
     if not cg_page_data and cg_page_data.get('store-id'):
@@ -137,11 +141,20 @@ def transfer_static_campaign(store_id, page_id):
                          "Please create test and production website buckets "
                          "for this store.")
 
+    ir_config_filename = '{0}.config.gz'.format(page_id)
+    if not s3_key_exists(bucket_name=test_irconfig_bucket_name,
+                         filename=ir_config_filename):
+        raise ValueError("Test IRConfig {0} does not exist "
+                         "in the test bucket!".format(ir_config_filename))
+
     # public-base-url from content graph is always the production bucket name.
     # extract 'test-gap.secondfunnel.com' from http:// ... /
     # raises IndexError
     prod_bucket_name = re.match("(?:https?://)?([^/]+)", cg_store_data.get(
         'public-base-url')).group(1)
+
+    if not prod_bucket_name:
+        raise ValueError("prod_bucket_name invalid")
 
     # see https://therealwillet.hipchat.com/history/room/115122/2014/01/28#15:27:21
     if 'test-' in prod_bucket_name:
@@ -163,6 +176,7 @@ def transfer_static_campaign(store_id, page_id):
         pass  # already unzipped
 
     # locate all script tags on the page
+    prod_page_source = smart_unicode(test_page)
     test_page_parsed = BeautifulSoup(test_page)
     script_tags = [tag.extract() for tag in test_page_parsed.findAll('script')]
     if not script_tags:
@@ -202,11 +216,39 @@ def transfer_static_campaign(store_id, page_id):
         while s3_key_exists(settings.AWS_STORAGE_BUCKET_NAME, new_script_s3_key):
             new_script_s3_key = 'CACHE/{0}.js'.format(uuid.uuid4())
 
-        if not upload_to_bucket(bucket_name=settings.AWS_STORAGE_BUCKET_NAME,
+        # if not == 0 bytes written
+        if not upload_to_bucket(bucket_name=prod_storage_bucket_name,
             filename=new_script_s3_key, content=script_contents,
             content_type=mimetypes.MimeTypes().guess_type(new_script_s3_key)[0],
-            public=True, do_gzip=False):  # if not == 0 bytes written
+            public=True, do_gzip=False):
             raise IOError("Could not write modified JS file to S3!")
 
+        # overwrite old tag with new tag
+        prod_page_source = prod_page_source.replace(script_tag.get('src'),
+            'https://s3.amazonaws.com/{0}/{1}'.format(prod_storage_bucket_name,
+                                                      new_script_s3_key))
 
-    return script_contents
+    # replace all inline references to IR test to IR prod, but
+    # do not overwrite existing production page before IRConfig copied over
+    prod_page_source = prod_page_source.replace(test_ir, prod_ir)
+    copy_across_bucket(source_bucket_name=test_irconfig_bucket_name,
+                       dest_bucket_name=prod_irconfig_bucket_name,
+                       filename=ir_config_filename,
+                       overwrite=True)
+    # if line above didn't fail, overwrite production page
+    bytes_written = upload_to_bucket(bucket_name=prod_bucket_name,
+        filename=test_s3_key, content=prod_page_source,
+        content_type=mimetypes.MimeTypes().guess_type(test_s3_key)[0],
+        public=True, do_gzip=True)
+
+    try:  # if the bucket isn't in route53 already, make it so
+        if 'secondfunnel.com' in prod_bucket_name:  # hosted solution
+            create_bucket_website_alias(dns_name=prod_bucket_name,
+                                        bucket_name=prod_bucket_name)
+    except:
+        pass
+
+    if not bytes_written:
+        raise IOError("Could not write modified JS file to S3!")
+
+    return bytes_written

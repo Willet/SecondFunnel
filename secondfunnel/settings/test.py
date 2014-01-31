@@ -100,6 +100,7 @@ WEBSITE_BASE_URL = 'http://test.secondfunnel.com'
 INTENTRANK_BASE_URL = 'http://intentrank-test.elasticbeanstalk.com'
 CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
+INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config-test'
 
 # if secondfunnel-test.elasticbeanstalk.com
 # SESSION_COOKIE_DOMAIN = '.elasticbeanstalk.com'

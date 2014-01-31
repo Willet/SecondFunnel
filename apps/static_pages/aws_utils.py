@@ -110,10 +110,12 @@ def download_from_bucket(bucket_name, filename, conn=None):
 
 @connection_required("s3")
 def copy_across_bucket(source_bucket_name, dest_bucket_name, filename,
-                       overwrite=False, conn=None):
+                       overwrite=False, auto_create_dest_bucket=False,
+                       conn=None):
     """Modified form of kfarr/Python-Multithread-S3-Bucket-Copy/
 
     :raises (IOError, StorageCopyError, ...)
+    :returns filename
     """
     source_bucket = conn.lookup(source_bucket_name)
     dest_bucket = conn.lookup(dest_bucket_name)
@@ -122,13 +124,17 @@ def copy_across_bucket(source_bucket_name, dest_bucket_name, filename,
         raise ValueError("Bucket {0} does not exist".format(source_bucket_name))
 
     if not dest_bucket:
-        raise ValueError("Bucket {0} does not exist".format(dest_bucket_name))
+        if auto_create_dest_bucket:
+            dest_bucket, _ = get_or_create_website_bucket(dest_bucket_name,
+                                                          conn=conn)
+        else:
+            raise ValueError("Bucket {0} does not exist".format(dest_bucket_name))
 
     key = source_bucket.get_key(filename)
 
     if not dest_bucket.get_key(filename) or overwrite:
         key.copy(dest_bucket_name, filename)  # will raise
-        print "Copy Success : %s" % filename
+        return filename
     else:
         raise IOError("Key Already Exists, will not overwrite.")
 
