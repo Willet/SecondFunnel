@@ -28,6 +28,7 @@ App.utils.registerWidget(
                 .click(function (ev) {
                     // show a larger image on the left when a thumbnail is clicked.
                     var $ev = $(ev.currentTarget),
+                        $gallery = $ev.parents('.gallery'),
                         newURL = $ev.attr('src'),
                         $focusImg = $ev.parents('.previewContainer')
                             .find('.image img');
@@ -38,6 +39,13 @@ App.utils.registerWidget(
                         .removeClass('selected');
                     $ev.addClass('selected');
                     changeImage($focusImg, newURL);
+
+                    if (!App.support.mobile()) {
+                      // On non-mobile, scroll around gallery
+                      $gallery.animate({
+                        scrollLeft: $ev.offset().left - $gallery.offset().left
+                      }, 700);
+                    }
                 });
             $el.append($img);  // add each image into the carousel
         });
