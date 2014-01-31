@@ -26,4 +26,4 @@ def transfer_static_page(request, store_id, page_id):
             'success': False,
             'exception': err.__class__.__name__,
             'reason': err.message
-        })
+        }, status=500)
