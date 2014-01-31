@@ -18,6 +18,7 @@ from boto.s3.key import Key
 
 from boto.route53.record import ResourceRecordSets
 from boto.route53.exception import DNSServerError
+import sys
 
 from apps.static_pages.decorators import connection_required, get_connection
 
@@ -69,6 +70,7 @@ def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
         zipr = StringIO.StringIO()
 
         # GzipFile doesn't support 'with', so we close it manually
+        # TODO: why is index.html specified?
         tmpf = gzip.GzipFile(filename='index.html', mode='wb', fileobj=zipr)
         tmpf.write(content)
         tmpf.close()
@@ -83,6 +85,72 @@ def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
         obj.set_acl('public-read')
 
     return bytes_written
+
+
+@connection_required("s3")
+def download_from_bucket(bucket_name, filename, conn=None):
+    """:return file contents
+
+    Example:
+    >>> download_from_bucket("gap.secondfunnel.com", "backtoblue/index.html")
+    '<!DOCTYPE HTML>\r\n<html>\r\n<head>\r\ ...'
+
+    >>> download_from_bucket("static-misc-secondfunnel", "images/cnet-logo.png")
+    '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR ...'
+    (It doesn't seem to care about being binary -- save it to a file
+     with mode 'wb')
+    """
+    bucket = conn.lookup(bucket_name)
+    if not bucket:
+        raise ValueError("Bucket {0} not found".format(bucket_name))
+
+    key = bucket.get_key(filename)
+    return key.get_contents_as_string()
+
+
+@connection_required("s3")
+def copy_across_bucket(source_bucket_name, dest_bucket_name, filename,
+                       overwrite=False, auto_create_dest_bucket=False,
+                       conn=None):
+    """Modified form of kfarr/Python-Multithread-S3-Bucket-Copy/
+
+    :raises (IOError, StorageCopyError, ...)
+    :returns filename
+    """
+    source_bucket = conn.lookup(source_bucket_name)
+    dest_bucket = conn.lookup(dest_bucket_name)
+
+    if not source_bucket:
+        raise ValueError("Bucket {0} does not exist".format(source_bucket_name))
+
+    if not dest_bucket:
+        if auto_create_dest_bucket:
+            dest_bucket, _ = get_or_create_website_bucket(dest_bucket_name,
+                                                          conn=conn)
+        else:
+            raise ValueError("Bucket {0} does not exist".format(dest_bucket_name))
+
+    key = source_bucket.get_key(filename)
+
+    if not dest_bucket.get_key(filename) or overwrite:
+        key.copy(dest_bucket_name, filename)  # will raise
+        return filename
+    else:
+        raise IOError("Key Already Exists, will not overwrite.")
+
+
+@connection_required("s3")
+def s3_key_exists(bucket_name, filename, conn=None):
+    """:returns bool"""
+    bucket = conn.lookup(bucket_name)
+
+    if not bucket:
+        raise ValueError("Bucket {0} does not exist".format(bucket_name))
+
+    if bucket.get_key(filename):
+        return True
+
+    return False
 
 
 def get_bucket_zone_id(bucket):
