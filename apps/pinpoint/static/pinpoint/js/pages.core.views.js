@@ -722,13 +722,13 @@ App.module('core', function (module, App) {
 
         // Disable scrolling body when preview is shown
         'onShow': function () {
-            if (App.support.touch()) {
+            if (App.support.touch() && !App.support.isAnAndroid()) {
                 $(document.body).addClass('no-scroll');
             }
         },
 
         'close': function () {
-            if (App.support.touch()) {
+            if (App.support.touch() && !App.support.isAnAndroid()) {
                 $(document.body).removeClass('no-scroll');
             }
         }
