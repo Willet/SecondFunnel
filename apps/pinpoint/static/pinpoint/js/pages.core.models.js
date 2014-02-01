@@ -462,7 +462,7 @@ App.module('core', function (core, App) {
             }
 
             // SHUFFLE_RESULTS is always true
-            respBuilder = _.shuffle(respBuilder);
+            //respBuilder = _.shuffle(respBuilder); Why do we shuffle the results?
 
             return _.map(respBuilder, function (jsonEntry) {
                 var TileClass = App.utils.findClass('Tile',
