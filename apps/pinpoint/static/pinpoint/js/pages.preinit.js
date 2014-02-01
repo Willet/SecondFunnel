@@ -119,7 +119,7 @@ $.fn.scrollStopped = function (callback) {
             clearTimeout($this.data('scrollTimeout'));
         }
         if (callback) {
-            $this.data('scrollTimeout', setTimeout(callback, 500, self));
+            $this.data('scrollTimeout', setTimeout(callback, 60, self));
         }
     });
 };

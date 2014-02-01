@@ -294,6 +294,10 @@ App.module('core', function (module, App) {
 
             if (App.support.touch()) {
                 this.tapIndicator.show(new module.TapIndicator());
+
+                this.tapIndicator.on("click", function () {
+                    self.click.apply(self, arguments);
+                });
             }
         }
     });
@@ -838,8 +842,15 @@ App.module('core', function (module, App) {
         'template': "#tap_indicator_template",
         'className': 'tap_indicator',
         'initialize': function () {
+            var self = this;
+
             _.bindAll(this, 'onScrollStopped');
             App.vent.on('scrollStopped', this.onScrollStopped);
+
+            // events don't bind to the root
+            this.$el.click(function () {
+                self.trigger("click");
+            });
         },
         'onBeforeRender': function () {
             // http://jsperf.com/hasclass-vs-toggleclass
