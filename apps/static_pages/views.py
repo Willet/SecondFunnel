@@ -191,7 +191,8 @@ def transfer_static_campaign(store_id, page_id):
 
     # PAGES_INFO can either be inline, or in an external script
     for script_tag in script_tags:
-        if 'template' in script_tag.get('type'):
+        script_type = script_tag.get('type')
+        if script_type and 'template' in script_type:
             continue  # skip processing underscore template script tags
 
         if script_tag.get('src'):  # is external script
