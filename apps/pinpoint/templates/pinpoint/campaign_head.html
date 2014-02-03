@@ -9,6 +9,12 @@
 <link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/5col.css' %}">
 {% endcompress css %}
 
+<script src='//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/js/respond.min.js'></script>
+<!-- Respond.js proxy on external server -->
+<link href="//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/cross-domain/respond-proxy.html" id="respond-proxy" rel="respond-proxy" />
+<link href="/cross-domain/respond.proxy.gif" id="respond-redirect" rel="respond-redirect" />
+<script src="/cross-domain/respond.proxy.js"></script>
+
 <!--[if IE 8]>
 {% compress css %}
 <link rel="stylesheet" type="text/css" href= {% static 'pinpoint/css/ie8.css' %}
