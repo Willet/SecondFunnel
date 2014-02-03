@@ -59,14 +59,16 @@ App.URL_PARAMS = window.location.search;
   App.options.debug,
   window.location.hash + window.location.search));
 
-(function (original) {
-    // make vent.trigger display debug messages.
-    App.vent.trigger = function (eventName) {
-        console.debug('App.vent.trigger(' + eventName + '): %o',
-            _.rest(arguments));
-        return original.apply(App.vent, arguments);
-    };
-}(App.vent.trigger));
+// As implemented, will break in IE9
+// Need a smarter way to determine if we can use console.debug
+//(function (original) {
+//    // make vent.trigger display debug messages.
+//    App.vent.trigger = function (eventName) {
+//        console.debug('App.vent.trigger(' + eventName + '): %o',
+//            _.rest(arguments));
+//        return original.apply(App.vent, arguments);
+//    };
+//}(App.vent.trigger));
 
 // http://stackoverflow.com/questions/1199352/
 String.prototype.truncate = function (n, useSentenceBoundary, addEllipses) {
