@@ -16,9 +16,9 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 App.URL_PARAMS = window.location.search;
 
 (function (document) {
-    $(document).on('click', function(ev) {
+    $(document).on('click', 'a', function(ev) {
         var $target = $(ev.target);
-        if ($target.is('a') && App.URL_PARAMS.length > 0) {
+        if (App.URL_PARAMS.length > 0) {
             var href = $target.attr('href');
             if (href.indexOf(App.URL_PARAMS.substring(1)) == -1) {
                 href += href.indexOf('?') > -1 ? App.URL_PARAMS.replace('?', '&') : App.URL_PARAMS;
