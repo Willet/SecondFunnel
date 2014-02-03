@@ -171,12 +171,17 @@ App.module("sharing", function (sharing, App) {
                 data = this.model.attributes,
                 page = App.option('page', {}),
                 product = data || page.product || {},
+                related = data['related-products'] && data['related-products'].length ? data['related-products'][0] : {},
                 image;
 
             data.image = data.image ? data.image : {};
             image = page['stl-image'] || page['featured-image'] || data.thumbnail || data.image.url || data.url;
 
-            helpers.url = encodeURIComponent(product.url || image);
+            if (data['source'] == "youtube") {
+                helpers.url = encodeURIComponent(data['original-url'] || product.url || image);
+            } else {
+                helpers.url = encodeURIComponent(related.url || page.product.url || data.url || image);
+            }
             helpers.product = {
                 'url': product.url,
                 'image': image
