@@ -15,6 +15,19 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
 App.URL_PARAMS = window.location.search;
 
+(function (document) {
+    $(document).on('click', 'a', function(ev) {
+        var $target = $(ev.target);
+        if (App.URL_PARAMS.length > 0) {
+            var href = $target.attr('href');
+            if (href.indexOf(App.URL_PARAMS.substring(1)) == -1) {
+                href += href.indexOf('?') > -1 ? App.URL_PARAMS.replace('?', '&') : App.URL_PARAMS;
+                $target.attr('href', href);
+            }
+        }
+    });
+})(document);
+
 (function (details) {
     var pubDate;
     if (details && details.page && details.page.pubDate) {
@@ -45,7 +58,10 @@ App.URL_PARAMS = window.location.search;
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {
         debugLevel = App.options.debug = hash[hashIdx + 6];
-        App.URL_PARAMS = App.URL_PARAMS.replace(App.URL_PARAMS.substr(hashIdx - 1, hashIdx + 6), '');
+        App.URL_PARAMS = App.URL_PARAMS.replace(App.URL_PARAMS.substr(hashIdx - 1, hashIdx + 7), '');
+        if (App.URL_PARAMS.indexOf('?') == -1) {
+            App.URL_PARAMS = '?' + App.URL_PARAMS.substring(1);
+        }
     } else {
         debugLevel = 0;
     }
