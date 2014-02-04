@@ -10,6 +10,17 @@ App.utils.registerWidget(
             threshold = $(this).width() / 5, // displacement needed to be considered a swipe
             changeImage = function ($el, url) {
                 $el.attr('src', url);
+            },
+            toggleVisibility = function ($el, cond) {
+                if (cond) {
+                    $el.show();
+                } else {
+                    $el.hide();
+                }
+            },
+            toggleButtons = function (id) {
+                toggleVisibility(view.$('.gallery-swipe-left'), id > 0);
+                toggleVisibility(view.$('.gallery-swipe-right'), id < images.length - 1);
             };
 
         // get list of images.
@@ -43,10 +54,12 @@ App.utils.registerWidget(
                     changeImage($focusImg, newURL);
 
                     if (!App.support.mobile()) {
-                      // On non-mobile, scroll around gallery
-                      $gallery.animate({
-                        scrollLeft: $ev.offset().left - $gallery.offset().left
-                      }, 700);
+                        // On non-mobile, scroll around gallery
+                        $gallery.animate({
+                            scrollLeft: $ev.offset().left - $gallery.offset().left
+                        }, 700);
+                    } else {
+                        toggleButtons($gallery.children().index($ev));
                     }
                 });
             $el.append($img);  // add each image into the carousel
@@ -54,6 +67,7 @@ App.utils.registerWidget(
 
         $.event.special.swipe.handleSwipe = $.noop; // JQuery's default swipes fire on fixed start/stop
         view.$('.gallery img').eq(0).click(); // ensure first image selected
+        view.$('.gallery-swipe-left').hide();
 
         // swipeleft is "from right to left"
         view.$el
@@ -82,8 +96,7 @@ App.utils.registerWidget(
                 startX = ev.offsetX;
                 if (ev.offsetX >= -15 && ev.offsetX <= 100) {   // left (which is swiping right)
                     $pseudo.swiperight();
-                } else if (ev.offsetX >= $pseudo.width() - 100 &&  // right
-                           ev.offsetY > 150) {  // prevent interference with close button
+                } else if (ev.offsetX >= $pseudo.width() - 100) {  // right (which is swiping left)
                     $pseudo.swipeleft();
                 }
             });
