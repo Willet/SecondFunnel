@@ -180,7 +180,7 @@ App.module("sharing", function (sharing, App) {
             if (data['source'] == "youtube") {
                 helpers.url = encodeURIComponent(data['original-url'] || product.url || image);
             } else {
-                helpers.url = encodeURIComponent(related.url || page.product.url || data.url || image);
+                helpers.url = encodeURIComponent(related.url || product.url || data.url || image);
             }
             helpers.product = {
                 'url': product.url,

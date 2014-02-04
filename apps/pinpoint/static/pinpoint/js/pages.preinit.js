@@ -20,7 +20,7 @@ App.URL_PARAMS = window.location.search;
         var $target = $(ev.target);
         if (App.URL_PARAMS.length > 0) {
             var href = $target.attr('href');
-            if (href.indexOf(App.URL_PARAMS.substring(1)) == -1) {
+            if (href && href.indexOf(App.URL_PARAMS.substring(1)) == -1) {
                 href += href.indexOf('?') > -1 ? App.URL_PARAMS.replace('?', '&') : App.URL_PARAMS;
                 $target.attr('href', href);
             }
