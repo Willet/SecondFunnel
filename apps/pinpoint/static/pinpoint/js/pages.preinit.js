@@ -13,15 +13,16 @@ App._globals = App._globals || {};
 
 App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 
-App.URL_PARAMS = window.location.search;
+App.options.urlParams = window.location.search;
 
 (function (document) {
     $(document).on('click', 'a', function(ev) {
-        var $target = $(ev.target);
-        if (App.URL_PARAMS.length > 0) {
+        var $target = $(ev.target),
+            urlParams = App.options.urlParams;
+        if (urlParams.length > 0) {
             var href = $target.attr('href');
-            if (href && href.indexOf(App.URL_PARAMS.substring(1)) == -1) {
-                href += href.indexOf('?') > -1 ? App.URL_PARAMS.replace('?', '&') : App.URL_PARAMS;
+            if (href && href.indexOf(urlParams.substring(1)) == -1) {
+                href += href.indexOf('?') > -1 ? urlParams.replace('?', '&') : urlParams;
                 $target.attr('href', href);
             }
         }
@@ -45,7 +46,8 @@ App.URL_PARAMS = window.location.search;
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 (function (console, level, hash) {
     var hashIdx,
-        debugLevel = level;
+        debugLevel = level,
+        urlParams = App.options.urlParams;
     // console logging thresholds
     App.QUIET = 0;
     App.ALL = 5;
@@ -58,9 +60,11 @@ App.URL_PARAMS = window.location.search;
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {
         debugLevel = App.options.debug = hash[hashIdx + 6];
-        App.URL_PARAMS = App.URL_PARAMS.replace(App.URL_PARAMS.substr(hashIdx - 1, hashIdx + 7), '');
-        if (App.URL_PARAMS.indexOf('?') == -1) {
-            App.URL_PARAMS = '?' + App.URL_PARAMS.substring(1);
+        urlParams = urlParams.replace(urlParams.substr(hashIdx - 1, hashIdx + 7), '');
+        if (urlParams.indexOf('?') == -1) {
+            App.options.urlParams = '?' + urlParams.substring(1);
+        } else {
+            App.options.urlParams = urlParams;
         }
     } else {
         debugLevel = 0;
