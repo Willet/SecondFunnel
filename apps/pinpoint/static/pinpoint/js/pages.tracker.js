@@ -1,4 +1,4 @@
-/*global App, Backbone, Marionette, console */
+/*global App, $, Backbone, Marionette, console */
 /**
  * @module tracker
  */
@@ -60,12 +60,22 @@ App.module("tracker", function (tracker, App) {
 
         addItem = function () {
             // wrap _gaq.push to obey our tracking
-            if (window._gaq && App.option('enableTracking', true)) {
-                _gaq.push.apply(_gaq, arguments);
-            } else {
+            if (!window._gaq) {
+                console.warn('Analytics library is not ready. %o', arguments);
+                return;
+            }
+
+            if (!App.option('enableTracking', true)) {
                 console.warn('addItem was either disabled by the client ' +
                              'or prevented by the browser. %o', arguments);
+                return;
             }
+            if (App.option('debug', App.QUIET) > App.QUIET) {
+                console.warn('Debug mode disabled tracking. %o', arguments);
+                return;
+            }
+
+            _gaq.push.apply(_gaq, arguments);
         },
 
         trackEvent = function (o) {
@@ -290,41 +300,41 @@ App.module("tracker", function (tracker, App) {
      */
     this.initialize = function (options) {
         if (App.option('debug', App.QUIET) > App.QUIET) {
-            // debug mode.
-            addItem(['_setDomainName', 'none']);
+            // do not run analytics when debugging (dev, test)
+            App.vent.trigger('trackerInitialized', this);
+            return;
         }
-
+        // 'none' ensures that the cookies in a given domain are
+        // not accessible by any sub-domains (gap.secondfunnel.com != secondfunnel.com?)
+        // addItem(['_setDomainName', 'none']);
+        addItem(['_setDomainName', 'secondfunnel.com']);
         addItem(['_setAccount', App.option('gaAccountNumber')]);
-        addItem(['_setCustomVar',
-            1,                               // slot id
-            'StoreID',                       // name
-            App.option('store:id'), // value
-            3                                // scope: page-level
-        ]);
-        addItem(['_setCustomVar', 2, 'CampaignID',
-            App.option('campaign'),  // <int>
-            3
-        ]);
         addItem(['_trackPageview']);
 
-        // register event maps
-        var defaults = new this.EventManager(this.defaultEventMap),
-            customs = new this.EventManager(App.option('events'));
+        setCustomVar({
+            'slotId': 1,
+            'name': 'StoreID',
+            'value': App.option('store:id')
+        });
+
+        setCustomVar({
+            'slotId': 2,
+            'name': 'CampaignID',
+            'value': App.option('campaign')
+        });
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?
         setCustomVar({
             'slotId': 1,
             'name': 'Store',
-            'value': App.option('store:id'),
-            'scope': GA_CUSTOMVAR_SCOPE.PAGE
+            'value': App.option('store:id')
         });
 
         setCustomVar({
             'slotId': 2,
             'name': 'Page',
-            'value': App.option('page:id'),
-            'scope': GA_CUSTOMVAR_SCOPE.PAGE
+            'value': App.option('page:id')
         });
 
         // TODO: Need a better way to determine internal v. external visitor
@@ -336,7 +346,9 @@ App.module("tracker", function (tracker, App) {
             'scope': GA_CUSTOMVAR_SCOPE.VISITOR
         });
 
-        // referrer? domain?
+        // register event maps
+        var defaults = new this.EventManager(this.defaultEventMap),
+            customs = new this.EventManager(App.option('events'));
 
         App.vent.trigger('trackerInitialized', this);
         // setTrackingDomHooks() on $.ready
