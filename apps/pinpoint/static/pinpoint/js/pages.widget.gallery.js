@@ -82,8 +82,7 @@ App.utils.registerWidget(
                 startX = ev.offsetX;
                 if (ev.offsetX >= -15 && ev.offsetX <= 100) {   // left (which is swiping right)
                     $pseudo.swiperight();
-                } else if (ev.offsetX >= $pseudo.width() - 100 &&  // right
-                           ev.offsetY > 150) {  // prevent interference with close button
+                } else if (ev.offsetX >= $pseudo.width() - 100) {  // right (which is swiping left)
                     $pseudo.swipeleft();
                 }
             });
