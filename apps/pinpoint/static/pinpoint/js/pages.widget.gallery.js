@@ -26,7 +26,9 @@ App.utils.registerWidget(
         // get list of images.
         try {
             images = view.model.attributes['related-products'][0].images.slice(0);
-            images.push(view.model.get('defaultImage'));
+            if (App.support.mobile()) {
+                images.push(view.model.get('defaultImage'));
+            }
         } catch (err) {
             images = view.model.get('images');
         }
