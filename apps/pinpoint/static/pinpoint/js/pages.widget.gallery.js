@@ -25,7 +25,8 @@ App.utils.registerWidget(
 
         // get list of images.
         try {
-            images = view.model.attributes['related-products'][0].images;
+            images = view.model.attributes['related-products'][0].images.slice(0);
+            images.push(view.model.get('defaultImage'));
         } catch (err) {
             images = view.model.get('images');
         }
@@ -53,14 +54,12 @@ App.utils.registerWidget(
                     $ev.addClass('selected');
                     changeImage($focusImg, newURL);
 
-                    if (!App.support.mobile()) {
-                        // On non-mobile, scroll around gallery
-                        $gallery.animate({
-                            scrollLeft: $ev.offset().left - $gallery.offset().left
-                        }, 700);
-                    } else {
+                    if (App.support.mobile()) {
                         toggleButtons($gallery.children().index($ev));
                     }
+                    $gallery.animate({
+                        scrollLeft: $ev.offset().left - $gallery.offset().left
+                    }, 700);
                 });
             $el.append($img);  // add each image into the carousel
         });
