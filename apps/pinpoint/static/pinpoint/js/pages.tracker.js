@@ -307,9 +307,11 @@ App.module("tracker", function (tracker, App) {
         // 'none' ensures that the cookies in a given domain are
         // not accessible by any sub-domains (gap.secondfunnel.com != secondfunnel.com?)
         // addItem(['_setDomainName', 'none']);
-        addItem(['_setDomainName', 'secondfunnel.com']);
-        addItem(['_setAccount', App.option('gaAccountNumber')]);
-        addItem(['_trackPageview']);
+        addItem(['willet._setDomainName', 'secondfunnel.com']);
+        addItem(['willet._setAccount', App.option('gaAccountNumber')]);
+        addItem(['willet._trackPageview']);
+
+        console.debug("Registered page view.");
 
         setCustomVar({
             'slotId': 1,
