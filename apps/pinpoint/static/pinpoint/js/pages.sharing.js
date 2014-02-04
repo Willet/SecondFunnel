@@ -67,8 +67,8 @@ App.module("sharing", function (sharing, App) {
                 "//www.youtube.com/iframe_api",
                 "//assets.pinterest.com/js/pinit.js",
                 // "//connect.facebook.net/en_US/all.js",
-                "//platform.twitter.com/widgets.js",
-                "//google-analytics.com/ga.js"
+                "//platform.twitter.com/widgets.js"
+                // "//google-analytics.com/ga.js"
             ], callback);
         }),
         'initSocial': function () {

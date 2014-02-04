@@ -59,8 +59,8 @@ App.module("tracker", function (tracker, App) {
         },
 
         addItem = function () {
-            // wrap _gaq.push to obey our tracking
-            if (!window._gaq) {
+            // wrap ga to obey our tracking
+            if (!window.ga) {
                 console.warn('Analytics library is not ready. %o', arguments);
                 return;
             }
@@ -75,7 +75,7 @@ App.module("tracker", function (tracker, App) {
                 return;
             }
 
-            _gaq.push.apply(_gaq, arguments);
+            window.ga.apply(window, arguments);
         },
 
         trackEvent = function (o) {
@@ -85,13 +85,15 @@ App.module("tracker", function (tracker, App) {
             // value          - Optional numeric data
             // nonInteraction - if true, don't count in bounce rate
             //                  by default, events are interactive
-            addItem(['_trackEvent',
-                o.category,
-                o.action,
-                o.label,
-                o.value || undefined,
-                !!o.nonInteraction || undefined
-            ]);
+            var nonInteraction = 0;
+            if (o.nonInteraction) {
+                nonInteraction = 1;
+            }
+
+            if (window.ga) {
+                window.ga('send', 'event', o.category, o.action, o.label,
+                    o.value || undefined, {'nonInteraction': nonInteraction});
+            }
         },
 
         setCustomVar = function (o) {
@@ -100,11 +102,17 @@ App.module("tracker", function (tracker, App) {
                 value = o.value,
                 scope = o.scope || GA_CUSTOMVAR_SCOPE.PAGE; // 3 = page-level
 
-            if (!(slotId && name && value)) {
+            if (!(scope && name && value)) {
                 return;
             }
 
-            addItem(['_setCustomVar', slotId, name, value, scope]);
+            if (window.ga) {
+                // universal analytics accept only indexed dimensions with no
+                // name, or named variables with no scope
+                // https://developers.google.com/analytics/devguides/collection/upgrade/reference/gajs-analyticsjs#custom-vars
+                // so scope + name is used to mimic that
+                window.ga('set', scope + '.' + name + slotId, value);
+            }
         },
 
         getTrackingInformation = function(model, isPreview) {
@@ -299,17 +307,25 @@ App.module("tracker", function (tracker, App) {
      * @alias tracker.start
      */
     this.initialize = function (options) {
+        // this code creates window.ga
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        this.setup(options);
+    };
+
+    this.setup = function (options) {
         if (App.option('debug', App.QUIET) > App.QUIET) {
             // do not run analytics when debugging (dev, test)
             App.vent.trigger('trackerInitialized', this);
             return;
         }
-        // 'none' ensures that the cookies in a given domain are
-        // not accessible by any sub-domains (gap.secondfunnel.com != secondfunnel.com?)
-        // addItem(['_setDomainName', 'none']);
-        addItem(['willet._setDomainName', 'secondfunnel.com']);
-        addItem(['willet._setAccount', App.option('gaAccountNumber')]);
-        addItem(['willet._trackPageview']);
+        if (window.ga) {
+            window.ga('create', App.option('gaAccountNumber'), 'auto');
+            window.ga('send', 'pageview');
+        }
 
         console.debug("Registered page view.");
 
