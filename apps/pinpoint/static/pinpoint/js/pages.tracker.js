@@ -307,11 +307,20 @@ App.module("tracker", function (tracker, App) {
      * @alias tracker.start
      */
     this.initialize = function (options) {
-        // this code creates window.ga
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        // this (reformatted) code creates window.ga
+        (function (o, g, r, a, m) {
+            window.GoogleAnalyticsObject = 'ga';
+            window.ga = window.ga || function () {
+                (window.ga.q = window.ga.q || []).push(arguments);
+            };
+            window.ga.l = Number(new Date());
+            a = document.createElement(o);
+            a.async = 1;
+            a.src = g;
+
+            m = document.getElementsByTagName(o)[0];
+            m.parentNode.insertBefore(a, m);
+        }('script', '//www.google-analytics.com/analytics.js', 'ga'));
 
         this.setup(options);
     };
