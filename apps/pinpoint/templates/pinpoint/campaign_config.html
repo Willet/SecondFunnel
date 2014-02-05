@@ -58,7 +58,7 @@
             return true;
         }
         , 'showCount': true  // optional, for social buttons (default: true)
-        // , 'enableTracking': true  // optional; default: true
+        , 'enableTracking': {{ enable_tracking|default:"true" }}  // optional; default: true
         // , 'eventMap': undefined  // optional
         // , 'tileElement': undefined  // optional. alters the type of tag used by tiles.
         , 'imageTileWide': {{ campaign.image_tile_wide|default:0.5 }}  // optional. controls how often tiles are wide.
@@ -104,6 +104,5 @@
         ]
     };
 
-    var _gaq = _gaq || [];
 </script>
 {% endcompress %}
