@@ -65,6 +65,11 @@ App.module("tracker", function (tracker, App) {
                 return;
             }
 
+            if (window.location.hostname.indexOf('test') !== -1) {
+                console.warn('Skipping analytics from test buckets', arguments);
+                return;
+            }
+
             if (!App.option('enableTracking', true)) {
                 console.warn('addItem was either disabled by the client ' +
                              'or prevented by the browser. %o', arguments);
@@ -90,10 +95,8 @@ App.module("tracker", function (tracker, App) {
                 nonInteraction = 1;
             }
 
-            if (window.ga) {
-                window.ga('send', 'event', o.category, o.action, o.label,
+            addItem('send', 'event', o.category, o.action, o.label,
                     o.value || undefined, {'nonInteraction': nonInteraction});
-            }
         },
 
         setCustomVar = function (o) {
@@ -107,13 +110,11 @@ App.module("tracker", function (tracker, App) {
                 return;
             }
 
-            if (window.ga) {
-                // universal analytics accept only indexed dimensions with no
-                // name, or named variables with no scope
-                // https://developers.google.com/analytics/devguides/collection/upgrade/reference/gajs-analyticsjs#custom-vars
-                // so scope + name is used to mimic that
-                window.ga('set', scope + '.' + name + slotId, value);
-            }
+            // universal analytics accept only indexed dimensions with no
+            // name, or named variables with no scope
+            // https://developers.google.com/analytics/devguides/collection/upgrade/reference/gajs-analyticsjs#custom-vars
+            // so scope + name is used to mimic that
+            addItem('set', scope + '.' + name + slotId, value);
         },
 
         getTrackingInformation = function(model, isPreview) {
@@ -332,10 +333,8 @@ App.module("tracker", function (tracker, App) {
             App.vent.trigger('trackerInitialized', this);
             return;
         }
-        if (window.ga) {
-            window.ga('create', App.option('gaAccountNumber'), 'auto');
-            window.ga('send', 'pageview');
-        }
+        addItem('create', App.option('gaAccountNumber'), 'auto');
+        addItem('send', 'pageview');
 
         console.debug("Registered page view.");
 
