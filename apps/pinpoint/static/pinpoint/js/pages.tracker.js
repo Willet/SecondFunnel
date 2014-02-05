@@ -102,7 +102,8 @@ App.module("tracker", function (tracker, App) {
                 value = o.value,
                 scope = o.scope || GA_CUSTOMVAR_SCOPE.PAGE; // 3 = page-level
 
-            if (!(scope && name && value)) {
+            if (!(slotId && name && value)) {
+                console.warn("Missing one or more of: slotId, name, value");
                 return;
             }
 
