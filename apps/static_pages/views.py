@@ -254,6 +254,14 @@ def transfer_static_campaign(store_id, page_id):
                        dest_bucket_name=prod_irconfig_bucket_name,
                        filename=ir_config_filename,
                        overwrite=True)
+
+    # backup the curernt index page
+    copy_within_bucket(bucket_name=prod_bucket_name,
+                       from_filename=test_s3_key,
+                       to_filename="{0}.bak.{1}".format(test_s3_key,
+                                                        now_suffix),
+                       overwrite=True)
+
     # if line above didn't fail, overwrite production page
     results['bytes_written'] = bytes_written = \
         upload_to_bucket(bucket_name=prod_bucket_name,
