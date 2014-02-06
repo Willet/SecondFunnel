@@ -35,16 +35,6 @@ App.module('viewport', function (viewport, App) {
             maxTabletWidth = 767,
             enabled;
 
-        // if browser's UA claims to be a mobile device, scaling cannot be turned off.
-        if ($.browser.mobile) {
-            // enabled by default, except...
-
-            if (App.support.isAniPad()) {
-                console.warn('viewport agent disabled for the iPad.');
-                return [false, undefined, undefined, 'disabled'];
-            }
-        }
-
         enabled = App.option('lockWidth', function () {
             return true;
         });
@@ -84,6 +74,8 @@ App.module('viewport', function (viewport, App) {
         if ($.browser.mobile && !$.browser.tablet) {
             desiredWidth = Math.min($window.width(), maxMobileWidth,
                 desiredWidth, window.outerWidth);
+        } else if (App.support.isAniPad()) {
+            desiredWidth = 1024;
         } else if ($.browser.tablet) {
             desiredWidth = Math.min($window.width(), maxTabletWidth,
                 desiredWidth, window.outerWidth);
