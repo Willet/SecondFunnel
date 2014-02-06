@@ -391,17 +391,30 @@ App.module("tracker", function (tracker, App) {
         // Events that we care about:
         // Content Preview
         // Product Preview
-        'click .tile': function() {
+        'click .tile': function () {
             var modelId = $(this).attr('id'),
                 model = App.discovery.collection.get(modelId) ||
                         // {cXXX} models could be here instead, for some reason
                         App.discovery.collection._byId[modelId],
-                trackingInfo = getTrackingInformation(model);
+                trackingInfo = getTrackingInformation(model),
+                tileId = model.get('tile-id') || 0,
+                label = trackingInfo.label || "";
+
+            if (!label) {
+                console.warn("Not tracking event with no label");
+                return;
+            }
+
+            // for distinguishing product or (mostly content) tiles that
+            // have different ids
+            if (tileId) {
+                label += " (Tile " + tileId + ")";
+            }
 
             trackEvent({
                 'category': trackingInfo.category,
                 'action': 'Preview',
-                'label': trackingInfo.label
+                'label': label
             });
         },
 
