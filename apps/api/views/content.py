@@ -148,10 +148,10 @@ def get_suggested_content_by_page(request, store_id, page_id):
                 continue
 
             # if filter exists and content attribute exists, then filter on it
-            if params.get('source') and content.get('source') != params.get('source'):
+            if params.get('source') and (content.get('source') != params.get('source')):
                 continue
 
-            if params.get('type') and content.get('type') != params.get('type'):
+            if params.get('type') and (content.get('type') != params.get('type')):
                 continue
 
             results.append(content)
