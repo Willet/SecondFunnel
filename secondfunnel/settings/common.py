@@ -419,7 +419,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'poll 60-second regenerate pages': {
         'task': 'apps.api.tasks.queue_page_regeneration',
-        'schedule': timedelta(seconds=60),
+        'schedule': timedelta(seconds=300),
         'args': tuple()
     }
 }
