@@ -117,7 +117,7 @@ App.module("tracker", function (tracker, App) {
             addItem('set', scope + '.' + name + slotId, value);
         },
 
-        getTrackingInformation = function(model, isPreview) {
+        getTrackingInformation = function (model, isPreview) {
             // Given a model, return information for tracking purposes
             var category,
                 label;
@@ -129,16 +129,16 @@ App.module("tracker", function (tracker, App) {
 
             // Convert model to proper category?
             switch (model.get('template')) {
-                case 'product':
-                case 'combobox':
-                    category = 'Product';
-                    label = model.get('name');
-                    break;
-                default:
-                    category = 'Content';
-                    // TODO: Need a method to get URL
-                    label = model.get('image');
-                    break;
+            case 'product':
+            case 'combobox':
+                category = 'Product';
+                label = model.get('name');
+                break;
+            default:
+                category = 'Content';
+                // TODO: Need a method to get URL
+                label = model.get('image');
+                break;
             }
 
             if (isPreview) {

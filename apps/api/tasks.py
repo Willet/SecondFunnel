@@ -184,9 +184,13 @@ def queue_page_regeneration():
     # Local import to avoid issues with circular importation
     from apps.api.views import generate_ir_config
     for store in get_contentgraph_data('/store'):
+        logger.debug("got store {0}".format(store['id']))
+
         # Get only the stale pages from the store, eventually this will be phased
         # to not need to iterate over stores.
         for page in get_contentgraph_data('/store/%s/page?ir-stale=true' % store['id']):
+            logger.debug("got stale page {0}/{1}".format(store['id'], page['id']))
+
             data = call_contentgraph('/store/%s/page/%s' % (store['id'], page['id']))
             last_generated = calendar.timegm(datetime.utcnow().timetuple())
             payload = json.dumps({
@@ -206,5 +210,7 @@ def queue_page_regeneration():
                 if last_generated > settings.IRCONFIG_RETRY_THRESHOLD:
                     logger.info('Generating ir config. storeId: %s pageId: %s' % (store['id'], page['id']))
                     generate_ir_config(store['id'], page['id'])
+                else:
+                    logger.warn('ir config not stale enough. storeId: %s pageId: %s' % (store['id'], page['id']))
             except Exception as e:
                 logger.info(e)
