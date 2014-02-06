@@ -9,7 +9,7 @@ from apps.api.decorators import check_login, request_methods
 
 from apps.intentrank.utils import ajax_jsonp
 from apps.api.resources import ContentGraphClient
-from apps.contentgraph.models import get_contentgraph_data
+from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
 from apps.api.utils import mimic_response
 
 
@@ -517,5 +517,5 @@ def mark_page_for_regeneration(store_id, page_id):
     payload = json.dumps({
         'ir-stale': 'true'
     })
-    get_contentgraph_data('/store/%s/page/%s' %(store_id, page_id),
-                          method="PATCH", body=payload)
+    call_contentgraph('/store/%s/page/%s' %(store_id, page_id),
+                      method="PATCH", body=payload)

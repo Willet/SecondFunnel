@@ -22,7 +22,7 @@ def get_stores(as_dict=False):
     """
     stores = []
     data = get_contentgraph_data('/store')
-    for store in data['results']:  # json format: {"results": [...]}
+    for store in data:  # json format: {"results": [...]}
         cgo = get_store(store['id'])
         if as_dict:
             stores.append(cgo.json(False))
@@ -49,8 +49,7 @@ def view_page(request, store_id, page_id):
 
 def get_pages(store_id, as_dict=False):
     pages = []
-    data = get_contentgraph_data('/store/{0}/page'.format(store_id))
-    for page in data['results']:  # json format: {"results": [...]}
+    for page in get_contentgraph_data('/store/{0}/page'.format(store_id)):  # json format: {"results": [...]}
         cgo = get_page(store_id, page['id'])
         if as_dict:
             pages.append(cgo.json(False))
@@ -96,7 +95,7 @@ def get_products(store_id=0, page_id=0, as_dict=False):
     else:  # get all products
         data = get_contentgraph_data('/product')
 
-    for product in data['results']:  # json format: {"results": [...]}
+    for product in data:
         cgo = get_product(store_id, product['id'])
         if as_dict:
             products.append(cgo.json(False))
