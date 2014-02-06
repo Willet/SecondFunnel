@@ -192,6 +192,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         "desktop_hero_image": getattr(campaign, 'heroImageDesktop', ''),
         "ir_base_url": ir_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
+        "url": getattr(campaign, 'url', '')
     }
 
     context = RequestContext(request, attributes)
