@@ -191,26 +191,10 @@ def queue_page_regeneration():
         for page in get_contentgraph_data('/store/%s/page?ir-stale=true' % store['id']):
             logger.debug("got stale page {0}/{1}".format(store['id'], page['id']))
 
-            data = call_contentgraph('/store/%s/page/%s' % (store['id'], page['id']))
-            last_generated = calendar.timegm(datetime.utcnow().timetuple())
-            payload = json.dumps({
-                'ir-last-generated': last_generated
-            })
-            # Don't patch if versions don't sync.  If that is the case, tasker will pick
-            # it up on next poll.
-            headers = {
-                'consistent': 'true',
-                'version': data['last-modified']
-            }
             try:
-                call_contentgraph('/store/%s/page/%s' % (store['id'], page['id']),
-                    headers=headers, method="PATCH", body=payload)
                 # Ensure we aren't generating too often
-                last_generated -= int(data['ir-last-generated'])
-                if last_generated > settings.IRCONFIG_RETRY_THRESHOLD:
-                    logger.info('Generating ir config. storeId: %s pageId: %s' % (store['id'], page['id']))
-                    generate_ir_config(store['id'], page['id'])
-                else:
-                    logger.warn('ir config not stale enough. storeId: %s pageId: %s' % (store['id'], page['id']))
-            except Exception as e:
-                logger.info(e)
+                generate_ir_config(store['id'], page['id'])
+                logger.info("generating IR config {0}:{1}".format(store['id'],
+                                                                  page['id']))
+            except Exception as err:
+                logger.info(err)
