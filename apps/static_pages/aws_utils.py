@@ -140,6 +140,31 @@ def copy_across_bucket(source_bucket_name, dest_bucket_name, filename,
 
 
 @connection_required("s3")
+def copy_within_bucket(bucket_name, from_filename, to_filename,
+                       overwrite=False, conn=None):
+    """Standard copy one file from one bucket to the same bucket.
+
+    :raises (IOError, StorageCopyError, ...)
+    :returns filename
+    """
+    bucket = conn.lookup(bucket_name)
+
+    if not bucket:
+        raise ValueError("Bucket {0} does not exist".format(bucket_name))
+
+    key = bucket.get_key(from_filename)
+
+    if not key:
+        raise IOError("Source Key (file) does not exist")
+
+    if not bucket.get_key(to_filename) or overwrite:
+        key.copy(bucket_name, to_filename)
+        return to_filename
+    else:
+        raise IOError("Key Already Exists, will not overwrite.")
+
+
+@connection_required("s3")
 def s3_key_exists(bucket_name, filename, conn=None):
     """:returns bool"""
     bucket = conn.lookup(bucket_name)
