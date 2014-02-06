@@ -1,7 +1,8 @@
-import StringIO
+from datetime import datetime
 import gzip
 import json
 import mimetypes
+import StringIO
 import sys
 import traceback
 import uuid
@@ -10,11 +11,11 @@ from BeautifulSoup import BeautifulSoup
 import re
 from django.conf import settings
 from django.utils.encoding import smart_unicode
-from apps.contentgraph.models import get_contentgraph_data
+from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
 
 from apps.intentrank.utils import ajax_jsonp
 from apps.pinpoint.utils import read_remote_file
-from apps.static_pages.aws_utils import sns_notify, download_from_bucket, upload_to_bucket, s3_key_exists, copy_across_bucket, create_bucket_website_alias
+from apps.static_pages.aws_utils import sns_notify, download_from_bucket, upload_to_bucket, s3_key_exists, copy_across_bucket, create_bucket_website_alias, copy_within_bucket
 from apps.static_pages.tasks import (create_bucket_for_store_now,
                                      generate_static_campaign_now)
 
@@ -124,11 +125,14 @@ def transfer_static_campaign(store_id, page_id):
 
     :raises AttributeError, KeyError, IndexError, ValueError
     """
+    # a date format with no colons or decimals in it
+    now_suffix = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+
     results = {  # function return, for knowing what actually happened
         'success': True, 'store_id': store_id, 'page_id': page_id
     }
 
-    cg_page_data = get_contentgraph_data('/store/{0}/page/{1}'.format(
+    cg_page_data = call_contentgraph('/store/{0}/page/{1}'.format(
         store_id, page_id))
     if not (cg_page_data and cg_page_data.get('store-id')):
         raise KeyError("Page {0} could not be retrieved")
@@ -137,7 +141,7 @@ def transfer_static_campaign(store_id, page_id):
                          "transferred to production.")
 
     store_id = cg_page_data['store-id']  # more reliable value
-    cg_store_data = get_contentgraph_data('/store/{0}'.format(store_id))
+    cg_store_data = call_contentgraph('/store/{0}'.format(store_id))
     if not cg_store_data:
         raise KeyError("Store {0} could not be retrieved")
     if not cg_store_data.get('public-base-url'):
@@ -238,6 +242,14 @@ def transfer_static_campaign(store_id, page_id):
     # replace all inline references to IR test to IR prod, but
     # do not overwrite existing production page before IRConfig copied over
     prod_page_source = prod_page_source.replace(test_ir, prod_ir)
+
+    # backup the IR config
+    copy_within_bucket(bucket_name=prod_irconfig_bucket_name,
+                       from_filename=ir_config_filename,
+                       to_filename="{0}.bak.{1}".format(ir_config_filename,
+                                                        now_suffix),
+                       overwrite=True)
+
     copy_across_bucket(source_bucket_name=test_irconfig_bucket_name,
                        dest_bucket_name=prod_irconfig_bucket_name,
                        filename=ir_config_filename,
