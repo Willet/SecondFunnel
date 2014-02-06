@@ -20,6 +20,8 @@ App.module('viewport', function (viewport, App) {
             return tag;
         };
 
+    viewport.scalingApplied = false;
+
     /**
      * Returns an array containing viewport analysis.
      * Used by .scale().
@@ -115,13 +117,19 @@ App.module('viewport', function (viewport, App) {
             metaTag = getMeta(),
             proposedMeta = '';
         //  allowed to scale,       found a meta tag
-        if (analysis[0] === true && metaTag.length >= 1) {
+        if (!viewport.scalingApplied
+            && analysis[0] === true
+            && metaTag.length >= 1
+        ) {
             // if both tag and condition exist
             proposedMeta = analysis[3];
+
+            // Check if the widths are different
             if (metaTag.prop('content') !== proposedMeta) {
                 // avoid re-rendering: edit tag only if it needs to change
                 metaTag.prop('content', proposedMeta);
                 App.vent.trigger('viewportResized', desiredWidth);
+                viewport.scalingApplied = true;
             }
         } else {
             App.vent.trigger('viewportNotResized', analysis[3]);
@@ -134,7 +142,7 @@ App.module('viewport', function (viewport, App) {
     });
     App.vent.on('finished', function () {
         // single call func removes args
-        viewport.scale();
+        //viewport.scale();
     });
     App.vent.on('rotate', viewport.scale);
 });
