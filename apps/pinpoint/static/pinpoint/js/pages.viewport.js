@@ -35,16 +35,6 @@ App.module('viewport', function (viewport, App) {
             maxTabletWidth = 767,
             enabled;
 
-        // if browser's UA claims to be a mobile device, scaling cannot be turned off.
-        if ($.browser.mobile) {
-            // enabled by default, except...
-
-            if (App.support.isAniPad()) {
-                console.warn('viewport agent disabled for the iPad.');
-                return [false, undefined, undefined, 'disabled'];
-            }
-        }
-
         enabled = App.option('lockWidth', function () {
             return true;
         });
@@ -84,6 +74,8 @@ App.module('viewport', function (viewport, App) {
         if ($.browser.mobile && !$.browser.tablet) {
             desiredWidth = Math.min($window.width(), maxMobileWidth,
                 desiredWidth, window.outerWidth);
+        } else if (App.support.isAniPad()) {
+            desiredWidth = 1024;
         } else if ($.browser.tablet) {
             desiredWidth = Math.min($window.width(), maxTabletWidth,
                 desiredWidth, window.outerWidth);
@@ -126,7 +118,10 @@ App.module('viewport', function (viewport, App) {
         if (analysis[0] === true && metaTag.length >= 1) {
             // if both tag and condition exist
             proposedMeta = analysis[3];
-            if (metaTag.prop('content') !== proposedMeta) {
+
+
+            // Check if the widths are different
+            if ($(window).width() < analysis[1]) {
                 // avoid re-rendering: edit tag only if it needs to change
                 metaTag.prop('content', proposedMeta);
                 App.vent.trigger('viewportResized', desiredWidth);
@@ -142,7 +137,7 @@ App.module('viewport', function (viewport, App) {
     });
     App.vent.on('finished', function () {
         // single call func removes args
-        viewport.scale();
+        //viewport.scale();
     });
     App.vent.on('rotate', viewport.scale);
 });
