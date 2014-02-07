@@ -197,7 +197,7 @@ App.module('core', function (module, App) {
                     'model': tile,
                     'caller': ev.currentTarget
                 });
-                // App.vent.trigger("click:tile", ev, this);
+                App.previewArea.show(preview);
             }
         },
 
@@ -798,20 +798,7 @@ App.module('core', function (module, App) {
          * @param options {Object}   optional overrides.
          */
         'initialize': function (options) {
-            var ContentClass = App.utils.findClass('PreviewContent',
-                    options.model.get('template'), module.PreviewContent),
-                contentOpts = {
-                    'model': options.model,
-                    'caller': options.caller
-                };
-
-            this.render();
-            if (!this.isClosed) {
-                this.content.show(new ContentClass(contentOpts));
-                if (this.content.currentView.isClosed) {
-                    this.close();
-                }
-            }
+            this.options = options;
         },
 
         'onMissingTemplate': function () {
@@ -827,7 +814,14 @@ App.module('core', function (module, App) {
             // cannot declare display:table in marionette class.
             this.$el.css({'display': "table"});
 
-            $('body').append(this.$el);
+            var ContentClass = App.utils.findClass('PreviewContent',
+                    this.options.model.get('template'), module.PreviewContent),
+                contentOpts = {
+                    'model': this.options.model,
+                    'caller': this.options.caller
+                };
+
+            this.content.show(new ContentClass(contentOpts));
         }
     });
 

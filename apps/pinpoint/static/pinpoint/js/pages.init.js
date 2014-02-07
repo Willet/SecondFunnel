@@ -12,7 +12,7 @@ function reinitialize(app) {
         app.addRegions({
             'heroArea': '#hero-area',
             'discoveryArea': '#discovery-area',
-            'previewArea': '#preview'
+            'previewArea': '#preview-area'
         });
     }
 
