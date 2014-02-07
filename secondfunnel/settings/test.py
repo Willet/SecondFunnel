@@ -32,13 +32,13 @@ AWS_SQS_POLLING_QUEUES = {
         'product-update-notification-queue':
             {'queue_name': 'product-update-notification-queue',
              'handler': 'handle_product_update_notification_message',
-             'interval': 300},
+             'interval': 5},
 
         # https://willet.atlassian.net/browse/CM-126
         'content-update-notification-queue':
             {'queue_name': 'content-update-notification-queue',
              'handler': 'handle_content_update_notification_message',
-             'interval': 300},
+             'interval': 5},
 
         # https://willet.atlassian.net/browse/CM-127
         'tile-generator-notification-queue':
