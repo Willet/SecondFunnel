@@ -71,11 +71,11 @@ App.module('viewport', function (viewport, App) {
         //                     - desired width
         //                     - max mobile width (if mobile)
         //                     - max tablet width (if tablet)
-        if ($.browser.mobile && !$.browser.tablet) {
+        if (App.support.isAniPad()) {
+            desiredWidth = 1024;
+        } else if ($.browser.mobile && !$.browser.tablet) {
             desiredWidth = Math.min($window.width(), maxMobileWidth,
                 desiredWidth, window.outerWidth);
-        } else if (App.support.isAniPad()) {
-            desiredWidth = 1024;
         } else if ($.browser.tablet) {
             desiredWidth = Math.min($window.width(), maxTabletWidth,
                 desiredWidth, window.outerWidth);
