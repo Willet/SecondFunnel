@@ -198,7 +198,7 @@ App.module('core', function (module, App) {
                 preview = new module.PreviewWindow({
                     'model': tile
                 });
-                // App.vent.trigger("click:tile", ev, this);
+                App.previewArea.show(preview);
             }
         },
 
@@ -800,19 +800,7 @@ App.module('core', function (module, App) {
          * @param options {Object}   optional overrides.
          */
         'initialize': function (options) {
-            var ContentClass = App.utils.findClass('PreviewContent',
-                    options.model.get('template'), module.PreviewContent),
-                contentOpts = {
-                    'model': options.model
-                };
-
-            this.render();
-            if (!this.isClosed) {
-                this.content.show(new ContentClass(contentOpts));
-                if (this.content.currentView.isClosed) {
-                    this.close();
-                }
-            }
+            this.options = options;
         },
 
         'onMissingTemplate': function () {
@@ -828,7 +816,13 @@ App.module('core', function (module, App) {
             // cannot declare display:table in marionette class.
             this.$el.css({'display': "table"});
 
-            $('body').append(this.$el);
+            var ContentClass = App.utils.findClass('PreviewContent',
+                    this.options.model.get('template'), module.PreviewContent),
+                contentOpts = {
+                    'model': this.options.model
+                };
+
+            this.content.show(new ContentClass(contentOpts));
         }
     });
 
@@ -846,9 +840,10 @@ App.module('core', function (module, App) {
 
         tile.fetch().done(function () {
             tile.initialize();
-            var tile_view = new module.PreviewWindow({
+            var preview = new module.PreviewWindow({
                 'model': tile
             });
+            App.previewArea.show(preview);
         });
      });
 

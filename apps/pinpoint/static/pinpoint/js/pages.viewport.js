@@ -48,7 +48,11 @@ App.module('viewport', function (viewport, App) {
             return [false, undefined, undefined, 'disabled'];
         }
 
-        if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
+        // Normally, we don't scale if a device has a certain pixel ratio...
+        // But we DO if its an iPad!
+        // We should probably do this differently.
+        if (!App.support.isAniPad() &&
+            (!window.devicePixelRatio || window.devicePixelRatio <= 1)) {
             console.warn('viewport agent called on device with unsupported ppi.');
             return [false, undefined, undefined, 'unsupported ppi'];
         }
@@ -71,11 +75,11 @@ App.module('viewport', function (viewport, App) {
         //                     - desired width
         //                     - max mobile width (if mobile)
         //                     - max tablet width (if tablet)
-        if ($.browser.mobile && !$.browser.tablet) {
+        if (App.support.isAniPad()) {
+            desiredWidth = 1024;
+        } else if ($.browser.mobile && !$.browser.tablet) {
             desiredWidth = Math.min($window.width(), maxMobileWidth,
                 desiredWidth, window.outerWidth);
-        } else if (App.support.isAniPad()) {
-            desiredWidth = 1024;
         } else if ($.browser.tablet) {
             desiredWidth = Math.min($window.width(), maxTabletWidth,
                 desiredWidth, window.outerWidth);
