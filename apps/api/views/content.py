@@ -14,6 +14,27 @@ from apps.api.resources import ContentGraphClient
 from apps.api.utils import mimic_response, get_proxy_results
 from apps.api.views.tileconfig import add_content_to_page, page_add_product
 
+from apps.contentgraph.models import TileConfigObject
+
+
+@request_methods('GET', 'PATCH')
+@check_login
+@never_cache
+@csrf_exempt
+def content_operations(request, store_id, content_id):
+    try:
+        if request.method == 'GET':
+            r = ContentGraphClient.store(store_id).content(content_id).GET(params=request.GET)
+        elif request.method == 'PATCH':
+            r = ContentGraphClient.store(store_id).content(content_id).PATCH(body=request.body)
+            # add an item to the TileGenerator's queue to have it updated
+            tile_config_object = TileConfigObject(store_id=store_id)
+            # caller handles error
+            tile_config_object.mark_tile_for_regeneration(content_id=content_id)
+        return mimic_response(r)
+    except ValueError:
+        return HttpResponse(status=500)
+
 
 @request_methods('POST')
 @check_login

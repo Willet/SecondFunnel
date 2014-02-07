@@ -443,7 +443,7 @@ def page_remove_product(store_id, page_id, product_id):
 @check_login
 @never_cache
 @csrf_exempt
-def content_operations(request, store_id, page_id, content_id):
+def page_content_operations(request, store_id, page_id, content_id):
     try:
         if request.method == 'PUT':
             add_content_to_page(store_id, page_id, content_id)
