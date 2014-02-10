@@ -709,8 +709,7 @@ App.module('core', function (module, App) {
             // hide discovery, then show this window as a page.
             if (App.support.mobile()) {
                 // out of scope
-                $(App.option('discoveryTarget')).parent()
-                    .swapWith(this.$el);
+                App.discoveryArea.$el.parent().swapWith(this.$el);
             }
 
             App.vent.trigger('previewRendered', this);
@@ -772,9 +771,8 @@ App.module('core', function (module, App) {
         'events': {
             'click .close, .mask': function () {
                 // hide this, then restore discovery.
-                var discoveryEl = $(App.option('discoveryTarget'));
                 if (App.support.mobile()) {
-                    this.$el.swapWith(discoveryEl.parent());
+                    this.$el.swapWith(App.discoveryArea.$el.parent());
 
                     // handle results that got loaded while the discovery
                     // area has an undefined height.
@@ -823,34 +821,6 @@ App.module('core', function (module, App) {
 
             this.content.show(new ContentClass(contentOpts));
         }
-    });
-
-    //TODO: put these routes into their own file?
-    /**
-     * Home route
-     */
-    App.router.route('', 'home', function () {
-        App.previewArea.close();
-    });
-
-    /**
-     * Adding the router for tile views
-     */
-    App.router.route(':tile_id', 'tile', function (tile_id) {
-        var tile = new App.core.Tile({
-            'tile-id': tile_id
-        });
-
-        tile.fetch().done(function () {
-            var TileClass = App.utils.findClass('Tile',
-                    tile.get('type') || tile.get('template'), App.core.Tile);
-            tile = new TileClass(TileClass.prototype.parse.call(this, tile.toJSON()));
-
-            var preview = new module.PreviewWindow({
-                'model': tile
-            });
-            App.previewArea.show(preview);
-        });
     });
 
     /**

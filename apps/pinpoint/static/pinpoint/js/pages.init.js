@@ -106,6 +106,48 @@ function reinitialize(app) {
             });
         });
     });
+
+    app.vent.on('finished', function () {
+        App.router = new Backbone.Router();
+
+        //TODO: put these routes into their own file?
+        /**
+         * Home route
+         */
+        App.router.route('', 'home', function () {
+            if (App.support.mobile()) {
+                if (App.previewArea.$el.children()) {
+                    $(App.previewArea.$el.children()[0]).swapWith(
+                        app.discoveryArea.$el.parent());
+                }
+
+                App.layoutEngine.layout(App.discovery);
+            }
+            App.previewArea.close();
+        });
+
+        /**
+         * Adding the router for tile views
+         */
+        App.router.route(':tile_id', 'tile', function (tile_id) {
+            var tile = new App.core.Tile({
+                'tile-id': tile_id
+            });
+
+            tile.fetch().done(function () {
+                var TileClass = App.utils.findClass('Tile',
+                        tile.get('type') || tile.get('template'), App.core.Tile);
+                tile = new TileClass(TileClass.prototype.parse.call(this, tile.toJSON()));
+
+                var preview = new App.core.PreviewWindow({
+                    'model': tile
+                });
+                App.previewArea.show(preview);
+            });
+        });
+
+        Backbone.history.start();
+    });
 }
 
 // auto-initialise existing instance on script inclusion

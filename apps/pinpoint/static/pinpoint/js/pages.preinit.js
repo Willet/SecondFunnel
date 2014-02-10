@@ -313,6 +313,3 @@ _.mixin({
 debugOp = function () {
     console.debug('%O, %O', this, arguments);
 };
-
-App.router = new Backbone.Router();
-Backbone.history.start();
