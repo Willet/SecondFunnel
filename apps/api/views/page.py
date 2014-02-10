@@ -1,3 +1,4 @@
+from socket import error as socket_error, errno
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import check_login, request_methods
@@ -38,7 +39,14 @@ def modify_page(request, store_id, page_id):
     if request.method == 'GET':
         r = ContentGraphClient.store(store_id).page(page_id).GET(params=request.GET)
     elif request.method == 'PATCH':
-        async_generate_campaign.delay(store_id, page_id)
+        try:
+            async_generate_campaign.delay(store_id, page_id)
+        except socket_error as serr:
+            if serr.errno != errno.ECONNREFUSED:
+                # If we wanted to do something if rabbit is not running locally,
+                # this is where we would put it.
+                pass
+
         r = ContentGraphClient.store(store_id).page(page_id).PATCH(data=request.body)
 
     return mimic_response(r)
