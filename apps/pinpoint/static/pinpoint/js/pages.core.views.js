@@ -193,12 +193,9 @@ App.module('core', function (module, App) {
 
             // clicking on social buttons is not clicking on the tile.
             if (!$(ev.target).parents('.button').length) {
-                //console.error(typeof(tile.get('tile-id')));
-                App.router.navigate(String(tile.get('tile-id')));
-                preview = new module.PreviewWindow({
-                    'model': tile
+                App.router.navigate(String(tile.get('tile-id')), {
+                    trigger: true
                 });
-                App.previewArea.show(preview);
             }
         },
 
@@ -783,8 +780,10 @@ App.module('core', function (module, App) {
                     // area has an undefined height.
                     App.layoutEngine.layout(App.discovery);
                 }
-                App.router.navigate('', {replace: true});
-                this.close();
+                App.router.navigate('', {
+                    replace: true,
+                    trigger: true
+                });
             }
         },
 
@@ -827,13 +826,16 @@ App.module('core', function (module, App) {
     });
 
     /**
+     * Home route
+     */
+    App.router.route('', 'home', function () {
+        App.previewArea.close();
+    });
+
+    /**
      * Adding the router for tile views
      */
-     App.router.route(':tile_id', 'tile', function (tile_id) {
-        if (tile_id === '') {
-            //TODO:
-        }
-
+    App.router.route(':tile_id', 'tile', function (tile_id) {
         var tile = new App.core.Tile({
             'tile-id': tile_id
         });
@@ -845,7 +847,7 @@ App.module('core', function (module, App) {
             });
             App.previewArea.show(preview);
         });
-     });
+    });
 
     /**
      * Visual overlay on a TileView that indicates it can be tapped.
