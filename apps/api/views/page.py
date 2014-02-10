@@ -6,6 +6,7 @@ from apps.api.utils import mimic_response
 from apps.intentrank.utils import ajax_jsonp
 from apps.static_pages.views import (generate_static_campaign,
                                      transfer_static_campaign)
+from apps.static_pages.tasks import generate_static_campaign as async_generate_campaign
 
 
 @check_login
@@ -34,11 +35,10 @@ def transfer_static_page(request, store_id, page_id):
 @csrf_exempt
 @request_methods('GET', 'PATCH')
 def modify_page(request, store_id, page_id):
-    # TODO: Regenerate page
-
     if request.method == 'GET':
         r = ContentGraphClient.store(store_id).page(page_id).GET(params=request.GET)
     elif request.method == 'PATCH':
+        async_generate_campaign.delay(store_id, page_id)
         r = ContentGraphClient.store(store_id).page(page_id).PATCH(data=request.body)
 
     return mimic_response(r)
