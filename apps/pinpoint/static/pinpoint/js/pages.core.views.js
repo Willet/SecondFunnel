@@ -780,10 +780,10 @@ App.module('core', function (module, App) {
                     // area has an undefined height.
                     App.layoutEngine.layout(App.discovery);
                 }
-                App.router.navigate('', {
-                    replace: true,
-                    trigger: true
-                });
+                /*TODO: if there hasn't been any history yet, just navigate to the
+                 *      discovery area
+                 */
+                Backbone.history.history.back();
             }
         },
 
@@ -825,6 +825,7 @@ App.module('core', function (module, App) {
         }
     });
 
+    //TODO: put these routes into their own file?
     /**
      * Home route
      */
@@ -841,7 +842,10 @@ App.module('core', function (module, App) {
         });
 
         tile.fetch().done(function () {
-            tile.initialize();
+            var TileClass = App.utils.findClass('Tile',
+                    tile.get('type') || tile.get('template'), App.core.Tile);
+            tile = new TileClass(TileClass.prototype.parse.call(this, tile.toJSON()));
+
             var preview = new module.PreviewWindow({
                 'model': tile
             });
