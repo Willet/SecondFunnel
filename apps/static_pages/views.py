@@ -255,7 +255,7 @@ def transfer_static_campaign(store_id, page_id):
                        filename=ir_config_filename,
                        overwrite=True)
 
-    # backup the curernt index page
+    # backup the current index page
     if s3_key_exists(bucket_name=prod_bucket_name, filename=test_s3_key):
         copy_within_bucket(bucket_name=prod_bucket_name,
                            from_filename=test_s3_key,
