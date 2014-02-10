@@ -115,6 +115,18 @@ function reinitialize(app) {
          * Home route
          */
         App.router.route('', 'home', function () {
+            //http://stackoverflow.com/a/5298684
+            var loc = window.location;
+            if (loc.href.indexOf('#') !== -1) {
+                if ("replaceState" in window.history) {
+                    window.history.replaceState("", document.title, loc.pathname + loc.search);
+                } else {
+                    //Fallback for IE 8 & 9
+                    window.location = window.location.href.split('#')[0];
+                }
+            }
+            //END http://stackoverflow.com/a/5298684
+
             if (App.support.mobile()) {
                 if (App.previewArea.$el.children()) {
                     $(App.previewArea.$el.children()[0]).swapWith(
@@ -143,6 +155,11 @@ function reinitialize(app) {
                     'model': tile
                 });
                 App.previewArea.show(preview);
+            }).fail(function () {
+                App.router.navigate('', {
+                    trigger: true,
+                    replace: true
+                });
             });
         });
 
