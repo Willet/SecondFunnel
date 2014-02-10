@@ -57,6 +57,8 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/scraper/store/(?P<store_id>\d+)/?$' % prefix, 'list_scrapers', name='list_scrapers'),
     url(r'^%s/scraper/store/(?P<store_id>\d+)/(?P<scraper_name>.*?)/?$' % prefix, 'delete_scraper', name='delete_scraper'),
 
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/?$' % prefix, 'modify_page', name='modify_page'),
+
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/?$' % prefix, 'list_page_content', name='list_page_content'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, 'page_content_operations', name='page_content_operations'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/prioritize/?$' % prefix, 'prioritize_content', name='prioritize_content'),
