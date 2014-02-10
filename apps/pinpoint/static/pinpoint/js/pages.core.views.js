@@ -778,10 +778,16 @@ App.module('core', function (module, App) {
                     // area has an undefined height.
                     App.layoutEngine.layout(App.discovery);
                 }
-                /*TODO: if there hasn't been any history yet, just navigate to the
-                 *      discovery area
-                 */
-                Backbone.history.history.back();
+
+                //If we have been home then it's safe to use back()
+                if (App.initial_page === '') {
+                    Backbone.history.history.back();
+                } else  {
+                    App.router.navigate('', {
+                        trigger: true,
+                        replace: true
+                    });
+                }
             }
         },
 

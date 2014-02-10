@@ -127,6 +127,11 @@ function reinitialize(app) {
             }
             //END http://stackoverflow.com/a/5298684
 
+            //Setting that we have been home
+            if (App.initial_page) {
+                App.initial_page = '';
+            }
+
             if (App.support.mobile()) {
                 if (App.previewArea.$el.children()) {
                     $(App.previewArea.$el.children()[0]).swapWith(
@@ -164,6 +169,8 @@ function reinitialize(app) {
         });
 
         Backbone.history.start();
+        //Making sure we know where we came from.
+        App.initial_page = window.location.hash;
     });
 }
 
