@@ -107,14 +107,14 @@ function reinitialize(app) {
         });
     });
 
-    app.vent.on('finished', function () {
-        App.router = new Backbone.Router();
+    app.vent.on('layoutEngineInitial', function () {
+        app.router = new Backbone.Router();
 
         //TODO: put these routes into their own file?
         /**
          * Home route
          */
-        App.router.route('', 'home', function () {
+        app.router.route('', 'home', function () {
             //http://stackoverflow.com/a/5298684
             var loc = window.location;
             if (loc.href.indexOf('#') !== -1) {
@@ -128,40 +128,40 @@ function reinitialize(app) {
             //END http://stackoverflow.com/a/5298684
 
             //Setting that we have been home
-            if (App.initial_page) {
-                App.initial_page = '';
+            if (app.initial_page) {
+                app.initial_page = '';
             }
 
-            if (App.support.mobile()) {
-                if (App.previewArea.$el.children()) {
-                    $(App.previewArea.$el.children()[0]).swapWith(
+            if (app.support.mobile()) {
+                if (app.previewArea.$el.children()) {
+                    $(app.previewArea.$el.children()[0]).swapWith(
                         app.discoveryArea.$el.parent());
                 }
 
-                App.layoutEngine.layout(App.discovery);
+                app.layoutEngine.layout(app.discovery);
             }
-            App.previewArea.close();
+            app.previewArea.close();
         });
 
         /**
          * Adding the router for tile views
          */
-        App.router.route(':tile_id', 'tile', function (tile_id) {
-            var tile = new App.core.Tile({
+        app.router.route(':tile_id', 'tile', function (tile_id) {
+            var tile = new app.core.Tile({
                 'tile-id': tile_id
             });
 
             tile.fetch().done(function () {
-                var TileClass = App.utils.findClass('Tile',
-                        tile.get('type') || tile.get('template'), App.core.Tile);
+                var TileClass = app.utils.findClass('Tile',
+                        tile.get('type') || tile.get('template'), app.core.Tile);
                 tile = new TileClass(TileClass.prototype.parse.call(this, tile.toJSON()));
 
-                var preview = new App.core.PreviewWindow({
+                var preview = new app.core.PreviewWindow({
                     'model': tile
                 });
-                App.previewArea.show(preview);
+                app.previewArea.show(preview);
             }).fail(function () {
-                App.router.navigate('', {
+                app.router.navigate('', {
                     trigger: true,
                     replace: true
                 });
@@ -170,7 +170,7 @@ function reinitialize(app) {
 
         Backbone.history.start();
         //Making sure we know where we came from.
-        App.initial_page = window.location.hash;
+        app.initial_page = window.location.hash;
     });
 }
 

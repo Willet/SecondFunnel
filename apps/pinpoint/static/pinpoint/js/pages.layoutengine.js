@@ -1,4 +1,4 @@
-/*global App, Backbone, Marionette, imagesLoaded, console*/
+/*global App, Backbone, Marionette, imagesLoaded, console, _, $*/
 /**
  * Masonry wrapper
  *
@@ -94,6 +94,10 @@ App.module("layoutEngine", function (layoutEngine, App) {
         return opts;
     };
 
+    this._onInitialLayout = _.once(function () {
+        App.vent.trigger("layoutEngineInitial");
+    });
+
     /**
      * Mix of append() and insert()
      *
@@ -117,7 +121,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
             fragment = frags;
             frags = [];
         } else {
-            return;  // save for later
+            return this;  // save for later
         }
 
         // inserting around a given tile
@@ -133,7 +137,9 @@ App.module("layoutEngine", function (layoutEngine, App) {
         }
 
         // inserting at the bottom
+        this._onInitialLayout();
         view.$el.append(fragment).masonry('appended', fragment);
+        return this;
     };
 
     /**
