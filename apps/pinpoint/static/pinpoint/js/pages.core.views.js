@@ -193,11 +193,9 @@ App.module('core', function (module, App) {
 
             // clicking on social buttons is not clicking on the tile.
             if (!$(ev.target).parents('.button').length) {
-                preview = new module.PreviewWindow({
-                    'model': tile,
-                    'caller': ev.currentTarget
+                App.router.navigate(String(tile.get('tile-id')), {
+                    trigger: true
                 });
-                App.previewArea.show(preview);
             }
         },
 
@@ -711,8 +709,7 @@ App.module('core', function (module, App) {
             // hide discovery, then show this window as a page.
             if (App.support.mobile()) {
                 // out of scope
-                $(App.option('discoveryTarget')).parent()
-                    .swapWith(this.$el);
+                App.discoveryArea.$el.parent().swapWith(this.$el);
             }
 
             App.vent.trigger('previewRendered', this);
@@ -774,15 +771,23 @@ App.module('core', function (module, App) {
         'events': {
             'click .close, .mask': function () {
                 // hide this, then restore discovery.
-                var discoveryEl = $(App.option('discoveryTarget'));
                 if (App.support.mobile()) {
-                    this.$el.swapWith(discoveryEl.parent());
+                    this.$el.swapWith(App.discoveryArea.$el.parent());
 
                     // handle results that got loaded while the discovery
                     // area has an undefined height.
                     App.layoutEngine.layout(App.discovery);
                 }
-                this.close();
+
+                //If we have been home then it's safe to use back()
+                if (App.initial_page === '') {
+                    Backbone.history.history.back();
+                } else  {
+                    App.router.navigate('', {
+                        trigger: true,
+                        replace: true
+                    });
+                }
             }
         },
 
@@ -817,8 +822,7 @@ App.module('core', function (module, App) {
             var ContentClass = App.utils.findClass('PreviewContent',
                     this.options.model.get('template'), module.PreviewContent),
                 contentOpts = {
-                    'model': this.options.model,
-                    'caller': this.options.caller
+                    'model': this.options.model
                 };
 
             this.content.show(new ContentClass(contentOpts));

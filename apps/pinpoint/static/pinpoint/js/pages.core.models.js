@@ -209,8 +209,13 @@ App.module('core', function (core, App) {
             return this.getImage();
         },
 
-        'sync': function () {
-            return false;  // forces ajax PUT requests to the server to succeed.
+        'url': function () {
+            return App.options.IRSource + '/page/' + App.options.campaign + '/tile/' + this.get('tile-id');
+        },
+
+        'sync': function (method, model, options) {
+            method = 'read'; //Must always be read only
+            return Backbone.sync(method, model, options);
         }
     });
 

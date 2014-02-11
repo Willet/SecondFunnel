@@ -106,6 +106,72 @@ function reinitialize(app) {
             });
         });
     });
+
+    app.vent.on('finished', function () {
+        App.router = new Backbone.Router();
+
+        //TODO: put these routes into their own file?
+        /**
+         * Home route
+         */
+        App.router.route('', 'home', function () {
+            //http://stackoverflow.com/a/5298684
+            var loc = window.location;
+            if (loc.href.indexOf('#') !== -1) {
+                if ("replaceState" in window.history) {
+                    window.history.replaceState("", document.title, loc.pathname + loc.search);
+                } else {
+                    //Fallback for IE 8 & 9
+                    window.location = window.location.href.split('#')[0];
+                }
+            }
+            //END http://stackoverflow.com/a/5298684
+
+            //Setting that we have been home
+            if (App.initial_page) {
+                App.initial_page = '';
+            }
+
+            if (App.support.mobile()) {
+                if (App.previewArea.$el.children()) {
+                    $(App.previewArea.$el.children()[0]).swapWith(
+                        app.discoveryArea.$el.parent());
+                }
+
+                App.layoutEngine.layout(App.discovery);
+            }
+            App.previewArea.close();
+        });
+
+        /**
+         * Adding the router for tile views
+         */
+        App.router.route(':tile_id', 'tile', function (tile_id) {
+            var tile = new App.core.Tile({
+                'tile-id': tile_id
+            });
+
+            tile.fetch().done(function () {
+                var TileClass = App.utils.findClass('Tile',
+                        tile.get('type') || tile.get('template'), App.core.Tile);
+                tile = new TileClass(TileClass.prototype.parse.call(this, tile.toJSON()));
+
+                var preview = new App.core.PreviewWindow({
+                    'model': tile
+                });
+                App.previewArea.show(preview);
+            }).fail(function () {
+                App.router.navigate('', {
+                    trigger: true,
+                    replace: true
+                });
+            });
+        });
+
+        Backbone.history.start();
+        //Making sure we know where we came from.
+        App.initial_page = window.location.hash;
+    });
 }
 
 // auto-initialise existing instance on script inclusion
