@@ -94,8 +94,15 @@ App.module("layoutEngine", function (layoutEngine, App) {
         return opts;
     };
 
+    /**
+     * Triggers that the layoutEngine has completed one successful
+     * tile layout.
+     *
+     * @returns this
+     */
     this._onInitialLayout = _.once(function () {
         App.vent.trigger("layoutEngineInitial");
+        return this;
     });
 
     /**
