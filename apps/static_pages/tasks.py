@@ -156,6 +156,7 @@ def handle_page_generator_notification_message(message):
 @celery.task
 def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
     """The task version of the synchronous operation."""
+    logger.info("Generating campaign (Store #{0}, Page #{1})".format(store_id, campaign_id))
     return generate_static_campaign_now(store_id, campaign_id,
                                         ignore_static_logs)
 
