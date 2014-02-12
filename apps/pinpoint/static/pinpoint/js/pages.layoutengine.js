@@ -1,4 +1,4 @@
-/*global App, Backbone, Marionette, imagesLoaded, console*/
+/*global App, Backbone, Marionette, imagesLoaded, console, _, $*/
 /**
  * Masonry wrapper
  *
@@ -95,6 +95,17 @@ App.module("layoutEngine", function (layoutEngine, App) {
     };
 
     /**
+     * Triggers that the layoutEngine has completed one successful
+     * tile layout.
+     *
+     * @returns this
+     */
+    this._onInitialLayout = _.once(function () {
+        App.vent.trigger("layoutEngineInitial");
+        return this;
+    });
+
+    /**
      * Mix of append() and insert()
      *
      * @param {View} view       a Feed object.
@@ -117,7 +128,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
             fragment = frags;
             frags = [];
         } else {
-            return;  // save for later
+            return this;  // save for later
         }
 
         // inserting around a given tile
@@ -133,7 +144,9 @@ App.module("layoutEngine", function (layoutEngine, App) {
         }
 
         // inserting at the bottom
+        this._onInitialLayout();
         view.$el.append(fragment).masonry('appended', fragment);
+        return this;
     };
 
     /**
