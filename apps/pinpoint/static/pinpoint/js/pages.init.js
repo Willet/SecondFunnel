@@ -128,14 +128,17 @@ function reinitialize(app) {
             //END http://stackoverflow.com/a/5298684
 
             //Setting that we have been home
-            if (app.initial_page) {
-                app.initial_page = '';
+            if (app.initialPage) {
+                app.initialPage = '';
             }
 
             if (app.support.mobile()) {
-                if (app.previewArea.$el.children()) {
+                if (app.previewArea &&
+                    app.previewArea.$el &&
+                    app.previewArea.$el.children()) {
                     $(app.previewArea.$el.children()[0]).swapWith(
-                        app.discoveryArea.$el.parent());
+                        app.discoveryArea.$el.parent()
+                    );
                 }
 
                 app.layoutEngine.layout(app.discovery);
@@ -146,9 +149,9 @@ function reinitialize(app) {
         /**
          * Adding the router for tile views
          */
-        app.router.route(':tile_id', 'tile', function (tile_id) {
+        app.router.route(':tile_id', 'tile', function (tileId) {
             var tile = new app.core.Tile({
-                'tile-id': tile_id
+                'tile-id': tileId
             });
 
             tile.fetch().done(function () {
@@ -170,7 +173,7 @@ function reinitialize(app) {
 
         Backbone.history.start();
         //Making sure we know where we came from.
-        app.initial_page = window.location.hash;
+        app.initialPage = window.location.hash;
     });
 }
 

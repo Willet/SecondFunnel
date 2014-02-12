@@ -31,7 +31,7 @@
             // 'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},  // DEPRECATED
             // 'stl-image': '{{ campaign.stl_image }}',  // DEPRECATED
             // 'featured-image': '{{ campaign.featured_image }}',  // DEPRECATED
-            , 'description': '{{ campaign.description|escapejs }}'
+            , 'description': "{{ campaign.description|escapejs }}"
         }
         , 'campaign': '{{ campaign.intentrank_id|default:campaign.id }}' // required
         , 'columnWidth': {{ column_width|default:'undefined' }}  // optional. controls how often tiles are wide.  // optional (defaults to 255, pixels)
