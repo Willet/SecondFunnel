@@ -780,9 +780,9 @@ App.module('core', function (module, App) {
                 }
 
                 //If we have been home then it's safe to use back()
-                if (App.initial_page === '') {
+                if (App.initialPage === '') {
                     Backbone.history.history.back();
-                } else  {
+                } else {
                     App.router.navigate('', {
                         trigger: true,
                         replace: true
