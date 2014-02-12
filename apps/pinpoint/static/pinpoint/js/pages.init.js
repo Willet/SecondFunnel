@@ -107,7 +107,7 @@ function reinitialize(app) {
         });
     });
 
-    app.vent.on('layoutEngineInitial', function () {
+    app.vent.on('finished', function () {
         app.router = new Backbone.Router();
 
         //TODO: put these routes into their own file?

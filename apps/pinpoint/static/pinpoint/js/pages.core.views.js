@@ -622,13 +622,14 @@ App.module('core', function (module, App) {
         },
 
         'pageScroll': function () {
-            var pageHeight = $window.innerHeight(),
+            var children = this.$el.children(),
+                pageHeight = $window.innerHeight(),
                 windowTop = $window.scrollTop(),
                 pageBottomPos = pageHeight + windowTop,
                 documentBottomPos = $document.height(),
                 viewportHeights = pageHeight * (App.option('prefetchHeight', 1.5));
 
-            if (!this.loading && $('.previewContainer').length === 0 &&
+            if (!this.loading && (children.length === 0 || $('.previewContainer').length === 0) &&
                 pageBottomPos >= documentBottomPos - viewportHeights) {
                 // get more tiles to fill the screen.
                 this.getTiles();
