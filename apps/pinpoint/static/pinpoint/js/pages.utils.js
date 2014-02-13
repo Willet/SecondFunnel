@@ -1,4 +1,4 @@
-/*global App, Backbone, Marionette, console */
+/*global App, Backbone, Marionette, window, document, console, $ */
 /**
  * @module utils
  */
@@ -18,13 +18,39 @@ App.module("utils", function (utils, App) {
      * @returns {string}
      */
     this.safeString = function (str, opts) {
-        var regex =/^(None|undefined|[Ff]alse|0)$/,
+        var regex = /^(None|undefined|[Ff]alse|0)$/,
             trimmed = $.trim(str);
         if (regex.test(trimmed)) {
             return trimmed.replace(regex, '');
         }
         return str;
     };
+
+    $window.on('message', function (event) {
+        var originalEvent = event.originalEvent,
+            data = originalEvent.data;
+
+        try {
+            data = JSON.parse(data);
+        } catch (error) {
+            //console.error('Message format not supported.');
+            return;
+        }
+
+        if (!data.target || data.target !== 'second_funnel') {
+            //console.error('Message is not for second funnel');
+            return;
+        }
+
+        if (!data.type) {
+            //console.error('Message has no type');
+            return;
+        }
+
+        if (data.type === 'load_content') {
+            App.discoveryArea.currentView.collection.fetch();
+        }
+    });
 
     /**
      * Does minimal URL checking (stackoverflow.com/a/1305082/1558430)
