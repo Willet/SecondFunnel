@@ -72,7 +72,7 @@ def ajax_jsonp(result, callback_name=None, status=200):
 
     if callback_name:
         return HttpResponse("{0}({1});".format(callback_name, response_text),
-            mimetype='application/javascript', status=status)
+            content_type='application/javascript', status=status)
     else:
         return HttpResponse(response_text,
-            mimetype='application/json', status=status)
+            content_type='application/json', status=status)

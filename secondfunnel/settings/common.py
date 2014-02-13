@@ -21,7 +21,7 @@ INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config'
 MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 
 ADMINS = (
-# ('Your Name', 'your_email@example.com'),
+    # ('Your Name', 'your_email@example.com'),
 )
 
 MANAGERS = ADMINS
@@ -32,10 +32,10 @@ BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(days=30)).strftime("
 def from_project_root(path):
     """returns the path prepended by the project root."""
     return os.path.join(
-           os.path.dirname(
-           os.path.dirname(
-           os.path.dirname(
-           os.path.abspath(__file__)))), path)
+        os.path.dirname(
+        os.path.dirname(
+        os.path.dirname(
+        os.path.abspath(__file__)))), path)
 
 if 'RDS_DB_NAME' in os.environ:
     DATABASES = {
@@ -51,12 +51,12 @@ if 'RDS_DB_NAME' in os.environ:
 else:
     DATABASES = {
         'default': {
-            'ENGINE'  : 'django.db.backends.sqlite3',
-            'NAME'    : 'dev.sqlite',
-            'USER'    : '',
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': 'dev.sqlite',
+            'USER': '',
             'PASSWORD': '',
-            'HOST'    : '',
-            'PORT'    : '',
+            'HOST': '',
+            'PORT': '',
             }
     }
 
@@ -134,7 +134,7 @@ COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
 COMPRESS_JS_FILTERS = ['compressor.filters.template.TemplateFilter',
                        'compressor.filters.jsmin.JSMinFilter']
 
-COMPRESS_REBUILD_TIMEOUT = 2592000 # Rebuilds compressed files after 30 days (in seconds)
+COMPRESS_REBUILD_TIMEOUT = 2592000  # Rebuilds compressed files after 30 days (in seconds)
 
 COMPRESS_STORAGE = STATICFILES_STORAGE
 
@@ -203,13 +203,12 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'maintenancemode.middleware.MaintenanceModeMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     )
 
 KEEP_COMMENTS_ON_MINIFYING = True
 
-CACHE_MIDDLEWARE_SECONDS = 604800 # Set the cache to atleast a week; will only affect production/test/demo
+CACHE_MIDDLEWARE_SECONDS = 604800  # Set the cache to atleast a week; will only affect production/test/demo
 
 ROOT_URLCONF = 'secondfunnel.urls'
 
@@ -247,11 +246,8 @@ INSTALLED_APPS = (
     'django_extensions',
     'tastypie',
     'django_nose',  # Must be included after 'south'
-    'lettuce.django',
-    'adminlettuce',
     'ajax_forms',
     'compressor',
-    'maintenancemode',
     'social_auth',
     'corsheaders',
 
@@ -297,40 +293,40 @@ COVERAGE_PATH_EXCLUDES = ['.env', 'migrations']
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
 LOGGING = {
-     'version': 1,
-     'disable_existing_loggers': False,
-     'formatters': {
-         'verbose': {
-             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-         },
-         'simple': {
-             'format': '%(levelname)s %(message)s'
-         },
-     },
-     'filters': {
-         'require_debug_false': {
-             '()': 'django.utils.log.RequireDebugFalse'
-         }
-     },
-     'handlers': {
-         'stderr': {
-             'level': 'ERROR',
-             'class': 'logging.StreamHandler',
-             'formatter': 'verbose'
-         },
-         'mail_admins': {
-             'level': 'ERROR',
-             'filters': ['require_debug_false'],
-             'class': 'django.utils.log.AdminEmailHandler'
-         }
-     },
-     'loggers': {
-         'django.request': {
-             'handlers': ['stderr', 'mail_admins'],
-             'level': 'ERROR',
-             'propagate': True,
-         },
-     }
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'handlers': {
+        'stderr': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['stderr', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    }
 }
 
 TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (

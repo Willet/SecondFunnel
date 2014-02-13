@@ -25,7 +25,7 @@ def proxy_tile(request, store_id, page_id, object_type='product', object_id=''):
     if not request.user or not request.user.is_authenticated():
         return HttpResponse(
             content='{"error": "Not logged in"}',
-            mimetype='application/json',
+            content_type='application/json',
             status=401
         )
 

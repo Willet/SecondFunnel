@@ -6,7 +6,7 @@
 
 {% block extra_head %}
     {{ block.super }}
-    
+
     <style>
         p {
             margin: 0;
@@ -24,12 +24,12 @@
             width: 130px;
         }
     </style>
-    
+
 {% endblock %}
 
 {% block centered %}
     {% if user.is_authenticated %}
-        <p>You're already logged in as {{ user.username }}. <a href="{% url logout %}">Log out.</a></p>
+        <p>You're already logged in as {{ user.username }}. <a href="{% url 'logout' %}">Log out.</a></p>
     {% else %}
         {% if form.errors %}
             <ul class="errorlist">
@@ -37,7 +37,7 @@
             <li>Please try again.</li>
             </ul>
         {% endif %}
-        <form method="post" action="{% url login %}">
+        <form method="post" action="{% url 'login' %}">
         {% csrf_token %}
         <table>
         <tr>
@@ -49,16 +49,16 @@
             <td>{{ form.password }}</td>
         </tr>
         </table>
-        
+
         <input class="button focus" type="submit" value="login" />
 
         {# If we were given a next parameter go to that after login, otherwise go to admin page after login #}
         {% if next %}
             <input type="hidden" name="next" value="{{ next }}" />
         {% else %}
-            <input type="hidden" name="next" value="{% url login-redirect %}" />
+            <input type="hidden" name="next" value="{% url 'login-redirect' %}" />
         {% endif %}
         </form>
-        <p><a href="{% url password_reset %}">Forgot your password?</a></p>
+        <p><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
     {% endif %}
 {% endblock %}

@@ -80,7 +80,6 @@ INSTALLED_APPS = (
     'django_extensions',
     'tastypie',
     'ajax_forms',
-    "maintenancemode",
     "compressor",
     'social_auth',
     'corsheaders',

@@ -22,7 +22,7 @@ def check_login(fn):
         if not (request.user and request.user.is_authenticated()):
             return HttpResponse(
                 content='{"error": "Not logged in"}',
-                mimetype='application/json',
+                content_type='application/json',
                 status=401
             )
 

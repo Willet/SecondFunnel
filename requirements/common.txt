@@ -1,52 +1,68 @@
 # Because we use python 2.6  :(
-ordereddict==1.1
-Django==1.6.2
-Fabric==1.6.0
-MySQL-python==1.2.3
-# We keep losing packages... need a long term solution
-https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/packages/PIL-1.1.7.tar.gz
-South==0.7.6
+Django>=1.6.2
+Fabric>=1.6.0
+MySQL-python>=1.2.3
+Pillow==2.3.0
+South==0.8.4
 BeautifulSoup==3.2.1
-boto==2.9.5
-cssmin==0.1.4
-django-ajax-forms
-django-htmlmin
-django-compressor==1.2
-django-fancy-cache==0.4.0
-django-extensions==0.9
+boto==2.25.0
+cssmin==0.2.0
+django-ajax-forms==0.3.1
+django-htmlmin==0.6.3
+django-compressor==1.3
+django-fancy-cache==0.5.0
+django-extensions==1.3.3
 django-cors-headers==0.12
-git+git://github.com/Willet/django-maintenancemode.git@fed4195
 django-storages==1.1.8
-django-tastypie==0.9.12
-django-social-auth==0.7.22
-lxml==2.3.2
-python-dateutil==1.5
-python-memcached==1.48
+django-tastypie==0.11.0
+django-social-auth==0.7.28
+lxml==3.3.1
+python-dateutil==2.2
+python-memcached==1.53
 python-instagram==0.8.0
-python-tumblpy==0.7.1
-httplib2==0.7.7
+python-tumblpy==1.0.2
+httplib2==0.8
 wsgiref==0.1.2
-mock==1.0.0
+mock==1.0.1
 hammock==0.2.4
-sqlalchemy==0.9.2
 psycopg2==2.5.2
 
 # celery
-amqplib==1.0.2
-anyjson==0.3.3
-billiard==2.7.3.28
-celery==3.0.19
-django-celery==3.0.17
-kombu==2.5.10
-pytz==2013b
+amqplib>=1.0.2
+anyjson>=0.3.3
+billiard==3.3.0.16
+celery==3.1.9
+django-celery==3.1.9
+kombu==3.0.12
+pytz==2013.9
 
 # google api libraries
 # This library has a tendency of disappearing...
 # So we keep our own copy of it
-https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/packages/google-1.05.zip
-google-api-python-client==1.0
-pyOpenSSL==0.13
+https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/packages/google-1.05.zip#egg=google
+google-api-python-client==1.2
+pyOpenSSL==0.13.1
 python-gflags==2.0
 
 # hipchat
-python-simple-hipchat==0.1
+python-simple-hipchat==0.2
+
+SQLAlchemy==0.9.2
+argparse==1.1
+astroid==1.0.1
+beautifulsoup4==4.3.2
+django-appconf==0.6
+ecdsa==0.10
+git-remote-helpers==0.1.0
+html5lib==0.999
+logilab-common==0.61.0
+oauth2==1.5.211
+oauthlib==0.6.1
+paramiko==1.12.1
+pycrypto==2.6.1
+python-mimeparse==0.1.4
+python-openid==2.2.5
+python-termstyle==0.1.10
+requests==1.2.2
+requests-oauthlib==0.3.2
+six==1.5.2

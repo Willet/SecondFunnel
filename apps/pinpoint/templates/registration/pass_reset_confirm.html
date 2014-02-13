@@ -46,6 +46,6 @@
         </form>
     {% else %}
         <h1>Password reset unsuccessful</h1>
-        <p>The password reset link was invalid, possibly because it has already been used.  Please <a href="{% url password_reset %}">request a new password reset.</a></p>
+        <p>The password reset link was invalid, possibly because it has already been used.  Please <a href="{% url 'password_reset' %}">request a new password reset.</a></p>
     {% endif %}
 {% endblock %}
