@@ -1,4 +1,4 @@
-/*global App, Backbone, Marionette, console */
+/*global App, $, Backbone, Marionette, console */
 /**
  * @module tracker
  */
@@ -59,13 +59,28 @@ App.module("tracker", function (tracker, App) {
         },
 
         addItem = function () {
-            // wrap _gaq.push to obey our tracking
-            if (window._gaq && App.option('enableTracking', true)) {
-                _gaq.push.apply(_gaq, arguments);
-            } else {
+            // wrap ga to obey our tracking
+            if (!window.ga) {
+                console.warn('Analytics library is not ready. %o', arguments);
+                return;
+            }
+
+            if (window.location.hostname.indexOf('test') !== -1) {
+                console.warn('Skipping analytics from test buckets', arguments);
+                return;
+            }
+
+            if (!App.option('enableTracking', true)) {
                 console.warn('addItem was either disabled by the client ' +
                              'or prevented by the browser. %o', arguments);
+                return;
             }
+            if (App.option('debug', App.QUIET) > App.QUIET) {
+                console.warn('Debug mode disabled tracking. %o', arguments);
+                return;
+            }
+
+            window.ga.apply(window, arguments);
         },
 
         trackEvent = function (o) {
@@ -75,13 +90,13 @@ App.module("tracker", function (tracker, App) {
             // value          - Optional numeric data
             // nonInteraction - if true, don't count in bounce rate
             //                  by default, events are interactive
-            addItem(['_trackEvent',
-                o.category,
-                o.action,
-                o.label,
-                o.value || undefined,
-                !!o.nonInteraction || undefined
-            ]);
+            var nonInteraction = 0;
+            if (o.nonInteraction) {
+                nonInteraction = 1;
+            }
+
+            addItem('send', 'event', o.category, o.action, o.label,
+                    o.value || undefined, {'nonInteraction': nonInteraction});
         },
 
         setCustomVar = function (o) {
@@ -91,13 +106,18 @@ App.module("tracker", function (tracker, App) {
                 scope = o.scope || GA_CUSTOMVAR_SCOPE.PAGE; // 3 = page-level
 
             if (!(slotId && name && value)) {
+                console.warn("Missing one or more of: slotId, name, value");
                 return;
             }
 
-            addItem(['_setCustomVar', slotId, name, value, scope]);
+            // universal analytics accept only indexed dimensions with no
+            // name, or named variables with no scope
+            // https://developers.google.com/analytics/devguides/collection/upgrade/reference/gajs-analyticsjs#custom-vars
+            // so scope + name is used to mimic that
+            addItem('set', scope + '.' + name + slotId, value);
         },
 
-        getTrackingInformation = function(model, isPreview) {
+        getTrackingInformation = function (model, isPreview) {
             // Given a model, return information for tracking purposes
             var category,
                 label;
@@ -109,16 +129,16 @@ App.module("tracker", function (tracker, App) {
 
             // Convert model to proper category?
             switch (model.get('template')) {
-                case 'product':
-                case 'combobox':
-                    category = 'Product';
-                    label = model.get('name');
-                    break;
-                default:
-                    category = 'Content';
-                    // TODO: Need a method to get URL
-                    label = model.get('image');
-                    break;
+            case 'product':
+            case 'combobox':
+                category = 'Product';
+                label = model.get('name');
+                break;
+            default:
+                category = 'Content';
+                // TODO: Need a method to get URL
+                label = model.get('image');
+                break;
             }
 
             if (isPreview) {
@@ -289,42 +309,59 @@ App.module("tracker", function (tracker, App) {
      * @alias tracker.start
      */
     this.initialize = function (options) {
+        // this (reformatted) code creates window.ga
+        (function (o, g, r, a, m) {
+            window.GoogleAnalyticsObject = 'ga';
+            window.ga = window.ga || function () {
+                (window.ga.q = window.ga.q || []).push(arguments);
+            };
+            window.ga.l = Number(new Date());
+            a = document.createElement(o);
+            a.async = 1;
+            a.src = g;
+
+            m = document.getElementsByTagName(o)[0];
+            m.parentNode.insertBefore(a, m);
+        }('script', '//www.google-analytics.com/analytics.js', 'ga'));
+
+        this.setup(options);
+    };
+
+    this.setup = function (options) {
         if (App.option('debug', App.QUIET) > App.QUIET) {
-            // debug mode.
-            addItem(['_setDomainName', 'none']);
+            // do not run analytics when debugging (dev, test)
+            App.vent.trigger('trackerInitialized', this);
+            return;
         }
+        addItem('create', App.option('gaAccountNumber'), 'auto');
+        addItem('send', 'pageview');
 
-        addItem(['_setAccount', App.option('gaAccountNumber')]);
-        addItem(['_setCustomVar',
-            1,                               // slot id
-            'StoreID',                       // name
-            App.option('store:id'), // value
-            3                                // scope: page-level
-        ]);
-        addItem(['_setCustomVar', 2, 'CampaignID',
-            App.option('campaign'),  // <int>
-            3
-        ]);
-        addItem(['_trackPageview']);
+        console.debug("Registered page view.");
 
-        // register event maps
-        var defaults = new this.EventManager(this.defaultEventMap),
-            customs = new this.EventManager(App.option('events'));
+        setCustomVar({
+            'slotId': 1,
+            'name': 'StoreID',
+            'value': App.option('store:id')
+        });
+
+        setCustomVar({
+            'slotId': 2,
+            'name': 'CampaignID',
+            'value': App.option('campaign')
+        });
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?
         setCustomVar({
             'slotId': 1,
             'name': 'Store',
-            'value': App.option('store:id'),
-            'scope': GA_CUSTOMVAR_SCOPE.PAGE
+            'value': App.option('store:id')
         });
 
         setCustomVar({
             'slotId': 2,
             'name': 'Page',
-            'value': App.option('page:id'),
-            'scope': GA_CUSTOMVAR_SCOPE.PAGE
+            'value': App.option('page:id')
         });
 
         // TODO: Need a better way to determine internal v. external visitor
@@ -336,7 +373,9 @@ App.module("tracker", function (tracker, App) {
             'scope': GA_CUSTOMVAR_SCOPE.VISITOR
         });
 
-        // referrer? domain?
+        // register event maps
+        var defaults = new this.EventManager(this.defaultEventMap),
+            customs = new this.EventManager(App.option('events'));
 
         App.vent.trigger('trackerInitialized', this);
         // setTrackingDomHooks() on $.ready
@@ -352,17 +391,30 @@ App.module("tracker", function (tracker, App) {
         // Events that we care about:
         // Content Preview
         // Product Preview
-        'click .tile': function() {
+        'click .tile': function () {
             var modelId = $(this).attr('id'),
                 model = App.discovery.collection.get(modelId) ||
                         // {cXXX} models could be here instead, for some reason
                         App.discovery.collection._byId[modelId],
-                trackingInfo = getTrackingInformation(model);
+                trackingInfo = getTrackingInformation(model),
+                tileId = model.get('tile-id') || 0,
+                label = trackingInfo.label || "";
+
+            if (!label) {
+                console.warn("Not tracking event with no label");
+                return;
+            }
+
+            // for distinguishing product or (mostly content) tiles that
+            // have different ids
+            if (tileId) {
+                label += " (Tile " + tileId + ")";
+            }
 
             trackEvent({
                 'category': trackingInfo.category,
                 'action': 'Preview',
-                'label': trackingInfo.label
+                'label': label
             });
         },
 

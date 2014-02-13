@@ -7,7 +7,9 @@ from django.http import HttpResponse
 
 from apps.api.decorators import check_login, request_methods
 
+from apps.intentrank.utils import ajax_jsonp
 from apps.api.resources import ContentGraphClient
+from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
 from apps.api.utils import mimic_response
 
 
@@ -28,7 +30,7 @@ def cg_response_contains_results(request):
 @csrf_exempt
 def prioritize_tile(request, store_id, page_id, tileconfig_id):
     tileconfig = tileconfig_prioritize(store_id, page_id, tileconfig_id)
-    return HttpResponse(content=json.dumps(tileconfig))
+    return ajax_jsonp(tileconfig)
 
 
 def tileconfig_prioritize(store_id, page_id, tileconfig_id):
@@ -45,7 +47,7 @@ def tileconfig_prioritize(store_id, page_id, tileconfig_id):
 @never_cache
 @csrf_exempt
 def deprioritize_tile(request, store_id, page_id, tileconfig_id):
-    return mimic_response(tileconfig_deprioritize(store_id, page_id, tileconfig_id))
+    return ajax_jsonp(tileconfig_deprioritize(store_id, page_id, tileconfig_id))
 
 
 def tileconfig_deprioritize(store_id, page_id, tileconfig_id):
@@ -139,7 +141,7 @@ def get_page_content(store_id, page_id, content_id):
     if r.status_code != 200:
         return HttpResponse(status=r.status_code)
     content = expand_contents(store_id, page_id, [r.json()])[0]
-    return HttpResponse(mimetype='application/json', content=json.dumps(content))
+    return ajax_jsonp(content)
 
 
 @request_methods('GET')
@@ -148,7 +150,7 @@ def get_page_content(store_id, page_id, content_id):
 @csrf_exempt
 def list_page_content(request, store_id, page_id):
     params = request.GET.dict()
-    params['template'] = 'image'
+    params['is-content'] = 'true'
     r = ContentGraphClient.page(page_id)('tile-config').GET(params=params)
     if r.status_code == 200:
         tiles_json = r.json()
@@ -180,7 +182,7 @@ def get_page_product(store_id, page_id, product_id):
     if r.status_code != 200:
         return HttpResponse(status=r.status_code)
     product = expand_products(store_id, page_id, [r.json()])[0]
-    return HttpResponse(content=json.dumps(product))
+    return ajax_jsonp(product)
 
 
 @request_methods('GET')
@@ -239,7 +241,7 @@ def expand_products(store_id, page_id, products):
     content_ids = list(set(content_ids))
 
     content_list = []
-    content_id_sublists = [content_ids[i:i+25] for i in range(0,len(content_ids),25)]
+    content_id_sublists = [content_ids[i:i+25] for i in range(0, len(content_ids), 25)]
     for content_id_sublist in content_id_sublists:
         content_ids_csv = ",".join([str(x) for x in content_id_sublist])
         content_list.extend(ContentGraphClient.store(store_id).content().GET(params={'id': content_ids_csv}).json()['results'])
@@ -278,7 +280,9 @@ def list_page_all_products(request, store_id, page_id):
 @never_cache
 @csrf_exempt
 def list_page_all_content(request, store_id, page_id):
-    r = ContentGraphClient.store(store_id).content().GET(params=request.GET)
+    params = request.GET.dict()
+    params['is-content'] = 'true'
+    r = ContentGraphClient.store(store_id).content().GET(params=params)
 
     def get_product(store_id, product_id):
         try:
@@ -410,6 +414,7 @@ def page_add_product(store_id, page_id, product_id, prioritized=False):
 
     payload = json.dumps({
         'template': 'product',
+        'is-content': 'false',
         'product-ids': [product_id],
         'prioritized': prioritized,
         'stale': 'true'
@@ -424,6 +429,10 @@ def page_remove_product(store_id, page_id, product_id):
     if cg_response_contains_results(tile_check):
         tile_id = tile_check.json()['results'][0]['id']
         tile_delete = ContentGraphClient.page(page_id)('tile-config')(tile_id).DELETE()
+
+        #Delete the tile if it exists
+        ContentGraphClient.page(page_id)('tile')(tile_id).DELETE()
+
         mark_page_for_regeneration(store_id, page_id)
         return mimic_response(tile_delete)
     else:
@@ -434,7 +443,7 @@ def page_remove_product(store_id, page_id, product_id):
 @check_login
 @never_cache
 @csrf_exempt
-def content_operations(request, store_id, page_id, content_id):
+def page_content_operations(request, store_id, page_id, content_id):
     try:
         if request.method == 'PUT':
             add_content_to_page(store_id, page_id, content_id)
@@ -445,9 +454,23 @@ def content_operations(request, store_id, page_id, content_id):
     return get_page_content(store_id, page_id, content_id)
 
 
+def get_content_template(store_id, page_id, content_id):
+    r = ContentGraphClient.store(store_id).content(content_id).GET()
+    if r.status_code != 200:
+        raise ValueError('ContentGraph Error')
+    content = expand_contents(store_id, page_id, [r.json()])[0]
+    templates = {
+        'youtube': 'youtube',
+        'video': 'video'
+    }
+    return templates.get(content['source'].lower(), 'image')
+
+
 def add_content_to_page(store_id, page_id, content_id, prioritized=False):
+    # get the appropriate content to determine the template type
+    template = get_content_template(store_id, page_id, content_id)
     # verify the tile config does not already exist
-    tileconfig_params = {'template': 'image', 'content-ids': content_id}
+    tileconfig_params = {'template': template, 'content-ids': content_id}
     tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
     if cg_response_contains_results(tileconfigs):
         tileconfig = tileconfigs.json()['results'][0]
@@ -455,7 +478,8 @@ def add_content_to_page(store_id, page_id, content_id, prioritized=False):
 
     # create the tile config
     payload = json.dumps({
-        'template': 'image',
+        'template': template,
+        'is-content': 'true',
         'content-ids': [content_id],
         'prioritized': prioritized,
         'stale': 'true'
@@ -468,12 +492,18 @@ def add_content_to_page(store_id, page_id, content_id, prioritized=False):
 
 
 def remove_content_from_page(store_id, page_id, content_id):
+    # get the appropriate content to determine the template type
+    template = get_content_template(store_id, page_id, content_id)
     # verify the tile config does not already exist
-    tileconfig_params = {'template': 'image', 'content-ids': content_id}
+    tileconfig_params = {'template': template, 'content-ids': content_id}
     tileconfigs = ContentGraphClient.page(page_id)('tile-config').GET(params=tileconfig_params)
     if cg_response_contains_results(tileconfigs):
         tileconfig_id = tileconfigs.json()['results'][0]['id']
         delete_tileconfig_request = ContentGraphClient.page(page_id)('tile-config')(tileconfig_id).DELETE()
+
+        #Delete the tile if it exists
+        ContentGraphClient.page(page_id)('tile')(tileconfig_id).DELETE()
+
         mark_page_for_regeneration(store_id, page_id)
         return delete_tileconfig_request.status_code == 200
     else:
@@ -484,21 +514,8 @@ def mark_page_for_regeneration(store_id, page_id):
     """marks a page for regeneration.  When one of the periodic tasks see that
     this page has been marked for regeneration, it will queue up irconfig fot
     this page."""
-    attempts = 0 # In the event of a race condition
-    while attempts < 50:
-        # We put an upper limit of 50 as the number of times to attempt
-        # to update the page as being stale.  This *should* be enough.
-        page = ContentGraphClient.store(store_id).page(page_id).GET().json()
-        payload = json.dumps({
-            'ir-stale': 'true'
-        })
-        headers = {
-            'consistent': 'true',
-            'version': page['last-modified']
-        }
-        try:
-            get_contentgraph_data('/store/%s/page/%s' %(store_id, page_id),
-                                  headers=headers, method="PATCH", body=payload)
-            break
-        except:
-            attempts += 1
+    payload = json.dumps({
+        'ir-stale': 'true'
+    })
+    call_contentgraph('/store/%s/page/%s' %(store_id, page_id),
+                      method="PATCH", body=payload)

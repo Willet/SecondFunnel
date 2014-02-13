@@ -45,6 +45,7 @@ urlpatterns += patterns('apps.api.views',
         'check_queue',
         name='check_queue'),
 
+    url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, 'content_operations', name='content_operations'),
     url(r'^%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/approve/?$' % prefix, 'approve_content', name='approve_content'),
     url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/reject/?$' % prefix, 'reject_content', name='reject_content'),
     url(r'%s/store/(?P<store_id>\d+)/content/(?P<content_id>\d+)/undecide/?$' % prefix, 'undecide_content', name='undecide_content'),
@@ -56,8 +57,10 @@ urlpatterns += patterns('apps.api.views',
     url(r'^%s/scraper/store/(?P<store_id>\d+)/?$' % prefix, 'list_scrapers', name='list_scrapers'),
     url(r'^%s/scraper/store/(?P<store_id>\d+)/(?P<scraper_name>.*?)/?$' % prefix, 'delete_scraper', name='delete_scraper'),
 
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/?$' % prefix, 'modify_page', name='modify_page'),
+
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/?$' % prefix, 'list_page_content', name='list_page_content'),
-    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, 'content_operations', name='content_operations'),
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/?$' % prefix, 'page_content_operations', name='page_content_operations'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/prioritize/?$' % prefix, 'prioritize_content', name='prioritize_content'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/(?P<content_id>\d+)/deprioritize/?$' % prefix, 'deprioritize_content', name='deprioritize_content'),
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/content/all/?$' % prefix, 'list_page_all_content', name='list_page_all_content'),
@@ -73,6 +76,7 @@ urlpatterns += patterns('apps.api.views',
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/tile-config/(?P<tileconfig_id>\d+)/deprioritize/?$' % prefix, 'deprioritize_tile', name='deprioritize_tile'),
 
     url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/generate/?$' % prefix, 'generate_static_page', name='generate_static_page'),
+    url(r'%s/store/(?P<store_id>\d+)/page/(?P<page_id>\d+)/transfer/?$' % prefix, 'transfer_static_page', name='transfer_static_page'),
 
     url(
         r'^%s/store/(?P<store_id>\d+)'          # store

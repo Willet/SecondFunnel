@@ -486,6 +486,28 @@ div.loading {
         height: auto;  /* show all thumbnails in multiple rows */
     }
 
+    .previewContainer .gallery-swipe-left, .previewContainer .gallery-swipe-right {
+        position: absolute;
+        font-size: 100px;
+        top: 50%;
+        width: 50px;
+        height: 90px;
+        line-height: 75px;
+        display: block;
+        background-color: black;
+        pointer-events: none;
+    }
+
+    .previewContainer .gallery-swipe-left {
+        content: "<";
+        left: 0;
+    }
+
+    .previewContainer .gallery-swipe-right {
+        content: ">";
+        right: 0;
+    }
+
     .previewContainer .image img {
         min-height: 300px; /* mandatory android webkit patch (because standards) */
     }
@@ -498,6 +520,20 @@ div.loading {
         vertical-align: middle;
         position: static;
     }
+
+    .previewContainer .content {
+        overflow: visible !important;
+        display: block;
+        margin: auto;
+    }
+
+    .previewContainer .content:after {
+        /* clearfix to allow preview to size to content */
+        content: "";
+        display: table;
+        clear: both;
+    }
+
     .previewContainer .content {
         display: block;
         position: relative;

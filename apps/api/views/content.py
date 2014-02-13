@@ -14,6 +14,27 @@ from apps.api.resources import ContentGraphClient
 from apps.api.utils import mimic_response, get_proxy_results
 from apps.api.views.tileconfig import add_content_to_page, page_add_product
 
+from apps.contentgraph.models import TileConfigObject
+
+
+@request_methods('GET', 'PATCH')
+@check_login
+@never_cache
+@csrf_exempt
+def content_operations(request, store_id, content_id):
+    try:
+        if request.method == 'GET':
+            r = ContentGraphClient.store(store_id).content(content_id).GET(params=request.GET)
+        elif request.method == 'PATCH':
+            r = ContentGraphClient.store(store_id).content(content_id).PATCH(body=request.body)
+            # add an item to the TileGenerator's queue to have it updated
+            tile_config_object = TileConfigObject(store_id=store_id)
+            # caller handles error
+            tile_config_object.mark_tile_for_regeneration(content_id=content_id)
+        return mimic_response(r)
+    except ValueError:
+        return HttpResponse(status=500)
+
 
 @request_methods('POST')
 @check_login
@@ -49,6 +70,7 @@ def approve_content(request, store_id, content_id):
     r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=payload)
 
     return mimic_response(r)
+
 
 @request_methods('PUT')
 @check_login
@@ -120,7 +142,7 @@ def get_suggested_content_by_page(request, store_id, page_id):
 
     tile_config_url = "%s/page/%s/tile-config?template=product" % (
         settings.CONTENTGRAPH_BASE_URL, page_id)
-    content_url = "%s/store/%s/content?tagged-products=%s"
+    content_url = "%s/store/%s/content?is-content=true&tagged-products=%s"
 
     results = []
 
@@ -147,10 +169,10 @@ def get_suggested_content_by_page(request, store_id, page_id):
                 continue
 
             # if filter exists and content attribute exists, then filter on it
-            if content.get('source') != params.get('source'):
+            if params.get('source') and (content.get('source') != params.get('source')):
                 continue
 
-            if content.get('type') != params.get('type'):
+            if params.get('type') and (content.get('type') != params.get('type')):
                 continue
 
             results.append(content)

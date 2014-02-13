@@ -1,4 +1,4 @@
-/*global App, Backbone, Marionette, console */
+/*global App, Backbone, Marionette, console, $, _ */
 /**
  * This module has no initialization options.
  *
@@ -66,9 +66,7 @@ App.module("sharing", function (sharing, App) {
             $.getScripts([
                 "//www.youtube.com/iframe_api",
                 "//assets.pinterest.com/js/pinit.js",
-                // "//connect.facebook.net/en_US/all.js",
-                "//platform.twitter.com/widgets.js",
-                "//google-analytics.com/ga.js"
+                "//platform.twitter.com/widgets.js"
             ], callback);
         }),
         'initSocial': function () {
@@ -171,14 +169,23 @@ App.module("sharing", function (sharing, App) {
                 data = this.model.attributes,
                 page = App.option('page', {}),
                 product = data || page.product || {},
-                image = page['stl-image'] || page['featured-image'] || data.image || data.url;
+                related = data['related-products'] && data['related-products'].length ? data['related-products'][0] : {},
+                image;
 
-            helpers.url = encodeURIComponent(product.url || image);
+            data.image = data.image ? data.image : {};
+            image = page['stl-image'] || page['featured-image'] || data.thumbnail || data.image.url || data.url;
+
+            if (data['source'] == "youtube") {
+                helpers.url = encodeURIComponent(data['original-url'] || product.url || image);
+            } else {
+                helpers.url = encodeURIComponent(related.url || product.url || data.url || image);
+            }
             helpers.product = {
-                'url': product.url
+                'url': product.url,
+                'image': image
             };
             helpers.showCount = this.showCount;
-            helpers.image = image;
+            helpers.image = encodeURIComponent(image);
 
             // Call the after template handler to allow subclasses to modify this
             // data
@@ -251,7 +258,7 @@ App.module("sharing", function (sharing, App) {
 
         'onTemplateHelpers': function (helpers) {
             // Additional attributes to add to our template data.
-            var url = (helpers.product.url || helpers.image);
+            var url = (helpers.product.url || helpers.product.image);
             if (url && url.indexOf("facebook") > -1) {
                 url = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(url)[1];
             }

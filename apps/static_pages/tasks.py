@@ -19,7 +19,7 @@ from apps.intentrank.views import get_seeds
 from apps.pinpoint.models import Campaign
 
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
-    get_route53_change_status, upload_to_bucket)
+    get_route53_change_status, sqs_poll, SQSQueue, upload_to_bucket)
 from apps.static_pages.utils import (get_bucket_name, create_dummy_request,
                                      render_campaign)
 
@@ -147,6 +147,7 @@ def handle_page_generator_notification_message(message):
 @celery.task
 def generate_static_campaign(store_id, campaign_id):
     """The task version of the synchronous operation."""
+    logger.info("Generating campaign (Store #{0}, Page #{1})".format(store_id, campaign_id))
     return generate_static_campaign_now(store_id, campaign_id)
 
 
@@ -176,6 +177,7 @@ def generate_local_campaign(store_id, campaign_id, page_content):
             html_file.write(smart_str(page_content))
         except Exception as e:
             pass #Fail gracefully
+
 
 def generate_static_campaign_now(store_id, campaign_id):
     """Renders individual campaign and saves it to S3."""

@@ -141,8 +141,7 @@ class ProductResource(ModelResource):
 
 
 class CampaignResource(ModelResource):
-    """Returns "a campaign".
-    """
+    """Returns "a campaign"."""
     store = fields.ForeignKey(StoreResource, 'store', full=True)
 
     class Meta:

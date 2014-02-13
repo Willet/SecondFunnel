@@ -42,7 +42,7 @@ App.module('core', function (core, App) {
         'defaults': {
             // Default product tile settings, some tiles don't
             // come specifying a type or caption
-            'caption': "Shop product",
+            'caption': "",
             'description': '',
             'tile-id': 0,
             // 'tile-class': 'tile',  // what used tile-class?
@@ -64,7 +64,8 @@ App.module('core', function (core, App) {
             // turn image json into image objects for easier access.
             var self = this,
                 defaultImage,
-                imgInstances = [];
+                imgInstances = [],
+                relatedProducts;
 
             // replace all image json with their objects.
             _.each(this.get('images'), function (image) {
@@ -100,9 +101,25 @@ App.module('core', function (core, App) {
 
             defaultImage = this.getDefaultImage();
 
+            // Transform related-product image, if necessary
+            relatedProducts = this.get('related-products');
+            if(!_.isEmpty(relatedProducts)) {
+                relatedProducts = _.map(relatedProducts, function(product) {
+                    var originalImages = product.images || [];
+                    var newImages = [];
+                    _.each(originalImages, function(image) {
+                        var imgObj = $.extend(true, {}, image);
+                        newImages.push(new core.Image(imgObj));
+                    });
+                    product.images = newImages;
+                    return product;
+                });
+            }
+
             this.set({
                 'images': imgInstances,
                 'defaultImage': defaultImage,
+                'related-products': relatedProducts,
                 'dominant-colour': defaultImage.get('dominant-colour')
             });
 
@@ -192,8 +209,13 @@ App.module('core', function (core, App) {
             return this.getImage();
         },
 
-        'sync': function () {
-            return false;  // forces ajax PUT requests to the server to succeed.
+        'url': function () {
+            return App.options.IRSource + '/page/' + App.options.campaign + '/tile/' + this.get('tile-id');
+        },
+
+        'sync': function (method, model, options) {
+            method = 'read'; //Must always be read only
+            return Backbone.sync(method, model, options);
         }
     });
 
@@ -426,7 +448,7 @@ App.module('core', function (core, App) {
             }
 
             // SHUFFLE_RESULTS is always true
-            respBuilder = _.shuffle(respBuilder);
+            //respBuilder = _.shuffle(respBuilder); Why do we shuffle the results?
 
             return _.map(respBuilder, function (jsonEntry) {
                 var TileClass = App.utils.findClass('Tile',

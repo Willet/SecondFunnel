@@ -15,8 +15,9 @@ FILE_CHARSET = 'utf-8'  # apparently something we need to enforce for File()
 
 # aws environment specific settings
 # These values should not be hardcoded. They are only hardcoded because
-# We have not yet found a way to set environment variables :(
+# it is convenient to do so :(
 AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket', 'elasticbeanstalk-us-east-1-056265713214')
+INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config'
 MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 
 ADMINS = (
@@ -26,6 +27,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(days=30)).strftime("%a, %d %b %Y %H:%M:%S GMT")
+
 
 def from_project_root(path):
     """returns the path prepended by the project root."""
@@ -111,45 +113,16 @@ AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_SNS_REGION_NAME = 'us-west-2'
 AWS_SQS_REGION_NAME = AWS_SNS_REGION_NAME  # by default, both oregon
-AWS_SNS_TOPIC_NAME = 'page_generator'
+AWS_SNS_TOPIC_NAME = 'page-generator'
+AWS_SNS_LOGGING_TOPIC_NAME = 'page-generator-queue-log'
+# allowed logging levels (arbitarily restricted)
+AWS_SNS_LOGGING_LEVELS = ['info', 'warning', 'error']
 AWS_SQS_QUEUE_NAME = AWS_SNS_TOPIC_NAME  # by default, same as the sns name
 
 # dict of queues by region to poll regularly, using celery beat.
 # corresponding handlers need to be imported in apps.api.tasks
 AWS_SQS_POLLING_QUEUES = {
-    'us-west-2': {
-        # https://willet.atlassian.net/browse/CM-125
-        'product-update-notification-queue':
-            {'queue_name': 'product-update-notification-queue',
-             'handler': 'handle_product_update_notification_message',
-             'interval': 300},
-
-        # https://willet.atlassian.net/browse/CM-126
-        'content-update-notification-queue':
-            {'queue_name': 'content-update-notification-queue',
-             'handler': 'handle_content_update_notification_message',
-             'interval': 300},
-
-        # https://willet.atlassian.net/browse/CM-127
-        'tile-generator-notification-queue':
-            {'queue_name': 'tile-generator-notification-queue',
-             'handler': 'handle_tile_generator_update_notification_message',
-             'interval': 5},
-
-        # https://willet.atlassian.net/browse/CM-128
-        'ir-config-generator-notification-queue':
-            {'queue_name': 'ir-config-generator-notification-queue',
-             'handler': 'handle_ir_config_update_notification_message'},
-
-        # https://willet.atlassian.net/browse/CM-124
-        'scraper-notification-queue':
-            {'queue_name': 'scraper-notification-queue',
-             'handler': 'handle_scraper_notification_message'},
-
-        'page_generator':
-            {'queue_name': 'page_generator',
-             'handler': 'handle_page_generator_notification_message'},
-    }
+    # override in ./{environment}.py
 }
 
 # Disable signature/accesskey/expire attrs being appended to s3 links
@@ -160,7 +133,7 @@ COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
 
 COMPRESS_JS_FILTERS = ['compressor.filters.template.TemplateFilter',
                        'compressor.filters.jsmin.JSMinFilter']
-                       
+
 COMPRESS_REBUILD_TIMEOUT = 2592000 # Rebuilds compressed files after 30 days (in seconds)
 
 COMPRESS_STORAGE = STATICFILES_STORAGE
@@ -185,7 +158,7 @@ GZIP_CONTENT_TYPES = (
     'application/javascript',
     'application/x-javascript',
 )
-    
+
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -219,9 +192,9 @@ TEMPLATE_LOADERS = (
     )
 
 MIDDLEWARE_CLASSES = (
-    'django.middleware.gzip.GZipMiddleware', # NOTE: Must be the first in this tuple
-    'htmlmin.middleware.HtmlMinifyMiddleware', # Enables compression of HTML
-    'django.middleware.cache.CacheMiddleware', # Manages caching
+    'django.middleware.gzip.GZipMiddleware',  # NOTE: Must be the first in this tuple
+    'htmlmin.middleware.HtmlMinifyMiddleware',  # Enables compression of HTML
+    'django.middleware.cache.CacheMiddleware',  # Manages caching
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -272,7 +245,7 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
-    'django_nose', # Must be included after 'south'
+    'django_nose',  # Must be included after 'south'
     'lettuce.django',
     'adminlettuce',
     'ajax_forms',
@@ -438,9 +411,12 @@ CELERYBEAT_SCHEDULE = {
     },
     'poll 60-second regenerate pages': {
         'task': 'apps.api.tasks.queue_page_regeneration',
-        'schedule': timedelta(seconds=60),
+        'schedule': timedelta(seconds=300),
         'args': tuple()
     }
 }
+
+STALE_TILE_RETRY_THRESHOLD = 240  # seconds
+IRCONFIG_RETRY_THRESHOLD = 240  # seconds
 
 djcelery.setup_loader()
