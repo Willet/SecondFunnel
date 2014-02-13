@@ -4,6 +4,7 @@ import re
 
 from collections import defaultdict
 from datetime import datetime
+from requests import HTTPError
 
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
@@ -13,27 +14,9 @@ from django.test import RequestFactory
 from django.utils.importlib import import_module
 
 from apps.assets.models import Store
-from apps.contentgraph.models import get_contentgraph_data
+from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
 from apps.contentgraph.views import get_page, get_product, get_store
 from apps.pinpoint.models import Campaign
-from apps.static_pages.models import StaticLog
-
-
-def save_static_log(object_class, object_id, key):
-    # object_type = ContentType.objects.get_for_model(object_class)
-    log_record = StaticLog(
-        # content_type=object_type,
-        object_id=object_id,
-        key=key)
-    log_record.save()
-
-
-def remove_static_log(object_class, object_id, key):
-    # object_type = ContentType.objects.get_for_model(object_class)
-    log_records = StaticLog.objects.filter(
-        # content_type=object_type,
-        object_id=object_id,
-        key=key).delete()
 
 
 def get_bucket_name(bucket_name):
@@ -159,6 +142,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     campaign.description = campaign_data.get('shareText',
          campaign_data.get('featured-product-description', ''))
     campaign.template = slugify(campaign_data.get('template', 'hero'))  # TODO: hero? hero-image?
+    campaign.image_tile_wide = campaign_data.get('imageTileWide')
 
     ir_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
 
@@ -198,12 +182,18 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         "product": json_postprocessor(product),
         "initial_results": map(json_postprocessor, initial_results),
         "backup_results": map(json_postprocessor, backup_results),
+        "social_buttons": getattr(campaign, 'social-buttons',
+                                  getattr(store, 'social-buttons', '')),
+        "column_width": getattr(campaign, 'column-width',
+                                getattr(store, 'column-width', '')),
+        "enable_tracking": getattr(campaign, 'enable-tracking', "true"),  # jsbool
         "pub_date": datetime.now(),
         "legal_copy": getattr(campaign, 'legalCopy', ''),
         "mobile_hero_image": getattr(campaign, 'heroImageMobile', ''),
         "desktop_hero_image": getattr(campaign, 'heroImageDesktop', ''),
         "ir_base_url": ir_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
+        "url": getattr(campaign, 'url', '')
     }
 
     context = RequestContext(request, attributes)
@@ -220,8 +210,8 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     try:
         theme_url = theme.page
         # 'template' is a key proposed by alex
-        page_str = get_contentgraph_data(theme_url)['template']['results']
-    except (TypeError, ValueError):
+        page_str = call_contentgraph(theme_url)['template']
+    except (TypeError, ValueError, HTTPError):
         page_str = theme.page  # it's fine, this theme is a string
 
     # Replace necessary tags

@@ -3,16 +3,17 @@ import json
 from celery import Celery
 from celery.utils.log import get_task_logger
 
-from apps.api.decorators import (require_keys_for_message,
-                                 validate_json_deserializable)
+from apps.api.decorators import (validate_json_deserializable,
+                                 require_keys_for_message)
 from apps.static_pages.tasks import generate_static_campaign_now
 
 
 celery = Celery()
 logger = get_task_logger(__name__)
 
+
 @validate_json_deserializable
-@require_keys_for_message('store-id', 'page-id')
+@require_keys_for_message(['storeId', 'pageId'])
 def handle_ir_config_update_notification_message(message):
     """
     Messages are fetched from an SQS queue and processed by this function.
@@ -36,17 +37,22 @@ def handle_ir_config_update_notification_message(message):
     @type message {boto.sqs.message.Message}
     @returns any JSON-serializable
     """
+    from apps.api.utils import ContentGraphClient  # circular loop
     message = json.loads(message)
 
-    store_id = message.get('store-id')
-    page_id = message.get('page-id')
+    store_id = message['storeId']
+    page_id = message['pageId']
 
-    try:
-        logger.info('Generating page {0} now!'.format(page_id))
-        generate_static_campaign_now(store_id=store_id,
-            campaign_id=page_id, ignore_static_logs=True)
+    r = ContentGraphClient.store(store_id).page(page_id)\
+        .PATCH(params=json.dumps({'ir-stale': 'false'}))
+    if r.status_code != 200:
+        logger.warn("Failed to make ir-stale for (store,page) = (%s,%s)" % (store_id, page_id))
 
-        return {'generated-page': page_id}
-    except BaseException as err:
-        # fails for whatever reason, work on the next page
-        return {err.__class__.__name__: err.message}
+    logger.info('Generating page {0} now!'.format(page_id))
+    # caller handles error
+    generate_static_campaign_now(
+        store_id=store_id,
+        campaign_id=page_id,
+        ignore_static_logs=True)
+
+    return {'generated-page': page_id}

@@ -100,6 +100,7 @@ CORS_ORIGIN_REGEX_WHITELIST = (
 )
 
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
+INTENTRANK_CONFIG_BUCKET_NAME = None  # copy value from test to enable dev box transfers
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 

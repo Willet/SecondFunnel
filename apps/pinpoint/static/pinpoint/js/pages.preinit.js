@@ -1,5 +1,5 @@
 /*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _,
-console */
+console, location */
 var App = new Marionette.Application(),
     SecondFunnel = App,  // old alias
     debugOp,
@@ -12,6 +12,22 @@ var App = new Marionette.Application(),
 App._globals = App._globals || {};
 
 App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
+
+App.options.urlParams = window.location.search;
+
+(function (document) {
+    $(document).on('click', 'a', function(ev) {
+        var $target = $(ev.target),
+            urlParams = App.options.urlParams;
+        if (urlParams.length > 0) {
+            var href = $target.attr('href');
+            if (href && href.indexOf(urlParams.substring(1)) == -1) {
+                href += href.indexOf('?') > -1 ? urlParams.replace('?', '&') : urlParams;
+                $target.attr('href', href);
+            }
+        }
+    });
+})(document);
 
 (function (details) {
     var pubDate;
@@ -26,20 +42,12 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     }
 }(App.options));
 
-(function (original) {
-    // make vent.trigger display debug messages.
-    App.vent.trigger = function (eventName) {
-        console.debug('App.vent.trigger(' + eventName + '): %o',
-            _.rest(arguments));
-        return original.apply(App.vent, arguments);
-    };
-}(App.vent.trigger));
-
 // A ?debug value of 1 will leak memory, and should not be used as reference
 // heap sizes on production. ibm.com/developerworks/library/wa-jsmemory/#N101B0
 (function (console, level, hash) {
     var hashIdx,
-        debugLevel = level;
+        debugLevel = level,
+        urlParams = App.options.urlParams;
     // console logging thresholds
     App.QUIET = 0;
     App.ALL = 5;
@@ -52,6 +60,12 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {
         debugLevel = App.options.debug = hash[hashIdx + 6];
+        urlParams = urlParams.replace(urlParams.substr(hashIdx - 1, hashIdx + 7), '');
+        if (urlParams.indexOf('?') == -1) {
+            App.options.urlParams = '?' + urlParams.substring(1);
+        } else {
+            App.options.urlParams = urlParams;
+        }
     } else {
         debugLevel = 0;
     }
@@ -64,6 +78,17 @@ App.options = window.PAGES_INFO || window.TEST_PAGE_DATA || {};
 }(window.console = window.console || {},
   App.options.debug,
   window.location.hash + window.location.search));
+
+// As implemented, will break in IE9
+// Need a smarter way to determine if we can use console.debug
+//(function (original) {
+//    // make vent.trigger display debug messages.
+//    App.vent.trigger = function (eventName) {
+//        console.debug('App.vent.trigger(' + eventName + '): %o',
+//            _.rest(arguments));
+//        return original.apply(App.vent, arguments);
+//    };
+//}(App.vent.trigger));
 
 // http://stackoverflow.com/questions/1199352/
 String.prototype.truncate = function (n, useSentenceBoundary, addEllipses) {
@@ -116,7 +141,7 @@ $.fn.scrollStopped = function (callback) {
             clearTimeout($this.data('scrollTimeout'));
         }
         if (callback) {
-            $this.data('scrollTimeout', setTimeout(callback, 500, self));
+            $this.data('scrollTimeout', setTimeout(callback, 60, self));
         }
     });
 };

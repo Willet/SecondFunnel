@@ -1,4 +1,4 @@
-/*global App, Backbone, Marionette, imagesLoaded, console */
+/*global App, Backbone, Marionette, imagesLoaded, console, _, $ */
 /**
  * @module intentRank
  */

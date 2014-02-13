@@ -32,13 +32,13 @@ AWS_SQS_POLLING_QUEUES = {
         'product-update-notification-queue':
             {'queue_name': 'product-update-notification-queue',
              'handler': 'handle_product_update_notification_message',
-             'interval': 300},
+             'interval': 5},
 
         # https://willet.atlassian.net/browse/CM-126
         'content-update-notification-queue':
             {'queue_name': 'content-update-notification-queue',
              'handler': 'handle_content_update_notification_message',
-             'interval': 300},
+             'interval': 5},
 
         # https://willet.atlassian.net/browse/CM-127
         'tile-generator-notification-queue':
@@ -99,7 +99,8 @@ INSTALLED_APPS = (
 WEBSITE_BASE_URL = 'http://test.secondfunnel.com'
 INTENTRANK_BASE_URL = 'http://intentrank-test.elasticbeanstalk.com'
 CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
-AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
+AWS_STORAGE_BUCKET_NAME = os.getenv('TestBucket', 'elasticbeanstalk-us-east-1-056265713214')
+INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config-test'
 
 # if secondfunnel-test.elasticbeanstalk.com
 # SESSION_COOKIE_DOMAIN = '.elasticbeanstalk.com'

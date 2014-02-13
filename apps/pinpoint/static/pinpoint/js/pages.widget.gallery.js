@@ -10,13 +10,32 @@ App.utils.registerWidget(
             threshold = $(this).width() / 5, // displacement needed to be considered a swipe
             changeImage = function ($el, url) {
                 $el.attr('src', url);
+            },
+            toggleVisibility = function ($el, cond) {
+                if (cond) {
+                    $el.show();
+                } else {
+                    $el.hide();
+                }
+            },
+            toggleButtons = function (id) {
+                toggleVisibility(view.$('.gallery-swipe-left'), id > 0);
+                toggleVisibility(view.$('.gallery-swipe-right'), id < images.length - 1);
             };
 
         // get list of images.
         try {
-            images = view.model.attributes['related-products'][0].images;
+            images = view.model.attributes['related-products'][0].images.slice(0);
+            if (App.support.mobile()) {
+                images.push(view.model.get('defaultImage'));
+            }
         } catch (err) {
             images = view.model.get('images');
+        }
+
+        //We have already appended to the gallery
+        if ($el && $el.children().length > 0) {
+            return;
         }
 
         _.each(images, function (image) {
@@ -28,9 +47,12 @@ App.utils.registerWidget(
                 .click(function (ev) {
                     // show a larger image on the left when a thumbnail is clicked.
                     var $ev = $(ev.currentTarget),
+                        $gallery = $ev.parents('.gallery'),
                         newURL = $ev.attr('src'),
+                        selector = $ev.parents('.previewContainer').find('.main-image').length ?
+                          '.main-image' : '.image img',
                         $focusImg = $ev.parents('.previewContainer')
-                            .find('.image img');
+                            .find(selector);
 
                     $ev
                         .parents('.previewContainer')
@@ -38,12 +60,20 @@ App.utils.registerWidget(
                         .removeClass('selected');
                     $ev.addClass('selected');
                     changeImage($focusImg, newURL);
+
+                    if (App.support.mobile()) {
+                        toggleButtons($gallery.children().index($ev));
+                    }
+                    $gallery.animate({
+                        scrollLeft: $ev.offset().left - $gallery.offset().left
+                    }, 700);
                 });
             $el.append($img);  // add each image into the carousel
         });
 
         $.event.special.swipe.handleSwipe = $.noop; // JQuery's default swipes fire on fixed start/stop
         view.$('.gallery img').eq(0).click(); // ensure first image selected
+        view.$('.gallery-swipe-left').hide();
 
         // swipeleft is "from right to left"
         view.$el
@@ -72,8 +102,7 @@ App.utils.registerWidget(
                 startX = ev.offsetX;
                 if (ev.offsetX >= -15 && ev.offsetX <= 100) {   // left (which is swiping right)
                     $pseudo.swiperight();
-                } else if (ev.offsetX >= $pseudo.width() - 100 &&  // right
-                           ev.offsetY > 150) {  // prevent interference with close button
+                } else if (ev.offsetX >= $pseudo.width() - 100) {  // right (which is swiping left)
                     $pseudo.swipeleft();
                 }
             });

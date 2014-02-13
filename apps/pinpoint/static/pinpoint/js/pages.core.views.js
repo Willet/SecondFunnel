@@ -193,11 +193,9 @@ App.module('core', function (module, App) {
 
             // clicking on social buttons is not clicking on the tile.
             if (!$(ev.target).parents('.button').length) {
-                preview = new module.PreviewWindow({
-                    'model': tile,
-                    'caller': ev.currentTarget
+                App.router.navigate(String(tile.get('tile-id')), {
+                    trigger: true
                 });
-                // App.vent.trigger("click:tile", ev, this);
             }
         },
 
@@ -219,16 +217,20 @@ App.module('core', function (module, App) {
                     'normal': normalTileWidth,
                     'wide': wideTileWidth,
                     'full': fullTileWidth
-                };
+                },
+                widable_templates = {
+                    'image': true,
+                    'youtube': true
+                }; //TODO: Make the configurable; perhaps a page property?
 
             // templates use this as obj.image.url
             this.model.set('image',
                 this.model.get('defaultImage')/*.width(normalTileWidth, true)*/);
 
             // 0.5 is an arbitrary 'lets make this tile wide' factor
-            if (Math.random() > App.option('imageTileWide', 0.5) &&
-                // "only if it is not a banner url"
-                wideImageInfo && !self.model.get('redirect-url')) {
+            if (widable_templates[self.model.get('template')] &&
+                wideImageInfo &&
+                Math.random() > App.option('imageTileWide', 0.5)) {
                 // this.model.getDefaultImage().url = this.model.get('defaultImage').wide.url;
                 this.$el.addClass('wide');
                 this.model.set({'image': wideImageInfo});
@@ -290,6 +292,10 @@ App.module('core', function (module, App) {
 
             if (App.support.touch()) {
                 this.tapIndicator.show(new module.TapIndicator());
+
+                this.tapIndicator.on("click", function () {
+                    self.click.apply(self, arguments);
+                });
             }
         }
     });
@@ -616,13 +622,14 @@ App.module('core', function (module, App) {
         },
 
         'pageScroll': function () {
-            var pageHeight = $window.innerHeight(),
+            var children = this.$el.children(),
+                pageHeight = $window.innerHeight(),
                 windowTop = $window.scrollTop(),
                 pageBottomPos = pageHeight + windowTop,
                 documentBottomPos = $document.height(),
                 viewportHeights = pageHeight * (App.option('prefetchHeight', 1.5));
 
-            if (!this.loading && $('.previewContainer').length === 0 &&
+            if (!this.loading && (children.length === 0 || $('.previewContainer').length === 0) &&
                 pageBottomPos >= documentBottomPos - viewportHeights) {
                 // get more tiles to fill the screen.
                 this.getTiles();
@@ -691,7 +698,7 @@ App.module('core', function (module, App) {
         'onRender': function () {
             // ItemViews don't have regions - have to do it manually
             var buttons, width, parent, top;
-            if (!(App.support.touch() || App.support.mobile())) {
+            if (this.$('.social-buttons').length >= 1) {
                 buttons = new App.sharing.SocialButtons({model: this.model}).render().load().$el;
                 this.$('.social-buttons').append(buttons);
             }
@@ -708,8 +715,7 @@ App.module('core', function (module, App) {
             // hide discovery, then show this window as a page.
             if (App.support.mobile()) {
                 // out of scope
-                $(App.option('discoveryTarget')).parent()
-                    .swapWith(this.$el);
+                App.discoveryArea.$el.parent().swapWith(this.$el);
             }
 
             App.vent.trigger('previewRendered', this);
@@ -722,12 +728,16 @@ App.module('core', function (module, App) {
         },
 
         // Disable scrolling body when preview is shown
-        'onShow': function() {
-            $(document.body).addClass('no-scroll');
+        'onShow': function () {
+            if (App.support.touch() && !App.support.isAnAndroid()) {
+                $(document.body).addClass('no-scroll');
+            }
         },
 
-        'close': function() {
-            $(document.body).removeClass('no-scroll');
+        'close': function () {
+            if (App.support.touch() && !App.support.isAnAndroid()) {
+                $(document.body).removeClass('no-scroll');
+            }
         }
     });
 
@@ -741,18 +751,49 @@ App.module('core', function (module, App) {
         'tagName': "div",
         'className': "previewContainer",
         'template': "#preview_container_template",
+        'templates': function () {
+            var templateRules = [
+                // supported contexts: options, data
+                '#<%= options.store.slug %>_<%= data.template %>_mobile_preview_container_template',
+                '#<%= data.template %>_mobile_preview_container_template',
+                '#<%= options.store.slug %>_<%= data.template %>_preview_container_template',
+                '#<%= data.template %>_preview_container_template',
+                '#product_mobile_preview_container_template',
+                '#product_preview_container_template',
+                '#mobile_preview_container_template', // fallback
+                '#preview_container_template' // fallback
+            ];
+
+            if (!App.support.mobile()) {
+                // remove mobile templates if it isn't mobile, since they take
+                // higher precedence by default
+                templateRules = _.reject(templateRules,
+                    function (t) {
+                        return t.indexOf('mobile') >= 0;
+                    });
+            }
+            return templateRules;
+        },
         'events': {
             'click .close, .mask': function () {
                 // hide this, then restore discovery.
-                var discoveryEl = $(App.option('discoveryTarget'));
                 if (App.support.mobile()) {
-                    this.$el.swapWith(discoveryEl.parent());
+                    this.$el.swapWith(App.discoveryArea.$el.parent());
 
                     // handle results that got loaded while the discovery
                     // area has an undefined height.
                     App.layoutEngine.layout(App.discovery);
                 }
-                this.close();
+
+                //If we have been home then it's safe to use back()
+                if (App.initialPage === '') {
+                    Backbone.history.history.back();
+                } else {
+                    App.router.navigate('', {
+                        trigger: true,
+                        replace: true
+                    });
+                }
             }
         },
 
@@ -768,20 +809,7 @@ App.module('core', function (module, App) {
          * @param options {Object}   optional overrides.
          */
         'initialize': function (options) {
-            var ContentClass = App.utils.findClass('PreviewContent',
-                    options.model.get('template'), module.PreviewContent),
-                contentOpts = {
-                    'model': options.model,
-                    'caller': options.caller
-                };
-
-            this.render();
-            if (!this.isClosed) {
-                this.content.show(new ContentClass(contentOpts));
-                if (this.content.currentView.isClosed) {
-                    this.close();
-                }
-            }
+            this.options = options;
         },
 
         'onMissingTemplate': function () {
@@ -797,7 +825,13 @@ App.module('core', function (module, App) {
             // cannot declare display:table in marionette class.
             this.$el.css({'display': "table"});
 
-            $('body').append(this.$el);
+            var ContentClass = App.utils.findClass('PreviewContent',
+                    this.options.model.get('template'), module.PreviewContent),
+                contentOpts = {
+                    'model': this.options.model
+                };
+
+            this.content.show(new ContentClass(contentOpts));
         }
     });
 
@@ -812,8 +846,15 @@ App.module('core', function (module, App) {
         'template': "#tap_indicator_template",
         'className': 'tap_indicator',
         'initialize': function () {
+            var self = this;
+
             _.bindAll(this, 'onScrollStopped');
             App.vent.on('scrollStopped', this.onScrollStopped);
+
+            // events don't bind to the root
+            this.$el.click(function () {
+                self.trigger("click");
+            });
         },
         'onBeforeRender': function () {
             // http://jsperf.com/hasclass-vs-toggleclass

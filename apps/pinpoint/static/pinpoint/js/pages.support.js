@@ -20,7 +20,7 @@ App.module("support", function (module, App) {
      * @returns {Boolean}
      */
     this.mobile = function () {
-        return ($window.width() < 768);  // 768 is set in stone now
+        return ($window.width() <= 768);  // 768 is set in stone now
     };
 
     /**
@@ -53,6 +53,18 @@ App.module("support", function (module, App) {
         // use of this function is highly discouraged, but you know it
         // will be used anyway
         return testUA(/ipad/i);
+    };
+
+    /**
+     * True if the device identifies itself as an Android.
+     *
+     * @type {Function}
+     * @returns {Boolean}
+     */
+    this.isAnAndroid = function () {
+        // use of this function is highly discouraged, but you know it
+        // will be used anyway
+        return testUA(/Android/i);
     };
 
     /**
