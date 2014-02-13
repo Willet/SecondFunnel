@@ -33,6 +33,11 @@ App.utils.registerWidget(
             images = view.model.get('images');
         }
 
+        //We have already appended to the gallery
+        if ($el && $el.children().length > 0) {
+            return;
+        }
+
         _.each(images, function (image) {
             var $img = $('<img />')
                 .attr({
