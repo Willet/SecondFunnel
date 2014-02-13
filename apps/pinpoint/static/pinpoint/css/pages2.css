@@ -290,11 +290,28 @@ div.loading {
         margin-top: -59.5px;
     }
 }
+
 @media (min-width: 480px) and (max-width: 510px) {
     #discovery-area {
         width: 255px;
     }
 }
+
+@media (max-width: 510px) {
+    #discovery-area {
+        margin: 0 auto;
+        width: 100%;
+    }
+    .tile {
+        padding: 2px;
+        width: 48% !important;
+        height: auto;
+    }
+    .tile.wide {
+        width: 100% !important;
+    }
+}
+
 @media (max-width: 600px) {
     .hidden-xxs {
         /* supplementary */
@@ -343,6 +360,7 @@ div.loading {
         width: 1020px;
     }
 }
+
 
 .previewContainer {
     overflow: hidden;

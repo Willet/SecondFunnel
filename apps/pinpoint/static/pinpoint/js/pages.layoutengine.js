@@ -10,10 +10,15 @@
 App.module("layoutEngine", function (layoutEngine, App) {
     "use strict";
 
-    var $document = $(document),
+    var columnWidth = function (containerWidth) {
+            var tileWidth = $('#discovery-area > div').children().eq(0).width(),
+                padding = $(window).width() <= 510 ? 10 : 30;
+            return tileWidth + padding;
+        },
+        $document = $(document),
         $window = $(window),
         defaults = {
-            'columnWidth': 255,
+            'columnWidth': columnWidth(),
             'isAnimated': App.support.transform3d() &&  // only if it is fast
                           !App.support.mobile(),  // & "phones don't animate"
             'transitionDuration': '0.4s',
@@ -52,6 +57,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
         var self = this;
         opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
 
+        console.log(opts);
         view.$el.masonry(opts);
 
         App.vent.on('windowResize', function () {
@@ -69,7 +75,8 @@ App.module("layoutEngine", function (layoutEngine, App) {
      * @returns this
      */
     this.layout = function (view) {
-        view.$el.masonry('layout');
+        opts.columnWidth = columnWidth(); // recalculate width
+        view.$el.masonry(opts);
         return this;
     };
 
