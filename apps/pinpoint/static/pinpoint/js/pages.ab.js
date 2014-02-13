@@ -79,13 +79,16 @@ App.module("ab", function (ab, App) {
         var tmp, templates;
 
         // Collect an array of the available templates
-        templates = _.isArray(replacement) ?
-            replacement.unshift(source) : [source, replacement];
+        if (_.isArray(replacement)) {
+            templates = _.clone(replacement);
+            templates.unshift(source);
+        } else {
+            templates = [source, replacement];
+        }
         replacement = this.multivariate(templates, multivariate);
 
         tmp = replacement && $(replacement).length ? replacement : source;
         $(source).contents().replaceWith($(tmp).contents().clone());
-
         return ALPHANUMERIC[templates.indexOf(tmp)];
     };
 
