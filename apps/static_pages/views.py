@@ -47,8 +47,7 @@ def generate_static_campaign(request, store_id, campaign_id):
         pass  # bucket might already exist
 
     try:
-        campaign_returns = generate_static_campaign_now(
-            store_id, campaign_id, ignore_static_logs=True)
+        campaign_returns = generate_static_campaign_now(store_id, campaign_id)
     except ValueError, err:
         _, exception, _ = sys.exc_info()
         stack = traceback.format_exc().splitlines()

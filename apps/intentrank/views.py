@@ -24,38 +24,6 @@ DEFAULT_RESULTS  = 12
 MAX_BLOCKS_BEFORE_VIDEO = 50
 
 
-def send_intentrank_request(request, url, method='GET', headers=None,
-                            http=httplib2.Http):
-    """
-    Sends a given request to intentrank with the given headers.
-
-    @param request: The request to the django intentrank api.
-    @param url: The url to the intentrank service.
-    @param method:
-    @param headers: The headers for the request to the intentrank service.
-
-    @return: A tuple with a response code and the content that was returned.
-    """
-    if not headers:
-        headers = {}
-
-    cookie = request.session.get('ir-cookie')
-    if cookie:
-        headers['Cookie'] = cookie
-
-    h = http()
-    response, content = h.request(
-        url,
-        method=method,
-        headers=headers,
-    )
-
-    if response.get('set-cookie'):
-        request.session['ir-cookie'] = response['set-cookie']
-
-    return response, content
-
-
 def send_request(request, url, method='GET', headers=None):
     """
     Sends a given request to intentrank with the given headers.

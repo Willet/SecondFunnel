@@ -1,12 +1,11 @@
-import math
 import json
 
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.http import HttpResponse
 
 from apps.assets.models import Product, Store, BaseModelNamed
 
-DEFAULT_RESULTS  = 12
+DEFAULT_RESULTS = 12
 
 
 def random_products(store_slug, param_dict, id_only=True):
@@ -62,7 +61,7 @@ def ajax_jsonp(result, callback_name=None, status=200):
             try:
                 response_text = json.dumps(result)
             except TypeError:
-                raise # no serialization method worked
+                raise  # no serialization method worked
         return response_text
 
     response_text = serialize(result)
@@ -72,7 +71,7 @@ def ajax_jsonp(result, callback_name=None, status=200):
 
     if callback_name:
         return HttpResponse("{0}({1});".format(callback_name, response_text),
-            content_type='application/javascript', status=status)
+                            content_type='application/javascript', status=status)
     else:
         return HttpResponse(response_text,
-            content_type='application/json', status=status)
+                            content_type='application/json', status=status)

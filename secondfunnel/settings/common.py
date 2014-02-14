@@ -370,12 +370,6 @@ GOOGLE_OAUTH_EXTRA_SCOPE = ['https://gdata.youtube.com']
 
 GOOGLE_OAUTH2_EXTRA_DATA = [('email', 'username')]
 
-MAINTENANCE_IGNORE_URLS = (r'^/$',
-                           r'^/about/?$',
-                           r'^/contact/?$',
-                           r'^/static/?',
-                           r'^/why/?$', )
-
 JENKINS_TASKS = (
     'django_jenkins.tasks.with_coverage',
     'django_jenkins.tasks.run_pep8',

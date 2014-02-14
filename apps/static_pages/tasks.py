@@ -7,7 +7,6 @@ import os
 from urlparse import urlparse
 
 from celery import Celery, group
-from celery.utils import noop
 from celery.utils.log import get_task_logger
 
 from django.conf import settings
@@ -37,13 +36,6 @@ RELEASE_LOCK = lambda: cache.delete(ROUTE_53_LOCK)
 
 
 def change_complete(store_id):
-    try:
-        store = Store.objects.get(id=store_id)
-
-    except Store.DoesNotExist:
-        logger.error("Store #{0} does not exist".format(store_id))
-        return
-
     RELEASE_LOCK()
 
 
@@ -70,7 +62,6 @@ def create_bucket_for_store_now(store_id, force=False):
         except ValueError:
             logger.error("Store #{0} does not exist".format(store_id))
             return
-
 
         store_url = ''
         if store.get('public-base-url', False):
@@ -154,11 +145,10 @@ def handle_page_generator_notification_message(message):
 
 
 @celery.task
-def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
+def generate_static_campaign(store_id, campaign_id):
     """The task version of the synchronous operation."""
     logger.info("Generating campaign (Store #{0}, Page #{1})".format(store_id, campaign_id))
-    return generate_static_campaign_now(store_id, campaign_id,
-                                        ignore_static_logs)
+    return generate_static_campaign_now(store_id, campaign_id)
 
 
 def generate_local_campaign(store_id, campaign_id, page_content):
@@ -188,7 +178,8 @@ def generate_local_campaign(store_id, campaign_id, page_content):
         except Exception as e:
             pass #Fail gracefully
 
-def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False):
+
+def generate_static_campaign_now(store_id, campaign_id):
     """Renders individual campaign and saves it to S3."""
 
     try:
@@ -206,9 +197,6 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
         raise  # someone catch it
 
     dummy_request = create_dummy_request()
-
-    # prepare the file name, static log, and the actual page
-    log_key = "CD"
 
     page_content = render_campaign(store_id, campaign_id,
                                    get_seeds_func=get_seeds,
