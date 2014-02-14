@@ -23,7 +23,7 @@ class Store(BaseModel):
 
     name = models.CharField(max_length=1024)
     description = models.TextField()
-    stub = models.CharField(max_length=64)
+    slug = models.CharField(max_length=64)
 
     default_theme = models.ForeignKey('pinpoint.StoreTheme', related_name='store', blank=True, null=True)
 
