@@ -1,5 +1,5 @@
 package {
-  ['mysql-server', 'libmysqlclient-dev', 'git']: 
+  ['git']: 
   ensure => present;
 }
 
@@ -15,6 +15,7 @@ class python {
       'libxml2-dev', 
       'libxslt-dev', 
       'libjpeg-dev',
+      'libpq-dev',
     ]: 
     ensure => installed,
     require => Package['build-essential'],
@@ -30,7 +31,7 @@ class python {
   exec { "pip-install-req":
     command => "pip install -r /vagrant/requirements/dev.txt",
     path => "/usr/local/bin:/usr/bin:/bin",
-    require => Package['git','mysql-server','libmysqlclient-dev', 'libxml2-dev', 'libxslt-dev'],
+    require => Package['git', 'libxml2-dev', 'libxslt-dev','libpq-dev'],
   }
 }
 class { "python": }
@@ -47,16 +48,6 @@ exec { 'bundle install':
   cwd => '/vagrant',
   logoutput => true,
   require => Package['bundler'],
-}
-
-# Apache http://stackoverflow.com/questions/15263337/ubuntu-10-04-puppet-and-apache-apache-service-failing-to-start
-package { 'apache2':
-  ensure => present,	
-}
-service { 'apache2':
-  ensure  => running,
-  enable  => true,
-  require => Package['apache2'],
 }
 
 # POSTGRESQL
