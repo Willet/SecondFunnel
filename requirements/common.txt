@@ -54,7 +54,6 @@ astroid==1.0.1
 beautifulsoup4==4.3.2
 django-appconf==0.6
 ecdsa==0.10
-git-remote-helpers==0.1.0
 html5lib==0.999
 logilab-common==0.61.0
 oauth2==1.5.211
