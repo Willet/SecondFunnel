@@ -38,15 +38,16 @@ class python {
 class { "python": }
 
 package { 'bundler':
-    ensure   => 'installed',
-    provider => 'gem',
+  ensure   => 'installed',
+  provider => 'gem',
 }
 
 exec { 'bundle install':
-    command => 'bundle install',
-    path => '/opt/vagrant_ruby/bin',
-    cwd => '/vagrant',
-    logoutput => true,
+  command => 'bundle install',
+  path => '/opt/vagrant_ruby/bin',
+  cwd => '/vagrant',
+  logoutput => true,
+  require => Package['bundler'],
 }
 
 # Apache http://stackoverflow.com/questions/15263337/ubuntu-10-04-puppet-and-apache-apache-service-failing-to-start
@@ -59,9 +60,44 @@ service { 'apache2':
   require => Package['apache2'],
 }
 
+# POSTGRESQL
+# https://forge.puppetlabs.com/puppetlabs/postgresql
+class { 'postgresql::server': 
+  postgres_password  => 'postgres',
+  pg_hba_conf_defaults => false,
+}
+
+postgresql::server::pg_hba_rule { 'local-ident':
+  description => "Let postgres user login via ident",
+  type => 'local',
+  database => 'all',
+  user => 'postgres',
+  auth_method => 'ident',
+  order => '001',
+}
+
+postgresql::server::pg_hba_rule { 'local-md5':
+  description => "Open up postgresql for access with a password via unix sockets",
+  type => 'local',
+  database => 'all',
+  user => 'all',
+  auth_method => 'md5',
+  order => '002',
+}
+
+postgresql::server::pg_hba_rule { 'host-md5':
+  description => "Open up postgresql for access with a password via IPv4",
+  type => 'host',
+  database => 'all',
+  user => 'all',
+  auth_method => 'md5',
+  address => '0.0.0.0/0',
+  order => '003',
+}
+
 # COMMON
 exec { "apt-update":
-    command => "/usr/bin/apt-get update"
+  command => "/usr/bin/apt-get update"
 }
 
 Exec["apt-update"] -> Package <| |>

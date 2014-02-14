@@ -17,6 +17,7 @@ runserver
 libpeerconnection.log
 MySQL-python-1.2.3
 apps/pinpoint/static/campaigns
+.vagrant
 
 # Testing directories
 apps/testing/resources
