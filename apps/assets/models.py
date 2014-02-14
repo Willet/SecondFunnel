@@ -41,6 +41,10 @@ class Product(BaseModel):
     sku = models.CharField(max_length=255)
     price = models.CharField(max_length=16)
 
+    default_image = models.OneToOneField('ProductImage', related_name='default_image')
+
+    last_scraped_at = models.DateTimeField(null=True)
+
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
     attributes = JSONField()
@@ -65,6 +69,8 @@ class Content(BaseModel):
     source = models.CharField(max_length=255)
     source_url = models.TextField()
     author = models.CharField(max_length=255)
+
+    tagged_products = models.CommaSeparatedIntegerField()  # list of product id's
 
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
@@ -120,14 +126,34 @@ class Theme(BaseModel):
 class Page(BaseModel):
 
     theme = models.ForeignKey(Theme, null=True)
+    theme_settings = JSONField()
+
+    name = models.CharField(max_length=256)
+    url_slug = models.CharField(max_length=128)
+    legal_copy = models.TextField()
+
+    last_published_at = models.DateTimeField(null=True)
+
+
+class Feed(BaseModel):
+
+    page = models.ForeignKey(Page, null=False)
+    # future:
+    # feed_algorithm = models.CharField(max_length=64); e.g. sorted, recommend
+    # and other representation specific of the Feed itself
+    #
 
 
 class Tile(BaseModel):
 
-    page = models.ForeignKey(Page, null=False)
+    feed = models.ForeignKey(Feed, null=False)
+
+    template = models.CharField(max_length=128)
 
     products = models.ManyToManyField(Product)
     content = models.ManyToManyField(Content)
+
+    prioritized = models.BooleanField()
 
 
 ## TODO: REMOVE THIS IN THE FUTURE
