@@ -70,7 +70,7 @@ class Content(BaseModel):
     source_url = models.TextField()
     author = models.CharField(max_length=255)
 
-    tagged_products = models.CommaSeparatedIntegerField()  # list of product id's
+    tagged_products = models.CommaSeparatedIntegerField(max_length=512)  # list of product id's
 
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
