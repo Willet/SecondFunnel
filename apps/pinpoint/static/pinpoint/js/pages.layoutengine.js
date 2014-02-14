@@ -57,7 +57,6 @@ App.module("layoutEngine", function (layoutEngine, App) {
         var self = this;
         opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
 
-        console.log(opts);
         view.$el.masonry(opts);
 
         App.vent.on('windowResize', function () {
