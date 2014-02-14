@@ -248,7 +248,6 @@ INSTALLED_APPS = (
     'django_nose',  # Must be included after 'south'
     'ajax_forms',
     'compressor',
-    'social_auth',
     'corsheaders',
 
     # our apps
@@ -346,29 +345,10 @@ INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
 CONTENTGRAPH_BASE_URL = 'http://contentgraph.elasticbeanstalk.com/graph'
 
 AUTHENTICATION_BACKENDS = (
-    'social_auth.backends.contrib.instagram.InstagramBackend',
-    'social_auth.backends.google.GoogleOAuth2Backend',
-    'social_auth.backends.contrib.tumblr.TumblrBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
-SOCIAL_AUTH_PIPELINE = (
-    'social_auth.backends.pipeline.social.social_auth_user',
-    'social_auth.backends.pipeline.social.associate_user',
-    'social_auth.backends.pipeline.social.load_extra_data',
-    'social_auth.backends.pipeline.user.update_user_details',
-    'apps.utils.social.utils.update_social_auth'
-)
-
-SOCIAL_AUTH_NEW_ASSOCIATION_REDIRECT_URL = \
-    '/pinpoint/admin/social-auth/connect/'
-SOCIAL_AUTH_DISCONNECT_REDIRECT_URL = \
-    '/pinpoint/admin/social-auth/disconnect/'
-
 INSTAGRAM_AUTH_EXTRA_ARGUMENTS = {'scope': 'likes'}
-GOOGLE_OAUTH_EXTRA_SCOPE = ['https://gdata.youtube.com']
-
-GOOGLE_OAUTH2_EXTRA_DATA = [('email', 'username')]
 
 JENKINS_TASKS = (
     'django_jenkins.tasks.with_coverage',

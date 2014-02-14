@@ -77,7 +77,6 @@ INSTALLED_APPS = (
     'tastypie',
     'ajax_forms',
     'compressor',
-    'social_auth',
     'corsheaders',
 
     # our apps
