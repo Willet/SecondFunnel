@@ -66,7 +66,11 @@ class { 'postgresql::server':
   pg_hba_conf_defaults => false,
 }
 
-postgresql::server::pg_hba_rule { 'local-ident':
+postgresql::server::role { 'vagrant':
+  createdb => true,
+}
+
+postgresql::server::pg_hba_rule { 'local-ident-postgres':
   description => "Let postgres user login via ident",
   type => 'local',
   database => 'all',
@@ -75,13 +79,22 @@ postgresql::server::pg_hba_rule { 'local-ident':
   order => '001',
 }
 
+postgresql::server::pg_hba_rule { 'local-ident-vagrant':
+  description => "Let vagrant user login via ident",
+  type => 'local',
+  database => 'all',
+  user => 'vagrant',
+  auth_method => 'ident',
+  order => '002',
+}
+
 postgresql::server::pg_hba_rule { 'local-md5':
   description => "Open up postgresql for access with a password via unix sockets",
   type => 'local',
   database => 'all',
   user => 'all',
   auth_method => 'md5',
-  order => '002',
+  order => '005',
 }
 
 postgresql::server::pg_hba_rule { 'host-md5':
@@ -91,7 +104,7 @@ postgresql::server::pg_hba_rule { 'host-md5':
   user => 'all',
   auth_method => 'md5',
   address => '0.0.0.0/0',
-  order => '003',
+  order => '010',
 }
 
 # COMMON
@@ -100,4 +113,3 @@ exec { "apt-update":
 }
 
 Exec["apt-update"] -> Package <| |>
-
