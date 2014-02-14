@@ -1,42 +1,41 @@
-package { 
-  'mysql-server': ensure => present;
-  'libmysqlclient-dev': ensure => present;
-  'git': ensure => present;
+package {
+  ['mysql-server', 'libmysqlclient-dev', 'git']: 
+  ensure => present;
 }
 
 # Python
 class python {
-    package {
-        "build-essential": ensure => latest;
-        "python": ensure => installed;
-        "python-dev": ensure => installed;
-        "python-setuptools": ensure => installed;
-	"libxml2-dev": ensure => installed;
-        "libxslt-dev": ensure => installed;
-        "libjpeg-dev": ensure => installed;
-    }
-    exec { "easy_install pip":
-        path => "/usr/local/bin:/usr/bin:/bin",
-        refreshonly => true,
-        require => Package["python-setuptools"],
-        subscribe => Package["python-setuptools"],
-    }
-     
-    exec { "pip-install-req":
-        command => "pip install -r /vagrant/requirements/dev.txt",
-        path => "/usr/local/bin:/usr/bin:/bin",
-        require => Package['git','mysql-server','libmysqlclient-dev', 'libxml2-dev', 'libxslt-dev'],
-    }
+  package { 'build-essential': ensure => latest }
+  
+  package {
+    [
+      'python', 
+      'python-dev', 
+      'python-setuptools', 
+      'libxml2-dev', 
+      'libxslt-dev', 
+      'libjpeg-dev',
+    ]: 
+    ensure => installed,
+    require => Package['build-essential'],
+  }
 
-    # in case we want to move pip dependencies in here
-    #package {
-    #    "django": ensure => "1.4.1",provider => pip;
-    #    "ordereddict": ensure => "1.1",provider => pip;
-    #    "fabric": ensure => "1.6.0",provider => pip;
-    #}
+  exec { "easy_install pip":
+    path => "/usr/local/bin:/usr/bin:/bin",
+    refreshonly => true,
+    require => Package["python-setuptools"],
+    subscribe => Package["python-setuptools"],
+  }
+     
+  exec { "pip-install-req":
+    command => "pip install -r /vagrant/requirements/dev.txt",
+    path => "/usr/local/bin:/usr/bin:/bin",
+    require => Package['git','mysql-server','libmysqlclient-dev', 'libxml2-dev', 'libxslt-dev'],
+  }
 }
 class { "python": }
 
+# Ruby
 package { 'bundler':
   ensure   => 'installed',
   provider => 'gem',
@@ -44,7 +43,7 @@ package { 'bundler':
 
 exec { 'bundle install':
   command => 'bundle install',
-  path => '/opt/vagrant_ruby/bin',
+  path => '/usr/local/bin',
   cwd => '/vagrant',
   logoutput => true,
   require => Package['bundler'],
