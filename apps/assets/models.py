@@ -22,7 +22,7 @@ class Store(BaseModel):
     staff = models.ManyToManyField(User, related_name='stores')
 
     name = models.CharField(max_length=1024)
-    description = models.TextField()
+    description = models.TextField(null=True)
     slug = models.CharField(max_length=64)
 
     default_theme = models.ForeignKey('pinpoint.StoreTheme', related_name='store', blank=True, null=True)
@@ -35,19 +35,19 @@ class Product(BaseModel):
     store = models.ForeignKey(Store, null=False)
 
     name = models.CharField(max_length=1024)
-    description = models.TextField()
-    details = models.TextField()
+    description = models.TextField(null=True)
+    details = models.TextField(null=True)
     url = models.TextField()
     sku = models.CharField(max_length=255)
-    price = models.CharField(max_length=16)
+    price = models.CharField(max_length=16)  # DEFER: could make more sense to be an integer (# of cents)
 
-    default_image = models.OneToOneField('ProductImage', related_name='default_image')
+    default_image = models.ForeignKey('ProductImage', related_name='default_image', null=True)
 
     last_scraped_at = models.DateTimeField(null=True)
 
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
-    attributes = JSONField()
+    attributes = JSONField(null=True)
 
 
 class ProductImage(BaseModel):
@@ -67,15 +67,16 @@ class Content(BaseModel):
     store = models.ForeignKey(Store, null=False)
 
     source = models.CharField(max_length=255)
-    source_url = models.TextField()
-    author = models.CharField(max_length=255)
+    source_url = models.TextField(null=True)
+    author = models.CharField(max_length=255, null=True)
 
-    tagged_products = models.CommaSeparatedIntegerField(max_length=512)  # list of product id's
+    # list of product id's
+    tagged_products = models.CommaSeparatedIntegerField(max_length=512, null=True)
 
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
     ## but restrict to only filtering/ordering on above fields
-    attributes = JSONField()
+    attributes = JSONField(null=True)
 
     def __init__(self, *args, **kwargs):
         super(Content, self).__init__(*args, **kwargs)
@@ -126,18 +127,18 @@ class Theme(BaseModel):
 class Page(BaseModel):
 
     theme = models.ForeignKey(Theme, null=True)
-    theme_settings = JSONField()
+    theme_settings = JSONField(null=True)
 
     name = models.CharField(max_length=256)
     url_slug = models.CharField(max_length=128)
-    legal_copy = models.TextField()
+    legal_copy = models.TextField(null=True)
 
     last_published_at = models.DateTimeField(null=True)
 
 
 class Feed(BaseModel):
 
-    page = models.ForeignKey(Page, null=False)
+    page = models.ForeignKey(Page)
     # future:
     # feed_algorithm = models.CharField(max_length=64); e.g. sorted, recommend
     # and other representation specific of the Feed itself
