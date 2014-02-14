@@ -1,4 +1,4 @@
-/*global App, $, Backbone, Marionette, console */
+/*global App, $, Backbone, Marionette, console, _ */
 /**
  * @module tracker
  */
@@ -334,7 +334,7 @@ App.module("tracker", function (tracker, App) {
             return;
         }
         addItem('create', App.option('gaAccountNumber'), 'auto');
-        addItem('send', 'pageview');
+        addItem('send', 'pageview', App.option('abTests'));
 
         console.debug("Registered page view.");
 

@@ -1,4 +1,4 @@
-/*global App, $, Backbone, Marionette, console, _, GA_CUSTOMVAR_SCOPE.VISITOR  */
+/*global App, $, Backbone, Marionette, console, _  */
 var ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 /**
  * @module ab
@@ -8,8 +8,12 @@ App.module("ab", function (ab, App) {
     var pageId = App.option('page:id'),
         pageName = App.option('url', pageId),
         tracker = App.module.tracker,
-        setCustomVar = function (index, test) {
-            window.ga('set', 'dimension' + index, test);
+        tests = window._AB_TESTS,
+        addTest = function (index, test) {
+            var dKey = 'dimension' + index,
+                tests = App.option('abTests', {});
+            tests[dKey] = test;
+            App.options.abTests = tests;
         },
         is = function (device) {
             if (device === 'mobile') {
@@ -27,10 +31,8 @@ App.module("ab", function (ab, App) {
      *
      * @returns this
      */
-    this.registerTest = function (method, device, index) {
-        var result,
-            args = Array.prototype.slice.call(arguments);
-        args = args.slice(3);
+    this.registerTest = function (method, device, index, args) {
+        var result;
 
         if (is(device)) {
             if (this.hasOwnProperty(method)) {
@@ -39,9 +41,10 @@ App.module("ab", function (ab, App) {
                 result = method.apply(this, args);
             }
         }
+
         // If given a variant, store it
         if (result) {
-            setCustomVar(index, result);
+            addTest(index, result);
         }
         return this;
     };
@@ -75,19 +78,9 @@ App.module("ab", function (ab, App) {
      *
      * @returns string
      */
-    this.template = function (source, replacement, multivariate) {
-        var tmp, templates;
-
-        // Collect an array of the available templates
-        if (_.isArray(replacement)) {
-            templates = _.clone(replacement);
-            templates.unshift(source);
-        } else {
-            templates = [source, replacement];
-        }
-        replacement = this.multivariate(templates, multivariate);
-
-        tmp = replacement && $(replacement).length ? replacement : source;
+    this.template = function (source, templates, multivariate) {
+        var tmp;
+        tmp = this.multivariate(templates, multivariate);
         $(source).contents().replaceWith($(tmp).contents().clone());
         return ALPHANUMERIC[templates.indexOf(tmp)];
     };
@@ -97,7 +90,7 @@ App.module("ab", function (ab, App) {
      * otherwise uniform.  If options is not an array, selects with a
      * probability of 50%.
      *
-     * @returns object
+     * @returns Object
      */
     this.multivariate = function (options, probability) {
         var index = 0,
@@ -121,4 +114,25 @@ App.module("ab", function (ab, App) {
         }
         return undefined;
     };
+
+
+    /**
+     * Starts the module
+     * Collects any of the necessary tests.
+     */
+    this.initialize = function (options) {
+        var t;
+        if (tests && tests.length) {
+            for (var i = 0; i < tests.length; i++) {
+                t = tests[i];
+                if (!(t.id && t.method && t.device && t.args)) {
+                    console.error("Test not registered, missing parameter.", t);
+                    continue;
+                }
+                this.registerTest(t['method'], t['device'], t['id'], t['args']);
+            }
+        }
+    };
+
+    this.initialize(); // Force start as need to run before App begins
 });
