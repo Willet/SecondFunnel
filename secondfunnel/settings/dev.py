@@ -116,9 +116,10 @@ COMPRESS_STORAGE = STATICFILES_STORAGE
 
 INTERNAL_IP = internal_ip()
 INTERNAL_IPS = ('127.0.0.1', INTERNAL_IP)
-WEBSITE_BASE_URL = 'http://{0}:8000'.format(INTERNAL_IP)
+WEBSITE_BASE_URL = ''.format(INTERNAL_IP)
+#WEBSITE_BASE_URL = 'http://{0}:8000'.format(INTERNAL_IP)
 
-STATIC_URL = '{0}/static/'.format(WEBSITE_BASE_URL)
+STATIC_URL = '/static/'.format(WEBSITE_BASE_URL)
 COMPRESS_URL = STATIC_URL
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
