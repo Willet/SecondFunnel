@@ -32,15 +32,15 @@ DATABASES = {
         }
 }
 
-'''  ( if you use MySQL)
+'''  (if you use postgresql)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'ebdb',
         'USER': 'ebroot',
         'PASSWORD': '',
         'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'PORT': '',
     }
 }
 '''
