@@ -61,6 +61,11 @@ postgresql::server::role { 'vagrant':
   createdb => true,
 }
 
+postgresql::server::db { 'sfdb':
+  user     => 'sf',
+  password => postgresql_password('sf', 'postgres'),
+}
+
 postgresql::server::pg_hba_rule { 'local-ident-postgres':
   description => "Let postgres user login via ident",
   type => 'local',
