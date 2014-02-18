@@ -1,5 +1,3 @@
-import sys
-
 from django.core import serializers
 from django.contrib.auth.models import User
 from django.db import models
@@ -77,11 +75,6 @@ class Content(BaseModel):
     ## this will allow arbitrary fields, querying all Content
     ## but restrict to only filtering/ordering on above fields
     attributes = JSONField(null=True)
-
-    def __init__(self, *args, **kwargs):
-        super(Content, self).__init__(*args, **kwargs)
-        if self.type:
-            self.__class__ = getattr(sys.modules[__name__], self.model_type)
 
 
 class Image(Content):
