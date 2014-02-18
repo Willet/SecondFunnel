@@ -297,21 +297,6 @@ div.loading {
     }
 }
 
-@media (max-width: 510px) {
-    #discovery-area {
-        margin: 0 auto;
-        width: 100%;
-    }
-    .tile {
-        padding: 2px;
-        width: 48% !important;
-        height: auto;
-    }
-    .tile.wide {
-        width: 100% !important;
-    }
-}
-
 @media (max-width: 600px) {
     .hidden-xxs {
         /* supplementary */
@@ -625,12 +610,8 @@ div.loading {
 
 /* Mobile */
 @media (max-width: 768px) {
-    .mobile-phone .tile {
-        width: 100%!important;
-    }
-
     .mobile #discovery-area {
-        width: 100%!important;
+        width: 100% !important;
     }
 }
 
@@ -641,4 +622,21 @@ div.loading {
 
 .no-scroll {
     overflow: hidden;
+}
+
+/* Mobile 2-column support */
+@media (max-width: 510px) {
+    #discovery-area {
+        width: 100%;
+    }
+    .tile {
+        box-sizing: border-box;
+        padding: 5px;
+        width: 50% !important;
+        height: auto;
+    }
+    .tile.wide {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
 }
