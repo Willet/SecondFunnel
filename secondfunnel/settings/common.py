@@ -125,6 +125,12 @@ AWS_SQS_POLLING_QUEUES = {
     # override in ./{environment}.py
 }
 
+ALLOWED_HOSTS = ['.secondfunnel.com',
+                 '.secondfunnel.com,',
+                 '.elasticbeanstalk.com',
+                 '.elasticbeanstalk.com.',
+                 ]
+
 # Disable signature/accesskey/expire attrs being appended to s3 links
 AWS_QUERYSTRING_AUTH = False
 
