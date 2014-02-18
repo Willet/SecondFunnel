@@ -32,30 +32,31 @@ class StoreTheme(BaseModelNamed):
     # not necessarily "all lower case attributes in this class"
     THEMABLE_ATTRIBS = ['page']
 
+    CUSTOM_FIELDS = {
+        'opengraph_tags': {
+            'type': 'template',
+            'values': ['pinpoint/campaign_opengraph_tags.html']
+        },
+        'head_content': {
+            'type': 'template',
+            'values': ['pinpoint/campaign_head.html']
+        },
+        'body_content': {
+            'type': 'template',
+            'values': ['pinpoint/campaign_body.html']
+        },
+        'campaign_config': {
+            'type': 'template',
+            'values': ['pinpoint/campaign_config.html']
+        },
+        'js_templates': {
+            'type': 'template',
+            'values': ['pinpoint/default_templates.html']
+        }
+    }
+
     def __init__(self, *args, **kwargs):
         super(StoreTheme, self).__init__(*args, **kwargs)
-        self.CUSTOM_FIELDS = {
-            'opengraph_tags': {
-                'type': 'template',
-                'values': ['pinpoint/campaign_opengraph_tags.html']
-            },
-            'head_content': {
-                'type': 'template',
-                'values': ['pinpoint/campaign_head.html']
-            },
-            'body_content': {
-                'type': 'template',
-                'values': ['pinpoint/campaign_body.html']
-            },
-            'campaign_config': {
-                'type': 'template',
-                'values': ['pinpoint/campaign_config.html']
-            },
-            'js_templates': {
-                'type': 'template',
-                'values': ['pinpoint/default_templates.html']
-            }
-        }
 
     def __unicode__(self):
         return u"Theme: %s" % self.name
