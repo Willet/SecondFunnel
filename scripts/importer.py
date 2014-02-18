@@ -37,11 +37,12 @@ def importContent():
         content_source_url = content.get('source-url')
         content_products_object = content.get('tagged-products')
         content_product_ids = ''
-        for product_id in content_products_object:
-            if len(content_product_ids) > 0:
-                content_product_ids += ',' + str(products.get(str(product_id)))
-            else:
-                content_product_ids += str(products.get(str(product_id)))
+        if content_products_object:
+            for product_id in content_products_object:
+                if len(content_product_ids) > 0:
+                    content_product_ids += ',' + str(products.get(str(product_id)))
+                else:
+                    content_product_ids += str(products.get(str(product_id)))
 
         content_name = content.get('name')
         content_description = content.get('description')
@@ -84,14 +85,17 @@ def importProducts():
 def importPages():
     for page in get_contentgraph_data(base_store_url + 'page/'):
         page_name = page.get('name')
+        if not page_name:
+            continue
         page_legal_copy = page.get('legalCopy')
+        page_url_slug = page.get('url')
 
         page_theme_url = page.get('theme')
 
-        print 'PAGE - name: ', page_name, ', legal copy: ', page_legal_copy
+        print 'PAGE - name: ', page_name, ', legal copy: ', page_legal_copy, ', url_slug: ', page_url_slug
         print 'THEME - url: ', page_theme_url
         # theme_psql = Theme(store=store_psql,template=page_theme_url)
-        # page_psql = Page(theme=theme_psql,name=page_name,legal_copy=page_legal_copy)
+        # page_psql = Page(theme=theme_psql,name=page_name,url_slug=page_url_slug,legal_copy=page_legal_copy)
         break  # remove later
 
 
