@@ -1,24 +1,14 @@
-import sys
-
-import urllib2
-import ast
+#!/usr/bin/env python
 
 from apps.assets.models import Store
-
-headers = {'ApiKey': 'secretword'}
-base_url = 'http://contentgraph-test.elasticbeanstalk.com/graph/'
+from apps.contentgraph.models import get_contentgraph_data
 
 stores = []
 
 
-def importStores():
-    store_request = urllib2.Request(base_url + 'store', None, headers)
+def import_stores():
 
-    stores_raw = urllib2.urlopen(store_request).read()
-
-    stores_results = ast.literal_eval(stores_raw)['results']
-
-    for store in stores_results:
+    for store in get_contentgraph_data('/store'):
         if not 'name' in store:
             continue
         if not 'slug' in store:
@@ -26,9 +16,10 @@ def importStores():
         if 1 == store['id']: # becasue 1 is a test store, not a real store
             continue
         stores.append(store)
-        store_psql = Store(name=store['name'], slug=store['slug'], description=store['description'])
+        store_psql = Store(name=store['name'], slug=store['slug'],
+                           description=store.get('description'))
         store_psql.save()
 
 
-
-importStores()
+if __name__ == "__main__":
+    import_stores()
