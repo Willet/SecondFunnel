@@ -12,3 +12,4 @@ sure==1.2.5
 pep8==1.4.6
 django-jenkins==0.14.1
 pylint==1.1.0
+django-nose  # TODO: version

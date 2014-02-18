@@ -40,6 +40,8 @@ CACHES = {
     }
 }
 
+INSTALLED_APPS += ('django_nose',)  # for testing...? we don't use it, but here it is
+
 # dict of queues by region to poll regularly, using celery beat.
 # corresponding handlers need to be imported in apps.api.tasks
 AWS_SQS_POLLING_QUEUES = {

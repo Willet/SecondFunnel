@@ -245,7 +245,6 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
-    'django_nose',  # Must be included after 'south'
     'ajax_forms',
     'compressor',
     'corsheaders',
