@@ -328,13 +328,14 @@ App.module("tracker", function (tracker, App) {
     };
 
     this.setup = function (options) {
+        console.debug('optests', App.option('optests', {}));
         if (App.option('debug', App.QUIET) > App.QUIET) {
             // do not run analytics when debugging (dev, test)
             App.vent.trigger('trackerInitialized', this);
             return;
         }
         addItem('create', App.option('gaAccountNumber'), 'auto');
-        addItem('send', 'pageview', App.option('abTests'));
+        addItem('send', 'pageview', App.option('optests', {}));
 
         console.debug("Registered page view.");
 
