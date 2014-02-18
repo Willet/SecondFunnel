@@ -125,6 +125,7 @@ AWS_SQS_POLLING_QUEUES = {
     # override in ./{environment}.py
 }
 
+# a (seemingly new) setting similar to SESSION_COOKIE_DOMAIN.
 ALLOWED_HOSTS = ['.secondfunnel.com',
                  '.secondfunnel.com,',
                  '.elasticbeanstalk.com',
