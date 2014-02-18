@@ -831,7 +831,12 @@ App.module('core', function (module, App) {
 
         'onShow': function () {
             var window_middle = $(window).scrollTop() + $(window).height() / 2;
-            this.$el.css('top', window_middle - (this.$el.height() / 2));
+
+            if (App.window_middle) {
+                window_middle = App.window_middle;
+            }
+
+            this.$el.css('top', Math.max(window_middle - (this.$el.height() / 2), 0));
         }
     });
 
