@@ -128,10 +128,12 @@ class Page(BaseModel):
 
     last_published_at = models.DateTimeField(null=True)
 
+    feed = models.ForeignKey('Feed')
+
 
 class Feed(BaseModel):
 
-    page = models.ForeignKey(Page)
+    pass
     # future:
     # feed_algorithm = models.CharField(max_length=64); e.g. sorted, recommend
     # and other representation specific of the Feed itself
