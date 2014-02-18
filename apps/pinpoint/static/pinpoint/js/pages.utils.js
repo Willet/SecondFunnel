@@ -52,6 +52,10 @@ App.module("utils", function (utils, App) {
         }
     });
 
+    this.postExternalMessage = function (message) {
+        window.parent.postMessage(message, '*');
+    };
+
     /**
      * Does minimal URL checking (stackoverflow.com/a/1305082/1558430)
      *
