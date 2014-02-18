@@ -4,7 +4,6 @@ import re
 
 from collections import defaultdict
 from datetime import datetime
-from requests import HTTPError
 
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
@@ -13,10 +12,9 @@ from django.template.defaultfilters import slugify
 from django.test import RequestFactory
 from django.utils.importlib import import_module
 
-from apps.assets.models import Store
-from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
 from apps.contentgraph.views import get_page, get_product, get_store
-from apps.pinpoint.models import Campaign
+from apps.pinpoint.utils import read_remote_file
+from apps.pinpoint.models import StoreTheme
 
 
 def get_bucket_name(bucket_name):
@@ -69,6 +67,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     Related products are populated statically only if a request object
     is provided.
     """
+    page_id = campaign_id
 
     def repl(match):
         """Returns a replaced tag content for a tag, or
@@ -76,7 +75,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         """
         match_str = match.group(1)  # just the field: e.g. 'desktop_content'
 
-        if sub_values.has_key(match_str):
+        if match_str in sub_values:
             return ''.join(sub_values[match_str])
         else:
             return match.group(0)  # leave unchanged
@@ -124,25 +123,24 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
             return 'null'
 
     # these 4 lines will trigger ValueErrors if remote JSON is invalid.
-    campaign_data = get_page(store_id=store_id, page_id=campaign_id, as_dict=True)
-    campaign = Campaign.from_json(campaign_data)
+    page_data = get_page(store_id=store_id, page_id=page_id, as_dict=True)
     store_data = get_store(store_id=store_id, as_dict=True)
-    store = Store.from_json(store_data)
+    store = store_data
 
     # get the featured product from our DB.
     try:
         # product = content_block.data.product
         # based on Neal's description, this is what it will eventually be
-        product = get_product(campaign_data.get('featured-product-id')) or\
-                  get_product(campaign_data.get('product-ids', [0])[0])
+        product = get_product(page_data.get('featured-product-id')) or\
+            get_product(page_data.get('product-ids', [0])[0])
     except:
         # TODO: is this okay?
         product = None
 
-    campaign.description = campaign_data.get('shareText',
-         campaign_data.get('featured-product-description', ''))
-    campaign.template = slugify(campaign_data.get('template', 'hero'))  # TODO: hero? hero-image?
-    campaign.image_tile_wide = campaign_data.get('imageTileWide')
+    page_data['description'] = page_data.get('shareText', page_data.get('featured-product-description', ''))
+    page_data['template'] = slugify(page_data.get('template', 'hero'))  # TODO: hero? hero-image?
+    page_data['image_tile_wide'] = page_data.get('imageTileWide')
+    page = page_data
 
     ir_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
 
@@ -154,7 +152,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         initial_results, cookie = get_seeds_func(
             request,
             store_slug=store_data.get('slug'),
-            campaign=campaign_data.get('intentrank_id') or campaign.id,
+            campaign=page_data.get('intentrank_id') or page.id,
             base_url=ir_base_url, results=4, raw=True)
     except:  # all exceptions
         pass
@@ -164,7 +162,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         backup_results, cookie = get_seeds_func(
             request,
             store_slug=store_data.get('slug'),
-            campaign=campaign_data.get('intentrank_id') or campaign.id,
+            campaign=page_data.get('intentrank_id') or page.id,
             base_url=ir_base_url, results=100, raw=True, cookie=cookie)
     except (TypeError, ValueError):
         # (get_seeds_func is None and you ran it, IR offline)
@@ -175,51 +173,43 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
         initial_results = backup_results[:4]
 
     attributes = {
-        "campaign": campaign,
+        "campaign": page,
         "store": store,
         "columns": range(4),
-        "preview": not campaign.live,
+        "preview": False,  # TODO: was this need to fix: not page.live,
         "product": json_postprocessor(product),
         "initial_results": map(json_postprocessor, initial_results),
         "backup_results": map(json_postprocessor, backup_results),
-        "social_buttons": getattr(campaign, 'social-buttons',
+        "social_buttons": getattr(page, 'social-buttons',
                                   getattr(store, 'social-buttons', '')),
-        "column_width": getattr(campaign, 'column-width',
+        "column_width": getattr(page, 'column-width',
                                 getattr(store, 'column-width', '')),
-        "enable_tracking": getattr(campaign, 'enable-tracking', "true"),  # jsbool
+        "enable_tracking": getattr(page, 'enable-tracking', "true"),  # jsbool
         "pub_date": datetime.now(),
-        "legal_copy": getattr(campaign, 'legalCopy', ''),
-        "mobile_hero_image": getattr(campaign, 'heroImageMobile', ''),
-        "desktop_hero_image": getattr(campaign, 'heroImageDesktop', ''),
+        "legal_copy": getattr(page, 'legalCopy', ''),
+        "mobile_hero_image": getattr(page, 'heroImageMobile', ''),
+        "desktop_hero_image": getattr(page, 'heroImageDesktop', ''),
         "ir_base_url": ir_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
-        "url": getattr(campaign, 'url', '')
+        "url": getattr(page, 'url', '')
     }
 
     context = RequestContext(request, attributes)
+    print page
 
-    # theme is a temporary StoreTheme object
-    theme = campaign.theme
-    if not theme.page:
-        theme = store.theme  # page-level theme not found, use store-level theme
+    # grab the theme url, and then grab the remote file
+    theme_url = page.get('theme')
+    if not theme_url:
+        raise ValueError('page has no theme when campaign manager saved it')
 
-    if not theme.page:
-        raise ValueError('campaign has no theme when campaign manager saved it')
-
-    # check if the theme is actually a contentgraph resource
-    try:
-        theme_url = theme.page
-        # 'template' is a key proposed by alex
-        page_str = call_contentgraph(theme_url)['template']
-    except (TypeError, ValueError, HTTPError):
-        page_str = theme.page  # it's fine, this theme is a string
+    page_str = read_remote_file(theme_url)
 
     # Replace necessary tags
     sub_values = defaultdict(list)
     regex = re.compile("\{\{\s*(\w+)\s*\}\}")
 
     # replace our own "django-style" tags before django templating touches them
-    for field, details in theme.CUSTOM_FIELDS.iteritems():
+    for field, details in StoreTheme.CUSTOM_FIELDS.iteritems():
         # field: e.g. 'desktop_content'
         # details: e.g. {'values': ['pinpoint/campaign_config.html',
         #                           'pinpoint/default_templates.html'],
@@ -231,8 +221,6 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
 
             if field_type == "template":
                 result = loader.get_template(value)
-            elif field_type == "theme":
-                result = getattr(theme, value)
             else:
                 continue
 
@@ -248,7 +236,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
 
     try:
         page_str = regex.sub(repl, page_str)
-    except UnicodeDecodeError as err:
+    except UnicodeDecodeError:
         page_str = regex.sub(repl, page_str.decode('utf-8'))
 
     # Page content

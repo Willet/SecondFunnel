@@ -20,7 +20,8 @@ def internal_ip():
     except:
         return '127.0.0.1'
 
-'''DATABASES = {
+'''
+DATABASES = {
     'default': {
         'ENGINE'  : 'django.db.backends.sqlite3',
         'NAME'    : 'dev.sqlite',
@@ -29,7 +30,8 @@ def internal_ip():
         'HOST'    : '',
         'PORT'    : '',
         }
-}'''
+}
+'''
 
 DATABASES = {
     'default': {
