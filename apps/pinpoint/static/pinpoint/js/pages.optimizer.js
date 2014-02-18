@@ -67,7 +67,7 @@ App.module('optimizer', function (optimizer, App) {
             if (c.indexOf(cname) == 0)
                 return c.substring(cname.length, c.length);
         }
-        return undefined;
+        return "";
     };
 
 
@@ -78,14 +78,17 @@ App.module('optimizer', function (optimizer, App) {
      * @returns Object
      **/
     this.multivariate = function (options, probabilities) {
-        var i, rand = Math.random();
+        var i,
+            j = 0,
+            rand = Math.random();
         if (probabilities) {
             for (i = 0; i < options.length; ++i) {
-                if (rand < probabilities[i]) {
-                    break;
+                if (rand < probabilities[i] &&
+                        probabilities[i] <= probabilities[j]) {
+                    j = i;
                 }
             }
-            return options[i];
+            return options[j];
         }
         return _.sample(options);
     };
@@ -94,7 +97,7 @@ App.module('optimizer', function (optimizer, App) {
     /**
      * Adds a test to the optimizer module.
      *
-     * @returns none 
+     * @returns none
      **/
     this.addTest = function (index, test, args) {
         var result, pos,
@@ -104,7 +107,7 @@ App.module('optimizer', function (optimizer, App) {
             cookie = OPTIMIZER_COOKIE + index;
 
         result = this.getCookieValue(cookie);
-        if (result) {
+        if (result && result.length) {
             pos = getPos(result);
             probabilities = Array.apply(null, new Array(options.length)).map(Number.prototype.valueOf, 0);
             probabilities[pos] = 1;
@@ -138,7 +141,7 @@ App.module('optimizer', function (optimizer, App) {
     /**
      * Initializes the optimizer testing module.
      *
-     @ returns none
+     * @returns none
      **/
     this.initialize = function () {
         var tests, 
