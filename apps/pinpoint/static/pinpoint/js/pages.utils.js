@@ -1,4 +1,4 @@
-/*global App, Backbone, Marionette, window, document, console, $ */
+/*global App, Backbone, Marionette, console, _, $ */
 /**
  * @module utils
  */
