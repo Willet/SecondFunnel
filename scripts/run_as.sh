@@ -20,7 +20,7 @@ elif [ "$1" = "production" ]; then
     echo "PROD"
     export DJANGO_SETTINGS_MODULE="secondfunnel.settings.production"
     export RDS_PASSWORD="postgres"
-    export RDS_HOSTNAME="aafpayiq7s3brp.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com"
+    export RDS_HOSTNAME="aae9bptwm2fn7s.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com"
 else
     echo "Must pass in environment name. 'test' or 'production'"
     exit $E_BADARGS
