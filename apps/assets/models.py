@@ -56,8 +56,8 @@ class ProductImage(BaseModel):
     original_url = models.TextField()
     file_type = models.CharField(max_length=255, blank=False, null=False)
     file_checksum = models.CharField(max_length=512)
-    width = models.PositiveSmallIntegerField()
-    height = models.PositiveSmallIntegerField()
+    width = models.PositiveSmallIntegerField(null=True)
+    height = models.PositiveSmallIntegerField(null=True)
 
 
 class Content(BaseModel):
@@ -79,22 +79,22 @@ class Content(BaseModel):
 
 class Image(Content):
 
-    name = models.CharField(max_length=1024)
-    description = models.TextField()
+    name = models.CharField(max_length=1024,null=True)
+    description = models.TextField(null=True)
 
     url = models.TextField()
     original_url = models.TextField()
     file_type = models.CharField(max_length=255, blank=False, null=False)
     file_checksum = models.CharField(max_length=512)
 
-    width = models.PositiveSmallIntegerField()
-    height = models.PositiveSmallIntegerField()
+    width = models.PositiveSmallIntegerField(null=True)
+    height = models.PositiveSmallIntegerField(null=True)
 
 
 class Video(Content):
 
-    name = models.CharField(max_length=1024)
-    description = models.TextField()
+    name = models.CharField(max_length=1024, null=True)
+    description = models.TextField(null=True)
 
     url = models.TextField()
     player = models.CharField(max_length=255, blank=False)
