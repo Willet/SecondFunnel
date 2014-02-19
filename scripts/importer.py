@@ -23,7 +23,7 @@ def importStore():
         store_description = store.get('description')
         store_public_base_url = store.get('public-base-url')
 
-        print 'STORE - id: ',store_old_id,', name: ', store_name, ', slug: ', store_slug, ', description: ', store_description, ', public_base_url: ', store_public_base_url
+        print 'STORE - old_id: ',store_old_id,', name: ', store_name, ', slug: ', store_slug, ', description: ', store_description, ', public_base_url: ', store_public_base_url
 
         try:
             store_psql = Store.objects.get(old_id=store_old_id)
@@ -58,7 +58,7 @@ def importContent():
             content_url = content.get('url')
             content_original_url = content.get('original-url')
 
-            print 'IMAGE - id: ',content.get('id'),'source: ', content_source, ', source-url: ', content_source_url, ', product-ids: ', content_product_ids, ', name: ', content_name, ', description: ', content_description, ', url: ', content_url, ', original-url: ', content_original_url
+            print 'IMAGE - old_id: ',content.get('id'),', source: ', content_source, ', source-url: ', content_source_url, ', product-ids: ', content_product_ids, ', name: ', content_name, ', description: ', content_description, ', url: ', content_url, ', original-url: ', content_original_url
 
             try:
                 content_psql = Image.objects.get(old_id=content_old_id)
@@ -69,7 +69,7 @@ def importContent():
         elif content_type == 'video':
             content_url = content.get('original-url')
 
-            print 'VIDEO - id: ',content.get('id'),'source: ', content_source, ', source-url: ', content_source_url, ', product-ids: ', content_product_ids, ', name: ', content_name, ', description: ', content_description, ', url: ', content_url,',player: youtube'
+            print 'VIDEO - old_id: ',content.get('id'),', source: ', content_source, ', source-url: ', content_source_url, ', product-ids: ', content_product_ids, ', name: ', content_name, ', description: ', content_description, ', url: ', content_url,',player: youtube'
 
             try:
                 content_psql = Video.objects.get(old_id=content_old_id)
@@ -92,18 +92,12 @@ def importProducts():
         product_sku = product.get('sku')
         product_price = product.get('price')
 
-        product_default_image_id = product.get('default-image-id')
-
-        if not product_default_image_id:
+        product_default_image_old_id = product.get('default-image-id')
+        if not product_default_image_old_id:
             continue
 
-        for product_image in get_contentgraph_data(
-                                base_store_url + 'content/' + product_default_image_id):
-            product_image_old_id = product_image.get('id')
-            product_image_url =  product_image.get('url')
-            product_image_original_url = product_image.get('original-url')
-        print 'PRODUCT - id: ',product.get('id'),'name: ', product_name, ', description: ', product_description, ', url: ', product_url, ', sku: ', product_sku, ', price: ', product_price
-        print 'PRODUCT IMAGE - url: ', product_image_url, ', original-url: ', product_image_original_url
+        print 'PRODUCT - old_id: ',product_old_id,', name: ', product_name, ', description: ', product_description, ', url: ', product_url, ', sku: ', product_sku, ', price: ', product_price
+
         try:
             product_psql = Product.objects.get(old_id=product_old_id)
             product_psql_id = product_psql.id
@@ -111,13 +105,23 @@ def importProducts():
             product_psql_id = None
         product_psql = Product(id=product_psql_id,old_id=product_old_id,store=store_psql,name=product_name,description=product_description,url=product_url,sku=product_sku,price=product_price)
         product_psql.save()
-        try:
-            product_image_psql = ProductImage.objects.get(old_id=product_image_old_id)
-            product_image_psql_id = product_image_psql.id
-        except ProductImage.DoesNotExist:
-            product_image_psql_id = None
-        product_image_psql = ProductImage(id=product_image_psql_id,old_id=product_image_old_id,product=product_psql,url=product_image_url,original_url=product_image_original_url)
-        product_image_psql.save()
+
+        for product_image_old_id in product.get('image-ids'):
+            for product_image in get_contentgraph_data(base_store_url + 'content/' + product_image_old_id):
+                product_image_url =  product_image.get('url')
+                product_image_original_url = product_image.get('original-url')
+
+                print 'PRODUCT IMAGE - old_id: ',product_image_old_id,', url: ', product_image_url, ', original-url: ', product_image_original_url
+
+                try:
+                    product_image_psql = ProductImage.objects.get(old_id=product_image_old_id)
+                    product_image_psql_id = product_image_psql.id
+                except ProductImage.DoesNotExist:
+                    product_image_psql_id = None
+                product_image_psql = ProductImage(id=product_image_psql_id,old_id=product_image_old_id,product=product_psql,url=product_image_url,original_url=product_image_original_url)
+                product_image_psql.save()
+
+        product_image_psql = ProductImage.objects.get(old_id=product_default_image_old_id)
         product_psql.default_image_id = product_image_psql.id
         product_psql.save()
         products[product.get('id')] = product_psql.id
@@ -129,17 +133,13 @@ def importPages():
         if not page_old_id in ['91','95','98']:
             continue
         page_name = page.get('name')
-        if not page_name:
-            continue
         page_legal_copy = page.get('legalCopy')
         page_url_slug = page.get('url')
-        if not page_url_slug:
-            continue
-
-        page_theme_url = page.get('theme')
+        page_theme_template = page.get('theme')
 
         print 'PAGE - id',page.get('id'),'name: ', page_name, ', legal copy: ', page_legal_copy, ', url_slug: ', page_url_slug
-        print 'THEME - url: ', page_theme_url
+        print 'THEME - template: ', page_theme_template
+
         try:
             page_psql = Page.objects.get(old_id=page_old_id)
             page_psql_id = page_psql.id
@@ -149,9 +149,9 @@ def importPages():
             feed_psql = Feed()
             feed_psql.save()
         try:
-            theme_psql = Theme.objects.get(template=page_theme_url)
+            theme_psql = Theme.objects.get(template=page_theme_template)
         except Theme.DoesNotExist:
-            theme_psql = Theme(store=store_psql, template=page_theme_url)
+            theme_psql = Theme(store=store_psql, template=page_theme_template)
             theme_psql.save()
         page_psql = Page(id=page_psql_id,old_id = page_old_id,feed=feed_psql,theme=theme_psql,name=page_name,url_slug=page_url_slug,legal_copy=page_legal_copy)
         page_psql.save()
@@ -163,6 +163,8 @@ def importTiles(page_id, feed_psql):
         tile_old_id = tile.get('id')
         tile_template = tile.get('template')
         tile_prioritized = tile.get('prioritized') in ['true', 'True']
+
+        print 'TILE - id: ',tile_old_id,'template: ',tile_template,', prioritized: ', tile_prioritized
 
         try:
             tile_psql = Tile.objects.get(old_id=tile_old_id)
@@ -181,7 +183,6 @@ def importTiles(page_id, feed_psql):
             for product_id in tile_product_ids:
                 if products.get(str(product_id)):
                     tile_psql.products.add(products[str(product_id)])
-        print 'TILE - id: ',tile.get('id'),'template: ',tile_template,', prioritized: ', tile_prioritized,', content-ids: ',tile_content_ids,', product-ids: ',tile_product_ids
 
 if __name__ == "__main__":
     importStore()
