@@ -82,12 +82,14 @@
         var second_funnel_container = document.getElementById('second-funnel-iframe-container'),
             second_funnel = document.createElement('iframe'),
             extend_iframe = function () {
+                var new_height = document.documentElement.scrollHeight + 350;
                 //increase the height of the iframe
-                second_funnel.setAttribute('height', document.documentElement.scrollHeight + 350);
+                second_funnel.setAttribute('height', new_height);
                 //send message to iframe to load more content
                 second_funnel.contentWindow.postMessage(JSON.stringify({
                     'target': 'second_funnel',
-                    'type': 'load_content'
+                    'type': 'load_content',
+                    'height': new_height
                 }), origin);
             },
             url_parser = document.createElement('a'),
