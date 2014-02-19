@@ -9,7 +9,6 @@ if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-MAINTENANCE_MODE = False
 
 # Enable GZIP and Minification
 COMPRESS = True

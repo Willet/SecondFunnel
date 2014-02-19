@@ -1,7 +1,6 @@
 from django.contrib import admin
-from django.utils.safestring import mark_safe
 
-from apps.assets.models import Product, Store, StoreFeature
+from apps.assets.models import Product, Store
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -43,12 +42,6 @@ class StoreAdmin(BaseNamedAdmin):
     list_display = BaseNamedAdmin.list_display + ['staff_count']
 
 admin.site.register(Store, StoreAdmin)
-
-
-class StoreFeaturesAdmin(BaseNamedAdmin):
-    pass
-
-admin.site.register(StoreFeature, StoreFeaturesAdmin)
 
 
 class ProductAdmin(BaseNamedAdmin):

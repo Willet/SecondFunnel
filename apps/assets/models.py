@@ -74,8 +74,6 @@ class Store(BaseModelNamed):
     public_base_url = models.URLField(
         help_text="e.g. explore.nativeshoes.com", blank=True, null=True)
 
-    features = models.ManyToManyField('assets.StoreFeature', blank=True,
-        null=True, related_name='stores')
 
     def __init__(self, *args, **kwargs):
         try:
@@ -113,9 +111,6 @@ class Store(BaseModelNamed):
 
         return results
 
-    def features_list(self):
-        return [x.slug for x in self.features.all()]
-
     @classmethod
     def from_json(cls, json_data):
         from apps.pinpoint.models import StoreTheme
@@ -135,11 +130,6 @@ class Store(BaseModelNamed):
             json_data['theme'] = StoreTheme(page=theme)
 
         return cls(**json_data)
-
-
-class StoreFeature(BaseModelNamed):
-    def __unicode__(self):
-        return self.name
 
 
 class ImageBase(BaseModelNamed):

@@ -1,12 +1,3 @@
-{% extends "pinpoint/admin_base.html" %}
-
-{% block title %}Server error{% endblock %}
-
-{% block page_title %}Server error{% endblock %}
-
-{% block content %}
-
-<p>Something broke. We're looking into it!</p>
 {% if exception %}
 <script type="text/javascript">
 /* Exception: {{ exception|safe }}
@@ -17,4 +8,3 @@ console && console.log &&
 console.log('{{ exception|escapejs }}\n{{ traceback|escapejs }}');
 </script>
 {% endif %}
-{% endblock %}

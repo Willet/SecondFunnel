@@ -203,7 +203,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'maintenancemode.middleware.MaintenanceModeMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     )
 
@@ -251,7 +250,6 @@ INSTALLED_APPS = (
     'adminlettuce',
     'ajax_forms',
     'compressor',
-    'maintenancemode',
     'social_auth',
     'corsheaders',
 
@@ -373,12 +371,6 @@ INSTAGRAM_AUTH_EXTRA_ARGUMENTS = {'scope': 'likes'}
 GOOGLE_OAUTH_EXTRA_SCOPE = ['https://gdata.youtube.com']
 
 GOOGLE_OAUTH2_EXTRA_DATA = [('email', 'username')]
-
-MAINTENANCE_IGNORE_URLS = (r'^/$',
-                           r'^/about/?$',
-                           r'^/contact/?$',
-                           r'^/static/?',
-                           r'^/why/?$', )
 
 JENKINS_TASKS = (
     'django_jenkins.tasks.with_coverage',

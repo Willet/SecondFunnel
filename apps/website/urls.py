@@ -14,19 +14,4 @@ urlpatterns = patterns('apps.website.urls',
         lambda x: HttpResponsePermanentRedirect(WEBSITE_BASE_URL),
         name='website-index'
     ),
-    url(
-        r'^about$',
-        lambda x: HttpResponsePermanentRedirect('%s/about' % WEBSITE_BASE_URL),
-        name='website-about'
-    ),
-    url(
-        r'^contact$',
-        lambda x: HttpResponsePermanentRedirect('%s/contact' % WEBSITE_BASE_URL),
-        name='website-contact'
-    ),
-    url(
-        r'^why$',
-        lambda x: HttpResponsePermanentRedirect('%s/why' % WEBSITE_BASE_URL),
-        name='website-why'
-    ),
 )
