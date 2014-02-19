@@ -75,4 +75,4 @@ oauth2==1.5.211
 oauthlib==0.6.1
 paramiko==1.12.1
 pycrypto==2.6.1
-django-nose  # TODO: version
+django-nose>=1.2  # TODO: version

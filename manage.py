@@ -3,8 +3,7 @@ import os
 import sys
 
 if __name__ == "__main__":
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "secondfunnel.settings"
-                                                    ".dev")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "secondfunnel.settings.dev")
 
     # We use PARAM1 because it is the only one available in Elastic Beanstalk
     # It should be replaced with a more reasonable environment variable like

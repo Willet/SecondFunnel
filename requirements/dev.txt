@@ -2,7 +2,6 @@
 Werkzeug==0.9.4
 coverage==3.7.1
 cssselect==0.9.1
-django-nose==1.2
 epydoc==3.0.1
 fuzzywuzzy==0.2
 mimeparse==0.1.3
