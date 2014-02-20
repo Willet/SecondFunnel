@@ -53,7 +53,7 @@ def generate_feed(info, items):
     link.text = 'http://www.secondfunnel.com'
 
     description = SubElement(channel, 'title')
-    description.text = ''
+    description.text = 'Feed description'
 
     for item in items:
         item_obj = json_to_XMLItem(item, info)
@@ -107,24 +107,24 @@ def json_to_XMLItem(obj, info=None):
     product_type = SubElement(item, 'g:product_type')
     product_type.text = 'Uncategorized'
 
-    # TODO: How do we get this information?
+    # Hack: Force the product gender until we have it
     gender = SubElement(item, 'g:gender')
-    gender.text = ''
+    gender.text = 'unisex'
 
-    # TODO: How do we get this information?
+    # Hack: Force the product age group until we have it
     age_group = SubElement(item, 'g:age_group')
-    age_group.text = ''
+    age_group.text = 'adult'
 
-    # TODO: How do we get this information?
+    # Hack: Force the product color until we have it
     color = SubElement(item, 'g:color')
-    color.text = ''
+    color.text = 'white'
 
-    # TODO: How do we get this information?
+    # Hack: Force the product size until we have it
     size = SubElement(item, 'g:size')
-    size.text = ''
+    size.text = 'M'
 
     # Some sort of shipping / tax info is required
-    # Since we don't have this, we cheat
+    # Hack: Lie about shipping weight
     shipping_weight = SubElement(item, 'g:shipping_weight')
     shipping_weight = '0 g'
 
