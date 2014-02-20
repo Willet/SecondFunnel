@@ -63,6 +63,7 @@ postgresql::server::role { 'vagrant':
 
 postgresql::server::db { 'sfdb':
   user     => 'sf',
+  owner    => 'sf',
   password => postgresql_password('sf', 'postgres'),
 }
 
