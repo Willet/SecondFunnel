@@ -50,7 +50,7 @@ App.module("utils", function (utils, App) {
             App.window_middle = data.window_middle;
 
             if (App.previewArea.currentView) {
-                App.previewArea.currentView.el.css('top',
+                App.previewArea.currentView.$el.css('top',
                     Math.max(App.window_middle - (App.previewArea.currentView.el.height() / 2), 0)
                 );
             }
