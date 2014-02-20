@@ -72,10 +72,10 @@ def json_to_XMLItem(obj, info=None):
     title.text = obj.get('name')
 
     link = SubElement(item, 'link')
-    link.text=obj.get('url')
+    link.text = obj.get('url')
 
     description = SubElement(item, 'description')
-    description.text=obj.get('description')
+    description.text = obj.get('description')
 
     # Needs to be unique across everything!
     # Assumption: Product ids are unique across stores
@@ -83,10 +83,10 @@ def json_to_XMLItem(obj, info=None):
     id.text = '{0}{1}'.format(info.get('slug'), obj.get('id'))
 
     condition = SubElement(item, 'g:condition')
-    condition.text='new'
+    condition.text = 'new'
 
     price = SubElement(item, 'g:price')
-    price.text=obj.get('price')
+    price.text = obj.get('price')
 
     availability = SubElement(item, 'g:availability')
     availability.text = 'in stock'
