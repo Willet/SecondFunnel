@@ -10,6 +10,8 @@ from django.http import HttpResponse
 from django.template import Context, loader, TemplateDoesNotExist
 import httplib2
 from mock import MagicMock
+from hammock import Hammock
+from apps.api.utils import mimic_response
 
 from apps.assets.models import Product, Store
 
@@ -265,22 +267,15 @@ def update_clickstream(request):
     return ajax_jsonp([], callback, status=SUCCESS)
 
 
-
-def get_results_dev(request, store_slug, campaign, content_id=None, **kwargs):
+def get_results(request, url):
     """Returns random results for a campaign
 
     kwargs['raw'] also toggles between returning a dictionary
     or an entire HttpResponse.
     """
-    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
+    callback = request.GET.get('callback', None)
 
-    products = random_products(store_slug, {'results': DEFAULT_RESULTS},
-                               id_only=True)
-    filtered_products = Product.objects.filter(
-        pk__in=products, available=True)
-    results = get_json_data(request, filtered_products, campaign)
-
-    if kwargs.get('raw', False):
-        return results
-    else:
-        return ajax_jsonp(results, callback, status=200)
+    IntentRankClient = Hammock(settings.INTENTRANK_BASE_URL)
+    r = IntentRankClient('intentrank')(url).GET(params={
+        'results': request.GET.get('results', 10)})
+    return ajax_jsonp(r.json(), callback_name=callback)
