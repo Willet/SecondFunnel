@@ -1,4 +1,5 @@
 import argparse
+import json
 import sys
 
 from xml.dom import minidom
@@ -18,14 +19,24 @@ def main():
         description='Generate a Google Product Feed (RSS).'
     )
     parser.add_argument('store', type=int, help='Store Identifier')
-    parser.add_argument('--file', help='Filename for export, otherwise, '
-                                       'prints to stdout.')
+    parser.add_argument('page', type=int, help='Page Identifier')
+    parser.add_argument(
+        '--file',
+        help='Filename for export, otherwise, prints to stdout.'
+    )
+    parser.add_argument(
+        '--url', required=True,
+        help='Base URL for the page; should be possible to reach out to '
+             'the content graph, but page information isn\'t actually part of'
+             ' the content graph.'
+    )
 
-    args, unknown = parser.parse_known_args();
+    args, unknown = parser.parse_known_args()
 
     store_information = get_store_information(args.store)
-    items = get_items(args.store)
-    feed = generate_feed(store_information, items)
+    page_information = get_page_information(args.page, args.url)
+    items = get_items(args.page)
+    feed = generate_feed(items, store_information, page_information)
 
     if args.file:
         save_feed(feed, args.file)
@@ -46,19 +57,29 @@ def get_store_information(store_id):
     information = ContentGraph.store(store_id).GET().json()
     return information
 
-def get_items(store_id):
-    response = ContentGraph.store(store_id).product.live.GET().json()
+def get_page_information(page_id, url):
+    return {'url': url}
+
+def get_items(page_id):
+    response = ContentGraph.page(page_id).tile.GET(params={'template': 'product'}).json()
     items = response['results']
 
+    items = map(tile_to_json, items)
+
     # Get images
-    for item in items:
-        default_id = item.get('default-image-id')
-        img_response = ContentGraph.store(store_id).content(default_id).GET().json()
-        item['image'] = img_response['url']
+    # for item in items:
+    #     default_id = item.get('default-image-id')
+    #     img_response = ContentGraph.store(store_id).content(default_id).GET().json()
+    #     item['image'] = img_response['url']
 
     return items
 
-def generate_feed(info, items):
+def tile_to_json(tile_json):
+    json_obj = json.loads(tile_json.get('json'))
+    json_obj['page-id'] = tile_json.get('page-id')
+    return json_obj
+
+def generate_feed(items, store_info, page_info):
     root = Element('rss')
     root.set('xmlns:g', 'http://base.google.com/ns/1.0')
     root.set('version', '2.0')
@@ -75,14 +96,17 @@ def generate_feed(info, items):
     description.text = 'Feed description'
 
     for item in items:
-        item_obj = json_to_XMLItem(item, info)
+        item_obj = json_to_XMLItem(item, store_info, page_info)
         channel.append(item_obj)
 
     return root
 
-def json_to_XMLItem(obj, info=None):
-    if not info:
-        info = {}
+def json_to_XMLItem(obj, store_info=None, page_info=None):
+    if not store_info:
+        store_info = {}
+
+    if not page_info:
+        page_info = {}
 
     item = Element('item')
 
@@ -90,8 +114,15 @@ def json_to_XMLItem(obj, info=None):
     title = SubElement(item, 'title')
     title.text = obj.get('name')
 
+    # Since we can't link to gap.com and have the feed validate, need to
+    # build the URL.
+
+    # So, this is only really a solution in the short term.
     link = SubElement(item, 'link')
-    link.text = obj.get('url')
+    link.text = '{0}#{1}'.format(
+        page_info.get('url'),
+        obj.get('tile-id')
+    )
 
     description = SubElement(item, 'description')
     description.text = obj.get('description')
@@ -99,7 +130,11 @@ def json_to_XMLItem(obj, info=None):
     # Needs to be unique across everything!
     # Assumption: Product ids are unique across stores
     id = SubElement(item, 'g:id')
-    id.text = '{0}{1}'.format(info.get('slug'), obj.get('id'))
+    id.text = '{0}P{1}T{2}'.format(
+        store_info.get('slug'),
+        obj.get('page-id'),
+        obj.get('tile-id')
+    )
 
     condition = SubElement(item, 'g:condition')
     condition.text = 'new'
@@ -111,7 +146,7 @@ def json_to_XMLItem(obj, info=None):
     availability.text = 'in stock'
 
     image_link = SubElement(item, 'g:image_link')
-    image_link.text = obj.get('image')
+    image_link.text = obj.get('images')[0]['url']
 
     # End - Always Required
 
@@ -120,7 +155,7 @@ def json_to_XMLItem(obj, info=None):
     google_category.text = 'Apparel &amp; Accessories &gt; Clothing'
 
     brand = SubElement(item, 'g:brand')
-    brand.text = info.get('name')
+    brand.text = store_info.get('name')
 
     # Our own categories
     product_type = SubElement(item, 'g:product_type')
@@ -142,10 +177,9 @@ def json_to_XMLItem(obj, info=None):
     size = SubElement(item, 'g:size')
     size.text = 'M'
 
-    # Some sort of shipping / tax info is required
-    # Hack: Lie about shipping weight
-    shipping_weight = SubElement(item, 'g:shipping_weight')
-    shipping_weight.text = '0 g'
+    # Shipping / Tax is required for US orders, see
+    # https://support.google.com/merchants/answer/160162?hl=en&ref_topic=3404778
+
 
     # Don't worry about variants for now.
 
