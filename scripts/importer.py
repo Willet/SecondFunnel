@@ -42,7 +42,7 @@ def import_store():
 
         store_fields = {'name':store_name,'slug':store_slug,'description':store_description,'public_base_url':store_public_base_url}
 
-        print 'STORE - old_id: ',store_old_id,', ', str(store_fields)
+        print 'STORE - old_id: ',store_old_id,', ', store_fields
 
         store_psql = update_or_create(Store, old_id=store_old_id, defaults=store_fields)
 
