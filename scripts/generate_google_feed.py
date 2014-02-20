@@ -24,20 +24,18 @@ def main(argv=None):
     print pretty_feed
 
 def get_store_information(store_id):
-    response = ContentGraph.store(store_id).GET()
-    information = json.loads(response.content)
+    information = ContentGraph.store(store_id).GET().json()
     return information
 
 def get_items(store_id):
-    response = ContentGraph.store(store_id).product.live.GET()
-    json_response = json.loads(response.content)
-    items = json_response['results']
+    response = ContentGraph.store(store_id).product.live.GET().json()
+    items = response['results']
 
     # Get images
     for item in items:
         default_id = item.get('default-image-id')
-        img_response = ContentGraph.store(store_id).content(default_id).GET()
-        item['image'] = json.loads(img_response.content)['url']
+        img_response = ContentGraph.store(store_id).content(default_id).GET().json()
+        item['image'] = img_response['url']
 
     return items
 
