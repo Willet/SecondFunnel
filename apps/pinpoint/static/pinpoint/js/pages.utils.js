@@ -36,7 +36,7 @@ App.module("utils", function (utils, App) {
             return;
         }
 
-        if (!data.target || data.target !== 'second_funnel') {
+        if (data.target !== 'second_funnel') {
             return;
         }
 
