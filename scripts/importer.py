@@ -14,7 +14,8 @@ contents = {}
 
 base_store_url = 'store/' + store_id + '/'
 
-
+# tries to find and then update model
+# if the find fails, it creates a new model
 def update_or_create(model, defaults=None, **kwargs):
     try:
         obj = model.objects.get(**kwargs)
@@ -30,7 +31,7 @@ def update_or_create(model, defaults=None, **kwargs):
     return obj
 
 
-def importStore():
+def import_store():
     global store_psql
     for store in get_contentgraph_data(base_store_url):
         store_old_id = store.get('id')
@@ -41,12 +42,12 @@ def importStore():
 
         store_fields = {'name':store_name,'slug':store_slug,'description':store_description,'public_base_url':store_public_base_url}
 
-        print 'STORE - old_id: ',store_old_id,', ',store_fields
+        print 'STORE - old_id: ',store_old_id,', ', str(store_fields)
 
         store_psql = update_or_create(Store, old_id=store_old_id, defaults=store_fields)
 
 
-def importProducts():
+def import_products():
     for product in get_contentgraph_data(base_store_url + 'product/'):
         product_old_id = product.get('id')
         product_name = product.get('name')
@@ -63,6 +64,7 @@ def importProducts():
 
         print 'PRODUCT - old_id: ',product_old_id,', ',product_fields
 
+        #the product must be created before the images as the product-images require a product
         product_psql = update_or_create(Product, old_id=product_old_id, defaults=product_fields)
 
         product_image_old_ids = product.get('image-ids')
@@ -84,15 +86,17 @@ def importProducts():
 
         product_image_psql = ProductImage.objects.get(old_id=product_default_image_old_id)
 
+        # setting the default product-image on the product
         product_psql.default_image_id = product_image_psql.id
         product_psql.save()
         products[product_old_id] = product_psql.id
 
 
-def importContent():
+def import_content():
     for content in get_contentgraph_data(base_store_url + 'content/'):
         content_old_id = content.get('id')
         content_source = content.get('source')
+        # if the image has source 'image' (product image), skip
         if content_source == 'image':
             continue
         content_type = content.get('type')
@@ -135,7 +139,7 @@ def importContent():
         contents[content_old_id] = content_psql.id
 
 
-def importPages():
+def import_pages():
     for page in get_contentgraph_data(base_store_url + 'page/'):
         page_old_id = page.get('id')
         if not page_old_id in ['91','95','98']:
@@ -145,6 +149,7 @@ def importPages():
         page_url_slug = page.get('url')
         page_theme_template = page.get('theme')
 
+        # since feeds have no fields except id right now, the only way to find the feed is based on the page's feed_id
         try:
             page_psql = Page.objects.get(old_id=page_old_id)
             feed_psql = Feed.objects.get(id=page_psql.feed_id)
@@ -163,10 +168,10 @@ def importPages():
         print 'PAGE - old_id: ',page_old_id,', ',page_fields
 
         update_or_create(Page, old_id=page_old_id, defaults=page_fields)
-        importTiles(page_old_id, feed_psql)
+        import_tiles(page_old_id, feed_psql)
 
 
-def importTiles(page_id, feed_psql):
+def import_tiles(page_id, feed_psql):
     for tile in get_contentgraph_data('page/' + str(page_id) + '/tile/'):
         tile_old_id = tile.get('id')
         tile_template = tile.get('template')
@@ -189,8 +194,8 @@ def importTiles(page_id, feed_psql):
                     tile_psql.products.add(products[str(product_old_id)])
 
 if __name__ == "__main__":
-    importStore()
-    #importProducts()
-    importContent()
-    importPages()
+    import_store()
+    import_products()
+    import_content()
+    import_pages()
 
