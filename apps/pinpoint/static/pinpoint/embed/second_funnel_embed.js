@@ -26,6 +26,8 @@
  *
  * This will load 'http://test.secondfunnel.com/pref-tests/' in the iframe regardless of the domain or
  * pathname it is running on.
+ *
+ * Note on IE 8 compatibility. The site hosting the script must specify a <!DOCTYPE html> at the top of the html file.
  */
 (function () {
     try {
