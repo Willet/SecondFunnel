@@ -1,66 +1,67 @@
-import os
-import sys
+from apps.assets.models import (Store, Image, Video, Product, ProductImage,
+                                Theme, Page, Feed, Tile)
+from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
+from django.core.management.base import BaseCommand, CommandError
 
-from apps.assets.models import Store, Image, Video, Product, ProductImage, Theme, Page, Feed, Tile
-from apps.contentgraph.models import get_contentgraph_data
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.management.base import BaseCommand
 
-store_id = 0
-
-store_psql = None
 products = {}
 contents = {}
 
-base_store_url = ''
 
-# tries to find and then update model
-# if the find fails, it creates a new model
 def update_or_create(model, defaults=None, **kwargs):
-    try:
-        obj = model.objects.get(**kwargs)
-        for key, value in defaults.iteritems():
-            setattr(obj, key, value)
-    except ObjectDoesNotExist:
-        if defaults:
-            defaults.update(kwargs)
-        else:
-            defaults = kwargs
-        obj = model(**defaults)
-    obj.save()
+    """
+    tries to find and then update model
+    if the find fails, it creates a new model (sic)
+    """
+    prop_bag = defaults
+    prop_bag.update(kwargs)
+    obj, _ = model.objects.get_or_create(defaults=prop_bag, **kwargs)
     return obj
 
+
 class Command(BaseCommand):
+    """WARNING: this script can only import ONE store at a time."""
+    store = None
+    store_id = 0
 
     def handle(self, *args, **kwargs):
-        global store_id, base_store_url
-        store_id = args[0]
-        base_store_url = 'store/' + store_id + '/'
+        self.store_id = args[0]
+        if not self.store_id:
+            raise CommandError("Not a valid store id for argument 0")
 
         self.import_store()
         self.import_products()
         self.import_content()
         self.import_pages()
 
+    def _store_url(self, store_id=None):
+        """returns CG url for a store, or if no store, then all stores."""
+        store_id = store_id or self.store_id
+        if store_id:
+            return 'store/{0}/'.format(store_id)
+        else:
+            return 'store/'
 
-    def import_store(self):
-        global store_psql
-        for store in get_contentgraph_data(base_store_url):
-            store_old_id = store.get('id')
-            store_name = store.get('name')
-            store_slug = store.get('slug')
-            store_description = store.get('description')
-            store_public_base_url = store.get('public-base-url')
+    def import_store(self, store_id=0):
+        store = call_contentgraph(self._store_url(store_id=store_id))
+        store_old_id = store.get('id')
+        store_name = store.get('name')
+        store_slug = store.get('slug')
+        store_description = store.get('description')
+        store_public_base_url = store.get('public-base-url')
 
-            store_fields = {'name':store_name,'slug':store_slug,'description':store_description,'public_base_url':store_public_base_url}
+        store_fields = {'name': store_name, 'slug': store_slug,
+                        'description': store_description,
+                        'public_base_url': store_public_base_url}
 
-            print 'STORE - old_id: ',store_old_id,', ', store_fields
+        print 'STORE - old_id: ', store_old_id, ', ', store_fields
 
-            store_psql = update_or_create(Store, old_id=store_old_id, defaults=store_fields)
+        self.store = update_or_create(Store, old_id=store_old_id,
+                                      defaults=store_fields)
 
 
-    def import_products(self):
-        for product in get_contentgraph_data(base_store_url + 'product/'):
+    def import_products(self, store_id=0):
+        for product in get_contentgraph_data(self._store_url(store_id=store_id) + 'product/'):
             product_old_id = product.get('id')
             product_name = product.get('name')
             product_description = product.get('description')
@@ -72,31 +73,40 @@ class Command(BaseCommand):
             if not product_default_image_old_id:
                 continue
 
-            product_fields = {'store':store_psql,'name':product_name,'description':product_description,'url':product_url,'sku':product_sku,'price':product_price}
+            product_fields = {'store': self.store, 'name': product_name,
+                              'description': product_description,
+                              'url': product_url, 'sku': product_sku,
+                              'price': product_price}
 
-            print 'PRODUCT - old_id: ',product_old_id,', ',product_fields
+            print 'PRODUCT - old_id: ', product_old_id, ', ', product_fields
 
             #the product must be created before the images as the product-images require a product
-            product_psql = update_or_create(Product, old_id=product_old_id, defaults=product_fields)
+            product_psql = update_or_create(Product, old_id=product_old_id,
+                                            defaults=product_fields)
 
             product_image_old_ids = product.get('image-ids')
             if product_default_image_old_id not in product_image_old_ids:
                 product_image_old_ids.append(product_default_image_old_id)
 
-            product_image_fields = {'product':product_psql}
+            product_image_fields = {'product': product_psql}
 
             for product_image_old_id in product_image_old_ids:
-                for product_image in get_contentgraph_data(base_store_url + 'content/' + product_image_old_id):
+                for product_image in get_contentgraph_data(
+                                        self._store_url(store_id=store_id) + 'content/' + product_image_old_id):
                     product_image_url = product_image.get('url')
-                    product_image_original_url = product_image.get('original-url')
+                    product_image_original_url = product_image.get(
+                        'original-url')
 
-                    product_image_fields.update({'url':product_image_url,'original_url':product_image_original_url})
+                    product_image_fields.update({'url': product_image_url,
+                                                 'original_url': product_image_original_url})
 
-                    print 'PRODUCT IMAGE - old_id: ',product_image_old_id,', ',product_image_fields
+                    print 'PRODUCT IMAGE - old_id: ', product_image_old_id, ', ', product_image_fields
 
-                    update_or_create(ProductImage, old_id=product_image_old_id, defaults=product_image_fields)
+                    update_or_create(ProductImage, old_id=product_image_old_id,
+                                     defaults=product_image_fields)
 
-            product_image_psql = ProductImage.objects.get(old_id=product_default_image_old_id)
+            product_image_psql = ProductImage.objects.get(
+                old_id=product_default_image_old_id)
 
             # setting the default product-image on the product
             product_psql.default_image_id = product_image_psql.id
@@ -104,8 +114,8 @@ class Command(BaseCommand):
             products[product_old_id] = product_psql.id
 
 
-    def import_content(self):
-        for content in get_contentgraph_data(base_store_url + 'content/'):
+    def import_content(self, store_id=0):
+        for content in get_contentgraph_data(self._store_url(store_id=store_id) + 'content/'):
             content_old_id = content.get('id')
             content_source = content.get('source')
             # if the image has source 'image' (product image), skip
@@ -117,44 +127,54 @@ class Command(BaseCommand):
             if content_products_object:
                 for product_id in content_products_object:
                     if len(content_tagged_products) > 0:
-                        content_tagged_products += ',' + str(products.get(str(product_id)))
+                        content_tagged_products += ',' + str(
+                            products.get(str(product_id)))
                     else:
-                        content_tagged_products += str(products.get(str(product_id)))
+                        content_tagged_products += str(
+                            products.get(str(product_id)))
 
             content_name = content.get('name')
             content_description = content.get('description')
 
-            content_fields = {'store':store_psql,'source':content_source,'tagged_products':content_tagged_products,'name':content_name,'description':content_description}
+            content_fields = {'store': self.store, 'source': content_source,
+                              'tagged_products': content_tagged_products,
+                              'name': content_name,
+                              'description': content_description}
 
             if content_type == 'image':
                 content_url = content.get('url')
                 content_original_url = content.get('original-url')
                 content_source_url = content.get('source-url')
 
-                content_fields.update({'url':content_url,'original_url':content_original_url,'source_url':content_source_url})
+                content_fields.update(
+                    {'url': content_url, 'original_url': content_original_url,
+                     'source_url': content_source_url})
 
-                print 'IMAGE - old_id: ',content_old_id,', ',content_fields
+                print 'IMAGE - old_id: ', content_old_id, ', ', content_fields
 
-                content_psql = update_or_create(Image, old_id=content_old_id, defaults=content_fields)
+                content_psql = update_or_create(Image, old_id=content_old_id,
+                                                defaults=content_fields)
             elif content_type == 'video':
                 content_url = content.get('original-url')
                 content_source_url = content_url
 
-                content_fields.update({'url':content_url,'source_url':content_source_url})
+                content_fields.update(
+                    {'url': content_url, 'source_url': content_source_url})
 
-                print 'VIDEO - old_id: ',content_old_id,', ',content_fields
+                print 'VIDEO - old_id: ', content_old_id, ', ', content_fields
 
-                content_psql = update_or_create(Video, old_id=content_old_id, defaults=content_fields)
+                content_psql = update_or_create(Video, old_id=content_old_id,
+                                                defaults=content_fields)
 
             else:
                 continue
             contents[content_old_id] = content_psql.id
 
 
-    def import_pages(self):
-        for page in get_contentgraph_data(base_store_url + 'page/'):
+    def import_pages(self, store_id=0):
+        for page in get_contentgraph_data(self._store_url(store_id=store_id) + 'page/'):
             page_old_id = page.get('id')
-            if not page_old_id in ['91','95','98']:
+            if not page_old_id in ['91', '95', '98']:
                 continue
             page_name = page.get('name')
             page_legal_copy = page.get('legalCopy')
@@ -169,15 +189,18 @@ class Command(BaseCommand):
                 feed_psql = Feed()
                 feed_psql.save()
 
-            page_theme_fields = {'store':store_psql}
+            page_theme_fields = {'store': self.store}
 
-            print 'THEME - template: ', page_theme_template,', ',page_theme_fields
+            print 'THEME - template: ', page_theme_template, ', ', page_theme_fields
 
-            theme_psql = update_or_create(Theme, template=page_theme_template, defaults=page_theme_fields)
+            theme_psql = update_or_create(Theme, template=page_theme_template,
+                                          defaults=page_theme_fields)
 
-            page_fields = {'feed':feed_psql,'theme':theme_psql,'name':page_name,'legal_copy':page_legal_copy,'url_slug':page_url_slug}
+            page_fields = {'feed': feed_psql, 'theme': theme_psql,
+                           'name': page_name, 'legal_copy': page_legal_copy,
+                           'url_slug': page_url_slug}
 
-            print 'PAGE - old_id: ',page_old_id,', ',page_fields
+            print 'PAGE - old_id: ', page_old_id, ', ', page_fields
 
             update_or_create(Page, old_id=page_old_id, defaults=page_fields)
             self.import_tiles(page_old_id, feed_psql)
@@ -189,11 +212,13 @@ class Command(BaseCommand):
             tile_template = tile.get('template')
             tile_prioritized = tile.get('prioritized') in ['true', 'True']
 
-            tile_fields = {'feed':feed_psql,'template':tile_template,'prioritized':tile_prioritized}
+            tile_fields = {'feed': feed_psql, 'template': tile_template,
+                           'prioritized': tile_prioritized}
 
-            print 'TILE - old_id: ',tile_old_id,', ',tile_fields
+            print 'TILE - old_id: ', tile_old_id, ', ', tile_fields
 
-            tile_psql = update_or_create(Tile, old_id=tile_old_id, defaults=tile_fields)
+            tile_psql = update_or_create(Tile, old_id=tile_old_id,
+                                         defaults=tile_fields)
             tile_content_old_ids = tile.get('content-ids')
             if tile_content_old_ids:
                 for content_old_id in tile_content_old_ids:
