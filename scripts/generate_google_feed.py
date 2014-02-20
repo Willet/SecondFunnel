@@ -1,7 +1,8 @@
-import json
+import argparse
 import sys
+
 from xml.dom import minidom
-from xml.etree.ElementTree import Element, tostring, SubElement
+from xml.etree.ElementTree import Element, tostring, SubElement, ElementTree
 from hammock import Hammock
 
 ContentGraph = Hammock(
@@ -9,18 +10,36 @@ ContentGraph = Hammock(
     headers={'ApiKey': 'secretword'}
 )
 
-def main(argv=None):
-    if argv is None:
-        argv = sys.argv
+# Don't know how to add this programmatically
+FEED_HEADER = '<?xml version="1.0"?>'
 
-    store_id = 38
+def main():
+    parser = argparse.ArgumentParser(
+        description='Generate a Google Product Feed (RSS).'
+    )
+    parser.add_argument('store', type=int, help='Store Identifier')
+    parser.add_argument('--file', help='Filename for export, otherwise, '
+                                       'prints to stdout.')
 
-    info = get_store_information(store_id)
-    items = get_items(store_id)
+    args, unknown = parser.parse_known_args();
 
-    feed = generate_feed(info, items)
-    ugly_feed = tostring(feed, 'utf-8')
-    pretty_feed = minidom.parseString(ugly_feed).toprettyxml(indent='\t')
+    store_information = get_store_information(args.store)
+    items = get_items(args.store)
+    feed = generate_feed(store_information, items)
+
+    if args.file:
+        save_feed(feed, args.file)
+    else:
+        print_feed(feed)
+
+
+def save_feed(xml, filename):
+    doc = ElementTree(xml)
+    doc.write(filename)
+
+def print_feed(xml):
+    feed = tostring(xml, 'utf-8')
+    pretty_feed = minidom.parseString(feed).toprettyxml(indent='\t')
     print pretty_feed
 
 def get_store_information(store_id):
@@ -126,7 +145,7 @@ def json_to_XMLItem(obj, info=None):
     # Some sort of shipping / tax info is required
     # Hack: Lie about shipping weight
     shipping_weight = SubElement(item, 'g:shipping_weight')
-    shipping_weight = '0 g'
+    shipping_weight.text = '0 g'
 
     # Don't worry about variants for now.
 
