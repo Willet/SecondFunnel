@@ -491,7 +491,7 @@ App.module("tracker", function (tracker, App) {
             }
 
             $previewContainer = $(this).parents('.template.target > div');
-            model = App.previewArea.currentView.model; // based on assumption that only one preview is open
+            model = App.previewArea.currentView.model;
             trackingInfo = getTrackingInformation(model, true);
 
             trackEvent({
