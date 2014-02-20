@@ -132,12 +132,13 @@ class Page(BaseModel):
 
 
 class Feed(BaseModel):
-
-    pass
-    # future:
-    # feed_algorithm = models.CharField(max_length=64); e.g. sorted, recommend
+    """"""
+    feed_algorithm = models.CharField(max_length=64)  # ; e.g. sorted, recommend
     # and other representation specific of the Feed itself
     #
+    def get_results(self, num_results=20, algorithm=None):
+        """_algorithm overrides feed_algorithm."""
+
 
 
 class Tile(BaseModel):
