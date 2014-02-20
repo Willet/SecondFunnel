@@ -33,17 +33,14 @@ App.module("utils", function (utils, App) {
         try {
             data = JSON.parse(data);
         } catch (error) {
-            //console.error('Message format not supported.');
             return;
         }
 
         if (!data.target || data.target !== 'second_funnel') {
-            //console.error('Message is not for second funnel');
             return;
         }
 
         if (!data.type) {
-            //console.error('Message has no type');
             return;
         }
 
