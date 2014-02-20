@@ -4,6 +4,7 @@ import sys
 
 from apps.assets.models import Store, Image, Video, Product, ProductImage, Theme, Page, Feed, Tile
 from apps.contentgraph.models import get_contentgraph_data
+from django.core.exceptions import ObjectDoesNotExist
 
 store_id = sys.argv[1]
 
@@ -12,6 +13,21 @@ products = {}
 contents = {}
 
 base_store_url = 'store/' + store_id + '/'
+
+
+def update_or_create(model, defaults=None, **kwargs):
+    try:
+        obj = model.objects.get(**kwargs)
+        for key, value in defaults.iteritems():
+            setattr(obj, key, value)
+    except ObjectDoesNotExist:
+        if defaults:
+            defaults.update(kwargs)
+        else:
+            defaults = kwargs
+        obj = model(**defaults)
+    obj.save()
+    return obj
 
 
 def importStore():
@@ -23,64 +39,11 @@ def importStore():
         store_description = store.get('description')
         store_public_base_url = store.get('public-base-url')
 
-        print 'STORE - old_id: ',store_old_id,', name: ', store_name, ', slug: ', store_slug, ', description: ', store_description, ', public_base_url: ', store_public_base_url
+        store_fields = {'name':store_name,'slug':store_slug,'description':store_description,'public_base_url':store_public_base_url}
 
-        try:
-            store_psql = Store.objects.get(old_id=store_old_id)
-            store_psql_id = store_psql.id
-        except Store.DoesNotExist:
-            store_psql_id = None
-        store_psql = Store(id=store_psql_id,old_id=store_old_id,name=store_name,slug=store_slug,description=store_description,public_base_url=store_public_base_url)
-        store_psql.save()
+        print 'STORE - old_id: ',store_old_id,', ',store_fields
 
-
-def importContent():
-    for content in get_contentgraph_data(base_store_url + 'content/'):
-        content_old_id = content.get('id')
-        content_source = content.get('source')
-        if content_source == 'image':
-            continue
-        content_type = content.get('type')
-        content_source_url = content.get('source-url')
-        content_products_object = content.get('tagged-products')
-        content_product_ids = ''
-        if content_products_object:
-            for product_id in content_products_object:
-                if len(content_product_ids) > 0:
-                    content_product_ids += ',' + str(products.get(str(product_id)))
-                else:
-                    content_product_ids += str(products.get(str(product_id)))
-
-        content_name = content.get('name')
-        content_description = content.get('description')
-
-        if content_type == 'image':
-            content_url = content.get('url')
-            content_original_url = content.get('original-url')
-
-            print 'IMAGE - old_id: ',content.get('id'),', source: ', content_source, ', source-url: ', content_source_url, ', product-ids: ', content_product_ids, ', name: ', content_name, ', description: ', content_description, ', url: ', content_url, ', original-url: ', content_original_url
-
-            try:
-                content_psql = Image.objects.get(old_id=content_old_id)
-                content_psql_id = content_psql.id
-            except Image.DoesNotExist:
-                content_psql_id = None
-            content_psql = Image(id=content_psql_id,old_id=content_old_id,store=store_psql,source=content_source,source_url=content_source_url,tagged_products=content_product_ids,name=content_name,description=content_description,url=content_url,original_url=content_original_url)
-        elif content_type == 'video':
-            content_url = content.get('original-url')
-
-            print 'VIDEO - old_id: ',content.get('id'),', source: ', content_source, ', source-url: ', content_source_url, ', product-ids: ', content_product_ids, ', name: ', content_name, ', description: ', content_description, ', url: ', content_url,',player: youtube'
-
-            try:
-                content_psql = Video.objects.get(old_id=content_old_id)
-                content_psql_id = content_psql.id
-            except Video.DoesNotExist:
-                content_psql_id = None
-            content_psql = Video(id=content_psql_id,old_id=content_old_id,store=store_psql,source=content_source,source_url=content_source_url,tagged_products=content_product_ids,name=content_name,url=content_url,description=content_description,player='youtube')
-        else:
-            continue
-        content_psql.save()
-        contents[content.get('id')] = content_psql.id
+        store_psql = update_or_create(Store, old_id=store_old_id, defaults=store_fields)
 
 
 def importProducts():
@@ -96,35 +59,80 @@ def importProducts():
         if not product_default_image_old_id:
             continue
 
-        print 'PRODUCT - old_id: ',product_old_id,', name: ', product_name, ', description: ', product_description, ', url: ', product_url, ', sku: ', product_sku, ', price: ', product_price
+        product_fields = {'store':store_psql,'name':product_name,'description':product_description,'url':product_url,'sku':product_sku,'price':product_price}
 
-        try:
-            product_psql = Product.objects.get(old_id=product_old_id)
-            product_psql_id = product_psql.id
-        except Product.DoesNotExist:
-            product_psql_id = None
-        product_psql = Product(id=product_psql_id,old_id=product_old_id,store=store_psql,name=product_name,description=product_description,url=product_url,sku=product_sku,price=product_price)
-        product_psql.save()
+        print 'PRODUCT - old_id: ',product_old_id,', ',product_fields
 
-        for product_image_old_id in product.get('image-ids'):
+        product_psql = update_or_create(Product, old_id=product_old_id, defaults=product_fields)
+
+        product_image_old_ids = product.get('image-ids')
+        if product_default_image_old_id not in product_image_old_ids:
+            product_image_old_ids.append(product_default_image_old_id)
+
+        product_image_fields = {'product':product_psql}
+
+        for product_image_old_id in product_image_old_ids:
             for product_image in get_contentgraph_data(base_store_url + 'content/' + product_image_old_id):
-                product_image_url =  product_image.get('url')
+                product_image_url = product_image.get('url')
                 product_image_original_url = product_image.get('original-url')
 
-                print 'PRODUCT IMAGE - old_id: ',product_image_old_id,', url: ', product_image_url, ', original-url: ', product_image_original_url
+                product_image_fields.update({'url':product_image_url,'original_url':product_image_original_url})
 
-                try:
-                    product_image_psql = ProductImage.objects.get(old_id=product_image_old_id)
-                    product_image_psql_id = product_image_psql.id
-                except ProductImage.DoesNotExist:
-                    product_image_psql_id = None
-                product_image_psql = ProductImage(id=product_image_psql_id,old_id=product_image_old_id,product=product_psql,url=product_image_url,original_url=product_image_original_url)
-                product_image_psql.save()
+                print 'PRODUCT IMAGE - old_id: ',product_image_old_id,', ',product_image_fields
+
+                update_or_create(ProductImage, old_id=product_image_old_id, defaults=product_image_fields)
 
         product_image_psql = ProductImage.objects.get(old_id=product_default_image_old_id)
+
         product_psql.default_image_id = product_image_psql.id
         product_psql.save()
-        products[product.get('id')] = product_psql.id
+        products[product_old_id] = product_psql.id
+
+
+def importContent():
+    for content in get_contentgraph_data(base_store_url + 'content/'):
+        content_old_id = content.get('id')
+        content_source = content.get('source')
+        if content_source == 'image':
+            continue
+        content_type = content.get('type')
+        content_products_object = content.get('tagged-products')
+        content_tagged_products = ''
+        if content_products_object:
+            for product_id in content_products_object:
+                if len(content_tagged_products) > 0:
+                    content_tagged_products += ',' + str(products.get(str(product_id)))
+                else:
+                    content_tagged_products += str(products.get(str(product_id)))
+
+        content_name = content.get('name')
+        content_description = content.get('description')
+
+        content_fields = {'store':store_psql,'source':content_source,'tagged_products':content_tagged_products,'name':content_name,'description':content_description}
+
+        if content_type == 'image':
+            content_url = content.get('url')
+            content_original_url = content.get('original-url')
+            content_source_url = content.get('source-url')
+
+            content_fields.update({'url':content_url,'original_url':content_original_url,'source_url':content_source_url})
+
+            print 'IMAGE - old_id: ',content_old_id,', ',content_fields
+
+            content_psql = update_or_create(Image, old_id=content_old_id, defaults=content_fields)
+        elif content_type == 'video':
+            content_url = content.get('original-url')
+            content_source_url = content_url
+
+            content_fields.update({'url':content_url,'source_url':content_source_url})
+
+            print 'VIDEO - old_id: ',content_old_id,', ',content_fields
+
+            content_psql = update_or_create(Video, old_id=content_old_id, defaults=content_fields)
+
+        else:
+            continue
+        contents[content_old_id] = content_psql.id
 
 
 def importPages():
@@ -137,25 +145,25 @@ def importPages():
         page_url_slug = page.get('url')
         page_theme_template = page.get('theme')
 
-        print 'PAGE - id',page.get('id'),'name: ', page_name, ', legal copy: ', page_legal_copy, ', url_slug: ', page_url_slug
-        print 'THEME - template: ', page_theme_template
-
         try:
             page_psql = Page.objects.get(old_id=page_old_id)
-            page_psql_id = page_psql.id
             feed_psql = Feed.objects.get(id=page_psql.feed_id)
         except Page.DoesNotExist:
-            page_psql_id = None
             feed_psql = Feed()
             feed_psql.save()
-        try:
-            theme_psql = Theme.objects.get(template=page_theme_template)
-        except Theme.DoesNotExist:
-            theme_psql = Theme(store=store_psql, template=page_theme_template)
-            theme_psql.save()
-        page_psql = Page(id=page_psql_id,old_id = page_old_id,feed=feed_psql,theme=theme_psql,name=page_name,url_slug=page_url_slug,legal_copy=page_legal_copy)
-        page_psql.save()
-        importTiles(page.get('id'), feed_psql)
+
+        page_theme_fields = {'store':store_psql}
+
+        print 'THEME - template: ', page_theme_template,', ',page_theme_fields
+
+        theme_psql = update_or_create(Theme, template=page_theme_template, defaults=page_theme_fields)
+
+        page_fields = {'feed':feed_psql,'theme':theme_psql,'name':page_name,'legal_copy':page_legal_copy,'url_slug':page_url_slug}
+
+        print 'PAGE - old_id: ',page_old_id,', ',page_fields
+
+        update_or_create(Page, old_id=page_old_id, defaults=page_fields)
+        importTiles(page_old_id, feed_psql)
 
 
 def importTiles(page_id, feed_psql):
@@ -164,29 +172,25 @@ def importTiles(page_id, feed_psql):
         tile_template = tile.get('template')
         tile_prioritized = tile.get('prioritized') in ['true', 'True']
 
-        print 'TILE - id: ',tile_old_id,'template: ',tile_template,', prioritized: ', tile_prioritized
+        tile_fields = {'feed':feed_psql,'template':tile_template,'prioritized':tile_prioritized}
 
-        try:
-            tile_psql = Tile.objects.get(old_id=tile_old_id)
-            tile_psql_id = tile_psql.id
-        except Tile.DoesNotExist:
-            tile_psql_id = None
-        tile_psql = Tile(id=tile_psql_id,old_id=tile_old_id,feed=feed_psql,template=tile_template,prioritized=tile_prioritized)
-        tile_psql.save()
-        tile_content_ids = tile.get('content-ids')
-        if tile_content_ids:
-            for content_id in tile_content_ids:
-                if contents.get(str(content_id)):
-                    tile_psql.content.add(contents[str(content_id)])
-        tile_product_ids = tile.get('product-ids')
-        if tile_product_ids:
-            for product_id in tile_product_ids:
-                if products.get(str(product_id)):
-                    tile_psql.products.add(products[str(product_id)])
+        print 'TILE - old_id: ',tile_old_id,', ',tile_fields
+
+        tile_psql = update_or_create(Tile, old_id=tile_old_id, defaults=tile_fields)
+        tile_content_old_ids = tile.get('content-ids')
+        if tile_content_old_ids:
+            for content_old_id in tile_content_old_ids:
+                if contents.get(str(content_old_id)):
+                    tile_psql.content.add(contents[str(content_old_id)])
+        tile_product_old_ids = tile.get('product-ids')
+        if tile_product_old_ids:
+            for product_old_id in tile_product_old_ids:
+                if products.get(str(product_old_id)):
+                    tile_psql.products.add(products[str(product_old_id)])
 
 if __name__ == "__main__":
     importStore()
-    importProducts()
+    #importProducts()
     importContent()
     importPages()
 
