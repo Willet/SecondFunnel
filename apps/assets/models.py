@@ -17,6 +17,8 @@ class BaseModel(models.Model):
 
 class Store(BaseModel):
 
+    old_id = models.IntegerField(unique=True)
+
     staff = models.ManyToManyField(User, related_name='stores')
 
     name = models.CharField(max_length=1024)
@@ -29,6 +31,8 @@ class Store(BaseModel):
 
 
 class Product(BaseModel):
+
+    old_id = models.IntegerField(unique=True)
 
     store = models.ForeignKey(Store, null=False)
 
@@ -50,17 +54,21 @@ class Product(BaseModel):
 
 class ProductImage(BaseModel):
 
+    old_id = models.IntegerField(unique=True)
+
     product = models.ForeignKey(Product, null=False)
 
     url = models.TextField()
     original_url = models.TextField()
     file_type = models.CharField(max_length=255, blank=False, null=False)
     file_checksum = models.CharField(max_length=512)
-    width = models.PositiveSmallIntegerField()
-    height = models.PositiveSmallIntegerField()
+    width = models.PositiveSmallIntegerField(null=True)
+    height = models.PositiveSmallIntegerField(null=True)
 
 
 class Content(BaseModel):
+
+    old_id = models.IntegerField(unique=True)
 
     store = models.ForeignKey(Store, null=False)
 
@@ -79,22 +87,22 @@ class Content(BaseModel):
 
 class Image(Content):
 
-    name = models.CharField(max_length=1024)
-    description = models.TextField()
+    name = models.CharField(max_length=1024,null=True)
+    description = models.TextField(null=True)
 
     url = models.TextField()
     original_url = models.TextField()
     file_type = models.CharField(max_length=255, blank=False, null=False)
     file_checksum = models.CharField(max_length=512)
 
-    width = models.PositiveSmallIntegerField()
-    height = models.PositiveSmallIntegerField()
+    width = models.PositiveSmallIntegerField(null=True)
+    height = models.PositiveSmallIntegerField(null=True)
 
 
 class Video(Content):
 
-    name = models.CharField(max_length=1024)
-    description = models.TextField()
+    name = models.CharField(max_length=1024, null=True)
+    description = models.TextField(null=True)
 
     url = models.TextField()
     player = models.CharField(max_length=255, blank=False)
@@ -117,7 +125,18 @@ class Theme(BaseModel):
     template = models.CharField(max_length=1024)
 
 
+class Feed(BaseModel):
+    """"""
+    feed_algorithm = models.CharField(max_length=64)  # ; e.g. sorted, recommend
+    # and other representation specific of the Feed itself
+    #
+    def get_results(self, num_results=20, algorithm=None):
+        """_algorithm overrides feed_algorithm."""
+
+
 class Page(BaseModel):
+
+    old_id = models.IntegerField(unique=True)
 
     theme = models.ForeignKey(Theme, null=True)
     theme_settings = JSONField(null=True)
@@ -131,17 +150,9 @@ class Page(BaseModel):
     feed = models.ForeignKey('Feed')
 
 
-class Feed(BaseModel):
-    """"""
-    feed_algorithm = models.CharField(max_length=64)  # ; e.g. sorted, recommend
-    # and other representation specific of the Feed itself
-    #
-    def get_results(self, num_results=20, algorithm=None):
-        """_algorithm overrides feed_algorithm."""
-
-
-
 class Tile(BaseModel):
+
+    old_id = models.IntegerField(unique=True)
 
     feed = models.ForeignKey(Feed, null=False)
 
