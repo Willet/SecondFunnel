@@ -15,7 +15,10 @@ def update_or_create(model, defaults=None, **kwargs):
     """
     prop_bag = defaults
     prop_bag.update(kwargs)
-    obj, _ = model.objects.get_or_create(defaults=prop_bag, **kwargs)
+    obj, created = model.objects.get_or_create(defaults=prop_bag, **kwargs)
+    if not created:
+        obj.update(prop_bag)
+        obj.save()
     return obj
 
 

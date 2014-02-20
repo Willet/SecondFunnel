@@ -19,10 +19,16 @@ class IntentRank(object):
         except ImportError as err:
             raise AttributeError("IR algorithm {0} does not exist".format(
                 algorithm))
-        self._algorithm = algorithm
+        self._algorithm = alg
 
-    def random(self, num_results=20):
-        """"""
+    def get_results(self, format='json', *args, **kwargs):
+        return self._transform(self._algorithm(*args, **kwargs))
+
+    def _transform(self, things):
+        """Virtual-repr() the thing using whichever serialization method
+        makes sense.
+        """
+        return things
 
     # client side shown
     # product tiles
