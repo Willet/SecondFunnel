@@ -15,7 +15,7 @@ from django.utils.encoding import smart_str
 
 from apps.assets.models import Store
 from apps.contentgraph.views import get_page, get_store, get_stores
-from apps.intentrank.views import get_seeds
+from apps.intentrank.views import get_seeds, get_results
 from apps.pinpoint.models import Campaign
 
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
@@ -199,7 +199,7 @@ def generate_static_campaign_now(store_id, campaign_id):
     dummy_request = create_dummy_request()
 
     page_content = render_campaign(store_id, campaign_id,
-                                   get_seeds_func=get_seeds,
+                                   get_seeds_func=get_results,
                                    request=dummy_request)
 
     # e.g. "shorts3/index.html"

@@ -120,7 +120,7 @@ window.PAGES_INFO = {
     ],
     'IRResultsCount': 10,
     'IRTimeout': 5000,
-    'IRSource': "http://intentrank-test.elasticbeanstalk.com/intentrank", // optional, defaults to intentrank-test
+    'IRSource': "http://tng-test.secondfunnel.com/intentrank", // optional, defaults to intentrank-test
     'gaAccountNumber': 'UA-65432-1',  // UA-65432-1 is not a real account
 
     // number of viewports worth of results to keep below the page.

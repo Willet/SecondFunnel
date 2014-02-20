@@ -267,15 +267,17 @@ def update_clickstream(request):
     return ajax_jsonp([], callback, status=SUCCESS)
 
 
-def get_results(request, url):
+def get_results(request, url, **kwargs):
     """Returns random results for a campaign
 
     kwargs['raw'] also toggles between returning a dictionary
     or an entire HttpResponse.
     """
+    # dev proxies to test... test proxies to intentrank-test
+    from secondfunnel.settings.test import INTENTRANK_BASE_URL as test_ir
     callback = request.GET.get('callback', None)
 
-    IntentRankClient = Hammock(settings.INTENTRANK_BASE_URL)
+    IntentRankClient = Hammock(test_ir)
     r = IntentRankClient('intentrank')(url).GET(params={
         'results': request.GET.get('results', 10)})
     return ajax_jsonp(r.json(), callback_name=callback)

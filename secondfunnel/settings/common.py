@@ -347,7 +347,7 @@ FIXTURE_DIRS = (
 )
 
 WEBSITE_BASE_URL = 'http://www.secondfunnel.com'
-INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
+INTENTRANK_BASE_URL = WEBSITE_BASE_URL
 CONTENTGRAPH_BASE_URL = 'http://contentgraph.elasticbeanstalk.com/graph'
 
 AUTHENTICATION_BACKENDS = (

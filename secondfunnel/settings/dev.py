@@ -80,7 +80,6 @@ AWS_SQS_POLLING_QUEUES = {
     }
 }
 
-INTENTRANK_BASE_URL = 'http://intentrank-test.elasticbeanstalk.com'
 CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
 
 CORS_ORIGIN_REGEX_WHITELIST = (
@@ -88,8 +87,9 @@ CORS_ORIGIN_REGEX_WHITELIST = (
 )
 
 AWS_STORAGE_BUCKET_NAME = 'secondfunnel-test-static'
-INTENTRANK_CONFIG_BUCKET_NAME = None  # copy value from test to enable dev box transfers
+# copy value from test to enable dev box transfers
 
+INTENTRANK_CONFIG_BUCKET_NAME = None
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # We should be able to just run `bundle exec sass` in dev as we do in
@@ -107,6 +107,7 @@ INTERNAL_IP = internal_ip()
 INTERNAL_IPS = ('127.0.0.1', INTERNAL_IP)
 WEBSITE_BASE_URL = ''.format(INTERNAL_IP)
 #WEBSITE_BASE_URL = 'http://{0}:8000'.format(INTERNAL_IP)
+INTENTRANK_BASE_URL = WEBSITE_BASE_URL
 
 STATIC_URL = '/static/'.format(WEBSITE_BASE_URL)
 COMPRESS_URL = STATIC_URL

@@ -9,7 +9,7 @@ App.module("intentRank", function (intentRank, App) {
         resultsAlreadyRequested = [];  // list of product IDs
 
     this.options = {
-        'baseUrl': "http://intentrank-test.elasticbeanstalk.com/intentrank",
+        'baseUrl': "http://tng-test.secondfunnel.com/intentrank",
         'urlTemplates': {
             'campaign': "<%=url%>/page/<%=campaign%>/getresults",
             'content': "<%=url%>/page/<%=campaign%>/content/<%=id%>/getresults"

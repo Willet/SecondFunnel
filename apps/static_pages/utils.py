@@ -146,7 +146,9 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
 
     # "borrow" IR for results
     initial_results = []
+    backup_results = []
     cookie = ''
+    """
     try:
         # make IR request without cookie.
         initial_results, cookie = get_seeds_func(
@@ -167,6 +169,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     except (TypeError, ValueError):
         # (get_seeds_func is None and you ran it, IR offline)
         backup_results, cookie = ([], '')
+    """
 
     if not initial_results:
         # if there are backup results, serve the first 4.
