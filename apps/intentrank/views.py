@@ -65,6 +65,10 @@ def get_results_ir(url, results):
     # dev proxies to test... test proxies to intentrank-test
     from secondfunnel.settings.test import INTENTRANK_BASE_URL as test_ir
 
+    if settings.ENVIRONMENT == 'test':
+        # test should never proxy to itself -- it makes no sense
+        test_ir = 'http://intentrank-test.elasticbeanstalk.com'
+
     IntentRankClient = Hammock(test_ir)
     r = IntentRankClient('intentrank')(url).GET(params={'results': results})
     return r.json()
