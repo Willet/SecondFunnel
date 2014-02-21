@@ -14,6 +14,7 @@ from django.utils.importlib import import_module
 from apps.assets.models import Feed
 
 from apps.contentgraph.views import get_page, get_product, get_store
+from apps.intentrank.views import get_results
 from apps.pinpoint.utils import read_remote_file
 from apps.pinpoint.models import StoreTheme
 
@@ -62,7 +63,7 @@ def create_dummy_request():
     return RequestFactory().get('/')
 
 
-def render_campaign(store_id, campaign_id, request, get_results_func=None):
+def render_campaign(store_id, campaign_id, request):
     """Generates the HTML page for a standard pinpoint product page.
 
     Related products are populated statically only if a request object
@@ -147,8 +148,8 @@ def render_campaign(store_id, campaign_id, request, get_results_func=None):
 
     # "borrow" IR for results
     feed = Feed(page_data.get('intentrank_id') or page_data.get('id'))
-    initial_results = get_results_func(feed=feed, results=4, algorithm='first')
-    backup_results = get_results_func(feed=feed, results=100)
+    initial_results = get_results(feed=feed, results=4, algorithm='first')
+    backup_results = get_results(feed=feed, results=100)
     cookie = ''
 
     if not initial_results:
@@ -178,7 +179,6 @@ def render_campaign(store_id, campaign_id, request, get_results_func=None):
     }
 
     context = RequestContext(request, attributes)
-    print page
 
     # grab the theme url, and then grab the remote file
     theme_url = page.get('theme') or store.get('theme')

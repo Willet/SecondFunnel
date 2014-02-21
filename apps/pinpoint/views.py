@@ -12,8 +12,6 @@ from django.template import Context, loader
 from django.http import HttpResponse, HttpResponseServerError
 from django.views.decorators.vary import vary_on_headers
 
-from apps.intentrank.views import get_results
-
 from apps.pinpoint.models import Campaign
 
 
@@ -49,7 +47,7 @@ def delete_campaign(request, store_id, campaign_id):
 def campaign(request, store_id, campaign_id):
     """Returns a rendered campaign response of the given id."""
     rendered_content = render_campaign(store_id, campaign_id,
-        request=request, get_results_func=get_results)
+        request=request)
 
     return HttpResponse(rendered_content)
 

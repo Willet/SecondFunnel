@@ -8,19 +8,26 @@ import random as real_random
 from django.conf import settings
 
 
-def first(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS):
+def ir_all(feed, *args, **kwargs):
+    """sample whichever ones come last"""
+    return list(feed.tiles.all())
+
+
+def ir_first(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+          *args, **kwargs):
     """sample whichever ones come first"""
     return feed.tiles.order_by('id')[:results]
 
 
-def last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS):
+def ir_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+         *args, **kwargs):
     """sample whichever ones come last"""
     return feed.tiles.order_by('id')[:-results]
 
 
-def random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
            product_tiles_only=False, content_tiles_only=False,
-           exclude_set=None, request=None):
+           exclude_set=None, request=None, *args, **kwargs):
     """Sample without replacement (all other algos are stubs)
 
     :param feed: <Feed>
@@ -38,6 +45,7 @@ def random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     return tiles[:results]
 
 
-def random_repeat(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS):
+def ir_random_repeat(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+                  *args, **kwargs):
     """sample with replacement"""
     raise NotImplementedError()

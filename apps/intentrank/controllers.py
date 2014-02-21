@@ -2,7 +2,7 @@ import importlib
 import json
 
 from django.core import serializers
-
+from algorithms import ir_random
 
 class IntentRank(object):
     """Consider this an engine. Initializing one of those will emulate
@@ -17,24 +17,30 @@ class IntentRank(object):
     feed = None
     _algorithm = None
 
-    def __init__(self, feed, algorithm_name='random'):
+    def __init__(self, feed, algorithm=ir_random):
         """
         :param {Feed} feed   a Feed object with products
         """
         self.feed = feed
         if not feed:
             raise ValueError("Feed must exist, and must contain one item")
-        if algorithm_name:
-            self.set_algorithm(algorithm_name=algorithm_name)
+        if algorithm:
+            self.set_algorithm(algorithm=algorithm)
 
-    def set_algorithm(self, algorithm_name):
+    def __getattr__(self, item):
+        """retrieve a reference to an existing algorithm.
+
+        example: ir_object.all(...) -> [...]
+        """
         try:
             module = importlib.import_module('apps.intentrank.algorithms')
-            alg = getattr(module, algorithm_name)
+            alg = getattr(module, item)
         except (ImportError, AttributeError) as err:
-            raise AttributeError("IR algorithm {0} does not exist".format(
-                algorithm_name))
-        self._algorithm = alg
+            return None
+        return alg
+
+    def set_algorithm(self, algorithm):
+        self._algorithm = algorithm
 
     def get_results(self, serialize_format='json', *args, **kwargs):
         """Loads results from the feed, selects some from them
@@ -46,9 +52,9 @@ class IntentRank(object):
         :returns {*}
         """
         results = self._algorithm(self.feed, *args, **kwargs)
-        return self._transform(results, serialize_format=serialize_format)
+        return self.transform(results, serialize_format=serialize_format)
 
-    def _transform(self, things, serialize_format):
+    def transform(self, things, serialize_format='json'):
         """Virtual-repr() the thing using whichever serialization method
         makes sense.
         """
