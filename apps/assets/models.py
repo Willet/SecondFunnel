@@ -165,13 +165,14 @@ class Tile(BaseModel):
     prioritized = models.BooleanField()
 
     def to_json(self):
+        first_product = self.products.all()[:1].get()
         return {
             "default-image": "13112",
             "is-fake-tile": "YES!",
-            "url": "http://www.gap.com/browse/product.do?pid\u003d941322",
-            "price": "$49.95",
-            "description": "Washed for over an hour for exceptional softness. Long sleeves with button cuffs. Button collar. Button front. Patch pocket with contrast stitching.\nCloser to the body than our original fit shirts, but looser than our slim fits.",
-            "name": "Lived-in striped shirt",
+            "url": first_product.url,
+            "price": first_product.price,
+            "description": first_product.description,
+            "name": first_product.name,
             "images": [{
                 "format": "jpg",
                 "type": "image",
@@ -217,8 +218,8 @@ class Tile(BaseModel):
                     }
                 }
             }],
-            "tile-id": 6513,
-            "template": "product"
+            "tile-id": self.id,
+            "template": self.template
         }
 
 
