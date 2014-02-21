@@ -107,7 +107,7 @@ App.module('optimizer', function (optimizer, App) {
             cookie = OPTIMIZER_COOKIE + index;
 
         result = this.getCookieValue(cookie);
-        if (result && result.length) {
+        if (result && result.length && options) {
             pos = getPos(result);
             probabilities = Array.apply(null, new Array(options.length)).map(Number.prototype.valueOf, 0);
             probabilities[pos] = 1;
@@ -118,7 +118,7 @@ App.module('optimizer', function (optimizer, App) {
                 result = this.testTemplate(selector, options, probabilities);
                 break;
             default:
-                result = args['custom'](selector, options, probabilities);
+                result = args['custom'](result);
         }
         console.debug(index + '.' + test + ': ' + result);
         setDimension(index, result);
