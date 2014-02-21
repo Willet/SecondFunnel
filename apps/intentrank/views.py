@@ -278,12 +278,14 @@ def get_results(request, **kwargs):
     """
     # dev proxies to test... test proxies to intentrank-test
     from secondfunnel.settings.test import INTENTRANK_BASE_URL as test_ir
+
     callback = request.GET.get('callback', None)
+    results = int(request.GET.get('results', 10))
     url = kwargs.get('url', None)
-    if url:  # straight proxy
+
+    if url:  # straight proxy (for now)
         IntentRankClient = Hammock(test_ir)
-        r = IntentRankClient('intentrank')(url).GET(params={
-            'results': request.GET.get('results', 10)})
+        r = IntentRankClient('intentrank')(url).GET(params={'results': results})
         return ajax_jsonp(r.json(), callback_name=callback)
 
     # otherwise, not a proxy
@@ -294,4 +296,5 @@ def get_results(request, **kwargs):
         raise Http404("No feed for page {0}".format(page_id))
 
     ir = IntentRank(feed=feed)
-    return ajax_jsonp(ir.get_results('json'))
+    return ajax_jsonp(ir.get_results('json', results=results),
+                      callback_name=callback)

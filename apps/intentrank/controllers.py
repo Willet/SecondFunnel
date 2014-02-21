@@ -38,32 +38,46 @@ class IntentRank(object):
         print "setting alg to {0}".format(alg)
         self._algorithm = alg
 
-    def get_results(self, format='json', *args, **kwargs):
+    def get_results(self, serialize_format='json', *args, **kwargs):
         """Loads results from the feed, selects some from them
         (given conditions), and transforms these results into the format
         requested.
 
+        :param results: number of results to return.
+
         :returns {*}
         """
         results = self._algorithm(self.feed, *args, **kwargs)
-        return self._transform(results)
+        return self._transform(results, serialize_format=serialize_format)
 
-    def _transform(self, things, format='json'):
+    def _transform(self, things, serialize_format):
         """Virtual-repr() the thing using whichever serialization method
         makes sense.
         """
         new_things = []
-        if format == 'json':
+        if serialize_format == 'json':
             for thing in things:
+                # whatever it is, if it has a custom to_json method, use it
                 try:
-                    new_things.append(json.dumps(thing))
+                    new_things.append(thing.to_json())
+                    continue
+                except (AttributeError, TypeError) as err:
+                    pass
+
+                # whatever it is, if the default serializer works, also use it
+                try:
+                    new_things.append(serializers.serialize('json', thing))
+                    continue
                 except TypeError as err:
                     pass
 
-                if hasattr(thing, 'to_json'):
-                    new_things.append(thing.to_json())
-                else:
-                    new_things.append(serializers.serialize('json', thing))
+                # if no custom method is found, dumps it directly (will raise)
+                new_things.append(json.dumps(thing))
             return new_things
-        elif format == 'raw':
+        elif serialize_format == 'raw':
             return things
+        elif serialize_format == 'xml':
+            raise NotImplementedError()
+        else:
+            raise ValueError("Could not understand requested "
+                             "serialize_format {0}".format(serialize_format))

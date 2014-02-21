@@ -33,8 +33,10 @@ def random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                     "?shown=" parameter.
     :returns list
     """
-    tiles = feed.tiles.all()
-    return tiles
+    print results
+    tiles = list(feed.tiles.all())
+    real_random.shuffle(tiles)
+    return tiles[:results]
 
 
 def random_repeat(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS):

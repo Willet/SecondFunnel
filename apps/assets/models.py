@@ -167,6 +167,7 @@ class Tile(BaseModel):
     def to_json(self):
         return {
             "default-image": "13112",
+            "is-fake-tile": "YES!",
             "url": "http://www.gap.com/browse/product.do?pid\u003d941322",
             "price": "$49.95",
             "description": "Washed for over an hour for exceptional softness. Long sleeves with button cuffs. Button collar. Button front. Patch pocket with contrast stitching.\nCloser to the body than our original fit shirts, but looser than our slim fits.",
