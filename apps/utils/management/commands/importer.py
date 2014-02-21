@@ -17,7 +17,8 @@ def update_or_create(model, defaults=None, **kwargs):
     prop_bag.update(kwargs)
     obj, created = model.objects.get_or_create(defaults=prop_bag, **kwargs)
     if not created:
-        obj.update(prop_bag)
+        for field in prop_bag:
+            setattr(obj, field, prop_bag[field])
         obj.save()
     return obj
 
