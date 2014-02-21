@@ -199,7 +199,7 @@ def generate_static_campaign_now(store_id, campaign_id):
     dummy_request = create_dummy_request()
 
     page_content = render_campaign(store_id, campaign_id,
-                                   get_seeds_func=get_results,
+                                   get_results_func=get_results,
                                    request=dummy_request)
 
     # e.g. "shorts3/index.html"

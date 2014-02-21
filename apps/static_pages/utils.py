@@ -11,6 +11,7 @@ from django.template import RequestContext, loader, Template
 from django.template.defaultfilters import slugify
 from django.test import RequestFactory
 from django.utils.importlib import import_module
+from apps.assets.models import Feed
 
 from apps.contentgraph.views import get_page, get_product, get_store
 from apps.pinpoint.utils import read_remote_file
@@ -61,7 +62,7 @@ def create_dummy_request():
     return RequestFactory().get('/')
 
 
-def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
+def render_campaign(store_id, campaign_id, request, get_results_func=None):
     """Generates the HTML page for a standard pinpoint product page.
 
     Related products are populated statically only if a request object
@@ -145,31 +146,10 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     ir_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
 
     # "borrow" IR for results
-    initial_results = []
-    backup_results = []
+    feed = Feed(page_data.get('intentrank_id') or page_data.get('id'))
+    initial_results = get_results_func(feed=feed, results=4, algorithm='first')
+    backup_results = get_results_func(feed=feed, results=100)
     cookie = ''
-    """
-    try:
-        # make IR request without cookie.
-        initial_results, cookie = get_seeds_func(
-            request,
-            store_slug=store_data.get('slug'),
-            campaign=page_data.get('intentrank_id') or page.id,
-            base_url=ir_base_url, results=4, raw=True)
-    except:  # all exceptions
-        pass
-
-    try:
-        # make IR request with cookie. (if there is one)
-        backup_results, cookie = get_seeds_func(
-            request,
-            store_slug=store_data.get('slug'),
-            campaign=page_data.get('intentrank_id') or page.id,
-            base_url=ir_base_url, results=100, raw=True, cookie=cookie)
-    except (TypeError, ValueError):
-        # (get_seeds_func is None and you ran it, IR offline)
-        backup_results, cookie = ([], '')
-    """
 
     if not initial_results:
         # if there are backup results, serve the first 4.
@@ -201,7 +181,7 @@ def render_campaign(store_id, campaign_id, request, get_seeds_func=None):
     print page
 
     # grab the theme url, and then grab the remote file
-    theme_url = page.get('theme')
+    theme_url = page.get('theme') or store.get('theme')
     if not theme_url:
         raise ValueError('page has no theme when campaign manager saved it')
 

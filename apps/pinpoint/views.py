@@ -49,7 +49,7 @@ def delete_campaign(request, store_id, campaign_id):
 def campaign(request, store_id, campaign_id):
     """Returns a rendered campaign response of the given id."""
     rendered_content = render_campaign(store_id, campaign_id,
-        request=request, get_seeds_func=get_results)
+        request=request, get_results_func=get_results)
 
     return HttpResponse(rendered_content)
 

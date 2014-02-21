@@ -70,13 +70,13 @@ class ProductImage(BaseModel):
         return {
             "format": self.file_type,
             "type": "image",
-            "dominant-colour": "transparent",
+            "dominant-colour": "transparent",  # TODO: colour
             "url": self.url,
             "id": self.id,
             "sizes": {
-                "master": {
-                    "width": self.width,
-                    "height": self.height
+                "master": {  # TODO: make sure sizes exist
+                    "width": self.width or '100%',  # TODO: make sure sizes are absolute
+                    "height": self.height or '100%'
                 }
             }
         }
@@ -182,12 +182,9 @@ class Tile(BaseModel):
 
     def to_json(self):
         first_product = self.products.all()[:1].get()
-        print first_product
         product_images = first_product.product_images.all()
-        print product_images
         return {
-            "default-image": "13112",
-            "is-fake-tile": "YES!",
+            "default-image": first_product.default_image.id,
             "url": first_product.url,
             "price": first_product.price,
             "description": first_product.description,

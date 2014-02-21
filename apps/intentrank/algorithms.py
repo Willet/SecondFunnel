@@ -10,12 +10,12 @@ from django.conf import settings
 
 def first(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS):
     """sample whichever ones come first"""
-    return feed[:results]
+    return feed.tiles.order_by('id')[:results]
 
 
 def last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS):
     """sample whichever ones come last"""
-    return feed[:-results]
+    return feed.tiles.order_by('id')[:-results]
 
 
 def random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,

@@ -1,11 +1,8 @@
 import json
 
-from django.db.models import Q
 from django.http import HttpResponse
 
 from apps.assets.models import Product, Store, BaseModelNamed
-
-DEFAULT_RESULTS = 12
 
 
 def ajax_jsonp(result, callback_name=None, status=200):
