@@ -18,6 +18,7 @@ FILE_CHARSET = 'utf-8'  # apparently something we need to enforce for File()
 # it is convenient to do so :(
 AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket', 'elasticbeanstalk-us-east-1-056265713214')
 INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config'
+INTENTRANK_DEFAULT_NUM_RESULTS = 10
 MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 
 ADMINS = (
