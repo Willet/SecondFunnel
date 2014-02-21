@@ -32,7 +32,6 @@
             // 'stl-image': '{{ campaign.stl_image }}',  // DEPRECATED
             // 'featured-image': '{{ campaign.featured_image }}',  // DEPRECATED
             , 'description': "{{ campaign.description|escapejs }}"
-            , 'hideNavigationBar': '{{ campaign.hide_navigation_bar }}'
         }
         , 'campaign': '{{ campaign.intentrank_id|default:campaign.id }}' // required
         , 'columnWidth': {{ column_width|default:'undefined' }}  // optional. controls how often tiles are wide.  // optional (defaults to 255, pixels)
