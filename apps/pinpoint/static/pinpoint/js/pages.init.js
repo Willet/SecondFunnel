@@ -86,6 +86,10 @@ function reinitialize(app) {
         if ($.browser.mobile && !app.support.isAniPad()) {
             $('html').addClass('mobile-phone');
         }
+
+        if (app.options.page.hideNavigationBar) {
+            $('.navbar').hide();
+        }
     });
 
     app.vent.on('finished',  function () {
