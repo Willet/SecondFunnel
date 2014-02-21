@@ -334,9 +334,6 @@ App.module("tracker", function (tracker, App) {
             return;
         }
         addItem('create', App.option('gaAccountNumber'), 'auto');
-        addItem('send', 'pageview', App.option('optests', {}));
-
-        console.debug("Registered page view.");
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?
@@ -363,6 +360,9 @@ App.module("tracker", function (tracker, App) {
             'type': 'dimension',
             'value': App.option('page:id')
         });
+
+        addItem('send', 'pageview', App.option('optests', {}));
+        console.debug("Registered page view.");
 
         // register event maps
         var defaults = new this.EventManager(this.defaultEventMap),
