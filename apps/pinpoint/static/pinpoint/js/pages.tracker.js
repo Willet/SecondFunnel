@@ -1,4 +1,4 @@
-/*global App, $, Backbone, Marionette, console */
+/*global App, $, Backbone, Marionette, console, _ */
 /**
  * @module tracker
  */
@@ -100,13 +100,12 @@ App.module("tracker", function (tracker, App) {
         },
 
         setCustomVar = function (o) {
-            var slotId = o.slotId,
-                name = o.name,
-                value = o.value,
-                scope = o.scope || GA_CUSTOMVAR_SCOPE.PAGE; // 3 = page-level
+            var index = o.index,
+                type = o.type,
+                value = o.value;
 
-            if (!(slotId && name && value)) {
-                console.warn("Missing one or more of: slotId, name, value");
+            if (!(index && value && type)) {
+                console.warn("Missing one or more of: index, type, value");
                 return;
             }
 
@@ -114,7 +113,7 @@ App.module("tracker", function (tracker, App) {
             // name, or named variables with no scope
             // https://developers.google.com/analytics/devguides/collection/upgrade/reference/gajs-analyticsjs#custom-vars
             // so scope + name is used to mimic that
-            addItem('set', scope + '.' + name + slotId, value);
+            addItem('set', type + index, value);
         },
 
         getTrackingInformation = function (model, isPreview) {
@@ -290,9 +289,9 @@ App.module("tracker", function (tracker, App) {
      */
     this.changeCampaign = function (campaignId) {
         setCustomVar({
-            'slotId': 2,
-            'name': 'CampaignID',
-            'value': '' + campaignId
+            'index': 2,
+            'type': 'dimension',
+            'value': campaignId
         });
 
         App.vent.trigger('trackerChangeCampaign', campaignId, this);
@@ -328,50 +327,42 @@ App.module("tracker", function (tracker, App) {
     };
 
     this.setup = function (options) {
+        console.debug('optests', App.option('optests', {}));
         if (App.option('debug', App.QUIET) > App.QUIET) {
             // do not run analytics when debugging (dev, test)
             App.vent.trigger('trackerInitialized', this);
             return;
         }
         addItem('create', App.option('gaAccountNumber'), 'auto');
-        addItem('send', 'pageview');
-
-        console.debug("Registered page view.");
-
-        setCustomVar({
-            'slotId': 1,
-            'name': 'StoreID',
-            'value': App.option('store:id')
-        });
-
-        setCustomVar({
-            'slotId': 2,
-            'name': 'CampaignID',
-            'value': App.option('campaign')
-        });
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?
         setCustomVar({
-            'slotId': 1,
-            'name': 'Store',
+            'index': 2,
+            'type': 'dimension',
             'value': App.option('store:id')
         });
 
         setCustomVar({
-            'slotId': 2,
-            'name': 'Page',
+            'index': 3,
+            'type': 'dimension',
+            'value': App.option('store:id')
+        });
+
+        setCustomVar({
+            'index': 4,
+            'type': 'dimension',
+            'value': App.option('campaign')
+        });
+
+        setCustomVar({
+            'index': 5,
+            'type': 'dimension',
             'value': App.option('page:id')
         });
 
-        // TODO: Need a better way to determine internal v. external visitor
-        // By that I mean we should be able to segment out internal visitors
-        setCustomVar({
-            'slotId': 3,
-            'name': 'Internal Visitor', // Name?
-            'value': true ? 'Yes' : 'No', // How to determine?
-            'scope': GA_CUSTOMVAR_SCOPE.VISITOR
-        });
+        addItem('send', 'pageview', App.option('optests', {}));
+        console.debug("Registered page view.");
 
         // register event maps
         var defaults = new this.EventManager(this.defaultEventMap),
@@ -500,9 +491,7 @@ App.module("tracker", function (tracker, App) {
             }
 
             $previewContainer = $(this).parents('.template.target > div');
-            modelId = $previewContainer.attr('id') || "";
-            modelId = modelId.replace('preview-', ''); // Remove prefix, if present
-            model = App.discovery.collection.get(modelId);
+            model = App.previewArea.currentView.model;
             trackingInfo = getTrackingInformation(model, true);
 
             trackEvent({

@@ -827,6 +827,16 @@ App.module('core', function (module, App) {
                 };
 
             this.content.show(new ContentClass(contentOpts));
+        },
+
+        'onShow': function () {
+            var window_middle = $(window).scrollTop() + $(window).height() / 2;
+
+            if (App.window_middle) {
+                window_middle = App.window_middle;
+            }
+
+            this.$el.css('top', Math.max(window_middle - (this.$el.height() / 2), 0));
         }
     });
 

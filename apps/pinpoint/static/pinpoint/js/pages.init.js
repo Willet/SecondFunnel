@@ -115,6 +115,10 @@ function reinitialize(app) {
          * Home route
          */
         app.router.route('', 'home', function () {
+            app.utils.postExternalMessage(JSON.stringify({
+                'type': 'hash_change',
+                'hash': '#'
+            }));
             //http://stackoverflow.com/a/5298684
             var loc = window.location;
             if (loc.href.indexOf('#') !== -1) {
@@ -150,6 +154,10 @@ function reinitialize(app) {
          * Adding the router for tile views
          */
         app.router.route(':tile_id', 'tile', function (tileId) {
+            app.utils.postExternalMessage(JSON.stringify({
+                'type': 'hash_change',
+                'hash': window.location.hash
+            }));
             var tile = new app.core.Tile({
                 'tile-id': tileId
             });
