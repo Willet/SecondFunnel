@@ -12,7 +12,7 @@ from django.template import Context, loader
 from django.http import HttpResponse, HttpResponseServerError
 from django.views.decorators.vary import vary_on_headers
 
-from apps.intentrank.views import get_seeds, get_results
+from apps.intentrank.views import get_results
 
 from apps.pinpoint.models import Campaign
 

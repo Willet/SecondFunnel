@@ -15,7 +15,7 @@ from django.utils.encoding import smart_str
 
 from apps.assets.models import Store
 from apps.contentgraph.views import get_page, get_store, get_stores
-from apps.intentrank.views import get_seeds, get_results
+from apps.intentrank.views import get_results
 from apps.pinpoint.models import Campaign
 
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
