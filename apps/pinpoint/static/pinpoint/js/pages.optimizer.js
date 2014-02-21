@@ -13,6 +13,7 @@ App.module('optimizer', function (optimizer, App) {
         },
         UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         OPTIMIZER_COOKIE = '__sotm',
+        MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24,
         is = function (device) {
             if (device === 'mobile') {
                 return App.support.mobile();
@@ -43,15 +44,25 @@ App.module('optimizer', function (optimizer, App) {
      **/
     this.setCookieValue = function (cname, value, days) {
         var expires, ms, d = new Date();
-        ms = days ? // Defaults to 30 minutes, convert to milliseconds
-            (days * 24 * 60 * 60 * 1000) :
-            30 * 6000;
+        ms = days ? days * MILLISECONDS_PER_DAY : 30 * 6000; // Defaults to 30 minutes, convert to milliseconds
         d.setTime(d.getTime() + ms);
         expires = "expires=" + d.toGMTString();
         console.debug(cname + "=" + value + "; " + expires);
         document.cookie = cname + "=" + value + "; " + expires;
     };
 
+    /**
+     * Clears the cookie with the specified cname.
+     *
+     * @returns none
+     **/
+    this.clearCookie = function (cname) {
+        var expires = new Date();
+        expires.setTime(0);
+        expires = "expires=" + expires.toGMTString();
+        console.debug("Clearing cookie ", cname);
+        document.cookie = cname + "=dummy; " + expires;
+    };
 
     /**
      * Gets the value for a cookie specified by cname
@@ -78,18 +89,24 @@ App.module('optimizer', function (optimizer, App) {
      * @returns Object
      **/
     this.multivariate = function (options, probabilities) {
-        var i,
-            j = 0,
+        var p,
+            temp = [],
             rand = Math.random();
+
         if (probabilities) {
-            for (i = 0; i < options.length; ++i) {
-                if (rand < probabilities[i] &&
-                        probabilities[i] <= probabilities[j]) {
-                    j = i;
+            // Add each item to list based on probability
+            for (var i = 0; i < options.length; ++i) {
+                // Assume round down
+                p = Math.floor(probabilities[i] * 10);
+                while (p > 0) {
+                    temp.push(options[i]);
+                    p--;
                 }
             }
-            return options[j];
+            rand = Math.floor(rand * temp.length);
+            return temp[rand];
         }
+        // Otherwise uniform, so sample
         return _.sample(options);
     };
 
@@ -100,7 +117,8 @@ App.module('optimizer', function (optimizer, App) {
      * @returns none
      **/
     this.addTest = function (index, test, args) {
-        var result, pos,
+        var result,
+            pos,
             selector = args['selector'],
             options = args['options'],
             probabilities = args['probabilities'],
@@ -120,9 +138,14 @@ App.module('optimizer', function (optimizer, App) {
             default:
                 result = args['custom'](result);
         }
+
         console.debug(index + '.' + test + ': ' + result);
-        setDimension(index, result);
-        this.setCookieValue(cookie, result);
+        if (result && result.length) {
+            setDimension(index, result);
+            this.setCookieValue(cookie, result);
+        } else {
+            this.clearCookie(cookie);
+        }
     };
 
 
