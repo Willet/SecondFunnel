@@ -56,14 +56,30 @@ class ProductImage(BaseModel):
 
     old_id = models.IntegerField(unique=True)
 
-    product = models.ForeignKey(Product, null=False)
+    product = models.ForeignKey(Product, null=False,
+                                related_name="product_images")
 
-    url = models.TextField()
-    original_url = models.TextField()
+    url = models.TextField()  # 2f.com/.jpg
+    original_url = models.TextField()  # gap.com/.jpg
     file_type = models.CharField(max_length=255, blank=False, null=False)
     file_checksum = models.CharField(max_length=512)
     width = models.PositiveSmallIntegerField(null=True)
     height = models.PositiveSmallIntegerField(null=True)
+
+    def to_json(self):
+        return {
+            "format": self.file_type,
+            "type": "image",
+            "dominant-colour": "transparent",
+            "url": self.url,
+            "id": self.id,
+            "sizes": {
+                "master": {
+                    "width": self.width,
+                    "height": self.height
+                }
+            }
+        }
 
 
 class Content(BaseModel):
@@ -166,6 +182,9 @@ class Tile(BaseModel):
 
     def to_json(self):
         first_product = self.products.all()[:1].get()
+        print first_product
+        product_images = first_product.product_images.all()
+        print product_images
         return {
             "default-image": "13112",
             "is-fake-tile": "YES!",
@@ -173,51 +192,7 @@ class Tile(BaseModel):
             "price": first_product.price,
             "description": first_product.description,
             "name": first_product.name,
-            "images": [{
-                "format": "jpg",
-                "type": "image",
-                "dominant-colour": "#bca17a",
-                "url": "http://images.secondfunnel.com/store/gap/product/2702/image/851bb2b4934ecab2742fecbcdeee32eb/master.jpg",
-                "id": "13112",
-                "sizes": {
-                    "grande": {
-                        "width": 450,
-                        "height": 600
-                    },
-                    "icon": {
-                        "width": 24,
-                        "height": 32
-                    },
-                    "compact": {
-                        "width": 120,
-                        "height": 160
-                    },
-                    "1024x1024": {
-                        "width": 768,
-                        "height": 1024
-                    },
-                    "small": {
-                        "width": 75,
-                        "height": 100
-                    },
-                    "thumb": {
-                        "width": 37,
-                        "height": 50
-                    },
-                    "large": {
-                        "width": 360,
-                        "height": 480
-                    },
-                    "medium": {
-                        "width": 180,
-                        "height": 240
-                    },
-                    "pico": {
-                        "width": 12,
-                        "height": 16
-                    }
-                }
-            }],
+            "images": [image.to_json() for image in product_images],
             "tile-id": self.id,
             "template": self.template
         }

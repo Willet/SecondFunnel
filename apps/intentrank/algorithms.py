@@ -33,7 +33,6 @@ def random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                     "?shown=" parameter.
     :returns list
     """
-    print results
     tiles = list(feed.tiles.all())
     real_random.shuffle(tiles)
     return tiles[:results]

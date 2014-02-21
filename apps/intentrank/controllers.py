@@ -30,12 +30,10 @@ class IntentRank(object):
     def set_algorithm(self, algorithm_name):
         try:
             module = importlib.import_module('apps.intentrank.algorithms')
-            print module
             alg = getattr(module, algorithm_name)
         except (ImportError, AttributeError) as err:
             raise AttributeError("IR algorithm {0} does not exist".format(
                 algorithm_name))
-        print "setting alg to {0}".format(alg)
         self._algorithm = alg
 
     def get_results(self, serialize_format='json', *args, **kwargs):
