@@ -114,20 +114,25 @@ div.loading {
 .tile {
     background: #fff;
     margin: 0 7.5px 15px;
-    padding: 15px;
+    padding: 5px;
     border-radius: 3px;
     box-shadow: 0 1px 3px 0 #999;
     vertical-align: top;
     position: relative;
 
     width: 240px;
-    max-width: 93%; /* empirical (padding and all) */
+    max-width: 100%;
 
     font-family: proxima-nova-soft, sans-serif, Helvetica, Arial, sans-serif;
     font-size: 15px;
     color: #b5b5b5;
 
     float: left;
+
+    /* http://css-tricks.com/box-sizing/ */
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
 
     /* http://davidwalsh.name/translate3d */
     -webkit-transform: translate3d(0, 0, 0);
@@ -195,6 +200,7 @@ div.loading {
     width: 495px; /* 480px + 3 margins */
     min-height: 250px;
 }
+
 .tile img {
     max-width: 100%;
 }
@@ -624,21 +630,4 @@ div.loading {
 
 .no-scroll {
     overflow: hidden;
-}
-
-/* Mobile 2-column support */
-@media (max-width: 510px) {
-    #discovery-area {
-        width: 100%;
-    }
-    .tile {
-        box-sizing: border-box;
-        padding: 5px;
-        width: 50% !important;
-        height: auto;
-    }
-    .tile.wide {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
 }

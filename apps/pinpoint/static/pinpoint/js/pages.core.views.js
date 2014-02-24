@@ -836,7 +836,9 @@ App.module('core', function (module, App) {
                 window_middle = App.window_middle;
             }
 
-            this.$el.css('top', Math.max(window_middle - (this.$el.height() / 2), 0));
+            if (!App.support.mobile()) {
+                this.$el.css('top', Math.max(window_middle - (this.$el.height() / 2), 0));
+            }
         }
     });
 
