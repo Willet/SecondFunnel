@@ -201,7 +201,7 @@ class Tile(BaseModel):
             "description": first_product.description,
             "name": first_product.name,
             "images": [image.to_json() for image in product_images],
-            "tile-id": self.old_id or self.old_id,
+            "tile-id": self.old_id or self.id,
             "template": self.template
         }
 

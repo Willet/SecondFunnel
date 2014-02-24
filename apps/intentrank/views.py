@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.http.response import Http404
+from django.http.response import Http404, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
 
 from hammock import Hammock
@@ -32,11 +32,11 @@ def get_results_view(request, **kwargs):
     try:
         page = Page.objects.filter(old_id=page_id).get()
     except Page.DoesNotExist:
-        return Http404("No page {0}".format(page_id))
+        return HttpResponseNotFound("No page {0}".format(page_id))
 
     feed = page.feed
     if not feed:
-        raise Http404("No feed for page {0}".format(page_id))
+        return HttpResponseNotFound("No feed for page {0}".format(page_id))
     return ajax_jsonp(get_results(feed=feed, results=results),
                       callback_name=callback)
 
@@ -52,12 +52,20 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     callback = request.GET.get('callback', None)
     results = int(request.GET.get('results', 10))
 
-    page = get_object_or_404(Page, pk=page_id)
+    try:
+        page = Page.objects.filter(old_id=page_id).get()
+    except Page.DoesNotExist:
+        return HttpResponseNotFound("No page {0}".format(page_id))
+
     feed = page.feed
     if not feed:
         raise Http404("No feed for page {0}".format(page_id))
     if tile_id:
-        tile = get_object_or_404(Tile, pk=tile_id)
+        try:
+            tile = Tile.objects.filter(old_id=tile_id).get()
+        except Tile.DoesNotExist:
+            return HttpResponseNotFound("No tile {0}".format(tile_id))
+
         return ajax_jsonp(tile.to_json())
 
     return ajax_jsonp(get_results(feed=feed, algorithm=ir_all),
