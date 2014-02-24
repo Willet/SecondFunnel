@@ -29,7 +29,11 @@ def get_results_view(request, **kwargs):
 
     # otherwise, not a proxy
     page_id = kwargs.get('page_id', 0)
-    page = get_object_or_404(Page, pk=page_id)
+    try:
+        page = Page.objects.filter(old_id=page_id).get()
+    except Page.DoesNotExist:
+        return Http404("No page {0}".format(page_id))
+
     feed = page.feed
     if not feed:
         raise Http404("No feed for page {0}".format(page_id))

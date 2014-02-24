@@ -72,7 +72,7 @@ class ProductImage(BaseModel):
             "type": "image",
             "dominant-colour": "transparent",  # TODO: colour
             "url": self.url,
-            "id": self.id,
+            "id": self.old_id or self.id,
             "sizes": {
                 "master": {  # TODO: make sure sizes exist
                     "width": self.width or '100%',  # TODO: make sure sizes are absolute
@@ -201,7 +201,7 @@ class Tile(BaseModel):
             "description": first_product.description,
             "name": first_product.name,
             "images": [image.to_json() for image in product_images],
-            "tile-id": self.id,
+            "tile-id": self.old_id or self.old_id,
             "template": self.template
         }
 

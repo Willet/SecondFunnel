@@ -11,9 +11,9 @@ from django.template import RequestContext, loader, Template
 from django.template.defaultfilters import slugify
 from django.test import RequestFactory
 from django.utils.importlib import import_module
-from apps.assets.models import Feed, Page, Store, Product
+from apps.assets.models import Feed
 
-# from apps.contentgraph.views import get_page, get_product, get_store
+from apps.contentgraph.views import get_page, get_product, get_store
 from apps.intentrank.views import get_results
 from apps.pinpoint.utils import read_remote_file
 from apps.pinpoint.models import StoreTheme
@@ -63,12 +63,14 @@ def create_dummy_request():
     return RequestFactory().get('/')
 
 
-def render_campaign(store_id, page_id, request):
+def render_campaign(store_id, campaign_id, request):
     """Generates the HTML page for a standard pinpoint product page.
 
     Related products are populated statically only if a request object
     is provided.
     """
+    page_id = campaign_id
+
     def repl(match):
         """Returns a replaced tag content for a tag, or
         the original tag if we have no data for that tag.
@@ -122,31 +124,33 @@ def render_campaign(store_id, page_id, request):
         else:
             return 'null'
 
-    page = Page.objects.get(id=page_id)
-    store_data = Store.objects.get(id=store_id)
+    # these 4 lines will trigger ValueErrors if remote JSON is invalid.
+    page_data = get_page(store_id=store_id, page_id=page_id, as_dict=True)
+    store_data = get_store(store_id=store_id, as_dict=True)
     store = store_data
 
     # get the featured product from our DB.
     try:
         # product = content_block.data.product
         # based on Neal's description, this is what it will eventually be
-        product = Product.objects.get(page.get('featured-product-id')) or\
-            Product.objects.get(page.get('product-ids', [0])[0])
+        product = get_product(page_data.get('featured-product-id')) or\
+            get_product(page_data.get('product-ids', [0])[0])
     except:
         # TODO: is this okay?
         product = None
 
-    page.description = getattr(page, 'shareText', getattr(page, 'featured-product-description', ''))
-    if not page.template:
-        page.template = 'hero'
-    page.image_tile_wide = getattr(page, 'imageTileWide', 0.5)
+    page_data['description'] = page_data.get('shareText', page_data.get('featured-product-description', ''))
+    page_data['template'] = slugify(page_data.get('template', 'hero'))  # TODO: hero? hero-image?
+    page_data['image_tile_wide'] = page_data.get('imageTileWide')
+    page = page_data
 
     ir_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
 
     # "borrow" IR for results
-    feed = Feed.objects.get(id=getattr(page, 'intentrank_id',getattr(page, 'id', 0)))
+    feed = Feed(page_data.get('intentrank_id') or page_data.get('id'))
     initial_results = get_results(feed=feed, results=4, algorithm='first')
     backup_results = get_results(feed=feed, results=100)
+    cookie = ''
 
     if not initial_results:
         # if there are backup results, serve the first 4.
@@ -177,7 +181,7 @@ def render_campaign(store_id, page_id, request):
     context = RequestContext(request, attributes)
 
     # grab the theme url, and then grab the remote file
-    theme_url = page.theme.template or store.default_theme.template
+    theme_url = page.get('theme') or store.get('theme')
     if not theme_url:
         raise ValueError('page has no theme when campaign manager saved it')
 
@@ -227,7 +231,6 @@ def render_campaign(store_id, page_id, request):
         # TODO: Doesn't make sense but is required; why?
         rendered_page = rendered_page.encode('utf-8')
 
-    #noinspection PyArgumentList
     rendered_page = unicode(rendered_page, 'utf-8')
 
     return rendered_page
