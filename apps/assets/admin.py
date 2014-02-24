@@ -1,10 +1,11 @@
 from django.contrib import admin
 
-from apps.assets.models import Store
+from apps.assets.models import Store, Page, Tile, Feed
 
 
 class BaseAdmin(admin.ModelAdmin):
     list_display = [
+        'id',
         'created_at',
         'updated_at'
     ]
@@ -26,17 +27,33 @@ class BaseNamedAdmin(BaseAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 
-class BaseNamedMediaAdmin(BaseNamedAdmin):
-    list_display = ['id'] + BaseNamedAdmin.list_display + ['remote', 'hosted', 'media_type']
+class BaseNamedMediaAdmin(BaseAdmin):
+    list_display = ['id'] + BaseAdmin.list_display + ['remote', 'hosted', 'media_type']
 
-    list_filter = BaseNamedAdmin.list_filter + ['media_type']
-
-
-class BaseNamedImageAdmin(BaseNamedAdmin):
-    list_display = ['id'] + BaseNamedAdmin.list_display + ['remote', 'hosted']
+    list_filter = BaseAdmin.list_filter + ['media_type']
 
 
-class StoreAdmin(BaseNamedAdmin):
-    list_display = BaseNamedAdmin.list_display
+class BaseNamedImageAdmin(BaseAdmin):
+    list_display = ['id'] + BaseAdmin.list_display + ['remote', 'hosted']
+
+
+class StoreAdmin(BaseAdmin):
+    list_display = BaseAdmin.list_display
+
+
+class PageAdmin(BaseAdmin):
+    list_display = BaseAdmin.list_display
+
+
+class TileAdmin(BaseAdmin):
+    list_display = BaseAdmin.list_display
+
+
+class FeedAdmin(BaseAdmin):
+    list_display = BaseAdmin.list_display
+
 
 admin.site.register(Store, StoreAdmin)
+admin.site.register(Page, PageAdmin)
+admin.site.register(Tile, TileAdmin)
+admin.site.register(Feed, FeedAdmin)

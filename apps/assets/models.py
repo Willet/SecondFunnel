@@ -165,6 +165,17 @@ class Page(BaseModel):
 
     feed = models.ForeignKey('Feed')
 
+    @property
+    def template(self):
+        theme_settings = self.theme_settings or {}
+        return theme_settings.get('template', 'hero')
+
+    @template.setter
+    def template(self, value):
+        if not self.theme_settings:
+            self.theme_settings = {}
+        self.theme_settings['template'] = value
+
 
 class Tile(BaseModel):
 
