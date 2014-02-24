@@ -1,4 +1,3 @@
-
 import urllib, cStringIO
 import json
 
@@ -28,25 +27,32 @@ def update_or_create(model, defaults=None, **kwargs):
     return obj
 
 
-def get_image_sizes(image):
+def get_image_sizes(image, download=True):
+    if not (download or image.get('image-sizes')):
+        return {}, None, None
     url = image.get('url')
     image_sizes = json.loads(image.get('image-sizes'))
     image_file = cStringIO.StringIO(urllib.urlopen(url).read())
     im = Img.open(image_file)
     width, height = im.size
-    image_sizes['master'] = {'width':width, 'height':height}
-    return image_sizes
+    image_sizes['master'] = {'width': width, 'height': height}
+    return {'sizes': image_sizes}, width, height
 
 
 class Command(BaseCommand):
     """WARNING: this script can only import ONE store at a time."""
     store = None
     store_id = 0
+    download_images = False
 
     def handle(self, *args, **kwargs):
         self.store_id = args[0]
+        self.download_images = args[1] in ['true', 'True', 't']
         if not self.store_id:
             raise CommandError("Not a valid store id for argument 0")
+
+        if not self.download_images: \
+                raise CommandError("Not a valid choice for downloading")
 
         self.import_store()
         self.import_products()
@@ -107,30 +113,29 @@ class Command(BaseCommand):
             if product_default_image_old_id not in product_image_old_ids:
                 product_image_old_ids.append(product_default_image_old_id)
 
-            product_image_fields = {'product': product_psql}
-
             for product_image_old_id in product_image_old_ids:
-                for product_image in get_contentgraph_data(
-                                        self._store_url(store_id=store_id) + 'content/' + product_image_old_id):
-                    product_image_sizes = get_image_sizes(product_image)
-                    product_image_attributes = {'size': product_image_sizes}
-                    product_image_master_size = product_image_sizes.get('master')
-                    product_image_width = product_image_master_size.get('width')
-                    product_image_height = product_image_master_size.get('height')
-                    product_image_url = product_image.get('url')
-                    product_image_original_url = product_image.get(
-                        'original-url')
+                product_image_fields = {'product': product_psql}
 
-                    product_image_fields.update({'url': product_image_url,
-                                                 'original_url': product_image_original_url,
-                                                 'width': product_image_width,
+                product_image = call_contentgraph(
+                    self._store_url(store_id=store_id) + 'content/' + product_image_old_id)
+
+                product_image_url = product_image.get('url')
+                product_image_original_url = product_image.get(
+                    'original-url')
+
+                product_image_fields.update({'url': product_image_url,
+                                             'original_url': product_image_original_url, })
+
+                if self.download_images:
+                    product_image_attributes, product_image_width, product_image_height = get_image_sizes(product_image)
+                    product_image_fields.update({'width': product_image_width,
                                                  'height': product_image_height,
                                                  'attributes': product_image_attributes})
 
-                    print 'PRODUCT IMAGE - old_id: ', product_image_old_id, ', ', product_image_fields
+                print 'PRODUCT IMAGE - old_id: ', product_image_old_id, ', ', product_image_fields
 
-                    update_or_create(ProductImage, old_id=product_image_old_id,
-                                     defaults=product_image_fields)
+                update_or_create(ProductImage, old_id=product_image_old_id,
+                                 defaults=product_image_fields)
 
             product_image_psql = ProductImage.objects.get(
                 old_id=product_default_image_old_id)
@@ -169,11 +174,6 @@ class Command(BaseCommand):
                               'description': content_description}
 
             if content_type == 'image':
-                content_image_sizes = get_image_sizes(content)
-                content_attributes = {'sizes': content_image_sizes}
-                content_master_size = content_image_sizes.get('master')
-                content_width = content_master_size.get('width')
-                content_height = content_master_size.get('height')
 
                 content_url = content.get('url')
                 content_original_url = content.get('original-url')
@@ -182,10 +182,13 @@ class Command(BaseCommand):
                 content_fields.update(
                     {'url': content_url,
                      'original_url': content_original_url,
-                     'source_url': content_source_url,
-                     'width': content_width,
-                     'height': content_height,
-                     'attributes': content_attributes})
+                     'source_url': content_source_url})
+
+                if self.download_images:
+                    content_attributes, content_width, content_height = get_image_sizes(content)
+                    content_fields.update({'width': content_width,
+                                           'height': content_height,
+                                           'attributes': content_attributes})
 
                 print 'IMAGE - old_id: ', content_old_id, ', ', content_fields
 
