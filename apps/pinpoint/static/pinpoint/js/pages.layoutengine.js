@@ -30,7 +30,8 @@ App.module("layoutEngine", function (layoutEngine, App) {
                 'transform': 'scale(1)',
                 '-webkit-transform': 'scale(1)',
                 '-moz-transform': 'none'
-            }
+            },
+            'minColumns': 1 // minimum number of columns (default: 1)
         },
         frags = [],  // common fragment storage
         opts;  // last-used options (used by clear())
@@ -52,7 +53,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
         var self = this;
         opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
 
-        view.$el.masonry(opts);
+        this.layout(view);
 
         App.vent.on('windowResize', function () {
             self.layout(view);
@@ -63,13 +64,38 @@ App.module("layoutEngine", function (layoutEngine, App) {
     };
 
     /**
+     * Recalculates the width needed to configure
+     * the Masonry instance.
+     *
+     * @param {View} view          a Feed object
+     * @returns Double
+     */
+    this.recalculateWidth = function (view) {
+        var width,
+            tileWidth = view.$(opts.itemSelector + ':not(.wide)').width();
+
+        width = view.$el.width() / (opts.minColumns || 1);
+        width = Math.max(tileWidth, width);
+
+        if (!(tileWidth && width < opts.columnWidth)) {
+            width = opts.columnWidth;
+        }
+
+        return width;
+    };
+
+    /**
      * Perform a partial reload of the masonry object.
      * Less computationally expensive than reload().
      *
      * @returns this
      */
     this.layout = function (view) {
-        view.$el.masonry('layout');
+        // Dynamic columnWidth recalculation
+        var _opts = _.extend({}, opts);
+        _opts.columnWidth = this.recalculateWidth(view);
+        view.$el.masonry(_opts);
+
         return this;
     };
 
