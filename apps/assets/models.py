@@ -4,6 +4,7 @@ from django.db import models
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
 from jsonfield import JSONField
+from apps.pinpoint.utils import read_remote_file, read_a_file
 
 
 class BaseModel(models.Model):
@@ -25,9 +26,21 @@ class Store(BaseModel):
     description = models.TextField(null=True)
     slug = models.CharField(max_length=64)
 
-    default_theme = models.ForeignKey('pinpoint.StoreTheme', related_name='store', blank=True, null=True)
+    default_theme = models.ForeignKey('Theme', related_name='store', blank=True, null=True)
 
     public_base_url = models.URLField(help_text="e.g. explore.nativeshoes.com", blank=True, null=True)
+
+    @classmethod
+    def from_json(cls, json_data):
+        """@deprecated for replacing the Campaign Model. Use something else.
+        """
+        if 'theme' in json_data:
+            json_data['theme'] = Theme(template=json_data['theme'])
+
+        instance = cls()
+        for field in json_data:
+            setattr(instance, field, json_data[field])
+        return instance
 
 
 class Product(BaseModel):
@@ -135,10 +148,32 @@ class Review(Content):
 
 class Theme(BaseModel):
 
-    store = models.ForeignKey(Store, null=False)
-
     name = models.CharField(max_length=1024)
     template = models.CharField(max_length=1024)
+
+    # @deprecated for page generator
+    CUSTOM_FIELDS = {
+        'opengraph_tags': {
+            'type': 'template',
+            'values': ['pinpoint/campaign_opengraph_tags.html']
+        },
+        'head_content': {
+            'type': 'template',
+            'values': ['pinpoint/campaign_head.html']
+        },
+        'body_content': {
+            'type': 'template',
+            'values': ['pinpoint/campaign_body.html']
+        },
+        'campaign_config': {
+            'type': 'template',
+            'values': ['pinpoint/campaign_config.html']
+        },
+        'js_templates': {
+            'type': 'template',
+            'values': ['pinpoint/default_templates.html']
+        }
+    }
 
 
 class Feed(BaseModel):
@@ -158,6 +193,7 @@ class Page(BaseModel):
     theme_settings = JSONField(null=True)
 
     name = models.CharField(max_length=256)
+    description = models.TextField(blank=True, null=True)
     url_slug = models.CharField(max_length=128)
     legal_copy = models.TextField(null=True)
 
@@ -175,6 +211,18 @@ class Page(BaseModel):
         if not self.theme_settings:
             self.theme_settings = {}
         self.theme_settings['template'] = value
+
+    @classmethod
+    def from_json(cls, json_data):
+        """@deprecated for replacing the Campaign Model. Use something else.
+        """
+        if 'theme' in json_data:
+            json_data['theme'] = Theme(template=json_data['theme'])
+
+        instance = cls()
+        for field in json_data:
+            setattr(instance, field, json_data[field])
+        return instance
 
 
 class Tile(BaseModel):

@@ -1,3 +1,4 @@
+from apps.assets.models import Page
 from apps.static_pages.utils import render_campaign
 
 try:
@@ -11,8 +12,6 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template import Context, loader
 from django.http import HttpResponse, HttpResponseServerError
 from django.views.decorators.vary import vary_on_headers
-
-from apps.pinpoint.models import Campaign
 
 
 @login_required
@@ -34,7 +33,7 @@ def social_auth_redirect(request):
 
 @login_required
 def delete_campaign(request, store_id, campaign_id):
-    campaign_instance = get_object_or_404(Campaign, pk=campaign_id)
+    campaign_instance = get_object_or_404(Page, pk=campaign_id)
     campaign_instance.live = False
     campaign_instance.save()
 

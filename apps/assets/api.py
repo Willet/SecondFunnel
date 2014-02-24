@@ -9,9 +9,7 @@ from tastypie.authentication import Authentication, ApiKeyAuthentication, MultiA
 from tastypie.authorization import Authorization
 from django.db.models import Q
 
-from apps.assets.models import (Product, Store)
-
-from apps.pinpoint.models import Campaign, StoreTheme
+from apps.assets.models import (Product, Store, Page)
 
 
 class UserAuthentication(Authentication):
@@ -41,29 +39,6 @@ class StoreResource(ModelResource):
             'id': ('exact',),
             'name': ('icontains',),
         }
-
-
-class StoreThemeResource(ModelResource):
-    """REST-style store themes of the current user's store."""
-    class Meta:
-        queryset = StoreTheme.objects.all()
-        resource_name = 'store_theme'
-        authentication = ApiKeyAuthentication()
-        authorization= Authorization()
-
-    def _get_store_staff(self, request):
-        """get a {store: [users]} map."""
-        stores = {}
-        for store in Store.objects.all():
-            stores[store] = store.staff.all()
-        return stores
-
-    def apply_authorization_limits(self, request, object_list):
-        user_store_ids = []  # list of id of stores that this user can access
-        for store, users in self._get_store_staff(request):
-            if request.user in users:
-                user_store_ids.append(store.id)
-        return object_list.filter(store_id__in=user_store_ids)
 
 
 class ProductResource(ModelResource):
@@ -140,13 +115,13 @@ class ProductResource(ModelResource):
         return semi_filtered
 
 
-class CampaignResource(ModelResource):
-    """Returns "a campaign"."""
+class PageResource(ModelResource):
+    """Returns "a page"."""
     store = fields.ForeignKey(StoreResource, 'store', full=True)
 
     class Meta:
-        queryset = Campaign.objects.all()
-        resource_name = 'campaign'
+        queryset = Page.objects.all()
+        resource_name = 'page'
 
         filtering = {
             'store': ALL,

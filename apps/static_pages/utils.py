@@ -11,12 +11,11 @@ from django.template import RequestContext, loader, Template
 from django.template.defaultfilters import slugify
 from django.test import RequestFactory
 from django.utils.importlib import import_module
-from apps.assets.models import Feed
+from apps.assets.models import Feed, Theme
 
 from apps.contentgraph.views import get_page, get_product, get_store
 from apps.intentrank.views import get_results
 from apps.pinpoint.utils import read_remote_file
-from apps.pinpoint.models import StoreTheme
 
 
 def get_bucket_name(bucket_name):
@@ -192,7 +191,7 @@ def render_campaign(store_id, campaign_id, request):
     regex = re.compile("\{\{\s*(\w+)\s*\}\}")
 
     # replace our own "django-style" tags before django templating touches them
-    for field, details in StoreTheme.CUSTOM_FIELDS.iteritems():
+    for field, details in Theme.CUSTOM_FIELDS.iteritems():
         # field: e.g. 'desktop_content'
         # details: e.g. {'values': ['pinpoint/campaign_config.html',
         #                           'pinpoint/default_templates.html'],
