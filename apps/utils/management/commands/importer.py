@@ -1,3 +1,8 @@
+
+import urllib, cStringIO
+import json
+
+from PIL import Image as Img
 from apps.assets.models import (Store, Image, Video, Product, ProductImage,
                                 Theme, Page, Feed, Tile)
 from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
@@ -21,6 +26,16 @@ def update_or_create(model, defaults=None, **kwargs):
             setattr(obj, field, prop_bag[field])
         obj.save()
     return obj
+
+
+def get_image_sizes(image):
+    url = image.get('url')
+    image_sizes = json.loads(image.get('image-sizes'))
+    image_file = cStringIO.StringIO(urllib.urlopen(url).read())
+    im = Img.open(image_file)
+    width, height = im.size
+    image_sizes['master'] = {'width':width, 'height':height}
+    return image_sizes
 
 
 class Command(BaseCommand):
@@ -97,12 +112,20 @@ class Command(BaseCommand):
             for product_image_old_id in product_image_old_ids:
                 for product_image in get_contentgraph_data(
                                         self._store_url(store_id=store_id) + 'content/' + product_image_old_id):
+                    product_image_sizes = get_image_sizes(product_image)
+                    product_image_attributes = {'size': product_image_sizes}
+                    product_image_master_size = product_image_sizes.get('master')
+                    product_image_width = product_image_master_size.get('width')
+                    product_image_height = product_image_master_size.get('height')
                     product_image_url = product_image.get('url')
                     product_image_original_url = product_image.get(
                         'original-url')
 
                     product_image_fields.update({'url': product_image_url,
-                                                 'original_url': product_image_original_url})
+                                                 'original_url': product_image_original_url,
+                                                 'width': product_image_width,
+                                                 'height': product_image_height,
+                                                 'attributes': product_image_attributes})
 
                     print 'PRODUCT IMAGE - old_id: ', product_image_old_id, ', ', product_image_fields
 
@@ -146,13 +169,23 @@ class Command(BaseCommand):
                               'description': content_description}
 
             if content_type == 'image':
+                content_image_sizes = get_image_sizes(content)
+                content_attributes = {'sizes': content_image_sizes}
+                content_master_size = content_image_sizes.get('master')
+                content_width = content_master_size.get('width')
+                content_height = content_master_size.get('height')
+
                 content_url = content.get('url')
                 content_original_url = content.get('original-url')
                 content_source_url = content.get('source-url')
 
                 content_fields.update(
-                    {'url': content_url, 'original_url': content_original_url,
-                     'source_url': content_source_url})
+                    {'url': content_url,
+                     'original_url': content_original_url,
+                     'source_url': content_source_url,
+                     'width': content_width,
+                     'height': content_height,
+                     'attributes': content_attributes})
 
                 print 'IMAGE - old_id: ', content_old_id, ', ', content_fields
 

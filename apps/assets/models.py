@@ -66,6 +66,8 @@ class ProductImage(BaseModel):
     width = models.PositiveSmallIntegerField(null=True)
     height = models.PositiveSmallIntegerField(null=True)
 
+    attributes = JSONField(null=True)
+
     def to_json(self):
         return {
             "format": self.file_type,
