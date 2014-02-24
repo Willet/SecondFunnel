@@ -127,6 +127,8 @@ class Image(Content):
     width = models.PositiveSmallIntegerField(null=True)
     height = models.PositiveSmallIntegerField(null=True)
 
+    to_json = ProductImage.to_json  # use the same json format as other images
+
 
 class Video(Content):
 
@@ -153,26 +155,11 @@ class Theme(BaseModel):
 
     # @deprecated for page generator
     CUSTOM_FIELDS = {
-        'opengraph_tags': {
-            'type': 'template',
-            'values': ['pinpoint/campaign_opengraph_tags.html']
-        },
-        'head_content': {
-            'type': 'template',
-            'values': ['pinpoint/campaign_head.html']
-        },
-        'body_content': {
-            'type': 'template',
-            'values': ['pinpoint/campaign_body.html']
-        },
-        'campaign_config': {
-            'type': 'template',
-            'values': ['pinpoint/campaign_config.html']
-        },
-        'js_templates': {
-            'type': 'template',
-            'values': ['pinpoint/default_templates.html']
-        }
+        'opengraph_tags': 'pinpoint/campaign_opengraph_tags.html',
+        'head_content': 'pinpoint/campaign_head.html',
+        'body_content': 'pinpoint/campaign_body.html',
+        'campaign_config': 'pinpoint/campaign_config.html',
+        'js_templates': 'pinpoint/default_templates.html'
     }
 
 
@@ -189,7 +176,7 @@ class Page(BaseModel):
 
     old_id = models.IntegerField(unique=True)
 
-    theme = models.ForeignKey(Theme, null=True)
+    theme = models.ForeignKey(Theme, related_name='page', null=True)
     theme_settings = JSONField(null=True)
 
     name = models.CharField(max_length=256)
@@ -239,16 +226,26 @@ class Tile(BaseModel):
 
     prioritized = models.BooleanField()
 
+    @property
+    def images(self):
+        """can't filter by subclassed FK? not sure if..."""
+        image_list = []
+        for content in self.content.all():
+            if isinstance(content, Image):
+                image_list.append(content)
+        return image_list
+
     def to_json(self):
         first_product = self.products.all()[:1].get()
         product_images = first_product.product_images.all()
+        content_images = self.images
         return {
             "default-image": first_product.default_image.id,
             "url": first_product.url,
             "price": first_product.price,
             "description": first_product.description,
             "name": first_product.name,
-            "images": [image.to_json() for image in product_images],
+            "images": [image.to_json() for image in content_images], # + [image.to_json() for image in product_images],
             "tile-id": self.old_id or self.id,
             "template": self.template
         }

@@ -191,30 +191,18 @@ def render_campaign(store_id, campaign_id, request):
     regex = re.compile("\{\{\s*(\w+)\s*\}\}")
 
     # replace our own "django-style" tags before django templating touches them
-    for field, details in Theme.CUSTOM_FIELDS.iteritems():
-        # field: e.g. 'desktop_content'
-        # details: e.g. {'values': ['pinpoint/campaign_config.html',
-        #                           'pinpoint/default_templates.html'],
-        #                'type': 'template'}
-        field_type = details.get('type')
-        values = details.get('values')
+    for tag, template in Theme.CUSTOM_FIELDS.iteritems():
+        result = loader.get_template(template)
 
-        for value in values:  # list of file names or templates
+        if isinstance(result, Template):
+            result = result.render(context)
+        else:
+            result = result.encode('unicode-escape')
 
-            if field_type == "template":
-                result = loader.get_template(value)
-            else:
-                continue
-
-            if isinstance(result, Template):
-                result = result.render(context)
-            else:
-                result = result.encode('unicode-escape')
-
-            try:
-                sub_values[field].append(result.decode("unicode_escape"))
-            except UnicodeDecodeError:  # who knows
-                sub_values[field].append(result)
+        try:
+            sub_values[tag].append(result.decode("unicode_escape"))
+        except UnicodeDecodeError:  # who knows
+            sub_values[tag].append(result)
 
     try:
         page_str = regex.sub(repl, page_str)
