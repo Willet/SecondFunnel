@@ -23,10 +23,15 @@ class BaseModel(models.Model, DirtyFieldsMixin):
     created_at = CreationDateTimeField()
     updated_at = ModificationDateTimeField()
 
-    real_type = models.ForeignKey(ContentType, editable=False)
+    real_type = models.ForeignKey(ContentType, editable=False, null=True)
 
     class Meta:
         abstract = True
+
+    def __init__(self, *args, **kwargs):
+        super(BaseModel, self).__init__(*args, **kwargs)
+        if self.pk:
+            self.real_type = self._get_real_type()
 
     @classmethod
     def update_or_create(cls, defaults=None, **kwargs):
@@ -70,6 +75,8 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         return ContentType.objects.get_for_model(type(self))
 
     def cast(self):
+        if not self.real_type:
+            self.real_type = self._get_real_type()
         return self.real_type.get_object_for_this_type(pk=self.pk)
 
     def save(self, *args, **kwargs):
@@ -81,6 +88,10 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         else:
             print "[INFO] {0} was not saved because " \
                   "it was not modified".format(repr(self))
+
+    def to_json(self):
+        """default method for all models to have a json representation."""
+        return serializers.get_serializer("json")().serialize(iter([self]))
 
 
 class Store(BaseModel):
@@ -409,30 +420,3 @@ class Tile(BaseModel):
         # pick the first content and jsonify it
         return self.content.all()[0].to_json()
 
-
-## TODO: REMOVE THIS IN THE FUTURE
-class BaseModelNamed(BaseModel):
-    """
-    The base model to inherit from when a models needs a name.
-
-    @ivar name: The name of this database object.
-    @ivar description: The description of this database object.
-
-    @ivar slug: The short label for this database object. Often used in URIs.
-    """
-    name = models.CharField(max_length=255, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-
-    slug = models.SlugField(blank=True, null=True)
-
-    class Meta:
-        abstract = True
-
-    def json(self):
-        """default method for all models to have a json representation."""
-        return serializers.get_serializer("json")().serialize(iter([self]))
-
-    @classmethod
-    def from_json(cls, json_data):
-        """create an object from data. this is a subclassable stub."""
-        return cls(**json_data)
