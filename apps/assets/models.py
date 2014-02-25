@@ -10,6 +10,14 @@ from dirtyfields import DirtyFieldsMixin
 from apps.pinpoint.utils import read_remote_file, read_a_file
 
 
+default_master_size = {
+    'master': {
+        'width': '100%',
+        'height': '100%',
+    }
+}
+
+
 class BaseModel(models.Model, DirtyFieldsMixin):
 
     created_at = CreationDateTimeField()
@@ -124,15 +132,20 @@ class Product(BaseModel):
 
         # if default image is missing...
         if self.default_image:
-            dct["default-image"] = self.default_image.old_id or \
-                self.default_image.id
+            dct["default-image"] = str(self.default_image.old_id or
+                self.default_image.id)
+        elif self.product_images.count() > 0:
+            # fall back to first image
+            dct["default-image"] = str(self.product_images.all()[0].old_id)
 
         return dct
 
 
 
 class ProductImage(BaseModel):
-
+    """An Image-like model class that is explicitly an image depicting
+    a product, rather than any other kind.
+    """
     old_id = models.IntegerField(unique=True)
 
     product = models.ForeignKey(Product, related_name="product_images")
@@ -154,15 +167,17 @@ class ProductImage(BaseModel):
             self.attributes = {}
 
     def to_json(self):
-        return {
-            "format": self.file_type,
+        dct = {
+            "format": self.file_type or "jpg",
             "type": "image",
-            "dominant-colour": self.dominant_color or "transparent",  # TODO: colour
+            "dominant-color": self.dominant_color or "transparent",
+            # TODO: deprecate "colour" to match up with CSS attr names
+            "dominant-colour": self.dominant_color or "transparent",
             "url": self.url,
-            "id": self.old_id or self.id,
-            "sizes": self.attributes.get('sizes', {})
+            "id": str(self.old_id or self.id),
+            "sizes": self.attributes.get('sizes', default_master_size)
         }
-
+        return dct
 
 class Content(BaseModel):
 
@@ -170,8 +185,9 @@ class Content(BaseModel):
 
     store = models.ForeignKey(Store)
 
+    url = models.TextField()  # 2f.com/.jpg
     source = models.CharField(max_length=255)
-    source_url = models.TextField(blank=True, null=True)
+    source_url = models.TextField(blank=True, null=True)  # gap/.jpg
     author = models.CharField(max_length=255, blank=True, null=True)
 
     # list of product id's
@@ -199,13 +215,24 @@ class Content(BaseModel):
         """subclasses may implement their own to_json methods that
         :returns dict objects.
         """
-        return {
-            'store': self.store.old_id if self.store else 0,
+        dct = {
+            'store-id': str(self.store.old_id if self.store else 0),
             'source': self.source,
             'source_url': self.source_url,
+            'url': self.url or self.source_url,
             'author': self.author,
-            'tagged_products': self.tagged_products,
         }
+
+        if self.tagged_products and len(self.tagged_products) > 0:
+            dct['related-products'] = []
+
+        for product_id in self.tagged_products:
+            try:
+                dct['related-products'].append(Product.objects.get(id=product_id).to_json())
+            except Product.DoesNotExist:
+                pass  # ?
+
+        return dct
 
 
 class Image(Content):
@@ -213,7 +240,6 @@ class Image(Content):
     name = models.CharField(max_length=1024, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
-    url = models.TextField()
     original_url = models.TextField()
     file_type = models.CharField(max_length=255, blank=True, null=True)
     file_checksum = models.CharField(max_length=512, blank=True, null=True)
@@ -223,7 +249,25 @@ class Image(Content):
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
-    to_json = ProductImage.to_json  # use the same json format as other images
+    def to_json(self, expand_products=True):
+        """Only Images (not ProductImages) can have related-products."""
+        dct = {
+            "format": self.file_type,
+            "type": "image",
+            "dominant-color": self.dominant_color or "transparent",
+            # TODO: deprecate "colour" to match up with CSS attr names
+            "dominant-colour": self.dominant_color or "transparent",
+            "url": self.url or self.source_url,
+            "id": str(self.old_id or self.id),
+            "sizes": self.attributes.get('sizes', default_master_size),
+        }
+        if expand_products:
+            dct["related-products"] = [Product.objects.get(pk=product_id)
+                                 for product_id in self.tagged_products]
+        else:
+            dct["related-products"] = self.tagged_products
+
+        return dct
 
 
 class Video(Content):
@@ -231,7 +275,6 @@ class Video(Content):
     name = models.CharField(max_length=1024, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
-    url = models.TextField()
     player = models.CharField(max_length=255)
     file_type = models.CharField(max_length=255, blank=True, null=True)
     file_checksum = models.CharField(max_length=512, blank=True, null=True)
@@ -332,30 +375,34 @@ class Tile(BaseModel):
         return image_list
 
     def to_json(self):
-        dct = {}
+        # attributes from tile itself
+        dct = {
+            'tile-id': self.old_id or self.id,
+            'template': self.template,
+            'prioritized': self.prioritized,
+        }
         if self.products.count() > 0 and self.content.count() > 0:
             # combobox
+            print "Rendering tile of type  combobox"
             dct.update(self._to_combobox_tile_json())
         elif self.products.count() > 0 and self.content.count() == 0:
             # product
+            print "Rendering tile of type  product"
             dct.update(self._to_product_tile_json())
         elif self.products.count() == 0 and self.content.count() > 0:
             # (assorted) content
+            print "Rendering tile of type  content"
             dct.update(self._to_content_tile_json())
         else:
             dct.update({
                 'error': 'Tile has neither products nor content!'
             })
 
-        # insert attributes from tile itself
-        dct['tile-id'] = self.old_id or self.id
-        dct['template'] = self.template
-
         return dct
 
     def _to_combobox_tile_json(self):
         # there are currently no combobox json formats.
-        return self.products.all()[0].to_json()
+        return self.content.all()[0].to_json()
 
     def _to_product_tile_json(self):
         return self.products.all()[0].to_json()

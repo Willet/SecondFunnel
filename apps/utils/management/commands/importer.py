@@ -5,7 +5,10 @@ $ ./manage.py importer 38 true
 import urllib, cStringIO
 import json
 
-from PIL import Image as Img
+try:  # this one fails in virtualenvs whose PIL was compiled before Pillow
+    from PIL import Image as Img
+except ImportError as err:
+    from PIL.PIL import Image as Img
 
 from apps.assets.models import (Store, Image, Video, Product, ProductImage,
                                 Theme, Page, Feed, Tile)
@@ -57,25 +60,25 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         self.store_id = args[0]
-        self.download_images = args[1] in ['true', 'True', 't']
+        if args[1] and args[1] in ['true', 'True', 't']:
+            self.download_images = True
+
         if not self.store_id:
             raise CommandError("Not a valid store id for argument 0")
 
-        if self.download_images is None:
-                raise CommandError("Not a valid choice for downloading")
-
         self.import_store()
-        if len(args) == 2:  # only store id and download images supplied
-            self.import_products()
-            self.import_content()
-            self.import_pages()
-        else:
+        if any(s in args for s in ['products', 'content', 'pages']):
             if 'products' in args:
                 self.import_products()
             if 'content' in args:
                 self.import_content()
             if 'pages' in args:
                 self.import_pages()
+        else:  # only store id and download images supplied
+            self.import_products()
+            self.import_content()
+            self.import_pages()
+
 
     def _store_url(self, store_id=None):
         """returns CG url for a store, or if no store, then all stores."""
