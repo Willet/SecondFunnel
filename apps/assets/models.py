@@ -1,19 +1,68 @@
 from django.core import serializers
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
 from jsonfield import JSONField
+from dirtyfields import DirtyFieldsMixin
+
 from apps.pinpoint.utils import read_remote_file, read_a_file
 
 
-class BaseModel(models.Model):
+class BaseModel(models.Model, DirtyFieldsMixin):
 
     created_at = CreationDateTimeField()
     updated_at = ModificationDateTimeField()
 
     class Meta:
         abstract = True
+
+    @classmethod
+    def update_or_create(cls, defaults=None, **kwargs):
+        """Like Model.objects.get_or_create, either gets, updates, or creates
+        a model based on current state. Arguments are the same as the former.
+
+        Examples:
+        >>> Store.update_or_create(id=2, defaults={"old_id": 3})
+        (<Store: Store object>, True, False)  # created
+        >>> Store.update_or_create(id=2, defaults={"old_id": 3})
+        (<Store: Store object>, False, False)  # found
+        >>> Store.update_or_create(id=2, old_id=4)
+        (<Store: Store object>, False, True)  # updated
+
+        :raises <AllSortsOfException>s, depending on input
+        :returns tuple  (object, updated, created)
+        """
+        updated = created = False
+
+        if not defaults:
+            defaults = {}
+
+        # a kwargs-priority full set of kwargs
+        try:
+            obj = cls.objects.get(**kwargs)
+            for key, value in defaults.iteritems():
+                if getattr(obj, key, None) != value:
+                    setattr(obj, key, value)
+                    updated = True
+            if updated:
+                obj.save()
+        except cls.DoesNotExist:
+            update_kwargs = dict(defaults.items())
+            update_kwargs.update(kwargs)
+            obj = cls(**update_kwargs)
+            obj.save()
+            created = True
+
+        return (obj, created, updated)
+
+    def save(self, *args, **kwargs):
+        if self.is_dirty():
+            super(BaseModel, self).save(*args, **kwargs)
+        else:
+            print "[INFO] {0} was not saved because " \
+                  "it was not modified".format(repr(self))
 
 
 class Store(BaseModel):
@@ -64,6 +113,23 @@ class Product(BaseModel):
     ## for instance new-egg's egg-score; sale-prices; etc.
     attributes = JSONField(null=True)
 
+    def to_json(self):
+        dct = {
+            "url": self.url,
+            "price": self.price,
+            "description": self.description,
+            "name": self.name,
+            "images": [image.to_json() for image in self.product_images.all()],
+        }
+
+        # if default image is missing...
+        if self.default_image:
+            dct["default-image"] = self.default_image.old_id or \
+                self.default_image.id
+
+        return dct
+
+
 
 class ProductImage(BaseModel):
 
@@ -78,9 +144,14 @@ class ProductImage(BaseModel):
     width = models.PositiveSmallIntegerField(blank=True, null=True)
     height = models.PositiveSmallIntegerField(blank=True, null=True)
 
-    dominant_colour = models.CharField(max_length=32, blank=True, null=True)
+    dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
     attributes = JSONField(blank=True, null=True)
+
+    def __init__(self, *args, **kwargs):
+        super(ProductImage, self).__init__(*args, **kwargs)
+        if not self.attributes:
+            self.attributes = {}
 
     def to_json(self):
         return {
@@ -89,7 +160,7 @@ class ProductImage(BaseModel):
             "dominant-colour": self.dominant_color or "transparent",  # TODO: colour
             "url": self.url,
             "id": self.old_id or self.id,
-            "sizes": self.attributes.get('sizes')
+            "sizes": self.attributes.get('sizes', {})
         }
 
 
@@ -111,6 +182,31 @@ class Content(BaseModel):
     ## but restrict to only filtering/ordering on above fields
     attributes = JSONField(null=True)
 
+    real_type = models.ForeignKey(ContentType, editable=False)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.real_type = self._get_real_type()
+        super(Content, self).save(*args, **kwargs)
+
+    def _get_real_type(self):
+        return ContentType.objects.get_for_model(type(self))
+
+    def cast(self):
+        return self.real_type.get_object_for_this_type(pk=self.pk)
+
+    def to_json(self):
+        """subclasses may implement their own to_json methods that
+        :returns dict objects.
+        """
+        return {
+            'store': self.store.old_id if self.store else 0,
+            'source': self.source,
+            'source_url': self.source_url,
+            'author': self.author,
+            'tagged_products': self.tagged_products,
+        }
+
 
 class Image(Content):
 
@@ -125,7 +221,7 @@ class Image(Content):
     width = models.PositiveSmallIntegerField(blank=True, null=True)
     height = models.PositiveSmallIntegerField(blank=True, null=True)
 
-    dominant_colour = models.CharField(max_length=32, blank=True, null=True)
+    dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
     to_json = ProductImage.to_json  # use the same json format as other images
 
@@ -236,19 +332,38 @@ class Tile(BaseModel):
         return image_list
 
     def to_json(self):
-        first_product = self.products.all()[:1].get()
-        product_images = first_product.product_images.all()
-        content_images = self.images
-        return {
-            "default-image": first_product.default_image.id,
-            "url": first_product.url,
-            "price": first_product.price,
-            "description": first_product.description,
-            "name": first_product.name,
-            "images": [image.to_json() for image in content_images], # + [image.to_json() for image in product_images],
-            "tile-id": self.old_id or self.id,
-            "template": self.template
-        }
+        dct = {}
+        if self.products.count() > 0 and self.content.count() > 0:
+            # combobox
+            dct.update(self._to_combobox_tile_json())
+        elif self.products.count() > 0 and self.content.count() == 0:
+            # product
+            dct.update(self._to_product_tile_json())
+        elif self.products.count() == 0 and self.content.count() > 0:
+            # (assorted) content
+            dct.update(self._to_content_tile_json())
+        else:
+            dct.update({
+                'error': 'Tile has neither products nor content!'
+            })
+
+        # insert attributes from tile itself
+        dct['tile-id'] = self.old_id or self.id
+        dct['template'] = self.template
+
+        return dct
+
+    def _to_combobox_tile_json(self):
+        # there are currently no combobox json formats.
+        return self.products.all()[0].to_json()
+
+    def _to_product_tile_json(self):
+        return self.products.all()[0].to_json()
+
+    def _to_content_tile_json(self):
+        # currently, there are only single-content tiles, so
+        # pick the first content and jsonify it
+        return self.content.all()[0].to_json()
 
 
 ## TODO: REMOVE THIS IN THE FUTURE

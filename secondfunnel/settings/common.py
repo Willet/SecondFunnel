@@ -269,7 +269,8 @@ INSTALLED_APPS = (
 )
 
 CORS_ORIGIN_REGEX_WHITELIST = (
-    '^[\w-]+\.secondfunnel\.com$'
+    '^[\w-_]+\.secondfunnel\.com$',
+    '^[\w-_]+\.elasticbeanstalk\.com$',
 )
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
