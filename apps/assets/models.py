@@ -1,6 +1,5 @@
 from django.core import serializers
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
@@ -40,18 +39,17 @@ class BaseModel(models.Model, DirtyFieldsMixin):
             defaults = {}
 
         # a kwargs-priority full set of kwargs
+        update_or_create_kwargs = dict(defaults.items() + kwargs.items())
         try:
             obj = cls.objects.get(**kwargs)
-            for key, value in defaults.iteritems():
-                if getattr(obj, key, None) != value:
-                    setattr(obj, key, value)
+            for field in update_or_create_kwargs:
+                if getattr(obj, field, None) != update_or_create_kwargs.get(field):
+                    setattr(obj, field, update_or_create_kwargs[field])
                     updated = True
             if updated:
                 obj.save()
         except cls.DoesNotExist:
-            update_kwargs = dict(defaults.items())
-            update_kwargs.update(kwargs)
-            obj = cls(**update_kwargs)
+            obj = cls(**update_or_create_kwargs)
             obj.save()
             created = True
 
@@ -181,19 +179,6 @@ class Content(BaseModel):
     ## this will allow arbitrary fields, querying all Content
     ## but restrict to only filtering/ordering on above fields
     attributes = JSONField(null=True)
-
-    real_type = models.ForeignKey(ContentType, editable=False)
-
-    def save(self, *args, **kwargs):
-        if not self.id:
-            self.real_type = self._get_real_type()
-        super(Content, self).save(*args, **kwargs)
-
-    def _get_real_type(self):
-        return ContentType.objects.get_for_model(type(self))
-
-    def cast(self):
-        return self.real_type.get_object_for_this_type(pk=self.pk)
 
     def to_json(self):
         """subclasses may implement their own to_json methods that
