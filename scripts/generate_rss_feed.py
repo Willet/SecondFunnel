@@ -3,6 +3,7 @@
 #argv - 1: store-id, 2: page-id
 
 import argparse
+import time
 import urllib2
 import hashlib
 import apps.static_pages.aws_utils as aws_utils
@@ -12,7 +13,7 @@ from apps.assets.models import Store, Image, Page, Tile
 
 RESULTS = 35
 
-FEED_NAME = 'feedz.rss'
+FEED_NAME = 'feed.rss'
 
 
 def main():
@@ -44,16 +45,6 @@ def notify_superfeedr(bucket, folder):
 
 def upload_feed(xml, bucket, folder):
     aws_utils.upload_to_bucket(bucket, folder + FEED_NAME, xml, content_type='application/rss+xml', public=True, do_gzip=False)
-
-
-def save_feed(xml, filename):
-    file = open(filename, 'w')
-    file.write(xml)
-    file.close()
-
-
-def print_feed(xml):
-    print xml
 
 
 def tile_to_XML(url, tile):
@@ -100,7 +91,7 @@ def generate_channel(store_id, page_id, url):
         for tile_line in tile_to_XML(url, tile):
             yield '\t' + tile_line
         yield '</item>\n'
-        #time.sleep(1)
+        time.sleep(1)
 
 
 def generate_feed(store_id, page_id, url):
