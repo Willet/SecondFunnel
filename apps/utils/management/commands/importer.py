@@ -1,16 +1,9 @@
-<<<<<<< HEAD
-import urllib
-import cStringIO
-import json
-
-from PIL import Image as Img
-=======
->>>>>>> pg-env
 """
 To import store, products, content, tiles, and themes from store 38, type:
 $ ./manage.py importer 38 true
 """
-import urllib, cStringIO
+import urllib
+import cStringIO
 import json
 
 from PIL import Image as Img
