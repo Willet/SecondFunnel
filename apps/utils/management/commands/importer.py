@@ -59,6 +59,7 @@ class Command(BaseCommand):
     download_images = False
 
     def handle(self, *args, **kwargs):
+        print Tile.objects.all()[0].cast()
         self.store_id = args[0]
         if args[1] and args[1] in ['true', 'True', 't']:
             self.download_images = True
