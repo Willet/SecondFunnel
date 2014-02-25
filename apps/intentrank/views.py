@@ -22,6 +22,15 @@ def get_results_view(request, **kwargs):
     callback = request.GET.get('callback', None)
     results = int(request.GET.get('results', 10))
 
+    # "show everything except these tile ids"
+    shown = filter(bool, request.GET.get('shown', "").split(","))
+    exclude_set = map(int, shown)
+
+    if request.session:
+        # keep track of which (unique) tiles have been shown
+        request.session['shown'] = list(set(request.session.get('shown', []) +
+                                            exclude_set))
+
     url = kwargs.get('url', None)
     if url:  # temporary proxy
         return ajax_jsonp(get_results_ir(url=url, results=results),
@@ -37,7 +46,8 @@ def get_results_view(request, **kwargs):
     feed = page.feed
     if not feed:
         return HttpResponseNotFound("No feed for page {0}".format(page_id))
-    return ajax_jsonp(get_results(feed=feed, results=results),
+    return ajax_jsonp(get_results(feed=feed, results=results,
+                                  exclude_set=exclude_set),
                       callback_name=callback)
 
 
@@ -89,4 +99,8 @@ def get_results_ir(url, results):
 def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs):
     """Supply either feed or page for backward compatibility."""
     ir = IntentRank(feed=feed)
-    return ir.transform(ir.ir_random(feed=feed, results=results))
+
+    # "everything except these tile ids"
+    exclude_set = kwargs.get('exclude_set', [])
+    return ir.transform(ir.ir_random(feed=feed, results=results,
+                                     exclude_set=exclude_set))

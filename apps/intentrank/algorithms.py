@@ -34,13 +34,13 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     :param results: int (number of results you want)
     :param product_tiles_only: only select from the Feed's product pool.
     :param content_tiles_only: only select from the Feed's content pool.
-    :param exclude_set: <list<Tile>> do not return these results.
+    :param exclude_set: <list<int>> do not return tiles with these ids.
     :param request: if supplied, do not return results used in
                     the previous session call, or tile ids specified by the
                     "?shown=" parameter.
     :returns list
     """
-    tiles = list(feed.tiles.all())
+    tiles = list(feed.tiles.exclude(old_id__in=exclude_set))
     real_random.shuffle(tiles)
     return tiles[:results]
 
