@@ -39,10 +39,13 @@ def get_image_sizes(image, download=True):
         return {'sizes': image_sizes}, None, None
     url = image.get('url')
     image_file = cStringIO.StringIO(urllib.urlopen(url).read())
-    im = Img.open(image_file)
-    width, height = im.size
-    image_sizes['master'] = {'width': width, 'height': height}
-    return {'sizes': image_sizes}, width, height
+    try:
+        im = Img.open(image_file)
+        width, height = im.size
+        image_sizes['master'] = {'width': width, 'height': height}
+        return {'sizes': image_sizes}, width, height
+    except IOError:
+        return {'sizes': image_sizes}, None, None
 
 
 class Command(BaseCommand):
