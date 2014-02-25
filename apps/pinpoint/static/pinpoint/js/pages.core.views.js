@@ -770,6 +770,9 @@ App.module('core', function (module, App) {
                 // hide this, then restore discovery.
                 if (App.support.mobile()) {
                     this.$el.swapWith(App.discoveryArea.$el.parent());
+                    // handle results that got loaded while the discovery
+                    // area has an undefined height.
+                    App.layoutEngine.layout(App.discovery);
                 }
 
                 //If we have been home then it's safe to use back()
