@@ -23,7 +23,7 @@ class Store(BaseModel):
     staff = models.ManyToManyField(User, related_name='stores')
 
     name = models.CharField(max_length=1024)
-    description = models.TextField(null=True)
+    description = models.TextField(blank=True, null=True)
     slug = models.CharField(max_length=64)
 
     default_theme = models.ForeignKey('Theme', related_name='store', blank=True, null=True)
@@ -47,18 +47,18 @@ class Product(BaseModel):
 
     old_id = models.IntegerField(unique=True)
 
-    store = models.ForeignKey(Store, null=False)
+    store = models.ForeignKey(Store)
 
     name = models.CharField(max_length=1024)
-    description = models.TextField(null=True)
-    details = models.TextField(null=True)
+    description = models.TextField(blank=True, null=True)
+    details = models.TextField(blank=True, null=True)
     url = models.TextField()
     sku = models.CharField(max_length=255)
     price = models.CharField(max_length=16)  # DEFER: could make more sense to be an integer (# of cents)
 
-    default_image = models.ForeignKey('ProductImage', related_name='default_image', null=True)
+    default_image = models.ForeignKey('ProductImage', related_name='default_image', blank=True, null=True)
 
-    last_scraped_at = models.DateTimeField(null=True)
+    last_scraped_at = models.DateTimeField(blank=True, null=True)
 
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
@@ -69,31 +69,27 @@ class ProductImage(BaseModel):
 
     old_id = models.IntegerField(unique=True)
 
-    product = models.ForeignKey(Product, null=False,
-                                related_name="product_images")
+    product = models.ForeignKey(Product, related_name="product_images")
 
     url = models.TextField()  # 2f.com/.jpg
     original_url = models.TextField()  # gap.com/.jpg
-    file_type = models.CharField(max_length=255, blank=False, null=False)
-    file_checksum = models.CharField(max_length=512)
-    width = models.PositiveSmallIntegerField(null=True)
-    height = models.PositiveSmallIntegerField(null=True)
+    file_type = models.CharField(max_length=255, blank=True, null=True)
+    file_checksum = models.CharField(max_length=512, blank=True, null=True)
+    width = models.PositiveSmallIntegerField(blank=True, null=True)
+    height = models.PositiveSmallIntegerField(blank=True, null=True)
 
-    attributes = JSONField(null=True)
+    dominant_colour = models.CharField(max_length=32, blank=True, null=True)
+
+    attributes = JSONField(blank=True, null=True)
 
     def to_json(self):
         return {
             "format": self.file_type,
             "type": "image",
-            "dominant-colour": "transparent",  # TODO: colour
+            "dominant-colour": self.dominant_color or "transparent",  # TODO: colour
             "url": self.url,
             "id": self.old_id or self.id,
-            "sizes": {
-                "master": {  # TODO: make sure sizes exist
-                    "width": self.width or '100%',  # TODO: make sure sizes are absolute
-                    "height": self.height or '100%'
-                }
-            }
+            "sizes": self.attributes.get('sizes')
         }
 
 
@@ -101,14 +97,14 @@ class Content(BaseModel):
 
     old_id = models.IntegerField(unique=True)
 
-    store = models.ForeignKey(Store, null=False)
+    store = models.ForeignKey(Store)
 
     source = models.CharField(max_length=255)
-    source_url = models.TextField(null=True)
-    author = models.CharField(max_length=255, null=True)
+    source_url = models.TextField(blank=True, null=True)
+    author = models.CharField(max_length=255, blank=True, null=True)
 
     # list of product id's
-    tagged_products = models.CommaSeparatedIntegerField(max_length=512, null=True)
+    tagged_products = models.CommaSeparatedIntegerField(max_length=512, blank=True, null=True)
 
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
@@ -118,41 +114,43 @@ class Content(BaseModel):
 
 class Image(Content):
 
-    name = models.CharField(max_length=1024,null=True)
-    description = models.TextField(null=True)
+    name = models.CharField(max_length=1024, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
 
     url = models.TextField()
     original_url = models.TextField()
-    file_type = models.CharField(max_length=255, blank=False, null=False)
-    file_checksum = models.CharField(max_length=512)
+    file_type = models.CharField(max_length=255, blank=True, null=True)
+    file_checksum = models.CharField(max_length=512, blank=True, null=True)
 
-    width = models.PositiveSmallIntegerField(null=True)
-    height = models.PositiveSmallIntegerField(null=True)
+    width = models.PositiveSmallIntegerField(blank=True, null=True)
+    height = models.PositiveSmallIntegerField(blank=True, null=True)
+
+    dominant_colour = models.CharField(max_length=32, blank=True, null=True)
 
     to_json = ProductImage.to_json  # use the same json format as other images
 
 
 class Video(Content):
 
-    name = models.CharField(max_length=1024, null=True)
-    description = models.TextField(null=True)
+    name = models.CharField(max_length=1024, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
 
     url = models.TextField()
-    player = models.CharField(max_length=255, blank=False)
-    file_type = models.CharField(max_length=255, blank=False, null=False)
-    file_checksum = models.CharField(max_length=512)
+    player = models.CharField(max_length=255)
+    file_type = models.CharField(max_length=255, blank=True, null=True)
+    file_checksum = models.CharField(max_length=512, blank=True, null=True)
 
 
 class Review(Content):
 
-    product = models.ForeignKey(Product, null=False)
+    product = models.ForeignKey(Product)
 
     body = models.TextField()
 
 
 class Theme(BaseModel):
 
-    name = models.CharField(max_length=1024)
+    name = models.CharField(max_length=1024, blank=True, null=True)
     template = models.CharField(max_length=1024)
 
     # @deprecated for page generator
@@ -167,7 +165,7 @@ class Theme(BaseModel):
 
 class Feed(BaseModel):
     """"""
-    feed_algorithm = models.CharField(max_length=64)  # ; e.g. sorted, recommend
+    feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     # and other representation specific of the Feed itself
     #
     def get_results(self, num_results=20, algorithm=None):
@@ -178,17 +176,17 @@ class Page(BaseModel):
 
     old_id = models.IntegerField(unique=True)
 
-    theme = models.ForeignKey(Theme, related_name='page', null=True)
-    theme_settings = JSONField(null=True)
+    theme = models.ForeignKey(Theme, related_name='page', blank=True, null=True)
+    theme_settings = JSONField(blank=True, null=True)
 
     name = models.CharField(max_length=256)
     description = models.TextField(blank=True, null=True)
     url_slug = models.CharField(max_length=128)
-    legal_copy = models.TextField(null=True)
+    legal_copy = models.TextField(blank=True, null=True)
 
-    last_published_at = models.DateTimeField(null=True)
+    last_published_at = models.DateTimeField(blank=True, null=True)
 
-    feed = models.ForeignKey('Feed')
+    feed = models.ForeignKey(Feed)
 
     @property
     def template(self):
@@ -219,7 +217,7 @@ class Tile(BaseModel):
     old_id = models.IntegerField(unique=True)
 
     # <Feed>.tiles.all() gives you... all its tiles
-    feed = models.ForeignKey(Feed, null=False, related_name='tiles')
+    feed = models.ForeignKey(Feed, related_name='tiles')
 
     template = models.CharField(max_length=128)
 
