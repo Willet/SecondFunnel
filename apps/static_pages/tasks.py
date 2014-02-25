@@ -13,9 +13,8 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils.encoding import smart_str
 
-from apps.assets.models import Store
+from apps.assets.models import Store, Page
 from apps.contentgraph.views import get_page, get_store, get_stores
-from apps.pinpoint.models import Campaign
 
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
     get_route53_change_status, sqs_poll, SQSQueue, upload_to_bucket)
@@ -121,7 +120,7 @@ def generate_static_campaigns():
     """Creates a group of tasks to generate/save campaigns,
     and runs them in parallel"""
 
-    campaigns = Campaign.objects.all()
+    campaigns = Page.objects.all()
 
     task_group = group(generate_static_campaign.s(c.id)
         for c in campaigns)
@@ -186,7 +185,7 @@ def generate_static_campaign_now(store_id, campaign_id):
                                  as_dict=True)
 
         # do -something- to turn ContentGraph JSON into a campaign object
-        campaign = Campaign.from_json(campaign_dict)
+        campaign = Page.from_json(campaign_dict)
 
         store_dict = get_store(store_id=store_id, as_dict=True)
         store = Store.from_json(store_dict)

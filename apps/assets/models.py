@@ -4,6 +4,7 @@ from django.db import models
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
 from jsonfield import JSONField
+from apps.pinpoint.utils import read_remote_file, read_a_file
 
 
 class BaseModel(models.Model):
@@ -25,9 +26,21 @@ class Store(BaseModel):
     description = models.TextField(null=True)
     slug = models.CharField(max_length=64)
 
-    default_theme = models.ForeignKey('pinpoint.StoreTheme', related_name='store', blank=True, null=True)
+    default_theme = models.ForeignKey('Theme', related_name='store', blank=True, null=True)
 
     public_base_url = models.URLField(help_text="e.g. explore.nativeshoes.com", blank=True, null=True)
+
+    @classmethod
+    def from_json(cls, json_data):
+        """@deprecated for replacing the Campaign Model. Use something else.
+        """
+        if 'theme' in json_data:
+            json_data['theme'] = Theme(template=json_data['theme'])
+
+        instance = cls()
+        for field in json_data:
+            setattr(instance, field, json_data[field])
+        return instance
 
 
 class Product(BaseModel):
@@ -116,6 +129,8 @@ class Image(Content):
     width = models.PositiveSmallIntegerField(null=True)
     height = models.PositiveSmallIntegerField(null=True)
 
+    to_json = ProductImage.to_json  # use the same json format as other images
+
 
 class Video(Content):
 
@@ -137,10 +152,17 @@ class Review(Content):
 
 class Theme(BaseModel):
 
-    store = models.ForeignKey(Store, null=False)
-
     name = models.CharField(max_length=1024)
     template = models.CharField(max_length=1024)
+
+    # @deprecated for page generator
+    CUSTOM_FIELDS = {
+        'opengraph_tags': 'pinpoint/campaign_opengraph_tags.html',
+        'head_content': 'pinpoint/campaign_head.html',
+        'body_content': 'pinpoint/campaign_body.html',
+        'campaign_config': 'pinpoint/campaign_config.html',
+        'js_templates': 'pinpoint/default_templates.html'
+    }
 
 
 class Feed(BaseModel):
@@ -156,10 +178,11 @@ class Page(BaseModel):
 
     old_id = models.IntegerField(unique=True)
 
-    theme = models.ForeignKey(Theme, null=True)
+    theme = models.ForeignKey(Theme, related_name='page', null=True)
     theme_settings = JSONField(null=True)
 
     name = models.CharField(max_length=256)
+    description = models.TextField(blank=True, null=True)
     url_slug = models.CharField(max_length=128)
     legal_copy = models.TextField(null=True)
 
@@ -178,6 +201,18 @@ class Page(BaseModel):
             self.theme_settings = {}
         self.theme_settings['template'] = value
 
+    @classmethod
+    def from_json(cls, json_data):
+        """@deprecated for replacing the Campaign Model. Use something else.
+        """
+        if 'theme' in json_data:
+            json_data['theme'] = Theme(template=json_data['theme'])
+
+        instance = cls()
+        for field in json_data:
+            setattr(instance, field, json_data[field])
+        return instance
+
 
 class Tile(BaseModel):
 
@@ -193,16 +228,26 @@ class Tile(BaseModel):
 
     prioritized = models.BooleanField()
 
+    @property
+    def images(self):
+        """can't filter by subclassed FK? not sure if..."""
+        image_list = []
+        for content in self.content.all():
+            if isinstance(content, Image):
+                image_list.append(content)
+        return image_list
+
     def to_json(self):
         first_product = self.products.all()[:1].get()
         product_images = first_product.product_images.all()
+        content_images = self.images
         return {
             "default-image": first_product.default_image.id,
             "url": first_product.url,
             "price": first_product.price,
             "description": first_product.description,
             "name": first_product.name,
-            "images": [image.to_json() for image in product_images],
+            "images": [image.to_json() for image in content_images], # + [image.to_json() for image in product_images],
             "tile-id": self.old_id or self.id,
             "template": self.template
         }

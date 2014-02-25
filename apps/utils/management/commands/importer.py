@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 import urllib, cStringIO
 import json
 
 from PIL import Image as Img
+=======
+"""
+To import store, products, content, tiles, and themes from store 38, type:
+$ ./manage.py importer 38
+"""
+>>>>>>> pg-env
 from apps.assets.models import (Store, Image, Video, Product, ProductImage,
                                 Theme, Page, Feed, Tile)
 from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
@@ -55,9 +62,17 @@ class Command(BaseCommand):
                 raise CommandError("Not a valid choice for downloading")
 
         self.import_store()
-        self.import_products()
-        self.import_content()
-        self.import_pages()
+        if len(args) == 1:  # only store id supplied
+            self.import_products()
+            self.import_content()
+            self.import_pages()
+        else:
+            if 'products' in args:
+                self.import_products()
+            if 'content' in args:
+                self.import_content()
+            if 'pages' in args:
+                self.import_pages()
 
     def _store_url(self, store_id=None):
         """returns CG url for a store, or if no store, then all stores."""
@@ -229,7 +244,7 @@ class Command(BaseCommand):
                 feed_psql = Feed()
                 feed_psql.save()
 
-            page_theme_fields = {'store': self.store}
+            page_theme_fields = {}
 
             print 'THEME - template: ', page_theme_template, ', ', page_theme_fields
 
