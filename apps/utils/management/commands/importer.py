@@ -1,7 +1,15 @@
 """
 To import store, products, content, tiles, and themes from store 38, type:
-$ ./manage.py importer 38
+$ ./manage.py importer 38 true
 """
+import urllib, cStringIO
+import json
+
+try:  # this one fails in virtualenvs whose PIL was compiled before Pillow
+    from PIL import Image as Img
+except ImportError as err:
+    from PIL.PIL import Image as Img
+
 from apps.assets.models import (Store, Image, Video, Product, ProductImage,
                                 Theme, Page, Feed, Tile)
 from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
@@ -27,28 +35,50 @@ def update_or_create(model, defaults=None, **kwargs):
     return obj
 
 
+def get_image_sizes(image, download=True):
+    if not image.get('image-sizes'):
+        return {}, None, None
+    image_sizes = json.loads(image.get('image-sizes'))
+    if not (download or image.get('image-sizes')):
+        return {'sizes': image_sizes}, None, None
+    url = image.get('url')
+    image_file = cStringIO.StringIO(urllib.urlopen(url).read())
+    try:
+        im = Img.open(image_file)
+        width, height = im.size
+        image_sizes['master'] = {'width': width, 'height': height}
+        return {'sizes': image_sizes}, width, height
+    except IOError:
+        return {'sizes': image_sizes}, None, None
+
+
 class Command(BaseCommand):
     """WARNING: this script can only import ONE store at a time."""
     store = None
     store_id = 0
+    download_images = False
 
     def handle(self, *args, **kwargs):
         self.store_id = args[0]
+        if args[1] and args[1] in ['true', 'True', 't']:
+            self.download_images = True
+
         if not self.store_id:
             raise CommandError("Not a valid store id for argument 0")
 
         self.import_store()
-        if len(args) == 1:  # only store id supplied
-            self.import_products()
-            self.import_content()
-            self.import_pages()
-        else:
+        if any(s in args for s in ['products', 'content', 'pages']):
             if 'products' in args:
                 self.import_products()
             if 'content' in args:
                 self.import_content()
             if 'pages' in args:
                 self.import_pages()
+        else:  # only store id and download images supplied
+            self.import_products()
+            self.import_content()
+            self.import_pages()
+
 
     def _store_url(self, store_id=None):
         """returns CG url for a store, or if no store, then all stores."""
@@ -104,22 +134,30 @@ class Command(BaseCommand):
             if product_default_image_old_id not in product_image_old_ids:
                 product_image_old_ids.append(product_default_image_old_id)
 
-            product_image_fields = {'product': product_psql}
-
             for product_image_old_id in product_image_old_ids:
-                for product_image in get_contentgraph_data(
-                                        self._store_url(store_id=store_id) + 'content/' + product_image_old_id):
-                    product_image_url = product_image.get('url')
-                    product_image_original_url = product_image.get(
-                        'original-url')
+                product_image_fields = {'product': product_psql}
 
-                    product_image_fields.update({'url': product_image_url,
-                                                 'original_url': product_image_original_url})
+                product_image = call_contentgraph(self._store_url(store_id=store_id) + 'content/' + product_image_old_id)
 
-                    print 'PRODUCT IMAGE - old_id: ', product_image_old_id, ', ', product_image_fields
+                product_image_url = product_image.get('url')
+                product_image_original_url = product_image.get('original-url')
 
-                    update_or_create(ProductImage, old_id=product_image_old_id,
-                                     defaults=product_image_fields)
+                product_image_dominant_color = product_image.get('dominant-colour')
+
+                product_image_fields.update({'url': product_image_url,
+                                             'original_url': product_image_original_url,
+                                             'dominant_color': product_image_dominant_color})
+
+                if self.download_images:
+                    product_image_attributes, product_image_width, product_image_height = get_image_sizes(product_image)
+                    product_image_fields.update({'width': product_image_width,
+                                                 'height': product_image_height,
+                                                 'attributes': product_image_attributes})
+
+                print 'PRODUCT IMAGE - old_id: ', product_image_old_id, ', ', product_image_fields
+
+                update_or_create(ProductImage, old_id=product_image_old_id,
+                                 defaults=product_image_fields)
 
             product_image_psql = ProductImage.objects.get(
                 old_id=product_default_image_old_id)
@@ -158,13 +196,23 @@ class Command(BaseCommand):
                               'description': content_description}
 
             if content_type == 'image':
+
                 content_url = content.get('url')
                 content_original_url = content.get('original-url')
                 content_source_url = content.get('source-url')
+                content_dominant_color = content.get('dominant-colour')
 
                 content_fields.update(
-                    {'url': content_url, 'original_url': content_original_url,
-                     'source_url': content_source_url})
+                    {'url': content_url,
+                     'original_url': content_original_url,
+                     'source_url': content_source_url,
+                     'dominant_color': content_dominant_color})
+
+                if self.download_images:
+                    content_attributes, content_width, content_height = get_image_sizes(content)
+                    content_fields.update({'width': content_width,
+                                           'height': content_height,
+                                           'attributes': content_attributes})
 
                 print 'IMAGE - old_id: ', content_old_id, ', ', content_fields
 
@@ -175,7 +223,9 @@ class Command(BaseCommand):
                 content_source_url = content_url
 
                 content_fields.update(
-                    {'url': content_url, 'source_url': content_source_url})
+                    {'url': content_url,
+                     'source_url': content_source_url,
+                     'player': 'youtube'})
 
                 print 'VIDEO - old_id: ', content_old_id, ', ', content_fields
 
