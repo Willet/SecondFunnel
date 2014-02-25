@@ -24,7 +24,12 @@ def ajax_jsonp(result, callback_name=None, status=200):
         elif isinstance(result, (tuple, list)):
             result_list = []
             for r in result:
-                result_list.append(json.loads(serialize(r)))
+                if isinstance(r, BaseModel):
+                    result_list.append(r.to_json())
+                elif isinstance(r, dict):
+                    result_list.append(r)
+                else:
+                    result_list.append(json.loads(serialize(r)))
             response_text = json.dumps(result_list)
         elif isinstance(result, dict):
             result_list = {}

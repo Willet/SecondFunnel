@@ -283,8 +283,9 @@ class Image(Content):
             "sizes": self.attributes.get('sizes', default_master_size),
         }
         if expand_products:
-            dct["related-products"] = [Product.objects.get(pk=product_id)
-                                 for product_id in self.tagged_products]
+            dct["related-products"] = [
+                Product.objects.get(pk=product_id).to_json()
+                for product_id in self.tagged_products]
         else:
             dct["related-products"] = self.tagged_products
 
