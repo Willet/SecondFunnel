@@ -1,14 +1,11 @@
-<<<<<<< HEAD
 import urllib, cStringIO
 import json
 
 from PIL import Image as Img
-=======
 """
 To import store, products, content, tiles, and themes from store 38, type:
-$ ./manage.py importer 38
+$ ./manage.py importer 38 true
 """
->>>>>>> pg-env
 from apps.assets.models import (Store, Image, Video, Product, ProductImage,
                                 Theme, Page, Feed, Tile)
 from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
@@ -58,11 +55,11 @@ class Command(BaseCommand):
         if not self.store_id:
             raise CommandError("Not a valid store id for argument 0")
 
-        if not self.download_images: \
+        if not self.download_images:
                 raise CommandError("Not a valid choice for downloading")
 
         self.import_store()
-        if len(args) == 1:  # only store id supplied
+        if len(args) == 2:  # only store id and download images supplied
             self.import_products()
             self.import_content()
             self.import_pages()
