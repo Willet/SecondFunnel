@@ -20,7 +20,6 @@ def main():
     parser = argparse.ArgumentParser(
         description='Generate a Flipboard RSS Feed.'
     )
-    parser.add_argument('store_id', type=int, help='Store Identifier')
     parser.add_argument('page_id', type=int, help='Page Identifier')
     parser.add_argument('bucket', help='Page bucket')
     parser.add_argument('folder', help='Page folder')
@@ -30,7 +29,7 @@ def main():
     url = 'http://' + args.bucket + '/' + args.folder
 
     feed = ''
-    for line in generate_feed(args.store_id, args.page_id, url):
+    for line in generate_feed(args.page_id, url):
         feed += line
 
     upload_feed(feed, args.bucket, args.folder)
@@ -65,7 +64,7 @@ def tile_to_XML(url, tile):
     yield '<pubDate>' + strftime('%a, %d %b %Y %H:%M:%S +0000', gmtime()) + '</pubDate>\n'
     yield '<content:encoded><![CDATA[\n'
     yield '\t<figure>\n'
-    img =  '\t\t<img src="' + image.url.replace('master', '1024x1024')
+    img = '\t\t<img src="' + image.url.replace('master', '1024x1024')
     if image.width and image.height:
         img += ' width=' + str(image.width) + ' height=' + str(image.height)
     img += ' data-fl-original-src' + image.url + '">\n'
@@ -74,9 +73,7 @@ def tile_to_XML(url, tile):
     yield ']]></content:encoded>\n'
 
 
-def generate_channel(store_id, page_id, url):
-    store = Store.objects.get(id=store_id)
-
+def generate_channel(page_id, url):
     page = Page.objects.get(id=page_id)
 
     yield '<title>' + page.name + '</title>\n'
@@ -94,7 +91,7 @@ def generate_channel(store_id, page_id, url):
         time.sleep(1)
 
 
-def generate_feed(store_id, page_id, url):
+def generate_feed(page_id, url):
     yield '<rss version="2.0"\n'
     yield '\t xmlns:content="http://purl.org/rss/1.0/modules/content/"\n'
     yield '\t xmlns:dc="http://purl.org/dc/elements/1.1/"\n'
@@ -103,7 +100,7 @@ def generate_feed(store_id, page_id, url):
     yield '\t xmlns:georss="http://www.georss.org/georss">\n'
 
     yield '\t<channel>\n'
-    for channel_line in generate_channel(store_id, page_id, url):
+    for channel_line in generate_channel(page_id, url):
         yield '\t\t' + channel_line
     yield '\t</channel>\n'
     yield '</rss>'
