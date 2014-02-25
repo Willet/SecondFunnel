@@ -111,6 +111,23 @@ class Product(BaseModel):
     ## for instance new-egg's egg-score; sale-prices; etc.
     attributes = JSONField(null=True)
 
+    def to_json(self):
+        dct = {
+            "url": self.url,
+            "price": self.price,
+            "description": self.description,
+            "name": self.name,
+            "images": [image.to_json() for image in self.product_images.all()],
+        }
+
+        # if default image is missing...
+        if self.default_image:
+            dct["default-image"] = self.default_image.old_id or \
+                self.default_image.id
+
+        return dct
+
+
 
 class ProductImage(BaseModel):
 
@@ -125,9 +142,14 @@ class ProductImage(BaseModel):
     width = models.PositiveSmallIntegerField(blank=True, null=True)
     height = models.PositiveSmallIntegerField(blank=True, null=True)
 
-    dominant_colour = models.CharField(max_length=32, blank=True, null=True)
+    dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
     attributes = JSONField(blank=True, null=True)
+
+    def __init__(self, *args, **kwargs):
+        super(ProductImage, self).__init__(*args, **kwargs)
+        if not self.attributes:
+            self.attributes = {}
 
     def to_json(self):
         return {
@@ -136,7 +158,7 @@ class ProductImage(BaseModel):
             "dominant-colour": self.dominant_color or "transparent",  # TODO: colour
             "url": self.url,
             "id": self.old_id or self.id,
-            "sizes": self.attributes.get('sizes')
+            "sizes": self.attributes.get('sizes', {})
         }
 
 
@@ -158,6 +180,18 @@ class Content(BaseModel):
     ## but restrict to only filtering/ordering on above fields
     attributes = JSONField(null=True)
 
+    def to_json(self):
+        """subclasses may implement their own to_json methods that
+        :returns dict objects.
+        """
+        return {
+            'store': self.store.old_id if self.store else 0,
+            'source': self.source,
+            'source_url': self.source_url,
+            'author': self.author,
+            'tagged_products': self.tagged_products,
+        }
+
 
 class Image(Content):
 
@@ -172,7 +206,7 @@ class Image(Content):
     width = models.PositiveSmallIntegerField(blank=True, null=True)
     height = models.PositiveSmallIntegerField(blank=True, null=True)
 
-    dominant_colour = models.CharField(max_length=32, blank=True, null=True)
+    dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
     to_json = ProductImage.to_json  # use the same json format as other images
 
@@ -283,19 +317,38 @@ class Tile(BaseModel):
         return image_list
 
     def to_json(self):
-        first_product = self.products.all()[:1].get()
-        product_images = first_product.product_images.all()
-        content_images = self.images
-        return {
-            "default-image": first_product.default_image.id,
-            "url": first_product.url,
-            "price": first_product.price,
-            "description": first_product.description,
-            "name": first_product.name,
-            "images": [image.to_json() for image in content_images], # + [image.to_json() for image in product_images],
-            "tile-id": self.old_id or self.id,
-            "template": self.template
-        }
+        dct = {}
+        if self.products.count() > 0 and self.content.count() > 0:
+            # combobox
+            dct.update(self._to_combobox_tile_json())
+        elif self.products.count() > 0 and self.content.count() == 0:
+            # product
+            dct.update(self._to_product_tile_json())
+        elif self.products.count() == 0 and self.content.count() > 0:
+            # (assorted) content
+            dct.update(self._to_content_tile_json())
+        else:
+            dct.update({
+                'error': 'Tile has neither products nor content!'
+            })
+
+        # insert attributes from tile itself
+        dct['tile-id'] = self.old_id or self.id
+        dct['template'] = self.template
+
+        return dct
+
+    def _to_combobox_tile_json(self):
+        # there are currently no combobox json formats.
+        return self.products.all()[0].to_json()
+
+    def _to_product_tile_json(self):
+        return self.products.all()[0].to_json()
+
+    def _to_content_tile_json(self):
+        # currently, there are only single-content tiles, so
+        # pick the first content and jsonify it
+        return self.content.all()[0].to_json()
 
 
 ## TODO: REMOVE THIS IN THE FUTURE

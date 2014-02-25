@@ -1,11 +1,12 @@
-import urllib, cStringIO
-import json
-
-from PIL import Image as Img
 """
 To import store, products, content, tiles, and themes from store 38, type:
 $ ./manage.py importer 38 true
 """
+import urllib, cStringIO
+import json
+
+from PIL import Image as Img
+
 from apps.assets.models import (Store, Image, Video, Product, ProductImage,
                                 Theme, Page, Feed, Tile)
 from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
@@ -138,11 +139,11 @@ class Command(BaseCommand):
                 product_image_url = product_image.get('url')
                 product_image_original_url = product_image.get('original-url')
 
-                product_image_dominant_colour = product_image.get('dominant-colour')
+                product_image_dominant_color = product_image.get('dominant-colour')
 
                 product_image_fields.update({'url': product_image_url,
                                              'original_url': product_image_original_url,
-                                             'dominant_colour': product_image_dominant_colour})
+                                             'dominant_color': product_image_dominant_color})
 
                 if self.download_images:
                     product_image_attributes, product_image_width, product_image_height = get_image_sizes(product_image)
@@ -196,13 +197,13 @@ class Command(BaseCommand):
                 content_url = content.get('url')
                 content_original_url = content.get('original-url')
                 content_source_url = content.get('source-url')
-                content_dominant_colour = content.get('dominant-colour')
+                content_dominant_color = content.get('dominant-colour')
 
                 content_fields.update(
                     {'url': content_url,
                      'original_url': content_original_url,
                      'source_url': content_source_url,
-                     'dominant_colour': content_dominant_colour})
+                     'dominant_color': content_dominant_color})
 
                 if self.download_images:
                     content_attributes, content_width, content_height = get_image_sizes(content)

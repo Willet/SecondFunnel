@@ -62,11 +62,9 @@ class IntentRank(object):
         if serialize_format == 'json':
             for thing in things:
                 # whatever it is, if it has a custom to_json method, use it
-                try:
-                    new_things.append(thing.to_json())
+                if hasattr(thing, 'to_json'):
+                    new_things.append(thing.to_json())  # raises on purpose
                     continue
-                except (AttributeError, TypeError) as err:
-                    pass
 
                 # whatever it is, if the default serializer works, also use it
                 try:
