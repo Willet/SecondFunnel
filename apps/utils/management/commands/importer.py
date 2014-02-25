@@ -18,21 +18,6 @@ products = {}
 contents = {}
 
 
-def update_or_create(model, defaults=None, **kwargs):
-    """
-    tries to find and then update model
-    if the find fails, it creates a new model (sic)
-    """
-    prop_bag = defaults
-    prop_bag.update(kwargs)
-    obj, created = model.objects.get_or_create(defaults=prop_bag, **kwargs)
-    if not created:
-        for field in prop_bag:
-            setattr(obj, field, prop_bag[field])
-        obj.save()
-    return obj
-
-
 def get_image_sizes(image, download=True):
     if not image.get('image-sizes'):
         return {}, None, None
@@ -100,8 +85,8 @@ class Command(BaseCommand):
 
         print 'STORE - old_id: ', store_old_id, ', ', store_fields
 
-        self.store = update_or_create(Store, old_id=store_old_id,
-                                      defaults=store_fields)
+        self.store, _, _ = Store.update_or_create(old_id=store_old_id, defaults=store_fields)
+        print store
 
 
     def import_products(self, store_id=0):
@@ -117,7 +102,8 @@ class Command(BaseCommand):
             if not product_default_image_old_id:
                 continue
 
-            product_fields = {'store': self.store, 'name': product_name,
+            product_fields = {'store': self.store,
+                              'name': product_name,
                               'description': product_description,
                               'url': product_url, 'sku': product_sku,
                               'price': product_price}
@@ -125,8 +111,7 @@ class Command(BaseCommand):
             print 'PRODUCT - old_id: ', product_old_id, ', ', product_fields
 
             #the product must be created before the images as the product-images require a product
-            product_psql = update_or_create(Product, old_id=product_old_id,
-                                            defaults=product_fields)
+            product_psql, _, _ = Product.update_or_create(old_id=product_old_id, defaults=product_fields)
 
             product_image_old_ids = product.get('image-ids')
             if product_default_image_old_id not in product_image_old_ids:
@@ -153,11 +138,9 @@ class Command(BaseCommand):
 
                 print 'PRODUCT IMAGE - old_id: ', product_image_old_id, ', ', product_image_fields
 
-                update_or_create(ProductImage, old_id=product_image_old_id,
-                                 defaults=product_image_fields)
+                ProductImage.update_or_create(old_id=product_image_old_id, defaults=product_image_fields)
 
-            product_image_psql = ProductImage.objects.get(
-                old_id=product_default_image_old_id)
+            product_image_psql = ProductImage.objects.get(old_id=product_default_image_old_id)
 
             # setting the default product-image on the product
             product_psql.default_image_id = product_image_psql.id
@@ -211,8 +194,7 @@ class Command(BaseCommand):
 
                 print 'IMAGE - old_id: ', content_old_id, ', ', content_fields
 
-                content_psql = update_or_create(Image, old_id=content_old_id,
-                                                defaults=content_fields)
+                content_psql, _, _ = Image.update_or_create(old_id=content_old_id, defaults=content_fields)
             elif content_type == 'video':
                 content_url = content.get('original-url')
                 content_source_url = content_url
@@ -224,8 +206,7 @@ class Command(BaseCommand):
 
                 print 'VIDEO - old_id: ', content_old_id, ', ', content_fields
 
-                content_psql = update_or_create(Video, old_id=content_old_id,
-                                                defaults=content_fields)
+                content_psql, _, _ = Video.update_or_create(old_id=content_old_id, defaults=content_fields)
 
             else:
                 continue
@@ -254,8 +235,7 @@ class Command(BaseCommand):
 
             print 'THEME - template: ', page_theme_template, ', ', page_theme_fields
 
-            theme_psql = update_or_create(Theme, template=page_theme_template,
-                                          defaults=page_theme_fields)
+            theme_psql, _, _ = Theme.update_or_create(template=page_theme_template, defaults=page_theme_fields)
 
             page_fields = {'feed': feed_psql, 'theme': theme_psql,
                            'name': page_name, 'legal_copy': page_legal_copy,
@@ -263,7 +243,7 @@ class Command(BaseCommand):
 
             print 'PAGE - old_id: ', page_old_id, ', ', page_fields
 
-            update_or_create(Page, old_id=page_old_id, defaults=page_fields)
+            Page.update_or_create(old_id=page_old_id, defaults=page_fields)
             self.import_tiles(page_old_id, feed_psql)
 
 
@@ -278,8 +258,7 @@ class Command(BaseCommand):
 
             print 'TILE - old_id: ', tile_old_id, ', ', tile_fields
 
-            tile_psql = update_or_create(Tile, old_id=tile_old_id,
-                                         defaults=tile_fields)
+            tile_psql, _, _ = Tile.update_or_create(old_id=tile_old_id, defaults=tile_fields)
             tile_content_old_ids = tile.get('content-ids')
             if tile_content_old_ids:
                 for content_old_id in tile_content_old_ids:
