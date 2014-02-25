@@ -45,7 +45,14 @@ App.module("utils", function (utils, App) {
         }
 
         if (data.type === 'load_content') {
-            App.discoveryArea.currentView.collection.fetch();
+            var loadUntilHeight = function (height) {
+                if ($('body').height() < height) {
+                    App.discoveryArea.currentView.collection.fetch().done(function () {
+                        loadUntilHeight(height);
+                    });
+                }
+            };
+            loadUntilHeight(data.height);
         } else if (data.type === 'window_location') {
             App.window_middle = data.window_middle;
 
