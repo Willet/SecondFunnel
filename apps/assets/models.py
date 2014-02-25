@@ -4,16 +4,63 @@ from django.db import models
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
 from jsonfield import JSONField
+from dirtyfields import DirtyFieldsMixin
+
 from apps.pinpoint.utils import read_remote_file, read_a_file
 
 
-class BaseModel(models.Model):
+class BaseModel(models.Model, DirtyFieldsMixin):
 
     created_at = CreationDateTimeField()
     updated_at = ModificationDateTimeField()
 
     class Meta:
         abstract = True
+
+    @classmethod
+    def update_or_create(cls, defaults=None, **kwargs):
+        """Like Model.objects.get_or_create, either gets, updates, or creates
+        a model based on current state. Arguments are the same as the former.
+
+        Examples:
+        >>> Store.update_or_create(id=2, defaults={"old_id": 3})
+        (<Store: Store object>, True, False)  # created
+        >>> Store.update_or_create(id=2, defaults={"old_id": 3})
+        (<Store: Store object>, False, False)  # found
+        >>> Store.update_or_create(id=2, old_id=4)
+        (<Store: Store object>, False, True)  # updated
+
+        :raises <AllSortsOfException>s, depending on input
+        :returns tuple  (object, updated, created)
+        """
+        updated = created = False
+
+        if not defaults:
+            defaults = {}
+
+        # a kwargs-priority full set of kwargs
+        update_or_create_kwargs = dict(defaults.items() + kwargs.items())
+        try:
+            obj = cls.objects.get(**kwargs)
+            for field in update_or_create_kwargs:
+                if getattr(obj, field, None) != update_or_create_kwargs.get(field):
+                    setattr(obj, field, update_or_create_kwargs[field])
+                    updated = True
+            if updated:
+                obj.save()
+        except cls.DoesNotExist:
+            obj = cls(**update_or_create_kwargs)
+            obj.save()
+            created = True
+
+        return (obj, created, updated)
+
+    def save(self, *args, **kwargs):
+        if self.is_dirty():
+            super(BaseModel, self).save(*args, **kwargs)
+        else:
+            print "[INFO] {0} was not saved because " \
+                  "it was not modified".format(repr(self))
 
 
 class Store(BaseModel):
