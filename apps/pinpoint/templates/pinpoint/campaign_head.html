@@ -1,7 +1,6 @@
 {% load staticfiles %}
 {% load compress %}
-
-<!-- Additional Head Contents -->
+<!-- Head Contents -->
 <noscript><style> .no-noscript { display: none } </style></noscript>
 <!-- Preload images -->
 <script type="text/javascript">
@@ -36,3 +35,6 @@
 
 <meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><!-- required by bootstrap -->
 <meta http-equiv="X-UA-Compatible" content="IE=edge"><!-- required by bootstrap, IE -->
+<!-- Campaign Config -->
+{% include "pinpoint/campaign_config.html" %}
+<!-- End Campaign Config -->

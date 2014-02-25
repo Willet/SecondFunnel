@@ -629,8 +629,8 @@ App.module('core', function (module, App) {
                 documentBottomPos = $document.height(),
                 viewportHeights = pageHeight * (App.option('prefetchHeight', 1.5));
 
-            if (!this.loading && (children.length === 0 || $('.previewContainer').length === 0) &&
-                pageBottomPos >= documentBottomPos - viewportHeights) {
+            if (!this.loading && (children.length === 0 || !App.previewArea.currentView) &&
+                    pageBottomPos >= documentBottomPos - viewportHeights) {
                 // get more tiles to fill the screen.
                 this.getTiles();
             }
@@ -774,10 +774,6 @@ App.module('core', function (module, App) {
                 // hide this, then restore discovery.
                 if (App.support.mobile()) {
                     this.$el.swapWith(App.discoveryArea.$el.parent());
-
-                    // handle results that got loaded while the discovery
-                    // area has an undefined height.
-                    App.layoutEngine.layout(App.discovery);
                 }
 
                 //If we have been home then it's safe to use back()

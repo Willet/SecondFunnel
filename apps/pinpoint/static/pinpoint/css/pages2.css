@@ -21,9 +21,11 @@
 html, body {
     font-family: "helvetica neue", helvetica, arial, sans-serif;
 }
+
 body {
     position: relative;
 }
+
 header .container {
     /* null set */
 }
@@ -463,7 +465,7 @@ div.loading {
     .previewContainer {
         display: block;
         overflow: auto;
-        heiht: auto;
+        height: auto;
         position: relative;
     }
     .previewContainer .mask {
