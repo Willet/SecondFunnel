@@ -724,15 +724,11 @@ App.module('core', function (module, App) {
 
         // Disable scrolling body when preview is shown
         'onShow': function () {
-            if (App.support.touch() && !App.support.isAnAndroid()) {
-                $(document.body).addClass('no-scroll');
-            }
+            $(document.body).addClass('no-scroll');
         },
 
         'close': function () {
-            if (App.support.touch() && !App.support.isAnAndroid()) {
-                $(document.body).removeClass('no-scroll');
-            }
+            $(document.body).removeClass('no-scroll');
         }
     });
 
@@ -826,15 +822,25 @@ App.module('core', function (module, App) {
         },
 
         'onShow': function () {
-            var window_middle = $(window).scrollTop() + $(window).height() / 2;
+            var position_window = (function (previewWindow) {
+                return function () {
+                    var window_middle = $(window).scrollTop() + $(window).height() / 2;
 
-            if (App.window_middle) {
-                window_middle = App.window_middle;
-            }
+                    if (App.window_middle) {
+                        window_middle = App.window_middle;
+                    }
 
-            if (!App.support.mobile()) {
-                this.$el.css('top', Math.max(window_middle - (this.$el.height() / 2), 0));
-            }
+                    if (!App.support.mobile()) {
+                        previewWindow.$el.css('top', Math.max(window_middle - (previewWindow.$el.height() / 2), 0));
+                    }
+                };
+            }(this));
+
+            position_window();
+
+            $('img', this.$el).on('load', function () {
+                position_window();
+            });
         }
     });
 
