@@ -51,18 +51,18 @@ class Command(BaseCommand):
         if not self.store_id:
             raise CommandError("Not a valid store id for argument 0")
 
-        self.import_store()
+        self.import_store(self.store_id)
         if any(s in args for s in ['products', 'content', 'pages']):
             if 'products' in args:
-                self.import_products()
+                self.import_products(self.store_id)
             if 'content' in args:
-                self.import_content()
+                self.import_content(self.store_id)
             if 'pages' in args:
-                self.import_pages()
+                self.import_pages(self.store_id)
         else:  # only store id and download images supplied
-            self.import_products()
-            self.import_content()
-            self.import_pages()
+            self.import_products(self.store_id)
+            self.import_content(self.store_id)
+            self.import_pages(self.store_id)
 
 
     def _store_url(self, store_id=None):
@@ -93,16 +93,17 @@ class Command(BaseCommand):
 
     def import_products(self, store_id=0):
         for product in get_contentgraph_data(self._store_url(store_id=store_id) + 'product/'):
+
+            product_default_image_old_id = product.get('default-image-id')
+            if not product_default_image_old_id:
+                continue
+
             product_old_id = product.get('id')
             product_name = product.get('name')
             product_description = product.get('description')
             product_url = product.get('url')
             product_sku = product.get('sku')
             product_price = product.get('price')
-
-            product_default_image_old_id = product.get('default-image-id')
-            if not product_default_image_old_id:
-                continue
 
             product_fields = {'store': self.store,
                               'name': product_name,
@@ -141,13 +142,13 @@ class Command(BaseCommand):
 
                 print 'PRODUCT IMAGE - old_id: ', product_image_old_id, ', ', product_image_fields
 
-                ProductImage.update_or_create(old_id=product_image_old_id, defaults=product_image_fields)
+                product_image_psql, _, _ = ProductImage.update_or_create(old_id=product_image_old_id,
+                                                                   defaults=product_image_fields)
 
-            product_image_psql = ProductImage.objects.get(old_id=product_default_image_old_id)
+                if product_image_old_id == product_default_image_old_id:
+                    product_psql.default_image_id = product_image_psql.id
+                    product_psql.save()
 
-            # setting the default product-image on the product
-            product_psql.default_image_id = product_image_psql.id
-            product_psql.save()
             products[product_old_id] = product_psql.id
 
 
