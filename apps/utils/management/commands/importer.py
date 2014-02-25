@@ -32,10 +32,12 @@ def update_or_create(model, defaults=None, **kwargs):
 
 
 def get_image_sizes(image, download=True):
-    if not (download or image.get('image-sizes')):
+    if not image.get('image-sizes'):
         return {}, None, None
-    url = image.get('url')
     image_sizes = json.loads(image.get('image-sizes'))
+    if not (download or image.get('image-sizes')):
+        return {'sizes': image_sizes}, None, None
+    url = image.get('url')
     image_file = cStringIO.StringIO(urllib.urlopen(url).read())
     im = Img.open(image_file)
     width, height = im.size
@@ -55,7 +57,7 @@ class Command(BaseCommand):
         if not self.store_id:
             raise CommandError("Not a valid store id for argument 0")
 
-        if not self.download_images:
+        if self.download_images is None:
                 raise CommandError("Not a valid choice for downloading")
 
         self.import_store()
@@ -128,15 +130,16 @@ class Command(BaseCommand):
             for product_image_old_id in product_image_old_ids:
                 product_image_fields = {'product': product_psql}
 
-                product_image = call_contentgraph(
-                    self._store_url(store_id=store_id) + 'content/' + product_image_old_id)
+                product_image = call_contentgraph(self._store_url(store_id=store_id) + 'content/' + product_image_old_id)
 
                 product_image_url = product_image.get('url')
-                product_image_original_url = product_image.get(
-                    'original-url')
+                product_image_original_url = product_image.get('original-url')
+
+                product_image_dominant_colour = product_image.get('dominant-colour')
 
                 product_image_fields.update({'url': product_image_url,
-                                             'original_url': product_image_original_url, })
+                                             'original_url': product_image_original_url,
+                                             'dominant_colour': product_image_dominant_colour})
 
                 if self.download_images:
                     product_image_attributes, product_image_width, product_image_height = get_image_sizes(product_image)
@@ -190,11 +193,13 @@ class Command(BaseCommand):
                 content_url = content.get('url')
                 content_original_url = content.get('original-url')
                 content_source_url = content.get('source-url')
+                content_dominant_colour = content.get('dominant-colour')
 
                 content_fields.update(
                     {'url': content_url,
                      'original_url': content_original_url,
-                     'source_url': content_source_url})
+                     'source_url': content_source_url,
+                     'dominant_colour': content_dominant_colour})
 
                 if self.download_images:
                     content_attributes, content_width, content_height = get_image_sizes(content)
@@ -211,7 +216,9 @@ class Command(BaseCommand):
                 content_source_url = content_url
 
                 content_fields.update(
-                    {'url': content_url, 'source_url': content_source_url})
+                    {'url': content_url,
+                     'source_url': content_source_url,
+                     'player': 'youtube'})
 
                 print 'VIDEO - old_id: ', content_old_id, ', ', content_fields
 
