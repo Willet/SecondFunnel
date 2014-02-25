@@ -2,7 +2,7 @@ import json
 
 from django.http import HttpResponse
 
-from apps.assets.models import Product, Store, BaseModelNamed
+from apps.assets.models import Product, Store, BaseModel
 
 
 def ajax_jsonp(result, callback_name=None, status=200):
@@ -19,8 +19,8 @@ def ajax_jsonp(result, callback_name=None, status=200):
 
         if isinstance(result, (bool, int, float, str, basestring)):
             response_text = json.dumps(result)
-        elif isinstance(result, BaseModelNamed):
-            response_text = result.json()
+        elif isinstance(result, BaseModel):
+            response_text = result.to_json()
         elif isinstance(result, (tuple, list)):
             result_list = []
             for r in result:

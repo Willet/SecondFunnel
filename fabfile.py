@@ -26,7 +26,7 @@ def get_celery_workers(cluster_type):
     """Gets Celery workers belonging to specified cluster type"""
     ec2 = get_ec2_conn()
     res = ec2.get_all_instances(filters={
-        'tag:Name': 'CeleryWorker',
+        'tag:Name': 'CeleryWorkerNG',
         'tag:ClusterType': cluster_type
     })
 
@@ -38,11 +38,11 @@ def launch_celery_worker(cluster_type, branch):
     ec2 = get_ec2_conn()
 
     # our celery worker AMI
-    ami_id = 'ami-c00c98f0'
+    ami_id = 'ami-d6432ee6'
 
     reservations = ec2.run_instances(
         ami_id,
-        key_name='nterwoord-guardian',
+        key_name='willet-generic',
         instance_type='t1.micro',
         security_groups=['CeleryWorkers']
     )
@@ -62,7 +62,7 @@ def launch_celery_worker(cluster_type, branch):
     if status == "running":
         print green("Instance is running. Tagging it...")
         ec2.create_tags([launched_instance.id], {
-            "Name": "CeleryWorker",
+            "Name": "CeleryWorkerNG",
             "ClusterType": cluster_type
         })
 
