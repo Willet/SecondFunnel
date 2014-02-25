@@ -360,7 +360,12 @@ class Tile(BaseModel):
         return image_list
 
     def to_json(self):
-        dct = {}
+        # attributes from tile itself
+        dct = {
+            'tile-id': self.old_id or self.id,
+            'template': self.template,
+            'prioritized': self.prioritized,
+        }
         if self.products.count() > 0 and self.content.count() > 0:
             # combobox
             print "Rendering tile of type  combobox"
@@ -377,10 +382,6 @@ class Tile(BaseModel):
             dct.update({
                 'error': 'Tile has neither products nor content!'
             })
-
-        # insert attributes from tile itself
-        dct['tile-id'] = self.old_id or self.id
-        dct['template'] = self.template
 
         return dct
 
