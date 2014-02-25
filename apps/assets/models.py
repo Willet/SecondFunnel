@@ -130,7 +130,9 @@ class Product(BaseModel):
 
 
 class ProductImage(BaseModel):
-
+    """An Image-like model class that is explicitly an image depicting
+    a product, rather than any other kind.
+    """
     old_id = models.IntegerField(unique=True)
 
     product = models.ForeignKey(Product, related_name="product_images")
@@ -155,7 +157,9 @@ class ProductImage(BaseModel):
         return {
             "format": self.file_type,
             "type": "image",
-            "dominant-colour": self.dominant_color or "transparent",  # TODO: colour
+            "dominant-color": self.dominant_color or "transparent",
+            # TODO: deprecate "colour" to match up with CSS attr names
+            "dominant-colour": self.dominant_color or "transparent",
             "url": self.url,
             "id": self.old_id or self.id,
             "sizes": self.attributes.get('sizes', {})
