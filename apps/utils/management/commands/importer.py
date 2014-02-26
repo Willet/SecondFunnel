@@ -208,11 +208,13 @@ class Command(BaseCommand):
 
                 content, _, _ = Image.update_or_create(old_id=content_old_id, defaults=content_fields)
             elif content_type == 'video':
+                content_original_id = content_dict.get('original-id')
                 content_url = content_dict.get('original-url')
                 content_source_url = content_url
 
                 content_fields.update(
                     {'url': content_url,
+                     'original_id': content_original_id,
                      'source_url': content_source_url,
                      'player': 'youtube'})
 

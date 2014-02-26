@@ -288,6 +288,18 @@ class Video(Content):
     file_type = models.CharField(max_length=255, blank=True, null=True)
     file_checksum = models.CharField(max_length=512, blank=True, null=True)
 
+    # e.g. oHg5SJYRHA0
+    original_id = models.CharField(max_length=255, blank=True, null=True)
+
+    def to_json(self):
+        dct = super(Video, self).to_json()
+
+        # videos *need* original-id and original-url
+        dct["original-id"] = self.original_id or self.id
+        dct["original-url"] = self.source_url or self.url
+
+        return dct
+
 
 class Review(Content):
 
