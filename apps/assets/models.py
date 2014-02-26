@@ -1,6 +1,5 @@
 from django.core import serializers
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
@@ -21,8 +20,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
 
     created_at = CreationDateTimeField()
     updated_at = ModificationDateTimeField()
-
-    real_type = models.ForeignKey(ContentType, editable=False, null=True)
 
     class Meta:
         abstract = True
@@ -426,4 +423,3 @@ class Tile(BaseModel):
         # currently, there are only single-content tiles, so
         # pick the first content and jsonify it
         return self.content.select_subclasses()[0].to_json()
-
