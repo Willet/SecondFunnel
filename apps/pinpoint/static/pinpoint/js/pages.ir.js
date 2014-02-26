@@ -110,8 +110,6 @@ App.module("intentRank", function (intentRank, App) {
                     'withCredentials': true
                 },
                 parse: true,
-                emulateHTTP: false,
-                emulateJSON: false,
                 'data': data
             }, this.config, intentRank.options, options),
             prepopulatedResults = [],
