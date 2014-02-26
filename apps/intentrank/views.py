@@ -4,10 +4,14 @@ from django.shortcuts import get_object_or_404
 
 from hammock import Hammock
 
+from django.http import HttpResponse
+
 from apps.assets.models import Page, Tile
 from apps.intentrank.controllers import IntentRank
 from apps.intentrank.algorithms import ir_random, ir_all
 from apps.intentrank.utils import ajax_jsonp
+
+import scripts.generate_rss_feed as rss_feed
 
 
 def get_results_view(request, **kwargs):
@@ -105,3 +109,8 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs)
     request = kwargs.get('request', None)
     return ir.transform(ir.ir_random(feed=feed, results=results,
                                      exclude_set=exclude_set, request=request))
+
+
+def get_rss_feed(request, page_slug, feed_name, **kwargs):
+    page = Page.objects.get(url_slug=page_slug)
+    return HttpResponse(rss_feed.main(page, feed_name=(feed_name + '.rss')), content_type='application/rss+xml')
