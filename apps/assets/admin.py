@@ -63,7 +63,7 @@ class ProductImageAdmin(BaseAdmin):
 
 
 class ImageAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display + ['url', 'original_url']
+    list_display = ['old_id'] + BaseAdmin.list_display + ['url', 'original_url', 'tagged_products']
 
 
 class ContentAdmin(BaseAdmin):

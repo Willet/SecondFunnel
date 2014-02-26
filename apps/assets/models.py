@@ -5,14 +5,25 @@ from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
 from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
+from model_utils.managers import InheritanceManager
 
 from apps.pinpoint.utils import read_remote_file, read_a_file
+
+
+default_master_size = {
+    'master': {
+        'width': '100%',
+        'height': '100%',
+    }
+}
 
 
 class BaseModel(models.Model, DirtyFieldsMixin):
 
     created_at = CreationDateTimeField()
     updated_at = ModificationDateTimeField()
+
+    real_type = models.ForeignKey(ContentType, editable=False, null=True)
 
     class Meta:
         abstract = True
@@ -38,29 +49,31 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         if not defaults:
             defaults = {}
 
-        # a kwargs-priority full set of kwargs
-        update_or_create_kwargs = dict(defaults.items() + kwargs.items())
         try:
             obj = cls.objects.get(**kwargs)
-            for field in update_or_create_kwargs:
-                if getattr(obj, field, None) != update_or_create_kwargs.get(field):
-                    setattr(obj, field, update_or_create_kwargs[field])
+            for key, value in defaults.iteritems():
+                if getattr(obj, key, None) != value:
+                    setattr(obj, key, value)
                     updated = True
-            if updated:
-                obj.save()
         except cls.DoesNotExist:
-            obj = cls(**update_or_create_kwargs)
-            obj.save()
+            update_kwargs = dict(defaults.items())
+            update_kwargs.update(kwargs)
+            obj = cls(**update_kwargs)
             created = True
+
+        if created or updated:
+            obj.save()
 
         return (obj, created, updated)
 
     def save(self, *args, **kwargs):
-        if self.is_dirty():
-            super(BaseModel, self).save(*args, **kwargs)
-        else:
-            print "[INFO] {0} was not saved because " \
-                  "it was not modified".format(repr(self))
+        self.full_clean()
+        # self.is_dirty() does not take JSONFields into account
+        super(BaseModel, self).save(*args, **kwargs)
+
+    def to_json(self):
+        """default method for all models to have a json representation."""
+        return serializers.get_serializer("json")().serialize(iter([self]))
 
 
 class Store(BaseModel):
@@ -122,15 +135,20 @@ class Product(BaseModel):
 
         # if default image is missing...
         if self.default_image:
-            dct["default-image"] = self.default_image.old_id or \
-                self.default_image.id
+            dct["default-image"] = str(self.default_image.old_id or
+                self.default_image.id)
+        elif self.product_images.count() > 0:
+            # fall back to first image
+            dct["default-image"] = str(self.product_images.all()[0].old_id)
 
         return dct
 
 
 
 class ProductImage(BaseModel):
-
+    """An Image-like model class that is explicitly an image depicting
+    a product, rather than any other kind.
+    """
     old_id = models.IntegerField(unique=True)
 
     product = models.ForeignKey(Product, related_name="product_images")
@@ -144,22 +162,23 @@ class ProductImage(BaseModel):
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
-    attributes = JSONField(blank=True, null=True)
+    attributes = JSONField(blank=True, null=True, default={})
 
     def __init__(self, *args, **kwargs):
         super(ProductImage, self).__init__(*args, **kwargs)
-        if not self.attributes:
-            self.attributes = {}
 
     def to_json(self):
-        return {
-            "format": self.file_type,
+        dct = {
+            "format": self.file_type or "jpg",
             "type": "image",
-            "dominant-colour": self.dominant_color or "transparent",  # TODO: colour
+            "dominant-color": self.dominant_color or "transparent",
+            # TODO: deprecate "colour" to match up with CSS attr names
+            "dominant-colour": self.dominant_color or "transparent",
             "url": self.url,
-            "id": self.old_id or self.id,
-            "sizes": self.attributes.get('sizes', {})
+            "id": str(self.old_id or self.id),
+            "sizes": self.attributes.get('sizes', default_master_size)
         }
+        return dct
 
 
 class Content(BaseModel):
@@ -168,29 +187,50 @@ class Content(BaseModel):
 
     store = models.ForeignKey(Store)
 
+    url = models.TextField()  # 2f.com/.jpg
     source = models.CharField(max_length=255)
-    source_url = models.TextField(blank=True, null=True)
+    source_url = models.TextField(blank=True, null=True)  # gap/.jpg
     author = models.CharField(max_length=255, blank=True, null=True)
 
-    # list of product id's
-    tagged_products = models.CommaSeparatedIntegerField(max_length=512, blank=True, null=True)
+    # string list of product id's
+    tagged_products = models.CommaSeparatedIntegerField(max_length=512,
+                                                        blank=True, null=True)
 
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
     ## but restrict to only filtering/ordering on above fields
     attributes = JSONField(null=True)
 
+    def __init__(self, *args, **kwargs):
+        super(Content, self).__init__(*args, **kwargs)
+        if not self.attributes:
+            self.attributes = {}
+
+
+    objects = InheritanceManager()
+
     def to_json(self):
         """subclasses may implement their own to_json methods that
         :returns dict objects.
         """
-        return {
-            'store': self.store.old_id if self.store else 0,
+        dct = {
+            'store-id': str(self.store.old_id if self.store else 0),
             'source': self.source,
             'source_url': self.source_url,
+            'url': self.url or self.source_url,
             'author': self.author,
-            'tagged_products': self.tagged_products,
         }
+
+        if self.tagged_products and len(self.tagged_products) > 0:
+            dct['related-products'] = []
+
+        for product_id in self.tagged_products:
+            try:
+                dct['related-products'].append(Product.objects.get(id=product_id).to_json())
+            except Product.DoesNotExist:
+                pass  # ?
+
+        return dct
 
 
 class Image(Content):
@@ -198,7 +238,6 @@ class Image(Content):
     name = models.CharField(max_length=1024, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
-    url = models.TextField()
     original_url = models.TextField()
     file_type = models.CharField(max_length=255, blank=True, null=True)
     file_checksum = models.CharField(max_length=512, blank=True, null=True)
@@ -208,7 +247,32 @@ class Image(Content):
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
-    to_json = ProductImage.to_json  # use the same json format as other images
+    def to_json(self, expand_products=True):
+        """Only Images (not ProductImages) can have related-products."""
+        dct = {
+            "format": self.file_type,
+            "type": "image",
+            "dominant-color": self.dominant_color or "transparent",
+            # TODO: deprecate "colour" to match up with CSS attr names
+            "dominant-colour": self.dominant_color or "transparent",
+            "url": self.url or self.source_url,
+            "id": str(self.old_id or self.id),
+            "sizes": self.attributes.get('sizes', default_master_size),
+        }
+        if expand_products:
+            # turn django's string list of strings into a real list of ids
+            tagged_product_ids = map(int, self.tagged_products.split(","))
+
+            # this line raises exceptions on purpose when a tagged product
+            # is not found
+            tagged_products = [Product.objects.filter(old_id=product_id).get()
+                               for product_id in tagged_product_ids]
+            dct["related-products"] = [tagged_product.to_json()
+                                       for tagged_product in tagged_products]
+        else:
+            dct["related-products"] = self.tagged_products
+
+        return dct
 
 
 class Video(Content):
@@ -216,7 +280,6 @@ class Video(Content):
     name = models.CharField(max_length=1024, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
-    url = models.TextField()
     player = models.CharField(max_length=255)
     file_type = models.CharField(max_length=255, blank=True, null=True)
     file_checksum = models.CharField(max_length=512, blank=True, null=True)
@@ -303,44 +366,51 @@ class Tile(BaseModel):
     template = models.CharField(max_length=128)
 
     products = models.ManyToManyField(Product)
+    # use content.select_subclasses() instead of content.all()!
     content = models.ManyToManyField(Content)
 
     prioritized = models.BooleanField()
 
-    @property
-    def images(self):
-        """can't filter by subclassed FK? not sure if..."""
-        image_list = []
-        for content in self.content.all():
-            if isinstance(content, Image):
-                image_list.append(content)
-        return image_list
+    # miscellaneous attributes, e.g. "is_banner_tile"
+    attributes = JSONField(null=True, default={})
 
     def to_json(self):
-        dct = {}
+        # attributes from tile itself
+        dct = {
+            'tile-id': self.old_id or self.id,
+            'template': self.template,
+            'prioritized': self.prioritized,
+        }
+
         if self.products.count() > 0 and self.content.count() > 0:
             # combobox
+            print "Rendering tile of type  combobox"
             dct.update(self._to_combobox_tile_json())
         elif self.products.count() > 0 and self.content.count() == 0:
             # product
+            print "Rendering tile of type  product"
             dct.update(self._to_product_tile_json())
         elif self.products.count() == 0 and self.content.count() > 0:
             # (assorted) content
+            print "Rendering tile of type  content"
             dct.update(self._to_content_tile_json())
         else:
             dct.update({
                 'error': 'Tile has neither products nor content!'
             })
 
-        # insert attributes from tile itself
-        dct['tile-id'] = self.old_id or self.id
-        dct['template'] = self.template
+        # only banner tiles have the redirect-url attribute
+        if self.attributes.get('is_banner_tile', False):
+            dct.update({
+                'redirect-url': self.attributes.get('redirect_url') or \
+                    self.content.select_subclasses()[0].source_url
+            })
 
         return dct
 
     def _to_combobox_tile_json(self):
         # there are currently no combobox json formats.
-        return self.products.all()[0].to_json()
+        return self.content.select_subclasses()[0].to_json()
 
     def _to_product_tile_json(self):
         return self.products.all()[0].to_json()
@@ -348,32 +418,4 @@ class Tile(BaseModel):
     def _to_content_tile_json(self):
         # currently, there are only single-content tiles, so
         # pick the first content and jsonify it
-        return self.content.all()[0].to_json()
-
-
-## TODO: REMOVE THIS IN THE FUTURE
-class BaseModelNamed(BaseModel):
-    """
-    The base model to inherit from when a models needs a name.
-
-    @ivar name: The name of this database object.
-    @ivar description: The description of this database object.
-
-    @ivar slug: The short label for this database object. Often used in URIs.
-    """
-    name = models.CharField(max_length=255, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-
-    slug = models.SlugField(blank=True, null=True)
-
-    class Meta:
-        abstract = True
-
-    def json(self):
-        """default method for all models to have a json representation."""
-        return serializers.get_serializer("json")().serialize(iter([self]))
-
-    @classmethod
-    def from_json(cls, json_data):
-        """create an object from data. this is a subclassable stub."""
-        return cls(**json_data)
+        return self.content.select_subclasses()[0].to_json()

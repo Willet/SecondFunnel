@@ -6,7 +6,10 @@ import urllib
 import cStringIO
 import json
 
-from PIL import Image as Img
+try:  # this one fails in virtualenvs whose PIL was compiled before Pillow
+    from PIL import Image as Img
+except ImportError as err:
+    from PIL.PIL import Image as Img
 
 from apps.assets.models import (Store, Image, Video, Product, ProductImage,
                                 Theme, Page, Feed, Tile)
