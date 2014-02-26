@@ -67,7 +67,6 @@ def generate_channel(page, url, results=35, feed_name='feed.rss'):
         yield '<item>\n'
         for tile_line in tile_to_XML(url, tile, current_time):
             yield '\t' + tile_line
-        print 'hai'
         current_time -= 1
         yield '</item>\n'
 
