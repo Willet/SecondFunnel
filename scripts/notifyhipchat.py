@@ -17,8 +17,8 @@ where = os.getenv('PARAM1')
 if len(sys.argv) > 3:
     hipchat_broadcast(by=sys.argv[1], message=sys.argv[2], room_id=sys.argv[3])
 elif where == 'TEST':
-    hipchat_broadcast(by="Philip", message="(notsureif) New version on %s?" % (where))
-    pass
+    hipchat_broadcast(by="Philip", message="(notsureif) New version on the new %s?" % (where),
+                      room_id=115128)  # code
 else:
-    hipchat_broadcast(by="Hubert", message="(goodnews) New version on %s!" % (where if where else "PRODUCTION"))
-    pass
+    hipchat_broadcast(by="Hubert", message="(goodnews) New version on the new %s!" % (
+        where if where else "PRODUCTION"))
