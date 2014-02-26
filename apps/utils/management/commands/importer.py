@@ -262,7 +262,8 @@ class Command(BaseCommand):
             theme_psql = update_or_create(Theme, template=page_theme_template,
                                           defaults=page_theme_fields)
 
-            page_fields = {'feed': feed_psql, 'theme': theme_psql,
+            page_fields = {'store': self.store,
+                           'feed': feed_psql, 'theme': theme_psql,
                            'name': page_name, 'legal_copy': page_legal_copy,
                            'url_slug': page_url_slug}
 
