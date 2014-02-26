@@ -200,6 +200,7 @@ TEMPLATE_LOADERS = (
     )
 
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',  # TODO: was last
     'django.middleware.gzip.GZipMiddleware',  # NOTE: Must be the first in this tuple
     'htmlmin.middleware.HtmlMinifyMiddleware',  # Enables compression of HTML
     'django.middleware.cache.CacheMiddleware',  # Manages caching
@@ -211,7 +212,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     )
 
 KEEP_COMMENTS_ON_MINIFYING = True
@@ -269,8 +269,8 @@ INSTALLED_APPS = (
 )
 
 CORS_ORIGIN_REGEX_WHITELIST = (
-    '^[\w-]+\.secondfunnel\.com$',
-    '^[\w-]+\.elasticbeanstalk\.com$',
+    r'^(https?://)?[\w-]+\.secondfunnel\.com$',
+    r'^(https?://)?[\w-]+\.elasticbeanstalk\.com$',
 )
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
