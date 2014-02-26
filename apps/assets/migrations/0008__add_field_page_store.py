@@ -9,7 +9,7 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         # Adding field 'Page.store'
-        db.add_column(u'assets_page', 'real_type',
+        db.add_column(u'assets_page', 'store',
                       self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.Store'], null=True),
                       keep_default=False)
 
