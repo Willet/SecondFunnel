@@ -119,9 +119,9 @@ App.module('optimizer', function (optimizer, App) {
     this.addTest = function (index, test, args) {
         var result,
             pos,
-            selector = args['selector'],
-            options = args['options'],
-            probabilities = args['probabilities'],
+            selector = args.selector,
+            options = args.options,
+            probabilities = args.probabilities,
             cookie = OPTIMIZER_COOKIE + index;
 
         result = this.getCookieValue(cookie);
@@ -136,7 +136,7 @@ App.module('optimizer', function (optimizer, App) {
                 result = this.testTemplate(selector, options, probabilities);
                 break;
             default:
-                result = args['custom'](result);
+                result = args.custom(result);
         }
 
         console.debug(index + '.' + test + ': ' + result);
@@ -175,17 +175,17 @@ App.module('optimizer', function (optimizer, App) {
         self = this;
 
         _.each(window.OPTIMIZER_TESTS, function (t) {
-            index = t['index'] || t['slot'];
+            index = t.index || t.slot;
             // Don't run all A/B Tests in quiet mode
             if (App.option('debug', App.QUIET) > App.QUIET) {
                 // Run only selected tests
                 if (!(tests.indexOf(index) > -1)) {
                     return;
                 }
-            } else if (t['device'] && !is(t['device'])) {
+            } else if (t.device && !is(t.device)) {
                 return;
             }
-            test = t['test'];
+            test = t.test;
             self.addTest(index, test, t);
         });
     };
