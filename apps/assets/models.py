@@ -29,13 +29,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
     class Meta:
         abstract = True
 
-    """
-    def __init__(self, *args, **kwargs):
-        super(BaseModel, self).__init__(*args, **kwargs)
-        if self.pk:
-            self.real_type = self._get_real_type()
-    """
-
     @classmethod
     def update_or_create(cls, defaults=None, **kwargs):
         """Like Model.objects.get_or_create, either gets, updates, or creates
@@ -74,27 +67,10 @@ class BaseModel(models.Model, DirtyFieldsMixin):
 
         return (obj, created, updated)
 
-    """
-    def _get_real_type(self):
-        return ContentType.objects.get_for_model(type(self))
-
-    def cast(self):
-        if not self.real_type:
-            self.real_type = self._get_real_type()
-        return self.real_type.get_object_for_this_type(pk=self.pk)
-    """
-
     def save(self, *args, **kwargs):
-        """
-        if not self.id:
-            self.real_type = self._get_real_type()
-        """
         self.full_clean()
-        if self.is_dirty():
-            super(BaseModel, self).save(*args, **kwargs)
-        else:
-            print "[INFO] {0} was not saved because " \
-                  "it was not modified".format(repr(self))
+        # self.is_dirty() does not take JSONFields into account
+        super(BaseModel, self).save(*args, **kwargs)
 
     def to_json(self):
         """default method for all models to have a json representation."""
@@ -205,6 +181,7 @@ class ProductImage(BaseModel):
         }
         return dct
 
+
 class Content(BaseModel):
 
     old_id = models.IntegerField(unique=True)
@@ -216,8 +193,9 @@ class Content(BaseModel):
     source_url = models.TextField(blank=True, null=True)  # gap/.jpg
     author = models.CharField(max_length=255, blank=True, null=True)
 
-    # list of product id's
-    tagged_products = models.CommaSeparatedIntegerField(max_length=512, blank=True, null=True)
+    # string list of product id's
+    tagged_products = models.CommaSeparatedIntegerField(max_length=512,
+                                                        blank=True, null=True)
 
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
@@ -283,9 +261,15 @@ class Image(Content):
             "sizes": self.attributes.get('sizes', default_master_size),
         }
         if expand_products:
-            dct["related-products"] = [
-                Product.objects.get(pk=product_id).to_json()
-                for product_id in self.tagged_products]
+            # turn django's string list of strings into a real list of ids
+            tagged_product_ids = map(int, self.tagged_products.split(","))
+
+            # this line raises exceptions on purpose when a tagged product
+            # is not found
+            tagged_products = [Product.objects.filter(old_id=product_id).get()
+                               for product_id in tagged_product_ids]
+            dct["related-products"] = [tagged_product.to_json()
+                                       for tagged_product in tagged_products]
         else:
             dct["related-products"] = self.tagged_products
 
@@ -388,6 +372,9 @@ class Tile(BaseModel):
 
     prioritized = models.BooleanField()
 
+    # miscellaneous attributes, e.g. "is_banner_tile"
+    attributes = JSONField(null=True, default={})
+
     def to_json(self):
         # attributes from tile itself
         dct = {
@@ -395,6 +382,7 @@ class Tile(BaseModel):
             'template': self.template,
             'prioritized': self.prioritized,
         }
+
         if self.products.count() > 0 and self.content.count() > 0:
             # combobox
             print "Rendering tile of type  combobox"
@@ -410,6 +398,13 @@ class Tile(BaseModel):
         else:
             dct.update({
                 'error': 'Tile has neither products nor content!'
+            })
+
+        # only banner tiles have the redirect-url attribute
+        if self.attributes.get('is_banner_tile', False):
+            dct.update({
+                'redirect-url': self.attributes.get('redirect_url') or \
+                    self.content.select_subclasses()[0].source_url
             })
 
         return dct
