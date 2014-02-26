@@ -99,6 +99,10 @@ App.module("tracker", function (tracker, App) {
                     o.value || undefined, {'nonInteraction': nonInteraction});
         },
 
+        trackPageview = function() {
+            addItem('send', 'pageview');
+        },
+
         setCustomVar = function (o) {
             var index = o.index,
                 type = o.type,
@@ -208,6 +212,8 @@ App.module("tracker", function (tracker, App) {
                 'action': 'Facebook',
                 'label': trackingInfo.label
             });
+
+            trackPageview();
         });
     };
 
