@@ -128,7 +128,7 @@ AWS_SQS_POLLING_QUEUES = {
 
 # a (seemingly new) setting similar to SESSION_COOKIE_DOMAIN.
 ALLOWED_HOSTS = ['.secondfunnel.com',
-                 '.secondfunnel.com,',
+                 '.secondfunnel.com.',
                  '.elasticbeanstalk.com',
                  '.elasticbeanstalk.com.',
                  ]
@@ -268,10 +268,13 @@ INSTALLED_APPS = (
     'apps.utils',
 )
 
+CORS_ORIGIN_ALLOW_ALL = True
+"""
 CORS_ORIGIN_REGEX_WHITELIST = (
-    '^[\w-_]+\.secondfunnel\.com$',
-    '^[\w-_]+\.elasticbeanstalk\.com$',
+    '^[\w_-]+\.secondfunnel\.com$',
+    '^[\w_-]+\.elasticbeanstalk\.com$',
 )
+"""
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'content-type',
