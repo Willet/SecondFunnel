@@ -46,6 +46,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         self.store_id = args[0]
+
         if len(args) > 1 and args[1] and args[1] in ['true', 'True', 't']:
             self.download_images = True
         else:
@@ -54,18 +55,18 @@ class Command(BaseCommand):
         if not self.store_id:
             raise CommandError("Not a valid store id for argument 0")
 
-        self.import_store(self.store_id)
+        self.import_store()
         if any(s in args for s in ['products', 'content', 'pages']):
             if 'products' in args:
-                self.import_products(self.store_id)
+                self.import_products()
             if 'content' in args:
-                self.import_content(self.store_id)
+                self.import_content()
             if 'pages' in args:
-                self.import_pages(self.store_id)
+                self.import_pages()
         else:  # only store id and download images supplied
-            self.import_products(self.store_id)
-            self.import_content(self.store_id)
-            self.import_pages(self.store_id)
+            self.import_products()
+            self.import_content()
+            self.import_pages()
 
 
     def _store_url(self, store_id=None):
@@ -76,8 +77,9 @@ class Command(BaseCommand):
         else:
             return 'store/'
 
-    def import_store(self, store_id=0):
-        store = call_contentgraph(self._store_url(store_id=store_id))
+    def import_store(self, store_id=None):
+        store_id = store_id or self.store_id
+        store = call_contentgraph(self._store_url())
         store_old_id = store.get('id')
         store_name = store.get('name')
         store_slug = store.get('slug')
@@ -91,11 +93,11 @@ class Command(BaseCommand):
         print 'STORE - old_id: ', store_old_id, ', ', store_fields
 
         self.store, _, _ = Store.update_or_create(old_id=store_old_id, defaults=store_fields)
-        print store
 
 
-    def import_products(self, store_id=0):
-        for product in get_contentgraph_data(self._store_url(store_id=store_id) + 'product/'):
+    def import_products(self, store_id=None):
+        store_id = store_id or self.store_id
+        for product in get_contentgraph_data(self._store_url() + 'product/'):
 
             product_default_image_old_id = product.get('default-image-id')
             if not product_default_image_old_id:
@@ -155,8 +157,9 @@ class Command(BaseCommand):
             products[product_old_id] = product_psql.id
 
 
-    def import_content(self, store_id=0):
-        for content in get_contentgraph_data(self._store_url(store_id=store_id) + 'content/'):
+    def import_content(self, store_id=None):
+        store_id = store_id or self.store_id
+        for content in get_contentgraph_data(self._store_url() + 'content/'):
             content_old_id = content.get('id')
             content_source = content.get('source')
             # if the image has source 'image' (product image), skip
@@ -222,8 +225,9 @@ class Command(BaseCommand):
             contents[content_old_id] = content_psql.id
 
 
-    def import_pages(self, store_id=0):
-        for page in get_contentgraph_data(self._store_url(store_id=store_id) + 'page/'):
+    def import_pages(self, store_id=None):
+        store_id = store_id or self.store_id
+        for page in get_contentgraph_data(self._store_url() + 'page/'):
             page_old_id = page.get('id')
             if not page_old_id in ['91', '95', '98']:
                 continue
