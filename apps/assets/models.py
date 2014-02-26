@@ -23,8 +23,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
     created_at = CreationDateTimeField()
     updated_at = ModificationDateTimeField()
 
-    real_type = models.ForeignKey(ContentType, editable=False, null=True)
-
     class Meta:
         abstract = True
 
