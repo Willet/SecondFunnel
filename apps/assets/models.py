@@ -6,6 +6,7 @@ from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
 from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
+from model_utils.managers import InheritanceManager
 
 from apps.pinpoint.utils import read_remote_file, read_a_file
 
@@ -28,10 +29,12 @@ class BaseModel(models.Model, DirtyFieldsMixin):
     class Meta:
         abstract = True
 
+    """
     def __init__(self, *args, **kwargs):
         super(BaseModel, self).__init__(*args, **kwargs)
         if self.pk:
             self.real_type = self._get_real_type()
+    """
 
     @classmethod
     def update_or_create(cls, defaults=None, **kwargs):
@@ -71,6 +74,7 @@ class BaseModel(models.Model, DirtyFieldsMixin):
 
         return (obj, created, updated)
 
+    """
     def _get_real_type(self):
         return ContentType.objects.get_for_model(type(self))
 
@@ -78,10 +82,13 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         if not self.real_type:
             self.real_type = self._get_real_type()
         return self.real_type.get_object_for_this_type(pk=self.pk)
+    """
 
     def save(self, *args, **kwargs):
+        """
         if not self.id:
             self.real_type = self._get_real_type()
+        """
         self.full_clean()
         if self.is_dirty():
             super(BaseModel, self).save(*args, **kwargs)
@@ -180,12 +187,10 @@ class ProductImage(BaseModel):
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
-    attributes = JSONField(blank=True, null=True)
+    attributes = JSONField(blank=True, null=True, default={})
 
     def __init__(self, *args, **kwargs):
         super(ProductImage, self).__init__(*args, **kwargs)
-        if not self.attributes:
-            self.attributes = {}
 
     def to_json(self):
         dct = {
@@ -218,6 +223,14 @@ class Content(BaseModel):
     ## this will allow arbitrary fields, querying all Content
     ## but restrict to only filtering/ordering on above fields
     attributes = JSONField(null=True)
+
+    def __init__(self, *args, **kwargs):
+        super(Content, self).__init__(*args, **kwargs)
+        if not self.attributes:
+            self.attributes = {}
+
+
+    objects = InheritanceManager()
 
     def to_json(self):
         """subclasses may implement their own to_json methods that
@@ -270,8 +283,9 @@ class Image(Content):
             "sizes": self.attributes.get('sizes', default_master_size),
         }
         if expand_products:
-            dct["related-products"] = [Product.objects.get(pk=product_id)
-                                 for product_id in self.tagged_products]
+            dct["related-products"] = [
+                Product.objects.get(pk=product_id).to_json()
+                for product_id in self.tagged_products]
         else:
             dct["related-products"] = self.tagged_products
 
@@ -369,18 +383,10 @@ class Tile(BaseModel):
     template = models.CharField(max_length=128)
 
     products = models.ManyToManyField(Product)
+    # use content.select_subclasses() instead of content.all()!
     content = models.ManyToManyField(Content)
 
     prioritized = models.BooleanField()
-
-    @property
-    def images(self):
-        """can't filter by subclassed FK? not sure if..."""
-        image_list = []
-        for content in self.content.all():
-            if isinstance(content, Image):
-                image_list.append(content)
-        return image_list
 
     def to_json(self):
         # attributes from tile itself
@@ -410,7 +416,7 @@ class Tile(BaseModel):
 
     def _to_combobox_tile_json(self):
         # there are currently no combobox json formats.
-        return self.content.all()[0].to_json()
+        return self.content.select_subclasses()[0].to_json()
 
     def _to_product_tile_json(self):
         return self.products.all()[0].to_json()
@@ -418,5 +424,5 @@ class Tile(BaseModel):
     def _to_content_tile_json(self):
         # currently, there are only single-content tiles, so
         # pick the first content and jsonify it
-        return self.content.all()[0].to_json()
+        return self.content.select_subclasses()[0].to_json()
 
