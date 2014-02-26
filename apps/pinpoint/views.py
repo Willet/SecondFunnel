@@ -5,6 +5,8 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login
@@ -61,3 +63,10 @@ def app_exception_handler(request):
     return HttpResponseServerError(loader.get_template('500.html').render(
         Context({'exception': exception,
                  'traceback': '\n'.join(stack)})))
+
+
+@login_required
+def diagnostics(request):
+    """show environment variables."""
+    settings.DEBUG = True
+    raise Exception()

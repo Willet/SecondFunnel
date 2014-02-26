@@ -1,6 +1,8 @@
 from django.conf.urls import patterns, url
 
 urlpatterns = patterns('apps.pinpoint.views',
+    url(r'^admin/diagnostics/?$', 'diagnostics', name='diagnostics'),
+
     url(r'^admin/social-auth/connect/$', 'social_auth_redirect',
         name='social-auth-connect'),
 

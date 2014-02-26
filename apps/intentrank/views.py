@@ -54,7 +54,8 @@ def get_results_view(request, **kwargs):
         return HttpResponseNotFound("No feed for page {0}".format(page_id))
     return ajax_jsonp(get_results(feed=feed, results=results,
                                   exclude_set=exclude_set, request=request),
-                      callback_name=callback)
+                      callback_name=callback, request=request,
+                      add_cors_headers=True)
 
 
 @never_cache
@@ -88,7 +89,8 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
         return ajax_jsonp(tile.to_json())
 
     return ajax_jsonp(get_results(feed=feed, algorithm=ir_all),
-                      callback_name=callback)
+                      callback_name=callback, request=request,
+                      add_cors_headers=True)
 
 
 def get_results_ir(url, results):
