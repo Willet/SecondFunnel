@@ -61,7 +61,7 @@ def get_page_information(page_id, url):
     return {'url': url}
 
 def get_items(page_id):
-    response = ContentGraph.page(page_id).tile.GET(params={'template': 'product'}).json()
+    response = ContentGraph.page(page_id).tile.GET().json()
     items = response['results']
 
     items = map(tile_to_json, items)
@@ -101,18 +101,23 @@ def generate_feed(items, store_info, page_info):
 
     return root
 
-def json_to_XMLItem(obj, store_info=None, page_info=None):
+def json_to_XMLItem(tile, store_info=None, page_info=None):
     if not store_info:
         store_info = {}
 
     if not page_info:
         page_info = {}
 
+    if len(tile.get('related-products', [])) > 0:
+        product = tile.get('related-products')[0]
+    else:
+        product = tile
+
     item = Element('item')
 
     # Begin - Always Required
     title = SubElement(item, 'title')
-    title.text = obj.get('name')
+    title.text = product.get('name')
 
     # Since we can't link to gap.com and have the feed validate, need to
     # build the URL.
@@ -121,32 +126,36 @@ def json_to_XMLItem(obj, store_info=None, page_info=None):
     link = SubElement(item, 'link')
     link.text = '{0}#{1}'.format(
         page_info.get('url'),
-        obj.get('tile-id')
+        tile.get('tile-id')
     )
 
     description = SubElement(item, 'description')
-    description.text = obj.get('description')
+    description.text = product.get('description')
 
     # Needs to be unique across everything!
     # Assumption: Product ids are unique across stores
     id = SubElement(item, 'g:id')
     id.text = '{0}P{1}T{2}'.format(
         store_info.get('slug'),
-        obj.get('page-id'),
-        obj.get('tile-id')
+        tile.get('page-id'),
+        tile.get('tile-id')
     )
 
     condition = SubElement(item, 'g:condition')
     condition.text = 'new'
 
     price = SubElement(item, 'g:price')
-    price.text = obj.get('price')
+    price.text = product.get('price')
 
     availability = SubElement(item, 'g:availability')
     availability.text = 'in stock'
 
     image_link = SubElement(item, 'g:image_link')
-    image_link.text = obj.get('images')[0]['url']
+
+    if tile is product:
+        image_link.text = product.get('images')[0]['url']
+    else:
+        image_link.text = tile.get('url')
 
     # End - Always Required
 
