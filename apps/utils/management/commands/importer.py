@@ -250,7 +250,8 @@ class Command(BaseCommand):
 
             theme, _, _ = Theme.update_or_create(template=page_theme_template, defaults=page_theme_fields)
 
-            page_fields = {'feed': feed, 'theme': theme,
+            page_fields = {'store': self.store,
+                           'feed': feed, 'theme': theme,
                            'name': page_name, 'legal_copy': page_legal_copy,
                            'url_slug': page_url_slug}
 

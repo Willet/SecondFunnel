@@ -7,6 +7,8 @@ urlpatterns = patterns('apps.intentrank.views',
         name='get-tiles'),
     url(r'^page/(?P<page_id>\d+)/tile/?$', 'get_tiles_view',
         name='get-tiles'),
+    url(r'^page/(?P<page_slug>[^/\.]+)/(?P<feed_name>[^/\.]+\.rss)$', 'get_rss_feed',
+        name='get-feed'),
 
     # fallback proxy
     url(r'^(?P<url>.+)$', 'get_results_view',

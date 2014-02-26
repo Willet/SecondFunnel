@@ -6,11 +6,17 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 
+from hammock import Hammock
+
+from django.http import HttpResponse
+
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile
 from apps.intentrank.controllers import IntentRank
 from apps.intentrank.algorithms import ir_random, ir_all
 from apps.intentrank.utils import ajax_jsonp
+
+import scripts.generate_rss_feed as rss_feed
 
 
 @never_cache
@@ -116,3 +122,9 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs)
     request = kwargs.get('request', None)
     return ir.transform(ir.ir_random(feed=feed, results=results,
                                      exclude_set=exclude_set, request=request))
+
+
+def get_rss_feed(request, page_slug, feed_name, **kwargs):
+    page = Page.objects.get(url_slug=page_slug)
+    feed = rss_feed.main(page, feed_name=feed_name)
+    return HttpResponse(feed, content_type='application/rss+xml')

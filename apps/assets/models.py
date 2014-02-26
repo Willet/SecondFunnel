@@ -322,6 +322,8 @@ class Feed(BaseModel):
 
 class Page(BaseModel):
 
+    store = models.ForeignKey(Store)
+
     old_id = models.IntegerField(unique=True)
 
     theme = models.ForeignKey(Theme, related_name='page', blank=True, null=True)
