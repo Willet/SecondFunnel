@@ -124,4 +124,5 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs)
 
 def get_rss_feed(request, page_slug, feed_name, **kwargs):
     page = Page.objects.get(url_slug=page_slug)
-    return HttpResponse(rss_feed.main(page, feed_name=(feed_name + '.rss')), content_type='application/rss+xml')
+    feed = rss_feed.main(page, feed_name=feed_name)
+    return HttpResponse(feed, content_type='application/rss+xml')

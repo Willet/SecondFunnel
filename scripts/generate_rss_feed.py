@@ -11,6 +11,12 @@ from apps.assets.models import Image, Page, Tile
 
 
 def main(page, results=35, feed_name='feed.rss'):
+    """Returns an rss feed
+
+    page -- the page model for the feed
+    results -- the max number of results for the feed
+    feed_name -- the name of the feed that is being created
+    """
     store = page.store
 
     url = 'http://' + store.slug + '.secondfunnel.com/' + page.url_slug + '/'
@@ -22,8 +28,8 @@ def main(page, results=35, feed_name='feed.rss'):
     return feed
 
 
-def notify_superfeedr(bucket, folder, feed_name='feed.rss'):
-    url = 'http://second-funnel.superfeedr.com?hub.mode=publish&hub.url=http://' + bucket + '/' + folder + feed_name
+def notify_superfeedr(url, feed_name='feed.rss'):
+    url = 'http://second-funnel.superfeedr.com?hub.mode=publish&hub.url={0}'.format(url)
     r = urllib2.urlopen(url, data=' ') # sending data to make this a post request
 
 
