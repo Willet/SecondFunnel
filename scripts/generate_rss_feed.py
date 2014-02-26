@@ -12,6 +12,8 @@ from xml.dom import minidom
 from xml.etree.ElementTree import Element, tostring, SubElement
 from apps.assets.models import Image, Page, Tile
 
+DEFAULT_RESULTS=35
+
 def CDATA(text=None):
     element = etree.Element('![CDATA[')
     element.text = text
@@ -28,7 +30,7 @@ def _serialize_xml(write, elem, encoding, qnames, namespaces):
 etree._serialize_xml = etree._serialize['xml'] = _serialize_xml
 
 
-def main(page, results=35, feed_name='feed.rss'):
+def main(page, results=DEFAULT_RESULTS, feed_name='feed.rss'):
     """Returns an rss feed
 
     page -- the page model for the feed
@@ -39,9 +41,7 @@ def main(page, results=35, feed_name='feed.rss'):
 
     url = 'http://' + store.slug + '.secondfunnel.com/' + page.url_slug + '/'
 
-    feed = ''
-    for line in generate_feed(page, url, results, feed_name):
-        feed += line
+    feed = generate_feed(page, url, results, feed_name)
 
     return feed
 
@@ -91,7 +91,7 @@ def tile_to_XML(url, tile, current_time):
     return item
 
 
-def generate_channel(page, url, results=35, feed_name='feed.rss'):
+def generate_channel(page, url, results=DEFAULT_RESULTS, feed_name='feed.rss'):
     channel = Element('channel')
 
     title = SubElement(channel, 'title')
@@ -126,7 +126,7 @@ def generate_channel(page, url, results=35, feed_name='feed.rss'):
     return channel
 
 
-def generate_feed(page, url, results=35, feed_name='feed.rss'):
+def generate_feed(page, url, results=DEFAULT_RESULTS, feed_name='feed.rss'):
     root = Element('rss')
     root.set('version', '2.0')
     root.set('xmlns:content', 'http://purl.org/rss/1.0/modules/content/')
