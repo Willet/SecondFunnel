@@ -8,8 +8,6 @@ from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
 
-from apps.pinpoint.utils import read_remote_file, read_a_file
-
 
 default_master_size = {
     'master': {
@@ -145,7 +143,6 @@ class Product(BaseModel):
         return dct
 
 
-
 class ProductImage(BaseModel):
     """An Image-like model class that is explicitly an image depicting
     a product, rather than any other kind.
@@ -183,6 +180,8 @@ class ProductImage(BaseModel):
 
 
 class Content(BaseModel):
+    # Content.objects object for deserializing Content models as subclasses
+    objects = InheritanceManager()
 
     old_id = models.IntegerField(unique=True)
 
@@ -193,7 +192,7 @@ class Content(BaseModel):
     source_url = models.TextField(blank=True, null=True)  # gap/.jpg
     author = models.CharField(max_length=255, blank=True, null=True)
 
-    # string list of product id's
+    # string list of NEW product ids
     tagged_products = models.CommaSeparatedIntegerField(max_length=512,
                                                         blank=True, null=True)
 
@@ -206,9 +205,6 @@ class Content(BaseModel):
         super(Content, self).__init__(*args, **kwargs)
         if not self.attributes:
             self.attributes = {}
-
-
-    objects = InheritanceManager()
 
     def to_json(self):
         """subclasses may implement their own to_json methods that
@@ -232,6 +228,23 @@ class Content(BaseModel):
                 pass  # ?
 
         return dct
+
+    def get_tagged_products(self, raise_on_lost_reference=False):
+        """Model alias for tagged_products (<str>)
+
+        :param raise_on_lost_reference bool if any one id does not correspond
+          to a product in the db, raise Product.DoesNotExist.
+
+        :returns list
+        """
+        tagged_product_ids = map(int, self.tagged_products.split(","))
+        if not raise_on_lost_reference:
+            products = Product.objects.filter(id__in=tagged_product_ids)
+            if raise_on_lost_reference and len(products) < len(tagged_product_ids):
+                raise Product.DoesNotExist("Could not find all products "
+                    "requested from the DB; expected {0}, got {1}".format(
+                    len(products), len(tagged_product_ids)))
+            return products
 
 
 class Image(Content):
@@ -262,14 +275,7 @@ class Image(Content):
         }
         if expand_products:
             # turn django's string list of strings into a real list of ids
-            tagged_product_ids = map(int, self.tagged_products.split(","))
-
-            # this line raises exceptions on purpose when a tagged product
-            # is not found
-            tagged_products = [Product.objects.filter(old_id=product_id).get()
-                               for product_id in tagged_product_ids]
-            dct["related-products"] = [tagged_product.to_json()
-                                       for tagged_product in tagged_products]
+            dct["related-products"] = [x.to_json() for x in self.get_tagged_products()]
         else:
             dct["related-products"] = self.tagged_products
 
