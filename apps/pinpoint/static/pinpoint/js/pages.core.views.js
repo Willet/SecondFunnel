@@ -221,7 +221,8 @@ App.module('core', function (module, App) {
                 },
                 widable_templates = {
                     'image': true,
-                    'youtube': true
+                    'youtube': true,
+                    'banner': true
                 }; //TODO: Make the configurable; perhaps a page property?
 
             // templates use this as obj.image.url
