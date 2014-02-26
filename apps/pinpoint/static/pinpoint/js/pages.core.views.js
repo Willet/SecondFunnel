@@ -179,6 +179,7 @@ App.module('core', function (module, App) {
                 this.socialButtons.currentView.load();
                 this.socialButtons.$el[inOrOut](200);
             }
+            return this;
         },
 
         'onClick': function (ev) {
