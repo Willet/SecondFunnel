@@ -1,4 +1,4 @@
-/*global App, Backbone, Marionette, imagesLoaded, console, _, $ */
+/*global App, Backbone, Marionette, imagesLoaded, console, _, setTimeout, clearTimeout $ */
 /**
  * @module intentRank
  */
@@ -6,13 +6,24 @@ App.module("intentRank", function (intentRank, App) {
     "use strict";
 
     var consecutiveFailures = 0,
-        resultsAlreadyRequested = [];  // list of product IDs
+        cachedResults = [],
+        resultsAlreadyRequested = [], // list of product IDs
+        // TODO: Find a better way to do this
+        fetch = _.debounce(function () {
+            var diff = cachedResults.length;
+            diff -= intentRank.options.IRCacheResultCount;
+            if (diff < 0) {
+                intentRank.fetch({
+                    'IRCacheResultCount': diff
+                });
+            }
+        }, 5000);
 
     this.options = {
         'baseUrl': "http://intentrank-test.elasticbeanstalk.com/intentrank",
         'urlTemplates': {
-            'campaign': "<%=url%>/page/<%=campaign%>/getresults",
-            'content': "<%=url%>/page/<%=campaign%>/content/<%=id%>/getresults"
+            'campaign': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>",
+            'content': "<%=baseUrl%>/page/<%=campaign%>/content/<%=id%>/getresults"
         },
         'add': true,
         'merge': true,
@@ -49,23 +60,40 @@ App.module("intentRank", function (intentRank, App) {
             'IRResultsCount': options.IRResultsCount || 10,
             'IRTimeout': options.IRTimeout || 5000,
             'content': options.content || [],
-            'filters': options.filters || []
+            'filters': options.filters || [],
+            // Use this to intelligently guess what our cache calls should
+            // request
+            'IRCacheResultCount': options.IRResultsCount || 10
         });
+
+        // Cache some results
+        intentRank.fetch();
 
         App.vent.trigger('intentRankInitialized', intentRank);
         return this;
     };
 
     /**
+     * This function simply returns the base url for intentRank
+     *
+     * @returns {String}
+     */
+    this.url = function () {
+        return _.template(intentRank.options.urlTemplates.campaign,
+            intentRank.options);
+    };
+
+    /**
      * This function is a bridge between our IntentRank module and our
-     * Discovery area.
-     * It must be executed with a Backbone.Collection as context.
+     * Discovery area.  This function can be called by intentRank itself,
+     * or a Collection as context.  Benefits of calling this with intentRank
+     * as context, is that you can cache results.
      *
      * @param options
      * @returns {promise}
      */
     this.fetch = function (options) {
-        // 'this' IS NOT INTENTRANK
+        // 'this' can be whatever you want it to be
         var collection = this,
             deferred = new $.Deferred(),
             online = !App.option('page:offline', false),
@@ -81,8 +109,10 @@ App.module("intentRank", function (intentRank, App) {
                 'xhrFields': {
                     'withCredentials': true
                 },
+                parse: true,
                 'data': data
             }, this.config, intentRank.options, options),
+            prepopulatedResults = [],
             backupResults = _.chain(intentRank.options.backupResults)
                 .filter(intentRank.filter)
                 .shuffle()
@@ -94,13 +124,43 @@ App.module("intentRank", function (intentRank, App) {
             return $.when(backupResults);
         }
 
-        // if online, return the result, or a backup list if it fails.
-        Backbone.Collection.prototype.fetch.call(this, opts)
-            .done(function (results) {
+        // check if cached results, and options is undefined
+        // don't do this if we are actually the intentRank module
+        if (!options && !(this == intentRank)) {
+            var len = cachedResults.length;
+            prepopulatedResults = cachedResults.splice(0, Math.min(opts.results, len));
+
+            if (len >= opts.results) {
+                // Use a dummy deferred object
+                deferred = Object({
+                    always: function (foo) {
+                        fetch(opts.results);
+                        return foo(prepopulatedResults);
+                    }
+                });
+                return deferred;
+            } else {
+                // for now, it seems that intentRank has an upperbound of 20, so
+                // just set that as the limit
+                intentRank.updateCache(opts.results - len);
+                deferred.done(function () {
+                    fetch(opts.results);
+                });
+            }
+        }
+
+        // attach respective success and error functions to the options object
+        // use backup list if request fails
+        _.extend(opts, {
+            success: function (results) {
+                var method = opts.reset ? 'reset' : 'set';
                 // reset fail counter
                 collection.ajaxFailCount = 0;
+                collection[method](results, opts);
+                collection.trigger('sync', collection, results, opts);
 
                 // SHUFFLE_RESULTS is always true
+                results = prepopulatedResults.concat(results);
                 deferred.resolve(_.shuffle(results));
                 resultsAlreadyRequested = _.compact(intentRank.getTileIds(results));
 
@@ -109,8 +169,10 @@ App.module("intentRank", function (intentRank, App) {
                 if (resultsAlreadyRequested.length > intentRank.options.IRResultsCount) {
                     resultsAlreadyRequested = resultsAlreadyRequested.slice(-10);
                 }
-            })
-            .fail(function () {
+
+                if (!(collection == intentRank)) fetch();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
                 // reset fail counter
                 if (collection.ajaxFailCount) {
                     collection.ajaxFailCount++;
@@ -120,8 +182,11 @@ App.module("intentRank", function (intentRank, App) {
 
                 deferred.resolve(backupResults);
                 resultsAlreadyRequested = intentRank.getTileIds(backupResults);
-            });
+            }
+        });
 
+        // Make the request to Backbone collection and return deferred
+        Backbone.Collection.prototype.sync('read', collection, opts);
         return deferred.promise();
     };
 
@@ -180,7 +245,7 @@ App.module("intentRank", function (intentRank, App) {
     };
 
     /**
-     * @oaram {Tile} tiles
+     * @param {Tile} tiles
      * @return {Array} unique list of tile ids
      */
     this.getTileIds = function (tiles) {
@@ -193,6 +258,40 @@ App.module("intentRank", function (intentRank, App) {
         }));
     };
 
+    /**
+     * @param {Integer} diff
+     * @return thsi
+     */
+    this.updateCache = function (diff) {
+        // right now it seems as if IR has a hard limit of 20
+        this.options.IRCacheResultCount = Math.min(20,
+            this.options.IRCacheResultCount + diff);
+        return this;
+    };
+
+    /**
+     * @param {Array} results
+     * @return this
+     */
+    this.set = function (results) {
+        // Simply add to our cached results list
+        cachedResults = cachedResults.concat(results);
+        return this;
+    };
+
+    /**
+     * Dummy method
+     *
+     * @return this
+     */
+    this.sync = function () {
+        return this;
+    };
+
+    /**
+     * @param {String} category
+     * @return this
+     */
     this.changeCategory = function (category) {
         // Change the category
         if (!_.findWhere(intentRank.options.categories,

@@ -16,7 +16,7 @@ class StoreTheme(BaseModelNamed):
     @ivar page: The template for the entire page. Css is also usually put here.
     """
 
-    DEFAULT_PAGE = read_remote_file('https://s3-us-west-2.amazonaws.com/'
+    DEFAULT_PAGE = read_remote_file('http://s3-us-west-2.amazonaws.com/'
                                     'static-misc-secondfunnel/themes/gap.html')
 
     # Django templates

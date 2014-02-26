@@ -21,9 +21,11 @@
 html, body {
     font-family: "helvetica neue", helvetica, arial, sans-serif;
 }
+
 body {
     position: relative;
 }
+
 header .container {
     /* null set */
 }
@@ -434,11 +436,11 @@ div.loading {
     padding: 5px;
     width: 39px;
     height: 39px;
-    background: url('https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -43px 0;
+    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -43px 0;
 }
 
 .pinterest_share .share_img {
-    background: url('https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -124px 0;
+    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -124px 0;
 }
 
 .google_share .share_img {
@@ -447,15 +449,15 @@ div.loading {
 }
 
 .twitter_share .share_img {
-    background: url('https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -83px 0;
+    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -83px 0;
 }
 
 .tumblr_share .share_img {
-    background: url('https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -205px 0;
+    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -205px 0;
 }
 
 .facebook_share .share_img {
-    background: url('https://s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -163px 0;
+    background: url('//s3-us-west-2.amazonaws.com/static-misc-secondfunnel/images/CSS-Sprites-Ver4-2.png') -163px 0;
 }
 
 /* mobile-grade preview container styles */
@@ -463,7 +465,7 @@ div.loading {
     .previewContainer {
         display: block;
         overflow: auto;
-        heiht: auto;
+        height: auto;
         position: relative;
     }
     .previewContainer .mask {
