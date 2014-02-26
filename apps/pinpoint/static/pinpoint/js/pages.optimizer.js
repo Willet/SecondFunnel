@@ -171,12 +171,20 @@ App.module('optimizer', function (optimizer, App) {
             test, index, self;
 
         window.OPTIMIZER_TESTS = window.OPTIMIZER_TESTS || [];
+        tests = App.utils.getQuery('activate-test');
         self = this;
 
         _.each(window.OPTIMIZER_TESTS, function (t) {
-            if (t['device'] && !is(t['device']))
-                return;
             index = t['index'] || t['slot'];
+            // Don't run all A/B Tests in quiet mode
+            if (App.option('debug', App.QUIET) > App.QUIET) {
+                // Run only selected tests
+                if (!(tests.indexOf(index) > -1)) {
+                    return;
+                }
+            } else if (t['device'] && !is(t['device'])) {
+                return;
+            }
             test = t['test'];
             self.addTest(index, test, t);
         });

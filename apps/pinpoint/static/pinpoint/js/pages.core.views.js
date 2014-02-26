@@ -768,14 +768,6 @@ App.module('core', function (module, App) {
         },
         'events': {
             'click .close, .mask': function () {
-                // hide this, then restore discovery.
-                if (App.support.mobile()) {
-                    this.$el.swapWith(App.discoveryArea.$el.parent());
-                    // handle results that got loaded while the discovery
-                    // area has an undefined height.
-                    App.layoutEngine.layout(App.discovery);
-                }
-
                 //If we have been home then it's safe to use back()
                 if (App.initialPage === '') {
                     Backbone.history.history.back();
@@ -845,6 +837,16 @@ App.module('core', function (module, App) {
             $('img', this.$el).on('load', function () {
                 position_window();
             });
+        },
+
+        'onClose': function () {
+            // hide this, then restore discovery.
+            if (App.support.mobile()) {
+                this.$el.swapWith(App.discoveryArea.$el.parent());
+                // handle results that got loaded while the discovery
+                // area has an undefined height.
+                App.layoutEngine.layout(App.discovery);
+            }
         }
     });
 
