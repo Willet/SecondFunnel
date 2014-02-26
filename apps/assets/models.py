@@ -1,5 +1,6 @@
-from django.core import serializers
 from django.contrib.auth.models import User
+from django.core import serializers
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
@@ -48,9 +49,18 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         try:
             obj = cls.objects.get(**kwargs)
             for key, value in defaults.iteritems():
-                if getattr(obj, key, None) != value:
+                try:
+                    current_value = getattr(obj, key, None)
+                except ObjectDoesNotExist as err:
+                    # tried to read object reference that currently
+                    # points to nothing. ignore it and set the attribute.
+                    # a subclass.DoesNotExist, whose reference I don't know
+                    current_value = err
+
+                if current_value != value:
                     setattr(obj, key, value)
                     updated = True
+
         except cls.DoesNotExist:
             update_kwargs = dict(defaults.items())
             update_kwargs.update(kwargs)
