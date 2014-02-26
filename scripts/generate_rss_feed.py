@@ -1,13 +1,31 @@
 #!/usr/bin/env python
 
-#argv - 1: store-id, 2: page-id
+#argv - 1: page-id
 
 import argparse
 import urllib2
 import hashlib
+import xml.etree.ElementTree as etree
 
 from time import gmtime, strftime, time
+from xml.dom import minidom
+from xml.etree.ElementTree import Element, tostring, SubElement
 from apps.assets.models import Image, Page, Tile
+
+def CDATA(text=None):
+    element = etree.Element('![CDATA[')
+    element.text = text
+    return element
+
+etree._original_serialize_xml = etree._serialize_xml
+def _serialize_xml(write, elem, encoding, qnames, namespaces):
+    if elem.tag == '![CDATA[':
+        write("\n<%s%s]]>\n" % (
+                elem.tag, elem.text))
+        return
+    return etree._original_serialize_xml(
+        write, elem, encoding, qnames, namespaces)
+etree._serialize_xml = etree._serialize['xml'] = _serialize_xml
 
 
 def main(page, results=35, feed_name='feed.rss'):
@@ -34,62 +52,95 @@ def notify_superfeedr(url, feed_name='feed.rss'):
 
 
 def tile_to_XML(url, tile, current_time):
+    item = Element('item')
+
     product = tile.products.first()
     content = tile.content.first()
 
     image = Image.objects.filter(content_ptr_id=content.id).first()
 
-    yield '<title>' + product.name + '</title>\n'
-    yield '<link>' + url + '#' + str(tile.old_id) + '</link>\n'
+    title = SubElement(item, 'title')
+    title.text = product.name
+
+    link = SubElement(item, 'link')
+    link.text = url + '#' + str(tile.old_id)
 
     m = hashlib.md5()
     m.update(str(tile.id))
+    guid = SubElement(item, 'guid')
+    guid.set('isPermaLink', 'false')
+    guid.text = m.hexdigest()
 
-    yield '<guid isPermaLink="false">' + m.hexdigest() + '</guid>\n'
-    yield '<pubDate>' + strftime('%a, %d %b %Y %H:%M:%S +0000', gmtime(current_time)) + '</pubDate>\n'
-    yield '<content:encoded><![CDATA[\n'
-    yield '\t<figure>\n'
-    img = '\t\t<img src="' + image.url.replace('master', '1024x1024')
+    pubDate = SubElement(item, 'pubDate')
+    pubDate.text = strftime('%a, %d %b %Y %H:%M:%S +0000', gmtime(current_time))
+
+    figure = Element('figure')
+
+    img = SubElement(figure, 'img')
+    img.set('src', image.url.replace('master', '1024x1024'))
     if image.width and image.height:
-        img += ' width=' + str(image.width) + ' height=' + str(image.height)
-    img += ' data-fl-original-src' + image.url + '">\n'
-    yield img
-    yield '\t</figure>\n'
-    yield ']]></content:encoded>\n'
+        img.set('width', image.width)
+        img.set('height', image.height)
+    img.set('data-fl-original-src', image.url)
+
+    encoded = CDATA(tostring(figure, 'utf-8'))
+
+    content_encoded = SubElement(item, 'content:encoded')
+    content_encoded.append(encoded)
+
+    return item
 
 
 def generate_channel(page, url, results=35, feed_name='feed.rss'):
+    channel = Element('channel')
 
-    yield '<title>' + page.name + '</title>\n'
-    yield '<link>' + url + '</link>\n'
-    yield '<description></description>\n'
-    yield '<language>en-us</language>\n'
-    yield '<atom:link rel="self" href="' + url + feed_name + '" xmlns="http://www.w3.org/2005/Atom"/>\n'
-    yield '<atom:link rel="hub" href="http://second-funnel.superfeedr.com/" xmlns="http://www.w3.org/2005/Atom"/>\n'
+    title = SubElement(channel, 'title')
+
+    title.text = page.name
+
+    link = SubElement(channel, 'link')
+    link.text = url
+
+    description = SubElement(channel, 'description')
+
+    language = SubElement(channel, 'language')
+    language.text = 'en-us'
+
+    self_link = SubElement(channel, 'atom:link')
+    self_link.set('rel', 'self')
+    self_link.set('href', url + feed_name)
+    self_link.set('xmlns', 'http://www.w3.org/2005/Atom')
+
+    hub_link = SubElement(channel, 'atom:link')
+    hub_link.set('rel', 'hub')
+    hub_link.set('href', 'http://second-funnel.superfeedr.com/')
+    hub_link.set('xmlns', 'http://www.w3.org/2005/Atom')
 
     current_time = time()
 
     for tile in Tile.objects.filter(feed_id=page.feed_id, template='image')[0:results]:
-        yield '<item>\n'
-        for tile_line in tile_to_XML(url, tile, current_time):
-            yield '\t' + tile_line
+        item_obj = tile_to_XML(url, tile, current_time)
+        channel.append(item_obj)
         current_time -= 1
-        yield '</item>\n'
+
+    return channel
 
 
 def generate_feed(page, url, results=35, feed_name='feed.rss'):
-    yield '<rss version="2.0"\n'
-    yield '\t xmlns:content="http://purl.org/rss/1.0/modules/content/"\n'
-    yield '\t xmlns:dc="http://purl.org/dc/elements/1.1/"\n'
-    yield '\t xmlns:media="http://search.yahoo.com/mrss/"\n'
-    yield '\t xmlns:atom="http://www.w3.org/2005/Atom"\n'
-    yield '\t xmlns:georss="http://www.georss.org/georss">\n'
+    root = Element('rss')
+    root.set('version', '2.0')
+    root.set('xmlns:content', 'http://purl.org/rss/1.0/modules/content/')
+    root.set('xmlns:dc', 'http://purl.org/dc/elements/1.1/')
+    root.set('xmlns:media', 'http://search.yahoo.com/mrss/')
+    root.set('xmlns:atom', 'http://www.w3.org/2005/Atom')
+    root.set('xmlns:georss', 'http://www.georss.org/georss')
 
-    yield '\t<channel>\n'
-    for channel_line in generate_channel(page, url, results, feed_name):
-        yield '\t\t' + channel_line
-    yield '\t</channel>\n'
-    yield '</rss>'
+    channel = generate_channel(page, url, results, feed_name)
+
+    root.append(channel)
+
+    feed = tostring(root, 'utf-8')
+    return minidom.parseString(feed).toprettyxml(indent='\t')
 
 
 if __name__ == "__main__":
@@ -102,4 +153,5 @@ if __name__ == "__main__":
 
     page = Page.objects.get(id=args.page_id)
 
-    print main(page, args.bucket, args.folder)
+    print main(page)
+    
