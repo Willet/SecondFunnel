@@ -420,16 +420,6 @@ App.module('core', function (core, App) {
                 }
 
                 // (hopefully) temporary method for newegg pages to restrict
-                // the appearance of each "banner" tile to "once".
-                if (tileJson.template === 'banner') {
-                    if (self.resultsThreshold[tileId] === undefined) {
-                        // give each tile ONE chance to appear,
-                        // whatever its tile id is
-                        self.resultsThreshold[tileId] = 1;
-                    }
-                }
-
-                // (hopefully) temporary method for newegg pages to restrict
                 // the appearance of a particular youtube video to
                 // "once, including the one in initial results".
                 if (tileJson.template === 'youtube' &&
