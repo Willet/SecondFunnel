@@ -128,7 +128,7 @@ AWS_SQS_POLLING_QUEUES = {
 
 # a (seemingly new) setting similar to SESSION_COOKIE_DOMAIN.
 ALLOWED_HOSTS = ['.secondfunnel.com',
-                 '.secondfunnel.com,',
+                 '.secondfunnel.com.',
                  '.elasticbeanstalk.com',
                  '.elasticbeanstalk.com.',
                  ]
