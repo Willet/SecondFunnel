@@ -100,7 +100,8 @@ App.module("tracker", function (tracker, App) {
         },
 
         trackPageview = function() {
-            addItem('send', 'pageview');
+            var page = window.location.protocol + '//' + window.location.hostname + window.location.pathname + window.location.search + window.location.hash;
+            addItem('send', 'pageview', page);
         },
 
         setCustomVar = function (o) {
@@ -212,8 +213,6 @@ App.module("tracker", function (tracker, App) {
                 'action': 'Facebook',
                 'label': trackingInfo.label
             });
-
-            trackPageview();
         });
     };
 
@@ -334,11 +333,6 @@ App.module("tracker", function (tracker, App) {
 
     this.setup = function (options) {
         console.debug('optests', App.option('optests', {}));
-        if (App.option('debug', App.QUIET) > App.QUIET) {
-            // do not run analytics when debugging (dev, test)
-            App.vent.trigger('trackerInitialized', this);
-            return;
-        }
         addItem('create', App.option('gaAccountNumber'), 'auto');
 
         // TODO: If these are already set on page load, do we need to set them
@@ -413,6 +407,8 @@ App.module("tracker", function (tracker, App) {
                 'action': 'Preview',
                 'label': label
             });
+
+            trackPageview();
         },
 
         // Content Share
