@@ -14,6 +14,7 @@ COMPRESS_VERSION = True
 COMPRESS_ENABLED = True
 
 AWS_IS_GZIPPED = True
+AWS_S3_SECURE_URLS = False
 AWS_HEADERS =  {
     'Expires': BROWSER_CACHE_EXPIRATION_DATE,
     'Cache-Control': "public, max-age=604800",
