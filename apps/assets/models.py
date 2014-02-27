@@ -122,7 +122,8 @@ class Product(BaseModel):
     sku = models.CharField(max_length=255)
     price = models.CharField(max_length=16)  # DEFER: could make more sense to be an integer (# of cents)
 
-    default_image = models.ForeignKey('ProductImage', related_name='default_image', blank=True, null=True)
+    default_image = models.ForeignKey('ProductImage', related_name='default_image',
+                                      blank=True, null=True)
 
     last_scraped_at = models.DateTimeField(blank=True, null=True)
 
@@ -131,21 +132,23 @@ class Product(BaseModel):
     attributes = JSONField(null=True)
 
     def to_json(self):
+        product_images = self.product_images.all()
+
         dct = {
             "url": self.url,
             "price": self.price,
             "description": self.description,
             "name": self.name,
-            "images": [image.to_json() for image in self.product_images.all()],
+            "images": [image.to_json() for image in product_images],
         }
 
         # if default image is missing...
         if self.default_image:
             dct["default-image"] = str(self.default_image.old_id or
                 self.default_image.id)
-        elif self.product_images.count() > 0:
+        elif len(product_images) > 0:
             # fall back to first image
-            dct["default-image"] = str(self.product_images.all()[0].old_id)
+            dct["default-image"] = str(product_images[0].old_id)
 
         return dct
 
@@ -200,8 +203,7 @@ class Content(BaseModel):
     author = models.CharField(max_length=255, blank=True, null=True)
 
     # string list of NEW product ids
-    tagged_products = models.CommaSeparatedIntegerField(max_length=512,
-                                                        blank=True, null=True)
+    tagged_products = models.ManyToManyField(Product, null=True)
 
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
@@ -225,10 +227,10 @@ class Content(BaseModel):
             'author': self.author,
         }
 
-        if self.tagged_products and len(self.tagged_products) > 0:
+        if self.tagged_products.count() > 0:
             dct['related-products'] = []
 
-        for product_id in self.tagged_products:
+        for product_id in self.tagged_products.all():
             try:
                 dct['related-products'].append(Product.objects.get(id=product_id).to_json())
             except Product.DoesNotExist:
@@ -246,7 +248,10 @@ class Content(BaseModel):
         """
         tagged_product_ids = map(int, self.tagged_products.split(","))
         if not raise_on_lost_reference:
-            products = Product.objects.filter(id__in=tagged_product_ids)
+            products = (Product.objects
+                               .filter(id__in=tagged_product_ids)
+                               .select_related('default_image')
+                               .prefetch_related('default_image'))
             if raise_on_lost_reference and len(products) < len(tagged_product_ids):
                 raise Product.DoesNotExist("Could not find all products "
                     "requested from the DB; expected {0}, got {1}".format(
@@ -282,9 +287,9 @@ class Image(Content):
         }
         if expand_products:
             # turn django's string list of strings into a real list of ids
-            dct["related-products"] = [x.to_json() for x in self.get_tagged_products()]
+            dct["related-products"] = [x.to_json() for x in self.tagged_products.all()]
         else:
-            dct["related-products"] = self.tagged_products
+            dct["related-products"] = [x.old_id for x in self.tagged_products.all()]
 
         return dct
 
@@ -337,9 +342,6 @@ class Feed(BaseModel):
     """"""
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     # and other representation specific of the Feed itself
-    #
-    def get_results(self, num_results=20, algorithm=None):
-        """_algorithm overrides feed_algorithm."""
 
 
 class Page(BaseModel):
@@ -422,17 +424,16 @@ class Tile(BaseModel):
             # (assorted) content
             print "Rendering tile of type  content"
             dct.update(self._to_content_tile_json())
-        else:
-            dct.update({
-                'error': 'Tile has neither products nor content!'
-            })
-
-        # only banner tiles have the redirect-url attribute
-        if self.attributes.get('is_banner_tile', False):
+        elif self.template == 'banner' or self.attributes.get('is_banner_tile',
+                                                              False):
             dct.update({
                 'redirect-url': self.attributes.get('redirect_url') or \
-                    self.content.select_subclasses()[0].source_url
+                    (self.content.select_subclasses()[0].source_url
+                     if self.content.count()
+                     else '')
             })
+        else:
+            dct.update({'warning': 'Tile has neither products nor content!'})
 
         return dct
 

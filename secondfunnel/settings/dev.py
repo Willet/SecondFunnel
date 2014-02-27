@@ -39,7 +39,10 @@ CACHES = {
     }
 }
 
-INSTALLED_APPS += ('django_nose',)  # for testing...? we don't use it, but here it is
+INSTALLED_APPS += (
+    'django_nose',  # for testing...? we don't use it, but here it is
+    'debug_toolbar',
+)
 
 # dict of queues by region to poll regularly, using celery beat.
 # corresponding handlers need to be imported in apps.api.tasks
@@ -103,7 +106,11 @@ STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 COMPRESS_STORAGE = STATICFILES_STORAGE
 
 INTERNAL_IP = internal_ip()
-INTERNAL_IPS = ('127.0.0.1', INTERNAL_IP)
+INTERNAL_IPS = ('127.0.0.1', # virtualenv
+                'localhost',
+                '10.0.1.1',  # vagrant
+                '10.0.2.2',
+                INTERNAL_IP)
 WEBSITE_BASE_URL = ''.format(INTERNAL_IP)
 #WEBSITE_BASE_URL = 'http://{0}:8000'.format(INTERNAL_IP)
 INTENTRANK_BASE_URL = WEBSITE_BASE_URL
@@ -130,6 +137,19 @@ GOOGLE_OAUTH2_CLIENT_SECRET = 'yb7YyXBSzn0hq5f-tHdcKEQU'
 
 TUMBLR_CONSUMER_KEY = 'iKb1SAF5JwVnhLPSv7R7sqTYYekvkYOmmyYIRV8anFiT1xx2lD'
 TUMBLR_CONSUMER_SECRET = 'qIiqecbZeR3LSLjGcuzmkkkgAmYFrpd3ilSDHkNe5HksZHKInH'
+
+# add "?prof" to profile the request:
+# http://blueprintforge.com/blog/2012/01/24/measuring-optimising-database-performance-in-django/
+MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + (
+    'snippetscream.ProfileMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # oddly enough, this goes *after* debug_toolbar
+    'apps.utils.models.NonHtmlDebugToolbarMiddleware',
+)
+
+# force show toolbar
+# http://stackoverflow.com/a/10518040/1558430
+SHOW_TOOLBAR_CALLBACK = lambda: True
 
 # Monkeypatch decorator care of Van Rossum himself!
 # http://mail.python.org/pipermail/python-dev/2008-January/076194.html

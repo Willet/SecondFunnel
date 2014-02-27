@@ -167,15 +167,10 @@ class Command(BaseCommand):
                 continue
             content_type = content_dict.get('type')
             content_products_object = content_dict.get('tagged-products')
-            content_tagged_products = ''
+            content_tagged_products = []
             if content_products_object:
                 for product_id in content_products_object:
-                    if len(content_tagged_products) > 0:
-                        content_tagged_products += ',' + str(
-                            products.get(str(product_id)))
-                    else:
-                        content_tagged_products += str(
-                            products.get(str(product_id)))
+                    content_tagged_products.append(Product.filter(old_id=product_id).get())
 
             content_name = content_dict.get('name')
             content_description = content_dict.get('description')
