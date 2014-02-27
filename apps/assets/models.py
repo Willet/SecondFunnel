@@ -127,7 +127,7 @@ class Store(BaseModelNamed):
                 theme = StoreTheme.DEFAULT_PAGE
 
             # try and load a remote theme file. if it fails, pass.
-            theme = read_remote_file(theme, theme)
+            theme, _ = read_remote_file(theme, theme)
 
             # try to load a local theme file.
             # if that fails, default to the theme as if it were theme content.

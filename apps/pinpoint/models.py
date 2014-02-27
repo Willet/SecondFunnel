@@ -17,7 +17,7 @@ class StoreTheme(BaseModelNamed):
     """
 
     DEFAULT_PAGE = read_remote_file('http://s3-us-west-2.amazonaws.com/'
-                                    'static-misc-secondfunnel/themes/gap.html')
+                                    'static-misc-secondfunnel/themes/gap.html')[0]
 
     # Django templates
     page = models.TextField(verbose_name='Page', default=DEFAULT_PAGE)
@@ -181,7 +181,7 @@ class Campaign(BaseModelNamed):
                 theme = ''  # blank
 
             # try and load a remote theme file. if it fails, pass.
-            theme = read_remote_file(theme, theme)
+            theme = read_remote_file(theme, theme)[0]
 
             # try to load a local theme file.
             # if that fails, default to the theme as if it were theme content.

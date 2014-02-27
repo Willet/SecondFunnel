@@ -245,7 +245,7 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
 
             if key and settings.ENVIRONMENT != 'dev':
                 # Can gzip this content, can't in dev as middleware serves
-                content = read_remote_file(src)
+                content = read_remote_file(src)[0]
                 new_script_s3_key = '' # bucket key
                 while s3_key_exists(settings.AWS_STORAGE_BUCKET_NAME, new_script_s3_key):
                     new_script_s3_key = 'CACHE/{0}.js'.format(uuid.uuid4())
