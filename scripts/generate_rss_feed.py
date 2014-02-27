@@ -30,7 +30,7 @@ def _serialize_xml(write, elem, encoding, qnames, namespaces):
 etree._serialize_xml = etree._serialize['xml'] = _serialize_xml
 
 
-def main(page, results=DEFAULT_RESULTS, feed_name='feed.rss'):
+def main(page, results=DEFAULT_RESULTS, feed_link=None, feed_name=None):
     """Returns an rss feed
 
     page -- the page model for the feed
@@ -41,7 +41,10 @@ def main(page, results=DEFAULT_RESULTS, feed_name='feed.rss'):
 
     url = 'http://' + store.slug + '.secondfunnel.com/' + page.url_slug + '/'
 
-    feed = generate_feed(page, url, results, feed_name)
+    if not feed_link:
+        feed_link = url + feed_name
+
+    feed = generate_feed(page, url, feed_link, results)
 
     return feed
 
@@ -91,7 +94,7 @@ def tile_to_XML(url, tile, current_time):
     return item
 
 
-def generate_channel(page, url, results=DEFAULT_RESULTS, feed_name='feed.rss'):
+def generate_channel(page, url, feed_link, results=DEFAULT_RESULTS):
     channel = Element('channel')
 
     title = SubElement(channel, 'title')
@@ -108,7 +111,7 @@ def generate_channel(page, url, results=DEFAULT_RESULTS, feed_name='feed.rss'):
 
     self_link = SubElement(channel, 'atom:link')
     self_link.set('rel', 'self')
-    self_link.set('href', url + feed_name)
+    self_link.set('href', feed_link)
     self_link.set('xmlns', 'http://www.w3.org/2005/Atom')
 
     hub_link = SubElement(channel, 'atom:link')
@@ -126,7 +129,7 @@ def generate_channel(page, url, results=DEFAULT_RESULTS, feed_name='feed.rss'):
     return channel
 
 
-def generate_feed(page, url, results=DEFAULT_RESULTS, feed_name='feed.rss'):
+def generate_feed(page, url, feed_link, results=DEFAULT_RESULTS):
     root = Element('rss')
     root.set('version', '2.0')
     root.set('xmlns:content', 'http://purl.org/rss/1.0/modules/content/')
@@ -135,7 +138,7 @@ def generate_feed(page, url, results=DEFAULT_RESULTS, feed_name='feed.rss'):
     root.set('xmlns:atom', 'http://www.w3.org/2005/Atom')
     root.set('xmlns:georss', 'http://www.georss.org/georss')
 
-    channel = generate_channel(page, url, results, feed_name)
+    channel = generate_channel(page, url, feed_link, results)
 
     root.append(channel)
 

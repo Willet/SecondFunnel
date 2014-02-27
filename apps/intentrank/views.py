@@ -122,12 +122,14 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs)
 
 
 def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
+    feed_link = 'http://' + str(request.META['HTTP_HOST']) + '/intentrank/page/'
     if page_slug:
+        feed_link += str(page_slug) + '/' + str(feed_name)
         page = Page.objects.get(url_slug=page_slug)
     elif page_id:
+        feed_link += str(page_id) + '/' + str(feed_name)
         page = Page.objects.get(old_id=page_id)
     else:
         raise Http404("Feed not found")
-
-    feed = rss_feed.main(page, feed_name=feed_name)
+    feed = rss_feed.main(page, feed_name=feed_name, feed_link=feed_link)
     return HttpResponse(feed, content_type='application/rss+xml')
