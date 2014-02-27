@@ -53,8 +53,10 @@ def get_results_view(request, **kwargs):
     try:
         page = (Page.objects
                     .filter(old_id=page_id)
-                    .select_related()
-                    .prefetch_related('feed__tiles')
+                    .select_related('feed__tiles',
+                                    'feed__tiles__products',
+                                    'feed__tiles__content')
+                    .prefetch_related()
                     .get())
     except Page.DoesNotExist:
         return HttpResponseNotFound("No page {0}".format(page_id))
@@ -85,12 +87,9 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     try:
         page = (Page.objects
                     .filter(old_id=page_id)
-                    .select_related()
-                    .prefetch_related('feed__tiles',
-                                      'feed__tiles__products',
-                                      'feed__tiles__products__product_images',
-                                      'feed__tiles__products__default_image',
-                                      'feed__tiles__content')
+                    .select_related('feed__tiles__products',
+                                    'feed__tiles__content')
+                    .prefetch_related()
                     .get())
     except Page.DoesNotExist:
         return HttpResponseNotFound("No page {0}".format(page_id))

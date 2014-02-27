@@ -229,33 +229,15 @@ class Content(BaseModel):
         if self.tagged_products.count() > 0:
             dct['related-products'] = []
 
-        for product_id in self.tagged_products.all():
+        for product in (self.tagged_products
+                            .select_related('default_image', 'product_images')
+                            .all()):
             try:
-                dct['related-products'].append(Product.objects.get(id=product_id).to_json())
+                dct['related-products'].append(product.to_json())
             except Product.DoesNotExist:
                 pass  # ?
 
         return dct
-
-    def get_tagged_products(self, raise_on_lost_reference=False):
-        """Model alias for tagged_products (<str>)
-
-        :param raise_on_lost_reference bool if any one id does not correspond
-          to a product in the db, raise Product.DoesNotExist.
-
-        :returns list
-        """
-        tagged_product_ids = map(int, self.tagged_products.split(","))
-        if not raise_on_lost_reference:
-            products = (Product.objects
-                               .filter(id__in=tagged_product_ids)
-                               .select_related('default_image')
-                               .prefetch_related('default_image'))
-            if raise_on_lost_reference and len(products) < len(tagged_product_ids):
-                raise Product.DoesNotExist("Could not find all products "
-                    "requested from the DB; expected {0}, got {1}".format(
-                    len(products), len(tagged_product_ids)))
-            return products
 
 
 class Image(Content):
@@ -411,15 +393,17 @@ class Tile(BaseModel):
             'prioritized': self.prioritized,
         }
 
-        if self.products.count() > 0 and self.content.count() > 0:
+        product_count, content_count = self.products.count(), self.content.count()
+
+        if product_count > 0 and content_count > 0:
             # combobox
             print "Rendering tile of type  combobox"
             dct.update(self._to_combobox_tile_json())
-        elif self.products.count() > 0 and self.content.count() == 0:
+        elif product_count > 0 and content_count == 0:
             # product
             print "Rendering tile of type  product"
             dct.update(self._to_product_tile_json())
-        elif self.products.count() == 0 and self.content.count() > 0:
+        elif product_count == 0 and content_count > 0:
             # (assorted) content
             print "Rendering tile of type  content"
             dct.update(self._to_content_tile_json())
@@ -438,12 +422,19 @@ class Tile(BaseModel):
 
     def _to_combobox_tile_json(self):
         # there are currently no combobox json formats.
-        return self.content.select_subclasses()[0].to_json()
+        return self._to_content_tile_json()
 
     def _to_product_tile_json(self):
-        return self.products.all()[0].to_json()
+        return (self.products
+                    .select_related('product_images')
+                    [0]
+                    .to_json())
 
     def _to_content_tile_json(self):
         # currently, there are only single-content tiles, so
         # pick the first content and jsonify it
-        return self.content.select_subclasses()[0].to_json()
+        return (self.content
+                    .prefetch_related('tagged_products')
+                    .select_subclasses()
+                    [0]
+                    .to_json())
