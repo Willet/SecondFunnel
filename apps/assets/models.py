@@ -1,3 +1,6 @@
+import math
+import pytz
+
 from django.contrib.auth.models import User
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
@@ -8,6 +11,8 @@ from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
 
+from datetime import datetime
+
 
 default_master_size = {
     'master': {
@@ -15,6 +20,8 @@ default_master_size = {
         'height': '100%',
     }
 }
+
+l = 0.15 # lambda for popularity
 
 
 class BaseModel(models.Model, DirtyFieldsMixin):
@@ -24,6 +31,13 @@ class BaseModel(models.Model, DirtyFieldsMixin):
 
     class Meta:
         abstract = True
+
+    def days_since_creation(self):
+        return (datetime.now(pytz.utc) - self.created_at).days
+
+    def hours_since_creation(self):
+        change = (datetime.now(pytz.utc) - self.created_at)
+        return round(change.total_seconds()/60/60 - 0.5)
 
     @classmethod
     def update_or_create(cls, defaults=None, **kwargs):
@@ -372,6 +386,10 @@ class Page(BaseModel):
 
 class Tile(BaseModel):
 
+    s = models.FloatField(default=0)
+
+    clicks = models.BigIntegerField(default=0)
+
     old_id = models.IntegerField(unique=True)
 
     # <Feed>.tiles.all() gives you... all its tiles
@@ -387,6 +405,16 @@ class Tile(BaseModel):
 
     # miscellaneous attributes, e.g. "is_banner_tile"
     attributes = JSONField(null=True, default={})
+
+    def click(self):
+        self.clicks += 1
+        u = l * self.days_since_creation()
+        self.s = max(self.s, u) + math.log(1 + math.exp(min(self.s,u) - max(self.s,u)))
+        self.save()
+
+    @property
+    def score(self):
+        return math.exp(self.s - l * self.hours_since_creation())
 
     def to_json(self):
         # attributes from tile itself
