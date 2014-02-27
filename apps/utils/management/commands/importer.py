@@ -170,7 +170,10 @@ class Command(BaseCommand):
             content_tagged_products = []
             if content_products_object:
                 for product_id in content_products_object:
-                    content_tagged_products.append(Product.filter(old_id=product_id).get())
+                    try:
+                        content_tagged_products.append(Product.objects.filter(old_id=product_id).get())
+                    except Product.DoesNotExist:
+                        print "Tagged product not found: #{0}".format(product_id)
 
             content_name = content_dict.get('name')
             content_description = content_dict.get('description')
