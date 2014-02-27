@@ -108,10 +108,10 @@ def json_to_XMLItem(tile, store_info=None, page_info=None):
     if not page_info:
         page_info = {}
 
-    if len(tile.get('related-products', [])) > 0:
-        product = tile.get('related-products')[0]
-    else:
+    if tile.get('template') == 'product':
         product = tile
+    else:
+        product = tile.get('related-products', [None])[0] or {}
 
     item = Element('item')
 
