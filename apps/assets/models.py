@@ -402,35 +402,46 @@ class Tile(BaseModel):
 
         product_count, content_count = self.products.count(), self.content.count()
 
-        # determine what kind of tile this is
-        if product_count > 0 and content_count > 0:
-            # combobox
-            print "Rendering tile of type  combobox"
-            dct.update(self._to_combobox_tile_json())
-        elif product_count > 0 and content_count == 0:
-            # product
-            print "Rendering tile of type  product"
-            dct.update(self._to_product_tile_json())
-        elif product_count == 0 and content_count > 0:
-            # (assorted) content
-            print "Rendering tile of type  content"
+        # determine what kind of tile this is (specified / auto)
+        if self.template == 'image':
+            print "Rendering tile of type content"
             dct.update(self._to_content_tile_json())
-        elif self.template == 'banner' or self.attributes.get('is_banner_tile',
-                                                              False):
-            dct.update({
-                'redirect-url': self.attributes.get('redirect_url') or \
-                    (self.content.select_subclasses()[0].source_url
-                     if self.content.count()
-                     else '')
-            })
-        else:
-            dct.update({'warning': 'Tile has neither products nor content!'})
+
+        elif self.template == 'product':
+            print "Rendering tile of type product"
+            dct.update(self._to_product_tile_json())
+
+        elif self.template == 'banner':
+            # banner mode in JS is triggered by having 'redirect-url'
+            redirect_url = (self.attributes.get('redirect_url') or
+                            self.attributes.get('redirect-url') or
+                            (self.content.select_subclasses()[0].source_url
+                             if self.content.count()
+                             else ''))
+            dct.update({'redirect-url': redirect_url,
+                        'images': [self.attributes]})
+
+        else:  # "guess"
+            if product_count > 0 and content_count > 0:
+                # combobox
+                print "Rendering tile of type combobox"
+                dct.update(self._to_combobox_tile_json())
+            elif product_count > 0 and content_count == 0:
+                # product
+                print "Rendering tile of type product"
+                dct.update(self._to_product_tile_json())
+            elif product_count == 0 and content_count > 0:
+                # (assorted) content
+                print "Rendering tile of type content"
+                dct.update(self._to_content_tile_json())
+            else:
+                dct.update({'warning': 'Tile has neither products nor content!'})
 
         return dct
 
     def _to_combobox_tile_json(self):
         # there are currently no combobox json formats.
-        return self._to_product_tile_json()
+        return self._to_content_tile_json()
 
     def _to_product_tile_json(self):
         return (self.products
