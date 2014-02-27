@@ -49,8 +49,7 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                     .filter(prioritized=True)
                     .order_by('updated_at')
                     .select_related()
-                    .prefetch_related('content',
-                                      'products'))
+                    .prefetch_related('content', 'products'))
             prioritized_tile_ids = [tile.old_id or tile.id
                                     for tile in prioritized_tiles]
 
@@ -61,7 +60,10 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             .exclude(old_id__in=prioritized_tile_ids)
             .select_related()
             .prefetch_related('content', 'products')
+            # "Note: order_by('?') queries may be expensive and slow..."
+            .order_by("?")
             [:results - len(prioritized_tiles)])
+
     real_random.shuffle(tiles)
     return tiles[:results]
 

@@ -94,7 +94,8 @@ class Store(BaseModel):
 
     default_theme = models.ForeignKey('Theme', related_name='store', blank=True, null=True)
 
-    public_base_url = models.URLField(help_text="e.g. explore.nativeshoes.com", blank=True, null=True)
+    public_base_url = models.URLField(help_text="e.g. explore.nativeshoes.com",
+                                      blank=True, null=True)
 
     @classmethod
     def from_json(cls, json_data):
@@ -307,7 +308,9 @@ class Review(Content):
 class Theme(BaseModel):
 
     name = models.CharField(max_length=1024, blank=True, null=True)
-    template = models.CharField(max_length=1024)
+    template = models.CharField(max_length=1024,
+        # backward compatibility for pages that don't specify themes
+        default="https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/themes/campaign_base.html")
 
     # @deprecated for page generator
     CUSTOM_FIELDS = {

@@ -2,7 +2,7 @@ from hammock import Hammock
 
 from django.conf import settings
 from django.http.response import Http404, HttpResponseNotFound
-from django.views.decorators.cache import never_cache
+from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 
@@ -22,6 +22,7 @@ import scripts.generate_rss_feed as rss_feed
 @never_cache
 @csrf_exempt
 @request_methods('GET')
+@cache_page(10000, key_prefix="ir-")
 def get_results_view(request, **kwargs):
     """Returns random results for a campaign
 
@@ -42,11 +43,6 @@ def get_results_view(request, **kwargs):
         # keep track of which (unique) tiles have been shown
         request.session['shown'] = list(set(request.session.get('shown', []) +
                                             exclude_set))
-
-    url = kwargs.get('url', None)
-    if url:  # temporary proxy
-        return ajax_jsonp(get_results_ir(url=url, results=results),
-                          callback_name=callback)
 
     # otherwise, not a proxy
     page_id = kwargs.get('page_id', 0)
@@ -114,20 +110,6 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
                       add_cors_headers=True)
 
 
-def get_results_ir(url, results):
-    """Access the Real intentrank. For all other uses, see get_results."""
-    # dev proxies to test... test proxies to intentrank-test
-    from secondfunnel.settings.test import INTENTRANK_BASE_URL as test_ir
-
-    if settings.ENVIRONMENT == 'test':
-        # test should never proxy to itself -- it makes no sense
-        test_ir = 'http://intentrank-test.elasticbeanstalk.com'
-
-    IntentRankClient = Hammock(test_ir)
-    r = IntentRankClient('intentrank')(url).GET(params={'results': results})
-    return r.json()
-
-
 def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs):
     """Supply either feed or page for backward compatibility."""
     ir = IntentRank(feed=feed)
@@ -139,7 +121,13 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs)
                                      exclude_set=exclude_set, request=request))
 
 
-def get_rss_feed(request, page_slug, feed_name, **kwargs):
-    page = Page.objects.get(url_slug=page_slug)
+def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
+    if page_slug:
+        page = Page.objects.get(url_slug=page_slug)
+    elif page_id:
+        page = Page.objects.get(old_id=page_id)
+    else:
+        raise Http404("Feed not found")
+
     feed = rss_feed.main(page, feed_name=feed_name)
     return HttpResponse(feed, content_type='application/rss+xml')
