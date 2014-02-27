@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 import sys
 
 from xml.dom import minidom
@@ -13,6 +14,8 @@ ContentGraph = Hammock(
 
 # Don't know how to add this programmatically
 FEED_HEADER = '<?xml version="1.0"?>'
+
+MASTER = re.compile(r'master(\.\w{3,4})$')
 
 def main():
     parser = argparse.ArgumentParser(
@@ -153,9 +156,12 @@ def json_to_XMLItem(tile, store_info=None, page_info=None):
     image_link = SubElement(item, 'g:image_link')
 
     if tile is product:
-        image_link.text = product.get('images')[0]['url']
+        image_url = product.get('images')[0]['url']
     else:
-        image_link.text = tile.get('url')
+        image_url = tile.get('url')
+
+    image_url = re.sub(MASTER, r'large\1', image_url)
+    image_link.text = image_url
 
     # End - Always Required
 
