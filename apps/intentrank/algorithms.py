@@ -54,7 +54,7 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                                     for tile in prioritized_tiles]
 
     # get (10 - number of prioritized) tiles that are not already prioritized
-    tiles = list(
+    tiles = prioritized_tiles + list(
         feed.tiles
             .exclude(old_id__in=exclude_set)
             .exclude(old_id__in=prioritized_tile_ids)

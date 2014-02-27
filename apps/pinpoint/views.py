@@ -1,3 +1,4 @@
+from django.views.decorators.cache import cache_page
 from apps.assets.models import Page
 from apps.static_pages.utils import render_campaign
 
@@ -44,6 +45,7 @@ def delete_campaign(request, store_id, campaign_id):
     return redirect('store-admin', store_id=store_id)
 
 
+@cache_page(10000, key_prefix="pinpoint-")
 @vary_on_headers('Accept-Encoding')
 def campaign(request, store_id, campaign_id):
     """Returns a rendered campaign response of the given id."""
