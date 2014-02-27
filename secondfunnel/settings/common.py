@@ -255,6 +255,7 @@ INSTALLED_APPS = (
     'ajax_forms',
     'compressor',
     'corsheaders',
+    'debug_toolbar',
 
     # our apps
     'apps.api',

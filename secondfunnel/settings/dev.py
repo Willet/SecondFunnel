@@ -41,7 +41,6 @@ CACHES = {
 
 INSTALLED_APPS += (
     'django_nose',  # for testing...? we don't use it, but here it is
-    'debug_toolbar',
 )
 
 # dict of queues by region to poll regularly, using celery beat.
@@ -110,7 +109,10 @@ INTERNAL_IPS = ('127.0.0.1', # virtualenv
                 'localhost',
                 '10.0.1.1',  # vagrant
                 '10.0.2.2',
+                '24.137.221.230',  # waterloo office
+                '10.217.146.216',  # the elastic load balancer (I think)
                 INTERNAL_IP)
+
 WEBSITE_BASE_URL = ''.format(INTERNAL_IP)
 #WEBSITE_BASE_URL = 'http://{0}:8000'.format(INTERNAL_IP)
 INTENTRANK_BASE_URL = WEBSITE_BASE_URL
@@ -140,7 +142,7 @@ TUMBLR_CONSUMER_SECRET = 'qIiqecbZeR3LSLjGcuzmkkkgAmYFrpd3ilSDHkNe5HksZHKInH'
 
 # add "?prof" to profile the request:
 # http://blueprintforge.com/blog/2012/01/24/measuring-optimising-database-performance-in-django/
-MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + (
+MIDDLEWARE_CLASSES += (
     'snippetscream.ProfileMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     # oddly enough, this goes *after* debug_toolbar

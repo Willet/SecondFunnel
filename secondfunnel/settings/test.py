@@ -1,11 +1,12 @@
 from common import *
+from dev import INTERNAL_IP, INTERNAL_IPS
 from secondfunnel.errors import EnvironmentSettingsError
 
 if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
     raise EnvironmentSettingsError()
 
 ENVIRONMENT = "test"
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 # Enable GZIP and Minification
@@ -133,6 +134,16 @@ BROKER_TRANSPORT_OPTIONS = {
     'polling_interval': 1,
     'queue_name_prefix': 'celery-test-',
     }
+
+MIDDLEWARE_CLASSES += (
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # oddly enough, this goes *after* debug_toolbar
+    'apps.utils.models.NonHtmlDebugToolbarMiddleware',
+)
+
+# force show toolbar
+# http://stackoverflow.com/a/10518040/1558430
+SHOW_TOOLBAR_CALLBACK = lambda: DEBUG
 
 # Nick's test instagram client; good for secondfunnel-test
 INSTAGRAM_CLIENT_ID = '3fc578b28e2a4b43a51ea2fa735599fd'
