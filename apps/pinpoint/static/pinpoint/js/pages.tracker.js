@@ -84,7 +84,7 @@ App.module("tracker", function (tracker, App) {
         },
 
         trackPageview = function(hash) {
-            var base = window.location.protocol + '//' + window.location.hostname + window.location.pathname + window.location.search;
+            var base = window.location.pathname + window.location.search;
             hash = hash || window.location.hash;
             addItem('send', 'pageview', base + hash);
         },
