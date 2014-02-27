@@ -3,26 +3,31 @@ Static pages celery tasks
 """
 
 import os
-
+import re
+import uuid
 from urlparse import urlparse
 
 from celery import Celery, group
 from celery.utils import noop
 from celery.utils.log import get_task_logger
 
+from BeautifulSoup import BeautifulSoup
 from django.conf import settings
 from django.core.cache import cache
 from django.utils.encoding import smart_str
 
+from apps.pinpoint.utils import read_remote_file
 from apps.assets.models import Store
 from apps.contentgraph.views import get_page, get_store, get_stores
 from apps.intentrank.views import get_seeds
 from apps.pinpoint.models import Campaign
-
-from apps.static_pages.aws_utils import (create_bucket_website_alias,
+from apps.static_pages.aws_utils import (create_bucket_website_alias, s3_key_exists,
     get_route53_change_status, sqs_poll, SQSQueue, upload_to_bucket)
 from apps.static_pages.utils import (get_bucket_name, create_dummy_request,
                                      render_campaign)
+
+from secondfunnel.settings.test import AWS_STORAGE_BUCKET_NAME as test_storage_bucket_name
+
 
 celery = Celery()
 logger = get_task_logger(__name__)
@@ -213,6 +218,52 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
     page_content = render_campaign(store_id, campaign_id,
                                    get_seeds_func=get_seeds,
                                    request=dummy_request)
+
+    # Add async to generated tags
+    page_source_parsed = BeautifulSoup(page_content)
+    script_tags = [tag.extract() for tag in page_source_parsed.findAll('script')]
+    # Determine which content can be gzipped and which cannot
+    ie_support = re.findall(r'(?:IE )([0-9]+)(?:\]>.+?src=")(.*?)(?:".+?<\!\[endif\])', page_content, re.DOTALL)
+    ie_support = dict(ie_support)
+
+    if script_tags:
+        for script_tag in script_tags:
+            script_type = script_tag.get('type')
+            old_script = str(script_tag)
+            if script_type and 'template' in script_type:
+                continue # skip processing templates
+
+            if not script_tag.get('src'):
+                continue # ignore inline scripts
+
+            src = script_tag.get('src')
+            key = None
+            for ver, source in ie_support.items(): # check for gzip support
+                if int(ver) >= 9 and source == src:
+                    key = ver
+                    break
+
+            if key and settings.ENVIRONMENT != 'dev':
+                # Can gzip this content, can't in dev as middleware serves
+                content = read_remote_file(src)
+                new_script_s3_key = '' # bucket key
+                while s3_key_exists(settings.AWS_STORAGE_BUCKET_NAME, new_script_s3_key):
+                    new_script_s3_key = 'CACHE/{0}.js'.format(uuid.uuid4())
+
+                # Ensure can upload to the test bucket
+                if not upload_to_bucket(bucket_name=test_storage_bucket_name,
+                    filename=new_script_s3_key, content=content,
+                    content_type=mimetypes.MimeTypes().guess_type(new_script_s3_key)[0],
+                    public=True, do_gzip=True):
+                    raise IOError("Could not upload the gzipped JS file to S3!")
+
+                # Force relative path
+                script_tag['src'] = '//s3.amazonaws.com/{0}/{1}'.format(test_storage_bucket_name, new_script_s3_key)
+                del ie_support[key] # No longer need this key/value pair
+
+            script_tag['src'] = re.sub(r'(http|https)://', '//', src)
+            script_tag['async'] = "true"
+            page_content = page_content.replace(old_script, str(script_tag), 1)
 
     # e.g. "shorts3/index.html"
     identifier = getattr(campaign, 'url', '') or \
