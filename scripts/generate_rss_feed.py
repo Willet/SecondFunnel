@@ -79,8 +79,8 @@ def tile_to_XML(url, tile, current_time):
     img = SubElement(figure, 'img')
     img.set('src', image.url.replace('master', '1024x1024'))
     if image.width and image.height:
-        img.set('width', image.width)
-        img.set('height', image.height)
+        img.set('width', str(image.width))
+        img.set('height', str(image.height))
     img.set('data-fl-original-src', image.url)
 
     encoded = CDATA(tostring(figure, 'utf-8'))
