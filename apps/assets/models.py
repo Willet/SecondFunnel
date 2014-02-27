@@ -391,6 +391,7 @@ class Tile(BaseModel):
     def to_json(self):
         # attributes from tile itself
         dct = {
+            '-dbg-real-tile-id': self.id,
             'tile-id': self.old_id or self.id,
             'template': self.template,
             'prioritized': self.prioritized,

@@ -18,11 +18,9 @@ from apps.intentrank.utils import ajax_jsonp
 
 import scripts.generate_rss_feed as rss_feed
 
-
 @never_cache
 @csrf_exempt
 @request_methods('GET')
-@cache_page(10000, key_prefix="ir-")
 def get_results_view(request, **kwargs):
     """Returns random results for a campaign
 
@@ -66,7 +64,6 @@ def get_results_view(request, **kwargs):
                       add_cors_headers=True)
 
 
-@never_cache
 @csrf_exempt
 @request_methods('GET')
 def get_tiles_view(request, page_id, tile_id=None, **kwargs):
