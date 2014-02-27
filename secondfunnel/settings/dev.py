@@ -3,7 +3,6 @@ from common import *
 ENVIRONMENT = "dev"
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
-MOCK_IR_SERVER = True
 
 def internal_ip():
     """INTERNAL! TESTING ONLY!

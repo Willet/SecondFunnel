@@ -27,16 +27,11 @@ urlpatterns = patterns('',
     url(r'^$', include('apps.website.urls')),
 )
 
-# TODO: Is this still necessary?
 if settings.DEBUG:
     # Used for local development; removes the need to run collectstatic in the
     # dev environment.
     urlpatterns += patterns('django.contrib.staticfiles.views',
         url(r'^static/(?P<path>.*)$', 'serve'),
     )
-
-if settings.MOCK_IR_SERVER:
-    urlpatterns += patterns('',
-        url(r'^mocks/', include('apps.mocks.urls')))
 
 handler500 = 'apps.pinpoint.views.app_exception_handler'

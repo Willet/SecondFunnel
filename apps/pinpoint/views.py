@@ -63,10 +63,3 @@ def app_exception_handler(request):
     return HttpResponseServerError(loader.get_template('500.html').render(
         Context({'exception': exception,
                  'traceback': '\n'.join(stack)})))
-
-
-@login_required
-def diagnostics(request):
-    """show environment variables."""
-    settings.DEBUG = True
-    raise Exception()
