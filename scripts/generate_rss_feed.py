@@ -12,21 +12,27 @@ from xml.dom import minidom
 from xml.etree.ElementTree import Element, tostring, SubElement
 from apps.assets.models import Image, Page, Tile
 
-DEFAULT_RESULTS=35
+DEFAULT_RESULTS = 35
+
 
 def CDATA(text=None):
     element = etree.Element('![CDATA[')
     element.text = text
     return element
 
+
 etree._original_serialize_xml = etree._serialize_xml
+
+
 def _serialize_xml(write, elem, encoding, qnames, namespaces):
     if elem.tag == '![CDATA[':
         write("\n<%s%s]]>\n" % (
-                elem.tag, elem.text))
+            elem.tag, elem.text))
         return
     return etree._original_serialize_xml(
         write, elem, encoding, qnames, namespaces)
+
+
 etree._serialize_xml = etree._serialize['xml'] = _serialize_xml
 
 
@@ -51,16 +57,16 @@ def main(page, results=DEFAULT_RESULTS, feed_link=None, feed_name=None):
 
 def notify_superfeedr(url, feed_name='feed.rss'):
     url = 'http://second-funnel.superfeedr.com?hub.mode=publish&hub.url={0}'.format(url)
-    r = urllib2.urlopen(url, data=' ') # sending data to make this a post request
+    r = urllib2.urlopen(url, data=' ')  # sending data to make this a post request
 
 
 def tile_to_XML(url, tile, current_time):
     item = Element('item')
 
-    product = tile.products.first()
-    content = tile.content.first()
+    product = tile.products.all()[0]
+    content = tile.content.all()[0]
 
-    image = Image.objects.filter(content_ptr_id=content.id).first()
+    image = Image.objects.get(content_ptr_id=content.id)
 
     title = SubElement(item, 'title')
     title.text = product.name
@@ -121,7 +127,7 @@ def generate_channel(page, url, feed_link, results=DEFAULT_RESULTS):
 
     current_time = time()
 
-    for tile in Tile.objects.filter(feed_id=page.feed_id, template='image')[0:results]:
+    for tile in Tile.objects.filter(feed_id=page.feed_id, template='image').prefetch_related('products').prefetch_related('content')[0:results]:
         item_obj = tile_to_XML(url, tile, current_time)
         channel.append(item_obj)
         current_time -= 1

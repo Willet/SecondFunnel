@@ -117,7 +117,9 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs)
     return ir.transform(ir.ir_random(feed=feed, results=results,
                                      exclude_set=exclude_set, request=request))
 
-
+@never_cache
+@csrf_exempt
+@request_methods('GET')
 def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
     feed_link = 'http://' + str(request.META['HTTP_HOST']) + '/intentrank/page/'
     if page_slug:
