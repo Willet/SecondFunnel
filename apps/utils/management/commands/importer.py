@@ -270,6 +270,11 @@ class Command(BaseCommand):
             tile_fields = {'feed': feed, 'template': tile_template,
                            'prioritized': tile_prioritized}
 
+            # read redirect-url (among others) for banner tiles' stringified json
+            if tile_template == "banner":
+                tile_fields['attributes'] = tile_dict.get('json')
+
+
             print 'TILE - old_id: ', tile_old_id, ', ', tile_fields
 
             tile, _, _ = Tile.update_or_create(old_id=tile_old_id, defaults=tile_fields)
@@ -278,9 +283,12 @@ class Command(BaseCommand):
                 for content_old_id in tile_content_old_ids:
                     if contents.get(str(content_old_id)):
                         tile.content.add(contents[str(content_old_id)])
+                    else:
+                        print "Content #{0} not found".format(content_old_id)
             tile_product_old_ids = tile_dict.get('product-ids')
             if tile_product_old_ids:
                 for product_old_id in tile_product_old_ids:
                     if products.get(str(product_old_id)):
                         tile.products.add(products[str(product_old_id)])
-
+                    else:
+                        print "Product #{0} not found".format(product_old_id)
