@@ -34,4 +34,9 @@ if settings.DEBUG:
         url(r'^static/(?P<path>.*)$', 'serve'),
     )
 
+    import debug_toolbar
+    urlpatterns += patterns('',
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    )
+
 handler500 = 'apps.pinpoint.views.app_exception_handler'

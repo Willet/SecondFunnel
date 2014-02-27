@@ -21,6 +21,14 @@ AWS_HEADERS =  {
     'Vary': 'Accept-Encoding',
 }
 
+TEMPLATE_DIRS += (
+    # absolute dirs for the toolbar only for test instances
+    '/opt/python/run/venv/lib/python2.7/site-packages',
+    '/opt/python/run/venv/lib/python2.7/site-packages/debug_toolbar/templates',
+    '/opt/python/run/venv/lib/python2.7/site-packages/debug_toolbar/static',
+)
+DEBUG_TOOLBAR_PATCH_SETTINGS = False
+
 # dict of queues by region to poll regularly, using celery beat.
 # corresponding handlers need to be imported in apps.api.tasks
 # TODO: test CM instances currently handle messages from production
