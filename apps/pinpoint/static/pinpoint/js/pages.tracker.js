@@ -83,6 +83,12 @@ App.module("tracker", function (tracker, App) {
             window.ga.apply(window, arguments);
         },
 
+        trackPageview = function(hash) {
+            var base = window.location.protocol + '//' + window.location.hostname + window.location.pathname + window.location.search;
+            hash = hash || window.location.hash;
+            addItem('send', 'pageview', base + hash);
+        },
+
         trackEvent = function (o) {
             // category       - type of object that was acted on
             // action         - type of action that took place (e.g. share, preview)
@@ -97,11 +103,11 @@ App.module("tracker", function (tracker, App) {
 
             addItem('send', 'event', o.category, o.action, o.label,
                     o.value || undefined, {'nonInteraction': nonInteraction});
-        },
 
-        trackPageview = function() {
-            var page = window.location.protocol + '//' + window.location.hostname + window.location.pathname + window.location.search + window.location.hash;
-            addItem('send', 'pageview', page);
+            if (o.action === 'scroll') {
+                var hash = '#page' + o.label;
+                trackPageview(hash);
+            }
         },
 
         setCustomVar = function (o) {
@@ -572,6 +578,7 @@ App.module("tracker", function (tracker, App) {
     // add mediator triggers if the module exists.
     App.vent.on({
         'tracking:trackEvent': trackEvent,
+        'tracking:trackPageView': trackPageview,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,
         'tracking:registerFacebookListeners': this.registerFacebookListeners,
         'tracking:videoStateChange': this.videoStateChange,
