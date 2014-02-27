@@ -46,7 +46,7 @@ Willet.mediaAPI = (function (options) {
             'products_media': "/api/assets/v1/product_media/?store=%store_id%&product=%object_id%&format=json",
             'video': "/api/assets/v1/youtube_video/%object_id%/?format=json",
             'generic_image': "/api/assets/v1/generic_image/%object_id%/?format=json",
-            'video_gdata': "https://gdata.youtube.com/feeds/api/videos/%object_id%?v=2&alt=json-in-script&callback=?"
+            'video_gdata': "http://gdata.youtube.com/feeds/api/videos/%object_id%?v=2&alt=json-in-script&callback=?"
         },
 
         getObject = function (object_type, object_id, callback) {

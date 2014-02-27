@@ -1,4 +1,4 @@
-/*global App, Backbone, Marionette, console */
+/*global App, Backbone, Marionette, console, _, $ */
 /**
  * @module utils
  */
@@ -18,12 +18,54 @@ App.module("utils", function (utils, App) {
      * @returns {string}
      */
     this.safeString = function (str, opts) {
-        var regex =/^(None|undefined|[Ff]alse|0)$/,
+        var regex = /^(None|undefined|[Ff]alse|0)$/,
             trimmed = $.trim(str);
         if (regex.test(trimmed)) {
             return trimmed.replace(regex, '');
         }
         return str;
+    };
+
+    $window.on('message', function (event) {
+        var originalEvent = event.originalEvent,
+            data = originalEvent.data;
+
+        try {
+            data = JSON.parse(data);
+        } catch (error) {
+            return;
+        }
+
+        if (data.target !== 'second_funnel') {
+            return;
+        }
+
+        if (!data.type) {
+            return;
+        }
+
+        if (data.type === 'load_content') {
+            var loadUntilHeight = function (height) {
+                if ($('body').height() < height) {
+                    App.discoveryArea.currentView.collection.fetch().done(function () {
+                        loadUntilHeight(height);
+                    });
+                }
+            };
+            loadUntilHeight(data.height);
+        } else if (data.type === 'window_location') {
+            App.window_middle = data.window_middle;
+
+            if (App.previewArea.currentView) {
+                App.previewArea.currentView.$el.css('top',
+                    Math.max(App.window_middle - (App.previewArea.currentView.el.height() / 2), 0)
+                );
+            }
+        }
+    });
+
+    this.postExternalMessage = function (message) {
+        window.parent.postMessage(message, '*');
     };
 
     /**

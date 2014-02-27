@@ -138,9 +138,11 @@ def render_campaign(store_id, campaign_id, request):
         # TODO: is this okay?
         product = None
 
-    page_data['description'] = page_data.get('shareText', page_data.get('featured-product-description', ''))
+    page_data['description'] = page_data.get('shareText',
+        page_data.get('featured-product-description', ''))
     page_data['template'] = slugify(page_data.get('template', 'hero'))  # TODO: hero? hero-image?
     page_data['image_tile_wide'] = page_data.get('imageTileWide')
+    page_data['hide_navigation_bar'] = page_data.get('hide-navigation-bar', '')
     page = page_data
 
     ir_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'

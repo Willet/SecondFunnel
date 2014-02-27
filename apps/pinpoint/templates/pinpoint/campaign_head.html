@@ -1,8 +1,19 @@
 {% load staticfiles %}
 {% load compress %}
-
-<!-- Additional Head Contents -->
+<!-- Head Contents -->
 <noscript><style> .no-noscript { display: none } </style></noscript>
+<!-- Preload images -->
+<script type="text/javascript">
+    var image,
+        images = [ "{{ desktop_hero_image }}", "{{ mobile_hero_image }}" ];
+    for (var i = 0; i < images.length; ++i) {
+        if (images[i].length) {
+            image = new Image();
+            image.src = images[i];
+        }
+    }
+</script>
+<!-- End preload -->
 {% compress css %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/pages2.css' %}">
@@ -16,11 +27,14 @@
 <![endif]-->
 
 <!-- End CSS -->
-<script src='https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/static-misc-secondfunnel/js/respond.min.js'></script>
+<script src='//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/static-misc-secondfunnel/js/respond.min.js'></script>
 <!-- Respond.js proxy on external server -->
-<link href="https://elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/cross-domain/respond-proxy.html" id="respond-proxy" rel="respond-proxy" />
+<link href="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/cross-domain/respond-proxy.html" id="respond-proxy" rel="respond-proxy" />
 <link href="/cross-domain/respond.proxy.gif" id="respond-redirect" rel="respond-redirect" />
 <script src="/cross-domain/respond.proxy.js"></script>
 
 <meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><!-- required by bootstrap -->
 <meta http-equiv="X-UA-Compatible" content="IE=edge"><!-- required by bootstrap, IE -->
+<!-- Campaign Config -->
+{% include "pinpoint/campaign_config.html" %}
+<!-- End Campaign Config -->

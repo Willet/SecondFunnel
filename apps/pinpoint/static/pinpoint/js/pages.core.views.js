@@ -179,6 +179,7 @@ App.module('core', function (module, App) {
                 this.socialButtons.currentView.load();
                 this.socialButtons.$el[inOrOut](200);
             }
+            return this;
         },
 
         'onClick': function (ev) {
@@ -220,7 +221,8 @@ App.module('core', function (module, App) {
                 },
                 widable_templates = {
                     'image': true,
-                    'youtube': true
+                    'youtube': true,
+                    'banner': true
                 }; //TODO: Make the configurable; perhaps a page property?
 
             // templates use this as obj.image.url
@@ -629,8 +631,8 @@ App.module('core', function (module, App) {
                 documentBottomPos = $document.height(),
                 viewportHeights = pageHeight * (App.option('prefetchHeight', 1.5));
 
-            if (!this.loading && (children.length === 0 || $('.previewContainer').length === 0) &&
-                pageBottomPos >= documentBottomPos - viewportHeights) {
+            if (!this.loading && (children.length === 0 || !App.previewArea.currentView) &&
+                    pageBottomPos >= documentBottomPos - viewportHeights) {
                 // get more tiles to fill the screen.
                 this.getTiles();
             }
@@ -724,15 +726,11 @@ App.module('core', function (module, App) {
 
         // Disable scrolling body when preview is shown
         'onShow': function () {
-            if (App.support.touch() && !App.support.isAnAndroid()) {
-                $(document.body).addClass('no-scroll');
-            }
+            $(document.body).addClass('no-scroll');
         },
 
         'close': function () {
-            if (App.support.touch() && !App.support.isAnAndroid()) {
-                $(document.body).removeClass('no-scroll');
-            }
+            $(document.body).removeClass('no-scroll');
         }
     });
 
@@ -774,7 +772,6 @@ App.module('core', function (module, App) {
                 // hide this, then restore discovery.
                 if (App.support.mobile()) {
                     this.$el.swapWith(App.discoveryArea.$el.parent());
-
                     // handle results that got loaded while the discovery
                     // area has an undefined height.
                     App.layoutEngine.layout(App.discovery);
@@ -827,6 +824,28 @@ App.module('core', function (module, App) {
                 };
 
             this.content.show(new ContentClass(contentOpts));
+        },
+
+        'onShow': function () {
+            var position_window = (function (previewWindow) {
+                return function () {
+                    var window_middle = $(window).scrollTop() + $(window).height() / 2;
+
+                    if (App.window_middle) {
+                        window_middle = App.window_middle;
+                    }
+
+                    if (!App.support.mobile()) {
+                        previewWindow.$el.css('top', Math.max(window_middle - (previewWindow.$el.height() / 2), 0));
+                    }
+                };
+            }(this));
+
+            position_window();
+
+            $('img', this.$el).on('load', function () {
+                position_window();
+            });
         }
     });
 

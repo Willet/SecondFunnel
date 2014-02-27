@@ -235,7 +235,7 @@ def transfer_static_campaign(store_id, page_id):
 
         # overwrite old tag with new tag
         prod_page_source = prod_page_source.replace(script_tag.get('src'),
-            'https://s3.amazonaws.com/{0}/{1}'.format(prod_storage_bucket_name,
+            '//s3.amazonaws.com/{0}/{1}'.format(prod_storage_bucket_name,
                                                       new_script_s3_key))
 
     # replace all inline references to IR test to IR prod, but

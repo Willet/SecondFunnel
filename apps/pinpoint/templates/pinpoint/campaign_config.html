@@ -1,7 +1,5 @@
 {% load staticfiles %}
-{% load compress %}
 
-{% compress js %}
 <script type="text/javascript">
     window.PAGES_INFO = {
           'debug': ('{{ debug|default:0 }}' === 'True')  // django built-in
@@ -105,4 +103,3 @@
     };
 
 </script>
-{% endcompress %}
