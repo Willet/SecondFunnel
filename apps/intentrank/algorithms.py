@@ -44,16 +44,23 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     prioritized_tiles = prioritized_tile_ids = []
     if request and hasattr(request, 'session'):
         if len(request.session.get('shown', [])) == 0:
-            prioritized_tiles = list(feed.tiles.filter(
-                prioritized=True).order_by('updated_at'))
+            prioritized_tiles = list(
+                feed.tiles
+                    .filter(prioritized=True)
+                    .order_by('updated_at')
+                    .select_related()
+                    .prefetch_related('content', 'products'))
             prioritized_tile_ids = [tile.old_id or tile.id
                                     for tile in prioritized_tiles]
 
     # get (10 - number of prioritized) tiles that are not already prioritized
-    tiles = list(feed.tiles
-                 .exclude(old_id__in=exclude_set)
-                 .exclude(old_id__in=prioritized_tile_ids)
-                 [:results - len(prioritized_tiles)])
+    tiles = list(
+        feed.tiles
+            .exclude(old_id__in=exclude_set)
+            .exclude(old_id__in=prioritized_tile_ids)
+            .select_related()
+            .prefetch_related('content', 'products')
+            [:results - len(prioritized_tiles)])
     real_random.shuffle(tiles)
     return tiles[:results]
 

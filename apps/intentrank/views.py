@@ -51,7 +51,7 @@ def get_results_view(request, **kwargs):
     # otherwise, not a proxy
     page_id = kwargs.get('page_id', 0)
     try:
-        page = Page.objects.filter(old_id=page_id).get()
+        page = Page.objects.filter(old_id=page_id).select_related().prefetch_related('feed__tiles').get()
     except Page.DoesNotExist:
         return HttpResponseNotFound("No page {0}".format(page_id))
 
@@ -79,7 +79,11 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     results = int(request.GET.get('results', 10))
 
     try:
-        page = Page.objects.filter(old_id=page_id).get()
+        page = (Page.objects
+                    .filter(old_id=page_id)
+                    .select_related()
+                    .prefetch_related('feed__tiles')
+                    .get())
     except Page.DoesNotExist:
         return HttpResponseNotFound("No page {0}".format(page_id))
 
@@ -88,7 +92,11 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
         raise Http404("No feed for page {0}".format(page_id))
     if tile_id:
         try:
-            tile = Tile.objects.filter(old_id=tile_id).get()
+            tile = (Tile.objects
+                        .filter(old_id=tile_id)
+                        .select_related()
+                        .prefetch_related('content', 'products')
+                        .get())
         except Tile.DoesNotExist:
             return HttpResponseNotFound("No tile {0}".format(tile_id))
 
