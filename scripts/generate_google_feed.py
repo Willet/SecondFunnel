@@ -100,7 +100,8 @@ def generate_feed(items, store_info, page_info):
 
     for item in items:
         item_obj = json_to_XMLItem(item, store_info, page_info)
-        channel.append(item_obj)
+        if item_obj:
+            channel.append(item_obj)
 
     return root
 
@@ -115,6 +116,9 @@ def json_to_XMLItem(tile, store_info=None, page_info=None):
         product = tile
     else:
         product = tile.get('related-products', [None])[0] or {}
+
+    if not product:
+        return None
 
     item = Element('item')
 
