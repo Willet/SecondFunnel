@@ -391,7 +391,10 @@ class Tile(BaseModel):
     def to_json(self):
         # attributes from tile itself
         dct = {
-            '-real-tile-id': self.old_id or self.id,
+            # prefixed keys are for inspection only; the hyphen is designed to
+            # prevent you from using it like a js object
+            '-dbg-real-tile-id': self.old_id or self.id,
+            '-dbg-attributes': self.attributes,
             'tile-id': self.old_id or self.id,
             'template': self.template,
             'prioritized': self.prioritized,
@@ -399,6 +402,7 @@ class Tile(BaseModel):
 
         product_count, content_count = self.products.count(), self.content.count()
 
+        # determine what kind of tile this is
         if product_count > 0 and content_count > 0:
             # combobox
             print "Rendering tile of type  combobox"
@@ -426,7 +430,7 @@ class Tile(BaseModel):
 
     def _to_combobox_tile_json(self):
         # there are currently no combobox json formats.
-        return self._to_content_tile_json()
+        return self._to_product_tile_json()
 
     def _to_product_tile_json(self):
         return (self.products
