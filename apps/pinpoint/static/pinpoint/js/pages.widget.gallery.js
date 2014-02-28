@@ -52,7 +52,8 @@ App.utils.registerWidget(
                         selector = $ev.parents('.previewContainer').find('.main-image').length ?
                           '.main-image' : '.image img',
                         $focusImg = $ev.parents('.previewContainer')
-                            .find(selector);
+                            .find(selector),
+                        hash;
 
                     $ev
                         .parents('.previewContainer')
@@ -67,6 +68,9 @@ App.utils.registerWidget(
                     $gallery.animate({
                         scrollLeft: $ev.offset().left - $gallery.offset().left
                     }, 700);
+
+                    hash = window.location.hash + '&photo=' + $ev.index();
+                    App.vent.trigger('tracking:trackPageView', hash);
                 });
             $el.append($img);  // add each image into the carousel
         });
@@ -82,17 +86,24 @@ App.utils.registerWidget(
                 var type = ev.type,  // swipeleft or swiperight
                     sel = view.$('.gallery .selected'),
                     selIdx = sel.index(),
-                    images = $('.gallery img');
+                    images = $('.gallery img'),
+                    hash;
 
                 if (type === 'swipeleft') {
                     selIdx++; // advance to next image in gallery
                     if (selIdx >= images.length) {
                         selIdx--;
+                    } else {
+                        hash = window.location.hash + '&photo=' + selIdx;
+                        App.vent.trigger('tracking:trackPageView', hash);
                     }
                 } else {  // can only be swiperight, based on available events
                     selIdx--; // retreat
                     if (selIdx < 0) {
                         selIdx++;
+                    } else {
+                        hash = window.location.hash + '&photo=' + selIdx;
+                        App.vent.trigger('tracking:trackPageView', hash);
                     }
                 }
                 images.eq(selIdx).click();
