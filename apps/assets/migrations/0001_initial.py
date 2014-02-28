@@ -79,10 +79,18 @@ class Migration(SchemaMigration):
             ('source', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('source_url', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('author', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('tagged_products', self.gf('django.db.models.fields.CommaSeparatedIntegerField')(max_length=512, null=True, blank=True)),
             ('attributes', self.gf('jsonfield.fields.JSONField')(null=True)),
         ))
         db.send_create_signal(u'assets', ['Content'])
+
+        # Adding M2M table for field tagged_products on 'Content'
+        m2m_table_name = db.shorten_name(u'assets_content_tagged_products')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('content', models.ForeignKey(orm[u'assets.content'], null=False)),
+            ('product', models.ForeignKey(orm[u'assets.product'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['content_id', 'product_id'])
 
         # Adding model 'Image'
         db.create_table(u'assets_image', (
@@ -124,7 +132,7 @@ class Migration(SchemaMigration):
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
             ('updated_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=1024, null=True, blank=True)),
-            ('template', self.gf('django.db.models.fields.CharField')(max_length=1024)),
+            ('template', self.gf('django.db.models.fields.CharField')(default='https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/themes/campaign_base.html', max_length=1024)),
         ))
         db.send_create_signal(u'assets', ['Theme'])
 
@@ -203,6 +211,9 @@ class Migration(SchemaMigration):
         # Deleting model 'Content'
         db.delete_table(u'assets_content')
 
+        # Removing M2M table for field tagged_products on 'Content'
+        db.delete_table(db.shorten_name(u'assets_content_tagged_products'))
+
         # Deleting model 'Image'
         db.delete_table(u'assets_image')
 
@@ -242,7 +253,7 @@ class Migration(SchemaMigration):
             'source': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'source_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'store': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['assets.Store']"}),
-            'tagged_products': ('django.db.models.fields.CommaSeparatedIntegerField', [], {'max_length': '512', 'null': 'True', 'blank': 'True'}),
+            'tagged_products': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['assets.Product']", 'null': 'True', 'symmetrical': 'False'}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             'url': ('django.db.models.fields.TextField', [], {})
         },
@@ -338,7 +349,7 @@ class Migration(SchemaMigration):
             'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '1024', 'null': 'True', 'blank': 'True'}),
-            'template': ('django.db.models.fields.CharField', [], {'max_length': '1024'}),
+            'template': ('django.db.models.fields.CharField', [], {'default': "'https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/themes/campaign_base.html'", 'max_length': '1024'}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
         },
         u'assets.tile': {

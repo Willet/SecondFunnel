@@ -56,14 +56,4 @@ def ajax_jsonp(result, callback_name=None, status=200, request=None,
         resp = HttpResponse(response_text,
                             content_type='application/json', status=status)
 
-    """
-    # colour me baffled, but the django corsheaders middleware does nothing
-    # on elastic beanstalk instances. These lines patch the response object
-    # with the request's (if available) origin headers, if settings says so.
-    if add_cors_headers and request:
-        protocol = 'https://' if request.is_secure() else 'http://'
-        resp['Access-Control-Allow-Origin'] = 'http://gap.secondfunnel.com'
-        resp['Access-Control-Allow-Credentials'] = 'true'
-    """
-
     return resp

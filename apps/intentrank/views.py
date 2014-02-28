@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from hammock import Hammock
 
 from django.http import HttpResponse
+import json
 
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile
@@ -58,10 +59,8 @@ def get_results_view(request, **kwargs):
     feed = page.feed
     if not feed:
         return HttpResponseNotFound("No feed for page {0}".format(page_id))
-    return ajax_jsonp(get_results(feed=feed, results=results,
-                                  exclude_set=exclude_set, request=request),
-                      callback_name=callback, request=request,
-                      add_cors_headers=True)
+    return HttpResponse(json.dumps([json.loads(j) for j in get_results(
+        feed=feed, results=results, exclude_set=exclude_set, request=request)]))
 
 
 @csrf_exempt

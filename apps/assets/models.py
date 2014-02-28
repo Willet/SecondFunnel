@@ -1,12 +1,18 @@
 from django.contrib.auth.models import User
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.serializers.json import Serializer
 from django.db import models
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
+import json
+
 from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
+from apps.intentrank.serializers import (TileSerializer, FeedSerializer,
+    ContentTileSerializer, ProductTileSerializer, BannerTileSerializer,
+    VideoTileSerializer, ProductSerializer)
 
 
 default_master_size = {
@@ -21,6 +27,8 @@ class BaseModel(models.Model, DirtyFieldsMixin):
 
     created_at = CreationDateTimeField()
     updated_at = ModificationDateTimeField()
+
+    serializer = Serializer
 
     class Meta:
         abstract = True
@@ -132,6 +140,8 @@ class Product(BaseModel):
     ## for instance new-egg's egg-score; sale-prices; etc.
     attributes = JSONField(null=True)
 
+    serializer = ProductSerializer
+
     def to_json(self):
         product_images = self.product_images.all()
 
@@ -210,6 +220,8 @@ class Content(BaseModel):
     ## but restrict to only filtering/ordering on above fields
     attributes = JSONField(null=True)
 
+    serializer = ContentTileSerializer
+
     def __init__(self, *args, **kwargs):
         super(Content, self).__init__(*args, **kwargs)
         if not self.attributes:
@@ -255,6 +267,8 @@ class Image(Content):
 
     dominant_color = models.CharField(max_length=32, blank=True, null=True)
 
+    serializer = ContentTileSerializer
+
     def to_json(self, expand_products=True):
         """Only Images (not ProductImages) can have related-products."""
         dct = {
@@ -288,14 +302,10 @@ class Video(Content):
     # e.g. oHg5SJYRHA0
     original_id = models.CharField(max_length=255, blank=True, null=True)
 
+    serializer = VideoTileSerializer
+
     def to_json(self):
-        dct = super(Video, self).to_json()
-
-        # videos *need* original-id and original-url
-        dct["original-id"] = self.original_id or self.id
-        dct["original-url"] = self.source_url or self.url
-
-        return dct
+        return self.serializer().serialize([self])
 
 
 class Review(Content):
@@ -326,6 +336,9 @@ class Feed(BaseModel):
     """"""
     feed_algorithm = models.CharField(max_length=64, blank=True, null=True)  # ; e.g. sorted, recommend
     # and other representation specific of the Feed itself
+    def to_json(self):
+        serializer = FeedSerializer(self.tiles.all())
+        return serializer.serialize()
 
 
 class Page(BaseModel):
@@ -389,71 +402,20 @@ class Tile(BaseModel):
     attributes = JSONField(null=True, default={})
 
     def to_json(self):
-        # attributes from tile itself
-        dct = {
-            # prefixed keys are for inspection only; the hyphen is designed to
-            # prevent you from using it like a js object
-            '-dbg-real-tile-id': self.old_id or self.id,
-            '-dbg-attributes': self.attributes,
-            'tile-id': self.old_id or self.id,
-            'template': self.template,
-            'prioritized': self.prioritized,
-        }
-
-        product_count, content_count = self.products.count(), self.content.count()
+        data = {}
 
         # determine what kind of tile this is (specified / auto)
         if self.template == 'image':
             print "Rendering tile of type content"
-            dct.update(self._to_content_tile_json())
+            return ContentTileSerializer().serialize([self])
 
         elif self.template == 'product':
             print "Rendering tile of type product"
-            dct.update(self._to_product_tile_json())
+            return ProductTileSerializer().serialize([self])
 
         elif self.template == 'banner':
-            # banner mode in JS is triggered by having 'redirect-url'
-            redirect_url = (self.attributes.get('redirect_url') or
-                            self.attributes.get('redirect-url') or
-                            (self.content.select_subclasses()[0].source_url
-                             if self.content.count()
-                             else ''))
-            dct.update({'redirect-url': redirect_url,
-                        'images': [self.attributes]})
+            return BannerTileSerializer().serialize([self])
 
-        else:  # "guess"
-            if product_count > 0 and content_count > 0:
-                # combobox
-                print "Rendering tile of type combobox"
-                dct.update(self._to_combobox_tile_json())
-            elif product_count > 0 and content_count == 0:
-                # product
-                print "Rendering tile of type product"
-                dct.update(self._to_product_tile_json())
-            elif product_count == 0 and content_count > 0:
-                # (assorted) content
-                print "Rendering tile of type content"
-                dct.update(self._to_content_tile_json())
-            else:
-                dct.update({'warning': 'Tile has neither products nor content!'})
-
-        return dct
-
-    def _to_combobox_tile_json(self):
-        # there are currently no combobox json formats.
-        return self._to_content_tile_json()
-
-    def _to_product_tile_json(self):
-        return (self.products
-                    .select_related('product_images')
-                    [0]
-                    .to_json())
-
-    def _to_content_tile_json(self):
-        # currently, there are only single-content tiles, so
-        # pick the first content and jsonify it
-        return (self.content
-                    .prefetch_related('tagged_products')
-                    .select_subclasses()
-                    [0]
-                    .to_json())
+        else:
+            serializer = TileSerializer()
+            return serializer.serialize([self])
