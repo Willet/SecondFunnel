@@ -6,7 +6,7 @@ if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
     raise EnvironmentSettingsError()
 
 ENVIRONMENT = "test"
-DEBUG = False
+DEBUG = False  # See?
 TEMPLATE_DEBUG = DEBUG
 
 # Enable GZIP and Minification
