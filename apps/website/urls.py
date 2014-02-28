@@ -8,7 +8,11 @@ if settings.ENVIRONMENT == "dev":
 else:
     WEBSITE_BASE_URL = settings.WEBSITE_BASE_URL
 
-urlpatterns = patterns('apps.website.urls',
+urlpatterns = patterns('apps.website.views',
+    url(r'^(?P<page_id>\d+)/(?P<feed_name>[^/\.]+\.rss)$', 'get_rss_feed',
+        name='get-feed'),
+    url(r'^(?P<page_slug>[^/\.]+)/(?P<feed_name>[^/\.]+\.rss)$', 'get_rss_feed',
+        name='get-feed'),
     url(
         r'^$',
         lambda x: HttpResponsePermanentRedirect(WEBSITE_BASE_URL),
