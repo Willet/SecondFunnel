@@ -386,7 +386,7 @@ class Page(BaseModel):
 
 class Tile(BaseModel):
 
-    s = models.FloatField(default=0)
+    s = models.FloatField(default=1)
 
     clicks = models.BigIntegerField(default=0)
 
@@ -414,7 +414,11 @@ class Tile(BaseModel):
 
     @property
     def score(self):
-        return math.exp(self.s - l * self.hours_since_creation())
+        return math.exp(self.s - l * self.days_since_creation())
+
+    @property
+    def log_score(self):
+        return math.log(self.score + 1.5, 1.5)
 
     def to_json(self):
         # attributes from tile itself
