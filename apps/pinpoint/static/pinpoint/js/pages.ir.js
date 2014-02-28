@@ -7,17 +7,8 @@ App.module("intentRank", function (intentRank, App) {
 
     var consecutiveFailures = 0,
         cachedResults = [],
-        resultsAlreadyRequested = [], // list of product IDs
-        // TODO: Find a better way to do this
-        fetch = _.debounce(function () {
-            var diff = cachedResults.length;
-            diff -= intentRank.options.IRCacheResultCount;
-            if (diff < 0) {
-                intentRank.fetch({
-                    'IRCacheResultCount': diff
-                });
-            }
-        }, 5000);
+        fetching = null,
+        resultsAlreadyRequested = []; // list of product IDs
 
     this.options = {
         'baseUrl': "http://intentrank-test.elasticbeanstalk.com/intentrank",
@@ -66,9 +57,8 @@ App.module("intentRank", function (intentRank, App) {
             'IRCacheResultCount': options.IRResultsCount || 10
         });
 
-        // Cache some results
-        intentRank.fetch();
-
+        intentRank.prefetch(); // Prefetch results
+        intentRank.prefetch = _.debounce(intentRank.prefetch, 600); // Debounce it
         App.vent.trigger('intentRankInitialized', intentRank);
         return this;
     };
@@ -81,6 +71,28 @@ App.module("intentRank", function (intentRank, App) {
     this.url = function () {
         return _.template(intentRank.options.urlTemplates.campaign,
             intentRank.options);
+    };
+
+    /**
+     * This function is a smart alias to fetch, which essentially checks for
+     * and stores a promise object that others can latch onto when they call for
+     * results.
+     *
+     * @returns {Deferred}
+     */
+    this.prefetch = function () {
+        var diff = cachedResults.length - intentRank.options.IRCacheResultCount;
+        // Only prefetch if cached count is low and we're not already
+        // fetching.
+        if (!fetching && diff < 0) {
+            console.debug("Prefetching from IR.");
+            fetching = intentRank.fetch({ // Fetch only the difference
+                'IRCacheResultCount': Math.abs(diff)
+            }).done(function () { // Clear fetching when done
+                fetching = null;
+            });
+        }
+        return this;
     };
 
     /**
@@ -130,22 +142,18 @@ App.module("intentRank", function (intentRank, App) {
             var len = cachedResults.length;
             prepopulatedResults = cachedResults.splice(0, Math.min(opts.results, len));
 
-            if (len >= opts.results) {
+            if (fetching) { // return fetching object if we're fetching
+                console.debug("Holding off for IR to finish.");
+                return fetching;
+            } if (len >= opts.results) {
                 // Use a dummy deferred object
-                deferred = Object({
-                    always: function (foo) {
-                        fetch(opts.results);
-                        return foo(prepopulatedResults);
-                    }
+                return $.when(prepopulatedResults).done(function() {
+                    intentRank.prefetch();
                 });
-                return deferred;
             } else {
                 // for now, it seems that intentRank has an upperbound of 20, so
                 // just set that as the limit
                 intentRank.updateCache(opts.results - len);
-                deferred.done(function () {
-                    fetch(opts.results);
-                });
             }
         }
 
@@ -170,7 +178,7 @@ App.module("intentRank", function (intentRank, App) {
                     resultsAlreadyRequested = resultsAlreadyRequested.slice(-10);
                 }
 
-                if (!(collection == intentRank)) fetch();
+                if (!(collection == intentRank)) intentRank.prefetch();
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 // reset fail counter
