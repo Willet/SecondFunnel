@@ -2,6 +2,7 @@ import importlib
 import json
 
 from django.core import serializers
+import time
 from algorithms import ir_random
 
 class IntentRank(object):
@@ -59,11 +60,14 @@ class IntentRank(object):
         makes sense.
         """
         new_things = []
+        last_bpt = time.clock()
+
         if serialize_format == 'json':
             for thing in things:
                 # whatever it is, if it has a custom to_json method, use it
                 if hasattr(thing, 'to_json'):
                     new_things.append(thing.to_json())  # raises on purpose
+                    print "A tile: {0}".format(time.clock() - last_bpt); last_bpt = time.clock()
                     continue
 
                 # whatever it is, if the default serializer works, also use it
