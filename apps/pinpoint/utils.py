@@ -15,9 +15,9 @@ def read_a_file(file_name, default_value=''):
 
 def read_remote_file(url, default_value=''):
     """
-    Just a url opener with a catch.  Returns a tuple response
-    where the first item is the data and the second is whether the response
-    was gzipped or not.
+    Url opener that reads a url and gets the content body.
+    Returns a tuple response where the first item is the data and the
+    second is whether the response was gzipped or not.
     """
     try:
         request = urllib2.Request(url)

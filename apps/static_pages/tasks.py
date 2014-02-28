@@ -223,8 +223,25 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
     page_source_parsed = BeautifulSoup(page_content)
     script_tags = [tag.extract() for tag in page_source_parsed.findAll('script')]
     # Determine which content can be gzipped and which cannot
-    ie_support = re.findall(r'(?:IE )([0-9]+)(?:\]>.+?src=")(.*?)(?:".+?<\!\[endif\])', page_content, re.DOTALL)
-    ie_support = dict(ie_support)
+    # Naive implementation, not to be trusted for all situations
+    ie_support = re.findall(r'(\!)?(?:.*?)(gte|lt|lte|gt)?\s?(?:IE )([0-9]+)(?:\]>.+?src=")(.*?\.js)(?:".+?<\!\[endif\])',
+        page_content,
+        re.DOTALL)
+    gzip_support = []
+
+    for negation, matchOperator, ieVersion, source in ie_support:
+        try:
+            ieVersion = int(ieVersion)
+        except ValueError:
+            continue
+        # Check for support for this ieVersion
+        if (len(negation) == 0 and ((matchOperator == 'gte' and ieVersion >= 9) \
+                or (matchOperator == 'gt' and ieVersion >= 8))) or \
+                (len(negation) > 0 and ((matchOperator == 'lte' and ieVersion >= 8) or \
+                (matchOperator == 'lt' and ieVersion < 8))):
+            gzip_support.append((True, source))
+        else:
+            gzip_support.append((False, source))
 
     if script_tags:
         for script_tag in script_tags:
@@ -233,21 +250,22 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
             if script_type and 'template' in script_type:
                 continue # skip processing templates
 
-            if not script_tag.get('src'):
+            src = script_tag.get('src')
+            if not src:
                 continue # ignore inline scripts
 
-            src = script_tag.get('src')
-            key = None
-            for ver, source in ie_support.items(): # check for gzip support
-                if int(ver) >= 9 and source == src:
-                    key = ver
+            supports_gzip = False
+            for support, source in gzip_support[:]: # check for gzip support
+                if source == src:
+                    supports_gzip = support
+                    gzip_support.pop(gzip_support.index((support, source)))
                     break
 
-            if key and settings.ENVIRONMENT != 'dev':
+            if supports_gzip and settings.ENVIRONMENT != 'dev':
                 # Can gzip this content, can't in dev as middleware serves
                 content = read_remote_file(src)[0]
                 new_script_s3_key = '' # bucket key
-                while s3_key_exists(settings.AWS_STORAGE_BUCKET_NAME, new_script_s3_key):
+                while s3_key_exists(test_storage_bucket_name, new_script_s3_key):
                     new_script_s3_key = 'CACHE/{0}.js'.format(uuid.uuid4())
 
                 # Ensure can upload to the test bucket
@@ -259,7 +277,6 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
 
                 # Force relative path
                 script_tag['src'] = '//s3.amazonaws.com/{0}/{1}'.format(test_storage_bucket_name, new_script_s3_key)
-                del ie_support[key] # No longer need this key/value pair
 
             script_tag['src'] = re.sub(r'(http|https)://', '//', src)
             script_tag['async'] = "true"
