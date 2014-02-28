@@ -5,6 +5,7 @@ Static pages celery tasks
 import os
 import re
 import uuid
+import mimetypes
 from urlparse import urlparse
 
 from celery import Celery, group
