@@ -58,7 +58,7 @@ App.module("intentRank", function (intentRank, App) {
         });
 
         intentRank.prefetch(); // Prefetch results
-        intentRank.prefetch = _.debounce(intentRank.prefetch, 600); // Debounce it
+        intentRank.prefetch = _.debounce(intentRank.prefetch, 6000); // Debounce it
         App.vent.trigger('intentRankInitialized', intentRank);
         return this;
     };
@@ -78,7 +78,7 @@ App.module("intentRank", function (intentRank, App) {
      * and stores a promise object that others can latch onto when they call for
      * results.
      *
-     * @returns {Deferred}
+     * @returns this
      */
     this.prefetch = function () {
         var diff = cachedResults.length - intentRank.options.IRCacheResultCount;
