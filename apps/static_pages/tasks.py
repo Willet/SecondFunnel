@@ -225,9 +225,15 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
     script_tags = [tag.extract() for tag in page_source_parsed.findAll('script')]
     # Determine which content can be gzipped and which cannot
     # Naive implementation, not to be trusted for all situations
-    ie_support = re.findall(r'(\!)?(?:.*?)(gte|lt|lte|gt)?\s?(?:IE )([0-9]+)(?:\]>.+?src=")(.*?\.js)(?:".+?<\!\[endif\])',
-        page_content,
-        re.DOTALL)
+    ie_support = re.findall(('(\!)?'                    # Check for existance of negation operator
+                             '(?:.*?)'                  # Lookahead to match any space or whatnot
+                             '(gte|lt|lte|gt)?'         # Match operator if it exists
+                             '\s?(?:IE )'               # If operator, single space than IE
+                             '([0-9]+)'                 # Get version string
+                             '\s?(?:\]>.+?src=")'       # Close conditional tag and find source
+                             '(.*?\.js)'                # Match only JS files
+                             '(?:".+?<\!\[endif\])'),   # Closing tag
+                             page_content, re.DOTALL)
     gzip_support = []
 
     for negation, matchOperator, ieVersion, source in ie_support:
@@ -256,6 +262,7 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
                 continue # ignore inline scripts
 
             supports_gzip = False
+            # http://stackoverflow.com/questions/2612802/how-to-clone-or-copy-a-list-in-python
             for support, source in gzip_support[:]: # check for gzip support
                 if source == src:
                     supports_gzip = support
