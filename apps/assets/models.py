@@ -418,7 +418,9 @@ class Tile(BaseModel):
 
     @property
     def log_score(self):
-        return math.log(self.score + 1.5, 1.5)
+        ratio = 1.5
+        score = self.score
+        return math.log(self.score + (ratio if score > 3 else (ratio - score/2)), ratio)
 
     def to_json(self):
         # attributes from tile itself
