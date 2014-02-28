@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'Tile.s'
         db.add_column(u'assets_tile', 's',
-                      self.gf('django.db.models.fields.FloatField')(default=1), keep_default=False)
+                      self.gf('django.db.models.fields.FloatField')(default=0), keep_default=False)
 
         # Adding field 'Tile.clicks'
         db.add_column(u'assets_tile', 'clicks',
@@ -146,7 +146,7 @@ class Migration(SchemaMigration):
             'old_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
             'prioritized': ('django.db.models.fields.BooleanField', [], {}),
             'products': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['assets.Product']", 'symmetrical': 'False'}),
-            's': ('django.db.models.fields.FloatField', [], {'default': 1}),
+            's': ('django.db.models.fields.FloatField', [], {'default': 0}),
             'template': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
         },

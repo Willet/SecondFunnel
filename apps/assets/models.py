@@ -386,7 +386,7 @@ class Page(BaseModel):
 
 class Tile(BaseModel):
 
-    s = models.FloatField(default=1)
+    s = models.FloatField(default=0)
 
     clicks = models.BigIntegerField(default=0)
 
