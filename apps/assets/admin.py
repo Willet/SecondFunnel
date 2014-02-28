@@ -47,7 +47,7 @@ class PageAdmin(BaseAdmin):
 
 
 class TileAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display
+    list_display = ['old_id'] + BaseAdmin.list_display + ['template']
 
 
 class FeedAdmin(BaseAdmin):
