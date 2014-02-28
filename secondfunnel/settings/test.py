@@ -145,6 +145,7 @@ BROKER_TRANSPORT_OPTIONS = {
     }
 
 MIDDLEWARE_CLASSES += (
+    'snippetscream.ProfileMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     # oddly enough, this goes *after* debug_toolbar
     'apps.utils.models.NonHtmlDebugToolbarMiddleware',
