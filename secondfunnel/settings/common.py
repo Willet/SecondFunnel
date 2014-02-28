@@ -48,6 +48,10 @@ if 'RDS_DB_NAME' in os.environ:
             'PORT': os.environ['RDS_PORT'],
             }
     }
+
+    CONN_MAX_AGE = 0  # default to never time out from django's side;
+                      # RDS is its own value set
+
 else:
     DATABASES = {
         'default': {
