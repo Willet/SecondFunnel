@@ -1,14 +1,11 @@
-from hammock import Hammock
+import time
 
 from django.conf import settings
+from django.http import HttpResponse
 from django.http.response import Http404, HttpResponseNotFound
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
-
-from hammock import Hammock
-
-from django.http import HttpResponse
 
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile
@@ -30,8 +27,11 @@ def get_results_view(request, **kwargs):
 
     :returns HttpResponse/Http404
     """
+    last_bpt = time.clock()
+
     callback = request.GET.get('callback', None)
     results = int(request.GET.get('results', 10))
+    print "1: {0}".format(time.clock() - last_bpt); last_bpt = time.clock()
 
     # "show everything except these tile ids"
     shown = filter(bool, request.GET.get('shown', "").split(","))
@@ -41,6 +41,8 @@ def get_results_view(request, **kwargs):
         # keep track of which (unique) tiles have been shown
         request.session['shown'] = list(set(request.session.get('shown', []) +
                                             exclude_set))
+
+    print "2: {0}".format(time.clock() - last_bpt); last_bpt = time.clock()
 
     # otherwise, not a proxy
     page_id = kwargs.get('page_id', 0)
@@ -54,6 +56,8 @@ def get_results_view(request, **kwargs):
                     .get())
     except Page.DoesNotExist:
         return HttpResponseNotFound("No page {0}".format(page_id))
+
+    print "3: {0}".format(time.clock() - last_bpt); last_bpt = time.clock()
 
     feed = page.feed
     if not feed:
@@ -109,7 +113,9 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
 
 def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs):
     """Supply either feed or page for backward compatibility."""
+    last_bpt = time.clock()
     ir = IntentRank(feed=feed)
+    print "4: {0}".format(time.clock() - last_bpt); last_bpt = time.clock()
 
     # "everything except these tile ids"
     exclude_set = kwargs.get('exclude_set', [])
