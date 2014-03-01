@@ -24,3 +24,4 @@ def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
         raise Http404("Feed not found")
     feed = rss_feed.main(page, feed_name=feed_name, feed_link=feed_link)
     return HttpResponse(feed, content_type='application/rss+xml')
+    
