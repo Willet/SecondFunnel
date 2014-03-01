@@ -148,7 +148,7 @@ class Command(BaseCommand):
                 print 'PRODUCT IMAGE - old_id: ', product_image_old_id, ', ', product_image_fields
 
                 product_image, _, _ = ProductImage.update_or_create(old_id=product_image_old_id,
-                                                                   defaults=product_image_fields)
+                                                                    defaults=product_image_fields)
 
                 if product_image_old_id == product_default_image_old_id:
                     product.default_image_id = product_image.id
@@ -166,20 +166,12 @@ class Command(BaseCommand):
             if content_source == 'image':
                 continue
             content_type = content_dict.get('type')
-            content_products_object = content_dict.get('tagged-products')
-            content_tagged_products = []
-            if content_products_object:
-                for product_id in content_products_object:
-                    try:
-                        content_tagged_products.append(Product.objects.filter(old_id=product_id).get())
-                    except Product.DoesNotExist:
-                        print "Tagged product not found: #{0}".format(product_id)
 
             content_name = content_dict.get('name')
             content_description = content_dict.get('description')
 
-            content_fields = {'store': self.store, 'source': content_source,
-                              'tagged_products': content_tagged_products,
+            content_fields = {'store': self.store,
+                              'source': content_source,
                               'name': content_name,
                               'description': content_description}
 
@@ -222,6 +214,15 @@ class Command(BaseCommand):
 
             else:
                 continue
+
+            content_products_object = content_dict.get('tagged-products')
+            if content_products_object:
+                for product_old_id in content_products_object:
+                    if products.get(str(product_old_id)):
+                        content.tagged_products.add(products[product_old_id])
+                    else:
+                        print "Product #{0} not found".format(product_old_id)
+
             contents[content_old_id] = content.id
 
 
@@ -273,7 +274,6 @@ class Command(BaseCommand):
             # read redirect-url (among others) for banner tiles' stringified json
             if tile_template == "banner":
                 tile_fields['attributes'] = tile_dict.get('json')
-
 
             print 'TILE - old_id: ', tile_old_id, ', ', tile_fields
 
