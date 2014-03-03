@@ -43,10 +43,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
     def days_since_creation(self):
         return (datetime.now(pytz.utc) - self.created_at).days
 
-    def hours_since_creation(self):
-        change = (datetime.now(pytz.utc) - self.created_at)
-        return round(change.total_seconds()/60/60 - 0.5)
-
     @classmethod
     def update_or_create(cls, defaults=None, **kwargs):
         """Like Model.objects.get_or_create, either gets, updates, or creates
@@ -433,7 +429,7 @@ class Tile(BaseModel):
     def log_score(self):
         ratio = 1.5
         score = self.score
-        return math.log(self.score + (ratio if score > 2 * ratio else (ratio - score/2)), ratio)
+        return math.log(score + (ratio if score > 2 * ratio else (ratio - score/2)), ratio)
 
     def to_json(self):
         # determine what kind of tile this is
