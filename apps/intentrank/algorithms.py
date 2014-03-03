@@ -62,7 +62,7 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, request=No
         for tile in tiles:
             log_score = tile.log_score
             rand_num -= log_score
-            if rand_num < 0:
+            if rand_num <= 0:
                 index = tiles.index(tile)
                 tiles[tiles_length], tiles[index] = tiles[index], tiles[tiles_length]
                 rand_sum += log_score

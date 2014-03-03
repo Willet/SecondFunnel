@@ -433,7 +433,7 @@ class Tile(BaseModel):
     def log_score(self):
         ratio = 1.5
         score = self.score
-        return math.log(self.score + (ratio if score > 3 else (ratio - score/2)), ratio)
+        return math.log(self.score + (ratio if score > 2 * ratio else (ratio - score/2)), ratio)
 
     def to_json(self):
         # determine what kind of tile this is
