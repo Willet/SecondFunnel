@@ -3,6 +3,7 @@ from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import Serializer
 from django.db import models
+from django.db.models import Q
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
 import json
@@ -416,3 +417,41 @@ class Tile(BaseModel):
                 serializer = TileSerializer()
 
         return serializer.to_json([self])
+
+
+class RelatedTile(BaseModel):
+
+    tile_a = models.ForeignKey(Tile)
+    tile_b = models.ForeignKey(Tile)
+
+    starting_score = models.FloatField(default=0)
+
+    @classmethod
+    def relate(cls, a, b):
+        if hasattr(a, id):
+            a = a.id
+        if hasattr(b, id):
+            b = b.id
+        related_tile = cls.objects.get_or_create(tile_a_id=a, tile_b_id=b)
+        # update_score = popularity_devalue_rate * related_tile.days_since_creation()
+        # starting_score = related_tile.starting_score
+        # related_tile.s = max(starting_score, update_score) + math.log(1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
+        related_tile.save()
+
+    @classmethod
+    def get_related_tiles(cls, a):
+        if hasattr(a, id):
+            a = a.id
+        related_tiles = list(cls.objects.filter(Q(tile_a_id=a) | Q(tile_b_id=a)))
+
+
+    @property
+    def score(self):
+        # return math.exp(self.starting_score - popularity_devalue_rate * self.days_since_creation())
+        pass
+
+    @property
+    def log_score(self):
+        ratio = 1.5
+        score = self.score
+        #return math.log(score + (ratio if score > 2 * ratio else(ratio - score/2)), ratio)
