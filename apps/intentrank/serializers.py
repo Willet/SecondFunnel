@@ -1,8 +1,6 @@
 import json
 
-from django.core.serializers.json import DjangoJSONEncoder
 from django.core.serializers.json import Serializer as JSONSerializer
-from django.core.serializers.python import Serializer as PythonSerializer
 
 
 class RawSerializer(JSONSerializer):
@@ -58,14 +56,38 @@ class ProductSerializer(RawSerializer):
 
         Also, screw you for not having any docs.
         """
+        product_images = obj.product_images.all()
+
+        data = {
+            "url": obj.url,
+            "price": obj.price,
+            "description": obj.description,
+            "name": obj.name,
+            "images": [image.to_json() for image in product_images],
+        }
+
+        # if default image is missing...
+        if obj.default_image:
+            data["default-image"] = str(obj.default_image.old_id or
+                obj.default_image.id)
+        elif len(product_images) > 0:
+            # fall back to first image
+            data["default-image"] = str(product_images[0].old_id)
+
+        return data
+
+
+class VideoSerializer(RawSerializer):
+    """This will dump absolutely everything in a product as JSON."""
+    def get_dump_object(self, obj):
+        """This will be the data used to generate the object.
+        These are core attributes that every tile has.
+
+        Also, screw you for not having any docs.
+        """
         return {
-            # prefixed keys are for inspection only; the hyphen is designed to
-            # prevent you from using it like a js object
-            '-dbg-real-tile-id': obj.old_id or obj.id,
-            '-dbg-attributes': obj.attributes,
-            'tile-id': obj.old_id or obj.id,
-            'template': obj.template,
-            'prioritized': obj.prioritized,
+            "original-id": obj.original_id or obj.id,
+            "original-url": obj.source_url or obj.url
         }
 
 
@@ -82,15 +104,21 @@ class TileSerializer(RawSerializer):
 
         Also, screw you for not having any docs.
         """
-        return {
+        data = {
             # prefixed keys are for inspection only; the hyphen is designed to
             # prevent you from using it like a js object
             '-dbg-real-tile-id': obj.old_id or obj.id,
             '-dbg-attributes': obj.attributes,
             'tile-id': obj.old_id or obj.id,
-            'template': obj.template,
-            'prioritized': obj.prioritized,
         }
+
+        if hasattr(obj, 'template'):
+            data['template'] = obj.template
+
+        if hasattr(obj, 'prioritized'):
+            data['prioritized'] = obj.prioritized
+
+        return data
 
 
 class ProductTileSerializer(TileSerializer):
@@ -153,9 +181,6 @@ class VideoTileSerializer(ContentTileSerializer):
         :param obj  <Tile>
         """
         data = super(VideoTileSerializer, self).get_dump_object(obj)
-
-        data["original-id"] = obj.original_id or obj.id
-        data["original-url"] = obj.source_url or obj.url
 
         return data
 

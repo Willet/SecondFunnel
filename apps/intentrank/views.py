@@ -110,7 +110,7 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs)
     # "everything except these tile ids"
     exclude_set = kwargs.get('exclude_set', [])
     request = kwargs.get('request', None)
-    return ir.transform(ir.ir_random(feed=feed, results=results,
+    return ir.transform(ir_random(feed=feed, results=results,
                                      exclude_set=exclude_set, request=request))
 
 
