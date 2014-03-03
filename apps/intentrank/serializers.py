@@ -110,7 +110,7 @@ class VideoSerializer(ContentSerializer):
         data = super(VideoSerializer, self).get_dump_object(obj)
 
         data.update({
-            "caption": getattr(obj, 'caption', 'Video'),
+            "caption": getattr(obj, 'caption', ''),
             "description": getattr(obj, 'description', ''),
             "original-id": obj.original_id or obj.id,
             "original-url": obj.source_url or obj.url,
