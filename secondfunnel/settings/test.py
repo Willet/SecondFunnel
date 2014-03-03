@@ -1,12 +1,11 @@
 from common import *
-from dev import INTERNAL_IP, INTERNAL_IPS
 from secondfunnel.errors import EnvironmentSettingsError
 
 if not all([AWS_STORAGE_BUCKET_NAME, MEMCACHED_LOCATION]):
     raise EnvironmentSettingsError()
 
 ENVIRONMENT = "test"
-DEBUG = False  # See?
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 # Enable GZIP and Minification
@@ -89,7 +88,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'tastypie',
     'ajax_forms',
-    "compressor",
+    'compressor',
     'corsheaders',
 
     # our apps
@@ -100,7 +99,7 @@ INSTALLED_APPS = (
     'apps.contentgraph',
     'apps.website',
     'apps.static_pages',
-    'apps.utils'
+    'apps.utils',
 )
 
 WEBSITE_BASE_URL = 'http://test.secondfunnel.com'
@@ -119,8 +118,9 @@ SESSION_COOKIE_DOMAIN = '.secondfunnel.com'
 STATIC_URL = 'https://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
 COMPRESS_URL = STATIC_URL
 
-MEMCACHED_LOCATION = 'secondfunnel-test.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
+STALE_TILE_QUEUE_NAME = 'tileservice-worker-queue'
 
+MEMCACHED_LOCATION = 'secondfunnel-test.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -139,10 +139,10 @@ GOOGLE_SERVICE_ACCOUNT = '248578306350@developer.gserviceaccount.com'
 BROKER_URL = 'sqs://%s:%s@' % (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
 BROKER_TRANSPORT_OPTIONS = {
     'region': 'us-west-2',
-    'visibility_timeout': 30,
+    'visibility_timeout': 3600,  # 1 hour. (Possible fix for recurring tasks issue on SQS)
     'polling_interval': 1,
     'queue_name_prefix': 'celery-test-',
-    }
+}
 
 MIDDLEWARE_CLASSES += (
     'snippetscream.ProfileMiddleware',
@@ -150,10 +150,6 @@ MIDDLEWARE_CLASSES += (
     # oddly enough, this goes *after* debug_toolbar
     'apps.utils.models.NonHtmlDebugToolbarMiddleware',
 )
-
-# force show toolbar
-# http://stackoverflow.com/a/10518040/1558430
-SHOW_TOOLBAR_CALLBACK = lambda: DEBUG
 
 # Nick's test instagram client; good for secondfunnel-test
 INSTAGRAM_CLIENT_ID = '3fc578b28e2a4b43a51ea2fa735599fd'

@@ -406,6 +406,10 @@ CELERYBEAT_SCHEDULE = {
     }
 }
 
+# force show toolbar
+# http://stackoverflow.com/a/10518040/1558430
+SHOW_TOOLBAR_CALLBACK = lambda: DEBUG
+
 STALE_TILE_RETRY_THRESHOLD = 240  # seconds
 IRCONFIG_RETRY_THRESHOLD = 240  # seconds
 
