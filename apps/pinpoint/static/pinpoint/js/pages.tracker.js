@@ -367,7 +367,7 @@ App.module("tracker", function (tracker, App) {
             'value': App.option('page:id')
         });
 
-        addItem('send', 'pageview', App.option('optests', {}));
+        addItem('send', 'pageview');
         console.debug("Registered page view.");
 
         // register event maps

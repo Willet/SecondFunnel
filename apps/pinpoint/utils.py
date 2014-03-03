@@ -1,4 +1,6 @@
-import httplib2
+import gzip
+import urllib2
+import StringIO
 
 from os import path
 
@@ -12,13 +14,27 @@ def read_a_file(file_name, default_value=''):
 
 
 def read_remote_file(url, default_value=''):
-    """just a url opener with a catch."""
+    """
+    Url opener that reads a url and gets the content body.
+    Returns a tuple response where the first item is the data and the
+    second is whether the response was gzipped or not.
+    """
     try:
-        h = httplib2.Http()
-        response, content = h.request(url)
-        if not 200 <= int(response['status']) <= 300:
-            return default_value
+        request = urllib2.Request(url)
+        request.add_header('Accept-encoding', 'gzip')
+        response = urllib2.urlopen(request)
 
-        return content
-    except (TypeError, ValueError, httplib2.RelativeURIError) as err:
-        return default_value
+        if not 200 <= int(response.getcode()) <= 300:
+            return default_value, False
+
+        if response.info().get('Content-Encoding') == 'gzip':
+            buf = StringIO.StringIO(response.read())
+            zfile = gzip.GzipFile(fileobj=buf)
+            content = zfile.read()
+            zfile.close()
+            return content, True
+
+        content = response.read()
+        return content, False
+    except (TypeError, ValueError) as err:
+        return default_value, False

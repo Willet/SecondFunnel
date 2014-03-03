@@ -3,26 +3,32 @@ Static pages celery tasks
 """
 
 import os
-
+import re
+import uuid
+import mimetypes
 from urlparse import urlparse
 
 from celery import Celery, group
 from celery.utils import noop
 from celery.utils.log import get_task_logger
 
+from BeautifulSoup import BeautifulSoup
 from django.conf import settings
 from django.core.cache import cache
 from django.utils.encoding import smart_str
 
+from apps.pinpoint.utils import read_remote_file
 from apps.assets.models import Store
 from apps.contentgraph.views import get_page, get_store, get_stores
 from apps.intentrank.views import get_seeds
 from apps.pinpoint.models import Campaign
-
-from apps.static_pages.aws_utils import (create_bucket_website_alias,
+from apps.static_pages.aws_utils import (create_bucket_website_alias, s3_key_exists,
     get_route53_change_status, sqs_poll, SQSQueue, upload_to_bucket)
 from apps.static_pages.utils import (get_bucket_name, create_dummy_request,
                                      render_campaign)
+
+from secondfunnel.settings.test import AWS_STORAGE_BUCKET_NAME as test_storage_bucket_name
+
 
 celery = Celery()
 logger = get_task_logger(__name__)
@@ -213,6 +219,77 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
     page_content = render_campaign(store_id, campaign_id,
                                    get_seeds_func=get_seeds,
                                    request=dummy_request)
+
+    # Add async to generated tags
+    page_source_parsed = BeautifulSoup(page_content)
+    script_tags = [tag.extract() for tag in page_source_parsed.findAll('script')]
+    # Determine which content can be gzipped and which cannot
+    # Naive implementation, not to be trusted for all situations
+    ie_support = re.findall(('(\!)?'                    # Check for existance of negation operator
+                             '(?:.*?)'                  # Lookahead to match any space or whatnot
+                             '(gte|lt|lte|gt)?'         # Match operator if it exists
+                             '\s?(?:IE )'               # If operator, single space than IE
+                             '([0-9]+)'                 # Get version string
+                             '\s?(?:\]>.+?src=")'       # Close conditional tag and find source
+                             '(.*?\.js)'                # Match only JS files
+                             '(?:".+?<\!\[endif\])'),   # Closing tag
+                             page_content, re.DOTALL)
+    gzip_support = []
+
+    for negation, matchOperator, ieVersion, source in ie_support:
+        try:
+            ieVersion = int(ieVersion)
+        except ValueError:
+            continue
+        # Check for support for this ieVersion
+        if (len(negation) == 0 and ((matchOperator == 'gte' and ieVersion >= 9) \
+                or (matchOperator == 'gt' and ieVersion >= 8))) or \
+                (len(negation) > 0 and ((matchOperator == 'lte' and ieVersion >= 8) or \
+                (matchOperator == 'lt' and ieVersion < 8))):
+            gzip_support.append((True, source))
+        else:
+            gzip_support.append((False, source))
+
+    if script_tags:
+        for script_tag in script_tags:
+            script_type = script_tag.get('type')
+            old_script = str(script_tag)
+            if script_type and 'template' in script_type:
+                continue # skip processing templates
+
+            src = script_tag.get('src')
+            if not src:
+                continue # ignore inline scripts
+
+            supports_gzip, index = False, 0
+            # http://stackoverflow.com/questions/2612802/how-to-clone-or-copy-a-list-in-python
+            for support, source in gzip_support[:]: # check for gzip support
+                if source == src:
+                    supports_gzip = support
+                    gzip_support.pop(index)
+                    break
+                index += 1
+
+            if supports_gzip and settings.ENVIRONMENT != 'dev':
+                # Can gzip this content, can't in dev as middleware serves
+                content, _ = read_remote_file(src)
+                new_script_s3_key = '' # bucket key
+                while s3_key_exists(test_storage_bucket_name, new_script_s3_key):
+                    new_script_s3_key = 'CACHE/{0}.js'.format(uuid.uuid4())
+
+                # Ensure can upload to the test bucket
+                if not upload_to_bucket(bucket_name=test_storage_bucket_name,
+                    filename=new_script_s3_key, content=content,
+                    content_type=mimetypes.MimeTypes().guess_type(new_script_s3_key)[0],
+                    public=True, do_gzip=True):
+                    raise IOError("Could not upload the gzipped JS file to S3!")
+
+                # Force relative path
+                script_tag['src'] = '//s3.amazonaws.com/{0}/{1}'.format(test_storage_bucket_name, new_script_s3_key)
+
+            script_tag['src'] = re.sub(r'(http|https)://', '//', src)
+            script_tag['async'] = "true"
+            page_content = page_content.replace(old_script, str(script_tag), 1)
 
     # e.g. "shorts3/index.html"
     identifier = getattr(campaign, 'url', '') or \
