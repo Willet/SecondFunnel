@@ -100,7 +100,9 @@ class ProductTileSerializer(TileSerializer):
         """
         data = super(ProductTileSerializer, self).get_dump_object(obj)
         try:
-            obj.products.select_related('product_images')[0].to_json()
+            data.update(obj.products
+                           .select_related('product_images')[0]
+                           .to_json())
         except IndexError as err:
             pass  # no products in this tile
         return data
