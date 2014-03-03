@@ -13,9 +13,8 @@ import json
 from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
-from apps.intentrank.serializers import (TileSerializer, FeedSerializer,
-    ContentTileSerializer, ProductTileSerializer, BannerTileSerializer,
-    VideoTileSerializer, ProductSerializer)
+
+from apps.intentrank.serializers import *
 
 from datetime import datetime
 
@@ -153,6 +152,7 @@ class Product(BaseModel):
     serializer = ProductSerializer
 
     def to_json(self):
+        """
         product_images = self.product_images.all()
 
         dct = {
@@ -172,6 +172,8 @@ class Product(BaseModel):
             dct["default-image"] = str(product_images[0].old_id)
 
         return dct
+        """
+        return self.serializer().to_json([self])
 
 
 class ProductImage(BaseModel):
@@ -312,10 +314,10 @@ class Video(Content):
     # e.g. oHg5SJYRHA0
     original_id = models.CharField(max_length=255, blank=True, null=True)
 
-    serializer = VideoTileSerializer
+    serializer = VideoSerializer
 
     def to_json(self):
-        return self.serializer().serialize([self])
+        return self.serializer().to_json([self])
 
 
 class Review(Content):
@@ -436,13 +438,14 @@ class Tile(BaseModel):
 
     def to_json(self):
         # determine what kind of tile this is
+        serializer = None
         if self.template == 'image':
             serializer = ContentTileSerializer()
-        elif self.template == 'product':
-            serializer = ProductTileSerializer()
-        elif self.template == 'banner':
-            serializer = BannerTileSerializer()
         else:
-            serializer = TileSerializer()
+            try:
+                if not serializer:
+                    serializer = globals()[self.template.capitalize() + 'TileSerializer']()
+            except:  # cannot find e.g. 'Youtube'TileSerializer -- use default
+                serializer = TileSerializer()
 
         return serializer.to_json([self])
