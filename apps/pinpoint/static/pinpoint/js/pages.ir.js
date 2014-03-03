@@ -145,16 +145,15 @@ App.module("intentRank", function (intentRank, App) {
             if (fetching) { // return fetching object if we're fetching
                 console.debug("Holding off for IR to finish.");
                 return fetching;
-            } if (len >= opts.results) {
+            } else if (len >= opts.results) {
                 // Use a dummy deferred object
                 return $.when(prepopulatedResults).done(function() {
                     intentRank.prefetch();
                 });
-            } else {
-                // for now, it seems that intentRank has an upperbound of 20, so
-                // just set that as the limit
-                intentRank.updateCache(opts.results - len);
             }
+            // for now, it seems that intentRank has an upperbound of 20, so
+            // just set that as the limit
+            intentRank.updateCache(opts.results - len);
         }
 
         // attach respective success and error functions to the options object
@@ -178,7 +177,11 @@ App.module("intentRank", function (intentRank, App) {
                     resultsAlreadyRequested = resultsAlreadyRequested.slice(-10);
                 }
 
-                if (!(collection == intentRank)) intentRank.prefetch();
+                // Only prefetch if this isn't intentRank; prevents infinite
+                // calls.
+                if (collection != intentRank) {
+                    intentRank.prefetch();
+                }
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 // reset fail counter
