@@ -26,11 +26,10 @@ default_master_size = {
     }
 }
 
-l = 0.15 # lambda for popularity, the bigger the lambda, the faster popularity de-values
+popularity_devalue_rate = 0.15  # variable used for popularity, the bigger the value, the faster popularity de-values
 
 
 class BaseModel(models.Model, DirtyFieldsMixin):
-
     created_at = CreationDateTimeField()
     updated_at = ModificationDateTimeField()
 
@@ -100,7 +99,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
 
 
 class Store(BaseModel):
-
     old_id = models.IntegerField(unique=True)
 
     staff = models.ManyToManyField(User, related_name='stores')
@@ -128,7 +126,6 @@ class Store(BaseModel):
 
 
 class Product(BaseModel):
-
     old_id = models.IntegerField(unique=True)
 
     store = models.ForeignKey(Store)
@@ -255,8 +252,8 @@ class Content(BaseModel):
             dct['related-products'] = []
 
         for product in (self.tagged_products
-                            .select_related('default_image', 'product_images')
-                            .all()):
+                                .select_related('default_image', 'product_images')
+                                .all()):
             try:
                 dct['related-products'].append(product.to_json())
             except Product.DoesNotExist:
@@ -266,7 +263,6 @@ class Content(BaseModel):
 
 
 class Image(Content):
-
     name = models.CharField(max_length=1024, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
@@ -303,7 +299,6 @@ class Image(Content):
 
 
 class Video(Content):
-
     name = models.CharField(max_length=1024, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
@@ -321,18 +316,16 @@ class Video(Content):
 
 
 class Review(Content):
-
     product = models.ForeignKey(Product)
 
     body = models.TextField()
 
 
 class Theme(BaseModel):
-
     name = models.CharField(max_length=1024, blank=True, null=True)
     template = models.CharField(max_length=1024,
-        # backward compatibility for pages that don't specify themes
-        default="https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/themes/campaign_base.html")
+                                # backward compatibility for pages that don't specify themes
+                                default="https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/themes/campaign_base.html")
 
     # @deprecated for page generator
     CUSTOM_FIELDS = {
@@ -354,7 +347,6 @@ class Feed(BaseModel):
 
 
 class Page(BaseModel):
-
     store = models.ForeignKey(Store)
 
     old_id = models.IntegerField(unique=True)
@@ -396,12 +388,11 @@ class Page(BaseModel):
 
 
 class Tile(BaseModel):
-
     # used to calculate the score for a tile
     # a bigger s value does not necessarily mean a bigger score
-    s = models.FloatField(default=0)
+    starting_score = models.FloatField(default=0)
 
-    clicks = models.BigIntegerField(default=0)
+    clicks = models.PositiveIntegerField(default=0)
 
     old_id = models.IntegerField(unique=True)
 
@@ -421,15 +412,17 @@ class Tile(BaseModel):
 
     def click(self):
         self.clicks += 1
-        # the value used to increase s per click
-        u = l * self.days_since_creation()
-        self.s = max(self.s, u) + math.log(1 + math.exp(min(self.s,u) - max(self.s,u)))
+        # the value used to increase starting_score per click
+        update_score = popularity_devalue_rate * self.days_since_creation()
+        starting_score = self.starting_score
+        self.starting_score = max(starting_score, update_score) + math.log(
+            1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
         self.save()
 
     @property
     def score(self):
-        # returns the score of the tile based on s and how long ago the tile was created
-        return math.exp(self.s - l * self.days_since_creation())
+        # returns the score of the tile based on the starting_score and how long ago the tile was created
+        return math.exp(self.starting_score - popularity_devalue_rate * self.days_since_creation())
 
     @property
     def log_score(self):
@@ -438,7 +431,7 @@ class Tile(BaseModel):
         score = self.score
         # returns the log of a score with the smallest value being 1
         # makes sure that small scores do not get large log values
-        return math.log(score + (ratio if score > 2 * ratio else (ratio - score/2)), ratio)
+        return math.log(score + (ratio if score > 2 * ratio else (ratio - score / 2)), ratio)
 
     def to_json(self):
         # determine what kind of tile this is

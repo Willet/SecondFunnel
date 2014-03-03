@@ -64,7 +64,7 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, request=No
         results = len(tiles) + prioritized_length
 
     while tiles_length + prioritized_length < results:
-        rand_num = real_random.uniform(rand_sum + 0.000000001, total_score)
+        rand_num = real_random.uniform(rand_sum, total_score)
         for tile in tiles:
             log_score = tile.log_score
             rand_num -= log_score

@@ -9,17 +9,17 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         # Adding field 'Tile.s'
-        db.add_column(u'assets_tile', 's',
+        db.add_column(u'assets_tile', 'starting_score',
                       self.gf('django.db.models.fields.FloatField')(default=0), keep_default=False)
 
         # Adding field 'Tile.clicks'
         db.add_column(u'assets_tile', 'clicks',
-                      self.gf('django.db.models.fields.BigIntegerField')(default=0), keep_default=False)
+                      self.gf('django.db.models.fields.PositiveIntegerField')(default=0), keep_default=False)
 
 
     def backwards(self, orm):
         # Deleting field 'Tile.s'
-        db.delete_column(u'assets_tile', 's')
+        db.delete_column(u'assets_tile', 'starting_score')
 
         # Deleting field 'Tile.clicks'
         db.delete_column(u'assets_tile', 'clicks')
@@ -138,7 +138,7 @@ class Migration(SchemaMigration):
         u'assets.tile': {
             'Meta': {'object_name': 'Tile'},
             'attributes': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True'}),
-            'clicks': ('django.db.models.fields.BigIntegerField', [], {'default': 0}),
+            'clicks': ('django.db.models.fields.PositiveIntegerField', [], {'default': 0}),
             'content': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['assets.Content']", 'symmetrical': 'False'}),
             'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             'feed': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'tiles'", 'to': u"orm['assets.Feed']"}),
@@ -146,7 +146,7 @@ class Migration(SchemaMigration):
             'old_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
             'prioritized': ('django.db.models.fields.BooleanField', [], {}),
             'products': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['assets.Product']", 'symmetrical': 'False'}),
-            's': ('django.db.models.fields.FloatField', [], {'default': 0}),
+            'starting_score': ('django.db.models.fields.FloatField', [], {'default': 0}),
             'template': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
         },
