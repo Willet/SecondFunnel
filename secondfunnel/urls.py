@@ -17,6 +17,10 @@ urlpatterns = patterns('',
     #url(r'p/', include('apps.pinpoint.global_urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
 
+    # special top-level urls for RSS feeds
+    url(r'^(?P<page_slug>[^/\.]+)/(?P<feed_name>[^/\.]+\.rss)$',
+        'apps.intentrank.views.get_rss_feed', name='get-feed'),
+
     # APIs
     url(r'^contentgraph/', include('apps.contentgraph.urls')),
     url(r'^static_pages/', include('apps.static_pages.urls')),
