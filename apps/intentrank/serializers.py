@@ -77,14 +77,45 @@ class ProductSerializer(RawSerializer):
         return data
 
 
-class VideoSerializer(RawSerializer):
+class ContentSerializer(RawSerializer):
+    def get_dump_object(self, obj):
+        from apps.assets.models import Product
+
+        data = {
+            'store-id': str(obj.store.old_id if obj.store else 0),
+            'source': obj.source,
+            'source_url': obj.source_url,
+            'url': obj.url or obj.source_url,
+            'author': obj.author,
+        }
+
+        if obj.tagged_products.count() > 0:
+            data['related-products'] = []
+
+        for product in (obj.tagged_products
+                            .select_related('default_image', 'product_images')
+                            .all()):
+            try:
+                data['related-products'].append(product.to_json())
+            except Product.DoesNotExist:
+                pass  # ?
+
+        return data
+
+
+class VideoSerializer(ContentSerializer):
     """This will dump absolutely everything in a product as JSON."""
     def get_dump_object(self, obj):
-        data = {
+
+        data = super(VideoSerializer, self).get_dump_object(obj)
+
+        data.update({
             "caption": getattr(obj, 'caption', 'Video'),
+            "description": getattr(obj, 'description', ''),
             "original-id": obj.original_id or obj.id,
-            "original-url": obj.source_url or obj.url
-        }
+            "original-url": obj.source_url or obj.url,
+            "source": getattr(obj, 'source', 'youtube'),
+        })
 
         if hasattr(obj, 'attributes'):
             if obj.attributes.get('username'):

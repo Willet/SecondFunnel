@@ -221,7 +221,7 @@ class Content(BaseModel):
     ## but restrict to only filtering/ordering on above fields
     attributes = JSONField(null=True)
 
-    serializer = ContentTileSerializer
+    serializer = ContentSerializer
 
     def __init__(self, *args, **kwargs):
         super(Content, self).__init__(*args, **kwargs)
