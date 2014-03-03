@@ -80,15 +80,17 @@ class ProductSerializer(RawSerializer):
 class VideoSerializer(RawSerializer):
     """This will dump absolutely everything in a product as JSON."""
     def get_dump_object(self, obj):
-        """This will be the data used to generate the object.
-        These are core attributes that every tile has.
-
-        Also, screw you for not having any docs.
-        """
-        return {
+        data = {
+            "caption": getattr(obj, 'caption', 'Video'),
             "original-id": obj.original_id or obj.id,
             "original-url": obj.source_url or obj.url
         }
+
+        if hasattr(obj, 'attributes'):
+            if obj.attributes.get('username'):
+                data['username'] = obj.attributes.get('username')
+
+        return data
 
 
 class TileSerializer(RawSerializer):
@@ -180,7 +182,11 @@ class VideoTileSerializer(ContentTileSerializer):
         """
         :param obj  <Tile>
         """
-        data = super(VideoTileSerializer, self).get_dump_object(obj)
+        data = {
+            'type': 'video'
+        }
+
+        data.update(super(VideoTileSerializer, self).get_dump_object(obj))
 
         return data
 

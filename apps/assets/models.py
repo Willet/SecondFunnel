@@ -10,7 +10,6 @@ import json
 from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
-
 from apps.intentrank.serializers import *
 
 
@@ -295,6 +294,9 @@ class Image(Content):
 class Video(Content):
 
     name = models.CharField(max_length=1024, blank=True, null=True)
+
+    # TODO: caption
+
     description = models.TextField(blank=True, null=True)
 
     player = models.CharField(max_length=255)
