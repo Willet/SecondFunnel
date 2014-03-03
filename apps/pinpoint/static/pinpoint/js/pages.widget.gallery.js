@@ -80,7 +80,6 @@ App.utils.registerWidget(
             $el.append($img);  // add each image into the carousel
         });
 
-        $.event.special.swipe.handleSwipe = $.noop; // JQuery's default swipes fire on fixed start/stop
         selectImage(view.$('.gallery img').eq(0));
 
         view.$('.gallery-swipe-left').hide();
@@ -98,15 +97,17 @@ App.utils.registerWidget(
                     selIdx++; // advance to next image in gallery
                     if (selIdx >= images.length) {
                         selIdx--;
+                    } else {
+                        images.eq(selIdx).click();
                     }
                 } else {  // can only be swiperight, based on available events
                     selIdx--; // retreat
                     if (selIdx < 0) {
                         selIdx++;
+                    } else {
+                        images.eq(selIdx).click();
                     }
                 }
-
-                images.eq(selIdx).click();
             })
             .on('click', '.image', function (ev) {
                 var $pseudo = $(ev.target);
@@ -117,24 +118,5 @@ App.utils.registerWidget(
                     $pseudo.swipeleft();
                 }
             });
-
-
-        if (App.support.mobile()) { // enable continous swipe on mobile
-            view.$el.on('touchmove', '.image', function (ev) {
-                ev = ev.originalEvent;
-                var newX = ev.touches[ev.touches.length - 1].clientX;
-                startX = startX? startX : newX;
-                var dist = newX - startX,
-                    $pseudo = $(ev.target);
-                if (Math.abs(dist) >= threshold) { // swipe only if passes certain threshold
-                    startX = newX;
-                    if (dist < 0) {
-                        $pseudo.swipeleft();
-                    } else {
-                        $pseudo.swiperight();
-                    }
-                }
-            });
-        }
     }
 );
