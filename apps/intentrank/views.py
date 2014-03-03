@@ -1,3 +1,4 @@
+import json
 import time
 
 from django.conf import settings
@@ -5,7 +6,6 @@ from django.http import HttpResponse
 from django.http.response import Http404, HttpResponseNotFound
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import get_object_or_404
 
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile
@@ -18,7 +18,7 @@ import scripts.generate_rss_feed as rss_feed
 @never_cache
 @csrf_exempt
 @request_methods('GET')
-def get_results_view(request, **kwargs):
+def get_results_view(request, page_id):
     """Returns random results for a campaign
 
     :var url: if given, proxy directly to intentrank.
@@ -27,11 +27,8 @@ def get_results_view(request, **kwargs):
 
     :returns HttpResponse/Http404
     """
-    last_bpt = time.clock()
-
     callback = request.GET.get('callback', None)
     results = int(request.GET.get('results', 10))
-    print "1: {0}".format(time.clock() - last_bpt); last_bpt = time.clock()
 
     # "show everything except these tile ids"
     shown = filter(bool, request.GET.get('shown', "").split(","))
@@ -42,10 +39,7 @@ def get_results_view(request, **kwargs):
         request.session['shown'] = list(set(request.session.get('shown', []) +
                                             exclude_set))
 
-    print "2: {0}".format(time.clock() - last_bpt); last_bpt = time.clock()
-
     # otherwise, not a proxy
-    page_id = kwargs.get('page_id', 0)
     try:
         page = (Page.objects
                     .filter(old_id=page_id)
@@ -57,15 +51,12 @@ def get_results_view(request, **kwargs):
     except Page.DoesNotExist:
         return HttpResponseNotFound("No page {0}".format(page_id))
 
-    print "3: {0}".format(time.clock() - last_bpt); last_bpt = time.clock()
-
     feed = page.feed
     if not feed:
         return HttpResponseNotFound("No feed for page {0}".format(page_id))
-    return ajax_jsonp(get_results(feed=feed, results=results,
-                                  exclude_set=exclude_set, request=request),
-                      callback_name=callback, request=request,
-                      add_cors_headers=True)
+    return ajax_jsonp(get_results(feed=feed, results=results, request=request,
+                                  exclude_set=exclude_set),
+                      callback_name=callback)
 
 
 @csrf_exempt
@@ -79,21 +70,8 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     from get_results.
     """
     callback = request.GET.get('callback', None)
-    results = int(request.GET.get('results', 10))
 
-    try:
-        page = (Page.objects
-                    .filter(old_id=page_id)
-                    .select_related('feed__tiles__products',
-                                    'feed__tiles__content')
-                    .prefetch_related()
-                    .get())
-    except Page.DoesNotExist:
-        return HttpResponseNotFound("No page {0}".format(page_id))
-
-    feed = page.feed
-    if not feed:
-        raise Http404("No feed for page {0}".format(page_id))
+    # get single tile
     if tile_id:
         try:
             tile = (Tile.objects
@@ -106,22 +84,35 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
 
         return ajax_jsonp(tile.to_json())
 
+    # get all tiles
+    try:
+        page = (Page.objects
+                    .filter(old_id=page_id)
+                    .select_related('feed__tiles__products',
+                                    'feed__tiles__content')
+                    .prefetch_related()
+                    .get())
+    except Page.DoesNotExist:
+        return HttpResponseNotFound("No page {0}".format(page_id))
+
+    feed = page.feed
+    if not (feed or tile_id):
+        return HttpResponseNotFound("No feed for page {0}".format(page_id))
+
     return ajax_jsonp(get_results(feed=feed, algorithm=ir_all),
-                      callback_name=callback, request=request,
-                      add_cors_headers=True)
+                      callback_name=callback, request=request)
 
 
 def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs):
     """Supply either feed or page for backward compatibility."""
-    last_bpt = time.clock()
     ir = IntentRank(feed=feed)
-    print "4: {0}".format(time.clock() - last_bpt); last_bpt = time.clock()
 
     # "everything except these tile ids"
     exclude_set = kwargs.get('exclude_set', [])
     request = kwargs.get('request', None)
     return ir.transform(ir.ir_popular(feed=feed, results=results,
                                      exclude_set=exclude_set, request=request))
+
 
 @never_cache
 @csrf_exempt

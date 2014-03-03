@@ -88,7 +88,6 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     :returns list
     """
     # serve prioritized ones first
-    last_bpt = time.clock()
     prioritized_tiles = prioritized_tile_ids = []
     if request and hasattr(request, 'session'):
         if len(request.session.get('shown', [])) == 0:
@@ -101,8 +100,6 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             prioritized_tile_ids = [tile.old_id or tile.id
                                     for tile in prioritized_tiles]
 
-    print "5: {0}".format(time.clock() - last_bpt); last_bpt = time.clock()
-
     # get (10 - number of prioritized) tiles that are not already prioritized
     tiles = list(
         feed.tiles
@@ -114,13 +111,9 @@ def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         .order_by("?")
         [:results - len(prioritized_tiles)])
 
-    print "6: {0}".format(time.clock() - last_bpt); last_bpt = time.clock()
-
     real_random.shuffle(tiles)
 
     tiles = prioritized_tiles + tiles
-
-    print "7: {0}".format(time.clock() - last_bpt); last_bpt = time.clock()
     return tiles[:results]
 
 

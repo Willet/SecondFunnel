@@ -13,7 +13,7 @@ COMPRESS = True
 COMPRESS_VERSION = True
 COMPRESS_ENABLED = True
 
-AWS_IS_GZIPPED = True
+AWS_IS_GZIPPED = True # GZip Middleware isn't recognized without this line because http://stackoverflow.com/a/19180415/1558430
 AWS_S3_SECURE_URLS = False
 AWS_HEADERS =  {
     'Expires': BROWSER_CACHE_EXPIRATION_DATE,
@@ -91,9 +91,12 @@ INSTALLED_APPS = (
     'apps.utils',
 )
 
-# contentgraph.el... contains nothing. fetch objects from the test db.
-# uncomment if necessary.
 CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
+
+# if secondfunnel-test.elasticbeanstalk.com
+# SESSION_COOKIE_DOMAIN = '.elasticbeanstalk.com'
+# if test.secondfunnel.com (recommended)
+SESSION_COOKIE_DOMAIN = '.secondfunnel.com'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -125,8 +128,6 @@ BROKER_TRANSPORT_OPTIONS = {
     'queue_name_prefix': 'celery-',
 }
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
-
-SESSION_COOKIE_DOMAIN = '.secondfunnel.com'
 
 INSTAGRAM_CLIENT_ID = 'be95027932f64f4aaa465ffed160a8fb'
 INSTAGRAM_CLIENT_SECRET = 'aac059c1acb341d3b44b9139dc106dbe'
