@@ -261,17 +261,18 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
             if not src:
                 continue # ignore inline scripts
 
-            supports_gzip = False
+            supports_gzip, index = False, 0
             # http://stackoverflow.com/questions/2612802/how-to-clone-or-copy-a-list-in-python
             for support, source in gzip_support[:]: # check for gzip support
                 if source == src:
                     supports_gzip = support
-                    gzip_support.pop(gzip_support.index((support, source)))
+                    gzip_support.pop(index)
                     break
+                index += 1
 
             if supports_gzip and settings.ENVIRONMENT != 'dev':
                 # Can gzip this content, can't in dev as middleware serves
-                content = read_remote_file(src)[0]
+                content, _ = read_remote_file(src)
                 new_script_s3_key = '' # bucket key
                 while s3_key_exists(test_storage_bucket_name, new_script_s3_key):
                     new_script_s3_key = 'CACHE/{0}.js'.format(uuid.uuid4())
