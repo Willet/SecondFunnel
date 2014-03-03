@@ -398,6 +398,7 @@ class Page(BaseModel):
 class Tile(BaseModel):
 
     # used to calculate the score for a tile
+    # a bigger s value does not necessarily mean a bigger score
     s = models.FloatField(default=0)
 
     clicks = models.BigIntegerField(default=0)
@@ -420,16 +421,19 @@ class Tile(BaseModel):
 
     def click(self):
         self.clicks += 1
-        u = l * self.days_since_creation() # the value used to increase s per click
+        # the value used to increase s per click
+        u = l * self.days_since_creation()
         self.s = max(self.s, u) + math.log(1 + math.exp(min(self.s,u) - max(self.s,u)))
         self.save()
 
     @property
     def score(self):
+        # returns the score of the tile based on s and how long ago the tile was created
         return math.exp(self.s - l * self.days_since_creation())
 
     @property
     def log_score(self):
+        # the lower the ratio, the bigger the range between low and high scores
         ratio = 1.5
         score = self.score
         # returns the log of a score with the smallest value being 1
