@@ -23,10 +23,10 @@ App.module('optimizer', function (optimizer, App) {
             return true;
         },
         setDimension = function (index, val) {
-            var dim = 'dimension' + index,
-                tests = App.option('optests', {});
-            tests[dim] = val;
-            App.options.optests = tests;
+            var dim = 'dimension' + index;
+            if (window.ga) {
+                window.ga('set', dim, val);
+            }
         },
         getPos = function (ch) {
             return UPPERCASE_LETTERS.indexOf(ch);
