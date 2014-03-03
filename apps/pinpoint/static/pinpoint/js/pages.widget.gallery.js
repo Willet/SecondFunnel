@@ -72,7 +72,7 @@ App.utils.registerWidget(
                     var $ev = $(ev.currentTarget),
                         hash;
                     selectImage($ev);
-                    if (window.location.hash) {
+                    if (!!window.location.hash) {
                         hash = window.location.hash + '&photo=' + $ev.index();
                         App.vent.trigger('tracking:trackPageView', hash);
                     }
