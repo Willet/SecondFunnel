@@ -27,7 +27,7 @@ default_master_size = {
     }
 }
 
-l = 0.15 # lambda for popularity
+l = 0.15 # lambda for popularity, the bigger the lambda, the faster popularity de-values
 
 
 class BaseModel(models.Model, DirtyFieldsMixin):
@@ -395,6 +395,7 @@ class Page(BaseModel):
 
 class Tile(BaseModel):
 
+    # used to calculate the score for a tile
     s = models.FloatField(default=0)
 
     clicks = models.BigIntegerField(default=0)
@@ -417,7 +418,7 @@ class Tile(BaseModel):
 
     def click(self):
         self.clicks += 1
-        u = l * self.days_since_creation()
+        u = l * self.days_since_creation() # the value used to increase s per click
         self.s = max(self.s, u) + math.log(1 + math.exp(min(self.s,u) - max(self.s,u)))
         self.save()
 
@@ -429,6 +430,8 @@ class Tile(BaseModel):
     def log_score(self):
         ratio = 1.5
         score = self.score
+        # returns the log of a score with the smallest value being 1
+        # makes sure that small scores do not get large log values
         return math.log(score + (ratio if score > 2 * ratio else (ratio - score/2)), ratio)
 
     def to_json(self):
