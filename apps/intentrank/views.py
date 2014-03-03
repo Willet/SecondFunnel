@@ -86,7 +86,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
                         .get())
         except Tile.DoesNotExist:
             return HttpResponseNotFound("No tile {0}".format(tile_id))
-
+        tile.click()
         return ajax_jsonp(tile.to_json())
 
     # get all tiles
