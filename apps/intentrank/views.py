@@ -18,7 +18,7 @@ import scripts.generate_rss_feed as rss_feed
 @never_cache
 @csrf_exempt
 @request_methods('GET')
-def get_results_view(request, **kwargs):
+def get_results_view(request, page_id):
     """Returns random results for a campaign
 
     :var url: if given, proxy directly to intentrank.
@@ -40,7 +40,6 @@ def get_results_view(request, **kwargs):
                                             exclude_set))
 
     # otherwise, not a proxy
-    page_id = kwargs.get('page_id', 0)
     try:
         page = (Page.objects
                     .filter(old_id=page_id)
@@ -71,21 +70,8 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     from get_results.
     """
     callback = request.GET.get('callback', None)
-    results = int(request.GET.get('results', 10))
 
-    try:
-        page = (Page.objects
-                    .filter(old_id=page_id)
-                    .select_related('feed__tiles__products',
-                                    'feed__tiles__content')
-                    .prefetch_related()
-                    .get())
-    except Page.DoesNotExist:
-        return HttpResponseNotFound("No page {0}".format(page_id))
-
-    feed = page.feed
-    if not feed:
-        raise Http404("No feed for page {0}".format(page_id))
+    # get single tile
     if tile_id:
         try:
             tile = (Tile.objects
@@ -97,6 +83,21 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
             return HttpResponseNotFound("No tile {0}".format(tile_id))
 
         return ajax_jsonp(tile.to_json())
+
+    # get all tiles
+    try:
+        page = (Page.objects
+                    .filter(old_id=page_id)
+                    .select_related('feed__tiles__products',
+                                    'feed__tiles__content')
+                    .prefetch_related()
+                    .get())
+    except Page.DoesNotExist:
+        return HttpResponseNotFound("No page {0}".format(page_id))
+
+    feed = page.feed
+    if not (feed or tile_id):
+        return HttpResponseNotFound("No feed for page {0}".format(page_id))
 
     return ajax_jsonp(get_results(feed=feed, algorithm=ir_all),
                       callback_name=callback, request=request)
