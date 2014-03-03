@@ -30,8 +30,7 @@ App.utils.registerWidget(
                     selector = $ev.parents('.previewContainer').find('.main-image').length ?
                       '.main-image' : '.image img',
                     $focusImg = $ev.parents('.previewContainer')
-                        .find(selector),
-                    hash;
+                        .find(selector);
 
                 $ev
                     .parents('.previewContainer')
@@ -70,10 +69,13 @@ App.utils.registerWidget(
                     // 'src': image.width(300)  // 300 = max logical width of the image
                 })
                 .click(function (ev) {
-                    var $ev = $(ev.currentTarget);
+                    var $ev = $(ev.currentTarget),
+                        hash;
                     selectImage($ev);
-                    hash = window.location.hash + '&photo=' + $ev.index();
-                    App.vent.trigger('tracking:trackPageView', hash);
+                    if (window.location.hash) {
+                        hash = window.location.hash + '&photo=' + $ev.index();
+                        App.vent.trigger('tracking:trackPageView', hash);
+                    }
                 });
             $el.append($img);  // add each image into the carousel
         });
@@ -90,26 +92,20 @@ App.utils.registerWidget(
                 var type = ev.type,  // swipeleft or swiperight
                     sel = view.$('.gallery .selected'),
                     selIdx = sel.index(),
-                    images = $('.gallery img'),
-                    hash;
+                    images = $('.gallery img');
 
                 if (type === 'swipeleft') {
                     selIdx++; // advance to next image in gallery
                     if (selIdx >= images.length) {
                         selIdx--;
-                    } else {
-                        hash = window.location.hash + '&photo=' + selIdx;
-                        App.vent.trigger('tracking:trackPageView', hash);
                     }
                 } else {  // can only be swiperight, based on available events
                     selIdx--; // retreat
                     if (selIdx < 0) {
                         selIdx++;
-                    } else {
-                        hash = window.location.hash + '&photo=' + selIdx;
-                        App.vent.trigger('tracking:trackPageView', hash);
                     }
                 }
+
                 images.eq(selIdx).click();
             })
             .on('click', '.image', function (ev) {
