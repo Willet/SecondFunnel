@@ -8,6 +8,7 @@ from django.core.serializers.json import Serializer
 from django.db import models
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
+from django.utils import timezone
 import json
 
 from jsonfield import JSONField
@@ -15,8 +16,6 @@ from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
 
 from apps.intentrank.serializers import *
-
-from datetime import datetime
 
 
 default_master_size = {
@@ -39,7 +38,7 @@ class BaseModel(models.Model, DirtyFieldsMixin):
         abstract = True
 
     def days_since_creation(self):
-        return (datetime.now(pytz.utc) - self.created_at).days
+        return (timezone.now() - self.created_at).days
 
     @classmethod
     def update_or_create(cls, defaults=None, **kwargs):
