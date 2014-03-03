@@ -47,12 +47,24 @@ def delete_campaign(request, store_id, campaign_id):
 
 @cache_page(10000, key_prefix="pinpoint-")
 @vary_on_headers('Accept-Encoding')
-def campaign(request, store_id, campaign_id):
-    """Returns a rendered campaign response of the given id."""
+def campaign(request, store_id, campaign_id, mode=None):
+    """Returns a rendered campaign response of the given id.
+
+    :param mode   e.g. 'mobile' for the mobile page. Currently not functional.
+    """
     rendered_content = render_campaign(store_id, campaign_id,
         request=request)
 
     return HttpResponse(rendered_content)
+
+
+def generate_static_campaign(request, store_id, campaign_id):
+    """Too much confusion over the endpoint. Create alias for
+
+    /pinpoint/id/id/regenerate == /static_pages/id/id/regenerate
+    """
+    from apps.static_pages.views import generate_static_campaign as real_gsc
+    return real_gsc(request=request, store_id=store_id, campaign_id=campaign_id)
 
 
 def app_exception_handler(request):

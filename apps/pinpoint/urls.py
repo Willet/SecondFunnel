@@ -14,4 +14,8 @@ urlpatterns = patterns('apps.pinpoint.views',
     # https://docs.djangoproject.com/en/dev/topics/http/urls/#notes-on-capturing-text-in-urls
     url(r'^(?P<store_id>\d+)/(?P<campaign_id>\d+)/?$', 'campaign', name='campaign'),
     url(r'^(?P<store_id>\d+)/(?P<campaign_id>\d+)/(?:(?P<mode>\w+).html)?$', 'campaign', name='campaign'),
+
+    # regenerate == generate
+    url(r'^(?P<store_id>\d+)/(?P<campaign_id>\d+)/regenerate/?$',
+        'generate_static_campaign', name='generate_static_campaign'),
 )
