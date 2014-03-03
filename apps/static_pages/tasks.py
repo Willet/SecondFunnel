@@ -12,7 +12,7 @@ from celery import Celery, group
 from celery.utils import noop
 from celery.utils.log import get_task_logger
 
-from BeautifulSoup import BeautifulSoup
+from BeautifulSoup import BeautifulSoup, Comment
 from django.conf import settings
 from django.core.cache import cache
 from django.utils.encoding import smart_str
@@ -222,33 +222,22 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
 
     # Add async to generated tags
     page_source_parsed = BeautifulSoup(page_content)
-    script_tags = [tag.extract() for tag in page_source_parsed.findAll('script')]
     # Determine which content can be gzipped and which cannot
     # Naive implementation, not to be trusted for all situations
-    ie_support = re.findall(('(\!)?'                    # Check for existance of negation operator
-                             '(?:.*?)'                  # Lookahead to match any space or whatnot
-                             '(gte|lt|lte|gt)?'         # Match operator if it exists
-                             '\s?(?:IE )'               # If operator, single space than IE
-                             '([0-9]+)'                 # Get version string
-                             '\s?(?:\]>.+?src=")'       # Close conditional tag and find source
-                             '(.*?\.js)'                # Match only JS files
-                             '(?:".+?<\!\[endif\])'),   # Closing tag
-                             page_content, re.DOTALL)
+    conditional_comments = page_source_parsed.findAll(text=lambda text: isinstance(text, Comment) and \
+                                text.find('if') != -1)
     gzip_support = []
 
-    for negation, matchOperator, ieVersion, source in ie_support:
-        try:
-            ieVersion = int(ieVersion)
-        except ValueError:
-            continue
-        # Check for support for this ieVersion
-        if (len(negation) == 0 and ((matchOperator == 'gte' and ieVersion >= 9) \
-                or (matchOperator == 'gt' and ieVersion >= 8))) or \
-                (len(negation) > 0 and ((matchOperator == 'lte' and ieVersion >= 8) or \
-                (matchOperator == 'lt' and ieVersion < 8))):
-            gzip_support.append((True, source))
+    for comment in conditional_comments:
+        comment = unicode(comment) if unicode(comment).find('src') != -1 else \
+                      (unicode(comment) + unicode(comment.findNextSibling()))
+        if (comment.find('gte IE 9') > -1 or comment.find('gt IE 8') > -1):
+            gzip_support.append((True, comment))
         else:
-            gzip_support.append((False, source))
+            gzip_support.append((False, comment))
+
+    # Collect the script tags
+    script_tags = [tag.extract() for tag in page_source_parsed.findAll('script')]
 
     if script_tags:
         for script_tag in script_tags:
@@ -261,16 +250,14 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
             if not src:
                 continue # ignore inline scripts
 
-            supports_gzip, index = False, 0
+            can_gzip = False
             # http://stackoverflow.com/questions/2612802/how-to-clone-or-copy-a-list-in-python
-            for support, source in gzip_support[:]: # check for gzip support
-                if source == src:
-                    supports_gzip = support
-                    gzip_support.pop(index)
+            for index, (support, comment) in enumerate(gzip_support[:]): # check for gzip support
+                if src in comment:
+                    can_gzip, _ = gzip_support.pop(index)
                     break
-                index += 1
 
-            if supports_gzip and settings.ENVIRONMENT != 'dev':
+            if can_gzip and settings.ENVIRONMENT != 'dev':
                 # Can gzip this content, can't in dev as middleware serves
                 content, _ = read_remote_file(src)
                 new_script_s3_key = '' # bucket key
@@ -285,7 +272,7 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
                     raise IOError("Could not upload the gzipped JS file to S3!")
 
                 # Force relative path
-                script_tag['src'] = '//s3.amazonaws.com/{0}/{1}'.format(test_storage_bucket_name, new_script_s3_key)
+                src = '//s3.amazonaws.com/{0}/{1}'.format(test_storage_bucket_name, new_script_s3_key)
 
             script_tag['src'] = re.sub(r'(http|https)://', '//', src)
             script_tag['async'] = "true"
