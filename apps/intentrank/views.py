@@ -1,15 +1,11 @@
-from hammock import Hammock
+import json
+import time
 
 from django.conf import settings
+from django.http import HttpResponse
 from django.http.response import Http404, HttpResponseNotFound
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import get_object_or_404
-
-from hammock import Hammock
-
-from django.http import HttpResponse
-import json
 
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile
@@ -59,8 +55,9 @@ def get_results_view(request, **kwargs):
     feed = page.feed
     if not feed:
         return HttpResponseNotFound("No feed for page {0}".format(page_id))
-    return HttpResponse(json.dumps([json.loads(j) for j in get_results(
-        feed=feed, results=results, exclude_set=exclude_set, request=request)]))
+    return ajax_jsonp(get_results(feed=feed, results=results, request=request,
+                                  exclude_set=exclude_set),
+                      callback_name=callback)
 
 
 @csrf_exempt
@@ -102,8 +99,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
         return ajax_jsonp(tile.to_json())
 
     return ajax_jsonp(get_results(feed=feed, algorithm=ir_all),
-                      callback_name=callback, request=request,
-                      add_cors_headers=True)
+                      callback_name=callback, request=request)
 
 
 def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs):
@@ -115,6 +111,7 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs)
     request = kwargs.get('request', None)
     return ir.transform(ir.ir_random(feed=feed, results=results,
                                      exclude_set=exclude_set, request=request))
+
 
 @never_cache
 @csrf_exempt

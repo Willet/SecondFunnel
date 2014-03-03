@@ -6,6 +6,7 @@ All algorithms must return <list>.
 import random as real_random
 
 from django.conf import settings
+import time
 
 
 def ir_all(feed, *args, **kwargs):

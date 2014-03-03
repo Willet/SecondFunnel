@@ -17,7 +17,11 @@ class RawSerializer(JSONSerializer):
         self.json_kwargs.pop('fields', None)
 
     def end_serialization(self):
+        """Do not want the original behaviour (adding commas)"""
         pass
+
+    def to_json(self, queryset, **options):
+        return json.loads(self.serialize(queryset=queryset, **options))
 
 
 class FeedSerializer(RawSerializer):
@@ -95,7 +99,10 @@ class ProductTileSerializer(TileSerializer):
         :param obj  <Tile>
         """
         data = super(ProductTileSerializer, self).get_dump_object(obj)
-        data.update(obj.products.select_related('product_images')[0].to_json())
+        try:
+            obj.products.select_related('product_images')[0].to_json()
+        except IndexError as err:
+            pass  # no products in this tile
         return data
 
 
@@ -105,11 +112,14 @@ class ContentTileSerializer(TileSerializer):
         :param obj  <Tile>
         """
         data = super(ContentTileSerializer, self).get_dump_object(obj)
-        data.update(obj.content
-                    .prefetch_related('tagged_products')
-                    .select_subclasses()
-                    [0]
-                    .to_json())
+        try:
+            data.update(obj.content
+                        .prefetch_related('tagged_products')
+                        .select_subclasses()
+                        [0]
+                        .to_json())
+        except IndexError as err:
+            pass  # no content in this tile
         return data
 
 
@@ -122,10 +132,13 @@ class BannerTileSerializer(ContentTileSerializer):
 
         # banner mode in JS is triggered by having 'redirect-url'
         redirect_url = (obj.attributes.get('redirect_url') or
-                        obj.attributes.get('redirect-url') or
-                        (obj.content.select_subclasses()[0].source_url
-                         if obj.content.count()
-                         else ''))
+                        obj.attributes.get('redirect-url'))
+        if not redirect_url and obj.content.count():
+            try:
+                redirect_url = obj.content.select_subclasses()[0].source_url
+            except IndexError as err:
+                pass  # tried to find a redirect url, don't have one
+
         data.update({'redirect-url': redirect_url,
                      'images': [obj.attributes]})
 

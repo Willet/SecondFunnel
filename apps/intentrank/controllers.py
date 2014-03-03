@@ -2,6 +2,7 @@ import importlib
 import json
 
 from django.core import serializers
+import time
 from algorithms import ir_random
 
 class IntentRank(object):

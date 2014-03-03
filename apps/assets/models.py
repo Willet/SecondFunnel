@@ -402,20 +402,14 @@ class Tile(BaseModel):
     attributes = JSONField(null=True, default={})
 
     def to_json(self):
-        data = {}
-
-        # determine what kind of tile this is (specified / auto)
+        # determine what kind of tile this is
         if self.template == 'image':
-            print "Rendering tile of type content"
-            return ContentTileSerializer().serialize([self])
-
+            serializer = ContentTileSerializer()
         elif self.template == 'product':
-            print "Rendering tile of type product"
-            return ProductTileSerializer().serialize([self])
-
+            serializer = ProductTileSerializer()
         elif self.template == 'banner':
-            return BannerTileSerializer().serialize([self])
-
+            serializer = BannerTileSerializer()
         else:
             serializer = TileSerializer()
-            return serializer.serialize([self])
+
+        return serializer.to_json([self])

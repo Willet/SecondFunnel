@@ -2,11 +2,10 @@ import json
 
 from django.http import HttpResponse
 
-from apps.assets.models import Product, Store, BaseModel
+from apps.assets.models import BaseModel
 
 
-def ajax_jsonp(result, callback_name=None, status=200, request=None,
-               add_cors_headers=False):
+def ajax_jsonp(result, callback_name=None, status=200, request=None):
     """
     This function now serves JSON as well as JSONP, when callback_name is None.
 

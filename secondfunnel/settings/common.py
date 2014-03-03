@@ -48,6 +48,10 @@ if 'RDS_DB_NAME' in os.environ:
             'PORT': os.environ['RDS_PORT'],
             }
     }
+
+    CONN_MAX_AGE = 0  # default to never time out from django's side;
+                      # RDS is its own value set
+
 else:
     DATABASES = {
         'default': {
@@ -401,6 +405,10 @@ CELERYBEAT_SCHEDULE = {
         'args': tuple()
     }
 }
+
+# force show toolbar
+# http://stackoverflow.com/a/10518040/1558430
+SHOW_TOOLBAR_CALLBACK = lambda: DEBUG
 
 STALE_TILE_RETRY_THRESHOLD = 240  # seconds
 IRCONFIG_RETRY_THRESHOLD = 240  # seconds
