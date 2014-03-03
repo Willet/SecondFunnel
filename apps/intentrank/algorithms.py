@@ -40,6 +40,12 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, request=No
             prioritized_tile_ids = [tile.old_id or tile.id
                                     for tile in prioritized_tiles]
 
+            tiles = list(feed.tiles.exclude(old_id__in=prioritized_tile_ids).select_related().prefetch_related('content', 'products'))
+
+            tiles = sorted(tiles, key=lambda tile: tile.score, reverse=True)
+
+            return (prioritized_tiles + tiles)[:results]
+
     prioritized_length = len(prioritized_tiles)
 
     tiles = list(feed.tiles.exclude(old_id__in=prioritized_tile_ids).select_related().prefetch_related('content', 'products'))
