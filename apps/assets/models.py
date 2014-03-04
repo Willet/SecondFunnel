@@ -421,8 +421,8 @@ class Tile(BaseModel):
 
 class RelatedTile(BaseModel):
 
-    tile_a = models.ForeignKey(Tile)
-    tile_b = models.ForeignKey(Tile)
+    tile_a = models.ForeignKey(Tile, related_name='+')
+    tile_b = models.ForeignKey(Tile, related_name='+')
 
     starting_score = models.FloatField(default=0)
 
@@ -442,7 +442,15 @@ class RelatedTile(BaseModel):
     def get_related_tiles(cls, a):
         if hasattr(a, id):
             a = a.id
-        related_tiles = list(cls.objects.filter(Q(tile_a_id=a) | Q(tile_b_id=a)))
+        related_tiles = list(cls.objects.filter(Q(tile_a_id=a) | Q(tile_b_id=a)).select_related())
+        related_tiles = sorted(related_tiles, key=lambda related_tile: related_tile.score)
+        tiles = []
+        for related_tile in related_tiles:
+            if related_tile.tile_a.id == a:
+                tiles.append(related_tile.tile_b)
+            else:
+                tiles.append(related_tile.tile_a)
+        return tiles
 
 
     @property
