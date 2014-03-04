@@ -14,6 +14,7 @@ from django.utils.importlib import import_module
 from apps.assets.models import Feed, Theme
 
 from apps.contentgraph.views import get_page, get_product, get_store
+from apps.intentrank.algorithms import ir_first
 from apps.intentrank.views import get_results
 from apps.pinpoint.utils import read_remote_file
 
@@ -149,7 +150,7 @@ def render_campaign(store_id, campaign_id, request):
 
     # "borrow" IR for results
     feed = Feed(page_data.get('intentrank_id') or page_data.get('id'))
-    initial_results = get_results(feed=feed, results=4, algorithm='first')
+    initial_results = get_results(feed=feed, results=4, algorithm=ir_first)
     backup_results = get_results(feed=feed, results=100)
     cookie = ''
 

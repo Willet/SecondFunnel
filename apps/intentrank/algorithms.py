@@ -17,13 +17,13 @@ def ir_all(feed, *args, **kwargs):
 def ir_first(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
           *args, **kwargs):
     """sample whichever ones come first"""
-    return feed.tiles.order_by('id')[:results]
+    return list(feed.tiles.order_by('id')[:results])
 
 
 def ir_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
          *args, **kwargs):
     """sample whichever ones come last"""
-    return feed.tiles.order_by('id')[:-results]
+    return list(feed.tiles.order_by('id')[:-results])
 
 
 def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,

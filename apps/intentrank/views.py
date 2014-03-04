@@ -104,7 +104,15 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
 
 
 def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs):
-    """Supply either feed or page for backward compatibility."""
+    """Converts a feed into a list of <any> using given parameters.
+
+    :param feed        a <Feed>
+    :param results     number of <any> to return
+    :param exclude_set IDs of items in the feed to never consider
+    :param request     (relay)
+
+    :returns           a list of <any>
+    """
     ir = IntentRank(feed=feed)
 
     # "everything except these tile ids"
