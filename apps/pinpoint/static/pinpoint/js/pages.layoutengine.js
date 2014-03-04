@@ -132,18 +132,20 @@ App.module("layoutEngine", function (layoutEngine, App) {
     this.add = function (view, fragment, $target) {
         var self = this,
             initialBottom,
+            threshold = App.option('IRResultsReturned', 0),
             callback = function () {
                 view.trigger('after:item:appended', view, fragment);
                 return true;
             };
 
         if (!(fragment && fragment.length)) {
+            callback();
             return this;  // nothing to add
         }
 
         // collect fragments, append in batch
         frags = frags.concat(fragment);
-        if (frags.length >= App.option('IRResultsReturned', 10)) {
+        if (frags.length >= threshold) {
             fragment = frags;
             frags = [];
         } else {
