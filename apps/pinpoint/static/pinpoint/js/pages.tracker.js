@@ -395,7 +395,8 @@ App.module("tracker", function (tracker, App) {
                         App.discovery.collection._byId[modelId],
                 trackingInfo = getTrackingInformation(model),
                 tileId = model.get('tile-id') || 0,
-                label = trackingInfo.label || "";
+                label = trackingInfo.label || "",
+                hash;
 
             if (!label) {
                 console.warn("Not tracking event with no label");
@@ -414,7 +415,9 @@ App.module("tracker", function (tracker, App) {
                 'label': label
             });
 
-            trackPageview();
+            // Be super explicit about what the hash is
+            // rather than relying on the window
+            trackPageview('#' + tileId);
         },
 
         // Content Share
