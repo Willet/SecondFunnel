@@ -1,6 +1,3 @@
-import json
-import time
-
 from django.conf import settings
 from django.http import HttpResponse
 from django.http.response import Http404, HttpResponseNotFound
@@ -10,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile
 from apps.intentrank.controllers import IntentRank
-from apps.intentrank.algorithms import ir_random, ir_all
+from apps.intentrank.algorithms import ir_random, ir_all, ir_popular
 from apps.intentrank.utils import ajax_jsonp
 
 import scripts.generate_rss_feed as rss_feed
@@ -54,7 +51,13 @@ def get_results_view(request, page_id):
     feed = page.feed
     if not feed:
         return HttpResponseNotFound("No feed for page {0}".format(page_id))
-    return ajax_jsonp(get_results(feed=feed, results=results, request=request,
+
+    if request.GET.get('algorithm', None) == 'popular':
+        algorithm = ir_popular
+    else:
+        algorithm = ir_random
+    return ajax_jsonp(get_results(feed=feed, results=results,
+                                  algorithm=algorithm, request=request,
                                   exclude_set=exclude_set),
                       callback_name=callback)
 
@@ -81,7 +84,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
                         .get())
         except Tile.DoesNotExist:
             return HttpResponseNotFound("No tile {0}".format(tile_id))
-
+        tile.click()
         return ajax_jsonp(tile.to_json())
 
     # get all tiles
@@ -103,22 +106,27 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
                       callback_name=callback, request=request)
 
 
-def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, **kwargs):
+def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+                algorithm=ir_random, **kwargs):
     """Converts a feed into a list of <any> using given parameters.
 
     :param feed        a <Feed>
     :param results     number of <any> to return
     :param exclude_set IDs of items in the feed to never consider
     :param request     (relay)
+    :param algorithm   reference to a <Feed> => [<Tile>] function
 
     :returns           a list of <any>
     """
     ir = IntentRank(feed=feed)
 
+    #hardcoding algorithm because sometimes a string is passed in as the algorithm
+    algorithm = ir_popular
+
     # "everything except these tile ids"
     exclude_set = kwargs.get('exclude_set', [])
     request = kwargs.get('request', None)
-    return ir.transform(ir_random(feed=feed, results=results,
+    return ir.transform(algorithm(feed=feed, results=results,
                                      exclude_set=exclude_set, request=request))
 
 
