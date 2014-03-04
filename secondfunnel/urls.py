@@ -31,7 +31,7 @@ urlpatterns = patterns('',
     url(r'^graph/', include('apps.api.urls')),
 
     # WEBSITE
-    url(r'^$', include('apps.website.urls')),
+    url(r'^', include('apps.website.urls')),
 )
 
 if settings.DEBUG:
