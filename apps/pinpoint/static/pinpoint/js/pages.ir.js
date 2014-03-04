@@ -144,9 +144,14 @@ App.module("intentRank", function (intentRank, App) {
 
             if (fetching) { // return fetching object if we're fetching
                 console.debug("Holding off for IR to finish.");
-                return fetching;
+                return fetching.done(function (results) {
+                    var method = opts.reset ? 'reset' : 'set';
+                    collection[method](results, opts);
+                    collection.trigger('sync', collection, results, opts);
+                });
             } else if (len >= opts.results) {
                 // Use a dummy deferred object
+                console.debug("Using existing results.");
                 return $.when(prepopulatedResults).done(function() {
                     intentRank.prefetch();
                 });
