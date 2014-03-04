@@ -131,7 +131,11 @@ App.module("layoutEngine", function (layoutEngine, App) {
      */
     this.add = function (view, fragment, $target) {
         var self = this,
-            initialBottom;
+            initialBottom,
+            callback = function () {
+                view.trigger('after:item:appended', view, fragment);
+                return true;
+            };
 
         if (!(fragment && fragment.length)) {
             return this;  // nothing to add
@@ -139,12 +143,15 @@ App.module("layoutEngine", function (layoutEngine, App) {
 
         // collect fragments, append in batch
         frags = frags.concat(fragment);
-        if (frags.length >= App.option('IRResultsCount', 10)) {
+        if (frags.length >= App.option('IRResultsReturned', 10)) {
             fragment = frags;
             frags = [];
         } else {
             return this;  // save for later
         }
+
+        // Attach the callback
+        view.$el.masonry('on', 'layoutComplete', callback);
 
         // inserting around a given tile
         if ($target && $target.length) {

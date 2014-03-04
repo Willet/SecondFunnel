@@ -513,6 +513,10 @@ App.module('core', function (module, App) {
                 // the first batch of results need to layout themselves
                 App.layoutEngine.layout(self);
             }));
+
+            // Custom event listeners
+            this.on('after:item:appended', this.onAfterItemAppended);
+
             return this;
         },
 
@@ -536,6 +540,9 @@ App.module('core', function (module, App) {
             App.vent.off("finished");
 
             App.vent.off('windowResize');  // in layoutEngine
+
+            // Custom event listeners
+            this.off('after:item:appended', this.onAfterItemAppended);
         },
 
         'onClose': function () {
@@ -550,24 +557,13 @@ App.module('core', function (module, App) {
          * @returns deferred
          */
         'getTiles': function (options, tile) {
-            var self = this;
-
             if (this.loading) {
                 // do nothing
                 return (new $.Deferred()).promise();
             }
-            self.toggleLoading(true);
-            return this.collection
-                .fetch()
-                .always(function (data) {
-                    self.toggleLoading(false);
-
-                    // see if we need to get more
-                    // this setTimeout forces IE 8 to clear the stack
-                    setTimeout(function () {
-                        self.pageScroll();
-                    }, 100);
-                });
+            return this.toggleLoading(true)
+                .collection
+                .fetch();
         },
 
         'render': _.throttle(function () {
@@ -579,6 +575,20 @@ App.module('core', function (module, App) {
             // default functionality:
             // collectionView.$el.append(itemView.el);
             App.layoutEngine.add(collectionView, [itemView.el]);
+        },
+
+        /**
+         * Called when new content has been appended to the collectView via
+         * the layoutEngine.  Toggles loading to false, and calls pageScroll.
+         *
+         * @returns this
+         */
+        'onAfterItemAppended': function (view, el) {
+            var self = this;
+
+            setTimeout(function () {
+                self.toggleLoading(false).pageScroll();
+            }, 500);
         },
 
         /**

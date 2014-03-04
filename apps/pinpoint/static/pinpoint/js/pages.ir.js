@@ -166,14 +166,14 @@ App.module("intentRank", function (intentRank, App) {
         _.extend(opts, {
             success: function (results) {
                 var method = opts.reset ? 'reset' : 'set';
+                results = prepopulatedResults.concat(results);
+                App.options.IRResultsReturned = results.length;
+
                 // reset fail counter
                 collection.ajaxFailCount = 0;
                 collection[method](results, opts);
                 collection.trigger('sync', collection, results, opts);
-
-                // SHUFFLE_RESULTS is always true
-                results = prepopulatedResults.concat(results);
-                deferred.resolve(_.shuffle(results));
+                deferred.resolve(results);
                 resultsAlreadyRequested = _.compact(intentRank.getTileIds(results));
 
                 // restrict shown list to last 10 items max
