@@ -1,3 +1,5 @@
+from threading import Thread, current_thread
+
 from django.conf import settings
 from django.http import HttpResponse
 from django.http.response import Http404, HttpResponseNotFound
@@ -12,6 +14,7 @@ from apps.intentrank.utils import ajax_jsonp
 
 import scripts.generate_rss_feed as rss_feed
 
+
 @never_cache
 @csrf_exempt
 @request_methods('GET')
@@ -24,6 +27,9 @@ def get_results_view(request, page_id):
 
     :returns HttpResponse/Http404
     """
+    this_thread = current_thread()
+    print "{0} started".format(this_thread.name)
+
     callback = request.GET.get('callback', None)
     results = int(request.GET.get('results', 10))
 
@@ -56,10 +62,14 @@ def get_results_view(request, page_id):
         algorithm = ir_popular
     else:
         algorithm = ir_random
-    return ajax_jsonp(get_results(feed=feed, results=results,
+
+    resp = ajax_jsonp(get_results(feed=feed, results=results,
                                   algorithm=algorithm, request=request,
                                   exclude_set=exclude_set),
                       callback_name=callback)
+
+    print "{0} ended".format(this_thread.name)
+    return resp
 
 
 @csrf_exempt

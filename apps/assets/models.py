@@ -325,14 +325,16 @@ class Feed(BaseModel):
 class Page(BaseModel):
     store = models.ForeignKey(Store)
 
+    name = models.CharField(max_length=256)  # e.g. Lived In
     old_id = models.IntegerField(unique=True)
 
     theme = models.ForeignKey(Theme, related_name='page', blank=True, null=True)
+
+    # attributes named differently
     theme_settings = JSONField(blank=True, null=True)
 
-    name = models.CharField(max_length=256)
     description = models.TextField(blank=True, null=True)
-    url_slug = models.CharField(max_length=128)
+    url_slug = models.CharField(max_length=128)  # e.g. livedin
     legal_copy = models.TextField(blank=True, null=True)
 
     last_published_at = models.DateTimeField(blank=True, null=True)

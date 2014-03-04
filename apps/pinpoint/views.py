@@ -1,3 +1,4 @@
+from django.http.response import Http404, HttpResponseNotFound
 from django.views.decorators.cache import cache_page
 from apps.assets.models import Page
 from apps.static_pages.utils import render_campaign
@@ -56,6 +57,22 @@ def campaign(request, store_id, campaign_id, mode=None):
         request=request)
 
     return HttpResponse(rendered_content)
+
+
+def campaign_by_slug(request, page_slug):
+    """Used to render a page using only its name.
+
+    If two pages have the same name (which was possible in CG), then django
+    decides which page to render.
+    """
+    #page = get_object_or_404(Page, url_slug=page_slug)  # why doesn't this work?
+    try:
+        page = Page.objects.get(url_slug=page_slug)
+    except Page.DoesNotExist:
+        return HttpResponseNotFound("")
+
+    store_id = page.store_id
+    return campaign(request, store_id=store_id, campaign_id=page.old_id)
 
 
 def generate_static_campaign(request, store_id, campaign_id):

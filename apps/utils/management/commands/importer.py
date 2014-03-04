@@ -254,8 +254,10 @@ class Command(BaseCommand):
             theme, _, _ = Theme.update_or_create(template=page_theme_template, defaults=page_theme_fields)
 
             page_fields = {'store': self.store,
-                           'feed': feed, 'theme': theme,
-                           'name': page_name, 'legal_copy': page_legal_copy,
+                           'feed': feed,
+                           'theme': theme,
+                           'name': page_name,
+                           'legal_copy': page_legal_copy,
                            'url_slug': page_url_slug}
 
             print 'PAGE - old_id: ', page_old_id, ', ', page_fields
