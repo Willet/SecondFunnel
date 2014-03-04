@@ -112,6 +112,9 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, algorithm
     """Supply either feed or page for backward compatibility."""
     ir = IntentRank(feed=feed)
 
+    #hardcoding algorithm because sometimes a string is passed in as the algorithm
+    algorithm = ir_popular
+
     # "everything except these tile ids"
     exclude_set = kwargs.get('exclude_set', [])
     request = kwargs.get('request', None)

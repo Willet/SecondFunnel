@@ -53,8 +53,6 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, request=No
     total_score = 0
 
     for tile in tiles:
-        print tile.score
-        print tile.log_score
         total_score += tile.log_score
 
     tiles_length = 0
