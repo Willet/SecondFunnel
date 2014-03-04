@@ -84,9 +84,13 @@ App.module("tracker", function (tracker, App) {
         },
 
         trackPageview = function(hash) {
-            var base = window.location.pathname + window.location.search;
+            var base = window.location.pathname + window.location.search,
+                host = window.location.protocol +'//' + window.location.hostname;
             hash = hash || window.location.hash;
-            addItem('send', 'pageview', base + hash);
+            addItem('send', 'pageview', {
+                'page': base + hash,
+                'location': host + base + hash
+            });
         },
 
         trackEvent = function (o) {
