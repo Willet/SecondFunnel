@@ -202,11 +202,13 @@ class Command(BaseCommand):
                 content_url = content_dict.get('original-url')
                 content_source_url = content_url
 
-                content_fields.update(
-                    {'url': content_url,
-                     'original_id': content_original_id,
-                     'source_url': content_source_url,
-                     'player': 'youtube'})
+                content_fields.update({
+                    'url': content_url,
+                    'username': content_dict.get('username', ''),
+                    'caption': content_dict.get('caption', ''),
+                    'original_id': content_original_id,
+                    'source_url': content_source_url,
+                    'player': 'youtube'})
 
                 print 'VIDEO - old_id: ', content_old_id, ', ', content_fields
 

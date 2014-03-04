@@ -1,5 +1,4 @@
 import math
-import pytz
 
 from django.contrib.auth.models import User
 from django.core import serializers
@@ -9,7 +8,6 @@ from django.db import models
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
 from django.utils import timezone
-import json
 
 from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
@@ -24,8 +22,6 @@ default_master_size = {
     }
 }
 
-popularity_devalue_rate = 0.15  # variable used for popularity, the bigger the value, the faster popularity de-values
-
 
 class BaseModel(models.Model, DirtyFieldsMixin):
     created_at = CreationDateTimeField()
@@ -35,6 +31,21 @@ class BaseModel(models.Model, DirtyFieldsMixin):
 
     class Meta:
         abstract = True
+
+    def __getattr__(self, item):
+        """Also get from JSONFields.
+
+        This does not mean you can write into JSONFields like so, however.
+        __setattr__ has been deliberately left out to make sure the correct
+        field is written.
+        """
+        if hasattr(self, 'attributes'):
+            try:
+                return self.attributes.get(item)
+            except:
+                pass
+        raise AttributeError("'{0}' object has no attribute '{1}'".format(
+            self.__class__, item))
 
     def days_since_creation(self):
         return (timezone.now() - self.created_at).days
@@ -147,27 +158,6 @@ class Product(BaseModel):
     serializer = ProductSerializer
 
     def to_json(self):
-        """
-        product_images = self.product_images.all()
-
-        dct = {
-            "url": self.url,
-            "price": self.price,
-            "description": self.description,
-            "name": self.name,
-            "images": [image.to_json() for image in product_images],
-        }
-
-        # if default image is missing...
-        if self.default_image:
-            dct["default-image"] = str(self.default_image.old_id or
-                self.default_image.id)
-        elif len(product_images) > 0:
-            # fall back to first image
-            dct["default-image"] = str(product_images[0].old_id)
-
-        return dct
-        """
         return self.serializer().to_json([self])
 
 
@@ -299,8 +289,8 @@ class Image(Content):
 class Video(Content):
     name = models.CharField(max_length=1024, blank=True, null=True)
 
-    # TODO: caption
-
+    caption = models.CharField(max_length=255, blank=True, default="")
+    username = models.CharField(max_length=255, blank=True, default="")
     description = models.TextField(blank=True, null=True)
 
     player = models.CharField(max_length=255)
@@ -408,13 +398,16 @@ class Tile(BaseModel):
 
     prioritized = models.BooleanField()
 
+    # variable used for popularity, the bigger the value, the faster popularity de-values
+    popularity_devalue_rate = 0.15
+
     # miscellaneous attributes, e.g. "is_banner_tile"
     attributes = JSONField(null=True, default={})
 
     def click(self):
         self.clicks += 1
         # the value used to increase starting_score per click
-        update_score = popularity_devalue_rate * self.days_since_creation()
+        update_score = Tile.popularity_devalue_rate * self.days_since_creation()
         starting_score = self.starting_score
         self.starting_score = max(starting_score, update_score) + math.log(
             1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
@@ -423,7 +416,8 @@ class Tile(BaseModel):
     @property
     def score(self):
         # returns the score of the tile based on the starting_score and how long ago the tile was created
-        return math.exp(self.starting_score - popularity_devalue_rate * self.days_since_creation())
+        return math.exp(self.starting_score - Tile.popularity_devalue_rate *
+                        self.days_since_creation())
 
     @property
     def log_score(self):

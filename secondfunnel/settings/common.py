@@ -411,6 +411,9 @@ CELERYBEAT_SCHEDULE = {
 # force show toolbar
 # http://stackoverflow.com/a/10518040/1558430
 SHOW_TOOLBAR_CALLBACK = lambda: DEBUG
+CONFIG_DEFAULTS = {  # Toolbar options
+    'SHOW_COLLAPSED': True,
+}
 
 STALE_TILE_RETRY_THRESHOLD = 240  # seconds
 IRCONFIG_RETRY_THRESHOLD = 240  # seconds
