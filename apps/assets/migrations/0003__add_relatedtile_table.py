@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from south.utils import datetime_utils as datetime
 from south.db import db
 from south.v2 import SchemaMigration
 
@@ -8,6 +9,8 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding model 'RelatedTile'
         db.create_table(u'assets_relatedtile', (
+            ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
+            ('updated_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('starting_score', self.gf('django.db.models.fields.FloatField')(default=0)),
             ('tile_a', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.Tile'], related_name='+')),
@@ -106,10 +109,12 @@ class Migration(SchemaMigration):
         },
         u'assets.relatedtile':{
             'Meta': {'object_name': 'RelatedTile'},
+            'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'starting_score': ('django.db.models.fields.FloatField', [], {'default': 0}),
             'tile_a': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['assets.Tile']"}),
             'tile_b': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['assets.Tile']"}),
+            'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
         },
         u'assets.review': {
             'Meta': {'object_name': 'Review', '_ormbases': [u'assets.Content']},
