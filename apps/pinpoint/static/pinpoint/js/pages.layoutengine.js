@@ -132,7 +132,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
     this.add = function (view, fragment, $target) {
         var self = this,
             initialBottom,
-            threshold = App.option('IRResultsReturned', 0),
+            threshold = App.option('IRResultsReturned', 10),
             callback = function () {
                 view.trigger('after:item:appended', view, fragment);
                 return true;

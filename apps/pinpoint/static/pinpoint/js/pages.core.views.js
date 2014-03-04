@@ -458,6 +458,7 @@ App.module('core', function (module, App) {
                 // unique-by-original-url youtube videos
                 options.initialResults = _.uniqBy(options.initialResults, 'original-url');
 
+                App.options.IRResultsReturned = options.initialResults.length;
                 this.collection.add(options.initialResults);
                 App.intentRank.addResultsShown(options.initialResults);
             }
