@@ -1,3 +1,6 @@
+import math
+import pytz
+
 from django.contrib.auth.models import User
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
@@ -6,12 +9,12 @@ from django.db import models
 from django.db.models import Q
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
+from django.utils import timezone
 import json
 
 from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
-
 from apps.intentrank.serializers import *
 
 
@@ -22,9 +25,10 @@ default_master_size = {
     }
 }
 
+popularity_devalue_rate = 0.15  # variable used for popularity, the bigger the value, the faster popularity de-values
+
 
 class BaseModel(models.Model, DirtyFieldsMixin):
-
     created_at = CreationDateTimeField()
     updated_at = ModificationDateTimeField()
 
@@ -32,6 +36,9 @@ class BaseModel(models.Model, DirtyFieldsMixin):
 
     class Meta:
         abstract = True
+
+    def days_since_creation(self):
+        return (timezone.now() - self.created_at).days
 
     @classmethod
     def update_or_create(cls, defaults=None, **kwargs):
@@ -91,7 +98,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
 
 
 class Store(BaseModel):
-
     old_id = models.IntegerField(unique=True)
 
     staff = models.ManyToManyField(User, related_name='stores')
@@ -119,7 +125,6 @@ class Store(BaseModel):
 
 
 class Product(BaseModel):
-
     old_id = models.IntegerField(unique=True)
 
     store = models.ForeignKey(Store)
@@ -223,7 +228,7 @@ class Content(BaseModel):
     ## but restrict to only filtering/ordering on above fields
     attributes = JSONField(null=True)
 
-    serializer = ContentTileSerializer
+    serializer = ContentSerializer
 
     def __init__(self, *args, **kwargs):
         super(Content, self).__init__(*args, **kwargs)
@@ -246,8 +251,8 @@ class Content(BaseModel):
             dct['related-products'] = []
 
         for product in (self.tagged_products
-                            .select_related('default_image', 'product_images')
-                            .all()):
+                                .select_related('default_image', 'product_images')
+                                .all()):
             try:
                 dct['related-products'].append(product.to_json())
             except Product.DoesNotExist:
@@ -257,7 +262,6 @@ class Content(BaseModel):
 
 
 class Image(Content):
-
     name = models.CharField(max_length=1024, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
@@ -294,8 +298,10 @@ class Image(Content):
 
 
 class Video(Content):
-
     name = models.CharField(max_length=1024, blank=True, null=True)
+
+    # TODO: caption
+
     description = models.TextField(blank=True, null=True)
 
     player = models.CharField(max_length=255)
@@ -312,18 +318,16 @@ class Video(Content):
 
 
 class Review(Content):
-
     product = models.ForeignKey(Product)
 
     body = models.TextField()
 
 
 class Theme(BaseModel):
-
     name = models.CharField(max_length=1024, blank=True, null=True)
     template = models.CharField(max_length=1024,
-        # backward compatibility for pages that don't specify themes
-        default="https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/themes/campaign_base.html")
+                                # backward compatibility for pages that don't specify themes
+                                default="https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/themes/campaign_base.html")
 
     # @deprecated for page generator
     CUSTOM_FIELDS = {
@@ -345,7 +349,6 @@ class Feed(BaseModel):
 
 
 class Page(BaseModel):
-
     store = models.ForeignKey(Store)
 
     old_id = models.IntegerField(unique=True)
@@ -387,6 +390,11 @@ class Page(BaseModel):
 
 
 class Tile(BaseModel):
+    # used to calculate the score for a tile
+    # a bigger s value does not necessarily mean a bigger score
+    starting_score = models.FloatField(default=0)
+
+    clicks = models.PositiveIntegerField(default=0)
 
     old_id = models.IntegerField(unique=True)
 
@@ -403,6 +411,29 @@ class Tile(BaseModel):
 
     # miscellaneous attributes, e.g. "is_banner_tile"
     attributes = JSONField(null=True, default={})
+
+    def click(self):
+        self.clicks += 1
+        # the value used to increase starting_score per click
+        update_score = popularity_devalue_rate * self.days_since_creation()
+        starting_score = self.starting_score
+        self.starting_score = max(starting_score, update_score) + math.log(
+            1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
+        self.save()
+
+    @property
+    def score(self):
+        # returns the score of the tile based on the starting_score and how long ago the tile was created
+        return math.exp(self.starting_score - popularity_devalue_rate * self.days_since_creation())
+
+    @property
+    def log_score(self):
+        # the lower the ratio, the bigger the range between low and high scores
+        ratio = 1.5
+        score = self.score
+        # returns the log of a score with the smallest value being 1
+        # makes sure that small scores do not get large log values
+        return math.log(score + (ratio if score > 2 * ratio else (ratio - score / 2)), ratio)
 
     def to_json(self):
         # determine what kind of tile this is

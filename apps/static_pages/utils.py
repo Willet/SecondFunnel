@@ -186,7 +186,7 @@ def render_campaign(store_id, campaign_id, request):
     if not theme_url:
         raise ValueError('page has no theme when campaign manager saved it')
 
-    page_str = read_remote_file(theme_url)
+    page_str, _ = read_remote_file(theme_url)
 
     # Replace necessary tags
     sub_values = defaultdict(list)
@@ -220,6 +220,7 @@ def render_campaign(store_id, campaign_id, request):
         # TODO: Doesn't make sense but is required; why?
         rendered_page = rendered_page.encode('utf-8')
 
+    #noinspection PyArgumentList
     rendered_page = unicode(rendered_page, 'utf-8')
 
     return rendered_page

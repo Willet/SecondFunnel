@@ -273,6 +273,8 @@ INSTALLED_APPS = (
 )
 
 CORS_ORIGIN_REGEX_WHITELIST = (
+    # for testing local pages using live IR
+    r'^(localhost|127.0.0.1):(\d+)$',
     r'^(https?://)?[\w-]+\.secondfunnel\.com$',
     r'^(https?://)?[\w-]+\.elasticbeanstalk\.com$',
 )

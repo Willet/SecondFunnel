@@ -3,12 +3,15 @@ Static pages celery tasks
 """
 
 import os
-
+import re
+import mimetypes
+import uuid
 from urlparse import urlparse
 
 from celery import Celery, group
 from celery.utils.log import get_task_logger
 
+from BeautifulSoup import BeautifulSoup, Comment
 from django.conf import settings
 from django.core.cache import cache
 from django.utils.encoding import smart_str
@@ -16,10 +19,14 @@ from django.utils.encoding import smart_str
 from apps.assets.models import Store, Page
 from apps.contentgraph.views import get_page, get_store, get_stores
 
+from apps.pinpoint.utils import read_remote_file
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
-    get_route53_change_status, sqs_poll, SQSQueue, upload_to_bucket)
+    s3_key_exists, get_route53_change_status, upload_to_bucket)
 from apps.static_pages.utils import (get_bucket_name, create_dummy_request,
                                      render_campaign)
+
+from secondfunnel.settings.test import AWS_STORAGE_BUCKET_NAME as test_storage_bucket_name
+
 
 celery = Celery()
 logger = get_task_logger(__name__)
@@ -198,6 +205,64 @@ def generate_static_campaign_now(store_id, campaign_id):
 
     page_content = render_campaign(store_id, campaign_id,
                                    request=dummy_request)
+
+    # Add async to generated tags
+    page_source_parsed = BeautifulSoup(page_content)
+    # Determine which content can be gzipped and which cannot
+    # Naive implementation, not to be trusted for all situations
+    conditional_comments = page_source_parsed.findAll(text=lambda text: isinstance(text, Comment) and \
+                                text.find('if') != -1)
+    gzip_support = []
+
+    for comment in conditional_comments:
+        comment = unicode(comment) if unicode(comment).find('src') != -1 else \
+                      (unicode(comment) + unicode(comment.findNextSibling()))
+        if (comment.find('gte IE 9') > -1 or comment.find('gt IE 8') > -1):
+            gzip_support.append((True, comment))
+        else:
+            gzip_support.append((False, comment))
+
+    # Collect the script tags
+    script_tags = [tag.extract() for tag in page_source_parsed.findAll('script')]
+
+    if script_tags:
+        for script_tag in script_tags:
+            script_type = script_tag.get('type')
+            old_script = str(script_tag)
+            if script_type and 'template' in script_type:
+                continue # skip processing templates
+
+            src = script_tag.get('src')
+            if not src:
+                continue # ignore inline scripts
+
+            can_gzip = False
+            # http://stackoverflow.com/questions/2612802/how-to-clone-or-copy-a-list-in-python
+            for index, (support, comment) in enumerate(gzip_support[:]): # check for gzip support
+                if src in comment:
+                    can_gzip, _ = gzip_support.pop(index)
+                    break
+
+            if can_gzip and settings.ENVIRONMENT != 'dev':
+                # Can gzip this content, can't in dev as middleware serves
+                content, _ = read_remote_file(src)
+                new_script_s3_key = '' # bucket key
+                while s3_key_exists(test_storage_bucket_name, new_script_s3_key):
+                    new_script_s3_key = 'CACHE/{0}.js'.format(uuid.uuid4())
+
+                # Ensure can upload to the test bucket
+                if not upload_to_bucket(bucket_name=test_storage_bucket_name,
+                    filename=new_script_s3_key, content=content,
+                    content_type=mimetypes.MimeTypes().guess_type(new_script_s3_key)[0],
+                    public=True, do_gzip=True):
+                    raise IOError("Could not upload the gzipped JS file to S3!")
+
+                # Force relative path
+                src = '//s3.amazonaws.com/{0}/{1}'.format(test_storage_bucket_name, new_script_s3_key)
+
+            script_tag['src'] = re.sub(r'(http|https)://', '//', src)
+            script_tag['async'] = "true"
+            page_content = page_content.replace(old_script, str(script_tag), 1)
 
     # e.g. "shorts3/index.html"
     identifier = getattr(campaign, 'url', '') or \

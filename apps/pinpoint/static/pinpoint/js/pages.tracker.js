@@ -83,6 +83,12 @@ App.module("tracker", function (tracker, App) {
             window.ga.apply(window, arguments);
         },
 
+        trackPageview = function(hash) {
+            var base = window.location.pathname + window.location.search;
+            hash = hash || window.location.hash;
+            addItem('send', 'pageview', base + hash);
+        },
+
         trackEvent = function (o) {
             // category       - type of object that was acted on
             // action         - type of action that took place (e.g. share, preview)
@@ -97,6 +103,11 @@ App.module("tracker", function (tracker, App) {
 
             addItem('send', 'event', o.category, o.action, o.label,
                     o.value || undefined, {'nonInteraction': nonInteraction});
+
+            if (o.action === 'scroll') {
+                var hash = '#page' + o.label;
+                trackPageview(hash);
+            }
         },
 
         setCustomVar = function (o) {
@@ -328,11 +339,6 @@ App.module("tracker", function (tracker, App) {
 
     this.setup = function (options) {
         console.debug('optests', App.option('optests', {}));
-        if (App.option('debug', App.QUIET) > App.QUIET) {
-            // do not run analytics when debugging (dev, test)
-            App.vent.trigger('trackerInitialized', this);
-            return;
-        }
         addItem('create', App.option('gaAccountNumber'), 'auto');
 
         // TODO: If these are already set on page load, do we need to set them
@@ -361,7 +367,7 @@ App.module("tracker", function (tracker, App) {
             'value': App.option('page:id')
         });
 
-        addItem('send', 'pageview', App.option('optests', {}));
+        addItem('send', 'pageview');
         console.debug("Registered page view.");
 
         // register event maps
@@ -407,6 +413,8 @@ App.module("tracker", function (tracker, App) {
                 'action': 'Preview',
                 'label': label
             });
+
+            trackPageview();
         },
 
         // Content Share
@@ -570,6 +578,7 @@ App.module("tracker", function (tracker, App) {
     // add mediator triggers if the module exists.
     App.vent.on({
         'tracking:trackEvent': trackEvent,
+        'tracking:trackPageView': trackPageview,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,
         'tracking:registerFacebookListeners': this.registerFacebookListeners,
         'tracking:videoStateChange': this.videoStateChange,

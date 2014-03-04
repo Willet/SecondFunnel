@@ -199,7 +199,7 @@ def transfer_static_campaign(store_id, page_id):
             continue  # skip processing underscore template script tags
 
         if script_tag.get('src'):  # is external script
-            script_contents = read_remote_file(script_tag.get('src'))
+            script_contents, gzipped = read_remote_file(script_tag.get('src'))
 
             if not script_contents:
                 continue  # blank external tag
@@ -230,7 +230,7 @@ def transfer_static_campaign(store_id, page_id):
         if not upload_to_bucket(bucket_name=prod_storage_bucket_name,
             filename=new_script_s3_key, content=script_contents,
             content_type=mimetypes.MimeTypes().guess_type(new_script_s3_key)[0],
-            public=True, do_gzip=False):
+            public=True, do_gzip=gzipped):
             raise IOError("Could not write modified JS file to S3!")
 
         # overwrite old tag with new tag

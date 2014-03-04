@@ -2,6 +2,7 @@
 {% load compress %}
 <!-- Head Contents -->
 <noscript><style> .no-noscript { display: none } </style></noscript>
+<!-- Begin Javascript -->
 <!-- Preload images -->
 <script type="text/javascript">
     var image,
@@ -13,7 +14,33 @@
         }
     }
 </script>
-<!-- End preload -->
+<!-- End Preload -->
+<!-- Begin Javascript -->
+{% include "pinpoint/campaign_config.html" %}
+<!--[if gte IE 9]><!-->
+{% compress js %}
+   {% include "pinpoint/campaign_js.html" %}
+{% endcompress %}
+<!--<![endif]-->
+
+<!--[if lte IE 8]>
+{% compress js %}
+   {% include "pinpoint/campaign_js.html" %}
+{% endcompress %}
+<![endif]-->
+
+<script type="text/javascript">
+      var lazyLoad;
+      lazyLoad = setInterval(function() {
+          if (window.App && document.getElementById('discovery-area')) {
+              clearInterval(lazyLoad);
+              App.start();
+          }
+      }, 100);
+</script>
+<!-- End Javascript -->
+
+<!--Begin CSS-->
 {% compress css %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'pinpoint/css/pages2.css' %}">
@@ -35,6 +62,4 @@
 
 <meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><!-- required by bootstrap -->
 <meta http-equiv="X-UA-Compatible" content="IE=edge"><!-- required by bootstrap, IE -->
-<!-- Campaign Config -->
-{% include "pinpoint/campaign_config.html" %}
-<!-- End Campaign Config -->
+<script type="text/javascript" src="//connect.facebook.net/en_US/all.js" async></script>
