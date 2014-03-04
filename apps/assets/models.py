@@ -32,21 +32,6 @@ class BaseModel(models.Model, DirtyFieldsMixin):
     class Meta:
         abstract = True
 
-    def __getattr__(self, item):
-        """Also get from JSONFields.
-
-        This does not mean you can write into JSONFields like so, however.
-        __setattr__ has been deliberately left out to make sure the correct
-        field is written.
-        """
-        if hasattr(self, 'attributes'):
-            try:
-                return self.attributes.get(item)
-            except:
-                pass
-        raise AttributeError("'{0}' object has no attribute '{1}'".format(
-            self.__class__, item))
-
     def days_since_creation(self):
         return (timezone.now() - self.created_at).days
 
