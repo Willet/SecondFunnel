@@ -178,7 +178,6 @@ class Campaign(BaseModelNamed):
         # special case... the theme needs to become an instance beforehand
         # automatically defaults to DEFAULT_PAGE
         theme = json_data.get('theme', '')
-        theme = '/gap/index.html'
         if isinstance(theme, basestring):
             if not theme:
                 theme = ''  # blank
