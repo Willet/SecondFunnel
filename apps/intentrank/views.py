@@ -102,6 +102,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
                 RelatedTile.relate(Tile.objects.get(old_id=click), Tile.objects.get(old_id=tile_id))
             clicks.append(tile_id)
         request.session['clicks'] = clicks
+        request.session.set_expiry(300)
         print clicks
 
         return ajax_jsonp(tile.to_json())
