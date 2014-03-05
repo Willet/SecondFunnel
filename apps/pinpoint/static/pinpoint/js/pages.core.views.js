@@ -439,6 +439,7 @@ App.module('core', function (module, App) {
 
         'initialize': function (opts) {
             var self = this,
+                deferred = $.Deferred(),
                 options = opts.options; // someone came up with this idea
 
             _.bindAll(this, 'pageScroll', 'toggleLoading');
@@ -449,19 +450,29 @@ App.module('core', function (module, App) {
             this.attachListeners();
 
             // If the collection has initial values, lay them out
-            if (options.initialResults) {
+            if (options.initialResults && $(options.initialResults).length) {
                 console.debug('laying out initial results');
                 // If already have array just lay out, otherwise
                 // assume we have an a xmlhttprequest object
-                $.when(options.initialResults).then(function(data) {
+                if ($.isArray(options.initialResults)) {
+                    deferred = $.when(options.initialResults);
+                } else {
+                    options.initialResults.onreadystatechange = function () {
+                        // XMLHttpRequest.DONE on IE 9+ and other browsers; support for IE8
+                        if (this.readyState == 4 && this.status == 200) {
+                            deferred.resolve(JSON.parse(this.response));
+                        }
+                    };
+                }
+                // When resolved, layout the results
+                deferred.done(function(data) {
                     options.initialResults = data;
                     App.options.IRResultsReturned = data.length;
                     self.collection.add(data);
                     App.intentRank.addResultsShown(data);
                 });
             } else { // if nothing, immediately fetch more from IR
-                this.toggleLoading(false);
-                this.getTiles();
+                this.toggleLoading(false).getTiles();
             }
 
             // most-recent feed is the active feed

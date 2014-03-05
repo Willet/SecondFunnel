@@ -17,10 +17,10 @@
 <!-- End Preload -->
 {% include "pinpoint/campaign_config.html" %}
 <script type="text/javascript">
-    // http://stackoverflow.com/questions/8567114/how-to-make-an-ajax-call-without-jquery
-    // Initial call to IR
-    if (!PAGES_INFO['initialResults'].length) {
-        PAGES_INFO['initialResults'] = new Promise(function(resolve, reject) {
+    (function() {
+        // http://stackoverflow.com/questions/8567114/how-to-make-an-ajax-call-without-jquery
+        // Initial call to IR
+        if (!PAGES_INFO['initialResults'].length) {
             // Support for IE6/5 in the event that XMLHttpRequest doesn't exist
             var xmlhttp, data;
             xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
@@ -29,23 +29,13 @@
             xmlhttp.onload = function () {
                 // Ensures that it's resolved on 200 or 404
                 if (xmlhttp.status == 200) { // success so resolve normally
-                    // resolve and both stores the results as initial data
-                    data = JSON.parse(xmlhttp.response);
-                    resolve(data);
-                    PAGES_INFO['initialResults'] = data;
-                } else { // Reject by passing the status code
-                    reject(xmlhttp.statusText);
+                    PAGES_INFO['initialResults'] = JSON.parse(xmlhttp.response);
                 }
             };
-
-            // Handles an error
-            xmlhttp.onerror = function () {
-                reject(xmlhttp);
-            };
-
+            PAGES_INFO['initialResults'] = xmlhttp;
             xmlhttp.send();
-        });
-    }
+        }
+    })();
 </script>
 <!--[if gte IE 9]><!-->
 {% compress js %}
