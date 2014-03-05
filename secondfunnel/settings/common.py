@@ -204,10 +204,10 @@ TEMPLATE_LOADERS = (
     )
 
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',  # TODO: was last
     'django.middleware.gzip.GZipMiddleware',  # NOTE: Must be the first in this tuple
     'htmlmin.middleware.HtmlMinifyMiddleware',  # Enables compression of HTML
     'django.middleware.cache.CacheMiddleware',  # Manages caching
-    'corsheaders.middleware.CorsMiddleware',  # TODO: was last
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -267,7 +267,7 @@ INSTALLED_APPS = (
 
 CORS_ORIGIN_REGEX_WHITELIST = (
     # for testing local pages using live IR
-    r'^(localhost|127.0.0.1):(\d+)$',
+    r'^(https?://)?(localhost|127.0.0.1):(\d+)$',
     r'^(https?://)?[\w-]+\.secondfunnel\.com$',
     r'^(https?://)?[\w-]+\.elasticbeanstalk\.com$',
 )
