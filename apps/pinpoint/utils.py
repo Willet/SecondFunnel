@@ -124,12 +124,7 @@ def render_campaign(store_id, page_id, request):
     # feed = Feed(page_data.get('intentrank_id') or page_data.get('id'))
     ir_id = page_data.get('intentrank_id') or page_data.get('id')
     feed = Page.objects.get(old_id=ir_id).feed
-    initial_results = get_results(feed=feed, results=4, algorithm=ir_first)
     backup_results = get_results(feed=feed, results=100)
-
-    if not initial_results:
-        # if there are backup results, serve the first 4.
-        initial_results = backup_results[:4]
 
     if settings.ENVIRONMENT == 'dev' and page_data.get('ir_base_url'):
         # override the ir_base_url attribute on CG page objects
@@ -142,7 +137,7 @@ def render_campaign(store_id, page_id, request):
         "columns": range(4),
         "preview": False,  # TODO: was this need to fix: not page.live,
         "product": json_postprocessor(product),
-        "initial_results": map(json_postprocessor, initial_results),
+        "initial_results": [],  # JS now fetches its own initial results
         "backup_results": map(json_postprocessor, backup_results),
         "social_buttons": page_data.get('social-buttons',
                           store.get('social-buttons', '')),
