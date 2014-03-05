@@ -1,5 +1,5 @@
 /*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _,
-console, location */
+console, location, clearTimeout, setTimeout */
 var App = new Marionette.Application(),
     SecondFunnel = App,  // old alias
     debugOp,

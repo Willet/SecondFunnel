@@ -204,10 +204,10 @@ TEMPLATE_LOADERS = (
     )
 
 MIDDLEWARE_CLASSES = (
-    'corsheaders.middleware.CorsMiddleware',  # TODO: was last
     'django.middleware.gzip.GZipMiddleware',  # NOTE: Must be the first in this tuple
     'htmlmin.middleware.HtmlMinifyMiddleware',  # Enables compression of HTML
     'django.middleware.cache.CacheMiddleware',  # Manages caching
+    'corsheaders.middleware.CorsMiddleware',  # TODO: was last
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -220,7 +220,7 @@ MIDDLEWARE_CLASSES = (
 
 KEEP_COMMENTS_ON_MINIFYING = True
 
-CACHE_MIDDLEWARE_SECONDS = 604800  # Set the cache to atleast a week; will only affect production/test/demo
+CACHE_MIDDLEWARE_SECONDS = 604800  # Set the cache to at least a week; will only affect production/test/demo
 
 ROOT_URLCONF = 'secondfunnel.urls'
 

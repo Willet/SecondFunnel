@@ -11,6 +11,7 @@ App.module('optimizer', function (optimizer, App) {
             'SESSION': 2,
             'VISITOR': 1
         },
+        ENABLED_TESTS = [],
         UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         OPTIMIZER_COOKIE = '__sotm',
         MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24,
@@ -124,6 +125,11 @@ App.module('optimizer', function (optimizer, App) {
             probabilities = args.probabilities,
             cookie = OPTIMIZER_COOKIE + index;
 
+        if ((App.option('debug', App.QUIET) > App.QUIET) &&
+            (ENABLED_TESTS.indexOf(index.toString()) == -1)) {
+            return;
+        }
+
         result = this.getCookieValue(cookie);
         if (result && result.length && options) {
             pos = getPos(result);
@@ -167,22 +173,16 @@ App.module('optimizer', function (optimizer, App) {
      * @returns none
      **/
     this.initialize = function () {
-        var tests, 
-            test, index, self;
+        var test, index, self;
 
+        ENABLED_TESTS = App.utils.getQuery('activate-test').split(',');
         window.OPTIMIZER_TESTS = window.OPTIMIZER_TESTS || [];
-        tests = App.utils.getQuery('activate-test');
         self = this;
 
         _.each(window.OPTIMIZER_TESTS, function (t) {
             index = t.index || t.slot;
             // Don't run all A/B Tests in quiet mode
-            if (App.option('debug', App.QUIET) > App.QUIET) {
-                // Run only selected tests
-                if (!(tests.indexOf(index) > -1)) {
-                    return;
-                }
-            } else if (t.device && !is(t.device)) {
+            if (t.device && !is(t.device)) {
                 return;
             }
             test = t.test;

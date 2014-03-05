@@ -17,8 +17,8 @@ AWS_HEADERS =  {
     'Vary': 'Accept-Encoding',
 }
 
-WEBSITE_BASE_URL = 'http://tng-test.secondfunnel.com'
-INTENTRANK_BASE_URL = 'http://tng-test.secondfunnel.com'
+WEBSITE_BASE_URL = 'http://tng-master.secondfunnel.com'
+INTENTRANK_BASE_URL = WEBSITE_BASE_URL
 CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
 AWS_STORAGE_BUCKET_NAME = os.getenv('TestBucket', 'elasticbeanstalk-us-east-1-056265713214')
 INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config-test'
