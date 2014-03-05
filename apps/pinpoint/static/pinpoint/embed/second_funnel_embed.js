@@ -97,6 +97,7 @@
             url_parser = document.createElement('a'),
             url,
             origin,
+            port,
             load_event_handler;
 
         //verify container element is correct
@@ -119,6 +120,12 @@
         //parse origin from url
         url_parser.href = url;
         origin = url_parser.protocol + '//' + url_parser.host;
+        port = origin.split(':');
+
+        //port 80 is implied when the origin is passed in the message
+        if (port.length > 2 && port[2] === '80') {
+            origin = port[0] + ':' + port[1];
+        }
 
         //creating the iframe
         second_funnel.setAttribute('id', 'second-funnel');
