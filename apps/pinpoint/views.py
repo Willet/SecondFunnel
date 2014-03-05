@@ -32,7 +32,7 @@ def social_auth_redirect(request):
         return redirect('admin')
 
 
-@cache_page(60 * 60 * 24, key_prefix="pinpoint-")  # 24 hours
+@cache_page(60 * 1, key_prefix="pinpoint-")  # a minute
 @vary_on_headers('Accept-Encoding')
 def campaign(request, store_id, page_id, mode=None):
     """Returns a rendered campaign response of the given id.
