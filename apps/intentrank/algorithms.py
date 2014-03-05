@@ -16,7 +16,15 @@ def ir_all(feed, *args, **kwargs):
 def ir_first(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
              *args, **kwargs):
     """sample whichever ones come first"""
-    return list(feed.tiles.order_by('id')[:results])
+    # serve prioritized ones first
+    prioritized_tiles = list(
+        feed.tiles
+        .filter(prioritized=True)
+        .order_by('updated_at')
+        .select_related()
+        .prefetch_related('content', 'products'))
+
+    return prioritized_tiles + list(feed.tiles.order_by('id')[:results])
 
 
 def ir_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,

@@ -52,6 +52,6 @@ def handle_ir_config_update_notification_message(message):
     # caller handles error
     generate_static_campaign_now(
         store_id=store_id,
-        campaign_id=page_id)
+        page_id=page_id)
 
     return {'generated-page': page_id}
