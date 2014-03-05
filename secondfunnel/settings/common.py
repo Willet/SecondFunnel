@@ -220,7 +220,7 @@ MIDDLEWARE_CLASSES = (
 
 KEEP_COMMENTS_ON_MINIFYING = True
 
-CACHE_MIDDLEWARE_SECONDS = 604800  # Set the cache to atleast a week; will only affect production/test/demo
+CACHE_MIDDLEWARE_SECONDS = 604800  # Set the cache to at least a week; will only affect production/test/demo
 
 ROOT_URLCONF = 'secondfunnel.urls'
 
@@ -267,7 +267,7 @@ INSTALLED_APPS = (
 
 CORS_ORIGIN_REGEX_WHITELIST = (
     # for testing local pages using live IR
-    r'^(localhost|127.0.0.1):(\d+)$',
+    r'^(https?://)?(localhost|127.0.0.1):(\d+)$',
     r'^(https?://)?[\w-]+\.secondfunnel\.com$',
     r'^(https?://)?[\w-]+\.elasticbeanstalk\.com$',
 )

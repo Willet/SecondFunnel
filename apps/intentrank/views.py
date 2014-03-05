@@ -151,7 +151,7 @@ def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 @csrf_exempt
 @request_methods('GET')
 def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
-    feed_link = 'http://' + str(request.META['HTTP_HOST']) + '/intentrank/page/'
+    feed_link = 'http://' + str(request.META['HTTP_HOST']) + '/'
     if page_slug:
         feed_link += str(page_slug) + '/' + str(feed_name)
         page = Page.objects.get(url_slug=page_slug)
