@@ -57,8 +57,6 @@ App.module("intentRank", function (intentRank, App) {
             'IRCacheResultCount': options.IRResultsCount || 10
         });
 
-        intentRank.prefetch(); // Prefetch results
-        intentRank.prefetch = _.debounce(intentRank.prefetch, 6000); // Debounce it
         App.vent.trigger('intentRankInitialized', intentRank);
         return this;
     };
@@ -80,7 +78,7 @@ App.module("intentRank", function (intentRank, App) {
      *
      * @returns this
      */
-    this.prefetch = function () {
+    this.prefetch = _.debounce(function () {
         var diff = cachedResults.length - intentRank.options.IRCacheResultCount;
         // Only prefetch if cached count is low and we're not already
         // fetching.
@@ -93,7 +91,7 @@ App.module("intentRank", function (intentRank, App) {
             });
         }
         return this;
-    };
+    }, 6000);
 
     /**
      * This function is a bridge between our IntentRank module and our
@@ -139,20 +137,22 @@ App.module("intentRank", function (intentRank, App) {
         // check if cached results, and options is undefined
         // don't do this if we are actually the intentRank module
         if (!options && !(this == intentRank)) {
-            var len = cachedResults.length;
-            prepopulatedResults = cachedResults.splice(0, Math.min(opts.results, len));
+            var len = cachedResults.length,
+                method = opts.reset ? 'reset' : 'set';
+            prepopulatedResults = cachedResults.splice(0, len);
 
             if (fetching) { // return fetching object if we're fetching
                 console.debug("Holding off for IR to finish.");
                 return fetching.done(function (results) {
-                    var method = opts.reset ? 'reset' : 'set';
                     collection[method](results, opts);
                     collection.trigger('sync', collection, results, opts);
                 });
             } else if (len >= opts.results) {
                 // Use a dummy deferred object
                 console.debug("Using existing results.");
-                return $.when(prepopulatedResults).done(function() {
+                return $.when(prepopulatedResults).done(function(results) {
+                    collection[method](results, opts);
+                    collection.trigger('sync', collection, results, opts);
                     intentRank.prefetch();
                 });
             }
@@ -166,14 +166,14 @@ App.module("intentRank", function (intentRank, App) {
         _.extend(opts, {
             success: function (results) {
                 var method = opts.reset ? 'reset' : 'set';
+                results = prepopulatedResults.concat(results);
+                App.options.IRResultsReturned = results.length;
+
                 // reset fail counter
                 collection.ajaxFailCount = 0;
                 collection[method](results, opts);
                 collection.trigger('sync', collection, results, opts);
-
-                // SHUFFLE_RESULTS is always true
-                results = prepopulatedResults.concat(results);
-                deferred.resolve(_.shuffle(results));
+                deferred.resolve(results);
                 resultsAlreadyRequested = _.compact(intentRank.getTileIds(results));
 
                 // restrict shown list to last 10 items max
