@@ -746,11 +746,28 @@ App.module('core', function (module, App) {
 
         // Disable scrolling body when preview is shown
         'onShow': function () {
-            $(document.body).addClass('no-scroll');
+            /*
+            NOTE: Previously, it was thought that adding `no-scroll`
+            to android devices was OK, because no problems were observed
+            on some device.
+
+            Turns out, that was wrong.
+
+            It seems like no-scroll prevent scrolling on *some* android
+            devices, but not others.
+
+            So, for now, only add no-scroll if the device is NOT an android.
+             */
+            if (!App.support.isAnAndroid()) {
+                $(document.body).addClass('no-scroll');
+            }
         },
 
         'close': function () {
-            $(document.body).removeClass('no-scroll');
+            /* See NOTE in onShow */
+            if (!App.support.isAnAndroid()) {
+                $(document.body).removeClass('no-scroll');
+            }
         }
     });
 
