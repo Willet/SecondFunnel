@@ -3,11 +3,11 @@ as the first positional argument, with all other arguments being kwargs.
 
 All algorithms must return <list>.
 """
-import math
 import random as real_random
 
 from django.conf import settings
-import time
+
+from apps.assets.models import Tile, RelatedTile
 
 
 def ir_all(feed, *args, **kwargs):
@@ -28,7 +28,7 @@ def ir_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 
 def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, request=None, *args, **kwargs):
-    prioritized_tiles = prioritized_tile_ids = []
+    related_tiles = []
     if request and hasattr(request, 'session'):
         if len(request.session.get('shown', [])) == 0:
             prioritized_tiles = list(
@@ -40,15 +40,18 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, request=No
             prioritized_tile_ids = [tile.old_id or tile.id
                                     for tile in prioritized_tiles]
 
-            tiles = list(feed.tiles.exclude(old_id__in=prioritized_tile_ids).select_related().prefetch_related('content', 'products'))
+            tiles = list(feed.tiles.exclude(old_id__in=prioritized_tile_ids)
+                         .select_related().prefetch_related('content', 'products'))
 
             tiles = sorted(tiles, key=lambda tile: tile.score, reverse=True)
 
             return (prioritized_tiles + tiles)[:results]
 
-    prioritized_length = len(prioritized_tiles)
+        related_tiles = RelatedTile.get_related_tiles(
+            list(Tile.objects.filter(old_id__in=request.session.get('clicks', []))))[:5]
 
-    tiles = list(feed.tiles.exclude(old_id__in=prioritized_tile_ids).select_related().prefetch_related('content', 'products'))
+    tiles = list(feed.tiles.exclude(old_id__in=[tile.id for tile in related_tiles])
+                 .select_related().prefetch_related('content', 'products'))
 
     total_score = 0
 
@@ -58,10 +61,10 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, request=No
     tiles_length = 0
     rand_sum = 0
 
-    if len(tiles) + prioritized_length < results:
-        results = len(tiles) + prioritized_length
+    if len(tiles) + len(related_tiles) < results:
+        results = len(tiles)
 
-    while tiles_length + prioritized_length < results:
+    while tiles_length < results:
         rand_num = real_random.uniform(rand_sum, total_score)
         for tile in tiles:
             log_score = tile.log_score
@@ -73,7 +76,7 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, request=No
                 tiles_length += 1
                 break
 
-    return (prioritized_tiles + tiles)[:results]
+    return (related_tiles + tiles)[:results]
 
 
 def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,

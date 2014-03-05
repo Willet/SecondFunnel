@@ -451,33 +451,35 @@ class Tile(BaseModel):
 
 
 class RelatedTile(BaseModel):
-
     tile_a = models.ForeignKey(Tile, related_name='+')
     tile_b = models.ForeignKey(Tile, related_name='+')
 
     starting_score = models.FloatField(default=0)
 
     @classmethod
-    def relate(cls, a, b):
-        if hasattr(a, id):
-            a = a.id
-        if hasattr(b, id):
-            b = b.id
-        related_tile = cls.objects.get_or_create(tile_a_id=a, tile_b_id=b)
-        # update_score = popularity_devalue_rate * related_tile.days_since_creation()
-        # starting_score = related_tile.starting_score
-        # related_tile.s = max(starting_score, update_score) + math.log(1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
+    def relate(cls, tile_a, tile_b):
+        id_a = tile_a.id
+        id_b = tile_b.id
+        if id_a > id_b:
+            id_a, id_b = id_b, id_a
+        related_tile, _ = cls.objects.get_or_create(tile_a_id=id_a, tile_b_id=id_b)
+        update_score = popularity_devalue_rate * related_tile.days_since_creation()
+        starting_score = related_tile.starting_score
+        related_tile.starting_score = max(starting_score, update_score) + math.log(
+            1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
         related_tile.save()
+        return related_tile
 
     @classmethod
-    def get_related_tiles(cls, a):
-        if hasattr(a, id):
-            a = a.id
-        related_tiles = list(cls.objects.filter(Q(tile_a_id=a) | Q(tile_b_id=a)).select_related())
+    def get_related_tiles(cls, tile_list):
+
+        id_list = [tile.id for tile in tile_list]
+
+        related_tiles = list(cls.objects.filter(Q(tile_a_id__in=id_list) | Q(tile_b_id__in=id_list)).exclude(tile_a_id__in=id_list, tile_b_id__in=id_list).select_related())
         related_tiles = sorted(related_tiles, key=lambda related_tile: related_tile.score)
         tiles = []
         for related_tile in related_tiles:
-            if related_tile.tile_a.id == a:
+            if related_tile.tile_a.id in id_list:
                 tiles.append(related_tile.tile_b)
             else:
                 tiles.append(related_tile.tile_a)
@@ -486,11 +488,10 @@ class RelatedTile(BaseModel):
 
     @property
     def score(self):
-        # return math.exp(self.starting_score - popularity_devalue_rate * self.days_since_creation())
-        pass
+        return math.exp(self.starting_score - popularity_devalue_rate * self.days_since_creation())
 
     @property
     def log_score(self):
         ratio = 1.5
         score = self.score
-        #return math.log(score + (ratio if score > 2 * ratio else(ratio - score/2)), ratio)
+        return math.log(score + (ratio if score > 2 * ratio else(ratio - score / 2)), ratio)
