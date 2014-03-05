@@ -1,5 +1,4 @@
 import math
-import pytz
 
 from django.contrib.auth.models import User
 from django.core import serializers
@@ -10,7 +9,6 @@ from django.db.models import Q
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
 from django.utils import timezone
-import json
 
 from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
@@ -24,8 +22,6 @@ default_master_size = {
         'height': '100%',
     }
 }
-
-popularity_devalue_rate = 0.15  # variable used for popularity, the bigger the value, the faster popularity de-values
 
 
 class BaseModel(models.Model, DirtyFieldsMixin):
@@ -86,6 +82,13 @@ class BaseModel(models.Model, DirtyFieldsMixin):
             obj.save()
 
         return (obj, created, updated)
+
+    def get(self, key, default):
+        """Duck-type a <dict>'s get() method to make CG transition easier.
+
+        Remove when no longer necessary.
+        """
+        return getattr(self, name=key, default=default)
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -148,27 +151,6 @@ class Product(BaseModel):
     serializer = ProductSerializer
 
     def to_json(self):
-        """
-        product_images = self.product_images.all()
-
-        dct = {
-            "url": self.url,
-            "price": self.price,
-            "description": self.description,
-            "name": self.name,
-            "images": [image.to_json() for image in product_images],
-        }
-
-        # if default image is missing...
-        if self.default_image:
-            dct["default-image"] = str(self.default_image.old_id or
-                self.default_image.id)
-        elif len(product_images) > 0:
-            # fall back to first image
-            dct["default-image"] = str(product_images[0].old_id)
-
-        return dct
-        """
         return self.serializer().to_json([self])
 
 
@@ -300,8 +282,8 @@ class Image(Content):
 class Video(Content):
     name = models.CharField(max_length=1024, blank=True, null=True)
 
-    # TODO: caption
-
+    caption = models.CharField(max_length=255, blank=True, default="")
+    username = models.CharField(max_length=255, blank=True, default="")
     description = models.TextField(blank=True, null=True)
 
     player = models.CharField(max_length=255)
@@ -351,14 +333,16 @@ class Feed(BaseModel):
 class Page(BaseModel):
     store = models.ForeignKey(Store)
 
+    name = models.CharField(max_length=256)  # e.g. Lived In
     old_id = models.IntegerField(unique=True)
 
     theme = models.ForeignKey(Theme, related_name='page', blank=True, null=True)
+
+    # attributes named differently
     theme_settings = JSONField(blank=True, null=True)
 
-    name = models.CharField(max_length=256)
     description = models.TextField(blank=True, null=True)
-    url_slug = models.CharField(max_length=128)
+    url_slug = models.CharField(max_length=128)  # e.g. livedin
     legal_copy = models.TextField(blank=True, null=True)
 
     last_published_at = models.DateTimeField(blank=True, null=True)
@@ -409,13 +393,16 @@ class Tile(BaseModel):
 
     prioritized = models.BooleanField()
 
+    # variable used for popularity, the bigger the value, the faster popularity de-values
+    popularity_devalue_rate = 0.15
+
     # miscellaneous attributes, e.g. "is_banner_tile"
     attributes = JSONField(null=True, default={})
 
     def click(self):
         self.clicks += 1
         # the value used to increase starting_score per click
-        update_score = popularity_devalue_rate * self.days_since_creation()
+        update_score = Tile.popularity_devalue_rate * self.days_since_creation()
         starting_score = self.starting_score
         self.starting_score = max(starting_score, update_score) + math.log(
             1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
@@ -424,7 +411,8 @@ class Tile(BaseModel):
     @property
     def score(self):
         # returns the score of the tile based on the starting_score and how long ago the tile was created
-        return math.exp(self.starting_score - popularity_devalue_rate * self.days_since_creation())
+        return math.exp(self.starting_score - Tile.popularity_devalue_rate *
+                        self.days_since_creation())
 
     @property
     def log_score(self):

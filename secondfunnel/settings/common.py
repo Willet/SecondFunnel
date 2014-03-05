@@ -4,8 +4,7 @@ import djcelery
 from datetime import timedelta, datetime
 import django.conf.global_settings as DEFAULT_SETTINGS
 
-# Django settings for secondfunnel project.
-
+# default debug settings
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
@@ -26,7 +25,8 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(days=30)).strftime("%a, %d %b %Y %H:%M:%S GMT")
+BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(days=30))\
+    .strftime("%a, %d %b %Y %H:%M:%S GMT")
 
 
 def from_project_root(path):
@@ -51,17 +51,16 @@ if 'RDS_DB_NAME' in os.environ:
 
     CONN_MAX_AGE = 0  # default to never time out from django's side;
                       # RDS is its own value set
-
-else:
+else:  # defaults (dev) for letting bare django run -- do not modify
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': 'dev.sqlite',
-            'USER': '',
-            'PASSWORD': '',
-            'HOST': '',
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'sfdb',
+            'USER': 'sf',
+            'PASSWORD': 'postgres',
+            'HOST': '127.0.0.1',
             'PORT': '',
-            }
+        }
     }
 
 # Local time zone for this installation. Choices can be found here:
@@ -82,11 +81,11 @@ SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
-USE_I18N = True
+USE_I18N = False
 
 # If you set this to False, Django will not format dates, numbers and
 # calendars according to the current locale.
-USE_L10N = True
+USE_L10N = False
 
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
@@ -110,8 +109,10 @@ MIN_MEDIA_HEIGHT = 1
 # TODO: has to be a better way to get the path...
 STATIC_ROOT = from_project_root('static')
 
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
+# "Storing static files as is" mode
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
 # http://django_compressor.readthedocs.org/en/latest/remote-storages/
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
@@ -232,13 +233,6 @@ TEMPLATE_DIRS = (
 # Don't forget to use absolute paths, not relative paths.
 )
 
-LETTUCE_APPS = (
-    'apps.pinpoint',
-)
-
-LETTUCE_AVOID_APPS = (
-)
-
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -259,7 +253,6 @@ INSTALLED_APPS = (
     'ajax_forms',
     'compressor',
     'corsheaders',
-    'debug_toolbar',
 
     # our apps
     'apps.api',
@@ -354,15 +347,13 @@ FIXTURE_DIRS = (
     'secondfunnel/fixtures/',
 )
 
-WEBSITE_BASE_URL = 'http://www.secondfunnel.com'
+WEBSITE_BASE_URL = 'http://secondfunnel.com'
 INTENTRANK_BASE_URL = WEBSITE_BASE_URL
 CONTENTGRAPH_BASE_URL = 'http://contentgraph.elasticbeanstalk.com/graph'
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
-
-INSTAGRAM_AUTH_EXTRA_ARGUMENTS = {'scope': 'likes'}
 
 JENKINS_TASKS = (
     'django_jenkins.tasks.with_coverage',
@@ -407,10 +398,6 @@ CELERYBEAT_SCHEDULE = {
         'args': tuple()
     }
 }
-
-# force show toolbar
-# http://stackoverflow.com/a/10518040/1558430
-SHOW_TOOLBAR_CALLBACK = lambda: DEBUG
 
 STALE_TILE_RETRY_THRESHOLD = 240  # seconds
 IRCONFIG_RETRY_THRESHOLD = 240  # seconds

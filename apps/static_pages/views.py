@@ -11,22 +11,24 @@ from BeautifulSoup import BeautifulSoup
 import re
 from django.conf import settings
 from django.utils.encoding import smart_unicode
-from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
+from apps.contentgraph.models import call_contentgraph
 
 from apps.intentrank.utils import ajax_jsonp
 from apps.pinpoint.utils import read_remote_file
-from apps.static_pages.aws_utils import sns_notify, download_from_bucket, upload_to_bucket, s3_key_exists, copy_across_bucket, create_bucket_website_alias, copy_within_bucket
+from apps.static_pages.aws_utils import (sns_notify, download_from_bucket,
+    upload_to_bucket, s3_key_exists, copy_across_bucket,
+    create_bucket_website_alias, copy_within_bucket)
 from apps.static_pages.tasks import (create_bucket_for_store_now,
                                      generate_static_campaign_now)
 
 from secondfunnel.settings.test import INTENTRANK_BASE_URL as test_ir, \
-    AWS_STORAGE_BUCKET_NAME as test_storage_bucket_name, \
     INTENTRANK_CONFIG_BUCKET_NAME as test_irconfig_bucket_name
 from secondfunnel.settings.production import INTENTRANK_BASE_URL as prod_ir, \
     AWS_STORAGE_BUCKET_NAME as prod_storage_bucket_name, \
     INTENTRANK_CONFIG_BUCKET_NAME as prod_irconfig_bucket_name
 
-def generate_static_campaign(request, store_id, campaign_id):
+
+def generate_static_campaign(request, store_id, page_id):
     """Manual stimulation handler: re-save a campaign.
 
     Campaign *will* be regenerated despite having a static log entry.
@@ -47,7 +49,7 @@ def generate_static_campaign(request, store_id, campaign_id):
         pass  # bucket might already exist
 
     try:
-        campaign_returns = generate_static_campaign_now(store_id, campaign_id)
+        campaign_returns = generate_static_campaign_now(store_id, page_id)
     except ValueError, err:
         _, exception, _ = sys.exc_info()
         stack = traceback.format_exc().splitlines()

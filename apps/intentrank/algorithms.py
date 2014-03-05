@@ -18,17 +18,27 @@ def ir_all(feed, *args, **kwargs):
 def ir_first(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
              *args, **kwargs):
     """sample whichever ones come first"""
-    return feed.tiles.order_by('id')[:results]
+    # serve prioritized ones first
+    prioritized_tiles = list(
+        feed.tiles
+        .filter(prioritized=True)
+        .order_by('updated_at')
+        .select_related()
+        .prefetch_related('content', 'products'))
+
+    return prioritized_tiles + list(feed.tiles.order_by('id')[:results])
 
 
 def ir_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             *args, **kwargs):
     """sample whichever ones come last"""
-    return feed.tiles.order_by('id')[:-results]
+    return list(feed.tiles.order_by('id')[:-results])
 
 
-def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, request=None, *args, **kwargs):
-    related_tiles = []
+def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+               request=None, *args, **kwargs):
+    """TODO: docstring"""
+    prioritized_tiles = prioritized_tile_ids = []
     if request and hasattr(request, 'session'):
         if len(request.session.get('shown', [])) == 0:
             prioritized_tiles = list(
@@ -41,7 +51,7 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, request=No
                                     for tile in prioritized_tiles]
 
             tiles = list(feed.tiles.exclude(old_id__in=prioritized_tile_ids)
-                         .select_related().prefetch_related('content', 'products'))
+                .select_related().prefetch_related('content', 'products'))
 
             tiles = sorted(tiles, key=lambda tile: tile.score, reverse=True)
 
@@ -50,8 +60,8 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS, request=No
         related_tiles = RelatedTile.get_related_tiles(
             list(Tile.objects.filter(old_id__in=request.session.get('clicks', []))))[:5]
 
-    tiles = list(feed.tiles.exclude(old_id__in=[tile.id for tile in related_tiles])
-                 .select_related().prefetch_related('content', 'products'))
+    tiles = list(feed.tiles.exclude(old_id__in=prioritized_tile_ids)
+        .select_related().prefetch_related('content', 'products'))
 
     total_score = 0
 

@@ -19,11 +19,10 @@ from django.utils.encoding import smart_str
 from apps.assets.models import Store, Page
 from apps.contentgraph.views import get_page, get_store, get_stores
 
-from apps.pinpoint.utils import read_remote_file
+from apps.pinpoint.utils import read_remote_file, render_campaign
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
     s3_key_exists, get_route53_change_status, upload_to_bucket)
-from apps.static_pages.utils import (get_bucket_name, create_dummy_request,
-                                     render_campaign)
+from apps.static_pages.utils import get_bucket_name, create_dummy_request
 
 from secondfunnel.settings.test import AWS_STORAGE_BUCKET_NAME as test_storage_bucket_name
 
@@ -184,11 +183,11 @@ def generate_local_campaign(store_id, campaign_id, page_content):
             pass #Fail gracefully
 
 
-def generate_static_campaign_now(store_id, campaign_id):
+def generate_static_campaign_now(store_id, page_id):
     """Renders individual campaign and saves it to S3."""
 
     try:
-        campaign_dict = get_page(store_id=store_id, page_id=campaign_id,
+        campaign_dict = get_page(store_id=store_id, page_id=page_id,
                                  as_dict=True)
 
         # do -something- to turn ContentGraph JSON into a campaign object
@@ -198,12 +197,12 @@ def generate_static_campaign_now(store_id, campaign_id):
         store = Store.from_json(store_dict)
 
     except ValueError, err:  # json.loads exception
-        logger.error("Campaign #{0}: {1}".format(campaign_id, err.message))
+        logger.error("Campaign #{0}: {1}".format(page_id, err.message))
         raise  # someone catch it
 
     dummy_request = create_dummy_request()
 
-    page_content = render_campaign(store_id, campaign_id,
+    page_content = render_campaign(store_id, page_id=page_id,
                                    request=dummy_request)
 
     # Add async to generated tags
@@ -287,17 +286,17 @@ def generate_static_campaign_now(store_id, campaign_id):
             bucket_name = '{0}-{1}'.format(settings.ENVIRONMENT, bucket_name)
 
     logger.info("Uploading campaign #{0} to {1}/{2}".format(
-        campaign_id, bucket_name, s3_path))
+        page_id, bucket_name, s3_path))
     bytes_written = upload_to_bucket(
         bucket_name, s3_path, page_content, public=True)
 
     if bytes_written > 0:
         if settings.ENVIRONMENT == "dev":
-            generate_local_campaign(store_id, campaign_id, page_content)
+            generate_local_campaign(store_id, page_id, page_content)
     # boto claims it didn't write anything to S3
     else:
         logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
-            campaign_id))
+            page_id))
 
     # return some kind of feedback
     return {

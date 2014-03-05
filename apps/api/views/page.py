@@ -15,7 +15,7 @@ from apps.static_pages.tasks import generate_static_campaign as async_generate_c
 @request_methods('POST', 'PUT', 'PATCH')
 def generate_static_page(request, store_id, page_id):
     """alias"""
-    return generate_static_campaign(request, store_id, campaign_id=page_id)
+    return generate_static_campaign(request, store_id, page_id=page_id)
 
 
 @check_login

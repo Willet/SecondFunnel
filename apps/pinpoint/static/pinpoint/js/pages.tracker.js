@@ -84,9 +84,13 @@ App.module("tracker", function (tracker, App) {
         },
 
         trackPageview = function(hash) {
-            var base = window.location.pathname + window.location.search;
+            var base = window.location.pathname + window.location.search,
+                host = window.location.protocol +'//' + window.location.hostname;
             hash = hash || window.location.hash;
-            addItem('send', 'pageview', base + hash);
+            addItem('send', 'pageview', {
+                'page': base + hash,
+                'location': host + base + hash
+            });
         },
 
         trackEvent = function (o) {
@@ -308,76 +312,6 @@ App.module("tracker", function (tracker, App) {
         App.vent.trigger('trackerChangeCampaign', campaignId, this);
     };
 
-    this.on('start', function () {  // this = tracker
-        return this.initialize(App.options);
-    });
-
-    /**
-     * Starts the module.
-     * Sets up default tracking events.
-     *
-     * @alias tracker.start
-     */
-    this.initialize = function (options) {
-        // this (reformatted) code creates window.ga
-        (function (o, g, r, a, m) {
-            window.GoogleAnalyticsObject = 'ga';
-            window.ga = window.ga || function () {
-                (window.ga.q = window.ga.q || []).push(arguments);
-            };
-            window.ga.l = Number(new Date());
-            a = document.createElement(o);
-            a.async = 1;
-            a.src = g;
-
-            m = document.getElementsByTagName(o)[0];
-            m.parentNode.insertBefore(a, m);
-        }('script', '//www.google-analytics.com/analytics.js', 'ga'));
-
-        this.setup(options);
-    };
-
-    this.setup = function (options) {
-        console.debug('optests', App.option('optests', {}));
-        addItem('create', App.option('gaAccountNumber'), 'auto');
-
-        // TODO: If these are already set on page load, do we need to set them
-        // again here? Should they be set here instead?
-        setCustomVar({
-            'index': 2,
-            'type': 'dimension',
-            'value': App.option('store:id')
-        });
-
-        setCustomVar({
-            'index': 3,
-            'type': 'dimension',
-            'value': App.option('store:id')
-        });
-
-        setCustomVar({
-            'index': 4,
-            'type': 'dimension',
-            'value': App.option('campaign')
-        });
-
-        setCustomVar({
-            'index': 5,
-            'type': 'dimension',
-            'value': App.option('page:id')
-        });
-
-        addItem('send', 'pageview');
-        console.debug("Registered page view.");
-
-        // register event maps
-        var defaults = new this.EventManager(this.defaultEventMap),
-            customs = new this.EventManager(App.option('events'));
-
-        App.vent.trigger('trackerInitialized', this);
-        // setTrackingDomHooks() on $.ready
-    };
-
     // Generally, we have views handle event tracking on their own.
     // However, it can be expensive to bind events to every single view.
     // So, to avoid the performance penalty, we do most of our tracking via
@@ -395,7 +329,8 @@ App.module("tracker", function (tracker, App) {
                         App.discovery.collection._byId[modelId],
                 trackingInfo = getTrackingInformation(model),
                 tileId = model.get('tile-id') || 0,
-                label = trackingInfo.label || "";
+                label = trackingInfo.label || "",
+                hash;
 
             if (!label) {
                 console.warn("Not tracking event with no label");
@@ -414,7 +349,9 @@ App.module("tracker", function (tracker, App) {
                 'label': label
             });
 
-            trackPageview();
+            // Be super explicit about what the hash is
+            // rather than relying on the window
+            trackPageview('#' + tileId);
         },
 
         // Content Share
@@ -573,6 +510,76 @@ App.module("tracker", function (tracker, App) {
             'strict': /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
             'loose': /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
         }
+    };
+
+    this.on('start', function () {  // this = tracker
+        return this.initialize(App.options);
+    });
+
+    /**
+     * Starts the module.
+     * Sets up default tracking events.
+     *
+     * @alias tracker.start
+     */
+    this.initialize = function (options) {
+        // this (reformatted) code creates window.ga
+        (function (o, g, r, a, m) {
+            window.GoogleAnalyticsObject = 'ga';
+            window.ga = window.ga || function () {
+                (window.ga.q = window.ga.q || []).push(arguments);
+            };
+            window.ga.l = Number(new Date());
+            a = document.createElement(o);
+            a.async = 1;
+            a.src = g;
+
+            m = document.getElementsByTagName(o)[0];
+            m.parentNode.insertBefore(a, m);
+        }('script', '//www.google-analytics.com/analytics.js', 'ga'));
+
+        this.setup(options);
+    };
+
+    this.setup = function (options) {
+        console.debug('optests', App.option('optests', {}));
+        addItem('create', App.option('gaAccountNumber'), 'auto');
+
+        // TODO: If these are already set on page load, do we need to set them
+        // again here? Should they be set here instead?
+        setCustomVar({
+            'index': 2,
+            'type': 'dimension',
+            'value': App.option('store:id')
+        });
+
+        setCustomVar({
+            'index': 3,
+            'type': 'dimension',
+            'value': App.option('store:id')
+        });
+
+        setCustomVar({
+            'index': 4,
+            'type': 'dimension',
+            'value': App.option('campaign')
+        });
+
+        setCustomVar({
+            'index': 5,
+            'type': 'dimension',
+            'value': App.option('page:id')
+        });
+
+        addItem('send', 'pageview');
+        console.debug("Registered page view.");
+
+        // register event maps
+        var defaults = new this.EventManager(this.defaultEventMap),
+            customs = new this.EventManager(App.option('events'));
+
+        App.vent.trigger('trackerInitialized', this);
+        // setTrackingDomHooks() on $.ready
     };
 
     // add mediator triggers if the module exists.

@@ -202,11 +202,13 @@ class Command(BaseCommand):
                 content_url = content_dict.get('original-url')
                 content_source_url = content_url
 
-                content_fields.update(
-                    {'url': content_url,
-                     'original_id': content_original_id,
-                     'source_url': content_source_url,
-                     'player': 'youtube'})
+                content_fields.update({
+                    'url': content_url,
+                    'username': content_dict.get('username', ''),
+                    'caption': content_dict.get('caption', ''),
+                    'original_id': content_original_id,
+                    'source_url': content_source_url,
+                    'player': 'youtube'})
 
                 print 'VIDEO - old_id: ', content_old_id, ', ', content_fields
 
@@ -252,8 +254,10 @@ class Command(BaseCommand):
             theme, _, _ = Theme.update_or_create(template=page_theme_template, defaults=page_theme_fields)
 
             page_fields = {'store': self.store,
-                           'feed': feed, 'theme': theme,
-                           'name': page_name, 'legal_copy': page_legal_copy,
+                           'feed': feed,
+                           'theme': theme,
+                           'name': page_name,
+                           'legal_copy': page_legal_copy,
                            'url_slug': page_url_slug}
 
             print 'PAGE - old_id: ', page_old_id, ', ', page_fields
