@@ -9,13 +9,13 @@ from datetime import datetime
 from os import path
 
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from django.template import RequestContext, loader, Template
 from django.template.defaultfilters import slugify
 from django.utils.safestring import mark_safe
 
-from apps.assets.models import Feed, Theme, Page
-from apps.contentgraph.views import get_page, get_store, get_product
-from apps.intentrank.algorithms import ir_first
+from apps.assets.models import Theme, Page, Store
+from apps.contentgraph.views import get_product
 from apps.intentrank.views import get_results
 
 
@@ -99,68 +99,66 @@ def render_campaign(store_id, page_id, request):
         return mark_safe(json.dumps(escaped_product_dict))
 
     # these 4 lines will trigger ValueErrors if remote JSON is invalid.
-    page_data = get_page(store_id=store_id, page_id=page_id, as_dict=True)
-    store_data = get_store(store_id=store_id, as_dict=True)
-    store = store_data
+    # page_data = get_page(store_id=store_id, page_id=page_id, as_dict=True)
+    # store_data = get_store(store_id=store_id, as_dict=True)
+
+    page = get_object_or_404(Page, old_id=page_id)
+    store = get_object_or_404(Store, old_id=store_id)
+
     ir_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
 
     # get the featured product from our DB.
     try:
         # product = content_block.data.product
         # based on Neal's description, this is what it will eventually be
-        product = get_product(page_data.get('featured-product-id')) or\
-            get_product(page_data.get('product-ids', [0])[0])
+        product = get_product(page.get('featured-product-id')) or\
+            get_product(page.get('product-ids', [0])[0])
     except:
         # this is okay
         product = None
 
-    page_data['description'] = page_data.get('shareText',
-                               page_data.get('featured-product-description', ''))
-    page_data['template'] = slugify(page_data.get('template', 'hero'))
-    page_data['image_tile_wide'] = page_data.get('imageTileWide')
-    page_data['hide_navigation_bar'] = page_data.get('hide-navigation-bar', '')
+    # get backup results
+    # ir_id = page.get('intentrank_id') or page_data.get('id')
+    # feed = Page.objects.get(old_id=ir_id).feed
+    feed = page.feed
+    backup_results = get_results(feed=feed, results=20)
 
-    # "borrow" IR for results
-    # feed = Feed(page_data.get('intentrank_id') or page_data.get('id'))
-    ir_id = page_data.get('intentrank_id') or page_data.get('id')
-    feed = Page.objects.get(old_id=ir_id).feed
-    backup_results = get_results(feed=feed, results=100)
-
-    if settings.ENVIRONMENT == 'dev' and page_data.get('ir_base_url'):
+    if settings.ENVIRONMENT == 'dev' and page.get('ir_base_url'):
         # override the ir_base_url attribute on CG page objects
         # (because you can't test local IR like this)
-        page_data['ir_base_url'] = ''
+        setattr(page, 'ir_base_url', '')
 
     attributes = {
-        "campaign": page_data,
+        "campaign": page,
         "store": store,
         "columns": range(4),
         "preview": False,  # TODO: was this need to fix: not page.live,
         "product": json_postprocessor(product),
         "initial_results": [],  # JS now fetches its own initial results
         "backup_results": map(json_postprocessor, backup_results),
-        "social_buttons": page_data.get('social-buttons',
+        "social_buttons": page.get('social-buttons',
                           store.get('social-buttons', '')),
-        "column_width": page_data.get('column-width',
+        "column_width": page.get('column-width',
                         store.get('column-width', '')),
-        "enable_tracking": page_data.get('enable-tracking', "true"),  # jsbool
+        "enable_tracking": page.get('enable-tracking', "true"),  # jsbool
         "pub_date": datetime.now(),
-        "legal_copy": page_data.get('legalCopy', ''),
-        "mobile_hero_image": page_data.get('heroImageMobile', ''),
-        "desktop_hero_image": page_data.get('heroImageDesktop', ''),
+        "legal_copy": page.get('legalCopy', ''),
+        "mobile_hero_image": page.get('heroImageMobile', ''),
+        "desktop_hero_image": page.get('heroImageDesktop', ''),
         "ir_base_url": ir_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
-        "url": page_data.get('url', '')
+        "url": page.get('url', '')
     }
 
     context = RequestContext(request, attributes)
 
     # grab the theme url, and then grab the remote file
-    theme_url = page_data.get('theme') or store.get('theme')
-    if not theme_url:
-        raise ValueError('page has no theme when campaign manager saved it')
+    # theme_url = page.get('theme') or store.get('theme')
+    # if not theme_url:
+    #     raise ValueError('page has no theme when campaign manager saved it')
 
-    page_str, _ = read_remote_file(theme_url)
+    # page_str, _ = read_remote_file(theme_url)
+    page_str = page.theme.load_theme()
 
     # Replace necessary tags
     sub_values = defaultdict(list)

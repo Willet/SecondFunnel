@@ -32,6 +32,12 @@ class BaseModel(models.Model, DirtyFieldsMixin):
     class Meta:
         abstract = True
 
+    def __getitem__(self, key):
+        return self.get(key)
+
+    def __setitem__(self, key, value):
+        return setattr(self, key, value)
+
     def days_since_creation(self):
         return (timezone.now() - self.created_at).days
 
@@ -82,12 +88,16 @@ class BaseModel(models.Model, DirtyFieldsMixin):
 
         return (obj, created, updated)
 
-    def get(self, key, default):
+    def get(self, key, default=None):
         """Duck-type a <dict>'s get() method to make CG transition easier.
 
-        Remove when no longer necessary.
+        Also looks into the attributes JSONField if present.
         """
-        return getattr(self, name=key, default=default)
+        attr = getattr(self, key, None)
+        if attr:
+            return attr
+        if hasattr(self, 'attributes'):
+            return self.attributes.get(key, default=default)
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -319,6 +329,14 @@ class Theme(BaseModel):
         'js_templates': 'pinpoint/default_templates.html'
     }
 
+    def load_theme(self):
+        """download/open the template as a string."""
+        from apps.pinpoint.utils import read_a_file, read_remote_file
+
+        return (read_a_file(self.template, '') or
+                read_remote_file(self.template, '')[0] or
+                self.template)
+
 
 class Feed(BaseModel):
     """"""
@@ -348,6 +366,11 @@ class Page(BaseModel):
 
     feed = models.ForeignKey(Feed)
 
+    def __init__(self, *args, **kwargs):
+        super(Page, self).__init__(*args, **kwargs)
+        if not self.theme_settings:
+            self.theme_settings = {}
+
     @property
     def template(self):
         theme_settings = self.theme_settings or {}
@@ -358,6 +381,28 @@ class Page(BaseModel):
         if not self.theme_settings:
             self.theme_settings = {}
         self.theme_settings['template'] = value
+
+    @property
+    def image_tile_wide(self):
+        theme_settings = self.theme_settings or {}
+        return theme_settings.get('image_tile_wide', 0.5)
+
+    @image_tile_wide.setter
+    def image_tile_wide(self, value):
+        if not self.theme_settings:
+            self.theme_settings = {}
+        self.theme_settings['image_tile_wide'] = float(value)
+
+    @property
+    def hide_navigation_bar(self):
+        theme_settings = self.theme_settings or {}
+        return theme_settings.get('hide_navigation_bar', '')
+
+    @hide_navigation_bar.setter
+    def hide_navigation_bar(self, value):
+        if not self.theme_settings:
+            self.theme_settings = {}
+        self.theme_settings['hide_navigation_bar'] = value
 
     @classmethod
     def from_json(cls, json_data):

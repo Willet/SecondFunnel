@@ -236,6 +236,8 @@ class Command(BaseCommand):
                 continue
             page_name = page_dict.get('name')
             page_legal_copy = page_dict.get('legalCopy')
+            page_product_desc = page_dict.get('featured-product-description', '')
+            page_img_tile_wide = page_dict.get('imageTileWide', 0.5)
             page_url_slug = page_dict.get('url')
             page_theme_template = page_dict.get('theme')
 
@@ -257,6 +259,8 @@ class Command(BaseCommand):
                            'feed': feed,
                            'theme': theme,
                            'name': page_name,
+                           'image_tile_wide': page_img_tile_wide,
+                           'description': page_legal_copy or page_product_desc,
                            'legal_copy': page_legal_copy,
                            'url_slug': page_url_slug}
 
