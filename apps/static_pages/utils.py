@@ -158,6 +158,11 @@ def render_campaign(store_id, campaign_id, request):
         # if there are backup results, serve the first 4.
         initial_results = backup_results[:4]
 
+    if settings.ENVIRONMENT == 'dev' and page.get('ir_base_url'):
+        # override the ir_base_url attribute on CG page objects
+        # (because you can't test local IR like this)
+        page['ir_base_url'] = ''
+
     attributes = {
         "campaign": page,
         "store": store,

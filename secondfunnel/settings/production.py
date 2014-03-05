@@ -33,6 +33,7 @@ SESSION_COOKIE_DOMAIN = '.secondfunnel.com'
 
 STALE_TILE_QUEUE_NAME = 'tileservice-worker-queue'
 
+MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -55,6 +56,7 @@ BROKER_TRANSPORT_OPTIONS = {
     'polling_interval': 1,
     'queue_name_prefix': 'celery-',
 }
+
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 # dict of queues by region to poll regularly, using celery beat.
