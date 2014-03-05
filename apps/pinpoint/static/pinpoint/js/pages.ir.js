@@ -57,8 +57,6 @@ App.module("intentRank", function (intentRank, App) {
             'IRCacheResultCount': options.IRResultsCount || 10
         });
 
-        intentRank.prefetch(); // Prefetch results
-        intentRank.prefetch = _.debounce(intentRank.prefetch, 6000); // Debounce it
         App.vent.trigger('intentRankInitialized', intentRank);
         return this;
     };
@@ -80,7 +78,7 @@ App.module("intentRank", function (intentRank, App) {
      *
      * @returns this
      */
-    this.prefetch = function () {
+    this.prefetch = _.debounce(function () {
         var diff = cachedResults.length - intentRank.options.IRCacheResultCount;
         // Only prefetch if cached count is low and we're not already
         // fetching.
@@ -93,7 +91,7 @@ App.module("intentRank", function (intentRank, App) {
             });
         }
         return this;
-    };
+    }, 6000);
 
     /**
      * This function is a bridge between our IntentRank module and our

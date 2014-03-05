@@ -439,32 +439,39 @@ App.module('core', function (module, App) {
 
         'initialize': function (opts) {
             var self = this,
-                options = opts.options;  // someone came up with this idea
+                options = opts.options, // someone came up with this idea
+                callback = function () {
+                    // Add the initial results to the field and to the
+                    // results shown of IR
+                    App.options.IRResultsReturned = options.initialResults.length;
+                    self.collection.add(options.initialResults);
+                    App.intentRank.addResultsShown(options.initialResults);
+                };
 
             _.bindAll(this, 'pageScroll', 'toggleLoading');
 
             this.collection = new App.core.TileCollection();
 
+            this.toggleLoading(true);
             this.attachListeners();
 
             // If the collection has initial values, lay them out
-            if (options.initialResults && options.initialResults.length > 0) {
+            if (options.initialResults) {
                 console.debug('laying out initial results');
-
-                // unique-by-id the list of initial results.
-                options.initialResults = _.uniq(options.initialResults,
-                    false, function (result) { return result['tile-id']; });
-
-                // unique-by-original-url youtube videos
-                options.initialResults = _.uniqBy(options.initialResults, 'original-url');
-
-                App.options.IRResultsReturned = options.initialResults.length;
-                this.collection.add(options.initialResults);
-                App.intentRank.addResultsShown(options.initialResults);
+                // If already have array just lay out, otherwise
+                // assume we have an a xmlhttprequest object
+                if (!($.isArray(options.initialResults))) {
+                    options.initialResults.onreadystatechange = function () {
+                        options.initialResults = JSON.parse(options.initialResults.responseText);
+                        callback();
+                    };
+                } else if (options.initialResults.length > 0) {
+                    callback();
+                }
+            } else { // if nothing, immediately fetch more from IR
+                this.toggleLoading(false);
+                this.getTiles();
             }
-
-            // ... then fetch more products from IR
-            this.getTiles();
 
             // most-recent feed is the active feed
             App.discovery = this;
