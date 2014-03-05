@@ -63,13 +63,28 @@ def notify_superfeedr(url, feed_name='feed.rss'):
 def tile_to_XML(url, tile, current_time):
     item = Element('item')
 
-    product = tile.products.all()[0]
-    content = tile.content.all()[0]
+    products = tile.products.all()
+    contents = tile.content.all()
+
+    if len(contents) == 0:
+        return None
+
+    if len(products) > 0:
+        product = products[0]
+    else:
+        product = None
+
+    content = contents[0]
 
     image = Image.objects.get(content_ptr_id=content.id)
 
     title = SubElement(item, 'title')
-    title.text = product.name
+    if product is not None:
+        title.text = product.name
+    elif image.name is not None:
+        tile.text = image.name
+    else:
+        return None
 
     link = SubElement(item, 'link')
     link.text = url + '#' + str(tile.old_id)
@@ -78,6 +93,7 @@ def tile_to_XML(url, tile, current_time):
     m.update(str(tile.id))
     guid = SubElement(item, 'guid')
     guid.set('isPermaLink', 'false')
+    guid.set('id', str(tile.id))
     guid.text = m.hexdigest()
 
     pubDate = SubElement(item, 'pubDate')
@@ -126,11 +142,19 @@ def generate_channel(page, url, feed_link, results=DEFAULT_RESULTS):
     hub_link.set('xmlns', 'http://www.w3.org/2005/Atom')
 
     current_time = time()
+    cur_results = 0
 
-    for tile in Tile.objects.filter(feed_id=page.feed_id, template='image').prefetch_related('products').prefetch_related('content')[0:results]:
+    print page.feed_id
+
+    for tile in Tile.objects.filter(feed_id=page.feed_id, template='image').order_by('-created_at').prefetch_related('products', 'content'):
+        print tile.id
         item_obj = tile_to_XML(url, tile, current_time)
-        channel.append(item_obj)
-        current_time -= 1
+        if item_obj is not None:
+            channel.append(item_obj)
+            current_time -= 1
+            cur_results += 1
+        if cur_results >= results:
+            break
 
     return channel
 
