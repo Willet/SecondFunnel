@@ -82,6 +82,13 @@ class BaseModel(models.Model, DirtyFieldsMixin):
 
         return (obj, created, updated)
 
+    def get(self, key, default):
+        """Duck-type a <dict>'s get() method to make CG transition easier.
+
+        Remove when no longer necessary.
+        """
+        return getattr(self, name=key, default=default)
+
     def save(self, *args, **kwargs):
         self.full_clean()
         # self.is_dirty() does not take JSONFields into account

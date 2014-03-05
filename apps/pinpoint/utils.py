@@ -13,7 +13,7 @@ from django.template import RequestContext, loader, Template
 from django.template.defaultfilters import slugify
 from django.utils.safestring import mark_safe
 
-from apps.assets.models import Feed, Theme
+from apps.assets.models import Feed, Theme, Page
 from apps.contentgraph.views import get_page, get_store, get_product
 from apps.intentrank.algorithms import ir_first
 from apps.intentrank.views import get_results
@@ -76,48 +76,33 @@ def render_campaign(store_id, page_id, request):
         """given a product dict, output a product string that can be printed
         with the "|safe" filter.
         """
-        if product_dict:
-            if not product_dict.get('content-id', False):
-                product_dict['content-id'] = product_dict.get('id', -1)
-
-            if not product_dict.get('db-id', False):
-                product_dict['db-id'] = product_dict.get(
-                    'db_id', product_dict.get('db-id', None))
-
-            if not product_dict.get('title', False):
-                product_dict['title'] = product_dict.get('name', '')
-
-            if not product_dict.get('template', False):
-                product_dict['template'] = 'product'
-
-            if not product_dict.get('provider', False):
-                product_dict['provider'] = 'youtube'
-
-            # process related_products field, which is a list of products
-            if product_dict.get('related_products', False):
-                rel_products = []
-                for rel_product in product_dict['related_products']:
-                    rel_products.append(json.loads(json_postprocessor(rel_product)))
-                product_dict['related_products'] = rel_products
-
-            escaped_product_dict = {}
-            for key in product_dict:
-                if isinstance(product_dict[key], (str, basestring)):
-                    escaped_product_dict[key] = product_dict[key]\
-                        .replace('\r', r'\r')\
-                        .replace('\n', r'\n')\
-                        .replace('"', r'\"')
-                else:
-                    escaped_product_dict[key] = product_dict[key]
-
-            return mark_safe(json.dumps(escaped_product_dict))
-        else:
+        if not product_dict:
             return 'null'
+
+        # process related_products field, which is a list of products
+        if product_dict.get('related-products', False):
+            rel_products = []
+            for rel_product in product_dict['related-products']:
+                rel_products.append(json.loads(json_postprocessor(rel_product)))
+            product_dict['related-products'] = rel_products
+
+        escaped_product_dict = {}
+        for key in product_dict:
+            if isinstance(product_dict[key], (str, basestring)):
+                escaped_product_dict[key] = product_dict[key]\
+                    .replace('\r', r'\r')\
+                    .replace('\n', r'\n')\
+                    .replace('"', r'\"')
+            else:
+                escaped_product_dict[key] = product_dict[key]
+
+        return mark_safe(json.dumps(escaped_product_dict))
 
     # these 4 lines will trigger ValueErrors if remote JSON is invalid.
     page_data = get_page(store_id=store_id, page_id=page_id, as_dict=True)
     store_data = get_store(store_id=store_id, as_dict=True)
     store = store_data
+    ir_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
 
     # get the featured product from our DB.
     try:
@@ -130,55 +115,53 @@ def render_campaign(store_id, page_id, request):
         product = None
 
     page_data['description'] = page_data.get('shareText',
-        page_data.get('featured-product-description', ''))
+                               page_data.get('featured-product-description', ''))
     page_data['template'] = slugify(page_data.get('template', 'hero'))
     page_data['image_tile_wide'] = page_data.get('imageTileWide')
     page_data['hide_navigation_bar'] = page_data.get('hide-navigation-bar', '')
-    page = page_data
-
-    ir_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
 
     # "borrow" IR for results
-    feed = Feed(page_data.get('intentrank_id') or page_data.get('id'))
+    # feed = Feed(page_data.get('intentrank_id') or page_data.get('id'))
+    ir_id = page_data.get('intentrank_id') or page_data.get('id')
+    feed = Page.objects.get(old_id=ir_id).feed
     initial_results = get_results(feed=feed, results=4, algorithm=ir_first)
     backup_results = get_results(feed=feed, results=100)
-    cookie = ''
 
     if not initial_results:
         # if there are backup results, serve the first 4.
         initial_results = backup_results[:4]
 
-    if settings.ENVIRONMENT == 'dev' and page.get('ir_base_url'):
+    if settings.ENVIRONMENT == 'dev' and page_data.get('ir_base_url'):
         # override the ir_base_url attribute on CG page objects
         # (because you can't test local IR like this)
-        page['ir_base_url'] = ''
+        page_data['ir_base_url'] = ''
 
     attributes = {
-        "campaign": page,
+        "campaign": page_data,
         "store": store,
         "columns": range(4),
         "preview": False,  # TODO: was this need to fix: not page.live,
         "product": json_postprocessor(product),
         "initial_results": map(json_postprocessor, initial_results),
         "backup_results": map(json_postprocessor, backup_results),
-        "social_buttons": getattr(page, 'social-buttons',
-                                  getattr(store, 'social-buttons', '')),
-        "column_width": getattr(page, 'column-width',
-                                getattr(store, 'column-width', '')),
-        "enable_tracking": getattr(page, 'enable-tracking', "true"),  # jsbool
+        "social_buttons": page_data.get('social-buttons',
+                          store.get('social-buttons', '')),
+        "column_width": page_data.get('column-width',
+                        store.get('column-width', '')),
+        "enable_tracking": page_data.get('enable-tracking', "true"),  # jsbool
         "pub_date": datetime.now(),
-        "legal_copy": getattr(page, 'legalCopy', ''),
-        "mobile_hero_image": getattr(page, 'heroImageMobile', ''),
-        "desktop_hero_image": getattr(page, 'heroImageDesktop', ''),
+        "legal_copy": page_data.get('legalCopy', ''),
+        "mobile_hero_image": page_data.get('heroImageMobile', ''),
+        "desktop_hero_image": page_data.get('heroImageDesktop', ''),
         "ir_base_url": ir_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
-        "url": getattr(page, 'url', '')
+        "url": page_data.get('url', '')
     }
 
     context = RequestContext(request, attributes)
 
     # grab the theme url, and then grab the remote file
-    theme_url = page.get('theme') or store.get('theme')
+    theme_url = page_data.get('theme') or store.get('theme')
     if not theme_url:
         raise ValueError('page has no theme when campaign manager saved it')
 
