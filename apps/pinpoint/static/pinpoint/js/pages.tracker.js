@@ -150,8 +150,11 @@ App.module("tracker", function (tracker, App) {
                 break;
             default:
                 category = 'Content';
-                // TODO: Need a method to get URL
                 label = model.get('image');
+                if (label.get) {
+                    label = label.get('url');
+                }
+
                 break;
             }
 
