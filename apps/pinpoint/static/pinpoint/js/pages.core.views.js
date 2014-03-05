@@ -439,14 +439,7 @@ App.module('core', function (module, App) {
 
         'initialize': function (opts) {
             var self = this,
-                options = opts.options, // someone came up with this idea
-                callback = function () {
-                    // Add the initial results to the field and to the
-                    // results shown of IR
-                    App.options.IRResultsReturned = options.initialResults.length;
-                    self.collection.add(options.initialResults);
-                    App.intentRank.addResultsShown(options.initialResults);
-                };
+                options = opts.options; // someone came up with this idea
 
             _.bindAll(this, 'pageScroll', 'toggleLoading');
 
@@ -460,14 +453,12 @@ App.module('core', function (module, App) {
                 console.debug('laying out initial results');
                 // If already have array just lay out, otherwise
                 // assume we have an a xmlhttprequest object
-                if (!($.isArray(options.initialResults))) {
-                    options.initialResults.onreadystatechange = function () {
-                        options.initialResults = JSON.parse(options.initialResults.responseText);
-                        callback();
-                    };
-                } else if (options.initialResults.length > 0) {
-                    callback();
-                }
+                $.when(options.initialResults).then(function(data) {
+                    options.initialResults = data;
+                    App.options.IRResultsReturned = data.length;
+                    self.collection.add(data);
+                    App.intentRank.addResultsShown(data);
+                });
             } else { // if nothing, immediately fetch more from IR
                 this.toggleLoading(false);
                 this.getTiles();

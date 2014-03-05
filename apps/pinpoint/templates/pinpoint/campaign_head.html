@@ -19,18 +19,32 @@
 <script type="text/javascript">
     // http://stackoverflow.com/questions/8567114/how-to-make-an-ajax-call-without-jquery
     // Initial call to IR
-    var xmlhttp;
     if (!PAGES_INFO['initialResults'].length) {
-        // Support for IE6/5 in the event that XMLHttpRequest doesn't exist
-        xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
-        xmlhttp.onreadystatechange = function () {
-            if (xmlhttp.readyState == XMLHttpRequest.DONE && xmlhttp.status == 200) {
-                PAGES_INFO['initialResults'] = JSON.parse(xmlhttp.responseText);
-            }
-        };
-        xmlhttp.open("GET", "{{ ir_base_url }}/page/{{ campaign.intentrank_id|default:campaign.id }}/getresults?results=10", true);
-        xmlhttp.send();
-        PAGES_INFO['initialResults'] = xmlhttp;
+        PAGES_INFO['initialResults'] = new Promise(function(resolve, reject) {
+            // Support for IE6/5 in the event that XMLHttpRequest doesn't exist
+            var xmlhttp, data;
+            xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+            xmlhttp.open("GET", "{{ ir_base_url }}/page/{{ campaign.intentrank_id|default:campaign.id }}/getresults?results=10", true);
+
+            xmlhttp.onload = function () {
+                // Ensures that it's resolved on 200 or 404
+                if (xmlhttp.status == 200) { // success so resolve normally
+                    // resolve and both stores the results as initial data
+                    data = JSON.parse(xmlhttp.response);
+                    resolve(data);
+                    PAGES_INFO['initialResults'] = data;
+                } else { // Reject by passing the status code
+                    reject(xmlhttp.statusText);
+                }
+            };
+
+            // Handles an error
+            xmlhttp.onerror = function () {
+                reject(xmlhttp);
+            };
+
+            xmlhttp.send();
+        });
     }
 </script>
 <!--[if gte IE 9]><!-->
