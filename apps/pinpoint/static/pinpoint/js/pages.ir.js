@@ -137,20 +137,22 @@ App.module("intentRank", function (intentRank, App) {
         // check if cached results, and options is undefined
         // don't do this if we are actually the intentRank module
         if (!options && !(this == intentRank)) {
-            var len = cachedResults.length;
-            prepopulatedResults = cachedResults.splice(0, Math.min(opts.results, len));
+            var len = cachedResults.length,
+                method = opts.reset ? 'reset' : 'set';
+            prepopulatedResults = cachedResults.splice(0, len);
 
             if (fetching) { // return fetching object if we're fetching
                 console.debug("Holding off for IR to finish.");
                 return fetching.done(function (results) {
-                    var method = opts.reset ? 'reset' : 'set';
                     collection[method](results, opts);
                     collection.trigger('sync', collection, results, opts);
                 });
             } else if (len >= opts.results) {
                 // Use a dummy deferred object
                 console.debug("Using existing results.");
-                return $.when(prepopulatedResults).done(function() {
+                return $.when(prepopulatedResults).done(function(results) {
+                    collection[method](results, opts);
+                    collection.trigger('sync', collection, results, opts);
                     intentRank.prefetch();
                 });
             }
