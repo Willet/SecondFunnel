@@ -574,9 +574,6 @@ App.module("tracker", function (tracker, App) {
             'value': App.option('page:id')
         });
 
-        addItem('send', 'pageview');
-        console.debug("Registered page view.");
-
         // register event maps
         var defaults = new this.EventManager(this.defaultEventMap),
             customs = new this.EventManager(App.option('events'));
