@@ -89,7 +89,7 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     if len(tiles) + len(related_tiles) < results:
         results = len(tiles)
 
-    while tiles_length < results:
+    while tiles_length + len(related_tiles) < results:
         rand_num = real_random.uniform(rand_sum, total_score)
         for tile in tiles:
             log_score = tile.log_score

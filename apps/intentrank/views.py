@@ -96,15 +96,15 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
                         .get())
         except Tile.DoesNotExist:
             return HttpResponseNotFound("No tile {0}".format(tile_id))
-        tile.click()
+
+        # Update clicks
         clicks = request.session.get('clicks', [])
         if tile_id not in clicks:
+            tile.click()
             for click in clicks:
-                RelatedTile.relate(Tile.objects.get(old_id=click), Tile.objects.get(old_id=tile_id))
+                RelatedTile.relate(Tile.objects.get(old_id=click), tile)
             clicks.append(tile_id)
-        request.session['clicks'] = clicks
-        request.session.set_expiry(300)
-        print clicks
+            request.session['clicks'] = clicks
 
         return ajax_jsonp(tile.to_json())
 

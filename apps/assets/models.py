@@ -375,7 +375,7 @@ class Page(BaseModel):
 
 class Tile(BaseModel):
     # used to calculate the score for a tile
-    # a bigger s value does not necessarily mean a bigger score
+    # a bigger starting_score value does not necessarily mean a bigger score
     starting_score = models.FloatField(default=0)
 
     clicks = models.PositiveIntegerField(default=0)
@@ -442,6 +442,8 @@ class RelatedTile(BaseModel):
     tile_a = models.ForeignKey(Tile, related_name='+')
     tile_b = models.ForeignKey(Tile, related_name='+')
 
+    # used to calculate the score for a relation
+    # a bigger starting_score value does not necessarily mean a bigger score
     starting_score = models.FloatField(default=0)
 
     # variable used for popularity, the bigger the value, the faster popularity de-values
