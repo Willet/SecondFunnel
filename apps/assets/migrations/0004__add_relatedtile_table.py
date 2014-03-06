@@ -8,20 +8,20 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         # Adding model 'RelatedTile'
-        db.create_table(u'assets_relatedtile', (
+        db.create_table(u'assets_tilerelation', (
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
             ('updated_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('starting_score', self.gf('django.db.models.fields.FloatField')(default=0)),
+            ('starting_score', self.gf('django.db.models.fields.FloatField')(default=0.0)),
             ('tile_a', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.Tile'], related_name='+')),
             ('tile_b', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.Tile'], related_name='+')),
         ))
-        db.send_create_signal(u'assets', ['RelatedTile'])
+        db.send_create_signal(u'assets', ['TileRelation'])
 
 
     def backwards(self, orm):
         # Deleting model 'RelatedTile'
-        db.delete_table(u'assets_relatedtile')
+        db.delete_table(u'assets_tilerelation')
 
 
     models = {
@@ -107,15 +107,6 @@ class Migration(SchemaMigration):
             'url': ('django.db.models.fields.TextField', [], {}),
             'width': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True', 'blank': 'True'})
         },
-        u'assets.relatedtile':{
-            'Meta': {'object_name': 'RelatedTile'},
-            'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'starting_score': ('django.db.models.fields.FloatField', [], {'default': 0}),
-            'tile_a': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['assets.Tile']"}),
-            'tile_b': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['assets.Tile']"}),
-            'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
-        },
         u'assets.review': {
             'Meta': {'object_name': 'Review', '_ormbases': [u'assets.Content']},
             'body': ('django.db.models.fields.TextField', [], {}),
@@ -156,6 +147,15 @@ class Migration(SchemaMigration):
             'products': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['assets.Product']", 'symmetrical': 'False'}),
             'starting_score': ('django.db.models.fields.FloatField', [], {'default': 0}),
             'template': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
+            'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
+        },
+        u'assets.tilerelation':{
+            'Meta': {'object_name': 'TileRelation'},
+            'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'starting_score': ('django.db.models.fields.FloatField', [], {'default': 0.0}),
+            'tile_a': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['assets.Tile']"}),
+            'tile_b': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['assets.Tile']"}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
         },
         u'assets.video': {
