@@ -143,8 +143,8 @@ def render_campaign(store_id, page_id, request):
         "enable_tracking": page.get('enable-tracking', "true"),  # jsbool
         "pub_date": datetime.now(),
         "legal_copy": page.get('legalCopy', ''),
-        "mobile_hero_image": page.get('heroImageMobile', ''),
-        "desktop_hero_image": page.get('heroImageDesktop', ''),
+        "mobile_hero_image": page.mobile_hero_image,
+        "desktop_hero_image": page.desktop_hero_image,
         "ir_base_url": ir_base_url,
         "ga_account_number": settings.GOOGLE_ANALYTICS_PROPERTY,
         "url": page.get('url', '')

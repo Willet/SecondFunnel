@@ -377,6 +377,7 @@ class Page(BaseModel):
         if not self.theme_settings:
             self.theme_settings = {}
 
+    # TODO: there must be less idiotic ways to do JSON getters and setters
     @property
     def template(self):
         theme_settings = self.theme_settings or {}
@@ -409,6 +410,61 @@ class Page(BaseModel):
         if not self.theme_settings:
             self.theme_settings = {}
         self.theme_settings['hide_navigation_bar'] = value
+
+    @property
+    def results_threshold(self):
+        theme_settings = self.theme_settings or {}
+        return theme_settings.get('results_threshold', '{}')
+
+    @results_threshold.setter
+    def results_threshold(self, value):
+        if not self.theme_settings:
+            self.theme_settings = {}
+        self.theme_settings['results_threshold'] = unicode(value)
+
+    @property
+    def desktop_hero_image(self):
+        theme_settings = self.theme_settings or {}
+        return theme_settings.get('desktop_hero_image', '{}')
+
+    @desktop_hero_image.setter
+    def desktop_hero_image(self, value):
+        if not self.theme_settings:
+            self.theme_settings = {}
+        self.theme_settings['desktop_hero_image'] = unicode(value)
+
+    @property
+    def mobile_hero_image(self):
+        theme_settings = self.theme_settings or {}
+        return theme_settings.get('mobile_hero_image', '{}')
+
+    @mobile_hero_image.setter
+    def mobile_hero_image(self, value):
+        if not self.theme_settings:
+            self.theme_settings = {}
+        self.theme_settings['mobile_hero_image'] = unicode(value)
+
+    @property
+    def intentrank_id(self):
+        theme_settings = self.theme_settings or {}
+        return theme_settings.get('intentrank_id', self.old_id)
+
+    @intentrank_id.setter
+    def intentrank_id(self, value):
+        if not self.theme_settings:
+            self.theme_settings = {}
+        self.theme_settings['intentrank_id'] = value
+
+    def get(self, key, default=None):
+        """Duck-type a <dict>'s get() method to make CG transition easier.
+
+        Also looks into the theme_settings JSONField if present.
+        """
+        attr = getattr(self, key, None)
+        if attr:
+            return attr
+        if hasattr(self, 'theme_settings') and self.theme_settings:
+            return self.theme_settings.get(key, default)
 
     @classmethod
     def from_json(cls, json_data):

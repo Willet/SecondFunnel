@@ -13,7 +13,7 @@
             'displayName': '{{ store.display_name|default:'' }}'  // leave blank to use "Gap"
         }
         , 'page': {  // required
-            'id': '{{ campaign.intentrank_id|default:campaign.id }}'  // required
+            'id': '{{ campaign.intentrank_id|default:campaign.old_id }}'  // required
             , 'product': {{ product }}
             , 'pubDate': '{{ pub_date }}'  // for verifying the original upload date of a static campaign. for human use only
             , 'offline': false  // optional (if true, loads .content immediately)
@@ -23,7 +23,7 @@
             , 'layout': '{{ campaign.layout|default:"hero" }}'  // provided by campaign manager
 
             // you will still need to make elements with data-category="96" on the page.
-            , 'categories': {{ campaign.categories|safe|default:"[]" }}  // string representation of [{id: 123, name: 'gap'}, ...]
+            , 'categories': {{ campaign.categories|default:"[]"|safe }}  // string representation of [{id: 123, name: 'gap'}, ...]
 
             // 'main-block-template': '{{ campaign.template }}',  // DEPRECATED
             // 'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},  // DEPRECATED
@@ -31,7 +31,7 @@
             // 'featured-image': '{{ campaign.featured_image }}',  // DEPRECATED
             , 'description': "{{ campaign.description|escapejs }}"
         }
-        , 'campaign': '{{ campaign.intentrank_id|default:campaign.id }}' // required
+        , 'campaign': '{{ campaign.intentrank_id|default:campaign.old_id }}' // required
         , 'columnWidth': {{ column_width|default:'undefined' }}  // optional. controls how often tiles are wide.  // optional (defaults to 255, pixels)
         , 'maxColumnCount': {{ campaign.column_count|default:4 }}  // optional (default: 4)
         // , 'events': undefined  // page event bindings (optional)
@@ -84,7 +84,7 @@
         // , 'lockWidth': undefined  // must be true (not 1, {}, ...) or a function that returns true. undefined means auto.
         // , 'desiredWidth': 0,  // number, or a function that returns a number. 0 means auto.
 
-        , 'resultsThreshold': {{ campaign.results_threshold|safe|default:"undefined" }}  // {[tileId: num,]}
+        , 'resultsThreshold': {{ campaign.results_threshold|default:"undefined"|safe }}  // {[tileId: num,]}
 
         , 'initialResults': [
             {% for result in initial_results %}

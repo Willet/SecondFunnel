@@ -238,6 +238,10 @@ class Command(BaseCommand):
             page_legal_copy = page_dict.get('legalCopy')
             page_product_desc = page_dict.get('featured-product-description', '')
             page_img_tile_wide = page_dict.get('imageTileWide', 0.5)
+            page_desktop_hero_image = page_dict.get('heroImageDesktop', '')
+            page_mobile_hero_image = page_dict.get('heroImageMobile', '')
+            page_results_threshold = page_dict.get('results_threshold', "{}")
+            page_intentrank_id = page_dict.get('intentrank_id', "")
             page_url_slug = page_dict.get('url')
             page_theme_template = page_dict.get('theme')
 
@@ -259,14 +263,20 @@ class Command(BaseCommand):
                            'feed': feed,
                            'theme': theme,
                            'name': page_name,
-                           'image_tile_wide': page_img_tile_wide,
                            'description': page_legal_copy or page_product_desc,
                            'legal_copy': page_legal_copy,
                            'url_slug': page_url_slug}
 
             print 'PAGE - old_id: ', page_old_id, ', ', page_fields
 
-            Page.update_or_create(old_id=page_old_id, defaults=page_fields)
+            page, _, _ = Page.update_or_create(old_id=page_old_id, defaults=page_fields)
+            page.image_tile_wide = page_img_tile_wide  # save JSON fields
+            page.desktop_hero_image = page_desktop_hero_image
+            page.mobile_hero_image = page_mobile_hero_image
+            page.results_threshold = page_results_threshold
+            page.intentrank_id = page_intentrank_id
+            page.save()
+
             self.import_tiles(page_old_id, feed)
 
 
