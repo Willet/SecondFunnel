@@ -315,10 +315,16 @@ class Review(Content):
 
 
 class Theme(BaseModel):
+    """
+    :attr template either a local path or a remote path, e.g.
+        "apps/pinpoint/templates/pinpoint/campaign_base.html"
+        "apps/pinpoint/static/pinpoint/themes/gap/index.html"
+        "https://static-misc-secondfunnel/themes/campaign_base.html"
+    """
     name = models.CharField(max_length=1024, blank=True, null=True)
     template = models.CharField(max_length=1024,
-                                # backward compatibility for pages that don't specify themes
-                                default="https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/themes/campaign_base.html")
+        # backward compatibility for pages that don't specify themes
+        default="apps/pinpoint/templates/pinpoint/campaign_base.html")
 
     # @deprecated for page generator
     CUSTOM_FIELDS = {
