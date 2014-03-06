@@ -98,7 +98,7 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                 tiles_length += 1
                 break
 
-    return (related_tiles + tiles)[:results]
+    return tiles[:results]
 
 
 def ir_random(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
