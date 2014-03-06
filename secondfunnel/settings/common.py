@@ -28,14 +28,17 @@ MANAGERS = ADMINS
 BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(days=30))\
     .strftime("%a, %d %b %Y %H:%M:%S GMT")
 
+PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(
+        os.path.dirname(
+            os.path.abspath(__file__)
+        )
+    )
+)
 
 def from_project_root(path):
     """returns the path prepended by the project root."""
-    return os.path.join(
-        os.path.dirname(
-        os.path.dirname(
-        os.path.dirname(
-        os.path.abspath(__file__)))), path)
+    return os.path.join(PROJECT_ROOT, path)
 
 if 'RDS_DB_NAME' in os.environ:
     DATABASES = {
