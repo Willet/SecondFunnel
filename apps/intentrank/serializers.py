@@ -67,9 +67,9 @@ class ProductSerializer(RawSerializer):
         }
 
         # if default image is missing...
-        if obj.default_image:
+        if hasattr(obj, 'default_image_id') and obj.default_image_id:
             data["default-image"] = str(obj.default_image.old_id or
-                obj.default_image.id)
+                obj.default_image_id)
         elif len(product_images) > 0:
             # fall back to first image
             data["default-image"] = str(product_images[0].old_id)
@@ -91,14 +91,17 @@ class ContentSerializer(RawSerializer):
 
         if obj.tagged_products.count() > 0:
             data['related-products'] = []
+        else:
+            data['-dbg-no-related-products'] = True
+            data['-dbg-related-products'] = []
 
         for product in (obj.tagged_products
                             .select_related('default_image', 'product_images')
                             .all()):
             try:
                 data['related-products'].append(product.to_json())
-            except Product.DoesNotExist:
-                pass  # ?
+            except Product.DoesNotExist as err:
+                data['-dbg-related-products'].append(str(err.message))
 
         return data
 
