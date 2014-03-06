@@ -72,6 +72,7 @@ def get_results_view(request, page_id):
     return resp
 
 
+@never_cache
 @csrf_exempt
 @request_methods('GET')
 def get_tiles_view(request, page_id, tile_id=None, **kwargs):

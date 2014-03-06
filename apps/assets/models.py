@@ -424,7 +424,7 @@ class Tile(BaseModel):
 
     clicks = models.PositiveIntegerField(default=0)
 
-    old_id = models.IntegerField(unique=True)
+    old_id = models.IntegerField(unique=True, db_index=True)
 
     # <Feed>.tiles.all() gives you... all its tiles
     feed = models.ForeignKey(Feed, related_name='tiles')
