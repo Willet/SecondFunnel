@@ -7,7 +7,7 @@ from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import request_methods
-from apps.assets.models import Page, Tile, RelatedTile
+from apps.assets.models import Page, Tile, TileRelation
 from apps.intentrank.controllers import IntentRank
 from apps.intentrank.algorithms import ir_random, ir_all, ir_popular
 from apps.intentrank.utils import ajax_jsonp
@@ -102,7 +102,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
         if tile_id not in clicks:
             tile.click()
             for click in clicks:
-                RelatedTile.relate(Tile.objects.get(old_id=click), tile)
+                TileRelation.relate(Tile.objects.get(old_id=click), tile)
             clicks.append(tile_id)
             request.session['clicks'] = clicks
 

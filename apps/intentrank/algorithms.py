@@ -7,9 +7,6 @@ import random as real_random
 
 from django.conf import settings
 
-from apps.assets.models import Tile, RelatedTile
-
-
 def ir_all(feed, *args, **kwargs):
     """sample whichever ones come last"""
     return list(feed.tiles.all())
