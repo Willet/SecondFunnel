@@ -449,6 +449,8 @@ class RelatedTile(BaseModel):
 
     @classmethod
     def relate(cls, tile_a, tile_b):
+        '''updates the starting_score of relation'''
+
         id_a = tile_a.id
         id_b = tile_b.id
         if id_a > id_b:
@@ -463,6 +465,7 @@ class RelatedTile(BaseModel):
 
     @classmethod
     def get_related_tiles(cls, tile_list):
+        '''returns a list of tiles related to the given tile list in order of popularity'''
 
         id_list = [tile.id for tile in tile_list]
 
