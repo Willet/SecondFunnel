@@ -19,6 +19,7 @@ FILE_CHARSET = 'utf-8'  # apparently something we need to enforce for File()
 AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket', 'elasticbeanstalk-us-east-1-056265713214')
 INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config'
 MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
+CLOUDFRONT_DOMAIN = 'http://d3m0w2rwcva4oh.cloudfront.net/'
 
 ADMINS = (
 # ('Your Name', 'your_email@example.com'),
@@ -105,6 +106,7 @@ MIN_MEDIA_HEIGHT = 1
 
 # TODO: has to be a better way to get the path...
 STATIC_ROOT = from_project_root('static')
+STATIC_URL = CLOUDFRONT_DOMAIN
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
