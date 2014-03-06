@@ -106,6 +106,7 @@ MIN_MEDIA_HEIGHT = 1
 
 # TODO: has to be a better way to get the path...
 STATIC_ROOT = from_project_root('static')
+STATIC_URL = CLOUDFRONT_DOMAIN
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE

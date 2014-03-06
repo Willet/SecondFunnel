@@ -66,7 +66,6 @@ AWS_SQS_POLLING_QUEUES = {
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = CLOUDFRONT_DOMAIN
 MEDIA_URL = 'https://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
 COMPRESS_URL = MEDIA_URL
 
