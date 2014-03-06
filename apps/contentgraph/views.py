@@ -6,7 +6,7 @@ from apps.contentgraph.models import ContentGraphObject, get_contentgraph_data
 
 
 def get_store(store_id, as_dict=False):
-    cgo = ContentGraphObject('/store/{0}'.format(store_id))
+    cgo = ContentGraphObject('store/{0}'.format(store_id))
     if as_dict:
         return cgo.json(False)
     return cgo
@@ -21,7 +21,7 @@ def get_stores(as_dict=False):
     this is not the case yet).
     """
     stores = []
-    data = get_contentgraph_data('/store')
+    data = get_contentgraph_data('store')
     for store in data:  # json format: {"results": [...]}
         cgo = get_store(store['id'])
         if as_dict:
@@ -36,7 +36,7 @@ def view_stores(request):
 
 
 def get_page(store_id, page_id, as_dict=False):
-    cgo = ContentGraphObject('/store/{0}/page/{1}'.format(
+    cgo = ContentGraphObject('store/{0}/page/{1}'.format(
         store_id, page_id))
     if as_dict:
         return cgo.json(False)
@@ -49,7 +49,7 @@ def view_page(request, store_id, page_id):
 
 def get_pages(store_id, as_dict=False):
     pages = []
-    for page in get_contentgraph_data('/store/{0}/page'.format(store_id)):  # json format: {"results": [...]}
+    for page in get_contentgraph_data('store/{0}/page'.format(store_id)):  # json format: {"results": [...]}
         cgo = get_page(store_id, page['id'])
         if as_dict:
             pages.append(cgo.json(False))
@@ -87,13 +87,13 @@ def get_products(store_id=0, page_id=0, as_dict=False):
     """TODO: check if endpoint outputs are consistent with pages/stores"""
     products = []
     if page_id:  # get page-specific products
-        data = get_contentgraph_data('/store/{0}/page/{1}/product'.format(
+        data = get_contentgraph_data('store/{0}/page/{1}/product'.format(
             store_id, page_id))
     elif store_id:  # get store-specific products
-        data = get_contentgraph_data('/store/{0}/product'.format(
+        data = get_contentgraph_data('store/{0}/product'.format(
             store_id, page_id))
     else:  # get all products
-        data = get_contentgraph_data('/product')
+        data = get_contentgraph_data('product')
 
     for product in data:
         cgo = get_product(store_id, product['id'])
