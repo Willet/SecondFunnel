@@ -444,6 +444,9 @@ class RelatedTile(BaseModel):
 
     starting_score = models.FloatField(default=0)
 
+    # variable used for popularity, the bigger the value, the faster popularity de-values
+    popularity_devalue_rate = 0.15
+
     @classmethod
     def relate(cls, tile_a, tile_b):
         id_a = tile_a.id
@@ -451,7 +454,7 @@ class RelatedTile(BaseModel):
         if id_a > id_b:
             id_a, id_b = id_b, id_a
         related_tile, _ = cls.objects.get_or_create(tile_a_id=id_a, tile_b_id=id_b)
-        update_score = popularity_devalue_rate * related_tile.days_since_creation()
+        update_score = RelatedTile.popularity_devalue_rate * related_tile.days_since_creation()
         starting_score = related_tile.starting_score
         related_tile.starting_score = max(starting_score, update_score) + math.log(
             1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
@@ -476,10 +479,14 @@ class RelatedTile(BaseModel):
 
     @property
     def score(self):
-        return math.exp(self.starting_score - popularity_devalue_rate * self.days_since_creation())
+        # returns the score of the tile based on the starting_score and how long ago the tile was created
+        return math.exp(self.starting_score - RelatedTile.popularity_devalue_rate * self.days_since_creation())
 
     @property
     def log_score(self):
+        # the lower the ratio, the bigger the range between low and high scores
         ratio = 1.5
         score = self.score
+        # returns the log of a score with the smallest value returned being 1
+        # makes sure that small scores do not get large log values
         return math.log(score + (ratio if score > 2 * ratio else(ratio - score / 2)), ratio)

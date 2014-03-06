@@ -36,9 +36,24 @@ def ir_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 
 def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-               request=None, *args, **kwargs):
-    """TODO: docstring"""
-    prioritized_tiles = prioritized_tile_ids = []
+               product_tiles_only=False, content_tiles_only=False,
+               request=None, exclude_set=[], *args, **kwargs):
+    """Sample without replacement
+    returns tiles with a higher chance for a tile to be returned if it is a popular tile
+
+    :param feed: <Feed>
+    :param results: int (number of results you want)
+    :param product_tiles_only: only select from the Feed's product pool.
+    :param content_tiles_only: only select from the Feed's content pool.
+    :param exclude_set: <list<int>> do not return tiles with these ids.
+    :param request: if supplied, do not return results used in
+                    the previous session call, or tile ids specified by the
+                    "?shown=" parameter.
+    :returns list
+    """
+
+    # serve prioritized tiles first
+    related_tiles = []
     if request and hasattr(request, 'session'):
         if len(request.session.get('shown', [])) == 0:
             prioritized_tiles = list(
@@ -58,9 +73,9 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             return (prioritized_tiles + tiles)[:results]
 
         related_tiles = RelatedTile.get_related_tiles(
-            list(Tile.objects.filter(old_id__in=request.session.get('clicks', []))))[:5]
+            list(Tile.objects.filter(old_id__in=request.session.get('clicks', [])).exclude(old_id__in=exclude_set)))[:5]
 
-    tiles = list(feed.tiles.exclude(old_id__in=prioritized_tile_ids)
+    tiles = list(feed.tiles.exclude(old_id__in=([tile.old_id for tile in related_tiles] + exclude_set))
         .select_related().prefetch_related('content', 'products'))
 
     total_score = 0
