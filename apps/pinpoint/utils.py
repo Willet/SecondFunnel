@@ -136,8 +136,8 @@ def render_campaign(store_id, page_id, request):
         "product": json_postprocessor(product),
         "initial_results": [],  # JS now fetches its own initial results
         "backup_results": map(json_postprocessor, backup_results),
-        "social_buttons": page.get('social-buttons',
-                          store.get('social-buttons', '')),
+        "social_buttons": page.social_buttons or \
+                          store.get('social-buttons', ''),
         "column_width": page.get('column-width',
                         store.get('column-width', '')),
         "enable_tracking": page.get('enable-tracking', "true"),  # jsbool

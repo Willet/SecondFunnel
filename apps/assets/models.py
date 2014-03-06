@@ -425,7 +425,7 @@ class Page(BaseModel):
     @property
     def desktop_hero_image(self):
         theme_settings = self.theme_settings or {}
-        return theme_settings.get('desktop_hero_image', '{}')
+        return theme_settings.get('desktop_hero_image', '')
 
     @desktop_hero_image.setter
     def desktop_hero_image(self, value):
@@ -436,7 +436,7 @@ class Page(BaseModel):
     @property
     def mobile_hero_image(self):
         theme_settings = self.theme_settings or {}
-        return theme_settings.get('mobile_hero_image', '{}')
+        return theme_settings.get('mobile_hero_image', '')
 
     @mobile_hero_image.setter
     def mobile_hero_image(self, value):
@@ -454,6 +454,28 @@ class Page(BaseModel):
         if not self.theme_settings:
             self.theme_settings = {}
         self.theme_settings['intentrank_id'] = value
+
+    @property
+    def column_width(self):
+        theme_settings = self.theme_settings or {}
+        return theme_settings.get('column_width', 240)
+
+    @column_width.setter
+    def column_width(self, value):
+        if not self.theme_settings:
+            self.theme_settings = {}
+        self.theme_settings['column_width'] = value
+
+    @property
+    def social_buttons(self):
+        theme_settings = self.theme_settings or {}
+        return theme_settings.get('social_buttons', '')
+
+    @social_buttons.setter
+    def social_buttons(self, value):
+        if not self.theme_settings:
+            self.theme_settings = {}
+        self.theme_settings['social_buttons'] = value
 
     def get(self, key, default=None):
         """Duck-type a <dict>'s get() method to make CG transition easier.
