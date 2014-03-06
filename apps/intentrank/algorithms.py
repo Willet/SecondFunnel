@@ -72,10 +72,7 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
             return (prioritized_tiles + tiles)[:results]
 
-        related_tiles = RelatedTile.get_related_tiles(
-            list(Tile.objects.filter(old_id__in=request.session.get('clicks', [])).exclude(old_id__in=exclude_set)))[:5]
-
-    tiles = list(feed.tiles.exclude(old_id__in=([tile.old_id for tile in related_tiles] + exclude_set))
+    tiles = list(feed.tiles.exclude(old_id__in=exclude_set)
         .select_related().prefetch_related('content', 'products'))
 
     total_score = 0
@@ -86,10 +83,10 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
     tiles_length = 0
     rand_sum = 0
 
-    if len(tiles) + len(related_tiles) < results:
+    if len(tiles) < results:
         results = len(tiles)
 
-    while tiles_length + len(related_tiles) < results:
+    while tiles_length < results:
         rand_num = real_random.uniform(rand_sum, total_score)
         for tile in tiles:
             log_score = tile.log_score
