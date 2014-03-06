@@ -138,11 +138,11 @@ def render_campaign(store_id, page_id, request):
         "backup_results": map(json_postprocessor, backup_results),
         "social_buttons": page.social_buttons or \
                           store.get('social-buttons', ''),
-        "column_width": page.get('column-width',
-                        store.get('column-width', '')),
-        "enable_tracking": page.get('enable-tracking', "true"),  # jsbool
+        "column_width": page.column_width or \
+                        store.get('column-width', ''),
+        "enable_tracking": page.enable_tracking,  # jsbool
         "pub_date": datetime.now(),
-        "legal_copy": page.get('legalCopy', ''),
+        "legal_copy": page.legal_copy,
         "mobile_hero_image": page.mobile_hero_image,
         "desktop_hero_image": page.desktop_hero_image,
         "ir_base_url": ir_base_url,

@@ -246,6 +246,7 @@ class Command(BaseCommand):
             page_theme_template = page_dict.get('theme')
             page_column_width = page_dict.get('column-width')
             page_social_buttons = page_dict.get('social-buttons')
+            page_enable_tracking = page_dict.get('enable-tracking')
 
             # since feeds have no fields except id right now, the only way to find the feed is based on the page's feed_id
             try:
@@ -279,6 +280,7 @@ class Command(BaseCommand):
             page.intentrank_id = page_intentrank_id
             page.column_width = page_column_width
             page.social_buttons = page_social_buttons
+            page.enable_tracking = page_enable_tracking
             page.save()
 
             self.import_tiles(page_old_id, feed)

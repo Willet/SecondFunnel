@@ -477,6 +477,17 @@ class Page(BaseModel):
             self.theme_settings = {}
         self.theme_settings['social_buttons'] = value
 
+    @property
+    def enable_tracking(self):
+        theme_settings = self.theme_settings or {}
+        return theme_settings.get('enable_tracking', True)
+
+    @enable_tracking.setter
+    def enable_tracking(self, value):
+        if not self.theme_settings:
+            self.theme_settings = {}
+        self.theme_settings['enable_tracking'] = bool(value)
+
     def get(self, key, default=None):
         """Duck-type a <dict>'s get() method to make CG transition easier.
 
