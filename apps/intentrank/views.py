@@ -9,10 +9,13 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.api.decorators import request_methods
 from apps.assets.models import Page, Tile
 from apps.intentrank.controllers import IntentRank
-from apps.intentrank.algorithms import ir_random, ir_all, ir_popular
+from apps.intentrank.algorithms import ir_generic, ir_all, ir_popular
 from apps.intentrank.utils import ajax_jsonp
 
 import scripts.generate_rss_feed as rss_feed
+
+
+TRACK_SHOWN_TILES_NUM = 20  # move to settings when appropriate
 
 
 @never_cache
@@ -37,10 +40,15 @@ def get_results_view(request, page_id):
     shown = filter(bool, request.GET.get('shown', "").split(","))
     exclude_set = map(int, shown)
 
+    # keep track of the last (unique) tiles have been shown.
+    # limit is controlled by TRACK_SHOWN_TILES_NUM
     if request.session:
-        # keep track of which (unique) tiles have been shown
-        request.session['shown'] = list(set(request.session.get('shown', []) +
-                                            exclude_set))
+        if not request.session.get('shown', []):
+            request.session['shown'] = exclude_set
+        else:
+            request.session['shown'] += exclude_set
+        request.session['shown'] = list(set(request.session['shown']))  # uniq
+        request.session['shown'] = request.session['shown'][:TRACK_SHOWN_TILES_NUM]
 
     # otherwise, not a proxy
     try:
@@ -61,7 +69,7 @@ def get_results_view(request, page_id):
     if request.GET.get('algorithm', None) == 'popular':
         algorithm = ir_popular
     else:
-        algorithm = ir_random
+        algorithm = ir_generic
 
     resp = ajax_jsonp(get_results(feed=feed, results=results,
                                   algorithm=algorithm, request=request,
@@ -118,7 +126,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
 
 
 def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
-                algorithm=ir_random, **kwargs):
+                algorithm=ir_generic, **kwargs):
     """Converts a feed into a list of <any> using given parameters.
 
     :param feed        a <Feed>

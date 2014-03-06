@@ -2,8 +2,7 @@ import importlib
 import json
 
 from django.core import serializers
-import time
-from algorithms import ir_random
+from algorithms import ir_generic
 
 class IntentRank(object):
     """Consider this an engine. Initializing one of those will emulate
@@ -18,7 +17,7 @@ class IntentRank(object):
     feed = None
     _algorithm = None
 
-    def __init__(self, feed, algorithm=ir_random):
+    def __init__(self, feed, algorithm=ir_generic):
         """
         :param {Feed} feed   a Feed object with products
         """
