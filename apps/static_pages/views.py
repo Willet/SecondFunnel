@@ -238,9 +238,9 @@ def transfer_static_campaign(store_id, page_id):
 
         # overwrite old tag with new tag
         prod_page_source = prod_page_source.replace(script_tag.get('src'),
-                        '//{0}/{1}/{2}'.format(cloudfront_domain,
-                                                prod_storage_bucket_name,
-                                                new_script_s3_key))
+            '//{0}/{1}/{2}'.format(cloudfront_domain,
+                                   prod_storage_bucket_name,
+                                   new_script_s3_key))
 
     # replace all inline references to IR test to IR prod, but
     # do not overwrite existing production page before IRConfig copied over
