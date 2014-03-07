@@ -2,27 +2,26 @@
 from south.utils import datetime_utils as datetime
 from south.db import db
 from south.v2 import SchemaMigration
-from django.db import models
 
 
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Tile.s'
-        db.add_column(u'assets_tile', 'starting_score',
-                      self.gf('django.db.models.fields.FloatField')(default=0.0), keep_default=False)
-
-        # Adding field 'Tile.clicks'
-        db.add_column(u'assets_tile', 'clicks',
-                      self.gf('django.db.models.fields.PositiveIntegerField')(default=0), keep_default=False)
+        # Adding model 'RelatedTile'
+        db.create_table(u'assets_tilerelation', (
+            ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
+            ('updated_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('starting_score', self.gf('django.db.models.fields.FloatField')(default=0.0)),
+            ('tile_a', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.Tile'], related_name='+')),
+            ('tile_b', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.Tile'], related_name='+')),
+        ))
+        db.send_create_signal(u'assets', ['TileRelation'])
 
 
     def backwards(self, orm):
-        # Deleting field 'Tile.s'
-        db.delete_column(u'assets_tile', 'starting_score')
-
-        # Deleting field 'Tile.clicks'
-        db.delete_column(u'assets_tile', 'clicks')
+        # Deleting model 'RelatedTile'
+        db.delete_table(u'assets_tilerelation')
 
 
     models = {
@@ -132,7 +131,7 @@ class Migration(SchemaMigration):
             'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '1024', 'null': 'True', 'blank': 'True'}),
-            'template': ('django.db.models.fields.CharField', [], {'max_length': '1024'}),
+            'template': ('django.db.models.fields.CharField', [], {'default': "'https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/themes/campaign_base.html'", 'max_length': '1024'}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
         },
         u'assets.tile': {
@@ -146,8 +145,17 @@ class Migration(SchemaMigration):
             'old_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
             'prioritized': ('django.db.models.fields.BooleanField', [], {}),
             'products': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['assets.Product']", 'symmetrical': 'False'}),
-            'starting_score': ('django.db.models.fields.FloatField', [], {'default': 0.0}),
+            'starting_score': ('django.db.models.fields.FloatField', [], {'default': 0}),
             'template': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
+            'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
+        },
+        u'assets.tilerelation':{
+            'Meta': {'object_name': 'TileRelation'},
+            'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'starting_score': ('django.db.models.fields.FloatField', [], {'default': 0.0}),
+            'tile_a': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['assets.Tile']"}),
+            'tile_b': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['assets.Tile']"}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
         },
         u'assets.video': {

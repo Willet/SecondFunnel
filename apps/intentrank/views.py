@@ -7,10 +7,11 @@ from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import request_methods
-from apps.assets.models import Page, Tile
+from apps.assets.models import Page, Tile, TileRelation
 from apps.intentrank.controllers import IntentRank
 from apps.intentrank.algorithms import ir_generic, ir_all, ir_popular
 from apps.intentrank.utils import ajax_jsonp
+
 
 import scripts.generate_rss_feed as rss_feed
 
@@ -103,7 +104,16 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
                         .get())
         except Tile.DoesNotExist:
             return HttpResponseNotFound("No tile {0}".format(tile_id))
-        tile.click()
+
+        # Update clicks
+        clicks = request.session.get('clicks', [])
+        if tile_id not in clicks:
+            tile.click()
+            for click in clicks:
+                TileRelation.relate(Tile.objects.get(old_id=click), tile)
+            clicks.append(tile_id)
+            request.session['clicks'] = clicks
+
         return ajax_jsonp(tile.to_json())
 
     # get all tiles
@@ -121,8 +131,8 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
     if not (feed or tile_id):
         return HttpResponseNotFound("No feed for page {0}".format(page_id))
 
-    return ajax_jsonp(get_results(feed=feed, algorithm=ir_all),
-                      callback_name=callback, request=request)
+    return ajax_jsonp(get_results(feed=feed, request=request, algorithm=ir_all),
+                      callback_name=callback)
 
 
 def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,

@@ -5,6 +5,7 @@ from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import Serializer
 from django.db import models
+from django.db.models import Q
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
 from django.utils import timezone
@@ -522,8 +523,8 @@ class Page(BaseModel):
 
 class Tile(BaseModel):
     # used to calculate the score for a tile
-    # a bigger s value does not necessarily mean a bigger score
-    starting_score = models.FloatField(default=0)
+    # a bigger starting_score value does not necessarily mean a bigger score
+    starting_score = models.FloatField(default=0.0)
 
     clicks = models.PositiveIntegerField(default=0)
 
@@ -555,17 +556,15 @@ class Tile(BaseModel):
             1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
         self.save()
 
-    @property
     def score(self):
         # returns the score of the tile based on the starting_score and how long ago the tile was created
         return math.exp(self.starting_score - Tile.popularity_devalue_rate *
                         self.days_since_creation())
 
-    @property
     def log_score(self):
         # the lower the ratio, the bigger the range between low and high scores
         ratio = 1.5
-        score = self.score
+        score = self.score()
         # returns the log of a score with the smallest value being 1
         # makes sure that small scores do not get large log values
         return math.log(score + (ratio if score > 2 * ratio else (ratio - score / 2)), ratio)
@@ -583,3 +582,65 @@ class Tile(BaseModel):
                 serializer = TileSerializer()
 
         return serializer.to_json([self])
+
+    def get_related(self):
+        return TileRelation.get_related_tiles([self.id])
+
+
+class TileRelation(BaseModel):
+    tile_a = models.ForeignKey(Tile, related_name='+')
+    tile_b = models.ForeignKey(Tile, related_name='+')
+
+    # used to calculate the score for a relation
+    # a bigger starting_score value does not necessarily mean a bigger score
+    starting_score = models.FloatField(default=0.0)
+
+    # variable used for popularity, the bigger the value, the faster popularity de-values
+    popularity_devalue_rate = 0.15
+
+    def clean(self):
+        if self.tile_a_id > self.tile_b_id:
+            self.tile_a_id, self.tile_b_id = self.tile_b_id, self.tile_a_id
+
+    @classmethod
+    def relate(cls, tile_a, tile_b):
+        """updates the starting_score of relation"""
+
+        id_a = tile_a.id
+        id_b = tile_b.id
+        related_tile, _ = cls.objects.get_or_create(tile_a_id=id_a, tile_b_id=id_b)
+        update_score = TileRelation.popularity_devalue_rate * related_tile.days_since_creation()
+        starting_score = related_tile.starting_score
+        related_tile.starting_score = max(starting_score, update_score) + math.log(
+            1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
+        related_tile.save()
+        return related_tile
+
+    @classmethod
+    def get_related_tiles(cls, tile_list):
+        """returns a list of tiles related to the given tile list in order of popularity"""
+
+        id_list = [tile.id for tile in tile_list]
+
+        related_tiles = list(cls.objects.filter(Q(tile_a_id__in=id_list) | Q(tile_b_id__in=id_list)).exclude(tile_a_id__in=id_list, tile_b_id__in=id_list).select_related())
+        related_tiles = sorted(related_tiles, key=lambda related_tile: related_tile.score)
+        tiles = []
+        for related_tile in related_tiles:
+            if related_tile.tile_a.id in id_list:
+                tiles.append(related_tile.tile_b)
+            else:
+                tiles.append(related_tile.tile_a)
+        return tiles
+
+
+    def score(self):
+        # returns the score of the tile based on the starting_score and how long ago the tile was created
+        return math.exp(self.starting_score - TileRelation.popularity_devalue_rate * self.days_since_creation())
+
+    def log_score(self):
+        # the lower the ratio, the bigger the range between low and high scores
+        ratio = 1.5
+        score = self.score()
+        # returns the log of a score with the smallest value returned being 1
+        # makes sure that small scores do not get large log values
+        return math.log(score + (ratio if score > 2 * ratio else(ratio - score / 2)), ratio)
