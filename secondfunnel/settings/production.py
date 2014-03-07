@@ -15,6 +15,7 @@ COMPRESS_VERSION = True
 COMPRESS_ENABLED = True
 
 AWS_IS_GZIPPED = True
+AWS_S3_CUSTOM_DOMAIN = CLOUDFRONT_DOMAIN
 AWS_S3_SECURE_URLS = False
 AWS_HEADERS =  {
     'Expires': BROWSER_CACHE_EXPIRATION_DATE,
@@ -100,8 +101,8 @@ CONTENTGRAPH_BASE_URL = 'http://contentgraph-test.elasticbeanstalk.com/graph'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-MEDIA_URL = 'http://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
-COMPRESS_URL = MEDIA_URL
+STATIC_URL = 'http://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
+COMPRESS_URL = STATIC_URL
 
 STALE_TILE_QUEUE_NAME = 'tileservice-worker-queue'
 

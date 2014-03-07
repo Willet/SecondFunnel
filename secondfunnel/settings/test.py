@@ -15,6 +15,7 @@ COMPRESS_VERSION = True
 COMPRESS_ENABLED = True
 
 AWS_IS_GZIPPED = True # GZip Middleware isn't recognized without this line because http://stackoverflow.com/a/19180415/1558430
+AWS_S3_CUSTOM_DOMAIN = CLOUDFRONT_DOMAIN
 AWS_S3_SECURE_URLS = False
 AWS_HEADERS =  {
     'Expires': BROWSER_CACHE_EXPIRATION_DATE,
@@ -110,8 +111,8 @@ SESSION_COOKIE_DOMAIN = '.secondfunnel.com'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-MEDIA_URL = 'http://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
-COMPRESS_URL = MEDIA_URL
+STATIC_URL = 'http://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
+COMPRESS_URL = STATIC_URL
 
 MEMCACHED_LOCATION = 'secondfunnel-test.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
 
