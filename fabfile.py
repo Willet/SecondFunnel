@@ -67,7 +67,7 @@ def launch_celery_worker(cluster_type, branch):
         })
 
         # with settings(hide('stdout', 'commands')):
-        # execute(deploy_celery, branch, hosts=[launched_instance.public_dns_name])
+        # execute(execute_importer, branch, hosts=[launched_instance.public_dns_name])
         print yellow("Not launching celery bootstrap for branch '{0}' at this point, as it's being buggy.".format(branch))
 
         print green("Finalized new celery instance: {0}".format(
@@ -138,7 +138,7 @@ def celery_cluster_size(cluster_type, number_of_instances=None, branch='master')
                                 public_dns_names]
             public_dns_names = ";".join(public_dns_names)
 
-            print yellow('Now run the following: fab deploy_celery:{0},{1},hosts="{2}"'.format(
+            print yellow('Now run the following: fab execute_importer:{0},{1},hosts="{2}"'.format(
                 cluster_type, branch, public_dns_names))
 
         else:
