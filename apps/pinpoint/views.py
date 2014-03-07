@@ -60,7 +60,7 @@ def embed(request):
     with open(script_file_name, 'rb') as script_file:
         script = script_file.read()
 
-    return HttpResponse(script, content_type='test/javascript')
+    return HttpResponse(script, content_type='text/javascript')
 
 
 def campaign_by_slug(request, page_slug):
