@@ -15,4 +15,5 @@ urlpatterns = patterns('apps.pinpoint.views',
     # regenerate == generate
     url(r'^(?P<store_id>\d+)/(?P<page_id>\d+)/regenerate/?$',
         'generate_static_campaign', name='generate_static_campaign'),
+    url(r'^embed/embed\.js/?$', 'embed', name='embed'),
 )
