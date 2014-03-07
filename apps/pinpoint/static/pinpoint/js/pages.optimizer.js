@@ -125,7 +125,7 @@ App.module('optimizer', function (optimizer, App) {
             probabilities = args.probabilities,
             cookie = OPTIMIZER_COOKIE + index;
 
-        if ((App.option('debug', App.QUIET) > App.QUIET) &&
+        if ((args.disabled || App.option('debug', App.QUIET) > App.QUIET) &&
             (ENABLED_TESTS.indexOf(index.toString()) == -1)) {
             return;
         }
