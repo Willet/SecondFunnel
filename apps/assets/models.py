@@ -382,12 +382,12 @@ class Page(BaseModel):
         if not self.theme_settings:
             self.theme_settings = {}
 
-    def __getattr__(self, item):
+    def __getattr__(self, name):
         for (key, default) in self.theme_settings_fields:
-            if item == key:
+            if name == key:
                 theme_settings = self.theme_settings or {}
                 return theme_settings.get(key, default)
-        raise AttributeError
+        return super(Page, self).__getattr__(name)
 
     def __setattr__(self, name, value):
         for (key, default) in self.theme_settings_fields:
