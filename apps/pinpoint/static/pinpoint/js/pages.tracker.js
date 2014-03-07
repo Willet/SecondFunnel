@@ -150,8 +150,11 @@ App.module("tracker", function (tracker, App) {
                 break;
             default:
                 category = 'Content';
-                // TODO: Need a method to get URL
                 label = model.get('image');
+                if (label.get) {
+                    label = label.get('url');
+                }
+
                 break;
             }
 
@@ -570,9 +573,6 @@ App.module("tracker", function (tracker, App) {
             'type': 'dimension',
             'value': App.option('page:id')
         });
-
-        addItem('send', 'pageview');
-        console.debug("Registered page view.");
 
         // register event maps
         var defaults = new this.EventManager(this.defaultEventMap),

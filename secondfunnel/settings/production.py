@@ -27,6 +27,8 @@ INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config-test'
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'.format(WEBSITE_BASE_URL)
 COMPRESS_URL = STATIC_URL
+MEDIA_URL = 'http://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
+# COMPRESS_URL = MEDIA_URL  # dev
 
 # or '.elasticbeanstalk.com'
 SESSION_COOKIE_DOMAIN = '.secondfunnel.com'

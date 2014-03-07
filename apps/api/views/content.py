@@ -26,7 +26,7 @@ def content_operations(request, store_id, content_id):
         if request.method == 'GET':
             r = ContentGraphClient.store(store_id).content(content_id).GET(params=request.GET)
         elif request.method == 'PATCH':
-            r = ContentGraphClient.store(store_id).content(content_id).PATCH(body=request.body)
+            r = ContentGraphClient.store(store_id).content(content_id).PATCH(data=request.body)
             # add an item to the TileGenerator's queue to have it updated
             tile_config_object = TileConfigObject(store_id=store_id)
             # caller handles error

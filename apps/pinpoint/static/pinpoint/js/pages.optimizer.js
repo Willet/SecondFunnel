@@ -1,4 +1,4 @@
-/*global App, $, Backbone, Marionette, console, _ */
+/*global App, $, Backbone, Marionette, console, _, setInterval, clearInterval */
 /**
  * @module optimizer
  * @description A/B, split, and multivariate testing tool
@@ -17,7 +17,7 @@ App.module('optimizer', function (optimizer, App) {
         MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24,
         is = function (device) {
             if (device === 'mobile') {
-                return App.support.mobile();
+                return $(window).width() <= 768;
             } else if (device && device.length) {
                 return (new RegExp(device, 'i')).test(window.navigator.userAgent);
             }
@@ -161,8 +161,17 @@ App.module('optimizer', function (optimizer, App) {
      * @returns string
      **/
     this.testTemplate = function (selector, templates, probabilities) {
-        var template = this.multivariate(templates, probabilities);
-        $(selector).contents().replaceWith($(template).contents());
+        var $selector,
+            $template,
+            template = this.multivariate(templates, probabilities),
+            exists = setInterval(function () {
+                $selector = $(selector);
+                $template = $(template);
+                if ($selector.length && $template.length) {
+                    clearInterval(exists);
+                    $selector.contents().replaceWith($template.contents());
+                }
+            }, 100);
         return getTestIndex(template, templates);
     };
 
@@ -174,7 +183,6 @@ App.module('optimizer', function (optimizer, App) {
      **/
     this.initialize = function () {
         var test, index, self;
-
         ENABLED_TESTS = App.utils.getQuery('activate-test').split(',');
         window.OPTIMIZER_TESTS = window.OPTIMIZER_TESTS || [];
         self = this;
