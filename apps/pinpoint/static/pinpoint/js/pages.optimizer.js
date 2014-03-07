@@ -117,15 +117,15 @@ App.module('optimizer', function (optimizer, App) {
      *
      * @returns none
      **/
-    this.addTest = function (index, test, args) {
+    this.addTest = function (index, test, kwargs) {
         var result,
             pos,
-            selector = args.selector,
-            options = args.options,
-            probabilities = args.probabilities,
+            selector = kwargs.selector,
+            options = kwargs.options,
+            probabilities = kwargs.probabilities,
             cookie = OPTIMIZER_COOKIE + index;
 
-        if ((args.disabled || App.option('debug', App.QUIET) > App.QUIET) &&
+        if ((kwargs.disabled || App.option('debug', App.QUIET) > App.QUIET) &&
             (ENABLED_TESTS.indexOf(index.toString()) == -1)) {
             return;
         }
@@ -142,7 +142,7 @@ App.module('optimizer', function (optimizer, App) {
                 result = this.testTemplate(selector, options, probabilities);
                 break;
             default:
-                result = args.custom(result);
+                result = kwargs.custom(result);
         }
 
         console.debug(index + '.' + test + ': ' + result);
