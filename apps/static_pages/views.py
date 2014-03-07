@@ -24,7 +24,9 @@ from secondfunnel.settings.test import INTENTRANK_BASE_URL as test_ir, \
     INTENTRANK_CONFIG_BUCKET_NAME as test_irconfig_bucket_name
 from secondfunnel.settings.production import INTENTRANK_BASE_URL as prod_ir, \
     AWS_STORAGE_BUCKET_NAME as prod_storage_bucket_name, \
-    INTENTRANK_CONFIG_BUCKET_NAME as prod_irconfig_bucket_name
+    INTENTRANK_CONFIG_BUCKET_NAME as prod_irconfig_bucket_name, \
+    CLOUDFRONT_DOMAIN as cloudfront_domain
+
 
 def generate_static_campaign(request, store_id, campaign_id):
     """Manual stimulation handler: re-save a campaign.
@@ -236,8 +238,9 @@ def transfer_static_campaign(store_id, page_id):
 
         # overwrite old tag with new tag
         prod_page_source = prod_page_source.replace(script_tag.get('src'),
-            '//s3.amazonaws.com/{0}/{1}'.format(prod_storage_bucket_name,
-                                                      new_script_s3_key))
+                        '//{0}/{1}/{2}'.format(cloudfront_domain,
+                                                prod_storage_bucket_name,
+                                                new_script_s3_key))
 
     # replace all inline references to IR test to IR prod, but
     # do not overwrite existing production page before IRConfig copied over

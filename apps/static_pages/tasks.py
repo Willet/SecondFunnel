@@ -28,6 +28,7 @@ from apps.static_pages.utils import (get_bucket_name, create_dummy_request,
                                      render_campaign)
 
 from secondfunnel.settings.test import AWS_STORAGE_BUCKET_NAME as test_storage_bucket_name
+from secondfunnel.settings.test import CLOUDFRONT_DOMAIN as cloudfront_domain
 
 
 celery = Celery()
@@ -272,7 +273,7 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
                     raise IOError("Could not upload the gzipped JS file to S3!")
 
                 # Force relative path
-                src = '//s3.amazonaws.com/{0}/{1}'.format(test_storage_bucket_name, new_script_s3_key)
+                src = '//{0}/{1}/{2}'.format(cloudfront_domain, test_storage_bucket_name, new_script_s3_key)
 
             script_tag['src'] = re.sub(r'(http|https)://', '//', src)
             script_tag['async'] = "true"

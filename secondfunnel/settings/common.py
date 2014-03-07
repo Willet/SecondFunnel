@@ -19,7 +19,7 @@ FILE_CHARSET = 'utf-8'  # apparently something we need to enforce for File()
 AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket', 'elasticbeanstalk-us-east-1-056265713214')
 INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config'
 MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
-CLOUDFRONT_DOMAIN = 'd3m0w2rwcva4oh.cloudfront.net'
+CLOUDFRONT_DOMAIN = 'cdn.secondfunnel.com'
 
 ADMINS = (
 # ('Your Name', 'your_email@example.com'),
