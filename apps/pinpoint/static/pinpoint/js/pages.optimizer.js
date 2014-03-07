@@ -17,7 +17,7 @@ App.module('optimizer', function (optimizer, App) {
         MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24,
         is = function (device) {
             if (device === 'mobile') {
-                return $(window).width() <= 768;
+                return window.innerWidth <= 768;
             } else if (device && device.length) {
                 return (new RegExp(device, 'i')).test(window.navigator.userAgent);
             }
