@@ -4,6 +4,7 @@ Automated deployment tasks
 from fabric.api import roles, run, cd, execute, settings, env, sudo, hide
 from fabric.colors import green, yellow, red
 from secondfunnel.settings import common as django_settings
+from scripts.import_ops import importer as real_importer
 
 import boto.ec2
 import itertools
@@ -16,11 +17,13 @@ def get_ec2_conn():
         aws_access_key_id=django_settings.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=django_settings.AWS_SECRET_ACCESS_KEY)
 
+
 def flatten_reservations(reservations):
     instances = [r.instances for r in reservations]
     chain = itertools.chain(*instances)
 
     return [i for i in list(chain)]
+
 
 def get_celery_workers(cluster_type):
     """Gets Celery workers belonging to specified cluster type"""
@@ -32,6 +35,7 @@ def get_celery_workers(cluster_type):
 
     # we only want running instances
     return [i for i in flatten_reservations(res) if i.state in ['running', 'pending']]
+
 
 def launch_celery_worker(cluster_type, branch):
     """Launches a new celery worker, adding it to an appropriate cluster"""
@@ -213,3 +217,8 @@ def deploy(cluster_type='test', branch='master'):
 
     with settings(hide('stdout', 'commands')):
         execute(deploy_celery, cluster_type, branch, hosts=celery_workers_dns)
+
+
+def importer(*args, **kwargs):
+    """Alias for fabfile"""
+    return real_importer(*args, **kwargs)

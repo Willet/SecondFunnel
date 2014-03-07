@@ -37,7 +37,7 @@ def get_instances(instance_type):
     return [i for i in flatten_reservations(res) if i.state in ['running', 'pending']]
 
 
-def execute_importer(instance_type, store_id):
+def execute_importer(instance_type, store_id, full_size_images):
     """Runs "importer ..." in the instance"""
 
     # we only support two instance types
@@ -52,14 +52,15 @@ def execute_importer(instance_type, store_id):
 
     with cd(project_path):
         print green("Starting importer...")
-        run("python manage.py importer {0} true".format(store_id))
+        run("python manage.py importer {0} {1}".format(store_id,
+            str(full_size_images).lower()))
 
     print green("Success!")
 
 
-def importer(instance_type='test', store_id=38):
+def importer(instance_type='test', store_id=38, full_size_images=False):
     """import from contentgraph{data_source} to tng-{instance_type}"""
-    print green("Going importing store {0} data from CG test to {1}...".format(
+    print green("Importing store {0} data from CG test to {1}...".format(
         store_id, instance_type))
 
     instances = get_instances(instance_type)
@@ -67,4 +68,5 @@ def importer(instance_type='test', store_id=38):
 
     with settings(hide('stdout', 'commands')):
         # hosts is the kwargs for determining which instance to ssh into
-        execute(execute_importer, instance_type, store_id, hosts=instances_dns)
+        execute(execute_importer, instance_type, store_id, full_size_images,
+                hosts=instances_dns)
