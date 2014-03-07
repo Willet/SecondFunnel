@@ -55,11 +55,13 @@ def read_remote_file(url, default_value=''):
         return default_value, False
 
 
-def render_campaign(store_id, page_id, request):
+def render_campaign(page_id, request, store_id=0):
     """Generates the HTML page for a standard pinpoint product page.
 
-    Related products are populated statically only if a request object
+    Backup products are populated statically only if a request object
     is provided.
+
+    :param store_id: optional, legacy, unused
     """
     def repl(match):
         """Returns a replaced tag content for a tag, or
@@ -98,30 +100,17 @@ def render_campaign(store_id, page_id, request):
 
         return mark_safe(json.dumps(escaped_product_dict))
 
-    # these 4 lines will trigger ValueErrors if remote JSON is invalid.
-    # page_data = get_page(store_id=store_id, page_id=page_id, as_dict=True)
-    # store_data = get_store(store_id=store_id, as_dict=True)
-
+    # grab required assets
     page = get_object_or_404(Page, old_id=page_id)
-    store = get_object_or_404(Store, old_id=store_id)
+    page_template = page.theme.load_theme()
+    store = page.store
+    product = None  # no featured product / STL functionality in place
 
     ir_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
 
-    # get the featured product from our DB.
-    try:
-        # product = content_block.data.product
-        # based on Neal's description, this is what it will eventually be
-        product = get_product(page.get('featured-product-id')) or\
-            get_product(page.get('product-ids', [0])[0])
-    except:
-        # this is okay
-        product = None
-
     # get backup results
-    # ir_id = page.get('intentrank_id') or page_data.get('id')
-    # feed = Page.objects.get(old_id=ir_id).feed
-    feed = page.feed
-    backup_results = get_results(feed=feed, results=20)
+    # backup_results = get_results(feed=feed, results=20)
+    backup_results = []  # results are now fetched by client
 
     if settings.ENVIRONMENT == 'dev' and page.get('ir_base_url'):
         # override the ir_base_url attribute on CG page objects
@@ -136,10 +125,8 @@ def render_campaign(store_id, page_id, request):
         "product": json_postprocessor(product),
         "initial_results": [],  # JS now fetches its own initial results
         "backup_results": map(json_postprocessor, backup_results),
-        "social_buttons": page.social_buttons or \
-                          store.get('social-buttons', ''),
-        "column_width": page.column_width or \
-                        store.get('column-width', ''),
+        "social_buttons": page.social_buttons or store.get('social-buttons', ''),
+        "column_width": page.column_width or store.get('column-width', ''),
         "enable_tracking": page.enable_tracking,  # jsbool
         # apparently {{ campaign.image_tile_wide|default:0.5 }} is too confusing for django
         "image_tile_wide": page.image_tile_wide,
@@ -153,14 +140,6 @@ def render_campaign(store_id, page_id, request):
     }
 
     context = RequestContext(request, attributes)
-
-    # grab the theme url, and then grab the remote file
-    # theme_url = page.get('theme') or store.get('theme')
-    # if not theme_url:
-    #     raise ValueError('page has no theme when campaign manager saved it')
-
-    # page_str, _ = read_remote_file(theme_url)
-    page_str = page.theme.load_theme()
 
     # Replace necessary tags
     sub_values = defaultdict(list)
@@ -181,12 +160,12 @@ def render_campaign(store_id, page_id, request):
             sub_values[tag].append(result)
 
     try:
-        page_str = regex.sub(repl, page_str)
+        page_template = regex.sub(repl, page_template)
     except UnicodeDecodeError:
-        page_str = regex.sub(repl, page_str.decode('utf-8'))
+        page_template = regex.sub(repl, page_template.decode('utf-8'))
 
     # Page content
-    page = Template(page_str)
+    page = Template(page_template)
 
     # Render response
     rendered_page = page.render(context)

@@ -434,24 +434,24 @@
                     <% button[1] = {}; %>
                     <% button[2] = {}; %>
                     <% button[1].url = obj.url %>
-	                <% button[1].class = 'in-store' %>
-	                <% button[1].text = 'Shop on Gap.com' %>
-	                <% button[2].url = 'http://m.gap.com/storelocator.html' %>
-	                <% button[2].class = 'find-store' %>
-	                <% button[2].text = 'Find in Store' %>
+                    <% button[1].class = 'in-store' %>
+                    <% button[1].text = 'Shop on Gap.com' %>
+                    <% button[2].url = 'http://m.gap.com/storelocator.html' %>
+                    <% button[2].class = 'find-store' %>
+                    <% button[2].text = 'Find in Store' %>
                     <% if (test == 'B' || test == 'D' || test == 'F') { %>
                         <% var tmp = button[1]; %>
-	                    <% button[1] = button[2]; %>
-	                    <% button[2] = tmp %>
-	                <% } %>
+                        <% button[1] = button[2]; %>
+                        <% button[2] = tmp %>
+                    <% } %>
                 <% } %>
                 <% if (test && (test == 'E' || test == 'F')) { %>
                 <div class='info col-sm-6 col-md-6' style="margin-top:40px; margin-bottom:-35px;">
                     <div class='gap-buttons'>
-	                    <% _.each(button, function (b) { %>
-	                    <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
-	                    <% }); %>
-	                </div>
+                        <% _.each(button, function (b) { %>
+                        <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
+                        <% }); %>
+                    </div>
                 </div>
                 <% } %>
                 <div class='image-div col-sm-6 col-md-6'>
@@ -469,15 +469,15 @@
                     <% } %>
                 </div>
                 <div class='info col-sm-6 col-md-6'>
-	                <div class='title'><%= obj.title || obj.name %></div>
+                    <div class='title'><%= obj.title || obj.name %></div>
                     <div class='red marker price'><%= obj.price %></div>
                     <% if (!test) { %>
                         <div class='gap-buttons'>
-		                    <a class='button in-store' href='<%= obj.url %>'
+                            <a class='button in-store' href='<%= obj.url %>'
                                target='_blank'>
                                <!-- in-store is magic -->
                                Shop on Gap.com
-		                    </a>
+                            </a>
                             <a class='button find-store'
                                href='http://m.gap.com/storelocator.html'
                                target='_blank'>
@@ -485,14 +485,14 @@
                                Find in Store
                             </a>
                         </div>
-	                <% } else if (test == 'A' || test == 'B') { %>
-	                    <div class='gap-buttons'>
-	                        <% _.each(button, function (b) { %>
-	                        <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
-	                        <% }); %>
-	                    </div>
-	                <% } %>
-	                <div class='description'>
+                    <% } else if (test == 'A' || test == 'B') { %>
+                        <div class='gap-buttons'>
+                            <% _.each(button, function (b) { %>
+                            <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                    <div class='description'>
                         <div class='desc-title'>Overview</div>
                         <ul>
                             <% var sentences = _.compact(obj.description.split('.')); %>
@@ -505,13 +505,13 @@
                         <div class="social-buttons"></div>
                         <div class='spacer'></div>
                     </div>
-	            <% if (test == 'C' || test == 'D') { %>
-	                <div class='gap-buttons' style="margin-top: 10px">
-	                    <% _.each(button, function (b) { %>
-	                    <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
-	                    <% }); %>
-	                </div>
-	            <% } %>
+                <% if (test == 'C' || test == 'D') { %>
+                    <div class='gap-buttons' style="margin-top: 10px">
+                        <% _.each(button, function (b) { %>
+                        <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
+                        <% }); %>
+                    </div>
+                <% } %>
                 </div>
             </div>
         </script>
@@ -527,38 +527,38 @@
                     <% button[1] = {}; %>
                     <% button[2] = {}; %>
                     <% button[1].url = product.url %>
-	                <% button[1].class = 'in-store' %>
-	                <% button[1].text = 'Shop on Gap.com' %>
-	                <% button[2].url = 'http://m.gap.com/storelocator.html' %>
-	                <% button[2].class = 'find-store' %>
-	                <% button[2].text = 'Find in Store' %>
+                    <% button[1].class = 'in-store' %>
+                    <% button[1].text = 'Shop on Gap.com' %>
+                    <% button[2].url = 'http://m.gap.com/storelocator.html' %>
+                    <% button[2].class = 'find-store' %>
+                    <% button[2].text = 'Find in Store' %>
                     <% if (test == 'B' || test == 'D' || test == 'F') { %>
                         <% var tmp = button[1]; %>
-	                    <% button[1] = button[2]; %>
-	                    <% button[2] = tmp %>
-	                <% } %>
+                        <% button[1] = button[2]; %>
+                        <% button[2] = tmp %>
+                    <% } %>
                 <% } %>
             <% } else { %>
             <div class='image-without-related-products'>
             <% } %>
                 <div class="row">
-	                <% if (products.length && (test == 'E' || test == 'F')) { %>
-	                    <div class='gap-buttons' style="margin-top:40px; margin-bottom:-35px;" >
-	                        <% _.each(button, function (b) { %>
-	                        <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
-	                        <% }); %>
-	                    </div>
-	                <% } %>
+                    <% if (products.length && (test == 'E' || test == 'F')) { %>
+                        <div class='gap-buttons' style="margin-top:40px; margin-bottom:-35px;" >
+                            <% _.each(button, function (b) { %>
+                            <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
+                            <% }); %>
+                        </div>
+                    <% } %>
                     <div class="image middle cell capped-width">
                         <% if (products.length) { %>
                             <span class="gallery-swipe-left"></span>
-		                    <img src='<%= product.images[0].url %>' alt="image"/>
+                            <img src='<%= product.images[0].url %>' alt="image"/>
                             <span class="gallery-swipe-right"></span>
                         <% } else { %>
                             <img src='<%= obj.defaultImage.url %>'/>
                         <% } %>
                     </div>
-	                <% var validSources = ['tumblr', 'instagram', 'facebook', 'styld.by']; %>
+                    <% var validSources = ['tumblr', 'instagram', 'facebook', 'styld.by']; %>
                     <% if (_.indexOf(validSources, obj.source) != -1) { %>
                         <div class='author'>
                             <% if (obj.source == "styld.by") { %>
@@ -575,8 +575,8 @@
                         <% if (products.length) { %>
                             <div class='title'><%= product.title || product.name || ""  %></div>
                             <div class='price'><%= product.price %></div>
-	                        <% if (!test) { %>
-	                            <div class='gap-buttons'>
+                            <% if (!test) { %>
+                                <div class='gap-buttons'>
                                     <a class='button in-store' href='<%= product.url %>'
                                        target='_blank'>
                                        <!-- in-store is magic -->
@@ -589,14 +589,14 @@
                                        Find in Store
                                     </a>
                                 </div>
-	                        <% } else if (test == 'A' || test == 'B') { %>
-	                            <div class='gap-buttons'>
-	                                <% _.each(button, function (b) { %>
-	                                <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
-	                                <% }); %>
-	                            </div>
-	                        <% } %>
-	                        <div class='description'>
+                            <% } else if (test == 'A' || test == 'B') { %>
+                                <div class='gap-buttons'>
+                                    <% _.each(button, function (b) { %>
+                                    <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
+                                    <% }); %>
+                                </div>
+                            <% } %>
+                            <div class='description'>
                                 <div class='desc-title'>Overview</div>
                                 <ul>
                                     <% var sentences = _.compact(product.description.split('.')); %>
@@ -614,15 +614,15 @@
                             <div class="social-buttons"></div>
                             <div class='spacer'></div>
                         </div>
-	                <% if (products.length && (test == 'C' || test == 'D')) { %>
-	                    <div class='gap-buttons' style="margin-top:10px;">
-	                        <% _.each(button, function (b) { %>
-	                        <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
-	                        <% }); %>
-	                    </div>
-		        <% } %>
-	            </div>
-	        </div>
+                    <% if (products.length && (test == 'C' || test == 'D')) { %>
+                        <div class='gap-buttons' style="margin-top:10px;">
+                            <% _.each(button, function (b) { %>
+                            <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
+                            <% }); %>
+                        </div>
+                <% } %>
+                </div>
+            </div>
             </div>
         </script>
 

@@ -7,6 +7,7 @@ TEMPLATE_DEBUG = DEBUG
 
 INTERNAL_IP = '127.0.0.1:8000'
 INTERNAL_IPS = ('localhost',  # virtualenv
+                '127.0.0.1',  # virtualenv
                 '10.0.1.1',  # vagrant
                 '10.0.2.2',
                 '24.137.221.230',  # waterloo office

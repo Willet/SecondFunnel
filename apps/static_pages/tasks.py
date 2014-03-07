@@ -202,8 +202,8 @@ def generate_static_campaign_now(store_id, page_id):
 
     dummy_request = create_dummy_request()
 
-    page_content = render_campaign(store_id, page_id=page_id,
-                                   request=dummy_request)
+    page_content = render_campaign(page_id=page_id, request=dummy_request,
+                                   store_id=store_id)
 
     # Add async to generated tags
     page_source_parsed = BeautifulSoup(page_content)

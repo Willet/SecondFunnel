@@ -339,9 +339,17 @@ class Theme(BaseModel):
         """download/open the template as a string."""
         from apps.pinpoint.utils import read_a_file, read_remote_file
 
-        return (read_a_file(self.template, '') or
-                read_remote_file(self.template, '')[0] or
-                self.template)
+        local_theme = read_a_file(self.template, '')
+        if local_theme:
+            return local_theme
+
+        remote_theme = read_remote_file(self.template, '')[0]
+        if remote_theme:
+            return remote_theme
+
+        print "[WARN] template '{0}' was neither local nor remote".format(
+            self.template)
+        return self.template
 
 
 class Feed(BaseModel):

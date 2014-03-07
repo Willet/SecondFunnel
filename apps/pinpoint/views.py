@@ -39,8 +39,8 @@ def campaign(request, store_id, page_id, mode=None):
 
     :param mode   e.g. 'mobile' for the mobile page. Currently not functional.
     """
-    rendered_content = render_campaign(store_id, page_id=page_id,
-        request=request)
+    rendered_content = render_campaign(page_id=page_id, request=request,
+                                       store_id=store_id)
 
     return HttpResponse(rendered_content)
 
