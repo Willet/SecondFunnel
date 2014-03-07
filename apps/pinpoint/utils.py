@@ -141,6 +141,8 @@ def render_campaign(store_id, page_id, request):
         "column_width": page.column_width or \
                         store.get('column-width', ''),
         "enable_tracking": page.enable_tracking,  # jsbool
+        # apparently {{ campaign.image_tile_wide|default:0.5 }} is too confusing for django
+        "image_tile_wide": page.image_tile_wide,
         "pub_date": datetime.now(),
         "legal_copy": page.legal_copy,
         "mobile_hero_image": page.mobile_hero_image,
