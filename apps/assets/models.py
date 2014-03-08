@@ -533,7 +533,7 @@ class TileRelation(BaseModel):
         id_list = [tile.id for tile in tile_list]
 
         related_tiles = list(cls.objects.filter(Q(tile_a_id__in=id_list) | Q(tile_b_id__in=id_list)).exclude(tile_a_id__in=id_list, tile_b_id__in=id_list).select_related())
-        related_tiles = sorted(related_tiles, key=lambda related_tile: related_tile.score)
+        related_tiles = sorted(related_tiles, key=lambda related_tile: related_tile.score())
         tiles = []
         for related_tile in related_tiles:
             if related_tile.tile_a.id in id_list:
