@@ -267,6 +267,7 @@ INSTALLED_APPS = (
     'apps.contentgraph',
     'apps.website',
     'apps.static_pages',
+    'apps.tracking',
     'apps.utils',
 )
 

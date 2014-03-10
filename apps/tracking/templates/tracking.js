@@ -29,6 +29,7 @@
         }
         // End cookie code
 
+        /*
         // Load Perfect Audience
         (function() {
             window._pa = window._pa || {};
@@ -45,6 +46,8 @@
         // Track Perfect Audience Events
         window._pq = window._pq || [];
         _pq.push(['track', 'Purchase']);
+        */
+        console.log('Tracking!');
     } catch (error) {
         //if something goes wrong, do not affect the rest of the page.
     }
