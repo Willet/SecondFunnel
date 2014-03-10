@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        {{ opengraph_tags }}
-        {{ head_content }}
+        {% include "pinpoint/campaign_opengraph_tags.html" %}
+        {% include "pinpoint/campaign_head.html" %}
     </head>
 
     <body>
@@ -18,9 +18,9 @@
         </div>
 
         <!-- remove this line if you have replaced all default templates -->
-        {{ js_templates }}
+        {% include "pinpoint/default_templates.html" %}
 
-        {{ campaign_config }}
-        {{ body_content }}
+        {% include "pinpoint/campaign_config.html" %}
+        {% include "pinpoint/campaign_body.html" %}
     </body>
 </html>

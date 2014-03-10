@@ -346,6 +346,8 @@ class Theme(BaseModel):
 
         remote_theme = read_remote_file(self.template, '')[0]
         if remote_theme:
+            print "[INFO] speed up page load times by placing the theme" \
+                  " '{0}' locally.".format(self.template)
             return remote_theme
 
         print "[WARN] template '{0}' was neither local nor remote".format(

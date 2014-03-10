@@ -2,8 +2,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {{ opengraph_tags }}
-    {{ head_content }}
+    {% include "pinpoint/campaign_opengraph_tags.html" %}
+    {% include "pinpoint/campaign_head.html" %}
     <link rel="shortcut icon"
          href="http://www.gap.com/favicon.ico" />
     <link rel="stylesheet"
@@ -166,7 +166,7 @@
     </script>
     <!-- End Optimizer Tests -->
 
-    {{ body_content }}
+    {% include "pinpoint/campaign_body.html" %}
 
     <div>
         <!-- generic templates -->

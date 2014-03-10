@@ -14,9 +14,7 @@ from django.template import RequestContext, loader, Template
 from django.template.defaultfilters import slugify
 from django.utils.safestring import mark_safe
 
-from apps.assets.models import Theme, Page, Store
-from apps.contentgraph.views import get_product
-from apps.intentrank.views import get_results
+from apps.assets.models import Theme, Page
 
 
 def read_a_file(file_name, default_value=''):
@@ -63,17 +61,6 @@ def render_campaign(page_id, request, store_id=0):
 
     :param store_id: optional, legacy, unused
     """
-    def repl(match):
-        """Returns a replaced tag content for a tag, or
-        the original tag if we have no data for that tag.
-        """
-        match_str = match.group(1)  # just the field: e.g. 'desktop_content'
-
-        if match_str in sub_values:
-            return ''.join(sub_values[match_str])
-        else:
-            return match.group(0)  # leave unchanged
-
     def json_postprocessor(product_dict):
         """given a product dict, output a product string that can be printed
         with the "|safe" filter.
@@ -141,7 +128,40 @@ def render_campaign(page_id, request, store_id=0):
 
     context = RequestContext(request, attributes)
 
-    # Replace necessary tags
+    # Replace tags only if present
+    if page_template.find(r'{{ body_content }}') > -1:
+        page_template = replace_legacy_tags(page_template, context)
+
+    # Page content
+    page = Template(page_template)
+
+    # Render response
+    rendered_page = page.render(context)
+    if isinstance(rendered_page, unicode):
+        # TODO: Doesn't make sense but is required; why?
+        rendered_page = rendered_page.encode('utf-8')
+
+    #noinspection PyArgumentList
+    rendered_page = unicode(rendered_page, 'utf-8')
+
+    return rendered_page
+
+
+def replace_legacy_tags(page_template, context):
+    """For themes that still use Theme.CUSTOM_FIELDS, replace run this extra
+    replacement algorithm.
+    """
+    def repl(match):
+        """Returns a replaced tag content for a tag, or
+        the original tag if we have no data for that tag.
+        """
+        match_str = match.group(1)  # just the field: e.g. 'desktop_content'
+
+        if match_str in sub_values:
+            return ''.join(sub_values[match_str])
+        else:
+            return match.group(0)  # leave unchanged
+
     sub_values = defaultdict(list)
     regex = re.compile("\{\{\s*(\w+)\s*\}\}")
 
@@ -164,16 +184,4 @@ def render_campaign(page_id, request, store_id=0):
     except UnicodeDecodeError:
         page_template = regex.sub(repl, page_template.decode('utf-8'))
 
-    # Page content
-    page = Template(page_template)
-
-    # Render response
-    rendered_page = page.render(context)
-    if isinstance(rendered_page, unicode):
-        # TODO: Doesn't make sense but is required; why?
-        rendered_page = rendered_page.encode('utf-8')
-
-    #noinspection PyArgumentList
-    rendered_page = unicode(rendered_page, 'utf-8')
-
-    return rendered_page
+    return page_template
