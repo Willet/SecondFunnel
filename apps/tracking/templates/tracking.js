@@ -1,40 +1,13 @@
 {% if request.COOKIES.visited == 'true' %}
 (function(){
     try {
-        var createCookie, readCookie, eraseCookie;
-
-        // Cookie code from: http://www.quirksmode.org/js/cookies.html
-        createCookie = function (name,value,days) {
-            if (days) {
-                var date = new Date();
-                date.setTime(date.getTime()+(days*24*60*60*1000));
-                var expires = "; expires="+date.toGMTString();
-            }
-            else var expires = "";
-            document.cookie = name+"="+value+expires+"; path=/";
-        }
-
-        readCookie = function readCookie (name) {
-            var nameEQ = name + "=";
-            var ca = document.cookie.split(';');
-            for(var i=0;i < ca.length;i++) {
-                var c = ca[i];
-                while (c.charAt(0)==' ') c = c.substring(1,c.length);
-                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
-            }
-            return null;
-        }
-
-        eraseCookie = function (name) {
-            createCookie(name, "", -1);
-        }
-        // End cookie code
-
-        /*
         // Load Perfect Audience
         (function() {
             window._pa = window._pa || {};
 
+            // TODO: Make PA script configurable
+            // i.e. can't always use 52fd209b01a11d23fd000004.js;
+            // will probably vary per client
             var pa = document.createElement('script');
             pa.type = 'text/javascript';
             pa.async = true;
@@ -47,8 +20,6 @@
         // Track Perfect Audience Events
         window._pq = window._pq || [];
         _pq.push(['track', 'Purchase']);
-        */
-        console.log('Tracking!');
     } catch (error) {
         //if something goes wrong, do not affect the rest of the page.
     }
