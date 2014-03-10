@@ -219,9 +219,8 @@ def transfer_static_campaign(store_id, page_id):
         elif not test_ir in script_contents:  # irrelevant script
             continue
 
-        # script_contents definitely contains http://intentrank-test.elasticbeanstalk.com
+        # script_contents definitely contains http://intentrank-test.elasticbeanstalk.com or http://tng-test-cdn.secondfunnel.com
         script_contents = script_contents.replace(test_ir, prod_ir)
-        # script_contents definitely contains http://intentrank.elasticbeanstalk.com
 
         # save the new script, calling it whatever we want, as long as
         # it doesn't already exist
