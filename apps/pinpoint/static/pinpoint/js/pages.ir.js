@@ -11,7 +11,7 @@ App.module("intentRank", function (intentRank, App) {
         resultsAlreadyRequested = []; // list of product IDs
 
     this.options = {
-        'baseUrl': "http://tng-test.secondfunnel.com/intentrank",
+        'baseUrl': "/intentrank",  // or an absolute base url, e.g. http://tng-test.secondfunnel.com/intentrank
         'urlTemplates': {
             'campaign': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>",
             'content': "<%=baseUrl%>/page/<%=campaign%>/content/<%=id%>/getresults"
