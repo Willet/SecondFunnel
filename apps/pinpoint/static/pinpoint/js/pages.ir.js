@@ -11,7 +11,7 @@ App.module("intentRank", function (intentRank, App) {
         resultsAlreadyRequested = []; // list of product IDs
 
     this.options = {
-        'baseUrl': "http://intentrank-test.elasticbeanstalk.com/intentrank",
+        'baseUrl': "http://tng-test-cdn.secondfunnel.com/intentrank",
         'urlTemplates': {
             'campaign': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>",
             'content': "<%=baseUrl%>/page/<%=campaign%>/content/<%=id%>/getresults"
@@ -280,7 +280,7 @@ App.module("intentRank", function (intentRank, App) {
      */
     this.updateCache = function (diff) {
         // right now it seems as if IR has a hard limit of 20
-        this.options.IRCacheResultCount = Math.min(20,
+        this.options.IRCacheResultCount = Math.min(10,
             this.options.IRCacheResultCount + diff);
         return this;
     };
