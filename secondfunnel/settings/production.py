@@ -9,7 +9,8 @@ COMPRESS = True
 COMPRESS_VERSION = True
 COMPRESS_ENABLED = True
 
-AWS_IS_GZIPPED = True # GZip Middleware isn't recognized without this line because http://stackoverflow.com/a/19180415/1558430
+AWS_IS_GZIPPED = True
+AWS_S3_CUSTOM_DOMAIN = CLOUDFRONT_DOMAIN
 AWS_S3_SECURE_URLS = False
 AWS_HEADERS =  {
     'Expires': BROWSER_CACHE_EXPIRATION_DATE,
@@ -25,11 +26,8 @@ INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config-test'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'.format(WEBSITE_BASE_URL)
-COMPRESS_URL = STATIC_URL
-MEDIA_URL = 'http://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
-# COMPRESS_URL = MEDIA_URL  # dev
-
+STATIC_URL = 'http://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
+COMPRESS_URL = 'http://%s/' % CLOUDFRONT_DOMAIN
 # or '.elasticbeanstalk.com'
 SESSION_COOKIE_DOMAIN = '.secondfunnel.com'
 

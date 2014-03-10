@@ -94,7 +94,7 @@ def render_campaign(page_id, request, store_id=0):
     store = page.store
     product = None  # no featured product / STL functionality in place
 
-    ir_base_url = settings.INTENTRANK_BASE_URL + '/intentrank'
+    ir_base_url = '/intentrank'
 
     # get backup results
     # backup_results = get_results(feed=feed, results=20)
