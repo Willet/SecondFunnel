@@ -9,10 +9,10 @@ from django.db.models import Q
 from django_extensions.db.fields \
     import CreationDateTimeField, ModificationDateTimeField
 from django.utils import timezone
-
 from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
+
 from apps.intentrank.serializers import *
 
 
@@ -375,6 +375,11 @@ class Page(BaseModel):
     # attributes named differently
     theme_settings = JSONField(blank=True, null=True)
 
+    theme_settings_fields = [('template', 'hero'), ('image_tile_wide', 0.5), ('hide_navigation_bar', ''),
+                             ('results_threshold', {}), ('desktop_hero_image', ''), ('mobile_hero_image', ''),
+                             ('intentrank_id', old_id), ('column_width', 240), ('social_buttons', ''),
+                             ('enable_tracking', True)]
+
     description = models.TextField(blank=True, null=True)
     url_slug = models.CharField(max_length=128)  # e.g. livedin
     legal_copy = models.TextField(blank=True, null=True)
@@ -388,116 +393,21 @@ class Page(BaseModel):
         if not self.theme_settings:
             self.theme_settings = {}
 
-    # TODO: there must be less idiotic ways to do JSON getters and setters
-    @property
-    def template(self):
-        theme_settings = self.theme_settings or {}
-        return theme_settings.get('template', 'hero')
+    def __getattr__(self, name):
+        for (key, default) in self.theme_settings_fields:
+            if name == key:
+                theme_settings = self.theme_settings or {}
+                return theme_settings.get(key, default)
+        return super(Page, self).__getattr__(name)
 
-    @template.setter
-    def template(self, value):
-        if not self.theme_settings:
-            self.theme_settings = {}
-        self.theme_settings['template'] = value
-
-    @property
-    def image_tile_wide(self):
-        theme_settings = self.theme_settings or {}
-        return theme_settings.get('image_tile_wide', 0.5)
-
-    @image_tile_wide.setter
-    def image_tile_wide(self, value):
-        if not self.theme_settings:
-            self.theme_settings = {}
-        self.theme_settings['image_tile_wide'] = float(value)
-
-    @property
-    def hide_navigation_bar(self):
-        theme_settings = self.theme_settings or {}
-        return theme_settings.get('hide_navigation_bar', '')
-
-    @hide_navigation_bar.setter
-    def hide_navigation_bar(self, value):
-        if not self.theme_settings:
-            self.theme_settings = {}
-        self.theme_settings['hide_navigation_bar'] = value
-
-    @property
-    def results_threshold(self):
-        theme_settings = self.theme_settings or {}
-        return theme_settings.get('results_threshold', '{}')
-
-    @results_threshold.setter
-    def results_threshold(self, value):
-        if not self.theme_settings:
-            self.theme_settings = {}
-        self.theme_settings['results_threshold'] = unicode(value)
-
-    @property
-    def desktop_hero_image(self):
-        theme_settings = self.theme_settings or {}
-        return theme_settings.get('desktop_hero_image', '')
-
-    @desktop_hero_image.setter
-    def desktop_hero_image(self, value):
-        if not self.theme_settings:
-            self.theme_settings = {}
-        self.theme_settings['desktop_hero_image'] = unicode(value)
-
-    @property
-    def mobile_hero_image(self):
-        theme_settings = self.theme_settings or {}
-        return theme_settings.get('mobile_hero_image', '')
-
-    @mobile_hero_image.setter
-    def mobile_hero_image(self, value):
-        if not self.theme_settings:
-            self.theme_settings = {}
-        self.theme_settings['mobile_hero_image'] = unicode(value)
-
-    @property
-    def intentrank_id(self):
-        theme_settings = self.theme_settings or {}
-        return theme_settings.get('intentrank_id', self.old_id)
-
-    @intentrank_id.setter
-    def intentrank_id(self, value):
-        if not self.theme_settings:
-            self.theme_settings = {}
-        self.theme_settings['intentrank_id'] = value
-
-    @property
-    def column_width(self):
-        theme_settings = self.theme_settings or {}
-        return theme_settings.get('column_width', 240)
-
-    @column_width.setter
-    def column_width(self, value):
-        if not self.theme_settings:
-            self.theme_settings = {}
-        self.theme_settings['column_width'] = value
-
-    @property
-    def social_buttons(self):
-        theme_settings = self.theme_settings or {}
-        return theme_settings.get('social_buttons', '')
-
-    @social_buttons.setter
-    def social_buttons(self, value):
-        if not self.theme_settings:
-            self.theme_settings = {}
-        self.theme_settings['social_buttons'] = value
-
-    @property
-    def enable_tracking(self):
-        theme_settings = self.theme_settings or {}
-        return theme_settings.get('enable_tracking', True)
-
-    @enable_tracking.setter
-    def enable_tracking(self, value):
-        if not self.theme_settings:
-            self.theme_settings = {}
-        self.theme_settings['enable_tracking'] = bool(value)
+    def __setattr__(self, name, value):
+        for (key, default) in self.theme_settings_fields:
+            if name == key:
+                if not self.theme_settings:
+                    self.theme_settings = {}
+                self.theme_settings[key] = value
+                return
+        super(Page, self).__setattr__(name, value)
 
     def get(self, key, default=None):
         """Duck-type a <dict>'s get() method to make CG transition easier.
@@ -625,7 +535,7 @@ class TileRelation(BaseModel):
         id_list = [tile.id for tile in tile_list]
 
         related_tiles = list(cls.objects.filter(Q(tile_a_id__in=id_list) | Q(tile_b_id__in=id_list)).exclude(tile_a_id__in=id_list, tile_b_id__in=id_list).select_related())
-        related_tiles = sorted(related_tiles, key=lambda related_tile: related_tile.score)
+        related_tiles = sorted(related_tiles, key=lambda related_tile: related_tile.score())
         tiles = []
         for related_tile in related_tiles:
             if related_tile.tile_a.id in id_list:
