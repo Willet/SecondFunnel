@@ -15,6 +15,7 @@ from django.template.defaultfilters import slugify
 from django.utils.safestring import mark_safe
 
 from apps.assets.models import Theme, Page
+from secondfunnel.errors import deprecated
 
 
 def read_a_file(file_name, default_value=''):
@@ -136,17 +137,10 @@ def render_campaign(page_id, request, store_id=0):
     page = Template(page_template)
 
     # Render response
-    rendered_page = page.render(context)
-    if isinstance(rendered_page, unicode):
-        # TODO: Doesn't make sense but is required; why?
-        rendered_page = rendered_page.encode('utf-8')
-
-    #noinspection PyArgumentList
-    rendered_page = unicode(rendered_page, 'utf-8')
-
-    return rendered_page
+    return page.render(context)
 
 
+@deprecated
 def replace_legacy_tags(page_template, context):
     """For themes that still use Theme.CUSTOM_FIELDS, replace run this extra
     replacement algorithm.

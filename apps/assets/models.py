@@ -14,6 +14,7 @@ from dirtyfields import DirtyFieldsMixin
 from model_utils.managers import InheritanceManager
 
 from apps.intentrank.serializers import *
+from apps.utils import returns_unicode
 
 
 default_master_size = {
@@ -336,6 +337,7 @@ class Theme(BaseModel):
         'js_templates': 'pinpoint/default_templates.html'
     }
 
+    @returns_unicode
     def load_theme(self):
         """download/open the template as a string."""
         from apps.pinpoint.utils import read_a_file, read_remote_file
@@ -375,10 +377,12 @@ class Page(BaseModel):
     # attributes named differently
     theme_settings = JSONField(blank=True, null=True)
 
-    theme_settings_fields = [('template', 'hero'), ('image_tile_wide', 0.5), ('hide_navigation_bar', ''),
-                             ('results_threshold', {}), ('desktop_hero_image', ''), ('mobile_hero_image', ''),
-                             ('intentrank_id', old_id), ('column_width', 240), ('social_buttons', ''),
-                             ('enable_tracking', True)]
+    theme_settings_fields = [
+        ('template', 'hero'), ('image_tile_wide', 0.5), ('hide_navigation_bar', ''),
+        ('results_threshold', {}), ('desktop_hero_image', ''), ('mobile_hero_image', ''),
+        ('intentrank_id', old_id), ('column_width', 240), ('social_buttons', ''),
+        ('enable_tracking', True), ('ir_base_url', '')
+    ]
 
     description = models.TextField(blank=True, null=True)
     url_slug = models.CharField(max_length=128)  # e.g. livedin
