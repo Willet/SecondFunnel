@@ -1,3 +1,4 @@
+{% if request.COOKIES.visited == 'true' %}
 (function(){
     try {
         var createCookie, readCookie, eraseCookie;
@@ -51,4 +52,5 @@
     } catch (error) {
         //if something goes wrong, do not affect the rest of the page.
     }
-}())
+}());
+{% endif %}
