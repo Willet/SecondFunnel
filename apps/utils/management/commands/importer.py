@@ -2,9 +2,12 @@
 To import store, products, content, tiles, and themes from store 38, type:
 $ ./manage.py importer 38 true
 """
-import urllib
 import cStringIO
+import datetime
 import json
+import pytz
+import urllib
+from django.conf import settings
 
 try:  # this one fails in virtualenvs whose PIL was compiled before Pillow
     from PIL import Image as Img
@@ -291,6 +294,8 @@ class Command(BaseCommand):
             tile_old_id = tile_dict.get('id')
             tile_template = tile_dict.get('template')
             tile_prioritized = tile_dict.get('prioritized') in ['true', 'True']
+            tile_created_at = tile_dict.get('created')
+            tile_updated_at = tile_dict.get('last-modified')
 
             tile_fields = {'feed': feed, 'template': tile_template,
                            'prioritized': tile_prioritized}
@@ -316,3 +321,15 @@ class Command(BaseCommand):
                         tile.products.add(products[str(product_old_id)])
                     else:
                         print "Product #{0} not found".format(product_old_id)
+
+            if tile_created_at:
+                # order imported tiles by CG's created date
+                tile.created_at = datetime.datetime.fromtimestamp(
+                    float(tile_created_at) / 1000,
+                    tz=pytz.timezone(settings.TIME_ZONE))
+            if tile_updated_at:
+                # order imported tiles by CG's modified date
+                tile.updated_at = datetime.datetime.fromtimestamp(
+                    float(tile_updated_at) / 1000,
+                    tz=pytz.timezone(settings.TIME_ZONE))
+            tile.save(skip_updated_at=True)

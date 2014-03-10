@@ -41,7 +41,7 @@ def ir_prioritized(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
         feed.tiles
             .filter(prioritized=True)
             .exclude(old_id__in=exclude_set)
-            .order_by('-updated_at')
+            .order_by('created_at')
             .select_related()
             .prefetch_related('content', 'products')
             .order_by('?')[:results])
@@ -87,7 +87,7 @@ def ir_created_last(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
 
 def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
                product_tiles_only=False, content_tiles_only=False,
-               request=None, exclude_set=[], *args, **kwargs):
+               request=None, exclude_set=None, *args, **kwargs):
     """Sample without replacement
     returns tiles with a higher chance for a tile to be returned if it is a popular tile
 
@@ -109,7 +109,7 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             prioritized_tiles = list(
                 feed.tiles
                 .filter(prioritized=True)
-                .order_by('updated_at')
+                .order_by('created_at')
                 .select_related()
                 .prefetch_related('content', 'products'))
             prioritized_tile_ids = [tile.old_id or tile.id
@@ -121,6 +121,9 @@ def ir_popular(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
             tiles = sorted(tiles, key=lambda tile: tile.score, reverse=True)
 
             return (prioritized_tiles + tiles)[:results]
+
+    if not exclude_set:
+        exclude_set = []
 
     tiles = list(feed.tiles.exclude(old_id__in=exclude_set)
         .select_related().prefetch_related('content', 'products'))

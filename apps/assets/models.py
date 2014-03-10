@@ -1,13 +1,14 @@
 import math
+import datetime
+import pytz
 
+from django.conf import settings
 from django.contrib.auth.models import User
-from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers.json import Serializer
 from django.db import models
 from django.db.models import Q
-from django_extensions.db.fields \
-    import CreationDateTimeField, ModificationDateTimeField
+from django_extensions.db.fields import CreationDateTimeField
 from django.utils import timezone
 from jsonfield import JSONField
 from dirtyfields import DirtyFieldsMixin
@@ -26,8 +27,10 @@ default_master_size = {
 
 
 class BaseModel(models.Model, DirtyFieldsMixin):
-    created_at = CreationDateTimeField()
-    updated_at = ModificationDateTimeField()
+    created_at = CreationDateTimeField(); created_at.editable = True
+
+    # To change this value, use model.save(skip_updated_at=True)
+    updated_at = models.DateTimeField()
 
     serializer = Serializer
 
@@ -102,13 +105,18 @@ class BaseModel(models.Model, DirtyFieldsMixin):
             return self.attributes.get(key, default=default)
 
     def save(self, *args, **kwargs):
+        # http://stackoverflow.com/a/7502498/1558430
+        # allows modification of a last-modified timestamp
+        if not kwargs.pop('skip_updated_at', False):
+            self.updated_at = datetime.datetime.now(
+                tz=pytz.timezone(settings.TIME_ZONE))
+
         self.full_clean()
-        # self.is_dirty() does not take JSONFields into account
         super(BaseModel, self).save(*args, **kwargs)
 
     def to_json(self):
         """default method for all models to have a json representation."""
-        return serializers.get_serializer("json")().serialize(iter([self]))
+        return self.serializer().serialize(iter([self]))
 
 
 class Store(BaseModel):
@@ -470,7 +478,7 @@ class Tile(BaseModel):
         starting_score = self.starting_score
         self.starting_score = max(starting_score, update_score) + math.log(
             1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
-        self.save()
+        self.save(skip_updated_at=True)
 
     def score(self):
         # returns the score of the tile based on the starting_score and how long ago the tile was created

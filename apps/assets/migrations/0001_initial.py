@@ -12,7 +12,7 @@ class Migration(SchemaMigration):
         db.create_table(u'assets_store', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
-            ('updated_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
+            ('updated_at', self.gf('django.db.models.fields.DateTimeField')()),
             ('old_id', self.gf('django.db.models.fields.IntegerField')(unique=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=1024)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
@@ -35,7 +35,7 @@ class Migration(SchemaMigration):
         db.create_table(u'assets_product', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
-            ('updated_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
+            ('updated_at', self.gf('django.db.models.fields.DateTimeField')()),
             ('old_id', self.gf('django.db.models.fields.IntegerField')(unique=True)),
             ('store', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.Store'])),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=1024)),
@@ -54,7 +54,7 @@ class Migration(SchemaMigration):
         db.create_table(u'assets_productimage', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
-            ('updated_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
+            ('updated_at', self.gf('django.db.models.fields.DateTimeField')()),
             ('old_id', self.gf('django.db.models.fields.IntegerField')(unique=True)),
             ('product', self.gf('django.db.models.fields.related.ForeignKey')(related_name='product_images', to=orm['assets.Product'])),
             ('url', self.gf('django.db.models.fields.TextField')()),
@@ -72,7 +72,7 @@ class Migration(SchemaMigration):
         db.create_table(u'assets_content', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
-            ('updated_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
+            ('updated_at', self.gf('django.db.models.fields.DateTimeField')()),
             ('old_id', self.gf('django.db.models.fields.IntegerField')(unique=True)),
             ('store', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.Store'])),
             ('url', self.gf('django.db.models.fields.TextField')()),
@@ -110,6 +110,8 @@ class Migration(SchemaMigration):
         db.create_table(u'assets_video', (
             (u'content_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['assets.Content'], unique=True, primary_key=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=1024, null=True, blank=True)),
+            ('caption', self.gf('django.db.models.fields.CharField')(default='', max_length=255, blank=True)),
+            ('username', self.gf('django.db.models.fields.CharField')(default='', max_length=255, blank=True)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('player', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('file_type', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
@@ -130,9 +132,9 @@ class Migration(SchemaMigration):
         db.create_table(u'assets_theme', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
-            ('updated_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
+            ('updated_at', self.gf('django.db.models.fields.DateTimeField')()),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=1024, null=True, blank=True)),
-            ('template', self.gf('django.db.models.fields.CharField')(default='https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/themes/campaign_base.html', max_length=1024)),
+            ('template', self.gf('django.db.models.fields.CharField')(default='apps/pinpoint/templates/pinpoint/campaign_base.html', max_length=1024)),
         ))
         db.send_create_signal(u'assets', ['Theme'])
 
@@ -140,7 +142,7 @@ class Migration(SchemaMigration):
         db.create_table(u'assets_feed', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
-            ('updated_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
+            ('updated_at', self.gf('django.db.models.fields.DateTimeField')()),
             ('feed_algorithm', self.gf('django.db.models.fields.CharField')(max_length=64, null=True, blank=True)),
         ))
         db.send_create_signal(u'assets', ['Feed'])
@@ -149,12 +151,12 @@ class Migration(SchemaMigration):
         db.create_table(u'assets_page', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
-            ('updated_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
+            ('updated_at', self.gf('django.db.models.fields.DateTimeField')()),
             ('store', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['assets.Store'])),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=256)),
             ('old_id', self.gf('django.db.models.fields.IntegerField')(unique=True)),
             ('theme', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='page', null=True, to=orm['assets.Theme'])),
             ('theme_settings', self.gf('jsonfield.fields.JSONField')(null=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=256)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('url_slug', self.gf('django.db.models.fields.CharField')(max_length=128)),
             ('legal_copy', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
@@ -167,8 +169,10 @@ class Migration(SchemaMigration):
         db.create_table(u'assets_tile', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
-            ('updated_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
-            ('old_id', self.gf('django.db.models.fields.IntegerField')(unique=True)),
+            ('updated_at', self.gf('django.db.models.fields.DateTimeField')()),
+            ('starting_score', self.gf('django.db.models.fields.FloatField')(default=0.0)),
+            ('clicks', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
+            ('old_id', self.gf('django.db.models.fields.IntegerField')(unique=True, db_index=True)),
             ('feed', self.gf('django.db.models.fields.related.ForeignKey')(related_name='tiles', to=orm['assets.Feed'])),
             ('template', self.gf('django.db.models.fields.CharField')(max_length=128)),
             ('prioritized', self.gf('django.db.models.fields.BooleanField')()),
@@ -193,6 +197,17 @@ class Migration(SchemaMigration):
             ('content', models.ForeignKey(orm[u'assets.content'], null=False))
         ))
         db.create_unique(m2m_table_name, ['tile_id', 'content_id'])
+
+        # Adding model 'TileRelation'
+        db.create_table(u'assets_tilerelation', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, blank=True)),
+            ('updated_at', self.gf('django.db.models.fields.DateTimeField')()),
+            ('tile_a', self.gf('django.db.models.fields.related.ForeignKey')(related_name='+', to=orm['assets.Tile'])),
+            ('tile_b', self.gf('django.db.models.fields.related.ForeignKey')(related_name='+', to=orm['assets.Tile'])),
+            ('starting_score', self.gf('django.db.models.fields.FloatField')(default=0.0)),
+        ))
+        db.send_create_signal(u'assets', ['TileRelation'])
 
 
     def backwards(self, orm):
@@ -241,6 +256,9 @@ class Migration(SchemaMigration):
         # Removing M2M table for field content on 'Tile'
         db.delete_table(db.shorten_name(u'assets_tile_content'))
 
+        # Deleting model 'TileRelation'
+        db.delete_table(u'assets_tilerelation')
+
 
     models = {
         u'assets.content': {
@@ -254,7 +272,7 @@ class Migration(SchemaMigration):
             'source_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'store': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['assets.Store']"}),
             'tagged_products': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['assets.Product']", 'null': 'True', 'symmetrical': 'False'}),
-            'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
+            'updated_at': ('django.db.models.fields.DateTimeField', [], {}),
             'url': ('django.db.models.fields.TextField', [], {})
         },
         u'assets.feed': {
@@ -262,7 +280,7 @@ class Migration(SchemaMigration):
             'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             'feed_algorithm': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
+            'updated_at': ('django.db.models.fields.DateTimeField', [], {})
         },
         u'assets.image': {
             'Meta': {'object_name': 'Image', '_ormbases': [u'assets.Content']},
@@ -289,7 +307,7 @@ class Migration(SchemaMigration):
             'store': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['assets.Store']"}),
             'theme': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'page'", 'null': 'True', 'to': u"orm['assets.Theme']"}),
             'theme_settings': ('jsonfield.fields.JSONField', [], {'null': 'True', 'blank': 'True'}),
-            'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
+            'updated_at': ('django.db.models.fields.DateTimeField', [], {}),
             'url_slug': ('django.db.models.fields.CharField', [], {'max_length': '128'})
         },
         u'assets.product': {
@@ -306,7 +324,7 @@ class Migration(SchemaMigration):
             'price': ('django.db.models.fields.CharField', [], {'max_length': '16'}),
             'sku': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'store': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['assets.Store']"}),
-            'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
+            'updated_at': ('django.db.models.fields.DateTimeField', [], {}),
             'url': ('django.db.models.fields.TextField', [], {})
         },
         u'assets.productimage': {
@@ -321,7 +339,7 @@ class Migration(SchemaMigration):
             'old_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
             'original_url': ('django.db.models.fields.TextField', [], {}),
             'product': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'product_images'", 'to': u"orm['assets.Product']"}),
-            'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
+            'updated_at': ('django.db.models.fields.DateTimeField', [], {}),
             'url': ('django.db.models.fields.TextField', [], {}),
             'width': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True', 'blank': 'True'})
         },
@@ -342,38 +360,51 @@ class Migration(SchemaMigration):
             'public_base_url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'slug': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
             'staff': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'stores'", 'symmetrical': 'False', 'to': u"orm['auth.User']"}),
-            'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
+            'updated_at': ('django.db.models.fields.DateTimeField', [], {})
         },
         u'assets.theme': {
             'Meta': {'object_name': 'Theme'},
             'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '1024', 'null': 'True', 'blank': 'True'}),
-            'template': ('django.db.models.fields.CharField', [], {'default': "'https://s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/static-misc-secondfunnel/themes/campaign_base.html'", 'max_length': '1024'}),
-            'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
+            'template': ('django.db.models.fields.CharField', [], {'default': "'apps/pinpoint/templates/pinpoint/campaign_base.html'", 'max_length': '1024'}),
+            'updated_at': ('django.db.models.fields.DateTimeField', [], {})
         },
         u'assets.tile': {
             'Meta': {'object_name': 'Tile'},
             'attributes': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True'}),
+            'clicks': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'content': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['assets.Content']", 'symmetrical': 'False'}),
             'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
             'feed': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'tiles'", 'to': u"orm['assets.Feed']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'old_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True'}),
+            'old_id': ('django.db.models.fields.IntegerField', [], {'unique': 'True', 'db_index': 'True'}),
             'prioritized': ('django.db.models.fields.BooleanField', [], {}),
             'products': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['assets.Product']", 'symmetrical': 'False'}),
+            'starting_score': ('django.db.models.fields.FloatField', [], {'default': '0.0'}),
             'template': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'updated_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'})
+            'updated_at': ('django.db.models.fields.DateTimeField', [], {})
+        },
+        u'assets.tilerelation': {
+            'Meta': {'object_name': 'TileRelation'},
+            'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'starting_score': ('django.db.models.fields.FloatField', [], {'default': '0.0'}),
+            'tile_a': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['assets.Tile']"}),
+            'tile_b': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['assets.Tile']"}),
+            'updated_at': ('django.db.models.fields.DateTimeField', [], {})
         },
         u'assets.video': {
             'Meta': {'object_name': 'Video', '_ormbases': [u'assets.Content']},
+            'caption': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255', 'blank': 'True'}),
             u'content_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['assets.Content']", 'unique': 'True', 'primary_key': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'file_checksum': ('django.db.models.fields.CharField', [], {'max_length': '512', 'null': 'True', 'blank': 'True'}),
             'file_type': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '1024', 'null': 'True', 'blank': 'True'}),
             'original_id': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'player': ('django.db.models.fields.CharField', [], {'max_length': '255'})
+            'player': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'username': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255', 'blank': 'True'})
         },
         u'auth.group': {
             'Meta': {'object_name': 'Group'},
