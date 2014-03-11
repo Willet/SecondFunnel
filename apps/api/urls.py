@@ -1,11 +1,13 @@
 from django.conf.urls import *
 from tastypie.api import Api
 from apps.api.resources import UserResource
+from apps.assets.api import ProductResource
 
 prefix = 'v1'
 
 api = Api(api_name=prefix)
 api.register(UserResource())
+api.register(ProductResource())
 
 urlpatterns = api.urls
 

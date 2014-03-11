@@ -8,6 +8,8 @@ from tastypie.resources import ModelResource, ALL
 from tastypie.authentication import Authentication, ApiKeyAuthentication, MultiAuthentication
 from tastypie.authorization import Authorization
 from django.db.models import Q
+from tastypie.serializers import Serializer
+from apps.api.paginator import ContentGraphPaginator
 
 from apps.assets.models import (Product, Store, Page)
 
@@ -49,17 +51,29 @@ class ProductResource(ModelResource):
         """Django's way of defining a model's metadata."""
         queryset = Product.objects.all()
         resource_name = 'product'
+        serializer = Serializer(formats=['json'])
+        paginator_class = ContentGraphPaginator
 
         filtering = {
             'store': ALL,
             'id': ('exact',),
             'name': ('exact', 'contains',),
-            'name_or_url': ('exact'),
-            'available': ('exact'),
+            # 'name_or_url': ('exact'),
+            # 'available': ('exact'),
         }
         authentication = UserAuthentication()
         authorization = UserPartOfStore()
 
+    def alter_list_data_to_serialize(self, request, data):
+        data['results'] = data['objects']
+        del data['objects']
+        return data
+
+    def alter_deserialized_list_data(self, request, data):
+        data['objects'] = data['results']
+        del data['results']
+        return data
+    '''
     def build_filters(self, filters=None):
         """build_filters (transitions) resource lookup to an ORM lookup.
 
@@ -113,6 +127,7 @@ class ProductResource(ModelResource):
             semi_filtered = semi_filtered.filter(custom_filter)
 
         return semi_filtered
+    '''
 
 
 class PageResource(ModelResource):
