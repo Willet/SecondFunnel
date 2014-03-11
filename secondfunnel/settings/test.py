@@ -27,7 +27,7 @@ INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config-test'
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'.format(WEBSITE_BASE_URL)
-COMPRESS_URL = STATIC_URL
+COMPRESS_URL = 'http://%s/' % CLOUDFRONT_DOMAIN
 
 # or '.elasticbeanstalk.com'
 SESSION_COOKIE_DOMAIN = '.secondfunnel.com'

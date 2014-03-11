@@ -1,13 +1,17 @@
 from django.conf.urls import *
 from tastypie.api import Api
 from apps.api.resources import UserResource
-from apps.assets.api import ProductResource
+from apps.assets.api import ProductResource, StoreResource, PageResource, TileResource, FeedResource
 
 prefix = 'v1'
 
 api = Api(api_name=prefix)
 api.register(UserResource())
 api.register(ProductResource())
+api.register(StoreResource())
+api.register(PageResource())
+api.register(FeedResource())
+api.register(TileResource())
 
 urlpatterns = api.urls
 
@@ -90,5 +94,5 @@ urlpatterns += patterns('apps.api.views',
     ),
 
     # If all else fails, proxy
-    url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
+    # url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
 )

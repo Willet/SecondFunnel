@@ -11,7 +11,7 @@ from django.db.models import Q
 from tastypie.serializers import Serializer
 from apps.api.paginator import ContentGraphPaginator
 
-from apps.assets.models import (Product, Store, Page)
+from apps.assets.models import (Product, Store, Page, Feed, Tile)
 
 
 class UserAuthentication(Authentication):
@@ -30,11 +30,29 @@ class UserPartOfStore(Authorization):
             return False
 
 
-class StoreResource(ModelResource):
-    """REST-style store."""
+class BaseCGResource(ModelResource):
+    """Alters the 'objects' and 'meta' keys given by the default paginator."""
     class Meta:
+        serializer = Serializer(formats=['json'])
+        paginator_class = ContentGraphPaginator
+
+    def alter_list_data_to_serialize(self, request, data):
+        data['results'] = data['objects']
+        del data['objects']
+        return data
+
+    def alter_deserialized_list_data(self, request, data):
+        data['objects'] = data['results']
+        del data['results']
+        return data
+
+
+class StoreResource(BaseCGResource):
+    """REST-style store."""
+    class Meta(BaseCGResource.Meta):
         queryset = Store.objects.all()
         resource_name = 'store'
+
         authentication = UserAuthentication()
         authorization = UserPartOfStore()
         filtering = {
@@ -43,16 +61,14 @@ class StoreResource(ModelResource):
         }
 
 
-class ProductResource(ModelResource):
+class ProductResource(BaseCGResource):
     """REST (tastypie) version of a Product."""
     store = fields.ForeignKey(StoreResource, 'store')
 
-    class Meta:
+    class Meta(BaseCGResource.Meta):
         """Django's way of defining a model's metadata."""
         queryset = Product.objects.all()
         resource_name = 'product'
-        serializer = Serializer(formats=['json'])
-        paginator_class = ContentGraphPaginator
 
         filtering = {
             'store': ALL,
@@ -64,77 +80,12 @@ class ProductResource(ModelResource):
         authentication = UserAuthentication()
         authorization = UserPartOfStore()
 
-    def alter_list_data_to_serialize(self, request, data):
-        data['results'] = data['objects']
-        del data['objects']
-        return data
 
-    def alter_deserialized_list_data(self, request, data):
-        data['objects'] = data['results']
-        del data['results']
-        return data
-    '''
-    def build_filters(self, filters=None):
-        """build_filters (transitions) resource lookup to an ORM lookup.
-
-        Also an extended defined function from ModelResource in tastypie.
-        """
-        if filters is None:
-            filters = {}
-
-        orm_filters = super(ProductResource, self).build_filters(filters)
-
-        if('name_or_url' in filters):
-            name = filters['name_or_url']
-            qset = (
-                Q(name__icontains=name) |
-                Q(original_url__startswith=name)
-            )
-            # add a filter that says "name or url contains (name)"
-            orm_filters.update({'name_or_url': qset})
-
-        availability = filters.get('available', True)
-        if availability == 'False':
-            availability = False
-        else:
-            availability = True
-        qset = (Q(available=availability))
-        orm_filters.update({'available': qset})
-
-        return orm_filters
-
-    def apply_filters(self, request, applicable_filters):
-        """Excludes filters that are not exactly a field in the database schema
-        and do them elsewhere.
-
-        TODO: I think the logic is flawed, but I can't explain why.
-        """
-        custom = []
-        custom_filters = ['name_or_url', 'available']
-
-        for filter_ in custom_filters:  # filter is a function
-            if filter_ in applicable_filters:
-                # we only want to filter by the custom filters
-                # so don't apply any filters here
-                custom.append(applicable_filters.pop(filter_))
-
-        # apply primitive filters
-        semi_filtered = super(ProductResource, self).apply_filters(
-            request, applicable_filters)
-
-        # apply our crazier ones
-        for custom_filter in custom:
-            semi_filtered = semi_filtered.filter(custom_filter)
-
-        return semi_filtered
-    '''
-
-
-class PageResource(ModelResource):
+class PageResource(BaseCGResource):
     """Returns "a page"."""
     store = fields.ForeignKey(StoreResource, 'store', full=True)
 
-    class Meta:
+    class Meta(BaseCGResource.Meta):
         queryset = Page.objects.all()
         resource_name = 'page'
 
@@ -143,16 +94,27 @@ class PageResource(ModelResource):
         }
 
 
-# Apparently, create_api_key only creates on user creation
-# Resolve this by creating a key if the key doesn't exist.
-def get_or_create_api_key(sender, **kwargs):
-    user = kwargs.get('instance')
+class FeedResource(BaseCGResource):
+    """Returns "a page"."""
+    page = fields.ForeignKey(PageResource, 'feed', full=False)
 
-    if not user:
-        return
+    class Meta(BaseCGResource.Meta):
+        queryset = Feed.objects.all()
+        resource_name = 'feed'
 
-    ApiKey.objects.get_or_create(user=user)
+        filtering = {
+            'store': ALL,
+        }
 
 
-# signals
-post_save.connect(get_or_create_api_key, sender=User)
+class TileResource(BaseCGResource):
+    """Returns "a page"."""
+    feed = fields.ForeignKey(FeedResource, 'feed', full=False)
+
+    class Meta(BaseCGResource.Meta):
+        queryset = Tile.objects.all()
+        resource_name = 'tile'
+
+        filtering = {
+            'store': ALL,
+        }

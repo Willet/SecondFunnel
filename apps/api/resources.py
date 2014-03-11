@@ -15,22 +15,8 @@ import hammock
 ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL, headers={'ApiKey': 'secretword'})
 
 
-class StoreResource(ModelResource):
-    class Meta:
-        resource_name = 'internal_store'
-        queryset = Store.objects.all()
-
-
 # http://stackoverflow.com/questions/11770501/how-can-i-login-to-django-using-tastypie
 class UserResource(ModelResource):
-    stores = fields.ToManyField(
-        StoreResource,
-        'stores',  # Store::related_name(.staff)
-        null=True,
-        blank=True,
-        full=True  # There is a way to pick specific fields, but I don't recall.
-    )
-
     class Meta:
         resource_name = 'user'
         queryset = User.objects.all()
