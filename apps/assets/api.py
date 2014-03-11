@@ -15,7 +15,7 @@ from tastypie.serializers import Serializer
 
 from apps.api.paginator import ContentGraphPaginator
 from apps.api.utils import UserObjectsReadOnlyAuthorization
-from apps.assets.models import (Product, Store, Page, Feed, Tile)
+from apps.assets.models import (Product, Store, Page, Feed, Tile, ProductImage, Image, Video, Review, Theme, TileRelation)
 
 ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL, headers={'ApiKey': 'secretword'})
 
@@ -55,6 +55,9 @@ class BaseCGResource(ModelResource):
 
 class StoreResource(BaseCGResource):
     """REST-style store."""
+    pages = fields.ToManyField('apps.assets.api.PageResource',
+                               'pages', full=False, null=True)
+
     class Meta(BaseCGResource.Meta):
         queryset = Store.objects.all()
         resource_name = 'store'
@@ -69,7 +72,8 @@ class StoreResource(BaseCGResource):
 
 class ProductResource(BaseCGResource):
     """REST (tastypie) version of a Product."""
-    store = fields.ForeignKey(StoreResource, 'store')
+    store = fields.ForeignKey('apps.assets.api.StoreResource',
+                              'store', full=False, null=True)
 
     class Meta(BaseCGResource.Meta):
         """Django's way of defining a model's metadata."""
@@ -87,13 +91,55 @@ class ProductResource(BaseCGResource):
         authorization = UserPartOfStore()
 
 
-class PageResource(BaseCGResource):
-    """Returns "a page"."""
-    store = fields.ForeignKey(StoreResource, 'store', full=True)
-
+class ProductImageResource(BaseCGResource):
+    """Returns "a product image"."""
     class Meta(BaseCGResource.Meta):
-        queryset = Page.objects.all()
-        resource_name = 'page'
+        queryset = ProductImage.objects.all()
+        resource_name = 'product_image'
+
+        filtering = {
+            'store': ALL,
+        }
+
+
+class ImageResource(BaseCGResource):
+    """Returns "a product image"."""
+    class Meta(BaseCGResource.Meta):
+        queryset = Image.objects.all()
+        resource_name = 'image'
+
+        filtering = {
+            'store': ALL,
+        }
+
+
+class VideoResource(BaseCGResource):
+    """Returns "a product image"."""
+    class Meta(BaseCGResource.Meta):
+        queryset = Video.objects.all()
+        resource_name = 'video'
+
+        filtering = {
+            'store': ALL,
+        }
+
+
+class ReviewResource(BaseCGResource):
+    """Returns "a product image"."""
+    class Meta(BaseCGResource.Meta):
+        queryset = Review.objects.all()
+        resource_name = 'review'
+
+        filtering = {
+            'store': ALL,
+        }
+
+
+class ThemeResource(BaseCGResource):
+    """Returns "a product image"."""
+    class Meta(BaseCGResource.Meta):
+        queryset = Theme.objects.all()
+        resource_name = 'theme'
 
         filtering = {
             'store': ALL,
@@ -102,7 +148,8 @@ class PageResource(BaseCGResource):
 
 class FeedResource(BaseCGResource):
     """Returns "a page"."""
-    page = fields.ForeignKey(PageResource, 'feed', full=False)
+    page = fields.RelatedField('apps.assets.api.PageResource',
+                               'page', full=False, null=True)
 
     class Meta(BaseCGResource.Meta):
         queryset = Feed.objects.all()
@@ -113,13 +160,41 @@ class FeedResource(BaseCGResource):
         }
 
 
+class PageResource(BaseCGResource):
+    """Returns "a page"."""
+    store = fields.ForeignKey('apps.assets.api.StoreResource',
+                              'store', full=False, null=True)
+    feed = fields.ForeignKey('apps.assets.api.FeedResource',
+                             'feed', full=False, null=True)
+
+    class Meta(BaseCGResource.Meta):
+        queryset = Page.objects.all()
+        resource_name = 'page'
+
+        filtering = {
+            'store': ALL,
+        }
+
+
 class TileResource(BaseCGResource):
     """Returns "a page"."""
-    feed = fields.ForeignKey(FeedResource, 'feed', full=False)
+    feed = fields.ForeignKey('apps.assets.api.FeedResource',
+                            'feed', full=False, null=True)
 
     class Meta(BaseCGResource.Meta):
         queryset = Tile.objects.all()
         resource_name = 'tile'
+
+        filtering = {
+            'store': ALL,
+        }
+
+
+class TileRelationResource(BaseCGResource):
+    """Returns "a page"."""
+    class Meta(BaseCGResource.Meta):
+        queryset = TileRelation.objects.all()
+        resource_name = 'tile_relation'
 
         filtering = {
             'store': ALL,

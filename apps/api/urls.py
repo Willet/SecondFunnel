@@ -1,16 +1,22 @@
 from django.conf.urls import *
 from tastypie.api import Api
-from apps.assets.api import ProductResource, StoreResource, PageResource, TileResource, FeedResource, UserResource
+from apps.assets.api import ProductResource, StoreResource, PageResource, TileResource, FeedResource, UserResource, ProductImageResource, ImageResource, VideoResource, ThemeResource, ReviewResource, TileRelationResource
 
 prefix = 'v1'
 
 api = Api(api_name=prefix)
 api.register(UserResource())
-api.register(ProductResource())
 api.register(StoreResource())
+api.register(ProductResource())
+api.register(ProductImageResource())
+api.register(ImageResource())
+api.register(VideoResource())
+api.register(ReviewResource())
+api.register(ThemeResource())
 api.register(PageResource())
 api.register(FeedResource())
 api.register(TileResource())
+api.register(TileRelationResource())
 
 urlpatterns = api.urls
 
