@@ -10,6 +10,10 @@ def pixel(request):
     response.set_cookie('visited', 'true', max_age=settings.TRACKING_COOKIE_AGE)
     return response
 
-def tracking(request):
-    response = render_to_response('tracking.js', context_instance=RequestContext(request), content_type='application/javascript')
+def tracking(request, tracking_id):
+    response = render_to_response(
+        'tracking.js',
+        {'tracker': tracking_id},
+        context_instance=RequestContext(request),
+        content_type='application/javascript')
     return response
