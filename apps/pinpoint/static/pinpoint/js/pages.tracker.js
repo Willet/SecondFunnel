@@ -545,7 +545,6 @@ App.module("tracker", function (tracker, App) {
     };
 
     this.setup = function (options) {
-        console.debug('optests', App.option('optests', {}));
         addItem('create', App.option('gaAccountNumber'), 'auto');
 
         // TODO: If these are already set on page load, do we need to set them

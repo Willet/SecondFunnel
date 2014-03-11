@@ -126,11 +126,11 @@ App.module('optimizer', function (optimizer, App) {
             cookie = OPTIMIZER_COOKIE + index;
 
         if ((kwargs.disabled || App.option('debug', App.QUIET) > App.QUIET) &&
-            (ENABLED_TESTS.indexOf(index.toString()) == -1)) {
+            !ENABLED_TESTS[index]) {
             return;
         }
 
-        result = this.getCookieValue(cookie);
+        result = ENABLED_TESTS[index] || this.getCookieValue(cookie);
         if (result && result.length && options) {
             pos = getPos(result);
             probabilities = Array.apply(null, new Array(options.length)).map(Number.prototype.valueOf, 0);
@@ -182,10 +182,18 @@ App.module('optimizer', function (optimizer, App) {
      * @returns none
      **/
     this.initialize = function () {
-        var test, index, self;
-        ENABLED_TESTS = App.utils.getQuery('activate-test').split(',');
+        var test,
+            index,
+            tests = {},
+            self = this;
+
         window.OPTIMIZER_TESTS = window.OPTIMIZER_TESTS || [];
-        self = this;
+        ENABLED_TESTS = App.utils.getQuery('activate-test').split(',');
+        _.each(ENABLED_TESTS, function (t) {
+            t = t.split('.');
+            tests[t[0]] = t[1];
+        });
+        ENABLED_TESTS = tests;
 
         _.each(window.OPTIMIZER_TESTS, function (t) {
             index = t.index || t.slot;
