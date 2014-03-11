@@ -19,8 +19,6 @@
         // Track Perfect Audience Events
         window._pq = window._pq || [];
         _pq.push(['track', 'Purchase']);
-
-        console.log('Success');
     } catch (error) {
         // If something goes wrong, do not affect the rest of the page.
     }
