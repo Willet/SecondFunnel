@@ -1,4 +1,5 @@
 from django.conf import settings
+from tastypie.exceptions import BadRequest
 from tastypie.paginator import Paginator
 
 
@@ -9,19 +10,25 @@ class ContentGraphPaginator(Paginator):
 
     def get_limit(self):
         """Changes the 'results' (CG) param to 'limit'"""
-
-        limit = self.request_data.get('results', 20)
+        limit = self.request_data.get('results', self.request_data.get(
+            'limit', self.limit))
         if limit is None:
             limit = getattr(settings, 'API_LIMIT_PER_PAGE', 20)
 
         try:
             limit = int(limit)
         except ValueError:
-            pass  # superclass handles it
+            raise BadRequest("Invalid limit '%s' provided. Please provide a positive integer." % limit)
 
-        self.request_data['limit'] = limit
+        if limit < 0:
+            raise BadRequest("Invalid limit '%s' provided. Please provide a positive integer >= 0." % limit)
 
-        return super(ContentGraphPaginator, self).get_limit()
+        if self.max_limit and (not limit or limit > self.max_limit):
+            # If it's more than the max, we're only going to return the max.
+            # This is to prevent excessive DB (or other) load.
+            return self.max_limit
+
+        return limit
 
     def page(self):
         output = super(ContentGraphPaginator, self).page()
