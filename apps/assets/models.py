@@ -379,7 +379,7 @@ class Feed(BaseModel):
 
 
 class Page(BaseModel):
-    store = models.ForeignKey(Store)
+    store = models.ForeignKey(Store, related_name='pages')
 
     name = models.CharField(max_length=256)  # e.g. Lived In
     old_id = models.IntegerField(unique=True)
@@ -402,7 +402,7 @@ class Page(BaseModel):
 
     last_published_at = models.DateTimeField(blank=True, null=True)
 
-    feed = models.ForeignKey(Feed)
+    feed = models.ForeignKey(Feed, related_name='page')
 
     def __init__(self, *args, **kwargs):
         super(Page, self).__init__(*args, **kwargs)
