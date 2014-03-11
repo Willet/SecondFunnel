@@ -1,5 +1,5 @@
-{% if request.COOKIES.visited == 'true' %}
-(function(){
+{% if not dev and request.COOKIES.visited == 'true' %}
+;(function(){
     try {
         // Load Perfect Audience
         (function() {
@@ -19,8 +19,18 @@
         // Track Perfect Audience Events
         window._pq = window._pq || [];
         _pq.push(['track', 'Purchase']);
+
+        console.log('Success');
     } catch (error) {
-        //if something goes wrong, do not affect the rest of the page.
+        // If something goes wrong, do not affect the rest of the page.
+    }
+}());
+{% elif dev %}
+;(function(){
+    try {
+        console.log('Dev mode; Do nothing!');
+    } catch (error) {
+        // If something goes wrong, do not affect the rest of the page.
     }
 }());
 {% endif %}
