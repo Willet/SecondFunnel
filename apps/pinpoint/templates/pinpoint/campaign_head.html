@@ -28,7 +28,7 @@
             xmlhttp.onload = function () {
                 // Ensures that it's resolved on 200 or 404
                 if (xmlhttp.status === 200) { // success so resolve normally
-                    PAGES_INFO.initialResults = JSON.parse(xmlhttp.response);
+                    PAGES_INFO.initialResults = JSON.parse(xmlhttp.response || xmlhttp.responseText);
                 }
             };
             PAGES_INFO.initialResults = xmlhttp;
