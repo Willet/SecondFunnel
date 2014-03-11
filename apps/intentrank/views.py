@@ -68,8 +68,8 @@ def get_results_view(request, page_id):
         return HttpResponseNotFound("No feed for page {0}".format(page_id))
 
     #if related is specified, return all related tile to the given tile-id
-    related = request.GET.get('related', None)
-    if related is not None and related != '' and related != 'None':
+    related = request.GET.get('related', '')
+    if related != '':
         ir = IntentRank(feed=feed)
         resp = ajax_jsonp(ir.transform(TileRelation.get_related_tiles([Tile.objects.get(old_id=related)])[:100]))
         print "{0} ended".format(this_thread.name)
