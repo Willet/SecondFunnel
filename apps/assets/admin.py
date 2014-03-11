@@ -47,11 +47,19 @@ class PageAdmin(BaseAdmin):
 
 
 class TileAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display + ['template', 'starting_score']
+    list_display = ['old_id'] + BaseAdmin.list_display + ['template', 'starting_score', 'score']
 
 
 class TileRelationAdmin(BaseAdmin):
-    list_display = BaseAdmin.list_display + ['tile_a', 'tile_b']
+    list_display = BaseAdmin.list_display + ['tile_a_id', 'tile_b_id', 'starting_score', 'score']
+
+    def tile_a_id(self, obj):
+        return str(obj.tile_a.id)
+    tile_a_id.short_description = 'tile_a_id'
+
+    def tile_b_id(self, obj):
+        return str(obj.tile_b.id)
+    tile_b_id.short_description = 'tile_b_id'
 
 
 class FeedAdmin(BaseAdmin):

@@ -488,6 +488,7 @@ class Tile(BaseModel):
         # returns the score of the tile based on the starting_score and how long ago the tile was created
         return math.exp(self.starting_score - Tile.popularity_devalue_rate *
                         self.days_since_creation())
+    score.short_description = 'Score'
 
     def log_score(self):
         # the lower the ratio, the bigger the range between low and high scores
@@ -564,6 +565,7 @@ class TileRelation(BaseModel):
     def score(self):
         # returns the score of the tile based on the starting_score and how long ago the tile was created
         return math.exp(self.starting_score - TileRelation.popularity_devalue_rate * self.days_since_creation())
+    score.short_description = 'Score'
 
     def log_score(self):
         # the lower the ratio, the bigger the range between low and high scores
