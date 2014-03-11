@@ -273,7 +273,7 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
                     raise IOError("Could not upload the gzipped JS file to S3!")
 
                 # Force relative path
-                src = '//{0}/{1}/{2}'.format(cloudfront_domain, test_storage_bucket_name, new_script_s3_key)
+                src = '//{0}/{1}'.format(cloudfront_domain, new_script_s3_key)
 
             script_tag['src'] = re.sub(r'(http|https)://', '//', src)
             script_tag['async'] = "true"
