@@ -1,7 +1,6 @@
 from django.conf.urls import *
 from tastypie.api import Api
-from apps.api.resources import UserResource
-from apps.assets.api import ProductResource, StoreResource, PageResource, TileResource, FeedResource
+from apps.assets.api import ProductResource, StoreResource, PageResource, TileResource, FeedResource, UserResource
 
 prefix = 'v1'
 

@@ -350,6 +350,10 @@ class Theme(BaseModel):
         """download/open the template as a string."""
         from apps.pinpoint.utils import read_a_file, read_remote_file
 
+        if 'static-misc-secondfunnel/themes/gap.html' in self.template:
+            # exception for task "Get all pages on tng-test and tng-master using gap theme as code"
+            self.template = 'apps/pinpoint/static/pinpoint/themes/gap/index.html'
+
         local_theme = read_a_file(self.template, '')
         if local_theme:
             return local_theme

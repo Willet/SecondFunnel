@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from apps.assets.models import (Store, Page, Tile, Feed, Product, ProductImage,
-                                Image, Content, Theme, Review, Video)
+                                Image, Content, Theme, Review, Video, TileRelation)
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -50,6 +50,10 @@ class TileAdmin(BaseAdmin):
     list_display = ['old_id'] + BaseAdmin.list_display + ['template', 'starting_score']
 
 
+class TileRelationAdmin(BaseAdmin):
+    list_display = BaseAdmin.list_display + ['tile_a', 'tile_b']
+
+
 class FeedAdmin(BaseAdmin):
     list_display = BaseAdmin.list_display
 
@@ -85,6 +89,7 @@ class VideoAdmin(BaseAdmin):
 admin.site.register(Store, StoreAdmin)
 admin.site.register(Page, PageAdmin)
 admin.site.register(Tile, TileAdmin)
+admin.site.register(TileRelation, TileRelationAdmin)
 admin.site.register(Feed, FeedAdmin)
 admin.site.register(Image, ImageAdmin)
 admin.site.register(ProductImage, ProductImageAdmin)
