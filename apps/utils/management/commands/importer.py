@@ -250,6 +250,7 @@ class Command(BaseCommand):
             page_column_width = page_dict.get('column-width')
             page_social_buttons = page_dict.get('social-buttons')
             page_enable_tracking = page_dict.get('enable-tracking')
+            page_hide_navigation_bar = page_dict.get('hide-navigation-bar')
 
             # since feeds have no fields except id right now, the only way to find the feed is based on the page's feed_id
             try:
@@ -284,6 +285,7 @@ class Command(BaseCommand):
             page.column_width = page_column_width
             page.social_buttons = page_social_buttons
             page.enable_tracking = page_enable_tracking
+            page.hide_navigation_bar = page_hide_navigation_bar
             page.save()
 
             self.import_tiles(page_old_id, feed)
