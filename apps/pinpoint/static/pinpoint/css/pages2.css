@@ -105,7 +105,7 @@ a, a:hover, a:focus {
 }
 
 div.loading {
-    background-image: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif');
+    background-image: url('//cdn.secondfunnel.com/images/ajax-spinner.gif');
     background-repeat: no-repeat;
     width: 32px;
     height: 32px;
@@ -148,7 +148,7 @@ div.loading {
 }
 
 .tile.loading:before {
-    content: url('//s3.amazonaws.com/elasticbeanstalk-us-east-1-056265713214/images/ajax-spinner.gif');
+    content: url('//cdn.secondfunnel.com/images/ajax-spinner.gif');
     display: block;
     position: absolute;
     top: 48%;

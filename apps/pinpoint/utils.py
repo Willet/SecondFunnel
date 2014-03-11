@@ -22,6 +22,8 @@ def read_remote_file(url, default_value=''):
     try:
         request = urllib2.Request(url)
         request.add_header('Accept-encoding', 'gzip')
+        # in case Python-urllib/2.6 would be rejected
+        request.add_header('User-agent', 'Mozilla/5.0')
         response = urllib2.urlopen(request)
 
         if not 200 <= int(response.getcode()) <= 300:
@@ -36,5 +38,5 @@ def read_remote_file(url, default_value=''):
 
         content = response.read()
         return content, False
-    except (TypeError, ValueError) as err:
+    except (TypeError, ValueError, urllib2.HTTPError) as err:
         return default_value, False
