@@ -205,7 +205,4 @@ App.module('optimizer', function (optimizer, App) {
             self.addTest(index, test, t);
         });
     };
-
-    // Force start, as run independentally of when the App begins
-    this.initialize();
 });

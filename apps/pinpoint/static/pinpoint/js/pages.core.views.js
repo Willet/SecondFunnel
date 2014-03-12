@@ -183,8 +183,7 @@ App.module('core', function (module, App) {
         },
 
         'onClick': function (ev) {
-            var tile = this.model,
-                preview;
+            var tile = this.model;
 
             // Tile is a banner tile
             if (tile.get('redirect-url')) {
@@ -291,14 +290,6 @@ App.module('core', function (module, App) {
             }
 
             $tileImg.load(allocateTile);
-
-            if (App.support.touch()) {
-                this.tapIndicator.show(new module.TapIndicator());
-
-                this.tapIndicator.on("click", function () {
-                    self.click.apply(self, arguments);
-                });
-            }
         }
     });
 
