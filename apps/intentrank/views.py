@@ -116,7 +116,7 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
         # Update clicks
         clicks = request.session.get('clicks', [])
         if tile_id not in clicks:
-            tile.click()
+            tile.add_click()
             for click in clicks:
                 TileRelation.relate(Tile.objects.get(old_id=click), tile)
             clicks.append(tile_id)
@@ -186,7 +186,7 @@ def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
 @request_methods('POST')
 def click_tile(request, tile_id, **kwargs):
     tile = Tile.objects.get(old_id=tile_id)
-    tile.click()
+    tile.add_click()
     return HttpResponse('', status=204)
 
 
@@ -195,5 +195,5 @@ def click_tile(request, tile_id, **kwargs):
 @request_methods('POST')
 def view_tile(request, tile_id, **kwargs):
     tile = Tile.objects.get(old_id=tile_id)
-    tile.view()
+    tile.add_view()
     return HttpResponse('', status=204)

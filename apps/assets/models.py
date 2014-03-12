@@ -482,7 +482,7 @@ class Tile(BaseModel):
     # the lower the ratio, the bigger the range between low and high log_scores
     ratio = 1.5
 
-    def click(self):
+    def add_click(self):
         self.clicks += 1
         # the value used to increase click_starting_score per click
         update_score = Tile.popularity_devalue_rate * self.days_since_creation()
@@ -491,7 +491,7 @@ class Tile(BaseModel):
             1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
         self.save(skip_updated_at=True)
 
-    def view(self):
+    def add_view(self):
         self.views += 1
         # the value used to view_increase starting_score per click
         update_score = Tile.popularity_devalue_rate * self.days_since_creation()
