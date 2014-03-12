@@ -18,7 +18,7 @@ AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket', 'elasticbeanstalk-us-eas
 INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config'
 INTENTRANK_DEFAULT_NUM_RESULTS = 10
 MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
-CLOUDFRONT_DOMAIN = 'd3m0w2rwcva4oh.cloudfront.net'
+CLOUDFRONT_DOMAIN = 'cdn.secondfunnel.com'
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),

@@ -280,7 +280,7 @@ App.module("intentRank", function (intentRank, App) {
      */
     this.updateCache = function (diff) {
         // right now it seems as if IR has a hard limit of 20
-        this.options.IRCacheResultCount = Math.min(20,
+        this.options.IRCacheResultCount = Math.min(10,
             this.options.IRCacheResultCount + diff);
         return this;
     };

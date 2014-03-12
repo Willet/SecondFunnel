@@ -17,7 +17,7 @@ App.module('optimizer', function (optimizer, App) {
         MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24,
         is = function (device) {
             if (device === 'mobile') {
-                return window.innerWidth <= 768;
+                return $(window).width() <= 768;
             } else if (device && device.length) {
                 return (new RegExp(device, 'i')).test(window.navigator.userAgent);
             }
@@ -117,20 +117,20 @@ App.module('optimizer', function (optimizer, App) {
      *
      * @returns none
      **/
-    this.addTest = function (index, test, args) {
+    this.addTest = function (index, test, kwargs) {
         var result,
             pos,
-            selector = args.selector,
-            options = args.options,
-            probabilities = args.probabilities,
+            selector = kwargs.selector,
+            options = kwargs.options,
+            probabilities = kwargs.probabilities,
             cookie = OPTIMIZER_COOKIE + index;
 
-        if ((App.option('debug', App.QUIET) > App.QUIET) &&
-            (ENABLED_TESTS.indexOf(index.toString()) == -1)) {
+        if ((kwargs.disabled || App.option('debug', App.QUIET) > App.QUIET) &&
+            !ENABLED_TESTS.hasOwnProperty(index)) {
             return;
         }
 
-        result = this.getCookieValue(cookie);
+        result = ENABLED_TESTS[index] || this.getCookieValue(cookie);
         if (result && result.length && options) {
             pos = getPos(result);
             probabilities = Array.apply(null, new Array(options.length)).map(Number.prototype.valueOf, 0);
@@ -142,7 +142,7 @@ App.module('optimizer', function (optimizer, App) {
                 result = this.testTemplate(selector, options, probabilities);
                 break;
             default:
-                result = args.custom(result);
+                result = kwargs.custom(result);
         }
 
         console.debug(index + '.' + test + ': ' + result);
@@ -182,10 +182,18 @@ App.module('optimizer', function (optimizer, App) {
      * @returns none
      **/
     this.initialize = function () {
-        var test, index, self;
-        ENABLED_TESTS = App.utils.getQuery('activate-test').split(',');
+        var test,
+            index,
+            tests = {},
+            self = this;
+
         window.OPTIMIZER_TESTS = window.OPTIMIZER_TESTS || [];
-        self = this;
+        ENABLED_TESTS = App.utils.getQuery('activate-test').split(',');
+        _.each(ENABLED_TESTS, function (t) {
+            t = t.split('.');
+            tests[t[0]] = t[1];
+        });
+        ENABLED_TESTS = tests;
 
         _.each(window.OPTIMIZER_TESTS, function (t) {
             index = t.index || t.slot;
