@@ -354,7 +354,7 @@ App.module("tracker", function (tracker, App) {
 
             // Be super explicit about what the hash is
             // rather than relying on the window
-            trackPageview('#' + tileId);
+            // trackPageview('#' + tileId);
         },
 
         // Content Share
@@ -584,7 +584,7 @@ App.module("tracker", function (tracker, App) {
     // add mediator triggers if the module exists.
     App.vent.on({
         'tracking:trackEvent': trackEvent,
-        'tracking:trackPageView': trackPageview,
+        'tracking:trackPageView': function() {}, //trackPageview,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,
         'tracking:registerFacebookListeners': this.registerFacebookListeners,
         'tracking:videoStateChange': this.videoStateChange,
