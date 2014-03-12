@@ -74,3 +74,38 @@ def memoize(function, limit=None):
     memoize_wrapper._memoize_origfunc = function
     memoize_wrapper.func_name = function.func_name
     return memoize_wrapper
+
+
+def async(fn):
+    """Decorated function fn will be run asynchronously.
+
+    Copied (and untested) from
+    http://code.activestate.com/recipes/576684-simple-threading-decorator/
+
+    Examples::
+    >>> @async
+    >>> def task1():
+    >>>     pass  # do_something
+    >>>
+    >>> @async
+    >>> def task2():
+    >>>     pass  # do_something_too
+    >>>
+    >>> t1 = task1()
+    >>> t2 = task2()
+    >>>
+    >>> t1.join()
+    >>> t2.join()
+
+    :returns Thread object
+    """
+    from threading import Thread
+    from functools import wraps
+
+    @wraps(fn)
+    def async_func(*args, **kwargs):
+        func_hl = Thread(target=fn, args=args, kwargs=kwargs)
+        func_hl.start()
+        return func_hl
+
+    return async_func

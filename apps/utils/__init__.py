@@ -1,6 +1,6 @@
 # python.net/~goodger/projects/pycon/2007/idiomatic/handout.html#importing
 from functools import wraps
-from functional import check_keys_exist, memoize, noop, proxy, where
+from functional import async, check_keys_exist, memoize, noop, proxy, where
 
 
 def returns_unicode(fn, encoding='utf-8'):
