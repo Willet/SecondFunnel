@@ -354,7 +354,7 @@ App.module("tracker", function (tracker, App) {
 
             // Be super explicit about what the hash is
             // rather than relying on the window
-            trackPageview('#' + tileId);
+            // trackPageview('#' + tileId);
         },
 
         // Content Share
@@ -545,7 +545,6 @@ App.module("tracker", function (tracker, App) {
     };
 
     this.setup = function (options) {
-        console.debug('optests', App.option('optests', {}));
         addItem('create', App.option('gaAccountNumber'), 'auto');
 
         // TODO: If these are already set on page load, do we need to set them
@@ -585,7 +584,7 @@ App.module("tracker", function (tracker, App) {
     // add mediator triggers if the module exists.
     App.vent.on({
         'tracking:trackEvent': trackEvent,
-        'tracking:trackPageView': trackPageview,
+        'tracking:trackPageView': function() {}, //trackPageview,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,
         'tracking:registerFacebookListeners': this.registerFacebookListeners,
         'tracking:videoStateChange': this.videoStateChange,

@@ -860,17 +860,27 @@
             'click .content-wrapper a.button.find-store': function () {
                 recordEvent('product_find in store', 'product pop-up', 'find in store', productName);
 
-                try {
-                    _pq.push(['track', 'FindInStore']);
-                } catch(err) {}
+                    try {
+                        _pq.push(['track', 'FindInStore']);
+                    } catch(err) {}
+
+                    try {
+                        __adroll.record_user({"adroll_segments": 'FindInStore'});
+                    } catch(err) {}
+
             },
             // 8 - Buy Product Online
             'click .content-wrapper a.button.in-store': function () {
                 recordEvent('product_buy online', 'product pop-up', 'buy online', productName);
 
-                try {
-                    _pq.push(['track', 'ShopOnGap']);
-                } catch(err) {}
+                    try {
+                        _pq.push(['track', 'ShopOnGap']);
+                    } catch(err) {}
+
+                    try {
+                        __adroll.record_user({"adroll_segments": 'ShopOnGap'});
+                    } catch(err) {}
+
             },
             // 10 - Share deal
             'click #hero-area .buttons a': function () {
@@ -926,32 +936,34 @@
             'click .tile.image, .tile.product': function() {
                 var cid = $(this).attr('id'),
                     obj = App.discovery.collection.get(cid),
-                    product, product_id, page_id, store_slug, feed_id;
+                    product, tile_id, page_id, store_slug, feed_id;
 
-                product = (obj.get('related-products') || [null])[0] || obj;
-                product_id = (product.get) ? product.get('tile-id') : product['product-id'];
-                page_id = App.options.page.id;
-                store_slug = App.options.store.slug;
+                    tile_id = obj.get('tile-id');
+                    page_id = App.options.page.id;
+                    store_slug = App.options.store.slug;
 
-                // Needs to match the RSS
-                feed_id = store_slug + 'P' + page_id + 'T' + product_id;
+                    // Needs to match the RSS
+                    feed_id = store_slug + 'P' + page_id + 'T' + tile_id;
 
-                try {
                     if ($(this).hasClass('image')) {
-                        _pq.push(['track', 'ImagePopUp']);
+                        segment = 'ImagePopUp';
                     } else if ($(this).hasClass('product')) {
-                        _pq.push(['track', 'ProductPopUp']);
+                        segment = 'ProductPopUp';
                     }
 
-                    _pq.push(['track', 'PopUp']);
-                    _pq.push(['trackProduct', feed_id]);
-                } catch(err) {}
+                    try {
+                        _pq.push(['track', segment]);
+                        _pq.push(['track', 'PopUp']);
+                        _pq.push(['trackProduct', feed_id]);
+                    } catch(err) {}
 
-                try {
-                    __adroll.record_user({"product_id": feed_id});
-                } catch(err) {}
-            }
-        });
+                    try {
+                        __adroll.record_user({"adroll_segments": segment});
+                        __adroll.record_user({"adroll_segments": 'PopUp'});
+                        __adroll.record_user({"product_id": feed_id});
+                    } catch(err) {}
+                }
+            });
 
         // Scroll event has to be seperately tracked.
         // 12 - Scroll for more
