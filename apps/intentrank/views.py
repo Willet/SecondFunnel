@@ -184,14 +184,16 @@ def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
 @never_cache
 @csrf_exempt
 @request_methods('POST')
-def click_tile(request, tile_id):
+def click_tile(request, tile_id, **kwargs):
     tile = Tile.objects.get(old_id=tile_id)
     tile.click()
+    return HttpResponse('', status=204)
 
 
 @never_cache
 @csrf_exempt
 @request_methods('POST')
-def view_tile(request, tile_id):
+def view_tile(request, tile_id, **kwargs):
     tile = Tile.objects.get(old_id=tile_id)
     tile.view()
+    return HttpResponse('', status=204)
