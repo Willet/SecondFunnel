@@ -179,3 +179,19 @@ def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
         raise Http404("Feed not found")
     feed = rss_feed.main(page, feed_name=feed_name, feed_link=feed_link)
     return HttpResponse(feed, content_type='application/rss+xml')
+
+
+@never_cache
+@csrf_exempt
+@request_methods('POST')
+def click_tile(request, tile_id):
+    tile = Tile.objects.get(old_id=tile_id)
+    tile.click()
+
+
+@never_cache
+@csrf_exempt
+@request_methods('POST')
+def view_tile(request, tile_id):
+    tile = Tile.objects.get(old_id=tile_id)
+    tile.view()

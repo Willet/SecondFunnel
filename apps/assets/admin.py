@@ -18,10 +18,10 @@ class BaseAdmin(admin.ModelAdmin):
 
 class BaseNamedAdmin(BaseAdmin):
     list_display = [
-        'name',
-        'description',
-        'slug'
-    ] + BaseAdmin.list_display
+                       'name',
+                       'description',
+                       'slug'
+                   ] + BaseAdmin.list_display
 
     search_fields = ['name']
 
@@ -47,7 +47,8 @@ class PageAdmin(BaseAdmin):
 
 
 class TileAdmin(BaseAdmin):
-    list_display = ['old_id'] + BaseAdmin.list_display + ['template', 'starting_score', 'score']
+    list_display = ['old_id'] + BaseAdmin.list_display + ['template', 'click_starting_score', 'click_score',
+                                                          'view_starting_score', 'view_score']
 
 
 class TileRelationAdmin(BaseAdmin):
@@ -55,10 +56,12 @@ class TileRelationAdmin(BaseAdmin):
 
     def tile_a_id(self, obj):
         return str(obj.tile_a.id)
+
     tile_a_id.short_description = 'tile_a_id'
 
     def tile_b_id(self, obj):
         return str(obj.tile_b.id)
+
     tile_b_id.short_description = 'tile_b_id'
 
 
