@@ -584,7 +584,7 @@ App.module("tracker", function (tracker, App) {
     // add mediator triggers if the module exists.
     App.vent.on({
         'tracking:trackEvent': trackEvent,
-        'tracking:trackPageView': trackPageview,
+        'tracking:trackPageView': function() {}, //trackPageview,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,
         'tracking:registerFacebookListeners': this.registerFacebookListeners,
         'tracking:videoStateChange': this.videoStateChange,
