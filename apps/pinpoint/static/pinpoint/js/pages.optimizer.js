@@ -126,7 +126,7 @@ App.module('optimizer', function (optimizer, App) {
             cookie = OPTIMIZER_COOKIE + index;
 
         if ((kwargs.disabled || App.option('debug', App.QUIET) > App.QUIET) &&
-            !ENABLED_TESTS[index]) {
+            !ENABLED_TESTS.hasOwnProperty(index)) {
             return;
         }
 
