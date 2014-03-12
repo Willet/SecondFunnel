@@ -165,7 +165,7 @@ class Product(BaseModel):
 
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
-    attributes = JSONField(null=True)
+    attributes = JSONField(blank=True, null=True)
 
     serializer = ProductSerializer
 
