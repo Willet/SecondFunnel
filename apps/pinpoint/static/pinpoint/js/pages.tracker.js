@@ -354,7 +354,7 @@ App.module("tracker", function (tracker, App) {
 
             // Be super explicit about what the hash is
             // rather than relying on the window
-            trackPageview('#' + tileId);
+            // trackPageview('#' + tileId);
         },
 
         // Content Share
