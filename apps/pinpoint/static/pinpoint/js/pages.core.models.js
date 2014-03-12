@@ -95,11 +95,13 @@ App.module('core', function (core, App) {
             // this tile has no images, or can be an image itself
             if (imgInstances.length === 0) {
                 imgInstances.push(new core.Image({
+                    'sizes': this.get('sizes'),
+                    'dominant-color': this.get('dominant-color'),
                     'url': this.get('url')
                 }));
             }
 
-            defaultImage = this.getDefaultImage();
+            defaultImage = imgInstances[0];
 
             // Transform related-product image, if necessary
             relatedProducts = this.get('related-products');
@@ -132,8 +134,7 @@ App.module('core', function (core, App) {
          * @returns {core.Image}
          */
         'getImage': function (byImgId) {
-            var self = this,
-                imgId = parseInt(byImgId || self.getDefaultImageId(), 10),
+            var imgId = parseInt(byImgId || this.getDefaultImageId(), 10),
                 defImg;
 
             defImg =
@@ -153,8 +154,10 @@ App.module('core', function (core, App) {
                     }
                     return new core.Image(this.get('images')[0]);
                 } catch (err) {
-                    // fuck this shit (wild guess)
+                    // if all fails, this is most likely a lifestyle image
                     return new core.Image({
+                        'sizes': this.get('sizes'),
+                        'dominant-color': this.get('dominant-color'),
                         'url': this.get('url')
                     });
                 }
