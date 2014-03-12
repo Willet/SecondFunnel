@@ -460,7 +460,7 @@ App.module('core', function (module, App) {
                     options.initialResults.onreadystatechange = function () {
                         // XMLHttpRequest.DONE on IE 9+ and other browsers; support for IE8
                         if (this.readyState == 4 && this.status == 200) {
-                            deferred.resolve(JSON.parse(this.response));
+                            deferred.resolve(JSON.parse(this.response || this.responseText));
                         }
                     };
                 }

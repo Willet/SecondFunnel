@@ -105,7 +105,10 @@ def async(fn):
     @wraps(fn)
     def async_func(*args, **kwargs):
         func_hl = Thread(target=fn, args=args, kwargs=kwargs)
-        func_hl.start()
-        return func_hl
+        try:
+            func_hl.start()
+            return func_hl
+        except RuntimeError:  # calling start() more than once
+            return fn(*args, **kwargs)  # fake an async
 
     return async_func
