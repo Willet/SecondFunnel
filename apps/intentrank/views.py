@@ -3,6 +3,7 @@ from threading import Thread, current_thread
 from django.conf import settings
 from django.http import HttpResponse
 from django.http.response import Http404, HttpResponseNotFound
+from django.shortcuts import get_object_or_404
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
 
@@ -116,7 +117,6 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
         # Update clicks
         clicks = request.session.get('clicks', [])
         if tile_id not in clicks:
-            tile.add_click()
             for click in clicks:
                 TileRelation.relate(Tile.objects.get(old_id=click), tile)
             clicks.append(tile_id)
@@ -185,7 +185,7 @@ def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
 @csrf_exempt
 @request_methods('POST')
 def click_tile(request, tile_id, **kwargs):
-    tile = Tile.objects.get(old_id=tile_id)
+    tile = get_object_or_404(Tile, old_id=tile_id)
     tile.add_click()
     return HttpResponse('', status=204)
 
@@ -194,6 +194,6 @@ def click_tile(request, tile_id, **kwargs):
 @csrf_exempt
 @request_methods('POST')
 def view_tile(request, tile_id, **kwargs):
-    tile = Tile.objects.get(old_id=tile_id)
+    tile = get_object_or_404(Tile, old_id=tile_id)
     tile.add_view()
     return HttpResponse('', status=204)

@@ -512,17 +512,18 @@ class Tile(BaseModel):
                         self.days_since_creation())
     view_score.short_description = 'View Score'
 
-    def click_log_score(self):
-        score = self.click_score()
+    def log_score(self, score):
         # returns the log of a score with the smallest value being 1
         # makes sure that small scores do not get large log values
-        return math.log(score + (Tile.ratio if score > 2 * Tile.ratio else (Tile.ratio - score / 2)), Tile.ratio)
+        return math.log(score + (0 if score > 2 * Tile.ratio else (Tile.ratio - score / 2)), Tile.ratio)
+
+    def click_log_score(self):
+        score = self.click_score()
+        return self.log_score(score)
 
     def view_log_score(self):
         score = self.view_score()
-        # returns the log of a score with the smallest value being 1
-        # makes sure that small scores do not get large log values
-        return math.log(score + (Tile.ratio if score > 2 * Tile.ratio else (Tile.ratio - score / 2)), Tile.ratio)
+        return self.log_score(score)
 
     def to_json(self):
         # determine what kind of tile this is
@@ -599,4 +600,4 @@ class TileRelation(BaseModel):
         score = self.score()
         # returns the log of a score with the smallest value returned being 1
         # makes sure that small scores do not get large log values
-        return math.log(score + (ratio if score > 2 * ratio else(ratio - score / 2)), ratio)
+        return math.log(score + (0 if score > 2 * ratio else(ratio - score / 2)), ratio)
