@@ -1,3 +1,4 @@
+import json
 import django
 import hammock
 
@@ -15,7 +16,7 @@ from tastypie.serializers import Serializer
 
 from apps.api.paginator import ContentGraphPaginator
 from apps.api.utils import UserObjectsReadOnlyAuthorization
-from apps.assets.models import (Product, Store, Page, Feed, Tile, ProductImage, Image, Video, Review, Theme, TileRelation)
+from apps.assets.models import (Product, Store, Page, Feed, Tile, ProductImage, Image, Video, Review, Theme, TileRelation, Content)
 
 ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL, headers={'ApiKey': 'secretword'})
 
@@ -42,6 +43,8 @@ class BaseCGResource(ModelResource):
         serializer = Serializer(formats=['json'])
         paginator_class = ContentGraphPaginator
 
+        authentication = UserAuthentication()
+
     def alter_list_data_to_serialize(self, request, data):
         data['results'] = data['objects']
         del data['objects']
@@ -62,7 +65,6 @@ class StoreResource(BaseCGResource):
         queryset = Store.objects.all()
         resource_name = 'store'
 
-        authentication = UserAuthentication()
         authorization = UserPartOfStore()
         filtering = {
             'id': ('exact',),
@@ -87,8 +89,6 @@ class ProductResource(BaseCGResource):
             # 'name_or_url': ('exact'),
             # 'available': ('exact'),
         }
-        authentication = UserAuthentication()
-        authorization = UserPartOfStore()
 
 
 class ProductImageResource(BaseCGResource):
@@ -102,7 +102,31 @@ class ProductImageResource(BaseCGResource):
         }
 
 
-class ImageResource(BaseCGResource):
+class ContentResource(BaseCGResource):
+    """Returns "a product image"."""
+    class Meta(BaseCGResource.Meta):
+        queryset = Content.objects.all()
+        resource_name = 'content'
+
+        filtering = {
+            'store': ALL,
+        }
+
+    def dehydrate(self, bundle):
+        """Convert JSON fields into top-level attritbutes in the response"""
+        # http://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-custom-values
+        try:
+            data = json.loads(json.dumps(bundle.obj.attributes))
+            data.update(bundle.data)
+            del data['attributes']
+        except AttributeError:
+            data = bundle.data
+
+        bundle.data = data
+        return bundle
+
+
+class ImageResource(ContentResource):
     """Returns "a product image"."""
     class Meta(BaseCGResource.Meta):
         queryset = Image.objects.all()
@@ -113,7 +137,7 @@ class ImageResource(BaseCGResource):
         }
 
 
-class VideoResource(BaseCGResource):
+class VideoResource(ContentResource):
     """Returns "a product image"."""
     class Meta(BaseCGResource.Meta):
         queryset = Video.objects.all()
@@ -124,7 +148,7 @@ class VideoResource(BaseCGResource):
         }
 
 
-class ReviewResource(BaseCGResource):
+class ReviewResource(ContentResource):
     """Returns "a product image"."""
     class Meta(BaseCGResource.Meta):
         queryset = Review.objects.all()
@@ -174,6 +198,19 @@ class PageResource(BaseCGResource):
         filtering = {
             'store': ALL,
         }
+
+    def dehydrate(self, bundle):
+        """Convert JSON fields into top-level attritbutes in the response"""
+        # http://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-custom-values
+        try:
+            data = json.loads(json.dumps(bundle.obj.theme_settings))
+            data.update(bundle.data)
+            del data['theme_settings']
+        except AttributeError:
+            data = bundle.data
+
+        bundle.data = data
+        return bundle
 
 
 class TileResource(BaseCGResource):
