@@ -104,5 +104,5 @@ urlpatterns += patterns('apps.api.views',
     ),
 
     # If all else fails, proxy
-    # url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
+    url(r'^%s/(?P<path>.*)$' % prefix, 'proxy_view', name='proxy_view'),
 )

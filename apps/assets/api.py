@@ -1,6 +1,10 @@
-import json
+import calendar
+from datetime import datetime
+import dateutil
 import django
 import hammock
+import json
+import re
 
 from django.conf import settings
 from django.conf.urls import url
@@ -19,6 +23,15 @@ from apps.api.utils import UserObjectsReadOnlyAuthorization
 from apps.assets.models import (Product, Store, Page, Feed, Tile, ProductImage, Image, Video, Review, Theme, TileRelation, Content)
 
 ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL, headers={'ApiKey': 'secretword'})
+
+
+def to_cg_datetime(bundle_date):
+    """Tastypie timbstamps look like "2014-03-10T11:32:32.805912"; convert
+    that to a unix timestamp * 1000. You lose millisecond presicion.
+
+    Part solution from http://stackoverflow.com/a/127872/1558430
+    """
+    return unicode(calendar.timegm(bundle_date.utctimetuple()) * 1000)
 
 
 class UserAuthentication(Authentication):
@@ -45,6 +58,10 @@ class BaseCGResource(ModelResource):
 
         authentication = UserAuthentication()
 
+        filtering = {
+            'id': ('exact',),
+        }
+
     def alter_list_data_to_serialize(self, request, data):
         data['results'] = data['objects']
         del data['objects']
@@ -58,18 +75,34 @@ class BaseCGResource(ModelResource):
 
 class StoreResource(BaseCGResource):
     """REST-style store."""
-    pages = fields.ToManyField('apps.assets.api.PageResource',
-                               'pages', full=False, null=True)
 
     class Meta(BaseCGResource.Meta):
         queryset = Store.objects.all()
         resource_name = 'store'
 
         authorization = UserPartOfStore()
+
         filtering = {
             'id': ('exact',),
             'name': ('icontains',),
+            'slug': ALL,
         }
+
+    def dehydrate(self, bundle):
+        """Transform tastypie json to a CG-like version"""
+        # http://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-custom-values
+        bundle.data['public-base-url'] = bundle.data['public_base_url']
+        del bundle.data['public_base_url']
+
+        bundle.data['last-modified'] = to_cg_datetime(bundle.data['updated_at'])
+        del bundle.data['updated_at']
+
+        bundle.data['created'] = to_cg_datetime(bundle.data['created_at'])
+        del bundle.data['created_at']
+
+        bundle.data['id'] = str(bundle.data['id'])
+
+        return bundle
 
 
 class ProductResource(BaseCGResource):
