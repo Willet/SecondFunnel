@@ -878,46 +878,4 @@ App.module('core', function (module, App) {
             }
         }
     });
-
-    /**
-     * Visual overlay on a TileView that indicates it can be tapped.
-     * This view is visible only on touch-enabled devices.
-     *
-     * @constructor
-     * @type {*}
-     */
-    this.TapIndicator = Marionette.ItemView.extend({
-        'template': "#tap_indicator_template",
-        'className': 'tap_indicator',
-        'initialize': function () {
-            var self = this;
-
-            _.bindAll(this, 'onScrollStopped');
-            App.vent.on('scrollStopped', this.onScrollStopped);
-
-            // events don't bind to the root
-            this.$el.click(function () {
-                self.trigger("click");
-            });
-        },
-        'onBeforeRender': function () {
-            // http://jsperf.com/hasclass-vs-toggleclass
-            // toggleClass with a boolean is 55% slower than manual checks
-            if (App.support.touch()) {
-                $('html').addClass('touch-enabled');
-            } else {
-                $('html').removeClass('touch-enabled');
-            }
-        },
-        'onScrollStopped': function () {
-            var $indicatorEl = this.$el;
-            if ($indicatorEl
-                    .parents(App.option('itemSelector'))
-                    .hasClass('wide')) {
-                if ($indicatorEl.is(':in-viewport')) {  // this one is in view.
-                    $indicatorEl.cssDelay(500).cssFadeOut(600);
-                }
-            }
-        }
-    });
 });
