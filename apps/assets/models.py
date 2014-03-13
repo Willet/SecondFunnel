@@ -450,12 +450,6 @@ class Page(BaseModel):
 
 
 class Tile(BaseModel):
-    # used to calculate the score for a tile
-    # a bigger starting_score value does not necessarily mean a bigger score
-    starting_score = models.FloatField(default=0.0)
-
-    clicks = models.PositiveIntegerField(default=0)
-
     old_id = models.IntegerField(unique=True, db_index=True)
 
     # <Feed>.tiles.all() gives you... all its tiles
@@ -469,34 +463,67 @@ class Tile(BaseModel):
 
     prioritized = models.BooleanField()
 
-    # variable used for popularity, the bigger the value, the faster popularity de-values
-    popularity_devalue_rate = 0.15
-
     # miscellaneous attributes, e.g. "is_banner_tile"
     attributes = JSONField(blank=True, null=True, default={})
 
-    def click(self):
+    # used to calculate the score for a tile
+    # a bigger starting_score value does not necessarily mean a bigger score
+    click_starting_score = models.FloatField(default=0.0)
+
+    view_starting_score = models.FloatField(default=0.0)
+
+    clicks = models.PositiveIntegerField(default=0)
+
+    views = models.PositiveIntegerField(default=0)
+
+    # variable used for popularity, the bigger the value, the faster popularity de-values
+    popularity_devalue_rate = 0.15
+
+    # the lower the ratio, the bigger the range between low and high log_scores
+    ratio = 1.5
+
+    def add_click(self):
         self.clicks += 1
-        # the value used to increase starting_score per click
+        # the value used to increase click_starting_score per click
         update_score = Tile.popularity_devalue_rate * self.days_since_creation()
-        starting_score = self.starting_score
-        self.starting_score = max(starting_score, update_score) + math.log(
+        starting_score = self.click_starting_score
+        self.click_starting_score = max(starting_score, update_score) + math.log(
             1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
         self.save(skip_updated_at=True)
 
-    def score(self):
-        # returns the score of the tile based on the starting_score and how long ago the tile was created
-        return math.exp(self.starting_score - Tile.popularity_devalue_rate *
-                        self.days_since_creation())
-    score.short_description = 'Score'
+    def add_view(self):
+        self.views += 1
+        # the value used to view_increase starting_score per click
+        update_score = Tile.popularity_devalue_rate * self.days_since_creation()
+        starting_score = self.view_starting_score
+        self.view_starting_score = max(starting_score, update_score) + math.log(
+            1 + math.exp(min(starting_score, update_score) - max(starting_score, update_score)))
+        self.save(skip_updated_at=True)
 
-    def log_score(self):
-        # the lower the ratio, the bigger the range between low and high scores
-        ratio = 1.5
-        score = self.score()
+    def click_score(self):
+        # returns the score of the tile based on the starting_score and how long ago the tile was created
+        return math.exp(self.click_starting_score - Tile.popularity_devalue_rate *
+                        self.days_since_creation())
+    click_score.short_description = 'Click Score'
+
+    def view_score(self):
+        # returns the score of the tile based on the starting_score and how long ago the tile was created
+        return math.exp(self.view_starting_score - Tile.popularity_devalue_rate *
+                        self.days_since_creation())
+    view_score.short_description = 'View Score'
+
+    def log_score(self, score):
         # returns the log of a score with the smallest value being 1
         # makes sure that small scores do not get large log values
-        return math.log(score + (ratio if score > 2 * ratio else (ratio - score / 2)), ratio)
+        return math.log(score + (0 if score > 2 * Tile.ratio else (Tile.ratio - score / 2)), Tile.ratio)
+
+    def click_log_score(self):
+        score = self.click_score()
+        return self.log_score(score)
+
+    def view_log_score(self):
+        score = self.view_score()
+        return self.log_score(score)
 
     def to_json(self):
         # determine what kind of tile this is
@@ -573,4 +600,4 @@ class TileRelation(BaseModel):
         score = self.score()
         # returns the log of a score with the smallest value returned being 1
         # makes sure that small scores do not get large log values
-        return math.log(score + (ratio if score > 2 * ratio else(ratio - score / 2)), ratio)
+        return math.log(score + (0 if score > 2 * ratio else(ratio - score / 2)), ratio)
