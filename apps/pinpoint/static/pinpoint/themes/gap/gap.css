@@ -478,6 +478,10 @@ div.header {
         overflow-y: hidden;
         white-space: nowrap;
     }
+
+    .tile.image .overlay:hover {
+        opacity: 0;
+    }
 }
 
 /* === */
@@ -822,19 +826,23 @@ div.header {
     .previewContainer .content {
         overflow: hidden;
     }
+
     .previewContainer .image-with-related-products .row .gallery {
         max-width: 192px;
         height: 71px;
         overflow-x: auto;
         overflow-y: hidden;
     }
+
     .previewContainer .image-with-related-products .row .center.middle.cell {
         text-align: center;
     }
+
     .previewContainer .image-without-related-products .info {
         width: 80%;
         margin: 0 auto;
     }
+
     .previewContainer .image-without-related-products .description {
         margin-bottom: 20px;
         margin-top: 20px;

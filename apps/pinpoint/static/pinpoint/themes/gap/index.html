@@ -23,23 +23,66 @@
             device: 'mobile',
             disabled: true,
             custom: function (template) {
-                var s = $('<style>@media only screen and (max-width: 510px) { .tile { width: 50% !important; } \
-                    .tile.wide { width: 100% !important; } } #discovery-area { width: 100% !important }</style>');
+                var s = $($('#two-column-css').html());
                 template = template || _.sample(["A", "B"]);
                 if (template != "A") {
                     App.options.minColumns = 2;
-                    s.prependTo($('head'));
+                    $('head').ready(function() {
+                        s.appendTo($('head'));
+                    });
                 }
                 return template;
             }
         });
+    </script>
+    <script type="text/template" id="two-column-css">
+        <style type="text/css">
+            @media only screen and (max-width: 510px) {
+                .tile {
+                    width: 50% !important;
+                }
+                .tile.wide {
+                    min-height: inherit !important;
+                }
+                .visible-xs.jumbotron {
+                    background-image: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/mobile_small.png') !important;
+                    margin: 10px 0px 10px 5px;
+                    border: none;
+                    width: 125px;
+                    height: 60px;
+                    display: inline-block !important;
+                }
+                #hero-area .overlay {
+                    position: relative !important;
+                    display: inline-block !important;
+                    left: 5px;
+                    top: 8px;
+                    right: 0px;
+                }
+                #hero-area .buttons a img {
+                    width: 27px;
+                    height: 27px;
+                }
+                #hero-area .find a {
+                    font-size: 12px;
+                }
+                #hero-area .overlay .buttons {
+                    display: inline-block;
+                    margin-right: 1px;
+                }
+                #discovery-area {
+                    width: 100% !important;
+                    overflow-x: hidden;
+                }
+            }
+        </style>
     </script>
     <!-- End Optimizer Tests -->
     {% include "pinpoint/campaign_head.html" %}
     <link rel="shortcut icon"
          href="http://www.gap.com/favicon.ico" />
     <link rel="stylesheet"
-          href="{% static 'pinpoint/themes/gap/gap.css' %}" />
+          href="{% static 'pinpoint/themes/gap/gap.css' %}"/>
     <title>{{ page.name|default:"Gap" }}</title>
     <style type="text/css">
         /* out of necessity */
