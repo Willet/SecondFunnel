@@ -725,14 +725,16 @@ App.module('core', function (module, App) {
                 this.$('.social-buttons').append(buttons);
             }
             width = Marionette.getOption(this, 'width');
+
             if (width) {
                 this.$('.content').css('width', width + 'px');
+            } else if (App.support.mobile()) {
+                this.$el.width($(window).width()); // assign width
             }
 
             // hide discovery, then show this window as a page.
             if (App.support.mobile()) {
-                // out of scope
-                App.discoveryArea.$el.parent().swapWith(this.$el);
+                App.discoveryArea.$el.parent().swapWith(this.$el); // out of scope
             }
 
             App.vent.trigger('previewRendered', this);
@@ -844,7 +846,11 @@ App.module('core', function (module, App) {
 
         'onRender': function () {
             // cannot declare display:table in marionette class.
-            this.$el.css({'display': "table"});
+            this.$el.css({
+                'display': "table",
+                'height': App.support.mobile() ?
+                    $(window).height() : ""
+            });
 
             var ContentClass = App.utils.findClass('PreviewContent',
                     this.options.model.get('template'), module.PreviewContent),

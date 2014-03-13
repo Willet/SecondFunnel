@@ -64,6 +64,7 @@ function reinitialize(app) {
     });
 
     app.vent.on('initRouter', function () {
+        var loc = window.location.href; // reference to current url
         app.router = new Backbone.Router();
 
         //TODO: put these routes into their own file?
@@ -128,6 +129,14 @@ function reinitialize(app) {
 
         //Making sure we know where we came from.
         app.initialPage = window.location.hash;
+        if (app.initialPage !== '' && app.support.mobile()) { // if mobile, push state
+            if ("replaceState" in window.history) {
+                // back button closes the popup
+                window.history.replaceState({}, "", loc.split('#')[0]);
+                window.history.pushState({}, "", loc);
+            } else { // fallback for IE 8 & 9
+            }
+        }
     });
 
     // from davidsulc/marionette-gentle-introduction
