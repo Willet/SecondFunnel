@@ -16,6 +16,7 @@ urlpatterns = patterns('',
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
     #url(r'p/', include('apps.pinpoint.global_urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
+    url(r'^tracker/', include('apps.tracking.urls')),
 
     # special top-level urls for RSS feeds
     url(r'^(?P<page_slug>[^/\.]+)/?$',

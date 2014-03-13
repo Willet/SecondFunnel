@@ -227,7 +227,7 @@ class Content(BaseModel):
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
     ## but restrict to only filtering/ordering on above fields
-    attributes = JSONField(null=True)
+    attributes = JSONField(blank=True, null=True)
 
     serializer = ContentSerializer
 
@@ -464,7 +464,7 @@ class Tile(BaseModel):
     prioritized = models.BooleanField()
 
     # miscellaneous attributes, e.g. "is_banner_tile"
-    attributes = JSONField(null=True, default={})
+    attributes = JSONField(blank=True, null=True, default={})
 
     # used to calculate the score for a tile
     # a bigger starting_score value does not necessarily mean a bigger score

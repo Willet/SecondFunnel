@@ -118,3 +118,5 @@ AWS_SQS_POLLING_QUEUES = {
              'handler': 'handle_page_generator_notification_message'},
     }
 }
+
+TRACKING_COOKIE_AGE = 30 # seconds: 30 seconds
