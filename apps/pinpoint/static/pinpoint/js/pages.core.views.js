@@ -197,9 +197,7 @@ App.module('core', function (module, App) {
                     trigger: true
                 });
                 // YAY, request sent on tile click to update click count for tile
-                var xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
-                xmlhttp.open("POST", window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.campaign + "/tile/" + tile.get('tile-id') + "/click", true);
-                xmlhttp.send();
+                jQuery.post(window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.campaign + "/tile/" + tile.get('tile-id') + "/click")
             }
         },
 
