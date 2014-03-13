@@ -1,6 +1,7 @@
 import calendar
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.http.response import Http404
+from django.shortcuts import get_object_or_404
 import hammock
 import json
 
@@ -117,10 +118,10 @@ class StoreResource(BaseCGResource):
         http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
         """
         return [
-            url(r"^(?P<resource_name>%s)/(?P<old_id>\w[\w/-]*)/page/?$" % (self._meta.resource_name),
+            url(r"^(?P<resource_name>%s)/(?P<old_id>[^/]*)/page/?$" % (self._meta.resource_name),
                 self.wrap_view('get_pages'),
                 name="api_get_pages"),
-            url(r"^(?P<resource_name>%s)/(?P<old_id>\w[\w/-]*)/page/(?P<page_old_id>\w[\w/-]*)?$" % (self._meta.resource_name),
+            url(r"^(?P<resource_name>%s)/(?P<old_id>[^/]*)/page/(?P<page_old_id>[^/]*)/?$" % (self._meta.resource_name),
                 self.wrap_view('get_page'),
                 name="api_get_page"),
         ]
@@ -156,9 +157,11 @@ class StoreResource(BaseCGResource):
         sub_resource = PageResource()
 
         # just one:
-        return sub_resource.get_detail(request, old_id=kwargs['page_old_id'])
+        return sub_resource.get_detail(request, store_id = obj.id,
+                                       old_id=kwargs['page_old_id'])
         # more than one: http://stackoverflow.com/a/21763010/1558430
         # return sub_resource.get_list(request, store_id=obj.id)
+
 
 class ProductResource(BaseCGResource):
     """REST (tastypie) version of a Product."""
@@ -314,8 +317,46 @@ class PageResource(BaseCGResource):
         # an unfortunate CM condition that requires the id to be the old id
         data['id'] = str(data['old_id'])
 
+        data['url'] = str(data['url_slug'])
+        del data['url_slug']
+
+        # each page also has its own reference to the store
+        data['store-id'] = bundle.obj.store.old_id
+
         bundle.data = data
         return bundle
+
+    def prepend_urls(self):
+        """
+        http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
+        """
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<old_id>[^/]*)/content/?$" % (self._meta.resource_name),
+                self.wrap_view('get_contents'),
+                name="api_get_contents"),
+        ]
+
+    def get_contents(self, request, **kwargs):
+        """
+        /graph/v1/page/123/content.
+
+        TODO: /graph/v1/store/38/page/95/content
+        TODO: /graph/v1/store/38/page/95/content/suggested
+        """
+        try:
+            page = Page.objects.get(old_id=kwargs['old_id'])
+            feed = page.feed
+        except ObjectDoesNotExist:
+            return HttpGone()
+        except MultipleObjectsReturned:
+            return HttpMultipleChoices("More than one resource is found at this URI.")
+
+        sub_resource = ContentResource()
+
+        # just one:
+        # return sub_resource.get_detail(request, store_id=obj.id)
+        # more than one: http://stackoverflow.com/a/21763010/1558430
+        return sub_resource.get_list(request, feed_id=feed.id)
 
 
 class TileResource(BaseCGResource):
