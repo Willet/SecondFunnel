@@ -266,6 +266,7 @@ INSTALLED_APPS = (
     'apps.contentgraph',
     'apps.website',
     'apps.static_pages',
+    'apps.tracking',
     'apps.utils',
 )
 
@@ -407,5 +408,7 @@ STALE_TILE_RETRY_THRESHOLD = 240  # seconds
 IRCONFIG_RETRY_THRESHOLD = 240  # seconds
 
 TASTYPIE_ALLOW_MISSING_SLASH = True  # allow missing trailing slashes
+
+TRACKING_COOKIE_AGE = 60 * 60 * 24 * 30 # seconds: s*m*h*d; 30 days
 
 djcelery.setup_loader()

@@ -165,7 +165,7 @@ class Product(BaseModel):
 
     ## for custom, potential per-store additional fields
     ## for instance new-egg's egg-score; sale-prices; etc.
-    attributes = JSONField(null=True)
+    attributes = JSONField(blank=True, null=True)
 
     serializer = ProductSerializer
 
@@ -227,7 +227,7 @@ class Content(BaseModel):
     ## all other fields of proxied models will be store in this field
     ## this will allow arbitrary fields, querying all Content
     ## but restrict to only filtering/ordering on above fields
-    attributes = JSONField(null=True)
+    attributes = JSONField(blank=True, null=True)
 
     serializer = ContentSerializer
 
@@ -473,7 +473,7 @@ class Tile(BaseModel):
     popularity_devalue_rate = 0.15
 
     # miscellaneous attributes, e.g. "is_banner_tile"
-    attributes = JSONField(null=True, default={})
+    attributes = JSONField(blank=True, null=True, default={})
 
     def click(self):
         self.clicks += 1
