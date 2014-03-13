@@ -1,122 +1,202 @@
-/*global $, _, App, sizeImage*/
+/*global $, _, App, sizeImage, setTimeout, clearTimeout*/
+/**
+ * Defines the gallery widget.  The gallery widget displays several products in
+ * a carousel that is swipe-able on mobile and click-able on non-mobile devices.
+ * Using the gallery widget:
+ *     $el is always the gallery element, where the selectors/small images will
+ *     appear.  The area in which the larger image is displayed (the selected one) must
+ *     have either a '.image' or '.main-image' class.
+ *
+ * @param view {Object}    The Marionette view object
+ * @param $el {Object}     The object to attach the gallery to
+ * @param options {Object}  Specific options
+ * @return this
+ */
+App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
+    var images, focusWidth,
+        focusCurrent = 0,
+        speed = 250, // transition speed for mobile
+        $gallery = view.$('.gallery'), // reference to gallery
+        self = this, // self is widget gallery
+        focus = view.$(view.$('.main-image').length ? '.main-image' : '.image img'),
+        defaults = {
+            leftArrow: '.gallery-swipe-left',
+            rightArrow: '.gallery-swipe-right',
+            disabledClass: 'grey'
+        };
 
-// Gallery widget. loads inside a .gallery container.
-// TODO: lazy load widgets
-App.utils.registerWidget(
-    'gallery',  // name (must be unique)
-    '.gallery',  // selector (scoped!)
-    function (view, $el, option) {
-        var images, startX,
-            threshold = $(this).width() / 5, // displacement needed to be considered a swipe
-            changeImage = function ($el, url) {
-                $el.attr('src', url);
-            },
-            toggleVisibility = function ($el, cond) {
-                if (cond) {
-                    $el.show();
-                } else {
-                    $el.hide();
-                }
-            },
-            toggleButtons = function (id) {
-                toggleVisibility(view.$('.gallery-swipe-left'), id > 0);
-                toggleVisibility(view.$('.gallery-swipe-right'), id < images.length - 1);
-            },
-            selectImage = function(target) {
-                // show a larger image on the left when a thumbnail is clicked.
-                var $ev = target,
-                    $gallery = $ev.parents('.gallery'),
-                    newURL = $ev.attr('src'),
-                    selector = $ev.parents('.previewContainer').find('.main-image').length ?
-                      '.main-image' : '.image img',
-                    $focusImg = $ev.parents('.previewContainer')
-                        .find(selector);
+    // Check for children as may have already appended
+    if ($el && $el.children().length > 0) {
+        return;
+    }
 
-                $ev
-                    .parents('.previewContainer')
-                    .find('.gallery img')
-                    .removeClass('selected');
-                $ev.addClass('selected');
-                changeImage($focusImg, newURL);
+    /**
+     * Manually updates the position of images in the gallery.
+     *
+     * @param distance    Distance to scroll horizontally
+     * @param duration    Time it takes for the transition
+     * @return this
+     */
+    this.scrollImages = function (distance, duration) {
+        duration = duration ? duration : speed;
+        distance = distance * -1;
+        focus.css('-webkit-transition-duration', (duration / 1000).toFixed(1) + 's')
+             .css('-webkit-transform', "translate3d(" + distance + "px, 0px, 0px)");
 
-                if (App.support.mobile()) {
-                    toggleButtons($gallery.children().index($ev));
-                }
-                $gallery.animate({
-                    scrollLeft: $ev.offset().left - $gallery.offset().left
-                }, 700);
-            };
+        return this;
+    };
 
-        // get list of images.
-        try {
-            images = view.model.attributes['related-products'][0].images.slice(0);
-            if (App.support.mobile()) {
-                images.push(view.model.get('defaultImage'));
+    /**
+     * Catches the phase of the swipe and performs the appropriate action;
+     * switching to the next image, transitioning between images and snapping
+     * back.
+     *
+     * @param event {Object}      The touch event
+     * @param phase {String}      The event name
+     * @param direction {String}  The direction if it is a move/end event
+     * @param distance {Float}    The distance if it is a move event
+     * @param fingers {Object}    Finger events such as pinch, tap
+     * @return this
+     */
+    this.swipeStatus = function (event, phase, direction, distance, fingers) {
+        var offset;
+        focusWidth = focus.children().eq(0).width();
+        offset = focusWidth * focusCurrent;
+
+        /* Determine the event from the phase and the direction
+           of the touch event that took place */
+        if (phase === "move") {
+            // div is being dragged, determine direction
+            if (direction === "left") {
+                this.scrollImages(distance + offset);
+            } else if (direction === "right") {
+                this.scrollImages(offset - distance);
             }
-        } catch (err) {
-            images = view.model.get('images');
+        } else if (phase === "end") {
+            // animate to the next image based on direction
+            if (direction === "right") {
+                focusCurrent = Math.max(focusCurrent - 1, 0);
+            } else if (direction === "left") {
+                focusCurrent = Math.min(focusCurrent + 1, focus.children().length - 1);
+            }
+            this.scrollImages(focusCurrent * focusWidth);
+            this.selectImage(); // mark selected
+        } else if (phase === "cancel") {
+            // animate back as dragging has been cancelled
+            this.scrollImages(focusWidth * focusCurrent);
+        }
+        return this;
+    };
+
+    /**
+     * Switches the selected gallery image and updates any relevant arrows
+     * in addition to tracking the switch.
+     *
+     * @return this
+     */
+    this.selectImage = function () {
+        var hash;
+
+        // Determine the selected image
+        view.$('.gallery .img')
+            .removeClass('selected')
+            .eq(focusCurrent)
+            .addClass('selected');
+
+        view.$(options.leftArrow + "," + options.rightArrow)
+            .removeClass(options.disabledClass);
+
+        // For mobile, determines whether or not to grey out arrow
+        if (focusCurrent === 0) {
+            view.$(options.leftArrow).addClass(options.disabledClass);
+        } else if (focusCurrent === focus.children().length - 1) {
+            view.$(options.rightArrow).addClass(options.disabledClass);
         }
 
-        //We have already appended to the gallery
-        if ($el && $el.children().length > 0) {
-            return;
+        if (!!window.location.hash) { // set hash if nonexistant
+            hash = window.location.hash + '&photo=' + focusCurrent;
+            App.vent.trigger('tracking:trackPageView', hash);
         }
 
-        _.each(images, function (image) {
-            var $img = $('<img />')
-                .attr({
-                    'src': image.url
-                    // 'src': image.width(300)  // 300 = max logical width of the image
-                })
-                .click(function (ev) {
-                    var $ev = $(ev.currentTarget),
-                        hash;
-                    selectImage($ev);
-                    if (!!window.location.hash) {
-                        hash = window.location.hash + '&photo=' + $ev.index();
-                        App.vent.trigger('tracking:trackPageView', hash);
-                    }
-                });
-            $el.append($img);  // add each image into the carousel
+        return this;
+    };
+
+    /**
+     * Initializes the regular version of the gallery.
+     */
+    this.initialize = function () {
+        // Desktop is nice, doesn't need anything
+        options = _.extend(defaults, options);
+        this.selectImage();
+
+        console.debug("initialized desktop gallery.");
+    };
+
+    /**
+     * Initializes the mobile version of the gallery.  Attach
+     * the swipe handler.
+     */
+    this.initializeMobile = function () {
+        var width = $(window).width();
+
+        // Need fixed width for swipe to work
+        focus.children().css('width', width);
+        width = width * focus.children().length;
+        focus.width(width);
+        options = _.extend(defaults, options);
+
+        focus.swipe({ // attach swipe handler
+            triggerOnTouchEnd: true,
+            swipeStatus: _.bind(self.swipeStatus, self),
+            allowPageScroll: "vertical"
         });
 
-        selectImage(view.$('.gallery img').eq(0));
+        this.selectImage();
+        console.debug("initialized mobile gallery.");
+    };
 
-        view.$('.gallery-swipe-left').hide();
-
-        // swipeleft is "from right to left"
-        view.$el
-            .on('swipeleft swiperight', '.image', function (ev) {
-                // select an image one to the left or right and select it
-                var type = ev.type,  // swipeleft or swiperight
-                    sel = view.$('.gallery .selected'),
-                    selIdx = sel.index(),
-                    images = $('.gallery img');
-
-                if (type === 'swipeleft') {
-                    selIdx++; // advance to next image in gallery
-                    if (selIdx >= images.length) {
-                        selIdx--;
-                    } else {
-                        images.eq(selIdx).click();
-                    }
-                } else {  // can only be swiperight, based on available events
-                    selIdx--; // retreat
-                    if (selIdx < 0) {
-                        selIdx++;
-                    } else {
-                        images.eq(selIdx).click();
-                    }
-                }
-            })
-            .on('click', '.image', function (ev) {
-                var $pseudo = $(ev.target);
-                startX = ev.offsetX;
-                if (ev.offsetX >= -15 && ev.offsetX <= 100) {   // left (which is swiping right)
-                    $pseudo.swiperight();
-                } else if (ev.offsetX >= $pseudo.width() - 100) {  // right (which is swiping left)
-                    $pseudo.swipeleft();
-                }
-            });
+    /* Find the images to use in the gallery. */
+    images = view.model.get('related-products');
+    if (images && images.length) { // ensure related images exist
+        images = images[0].images.slice(0);
+        if (App.support.mobile()) images.splice(0, 0, view.model.get('defaultImage'));
+    } else {
+        images = view.model.get('images');
     }
-);
+
+    _.each(images, function(image) { // iterate over images to create gallery
+        var $img;
+        $img = App.support.mobile() ?
+            $('<div></div>').css('background-image', 'url(' + image.url + ')') :
+            $('<img />').attr('src', image.url);
+
+        $img
+            .addClass('img')
+            .click(function (ev) {
+                if (App.support.mobile()) return; // mobile does nothing
+                var hash,
+                    $selected = $(ev.currentTarget),
+                    newURL = $selected.attr('src');
+
+                focus.attr('src', newURL); // change image
+                $gallery.animate({ // animate gallery on click
+                    scrollLeft: $selected.offset().left - $gallery.offset().left
+                }, 700);
+                focusCurrent = $selected.index();
+                self.selectImage();
+            });
+
+        if (App.support.mobile()) { // append to display area and create tile for gallery
+            focus.append($img);
+            $el.append($('<div />').addClass('img'));
+        } else { // otherwise append to gallery
+            $el.append($img);
+        }
+    });
+
+    /* Initialize the gallery and bind event handlers to the widget
+       gallery instance. */
+    _.bindAll(this, 'swipeStatus', 'scrollImages');
+    if (App.support.mobile()) this.initializeMobile();
+    else this.initialize();
+});
