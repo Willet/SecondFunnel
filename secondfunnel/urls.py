@@ -9,13 +9,23 @@ urlpatterns = patterns('',
     url(r'^healthcheck/$', lambda x: HttpResponse('OK', status=200)),
 
     # INTERNAL ADMIN
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/?', include(admin.site.urls)),
 
     # APPS
-    # Which apps do we need to keep enabled to keep old pages working?
+    url(r'^assets/', include('apps.assets.urls')),
     url(r'^pinpoint/', include('apps.pinpoint.urls')),
     #url(r'p/', include('apps.pinpoint.global_urls')),
     url(r'^intentrank/', include('apps.intentrank.urls')),
+    url(r'^tracker/', include('apps.tracking.urls')),
+
+    # special top-level urls for RSS feeds
+    url(r'^(?P<page_slug>[^/\.]+)/?$',
+        'apps.pinpoint.views.campaign_by_slug', name='get-page-by-slug'),
+    # special top-level urls for RSS feeds
+    url(r'^(?P<page_id>\d+)/(?P<feed_name>[^/\.]+\.rss)$',
+        'apps.intentrank.views.get_rss_feed', name='get-feed'),
+    url(r'^(?P<page_slug>[^/\.]+)/(?P<feed_name>[^/\.]+\.rss)$',
+        'apps.intentrank.views.get_rss_feed', name='get-feed'),
 
     # APIs
     url(r'^contentgraph/', include('apps.contentgraph.urls')),
@@ -27,7 +37,6 @@ urlpatterns = patterns('',
     url(r'^$', include('apps.website.urls')),
 )
 
-# TODO: Is this still necessary?
 if settings.DEBUG:
     # Used for local development; removes the need to run collectstatic in the
     # dev environment.
@@ -35,8 +44,9 @@ if settings.DEBUG:
         url(r'^static/(?P<path>.*)$', 'serve'),
     )
 
-if settings.MOCK_IR_SERVER:
+    import debug_toolbar
     urlpatterns += patterns('',
-        url(r'^mocks/', include('apps.mocks.urls')))
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    )
 
 handler500 = 'apps.pinpoint.views.app_exception_handler'

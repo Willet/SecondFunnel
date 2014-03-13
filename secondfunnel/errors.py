@@ -1,3 +1,7 @@
+from functools import wraps
+import warnings
+
+
 class EnvironmentSettingsError(Exception):
     def __str__(self):
         return """
@@ -35,3 +39,18 @@ class TooManyKeysError(ValueError):
 
     def __str__(self):
         return self.msg + '; expected %s, got %s' % (self.expected, self.got)
+
+
+def deprecated(func):
+    """A @deprecated decorator that doesn't raise the DeprecationWarning
+    exception.
+
+    Mod of http://code.activestate.com/recipes/391367-deprecated/
+    """
+    @wraps(func)
+    def newFunc(*args, **kwargs):
+        warnings.warn("Call to deprecated function %s." % func.__name__)
+        return func(*args, **kwargs)
+
+    newFunc.__dict__.update(func.__dict__)
+    return newFunc

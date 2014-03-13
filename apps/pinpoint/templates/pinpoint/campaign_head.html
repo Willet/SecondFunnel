@@ -6,11 +6,10 @@
 <!-- Preload images -->
 <script type="text/javascript">
     // Preload images
-    var image, images = [ "{{ desktop_hero_image }}", "{{ mobile_hero_image }}" ];
+    var images = [ "{{ desktop_hero_image }}", "{{ mobile_hero_image }}" ];
     for (var i = 0; i < images.length; ++i) {
         if (images[i].length) {
-            image = new Image();
-            image.src = images[i];
+            (new Image).src = images[i];
         }
     }
 </script>
@@ -20,19 +19,19 @@
     (function() {
         // http://stackoverflow.com/questions/8567114/how-to-make-an-ajax-call-without-jquery
         // Initial call to IR
-        if (!PAGES_INFO['initialResults'].length) {
+        if (!(PAGES_INFO.initialResults && PAGES_INFO.initialResults.length)) {
             // Support for IE6/5 in the event that XMLHttpRequest doesn't exist
             var xmlhttp, data;
             xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
-            xmlhttp.open("GET", "{{ campaign.ir_base_url|default:ir_base_url }}/page/{{ campaign.intentrank_id|default:campaign.id }}/getresults?results=10", true);
+            xmlhttp.open("GET", "{{ campaign.ir_base_url|default:ir_base_url }}/page/{{ campaign.intentrank_id|default:campaign.old_id }}/getresults?results=10&related={{ related_to_tile }}", true);
 
             xmlhttp.onload = function () {
                 // Ensures that it's resolved on 200 or 404
-                if (xmlhttp.status == 200) { // success so resolve normally
-                    PAGES_INFO['initialResults'] = JSON.parse(xmlhttp.response);
+                if (xmlhttp.status === 200) { // success so resolve normally
+                    PAGES_INFO.initialResults = JSON.parse(xmlhttp.response || xmlhttp.responseText);
                 }
             };
-            PAGES_INFO['initialResults'] = xmlhttp;
+            PAGES_INFO.initialResults = xmlhttp;
             xmlhttp.send();
         }
     })();
@@ -77,8 +76,8 @@
 <script src='//cdn.secondfunnel.com/static-misc-secondfunnel/js/respond.min.js'></script>
 <!-- Respond.js proxy on external server -->
 <link href="//cdn.secondfunnel.com/cross-domain/respond-proxy.html" id="respond-proxy" rel="respond-proxy" />
-<link href="/cross-domain/respond.proxy.gif" id="respond-redirect" rel="respond-redirect" />
-<script src="/cross-domain/respond.proxy.js"></script>
+<link href="/static/images/cross-domain/respond.proxy.gif"  alt="do not change to %static% tag" id="respond-redirect" rel="respond-redirect" />
+<script src="/static/js/cross-domain/respond.proxy.js" alt="do not change to %static% tag"></script>
 
 <meta name="viewport" content="user-scalable=no,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"><!-- required by bootstrap -->
 <meta http-equiv="X-UA-Compatible" content="IE=edge"><!-- required by bootstrap, IE -->

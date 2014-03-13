@@ -9,7 +9,7 @@ from celery.utils.log import get_task_logger
 
 from boto.exception import BotoServerError
 from django.conf import settings
-from apps.api.resources import ContentGraphClient
+from apps.assets.api import ContentGraphClient
 from apps.intentrank.utils import ajax_jsonp
 from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
 

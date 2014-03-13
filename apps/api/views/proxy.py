@@ -25,7 +25,7 @@ def proxy_tile(request, store_id, page_id, object_type='product', object_id=''):
     if not request.user or not request.user.is_authenticated():
         return HttpResponse(
             content='{"error": "Not logged in"}',
-            mimetype='application/json',
+            content_type='application/json',
             status=401
         )
 
@@ -166,34 +166,8 @@ def tile_request(url, method='POST', data=None):
     return response
 
 
-@append_headers
-@check_login
 @never_cache
 @csrf_exempt
 def proxy_view(request, path):
-    """Nick is not a security expert.
-
-    He does, however, recommend we read up security policy to see if using
-    CORS is sufficient to prevent against CSRF, because he is having a hard
-    time handling that...
-    """
-
-    target_url = settings.CONTENTGRAPH_BASE_URL
-
-    url = '%s/%s' % (target_url, path)
-    if request.META.get('QUERY_STRING', False):
-        url += '?' + request.META['QUERY_STRING']
-
-    h = httplib2.Http()
-    response, content = h.request(
-        url,
-        method=request.method,
-        body=request.body or None,
-        headers=request.NEW_HEADERS
-    )
-
-    return HttpResponse(
-        content=content,
-        status=int(response['status']),
-        content_type=response['content-type']
-    )
+    """Throw an exception for every unhandled request from CM."""
+    raise NotImplementedError("'{0}' has not yet been implemented".format(path))

@@ -11,7 +11,7 @@ def ajax_response(obj):
 
     @return: An HttpRespose containing the given json object.
     """
-    return HttpResponse(json.dumps(obj), mimetype="application/json")
+    return HttpResponse(json.dumps(obj), content_type="application/json")
 
 
 def ajax_success(data=None):

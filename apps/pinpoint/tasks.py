@@ -1,5 +1,4 @@
 import json
-from mock import MagicMock
 
 from celery import Celery
 from celery.utils.log import get_task_logger
