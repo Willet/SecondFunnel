@@ -4,12 +4,11 @@ Static pages celery tasks
 
 import os
 import re
-import uuid
 import mimetypes
+import uuid
 from urlparse import urlparse
 
 from celery import Celery, group
-from celery.utils import noop
 from celery.utils.log import get_task_logger
 
 from BeautifulSoup import BeautifulSoup, Comment
@@ -17,15 +16,13 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils.encoding import smart_str
 
-from apps.pinpoint.utils import read_remote_file
-from apps.assets.models import Store
+from apps.assets.models import Store, Page
 from apps.contentgraph.views import get_page, get_store, get_stores
-from apps.intentrank.views import get_seeds
-from apps.pinpoint.models import Campaign
-from apps.static_pages.aws_utils import (create_bucket_website_alias, s3_key_exists,
-    get_route53_change_status, sqs_poll, SQSQueue, upload_to_bucket)
-from apps.static_pages.utils import (get_bucket_name, create_dummy_request,
-                                     render_campaign)
+
+from apps.pinpoint.utils import read_remote_file, render_campaign
+from apps.static_pages.aws_utils import (create_bucket_website_alias,
+    s3_key_exists, get_route53_change_status, upload_to_bucket)
+from apps.static_pages.utils import get_bucket_name, create_dummy_request
 
 from secondfunnel.settings.test import AWS_STORAGE_BUCKET_NAME as test_storage_bucket_name
 from secondfunnel.settings.test import CLOUDFRONT_DOMAIN as cloudfront_domain
@@ -44,13 +41,6 @@ RELEASE_LOCK = lambda: cache.delete(ROUTE_53_LOCK)
 
 
 def change_complete(store_id):
-    try:
-        store = Store.objects.get(id=store_id)
-
-    except Store.DoesNotExist:
-        logger.error("Store #{0} does not exist".format(store_id))
-        return
-
     RELEASE_LOCK()
 
 
@@ -77,7 +67,6 @@ def create_bucket_for_store_now(store_id, force=False):
         except ValueError:
             logger.error("Store #{0} does not exist".format(store_id))
             return
-
 
         store_url = ''
         if store.get('public-base-url', False):
@@ -138,7 +127,7 @@ def generate_static_campaigns():
     """Creates a group of tasks to generate/save campaigns,
     and runs them in parallel"""
 
-    campaigns = Campaign.objects.all()
+    campaigns = Page.objects.all()
 
     task_group = group(generate_static_campaign.s(c.id)
         for c in campaigns)
@@ -161,11 +150,10 @@ def handle_page_generator_notification_message(message):
 
 
 @celery.task
-def generate_static_campaign(store_id, campaign_id, ignore_static_logs=False):
+def generate_static_campaign(store_id, campaign_id):
     """The task version of the synchronous operation."""
     logger.info("Generating campaign (Store #{0}, Page #{1})".format(store_id, campaign_id))
-    return generate_static_campaign_now(store_id, campaign_id,
-                                        ignore_static_logs)
+    return generate_static_campaign_now(store_id, campaign_id)
 
 
 def generate_local_campaign(store_id, campaign_id, page_content):
@@ -195,31 +183,28 @@ def generate_local_campaign(store_id, campaign_id, page_content):
         except Exception as e:
             pass #Fail gracefully
 
-def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False):
+
+def generate_static_campaign_now(store_id, page_id):
     """Renders individual campaign and saves it to S3."""
 
     try:
-        campaign_dict = get_page(store_id=store_id, page_id=campaign_id,
+        campaign_dict = get_page(store_id=store_id, page_id=page_id,
                                  as_dict=True)
 
         # do -something- to turn ContentGraph JSON into a campaign object
-        campaign = Campaign.from_json(campaign_dict)
+        campaign = Page.from_json(campaign_dict)
 
         store_dict = get_store(store_id=store_id, as_dict=True)
         store = Store.from_json(store_dict)
 
     except ValueError, err:  # json.loads exception
-        logger.error("Campaign #{0}: {1}".format(campaign_id, err.message))
+        logger.error("Campaign #{0}: {1}".format(page_id, err.message))
         raise  # someone catch it
 
     dummy_request = create_dummy_request()
 
-    # prepare the file name, static log, and the actual page
-    log_key = "CD"
-
-    page_content = render_campaign(store_id, campaign_id,
-                                   get_seeds_func=get_seeds,
-                                   request=dummy_request)
+    page_content = render_campaign(page_id=page_id, request=dummy_request,
+                                   store_id=store_id)
 
     # Add async to generated tags
     page_source_parsed = BeautifulSoup(page_content)
@@ -302,17 +287,17 @@ def generate_static_campaign_now(store_id, campaign_id, ignore_static_logs=False
             bucket_name = '{0}-{1}'.format(settings.ENVIRONMENT, bucket_name)
 
     logger.info("Uploading campaign #{0} to {1}/{2}".format(
-        campaign_id, bucket_name, s3_path))
+        page_id, bucket_name, s3_path))
     bytes_written = upload_to_bucket(
         bucket_name, s3_path, page_content, public=True)
 
     if bytes_written > 0:
         if settings.ENVIRONMENT == "dev":
-            generate_local_campaign(store_id, campaign_id, page_content)
+            generate_local_campaign(store_id, page_id, page_content)
     # boto claims it didn't write anything to S3
     else:
         logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
-            campaign_id))
+            page_id))
 
     # return some kind of feedback
     return {

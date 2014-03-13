@@ -37,7 +37,7 @@ def handle_ir_config_update_notification_message(message):
     @type message {boto.sqs.message.Message}
     @returns any JSON-serializable
     """
-    from apps.api.utils import ContentGraphClient  # circular loop
+    from apps.api.views import ContentGraphClient  # circular loop
     message = json.loads(message)
 
     store_id = message['storeId']
@@ -52,7 +52,6 @@ def handle_ir_config_update_notification_message(message):
     # caller handles error
     generate_static_campaign_now(
         store_id=store_id,
-        campaign_id=page_id,
-        ignore_static_logs=True)
+        page_id=page_id)
 
     return {'generated-page': page_id}

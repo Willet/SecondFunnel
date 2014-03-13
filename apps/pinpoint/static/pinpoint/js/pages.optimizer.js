@@ -75,8 +75,8 @@ App.module('optimizer', function (optimizer, App) {
             c;
         cname += "=";
         for (var i = 0; i < cookies.length; ++i) {
-            c = cookies[i].trim();
-            if (c.indexOf(cname) == 0)
+            c = $.trim(cookies[i]);
+            if (c.indexOf(cname) === 0)
                 return c.substring(cname.length, c.length);
         }
         return "";

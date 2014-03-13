@@ -10,7 +10,7 @@ from django.conf import settings
 from apps.api.decorators import check_login, append_headers, request_methods
 from apps.intentrank.utils import ajax_jsonp
 
-from apps.api.resources import ContentGraphClient
+from apps.assets.api import ContentGraphClient
 from apps.api.utils import mimic_response, get_proxy_results
 from apps.api.views.tileconfig import add_content_to_page, page_add_product
 

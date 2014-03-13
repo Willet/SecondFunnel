@@ -1,6 +1,5 @@
 import hammock
 import json
-import httplib2
 
 from django.conf import settings
 
@@ -98,10 +97,10 @@ class ContentGraphObject(object):
 
     def data(self):
         if self.cached_data:
-            result = self.cached_data
-        else:
-            result = call_contentgraph(endpoint_path=self.endpoint_path)
-            self.cached_data = result
+            return self.cached_data
+
+        result = call_contentgraph(endpoint_path=self.endpoint_path)
+        self.cached_data = result
 
         return self.cached_data
 

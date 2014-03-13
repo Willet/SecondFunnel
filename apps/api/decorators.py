@@ -2,8 +2,6 @@ import functools
 import json
 
 from django.http import HttpResponse, HttpResponseNotAllowed
-from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_exempt
 
 from apps.utils import check_keys_exist
 from apps.utils.functional import check_other_keys_dont_exist
@@ -22,7 +20,7 @@ def check_login(fn):
         if not (request.user and request.user.is_authenticated()):
             return HttpResponse(
                 content='{"error": "Not logged in"}',
-                mimetype='application/json',
+                content_type='application/json',
                 status=401
             )
 

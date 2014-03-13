@@ -1,15 +1,10 @@
 from django.conf.urls import patterns, url
 
 urlpatterns = patterns('apps.intentrank.views',
-    url(r'^get-seeds/$', 'get_seeds', name='get-seeds'),
-
-    url(r'^update-clickstream/$', 'update_clickstream',
-        name='update-clickstream'),
-
-   # New IR functions: Dev only
-   url(r'^store/(?P<store_slug>[a-zA-Z0-9 -_]+)/campaign/(?P<campaign>\d+)/getresults$',
-       'get_results_dev', name='get-results'),
-
-   url(r'^store/(?P<store_slug>[a-zA-Z0-9 -_]+)/campaign/(?P<campaign>\d+)/content/'
-       r'(?P<content_id>\w+)/getresults$', 'get_results_dev', name='get-results'),
+    url(r'^page/(?P<page_id>\d+)/getresults/?$', 'get_results_view',
+        name='get-results'),
+    url(r'^page/(?P<page_id>\d+)/tile/(?P<tile_id>\d+)?$', 'get_tiles_view',
+        name='get-tiles'),
+    url(r'^page/(?P<page_id>\d+)/tile/?$', 'get_tiles_view',
+        name='get-tiles'),
 )

@@ -1,318 +1,181 @@
-import json
-import random
+from threading import Thread, current_thread
 
-from urllib import urlencode
-from random import randrange
-
-from django.core.cache import cache
 from django.conf import settings
 from django.http import HttpResponse
-from django.template import Context, loader, TemplateDoesNotExist
-import httplib2
-from mock import MagicMock
+from django.http.response import Http404, HttpResponseNotFound
+from django.views.decorators.cache import cache_page, never_cache
+from django.views.decorators.csrf import csrf_exempt
 
-from apps.assets.models import Product, Store
+from apps.api.decorators import request_methods
+from apps.assets.models import Page, Tile, TileRelation
+from apps.intentrank.controllers import IntentRank
+from apps.intentrank.algorithms import ir_generic, ir_all, ir_popular
+from apps.intentrank.utils import ajax_jsonp
 
-from apps.intentrank.utils import random_products, ajax_jsonp
 
-from apps.pinpoint.models import IntentRankCampaign
+import scripts.generate_rss_feed as rss_feed
 
-SUCCESS = 200
-FAIL400 = 400
-SUCCESS_STATUSES = xrange(SUCCESS, 300)
-DEFAULT_RESULTS  = 12
-MAX_BLOCKS_BEFORE_VIDEO = 50
 
+TRACK_SHOWN_TILES_NUM = 20  # move to settings when appropriate
 
-def send_intentrank_request(request, url, method='GET', headers=None,
-                            http=httplib2.Http):
-    """
-    Sends a given request to intentrank with the given headers.
 
-    @param request: The request to the django intentrank api.
-    @param url: The url to the intentrank service.
-    @param method:
-    @param headers: The headers for the request to the intentrank service.
-
-    @return: A tuple with a response code and the content that was returned.
-    """
-    if not headers:
-        headers = {}
-
-    cookie = request.session.get('ir-cookie')
-    if cookie:
-        headers['Cookie'] = cookie
-
-    h = http()
-    response, content = h.request(
-        url,
-        method=method,
-        headers=headers,
-    )
-
-    if response.get('set-cookie'):
-        request.session['ir-cookie'] = response['set-cookie']
-
-    return response, content
-
-
-def send_request(request, url, method='GET', headers=None):
-    """
-    Sends a given request to intentrank with the given headers.
-
-    @param request: The request to the django intentrank api.
-    @param url: The url to the intentrank service.
-    @param method:
-    @param headers: The headers for the request to the intentrank service.
-
-    @return: A tuple with a response code and the content that was returned.
-    """
-    if not headers:
-        headers = {}
-
-    h = httplib2.Http()
-    response, content = h.request(
-        url,
-        method=method,
-        headers=headers,
-    )
-
-    return response, content
-
-
-def get_product_json_data(product, products_with_images_only=True):
-    """Enforce common product json structures across both
-    live and static IR.
-
-    input: Product product
-    output: Dict (json object)
-
-    This function raises an exception if products_with_images_only is True,
-    but the product has none.
-
-    """
-    if not product:
-        raise ValueError('Supplied product is not valid.')
-
-    if products_with_images_only and not product.images():
-        raise ValueError('Product has no images, but one or more is required.')
-
-    try:
-        product_template = loader.get_template(
-            'pinpoint/snippets/product_object.js')
-        product_context = Context({'product': product})
-        return json.loads(product_template.render(product_context))
-    except TemplateDoesNotExist:
-        if settings.DEBUG: # tell (only) devs if something went wrong.
-            raise
-
-    # Product json template is AWOL.
-    # Fall back to however we rendered products before
-    product_props = product.data(raw=True)
-    product_js_obj = {}
-    for prop in product_props:
-        # where product_prop is ('data-key', 'value')
-        product_js_obj[prop] = product_props[prop]
-    return product_js_obj
-
-
-def get_json_data(request, products, campaign_id, seeds=None):
-    """returns json equivalent of get_blocks' blocks.
-
-    seeds is a list of product IDs.
-
-    results will be an object {}, not an array [].
-    products_with_images_only should be either '0' or '1', please.
-    """
-    ir_campaign = IntentRankCampaign.objects.get(pk=campaign_id)
-    
-    campaign = ir_campaign.campaigns.all()[0]
-    
-    results = []
-    products_with_images_only = True
-    if request.GET.get('products_with_images_only', '1') == '0':
-        products_with_images_only = False
-
-    # products
-    for product in products:
-        try:
-            if not product:
-                continue
-
-            product_js_obj = cache.get("product_js_obj-{0}-{1}".format(
-                product.id, products_with_images_only))
-
-            if not product_js_obj:
-                product_js_obj = get_product_json_data(product=product,
-                   products_with_images_only=products_with_images_only)
-
-                cache.set(
-                    "product_js_obj-{0}-{1}".format(
-                        product.id, products_with_images_only),
-
-                    product_js_obj,
-
-                    # cache for 3 hours
-                    60*60*4
-                )
-
-            results.append(product_js_obj)
-        except ValueError:
-            # caused by product image requirement.
-            # if that requirement is not met, ignore product.
-            continue
-
-    # store-wide external content
-    external_content = cache.get('storec-external-content-{0}-{1}'.format(
-        campaign.store.id, campaign_id))
-
-    if not external_content:
-        external_content = campaign.store.external_content.filter(
-            active=True, approved=True)
-        if campaign.supports_categories:
-            external_content = external_content.filter(categories__id=campaign_id)
-
-        cache.set('storec-external-content-{0}-{1}'.format(
-            campaign.store.id, campaign_id),external_content, 60*60*4)
-
-    # content to product ration. e.g., 2 == content to products 2:1
-    content_to_products = 1
-
-    need_to_show = int(round(len(results) * content_to_products))
-
-    if len(external_content) > 0 and need_to_show > 0:
-        need_to_show = min(need_to_show, len(external_content))
-
-        for item in random.sample(external_content, need_to_show):
-            json_content = item.to_json()
-            json_content.update({
-                'template': item.content_type.name.lower()
-            })
-
-            related_products = cache.get('ec-tagged-prods-{0}'.format(item.id))
-            if not related_products:
-                related_products = item.tagged_products.all()
-
-                cache.set('ec-tagged-prods-{0}'.format(item.id),
-                    related_products, 60*60)
-
-            if related_products:
-                json_content.update({
-                    'related-products': [x.data(raw=True)
-                        for x in related_products]
-                })
-
-            results.insert(randrange(len(results) + 1), json_content)
-            
-    return results
-        
-
-def get_seeds(request, **kwargs):
-    """Gets initial results (products, photos, etc.) to be saved with a page
-
-    kwargs['raw'] also toggles between returning a dictionary
-    or an entire HttpResponse.
-    """
-    # IR uses a cookie previously sent to us as a flag
-    cookie = kwargs.get('cookie', '')
-
-    num_results = kwargs.get('results', request.GET.get('results',  DEFAULT_RESULTS))
-
-    # store now needs to be a slug
-    store_slug = kwargs.get('store_slug', request.GET.get('store_slug',
-                                                          'store_slug'))
-    campaign = kwargs.get('campaign', request.GET.get('campaign', '-1'))
-
-    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
-    base_url = kwargs.get('base_url', request.GET.get(
-        'base_url',
-        settings.INTENTRANK_BASE_URL + '/intentrank'
-    ))
-
-    url = '{0}/page/{1}/getresults'.format(base_url, campaign)
-
-    # Add required get parameters
-    url += "?results={0}".format(num_results)
-
-    # Fetch results
-    try:
-        response, content = send_request(request, url,
-                                         headers={'Cookie': cookie})
-        status = response['status']
-        cookie = response.get('set-cookie', '')
-        content = unicode(content, 'windows-1252')
-        if status >= 400:
-            raise ValueError('get_seeds received error')
-    except httplib2.HttpLib2Error as e:
-        # Don't care what went wrong; do something!
-        content = u"{'error': '{0}'}".format(str(e))
-        status = 400
-    except ValueError:
-        raise
-
-    # Since we are sending the request, and we'll get JSONP back
-    # we know what the callback will be named
-    prefix = '{0}('.format(callback)
-    suffix = ');'
-    if content.startswith(prefix) and content.endswith(suffix):
-        content = content[len(prefix):-len(suffix)]
-
-    # Check results
-    try:
-        results = json.loads(content)
-    except ValueError:
-        results = {"error": content}
-
-    if 'error' in results:
-        results.update({'url': url})
-
-    # post-processing for django templates: they can't access any attribute
-    # with a hyphen in it
-    new_results = []
-    for result in results:
-        new_result = {}
-        for attrib in result:
-            new_result[attrib] = result[attrib]
-            new_result[attrib.replace('-', '_')] = result[attrib]
-        new_results.append(new_result)
-
-    if kwargs.get('raw', False):
-        return (new_results, cookie)
-    else:
-        return ajax_jsonp(new_results, callback, status=status)
-
-
-def update_clickstream(request):
-    """
-    Tells intentrank what producs have been clicked on.
-
-    @param request: The request.
-
-    @return: A json HttpResonse that is empty or contains an error.  Displays nothing on success.
-    """
-
-    callback = request.GET.get('callback', 'fn')
-
-    # Proxy is *mostly* deprecated; always succeed
-    return ajax_jsonp([], callback, status=SUCCESS)
-
-
-
-def get_results_dev(request, store_slug, campaign, content_id=None, **kwargs):
+@never_cache
+@csrf_exempt
+@request_methods('GET')
+def get_results_view(request, page_id):
     """Returns random results for a campaign
 
-    kwargs['raw'] also toggles between returning a dictionary
-    or an entire HttpResponse.
+    :var url: if given, proxy directly to intentrank.
+    :var page: page id
+    :var results: int number of results
+
+    :returns HttpResponse/Http404
     """
-    callback = kwargs.get('callback', request.GET.get('callback', 'fn'))
+    this_thread = current_thread()
+    print "{0} started".format(this_thread.name)
 
-    products = random_products(store_slug, {'results': DEFAULT_RESULTS},
-                               id_only=True)
-    filtered_products = Product.objects.filter(
-        pk__in=products, available=True)
-    results = get_json_data(request, filtered_products, campaign)
+    callback = request.GET.get('callback', None)
+    results = int(request.GET.get('results', 10))
 
-    if kwargs.get('raw', False):
-        return results
+    # "show everything except these tile ids"
+    shown = filter(bool, request.GET.get('shown', "").split(","))
+    exclude_set = map(int, shown)
+
+    # keep track of the last (unique) tiles have been shown.
+    # limit is controlled by TRACK_SHOWN_TILES_NUM
+    if request.session:
+        if not request.session.get('shown', []):
+            request.session['shown'] = exclude_set
+        else:
+            request.session['shown'] += exclude_set
+        request.session['shown'] = list(set(request.session['shown']))  # uniq
+        request.session['shown'] = request.session['shown'][:TRACK_SHOWN_TILES_NUM]
+
+    # otherwise, not a proxy
+    try:
+        page = (Page.objects
+                    .filter(old_id=page_id)
+                    .select_related('feed__tiles',
+                                    'feed__tiles__products',
+                                    'feed__tiles__content')
+                    .prefetch_related()
+                    .get())
+    except Page.DoesNotExist:
+        return HttpResponseNotFound("No page {0}".format(page_id))
+
+    feed = page.feed
+    if not feed:
+        return HttpResponseNotFound("No feed for page {0}".format(page_id))
+
+    #if related is specified, return all related tile to the given tile-id
+    related = request.GET.get('related', '')
+    if related:
+        ir = IntentRank(feed=feed)
+        resp = ajax_jsonp(ir.transform(TileRelation.get_related_tiles([Tile.objects.get(old_id=related)])[:100]))
+        print "{0} ended".format(this_thread.name)
+        return resp
+
+    if request.GET.get('algorithm', None) == 'popular':
+        algorithm = ir_popular
     else:
-        return ajax_jsonp(results, callback, status=200)
+        algorithm = ir_generic
+
+    resp = ajax_jsonp(get_results(feed=feed, results=results,
+                                  algorithm=algorithm, request=request,
+                                  exclude_set=exclude_set),
+                      callback_name=callback)
+
+    print "{0} ended".format(this_thread.name)
+    return resp
+
+
+@never_cache
+@csrf_exempt
+@request_methods('GET')
+def get_tiles_view(request, page_id, tile_id=None, **kwargs):
+    """Returns a response containing all tiles for the page, or just
+    one tile if its id is given.
+
+    (Undocumented, used endpoint)
+    It is assumed that the tile format is the same as the ones
+    from get_results.
+    """
+    callback = request.GET.get('callback', None)
+
+    # get single tile
+    if tile_id:
+        try:
+            tile = (Tile.objects
+                        .filter(old_id=tile_id)
+                        .select_related()
+                        .prefetch_related('content', 'products')
+                        .get())
+        except Tile.DoesNotExist:
+            return HttpResponseNotFound("No tile {0}".format(tile_id))
+
+        # Update clicks
+        clicks = request.session.get('clicks', [])
+        if tile_id not in clicks:
+            tile.click()
+            for click in clicks:
+                TileRelation.relate(Tile.objects.get(old_id=click), tile)
+            clicks.append(tile_id)
+            request.session['clicks'] = clicks
+
+        return ajax_jsonp(tile.to_json())
+
+    # get all tiles
+    try:
+        page = (Page.objects
+                    .filter(old_id=page_id)
+                    .select_related('feed__tiles__products',
+                                    'feed__tiles__content')
+                    .prefetch_related()
+                    .get())
+    except Page.DoesNotExist:
+        return HttpResponseNotFound("No page {0}".format(page_id))
+
+    feed = page.feed
+    if not (feed or tile_id):
+        return HttpResponseNotFound("No feed for page {0}".format(page_id))
+
+    return ajax_jsonp(get_results(feed=feed, request=request, algorithm=ir_all),
+                      callback_name=callback)
+
+
+def get_results(feed, results=settings.INTENTRANK_DEFAULT_NUM_RESULTS,
+                algorithm=ir_generic, **kwargs):
+    """Converts a feed into a list of <any> using given parameters.
+
+    :param feed        a <Feed>
+    :param results     number of <any> to return
+    :param exclude_set IDs of items in the feed to never consider
+    :param request     (relay)
+    :param algorithm   reference to a <Feed> => [<Tile>] function
+
+    :returns           a list of <any>
+    """
+    ir = IntentRank(feed=feed)
+
+    # "everything except these tile ids"
+    exclude_set = kwargs.get('exclude_set', [])
+    request = kwargs.get('request', None)
+    return ir.transform(algorithm(feed=feed, results=results,
+                                     exclude_set=exclude_set, request=request))
+
+
+@never_cache
+@csrf_exempt
+@request_methods('GET')
+def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
+    feed_link = 'http://' + str(request.META['HTTP_HOST']) + '/'
+    if page_slug:
+        feed_link += str(page_slug) + '/' + str(feed_name)
+        page = Page.objects.get(url_slug=page_slug)
+    elif page_id:
+        feed_link += str(page_id) + '/' + str(feed_name)
+        page = Page.objects.get(old_id=page_id)
+    else:
+        raise Http404("Feed not found")
+    feed = rss_feed.main(page, feed_name=feed_name, feed_link=feed_link)
+    return HttpResponse(feed, content_type='application/rss+xml')
