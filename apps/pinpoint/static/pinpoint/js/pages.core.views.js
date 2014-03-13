@@ -196,6 +196,10 @@ App.module('core', function (module, App) {
                 App.router.navigate(String(tile.get('tile-id')), {
                     trigger: true
                 });
+                // YAY, request sent on tile click to update click count for tile
+                var xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+                xmlhttp.open("POST", window.PAGES_INFO.IRSource + "/page/" + window.PAGES_INFO.campaign + "/tile/" + tile.get('tile-id') + "/click", true);
+                xmlhttp.send();
             }
         },
 
