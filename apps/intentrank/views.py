@@ -3,6 +3,7 @@ from threading import Thread, current_thread
 from django.conf import settings
 from django.http import HttpResponse
 from django.http.response import Http404, HttpResponseNotFound
+from django.shortcuts import get_object_or_404, get_list_or_404
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
 
@@ -116,7 +117,6 @@ def get_tiles_view(request, page_id, tile_id=None, **kwargs):
         # Update clicks
         clicks = request.session.get('clicks', [])
         if tile_id not in clicks:
-            tile.click()
             for click in clicks:
                 TileRelation.relate(Tile.objects.get(old_id=click), tile)
             clicks.append(tile_id)
@@ -179,3 +179,36 @@ def get_rss_feed(request, feed_name, page_id=0, page_slug=None, **kwargs):
         raise Http404("Feed not found")
     feed = rss_feed.main(page, feed_name=feed_name, feed_link=feed_link)
     return HttpResponse(feed, content_type='application/rss+xml')
+
+
+def update_tiles(request, tile_function, **kwargs):
+    tile_id = kwargs.get('tile_id', None)
+    tile_ids = request.GET.get('tile_ids', None)
+    if tile_id:
+        tile = get_object_or_404(Tile, old_id=tile_id)
+        tile_function(tile)
+    elif tile_ids:
+        tile_ids = tile_ids.split(',')
+        tiles = get_list_or_404(Tile, old_id__in=tile_ids)
+        for tile in tiles:
+            tile_function(tile)
+    else:
+        raise Http404('no argument provided')
+
+    return HttpResponse('', status=204)
+
+
+@never_cache
+@csrf_exempt
+@request_methods('POST')
+def click_tile(request, **kwargs):
+    return update_tiles(request, tile_function=lambda t: t.add_click(), **kwargs)
+
+
+@never_cache
+@csrf_exempt
+@request_methods('POST')
+def view_tile(request, **kwargs):
+    return update_tiles(request, tile_function=lambda t: t.add_view(), **kwargs)
+
+
