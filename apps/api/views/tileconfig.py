@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from apps.api.decorators import check_login, request_methods
 
 from apps.intentrank.utils import ajax_jsonp
-from apps.assets.api import ContentGraphClient
+from apps.api.resources import ContentGraphClient
 from apps.contentgraph.models import call_contentgraph
 from apps.api.utils import mimic_response
 

@@ -406,4 +406,6 @@ CELERYBEAT_SCHEDULE = {
 STALE_TILE_RETRY_THRESHOLD = 240  # seconds
 IRCONFIG_RETRY_THRESHOLD = 240  # seconds
 
+TASTYPIE_ALLOW_MISSING_SLASH = True  # allow missing trailing slashes
+
 djcelery.setup_loader()

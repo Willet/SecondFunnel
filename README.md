@@ -10,28 +10,16 @@ Detailed instructions can be found in [the SecondFunnel wiki](https://github.com
  be done by doing the following:
 
 1. Set up a virtual environment using `virtualenv` or `virtualenvwrapper`
-2. Install MySQL
-3. Install python dependencies: `pip install -r requirements.txt`
+2. Install (and set up) the PostgresQL database
+3. Install python dependencies: `pip install -r requirements/dev.txt`
+4. Run the server using [the command line](https://github.com/Willet/SecondFunnel/pull/441)
 
-Then, getting started is as easy as creating a `local_settings.py` file in the
-`secondfunnel` folder with the following contents...
-
-    DATABASES = {
-        'default': {
-            'ENGINE'  : 'django.db.backends.sqlite3',
-            'NAME'    : 'test.sqlite',
-            'USER'    : '',
-            'PASSWORD': '',
-            'HOST'    : '',
-            'PORT'    : '',
-        }
-    }
-
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-
-...and run the following command...
-
-    python manage.py runserver
+    vagrant up
+    vagrant ssh
+    cd /vagrant
+    python manage.py syncdb
+    python manage.py migrate
+    python manage.py runserver 0.0.0.0:8000
 
 And voila! Again, full details are available [in the wiki](https://github.com/Willet/SecondFunnel/wiki/Environment-Setup)
 
@@ -52,10 +40,13 @@ The SecondFunnel project uses Epydocs for documenting code.  For procedural and 
 
 
 The SecondFunnel project has a few primary components:
-* [**IntentRank**](.#intentrank):  The backbone of the SecondFunnel project; provides an API for requesting and serving content. 
-* [**Pages**](.#-pages): The front-end javascript; manages how content is arranged on the pinpoint pages, services API queries to IntentRank and handles interactions between the user and the pinpoint pages.
+* [**API**](.#-api): The backbone of the SecondFunnel project; provides an API for requesting and serving content.
+* [**Pinpoint (Pages)**](.#-pages): The front-end javascript; manages how content is arranged on the pinpoint pages, services API queries to IntentRank and handles interactions between the user and the pinpoint pages.
+* [**IntentRank**](.#intentrank):  Provides Pages with products and content (in the form of "Tiles").
 * [**Analytics**](.#-analytics): An analytics framework for tracking how users interact with the pinpoint pages.
 
+#### <a id="API"></a>API
+The SecondFunnel API is a tastypie list of resources for internal use only.
 
 #### <a id="IntentRank"></a>IntentRank
 [Read more here.](https://github.com/Willet/IntentRank)
