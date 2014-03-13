@@ -296,9 +296,9 @@ div.header {
 
 .previewContainer img {
     /* limit how big preview images can be */
-    max-width: 100%;
+    max-width: 99%;
     max-height: 99%;
-    width: 100%;
+    width: 99%;
 }
 
 .social-buttons .facebook {
@@ -561,7 +561,6 @@ div.header {
 
 @media screen and (min-width: 768px) {
     .previewContainer .image {
-        /*margin: 40pt auto 20px auto;*/
         text-align: center;
     }
 
@@ -616,15 +615,15 @@ div.header {
 
     /* indicate that the image can be swiped */
     .previewContainer .gallery-swipe-left, .previewContainer .gallery-swipe-right {
-        margin-top: -45px;
+        top: 50%;
+        z-index: 2;
         color: #eee;
-        background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
         width: 45px;
         height: 45px;
-        top: 50%;
+        margin-top: -45px;
         position: absolute;
-        z-index: 999;
         pointer-events: none;
+        background: url('//cdn.secondfunnel.com/static-misc-secondfunnel/images/arrows.png') no-repeat scroll 0 0;
     }
 
     .previewContainer .gallery-related {
@@ -723,7 +722,6 @@ div.header {
     .previewContainer .gap-buttons {
         width: 100%;
         bottom: 0px;
-        z-index: 99;
         padding: 10px;
         margin: 0 auto;
         text-align: center;
@@ -774,7 +772,6 @@ div.header {
     opacity: 1;
     filter: alpha(opacity=100);
     text-shadow: none;
-    z-index: 1000;
 }
 
 .previewContainer .image-with-related-products {
@@ -880,7 +877,6 @@ div.header {
 
     .previewContainer .content .info  {
         padding: 5px;
-        z-index: 9999;
         max-width: 100%;
         text-align: center;
         background: #000d41;
