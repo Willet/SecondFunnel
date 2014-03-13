@@ -74,7 +74,7 @@ App.module("layoutEngine", function (layoutEngine, App) {
         var width,
             tileWidth = view.$(opts.itemSelector + ':not(.wide)').width();
 
-        width = view.$el.width() / (opts.minColumns || 1);
+        width = view.$el.outerWidth() / (opts.minColumns || 1);
         width = Math.max(tileWidth, width);
 
         if (!(tileWidth && width < opts.columnWidth)) {
