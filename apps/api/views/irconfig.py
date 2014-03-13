@@ -1,4 +1,6 @@
 import json
+import calendar
+from datetime import datetime
 from boto.sqs.message import RawMessage
 from django.conf import settings
 from django.http import HttpResponse
@@ -6,7 +8,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from apps.api.decorators import request_methods, check_login
 from apps.static_pages.aws_utils import SQSQueue
-
+from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
 
 # Task?
 # When does IR update?
@@ -15,7 +17,20 @@ from apps.static_pages.aws_utils import SQSQueue
 @check_login
 @never_cache
 @csrf_exempt
-def generate_ir_config(request, store_id, ir_id):
+def generate_ir_config_view(request, store_id, ir_id):
+    """view for generating an IR config."""
+    try:
+        generate_ir_config(store_id=store_id, ir_id=ir_id)
+        call_contentgraph('/store/%s/page/%s' %(store_id, ir_id),
+            method="PATCH", body=json.dumps({
+                'ir-last-generated': calendar.timegm(datetime.utcnow().timetuple())
+            }))
+        return HttpResponse(status=200, content='OK')
+    except ValueError as err:
+        return HttpResponse(status=500, content=err.message)
+
+
+def generate_ir_config(store_id, ir_id):
     # Yes, it is weird that we have json dumps inside a payload
     # that will also be dumped, but this is how it is implemented.
     payload = {
@@ -34,15 +49,12 @@ def generate_ir_config(request, store_id, ir_id):
     if settings.ENVIRONMENT in ['dev', 'test']:
         queue_name = '{queue}-{env}'.format(queue=queue_name,
                                             env='test')
-
-
     try:
         queue = SQSQueue(queue_name=queue_name)
     except ValueError, e:
-        return HttpResponse(status=500, content=json.dumps({
+        raise e.__class__(json.dumps({
             'error': 'No queue found with name {name}'.format(name=queue_name)
         }))
 
     queue.queue.set_message_class(RawMessage)
     queue.queue.write(message)
-    return HttpResponse(status=200, content='OK')

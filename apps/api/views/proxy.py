@@ -126,7 +126,7 @@ def tile_config_request(url, object_id, object_type='product',
 
     object_template = object_type  # i.e. products use the product template
     if object_type == 'content':
-        object_template = 'image'  # but content uses the image template
+        object_template = 'image'  # content uses youtube/video/image templates, default to image
 
     response = proxy_request(
         url,
@@ -194,6 +194,6 @@ def proxy_view(request, path):
 
     return HttpResponse(
         content=content,
-        status=response['status'],
+        status=int(response['status']),
         content_type=response['content-type']
     )

@@ -4,10 +4,14 @@ import random
 import re
 import requests
 import string
+import types
+
 from collections import namedtuple
 from tastypie.test import ResourceTestCase, TestApiClient
 
-MockResponse = namedtuple('MockResponse', ['status_code', 'content', 'headers'])
+
+MockResponse = namedtuple('MockResponse', ['status_code', 'content', 'headers', 'json'])
+RequestNotMocked = namedtuple('RequestNotMocked', 'status, response')
 
 def configure_mock_request(mock_request, returns):
     # http://www.voidspace.org.uk/python/mock/examples.html#multiple-calls-with-different-effects
@@ -16,7 +20,6 @@ def configure_mock_request(mock_request, returns):
             if re.search(key, uri):
                 return value
 
-        RequestNotMocked = namedtuple('RequestNotMocked', 'status, response')
         return RequestNotMocked(None, None)
 
     # side_effect: A function to be called whenever the Mock is called
@@ -24,19 +27,31 @@ def configure_mock_request(mock_request, returns):
 
     return mock_request
 
+
 def configure_hammock_request(mock_request, returns):
+    """
+
+    :type returns dict
+    :returns {tuple}
+    """
     def response(method, url, **kwargs):
         for key, value in returns.iteritems():
             if re.search(key, url):
+                if type(value) == types.FunctionType:
+                    # each fn handler should accept (method, url)
+                    fn_result = key(method, url)
+                    # each fn handler should return {status_code, content, headers}
+                    return MockResponse(**fn_result)
+
                 resp = value[0]
                 content = value[1]
                 return MockResponse(
                     status_code=resp['status'],
                     content=content,
-                    headers=resp
+                    headers=resp,
+                    json=lambda:content
                 )
 
-        RequestNotMocked = namedtuple('RequestNotMocked', 'status, response')
         return RequestNotMocked(None, None)
 
     # side_effect: A function to be called whenever the Mock is called
@@ -75,7 +90,7 @@ class MockedHammockRequestsTestCase(AuthenticatedResourceTestCase):
 
         self.mock_content_default = {
             'test': 'data',
-            'random': ''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) #TODO make a random string
+            'random': ''.join(random.choice(string.ascii_letters + string.digits) for x in range(32))
         }
         self.mock_content_list = []
 
@@ -93,13 +108,14 @@ class MockedHammockRequestsTestCase(AuthenticatedResourceTestCase):
 
             mock_content = self.mock_content_default
             if len(self.mock_content_list) > calls:
-                mock_content = self.mock_status_list[calls]
+                mock_content = self.mock_content_list[calls]
 
             inject_variables['calls'] += 1
             return MockResponse(
                 status_code=mock_status,
                 content=json.dumps(mock_content),
-                headers={'content-type': 'application/json'}
+                headers={'content-type': 'application/json'},
+                json=lambda: mock_content
             )
 
         self.mock_request = mock.Mock(side_effect=side_effect)
@@ -107,13 +123,16 @@ class MockedHammockRequestsTestCase(AuthenticatedResourceTestCase):
         self.mocks.start()
         self.addCleanup(self.mocks.stop)
 
+    def assertMockRequestCallCount(self, expected_mock_calls):
+        self.assertEqual(self.mock_request.call_count, expected_mock_calls, 'Mock was not called the correct number of times; Was: %s, Expected: %s' % (self.mock_request.call_count, expected_mock_calls))
+
 class BaseNotAuthenticatedTests(object):
-    '''Test method assumes that the subclass will have the following properties
+    """Test method assumes that the subclass will have the following properties
           self.url - String url to be called
           self.mock_request - Mock() instance
           self.allowed_methods - list of methods that will 200 under normal circumstances
                                  must be of length > 0
-    '''
+    """
     def test_not_authenticated(self):
         client = TestApiClient()
         response = getattr(client, self.allowed_methods[0])(self.url, format='json', data={})
@@ -149,4 +168,4 @@ class BaseMethodNotAllowedTests(object):
             response = getattr(self.api_client, verb)(self.url, format='json', data=verbs[verb])
             self.assertFalse(self.mock_request.called, 'Mock request was still called when bad method was used')
             self.assertEqual(self.mock_request.call_count, 0)
-            self.assertHttpMethodNotAllowed(response)
+            self.assertEqual(response.status_code, 405, '%s != 405; Verb used: %s' % (response.status_code, verb))

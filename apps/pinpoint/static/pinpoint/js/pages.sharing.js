@@ -1,10 +1,10 @@
-/*global SecondFunnel, Backbone, Marionette, console, broadcast */
+/*global App, Backbone, Marionette, console, $, _ */
 /**
  * This module has no initialization options.
  *
  * @module sharing
  */
-SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
+App.module("sharing", function (sharing, App) {
     "use strict";
 
     var $document = $(document),
@@ -41,7 +41,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             'digg': "//digg.com/submit?url=<%= url %>",
             'blogger': "//blogger.com/blog-this.g?t=<%= caption %>&u=<%= url %>&n=<%= title %>",
             'stumbleupon': "//stumbleupon.com/submit?url=<%= url %>"
-        }, SecondFunnel.option('shareSources'));
+        }, App.option('shareSources'));
 
     /**
      * Container for the social buttons; allows us to create arbitrary
@@ -58,17 +58,15 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
      */
     this.SocialButtons = Marionette.View.extend({
         'tagName': 'span',
-        'showCount': SecondFunnel.option('showCount', true),
-        'buttonTypes': SecondFunnel.option('socialButtons',
+        'showCount': App.option('showCount', true),
+        'buttonTypes': App.option('socialButtons',
             ['facebook', 'twitter', 'pinterest']), // @override via constructor
 
         'loadSocial': _.once(function (callback) {
             $.getScripts([
                 "//www.youtube.com/iframe_api",
                 "//assets.pinterest.com/js/pinit.js",
-                // "//connect.facebook.net/en_US/all.js",
-                "//platform.twitter.com/widgets.js",
-                "//google-analytics.com/ga.js"
+                "//platform.twitter.com/widgets.js"
             ], callback);
         }),
         'initSocial': function () {
@@ -80,12 +78,12 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
                     'status': false, // No AppID
                     'xfbml': true
                 });
-                SecondFunnel.vent.trigger('tracking:registerFacebookListeners');
+                App.vent.trigger('tracking:registerFacebookListeners');
             }
 
             if (window.twttr && window.twttr.widgets &&
                 _.contains(this.buttonTypes, "twitter")) {
-                SecondFunnel.vent.trigger('tracking:registerTwitterListeners');
+                App.vent.trigger('tracking:registerTwitterListeners');
                 window.twttr.widgets.load();
             }
 
@@ -159,7 +157,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
 
         'showCondition': function () {
             // @override to false under any condition you don't want buttons to show
-            return SecondFunnel.option('socialButtonsEnableCondition')(this);
+            return App.option('socialButtonsEnableCondition')(this);
         },
 
         'templateHelpers': function () {  // or {k: v}
@@ -169,16 +167,25 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             // render our template.
             var helpers = {},
                 data = this.model.attributes,
-                page = SecondFunnel.option('page', {}),
+                page = App.option('page', {}),
                 product = data || page.product || {},
-                image = page['stl-image'] || page['featured-image'] || data.image || data.url;
+                related = data['related-products'] && data['related-products'].length ? data['related-products'][0] : {},
+                image;
 
-            helpers.url = encodeURIComponent(product.url || image);
+            data.image = data.image ? data.image : {};
+            image = page['stl-image'] || page['featured-image'] || data.thumbnail || data.image.url || data.url;
+
+            if (data['source'] == "youtube") {
+                helpers.url = encodeURIComponent(data['original-url'] || product.url || image);
+            } else {
+                helpers.url = encodeURIComponent(related.url || product.url || data.url || image);
+            }
             helpers.product = {
-                'url': product.url
+                'url': product.url,
+                'image': image
             };
             helpers.showCount = this.showCount;
-            helpers.image = image;
+            helpers.image = encodeURIComponent(image);
 
             // Call the after template handler to allow subclasses to modify this
             // data
@@ -203,7 +210,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             this.$el.parent().hide();
 
             // process widgets
-            SecondFunnel.utils.runWidgets(this);
+            App.utils.runWidgets(this);
         },
         'commas': false
     });
@@ -246,12 +253,12 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             }
 
             // process widgets
-            SecondFunnel.utils.runWidgets(this);
+            App.utils.runWidgets(this);
         },
 
         'onTemplateHelpers': function (helpers) {
             // Additional attributes to add to our template data.
-            var url = (helpers.product.url || helpers.image);
+            var url = (helpers.product.url || helpers.product.image);
             if (url && url.indexOf("facebook") > -1) {
                 url = "http://www.facebook.com/" + /(?:fbid=|http:\/\/www.facebook.com\/)(\d+)/.exec(url)[1];
             }
@@ -321,7 +328,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         'tagName': "div",
         'className': "shareContainer previewContainer",
         'template': "#share_popup_template",
-        'buttons': SecondFunnel.option('shareSocialButtons'),
+        'buttons': App.option('shareSocialButtons'),
 
         'events': {
             'click .close, .mask': function (ev) {
@@ -356,7 +363,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
             });
 
             // process widgets in this view
-            SecondFunnel.utils.runWidgets(this);
+            App.utils.runWidgets(this);
         }
     });
 
@@ -376,7 +383,7 @@ SecondFunnel.module("sharing", function (sharing, SecondFunnel) {
         'template': "#share_popup_option_template",
 
         'templateHelpers': function () {
-            var uri = SecondFunnel.sharing.get(this.options.type),
+            var uri = App.sharing.get(this.options.type),
                 helpers = {};
             if (uri) {
                 helpers.url = _.template(uri,

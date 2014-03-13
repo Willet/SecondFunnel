@@ -3,7 +3,7 @@ describe("layoutEngine", function () {
     var app, module;
 
     beforeEach(function () {
-        app = SecondFunnel;
+        app = App;
         module = app.layoutEngine;
     });
 

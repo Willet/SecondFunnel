@@ -23,11 +23,51 @@ AWS_HEADERS =  {
     'Vary': 'Accept-Encoding',
 }
 
+# dict of queues by region to poll regularly, using celery beat.
+# corresponding handlers need to be imported in apps.api.tasks
+# TODO: test CM instances currently handle messages from production
+# Scraper / TileConfigGen / IRConfigGen workers, and MUST be swapped to
+# test queues if production CM worker is deployed
+AWS_SQS_POLLING_QUEUES = {
+    'us-west-2': {
+        # https://willet.atlassian.net/browse/CM-125
+        'product-update-notification-queue-demo':
+            {'queue_name': 'product-update-notification-queue-demo',
+             'handler': 'handle_product_update_notification_message',
+             'interval': 300},
+
+        # https://willet.atlassian.net/browse/CM-126
+        'content-update-notification-queue-demo':
+            {'queue_name': 'content-update-notification-queue-demo',
+             'handler': 'handle_content_update_notification_message',
+             'interval': 300},
+
+        # https://willet.atlassian.net/browse/CM-127
+        'tile-generator-notification-queue-demo':
+            {'queue_name': 'tile-generator-notification-queue-demo',
+             'handler': 'handle_tile_generator_update_notification_message',
+             'interval': 5},
+
+        # https://willet.atlassian.net/browse/CM-128
+        'ir-config-generator-notification-queue-demo':
+            {'queue_name': 'ir-config-generator-notification-queue-demo',
+             'handler': 'handle_ir_config_update_notification_message'},
+
+        # https://willet.atlassian.net/browse/CM-124
+        'scraper-notification-queue-demo':
+            {'queue_name': 'scraper-notification-queue-demo',
+             'handler': 'handle_scraper_notification_message'},
+
+        'page-generator-demo':
+            {'queue_name': 'page-generator-demo',
+             'handler': 'handle_page_generator_notification_message'},
+    }
+}
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = 'https://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
-COMPRESS_URL = STATIC_URL
+COMPRESS_URL = 'http://%s/' % CLOUDFRONT_DOMAIN
 
 CACHES = {
     'default': {

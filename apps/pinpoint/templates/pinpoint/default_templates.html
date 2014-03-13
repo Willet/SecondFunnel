@@ -24,7 +24,7 @@
 <script type="text/template" id="product_tile_template">
     <div class="tap-indicator-target"></div>
     <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
-    <% if (SecondFunnel.option('debug', 0) > 1) { %>
+    <% if (App.option('debug', 0) > 1) { %>
         <span class="type"><%= obj['content-type'] %></span>
     <% } %>
     <div class="social-buttons"></div>
@@ -33,7 +33,7 @@
 <script type="text/template" id="product_mobile_tile_template">
     <div class="tap-indicator-target"></div>
     <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
-    <% if (SecondFunnel.option('debug', 0) > 1) { %>
+    <% if (App.option('debug', 0) > 1) { %>
         <span class="type"><%= obj['content-type'] %></span>
     <% } %>
     <% if (obj.name) { %>
@@ -47,7 +47,7 @@
 <script type="text/template" id="image_tile_template">
     <div class="tap-indicator-target"></div>
     <img class="focus" src="<%= obj.image.url %>" alt="<%= caption %>" />
-    <% if (SecondFunnel.option('debug', 0) > 1) { %>
+    <% if (App.option('debug', 0) > 1) { %>
         <span class="type"><%= obj['content-type'] %></span>
     <% } %>
     <div class="social-buttons"></div>
@@ -91,7 +91,7 @@
 <script type="text/template" id="tap_indicator_template">
     +
     <div>
-        <%= SecondFunnel.option('tapIndicatorText', 'tap to see more') %>
+        <%= App.option('tapIndicatorText', 'tap to see more') %>
     </div>
 </script>
 <script type="text/template" id="facebook_social_button_template">
@@ -105,7 +105,7 @@
 <script type="text/template" id="twitter_social_button_template">
     <% if (showCount) { %>
         <div class='button twitter' style='height: 13px; width: 77px;'>
-            <a href="https://twitter.com/share"
+            <a href="//twitter.com/share"
                class="twitter-share-button"
                data-text="{{ campaign.description|default:'' }} <%= url %>"
                data-lang="en" data-height= "15">
@@ -114,9 +114,9 @@
         </div>
     <% } else { %>
         <div class='button twitter'>
-            <a href="https://twitter.com/share?url=<%= url %>&text={{ campaign.description|default:'' }}"
+            <a href="//twitter.com/share?url=<%= url %>&text={{ campaign.description|default:'' }}"
                target="_blank">
-                <img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/twitterButton.png"/>
+                <img src="//cdn.secondfunnel.com/pinpoint/images/twitterButton.png"/>
             </a>
         </div>
     <% } %>
@@ -125,7 +125,7 @@
 <script type="text/template" id="pinterest_social_button_template">
     <div class='button pinterest'>
         <a href="http://pinterest.com/pin/create/button/?url=<%= url %>&media=<%= image.url %>&description={{ campaign.description|default:'' }}"
-           target="_blank"><img src="//elasticbeanstalk-us-east-1-056265713214.s3.amazonaws.com/pinpoint/images/pinpointButton.png"/></a>
+           target="_blank"><img src="//cdn.secondfunnel.com/pinpoint/images/pinpointButton.png"/></a>
     </div>
 </script>
 

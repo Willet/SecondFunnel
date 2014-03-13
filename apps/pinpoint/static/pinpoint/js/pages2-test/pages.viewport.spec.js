@@ -21,7 +21,7 @@ describe("viewport", function () {
         };
 
     beforeEach(function () {
-        app = SecondFunnel;
+        app = App;
         app.options.lockWidth = true;  // pre-requisite
         app.options.mobile = false;
         $.browser.mobile = false;

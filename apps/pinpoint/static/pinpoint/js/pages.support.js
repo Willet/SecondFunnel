@@ -1,8 +1,8 @@
-/*global SecondFunnel, Backbone, Marionette, console, broadcast */
+/*global App, Backbone, Marionette, console, $ */
 /**
  * @module support
  */
-SecondFunnel.module("support", function (module, SecondFunnel) {
+App.module("support", function (module, App) {
     // make new module full of transient utilities
     "use strict";
 
@@ -20,7 +20,7 @@ SecondFunnel.module("support", function (module, SecondFunnel) {
      * @returns {Boolean}
      */
     this.mobile = function () {
-        return ($window.width() < 768);  // 768 is set in stone now
+        return ($window.width() <= 768);  // 768 is set in stone now
     };
 
     /**
@@ -35,6 +35,15 @@ SecondFunnel.module("support", function (module, SecondFunnel) {
     };
 
     /**
+     * (basically) tests for hardware css transform.
+     * @returns {boolean}
+     */
+    this.transform3d = function () {
+        //github.com/Modernizr/Modernizr/blob/master/feature-detects/css/transforms3d.js#L20
+        return (document.documentElement.webkitPerspective !== undefined);
+    };
+
+    /**
      * True if the device identifies itself as an iPad.
      *
      * @type {Function}
@@ -44,6 +53,18 @@ SecondFunnel.module("support", function (module, SecondFunnel) {
         // use of this function is highly discouraged, but you know it
         // will be used anyway
         return testUA(/ipad/i);
+    };
+
+    /**
+     * True if the device identifies itself as an Android.
+     *
+     * @type {Function}
+     * @returns {Boolean}
+     */
+    this.isAnAndroid = function () {
+        // use of this function is highly discouraged, but you know it
+        // will be used anyway
+        return testUA(/Android/i);
     };
 
     /**

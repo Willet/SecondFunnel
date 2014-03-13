@@ -1,77 +1,122 @@
-/*global $, _, SecondFunnel, sizeImage*/
+/*global $, _, App, sizeImage*/
 
 // Gallery widget. loads inside a .gallery container.
 // TODO: lazy load widgets
-SecondFunnel.utils.registerWidget(
+App.utils.registerWidget(
     'gallery',  // name (must be unique)
     '.gallery',  // selector (scoped!)
     function (view, $el, option) {
-        var images,
+        var images, startX,
+            threshold = $(this).width() / 5, // displacement needed to be considered a swipe
             changeImage = function ($el, url) {
                 $el.attr('src', url);
+            },
+            toggleVisibility = function ($el, cond) {
+                if (cond) {
+                    $el.show();
+                } else {
+                    $el.hide();
+                }
+            },
+            toggleButtons = function (id) {
+                toggleVisibility(view.$('.gallery-swipe-left'), id > 0);
+                toggleVisibility(view.$('.gallery-swipe-right'), id < images.length - 1);
+            },
+            selectImage = function(target) {
+                // show a larger image on the left when a thumbnail is clicked.
+                var $ev = target,
+                    $gallery = $ev.parents('.gallery'),
+                    newURL = $ev.attr('src'),
+                    selector = $ev.parents('.previewContainer').find('.main-image').length ?
+                      '.main-image' : '.image img',
+                    $focusImg = $ev.parents('.previewContainer')
+                        .find(selector);
+
+                $ev
+                    .parents('.previewContainer')
+                    .find('.gallery img')
+                    .removeClass('selected');
+                $ev.addClass('selected');
+                changeImage($focusImg, newURL);
+
+                if (App.support.mobile()) {
+                    toggleButtons($gallery.children().index($ev));
+                }
+                $gallery.animate({
+                    scrollLeft: $ev.offset().left - $gallery.offset().left
+                }, 700);
             };
 
         // get list of images.
         try {
-            images = view.model.attributes['related-products'][0].images;
+            images = view.model.attributes['related-products'][0].images.slice(0);
+            if (App.support.mobile()) {
+                images.push(view.model.get('defaultImage'));
+            }
         } catch (err) {
             images = view.model.get('images');
+        }
+
+        //We have already appended to the gallery
+        if ($el && $el.children().length > 0) {
+            return;
         }
 
         _.each(images, function (image) {
             var $img = $('<img />')
                 .attr({
-                    'src': image.wide
+                    'src': image.url
                     // 'src': image.width(300)  // 300 = max logical width of the image
                 })
                 .click(function (ev) {
-                    // show a larger image on the left when a thumbnail is clicked.
                     var $ev = $(ev.currentTarget),
-                        newURL = $ev.attr('src'),
-                        $focusImg = $ev.parents('.previewContainer')
-                            .find('.image img');
-
-                    $ev
-                        .parents('.previewContainer')
-                        .find('.gallery img')
-                        .removeClass('selected');
-                    $ev.addClass('selected');
-                    changeImage($focusImg, newURL);
+                        hash;
+                    selectImage($ev);
+                    if (!!window.location.hash) {
+                        hash = window.location.hash + '&photo=' + $ev.index();
+                        App.vent.trigger('tracking:trackPageView', hash);
+                    }
                 });
             $el.append($img);  // add each image into the carousel
         });
 
+        selectImage(view.$('.gallery img').eq(0));
+
+        view.$('.gallery-swipe-left').hide();
+
         // swipeleft is "from right to left"
         view.$el
-            .on('swipeleft swiperight', '.image, .image img', function (ev) {
+            .on('swipeleft swiperight', '.image', function (ev) {
                 // select an image one to the left or right and select it
                 var type = ev.type,  // swipeleft or swiperight
                     sel = view.$('.gallery .selected'),
                     selIdx = sel.index(),
                     images = $('.gallery img');
-                images.removeClass('selected');
 
                 if (type === 'swipeleft') {
-                    selIdx++;  // advance
+                    selIdx++; // advance to next image in gallery
                     if (selIdx >= images.length) {
-                        selIdx = images.length - 1;
+                        selIdx--;
+                    } else {
+                        images.eq(selIdx).click();
                     }
                 } else {  // can only be swiperight, based on available events
-                    selIdx--;  // not retreat
+                    selIdx--; // retreat
                     if (selIdx < 0) {
-                        selIdx = 0;
+                        selIdx++;
+                    } else {
+                        images.eq(selIdx).click();
                     }
                 }
-                images.eq(selIdx).addClass('selected').click();
             })
-        .on('click', '.image, .image img', function (ev) {
-            var $pseudo = $(ev.target);
-            if (ev.offsetX >= 0 && ev.offsetX <= 100) {   // left (which is swiping right)
-                $pseudo.swiperight();
-            } else if (ev.offsetX >= $pseudo.width() - 100 &&  // right
-                ev.offsetY > 150) {  // prevent interference with close button
-                $pseudo.swipeleft();
-            }
-        });
+            .on('click', '.image', function (ev) {
+                var $pseudo = $(ev.target);
+                startX = ev.offsetX;
+                if (ev.offsetX >= -15 && ev.offsetX <= 100) {   // left (which is swiping right)
+                    $pseudo.swiperight();
+                } else if (ev.offsetX >= $pseudo.width() - 100) {  // right (which is swiping left)
+                    $pseudo.swipeleft();
+                }
+            });
     }
 );

@@ -1,4 +1,4 @@
-/*global describe, SecondFunnel, _, $, it, should, sinon, sinon, runs, waitsFor,
+/*global describe, App, _, $, it, should, sinon, sinon, runs, waitsFor,
   beforeEach, expect, spyOn
  */
 
@@ -6,7 +6,7 @@ describe('intentRank', function () {
     "use strict";
     // tested for campaigns
 
-    var module = SecondFunnel.intentRank,
+    var module = App.intentRank,
         results, // to test fetching content
         done, // to test fetching content
         expected, // to test fetching content

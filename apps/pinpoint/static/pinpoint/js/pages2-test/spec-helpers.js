@@ -1,4 +1,4 @@
-/*global $, _, Backbone, beforeEach, afterEach, expect, describe, it, runs, spyOn, loadFixtures, SecondFunnel*/
+/*global $, _, Backbone, beforeEach, afterEach, expect, describe, it, runs, spyOn, loadFixtures, App*/
 beforeEach(function () {
     "use strict";
     /**

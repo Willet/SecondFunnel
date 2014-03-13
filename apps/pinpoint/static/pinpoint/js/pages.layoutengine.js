@@ -1,4 +1,4 @@
-/*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast */
+/*global App, Backbone, Marionette, imagesLoaded, console, _, $*/
 /**
  * Masonry wrapper
  *
@@ -7,36 +7,38 @@
  *
  * @module layoutEngine
  */
-SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
+App.module("layoutEngine", function (layoutEngine, App) {
     "use strict";
 
     var $document = $(document),
         $window = $(window),
         defaults = {
             'columnWidth': 255,
-            'isAnimated': !SecondFunnel.support.mobile(),
+            'isAnimated': App.support.transform3d() &&  // only if it is fast
+                          !App.support.mobile(),  // & "phones don't animate"
             'transitionDuration': '0.4s',
             'isInitLayout': true,
             'isResizeBound': false,  // we are handling it ourselves
             'visibleStyle': {
                 'opacity': 1,
-                'transform': 'none',
-                '-webkit-transform': 'none',
-                '-moz-transform': 'none'
+                'transform': 'translate3d(0, 0, 0)',
+                '-webkit-transform': 'translate3d(0, 0, 0)',
+                '-moz-transform': 'translate3d(0, 0, 0)'
             },
             'hiddenStyle': {
                 'opacity': 0,
                 'transform': 'scale(1)',
                 '-webkit-transform': 'scale(1)',
                 '-moz-transform': 'none'
-            }
+            },
+            'minColumns': 1 // minimum number of columns (default: 1)
         },
         frags = [],  // common fragment storage
         opts;  // last-used options (used by clear())
 
     this.on('start', function () {  // this = layoutEngine
-        if (SecondFunnel.discovery) {
-            return this.initialize(SecondFunnel.discovery, SecondFunnel.options);
+        if (App.discovery) {
+            this.initialize(App.discovery, App.options);
         }
     });
 
@@ -51,14 +53,35 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
         var self = this;
         opts = $.extend({}, defaults, options, _.get(options, 'masonry'));
 
-        view.$el.masonry(opts);
+        this.layout(view);
 
-        SecondFunnel.vent.on('windowResize', function () {
+        App.vent.on('windowResize', function () {
             self.layout(view);
         });
 
-        broadcast('layoutEngineInitialized', this, opts);
+        App.vent.trigger('layoutEngineInitialized', this, opts);
         return this;
+    };
+
+    /**
+     * Recalculates the width needed to configure
+     * the Masonry instance.
+     *
+     * @param {View} view          a Feed object
+     * @returns Double
+     */
+    this.recalculateWidth = function (view) {
+        var width,
+            tileWidth = view.$(opts.itemSelector + ':not(.wide)').width();
+
+        width = view.$el.width() / (opts.minColumns || 1);
+        width = Math.max(tileWidth, width);
+
+        if (!(tileWidth && width < opts.columnWidth)) {
+            width = opts.columnWidth;
+        }
+
+        return width;
     };
 
     /**
@@ -68,7 +91,11 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      * @returns this
      */
     this.layout = function (view) {
-        view.$el.masonry('layout');
+        // Dynamic columnWidth recalculation
+        var _opts = _.extend({}, opts);
+        _opts.columnWidth = this.recalculateWidth(view);
+        view.$el.masonry(_opts);
+
         return this;
     };
 
@@ -104,20 +131,29 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
      */
     this.add = function (view, fragment, $target) {
         var self = this,
-            initialBottom;
+            initialBottom,
+            threshold = App.option('IRResultsReturned', 10),
+            callback = function () {
+                view.trigger('after:item:appended', view, fragment);
+                return true;
+            };
 
         if (!(fragment && fragment.length)) {
+            callback();
             return this;  // nothing to add
         }
 
         // collect fragments, append in batch
         frags = frags.concat(fragment);
-        if (frags.length >= SecondFunnel.option('IRResultsCount', 10)) {
+        if (frags.length >= threshold) {
             fragment = frags;
             frags = [];
         } else {
-            return;  // save for later
+            return this;  // save for later
         }
+
+        // Attach the callback
+        view.$el.masonry('on', 'layoutComplete', callback);
 
         // inserting around a given tile
         if ($target && $target.length) {
@@ -133,6 +169,7 @@ SecondFunnel.module("layoutEngine", function (layoutEngine, SecondFunnel) {
 
         // inserting at the bottom
         view.$el.append(fragment).masonry('appended', fragment);
+        return this;
     };
 
     /**

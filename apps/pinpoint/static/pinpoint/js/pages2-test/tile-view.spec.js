@@ -6,7 +6,7 @@ xdescribe("Tile View:", function () {
     //  http://open.bekk.no/maintainable-tests-for-backbone-views
 
     var createTestTileView,
-        TileView = SecondFunnel.core.TileView;
+        TileView = App.core.TileView;
 
     createTestTileView = function(options) {
         options = options || {};
@@ -19,7 +19,7 @@ xdescribe("Tile View:", function () {
     };
 
     beforeEach(function(){
-        this.app = SecondFunnel;
+        this.app = App;
         this.app.start();
         loadFixtures('templates.html');
     });

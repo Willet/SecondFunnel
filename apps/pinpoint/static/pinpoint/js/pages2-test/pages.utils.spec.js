@@ -14,7 +14,7 @@ describe("utils", function () {
         };
 
     beforeEach(function () {
-        app = SecondFunnel;
+        app = App;
         module = app.utils;
     });
 
@@ -72,7 +72,7 @@ describe("utils", function () {
     });
 
     describe('findClass', function () {
-        var app = SecondFunnel,
+        var app = App,
             defn = function () { return 5; },
             defn2 = function () { return 6; };
 

@@ -1,7 +1,5 @@
 {% load staticfiles %}
-{% load compress %}
 
-{% compress js %}
 <script type="text/javascript">
     window.PAGES_INFO = {
           'debug': ('{{ debug|default:0 }}' === 'True')  // django built-in
@@ -31,19 +29,24 @@
             // 'SHUFFLE_RESULTS': {{ campaign.shuffle_results|default:'true' }},  // DEPRECATED
             // 'stl-image': '{{ campaign.stl_image }}',  // DEPRECATED
             // 'featured-image': '{{ campaign.featured_image }}',  // DEPRECATED
-            // 'description': '{{ campaign.description|escapejs }}'  // DEPRECATED
+            , 'description': "{{ campaign.description|escapejs }}"
         }
         , 'campaign': '{{ campaign.intentrank_id|default:campaign.id }}' // required
-        , 'columnWidth': undefined  // optional (defaults to 255, pixels)
+        , 'columnWidth': {{ column_width|default:'undefined' }}  // optional. controls how often tiles are wide.  // optional (defaults to 255, pixels)
         , 'maxColumnCount': {{ campaign.column_count|default:4 }}  // optional (default: 4)
         // , 'events': undefined  // page event bindings (optional)
-        // , 'socialButtons': [  // optional
-        //     "facebook",
-        //     "twitter",
-        //     "pinterest",
-        //     "tumblr",
-        //     "share"  // who requested this feature?
-        //   ]
+        , 'socialButtons':
+            {% if social_buttons %}
+                {{ social_buttons|safe }}{# social-buttons must be a json array of strings -- see below #}
+            {% else %}
+                [
+                    "facebook",
+                    "twitter",
+                    "pinterest",
+                    "tumblr",
+                    "share"  // who requested this feature?
+                ]
+            {% endif %}
         // , 'shareSocialButtons': []  // optional; default: all
         // , 'shareSources': {}  // optional: default: see sharing module
         , 'socialButtonsEnableCondition': function (button) {
@@ -53,7 +56,7 @@
             return true;
         }
         , 'showCount': true  // optional, for social buttons (default: true)
-        // , 'enableTracking': true  // optional; default: true
+        , 'enableTracking': {{ enable_tracking|default:"true" }}  // optional; default: true
         // , 'eventMap': undefined  // optional
         // , 'tileElement': undefined  // optional. alters the type of tag used by tiles.
         , 'imageTileWide': {{ campaign.image_tile_wide|default:0.5 }}  // optional. controls how often tiles are wide.
@@ -69,7 +72,7 @@
         , 'IRResultsCount': 10
         , 'IRTimeout': 5000
         // , 'IRFailuresAllowed': undefined  // optional. defaults to 5
-        , 'IRSource': "{{ campaign.ir_base_url|default:ir_base_url }}"  // optional, defaults to intentrank-test
+        , 'IRSource': "{{ campaign.ir_base_url|default:ir_base_url }}"  // optional, defaults to intentrank-test/tng-test-cdn
         , 'gaAccountNumber': '{{ campaign.ga_account_number|default:ga_account_number }}'  // required
 
         // number of viewports worth of results to keep below the page.
@@ -99,6 +102,4 @@
         ]
     };
 
-    var _gaq = _gaq || [];
 </script>
-{% endcompress %}

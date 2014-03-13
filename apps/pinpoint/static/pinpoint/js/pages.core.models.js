@@ -1,9 +1,8 @@
-/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _,
-  Willet, broadcast, console, SecondFunnel */
+/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _, console, App */
 /**
  * @module core
  */
-SecondFunnel.module('core', function (module, SecondFunnel) {
+App.module('core', function (core, App) {
     // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
     "use strict";
     var $window = $(window),
@@ -43,7 +42,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'defaults': {
             // Default product tile settings, some tiles don't
             // come specifying a type or caption
-            'caption': "Shop product",
+            'caption': "",
             'description': '',
             'tile-id': 0,
             // 'tile-class': 'tile',  // what used tile-class?
@@ -56,7 +55,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             if (!resp.type) {
                 resp.type = resp.template;
             }
-            resp.caption = SecondFunnel.utils.safeString(resp.caption || '');
+            resp.caption = App.utils.safeString(resp.caption || '');
 
             return resp;
         },
@@ -65,7 +64,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             // turn image json into image objects for easier access.
             var self = this,
                 defaultImage,
-                imgInstances = [];
+                imgInstances = [],
+                relatedProducts;
 
             // replace all image json with their objects.
             _.each(this.get('images'), function (image) {
@@ -89,35 +89,52 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                     // make a copy...
                     localImageVariable = $.extend(true, {}, image);
                 }
-                imgInstances.push(new module.Image(localImageVariable));
+                imgInstances.push(new core.Image(localImageVariable));
             });
 
             // this tile has no images, or can be an image itself
             if (imgInstances.length === 0) {
-                imgInstances.push(new module.Image({
+                imgInstances.push(new core.Image({
+                    'sizes': this.get('sizes'),
+                    'dominant-color': this.get('dominant-color'),
                     'url': this.get('url')
                 }));
             }
 
-            defaultImage = this.getDefaultImage();
+            defaultImage = imgInstances[0];
+
+            // Transform related-product image, if necessary
+            relatedProducts = this.get('related-products');
+            if(!_.isEmpty(relatedProducts)) {
+                relatedProducts = _.map(relatedProducts, function(product) {
+                    var originalImages = product.images || [];
+                    var newImages = [];
+                    _.each(originalImages, function(image) {
+                        var imgObj = $.extend(true, {}, image);
+                        newImages.push(new core.Image(imgObj));
+                    });
+                    product.images = newImages;
+                    return product;
+                });
+            }
 
             this.set({
                 'images': imgInstances,
                 'defaultImage': defaultImage,
+                'related-products': relatedProducts,
                 'dominant-colour': defaultImage.get('dominant-colour')
             });
 
-            broadcast('tileModelInitialized', this);
+            App.vent.trigger('tileModelInitialized', this);
         },
 
         /**
          *
          * @param byImgId   if omitted, the default image id
-         * @returns {Image}
+         * @returns {core.Image}
          */
         'getImage': function (byImgId) {
-            var self = this,
-                imgId = parseInt(byImgId || self.getDefaultImageId(), 10),
+            var imgId = parseInt(byImgId || this.getDefaultImageId(), 10),
                 defImg;
 
             defImg =
@@ -132,21 +149,22 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
             if (!defImg) {
                 try {
-                    if (this.get('images')[0] instanceof module.Image) {
+                    if (this.get('images')[0] instanceof core.Image) {
                         return this.get('images')[0];
-                    } else {
-                        return new module.Image(this.get('images')[0]);
                     }
+                    return new core.Image(this.get('images')[0]);
                 } catch (err) {
-                    // fuck this shit (wild guess)
-                    return new module.Image({
+                    // if all fails, this is most likely a lifestyle image
+                    return new core.Image({
+                        'sizes': this.get('sizes'),
+                        'dominant-color': this.get('dominant-color'),
                         'url': this.get('url')
                     });
                 }
             }
 
             // found default image or undefined
-            if (defImg instanceof module.Image) {
+            if (defImg instanceof core.Image) {
                 // timing: attributes.images already coverted to Images
                 return defImg;
             }
@@ -155,7 +173,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 console.warn('getImage is going to return an Image stub.');
             }
 
-            return new module.Image(defImg);
+            return new core.Image(defImg);
         },
 
         'getDefaultImageId': function () {
@@ -194,8 +212,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             return this.getImage();
         },
 
-        'sync': function () {
-            return false;  // forces ajax PUT requests to the server to succeed.
+        'url': function () {
+            return App.options.IRSource + '/page/' + App.options.campaign + '/tile/' + this.get('tile-id');
+        },
+
+        'sync': function (method, model, options) {
+            method = 'read'; //Must always be read only
+            return Backbone.sync(method, model, options);
         }
     });
 
@@ -313,10 +336,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @type {Tile}
      */
     this.ImageTile = this.Tile.extend({
-        'defaults': {
-            // 'tile-class': 'image',  // what used tile-class?
-            // 'content-type': 'image'  // where did content-type go?
-        },
         /**
          * An ImageTile  *is* an image JSON, so we need to allocate all of its
          * attributes inside an 'images' field.
@@ -341,16 +360,12 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      */
     this.VideoTile = this.Tile.extend({
         'defaults': {
-            // 'tile-class': 'video',  // what used tile-class?
-            // 'content-type': 'video',  // where did content-type go?
             'type': 'video'
         }
     });
 
     this.YoutubeTile = this.VideoTile.extend({
         'defaults': {
-            // 'tile-class': 'youtube',  // what used tile-class?
-            // 'content-type': 'youtube',  // where did content-type go?
             'type': 'video'
         }
     });
@@ -369,8 +384,8 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @returns {Tile}   or an extension of it
          */
         'model': function (item) {
-            var TileClass = SecondFunnel.utils.findClass('Tile',
-                    item.type || item.template, module.Tile);
+            var TileClass = App.utils.findClass('Tile',
+                    item.type || item.template, core.Tile);
 
             return new TileClass(item);
         },
@@ -382,7 +397,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         // if tileId is in initial results and you want it shown only once,
         // set maxShow to 0.
         // TILES THAT LOOK THE SAME FOR TWO PAGES CAN HAVE DIFFERENT TILE IDS
-        'resultsThreshold': SecondFunnel.option('resultsThreshold', {}),
+        'resultsThreshold': App.option('resultsThreshold', {}),
 
         /**
          * process common attributes, then delegate the collection's parsing
@@ -405,16 +420,6 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
                 tileId = tileJson['tile-id'];
                 if (!tileId) {
                     continue;  // is this a tile...?
-                }
-
-                // (hopefully) temporary method for newegg pages to restrict
-                // the appearance of each "banner" tile to "once".
-                if (tileJson.template === 'banner') {
-                    if (self.resultsThreshold[tileId] === undefined) {
-                        // give each tile ONE chance to appear,
-                        // whatever its tile id is
-                        self.resultsThreshold[tileId] = 1;
-                    }
                 }
 
                 // (hopefully) temporary method for newegg pages to restrict
@@ -444,11 +449,11 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             }
 
             // SHUFFLE_RESULTS is always true
-            respBuilder = _.shuffle(respBuilder);
+            //respBuilder = _.shuffle(respBuilder); Why do we shuffle the results?
 
             return _.map(respBuilder, function (jsonEntry) {
-                var TileClass = SecondFunnel.utils.findClass('Tile',
-                    jsonEntry.type || jsonEntry.template, module.Tile);
+                var TileClass = App.utils.findClass('Tile',
+                    jsonEntry.type || jsonEntry.template, core.Tile);
                 return TileClass.prototype.parse.call(self, jsonEntry);
             });
         },
@@ -459,7 +464,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
          * @param options
          * @returns {*}
          */
-        fetch: SecondFunnel.intentRank.fetch,
+        fetch: App.intentRank.fetch,
 
         /**
          * Interact with IR using the built-in Backbone thingy.
@@ -475,7 +480,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
 
         'initialize': function (arrayOfData, url, campaign, results) {
             this.setup(url, campaign, results);  // if necessary
-            broadcast('tileCollectionInitialized', this);
+            App.vent.trigger('tileCollectionInitialized', this);
         },
 
         /**
@@ -488,13 +493,13 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         'setup': function (apiUrl, campaign, results) {
             // apply new parameters, or default to existing ones
             this.config.apiUrl = apiUrl ||
-                SecondFunnel.option('IRSource') ||
+                App.option('IRSource') ||
                 this.config.apiUrl;
             this.config.campaign = campaign ||
-                SecondFunnel.option('campaign') ||
+                App.option('campaign') ||
                 this.config.campaign;
             this.config.results = results ||
-                SecondFunnel.option('IRResultsCount') ||
+                App.option('IRResultsCount') ||
                 this.config.results;
         }
     });

@@ -1,8 +1,8 @@
-/*global $, _, SecondFunnel, Marionette, console, broadcast*/
+/*global $, _, App, Marionette, console */
 /**
  * @module viewport
  */
-SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
+App.module('viewport', function (viewport, App) {
     "use strict";
     var $window = $(window),
         $document = $(document),
@@ -35,17 +35,7 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
             maxTabletWidth = 767,
             enabled;
 
-        // if browser's UA claims to be a mobile device, scaling cannot be turned off.
-        if ($.browser.mobile) {
-            // enabled by default, except...
-
-            if (SecondFunnel.support.isAniPad()) {
-                console.warn('viewport agent disabled for the iPad.');
-                return [false, undefined, undefined, 'disabled'];
-            }
-        }
-
-        enabled = SecondFunnel.option('lockWidth', function () {
+        enabled = App.option('lockWidth', function () {
             return true;
         });
 
@@ -58,7 +48,11 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
             return [false, undefined, undefined, 'disabled'];
         }
 
-        if (!window.devicePixelRatio || window.devicePixelRatio <= 1) {
+        // Normally, we don't scale if a device has a certain pixel ratio...
+        // But we DO if its an iPad!
+        // We should probably do this differently.
+        if (!App.support.isAniPad() &&
+            (!window.devicePixelRatio || window.devicePixelRatio <= 1)) {
             console.warn('viewport agent called on device with unsupported ppi.');
             return [false, undefined, undefined, 'unsupported ppi'];
         }
@@ -81,7 +75,9 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
         //                     - desired width
         //                     - max mobile width (if mobile)
         //                     - max tablet width (if tablet)
-        if ($.browser.mobile && !$.browser.tablet) {
+        if (App.support.isAniPad()) {
+            desiredWidth = 1024;
+        } else if ($.browser.mobile && !$.browser.tablet) {
             desiredWidth = Math.min($window.width(), maxMobileWidth,
                 desiredWidth, window.outerWidth);
         } else if ($.browser.tablet) {
@@ -126,23 +122,26 @@ SecondFunnel.module('viewport', function (viewport, SecondFunnel) {
         if (analysis[0] === true && metaTag.length >= 1) {
             // if both tag and condition exist
             proposedMeta = analysis[3];
-            if (metaTag.prop('content') !== proposedMeta) {
+
+
+            // Check if the widths are different
+            if ($(window).width() < analysis[1]) {
                 // avoid re-rendering: edit tag only if it needs to change
                 metaTag.prop('content', proposedMeta);
-                broadcast('viewportResized', desiredWidth);
+                App.vent.trigger('viewportResized', desiredWidth);
             }
         } else {
-            broadcast('viewportNotResized', analysis[3]);
+            App.vent.trigger('viewportNotResized', analysis[3]);
         }
     };
 
-    SecondFunnel.vent.on('beforeInit', function () {
+    App.vent.on('beforeInit', function () {
         // single call func removes args
         viewport.scale();
     });
-    SecondFunnel.vent.on('finished', function () {
+    App.vent.on('finished', function () {
         // single call func removes args
-        viewport.scale();
+        //viewport.scale();
     });
-    SecondFunnel.vent.on('rotate', viewport.scale);
+    App.vent.on('rotate', viewport.scale);
 });

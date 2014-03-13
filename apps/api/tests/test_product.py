@@ -193,8 +193,8 @@ class AuthenticatedProductTestSuite(AuthenticatedResourceTestCase):
 
         # Ascending should always be less than or equal
         self.assertLessEqual(
-            ascending_products[0].get('id'),
-            products[0].get('id')
+            int(ascending_products[0].get('id')),
+            int(products[0].get('id'))
         )
 
         response = self.api_client.get(
@@ -206,16 +206,16 @@ class AuthenticatedProductTestSuite(AuthenticatedResourceTestCase):
 
         # Descending should always be greater than or equal
         self.assertGreaterEqual(
-            descending_products[0].get('id'),
-            products[0].get('id')
+            int(descending_products[0].get('id')),
+            int(products[0].get('id'))
         )
 
         self.assertGreaterEqual(
-            descending_products[0].get('id'),
-            ascending_products[0].get('id')
+            int(descending_products[0].get('id')),
+            int(ascending_products[0].get('id'))
         )
 
         self.assertGreaterEqual(
-            descending_products[0].get('id'),
-            ascending_products[0].get('id')
+            int(descending_products[0].get('id')),
+            int(ascending_products[0].get('id'))
         )

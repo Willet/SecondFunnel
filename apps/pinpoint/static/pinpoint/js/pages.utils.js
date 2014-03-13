@@ -1,8 +1,8 @@
-/*global SecondFunnel, Backbone, Marionette, console, broadcast */
+/*global App, Backbone, Marionette, console, _, $, location */
 /**
  * @module utils
  */
-SecondFunnel.module("utils", function (utils, SecondFunnel) {
+App.module("utils", function (utils, App) {
     "use strict";
 
     var $document = $(document),
@@ -18,12 +18,54 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @returns {string}
      */
     this.safeString = function (str, opts) {
-        var regex =/^(None|undefined|[Ff]alse|0)$/,
+        var regex = /^(None|undefined|[Ff]alse|0)$/,
             trimmed = $.trim(str);
         if (regex.test(trimmed)) {
             return trimmed.replace(regex, '');
         }
         return str;
+    };
+
+    $window.on('message', function (event) {
+        var originalEvent = event.originalEvent,
+            data = originalEvent.data;
+
+        try {
+            data = JSON.parse(data);
+        } catch (error) {
+            return;
+        }
+
+        if (data.target !== 'second_funnel') {
+            return;
+        }
+
+        if (!data.type) {
+            return;
+        }
+
+        if (data.type === 'load_content') {
+            var loadUntilHeight = function (height) {
+                if ($('body').height() < height) {
+                    App.discoveryArea.currentView.collection.fetch().done(function () {
+                        loadUntilHeight(height);
+                    });
+                }
+            };
+            loadUntilHeight(data.height);
+        } else if (data.type === 'window_location') {
+            App.window_middle = data.window_middle;
+
+            if (App.previewArea.currentView) {
+                App.previewArea.currentView.$el.css('top',
+                    Math.max(App.window_middle - (App.previewArea.currentView.el.height() / 2), 0)
+                );
+            }
+        }
+    });
+
+    this.postExternalMessage = function (message) {
+        window.parent.postMessage(message, '*');
     };
 
     /**
@@ -51,7 +93,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
     this.registerWidget = function (name, selector, functionality) {
         regions[name] = selector;
         regionWidgets[name] = functionality;
-        broadcast('widgetRegistered', name, selector, functionality,
+        App.vent.trigger('widgetRegistered', name, selector, functionality,
             regions, regionWidgets);
         return true;  // success
     };
@@ -65,8 +107,8 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @returns defn
      */
     this.addClass = function (name, defn) {
-        SecondFunnel.core[_.capitalize(name)] = defn;
-        broadcast('classAdded', name, defn);
+        App.core[_.capitalize(name)] = defn;
+        App.vent.trigger('classAdded', name, defn);
         return defn;
     };
 
@@ -81,19 +123,8 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
      * @returns {object}|defaultClass
      */
     this.findClass = function (typeName, prefix, defaultClass) {
-        var FoundClass,
-            targetClassName = _.capitalize(prefix || '') +
-                              _.capitalize(typeName || '');
-
-        if (SecondFunnel.core[targetClassName] !== undefined) {
-            // if designers want to define a new tile view, they must
-            // let SecondFunnel know of its existence.
-            FoundClass = SecondFunnel.core[targetClassName];
-        } else {
-            FoundClass = defaultClass;
-        }
-
-        return FoundClass;
+        var className = _.capitalize(prefix || '') + _.capitalize(typeName || '');
+        return App.core[className] || defaultClass;
     };
 
     /**
@@ -110,7 +141,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
         _.each(regions, function (selector, name, list) {
             var widgetFunc = regionWidgets[name];
             self.$(selector).each(function (idx, el) {
-                return widgetFunc(self, $(el), SecondFunnel.option);
+                return widgetFunc(self, $(el), App.option);
             });
         });
 
@@ -120,7 +151,7 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
                 widgetFunc = (regionWidgets || {})[name];
             if (isWidget && widgetFunc) {
                 self.$(selector).each(function (idx, el) {
-                    return widgetFunc(self, $(el), SecondFunnel.option);
+                    return widgetFunc(self, $(el), App.option);
                 });
             }
         });
@@ -171,5 +202,16 @@ SecondFunnel.module("utils", function (utils, SecondFunnel) {
             return fn();
         }
         return false;
+    };
+
+    /**
+     * Get query strings
+     * http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+     */
+    this.getQuery = function (name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
     };
 });

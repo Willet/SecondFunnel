@@ -1,13 +1,19 @@
 import json
 from mock import MagicMock
 
-from apps.api.decorators import validate_json_deserializable
+from celery import Celery
+from celery.utils.log import get_task_logger
 
-# one day
-IRConfigGenerator = MagicMock()
+from apps.api.decorators import (validate_json_deserializable,
+                                 require_keys_for_message)
+from apps.api.views import generate_ir_config
 
+
+celery = Celery()
+logger = get_task_logger(__name__)
 
 @validate_json_deserializable
+@require_keys_for_message(['storeId', 'pageId'])
 def handle_tile_generator_update_notification_message(message):
     """
     Messages are fetched from an SQS queue and processed by this function.
@@ -19,13 +25,16 @@ def handle_tile_generator_update_notification_message(message):
     Each queue entry will contain a record such as:
 
     {
-       "page-id": "1", [sic]
+       "pageId": "1",
+       "storeId": "2"  [in consideration]
     }
 
     or for single tiles
 
     {
-       "tile-id": "1", [sic]
+       "tileId": "1",
+       "pageId": "2",  [in consideration]
+       "storeId": "3"  [in consideration]
     }
 
     Once this event has been received the CampaignManger will need to
@@ -36,10 +45,11 @@ def handle_tile_generator_update_notification_message(message):
     """
     message = json.loads(message)
 
-    if 'tile-id' in message:
-        IRConfigGenerator.update_tile(tile_id=message['tile-id'])
-        return {'scheduled-tile': message['tile-id']}
+    store_id = message['storeId']
+    page_id = message['pageId']
 
-    if 'page-id' in message:
-        IRConfigGenerator.update_page(tile_id=message['page-id'])
-        return {'scheduled-page': message['page-id']}
+    logger.info('Queueing IRConfig {0} generation now!'.format(page_id))
+    # caller handles error
+    generate_ir_config(store_id=store_id, ir_id=page_id)
+
+    return {'scheduled-page': page_id}

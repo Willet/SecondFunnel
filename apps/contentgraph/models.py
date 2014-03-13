@@ -10,47 +10,69 @@ ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL,
                                      headers={'ApiKey': 'secretword'})
 
 
-def get_contentgraph_data(endpoint_path, headers=None, method="GET", body=""):
+def get_contentgraph_data(endpoint_path, headers=None, method="GET",
+                          params=None, body=""):
     """Wraps all contentgraph requests with the required api key.
 
     return will be a json dict, or a string if deserialization fails.
     """
-    def is_valid_response(status):
-        # wild guess (HTTP 200 series are usually valid)
-        return 200 <= int(status) < 300
+    if not params:
+        params = {}
 
     if not headers:
         headers = {}
 
-    # it will get fancier over time
-    headers.update({'ApiKey' : 'secretword'})
+    headers.update({'ApiKey': 'secretword'})
 
-    http = httplib2.Http()
-    response, content = http.request(
-        settings.CONTENTGRAPH_BASE_URL + endpoint_path, method=method,
-        body=body, headers=headers)
+    # same as the ContentGraphClient above, with variable headers
+    contentgraph_client = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL,
+        headers=headers)
 
-    # possible ValueError intentionally propagated
-    if is_valid_response(response['status']):
-        return json.loads(content)
+    while True:
+        # getattr used to retrieve GET/POST magic methods
+        method_handler = getattr(contentgraph_client(endpoint_path), method)
+        response = method_handler(params=params, data=body)
 
-    if response['status'] == '401':
-        raise ValueError('401 Requested object requires authentication')
+        # raise errors defined by the Requests library (400s, 500s, 600s)
+        response.raise_for_status()
 
-    if response['status'] == '403':
-        raise ValueError('403 Requested object is not accessible')
+        content = response.json()
 
-    if response['status'] == '404':
-        raise ValueError('404 Requested object does not exist')
+        # - 'meta' is an object if the call is paginated
+        # - 'meta' cannot be an object if the object itself has an
+        #       attribute named 'meta' (dynamodb limitation)
+        if 'meta' in content:
+            if isinstance(content['meta'], dict):  # is CG meta
+                if 'cursors' in content['meta'] and 'next' in content['meta']['cursors']:
+                    if not isinstance(content['results'], list):
+                        # validate and raise, because we love that
+                        raise TypeError(
+                            'Paginated call expects [results] to be list; '
+                            'got [{0}] instead'.format(
+                                type(content['results'])))
 
-    if response['status'] == '405':
-        raise ValueError('405 Method does not work on request object')
+                    for result in content['results']:
+                        yield result
+                        params['offset'] = content['meta']['cursors']['next']
 
-    # try to return something in all other cases
-    try:
-        return json.loads(content)
-    except:
-        return None
+                else:  # end of page
+                    for result in content['results']:
+                        yield result
+                    break  # trigger StopIteration
+            else:  # is user-defined meta
+                yield content
+                break  # trigger StopIteration
+        else:  # not paginated call
+            yield content
+            break  # trigger StopIteration
+
+
+def call_contentgraph(*args, **kwargs):
+    """function-alias for the get_contentgraph_data generator.
+
+    Returns one result (the first one by the generator).
+    """
+    return next(get_contentgraph_data(*args, **kwargs))
 
 
 class ContentGraphObject(object):
@@ -69,16 +91,16 @@ class ContentGraphObject(object):
         """
         self.endpoint_path = endpoint_path
         if auto_create:
-            get_contentgraph_data(endpoint_path=endpoint_path, method="PUT",
-                                  body=json.dumps({}))
+            call_contentgraph(endpoint_path=endpoint_path, method="PUT",
+                              body=json.dumps({}))
 
-        self.cached_data = get_contentgraph_data(endpoint_path=self.endpoint_path)
+        self.cached_data = call_contentgraph(endpoint_path=self.endpoint_path)
 
     def data(self):
         if self.cached_data:
             result = self.cached_data
         else:
-            result = get_contentgraph_data(endpoint_path=self.endpoint_path)
+            result = call_contentgraph(endpoint_path=self.endpoint_path)
             self.cached_data = result
 
         return self.cached_data
@@ -95,7 +117,7 @@ class ContentGraphObject(object):
         setattr(self, key, value)
 
         # send it back to the server
-        return get_contentgraph_data(endpoint_path=self.endpoint_path,
+        return call_contentgraph(endpoint_path=self.endpoint_path,
             method="PATCH", body=json.dumps({key: value}))
 
     def json(self, serialized=True):
@@ -110,30 +132,54 @@ class TileConfigObject(object):
     is a pseudo-controller that tells the real generator to do stuff.
     """
 
-    client = None
+    clients = []
 
-    def __init__(self, page_id=-1):
-        self.client = ContentGraphClient.page(page_id)('tile-config')
+    def __init__(self, store_id=None, page_id=None):
+        """Supply either store_id or page_id, not both.
+
+        Supplying page_id is faster.
+        If store_id is given, performs actions on all pages for the store.
+        """
+        if page_id:
+            # this is only one page
+            self.clients = [ContentGraphClient.page(page_id)('tile-config')]
+        elif store_id:
+            # this is a store worth of pages
+            page_ids = [x['id'] for x in get_contentgraph_data(
+                '/store/{0}/page?select=id'.format(store_id))]
+            self.clients = [ContentGraphClient.page(page_id)('tile-config')
+                            for page_id in page_ids]
+        else:  # given none of those
+            raise ValueError("Need store_id or page_id")
 
     def get_all(self):
-        """Get all configs for this page.
+        """Get all configs for all pages in this client.
 
-        @returns {list}
+        @returns list{list}
         @raises IndexError
         """
-        return self.client.GET().json()['results']
+        result = []
+        for client in self.clients:
+            result.append(client.GET().json()['results'])
+        return result
 
     def get(self, config_id):
         """Get one config.
 
-        @returns {dict}
+        @returns list{dict}
         @raises IndexError
         """
-        return self.client(config_id).GET().json()
+        result = []
+        for client in self.clients:
+            result.append(client(config_id).GET().json())
+        return result
 
     def update_config(self, config_id, new_props):
         """merges a dict given with the existing tile config."""
-        return self.client(config_id).PATCH(data=json.dumps(new_props)).json()
+        result = []
+        for client in self.clients:
+            result.append(client(config_id).PATCH(data=json.dumps(new_props)).json())
+        return result
 
     def mark_tile_for_regeneration(self, content_id=None, product_id=None):
         """Mark all tile configs for this product/content for regeneration.
@@ -147,14 +193,14 @@ class TileConfigObject(object):
             query_key = 'product-ids'
 
         # list
-        tile_configs = self.client.GET(
-            params={query_key: content_id or product_id}).json()['results']
+        for client in self.clients:
+            tile_configs = client.GET(
+                params={query_key: content_id or product_id}).json()['results']
 
-        # dicts
-        for tile_config in tile_configs:
-            # yes, a string 'true'
-            self.client(tile_config['id']).PATCH(
-                # TODO: might need concurrency checking
-                params={'version': tile_config['last-modified']},
-                data={'stale': 'true'})
-            # TODO: version/last-modified
+            # dicts
+            for tile_config in tile_configs:
+                client(tile_config['id']).PATCH(
+                    # TODO: might need concurrency checking
+                    params={'version': tile_config['last-modified']},
+                    data={'stale': 'true'})  # yes, a string 'true'
+                # TODO: version/last-modified

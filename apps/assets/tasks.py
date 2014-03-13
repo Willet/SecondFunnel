@@ -1,13 +1,19 @@
 import json
 
+from celery import Celery
+from celery.utils.log import get_task_logger
+
 from apps.api.decorators import (validate_json_deserializable,
                                  require_keys_for_message)
 
 from apps.contentgraph.models import TileConfigObject
 
 
+celery = Celery()
+logger = get_task_logger(__name__)
+
 @validate_json_deserializable
-@require_keys_for_message('product-id')
+@require_keys_for_message(['storeId', 'productId'])
 def handle_product_update_notification_message(message):
     """
     Messages are fetched from an SQS queue and processed by this function.
@@ -41,14 +47,20 @@ def handle_product_update_notification_message(message):
     # -really- need updating is currently inconsequential
     # if 'updated-fields' in message: else:
 
+    store_id = message['storeId']
+    product_id = message['productId']
+
     # add an item to the TileGenerator's queue to have it updated
-    tco = TileConfigObject(message['page-id'])
-    tco.mark_tile_for_regeneration(product_id=message['product-id'])
-    return {'scheduled-tiles-for-product': message['product-id']}
+    tile_config_object = TileConfigObject(store_id=store_id)
+    logger.info('Marking tiles for product {0} as stale!'.format(product_id))
+    # caller handles error
+    tile_config_object.mark_tile_for_regeneration(product_id=product_id)
+
+    return {'scheduled-tiles-for-product': product_id}
 
 
 @validate_json_deserializable
-@require_keys_for_message('content-id')
+@require_keys_for_message(['storeId', 'contentId'])
 def handle_content_update_notification_message(message):
     """
     CM-126: When a scraper updates a content record. When the scraper add
@@ -77,7 +89,13 @@ def handle_content_update_notification_message(message):
     # -really- need updating is currently inconsequential
     # if 'updated-fields' in message: else:
 
+    store_id = message['storeId']
+    content_id = message['contentId']
+
     # add an item to the TileGenerator's queue to have it updated
-    tco = TileConfigObject(message['page-id'])
-    tco.mark_tile_for_regeneration(content_id=message['content-id'])
-    return {'scheduled-tiles-for-content': message['content-id']}
+    tile_config_object = TileConfigObject(store_id=store_id)
+    logger.info('Marking tiles for content {0} as stale!'.format(content_id))
+    # caller handles error
+    tile_config_object.mark_tile_for_regeneration(content_id=content_id)
+
+    return {'scheduled-tiles-for-content': content_id}

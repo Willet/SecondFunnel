@@ -7,6 +7,7 @@ import json
 import re
 import StringIO
 
+from functools import partial
 from django.conf import settings
 
 from boto import sns
@@ -17,6 +18,7 @@ from boto.s3.key import Key
 
 from boto.route53.record import ResourceRecordSets
 from boto.route53.exception import DNSServerError
+import sys
 
 from apps.static_pages.decorators import connection_required, get_connection
 
@@ -68,6 +70,7 @@ def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
         zipr = StringIO.StringIO()
 
         # GzipFile doesn't support 'with', so we close it manually
+        # TODO: why is index.html specified?
         tmpf = gzip.GzipFile(filename='index.html', mode='wb', fileobj=zipr)
         tmpf.write(content)
         tmpf.close()
@@ -82,6 +85,97 @@ def upload_to_bucket(bucket_name, filename, content, content_type="text/html",
         obj.set_acl('public-read')
 
     return bytes_written
+
+
+@connection_required("s3")
+def download_from_bucket(bucket_name, filename, conn=None):
+    """:return file contents
+
+    Example:
+    >>> download_from_bucket("gap.secondfunnel.com", "backtoblue/index.html")
+    '<!DOCTYPE HTML>\r\n<html>\r\n<head>\r\ ...'
+
+    >>> download_from_bucket("static-misc-secondfunnel", "images/cnet-logo.png")
+    '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR ...'
+    (It doesn't seem to care about being binary -- save it to a file
+     with mode 'wb')
+    """
+    bucket = conn.lookup(bucket_name)
+    if not bucket:
+        raise ValueError("Bucket {0} not found".format(bucket_name))
+
+    key = bucket.get_key(filename)
+    return key.get_contents_as_string()
+
+
+@connection_required("s3")
+def copy_across_bucket(source_bucket_name, dest_bucket_name, filename,
+                       overwrite=False, auto_create_dest_bucket=False,
+                       conn=None):
+    """Modified form of kfarr/Python-Multithread-S3-Bucket-Copy/
+
+    :raises (IOError, StorageCopyError, ...)
+    :returns filename
+    """
+    source_bucket = conn.lookup(source_bucket_name)
+    dest_bucket = conn.lookup(dest_bucket_name)
+
+    if not source_bucket:
+        raise ValueError("Bucket {0} does not exist".format(source_bucket_name))
+
+    if not dest_bucket:
+        if auto_create_dest_bucket:
+            dest_bucket, _ = get_or_create_website_bucket(dest_bucket_name,
+                                                          conn=conn)
+        else:
+            raise ValueError("Bucket {0} does not exist".format(dest_bucket_name))
+
+    key = source_bucket.get_key(filename)
+
+    if not dest_bucket.get_key(filename) or overwrite:
+        key.copy(dest_bucket_name, filename)  # will raise
+        return filename
+    else:
+        raise IOError("Key Already Exists, will not overwrite.")
+
+
+@connection_required("s3")
+def copy_within_bucket(bucket_name, from_filename, to_filename,
+                       overwrite=False, conn=None):
+    """Standard copy one file from one bucket to the same bucket.
+
+    :raises (IOError, StorageCopyError, ...)
+    :returns filename
+    """
+    bucket = conn.lookup(bucket_name)
+
+    if not bucket:
+        raise ValueError("Bucket {0} does not exist".format(bucket_name))
+
+    key = bucket.get_key(from_filename)
+
+    if not key:
+        raise IOError("Source Key (file) does not exist")
+
+    if not bucket.get_key(to_filename) or overwrite:
+        key.copy(bucket_name, to_filename)
+        return to_filename
+    else:
+        raise IOError("Key Already Exists, will not overwrite.")
+
+
+@connection_required("s3")
+def s3_key_exists(bucket_name, filename, conn=None):
+    """:returns bool"""
+    bucket = conn.lookup(bucket_name)
+
+    if not bucket:
+        raise ValueError("Bucket {0} does not exist".format(bucket_name))
+
+    if bucket.get_key(filename):
+        return True
+
+    return False
 
 
 def get_bucket_zone_id(bucket):
@@ -337,7 +431,7 @@ def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
 
     The SQS queue should subscribe to the SNS topic: http://i.imgur.com/fLOdNyD.png
 
-    @param dev_suffix {bool} whether '_dev' or '_test' will be added to the
+    @param dev_suffix {bool} whether '-dev' or '-test' will be added to the
     topic name depending on the current environment.
 
     @raises {IndexError|TypeError|ValueError}
@@ -345,7 +439,7 @@ def sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
 
     # ENVIRONMENT is "production" in production
     if dev_suffix and settings.ENVIRONMENT in ['dev', 'test']:
-        topic_name = '{topic_name}_{env}'.format(topic_name=topic_name,
+        topic_name = '{topic_name}-{env}'.format(topic_name=topic_name,
                                                  env=settings.ENVIRONMENT)
 
     connection = sns_connection(region_name)
@@ -364,7 +458,7 @@ def sqs_poll(callback=None, region_name=settings.AWS_SQS_REGION_NAME,
 
     # ENVIRONMENT is "production" in production
     if dev_suffix and settings.ENVIRONMENT in ['dev', 'test']:
-        queue_name = '{queue_name}_{env}'.format(queue_name=queue_name,
+        queue_name = '{queue_name}-{env}'.format(queue_name=queue_name,
                                                  env=settings.ENVIRONMENT)
 
     connection = sqs_connection(region_name=region_name)
@@ -373,7 +467,7 @@ def sqs_poll(callback=None, region_name=settings.AWS_SQS_REGION_NAME,
     if not queue:
         raise ValueError('No such queue found: {0}'.format(queue_name))
 
-    messages = queue.receive()
+    messages = queue.receive(num_messages=10)
 
     if not messages:
         messages = []  # default to 0 messages instead of None messages
@@ -382,3 +476,49 @@ def sqs_poll(callback=None, region_name=settings.AWS_SQS_REGION_NAME,
         return callback(messages)
 
     return messages
+
+
+class SNSErrorLogger(object):
+    """Provides a logger object that posts logging messages to an SQS queue
+    predefined in the application's environment-dependent settings.
+
+    Available methods: log(), info(), warn(), error()
+    """
+    def __init__(self):
+        self.info = partial(self.log, log_level="info")
+        self.warn = self.warning = partial(self.log, log_level="warning")
+        self.error = partial(self.log, log_level="error")
+
+    def get_topic_name(self):
+        """e.g. page-generator-queue-log-test,
+                page-generator-queue-log-production
+        """
+        if settings.ENVIRONMENT in ['test', 'dev']:
+            return '{0}-{1}'.format(settings.AWS_SNS_LOGGING_TOPIC_NAME,
+                                    settings.ENVIRONMENT)
+        return settings.AWS_SNS_LOGGING_TOPIC_NAME
+
+    def get_topic_subject(self):
+        """e.g. page-generator-test,
+                page-generator-production
+        """
+        return '{0}-{1}'.format(settings.AWS_SNS_TOPIC_NAME,
+                                settings.ENVIRONMENT)
+
+    def log(self, msg, log_level="info"):
+        """Publishes a message to the predefined SNS topic.
+
+        :param log_level one of "info", "warning", and "error".
+        """
+
+        if not log_level in settings.AWS_SNS_LOGGING_LEVELS:
+            raise ValueError("log_level %s not defined" % log_level)
+
+        sns_notify(region_name=settings.AWS_SNS_REGION_NAME,
+                   topic_name=self.get_topic_name(),
+                   subject='{0} {1}'.format(self.get_topic_subject(), log_level),
+                   message='{0}: {1}'.format(log_level.capitalize(), msg))
+
+
+# import this from other modules
+logger = SNSErrorLogger()

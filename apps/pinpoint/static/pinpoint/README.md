@@ -37,10 +37,10 @@ You can tweak values from there. *Never modify `pages.js`*.
 ### Listen to events
 
 `pages.js` notifies you of many events, all of which you can find by searching
-`broadcast(...)` in the code. To do something when events are fired, use this
-example code.
+`vent.trigger(...)` in the code. To do something when events are fired,
+use this example code.
 
-    SecondFunnel.vent.on({
+    App.vent.on({
         'previewRendered': function () {  // listen to the "previewRendered" event.
             console.log('bur... preview rendered');  // do something about it.
         }
@@ -52,7 +52,7 @@ If you want to do something that `pages.js` was not designed to notify, you can
 still write your own event handlers. For example, while `pages.js` does not
 tell you if a certain link is clicked, you can still add events for it.
 
-    new SecondFunnel.classRegistry.EventManager({
+    new App.classRegistry.EventManager({
         'click .navbar-brand': function (ev) {  // (event) (selector)
             console.log('bur... custom event triggered');
         }
@@ -63,7 +63,7 @@ tell you if a certain link is clicked, you can still add events for it.
 Should you need to add more elaborate behaviour to your page, you can do so by
 adding *widgets*.
 
-    SecondFunnel.utils.addWidget(
+    App.utils.addWidget(
         'gallery',  // name (must be unique)
         '.gallery',  // selector (scoped!)
         function (view, $el, option) {

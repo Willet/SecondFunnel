@@ -1,3 +1,5 @@
+import os
+from django.conf import settings
 import httplib2
 import json
 
@@ -126,8 +128,20 @@ class Store(BaseModelNamed):
             if not theme:
                 theme = StoreTheme.DEFAULT_PAGE
 
-            # try and load a remote theme file. if it fails, pass.
-            theme = read_remote_file(theme, theme)
+            if theme.startswith('/'):
+                # Local themes are always in apps.pinpoint.static.pinpoint.themes
+                theme = os.path.join(
+                    settings.PROJECT_ROOT,
+                    'apps',
+                    'pinpoint',
+                    'static',
+                    'pinpoint',
+                    'themes',
+                    theme[1:]
+                )
+            else:
+                # try and load a remote theme file. if it fails, pass.
+                theme, _ = read_remote_file(theme, theme)
 
             # try to load a local theme file.
             # if that fails, default to the theme as if it were theme content.

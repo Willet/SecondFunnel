@@ -1,9 +1,8 @@
-/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _,
-  Willet, broadcast, console, SecondFunnel */
+/*global Image, Marionette, setTimeout, Backbone, jQuery, $, _, console, App */
 /**
  * @module core
  */
-SecondFunnel.module('core', function (module, SecondFunnel) {
+App.module('core', function (module, App) {
     // other args: https://github.com/marionettejs/Marionette/blob/master/docs/marionette.application.module.md#custom-arguments
     "use strict";
     var $window = $(window),
@@ -20,15 +19,15 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @param {*} defaultValue
      * @returns {*}
      */
-    SecondFunnel.option = function (name, defaultValue) {
-        var opt = Marionette.getOption(SecondFunnel, name),
+    App.option = function (name, defaultValue) {
+        var opt = Marionette.getOption(App, name),
             keyNest = _.compact(name.split(/[:.]/)),
             keyName,
-            cursor = SecondFunnel.options,
+            cursor = App.options,
             i,
             depth;
 
-        if (opt !== undefined && (keyNest.length === 1 && !_.isEmpty(opt))) {
+        if (opt !== undefined && keyNest.length === 1 && !_.isEmpty(opt)) {
             // getOption() returns a blank object when it thinks it is accessing
             // a nested option so we have to patch that up
             return opt;
@@ -91,7 +90,7 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
      * @returns {*}
      */
     Marionette.View.prototype.getTemplate = function () {
-        var i, templateIDs = this.templates,
+        var i, templateIDs = _.result(this, 'templates'),
             template = this.template,
             temp, templateExists, data;
 
@@ -100,24 +99,21 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
             return template;
         }
 
-        if (typeof templateIDs === 'function') {
-            // if given as a function, call it, and expect [<string> selectors]
-            templateIDs = templateIDs.apply(this, [this]);
+        // compose 'data' variable for rendering a tile priority list.
+        // needs to be deep copy (for store info)
+        data = $.extend({}, this.model.attributes);
+
+        try {
+            data.template = module.getModifiedTemplateName(data.template);
+        } catch (err) {
+            data.template = '';
+            // model did not need to specify a template.
         }
 
         for (i = 0; i < templateIDs.length; i++) {
-            // needs to be deep copy (for store info)
-            data = $.extend({}, this.model.attributes);
-
-            try {
-                data.template = module.getModifiedTemplateName(data.template);
-            } catch (err) {
-                data.template = '';
-                // model did not need to specify a template.
-            }
 
             temp = _.template(templateIDs[i], {
-                'options': SecondFunnel.options,
+                'options': App.options,
                 'data': data
             });
             templateExists = Marionette.TemplateCache._exists(temp);
@@ -132,8 +128,9 @@ SecondFunnel.module('core', function (module, SecondFunnel) {
         return template;
     };
 
+    // Default on missing template event
     Marionette.ItemView.prototype.onMissingTemplate = function () {
-        // Default on missing template event
+        console.warn('onMissingTemplate removing this: %o', this);
         this.remove();
     };
 

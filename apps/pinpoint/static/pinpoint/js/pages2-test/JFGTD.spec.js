@@ -1,4 +1,4 @@
-/*global $, _, Backbone, beforeEach, afterEach, expect, describe, it, runs, spyOn, loadFixtures, SecondFunnel*/
+/*global $, _, Backbone, beforeEach, afterEach, expect, describe, it, runs, spyOn, loadFixtures, App*/
 // Nick is letting perfection get in the way of getting things done.
 // So don't worry about what the spec says. Just do what we need to do,
 // Then worry about the spec, and categorizing everything, ok?
@@ -6,7 +6,7 @@ describe("(just fucking get things done)! IS THAT SO HARD TO UNDERSTAND?!", func
     "use strict";
 
     beforeEach(function () {
-        this.app = SecondFunnel;
+        this.app = App;
     });
 
     describe("Page Load:", function () {
@@ -95,7 +95,7 @@ describe("(just fucking get things done)! IS THAT SO HARD TO UNDERSTAND?!", func
             expect(this.app.discoveryArea.$el).not.toBeEmpty();
             expect(numTiles).toBeGreaterThan(0);
 
-            SecondFunnel.discoveryArea.currentView.pageScroll();
+            App.discoveryArea.currentView.pageScroll();
             this.server.respond();
 
             expect(this.app.discoveryArea.$el.find('.tile').length)

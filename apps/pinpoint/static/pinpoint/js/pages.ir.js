@@ -1,18 +1,20 @@
-/*global SecondFunnel, Backbone, Marionette, imagesLoaded, console, broadcast */
+/*global App, Backbone, Marionette, imagesLoaded, console, _, setTimeout, clearTimeout $ */
 /**
  * @module intentRank
  */
-SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
+App.module("intentRank", function (intentRank, App) {
     "use strict";
 
     var consecutiveFailures = 0,
-        resultsAlreadyRequested = [];  // list of product IDs
+        cachedResults = [],
+        fetching = null,
+        resultsAlreadyRequested = []; // list of product IDs
 
     this.options = {
-        'baseUrl': "http://intentrank-test.elasticbeanstalk.com/intentrank",
+        'baseUrl': "http://tng-test-cdn.secondfunnel.com/intentrank",
         'urlTemplates': {
-            'campaign': "<%=url%>/page/<%=campaign%>/getresults",
-            'content': "<%=url%>/page/<%=campaign%>/content/<%=id%>/getresults"
+            'campaign': "<%=baseUrl%>/page/<%=campaign%>/getresults?results=<%=IRCacheResultCount%>",
+            'content': "<%=baseUrl%>/page/<%=campaign%>/content/<%=id%>/getresults"
         },
         'add': true,
         'merge': true,
@@ -26,7 +28,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     };
 
     this.on('start', function () {
-        return this.initialize(SecondFunnel.options);
+        return this.initialize(App.options);
     });
 
     /**
@@ -49,26 +51,62 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             'IRResultsCount': options.IRResultsCount || 10,
             'IRTimeout': options.IRTimeout || 5000,
             'content': options.content || [],
-            'filters': options.filters || []
+            'filters': options.filters || [],
+            // Use this to intelligently guess what our cache calls should
+            // request
+            'IRCacheResultCount': options.IRResultsCount || 10
         });
 
-        broadcast('intentRankInitialized', intentRank);
+        App.vent.trigger('intentRankInitialized', intentRank);
         return this;
     };
 
     /**
+     * This function simply returns the base url for intentRank
+     *
+     * @returns {String}
+     */
+    this.url = function () {
+        return _.template(intentRank.options.urlTemplates.campaign,
+            intentRank.options);
+    };
+
+    /**
+     * This function is a smart alias to fetch, which essentially checks for
+     * and stores a promise object that others can latch onto when they call for
+     * results.
+     *
+     * @returns this
+     */
+    this.prefetch = _.debounce(function () {
+        var diff = cachedResults.length - intentRank.options.IRCacheResultCount;
+        // Only prefetch if cached count is low and we're not already
+        // fetching.
+        if (!fetching && diff < 0) {
+            console.debug("Prefetching from IR.");
+            fetching = intentRank.fetch({ // Fetch only the difference
+                'IRCacheResultCount': Math.abs(diff)
+            }).done(function () { // Clear fetching when done
+                fetching = null;
+            });
+        }
+        return this;
+    }, 6000);
+
+    /**
      * This function is a bridge between our IntentRank module and our
-     * Discovery area.
-     * It must be executed with a Backbone.Collection as context.
+     * Discovery area.  This function can be called by intentRank itself,
+     * or a Collection as context.  Benefits of calling this with intentRank
+     * as context, is that you can cache results.
      *
      * @param options
      * @returns {promise}
      */
     this.fetch = function (options) {
-        // 'this' IS NOT INTENTRANK
+        // 'this' can be whatever you want it to be
         var collection = this,
             deferred = new $.Deferred(),
-            online = !SecondFunnel.option('page:offline', false),
+            online = !App.option('page:offline', false),
             data = (resultsAlreadyRequested.length ? {
                 'shown': resultsAlreadyRequested.join(',')
             } : undefined),
@@ -81,8 +119,10 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
                 'xhrFields': {
                     'withCredentials': true
                 },
+                parse: true,
                 'data': data
             }, this.config, intentRank.options, options),
+            prepopulatedResults = [],
             backupResults = _.chain(intentRank.options.backupResults)
                 .filter(intentRank.filter)
                 .shuffle()
@@ -94,14 +134,46 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             return $.when(backupResults);
         }
 
-        // if online, return the result, or a backup list if it fails.
-        Backbone.Collection.prototype.fetch.call(this, opts)
-            .done(function (results) {
+        // check if cached results, and options is undefined
+        // don't do this if we are actually the intentRank module
+        if (!options && !(this == intentRank)) {
+            var len = cachedResults.length,
+                method = opts.reset ? 'reset' : 'set';
+            prepopulatedResults = cachedResults.splice(0, len);
+
+            if (fetching) { // return fetching object if we're fetching
+                console.debug("Holding off for IR to finish.");
+                return fetching.done(function (results) {
+                    collection[method](results, opts);
+                    collection.trigger('sync', collection, results, opts);
+                });
+            } else if (len >= opts.results) {
+                // Use a dummy deferred object
+                console.debug("Using existing results.");
+                return $.when(prepopulatedResults).done(function(results) {
+                    collection[method](results, opts);
+                    collection.trigger('sync', collection, results, opts);
+                    intentRank.prefetch();
+                });
+            }
+            // for now, it seems that intentRank has an upperbound of 20, so
+            // just set that as the limit
+            intentRank.updateCache(opts.results - len);
+        }
+
+        // attach respective success and error functions to the options object
+        // use backup list if request fails
+        _.extend(opts, {
+            success: function (results) {
+                var method = opts.reset ? 'reset' : 'set';
+                results = prepopulatedResults.concat(results);
+                App.options.IRResultsReturned = results.length;
+
                 // reset fail counter
                 collection.ajaxFailCount = 0;
-
-                // SHUFFLE_RESULTS is always true
-                deferred.resolve(_.shuffle(results));
+                collection[method](results, opts);
+                collection.trigger('sync', collection, results, opts);
+                deferred.resolve(results);
                 resultsAlreadyRequested = _.compact(intentRank.getTileIds(results));
 
                 // restrict shown list to last 10 items max
@@ -109,8 +181,14 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
                 if (resultsAlreadyRequested.length > intentRank.options.IRResultsCount) {
                     resultsAlreadyRequested = resultsAlreadyRequested.slice(-10);
                 }
-            })
-            .fail(function () {
+
+                // Only prefetch if this isn't intentRank; prevents infinite
+                // calls.
+                if (collection != intentRank) {
+                    intentRank.prefetch();
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
                 // reset fail counter
                 if (collection.ajaxFailCount) {
                     collection.ajaxFailCount++;
@@ -120,14 +198,17 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
 
                 deferred.resolve(backupResults);
                 resultsAlreadyRequested = intentRank.getTileIds(backupResults);
-            });
+            }
+        });
 
+        // Make the request to Backbone collection and return deferred
+        Backbone.Collection.prototype.sync('read', collection, opts);
         return deferred.promise();
     };
 
     /**
      * Filter the content based on the selector
-     * passed and the criteria/filters defined in the SecondFunnel options.
+     * passed and the criteria/filters defined in the App options.
      *
      * @param {Array} content
      * @param selector {string}: (optional) no idea what this is.
@@ -159,25 +240,15 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     };
 
     /**
-     * general implementation
-     *
-     * @deprecated
-     */
-    this.getResults = function () {
-        var args = Array.prototype.slice.apply(arguments);
-        return this.fetch.apply(SecondFunnel.discovery.collection, args);
-    };
-
-    /**
      * A unique list of all tiles shown on the page.
      * @returns {array}
      */
     this.getAllResultsShown = function () {
         try {
-            return SecondFunnel.discovery.collection.models;
+            return App.discovery.collection.models;
         } catch (err) {
-            // first call, SecondFunnel.discovery is not a var yet
-            return SecondFunnel.option('initialResults') || [];
+            // first call, App.discovery is not a var yet
+            return App.option('initialResults') || [];
         }
     };
 
@@ -190,7 +261,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
     };
 
     /**
-     * @oaram {Tile} tiles
+     * @param {Tile} tiles
      * @return {Array} unique list of tile ids
      */
     this.getTileIds = function (tiles) {
@@ -203,6 +274,40 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
         }));
     };
 
+    /**
+     * @param {Integer} diff
+     * @return thsi
+     */
+    this.updateCache = function (diff) {
+        // right now it seems as if IR has a hard limit of 20
+        this.options.IRCacheResultCount = Math.min(10,
+            this.options.IRCacheResultCount + diff);
+        return this;
+    };
+
+    /**
+     * @param {Array} results
+     * @return this
+     */
+    this.set = function (results) {
+        // Simply add to our cached results list
+        cachedResults = cachedResults.concat(results);
+        return this;
+    };
+
+    /**
+     * Dummy method
+     *
+     * @return this
+     */
+    this.sync = function () {
+        return this;
+    };
+
+    /**
+     * @param {String} category
+     * @return this
+     */
     this.changeCategory = function (category) {
         // Change the category
         if (!_.findWhere(intentRank.options.categories,
@@ -212,7 +317,7 @@ SecondFunnel.module("intentRank", function (intentRank, SecondFunnel) {
             return intentRank;
         }
 
-        broadcast('intentRankChangeCategory', category, intentRank);
+        App.vent.trigger('intentRankChangeCategory', category, intentRank);
 
         intentRank.options.campaign = category;
         return intentRank;

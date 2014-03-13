@@ -1,8 +1,8 @@
-/*global SecondFunnel, Backbone, Marionette, console, broadcast */
+/*global App, $, Backbone, Marionette, console, _ */
 /**
  * @module tracker
  */
-SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
+App.module("tracker", function (tracker, App) {
     "use strict";
 
     var $document = $(document),
@@ -59,10 +59,38 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         },
 
         addItem = function () {
-            // wrap _gaq.push to obey our tracking
-            if (window._gaq && SecondFunnel.option('enableTracking', true)) {
-                _gaq.push.apply(_gaq, arguments);
+            // wrap ga to obey our tracking
+            if (!window.ga) {
+                console.warn('Analytics library is not ready. %o', arguments);
+                return;
             }
+
+            if (window.location.hostname.indexOf('test') !== -1) {
+                console.warn('Skipping analytics from test buckets', arguments);
+                return;
+            }
+
+            if (!App.option('enableTracking', true)) {
+                console.warn('addItem was either disabled by the client ' +
+                             'or prevented by the browser. %o', arguments);
+                return;
+            }
+            if (App.option('debug', App.QUIET) > App.QUIET) {
+                console.warn('Debug mode disabled tracking. %o', arguments);
+                return;
+            }
+
+            window.ga.apply(window, arguments);
+        },
+
+        trackPageview = function(hash) {
+            var base = window.location.pathname + window.location.search,
+                host = window.location.protocol +'//' + window.location.hostname;
+            hash = hash || window.location.hash;
+            addItem('send', 'pageview', {
+                'page': base + hash,
+                'location': host + base + hash
+            });
         },
 
         trackEvent = function (o) {
@@ -72,29 +100,38 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             // value          - Optional numeric data
             // nonInteraction - if true, don't count in bounce rate
             //                  by default, events are interactive
-            addItem(['_trackEvent',
-                o.category,
-                o.action,
-                o.label,
-                o.value || undefined,
-                !!o.nonInteraction || undefined
-            ]);
+            var nonInteraction = 0;
+            if (o.nonInteraction) {
+                nonInteraction = 1;
+            }
+
+            addItem('send', 'event', o.category, o.action, o.label,
+                    o.value || undefined, {'nonInteraction': nonInteraction});
+
+            if (o.action === 'scroll') {
+                var hash = '#page' + o.label;
+                trackPageview(hash);
+            }
         },
 
         setCustomVar = function (o) {
-            var slotId = o.slotId,
-                name = o.name,
-                value = o.value,
-                scope = o.scope || GA_CUSTOMVAR_SCOPE.PAGE; // 3 = page-level
+            var index = o.index,
+                type = o.type,
+                value = o.value;
 
-            if (!(slotId && name && value)) {
+            if (!(index && value && type)) {
+                console.warn("Missing one or more of: index, type, value");
                 return;
             }
 
-            addItem(['_setCustomVar', slotId, name, value, scope]);
+            // universal analytics accept only indexed dimensions with no
+            // name, or named variables with no scope
+            // https://developers.google.com/analytics/devguides/collection/upgrade/reference/gajs-analyticsjs#custom-vars
+            // so scope + name is used to mimic that
+            addItem('set', type + index, value);
         },
 
-        getTrackingInformation = function(model, isPreview) {
+        getTrackingInformation = function (model, isPreview) {
             // Given a model, return information for tracking purposes
             var category,
                 label;
@@ -106,16 +143,19 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
 
             // Convert model to proper category?
             switch (model.get('template')) {
-                case 'product':
-                case 'combobox':
-                    category = 'Product';
-                    label = model.get('name');
-                    break;
-                default:
-                    category = 'Content';
-                    // TODO: Need a method to get URL
-                    label = model.get('image');
-                    break;
+            case 'product':
+            case 'combobox':
+                category = 'Product';
+                label = model.get('name');
+                break;
+            default:
+                category = 'Content';
+                label = model.get('image');
+                if (label.get) {
+                    label = label.get('url');
+                }
+
+                break;
             }
 
             if (isPreview) {
@@ -127,9 +167,6 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
                 'label': label
             };
         };
-
-    this.socialShareType = undefined;
-    this.socialShareUrl = undefined;
 
     /**
      * Top-level event binding wrapper. all events bubble up to this level.
@@ -152,20 +189,6 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             });
         }
     });
-
-    /**
-     * Sets socialShareUrl and socialShareType. (?)
-     * @param attrs {Object}    an object of {url, sType}
-     */
-    this.setSocialShareVars = function (attrs) {
-        if (attrs && attrs.url && attrs.sType) {
-            this.socialShareUrl = attrs.url;
-            this.socialShareType = attrs.sType;
-        } else {
-            this.socialShareUrl = SecondFunnel.option('featured:image', '');
-            this.socialShareType = "featured";
-        }
-    };
 
     /**
      * Registers facebook tracking events that are fired whenever a facebook
@@ -195,7 +218,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
                 modelId = $(this).parents('.tile').attr('id');
             }
 
-            model = SecondFunnel.discovery.collection.get(modelId);
+            model = App.discovery.collection.get(modelId);
             trackingInfo = getTrackingInformation(model, isPreview);
 
             trackEvent({
@@ -234,7 +257,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
                     modelId = $(this).parents('.tile').attr('id');
                 }
 
-                model = SecondFunnel.discovery.collection.get(modelId);
+                model = App.discovery.collection.get(modelId);
                 trackingInfo = getTrackingInformation(model, isPreview);
 
                 trackEvent({
@@ -243,18 +266,6 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
                     'label': trackingInfo.label
                 });
             });
-
-            // Do we care about click vs tweet?
-//            twttr.events.bind('click', function (event) {
-//                var sType;
-//                if (event.region === "tweet") {
-//                    sType = "clicked";
-//                } else if (event.region === "tweetcount") {
-//                    sType = "leftFor";
-//                } else {
-//                    sType = event.region;
-//                }
-//            });
         });
     };
 
@@ -269,7 +280,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
      * @returns undefined
      */
     this.videoStateChange = function (videoId, event) {
-        broadcast('videoStateChange', videoId, event, this);
+        App.vent.trigger('videoStateChange', videoId, event, this);
 
         // TODO: Do we only want to measure one event per video?
         if (videosPlayed.indexOf(videoId) !== -1) {
@@ -296,78 +307,12 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
      */
     this.changeCampaign = function (campaignId) {
         setCustomVar({
-            'slotId': 2,
-            'name': 'CampaignID',
-            'value': '' + campaignId
+            'index': 2,
+            'type': 'dimension',
+            'value': campaignId
         });
 
-        broadcast('trackerChangeCampaign', campaignId, this);
-    };
-
-    this.on('start', function () {  // this = tracker
-        return this.initialize(SecondFunnel.options);
-    });
-
-    /**
-     * Starts the module.
-     * Sets up default tracking events.
-     *
-     * @alias tracker.start
-     */
-    this.initialize = function (options) {
-        if (SecondFunnel.option('debug', SecondFunnel.QUIET) > SecondFunnel.QUIET) {
-            // debug mode.
-            addItem(['_setDomainName', 'none']);
-        }
-
-        addItem(['_setAccount', SecondFunnel.option('gaAccountNumber')]);
-        addItem(['_setCustomVar',
-            1,                               // slot id
-            'StoreID',                       // name
-            SecondFunnel.option('store:id'), // value
-            3                                // scope: page-level
-        ]);
-        addItem(['_setCustomVar', 2, 'CampaignID',
-            SecondFunnel.option('campaign'),  // <int>
-            3
-        ]);
-        addItem(['_trackPageview']);
-
-        this.setSocialShareVars();
-
-        // register event maps
-        var defaults = new this.EventManager(this.defaultEventMap),
-            customs = new this.EventManager(SecondFunnel.option('events'));
-
-        // TODO: If these are already set on page load, do we need to set them
-        // again here? Should they be set here instead?
-        setCustomVar({
-            'slotId': 1,
-            'name': 'Store',
-            'value': SecondFunnel.option('store:id'),
-            'scope': GA_CUSTOMVAR_SCOPE.PAGE
-        });
-
-        setCustomVar({
-            'slotId': 2,
-            'name': 'Page',
-            'value': SecondFunnel.option('page:id'),
-            'scope': GA_CUSTOMVAR_SCOPE.PAGE
-        });
-
-        // TODO: Need a better way to determine internal v. external visitor
-        // By that I mean we should be able to segment out internal visitors
-        setCustomVar({
-            'slotId': 3,
-            'name': 'Internal Visitor', // Name?
-            'value': true ? 'Yes' : 'No', // How to determine?
-            'scope': GA_CUSTOMVAR_SCOPE.VISITOR
-        });
-
-        // referrer? domain?
-
-        broadcast('trackerInitialized', this);
-        // setTrackingDomHooks() on $.ready
+        App.vent.trigger('trackerChangeCampaign', campaignId, this);
     };
 
     // Generally, we have views handle event tracking on their own.
@@ -375,25 +320,41 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
     // So, to avoid the performance penalty, we do most of our tracking via
     // delegated events.
 
-    // TODO: Of the events that we broadcast, which are actually used?
-
     // Backbone format: { '(event) (selectors)': function(ev), ...  }
     this.defaultEventMap = {
         // Events that we care about:
         // Content Preview
         // Product Preview
-        'click .tile': function() {
+        'click .tile': function () {
             var modelId = $(this).attr('id'),
-                model = SecondFunnel.discovery.collection.get(modelId) ||
+                model = App.discovery.collection.get(modelId) ||
                         // {cXXX} models could be here instead, for some reason
-                        SecondFunnel.discovery.collection._byId[modelId],
-                trackingInfo = getTrackingInformation(model);
+                        App.discovery.collection._byId[modelId],
+                trackingInfo = getTrackingInformation(model),
+                tileId = model.get('tile-id') || 0,
+                label = trackingInfo.label || "",
+                hash;
+
+            if (!label) {
+                console.warn("Not tracking event with no label");
+                return;
+            }
+
+            // for distinguishing product or (mostly content) tiles that
+            // have different ids
+            if (tileId) {
+                label += " (Tile " + tileId + ")";
+            }
 
             trackEvent({
                 'category': trackingInfo.category,
                 'action': 'Preview',
-                'label': trackingInfo.label
+                'label': label
             });
+
+            // Be super explicit about what the hash is
+            // rather than relying on the window
+            // trackPageview('#' + tileId);
         },
 
         // Content Share
@@ -413,7 +374,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
                 modelId = $(this).parents('.tile').attr('id');
             }
 
-            model = SecondFunnel.discovery.collection.get(modelId);
+            model = App.discovery.collection.get(modelId);
             trackingInfo = getTrackingInformation(model);
 
             classes = $(this).getClasses();
@@ -434,7 +395,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         "click a.buy": function () {
             var modelId, model, trackingInfo, $previewContainer, isPreview;
 
-            broadcast('buyClick');
+            App.vent.trigger('buyClick');
 
             // A bit fragile, but should do
             $previewContainer = $(this).parents('.template.target > div');
@@ -447,7 +408,7 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
                 modelId = $(this).parents('.tile').attr('id');
             }
 
-            model = SecondFunnel.discovery.collection.get(modelId);
+            model = App.discovery.collection.get(modelId);
             trackingInfo = getTrackingInformation(model, isPreview);
 
             trackEvent({
@@ -469,18 +430,16 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
             //      'Find in Store'
             //      'Shop on GAP.com'
             if (isFindStore) {
-                broadcast('findStoreClick', $button);
+                App.vent.trigger('findStoreClick', $button);
                 action = 'Find in Store';
             }
             if (isInStore) {
-                broadcast('inStoreClick', $button);
+                App.vent.trigger('inStoreClick', $button);
                 action = 'Purchase';
             }
 
             $previewContainer = $(this).parents('.template.target > div');
-            modelId = $previewContainer.attr('id') || "";
-            modelId = modelId.replace('preview-', ''); // Remove prefix, if present
-            model = SecondFunnel.discovery.collection.get(modelId);
+            model = App.previewArea.currentView.model;
             trackingInfo = getTrackingInformation(model, true);
 
             trackEvent({
@@ -519,28 +478,27 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         // reset tracking scope: hover into featured product area
         "hover .featured": function () {
             // this = window because that's what $el is
-            broadcast('featuredHover');
-            tracker.setSocialShareVars();
+            App.vent.trigger('featuredHover');
         },
 
         "hover .tile": function (ev) {
             // this = window because that's what $el is
-            broadcast('tileHover', ev.currentTarget);
+            App.vent.trigger('tileHover', ev.currentTarget);
         },
 
         "click .previewContainer .close": function () {
-            broadcast('popupClosed');
+            App.vent.trigger('popupClosed');
         },
 
         "hover .social-buttons .button": function (e) {
             var $button = $(e.currentTarget);
-            broadcast('socialButtonHover', $button);
+            App.vent.trigger('socialButtonHover', $button);
         }
     };
 
     // more events can be declared by the theme without EventManager instances
     $.extend(true, this.defaultEventMap,
-             SecondFunnel.option('eventMap', {}));
+             App.option('eventMap', {}));
 
     parseUri.options = {
         'strictMode': false,
@@ -557,10 +515,76 @@ SecondFunnel.module("tracker", function (tracker, SecondFunnel) {
         }
     };
 
+    this.on('start', function () {  // this = tracker
+        return this.initialize(App.options);
+    });
+
+    /**
+     * Starts the module.
+     * Sets up default tracking events.
+     *
+     * @alias tracker.start
+     */
+    this.initialize = function (options) {
+        // this (reformatted) code creates window.ga
+        (function (o, g, r, a, m) {
+            window.GoogleAnalyticsObject = 'ga';
+            window.ga = window.ga || function () {
+                (window.ga.q = window.ga.q || []).push(arguments);
+            };
+            window.ga.l = Number(new Date());
+            a = document.createElement(o);
+            a.async = 1;
+            a.src = g;
+
+            m = document.getElementsByTagName(o)[0];
+            m.parentNode.insertBefore(a, m);
+        }('script', '//www.google-analytics.com/analytics.js', 'ga'));
+
+        this.setup(options);
+    };
+
+    this.setup = function (options) {
+        addItem('create', App.option('gaAccountNumber'), 'auto');
+
+        // TODO: If these are already set on page load, do we need to set them
+        // again here? Should they be set here instead?
+        setCustomVar({
+            'index': 2,
+            'type': 'dimension',
+            'value': App.option('store:id')
+        });
+
+        setCustomVar({
+            'index': 3,
+            'type': 'dimension',
+            'value': App.option('store:id')
+        });
+
+        setCustomVar({
+            'index': 4,
+            'type': 'dimension',
+            'value': App.option('campaign')
+        });
+
+        setCustomVar({
+            'index': 5,
+            'type': 'dimension',
+            'value': App.option('page:id')
+        });
+
+        // register event maps
+        var defaults = new this.EventManager(this.defaultEventMap),
+            customs = new this.EventManager(App.option('events'));
+
+        App.vent.trigger('trackerInitialized', this);
+        // setTrackingDomHooks() on $.ready
+    };
+
     // add mediator triggers if the module exists.
-    SecondFunnel.vent.on({
+    App.vent.on({
         'tracking:trackEvent': trackEvent,
-        'tracking:setSocialShareVars': this.setSocialShareVars,
+        'tracking:trackPageView': function() {}, //trackPageview,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,
         'tracking:registerFacebookListeners': this.registerFacebookListeners,
         'tracking:videoStateChange': this.videoStateChange,

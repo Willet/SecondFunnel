@@ -837,33 +837,6 @@
         }
     },
     {
-        "pk": 100,
-        "model": "auth.permission",
-        "fields": {
-            "codename": "add_staticlog",
-            "name": "Can add static log",
-            "content_type": 34
-        }
-    },
-    {
-        "pk": 101,
-        "model": "auth.permission",
-        "fields": {
-            "codename": "change_staticlog",
-            "name": "Can change static log",
-            "content_type": 34
-        }
-    },
-    {
-        "pk": 102,
-        "model": "auth.permission",
-        "fields": {
-            "codename": "delete_staticlog",
-            "name": "Can delete static log",
-            "content_type": 34
-        }
-    },
-    {
         "pk": 49,
         "model": "auth.permission",
         "fields": {
