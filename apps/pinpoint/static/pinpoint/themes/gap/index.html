@@ -3,11 +3,43 @@
 <html lang="en">
 <head>
     {% include "pinpoint/campaign_opengraph_tags.html" %}
+    <!-- Add Optimizer Tests here -->
+    <script type="text/javascript">
+        window.OPTIMIZER_TESTS = [];
+        window.OPTIMIZER_TESTS.push({
+            index: 1,
+            test: 'custom',
+            device: 'mobile',
+            custom: function (template) {
+                template = template || _.sample(["A", "B", "C", "D"]);
+                App.options.tests = App.options.tests ? App.options.tests : {};
+                App.options.tests[1] = template;
+                return template;
+            }
+        });
+        window.OPTIMIZER_TESTS.push({
+            index: 6, // 6 in Analytics
+            test: 'custom',
+            device: 'mobile',
+            disabled: true,
+            custom: function (template) {
+                var s = $('<style>@media only screen and (max-width: 510px) { .tile { width: 50% !important; } \
+                    .tile.wide { width: 100% !important; } } #discovery-area { width: 100% !important }</style>');
+                template = template || _.sample(["A", "B"]);
+                if (template != "A") {
+                    App.options.minColumns = 2;
+                    s.prependTo($('head'));
+                }
+                return template;
+            }
+        });
+    </script>
+    <!-- End Optimizer Tests -->
     {% include "pinpoint/campaign_head.html" %}
     <link rel="shortcut icon"
          href="http://www.gap.com/favicon.ico" />
     <link rel="stylesheet"
-          href="{% static 'pinpoint/themes/gap/gap.css' %}"/>
+          href="{% static 'pinpoint/themes/gap/gap.css' %}" />
     <title>{{ page.name|default:"Gap" }}</title>
     <style type="text/css">
         /* out of necessity */
@@ -149,23 +181,6 @@
         </div>
     {% endif %}
 
-    <!-- Add Optimizer Tests here -->
-    <script type="text/javascript">
-        window.OPTIMIZER_TESTS = [];
-        window.OPTIMIZER_TESTS.push({
-            slot: 1,
-            device: "mobile",
-            test: "custom",
-            custom: function (template) {
-                template = template || _.sample(["A", "B", "C", "D"]);
-                App.options.tests = App.options.tests ? App.options.tests : {};
-                App.options.tests[1] = template;
-                return template;
-            }
-        });
-    </script>
-    <!-- End Optimizer Tests -->
-
     {% include "pinpoint/campaign_body.html" %}
 
     <div>
@@ -272,12 +287,9 @@
         </script>
 
         <script type="text/template" id="mobile_preview_container_template">
-            <div class="tablecell">
-                <div class="content">
-                    <span class="close">BACK</span>
-                    <div class="scrollable">
-                        <div class="template target"></div>
-                    </div>
+            <div class="content">
+                <div class="scrollable">
+                    <div class="template target"></div>
                 </div>
             </div>
             <div class="mask"></div>
@@ -384,7 +396,7 @@
             <div class='content-wrapper row'>
                 <div class='cell middle image-div col-sm-6 col-md-6'>
                     <div class='image'>
-                        <img src='<%= obj.image.url %>'/>
+                        <img src='<%= obj.defaultImage.url %>'/>
                     </div>
                     <% if (obj.images.length > 1) { %>
                     <div class='gallery'></div>
@@ -427,202 +439,103 @@
         </script>
 
         <script type="text/template" id="product_mobile_preview_template">
-            <div class='content-wrapper row'>
-                <% var test = App.option('tests') ? App.option('tests')[1] : undefined; %>
-                <% var button = test ? {} : undefined; %>
-                <% if (button) { %>
-                    <% button[1] = {}; %>
-                    <% button[2] = {}; %>
-                    <% button[1].url = obj.url %>
-                    <% button[1].class = 'in-store' %>
-                    <% button[1].text = 'Shop on Gap.com' %>
-                    <% button[2].url = 'http://m.gap.com/storelocator.html' %>
-                    <% button[2].class = 'find-store' %>
-                    <% button[2].text = 'Find in Store' %>
-                    <% if (test == 'B' || test == 'D' || test == 'F') { %>
-                        <% var tmp = button[1]; %>
-                        <% button[1] = button[2]; %>
-                        <% button[2] = tmp %>
-                    <% } %>
-                <% } %>
-                <% if (test && (test == 'E' || test == 'F')) { %>
-                <div class='info col-sm-6 col-md-6' style="margin-top:40px; margin-bottom:-35px;">
-                    <div class='gap-buttons'>
-                        <% _.each(button, function (b) { %>
-                        <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
-                        <% }); %>
-                    </div>
+            <div class="info">
+                <div class="title">
+                    <%= obj.title || obj.name %>
                 </div>
-                <% } %>
-                <div class='image-div col-sm-6 col-md-6'>
-                    <div class='image'>
-                        <% if (obj.images.length > 1) { %>
-                            <span class="gallery-swipe-left"></span>
-                            <img src='<%= obj.image.url %>'/>
-                            <span class="gallery-swipe-right"></span>
-                        <% } else { %>
-                            <img src='<%= obj.image.url %>'/>
-                        <% } %>
-                    </div>
+                <div class="center">
                     <% if (obj.images.length > 1) { %>
                         <div class='gallery'></div>
                     <% } %>
                 </div>
-                <div class='info col-sm-6 col-md-6'>
-                    <div class='title'><%= obj.title || obj.name %></div>
-                    <div class='red marker price'><%= obj.price %></div>
-                    <% if (!test) { %>
-                        <div class='gap-buttons'>
-                            <a class='button in-store' href='<%= obj.url %>'
-                               target='_blank'>
-                               <!-- in-store is magic -->
-                               Shop on Gap.com
-                            </a>
-                            <a class='button find-store'
-                               href='http://m.gap.com/storelocator.html'
-                               target='_blank'>
-                               <!-- find-store is magic -->
-                               Find in Store
-                            </a>
-                        </div>
-                    <% } else if (test == 'A' || test == 'B') { %>
-                        <div class='gap-buttons'>
-                            <% _.each(button, function (b) { %>
-                            <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
-                            <% }); %>
-                        </div>
-                    <% } %>
-                    <div class='description'>
-                        <div class='desc-title'>Overview</div>
-                        <ul>
-                            <% var sentences = _.compact(obj.description.split('.')); %>
-                            <% _.each(sentences, function(sentence) { %>
-                            <li><%= SecondFunnel.utils.safeString(sentence) %></li>
-                            <% }); %>
-                        </ul>
-                    </div>
-                    <div>
-                        <div class="social-buttons"></div>
-                        <div class='spacer'></div>
-                    </div>
-                <% if (test == 'C' || test == 'D') { %>
-                    <div class='gap-buttons' style="margin-top: 10px">
-                        <% _.each(button, function (b) { %>
-                        <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
-                        <% }); %>
-                    </div>
+            </div>
+            <% if (obj.images.length === 1) { %>
+            <div class="image-region no-images">
+            <% } else { %>
+            <div class="image-region">
+            <% } %>
+                <% if (obj.images.length > 1) { %>
+                    <span class="gallery-swipe-left"></span>
+                    <div class="main-image"></div>
+                    <span class="gallery-swipe-right"></span>
+                <% } else { %>
+                    <div class="img" style="background-image: url('<%= obj.image.url %>');"></div>
                 <% } %>
+                <div class="gap-buttons">
+                    <a class="button in-store"
+                       href="<%= obj.url %>"
+                       target="_blank">
+                        Shop Now
+                    </a>
+                    <a class="button find-store"
+                       href="http://m.gap.com/storelocator.html"
+                       target="_blank">
+                        Find in Store
+                    </a>
+                    <!--
+                        <span class="close button">
+                          <% if (!App.initialPage || App.initialPage.length == 0) { %>
+                              Continue Browsing
+                          <% } else { %>
+                              Check out more in Store
+                          <% } %>
+                        </span>
+                    -->
                 </div>
             </div>
         </script>
 
         <script type="text/template" id="image_mobile_preview_template">
-            <% var products = obj['related-products']; %>
-            <% if (products.length) { %>
-            <div class='image-with-related-products'>
-                <% product = products[0]; %>
-                <% var test = App.option('tests') ? App.option('tests')[1] : undefined; %>
-                <% var button = test ? {} : undefined; %>
-                <% if (button) { %>
-                    <% button[1] = {}; %>
-                    <% button[2] = {}; %>
-                    <% button[1].url = product.url %>
-                    <% button[1].class = 'in-store' %>
-                    <% button[1].text = 'Shop on Gap.com' %>
-                    <% button[2].url = 'http://m.gap.com/storelocator.html' %>
-                    <% button[2].class = 'find-store' %>
-                    <% button[2].text = 'Find in Store' %>
-                    <% if (test == 'B' || test == 'D' || test == 'F') { %>
-                        <% var tmp = button[1]; %>
-                        <% button[1] = button[2]; %>
-                        <% button[2] = tmp %>
-                    <% } %>
-                <% } %>
+            <% var products = obj['related-products'] || []; %>
+            <% var product = products.length? products[0] : {}; %>
+            <% if (products.length === 0) { %>
+            <div class="image-without-related-products">
             <% } else { %>
-            <div class='image-without-related-products'>
+            <div class="image-with-related-products">
             <% } %>
-                <div class="row">
-                    <% if (products.length && (test == 'E' || test == 'F')) { %>
-                        <div class='gap-buttons' style="margin-top:40px; margin-bottom:-35px;" >
-                            <% _.each(button, function (b) { %>
-                            <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
-                            <% }); %>
-                        </div>
-                    <% } %>
-                    <div class="image middle cell capped-width">
-                        <% if (products.length) { %>
-                            <span class="gallery-swipe-left"></span>
-                            <img src='<%= product.images[0].url %>' alt="image"/>
-                            <span class="gallery-swipe-right"></span>
-                        <% } else { %>
-                            <img src='<%= obj.defaultImage.url %>'/>
+                <div class="info">
+                    <div class="title">
+                        <span><%= product.title || product.name || obj.title || obj.name ||
+                                  obj.caption || obj.description %></span>
+                    </div>
+                    <div class="center">
+                        <% if (products.length > 0) { %>
+                            <div class='gallery'></div>
                         <% } %>
                     </div>
-                    <% var validSources = ['tumblr', 'instagram', 'facebook', 'styld.by']; %>
-                    <% if (_.indexOf(validSources, obj.source) != -1) { %>
-                        <div class='author'>
-                            <% if (obj.source == "styld.by") { %>
-                            <%= obj.source %><a href="<%= obj['source-url']%>"><%= obj.user %></a>
-                            <% } else if (_.indexOf(validSources, (obj.source||'').toLowerCase()) != -1) { %>
-                            <span class='propercase'><a href="<%= obj['source-url']%>"><%= obj.source %></a></span>
-                            <% } %>
-                        </div>
-                    <% } %>
-                    <% if (products.length) { %>
-                        <div class='gallery'></div>
-                    <% } %>
-                    <div class="middle cell">
-                        <% if (products.length) { %>
-                            <div class='title'><%= product.title || product.name || ""  %></div>
-                            <div class='price'><%= product.price %></div>
-                            <% if (!test) { %>
-                                <div class='gap-buttons'>
-                                    <a class='button in-store' href='<%= product.url %>'
-                                       target='_blank'>
-                                       <!-- in-store is magic -->
-                                       Shop on Gap.com
-                                    </a>
-                                    <a class='button find-store'
-                                       href='http://m.gap.com/storelocator.html'
-                                       target='_blank'>
-                                       <!-- find-store is magic -->
-                                       Find in Store
-                                    </a>
-                                </div>
-                            <% } else if (test == 'A' || test == 'B') { %>
-                                <div class='gap-buttons'>
-                                    <% _.each(button, function (b) { %>
-                                    <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
-                                    <% }); %>
-                                </div>
-                            <% } %>
-                            <div class='description'>
-                                <div class='desc-title'>Overview</div>
-                                <ul>
-                                    <% var sentences = _.compact(product.description.split('.')); %>
-                                    <% _.each(sentences, function(sentence) { %>
-                                    <li><%= SecondFunnel.utils.safeString(sentence) %></li>
-                                    <% }); %>
-                                </ul>
-                            </div>
-                        <% } else { %>
-                            <div class='description'>
-                            <%= SecondFunnel.utils.safeString(obj.caption || obj.description) %>
-                            </div>
-                        <% } %>
-                        <div>
-                            <div class="social-buttons"></div>
-                            <div class='spacer'></div>
-                        </div>
-                    <% if (products.length && (test == 'C' || test == 'D')) { %>
-                        <div class='gap-buttons' style="margin-top:10px;">
-                            <% _.each(button, function (b) { %>
-                            <a class='button <%= b.class %>' href='<%= b.url %>' target='_blank'><%= b.text %></a>
-                            <% }); %>
-                        </div>
-                <% } %>
                 </div>
-            </div>
+                <div class="image-region">
+                    <% if (products.length > 0) { %>
+                        <span class="gallery-swipe-left"></span>
+                        <div class="main-image"></div>
+                        <span class="gallery-swipe-right"></span>
+                        <div class="gap-buttons">
+                            <% if (product.url) { %>
+                                <a class="button in-store"
+                                   href="<%= product.url %>"
+                                   target="_blank">
+                                    Shop Now
+                                </a>
+                                <a class="button find-store"
+                                   href="http://m.gap.com/storelocator.html"
+                                   target="_blank">
+                                    Find in Store
+                                </a>
+                            <% } %>
+                            <!--
+                                <span class="close button">
+                                    <% if (!App.initialPage || App.initialPage.length == 0) { %>
+                                        Continue Browsing
+                                    <% } else { %>
+                                        Check out more in Store
+                                    <% } %>
+                                </span>
+                            -->
+                        </div>
+                    <% } else { %>
+                        <div class="img" style="background-image: url('<%= obj.defaultImage.url %>');"></div>
+                    <% } %>
+                </div>
             </div>
         </script>
 
@@ -647,9 +560,9 @@
                     </div>
                     <div class="middle cell center">
                         <% if (product.images.length > 1 && App.support.mobile()) { %>
-                            <div class="image">
+                            <div class="main-image">
                                 <span class="gallery-swipe-left gallery-related"></span>
-                                <img class="main-image" src="<%= product.images[0].url %>" alt="related product"/>
+                                <img class="main-image" src="<%= product.defaultImage.url %>" alt="related product"/>
                                 <span class="gallery-swipe-right gallery-related"></span>
                             </div>
                         <% } else { %>
@@ -793,72 +706,74 @@
 
     <!-- GAP Google Analytics -->
     <script type="text/javascript">
-        // Shorthand for pushing data to Google Analytics
-        var productName = null,
-            recordEvent = function (event, eventCategory, eventAction, eventLabel) {
-                dataLayer.push({
-                    'event': event,
-                    'eventCategory': eventCategory,
-                    'eventAction': eventAction,
-                    'eventLabel': eventLabel
-                });
 
-                // for our internal analytics: also track these events.
-                // tracking page_scroll causes infinite loops.
-                if (event !== 'page_scroll' &&
-                      window.App &&
-                      window.App.vent &&
-                      window.App.vent.trigger &&
-                      typeof window.App.vent.trigger === 'function') {
-                    App.vent.trigger('tracking:trackEvent', {
-                        'category': eventCategory,
-                        'action': eventAction,
-                        'label': eventLabel,
-                        'value': event
+        function initGapAnalytics () {
+            // Shorthand for pushing data to Google Analytics
+            var productName = null,
+                recordEvent = function (event, eventCategory, eventAction, eventLabel) {
+                    dataLayer.push({
+                        'event': event,
+                        'eventCategory': eventCategory,
+                        'eventAction': eventAction,
+                        'eventLabel': eventLabel
                     });
-                }
-            };
 
-        window._pq = window._pq || [];
+                    // for our internal analytics: also track these events.
+                    // tracking page_scroll causes infinite loops.
+                    if (event !== 'page_scroll' &&
+                        window.App &&
+                        window.App.vent &&
+                        window.App.vent.trigger &&
+                        typeof window.App.vent.trigger === 'function') {
+                      App.vent.trigger('tracking:trackEvent', {
+                          'category': eventCategory,
+                          'action': eventAction,
+                          'label': eventLabel,
+                          'value': event
+                      });
+                    }
+                };
 
-        // Tracking Code for GAP's Google Analytics
-        window.GAP_ANALYTICS = new App.tracker.EventManager({
-            // 1 - Top Nav
-            'click a.navbar-brand, .other-brands.dropdown a:not(.dropdown-toggle)': function () {
-                var brand;
-                if ($(this).text().length) {
-                    brand = $(this).text().toLowerCase();
-                } else {
-                    brand = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
-                }
-                recordEvent('gap_nav', 'nav', 'exit', 'nav - ' + brand);
-            },
-            // 2 - Header Logo
-            'click header > a': function () {
-                recordEvent('header_logo', 'header', 'exit', 'gap.com');
-            },
-            // 3 - Social Subscribe Links
-            'click .nav.navbar-nav.navbar-right a, .stay-connected .dropdown-menu a': function () {
-                var social_network = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
-                recordEvent('social_follow', 'follow', social_network + ' follow', 'follow');
-            },
-            // 4 - Main Visual
-            'click #hero-area .jumbotron': function () {
-                recordEvent('main_visual', 'main visual', 'visual click', 'visual click');
-            },
-            // 5 - Feed Visuals
-            'click .tile.product': function () {
-                productName = App.discovery.collection.get($(this).attr('id')).get('name');
-                recordEvent('product_feed', 'product_feed', 'pop-up open', productName);
-            },
-            // 6 - Product Social Links
-            'click .content-wrapper .social-buttons .button': function () {
-                var social_network = $(this).attr('class').replace(/\s*button\s*/, '');
-                recordEvent('product_share', 'product pop-up', social_network + ' share', productName);
-            },
-            // 7 - Find Product in Store
-            'click .content-wrapper a.button.find-store': function () {
-                recordEvent('product_find in store', 'product pop-up', 'find in store', productName);
+            window._pq = window._pq || [];
+
+            // Tracking Code for GAP's Google Analytics
+            window.GAP_ANALYTICS = new App.tracker.EventManager({
+                // 1 - Top Nav
+                'click a.navbar-brand, .other-brands.dropdown a:not(.dropdown-toggle)': function () {
+                    var brand;
+                    if ($(this).text().length) {
+                        brand = $(this).text().toLowerCase();
+                    } else {
+                        brand = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
+                    }
+                    recordEvent('gap_nav', 'nav', 'exit', 'nav - ' + brand);
+                },
+                // 2 - Header Logo
+                'click header > a': function () {
+                    recordEvent('header_logo', 'header', 'exit', 'gap.com');
+                },
+                // 3 - Social Subscribe Links
+                'click .nav.navbar-nav.navbar-right a, .stay-connected .dropdown-menu a': function () {
+                    var social_network = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
+                    recordEvent('social_follow', 'follow', social_network + ' follow', 'follow');
+                },
+                // 4 - Main Visual
+                'click #hero-area .jumbotron': function () {
+                    recordEvent('main_visual', 'main visual', 'visual click', 'visual click');
+                },
+                // 5 - Feed Visuals
+                'click .tile.product': function () {
+                    productName = App.discovery.collection.get($(this).attr('id')).get('name');
+                    recordEvent('product_feed', 'product_feed', 'pop-up open', productName);
+                },
+                // 6 - Product Social Links
+                'click .content-wrapper .social-buttons .button': function () {
+                    var social_network = $(this).attr('class').replace(/\s*button\s*/, '');
+                    recordEvent('product_share', 'product pop-up', social_network + ' share', productName);
+                },
+                // 7 - Find Product in Store
+                'click .content-wrapper a.button.find-store': function () {
+                    recordEvent('product_find in store', 'product pop-up', 'find in store', productName);
 
                     try {
                         _pq.push(['track', 'FindInStore']);
@@ -868,10 +783,10 @@
                         __adroll.record_user({"adroll_segments": 'FindInStore'});
                     } catch(err) {}
 
-            },
-            // 8 - Buy Product Online
-            'click .content-wrapper a.button.in-store': function () {
-                recordEvent('product_buy online', 'product pop-up', 'buy online', productName);
+                },
+                // 8 - Buy Product Online
+                'click .content-wrapper a.button.in-store': function () {
+                    recordEvent('product_buy online', 'product pop-up', 'buy online', productName);
 
                     try {
                         _pq.push(['track', 'ShopOnGap']);
@@ -881,62 +796,62 @@
                         __adroll.record_user({"adroll_segments": 'ShopOnGap'});
                     } catch(err) {}
 
-            },
-            // 10 - Share deal
-            'click #hero-area .buttons a': function () {
-                var social_network = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
-                recordEvent('deal_share', 'header', social_network + ' share', 'share page');
-            },
-            // 13 - Lifestyle Feed Visuals
-            'click .tile.image': function () {
-                var cid = $(this).attr('id'),
-                    obj = App.discovery.collection.get(cid),
-                    products = obj.get('related-products');
-                if (products && products.length > 0) {
-                    productName = products[0].name;
-                    recordEvent('lifestyle_feed', 'lifestyle feed', 'pop-up open', productName);
-                } else {
-                    productName = null;
-                }
-            },
-            // 14 - Lifestyle Product Social Links
-            'click .image-with-related-products .social-buttons .button, .image-without-related-products .social-buttons .button': function () {
-                if (productName) {
-                    var social_network = $(this).attr('class').replace(/\s*button\s*/, '');
-                    recordEvent('lifestyle_share', 'lifestyle pop-up', social_network + ' share', productName);
-                }
-            },
-            // 15 - Find Lifestyle Product in Store
-            'click .image-with-related-products a.button.find-store, .image-without-related-products a.button.find-store': function () {
-                if (productName) {
-                    recordEvent('lifestyle_find in store', 'lifestyle pop-up', 'find in store', productName);
-                }
-            },
-            // 16 - Buy Lifestyle Product Online
-            'click .image-with-related-products a.button.in-store, .image-without-related-products a.button.in-store \
-                .image-with-related-products a.buy, .image-without-related-products a.buy': function () {
-                if (productName) {
-                    recordEvent('lifestyle_buy online', 'lifestyle pop-up', 'buy online', productName);
-                }
-            },
-            // 17 - Lifestyle Feed Video
-            'click .tile.youtube.wide': function () {
-                var cid = $(this).attr('id'),
-                    obj = App.discovery.collection.get(cid),
-                    products = obj.get('related-products');
-                if (products && products.length > 0) {
-                    recordEvent('lifestyle_video', 'lifestyle_feed', 'video play', products[0].name);
-                }
-            },
-            // 18 - Lifestyle Feed Video
-            'click #hero-area .overlay .find a': function() {
-                recordEvent('find_store', 'main visual', 'store locator', 'find a store');
-            },
-            // Perfect Audience
-            'click .tile.image, .tile.product': function() {
-                var cid = $(this).attr('id'),
-                    obj = App.discovery.collection.get(cid),
-                    product, tile_id, page_id, store_slug, feed_id;
+                },
+                // 10 - Share deal
+                'click #hero-area .buttons a': function () {
+                    var social_network = /(?:(\w+?).com)/.exec($(this).attr('href'))[1];
+                    recordEvent('deal_share', 'header', social_network + ' share', 'share page');
+                },
+                // 13 - Lifestyle Feed Visuals
+                'click .tile.image': function () {
+                    var cid = $(this).attr('id'),
+                        obj = App.discovery.collection.get(cid),
+                        products = obj.get('related-products');
+                    if (products && products.length > 0) {
+                        productName = products[0].name;
+                        recordEvent('lifestyle_feed', 'lifestyle feed', 'pop-up open', productName);
+                    } else {
+                        productName = null;
+                    }
+                },
+                // 14 - Lifestyle Product Social Links
+                'click .image-with-related-products .social-buttons .button, .image-without-related-products .social-buttons .button': function () {
+                    if (productName) {
+                        var social_network = $(this).attr('class').replace(/\s*button\s*/, '');
+                        recordEvent('lifestyle_share', 'lifestyle pop-up', social_network + ' share', productName);
+                    }
+                },
+                // 15 - Find Lifestyle Product in Store
+                'click .image-with-related-products a.button.find-store, .image-without-related-products a.button.find-store': function () {
+                    if (productName) {
+                        recordEvent('lifestyle_find in store', 'lifestyle pop-up', 'find in store', productName);
+                    }
+                },
+                // 16 - Buy Lifestyle Product Online
+                'click .image-with-related-products a.button.in-store, .image-without-related-products a.button.in-store \
+                    .image-with-related-products a.buy, .image-without-related-products a.buy': function () {
+                    if (productName) {
+                        recordEvent('lifestyle_buy online', 'lifestyle pop-up', 'buy online', productName);
+                    }
+                },
+                // 17 - Lifestyle Feed Video
+                'click .tile.youtube.wide': function () {
+                    var cid = $(this).attr('id'),
+                        obj = App.discovery.collection.get(cid),
+                        products = obj.get('related-products');
+                    if (products && products.length > 0) {
+                        recordEvent('lifestyle_video', 'lifestyle_feed', 'video play', products[0].name);
+                    }
+                },
+                // 18 - Lifestyle Feed Video
+                'click #hero-area .overlay .find a': function() {
+                    recordEvent('find_store', 'main visual', 'store locator', 'find a store');
+                },
+                // Perfect Audience
+                'click .tile.image, .tile.product': function() {
+                    var cid = $(this).attr('id'),
+                        obj = App.discovery.collection.get(cid),
+                        product, product_id, page_id, store_slug, feed_id, segment;
 
                     tile_id = obj.get('tile-id');
                     page_id = App.options.page.id;
@@ -965,40 +880,48 @@
                 }
             });
 
-        // Scroll event has to be seperately tracked.
-        // 12 - Scroll for more
-        var pagesScrolled = 1;
-        App.vent.on('tracking:trackEvent', function (o) {
-            if (o.action == 'scroll') {
-                recordEvent('page_scroll', 'scroll', 'page_scroll', 'scroll - ' + o.label);
-            }
-        });
-
-        // Subscribe to FB event for GAP Analytic tracking
-        App.vent.on('tracking:registerFacebookListeners', function () {
-            FB.Event.subscribe('edge.create', function(href, widget) {
-                var type = $('div.facebook').eq(0).parents('.image-with-related-products, .image-without-related-products');
-                if (productName && type && type.length > 0) {
-                    recordEvent('lifestyle_share', 'lifestyle pop-up', 'facebook share', productName);
-                } else if (productName) {
-                    recordEvent('product_share', 'product pop-up', 'facebook share', productName);
+            // Scroll event has to be seperately tracked.
+            // 12 - Scroll for more
+            var pagesScrolled = 1;
+            App.vent.on('tracking:trackEvent', function (o) {
+                if (o.action == 'scroll') {
+                    recordEvent('page_scroll', 'scroll', 'page_scroll', 'scroll - ' + o.label);
                 }
             });
-        });
 
-        var urlParams = App.options.urlParams;
-        urlParams += urlParams.length ? "&" : "?";
-        switch("{{ url|default:''|escapejs}}") {
-            case "livedin":
-                App.options.urlParams = urlParams + "tid=gpme000028";
-                break;
-            case "paddingtonbear":
-                App.options.urlParams = urlParams + "tid=gpme000029";
-                break;
-            case "presidentsday":
-                App.options.urlParams = urlParams + "tid=gpme000030";
-                break;
+            // Subscribe to FB event for GAP Analytic tracking
+            App.vent.on('tracking:registerFacebookListeners', function () {
+                FB.Event.subscribe('edge.create', function(href, widget) {
+                    var type = $('div.facebook').eq(0).parents('.image-with-related-products, .image-without-related-products');
+                    if (productName && type && type.length > 0) {
+                        recordEvent('lifestyle_share', 'lifestyle pop-up', 'facebook share', productName);
+                    } else if (productName) {
+                        recordEvent('product_share', 'product pop-up', 'facebook share', productName);
+                    }
+                });
+            });
+
+            var urlParams = App.options.urlParams;
+            urlParams += urlParams.length ? "&" : "?";
+            switch("{{ url|default:''|escapejs}}") {
+                case "livedin":
+                    App.options.urlParams = urlParams + "tid=gpme000028";
+                    break;
+                case "paddingtonbear":
+                    App.options.urlParams = urlParams + "tid=gpme000029";
+                    break;
+                case "presidentsday":
+                    App.options.urlParams = urlParams + "tid=gpme000030";
+                    break;
+            }
         }
+
+        var wait = setInterval(function () {
+            if (window.App) {
+                clearInterval(wait);
+                initGapAnalytics();
+            }
+        }, 100);
     </script>
 
     <!-- Google Tag Manager -->
