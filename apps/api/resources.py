@@ -1,4 +1,5 @@
 import calendar
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.http.response import Http404
 import hammock
 import json
@@ -11,6 +12,7 @@ from django.middleware.csrf import get_token
 
 from tastypie import fields, http
 from tastypie.exceptions import ImmediateHttpResponse
+from tastypie.http import HttpMultipleChoices, HttpGone
 from tastypie.resources import ModelResource, ALL
 from tastypie.authentication import Authentication
 from tastypie.authorization import Authorization
@@ -105,12 +107,35 @@ class StoreResource(BaseCGResource):
         bundle.data['created'] = to_cg_datetime(bundle.data['created_at'])
         del bundle.data['created_at']
 
-        bundle.data['id'] = str(bundle.data['id'])
+        # an unfortunate CM condition that requires the id to be the old id
+        bundle.data['id'] = str(bundle.data['old_id'])
 
         return bundle
 
     # TODO: http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<old_id>\w[\w/-]*)/page/?$" % (self._meta.resource_name),
+                self.wrap_view('get_pages'),
+                name="api_get_pages"),
+        ]
 
+    def get_pages(self, request, **kwargs):
+        try:
+            bundle = self.build_bundle(data={'old_id': kwargs['old_id']}, request=request)
+            obj = self.cached_obj_get(bundle=bundle,
+                                      **self.remove_api_resource_names(kwargs))
+        except ObjectDoesNotExist:
+            return HttpGone()
+        except MultipleObjectsReturned:
+            return HttpMultipleChoices("More than one resource is found at this URI.")
+
+        sub_resource = PageResource()
+
+        # just one:
+        # return sub_resource.get_detail(request, store_id=obj.id)
+        # more than one: http://stackoverflow.com/a/21763010/1558430
+        return sub_resource.get_list(request, store_id=obj.id)
 
 class ProductResource(BaseCGResource):
     """REST (tastypie) version of a Product."""
@@ -256,6 +281,15 @@ class PageResource(BaseCGResource):
             del data['theme_settings']
         except AttributeError:
             data = bundle.data
+
+        data['last-modified'] = to_cg_datetime(bundle.data['updated_at'])
+        del data['updated_at']
+
+        data['created'] = to_cg_datetime(data['created_at'])
+        del data['created_at']
+
+        # an unfortunate CM condition that requires the id to be the old id
+        data['id'] = str(data['old_id'])
 
         bundle.data = data
         return bundle
