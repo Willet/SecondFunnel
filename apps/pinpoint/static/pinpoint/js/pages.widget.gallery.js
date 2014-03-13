@@ -9,20 +9,20 @@
  *
  * @param view {Object}    The Marionette view object
  * @param $el {Object}     The object to attach the gallery to
- * @param option {Object}  Specific options
+ * @param options {Object}  Specific options
  * @return this
  */
-App.utils.registerWidget('gallery', '.gallery', function (view, $el, option) {
+App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
     var images, focusWidth,
         focusCurrent = 0,
         speed = 250, // transition speed for mobile
         $gallery = view.$('.gallery'), // reference to gallery
         self = this, // self is widget gallery
-        focus = view.$(view.$('.main-image').length ? '.main-image' : '.image'),
-        map = {
-            disabled: 'grey',
-            left: '.gallery-swipe-left',
-            right: '.gallery-swipe-right'
+        focus = view.$(view.$('.main-image').length ? '.main-image' : '.image img'),
+        defaults = {
+            leftArrow: '.gallery-swipe-left',
+            rightArrow: '.gallery-swipe-right',
+            disabledClass: 'grey'
         };
 
     // Check for children as may have already appended
@@ -103,14 +103,14 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, option) {
             .eq(focusCurrent)
             .addClass('selected');
 
-        view.$(map.left + "," + map.right)
-            .removeClass(map.disabled);
+        view.$(options.leftArrow + "," + options.rightArrow)
+            .removeClass(options.disabledClass);
 
         // For mobile, determines whether or not to grey out arrow
         if (focusCurrent === 0) {
-            view.$(map.left).addClass(map.disabled);
+            view.$(options.leftArrow).addClass(options.disabledClass);
         } else if (focusCurrent === focus.children().length - 1) {
-            view.$(map.right).addClass(map.disabled);
+            view.$(options.rightArrow).addClass(options.disabledClass);
         }
 
         if (!!window.location.hash) { // set hash if nonexistant
@@ -126,6 +126,9 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, option) {
      */
     this.initialize = function () {
         // Desktop is nice, doesn't need anything
+        options = _.extend(defaults, options);
+        this.selectImage();
+
         console.debug("initialized desktop gallery.");
     };
 
@@ -140,12 +143,15 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, option) {
         focus.children().css('width', width);
         width = width * focus.children().length;
         focus.width(width);
+        options = _.extend(defaults, options);
 
         focus.swipe({ // attach swipe handler
             triggerOnTouchEnd: true,
             swipeStatus: _.bind(self.swipeStatus, self),
             allowPageScroll: "vertical"
         });
+
+        this.selectImage();
         console.debug("initialized mobile gallery.");
     };
 
@@ -191,6 +197,6 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, option) {
     /* Initialize the gallery and bind event handlers to the widget
        gallery instance. */
     _.bindAll(this, 'swipeStatus', 'scrollImages');
-    if (App.support.mobile()) this.selectImage().initializeMobile();
-    else this.selectImage().initiliaze();
+    if (App.support.mobile()) this.initializeMobile();
+    else this.initialize();
 });
