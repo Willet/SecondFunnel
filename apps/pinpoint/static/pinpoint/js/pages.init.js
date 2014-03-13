@@ -30,6 +30,7 @@ function reinitialize(app) {
     app.addInitializer(function () {
         // set its width to whatever it began with.
         app.options.initialWidth = $(window).width();
+        app.optimizer.initialize();
     });
 
     app.addInitializer(function () {
