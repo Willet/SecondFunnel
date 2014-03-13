@@ -112,12 +112,17 @@ class StoreResource(BaseCGResource):
 
         return bundle
 
-    # TODO: http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
     def prepend_urls(self):
+        """
+        http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
+        """
         return [
             url(r"^(?P<resource_name>%s)/(?P<old_id>\w[\w/-]*)/page/?$" % (self._meta.resource_name),
                 self.wrap_view('get_pages'),
                 name="api_get_pages"),
+            url(r"^(?P<resource_name>%s)/(?P<old_id>\w[\w/-]*)/page/(?P<page_old_id>\w[\w/-]*)?$" % (self._meta.resource_name),
+                self.wrap_view('get_page'),
+                name="api_get_page"),
         ]
 
     def get_pages(self, request, **kwargs):
@@ -136,6 +141,24 @@ class StoreResource(BaseCGResource):
         # return sub_resource.get_detail(request, store_id=obj.id)
         # more than one: http://stackoverflow.com/a/21763010/1558430
         return sub_resource.get_list(request, store_id=obj.id)
+
+    def get_page(self, request, **kwargs):
+        try:
+            data = {'old_id': kwargs['old_id']}
+            bundle = self.build_bundle(data=data, request=request)
+            obj = self.cached_obj_get(bundle=bundle,
+                                      **self.remove_api_resource_names(data))
+        except ObjectDoesNotExist:
+            return HttpGone()
+        except MultipleObjectsReturned:
+            return HttpMultipleChoices("More than one resource is found at this URI.")
+
+        sub_resource = PageResource()
+
+        # just one:
+        return sub_resource.get_detail(request, old_id=kwargs['page_old_id'])
+        # more than one: http://stackoverflow.com/a/21763010/1558430
+        # return sub_resource.get_list(request, store_id=obj.id)
 
 class ProductResource(BaseCGResource):
     """REST (tastypie) version of a Product."""
