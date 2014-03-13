@@ -1,0 +1,42 @@
+{% load staticfiles %}
+
+{% with media=prod.media.all %}
+{% with firstMedia=media|first %}
+
+<div class="pin click"
+    style="overflow: hidden;"
+    data-title="{{ prod.name|striptags }}"
+    data-desc="{{ prod.description }}"
+    data-price="{{ prod.price|striptags }}"
+    data-img="{% for url in media %}{{ url.get_url|striptags }}|{% endfor %}"
+    data-url="{{ prod.original_url|striptags }}"
+    >
+    <div class="inner-pin">
+        {% autoescape off %}
+        <div class="inner-pin">
+            <img src="{{ firstMedia.get_url }}" />
+        </div>
+        <h5>{{ prod.name|striptags }}</h5>
+        {% endautoescape %}
+    </div>
+    <div class="social-hover">
+        <div class="loading" style="display:none;"></div>
+        <div class="buttons" style="left:-1000px;">
+            <div class="pinterest_buttons">
+                <a href="http://pinterest.com/pin/create/button/?url={{ prod.original_url|striptags }}&media={{ firstMedia.get_url }}" target="_blank"><img src="{% static "pinpoint/images/pinpointButton.png" %}"/></a>
+            </div>
+            <div class="fb_buttons no_count">
+                <fb:like href="{{ prod.original_url|striptags }}"
+                width="48"
+                layout="button_count"
+                show_faces="false"></fb:like>
+            </div>
+            <div class="twitter_buttons">
+                <a href="//twitter.com/share" class="twitter-share-button" data-count="none" data-url="{{ prod.original_url|striptags }}" data-text="{{ prod.name }} {{ prod.original_url|striptags }}" data-lang="en"></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endwith %}
+{% endwith %}

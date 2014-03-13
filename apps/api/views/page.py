@@ -2,7 +2,7 @@ from socket import error as socket_error, errno
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import check_login, request_methods
-from apps.api.resources import ContentGraphClient
+from apps.assets.api import ContentGraphClient
 from apps.api.utils import mimic_response
 from apps.intentrank.utils import ajax_jsonp
 from apps.static_pages.views import (generate_static_campaign,
@@ -15,7 +15,7 @@ from apps.static_pages.tasks import generate_static_campaign as async_generate_c
 @request_methods('POST', 'PUT', 'PATCH')
 def generate_static_page(request, store_id, page_id):
     """alias"""
-    return generate_static_campaign(request, store_id, campaign_id=page_id)
+    return generate_static_campaign(request, store_id, page_id=page_id)
 
 
 @check_login

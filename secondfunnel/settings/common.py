@@ -4,11 +4,9 @@ import djcelery
 from datetime import timedelta, datetime
 import django.conf.global_settings as DEFAULT_SETTINGS
 
-# Django settings for secondfunnel project.
-
+# default debug settings
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-MOCK_IR_SERVER = False
 
 DEFAULT_CHARSET = 'utf-8'
 FILE_CHARSET = 'utf-8'  # apparently something we need to enforce for File()
@@ -18,7 +16,9 @@ FILE_CHARSET = 'utf-8'  # apparently something we need to enforce for File()
 # it is convenient to do so :(
 AWS_STORAGE_BUCKET_NAME = os.getenv('ProductionBucket', 'elasticbeanstalk-us-east-1-056265713214')
 INTENTRANK_CONFIG_BUCKET_NAME = 'intentrank-config'
+INTENTRANK_DEFAULT_NUM_RESULTS = 10
 MEMCACHED_LOCATION = 'secondfunnel-cache.yz4kz2.cfg.usw2.cache.amazonaws.com:11211'
+CLOUDFRONT_DOMAIN = 'cdn.secondfunnel.com'
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -26,21 +26,25 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(days=30)).strftime("%a, %d %b %Y %H:%M:%S GMT")
+BROWSER_CACHE_EXPIRATION_DATE = (datetime.now() + timedelta(days=30))\
+    .strftime("%a, %d %b %Y %H:%M:%S GMT")
 
+PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(
+        os.path.dirname(
+            os.path.abspath(__file__)
+        )
+    )
+)
 
 def from_project_root(path):
     """returns the path prepended by the project root."""
-    return os.path.join(
-        os.path.dirname(
-        os.path.dirname(
-        os.path.dirname(
-        os.path.abspath(__file__)))), path)
+    return os.path.join(PROJECT_ROOT, path)
 
 if 'RDS_DB_NAME' in os.environ:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql',
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'NAME': os.environ['RDS_DB_NAME'],
             'USER': os.environ['RDS_USERNAME'],
             'PASSWORD': os.environ['RDS_PASSWORD'],
@@ -48,16 +52,19 @@ if 'RDS_DB_NAME' in os.environ:
             'PORT': os.environ['RDS_PORT'],
             }
     }
-else:
+
+    CONN_MAX_AGE = 0  # default to never time out from django's side;
+                      # RDS is its own value set
+else:  # defaults (dev) for letting bare django run -- do not modify
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': 'dev.sqlite',
-            'USER': '',
-            'PASSWORD': '',
-            'HOST': '',
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'sfdb',
+            'USER': 'sf',
+            'PASSWORD': 'postgres',
+            'HOST': '127.0.0.1',
             'PORT': '',
-            }
+        }
     }
 
 # Local time zone for this installation. Choices can be found here:
@@ -78,11 +85,11 @@ SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
-USE_I18N = True
+USE_I18N = False
 
 # If you set this to False, Django will not format dates, numbers and
 # calendars according to the current locale.
-USE_L10N = True
+USE_L10N = False
 
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
@@ -106,8 +113,10 @@ MIN_MEDIA_HEIGHT = 1
 # TODO: has to be a better way to get the path...
 STATIC_ROOT = from_project_root('static')
 
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
+# "Storing static files as is" mode
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
 # http://django_compressor.readthedocs.org/en/latest/remote-storages/
 AWS_ACCESS_KEY_ID = 'AKIAJUDE7P2MMXMR55OQ'
 AWS_SECRET_ACCESS_KEY = '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'
@@ -124,6 +133,13 @@ AWS_SQS_QUEUE_NAME = AWS_SNS_TOPIC_NAME  # by default, same as the sns name
 AWS_SQS_POLLING_QUEUES = {
     # override in ./{environment}.py
 }
+
+# a (seemingly new) setting similar to SESSION_COOKIE_DOMAIN.
+ALLOWED_HOSTS = ['.secondfunnel.com',
+                 '.secondfunnel.com.',
+                 '.elasticbeanstalk.com',
+                 '.elasticbeanstalk.com.',
+                 ]
 
 # Disable signature/accesskey/expire attrs being appended to s3 links
 AWS_QUERYSTRING_AUTH = False
@@ -192,6 +208,7 @@ TEMPLATE_LOADERS = (
     )
 
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',  # TODO: was last
     'django.middleware.gzip.GZipMiddleware',  # NOTE: Must be the first in this tuple
     'htmlmin.middleware.HtmlMinifyMiddleware',  # Enables compression of HTML
     'django.middleware.cache.CacheMiddleware',  # Manages caching
@@ -203,12 +220,11 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     )
 
 KEEP_COMMENTS_ON_MINIFYING = True
 
-CACHE_MIDDLEWARE_SECONDS = 604800  # Set the cache to atleast a week; will only affect production/test/demo
+CACHE_MIDDLEWARE_SECONDS = 604800  # Set the cache to at least a week; will only affect production/test/demo
 
 ROOT_URLCONF = 'secondfunnel.urls'
 
@@ -219,13 +235,6 @@ TEMPLATE_DIRS = (
 # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
 # Always use forward slashes, even on Windows.
 # Don't forget to use absolute paths, not relative paths.
-)
-
-LETTUCE_APPS = (
-    'apps.pinpoint',
-)
-
-LETTUCE_AVOID_APPS = (
 )
 
 INSTALLED_APPS = (
@@ -245,7 +254,6 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
-    'django_nose',  # Must be included after 'south'
     'ajax_forms',
     'compressor',
     'corsheaders',
@@ -262,7 +270,10 @@ INSTALLED_APPS = (
 )
 
 CORS_ORIGIN_REGEX_WHITELIST = (
-    '^[\w-]+\.secondfunnel\.com$'
+    # for testing local pages using live IR
+    r'^(https?://)?(localhost|127.0.0.1):(\d+)$',
+    r'^(https?://)?[\w-]+\.secondfunnel\.com$',
+    r'^(https?://)?[\w-]+\.elasticbeanstalk\.com$',
 )
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
@@ -340,15 +351,13 @@ FIXTURE_DIRS = (
     'secondfunnel/fixtures/',
 )
 
-WEBSITE_BASE_URL = 'http://www.secondfunnel.com'
-INTENTRANK_BASE_URL = 'http://intentrank.elasticbeanstalk.com'
+WEBSITE_BASE_URL = 'http://secondfunnel.com'
+INTENTRANK_BASE_URL = WEBSITE_BASE_URL
 CONTENTGRAPH_BASE_URL = 'http://contentgraph.elasticbeanstalk.com/graph'
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
-
-INSTAGRAM_AUTH_EXTRA_ARGUMENTS = {'scope': 'likes'}
 
 JENKINS_TASKS = (
     'django_jenkins.tasks.with_coverage',

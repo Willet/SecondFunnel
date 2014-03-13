@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.decorators import check_login, request_methods
 
-from apps.api.resources import ContentGraphClient
+from apps.assets.api import ContentGraphClient
 from apps.api.utils import mimic_response
 
 

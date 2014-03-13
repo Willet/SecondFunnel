@@ -348,8 +348,8 @@ class SNSTopic(object):
 
         message may be in json form, but this function only accepts a string.
         """
-        if subject is None:
-            subject = ''
+        if not subject:
+            subject = '(no subject)'
 
         if len(subject) > 100:  # max length is 100 - raise
             raise ValueError('SNS subject too long')

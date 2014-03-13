@@ -1,5 +1,5 @@
 /*global Image, Marionette, setTimeout, imagesLoaded, Backbone, jQuery, $, _,
-console, location */
+console, location, clearTimeout, setTimeout */
 var App = new Marionette.Application(),
     SecondFunnel = App,  // old alias
     debugOp,
@@ -60,6 +60,7 @@ App.options.urlParams = window.location.search;
     hashIdx = hash.indexOf('debug=');
     if (hashIdx > -1) {
         debugLevel = App.options.debug = hash[hashIdx + 6];
+        hashIdx = urlParams.indexOf('debug='); // In case there was a hash present
         urlParams = urlParams.replace(urlParams.substr(hashIdx - 1, hashIdx + 7), '');
         if (urlParams.indexOf('?') == -1) {
             App.options.urlParams = '?' + urlParams.substring(1);

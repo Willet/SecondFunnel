@@ -71,4 +71,4 @@ Analytics is our framework for tracking how users interact with the pinpoint pag
 
 License
 -------
-Copyright 2012-2013, Willet Inc.
+Copyright 2012-2014, Willet Inc.

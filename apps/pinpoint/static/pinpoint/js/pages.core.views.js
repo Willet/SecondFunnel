@@ -179,6 +179,7 @@ App.module('core', function (module, App) {
                 this.socialButtons.currentView.load();
                 this.socialButtons.$el[inOrOut](200);
             }
+            return this;
         },
 
         'onClick': function (ev) {
@@ -220,7 +221,8 @@ App.module('core', function (module, App) {
                 },
                 widable_templates = {
                     'image': true,
-                    'youtube': true
+                    'youtube': true,
+                    'banner': true
                 }; //TODO: Make the configurable; perhaps a page property?
 
             // templates use this as obj.image.url
@@ -437,31 +439,41 @@ App.module('core', function (module, App) {
 
         'initialize': function (opts) {
             var self = this,
-                options = opts.options;  // someone came up with this idea
+                deferred = $.Deferred(),
+                options = opts.options; // someone came up with this idea
 
             _.bindAll(this, 'pageScroll', 'toggleLoading');
 
             this.collection = new App.core.TileCollection();
 
+            this.toggleLoading(true);
             this.attachListeners();
 
             // If the collection has initial values, lay them out
-            if (options.initialResults && options.initialResults.length > 0) {
+            if (options.initialResults && $(options.initialResults).length) {
                 console.debug('laying out initial results');
-
-                // unique-by-id the list of initial results.
-                options.initialResults = _.uniq(options.initialResults,
-                    false, function (result) { return result['tile-id']; });
-
-                // unique-by-original-url youtube videos
-                options.initialResults = _.uniqBy(options.initialResults, 'original-url');
-
-                this.collection.add(options.initialResults);
-                App.intentRank.addResultsShown(options.initialResults);
+                // If already have array just lay out, otherwise
+                // assume we have an a xmlhttprequest object
+                if ($.isArray(options.initialResults)) {
+                    deferred = $.when(options.initialResults);
+                } else {
+                    options.initialResults.onreadystatechange = function () {
+                        // XMLHttpRequest.DONE on IE 9+ and other browsers; support for IE8
+                        if (this.readyState == 4 && this.status == 200) {
+                            deferred.resolve(JSON.parse(this.response || this.responseText));
+                        }
+                    };
+                }
+                // When resolved, layout the results
+                deferred.done(function(data) {
+                    options.initialResults = data;
+                    App.options.IRResultsReturned = data.length;
+                    self.collection.add(data);
+                    App.intentRank.addResultsShown(data);
+                });
+            } else { // if nothing, immediately fetch more from IR
+                this.toggleLoading(false).getTiles();
             }
-
-            // ... then fetch more products from IR
-            this.getTiles();
 
             // most-recent feed is the active feed
             App.discovery = this;
@@ -511,6 +523,10 @@ App.module('core', function (module, App) {
                 // the first batch of results need to layout themselves
                 App.layoutEngine.layout(self);
             }));
+
+            // Custom event listeners
+            this.on('after:item:appended', this.onAfterItemAppended);
+
             return this;
         },
 
@@ -534,6 +550,9 @@ App.module('core', function (module, App) {
             App.vent.off("finished");
 
             App.vent.off('windowResize');  // in layoutEngine
+
+            // Custom event listeners
+            this.off('after:item:appended', this.onAfterItemAppended);
         },
 
         'onClose': function () {
@@ -548,24 +567,13 @@ App.module('core', function (module, App) {
          * @returns deferred
          */
         'getTiles': function (options, tile) {
-            var self = this;
-
             if (this.loading) {
                 // do nothing
                 return (new $.Deferred()).promise();
             }
-            self.toggleLoading(true);
-            return this.collection
-                .fetch()
-                .always(function (data) {
-                    self.toggleLoading(false);
-
-                    // see if we need to get more
-                    // this setTimeout forces IE 8 to clear the stack
-                    setTimeout(function () {
-                        self.pageScroll();
-                    }, 100);
-                });
+            return this.toggleLoading(true)
+                .collection
+                .fetch();
         },
 
         'render': _.throttle(function () {
@@ -577,6 +585,20 @@ App.module('core', function (module, App) {
             // default functionality:
             // collectionView.$el.append(itemView.el);
             App.layoutEngine.add(collectionView, [itemView.el]);
+        },
+
+        /**
+         * Called when new content has been appended to the collectView via
+         * the layoutEngine.  Toggles loading to false, and calls pageScroll.
+         *
+         * @returns this
+         */
+        'onAfterItemAppended': function (view, el) {
+            var self = this;
+
+            setTimeout(function () {
+                self.toggleLoading(false).pageScroll();
+            }, 500);
         },
 
         /**
@@ -629,8 +651,8 @@ App.module('core', function (module, App) {
                 documentBottomPos = $document.height(),
                 viewportHeights = pageHeight * (App.option('prefetchHeight', 1.5));
 
-            if (!this.loading && (children.length === 0 || $('.previewContainer').length === 0) &&
-                pageBottomPos >= documentBottomPos - viewportHeights) {
+            if (!this.loading && (children.length === 0 || !App.previewArea.currentView) &&
+                    pageBottomPos >= documentBottomPos - viewportHeights) {
                 // get more tiles to fill the screen.
                 this.getTiles();
             }
@@ -724,13 +746,26 @@ App.module('core', function (module, App) {
 
         // Disable scrolling body when preview is shown
         'onShow': function () {
-            if (App.support.touch() && !App.support.isAnAndroid()) {
+            /*
+            NOTE: Previously, it was thought that adding `no-scroll`
+            to android devices was OK, because no problems were observed
+            on some device.
+
+            Turns out, that was wrong.
+
+            It seems like no-scroll prevent scrolling on *some* android
+            devices, but not others.
+
+            So, for now, only add no-scroll if the device is NOT an android.
+             */
+            if (!App.support.isAnAndroid()) {
                 $(document.body).addClass('no-scroll');
             }
         },
 
         'close': function () {
-            if (App.support.touch() && !App.support.isAnAndroid()) {
+            /* See NOTE in onShow */
+            if (!App.support.isAnAndroid()) {
                 $(document.body).removeClass('no-scroll');
             }
         }
@@ -771,15 +806,6 @@ App.module('core', function (module, App) {
         },
         'events': {
             'click .close, .mask': function () {
-                // hide this, then restore discovery.
-                if (App.support.mobile()) {
-                    this.$el.swapWith(App.discoveryArea.$el.parent());
-
-                    // handle results that got loaded while the discovery
-                    // area has an undefined height.
-                    App.layoutEngine.layout(App.discovery);
-                }
-
                 //If we have been home then it's safe to use back()
                 if (App.initialPage === '') {
                     Backbone.history.history.back();
@@ -827,6 +853,38 @@ App.module('core', function (module, App) {
                 };
 
             this.content.show(new ContentClass(contentOpts));
+        },
+
+        'onShow': function () {
+            var position_window = (function (previewWindow) {
+                return function () {
+                    var window_middle = $(window).scrollTop() + $(window).height() / 2;
+
+                    if (App.window_middle) {
+                        window_middle = App.window_middle;
+                    }
+
+                    if (!App.support.mobile()) {
+                        previewWindow.$el.css('top', Math.max(window_middle - (previewWindow.$el.height() / 2), 0));
+                    }
+                };
+            }(this));
+
+            position_window();
+
+            $('img', this.$el).on('load', function () {
+                position_window();
+            });
+        },
+
+        'onClose': function () {
+            // hide this, then restore discovery.
+            if (App.support.mobile()) {
+                this.$el.swapWith(App.discoveryArea.$el.parent());
+                // handle results that got loaded while the discovery
+                // area has an undefined height.
+                App.layoutEngine.layout(App.discovery);
+            }
         }
     });
 

@@ -50,8 +50,23 @@ exec { 'bundle install':
   require => Package['bundler'],
 }
 
+# Package source for POSTGRESQL 9.3
+# http://technobytz.com/install-postgresql-9-3-ubuntu.html
+apt::source { 'postgresql-deb':
+  location          => 'http://apt.postgresql.org/pub/repos/apt/',
+  release           => 'saucy-pgdg',
+  repos             => 'main',
+  key_source        => 'https://www.postgresql.org/media/keys/ACCC4CF8.asc',
+  key               => 'ACCC4CF8',
+}
+
 # POSTGRESQL
 # https://forge.puppetlabs.com/puppetlabs/postgresql
+class { 'postgresql::globals':
+  version => '9.3',
+  manage_package_repo => true,
+}
+
 class { 'postgresql::server': 
   postgres_password  => 'postgres',
   pg_hba_conf_defaults => false,

@@ -7,20 +7,20 @@
 E_BADARGS=85
 
 export RDS_PORT="3306"
-export RDS_DB_NAME="ebdb"
-export RDS_USERNAME="ebroot"
+export RDS_DB_NAME="sfdb"
+export RDS_USERNAME="sf"
 
 if [ "$1" = "test" ]; then
     echo "TEST"
     export DJANGO_SETTINGS_MODULE="secondfunnel.settings.test"
-    export RDS_PASSWORD="secretpassword"
-    export RDS_HOSTNAME="aa1kcxy3wpwujmq.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com"
+    export RDS_PASSWORD="postgres"
+    export RDS_HOSTNAME="aa1fq6h81nzaxoc.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com"
 
 elif [ "$1" = "production" ]; then
     echo "PROD"
     export DJANGO_SETTINGS_MODULE="secondfunnel.settings.production"
-    export RDS_PASSWORD="braTh9hU"
-    export RDS_HOSTNAME="db.secondfunnel.com"
+    export RDS_PASSWORD="postgres"
+    export RDS_HOSTNAME="aae9bptwm2fn7s.c9ahaxgbbpcf.us-west-2.rds.amazonaws.com"
 else
     echo "Must pass in environment name. 'test' or 'production'"
     exit $E_BADARGS

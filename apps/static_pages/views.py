@@ -11,22 +11,26 @@ from BeautifulSoup import BeautifulSoup
 import re
 from django.conf import settings
 from django.utils.encoding import smart_unicode
-from apps.contentgraph.models import get_contentgraph_data, call_contentgraph
+from apps.contentgraph.models import call_contentgraph
 
 from apps.intentrank.utils import ajax_jsonp
 from apps.pinpoint.utils import read_remote_file
-from apps.static_pages.aws_utils import sns_notify, download_from_bucket, upload_to_bucket, s3_key_exists, copy_across_bucket, create_bucket_website_alias, copy_within_bucket
+from apps.static_pages.aws_utils import (sns_notify, download_from_bucket,
+    upload_to_bucket, s3_key_exists, copy_across_bucket,
+    create_bucket_website_alias, copy_within_bucket)
 from apps.static_pages.tasks import (create_bucket_for_store_now,
                                      generate_static_campaign_now)
 
 from secondfunnel.settings.test import INTENTRANK_BASE_URL as test_ir, \
-    AWS_STORAGE_BUCKET_NAME as test_storage_bucket_name, \
     INTENTRANK_CONFIG_BUCKET_NAME as test_irconfig_bucket_name
 from secondfunnel.settings.production import INTENTRANK_BASE_URL as prod_ir, \
     AWS_STORAGE_BUCKET_NAME as prod_storage_bucket_name, \
-    INTENTRANK_CONFIG_BUCKET_NAME as prod_irconfig_bucket_name
+    INTENTRANK_CONFIG_BUCKET_NAME as prod_irconfig_bucket_name, \
+    CLOUDFRONT_DOMAIN as cloudfront_domain
 
-def generate_static_campaign(request, store_id, campaign_id):
+
+
+def generate_static_campaign(request, store_id, page_id):
     """Manual stimulation handler: re-save a campaign.
 
     Campaign *will* be regenerated despite having a static log entry.
@@ -47,7 +51,7 @@ def generate_static_campaign(request, store_id, campaign_id):
         pass  # bucket might already exist
 
     try:
-        campaign_returns = generate_static_campaign_now(store_id, campaign_id)
+        campaign_returns = generate_static_campaign_now(store_id, page_id)
     except ValueError, err:
         _, exception, _ = sys.exc_info()
         stack = traceback.format_exc().splitlines()
@@ -199,7 +203,7 @@ def transfer_static_campaign(store_id, page_id):
             continue  # skip processing underscore template script tags
 
         if script_tag.get('src'):  # is external script
-            script_contents = read_remote_file(script_tag.get('src'))
+            script_contents, gzipped = read_remote_file(script_tag.get('src'))
 
             if not script_contents:
                 continue  # blank external tag
@@ -216,9 +220,8 @@ def transfer_static_campaign(store_id, page_id):
         elif not test_ir in script_contents:  # irrelevant script
             continue
 
-        # script_contents definitely contains http://intentrank-test.elasticbeanstalk.com
+        # script_contents definitely contains http://intentrank-test.elasticbeanstalk.com or http://tng-test-cdn.secondfunnel.com
         script_contents = script_contents.replace(test_ir, prod_ir)
-        # script_contents definitely contains http://intentrank.elasticbeanstalk.com
 
         # save the new script, calling it whatever we want, as long as
         # it doesn't already exist
@@ -230,13 +233,12 @@ def transfer_static_campaign(store_id, page_id):
         if not upload_to_bucket(bucket_name=prod_storage_bucket_name,
             filename=new_script_s3_key, content=script_contents,
             content_type=mimetypes.MimeTypes().guess_type(new_script_s3_key)[0],
-            public=True, do_gzip=False):
+            public=True, do_gzip=gzipped):
             raise IOError("Could not write modified JS file to S3!")
 
         # overwrite old tag with new tag
         prod_page_source = prod_page_source.replace(script_tag.get('src'),
-            'https://s3.amazonaws.com/{0}/{1}'.format(prod_storage_bucket_name,
-                                                      new_script_s3_key))
+            '//{0}/{1}'.format(cloudfront_domain, new_script_s3_key))
 
     # replace all inline references to IR test to IR prod, but
     # do not overwrite existing production page before IRConfig copied over

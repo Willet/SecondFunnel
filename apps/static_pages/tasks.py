@@ -3,25 +3,30 @@ Static pages celery tasks
 """
 
 import os
-
+import re
+import mimetypes
+import uuid
 from urlparse import urlparse
 
 from celery import Celery, group
 from celery.utils.log import get_task_logger
 
+from BeautifulSoup import BeautifulSoup, Comment
 from django.conf import settings
 from django.core.cache import cache
 from django.utils.encoding import smart_str
 
-from apps.assets.models import Store
+from apps.assets.models import Store, Page
 from apps.contentgraph.views import get_page, get_store, get_stores
-from apps.intentrank.views import get_seeds
-from apps.pinpoint.models import Campaign
 
+from apps.pinpoint.utils import read_remote_file, render_campaign
 from apps.static_pages.aws_utils import (create_bucket_website_alias,
-    get_route53_change_status, sqs_poll, SQSQueue, upload_to_bucket)
-from apps.static_pages.utils import (get_bucket_name, create_dummy_request,
-                                     render_campaign)
+    s3_key_exists, get_route53_change_status, upload_to_bucket)
+from apps.static_pages.utils import get_bucket_name, create_dummy_request
+
+from secondfunnel.settings.test import AWS_STORAGE_BUCKET_NAME as test_storage_bucket_name
+from secondfunnel.settings.test import CLOUDFRONT_DOMAIN as cloudfront_domain
+
 
 celery = Celery()
 logger = get_task_logger(__name__)
@@ -122,7 +127,7 @@ def generate_static_campaigns():
     """Creates a group of tasks to generate/save campaigns,
     and runs them in parallel"""
 
-    campaigns = Campaign.objects.all()
+    campaigns = Page.objects.all()
 
     task_group = group(generate_static_campaign.s(c.id)
         for c in campaigns)
@@ -179,28 +184,85 @@ def generate_local_campaign(store_id, campaign_id, page_content):
             pass #Fail gracefully
 
 
-def generate_static_campaign_now(store_id, campaign_id):
+def generate_static_campaign_now(store_id, page_id):
     """Renders individual campaign and saves it to S3."""
 
     try:
-        campaign_dict = get_page(store_id=store_id, page_id=campaign_id,
+        campaign_dict = get_page(store_id=store_id, page_id=page_id,
                                  as_dict=True)
 
         # do -something- to turn ContentGraph JSON into a campaign object
-        campaign = Campaign.from_json(campaign_dict)
+        campaign = Page.from_json(campaign_dict)
 
         store_dict = get_store(store_id=store_id, as_dict=True)
         store = Store.from_json(store_dict)
 
     except ValueError, err:  # json.loads exception
-        logger.error("Campaign #{0}: {1}".format(campaign_id, err.message))
+        logger.error("Campaign #{0}: {1}".format(page_id, err.message))
         raise  # someone catch it
 
     dummy_request = create_dummy_request()
 
-    page_content = render_campaign(store_id, campaign_id,
-                                   get_seeds_func=get_seeds,
-                                   request=dummy_request)
+    page_content = render_campaign(page_id=page_id, request=dummy_request,
+                                   store_id=store_id)
+
+    # Add async to generated tags
+    page_source_parsed = BeautifulSoup(page_content)
+    # Determine which content can be gzipped and which cannot
+    # Naive implementation, not to be trusted for all situations
+    conditional_comments = page_source_parsed.findAll(text=lambda text: isinstance(text, Comment) and \
+                                text.find('if') != -1)
+    gzip_support = []
+
+    for comment in conditional_comments:
+        comment = unicode(comment) if unicode(comment).find('src') != -1 else \
+                      (unicode(comment) + unicode(comment.findNextSibling()))
+        if (comment.find('gte IE 9') > -1 or comment.find('gt IE 8') > -1):
+            gzip_support.append((True, comment))
+        else:
+            gzip_support.append((False, comment))
+
+    # Collect the script tags
+    script_tags = [tag.extract() for tag in page_source_parsed.findAll('script')]
+
+    if script_tags:
+        for script_tag in script_tags:
+            script_type = script_tag.get('type')
+            old_script = str(script_tag)
+            if script_type and 'template' in script_type:
+                continue # skip processing templates
+
+            src = script_tag.get('src')
+            if not src:
+                continue # ignore inline scripts
+
+            can_gzip = False
+            # http://stackoverflow.com/questions/2612802/how-to-clone-or-copy-a-list-in-python
+            for index, (support, comment) in enumerate(gzip_support[:]): # check for gzip support
+                if src in comment:
+                    can_gzip, _ = gzip_support.pop(index)
+                    break
+
+            if can_gzip and settings.ENVIRONMENT != 'dev':
+                # Can gzip this content, can't in dev as middleware serves
+                content, _ = read_remote_file(src)
+                new_script_s3_key = '' # bucket key
+                while s3_key_exists(test_storage_bucket_name, new_script_s3_key):
+                    new_script_s3_key = 'CACHE/{0}.js'.format(uuid.uuid4())
+
+                # Ensure can upload to the test bucket
+                if not upload_to_bucket(bucket_name=test_storage_bucket_name,
+                    filename=new_script_s3_key, content=content,
+                    content_type=mimetypes.MimeTypes().guess_type(new_script_s3_key)[0],
+                    public=True, do_gzip=True):
+                    raise IOError("Could not upload the gzipped JS file to S3!")
+
+                # Force relative path
+                src = '//{0}/{1}'.format(cloudfront_domain, new_script_s3_key)
+
+            script_tag['src'] = re.sub(r'(http|https)://', '//', src)
+            script_tag['async'] = "true"
+            page_content = page_content.replace(old_script, str(script_tag), 1)
 
     # e.g. "shorts3/index.html"
     identifier = getattr(campaign, 'url', '') or \
@@ -225,17 +287,17 @@ def generate_static_campaign_now(store_id, campaign_id):
             bucket_name = '{0}-{1}'.format(settings.ENVIRONMENT, bucket_name)
 
     logger.info("Uploading campaign #{0} to {1}/{2}".format(
-        campaign_id, bucket_name, s3_path))
+        page_id, bucket_name, s3_path))
     bytes_written = upload_to_bucket(
         bucket_name, s3_path, page_content, public=True)
 
     if bytes_written > 0:
         if settings.ENVIRONMENT == "dev":
-            generate_local_campaign(store_id, campaign_id, page_content)
+            generate_local_campaign(store_id, page_id, page_content)
     # boto claims it didn't write anything to S3
     else:
         logger.error("Error uploading campaign #{0}: wrote 0 bytes".format(
-            campaign_id))
+            page_id))
 
     # return some kind of feedback
     return {

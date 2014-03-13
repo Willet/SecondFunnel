@@ -1,17 +1,37 @@
+import calendar
+from datetime import datetime
+import dateutil
+import django
+import hammock
+import json
+import re
+
+from django.conf import settings
+from django.conf.urls import url
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
-from tastypie import fields
-from tastypie.constants import ALL_WITH_RELATIONS
-from tastypie.fields import ForeignKey
-from tastypie.models import ApiKey
+
+from tastypie import fields, http
+from tastypie.exceptions import ImmediateHttpResponse
 from tastypie.resources import ModelResource, ALL
-from tastypie.authentication import Authentication, ApiKeyAuthentication, MultiAuthentication
+from tastypie.authentication import Authentication
 from tastypie.authorization import Authorization
-from django.db.models import Q
+from tastypie.serializers import Serializer
 
-from apps.assets.models import (Product, Store)
+from apps.api.paginator import ContentGraphPaginator
+from apps.api.utils import UserObjectsReadOnlyAuthorization
+from apps.assets.models import (Product, Store, Page, Feed, Tile, ProductImage, Image, Video, Review, Theme, TileRelation, Content)
 
-from apps.pinpoint.models import Campaign, StoreTheme
+ContentGraphClient = hammock.Hammock(settings.CONTENTGRAPH_BASE_URL, headers={'ApiKey': 'secretword'})
+
+
+def to_cg_datetime(bundle_date):
+    """Tastypie timbstamps look like "2014-03-10T11:32:32.805912"; convert
+    that to a unix timestamp * 1000. You lose millisecond presicion.
+
+    Part solution from http://stackoverflow.com/a/127872/1558430
+    """
+    return unicode(calendar.timegm(bundle_date.utctimetuple()) * 1000)
 
 
 class UserAuthentication(Authentication):
@@ -30,47 +50,67 @@ class UserPartOfStore(Authorization):
             return False
 
 
-class StoreResource(ModelResource):
-    """REST-style store."""
+class BaseCGResource(ModelResource):
+    """Alters the 'objects' and 'meta' keys given by the default paginator."""
     class Meta:
+        serializer = Serializer(formats=['json'])
+        paginator_class = ContentGraphPaginator
+
+        authentication = UserAuthentication()
+
+        filtering = {
+            'id': ('exact',),
+        }
+
+    def alter_list_data_to_serialize(self, request, data):
+        data['results'] = data['objects']
+        del data['objects']
+        return data
+
+    def alter_deserialized_list_data(self, request, data):
+        data['objects'] = data['results']
+        del data['results']
+        return data
+
+
+class StoreResource(BaseCGResource):
+    """REST-style store."""
+
+    class Meta(BaseCGResource.Meta):
         queryset = Store.objects.all()
         resource_name = 'store'
-        authentication = UserAuthentication()
+
         authorization = UserPartOfStore()
+
         filtering = {
             'id': ('exact',),
             'name': ('icontains',),
+            'slug': ALL,
         }
 
+    def dehydrate(self, bundle):
+        """Transform tastypie json to a CG-like version"""
+        # http://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-custom-values
+        bundle.data['public-base-url'] = bundle.data['public_base_url']
+        del bundle.data['public_base_url']
 
-class StoreThemeResource(ModelResource):
-    """REST-style store themes of the current user's store."""
-    class Meta:
-        queryset = StoreTheme.objects.all()
-        resource_name = 'store_theme'
-        authentication = ApiKeyAuthentication()
-        authorization= Authorization()
+        bundle.data['last-modified'] = to_cg_datetime(bundle.data['updated_at'])
+        del bundle.data['updated_at']
 
-    def _get_store_staff(self, request):
-        """get a {store: [users]} map."""
-        stores = {}
-        for store in Store.objects.all():
-            stores[store] = store.staff.all()
-        return stores
+        bundle.data['created'] = to_cg_datetime(bundle.data['created_at'])
+        del bundle.data['created_at']
 
-    def apply_authorization_limits(self, request, object_list):
-        user_store_ids = []  # list of id of stores that this user can access
-        for store, users in self._get_store_staff(request):
-            if request.user in users:
-                user_store_ids.append(store.id)
-        return object_list.filter(store_id__in=user_store_ids)
+        bundle.data['id'] = str(bundle.data['id'])
+
+        return bundle
 
 
-class ProductResource(ModelResource):
+class ProductResource(BaseCGResource):
     """REST (tastypie) version of a Product."""
-    store = fields.ForeignKey(StoreResource, 'store')
+    store = fields.ForeignKey('apps.assets.api.StoreResource',
+                              'store', full=False, null=True)
 
-    class Meta:
+    class Meta(BaseCGResource.Meta):
         """Django's way of defining a model's metadata."""
         queryset = Product.objects.all()
         resource_name = 'product'
@@ -79,90 +119,217 @@ class ProductResource(ModelResource):
             'store': ALL,
             'id': ('exact',),
             'name': ('exact', 'contains',),
-            'name_or_url': ('exact'),
-            'available': ('exact'),
+            # 'name_or_url': ('exact'),
+            # 'available': ('exact'),
         }
-        authentication = UserAuthentication()
-        authorization = UserPartOfStore()
-
-    def build_filters(self, filters=None):
-        """build_filters (transitions) resource lookup to an ORM lookup.
-
-        Also an extended defined function from ModelResource in tastypie.
-        """
-        if filters is None:
-            filters = {}
-
-        orm_filters = super(ProductResource, self).build_filters(filters)
-
-        if('name_or_url' in filters):
-            name = filters['name_or_url']
-            qset = (
-                Q(name__icontains=name) |
-                Q(original_url__startswith=name)
-            )
-            # add a filter that says "name or url contains (name)"
-            orm_filters.update({'name_or_url': qset})
-
-        availability = filters.get('available', True)
-        if availability == 'False':
-            availability = False
-        else:
-            availability = True
-        qset = (Q(available=availability))
-        orm_filters.update({'available': qset})
-
-        return orm_filters
-
-    def apply_filters(self, request, applicable_filters):
-        """Excludes filters that are not exactly a field in the database schema
-        and do them elsewhere.
-
-        TODO: I think the logic is flawed, but I can't explain why.
-        """
-        custom = []
-        custom_filters = ['name_or_url', 'available']
-
-        for filter_ in custom_filters:  # filter is a function
-            if filter_ in applicable_filters:
-                # we only want to filter by the custom filters
-                # so don't apply any filters here
-                custom.append(applicable_filters.pop(filter_))
-
-        # apply primitive filters
-        semi_filtered = super(ProductResource, self).apply_filters(
-            request, applicable_filters)
-
-        # apply our crazier ones
-        for custom_filter in custom:
-            semi_filtered = semi_filtered.filter(custom_filter)
-
-        return semi_filtered
 
 
-class CampaignResource(ModelResource):
-    """Returns "a campaign"."""
-    store = fields.ForeignKey(StoreResource, 'store', full=True)
-
-    class Meta:
-        queryset = Campaign.objects.all()
-        resource_name = 'campaign'
+class ProductImageResource(BaseCGResource):
+    """Returns "a product image"."""
+    class Meta(BaseCGResource.Meta):
+        queryset = ProductImage.objects.all()
+        resource_name = 'product_image'
 
         filtering = {
             'store': ALL,
         }
 
 
-# Apparently, create_api_key only creates on user creation
-# Resolve this by creating a key if the key doesn't exist.
-def get_or_create_api_key(sender, **kwargs):
-    user = kwargs.get('instance')
+class ContentResource(BaseCGResource):
+    """Returns "a product image"."""
+    class Meta(BaseCGResource.Meta):
+        queryset = Content.objects.all()
+        resource_name = 'content'
 
-    if not user:
-        return
+        filtering = {
+            'store': ALL,
+        }
 
-    ApiKey.objects.get_or_create(user=user)
+    def dehydrate(self, bundle):
+        """Convert JSON fields into top-level attritbutes in the response"""
+        # http://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-custom-values
+        try:
+            data = json.loads(json.dumps(bundle.obj.attributes))
+            data.update(bundle.data)
+            del data['attributes']
+        except AttributeError:
+            data = bundle.data
+
+        bundle.data = data
+        return bundle
 
 
-# signals
-post_save.connect(get_or_create_api_key, sender=User)
+class ImageResource(ContentResource):
+    """Returns "a product image"."""
+    class Meta(BaseCGResource.Meta):
+        queryset = Image.objects.all()
+        resource_name = 'image'
+
+        filtering = {
+            'store': ALL,
+        }
+
+
+class VideoResource(ContentResource):
+    """Returns "a product image"."""
+    class Meta(BaseCGResource.Meta):
+        queryset = Video.objects.all()
+        resource_name = 'video'
+
+        filtering = {
+            'store': ALL,
+        }
+
+
+class ReviewResource(ContentResource):
+    """Returns "a product image"."""
+    class Meta(BaseCGResource.Meta):
+        queryset = Review.objects.all()
+        resource_name = 'review'
+
+        filtering = {
+            'store': ALL,
+        }
+
+
+class ThemeResource(BaseCGResource):
+    """Returns "a product image"."""
+    class Meta(BaseCGResource.Meta):
+        queryset = Theme.objects.all()
+        resource_name = 'theme'
+
+        filtering = {
+            'store': ALL,
+        }
+
+
+class FeedResource(BaseCGResource):
+    """Returns "a page"."""
+    page = fields.RelatedField('apps.assets.api.PageResource',
+                               'page', full=False, null=True)
+
+    class Meta(BaseCGResource.Meta):
+        queryset = Feed.objects.all()
+        resource_name = 'feed'
+
+        filtering = {
+            'store': ALL,
+        }
+
+
+class PageResource(BaseCGResource):
+    """Returns "a page"."""
+    store = fields.ForeignKey('apps.assets.api.StoreResource',
+                              'store', full=False, null=True)
+    feed = fields.ForeignKey('apps.assets.api.FeedResource',
+                             'feed', full=False, null=True)
+
+    class Meta(BaseCGResource.Meta):
+        queryset = Page.objects.all()
+        resource_name = 'page'
+
+        filtering = {
+            'store': ALL,
+        }
+
+    def dehydrate(self, bundle):
+        """Convert JSON fields into top-level attritbutes in the response"""
+        # http://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-custom-values
+        try:
+            data = json.loads(json.dumps(bundle.obj.theme_settings))
+            data.update(bundle.data)
+            del data['theme_settings']
+        except AttributeError:
+            data = bundle.data
+
+        bundle.data = data
+        return bundle
+
+
+class TileResource(BaseCGResource):
+    """Returns "a page"."""
+    feed = fields.ForeignKey('apps.assets.api.FeedResource',
+                            'feed', full=False, null=True)
+
+    class Meta(BaseCGResource.Meta):
+        queryset = Tile.objects.all()
+        resource_name = 'tile'
+
+        filtering = {
+            'store': ALL,
+        }
+
+
+class TileRelationResource(BaseCGResource):
+    """Returns "a page"."""
+    class Meta(BaseCGResource.Meta):
+        queryset = TileRelation.objects.all()
+        resource_name = 'tile_relation'
+
+        filtering = {
+            'store': ALL,
+        }
+
+
+# http://stackoverflow.com/questions/11770501/how-can-i-login-to-django-using-tastypie
+class UserResource(ModelResource):
+    class Meta:
+        resource_name = 'user'
+        queryset = User.objects.all()
+        excludes = ['id', 'email', 'password', 'is_staff', 'is_superuser']
+        allowed_methods = ['get', 'post']
+        authorization = UserObjectsReadOnlyAuthorization()
+
+    def prepend_urls(self):
+        """Adds URLs for login and logout"""
+        login = url(
+            r'^(?P<resource_name>%s)/login/?$' % (
+                self._meta.resource_name),
+            self.wrap_view('login'),
+            name='api_login'
+        )
+        logout = url(
+            r'^(?P<resource_name>%s)/logout/?$' % (
+                self._meta.resource_name),
+            self.wrap_view('logout'),
+            name='api_logout'
+        )
+
+        return [login, logout]
+
+    def login(self, request, **kwargs):
+        self.method_check(request, allowed=['post'])
+
+        data = self.deserialize(
+            request,
+            request.body
+            # Format parameter never used... always application/json
+        )
+
+        username = data.get('username', '')
+        password = data.get('password', '')
+
+        user = authenticate(username=username, password=password)
+        if not user:
+            raise ImmediateHttpResponse(response=http.HttpUnauthorized())
+
+        if not user.is_active:
+            raise ImmediateHttpResponse(response=http.HttpUnauthorized())
+
+        # Add CSRF token. Nick is not a security expert
+        csrf_token = django.middleware.csrf.get_token(request)
+
+        login(request, user)
+
+        return self.get_detail(request, username=username)
+
+    def logout(self, request, **kwargs):
+        self.method_check(request, allowed=['post'])
+
+        if not request.user or not request.user.is_authenticated():
+            raise ImmediateHttpResponse(response=http.HttpUnauthorized())
+
+        logout(request)
+        return self.create_response(request, {
+            'success': True
+        })

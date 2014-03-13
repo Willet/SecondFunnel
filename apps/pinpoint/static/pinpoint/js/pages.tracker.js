@@ -1,4 +1,4 @@
-/*global App, $, Backbone, Marionette, console */
+/*global App, $, Backbone, Marionette, console, _ */
 /**
  * @module tracker
  */
@@ -83,6 +83,16 @@ App.module("tracker", function (tracker, App) {
             window.ga.apply(window, arguments);
         },
 
+        trackPageview = function(hash) {
+            var base = window.location.pathname + window.location.search,
+                host = window.location.protocol +'//' + window.location.hostname;
+            hash = hash || window.location.hash;
+            addItem('send', 'pageview', {
+                'page': base + hash,
+                'location': host + base + hash
+            });
+        },
+
         trackEvent = function (o) {
             // category       - type of object that was acted on
             // action         - type of action that took place (e.g. share, preview)
@@ -97,16 +107,20 @@ App.module("tracker", function (tracker, App) {
 
             addItem('send', 'event', o.category, o.action, o.label,
                     o.value || undefined, {'nonInteraction': nonInteraction});
+
+            if (o.action === 'scroll') {
+                var hash = '#page' + o.label;
+                trackPageview(hash);
+            }
         },
 
         setCustomVar = function (o) {
-            var slotId = o.slotId,
-                name = o.name,
-                value = o.value,
-                scope = o.scope || GA_CUSTOMVAR_SCOPE.PAGE; // 3 = page-level
+            var index = o.index,
+                type = o.type,
+                value = o.value;
 
-            if (!(slotId && name && value)) {
-                console.warn("Missing one or more of: slotId, name, value");
+            if (!(index && value && type)) {
+                console.warn("Missing one or more of: index, type, value");
                 return;
             }
 
@@ -114,7 +128,7 @@ App.module("tracker", function (tracker, App) {
             // name, or named variables with no scope
             // https://developers.google.com/analytics/devguides/collection/upgrade/reference/gajs-analyticsjs#custom-vars
             // so scope + name is used to mimic that
-            addItem('set', scope + '.' + name + slotId, value);
+            addItem('set', type + index, value);
         },
 
         getTrackingInformation = function (model, isPreview) {
@@ -136,8 +150,11 @@ App.module("tracker", function (tracker, App) {
                 break;
             default:
                 category = 'Content';
-                // TODO: Need a method to get URL
                 label = model.get('image');
+                if (label.get) {
+                    label = label.get('url');
+                }
+
                 break;
             }
 
@@ -290,95 +307,12 @@ App.module("tracker", function (tracker, App) {
      */
     this.changeCampaign = function (campaignId) {
         setCustomVar({
-            'slotId': 2,
-            'name': 'CampaignID',
-            'value': '' + campaignId
+            'index': 2,
+            'type': 'dimension',
+            'value': campaignId
         });
 
         App.vent.trigger('trackerChangeCampaign', campaignId, this);
-    };
-
-    this.on('start', function () {  // this = tracker
-        return this.initialize(App.options);
-    });
-
-    /**
-     * Starts the module.
-     * Sets up default tracking events.
-     *
-     * @alias tracker.start
-     */
-    this.initialize = function (options) {
-        // this (reformatted) code creates window.ga
-        (function (o, g, r, a, m) {
-            window.GoogleAnalyticsObject = 'ga';
-            window.ga = window.ga || function () {
-                (window.ga.q = window.ga.q || []).push(arguments);
-            };
-            window.ga.l = Number(new Date());
-            a = document.createElement(o);
-            a.async = 1;
-            a.src = g;
-
-            m = document.getElementsByTagName(o)[0];
-            m.parentNode.insertBefore(a, m);
-        }('script', '//www.google-analytics.com/analytics.js', 'ga'));
-
-        this.setup(options);
-    };
-
-    this.setup = function (options) {
-        if (App.option('debug', App.QUIET) > App.QUIET) {
-            // do not run analytics when debugging (dev, test)
-            App.vent.trigger('trackerInitialized', this);
-            return;
-        }
-        addItem('create', App.option('gaAccountNumber'), 'auto');
-        addItem('send', 'pageview');
-
-        console.debug("Registered page view.");
-
-        setCustomVar({
-            'slotId': 1,
-            'name': 'StoreID',
-            'value': App.option('store:id')
-        });
-
-        setCustomVar({
-            'slotId': 2,
-            'name': 'CampaignID',
-            'value': App.option('campaign')
-        });
-
-        // TODO: If these are already set on page load, do we need to set them
-        // again here? Should they be set here instead?
-        setCustomVar({
-            'slotId': 1,
-            'name': 'Store',
-            'value': App.option('store:id')
-        });
-
-        setCustomVar({
-            'slotId': 2,
-            'name': 'Page',
-            'value': App.option('page:id')
-        });
-
-        // TODO: Need a better way to determine internal v. external visitor
-        // By that I mean we should be able to segment out internal visitors
-        setCustomVar({
-            'slotId': 3,
-            'name': 'Internal Visitor', // Name?
-            'value': true ? 'Yes' : 'No', // How to determine?
-            'scope': GA_CUSTOMVAR_SCOPE.VISITOR
-        });
-
-        // register event maps
-        var defaults = new this.EventManager(this.defaultEventMap),
-            customs = new this.EventManager(App.option('events'));
-
-        App.vent.trigger('trackerInitialized', this);
-        // setTrackingDomHooks() on $.ready
     };
 
     // Generally, we have views handle event tracking on their own.
@@ -398,7 +332,8 @@ App.module("tracker", function (tracker, App) {
                         App.discovery.collection._byId[modelId],
                 trackingInfo = getTrackingInformation(model),
                 tileId = model.get('tile-id') || 0,
-                label = trackingInfo.label || "";
+                label = trackingInfo.label || "",
+                hash;
 
             if (!label) {
                 console.warn("Not tracking event with no label");
@@ -416,6 +351,10 @@ App.module("tracker", function (tracker, App) {
                 'action': 'Preview',
                 'label': label
             });
+
+            // Be super explicit about what the hash is
+            // rather than relying on the window
+            // trackPageview('#' + tileId);
         },
 
         // Content Share
@@ -500,9 +439,7 @@ App.module("tracker", function (tracker, App) {
             }
 
             $previewContainer = $(this).parents('.template.target > div');
-            modelId = $previewContainer.attr('id') || "";
-            modelId = modelId.replace('preview-', ''); // Remove prefix, if present
-            model = App.discovery.collection.get(modelId);
+            model = App.previewArea.currentView.model;
             trackingInfo = getTrackingInformation(model, true);
 
             trackEvent({
@@ -578,9 +515,76 @@ App.module("tracker", function (tracker, App) {
         }
     };
 
+    this.on('start', function () {  // this = tracker
+        return this.initialize(App.options);
+    });
+
+    /**
+     * Starts the module.
+     * Sets up default tracking events.
+     *
+     * @alias tracker.start
+     */
+    this.initialize = function (options) {
+        // this (reformatted) code creates window.ga
+        (function (o, g, r, a, m) {
+            window.GoogleAnalyticsObject = 'ga';
+            window.ga = window.ga || function () {
+                (window.ga.q = window.ga.q || []).push(arguments);
+            };
+            window.ga.l = Number(new Date());
+            a = document.createElement(o);
+            a.async = 1;
+            a.src = g;
+
+            m = document.getElementsByTagName(o)[0];
+            m.parentNode.insertBefore(a, m);
+        }('script', '//www.google-analytics.com/analytics.js', 'ga'));
+
+        this.setup(options);
+    };
+
+    this.setup = function (options) {
+        addItem('create', App.option('gaAccountNumber'), 'auto');
+
+        // TODO: If these are already set on page load, do we need to set them
+        // again here? Should they be set here instead?
+        setCustomVar({
+            'index': 2,
+            'type': 'dimension',
+            'value': App.option('store:id')
+        });
+
+        setCustomVar({
+            'index': 3,
+            'type': 'dimension',
+            'value': App.option('store:id')
+        });
+
+        setCustomVar({
+            'index': 4,
+            'type': 'dimension',
+            'value': App.option('campaign')
+        });
+
+        setCustomVar({
+            'index': 5,
+            'type': 'dimension',
+            'value': App.option('page:id')
+        });
+
+        // register event maps
+        var defaults = new this.EventManager(this.defaultEventMap),
+            customs = new this.EventManager(App.option('events'));
+
+        App.vent.trigger('trackerInitialized', this);
+        // setTrackingDomHooks() on $.ready
+    };
+
     // add mediator triggers if the module exists.
     App.vent.on({
         'tracking:trackEvent': trackEvent,
+        'tracking:trackPageView': function() {}, //trackPageview,
         'tracking:registerTwitterListeners': this.registerTwitterListeners,
         'tracking:registerFacebookListeners': this.registerFacebookListeners,
         'tracking:videoStateChange': this.videoStateChange,

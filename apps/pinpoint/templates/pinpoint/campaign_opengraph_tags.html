@@ -2,6 +2,6 @@
 <meta property="og:title" content="{{ product.json.title }}">
 <meta property="og:type" content="product">
 <meta property="og:url" content="{{ product.json.url }}">
-<meta property="og:site_name" content="{{ campaign.store.name }}">
+<meta property="og:site_name" content="{{ store.name }}">
 <meta property="og:image" content="{% if campaign.stl_image %}{{ campaign.stl_image }}{% else %}{{campaign.featured_image }}{% endif %}">
 <meta property="og:description" content="{{ campaign.description|striptags|truncatewords:20 }}">
