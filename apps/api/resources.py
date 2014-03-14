@@ -354,6 +354,9 @@ class PageResource(BaseCGResource):
             url(r"^(?P<resource_name>%s)/(?P<old_id>[^/]*)/content/?$" % (self._meta.resource_name),
                 self.wrap_view('get_contents'),
                 name="api_get_contents"),
+            url(r"^(?P<resource_name>%s)/(?P<old_id>[^/]*)/tile-config/?$" % (self._meta.resource_name),
+                self.wrap_view('get_tile_configs'),
+                name="api_get_tile_configs"),
         ]
 
     def get_contents(self, request, **kwargs):
@@ -378,6 +381,27 @@ class PageResource(BaseCGResource):
         # more than one: http://stackoverflow.com/a/21763010/1558430
         return sub_resource.get_list(request, feed_id=feed.id)
 
+    def get_tile_configs(self, request, **kwargs):
+        """
+        /graph/v1/page/123/tile-config.
+
+        TODO: /graph/v1/store/38/page/95/tile-config/1234
+        """
+        try:
+            page = Page.objects.get(old_id=kwargs['old_id'])
+            feed = page.feed
+        except ObjectDoesNotExist:
+            return HttpGone()
+        except MultipleObjectsReturned:
+            return HttpMultipleChoices("More than one resource is found at this URI.")
+
+        sub_resource = TileConfigResource()
+
+        # just one:
+        # return sub_resource.get_detail(request, store_id=obj.id)
+        # more than one: http://stackoverflow.com/a/21763010/1558430
+        return sub_resource.get_list(request, feed_id=feed.id)
+
 
 class TileResource(BaseCGResource):
     """Returns "a page"."""
@@ -395,6 +419,27 @@ class TileResource(BaseCGResource):
         filtering = {
             'store': ALL,
         }
+
+class TileConfigResource(BaseCGResource):
+    """Returns "a tile config, even though tile configs don't exist"."""
+
+    class Meta(BaseCGResource.Meta):
+        queryset = Tile.objects.all()
+        resource_name = 'tile-config'
+
+        # changes the model's url (/store/123) to search by this field instead of the pk
+        # http://stackoverflow.com/a/12517228/1558430
+        detail_uri_name = 'old_id'
+
+        filtering = {
+            'store': ALL,
+        }
+
+    def dehydrate(self, bundle):
+        bundle.data = {
+            'content-ids': [c.id for c in bundle.obj.content.all()]
+        }
+        return bundle
 
 
 class TileRelationResource(BaseCGResource):
@@ -474,6 +519,11 @@ class UserResource(ModelResource):
 
 class StoreViewSet(viewsets.ModelViewSet):
     model = Store
+    lookup_field = 'old_id'
 
 class PageViewSet(viewsets.ModelViewSet):
     model = Page
+    lookup_field = 'old_id'
+
+class FeedViewSet(viewsets.ModelViewSet):
+    model = Feed
