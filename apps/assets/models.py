@@ -463,9 +463,6 @@ class Tile(BaseModel):
 
     prioritized = models.BooleanField()
 
-    # miscellaneous attributes, e.g. "is_banner_tile"
-    attributes = JSONField(blank=True, null=True, default={})
-
     # used to calculate the score for a tile
     # a bigger starting_score value does not necessarily mean a bigger score
     click_starting_score = models.FloatField(default=0.0)
