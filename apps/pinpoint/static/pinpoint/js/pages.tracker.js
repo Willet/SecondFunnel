@@ -546,6 +546,8 @@ App.module("tracker", function (tracker, App) {
 
     this.setup = function (options) {
         addItem('create', App.option('gaAccountNumber'), 'auto');
+        // Track a pageview, eg like https://developers.google.com/analytics/devguides/collection/analyticsjs/
+        addItem('send', 'pageview');
 
         // TODO: If these are already set on page load, do we need to set them
         // again here? Should they be set here instead?
