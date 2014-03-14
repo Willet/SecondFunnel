@@ -181,6 +181,7 @@ div.header {
 .visible-xs.jumbotron {
     padding: 0;
     height: auto;
+    margin-bottom: 5px;
 }
 
 .visible-xs.jumbotron img, .visible-sm.jumbotron img {
@@ -981,4 +982,24 @@ div.header {
     .previewContainer .image img {
         max-height: 550px;
     }
+}
+
+.discovery-filters {
+    width: 100%;
+    text-align: center;
+}
+
+.discovery-filters .filter {
+    width: 33%;
+    color: white;
+    padding: 10px;
+    font-size: 16px;
+    text-align: center;
+    display: inline-block;
+    border: 1px solid white;
+    background-color: #555555;
+}
+
+.discovery-filters .filter.selected {
+    background-color: #000d41;
 }
