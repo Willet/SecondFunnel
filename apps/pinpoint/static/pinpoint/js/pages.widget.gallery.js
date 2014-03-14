@@ -114,7 +114,7 @@ App.utils.registerWidget('gallery', '.gallery', function (view, $el, options) {
             .removeClass(options.disabledClass)
             .eq(focusCurrent / len);
 
-        if (arrows[0]) {
+        if (!! arrows[0]) {
             arrows.addClass(options.disabledClass);
         }
 
