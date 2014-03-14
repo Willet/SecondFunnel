@@ -408,5 +408,6 @@ STALE_TILE_RETRY_THRESHOLD = 240  # seconds
 IRCONFIG_RETRY_THRESHOLD = 240  # seconds
 
 TRACKING_COOKIE_AGE = 60 * 60 * 24 * 30 # seconds: s*m*h*d; 30 days
+TRACKING_COOKIE_DOMAIN = '.secondfunnel.com'
 
 djcelery.setup_loader()
