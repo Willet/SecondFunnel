@@ -463,6 +463,9 @@ class Tile(BaseModel):
 
     prioritized = models.BooleanField()
 
+    # miscellaneous attributes, e.g. "is_banner_tile"
+    attributes = JSONField(blank=True, null=True, default={})
+
     # used to calculate the score for a tile
     # a bigger starting_score value does not necessarily mean a bigger score
     click_starting_score = models.FloatField(default=0.0)
@@ -478,9 +481,6 @@ class Tile(BaseModel):
 
     # the lower the ratio, the bigger the range between low and high log_scores
     ratio = 1.5
-
-    # miscellaneous attributes, e.g. "is_banner_tile"
-    attributes = JSONField(null=True, default={}, blank=True)
 
     def add_click(self):
         self.clicks += 1
