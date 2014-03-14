@@ -254,6 +254,7 @@ INSTALLED_APPS = (
     'south',
     'django_extensions',
     'tastypie',
+    'rest_framework',
     'ajax_forms',
     'compressor',
     'corsheaders',

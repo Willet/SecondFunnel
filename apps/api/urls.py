@@ -1,15 +1,19 @@
-from django.conf.urls import *
+from django.conf.urls import url, patterns, include
 from tastypie.api import Api
+from rest_framework_nested import routers
+
 from apps.api.resources import (ProductResource, StoreResource, PageResource,
                                 TileResource, FeedResource, UserResource,
                                 ProductImageResource, ImageResource, VideoResource,
                                 ThemeResource, ReviewResource, TileRelationResource,
-                                ContentResource)
+                                ContentResource, StoreViewSet, PageViewSet)
 
 prefix = 'v1'
 
+# tastypie routers
 api = Api(api_name=prefix)
 api.register(UserResource())
+'''
 api.register(StoreResource())
 api.register(ProductResource())
 api.register(ProductImageResource())
@@ -22,8 +26,28 @@ api.register(PageResource())
 api.register(FeedResource())
 api.register(TileResource())
 api.register(TileRelationResource())
+'''
 
 urlpatterns = api.urls
+
+'''
+urlpatterns += patterns('apps.api.views',
+    url(r'^%s/product/?$' % prefix, 'product'),
+    url(r'^%s/product/(?P<product_id>[^\/]*)/?$' % prefix, 'product'),
+)
+'''
+
+store_router = routers.SimpleRouter()
+store_router.register(r'store', StoreViewSet)
+
+store_page_router = routers.NestedSimpleRouter(store_router, r'store', lookup='pages')
+store_page_router.register(r'page', PageViewSet)
+
+v2_prefix = r'^v2/'
+urlpatterns += patterns('',
+    url(v2_prefix, include(store_router.urls)),
+    url(v2_prefix, include(store_page_router.urls)),
+)
 
 urlpatterns += patterns('apps.api.views',
     url(r'^%s/store/(?P<store_id>[^\/]*)'

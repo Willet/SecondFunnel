@@ -215,7 +215,7 @@ class Content(BaseModel):
 
     old_id = models.IntegerField(unique=True)
 
-    store = models.ForeignKey(Store)
+    store = models.ForeignKey(Store, related_name='content')
 
     url = models.TextField()  # 2f.com/.jpg
     source = models.CharField(max_length=255)

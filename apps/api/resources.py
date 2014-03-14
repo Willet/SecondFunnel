@@ -2,14 +2,16 @@ import calendar
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404
+from extendedmodelresource import ExtendedModelResource
 import hammock
 import json
 
 from django.conf import settings
 from django.conf.urls import url
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.middleware.csrf import get_token
+from rest_framework import viewsets
 
 from tastypie import fields, http
 from tastypie.exceptions import ImmediateHttpResponse
@@ -54,7 +56,7 @@ class UserPartOfStore(Authorization):
             return False
 
 
-class BaseCGResource(ModelResource):
+class BaseCGResource(ExtendedModelResource):
     """Alters the 'objects' and 'meta' keys given by the default paginator."""
     class Meta:
         serializer = Serializer(formats=['json'])
@@ -96,6 +98,11 @@ class StoreResource(BaseCGResource):
             'slug': ALL,
         }
 
+    class Nested:
+        # url name = thing(..., attribute name)
+        page = fields.ToManyField('apps.api.resources.PageResource', 'pages')
+        content = fields.ToManyField('apps.api.resources.ContentResource', 'content')
+
     def dehydrate(self, bundle):
         """Transform tastypie json to a CG-like version"""
         # http://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-custom-values
@@ -113,6 +120,7 @@ class StoreResource(BaseCGResource):
 
         return bundle
 
+    '''
     def prepend_urls(self):
         """
         http://django-tastypie.readthedocs.org/en/latest/cookbook.html#nested-resources
@@ -161,6 +169,7 @@ class StoreResource(BaseCGResource):
                                        old_id=kwargs['page_old_id'])
         # more than one: http://stackoverflow.com/a/21763010/1558430
         # return sub_resource.get_list(request, store_id=obj.id)
+    '''
 
 
 class ProductResource(BaseCGResource):
@@ -210,14 +219,25 @@ class ContentResource(BaseCGResource):
     def dehydrate(self, bundle):
         """Convert JSON fields into top-level attritbutes in the response"""
         # http://django-tastypie.readthedocs.org/en/latest/cookbook.html#adding-custom-values
-        try:
-            data = json.loads(json.dumps(bundle.obj.attributes))
-            data.update(bundle.data)
-            del data['attributes']
-        except AttributeError:
-            data = bundle.data
 
-        bundle.data = data
+        # convert a piece of content to its subclass, then serialize that
+        bundle.obj = Content.objects.filter(pk=bundle.obj.pk).select_subclasses()[0]
+
+        # re-evaluate tastypie's serialization routines to get bundle.data
+        use_in = ['all', 'detail']
+        for field_name, field_object in self.fields.items():
+            field_use_in = getattr(field_object, 'use_in', 'all')
+            if callable(field_use_in):
+                if not field_use_in(bundle):
+                    continue
+            else:
+                if field_use_in not in use_in:
+                    continue
+            if getattr(field_object, 'dehydrated_type', None) == 'related':
+                field_object.api_name = self._meta.api_name
+                field_object.resource_name = self._meta.resource_name
+            bundle.data[field_name] = field_object.dehydrate(bundle, for_list=False)
+
         return bundle
 
 
@@ -450,3 +470,10 @@ class UserResource(ModelResource):
         return self.create_response(request, {
             'success': True
         })
+
+
+class StoreViewSet(viewsets.ModelViewSet):
+    model = Store
+
+class PageViewSet(viewsets.ModelViewSet):
+    model = Page

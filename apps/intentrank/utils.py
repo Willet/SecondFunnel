@@ -1,3 +1,4 @@
+from functools import wraps
 import json
 
 from django.http import HttpResponse
@@ -56,3 +57,53 @@ def ajax_jsonp(result, callback_name=None, status=200, request=None):
                             content_type='application/json', status=status)
 
     return resp
+
+
+def returns_json(callback_name=None):
+    """Turns ajax_jsonp into a decorator. fn will become a view that
+    returns json.
+
+    @returns_json()
+    @returns_json(callback_name='fn')
+    # or calling the view with ?callback=whatever
+    """
+    def dec(fn):
+
+        @wraps(fn)
+        def wrapped_view(request, *args, **kwargs):
+            _callback_name = callback_name  # TIL python hoisting
+
+            kwargs.update({'request': request})
+
+            if not callback_name and kwargs.get('callback'):
+                _callback_name = kwargs.get('callback')
+
+            if not callback_name and request.GET.get('callback'):
+                _callback_name = request.GET.get('callback')
+
+            try:
+                res = fn(*args, **kwargs)
+            except:
+                return ajax_jsonp(None, status=500)
+
+            return ajax_jsonp(res, callback_name=_callback_name)
+
+        return wrapped_view
+    return dec
+
+
+def returns_cg_json(fn):
+    """Turns ajax_jsonp into a decorator. fn will become a view that
+    returns CG-style json.
+    """
+
+    @wraps(fn)
+    def wrapped_view(request, *args, **kwargs):
+        try:
+            res = fn(request, *args, **kwargs)
+        except:
+            return ajax_jsonp({}, status=500)
+
+        return ajax_jsonp({'results': res})
+
+    return wrapped_view
