@@ -411,5 +411,6 @@ IRCONFIG_RETRY_THRESHOLD = 240  # seconds
 TASTYPIE_ALLOW_MISSING_SLASH = True  # allow missing trailing slashes
 
 TRACKING_COOKIE_AGE = 60 * 60 * 24 * 30 # seconds: s*m*h*d; 30 days
+TRACKING_COOKIE_DOMAIN = 'px.secondfunnel.com'
 
 djcelery.setup_loader()
