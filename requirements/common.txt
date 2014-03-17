@@ -14,6 +14,7 @@ django-storages==1.1.8
 django-tastypie==0.11.0
 django-jsonfield==0.9.12
 django-snippetscream==0.0.7
+django-admin-tools==0.4.0
 
 ## Deployment and Task Runner
 argparse==1.1
