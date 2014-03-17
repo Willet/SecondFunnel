@@ -1,3 +1,10 @@
 {% load staticfiles %}
 <div id="fb-root"></div>
+<div id="preview-loading" class="preview-loading">
+    <div class="spinner">
+        {% for i in "looptotwelve" %}
+            <div class="bar{{ forloop.counter }}"></div>
+        {% endfor %}
+    </div>
+</div>
 <div id="preview-area"></div>

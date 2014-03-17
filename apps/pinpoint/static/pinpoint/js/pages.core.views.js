@@ -836,6 +836,7 @@ App.module('core', function (module, App) {
         },
 
         'onRender': function () {
+            var previewLoadingScreen = $('#preview-loading');
             // cannot declare display:table in marionette class.
             this.$el.css({
                 'display': "table",
@@ -850,6 +851,7 @@ App.module('core', function (module, App) {
                 };
 
             this.content.show(new ContentClass(contentOpts));
+            previewLoadingScreen.hide();
         },
 
         'onShow': function () {
