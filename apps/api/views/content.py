@@ -25,8 +25,8 @@ from apps.contentgraph.models import TileConfigObject
 @never_cache
 @csrf_exempt
 @returns_cg_json
-def content(request, content_id=0, offset=1,
-            results=settings.API_LIMIT_PER_PAGE):
+def handle_content(request, content_id=0, offset=1,
+                   results=settings.API_LIMIT_PER_PAGE, obj_attrs=None):
     """Implements the following API patterns:
 
     GET /content
@@ -46,17 +46,29 @@ def content(request, content_id=0, offset=1,
     page = paginator.page(offset)
     next_ptr = page.next_page_number() if page.has_next() else None
 
-    if request.method == 'GET':
-        # single item
-        if content_id:
-            return page.object_list[0].to_cg_json()
-        # multi item
+    # GET /content/id
+    if request.method == 'GET' and content_id:
+        return page.object_list[0].to_cg_json()
+    # GET /content/id
+    elif request.method == 'GET':
         return [c.to_cg_json() for c in page.object_list], next_ptr
+    # POST /content
     elif request.method == 'POST':
-        pass
-    elif request.method == 'PATCH' and content_id:
-        content.update(**json.loads(request.body)).save()
+        attrs = json.loads(request.body)
+        new_content = Content()
+        new_content.update(**attrs)
+        if obj_attrs:
+            new_content.update(**obj_attrs)
+        new_content.save()  # :raises ValidationError
         return content.to_cg_json()
+    # PATCH /content/id
+    elif request.method == 'PATCH' and content_id:
+        content.update(**json.loads(request.body))
+        if obj_attrs:
+            content.update(**obj_attrs)
+        content.save()  # :raises ValidationError
+        return content.to_cg_json()
+    # DELETE /content/id
     elif request.method == 'DELETE':
         content.delete()
         return HttpResponse(status=200)  # it would be 500 if delete failed
@@ -67,7 +79,7 @@ def content(request, content_id=0, offset=1,
 @never_cache
 @csrf_exempt
 @returns_cg_json
-def store_content(request, store_id, content_id=0, offset=1,
+def handle_store_content(request, store_id, content_id=0, offset=1,
                   results=settings.API_LIMIT_PER_PAGE):
     """Implements the following API patterns:
 
@@ -82,9 +94,14 @@ def store_content(request, store_id, content_id=0, offset=1,
     store = get_object_or_404(Store, old_id=store_id)
 
     if content_id:  # get this content for this store
-        content = [Content.objects.filter(old_id=content_id, store_id=store.id).select_subclasses()[0]]
+        content = [Content.objects
+                          .filter(old_id=content_id, store_id=store.id)
+                          .select_subclasses()[0]]
     else:  # get all content for this store
-        content = (Content.objects.filter(store_id=store.id).select_subclasses().all())
+        content = (Content.objects
+                          .filter(store_id=store.id)
+                          .select_subclasses()
+                          .all())
 
     if not offset:
         offset = 1
@@ -92,18 +109,22 @@ def store_content(request, store_id, content_id=0, offset=1,
     page = paginator.page(offset)
     next_ptr = page.next_page_number() if page.has_next() else None
 
-    if request.method == 'GET':
-        # single item
-        if content_id:
-            return page.object_list[0].to_cg_json()
-        # multi item
+    # GET /store/id/content/id
+    if request.method == 'GET' and content_id:
+        return page.object_list[0].to_cg_json(), None
+    # GET /store/id/content
+    elif request.method == 'GET':
         return [c.to_cg_json() for c in page.object_list], next_ptr
+    # POST /store/id/content
     elif request.method == 'POST':
-        return content(request=request)
-    elif request.method == 'PATCH':
-        return content(request=request, content_id=content_id)
-    elif request.method == 'DELETE':
-        return content(request=request, content_id=content_id)
+        return handle_content(request=request,
+                              obj_attrs={'store_id': store.id})
+    # PATCH /store/id/content_id
+    elif request.method == 'PATCH' and content_id:
+        return handle_content(request=request, content_id=content_id)
+    # DELETE /store/id/content_id
+    elif request.method == 'DELETE' and content_id:
+        return handle_content(request=request, content_id=content_id)
 
 
 @request_methods('GET', 'PATCH')

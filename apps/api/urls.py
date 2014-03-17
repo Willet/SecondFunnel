@@ -33,10 +33,10 @@ urlpatterns += patterns('apps.api.views',
     # primitive handlers
     url(r'^%s/product/?$' % prefix, 'product'),
     url(r'^%s/product/(?P<product_id>[^\/]*)/?$' % prefix, 'product'),
-    url(r'^%s/content/?$' % prefix, 'content'),
-    url(r'^%s/content/(?P<content_id>[^\/]*)/?$' % prefix, 'content'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/content/?$' % prefix, 'store_content'),
-    url(r'^%s/store/(?P<store_id>[^\/]*)/content/(?P<content_id>[^\/]*)/?$' % prefix, 'store_content'),
+    url(r'^%s/content/?$' % prefix, 'handle_content'),
+    url(r'^%s/content/(?P<content_id>[^\/]*)/?$' % prefix, 'handle_content'),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/content/?$' % prefix, 'handle_store_content'),
+    url(r'^%s/store/(?P<store_id>[^\/]*)/content/(?P<content_id>[^\/]*)/?$' % prefix, 'handle_store_content'),
 
     url(r'^%s/store/(?P<store_id>[^\/]*)'
         r'/page/(?P<page_id>[^\/]*)'
