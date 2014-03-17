@@ -244,6 +244,9 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_admin_bootstrapped.bootstrap3', # before 'django_admin_bootstrapped'
+    'django_admin_bootstrapped',  # before 'django.contrib.admin'
+    'adminactions',  # before 'django.contrib.admin'
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.humanize',
@@ -347,6 +350,7 @@ TEMPLATE_CONTEXT_PROCESSORS = DEFAULT_SETTINGS.TEMPLATE_CONTEXT_PROCESSORS + (
     # add custom context processors here
     'secondfunnel.context_processors.environment',
     'secondfunnel.context_processors.required_dimensions',
+    'django.core.context_processors.request',
 )
 
 FIXTURE_DIRS = (

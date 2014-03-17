@@ -1,5 +1,6 @@
 import json
 from urlparse import parse_qs
+from django.shortcuts import get_object_or_404
 
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
@@ -8,13 +9,81 @@ from django.http import (HttpResponse, HttpResponseBadRequest,
 from django.conf import settings
 
 from apps.api.decorators import check_login, append_headers, request_methods
-from apps.intentrank.utils import ajax_jsonp
+from apps.assets.models import Content
+from apps.intentrank.utils import ajax_jsonp, returns_cg_json
 
 from apps.api.resources import ContentGraphClient
 from apps.api.utils import mimic_response, get_proxy_results
 from apps.api.views.tileconfig import add_content_to_page, page_add_product
 
 from apps.contentgraph.models import TileConfigObject
+
+
+@request_methods('GET', 'POST', 'PATCH', 'DELETE')
+@check_login
+@never_cache
+@csrf_exempt
+@returns_cg_json
+def content(request, content_id=0):
+    """Implements the following API patterns:
+
+    GET /content
+    GET /content/id
+    POST /content
+    PATCH /content/id
+    DELETE /content/id
+    """
+    if content_id:
+        content = Content.objects.filter(old_id=content_id).select_subclasses()[0]
+    else:
+        content = Content.objects.all()
+
+    if request.method == 'GET':
+        if not isinstance(content, list):
+            return make_cg_content_json(content)
+        else:
+            return [make_cg_content_json(content)
+                    for content in Content.objects.all()]
+    elif request.method == 'POST':
+        pass
+    elif request.method == 'PATCH':
+        content.update()
+    elif request.method == 'DELETE':
+        content.delete()
+        return HttpResponse(status=200)  # it would be 500 if delete failed
+
+
+@request_methods('GET', 'POST', 'PATCH', 'DELETE')
+@check_login
+@never_cache
+@csrf_exempt
+@returns_cg_json
+def store_content(request, store_id, content_id=0):
+    """Implements the following API patterns:
+
+    GET /store/id/content
+    GET /store/id/content/id
+    POST /store/id/content
+    PATCH /store/id/content/id
+    DELETE /store/id/content/id
+    """
+    if content_id:
+        content = Content.objects.filter(old_id=content_id).select_subclasses()[0]
+    else:
+        content = Content.objects.all()
+
+    if request.method == 'GET':
+        if not isinstance(content, list):
+            return make_cg_content_json(content)
+        else:
+            return [make_cg_content_json(content)
+                    for content in Content.objects.all()]
+    elif request.method == 'POST':
+        return content(request=request)
+    elif request.method == 'PATCH':
+        return content(request=request, content_id=content_id)
+    elif request.method == 'DELETE':
+        return content(request=request, content_id=content_id)
 
 
 @request_methods('GET', 'PATCH')
@@ -257,3 +326,17 @@ def tag_content(request, store_id, page_id, content_id, product_id=0):
         return ajax_jsonp(result=json.loads(cont), status=resp.status)
 
     return HttpResponseBadRequest()  # missing something (say, product id)
+
+
+def make_cg_content_json(content):
+    """returns {dict} content in CG json format"""
+    return {
+
+    }
+
+
+def make_cg_image_json(image):
+    """"""
+    return {
+
+    }
